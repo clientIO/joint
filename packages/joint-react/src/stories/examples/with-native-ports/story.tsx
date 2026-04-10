@@ -15,31 +15,25 @@ export default {
     docs: {
       description: {
         component: `
-Demonstrates how to use native [JointJS ports](https://docs.jointjs.com/learn/features/ports) with @joint/react using \`useElementDefaults\` with \`mapAttributes\`.
+Demonstrates how to use native [JointJS ports](https://docs.jointjs.com/learn/features/ports) with @joint/react by including port definitions directly in element data.
 
-Elements are rendered as React components via \`renderElement\`, while native JointJS ports are added through \`mapAttributes\`. This combines React's rendering flexibility with JointJS's built-in port positioning and magnet behavior.
+Elements are rendered as React components via \`renderElement\`, while native JointJS ports are included in the initial element data via the \`ports\` property. This combines React's rendering flexibility with JointJS's built-in port positioning and magnet behavior.
 
-## Key Concept: Native Ports via mapAttributes
+## Key Concept: Native Ports via Element Data
 
 \`\`\`tsx
-// Element data is minimal — no JointJS specifics
+// Build native JointJS port definitions
+const ports = buildNativePorts(['in-1'], ['out-1', 'out-2']);
+
+// Include ports directly in element data
 const elements = {
   'node-1': {
-    x: 50, y: 50, width: 140, height: 60,
-    color: '#3b82f6',
-    label: 'Node 1',
-    outputPorts: ['out-1', 'out-2'],
+    data: { color: '#3b82f6', label: 'Node 1' },
+    position: { x: 50, y: 50 },
+    size: { width: 140, height: 60 },
+    ports,
   },
 };
-
-// mapAttributes adds native ports to the PortalElement
-const elementMappers = useElementDefaults({
-  mapAttributes: ({ attributes, data }) => {
-    const ports = buildNativePorts(data.inputPorts, data.outputPorts);
-    if (!ports) return attributes;
-    return { ...attributes, ports };
-  },
-}, []);
 
 // renderElement provides the React visual
 const renderElement = useCallback(
@@ -47,7 +41,7 @@ const renderElement = useCallback(
   [],
 );
 
-<GraphProvider elements={elements} {...elementMappers}>
+<GraphProvider elements={elements}>
   <Paper renderElement={renderElement} />
 </GraphProvider>
 \`\`\`
@@ -63,5 +57,5 @@ export const Default = makeStory({
   name: 'Native Ports',
   apiURL: 'https://docs.jointjs.com/learn/features/ports',
   description:
-    'React-rendered elements with native JointJS ports added via useElementDefaults mapAttributes, without React Port portals.',
+    'React-rendered elements with native JointJS ports included directly in element data, without React Port portals.',
 });

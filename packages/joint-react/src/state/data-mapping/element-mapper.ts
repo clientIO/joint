@@ -14,7 +14,7 @@ import type { CellAttributes } from './index';
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function buildAttributesFromElement<ElementData extends object = Record<string, unknown>>(
+export function mapElementToAttributes<ElementData extends object = Record<string, unknown>>(
   element: ElementRecord<ElementData>
 ): CellAttributes {
   if (!isRecord(element)) {
@@ -42,7 +42,9 @@ export function buildAttributesFromElement<ElementData extends object = Record<s
       throw new Error('Cannot use both "portMap" and "ports" on the same element.');
     }
     if (portDefaults) {
-      throw new Error('Cannot use both "portMap" and "portDefaults" on the same element. Port defaults are generated automatically when using portMap.');
+      throw new Error(
+        'Cannot use both "portMap" and "portDefaults" on the same element. Port defaults are generated automatically when using portMap.'
+      );
     }
     attributes.ports = convertPorts(portMap, element.portStyle);
     attributes.portDefaults = createPortGroupsDefault();
@@ -63,12 +65,10 @@ export function buildAttributesFromElement<ElementData extends object = Record<s
  *
  * 1:1 mapping — no `presentation` wrapper.
  */
-export function buildElementFromAttributes<ElementData extends object = Record<string, unknown>>(
+export function mapAttributesToElement<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
-
   const {
-    id,
     type,
     // Ports
     portMap,
@@ -108,7 +108,7 @@ export function buildElementFromAttributes<ElementData extends object = Record<s
 }
 
 export type MapAttributesToElement<ElementData extends object = Record<string, unknown>> =
-  typeof buildElementFromAttributes<ElementData>;
+  typeof mapAttributesToElement<ElementData>;
 
 export type MapElementToAttributes<ElementData extends object = Record<string, unknown>> =
-  (options: { id: string; element: ElementRecord<ElementData> }) => CellAttributes;
+  typeof mapElementToAttributes<ElementData>;

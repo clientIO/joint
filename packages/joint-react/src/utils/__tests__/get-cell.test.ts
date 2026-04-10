@@ -1,9 +1,7 @@
-
 import { dia, shapes } from '@joint/core';
-import { buildLinkFromAttributes } from '../../state/data-mapping';
+import { mapAttributesToLink } from '../../state/data-mapping';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
-
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement, PortalLink };
 
@@ -32,7 +30,7 @@ describe('graph-state-selectors link mapping', () => {
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Link;
 
-      const link = buildLinkFromAttributes(cell.attributes);
+      const link = mapAttributesToLink(cell.attributes);
 
       expect(link).toMatchObject({
         source: { id: 'source-id' },

@@ -13,9 +13,9 @@ export default {
     docs: {
       description: {
         story:
-          'Demonstrates `useElementDefaults` and `useLinkDefaults` hooks to ' +
-          'apply default styling to element ports and link appearance instead of ' +
-          'setting properties on each cell individually.',
+          'Demonstrates including default styling (port maps, port styles, sizes, link styles) ' +
+          'directly in element and link data, and using `useEffect` with `useGraph` to ' +
+          'dynamically update all cells when the theme changes.',
       },
       source: {
         code: RawCode,

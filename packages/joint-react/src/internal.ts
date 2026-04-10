@@ -49,14 +49,8 @@ export {
 export { createAtom, type Atom } from './store/state-container';
 
 // Data-Mapping Defaults
-export {
-  buildAttributesFromElement,
-  buildElementFromAttributes,
-} from './state/data-mapping/element-mapper';
-export {
-  buildAttributesFromLink,
-  buildLinkFromAttributes,
-} from './state/data-mapping/link-mapper';
+export * from './state/data-mapping/element-mapper';
+export * from './state/data-mapping/link-mapper';
 
 // Data-Mapping Internals
 export { convertLabel } from './state/data-mapping/convert-labels';

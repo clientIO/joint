@@ -4,7 +4,6 @@ import React, { useLayoutEffect, type Dispatch, type SetStateAction } from 'reac
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
-import type { GraphMappings } from '../../state/data-mapping';
 import type { IncrementalContainerChanges } from '../../store/graph-view';
 import type { ElementRecord, LinkRecord } from '../../types/data-types';
 
@@ -16,7 +15,7 @@ import type { ElementRecord, LinkRecord } from '../../types/data-types';
 export interface GraphProviderProps<
   ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
-> extends GraphMappings<ElementData, LinkData> {
+> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph
@@ -137,30 +136,6 @@ function GraphBase<
     },
     []
   );
-
-  const {
-    mapElementToAttributes,
-    mapLinkToAttributes,
-    mapAttributesToElement,
-    mapAttributesToLink,
-  } = rest;
-
-  useLayoutEffect(() => {
-    if (!isReady || !ref.current) return;
-    ref.current.graphView.updateMappers({
-      mapElementToAttributes,
-      mapLinkToAttributes,
-      mapAttributesToElement,
-      mapAttributesToLink,
-    });
-  }, [
-    mapElementToAttributes,
-    mapLinkToAttributes,
-    mapAttributesToElement,
-    mapAttributesToLink,
-    isReady,
-    ref,
-  ]);
 
   useLayoutEffect(() => {
     if (!isControlledMode || !isReady || !ref.current) return;

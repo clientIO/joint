@@ -6,8 +6,6 @@ import {
   GraphProvider,
   Paper,
   useElementSize,
-  buildAttributesFromElement,
-  useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
@@ -102,6 +100,7 @@ const initialElements: Record<string, ElementRecord<NativeElementUserData>> = {
     },
     position: { x: 50, y: 100 },
     size: { width: 160, height: 100 },
+    ports: buildNativePorts(['in-1', 'in-2'], ['out-1', 'out-2', 'out-3']),
   },
   'node-2': {
     data: {
@@ -112,6 +111,7 @@ const initialElements: Record<string, ElementRecord<NativeElementUserData>> = {
     },
     position: { x: 380, y: 50 },
     size: { width: 160, height: 100 },
+    ports: buildNativePorts(['in-1', 'in-2'], ['out-1', 'out-2']),
   },
   'node-3': {
     data: {
@@ -122,6 +122,7 @@ const initialElements: Record<string, ElementRecord<NativeElementUserData>> = {
     },
     position: { x: 380, y: 250 },
     size: { width: 160, height: 100 },
+    ports: buildNativePorts(['in-1', 'in-2', 'in-3'], ['out-1']),
   },
 };
 
@@ -129,36 +130,29 @@ const initialLinks: Record<string, LinkRecord> = {
   'link-1': {
     source: { id: 'node-1', port: 'out-1' },
     target: { id: 'node-2', port: 'in-1' },
+    style: { color: EMERALD },
   },
   'link-2': {
     source: { id: 'node-1', port: 'out-2' },
     target: { id: 'node-3', port: 'in-1' },
+    style: { color: EMERALD },
   },
   'link-3': {
     source: { id: 'node-1', port: 'out-3' },
     target: { id: 'node-3', port: 'in-2' },
+    style: { color: EMERALD },
   },
   'link-4': {
     source: { id: 'node-2', port: 'out-1' },
     target: { id: 'node-3', port: 'in-3' },
+    style: { color: EMERALD },
   },
   'link-5': {
     source: { id: 'node-2', port: 'out-2' },
     target: { id: 'node-1', port: 'in-2' },
+    style: { color: EMERALD },
   },
 };
-
-function mapNativeElementToAttributes(options: {
-  id: string;
-  element: ElementRecord<NativeElementUserData>;
-}) {
-  const { element } = options;
-  const userData = element.data as NativeElementUserData | undefined;
-  const ports = buildNativePorts(userData?.inputPorts, userData?.outputPorts);
-  const attributes = buildAttributesFromElement(element);
-  if (!ports) return attributes;
-  return { ...attributes, ports };
-}
 
 function Node({ color, label }: Readonly<{ color: string; label: string }>) {
   const { width = 0, height = 0 } = useElementSize();
@@ -209,16 +203,10 @@ function Main() {
 }
 
 export default function App() {
-  const linkMappers = useLinkDefaults({
-    style: { color: EMERALD },
-  });
-
   return (
     <GraphProvider<NativeElementUserData>
       elements={initialElements}
       links={initialLinks}
-      mapElementToAttributes={mapNativeElementToAttributes}
-      {...linkMappers}
     >
       <Main />
     </GraphProvider>

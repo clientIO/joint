@@ -18,7 +18,7 @@ import type { CellAttributes } from '.';
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function buildAttributesFromLink<LinkData extends object = Record<string, unknown>>(
+export function mapLinkToAttributes<LinkData extends object = Record<string, unknown>>(
   link: LinkRecord<LinkData>
 ): CellAttributes {
   if (!isRecord(link)) {
@@ -53,8 +53,8 @@ export function buildAttributesFromLink<LinkData extends object = Record<string,
     if (labels) {
       throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
     }
-    attributes.labels = Object.entries(labelMap).map(
-      ([labelId, label]) => convertLabel(labelId, label, link.labelStyle)
+    attributes.labels = Object.entries(labelMap).map(([labelId, label]) =>
+      convertLabel(labelId, label, link.labelStyle)
     );
     attributes.labelMap = labelMap;
   } else {
@@ -73,11 +73,11 @@ export function buildAttributesFromLink<LinkData extends object = Record<string,
  *
  * 1:1 mapping — no `presentation` wrapper.
  */
-export function buildLinkFromAttributes<LinkData extends object = Record<string, unknown>>(
+export function mapAttributesToLink<LinkData extends object = Record<string, unknown>>(
   attributes: dia.Link.Attributes
 ): LinkRecord<LinkData> {
-
   const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     id,
     type,
     // Labels
@@ -123,7 +123,7 @@ export function buildLinkFromAttributes<LinkData extends object = Record<string,
 }
 
 export type MapAttributesToLink<LinkData extends object = Record<string, unknown>> =
-  typeof buildLinkFromAttributes<LinkData>;
+  typeof mapAttributesToLink<LinkData>;
 
 export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> =
-  (options: { id: string; link: LinkRecord<LinkData> }) => CellAttributes;
+  typeof mapLinkToAttributes<LinkData>;

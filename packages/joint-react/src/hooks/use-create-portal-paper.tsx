@@ -12,7 +12,7 @@ import {
   useState,
   type RefObject,
   type ReactNode,
-  useContext
+  useContext,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
@@ -25,6 +25,7 @@ import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 
+import { mapLinkToAttributes } from '../state/data-mapping';
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
@@ -112,11 +113,7 @@ function LinkItem({
  * @returns A JSX element rendering the label inside a DefaultHTMLHost with default styling.
  */
 const defaultRenderElement = (data: Record<string, unknown>) => {
-  return (
-    <HTMLBox>
-      {data?.label as string}
-    </HTMLBox>
-  );
+  return <HTMLBox>{data?.label as string}</HTMLBox>;
 };
 
 /**
@@ -170,7 +167,7 @@ export function useCreatePortalPaper(
 
   // Subscribe to paper version to trigger re-renders on view mount/unmount changes
   const version = useInternalData(selectPaperVersion);
-  const { addPaper, graph, graphView: gv } = useGraphStore();
+  const { addPaper, graph } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
@@ -189,10 +186,7 @@ export function useCreatePortalPaper(
       const PortalLinkModel = getPortalLinkConstructor(graph);
       if (!link) {
         const id = util.uuid();
-        const defaultAttributes = gv.mapLinkToAttributes({
-          id,
-          link: { data: {} },
-        });
+        const defaultAttributes = mapLinkToAttributes({ id, data: {} } as LinkRecord);
         return new PortalLinkModel(defaultAttributes);
       }
       if (link instanceof dia.Link) {
@@ -202,14 +196,11 @@ export function useCreatePortalPaper(
         return link.clone();
       }
       const id = util.uuid();
-      const attributes = gv.mapLinkToAttributes({
-        id,
-        link: { data: {}, ...link } as LinkRecord,
-      });
+      const attributes = mapLinkToAttributes({ id, data: {}, ...link } as LinkRecord);
       return new PortalLinkModel(attributes);
     },
 
-    [defaultLink, graph, gv]
+    [defaultLink, graph]
   );
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);

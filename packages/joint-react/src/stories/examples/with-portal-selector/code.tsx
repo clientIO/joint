@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
-import { dia, highlighters, g, util, V } from '@joint/core';
+import { dia, highlighters, g, V } from '@joint/core';
 import {
   GraphProvider,
   Paper,
@@ -10,8 +10,6 @@ import {
   usePaperEvents,
   useMeasureNode,
   useElementSize,
-  buildAttributesFromElement,
-  buildAttributesFromLink,
   type CellId,
   type ElementRecord,
   type LinkRecord,
@@ -19,7 +17,7 @@ import {
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
 } from '@joint/react';
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { LIGHT, PAPER_STYLE } from 'storybook-config/theme';
 
 // ============================================================================
@@ -39,10 +37,6 @@ interface ElementUserData {
   readonly jjType?: string;
 }
 
-interface LinkUserData {
-  readonly [key: string]: unknown;
-  readonly jjType?: string;
-}
 
 const PAPER_PROPS: PaperProps = {
   defaultAnchor: {
@@ -381,41 +375,10 @@ function Main() {
 // ============================================================================
 
 export default function App() {
-  const mapElementToAttributes = useMemo(() => {
-    return ({ element }: { id: string; element: ElementRecord<ElementUserData> }) => {
-      const attributes = buildAttributesFromElement(element);
-      const userData = element.data as ElementUserData | undefined;
-      const { jjType, color = 'lightgray' } = userData ?? {};
-      if (!jjType) return attributes;
-      return {
-        ...attributes,
-        type: jjType,
-        attrs: util.defaultsDeep({ body: { fill: color }, top: { fill: color } }, {}),
-      };
-    };
-  }, []);
-
-  const mapLinkToAttributes = useMemo(() => {
-    return ({ link }: { id?: string; link: LinkRecord }) => {
-      const attributes = buildAttributesFromLink(link);
-      const userData = link.data as LinkUserData | undefined;
-      const { jjType } = userData ?? {};
-      if (!jjType) return attributes;
-      const { color } = link;
-      return {
-        ...attributes,
-        type: jjType,
-        attrs: util.defaultsDeep({ line: { stroke: color } }, {}),
-      };
-    };
-  }, []);
-
   return (
     <GraphProvider
       elements={elements}
       links={links}
-      mapElementToAttributes={mapElementToAttributes}
-      mapLinkToAttributes={mapLinkToAttributes}
     >
       <Main />
     </GraphProvider>

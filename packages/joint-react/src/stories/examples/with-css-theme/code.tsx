@@ -4,7 +4,6 @@ import {
   GraphProvider,
   Paper,
   useElementSize,
-  useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
@@ -35,16 +34,19 @@ const initialLinks: Record<string, LinkRecord> = {
   'a→b': {
     source: { id: 'a' },
     target: { id: 'b' },
+    style: { targetMarker: 'arrow' },
     labelMap: { flow: { text: 'async' } },
   },
   'a→c': {
     source: { id: 'a' },
     target: { id: 'c' },
+    style: { targetMarker: 'arrow' },
     labelMap: { flow: { text: 'sync' } },
   },
   'b→d': {
     source: { id: 'b' },
     target: { id: 'd' },
+    style: { targetMarker: 'arrow' },
     labelMap: { status: { text: 'approved' } },
   },
   'c→d': {
@@ -53,6 +55,7 @@ const initialLinks: Record<string, LinkRecord> = {
     style: {
       color: '#f59e0b', // explicit override — inline style beats CSS variables
       width: 3,
+      targetMarker: 'arrow',
     },
     labelMap: { status: { text: 'pending' } },
   },
@@ -89,8 +92,6 @@ function Diagram() {
   const [links, setLinks] = useState<Record<string, LinkRecord>>(initialLinks);
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  const { mapLinkToAttributes } = useLinkDefaults({ style: { targetMarker: 'arrow' } });
 
   const renderElement: RenderElement<NodeData> = useCallback(
     (data) => <Node label={data.label} />,
@@ -138,7 +139,6 @@ function Diagram() {
         links={links}
         onElementsChange={setElements}
         onLinksChange={setLinks}
-        mapLinkToAttributes={mapLinkToAttributes}
       >
         <Paper
           className={PAPER_CLASSNAME}

@@ -8,7 +8,6 @@ import {
   useElementId,
   useElementSize,
   useElements,
-  useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
@@ -146,38 +145,48 @@ const initialElements: Record<string, ShapeElement> = {
   },
 };
 
+const DEFAULT_LINK_STYLE = {
+  width: 2,
+  linecap: 'butt' as const,
+  sourceMarker: 'circle' as const,
+  targetMarker: 'arrow' as const,
+};
+
 const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: 'investment', anchor: { name: 'top', args: { dy: 1 } } },
     target: { id: 'gold', anchor: { name: 'left', args: { dx: -5 } } },
+    style: { color: LINK_COLOR, ...DEFAULT_LINK_STYLE },
     z: 2,
   },
   link2: {
     source: { id: 'investment', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'bitcoin', anchor: { name: 'left', args: { dx: -5 } } },
+    style: { color: LINK_COLOR, ...DEFAULT_LINK_STYLE },
     z: 2,
   },
   link3: {
     source: { id: 'investment', anchor: { name: 'bottom', args: { dy: -1 } } },
     target: { id: 'sp500', anchor: { name: 'left', args: { dx: -5 } } },
+    style: { color: LINK_COLOR, ...DEFAULT_LINK_STYLE },
     z: 2,
   },
   link4: {
     source: { id: 'gold', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'goldPerf', anchor: { name: 'left', args: { dx: -5 } } },
-    style: { color: GOLD_COLOR },
+    style: { color: GOLD_COLOR, ...DEFAULT_LINK_STYLE },
     z: 4,
   },
   link5: {
     source: { id: 'bitcoin', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'bitcoinPerf', anchor: { name: 'left', args: { dx: -5 } } },
-    style: { color: BTC_COLOR },
+    style: { color: BTC_COLOR, ...DEFAULT_LINK_STYLE },
     z: 5,
   },
   link6: {
     source: { id: 'sp500', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'sp500Perf', anchor: { name: 'left', args: { dx: -5 } } },
-    style: { color: SP500_COLOR },
+    style: { color: SP500_COLOR, ...DEFAULT_LINK_STYLE },
     z: 7,
   },
 };
@@ -632,22 +641,8 @@ function Main() {
 // ----------------------------------------------------------------------------
 
 export default function App() {
-  const { mapLinkToAttributes } = useLinkDefaults({
-    style: {
-      color: LINK_COLOR,
-      width: 2,
-      linecap: 'butt',
-      sourceMarker: 'circle',
-      targetMarker: 'arrow',
-    },
-  });
-
   return (
-    <GraphProvider<ShapeData>
-      elements={initialElements}
-      links={initialLinks}
-      mapLinkToAttributes={mapLinkToAttributes}
-    >
+    <GraphProvider<ShapeData> elements={initialElements} links={initialLinks}>
       <Main />
     </GraphProvider>
   );
