@@ -23,6 +23,7 @@ interface OnChangeOptions {
 interface Options {
   readonly graph: dia.Graph;
   readonly onChanges: (options: OnChangeOptions) => void;
+  readonly onElementsSizeChange?: (id: string, size: { width: number; height: number }) => void;
 }
 
 interface JointJSEventOptions {
@@ -35,7 +36,7 @@ interface JointJSEventOptions {
  * Batching is always on: layout changes are immediate, data changes fire on batch:stop.
  */
 export function graphChanges(options: Options) {
-  const { graph } = options;
+  const { graph, onElementsSizeChange } = options;
   const changes = new Map<string, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
@@ -80,6 +81,12 @@ export function graphChanges(options: Options) {
       _collection: mvc.Collection<dia.Cell>,
       { isUpdateFromReact }: JointJSEventOptions
     ) => {
+      if (cell.isElement() && onElementsSizeChange) {
+        const size = cell.get('size');
+        if (size?.width && size?.height) {
+          onElementsSizeChange(String(cell.id), size);
+        }
+      }
       if (isUpdateFromReact) return;
       onCellEvent(cell, 'add');
     }
@@ -114,6 +121,16 @@ export function graphChanges(options: Options) {
   controller.listenTo(graph, LAYOUT_UPDATE_EVENT, ({ changes: layoutChanges }) => {
     onChanges({ changes: layoutChanges, isInsideBatch: true });
   });
+
+  controller.listenTo(
+    graph,
+    'change:size',
+    (cell: dia.Cell, newSize: { width: number; height: number }) => {
+      if (!onElementsSizeChange) return;
+      const id = String(cell.id);
+      onElementsSizeChange(id, newSize);
+    }
+  );
 
   // Always-on batch tracking
   controller.listenTo(graph, 'batch:start', () => {

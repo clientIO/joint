@@ -9,7 +9,7 @@ import React from 'react';
 import { useMeasureNode } from '../../../hooks/use-measure-node';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import { useGraph, useElementId, useLinks } from '../../../hooks';
-import { useNodesMeasuredEffect } from '../../../hooks/use-node-measured-effect';
+import { useNodesMeasuredEffect } from '../../../hooks/use-nodes-measured-effect';
 import type { ElementsMeasuredEvent } from '../../../types/event.types';
 import type { ElementRecord, LinkRecord } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';

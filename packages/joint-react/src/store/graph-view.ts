@@ -52,22 +52,9 @@ export function graphView<
   const linkChanged = trackChanges ? new Map<string, LinkRecord<LinkData>>() : undefined;
   const linkRemoved = trackChanges ? new Set<string>() : undefined;
 
-  function triggerSizeChange({
-    id,
-    next,
-    previous,
-  }: {
-    previous?: ElementRecord<ElementData>;
-    next: ElementRecord<ElementData>;
-    id: string;
-  }) {
-    if (!isSizeEqual(previous?.size, next.size)) {
-      onElementsSizeChange?.(id, { width: next.size?.width ?? 0, height: next.size?.height ?? 0 });
-    }
-  }
-
   const graphChangesController = graphChanges({
     graph,
+    onElementsSizeChange,
     onChanges: ({ changes, isInsideBatch }) => {
       let hasElementChange = false;
       let hasLinkChange = false;
@@ -113,7 +100,7 @@ export function graphView<
                     : position,
                   size: isSizeEqual(previousSize, size) ? previousSize : size,
                 };
-                triggerSizeChange({ id, previous, next: newItem });
+
                 return newItem;
               });
               if (trackChanges) {
@@ -212,11 +199,7 @@ export function graphView<
       const id = String(cell.id);
       if (cell.isElement()) {
         const data = mapAttributesToElement(cell.attributes);
-        elements.set(id, (previous) => {
-          const newElement = data as ElementWithLayout<ElementData>;
-          triggerSizeChange({ id, previous, next: newElement });
-          return newElement;
-        });
+        elements.set(id, data as ElementWithLayout<ElementData>);
       } else if (cell.isLink()) {
         const data = mapAttributesToLink<LinkData>(cell.attributes);
         links.set(id, data);
@@ -244,14 +227,7 @@ export function graphView<
       for (const [id, data] of useElementEntries) {
         const cell = graph.getCell(id);
         if (cell?.isElement()) {
-          elements.set(id, (previous) => {
-            const newItem = {
-              ...previous,
-              ...data,
-            } as ElementWithLayout<ElementData>;
-            triggerSizeChange({ id, previous, next: newItem });
-            return newItem;
-          });
+          elements.set(id, data as ElementWithLayout<ElementData>);
         }
       }
       for (const [id, data] of useLinkEntries) {

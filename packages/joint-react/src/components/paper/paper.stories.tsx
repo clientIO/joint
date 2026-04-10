@@ -12,7 +12,7 @@ import { useMeasureNode } from '../../hooks/use-measure-node';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
-import { useNodesMeasuredEffect } from '../../hooks/use-node-measured-effect';
+import { useNodesMeasuredEffect } from '../../hooks/use-nodes-measured-effect';
 import { usePaperEvents } from '../../hooks/use-paper-events';
 import { Paper } from './paper';
 import { useElementSize } from '../../hooks/use-element-size';

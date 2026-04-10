@@ -87,12 +87,17 @@ export function useNodesMeasuredEffect(
     function handleChanges() {
       const value = measureState.get();
       const isMeasured = value > 0;
-      if (isMeasured && !wasMeasuredRef.current) {
+      const isInitial = isMeasured && !wasMeasuredRef.current;
+      if (isInitial) {
         wasMeasuredRef.current = true;
-        callbackRef.current({ isInitial: true, paper, graph });
-        return;
       }
-      callbackRef.current({ isInitial: false, paper, graph });
+      callbackRef.current({ isInitial, paper, graph });
+      // The user callback may have moved cells via cell.position()/cell.size().
+      // PortalPaper runs in async mode, so those updates would be queued for the
+      // next rAF — producing a one-frame flash where the element is visible at its
+      // pre-layout position. Flush them synchronously so the next paint already
+      // reflects the post-layout state.
+      paper.updateViews();
     }
     // Flush any measurement that happened before subscription (e.g. initial
     // data sync ran before this paperStore was available).

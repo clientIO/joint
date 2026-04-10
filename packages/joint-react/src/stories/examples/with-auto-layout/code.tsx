@@ -10,8 +10,9 @@ import {
   type ElementRecord,
   useElements,
   HTMLBox,
+  useNodesMeasuredEffect,
 } from '@joint/react';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -20,15 +21,15 @@ const INPUT_CLASSNAME =
 
 type ElementData = { label: string };
 const initialElements: Record<string, ElementRecord<ElementData>> = {
-  '1': { data: { label: 'Node 1' }, size: { width: 100, height: 50 } },
-  '2': { data: { label: 'Node 2' }, size: { width: 100, height: 50 } },
-  '3': { data: { label: 'Node 3' }, size: { width: 100, height: 50 } },
-  '4': { data: { label: 'Node 4' }, size: { width: 100, height: 50 } },
-  '5': { data: { label: 'Node 5' }, size: { width: 100, height: 50 } },
-  '6': { data: { label: 'Node 6' }, size: { width: 100, height: 50 } },
-  '7': { data: { label: 'Node 7' }, size: { width: 100, height: 50 } },
-  '8': { data: { label: 'Node 8' }, size: { width: 100, height: 50 } },
-  '9': { data: { label: 'Node 9' }, size: { width: 100, height: 50 } },
+  '1': { data: { label: 'Node 1' } },
+  '2': { data: { label: 'Node 2' } },
+  '3': { data: { label: 'Node 3' } },
+  '4': { data: { label: 'Node 4' } },
+  '5': { data: { label: 'Node 5' } },
+  '6': { data: { label: 'Node 6' } },
+  '7': { data: { label: 'Node 7' } },
+  '8': { data: { label: 'Node 8' } },
+  '9': { data: { label: 'Node 9' } },
 };
 
 function Main() {
@@ -60,18 +61,12 @@ function Main() {
     []
   );
 
-  useEffect(() => {
+  useNodesMeasuredEffect(paperId, () => {
     makeLayoutWithGrid({ graph, gridXSize });
-    // make layout on load!
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const renderElement = useCallback((data: { label: string }) => {
-    return (
-      <HTMLBox useModelGeometry className="flex items-center justify-center">
-        {data.label}
-      </HTMLBox>
-    );
+    return <HTMLBox className="flex items-center justify-center">{data.label}</HTMLBox>;
   }, []);
 
   const elementsLength = useElements((items) => items.size);
@@ -99,9 +94,7 @@ function Main() {
             const newId = `${Math.random()}`;
             setElement(newId, {
               data: { label: `Node ${elementsLength + 1}` },
-              size: { width: 100, height: 50 },
             });
-            makeLayoutWithGrid({ graph, gridXSize });
           }}
           type="button"
           className="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

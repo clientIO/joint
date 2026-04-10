@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
-import { useNodesMeasuredEffect } from '../use-node-measured-effect';
+import { useNodesMeasuredEffect } from '../use-nodes-measured-effect';
 import { useMeasureNode } from '../use-measure-node';
 import type { ElementsMeasuredEvent } from '../../types/event.types';
 import { useElementId } from '../use-element-id';
