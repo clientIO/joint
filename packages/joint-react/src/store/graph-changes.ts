@@ -141,16 +141,17 @@ export function graphChanges(options: Options) {
         isSyncedWithReact = true;
         return;
       }
+
       const graphElements: dia.Cell.JSON[] = Object.entries(elements).map(([id, element]) => {
-        return {
-          ...mapElementToAttributes({ id, ...element }),
-          id,
-        };
+        const cellAttributes = mapElementToAttributes(element);
+        cellAttributes.id = id;
+        return cellAttributes as dia.Cell.JSON;
       });
-      const graphLinks: dia.Cell.JSON[] = Object.entries(links).map(([id, link]) => ({
-        ...mapLinkToAttributes({ id, link }),
-        id,
-      }));
+      const graphLinks: dia.Cell.JSON[] = Object.entries(links).map(([id, link]) => {
+        const cellAttributes = mapLinkToAttributes(link);
+        cellAttributes.id = id;
+        return cellAttributes as dia.Cell.JSON;
+      });
 
       graph.startBatch('updateFromReact');
 

@@ -14,7 +14,7 @@ import type { CellAttributes } from './index';
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function buildAttributesFromElement<ElementData extends object = Record<string, unknown>>(
+export function mapElementToAttributes<ElementData extends object = Record<string, unknown>>(
   element: ElementRecord<ElementData>
 ): CellAttributes {
   if (!isRecord(element)) {
@@ -111,11 +111,4 @@ export type MapAttributesToElement<ElementData extends object = Record<string, u
   typeof mapAttributesToElement<ElementData>;
 
 export type MapElementToAttributes<ElementData extends object = Record<string, unknown>> =
-  (options: { id: string; element: ElementRecord<ElementData> }) => CellAttributes;
-
-export function mapElementToAttributes<ElementData extends object = Record<string, unknown>>(
-  options: { id: string } & ElementRecord<ElementData>
-): CellAttributes {
-  const { id, ...element } = options;
-  return { ...buildAttributesFromElement(element), id };
-}
+  typeof mapElementToAttributes<ElementData>;
