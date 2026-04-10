@@ -498,8 +498,6 @@ function AddLinkForm() {
 }
 
 // --- Main Component ---
-const DEFAULT_ROUTER = { name: 'normal' };
-const DEFAULT_CONNECTOR = { name: 'rounded', args: { radius: 10 } };
 function Main() {
   const elements = useElements<NodeData>();
   const links = useLinks();
@@ -510,8 +508,6 @@ function Main() {
         className={PAPER_CLASSNAME}
         height={500}
         renderElement={RenderElement}
-        defaultRouter={DEFAULT_ROUTER}
-        defaultConnector={DEFAULT_CONNECTOR}
       />
 
       {/* Control Panel - Glassmorphism Style */}

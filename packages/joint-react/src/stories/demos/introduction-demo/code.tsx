@@ -7,6 +7,7 @@
 import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
+import { orthogonalLinks } from '@joint/react/presets';
 import './index.css';
 import {
   GraphProvider,
@@ -70,16 +71,7 @@ function buildTablePorts(rows: string[][]): Record<string, ElementPort> {
 
 // Define static properties for the view's Paper - used by minimap and main view
 const PAPER_PROPS: PaperProps = {
-  defaultRouter: {
-    name: 'rightAngle',
-    args: {
-      margin: 25,
-    },
-  },
-  defaultConnector: {
-    name: 'straight',
-    args: { cornerType: 'line', cornerPreserveAspectRatio: true },
-  },
+  ...orthogonalLinks({ cornerType: 'line', margin: 25 }),
   snapLinks: { radius: 25 },
   sorting: dia.Paper.sorting.APPROX,
   linkPinning: false,

@@ -23,6 +23,8 @@ import { DirectedGraph } from '@joint/layout-directed-graph';
 import '../index.css';
 import { orthogonalLinks } from '../../../presets';
 
+const ORTHOGONAL_LINKS = orthogonalLinks({ cornerType: 'line', cornerRadius: 10, mode: 'top-bottom' });
+
 // Base properties shared by all events
 interface BaseEvent {
   readonly label: string;
@@ -720,7 +722,7 @@ function Main() {
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibilityCallback}
-      {...orthogonalLinks({ cornerType: 'line', cornerRadius: 10, mode: 'vertical' })}
+      {...ORTHOGONAL_LINKS}
       interactive={false}
       async
       style={PAPER_STYLE}

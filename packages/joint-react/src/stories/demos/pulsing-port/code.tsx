@@ -14,8 +14,11 @@ import {
   HTMLBox,
 } from '@joint/react';
 
+import { orthogonalLinks } from '@joint/react/presets';
+
 const PORT_SIZE = 20;
 const unit = 10;
+const ORTHOGONAL_LINKS = orthogonalLinks({ cornerType: 'line', margin: unit * 2 });
 
 const Pulse = dia.HighlighterView.extend({
   tagName: 'g',
@@ -146,16 +149,7 @@ function Main() {
         ...highlighters,
         pulse: Pulse,
       }}
-      defaultRouter={{
-        name: 'rightAngle',
-        args: {
-          margin: unit,
-        },
-      }}
-      defaultConnector={{
-        name: 'straight',
-        args: { cornerType: 'line', cornerPreserveAspectRatio: true },
-      }}
+      {...ORTHOGONAL_LINKS}
       snapLinks={{ radius: 25 }}
       validateMagnet={(_cellView, magnet) => {
         return magnet.getAttribute('magnet') !== 'passive';

@@ -29,7 +29,9 @@ import {
   useState,
 } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
-import { anchors } from '@joint/core';
+import { orthogonalLinks } from '@joint/react/presets';
+
+const ORTHOGONAL_LINKS = orthogonalLinks({ mode: 'top-bottom', cornerType: 'line' });
 
 const ThemeContext = createContext(false);
 
@@ -378,25 +380,7 @@ function Main() {
           if (magnetS?.classList.contains('port-in')) return false;
           return magnetT?.classList.contains('port-in') ?? false;
         }}
-        defaultConnectionPoint={{
-          name: 'boundary',
-          args: {
-            offset: 0,
-            extrapolate: false,
-          },
-        }}
-        defaultRouter={{
-          name: 'rightAngle',
-          args: { margin: 20 },
-        }}
-        defaultAnchor={(view, magnet, ref, opt, endType, linkView) => {
-          const anchor = endType === 'source' ? anchors.bottom : anchors.top;
-          return anchor(view, magnet, ref, opt, endType, linkView);
-        }}
-        defaultConnector={{
-          name: 'straight',
-          args: { cornerType: 'line', cornerPreserveAspectRatio: true },
-        }}
+        {...ORTHOGONAL_LINKS}
       />
     </GraphProvider>
   );

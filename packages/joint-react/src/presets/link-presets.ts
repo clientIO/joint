@@ -69,6 +69,8 @@ export interface OrthogonalLinksOptions extends BaseLinkOptions {
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
   /** Corner radius for the rounded connector (in px). Default: `8`. */
   readonly cornerRadius?: number;
+  /** Minimum distance (in px) the link keeps from elements when routing. */
+  readonly margin?: number;
 }
 
 /**
@@ -83,11 +85,13 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
     sourceOffset = 0,
     targetOffset = 0,
     straightWhenDisconnected = true,
+    margin,
   } = options;
+  const router = rightAngleRouter(margin);
 
   if (straightWhenDisconnected) {
     return {
-      defaultRouter: straightRouterUntilConnected(rightAngleRouter),
+      defaultRouter: straightRouterUntilConnected(router),
       defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
       defaultAnchor: anchorWhenConnected(midSideAnchor(mode, sourceOffset, targetOffset), centerAnchor),
       defaultConnectionPoint: connectionPointWhenConnected(anchorPoint, withOffsets(boundaryPoint, sourceOffset, targetOffset)),
@@ -95,7 +99,7 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
   }
 
   return {
-    defaultRouter: rightAngleRouter,
+    defaultRouter: router,
     defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
     defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset),
     defaultConnectionPoint: anchorPoint,
