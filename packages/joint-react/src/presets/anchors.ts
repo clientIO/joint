@@ -16,6 +16,19 @@ export const centerAnchor: anchors.Anchor = (
   return anchors.center(elementView, magnet, ref, _, endType, linkView);
 };
 
+/**
+ * Anchor that uses `perpendicular` with model geometry for the root element and ports,
+ * and plain `perpendicular` (DOM-measured) for custom magnets.
+ */
+export const perpendicularAnchor: anchors.Anchor = (
+  elementView, magnet, ref, _, endType, linkView
+) => {
+  if (magnet === elementView.el || magnet.getAttribute('port')) {
+    return anchors.perpendicular(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
+  }
+  return anchors.perpendicular(elementView, magnet, ref, _, endType, linkView);
+};
+
 /** Mode for the `midSide` anchor used on root elements and custom magnets. */
 export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto';
 

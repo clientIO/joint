@@ -11,7 +11,10 @@ import {
   SVGText,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
+import { straightLinks } from '@joint/react/presets';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+
+const STRAIGHT_LINKS = straightLinks({ perpendicular: true });
 
 import '../index.css';
 
@@ -392,8 +395,7 @@ function Main() {
         className={PAPER_CLASSNAME}
         renderElement={RenderShapeElement}
         scale={3}
-        defaultAnchor={{ name: 'perpendicular' }}
-        defaultConnectionPoint={{ name: 'rectangle', args: { useModelGeometry: true } }}
+        {...STRAIGHT_LINKS}
         interactive={{
           linkMove: false,
         }}

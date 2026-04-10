@@ -1,7 +1,7 @@
 import { connectionPoints } from '@joint/core';
 import type { PaperProps } from '../components/paper/paper.types';
 import type { AnchorMode } from './anchors';
-import { centerAnchor, midSideAnchor } from './anchors';
+import { centerAnchor, perpendicularAnchor, midSideAnchor } from './anchors';
 import { boundaryPoint, anchorPoint, withOffsets } from './connection-points';
 import { rightAngleRouter, outwardsCurveConnector } from './connectors';
 import {
@@ -46,6 +46,8 @@ export interface StraightLinksOptions extends BaseLinkOptions {
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
   /** Corner radius at vertices (in px). Default: `0`. */
   readonly cornerRadius?: number;
+  /** Use perpendicular anchor instead of center. Default: `false`. */
+  readonly perpendicular?: boolean;
 }
 
 /**
@@ -53,11 +55,11 @@ export interface StraightLinksOptions extends BaseLinkOptions {
  * The shortest path with no routing — a single line from source to target.
  */
 export function straightLinks(options: StraightLinksOptions = {}): LinkPreset {
-  const { sourceOffset = 0, targetOffset = 0, cornerType = 'point', cornerRadius = 0 } = options;
+  const { sourceOffset = 0, targetOffset = 0, cornerType = 'point', cornerRadius = 0, perpendicular = false } = options;
   return {
     defaultRouter: { name: 'normal' },
     defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
-    defaultAnchor: centerAnchor,
+    defaultAnchor: perpendicular ? perpendicularAnchor : centerAnchor,
     defaultConnectionPoint: withOffsets(boundaryPoint, sourceOffset, targetOffset),
   };
 }
