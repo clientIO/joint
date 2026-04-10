@@ -8,3 +8,16 @@ export {
   type OrthogonalLinksOptions,
   type SmoothLinksOptions,
 } from './link-presets';
+export {
+  linkMarkerArrow,
+  linkMarkerArrowOpen,
+  linkMarkerArrowSunken,
+  linkMarkerArrowQuill,
+  linkMarkerArrowDouble,
+  linkMarkerCircle,
+  linkMarkerDiamond,
+  linkMarkerBar,
+  linkMarkerCross,
+  linkMarkerFork,
+  linkMarkerForkClose,
+} from './link-markers';

@@ -66,8 +66,8 @@ export function convertLabel(
   } else if (backgroundShape === 'ellipse') {
     bodyTagName = 'ellipse';
     labelBodyAttributes.ref = 'labelText';
-    labelBodyAttributes.cx = 'calc(0.5 * w)';
-    labelBodyAttributes.cy = 'calc(0.5 * h)';
+    labelBodyAttributes.cx = '0';
+    labelBodyAttributes.cy = '0';
     labelBodyAttributes.rx = `calc(0.5 * w + ${px})`;
     labelBodyAttributes.ry = `calc(0.5 * h + ${py})`;
   } else {

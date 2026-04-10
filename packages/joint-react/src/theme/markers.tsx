@@ -1,23 +1,43 @@
 import type { dia } from '@joint/core';
-import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 import { isString } from '../utils/is';
+import {
+  linkMarkerArrow,
+  linkMarkerArrowOpen,
+  linkMarkerArrowSunken,
+  linkMarkerArrowQuill,
+  linkMarkerArrowDouble,
+  linkMarkerCircle,
+  linkMarkerDiamond,
+  linkMarkerBar,
+  linkMarkerCross,
+  linkMarkerFork,
+  linkMarkerForkClose,
+} from '../presets/link-markers';
 
 /**
  * Built-in marker shapes for links.
  */
 export const linkMarkerShapes = {
-  none: null,
-  arrow: jsx(
-    <path d="M 0 0 L 8 -4 V 4 z" fill="context-stroke" stroke-width="2" stroke="context-stroke" />
-  ),
-  'arrow-open': jsx(
-    <path d="M 10 4 L 0 0 L 10 -4" fill="none" stroke-width="2" stroke="context-stroke" />
-  ),
-  circle: jsx(<circle r="4" fill="context-stroke" stroke-width="2" />),
-  'circle-outline': jsx(<circle r="4" fill="none" stroke-width="2" stroke="context-stroke" />),
-  diamond: jsx(<path d="M 0 0 L 5 -5 L 10 0 L 5 5 z" fill="context-stroke" stroke-width="2" />),
-  bar: jsx(<path d="M 0 -5 V 5" stroke-width="2" stroke="context-stroke" />),
-  cross: jsx(<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke-width="2" stroke="context-stroke" />),
+  'none': null,
+  'arrow': linkMarkerArrow(),
+  'arrow-outline': linkMarkerArrow({ fill: 'none' }),
+  'arrow-open': linkMarkerArrowOpen(),
+  'arrow-sunken': linkMarkerArrowSunken(),
+  'arrow-sunken-outline': linkMarkerArrowSunken({ fill: 'none' }),
+  'arrow-quill': linkMarkerArrowQuill(),
+  'arrow-quill-outline': linkMarkerArrowQuill({ fill: 'none' }),
+  'arrow-double': linkMarkerArrowDouble(),
+  'arrow-double-outline': linkMarkerArrowDouble({ fill: 'none' }),
+  'circle': linkMarkerCircle(),
+  'circle-outline': linkMarkerCircle({ fill: 'none' }),
+  'diamond': linkMarkerDiamond(),
+  'diamond-outline': linkMarkerDiamond({ fill: 'none' }),
+  'bar': linkMarkerBar(),
+  'cross': linkMarkerCross(),
+  'fork': linkMarkerFork(),
+  'fork-outline': linkMarkerFork({ fill: 'none' }),
+  'fork-close': linkMarkerForkClose(),
+  'fork-close-outline': linkMarkerForkClose({ fill: 'none' }),
 } as const satisfies Record<string, dia.SVGMarkerJSON | null>;
 
 export type LinkMarkerName = keyof typeof linkMarkerShapes;
