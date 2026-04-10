@@ -82,20 +82,16 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
     return {
       defaultRouter: straightRouterUntilConnected(rightAngleRouter),
       defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
-      defaultAnchor: anchorWhenConnected(midSideAnchor(mode), centerAnchor),
-      defaultConnectionPoint: withOffsets(
-        connectionPointWhenConnected(anchorPoint, boundaryPoint),
-        sourceOffset,
-        targetOffset
-      ),
+      defaultAnchor: anchorWhenConnected(midSideAnchor(mode, sourceOffset, targetOffset), centerAnchor),
+      defaultConnectionPoint: connectionPointWhenConnected(anchorPoint, withOffsets(boundaryPoint, sourceOffset, targetOffset)),
     };
   }
 
   return {
     defaultRouter: rightAngleRouter,
     defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
-    defaultAnchor: midSideAnchor(mode),
-    defaultConnectionPoint: withOffsets(anchorPoint, sourceOffset, targetOffset),
+    defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset),
+    defaultConnectionPoint: anchorPoint,
   };
 }
 
