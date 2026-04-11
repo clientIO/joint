@@ -101,15 +101,15 @@ export function linkMarkerArrowDouble(opts?: MarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 7 * s;
   const h = 4 * s;
-  const gap = 6 * s;
+  const gap = 8 * s;
   return {
     markup: jsx(
       <>
-        <path d={`M ${w} ${-h} L 0 0 L ${w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
-        <path d={`M ${w + gap} ${-h} L ${gap} 0 L ${w + gap} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${-gap} ${-h} L ${-(w + gap)} 0 L ${-gap} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
       </>
     ),
-    size: w + gap,
+    size: w + gap + strokeWidth + 1 * s,
   };
 }
 
