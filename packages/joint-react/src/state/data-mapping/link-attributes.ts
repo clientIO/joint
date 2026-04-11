@@ -1,7 +1,7 @@
 import type { attributes } from '@joint/core';
 import type { LinkStyle } from '../../types/data-types';
 import type { Nullable } from '../../types';
-import { resolveMarker } from '../../theme/link-markers';
+import { resolveMarker } from '../../theme/named-link-markers';
 
 /**
  * Builds the full `attrs` object for a link cell, containing

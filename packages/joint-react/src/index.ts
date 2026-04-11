@@ -64,7 +64,7 @@ export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
 
 // Theme
-export type { LinkMarkerName, LinkMarker } from './theme/link-markers';
+export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
 
 // Models
 export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';

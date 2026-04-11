@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import type { PortShape } from '../theme/element-theme';
-import type { LinkMarker } from '../theme/link-markers';
+import type { LinkMarker } from '../theme/named-link-markers';
 import type { LiteralUnion } from './index';
 import type { ElementPosition, ElementSize } from './cell-data';
 
