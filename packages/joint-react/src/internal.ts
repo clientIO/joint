@@ -54,8 +54,6 @@ export * from './state/data-mapping/link-mapper';
 
 // Data-Mapping Internals
 export { mergeLabelsFromAttributes } from './state/data-mapping/convert-labels-reverse';
-export { buildLinkPresentationAttributes } from './state/data-mapping/link-attributes';
-export { resolveCellDefaults } from './state/data-mapping/resolve-cell-defaults';
 
 // Render Internals
 export { PaperHTMLContainer } from './components/paper/render-element/paper-html-container';
