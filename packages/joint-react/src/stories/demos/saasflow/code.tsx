@@ -152,9 +152,7 @@ const initialLinks: Record<string, LinkRecord> = {
       width: 2,
       dasharray: '6,4',
       targetMarker: {
-        d: 'M 0 -4 L 8 0 L 0 4 Z',
-        fill: 'context-stroke',
-        stroke: 'none',
+        markup: [{ tagName: 'path', attributes: { d: 'M 0 -4 L 8 0 L 0 4 Z', fill: 'context-stroke', stroke: 'none' } }],
       },
     },
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },

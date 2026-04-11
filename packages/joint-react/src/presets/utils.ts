@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { namedLinkMarkers } from '../theme/named-link-markers';
+import { namedLinkMarkers, type LinkMarkerRecord } from '../theme/named-link-markers';
 
 export const MODEL_GEOMETRY_OPTIONS = {
   useModelGeometry: true,
@@ -25,7 +25,7 @@ export function getMarkerLength(linkView: dia.LinkView, endType: dia.LinkEnd): n
   if (!marker) return 0;
   if (typeof marker === 'string') {
     const resolved = namedLinkMarkers[marker as keyof typeof namedLinkMarkers];
-    return (resolved as Record<string, unknown>)?.length as number ?? 0;
+    return (resolved as LinkMarkerRecord | null)?.length ?? 0;
   }
   return marker.length ?? 0;
 }

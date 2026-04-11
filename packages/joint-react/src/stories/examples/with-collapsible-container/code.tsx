@@ -140,8 +140,7 @@ const links: Record<string, LinkRecord> = {
       color: LINK_COLOR,
       width: 1,
       targetMarker: {
-        d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
-        fill: 'none',
+        markup: [{ tagName: 'path', attributes: { d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4', fill: 'none', stroke: 'context-stroke', 'stroke-width': '2' } }],
       },
     },
   },
@@ -153,8 +152,7 @@ const links: Record<string, LinkRecord> = {
       color: LINK_COLOR,
       width: 1,
       targetMarker: {
-        d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
-        fill: 'none',
+        markup: [{ tagName: 'path', attributes: { d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4', fill: 'none', stroke: 'context-stroke', 'stroke-width': '2' } }],
       },
     },
   },
@@ -166,8 +164,7 @@ const links: Record<string, LinkRecord> = {
       color: LINK_COLOR,
       width: 1,
       targetMarker: {
-        d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
-        fill: 'none',
+        markup: [{ tagName: 'path', attributes: { d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4', fill: 'none', stroke: 'context-stroke', 'stroke-width': '2' } }],
       },
     },
   },
@@ -179,8 +176,7 @@ const links: Record<string, LinkRecord> = {
       color: LINK_COLOR,
       width: 1,
       targetMarker: {
-        d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
-        fill: 'none',
+        markup: [{ tagName: 'path', attributes: { d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4', fill: 'none', stroke: 'context-stroke', 'stroke-width': '2' } }],
       },
     },
   },

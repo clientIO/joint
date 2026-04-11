@@ -129,7 +129,7 @@ const links: Record<string, LinkRecord> = {
       className: 'link',
       dasharray: '5,5',
       targetMarker: {
-        d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
+        markup: [{ tagName: 'path', attributes: { d: 'M 0 0 L 8 4 L 8 -4 Z', fill: 'context-stroke', stroke: 'context-stroke' } }],
       },
     },
   },
@@ -515,7 +515,7 @@ function Main() {
               className: 'link',
               dasharray: '5,5',
               targetMarker: {
-                d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
+                markup: [{ tagName: 'path', attributes: { d: 'M 0 0 L 8 4 L 8 -4 Z', fill: 'context-stroke', stroke: 'context-stroke' } }],
               },
             },
           }}

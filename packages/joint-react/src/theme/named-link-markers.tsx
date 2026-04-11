@@ -18,7 +18,7 @@ export const namedLinkMarkers = {
   'arrow-sunken': linkMarkerArrowSunken(),
   'circle': linkMarkerCircle(),
   'diamond': linkMarkerDiamond(),
-} as const satisfies Record<string, dia.SVGMarkerJSON | null>;
+} as const satisfies Record<string, LinkMarkerRecord | null>;
 
 export type LinkMarkerName = keyof typeof namedLinkMarkers;
 
@@ -27,23 +27,26 @@ export type LinkMarkerName = keyof typeof namedLinkMarkers;
  * @param marker - Marker name, custom marker, or null
  * @returns The resolved marker JSON or null
  */
-export type LinkMarker = LinkMarkerName | dia.SVGMarkerJSON;
+export type LinkMarker = LinkMarkerName | LinkMarkerRecord;
 
 /**
- * Resolves a LinkMarker to a dia.SVGMarkerJSON or null.
- * @param marker - The LinkMarker to resolve
- * @returns The resolved dia.SVGMarkerJSON or null
+ * A record representing a custom link marker, containing the SVG markup and optional length.
  */
-export function resolveMarker(marker: LinkMarker | undefined): dia.SVGMarkerJSON | null {
+export interface LinkMarkerRecord extends dia.SVGComplexMarkerJSON {
+  length?: number;
+}
+
+/**
+ * Resolves a LinkMarker to a dia.SVGComplexMarkerJSON or null.
+ * @param marker - The LinkMarker to resolve
+ * @returns The resolved dia.SVGComplexMarkerJSON or null
+ */
+export function resolveMarker(marker: LinkMarker | undefined): dia.SVGComplexMarkerJSON | null {
   if (marker === undefined || marker === 'none') return null;
   const resolvedMarker = isString(marker)
     ? namedLinkMarkers[marker as keyof typeof namedLinkMarkers]
     : marker;
   if (!resolvedMarker) return null;
-  const { length: _length, ...nativeMarker } = resolvedMarker as Record<string, unknown>;
-  return {
-    stroke: 'context-stroke',
-    fill: 'context-stroke',
-    ...nativeMarker,
-  } as dia.SVGMarkerJSON;
+  const { length: _length, ...nativeMarker } = resolvedMarker as LinkMarkerRecord;
+  return nativeMarker;
 }

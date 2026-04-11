@@ -87,8 +87,7 @@ const LINK_OPTIONS: Partial<LinkRecord> = {
     className: 'jj-flow-line link',
     wrapperClassName: 'jj-flow-outline',
     targetMarker: {
-      d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z`,
-      class: 'jj-flow-arrowhead',
+      markup: [{ tagName: 'path', attributes: { d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z` }, className: 'jj-flow-arrowhead' }],
     },
   },
 };
