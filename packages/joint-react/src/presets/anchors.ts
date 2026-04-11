@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { anchors } from '@joint/core';
-import { getMarkerSize, USE_MODEL_GEOMETRY } from './utils';
+import { getMarkerLength, USE_MODEL_GEOMETRY } from './utils';
 
 /**
  * Anchor that uses `center` with model geometry for the root element and ports,
@@ -43,8 +43,8 @@ export type LinkMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 
 export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetOffset = 0): anchors.Anchor {
   return (elementView, magnet, ref, _, endType, linkView) => {
     const userOffset = endType === 'source' ? sourceOffset : targetOffset;
-    const markerSize = getMarkerSize(linkView, endType);
-    const padding = userOffset + markerSize;
+    const markerLength = getMarkerLength(linkView, endType);
+    const padding = userOffset + markerLength;
     if (magnet === elementView.el) {
       const rootArgs = { useModelGeometry: true, rotate: true, mode, padding };
       return anchors.midSide(elementView, magnet, ref, rootArgs, endType, linkView);

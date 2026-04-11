@@ -1,5 +1,5 @@
 import { connectionPoints } from '@joint/core';
-import { getMarkerSize, USE_MODEL_GEOMETRY } from './utils';
+import { getMarkerLength, USE_MODEL_GEOMETRY } from './utils';
 
 /**
  * Default connection point function for React-rendered elements.
@@ -59,8 +59,8 @@ export function withOffsets(
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
     const point = cp(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
     const userOffset = endType === 'source' ? sourceOffset : targetOffset;
-    const markerSize = getMarkerSize(linkView, endType);
-    const offset = userOffset + markerSize;
+    const markerLength = getMarkerLength(linkView, endType);
+    const offset = userOffset + markerLength;
     if (offset === 0) return point;
     const ref = endPathSegmentLine.start;
     return point.move(ref, -offset);

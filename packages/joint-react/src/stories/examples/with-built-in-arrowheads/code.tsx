@@ -1,9 +1,15 @@
+import { useState } from 'react';
 import type { LinkRecord, ElementRecord, ElementPort } from '@joint/react';
 import { GraphProvider, Paper, HTMLBox } from '@joint/react';
-import { straightLinks } from '@joint/react/presets';
+import {
+  straightLinks,
+  linkMarkerArrow, linkMarkerArrowOpen, linkMarkerArrowSunken,
+  linkMarkerArrowQuill, linkMarkerArrowDouble,
+  linkMarkerCircle, linkMarkerDiamond,
+  linkMarkerBar, linkMarkerCross,
+  linkMarkerFork, linkMarkerForkClose,
+} from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import type { LinkMarkerName } from '../../../theme/markers';
-import { linkMarkerShapes } from '../../../theme/markers';
 
 const PORT_GAP = 30;
 const PORT_SIZE = 8;
@@ -13,14 +19,33 @@ const PADDING = 40;
 
 const STRAIGHT_LINKS = straightLinks();
 
-const markerNames = Object.keys(linkMarkerShapes).filter(
-  (name) => name !== 'none'
-) as LinkMarkerName[];
+// Each entry: [display name, factory function, extra opts for outline variant]
+const MARKER_ENTRIES = [
+  ['arrow', linkMarkerArrow],
+  ['arrow-outline', linkMarkerArrow, { fill: 'none' }],
+  ['arrow-open', linkMarkerArrowOpen],
+  ['arrow-sunken', linkMarkerArrowSunken],
+  ['arrow-sunken-outline', linkMarkerArrowSunken, { fill: 'none' }],
+  ['arrow-quill', linkMarkerArrowQuill],
+  ['arrow-quill-outline', linkMarkerArrowQuill, { fill: 'none' }],
+  ['arrow-double', linkMarkerArrowDouble],
+  ['arrow-double-outline', linkMarkerArrowDouble, { fill: 'none' }],
+  ['circle', linkMarkerCircle],
+  ['circle-outline', linkMarkerCircle, { fill: 'none' }],
+  ['diamond', linkMarkerDiamond],
+  ['diamond-outline', linkMarkerDiamond, { fill: 'none' }],
+  ['bar', linkMarkerBar],
+  ['cross', linkMarkerCross],
+  ['fork', linkMarkerFork],
+  ['fork-outline', linkMarkerFork, { fill: 'none' }],
+  ['fork-close', linkMarkerForkClose],
+  ['fork-close-outline', linkMarkerForkClose, { fill: 'none' }],
+] as const;
 
 function buildPortMap(side: 'left' | 'right'): Record<string, ElementPort> {
   const cx = side === 'right' ? 'calc(w)' : '0';
   const ports: Record<string, ElementPort> = {};
-  for (const [index, name] of markerNames.entries()) {
+  for (const [index, [name]] of MARKER_ENTRIES.entries()) {
     ports[name] = {
       cx,
       cy: PADDING + index * PORT_GAP,
@@ -34,7 +59,7 @@ function buildPortMap(side: 'left' | 'right'): Record<string, ElementPort> {
   return ports;
 }
 
-const elementHeight = PADDING * 2 + (markerNames.length - 1) * PORT_GAP;
+const elementHeight = PADDING * 2 + (MARKER_ENTRIES.length - 1) * PORT_GAP;
 
 const elements: Record<string, ElementRecord> = {
   left: {
@@ -51,24 +76,29 @@ const elements: Record<string, ElementRecord> = {
   },
 };
 
-const links: Record<string, LinkRecord> = {};
-for (const name of markerNames) {
-  links[name] = {
-    source: { id: 'left', port: name },
-    target: { id: 'right', port: name },
-    style: {
-      width: 2,
-      sourceMarker: name,
-      targetMarker: name,
-    },
-    labelMap: {
-      label: {
-        text: name,
-        backgroundBorderRadius: 4,
-        fontSize: 10,
+function buildLinks(scale: number): Record<string, LinkRecord> {
+  const result: Record<string, LinkRecord> = {};
+  for (const entry of MARKER_ENTRIES) {
+    const [name, factory, extraOpts] = entry;
+    const marker = factory({ scale, ...extraOpts });
+    result[name] = {
+      source: { id: 'left', port: name },
+      target: { id: 'right', port: name },
+      style: {
+        width: 2,
+        sourceMarker: marker,
+        targetMarker: marker,
       },
-    },
-  };
+      labelMap: {
+        label: {
+          text: name,
+          backgroundBorderRadius: 4,
+          fontSize: 10,
+        },
+      },
+    };
+  }
+  return result;
 }
 
 function RenderElement() {
@@ -76,16 +106,41 @@ function RenderElement() {
 }
 
 export default function App() {
+  const [scale, setScale] = useState(1);
+  const [links, setLinks] = useState(() => buildLinks(scale));
+
+  const handleScaleChange = (newScale: number) => {
+    setScale(newScale);
+    setLinks(buildLinks(newScale));
+  };
+
   return (
-    <GraphProvider elements={elements} links={links}>
-      <Paper
-        scale={2}
-        className={`${PAPER_CLASSNAME} h-[1400px]`}
-        width="100%"
-        drawGrid={false}
-        renderElement={RenderElement}
-        {...STRAIGHT_LINKS}
-      />
-    </GraphProvider>
+    <div>
+      <div className="flex items-center gap-3 px-3 py-2 mt-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-sans select-none">
+        <label className="flex items-center gap-2 text-slate-600">
+          <span className="text-xs font-semibold">Scale</span>
+          <input
+            type="range"
+            min={0.5}
+            max={3}
+            step={0.1}
+            value={scale}
+            onChange={(e) => handleScaleChange(Number(e.target.value))}
+            className="w-40"
+          />
+          <span className="text-xs w-8">{scale.toFixed(1)}</span>
+        </label>
+      </div>
+      <GraphProvider elements={elements} links={links} onLinksChange={setLinks}>
+        <Paper
+          scale={2}
+          className={`${PAPER_CLASSNAME} h-[1400px]`}
+          width="100%"
+          drawGrid={false}
+          renderElement={RenderElement}
+          {...STRAIGHT_LINKS}
+        />
+      </GraphProvider>
+    </div>
   );
 }

@@ -58,7 +58,10 @@ export function straightLinks(options: StraightLinksOptions = {}): LinkPreset {
   const { sourceOffset = 0, targetOffset = 0, cornerType = 'point', cornerRadius = 0, perpendicular = false } = options;
   return {
     defaultRouter: { name: 'normal' },
-    defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
+    defaultConnector: {
+      name: 'straight',
+      args: { cornerType, cornerRadius, cornerPreserveAspectRatio: true }
+    },
     defaultAnchor: perpendicular ? perpendicularAnchor : centerAnchor,
     defaultConnectionPoint: withOffsets(boundaryPoint, sourceOffset, targetOffset),
   };
@@ -92,7 +95,10 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
   if (straightWhenDisconnected) {
     return {
       defaultRouter: straightRouterUntilConnected(router),
-      defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
+      defaultConnector: {
+        name: 'straight',
+        args: { cornerType, cornerRadius, cornerPreserveAspectRatio: true }
+      },
       defaultAnchor: anchorWhenConnected(midSideAnchor(mode, sourceOffset, targetOffset), centerAnchor),
       defaultConnectionPoint: connectionPointWhenConnected(anchorPoint, withOffsets(boundaryPoint, sourceOffset, targetOffset)),
     };
@@ -100,7 +106,10 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
 
   return {
     defaultRouter: router,
-    defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
+    defaultConnector: {
+      name: 'straight',
+      args: { cornerType, cornerRadius, cornerPreserveAspectRatio: true }
+    },
     defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset),
     defaultConnectionPoint: anchorPoint,
   };
