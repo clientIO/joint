@@ -55,7 +55,6 @@ export * from './state/data-mapping/link-mapper';
 // Data-Mapping Internals
 export { convertLabel } from './state/data-mapping/convert-labels';
 export { mergeLabelsFromAttributes } from './state/data-mapping/convert-labels-reverse';
-export { convertPorts, createPortGroupsDefault } from './state/data-mapping/convert-ports';
 export { buildLinkPresentationAttributes } from './state/data-mapping/link-attributes';
 export { resolveCellDefaults } from './state/data-mapping/resolve-cell-defaults';
 

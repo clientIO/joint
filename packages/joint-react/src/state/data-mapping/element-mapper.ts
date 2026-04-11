@@ -1,7 +1,7 @@
 import { type dia } from '@joint/core';
 import type { ElementRecord } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
-import { convertPorts, createPortGroupsDefault } from './convert-ports';
+import { convertPorts } from './convert-ports';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from './index';
 
@@ -25,7 +25,6 @@ export function mapElementToAttributes<ElementData extends object = Record<strin
     data = {} as ElementData,
     portMap,
     ports,
-    portDefaults,
     type = PORTAL_ELEMENT_TYPE,
     ...cellAttributes
   } = element;
@@ -41,17 +40,10 @@ export function mapElementToAttributes<ElementData extends object = Record<strin
     if (ports) {
       throw new Error('Cannot use both "portMap" and "ports" on the same element.');
     }
-    if (portDefaults) {
-      throw new Error(
-        'Cannot use both "portMap" and "portDefaults" on the same element. Port defaults are generated automatically when using portMap.'
-      );
-    }
     attributes.ports = convertPorts(portMap, element.portStyle);
-    attributes.portDefaults = createPortGroupsDefault();
     attributes.portMap = portMap;
   } else {
     attributes.ports = ports ?? null;
-    attributes.portDefaults = portDefaults ?? null;
   }
 
   return attributes;
@@ -73,7 +65,6 @@ export function mapAttributesToElement<ElementData extends object = Record<strin
     // Ports
     portMap,
     ports,
-    portDefaults,
     // Metadata (default-provided key tracking)
     metadata,
     // 1:1 mapping of all other fields directly on the model
@@ -86,7 +77,6 @@ export function mapAttributesToElement<ElementData extends object = Record<strin
     elementRecord.portMap = portMap;
   } else if (ports) {
     elementRecord.ports = ports;
-    elementRecord.portDefaults = portDefaults;
   }
 
   // Only a custom type should be included in the element record.

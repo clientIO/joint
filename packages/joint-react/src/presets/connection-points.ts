@@ -53,7 +53,6 @@ export function withOffsets(
   sourceOffset: number,
   targetOffset: number,
 ): connectionPoints.ConnectionPoint {
-  if (sourceOffset === 0 && targetOffset === 0) return cp;
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
     const point = cp(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
     const userOffset = endType === 'source' ? sourceOffset : targetOffset;

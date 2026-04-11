@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { anchors, g } from '@joint/core';
+import { anchors } from '@joint/core';
 import { getMarkerLength, MODEL_GEOMETRY_OPTIONS } from './utils';
 
 /**
