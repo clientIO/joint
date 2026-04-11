@@ -65,9 +65,9 @@ export function linkMarkerArrowSunken(opts?: MarkerOptions): dia.SVGMarkerJSON {
   const indent = 3 * s;
   return {
     markup: jsx(
-      <path d={`M ${w} ${-h} L 0 0 L ${w} ${h} L ${w - indent} 0 z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M ${indent} ${-h} L ${indent - w} 0 L ${indent} ${h} L 0 0 z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
-    size: w
+    size: w - indent + strokeWidth + 1 * s,
   };
 }
 
@@ -78,12 +78,19 @@ export function linkMarkerArrowQuill(opts?: MarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 10 * s;
   const h = 5 * s;
-  const notch = 4 * s;
+  const indent = 3 * s;
   return {
     markup: jsx(
-      <path d={`M ${notch} 0 L ${w} ${-h} L 0 0 L ${w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`
+        M ${indent} ${-h}
+        H ${2 * indent - w}
+        L ${indent - w} 0
+        L ${2 * indent - w} ${h}
+        H ${indent}
+        L 0 0 z`
+      } fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
-    size: w,
+    size: w - indent + strokeWidth,
   };
 }
 
