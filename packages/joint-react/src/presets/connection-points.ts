@@ -1,4 +1,5 @@
 import { connectionPoints } from '@joint/core';
+import { getMarkerSize, USE_MODEL_GEOMETRY } from './utils';
 
 /**
  * Default connection point function for React-rendered elements.
@@ -17,9 +18,8 @@ export const boundaryPoint: connectionPoints.ConnectionPoint = (
   endType,
   linkView,
 ) => {
-  const rectangleArgs = { useModelGeometry: true } as connectionPoints.ConnectionPointArgumentsMap['rectangle'];
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
-    return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, rectangleArgs, endType, linkView);
+    return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, USE_MODEL_GEOMETRY, endType, linkView);
   }
   const boundaryArgs = {
   // use the endMagnet itself - don't search for a non-group child element
@@ -45,8 +45,7 @@ export const anchorPoint: connectionPoints.ConnectionPoint = (
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
     return endPathSegmentLine.end.clone();
   }
-  const rectangleArgs = { useModelGeometry: true } as connectionPoints.ConnectionPointArgumentsMap['rectangle'];
-  return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, rectangleArgs, endType, linkView);
+  return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, USE_MODEL_GEOMETRY, endType, linkView);
 };
 
 /**
@@ -57,10 +56,11 @@ export function withOffsets(
   sourceOffset: number,
   targetOffset: number,
 ): connectionPoints.ConnectionPoint {
-  if (sourceOffset === 0 && targetOffset === 0) return cp;
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
     const point = cp(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
-    const offset = endType === 'source' ? sourceOffset : targetOffset;
+    const userOffset = endType === 'source' ? sourceOffset : targetOffset;
+    const markerSize = getMarkerSize(linkView, endType);
+    const offset = userOffset + markerSize;
     if (offset === 0) return point;
     const ref = endPathSegmentLine.start;
     return point.move(ref, -offset);

@@ -3,7 +3,7 @@ import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 
 interface MarkerOptions {
   /** Scale factor. Default: `1`. */
-  readonly size?: number;
+  readonly scale?: number;
   /** Fill color. Default: `'context-stroke'`. Use `'none'` for outline. */
   readonly fill?: string;
   /** Stroke color. Default: `'context-stroke'`. */
@@ -11,43 +11,47 @@ interface MarkerOptions {
   /** Stroke width. Default: `2`. */
   readonly strokeWidth?: number;
 }
-
+/** Default fill color for markers. */
 const FILL = 'context-stroke';
+/** Default stroke color for markers. */
 const STROKE = 'context-stroke';
+/** Default stroke width for markers. */
 const SW = 2;
 
 function defaults(opts: MarkerOptions = {}) {
-  const { size = 1, fill = FILL, stroke = STROKE, strokeWidth = SW } = opts;
-  return { size, fill, stroke, strokeWidth };
+  const { scale = 1, fill = FILL, stroke = STROKE, strokeWidth = SW } = opts;
+  return { scale, fill, stroke, strokeWidth };
 }
 
 /**
- * Filled triangle arrow. Tip at the link end, body extends outward.
+ * Filled triangle arrow. Tip at 0, body extends into positive X.
  */
 export function linkMarkerArrow(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, fill, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
-  const o = -7;
   return {
     markup: jsx(
-      <path d={`M ${w + o} ${-h} L ${o} 0 L ${w + o} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
+    // the mitered join can extend beyond the path, so add 1px of padding
+    size: w + strokeWidth + 1 * s,
   };
 }
 
 /**
- * Open chevron arrow (no back edge). Tip at the link end.
+ * Open chevron arrow (no back edge). Tip at 0.
  */
 export function linkMarkerArrowOpen(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
-  const o = -2;
   return {
     markup: jsx(
-      <path d={`M ${w + o} ${-h} L ${o} 0 L ${w + o} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M ${w} ${-h} L 0 0 L ${w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
     ),
+    // the mitered join can extend beyond the path, so add 1px of padding
+    size: strokeWidth + 1 * s,
   };
 }
 
@@ -55,15 +59,15 @@ export function linkMarkerArrowOpen(opts?: MarkerOptions): dia.SVGMarkerJSON {
  * Arrow with a concave (sunken) back edge.
  */
 export function linkMarkerArrowSunken(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, fill, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 10 * s;
   const h = 5 * s;
   const indent = 3 * s;
-  const o = -7;
   return {
     markup: jsx(
-      <path d={`M ${w + o} ${-h} L ${o} 0 L ${w + o} ${h} L ${w - indent + o} 0 z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M ${w} ${-h} L 0 0 L ${w} ${h} L ${w - indent} 0 z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
+    size: w
   };
 }
 
@@ -71,15 +75,15 @@ export function linkMarkerArrowSunken(opts?: MarkerOptions): dia.SVGMarkerJSON {
  * Arrow with a split/quill back — back edges form an open V (don't meet).
  */
 export function linkMarkerArrowQuill(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, fill, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 10 * s;
   const h = 5 * s;
   const notch = 4 * s;
-  const o = -5;
   return {
     markup: jsx(
-      <path d={`M ${notch + o} 0 L ${w + o} ${-h} L ${o} 0 L ${w + o} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M ${notch} 0 L ${w} ${-h} L 0 0 L ${w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
+    size: w,
   };
 }
 
@@ -87,18 +91,18 @@ export function linkMarkerArrowQuill(opts?: MarkerOptions): dia.SVGMarkerJSON {
  * Double arrow (two nested triangles).
  */
 export function linkMarkerArrowDouble(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, fill, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 7 * s;
   const h = 4 * s;
   const gap = 6 * s;
-  const o = -13;
   return {
     markup: jsx(
-      <g>
-        <path d={`M ${w + o} ${-h} L ${o} 0 L ${w + o} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
-        <path d={`M ${w + gap + o} ${-h} L ${gap + o} 0 L ${w + gap + o} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
-      </g>
+      <>
+        <path d={`M ${w} ${-h} L 0 0 L ${w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${w + gap} ${-h} L ${gap} 0 L ${w + gap} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      </>
     ),
+    size: w + gap,
   };
 }
 
@@ -106,12 +110,13 @@ export function linkMarkerArrowDouble(opts?: MarkerOptions): dia.SVGMarkerJSON {
  * Circle marker. Use `fill: 'none'` for outline.
  */
 export function linkMarkerCircle(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, fill, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const r = 4 * s;
   return {
     markup: jsx(
       <circle cx={-r} r={r} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
+    size: r * 2 + strokeWidth,
   };
 }
 
@@ -119,13 +124,14 @@ export function linkMarkerCircle(opts?: MarkerOptions): dia.SVGMarkerJSON {
  * Diamond (losangle) marker. Use `fill: 'none'` for outline.
  */
 export function linkMarkerDiamond(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, fill, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 5 * s;
   const h = 5 * s;
   return {
     markup: jsx(
       <path d={`M 0 0 L ${-w} ${-h} L ${-w * 2} 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
+    size: w * 2 + strokeWidth,
   };
 }
 
@@ -133,12 +139,13 @@ export function linkMarkerDiamond(opts?: MarkerOptions): dia.SVGMarkerJSON {
  * Vertical bar at the link end.
  */
 export function linkMarkerBar(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, stroke, strokeWidth } = defaults(opts);
   const h = 5 * s;
   return {
     markup: jsx(
       <path d={`M 0 ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
     ),
+    size: strokeWidth,
   };
 }
 
@@ -146,12 +153,13 @@ export function linkMarkerBar(opts?: MarkerOptions): dia.SVGMarkerJSON {
  * Cross (X) centered at the link end.
  */
 export function linkMarkerCross(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, stroke, strokeWidth } = defaults(opts);
   const d = 5 * s;
   return {
     markup: jsx(
       <path d={`M ${-d} ${-d} L ${d} ${d} M ${-d} ${d} L ${d} ${-d}`} stroke={stroke} stroke-width={strokeWidth} />
     ),
+    size: d + strokeWidth,
   };
 }
 
@@ -159,13 +167,14 @@ export function linkMarkerCross(opts?: MarkerOptions): dia.SVGMarkerJSON {
  * Fork — same shape as arrow but pointing the opposite direction.
  */
 export function linkMarkerFork(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, fill, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
   return {
     markup: jsx(
       <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
+    size: w + strokeWidth,
   };
 }
 
@@ -173,15 +182,16 @@ export function linkMarkerFork(opts?: MarkerOptions): dia.SVGMarkerJSON {
  * Fork with a closing vertical bar at the tip.
  */
 export function linkMarkerForkClose(opts?: MarkerOptions): dia.SVGMarkerJSON {
-  const { size: s, fill, stroke, strokeWidth } = defaults(opts);
+  const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
   return {
     markup: jsx(
-      <g>
+      <>
         <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
         <path d={`M 0 ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
-      </g>
+      </>
     ),
+    size: w + strokeWidth,
   };
 }
