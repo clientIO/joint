@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 
-interface MarkerOptions {
+export interface LinkMarkerOptions {
   /** Scale factor. Default: `1`. */
   readonly scale?: number;
   /** Fill color. Default: `'context-stroke'`. Use `'none'` for outline. */
@@ -18,7 +18,7 @@ const STROKE = 'context-stroke';
 /** Default stroke width for markers. */
 const SW = 2;
 
-function defaults(opts: MarkerOptions = {}) {
+function defaults(opts: LinkMarkerOptions = {}) {
   const { scale = 1, fill = FILL, stroke = STROKE, strokeWidth = SW } = opts;
   return { scale, fill, stroke, strokeWidth };
 }
@@ -26,7 +26,7 @@ function defaults(opts: MarkerOptions = {}) {
 /**
  * Filled triangle arrow. Tip at 0, body extends into positive X.
  */
-export function linkMarkerArrow(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerArrow(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
@@ -42,7 +42,7 @@ export function linkMarkerArrow(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Open chevron arrow (no back edge). Tip at 0.
  */
-export function linkMarkerArrowOpen(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerArrowOpen(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
@@ -58,7 +58,7 @@ export function linkMarkerArrowOpen(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Arrow with a concave (sunken) back edge.
  */
-export function linkMarkerArrowSunken(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerArrowSunken(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 10 * s;
   const h = 5 * s;
@@ -74,7 +74,7 @@ export function linkMarkerArrowSunken(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Arrow with a split/quill back — back edges form an open V (don't meet).
  */
-export function linkMarkerArrowQuill(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerArrowQuill(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 10 * s;
   const h = 5 * s;
@@ -97,7 +97,7 @@ export function linkMarkerArrowQuill(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Double arrow (two nested triangles).
  */
-export function linkMarkerArrowDouble(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerArrowDouble(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 7 * s;
   const h = 4 * s;
@@ -116,7 +116,7 @@ export function linkMarkerArrowDouble(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Circle marker. Use `fill: 'none'` for outline.
  */
-export function linkMarkerCircle(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerCircle(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const r = 4 * s;
   return {
@@ -130,7 +130,7 @@ export function linkMarkerCircle(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Diamond (losangle) marker. Use `fill: 'none'` for outline.
  */
-export function linkMarkerDiamond(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerDiamond(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 5 * s;
   const h = 5 * s;
@@ -145,7 +145,7 @@ export function linkMarkerDiamond(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Vertical bar at the link end.
  */
-export function linkMarkerLine(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerLine(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, stroke, strokeWidth } = defaults(opts);
   const h = 5 * s;
   return {
@@ -159,7 +159,7 @@ export function linkMarkerLine(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Cross (X) centered at the link end.
  */
-export function linkMarkerCross(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerCross(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, stroke, strokeWidth } = defaults(opts);
   const d = 5 * s;
   return {
@@ -173,7 +173,7 @@ export function linkMarkerCross(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Fork — same shape as arrow but pointing the opposite direction.
  */
-export function linkMarkerFork(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerFork(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
@@ -188,7 +188,7 @@ export function linkMarkerFork(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Fork with a closing vertical bar at the tip.
  */
-export function linkMarkerForkClose(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerForkClose(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, fill, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
@@ -206,7 +206,7 @@ export function linkMarkerForkClose(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Crow's foot — three lines spreading from a point (ER "many").
  */
-export function linkMarkerMany(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerMany(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
@@ -224,7 +224,7 @@ export function linkMarkerMany(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Crow's foot with circle — ER "many optional".
  */
-export function linkMarkerManyOptional(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerManyOptional(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;
@@ -244,7 +244,7 @@ export function linkMarkerManyOptional(opts?: MarkerOptions): dia.SVGMarkerJSON 
 /**
  * Two parallel vertical bars — ER "one".
  */
-export function linkMarkerOne(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerOne(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, stroke, strokeWidth } = defaults(opts);
   const h = 5 * s;
   return {
@@ -260,7 +260,7 @@ export function linkMarkerOne(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Vertical bar with circle — ER "one optional".
  */
-export function linkMarkerOneOptional(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerOneOptional(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, stroke, strokeWidth } = defaults(opts);
   const h = 5 * s;
   const r = 4 * s;
@@ -279,7 +279,7 @@ export function linkMarkerOneOptional(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Crow's foot with vertical bar — ER "one or many".
  */
-export function linkMarkerOneOrMany(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerOneOrMany(opts?: LinkMarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, stroke, strokeWidth } = defaults(opts);
   const w = 8 * s;
   const h = 4 * s;

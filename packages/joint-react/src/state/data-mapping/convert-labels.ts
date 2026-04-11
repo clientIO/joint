@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
 import type { LinkLabel } from '../../types/data-types';
-import { linkLabel } from '../../presets/link-label';
+import { linkLabel } from '../../presets/link-labels';
 
 /**
  * Converts a simplified LinkLabel record to an array of JointJS labels.

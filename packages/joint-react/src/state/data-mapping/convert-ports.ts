@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
 import type { ElementPort } from '../../types/data-types';
-import { elementPort } from '../../presets/element-port';
+import { elementPort } from '../../presets/element-ports';
 
 const PORT_GROUP = 'main';
 

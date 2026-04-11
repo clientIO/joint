@@ -52,9 +52,6 @@ export { createAtom, type Atom } from './store/state-container';
 export * from './state/data-mapping/element-mapper';
 export * from './state/data-mapping/link-mapper';
 
-// Data-Mapping Internals
-export { mergeLabelsFromAttributes } from './state/data-mapping/convert-labels-reverse';
-
 // Render Internals
 export { PaperHTMLContainer } from './components/paper/render-element/paper-html-container';
 export {

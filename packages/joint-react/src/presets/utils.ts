@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { linkMarkerShapes } from '../theme/markers';
+import { linkMarkerShapes } from '../theme/link-markers';
 
 export const MODEL_GEOMETRY_OPTIONS = {
   useModelGeometry: true,

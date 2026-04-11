@@ -7,7 +7,7 @@ export {
   type StraightLinksOptions,
   type OrthogonalLinksOptions,
   type SmoothLinksOptions,
-} from './link-presets';
+} from './link-routing';
 export {
   linkMarkerArrow,
   linkMarkerArrowOpen,
@@ -26,5 +26,5 @@ export {
   linkMarkerOneOptional,
   linkMarkerOneOrMany,
 } from './link-markers';
-export { elementPort } from './element-port';
-export { linkLabel } from './link-label';
+export { elementPort } from './element-ports';
+export { linkLabel } from './link-labels';
