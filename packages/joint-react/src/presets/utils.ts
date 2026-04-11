@@ -1,7 +1,14 @@
 import type { dia } from '@joint/core';
 import { linkMarkerShapes } from '../theme/markers';
 
-export const USE_MODEL_GEOMETRY = { useModelGeometry: true } as const;
+export const MODEL_GEOMETRY_OPTIONS = { useModelGeometry: true } as const;
+
+export const EMPTY_OPTIONS = {} as const;
+
+export const BOUNDARY_OPTIONS = {
+  // use the endMagnet itself - don't search for a non-group child element
+  selector: false
+} as const;
 
 /**
  * Reads the marker length from the link's style for the given end type.

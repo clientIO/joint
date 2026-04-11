@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { anchors } from '@joint/core';
-import { getMarkerLength, USE_MODEL_GEOMETRY } from './utils';
+import { getMarkerLength, MODEL_GEOMETRY_OPTIONS } from './utils';
 
 /**
  * Anchor that uses `center` with model geometry for the root element and ports,
@@ -10,7 +10,7 @@ export const centerAnchor: anchors.Anchor = (
   elementView, magnet, ref, _, endType, linkView
 ) => {
   if (magnet === elementView.el || magnet.getAttribute('port')) {
-    return anchors.center(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
+    return anchors.center(elementView, magnet, ref, MODEL_GEOMETRY_OPTIONS, endType, linkView);
   }
   return anchors.center(elementView, magnet, ref, _, endType, linkView);
 };
@@ -23,7 +23,7 @@ export const perpendicularAnchor: anchors.Anchor = (
   elementView, magnet, ref, _, endType, linkView
 ) => {
   if (magnet === elementView.el || magnet.getAttribute('port')) {
-    return anchors.perpendicular(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
+    return anchors.perpendicular(elementView, magnet, ref, MODEL_GEOMETRY_OPTIONS, endType, linkView);
   }
   return anchors.perpendicular(elementView, magnet, ref, _, endType, linkView);
 };
@@ -46,15 +46,17 @@ export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetO
     const markerLength = getMarkerLength(linkView, endType);
     const padding = userOffset + markerLength;
     if (magnet === elementView.el) {
+      // For the root element, use midSide with model geometry and padding
       const rootArgs = { useModelGeometry: true, rotate: true, mode, padding };
       return anchors.midSide(elementView, magnet, ref, rootArgs, endType, linkView);
     }
     const element = elementView.model as dia.Element;
     const portId = magnet.getAttribute('port');
     if (portId && element.hasPort(portId)) {
-      const point = anchors.center(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
+      // For ports, calculate the point based on the port bbox and element geometry
       const portBBox = element.getPortBBox(portId);
-      const side = element.getBBox().sideNearestToPoint(portBBox.center());
+      const point = portBBox.center();
+      const side = element.getBBox().sideNearestToPoint(point);
       switch (side) {
         case 'left': { point.x -= portBBox.width / 2 + padding; break; }
         case 'right': { point.x += portBBox.width / 2 + padding; break; }
@@ -64,6 +66,7 @@ export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetO
       }
       return point;
     }
+    // For other magnets, use midSide with DOM geometry
     const magnetArgs = { mode, rotate: true, padding } as anchors.MidSideAnchorArguments;
     return anchors.midSide(elementView, magnet, ref, magnetArgs, endType, linkView);
   };

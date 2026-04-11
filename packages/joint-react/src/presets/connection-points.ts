@@ -1,5 +1,5 @@
 import { connectionPoints } from '@joint/core';
-import { getMarkerLength, USE_MODEL_GEOMETRY } from './utils';
+import { BOUNDARY_OPTIONS, EMPTY_OPTIONS, getMarkerLength, MODEL_GEOMETRY_OPTIONS } from './utils';
 
 /**
  * Default connection point function for React-rendered elements.
@@ -19,13 +19,9 @@ export const boundaryPoint: connectionPoints.ConnectionPoint = (
   linkView,
 ) => {
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
-    return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, USE_MODEL_GEOMETRY, endType, linkView);
+    return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, MODEL_GEOMETRY_OPTIONS, endType, linkView);
   }
-  const boundaryArgs = {
-  // use the endMagnet itself - don't search for a non-group child element
-    selector: false
-  } as connectionPoints.ConnectionPointArgumentsMap['boundary'];
-  return connectionPoints.boundary(endPathSegmentLine, endView, endMagnet, boundaryArgs, endType, linkView);
+  return connectionPoints.boundary(endPathSegmentLine, endView, endMagnet, BOUNDARY_OPTIONS, endType, linkView);
 };
 
 /**
@@ -45,7 +41,8 @@ export const anchorPoint: connectionPoints.ConnectionPoint = (
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
     return endPathSegmentLine.end.clone();
   }
-  return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, USE_MODEL_GEOMETRY, endType, linkView);
+  // For custom magnets, use rectangle with DOM geometry to find the point on the magnet itself.
+  return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, EMPTY_OPTIONS, endType, linkView);
 };
 
 /**
@@ -56,6 +53,7 @@ export function withOffsets(
   sourceOffset: number,
   targetOffset: number,
 ): connectionPoints.ConnectionPoint {
+  if (sourceOffset === 0 && targetOffset === 0) return cp;
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
     const point = cp(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
     const userOffset = endType === 'source' ? sourceOffset : targetOffset;
