@@ -35,7 +35,7 @@ export function linkMarkerArrow(opts?: MarkerOptions): dia.SVGMarkerJSON {
       <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
     // the mitered join can extend beyond the path, so add 1px of padding
-    length: w + strokeWidth + 1 * s,
+    length: w + strokeWidth + 1,
   };
 }
 
@@ -51,7 +51,7 @@ export function linkMarkerArrowOpen(opts?: MarkerOptions): dia.SVGMarkerJSON {
       <path d={`M ${w} ${-h} L 0 0 L ${w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
     ),
     // the mitered join can extend beyond the path, so add 1px of padding
-    length: strokeWidth + 1 * s,
+    length: strokeWidth + 1,
   };
 }
 
@@ -67,7 +67,7 @@ export function linkMarkerArrowSunken(opts?: MarkerOptions): dia.SVGMarkerJSON {
     markup: jsx(
       <path d={`M ${indent} ${-h} L ${indent - w} 0 L ${indent} ${h} L 0 0 z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
     ),
-    length: w - indent + strokeWidth + 1 * s,
+    length: w - indent + strokeWidth + 1,
   };
 }
 
@@ -109,7 +109,7 @@ export function linkMarkerArrowDouble(opts?: MarkerOptions): dia.SVGMarkerJSON {
         <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
       </>
     ),
-    length: w + gap + strokeWidth + 1 * s,
+    length: w + gap + strokeWidth + 1,
   };
 }
 
@@ -145,7 +145,7 @@ export function linkMarkerDiamond(opts?: MarkerOptions): dia.SVGMarkerJSON {
 /**
  * Vertical bar at the link end.
  */
-export function linkMarkerBar(opts?: MarkerOptions): dia.SVGMarkerJSON {
+export function linkMarkerLine(opts?: MarkerOptions): dia.SVGMarkerJSON {
   const { scale: s, stroke, strokeWidth } = defaults(opts);
   const h = 5 * s;
   return {
@@ -200,5 +200,97 @@ export function linkMarkerForkClose(opts?: MarkerOptions): dia.SVGMarkerJSON {
       </>
     ),
     length: w + strokeWidth,
+  };
+}
+
+/**
+ * Crow's foot — three lines spreading from a point (ER "many").
+ */
+export function linkMarkerMany(opts?: MarkerOptions): dia.SVGMarkerJSON {
+  const { scale: s, stroke, strokeWidth } = defaults(opts);
+  const w = 8 * s;
+  const h = 4 * s;
+  return {
+    markup: jsx(
+      <>
+        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${-w} 0 L 0 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
+      </>
+    ),
+    length: w + strokeWidth - 1,
+  };
+}
+
+/**
+ * Crow's foot with circle — ER "many optional".
+ */
+export function linkMarkerManyOptional(opts?: MarkerOptions): dia.SVGMarkerJSON {
+  const { scale: s, stroke, strokeWidth } = defaults(opts);
+  const w = 8 * s;
+  const h = 4 * s;
+  const r = 4 * s;
+  const crowX = -(r * 2);
+  return {
+    markup: jsx(
+      <>
+        <circle cx={-r} r={r} fill="none" stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${crowX - w} ${-h} L ${crowX} 0 L ${crowX - w} ${h} M ${crowX - w} 0 L ${crowX} 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} stroke-linejoin="bevel"/>
+      </>
+    ),
+    length: w - crowX + strokeWidth - 1,
+  };
+}
+
+/**
+ * Two parallel vertical bars — ER "one".
+ */
+export function linkMarkerOne(opts?: MarkerOptions): dia.SVGMarkerJSON {
+  const { scale: s, stroke, strokeWidth } = defaults(opts);
+  const h = 5 * s;
+  return {
+    markup: jsx(
+      <>
+        <path d={`M ${h} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
+      </>
+    ),
+    length: 0
+  };
+}
+
+/**
+ * Vertical bar with circle — ER "one optional".
+ */
+export function linkMarkerOneOptional(opts?: MarkerOptions): dia.SVGMarkerJSON {
+  const { scale: s, stroke, strokeWidth } = defaults(opts);
+  const h = 5 * s;
+  const r = 4 * s;
+  const circleX = -r;
+  return {
+    markup: jsx(
+      <>
+        <path d={`M ${h} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
+        <circle cx={circleX} r={r} fill="none" stroke={stroke} stroke-width={strokeWidth} />
+      </>
+    ),
+    length: r - circleX + strokeWidth,
+  };
+}
+
+/**
+ * Crow's foot with vertical bar — ER "one or many".
+ */
+export function linkMarkerOneOrMany(opts?: MarkerOptions): dia.SVGMarkerJSON {
+  const { scale: s, stroke, strokeWidth } = defaults(opts);
+  const w = 8 * s;
+  const h = 4 * s;
+  const barX = -w;
+  return {
+    markup: jsx(
+      <>
+        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} M ${-w} 0 L 0 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${0} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
+      </>
+    ),
+    length: w + strokeWidth - 1,
   };
 }

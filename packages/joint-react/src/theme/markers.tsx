@@ -8,10 +8,15 @@ import {
   linkMarkerArrowDouble,
   linkMarkerCircle,
   linkMarkerDiamond,
-  linkMarkerBar,
+  linkMarkerLine,
   linkMarkerCross,
   linkMarkerFork,
   linkMarkerForkClose,
+  linkMarkerMany,
+  linkMarkerManyOptional,
+  linkMarkerOne,
+  linkMarkerOneOptional,
+  linkMarkerOneOrMany,
 } from '../presets/link-markers';
 
 /**
@@ -32,12 +37,17 @@ export const linkMarkerShapes = {
   'circle-outline': linkMarkerCircle({ fill: 'none' }),
   'diamond': linkMarkerDiamond(),
   'diamond-outline': linkMarkerDiamond({ fill: 'none' }),
-  'bar': linkMarkerBar(),
+  'line': linkMarkerLine(),
   'cross': linkMarkerCross(),
   'fork': linkMarkerFork(),
   'fork-outline': linkMarkerFork({ fill: 'none' }),
   'fork-close': linkMarkerForkClose(),
   'fork-close-outline': linkMarkerForkClose({ fill: 'none' }),
+  'many': linkMarkerMany(),
+  'many-optional': linkMarkerManyOptional(),
+  'one': linkMarkerOne(),
+  'one-optional': linkMarkerOneOptional(),
+  'one-or-many': linkMarkerOneOrMany(),
 } as const satisfies Record<string, dia.SVGMarkerJSON | null>;
 
 export type LinkMarkerName = keyof typeof linkMarkerShapes;

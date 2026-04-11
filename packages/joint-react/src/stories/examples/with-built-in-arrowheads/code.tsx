@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { LinkRecord, ElementRecord, ElementPort } from '@joint/react';
 import { GraphProvider, Paper, HTMLBox } from '@joint/react';
 import {
-  straightLinks,
   linkMarkerArrow, linkMarkerArrowOpen, linkMarkerArrowSunken,
   linkMarkerArrowQuill, linkMarkerArrowDouble,
   linkMarkerCircle, linkMarkerDiamond,
-  linkMarkerBar, linkMarkerCross,
+  linkMarkerLine, linkMarkerCross,
   linkMarkerFork, linkMarkerForkClose,
+  linkMarkerMany, linkMarkerManyOptional,
+  linkMarkerOne, linkMarkerOneOptional, linkMarkerOneOrMany,
+  smoothLinks,
 } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
@@ -17,7 +19,7 @@ const ELEMENT_WIDTH = 80;
 const ELEMENT_GAP = 200;
 const PADDING = 40;
 
-const STRAIGHT_LINKS = straightLinks();
+const SMOOTH_LINKS = smoothLinks();
 
 // Each entry: [display name, factory function, extra opts for outline variant]
 const MARKER_ENTRIES = [
@@ -34,12 +36,17 @@ const MARKER_ENTRIES = [
   ['circle-outline', linkMarkerCircle, { fill: 'none' }],
   ['diamond', linkMarkerDiamond],
   ['diamond-outline', linkMarkerDiamond, { fill: 'none' }],
-  ['bar', linkMarkerBar],
+  ['line', linkMarkerLine],
   ['cross', linkMarkerCross],
   ['fork', linkMarkerFork],
   ['fork-outline', linkMarkerFork, { fill: 'none' }],
   ['fork-close', linkMarkerForkClose],
   ['fork-close-outline', linkMarkerForkClose, { fill: 'none' }],
+  ['many', linkMarkerMany],
+  ['many-optional', linkMarkerManyOptional],
+  ['one', linkMarkerOne],
+  ['one-optional', linkMarkerOneOptional],
+  ['one-or-many', linkMarkerOneOrMany],
 ] as const;
 
 function buildPortMap(side: 'left' | 'right'): Record<string, ElementPort> {
@@ -107,11 +114,20 @@ function RenderElement() {
 
 export default function App() {
   const [scale, setScale] = useState(1);
-  const [links, setLinks] = useState(() => buildLinks(scale));
+  const [elementState, setElementState] = useState(elements);
+  const [linkState, setLinkState] = useState(() => buildLinks(scale));
 
   const handleScaleChange = (newScale: number) => {
     setScale(newScale);
-    setLinks(buildLinks(newScale));
+    setLinkState((prev) => {
+      const next = { ...prev };
+      for (const entry of MARKER_ENTRIES) {
+        const [name, factory, extraOpts] = entry;
+        const marker = factory({ scale: newScale, ...extraOpts });
+        next[name] = { ...prev[name], style: { ...prev[name]?.style, sourceMarker: marker, targetMarker: marker } };
+      }
+      return next;
+    });
   };
 
   return (
@@ -131,14 +147,14 @@ export default function App() {
           <span className="text-xs w-8">{scale.toFixed(1)}</span>
         </label>
       </div>
-      <GraphProvider elements={elements} links={links} onLinksChange={setLinks}>
+      <GraphProvider elements={elementState} links={linkState} onElementsChange={setElementState} onLinksChange={setLinkState}>
         <Paper
-          scale={2}
+          scale={1.7}
           className={`${PAPER_CLASSNAME} h-[1400px]`}
           width="100%"
           drawGrid={false}
           renderElement={RenderElement}
-          {...STRAIGHT_LINKS}
+          {...SMOOTH_LINKS}
         />
       </GraphProvider>
     </div>
