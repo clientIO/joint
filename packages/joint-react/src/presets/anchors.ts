@@ -54,12 +54,12 @@ export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetO
     if (portId && element.hasPort(portId)) {
       const point = anchors.center(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
       const portBBox = element.getPortBBox(portId);
-      const side = portBBox.sideNearestToPoint(element.getCenter());
+      const side = element.getBBox().sideNearestToPoint(portBBox.center());
       switch (side) {
-        case 'left': { point.x += portBBox.width / 2 + padding; break; }
-        case 'right': { point.x -= portBBox.width / 2 + padding; break; }
-        case 'top': { point.y += portBBox.height / 2 + padding; break; }
-        case 'bottom': { point.y -= portBBox.height / 2 + padding; break; }
+        case 'left': { point.x -= portBBox.width / 2 + padding; break; }
+        case 'right': { point.x += portBBox.width / 2 + padding; break; }
+        case 'top': { point.y -= portBBox.height / 2 + padding; break; }
+        case 'bottom': { point.y += portBBox.height / 2 + padding; break; }
         // No default
       }
       return point;
