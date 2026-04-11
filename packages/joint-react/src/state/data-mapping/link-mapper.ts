@@ -2,7 +2,7 @@ import { type dia } from '@joint/core';
 import type { LinkRecord } from '../../types/data-types';
 import { defaultLinkStyle } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
-import { convertLabel } from './convert-labels';
+import { convertLabels } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 import { buildLinkPresentationAttributes } from './link-attributes';
 import { isRecord } from '../../utils/is';
@@ -53,9 +53,7 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
     if (labels) {
       throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
     }
-    attributes.labels = Object.entries(labelMap).map(([labelId, label]) =>
-      convertLabel(labelId, label, link.labelStyle)
-    );
+    attributes.labels = convertLabels(labelMap, link.labelStyle);
     attributes.labelMap = labelMap;
   } else {
     attributes.labels = labels ?? null;

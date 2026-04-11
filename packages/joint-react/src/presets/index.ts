@@ -27,3 +27,4 @@ export {
   linkMarkerOneOrMany,
 } from './link-markers';
 export { elementPort } from './element-port';
+export { linkLabel } from './link-label';
