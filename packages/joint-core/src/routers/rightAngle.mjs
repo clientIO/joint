@@ -483,6 +483,11 @@ function routeBetweenPoints(source, target, opt = {}) {
     const tmy0 = ty0 - targetMargin;
     const tmy1 = ty1 + targetMargin;
 
+    let ignoreOverlappingMargin = false;
+    if (minMargin != null) {
+        ignoreOverlappingMargin = (sourceMargin + targetMargin) - 2 * minMargin;
+    }
+
     const [sourceSide, targetSide] = resolveSides(source, target);
 
     const sourceOutsidePoint = getOutsidePoint(sourceSide, { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight }, sourceMargin);
@@ -544,9 +549,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isUpwardsShorter = topD < bottomD;
 
             let ignoreMargin = false;
-            if (minMargin &&
-                ((Math.abs(smy1 - tmy0) <= minMargin) ||
-                (Math.abs(smy0 - tmy1) <= minMargin))) {
+            if (ignoreOverlappingMargin &&
+                ((Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) ||
+                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin))) {
                 ignoreMargin = true;
             }
 
@@ -611,9 +616,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isUpwardsShorter = topD < bottomD;
 
             let ignoreMargin = false;
-            if (minMargin &&
-                ((Math.abs(smy1 - tmy0) <= minMargin) ||
-                (Math.abs(smy0 - tmy1) <= minMargin))) {
+            if (ignoreOverlappingMargin &&
+                ((Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) ||
+                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin))) {
                 ignoreMargin = true;
             }
 
@@ -678,9 +683,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isLeftShorter = leftD < rightD;
 
             let ignoreMargin = false;
-            if (minMargin &&
-                ((Math.abs(smx1 - tmx0) <= minMargin) ||
-                (Math.abs(smx0 - tmx1) <= minMargin))) {
+            if (ignoreOverlappingMargin &&
+                ((Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) ||
+                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin))) {
                 ignoreMargin = true;
             }
 
@@ -745,9 +750,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isLeftShorter = leftD < rightD;
 
             let ignoreMargin = false;
-            if (minMargin &&
-                ((Math.abs(smx1 - tmx0) <= minMargin) ||
-                (Math.abs(smx0 - tmx1) <= minMargin))) {
+            if (ignoreOverlappingMargin &&
+                ((Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) ||
+                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin))) {
                 ignoreMargin = true;
             }
 
