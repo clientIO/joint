@@ -1,7 +1,10 @@
 import type { dia } from '@joint/core';
 import { linkMarkerShapes } from '../theme/markers';
 
-export const MODEL_GEOMETRY_OPTIONS = { useModelGeometry: true } as const;
+export const MODEL_GEOMETRY_OPTIONS = {
+  useModelGeometry: true,
+  rotate: true
+} as const;
 
 export const EMPTY_OPTIONS = {} as const;
 

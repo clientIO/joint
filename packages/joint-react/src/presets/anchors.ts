@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { anchors } from '@joint/core';
+import { anchors, g } from '@joint/core';
 import { getMarkerLength, MODEL_GEOMETRY_OPTIONS } from './utils';
 
 /**
@@ -54,16 +54,27 @@ export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetO
     const portId = magnet.getAttribute('port');
     if (portId && element.hasPort(portId)) {
       // For ports, calculate the point based on the port bbox and element geometry
-      const portBBox = element.getPortBBox(portId);
-      const point = portBBox.center();
+      const portRect = element.getPortRelativeRect(portId);
+      const point = element.position().offset(
+        portRect.x + portRect.width / 2,
+        portRect.y + portRect.height / 2
+      );
+
       const side = element.getBBox().sideNearestToPoint(point);
       switch (side) {
-        case 'left': { point.x -= portBBox.width / 2 + padding; break; }
-        case 'right': { point.x += portBBox.width / 2 + padding; break; }
-        case 'top': { point.y -= portBBox.height / 2 + padding; break; }
-        case 'bottom': { point.y += portBBox.height / 2 + padding; break; }
+        case 'left': { point.x -= portRect.width / 2 + padding; break; }
+        case 'right': { point.x += portRect.width / 2 + padding; break; }
+        case 'top': { point.y -= portRect.height / 2 + padding; break; }
+        case 'bottom': { point.y += portRect.height / 2 + padding; break; }
         // No default
       }
+
+      // Rotate the point according to the element's angle, since port positions are relative to the pre-rotated element
+      const angle = element.angle();
+      if (angle !== 0) {
+        point.rotate(element.getCenter(), -angle);
+      }
+
       return point;
     }
     // For other magnets, use midSide with DOM geometry
