@@ -1,4 +1,5 @@
 import { dia } from '@joint/core';
+import { linkStyle } from '../presets';
 
 const LINK_CONNECTING_CLASS = 'jr-link--connecting';
 const LINK_SNAPPED_CN = 'jr-link--snapped';
@@ -28,13 +29,19 @@ export class PortalLinkView extends dia.LinkView {
     return isSnapped;
   }
 
-  // updateDOM() {
-  //     const { el, model, selectors } = this;
-  //     this.cleanNodesCache();
-  //     // update SVG attributes defined by 'attrs/'.
-  //     const attrs = model.get('style');
-  //     this.updateDOMSubtreeAttributes(el, attrs, { selectors });
-  //     // update the label position etc.
-  //     this.updateLabelPositions();
-  // }
+  // @todo - if we use `style` on the model as a source,
+  // we need to also run update when the style changes
+  updateDOM() {
+      // @ts-expect-error use protected properties
+      const { el, model, selectors } = this;
+      this.cleanNodesCache();
+      // update SVG attributes defined by 'attrs/'.
+      const attrs = linkStyle(model.get('style') || {});
+      console.log('updateDOM', { attrs });
+      // @ts-expect-error Protected method override
+      this.updateDOMSubtreeAttributes(el, attrs, { selectors });
+      // update the label position etc.
+      // @ts-expect-error Protected method override
+      this.updateLabelPositions();
+  }
 }

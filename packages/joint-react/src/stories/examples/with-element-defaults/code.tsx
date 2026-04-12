@@ -1,5 +1,5 @@
 import { GraphProvider, Paper, HTMLBox, PortalElement, PortalLink, type ElementRecord, type LinkRecord } from '@joint/react';
-import { elementPort, linkLabel } from '@joint/react/presets';
+import { elementPort, linkLabel, linkStyle } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 
@@ -31,6 +31,7 @@ class PortMapElement extends PortalElement {
     return {
       ...super.defaults(),
       type: 'PortMapElement',
+      // @todo does not work
       portMap: {
         in: { cx: 0, cy: 'calc(0.5 * h)', width: 10, height: 10, color: SECONDARY, passive: true },
         out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', width: 10, height: 10, color: PRIMARY },
@@ -52,6 +53,8 @@ class LabelsLink extends PortalLink {
           position: { distance: 0.5 },
         },
       ],
+      // @todo should we just use `attrs`?
+      // attrs: linkStyle({ color: SECONDARY, targetMarker: 'arrow' }),
       style: { color: SECONDARY, targetMarker: 'arrow' },
     };
   }
@@ -64,10 +67,13 @@ class LabelMapLink extends PortalLink {
     return {
       ...super.defaults(),
       type: 'LabelMapLink',
+      // @todo does not work
       labelMap: {
         main: { text: 'labelMap', fontSize: 10, backgroundBorderRadius: 4 },
       },
-      style: { color: SECONDARY, targetMarker: 'arrow' },
+      // @todo should we just use `attrs`?
+      // attrs: linkStyle({ color: PRIMARY, targetMarker: 'arrow' }),
+      style: { color: PRIMARY, targetMarker: 'arrow' },
     };
   }
 }
