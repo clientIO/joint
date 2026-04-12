@@ -36,8 +36,7 @@ export class PortalLinkView extends dia.LinkView {
       const { el, model, selectors } = this;
       this.cleanNodesCache();
       // update SVG attributes defined by 'attrs/'.
-      const attrs = linkStyle(model.get('style') || {});
-      console.log('updateDOM', { attrs });
+      const attrs = linkStyle(model.get('style'));
       // @ts-expect-error Protected method override
       this.updateDOMSubtreeAttributes(el, attrs, { selectors });
       // update the label position etc.
