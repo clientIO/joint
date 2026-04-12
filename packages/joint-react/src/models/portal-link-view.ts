@@ -31,16 +31,16 @@ export class PortalLinkView extends dia.LinkView {
 
   // @todo - if we use `style` on the model as a source,
   // we need to also run update when the style changes
-  updateDOM() {
-      // @ts-expect-error use protected properties
-      const { el, model, selectors } = this;
-      this.cleanNodesCache();
-      // update SVG attributes defined by 'attrs/'.
-      const attrs = linkStyle(model.get('style'));
-      // @ts-expect-error Protected method override
-      this.updateDOMSubtreeAttributes(el, attrs, { selectors });
-      // update the label position etc.
-      // @ts-expect-error Protected method override
-      this.updateLabelPositions();
-  }
+  // updateDOM() {
+  //     // @ts-expect-error use protected properties
+  //     const { el, model, selectors } = this;
+  //     this.cleanNodesCache();
+  //     // update SVG attributes defined by 'attrs/'.
+  //     const attrs = linkStyle(model.get('style'));
+  //     // @ts-expect-error Protected method override
+  //     this.updateDOMSubtreeAttributes(el, attrs, { selectors });
+  //     // update the label position etc.
+  //     // @ts-expect-error Protected method override
+  //     this.updateLabelPositions();
+  // }
 }
