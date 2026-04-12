@@ -15,13 +15,15 @@ export interface ElementPort {
   /**
    * X position of the port (absolute positioning).
    * Supports calc() expressions (e.g., 'calc(w)').
+   * Optional when using group-based positioning.
    */
-  cx: number | string;
+  cx?: number | string;
   /**
    * Y position of the port (absolute positioning).
    * Supports calc() expressions (e.g., 'calc(h)').
+   * Optional when using group-based positioning.
    */
-  cy: number | string;
+  cy?: number | string;
   /**
    * Width of the port shape.
    * @default 10
