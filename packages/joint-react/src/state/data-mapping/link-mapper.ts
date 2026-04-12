@@ -1,10 +1,9 @@
 import { type dia } from '@joint/core';
 import type { LinkRecord } from '../../types/data-types';
-import { defaultLinkStyle } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabels } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
-import { buildLinkPresentationAttributes } from './link-attributes';
+import { linkStyle } from '../../presets/link-style';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from '.';
 
@@ -14,7 +13,7 @@ import type { CellAttributes } from '.';
  * - `labelMap` → converted to native `labels` array, stored on the model for reverse mapping.
  * - `labels` (array) → passed through as-is (native JointJS format).
  * - Both present → throws an error.
- * - `style` → converted to SVG `attrs` via `buildLinkPresentationAttributes`.
+ * - `style` → converted to SVG `attrs` via `linkStyle`.
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
@@ -44,7 +43,7 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
 
   // style/attrs dual-format: if `style` is present, `attrs` will be generated from it.
   if (style) {
-    attributes.attrs = buildLinkPresentationAttributes(style, defaultLinkStyle);
+    attributes.attrs = linkStyle(style);
     attributes.style = style;
   }
 

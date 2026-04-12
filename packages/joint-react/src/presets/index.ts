@@ -28,3 +28,4 @@ export {
 } from './link-markers';
 export { elementPort } from './element-ports';
 export { linkLabel } from './link-labels';
+export { linkStyle } from './link-style';

@@ -21,7 +21,7 @@ export const defaultLinkStyle: Readonly<RequiredLinkStyle> = {
   linejoin: '',
 };
 
-/** A presentation key on Link, mapped to SVG attrs by buildLinkPresentationAttributes. */
+/** A presentation key on Link, mapped to SVG attrs by linkStyle(). */
 export type LinkPresentationKey = keyof LinkStyle;
 
 /**
