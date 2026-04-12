@@ -27,4 +27,14 @@ export class PortalLinkView extends dia.LinkView {
     this.el.classList.toggle(LINK_SNAPPED_CN, !!isSnapped);
     return isSnapped;
   }
+
+  // updateDOM() {
+  //     const { el, model, selectors } = this;
+  //     this.cleanNodesCache();
+  //     // update SVG attributes defined by 'attrs/'.
+  //     const attrs = model.get('style');
+  //     this.updateDOMSubtreeAttributes(el, attrs, { selectors });
+  //     // update the label position etc.
+  //     this.updateLabelPositions();
+  // }
 }

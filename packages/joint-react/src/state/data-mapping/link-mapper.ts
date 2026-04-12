@@ -55,8 +55,8 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
     }
     attributes.labels = convertLabels(labelMap, link.labelStyle);
     attributes.labelMap = labelMap;
-  } else {
-    attributes.labels = labels ?? null;
+  } else if (labels) {
+    attributes.labels = labels;
   }
 
   return attributes;

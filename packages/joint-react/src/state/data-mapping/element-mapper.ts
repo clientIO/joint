@@ -42,8 +42,8 @@ export function mapElementToAttributes<ElementData extends object = Record<strin
     }
     attributes.ports = convertPorts(portMap, element.portStyle);
     attributes.portMap = portMap;
-  } else {
-    attributes.ports = ports ?? null;
+  } else if (ports) {
+    attributes.ports = ports;
   }
 
   return attributes;
