@@ -18,14 +18,14 @@ import {
  * options to customize.
  * @example
  * ```tsx
- * import { orthogonalLinks } from '@joint/react/presets';
+ * import { linkRoutingOrthogonal } from '@joint/react/presets';
  *
- * const linkPreset = orthogonalLinks();
+ * const linkPreset = linkRoutingOrthogonal();
  * <Paper {...linkPreset} />
  * ```
  */
 
-export type LinkPreset = Pick<
+export type LinkRouting = Pick<
   PaperProps,
   'defaultRouter' | 'defaultConnector' | 'defaultAnchor' | 'defaultConnectionPoint'
 >;
@@ -41,7 +41,7 @@ interface BaseLinkOptions {
   readonly straightWhenDisconnected?: boolean;
 }
 
-export interface StraightLinksOptions extends BaseLinkOptions {
+export interface LinkRoutingStraightOptions extends BaseLinkOptions {
   /** Corner style at vertices. Default: `'point'`. */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
   /** Corner radius at vertices (in px). Default: `0`. */
@@ -54,7 +54,7 @@ export interface StraightLinksOptions extends BaseLinkOptions {
  * Straight-line links between elements.
  * The shortest path with no routing — a single line from source to target.
  */
-export function straightLinks(options: StraightLinksOptions = {}): LinkPreset {
+export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): LinkRouting {
   const { sourceOffset = 0, targetOffset = 0, cornerType = 'point', cornerRadius = 0, perpendicular = false } = options;
   return {
     defaultRouter: { name: 'normal' },
@@ -67,7 +67,7 @@ export function straightLinks(options: StraightLinksOptions = {}): LinkPreset {
   };
 }
 
-export interface OrthogonalLinksOptions extends BaseLinkOptions {
+export interface LinkRoutingOrthogonalOptions extends BaseLinkOptions {
   /** Corner style. Default: `'cubic'`. */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
   /** Corner radius for the rounded connector (in px). Default: `8`. */
@@ -80,7 +80,7 @@ export interface OrthogonalLinksOptions extends BaseLinkOptions {
  * Orthogonal (right-angle) links between elements.
  * Routes links with horizontal and vertical segments only, avoiding element overlap.
  */
-export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPreset {
+export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}): LinkRouting {
   const {
     cornerType = 'cubic',
     cornerRadius = 8,
@@ -115,13 +115,13 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
   };
 }
 
-export interface SmoothLinksOptions extends BaseLinkOptions {}
+export interface LinkRoutingSmoothOptions extends BaseLinkOptions {}
 
 /**
  * Smooth curved links between elements.
  * Renders links as bezier curves for a softer, more organic look.
  */
-export function smoothLinks(options: SmoothLinksOptions = {}): LinkPreset {
+export function linkRoutingSmooth(options: LinkRoutingSmoothOptions = {}): LinkRouting {
   const { mode, sourceOffset = 0, targetOffset = 0, straightWhenDisconnected = true } = options;
 
   if (straightWhenDisconnected) {

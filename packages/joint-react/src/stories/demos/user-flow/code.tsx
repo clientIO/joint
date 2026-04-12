@@ -29,9 +29,9 @@ import {
   useState,
 } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
-import { orthogonalLinks } from '@joint/react/presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 
-const ORTHOGONAL_LINKS = orthogonalLinks({ mode: 'top-bottom', cornerType: 'line' });
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ mode: 'top-bottom', cornerType: 'line' });
 
 const ThemeContext = createContext(false);
 

@@ -1,12 +1,12 @@
 export { type LinkMode } from './anchors';
 export {
-  straightLinks,
-  orthogonalLinks,
-  smoothLinks,
-  type LinkPreset,
-  type StraightLinksOptions,
-  type OrthogonalLinksOptions,
-  type SmoothLinksOptions,
+  linkRoutingStraight,
+  linkRoutingOrthogonal,
+  linkRoutingSmooth,
+  type LinkRouting,
+  type LinkRoutingStraightOptions,
+  type LinkRoutingOrthogonalOptions,
+  type LinkRoutingSmoothOptions,
 } from './link-routing';
 export {
   linkMarkerArrow,

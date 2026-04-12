@@ -12,10 +12,10 @@ import { util } from '@joint/core';
 import '../index.css';
 import { useEffect } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { straightLinks } from '@joint/react/presets';
+import { linkRoutingStraight } from '@joint/react/presets';
 import type { dia } from '@joint/core';
 
-const STRAIGHT_LINKS = straightLinks({ perpendicular: true });
+const STRAIGHT_LINKS = linkRoutingStraight({ perpendicular: true });
 
 interface NodeData {
   readonly [key: string]: unknown;

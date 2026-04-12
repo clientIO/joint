@@ -4,8 +4,8 @@ import {
   type ElementRecord, type ElementPort, type LinkRecord, usePaper,
 } from '@joint/react';
 import {
-  straightLinks, orthogonalLinks, smoothLinks,
-  type StraightLinksOptions, type OrthogonalLinksOptions, type SmoothLinksOptions,
+  linkRoutingStraight, linkRoutingOrthogonal, linkRoutingSmooth,
+  type LinkRoutingStraightOptions, type LinkRoutingOrthogonalOptions, type LinkRoutingSmoothOptions,
   type LinkMode,
 } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -142,15 +142,15 @@ function buildPreset(
   mode: LinkMode,
   sourceOffset: number,
   targetOffset: number,
-  cornerType: OrthogonalLinksOptions['cornerType'],
+  cornerType: LinkRoutingOrthogonalOptions['cornerType'],
   cornerRadius: number,
   straightWhenDisconnected: boolean,
 ) {
   const base = { mode, sourceOffset, targetOffset };
   switch (name) {
-    case 'straight': return straightLinks({ sourceOffset, targetOffset } satisfies StraightLinksOptions);
-    case 'orthogonal': return orthogonalLinks({ ...base, cornerType, cornerRadius, straightWhenDisconnected } satisfies OrthogonalLinksOptions);
-    case 'smooth': return smoothLinks({ ...base, straightWhenDisconnected } satisfies SmoothLinksOptions);
+    case 'straight': return linkRoutingStraight({ sourceOffset, targetOffset } satisfies LinkRoutingStraightOptions);
+    case 'orthogonal': return linkRoutingOrthogonal({ ...base, cornerType, cornerRadius, straightWhenDisconnected } satisfies LinkRoutingOrthogonalOptions);
+    case 'smooth': return linkRoutingSmooth({ ...base, straightWhenDisconnected } satisfies LinkRoutingSmoothOptions);
   }
 }
 
@@ -158,14 +158,14 @@ function buildPreset(
 
 const PRESET_NAMES: PresetName[] = ['straight', 'orthogonal', 'smooth'];
 const ANCHOR_MODES: LinkMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical', 'top-bottom', 'bottom-top', 'left-right', 'right-left'];
-const CORNER_TYPES: NonNullable<OrthogonalLinksOptions['cornerType']>[] = ['cubic', 'line', 'point', 'gap'];
+const CORNER_TYPES: NonNullable<LinkRoutingOrthogonalOptions['cornerType']>[] = ['cubic', 'line', 'point', 'gap'];
 
 function PresetPicker() {
   const [preset, setPreset] = useState<PresetName>('smooth');
   const [anchorMode, setLinkMode] = useState<LinkMode>('horizontal');
   const [sourceOffset, setSourceOffset] = useState(0);
   const [targetOffset, setTargetOffset] = useState(0);
-  const [cornerType, setCornerType] = useState<OrthogonalLinksOptions['cornerType']>('cubic');
+  const [cornerType, setCornerType] = useState<LinkRoutingOrthogonalOptions['cornerType']>('cubic');
   const [cornerRadius, setCornerRadius] = useState(8);
   const [straightWhenDisconnected, setDirectWhileDragging] = useState(true);
 
@@ -276,7 +276,7 @@ function PresetPicker() {
                 <select
                   className="px-1.5 py-0.5 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                   value={cornerType}
-                  onChange={(event) => setCornerType(event.target.value as OrthogonalLinksOptions['cornerType'])}
+                  onChange={(event) => setCornerType(event.target.value as LinkRoutingOrthogonalOptions['cornerType'])}
                 >
                   {CORNER_TYPES.map((type) => (
                     <option key={type} value={type}>{type}</option>

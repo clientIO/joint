@@ -16,7 +16,7 @@ import {
   type RenderElement,
   type IncrementalContainerChanges,
 } from '@joint/react';
-import { orthogonalLinks } from '@joint/react/presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { usePaperEvents } from '../../../hooks';
 import Peer, { type DataConnection } from 'peerjs';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
@@ -91,7 +91,7 @@ type AgentNodeData = {
 
 type AgentNode = ElementRecord<AgentNodeData>;
 
-const ORTHOGONAL_LINKS = orthogonalLinks({ sourceOffset: 6, targetOffset: 6 });
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ sourceOffset: 6, targetOffset: 6 });
 const PORT_R = 5;
 
 const initialElements: Record<string, AgentNode> = {

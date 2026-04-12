@@ -11,10 +11,10 @@ import {
   SVGText,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
-import { straightLinks } from '@joint/react/presets';
+import { linkRoutingStraight } from '@joint/react/presets';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
-const STRAIGHT_LINKS = straightLinks({ perpendicular: true });
+const STRAIGHT_LINKS = linkRoutingStraight({ perpendicular: true });
 
 import '../index.css';
 

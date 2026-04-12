@@ -2,7 +2,7 @@ import { dia } from '@joint/core';
 import { measureNode } from '../store/default-measure-node';
 import { PortalLinkView } from './portal-link-view';
 import { PORTAL_LINK_TYPE } from './portal-link';
-import { straightLinks } from '../presets';
+import { linkRoutingStraight } from '../presets';
 
 // Inject CSS custom property into all built-in grid pattern colors
 // so they respond to --jr-paper-grid-color.
@@ -71,7 +71,7 @@ export const PresetPaper = dia.Paper.extend({
     clickThreshold: DEFAULT_CLICK_THRESHOLD,
     snapLinks: { radius: DEFAULT_SNAP_RADIUS },
     drawGrid: true,
-    ...straightLinks(),
+    ...linkRoutingStraight(),
     measureNode: measureNode as dia.Paper.Options['measureNode'],
     highlighting: DEFAULT_HIGHLIGHTING,
     linkView: (link: dia.Link) => {

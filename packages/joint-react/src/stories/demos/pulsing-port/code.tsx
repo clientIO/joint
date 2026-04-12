@@ -14,11 +14,11 @@ import {
   HTMLBox,
 } from '@joint/react';
 
-import { orthogonalLinks } from '@joint/react/presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const PORT_SIZE = 20;
 const unit = 10;
-const ORTHOGONAL_LINKS = orthogonalLinks({ cornerType: 'line', margin: unit * 2 });
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ cornerType: 'line', margin: unit * 2 });
 
 const Pulse = dia.HighlighterView.extend({
   tagName: 'g',

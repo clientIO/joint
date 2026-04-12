@@ -13,9 +13,9 @@ import {
   useElements,
   HTMLBox,
 } from '@joint/react';
-import { smoothLinks } from '@joint/react/presets';
+import { linkRoutingSmooth } from '@joint/react/presets';
 
-const SMOOTH_LINKS = smoothLinks();
+const SMOOTH_LINKS = linkRoutingSmooth();
 
 const SECONDARY = '#6366f1';
 

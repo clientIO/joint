@@ -11,10 +11,10 @@ import {
 } from '@joint/react';
 import { useId } from 'react';
 import { PRIMARY, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
-import { orthogonalLinks } from '../../../presets/link-presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const WHITE = '#fff';
-const ORTHOGONAL_LINKS = orthogonalLinks();
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal();
 
 interface NodeData {
   readonly [key: string]: unknown;

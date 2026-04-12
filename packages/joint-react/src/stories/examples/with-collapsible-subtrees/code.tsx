@@ -21,9 +21,9 @@ import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
 import '../index.css';
-import { orthogonalLinks } from '../../../presets';
+import { linkRoutingOrthogonal } from '../../../presets';
 
-const ORTHOGONAL_LINKS = orthogonalLinks({ cornerType: 'line', cornerRadius: 10, mode: 'top-bottom' });
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ cornerType: 'line', cornerRadius: 10, mode: 'top-bottom' });
 
 // Base properties shared by all events
 interface BaseEvent {

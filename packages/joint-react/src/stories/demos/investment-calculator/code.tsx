@@ -12,10 +12,10 @@ import {
   type LinkRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { smoothLinks } from '@joint/react/presets';
+import { linkRoutingSmooth } from '@joint/react/presets';
 import { useCallback, useEffect, useRef } from 'react';
 
-const SMOOTH_LINKS = smoothLinks();
+const SMOOTH_LINKS = linkRoutingSmooth();
 
 // ----------------------------------------------------------------------------
 // Types

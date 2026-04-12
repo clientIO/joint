@@ -5,9 +5,9 @@ import type { LinkRecord, ElementRecord } from '@joint/react';
 import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
-import { orthogonalLinks } from '@joint/react/presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 
-const ORTHOGONAL_LINKS = orthogonalLinks({
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   straightWhenDisconnected: false,
   cornerType: 'line',
   cornerRadius: 5,

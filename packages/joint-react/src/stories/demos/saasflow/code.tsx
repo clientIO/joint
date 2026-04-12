@@ -9,9 +9,9 @@ import {
   type LinkRecord,
 } from '@joint/react';
 
-import { orthogonalLinks } from '@joint/react/presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 
-const ORTHOGONAL_LINKS = orthogonalLinks({ sourceOffset: 8, targetOffset: 8 });
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ sourceOffset: 8, targetOffset: 8 });
 
 import type { dia } from '@joint/core';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';

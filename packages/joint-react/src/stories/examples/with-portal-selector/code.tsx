@@ -18,7 +18,7 @@ import {
   PORTAL_ELEMENT_TYPE,
   useElement,
 } from '@joint/react';
-import { orthogonalLinks } from '@joint/react/presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { LIGHT, PAPER_STYLE } from 'storybook-config/theme';
 
@@ -39,7 +39,7 @@ interface ElementUserData {
 }
 
 const PAPER_PROPS: PaperProps = {
-  ...orthogonalLinks(),
+  ...linkRoutingOrthogonal(),
 };
 
 // ============================================================================

@@ -19,7 +19,7 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { orthogonalLinks } from '@joint/react/presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { forwardRef, useId, useRef, useState } from 'react';
 
 const unit = 4;
@@ -27,7 +27,7 @@ const bevel = 2 * unit;
 const nodeFontSize = 13;
 const labelFontSize = 15;
 
-const ORTHOGONAL_LINKS = orthogonalLinks({
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   cornerType: 'line',
   cornerRadius: bevel,
   margin: unit * 7,

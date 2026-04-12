@@ -12,9 +12,9 @@ import {
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { orthogonalLinks } from '@joint/react/presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 
-const ORTHOGONAL_LINKS = orthogonalLinks({ cornerType: 'line', margin: 40, sourceOffset: 10, targetOffset: 10 });
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ cornerType: 'line', margin: 40, sourceOffset: 10, targetOffset: 10 });
 
 interface NodeData {
   readonly [key: string]: unknown;

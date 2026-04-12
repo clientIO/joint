@@ -9,7 +9,7 @@ import {
   linkMarkerFork, linkMarkerForkClose,
   linkMarkerMany, linkMarkerManyOptional,
   linkMarkerOne, linkMarkerOneOptional, linkMarkerOneOrMany,
-  smoothLinks,
+  linkRoutingSmooth,
 } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
@@ -19,7 +19,7 @@ const ELEMENT_WIDTH = 80;
 const ELEMENT_GAP = 200;
 const PADDING = 40;
 
-const SMOOTH_LINKS = smoothLinks();
+const SMOOTH_LINKS = linkRoutingSmooth();
 
 // Each entry: [display name, factory function, extra opts for outline variant]
 const MARKER_ENTRIES = [
