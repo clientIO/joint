@@ -752,10 +752,7 @@ export const Graph = Model.extend({
     },
 
     getTypeConstructor(type) {
-        if (!type) return null;
-        const Ctor = util.getByPath(this.getCellNamespace(), type, '.');
-        if (!Ctor || !Ctor.prototype) return null;
-        return Ctor;
+        return this.layerCollection.getTypeConstructor(type);
     },
 
     getTypeDefaults(type) {

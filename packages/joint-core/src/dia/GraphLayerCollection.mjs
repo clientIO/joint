@@ -206,6 +206,17 @@ export const GraphLayerCollection = Collection.extend({
 
     /**
      * @public
+     * @description Returns the constructor for a given cell type string, or null.
+     */
+    getTypeConstructor(type) {
+        if (!type) return null;
+        const Ctor = util.getByPath(this.cellNamespace, type, '.');
+        if (!Ctor || !Ctor.prototype) return null;
+        return Ctor;
+    },
+
+    /**
+     * @public
      * @description Finds and returns a cell by its id from all layers.
      */
     getCell(cellRef) {

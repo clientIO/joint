@@ -190,6 +190,8 @@ export namespace dia {
 
         insert(layer: Graph.LayerInit, beforeId: GraphLayer.ID | null, opt?: ObjectHash): void;
 
+        getTypeConstructor<T extends Cell = Cell>(type: string): Cell.Constructor<T> | null;
+
         getCell(cellRef: Graph.CellRef): Cell | undefined;
 
         getCells(): Cell[];
