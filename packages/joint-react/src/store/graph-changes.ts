@@ -83,9 +83,7 @@ export function graphChanges(options: Options) {
     ) => {
       if (cell.isElement() && onElementsSizeChange) {
         const size = cell.size();
-        if (size?.width && size?.height) {
-          onElementsSizeChange(String(cell.id), size);
-        }
+        onElementsSizeChange(String(cell.id), size);
       }
       if (isUpdateFromReact) return;
       onCellEvent(cell, 'add');

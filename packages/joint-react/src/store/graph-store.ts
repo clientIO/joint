@@ -162,7 +162,6 @@ export class GraphStore<
         if (!cell?.isElement()) throw new Error('Cell not valid');
         const size = cell.size();
         const position = cell.get('position');
-        if (!size) throw new Error('Size not found');
         return {
           width: size.width,
           height: size.height,
