@@ -445,7 +445,7 @@ export namespace dia {
 
         getCellNamespace(): Record<string, any>;
 
-        getTypeConstructor(type: string): Cell.Constructor<Cell> | null;
+        getTypeConstructor<T extends Cell = Cell>(type: string): Cell.Constructor<T> | null;
 
         getTypeDefaults(type: string): Cell.Attributes;
 
