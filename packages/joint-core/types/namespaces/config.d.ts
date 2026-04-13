@@ -1,1 +1,0 @@
-export { config } from '../joint';

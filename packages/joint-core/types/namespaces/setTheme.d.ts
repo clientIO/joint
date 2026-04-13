@@ -1,1 +1,0 @@
-export { setTheme } from '../joint';

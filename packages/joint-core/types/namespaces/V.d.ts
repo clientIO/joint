@@ -1,5 +1,4 @@
 export {
-    V as default,
-    Vectorizer,
-    VElement
+    Vectorizer as default,
+    VElement,
 } from '../vectorizer';

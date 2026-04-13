@@ -1,3 +1,5 @@
 import { layout } from '../joint';
 
-export = layout;
+// Namespaces
+export import Port = layout.Port;
+export import PortLabel = layout.PortLabel;
