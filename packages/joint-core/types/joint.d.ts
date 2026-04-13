@@ -1008,7 +1008,7 @@ export namespace dia {
             connector?: connectors.Connector | connectors.ConnectorJSON;
         }
 
-        interface Attributes extends Cell.GenericAttributes<Cell.Selectors> {
+        interface Attributes extends GenericAttributes<Cell.Selectors> {
         }
 
         interface LabelPosition {
@@ -4410,6 +4410,14 @@ export namespace connectionPoints {
         stroke?: boolean;
     }
 
+    interface BBoxConnectionPointArguments extends StrokeConnectionPointArguments {
+        useModelGeometry?: boolean;
+    }
+
+    interface RectangleConnectionPointArguments extends StrokeConnectionPointArguments {
+        useModelGeometry?: boolean;
+    }
+
     interface BoundaryConnectionPointArguments extends StrokeConnectionPointArguments {
         selector?: Array<string | number> | string | false;
         precision?: number;
@@ -4420,8 +4428,8 @@ export namespace connectionPoints {
 
     interface ConnectionPointArgumentsMap {
         'anchor': DefaultConnectionPointArguments;
-        'bbox': StrokeConnectionPointArguments;
-        'rectangle': StrokeConnectionPointArguments;
+        'bbox': BBoxConnectionPointArguments;
+        'rectangle': RectangleConnectionPointArguments;
         'boundary': BoundaryConnectionPointArguments;
         [key: string]: { [key: string]: any };
     }
