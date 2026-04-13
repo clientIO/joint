@@ -68,7 +68,7 @@ function LinkPath() {
   );
 }
 
-function Main({ usePortalLinks }: Readonly<{ usePortalLinks: boolean }>) {
+function Main({ useLinkModels }: Readonly<{ useLinkModels: boolean }>) {
   const renderLink: RenderLink = useCallback(() => <LinkPath />, []);
 
   return (
@@ -76,26 +76,26 @@ function Main({ usePortalLinks }: Readonly<{ usePortalLinks: boolean }>) {
       <Paper
         className={PAPER_CLASSNAME}
         height={280}
-        renderLink={usePortalLinks ? renderLink : undefined}
+        renderLink={useLinkModels ? renderLink : undefined}
       />
     </div>
   );
 }
 
 export default function App() {
-  const [usePortalLinks, setUsePortalLinks] = useState(true);
+  const [useLinkModels, setUseLinkModels] = useState(true);
 
   return (
     <GraphProvider elements={initialElements} links={initialLinks}>
       <div className="flex flex-col gap-2">
         <button
           type="button"
-          onClick={() => setUsePortalLinks((v) => !v)}
+          onClick={() => setUseLinkModels((v) => !v)}
           className="px-3 py-1 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 self-start mx-2"
         >
-          {usePortalLinks ? 'Disable' : 'Enable'} renderLink
+          {useLinkModels ? 'Disable' : 'Enable'} renderLink
         </button>
-        <Main usePortalLinks={usePortalLinks} />
+        <Main useLinkModels={useLinkModels} />
       </div>
     </GraphProvider>
   );

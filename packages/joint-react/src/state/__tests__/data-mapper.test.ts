@@ -1,8 +1,8 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 
 import { dia, shapes } from '@joint/core';
-import { PortalElement } from '../../models/portal-element';
-import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
+import { ElementModel } from '../../models/element-model';
+import { LinkModel, LINK_MODEL_TYPE } from '../../models/link-model';
 import type { ElementRecord, ElementPort, LinkRecord } from '../../types/data-types';
 import {
   mapElementToAttributes,
@@ -10,9 +10,8 @@ import {
   mapAttributesToElement,
   mapAttributesToLink,
 } from '../data-mapping';
-import { defaultLinkStyle } from '../../theme/link-theme';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement, PortalLink };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, ElementModel, LinkModel };
 
 describe('dataMapper', () => {
   let graph: dia.Graph;
@@ -37,7 +36,7 @@ describe('dataMapper', () => {
       const cellJson = mapElementToAttributes(element);
       expect(cellJson.position).toEqual({ x: 10, y: 20 });
       expect(cellJson.size).toEqual({ width: 100, height: 50 });
-      expect(cellJson.type).toBe('PortalElement');
+      expect(cellJson.type).toBe('ElementModel');
 
       graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
@@ -74,7 +73,7 @@ describe('dataMapper', () => {
     it('should include all cell.data properties regardless of previousData', () => {
       const id = 'el-1';
       const cellJson = {
-        type: 'PortalElement',
+        type: 'ElementModel',
         id,
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
@@ -174,7 +173,7 @@ describe('dataMapper', () => {
       const cellJson = mapLinkToAttributes(link);
       expect(cellJson.source).toEqual({ id: 'el-1' });
       expect(cellJson.target).toEqual({ id: 'el-2' });
-      expect(cellJson.type).toBe(PORTAL_LINK_TYPE);
+      expect(cellJson.type).toBe(LINK_MODEL_TYPE);
 
       graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Link;
@@ -189,8 +188,8 @@ describe('dataMapper', () => {
       const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' }, style: {} };
 
       const cellJson = mapLinkToAttributes(link);
-      expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
-      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
+      expect(cellJson.attrs?.line?.style?.stroke).toBe('');
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe('');
     });
 
     it('should apply custom theme props', () => {
@@ -306,7 +305,7 @@ describe('dataMapper', () => {
   });
 
   describe('element attrs handling', () => {
-    it('should not include attrs when undefined (PortalElement default)', () => {
+    it('should not include attrs when undefined (ElementModel default)', () => {
       const cellJson = mapElementToAttributes({
         data: undefined,
         position: { x: 0, y: 0 },

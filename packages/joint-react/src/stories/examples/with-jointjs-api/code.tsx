@@ -6,8 +6,8 @@ import { dia, linkTools, mvc, shapes } from '@joint/core';
 import {
   GraphProvider,
   Paper,
-  PortalElement,
-  PortalLink,
+  ElementModel,
+  LinkModel,
   useGraph,
   useMeasureNode,
   useElementId,
@@ -26,16 +26,16 @@ interface ElementData {
 }
 
 function createGraph(): dia.Graph {
-  const graph = new dia.Graph({}, { cellNamespace: { ...shapes, PortalElement, PortalLink } });
+  const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ElementModel, LinkModel } });
 
-  const element1 = new PortalElement({
+  const element1 = new ElementModel({
     id: 'el1',
     position: { x: 50, y: 50 },
     size: { width: 180, height: 70 },
     data: { label: 'Element A', color: PRIMARY },
   });
 
-  const element2 = new PortalElement({
+  const element2 = new ElementModel({
     id: 'el2',
     position: { x: 350, y: 200 },
     size: { width: 180, height: 70 },

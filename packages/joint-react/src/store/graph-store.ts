@@ -8,8 +8,8 @@ import {
   type GraphStoreObserver,
   type SetMeasuredNodeOptions,
 } from './create-elements-size-observer';
-import { PortalElement } from '../models/portal-element';
-import { PortalLink } from '../models/portal-link';
+import { ElementModel } from '../models/element-model';
+import { LinkModel } from '../models/link-model';
 import { clearConnectedLinkViews } from './clear-view';
 import { LAYOUT_UPDATE_EVENT } from './graph-changes';
 import { createAtom, type Atom } from './state-container';
@@ -21,8 +21,8 @@ import { simpleScheduler } from '../utils/scheduler';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
-  PortalElement,
-  PortalLink,
+  ElementModel,
+  LinkModel,
 };
 
 /**

@@ -1,10 +1,9 @@
 import { type dia } from '@joint/core';
 import type { LinkRecord } from '../../types/data-types';
-import { defaultLinkStyle } from '../../theme/link-theme';
-import { PORTAL_LINK_TYPE } from '../../models/portal-link';
-import { convertLabel } from './convert-labels';
+import { LINK_MODEL_TYPE } from '../../models/link-model';
+import { linkLabels } from '../../presets/link-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
-import { buildLinkPresentationAttributes } from './link-attributes';
+import { linkStyle } from '../../presets/link-style';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from '.';
 
@@ -14,7 +13,7 @@ import type { CellAttributes } from '.';
  * - `labelMap` → converted to native `labels` array, stored on the model for reverse mapping.
  * - `labels` (array) → passed through as-is (native JointJS format).
  * - Both present → throws an error.
- * - `style` → converted to SVG `attrs` via `buildLinkPresentationAttributes`.
+ * - `style` → converted to SVG `attrs` via `linkStyle`.
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
@@ -27,7 +26,7 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
 
   const {
     data = {} as LinkData,
-    type = PORTAL_LINK_TYPE,
+    type = LINK_MODEL_TYPE,
     // Link style
     style,
     // Labels
@@ -44,7 +43,7 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
 
   // style/attrs dual-format: if `style` is present, `attrs` will be generated from it.
   if (style) {
-    attributes.attrs = buildLinkPresentationAttributes(style, defaultLinkStyle);
+    attributes.attrs = linkStyle(style);
     attributes.style = style;
   }
 
@@ -53,12 +52,10 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
     if (labels) {
       throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
     }
-    attributes.labels = Object.entries(labelMap).map(([labelId, label]) =>
-      convertLabel(labelId, label, link.labelStyle)
-    );
+    attributes.labels = linkLabels(labelMap, link.labelStyle);
     attributes.labelMap = labelMap;
-  } else {
-    attributes.labels = labels ?? null;
+  } else if (labels) {
+    attributes.labels = labels;
   }
 
   return attributes;
@@ -86,8 +83,6 @@ export function mapAttributesToLink<LinkData extends object = Record<string, unk
     // Link style
     style,
     attrs,
-    // Metadata (default-provided key tracking)
-    metadata,
     // 1:1 mapping of all other fields directly on the model
     ...linkRecord
   } = attributes;
@@ -107,16 +102,8 @@ export function mapAttributesToLink<LinkData extends object = Record<string, unk
   }
 
   // Only a custom type should be included in the link record.
-  if (type && type !== PORTAL_LINK_TYPE) {
+  if (type && type !== LINK_MODEL_TYPE) {
     linkRecord.type = type;
-  }
-
-  // Remove keys that came from defaults (not user-provided) to prevent round-trip pollution.
-  const omit = metadata?.omit;
-  if (omit) {
-    for (const key of omit) {
-      Reflect.deleteProperty(linkRecord, key);
-    }
   }
 
   return { ...linkRecord };

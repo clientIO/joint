@@ -305,8 +305,6 @@ function Main() {
       className={PAPER_CLASSNAME}
       height={500}
       renderElement={renderElement}
-      defaultRouter={{ name: 'normal' }}
-      defaultConnector={{ name: 'rounded', args: { radius: 20 } }}
       style={PAPER_STYLE}
       drawGrid={false}
     />

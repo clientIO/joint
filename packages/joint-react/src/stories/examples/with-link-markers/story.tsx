@@ -5,7 +5,7 @@ import RawCode from './code?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
-  title: 'Examples/Built-in Arrowheads',
+  title: 'Examples/Link Markers',
   component: Code,
   tags: ['example'],
   parameters: {

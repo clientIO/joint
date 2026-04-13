@@ -1,20 +1,20 @@
 import type { LinkRecord } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
-import { PAPER_CLASSNAME, PAPER_STYLE, LIGHT } from 'storybook-config/theme';
-import type { LinkMarkerName } from '../../../theme/markers';
-import { linkMarkerShapes } from '../../../theme/markers';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import type { LinkMarkerName } from '../../../theme/named-link-markers';
+import { namedLinkMarkers } from '../../../theme/named-link-markers';
 
 const LINK_LENGTH = 160;
-const GAP_X = 260;
-const GAP_Y = 80;
-const COLS = 3;
-const PADDING = 60;
+const GAP_Y = 30;
+const COLS = 2;
+const GAP_X = 220;
+const PADDING = 20;
 
-const markerNames = Object.keys(linkMarkerShapes).filter(
+const markerNames = Object.keys(namedLinkMarkers).filter(
   (name) => name !== 'none'
 ) as LinkMarkerName[];
 
-function buildGrid() {
+function buildLinks() {
   const links: Record<string, LinkRecord> = {};
 
   for (const [index, name] of markerNames.entries()) {
@@ -27,13 +27,16 @@ function buildGrid() {
       source: { x, y },
       target: { x: x + LINK_LENGTH, y },
       style: {
-        color: LIGHT,
         width: 2,
         sourceMarker: name,
         targetMarker: name,
       },
       labelMap: {
-        label: { text: name, color: LIGHT, backgroundColor: '#023345', backgroundBorderRadius: 4 },
+        label: {
+          text: name,
+          backgroundBorderRadius: 4,
+          fontSize: 10,
+        },
       },
     };
   }
@@ -41,16 +44,16 @@ function buildGrid() {
   return links;
 }
 
-const links = buildGrid();
+const links = buildLinks();
 
 export default function App() {
   return (
     <GraphProvider links={links}>
       <Paper
-        className={`${PAPER_CLASSNAME} h-[400px]`}
+        scale={2}
+        className={`${PAPER_CLASSNAME} h-[800px]`}
         width="100%"
         interactive={false}
-        style={PAPER_STYLE}
         drawGrid={false}
       />
     </GraphProvider>

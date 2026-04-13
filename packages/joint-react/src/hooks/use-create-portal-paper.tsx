@@ -37,7 +37,7 @@ import {
 import { createSelectPaperVersion } from '../selectors';
 import { useAreElementsMeasured } from './use-are-elements-measured';
 
-type PortalLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
+type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
 export interface UseCreatePortalPaperOptions extends PaperProps {
   /**
@@ -65,19 +65,19 @@ export interface UseCreatePortalPaperResult {
 }
 
 /**
- * Resolves the `PortalLink` constructor from graph cell namespace.
+ * Resolves the `LinkModel` constructor from graph cell namespace.
  * @param graph - Graph instance with layer collection namespace.
- * @returns The `PortalLink` constructor from graph namespace.
- * @throws {Error} When `PortalLink` is missing in graph namespace.
+ * @returns The `LinkModel` constructor from graph namespace.
+ * @throws {Error} When `LinkModel` is missing in graph namespace.
  */
-function getPortalLinkConstructor(graph: dia.Graph): PortalLinkConstructor {
+function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
   const cellNamespace = graph.layerCollection?.cellNamespace;
-  const reactLinkConstructor = cellNamespace?.PortalLink;
+  const reactLinkConstructor = cellNamespace?.LinkModel;
   if (typeof reactLinkConstructor === 'function') {
-    return reactLinkConstructor as PortalLinkConstructor;
+    return reactLinkConstructor as LinkModelConstructor;
   }
   throw new Error(
-    'Paper: PortalLink constructor is missing in graph.layerCollection.cellNamespace.'
+    'Paper: LinkModel constructor is missing in graph.layerCollection.cellNamespace.'
   );
 }
 
@@ -180,11 +180,11 @@ export function useCreatePortalPaper(
     (cellView: dia.CellView, magnet: SVGElement) => {
       const isDefaultLinkFactory = typeof defaultLink === 'function';
       const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
-      const PortalLinkModel = getPortalLinkConstructor(graph);
+      const LinkModelModel = getLinkModelConstructor(graph);
       if (!link) {
         const id = util.uuid();
         const defaultAttributes = mapLinkToAttributes({ id, data: {} } as LinkRecord);
-        return new PortalLinkModel(defaultAttributes);
+        return new LinkModelModel(defaultAttributes);
       }
       if (link instanceof dia.Link) {
         if (isDefaultLinkFactory) {
@@ -194,7 +194,7 @@ export function useCreatePortalPaper(
       }
       const id = util.uuid();
       const attributes = mapLinkToAttributes({ id, data: {}, ...link } as LinkRecord);
-      return new PortalLinkModel(attributes);
+      return new LinkModelModel(attributes);
     },
 
     [defaultLink, graph]

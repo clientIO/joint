@@ -28,7 +28,7 @@ export interface GraphProviderProps<
   readonly children?: React.ReactNode;
   /**
    * Namespace for cell models.
-   * @default `{ ...shapes, PortalElement, PortalLink }`
+   * @default `{ ...shapes, ElementModel, LinkModel }`
    */
   readonly cellNamespace?: unknown;
   /**

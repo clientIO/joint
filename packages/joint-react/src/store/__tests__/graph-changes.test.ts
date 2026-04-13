@@ -20,7 +20,7 @@ function setup() {
 function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50) {
   graph.addCell({
     id,
-    type: 'PortalElement',
+    type: 'ElementModel',
     position: { x, y },
     size: { width, height },
   });
@@ -103,7 +103,7 @@ describe('graphChanges', () => {
       graph.resetCells([
         {
           id: 'el-2',
-          type: 'PortalElement',
+          type: 'ElementModel',
           position: { x: 0, y: 0 },
           size: { width: 50, height: 50 },
         },
@@ -124,7 +124,7 @@ describe('graphChanges', () => {
       graph.addCell(
         {
           id: 'el-1',
-          type: 'PortalElement',
+          type: 'ElementModel',
           position: { x: 0, y: 0 },
           size: { width: 50, height: 50 },
         },

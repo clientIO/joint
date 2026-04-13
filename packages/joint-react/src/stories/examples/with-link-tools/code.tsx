@@ -11,19 +11,10 @@ import {
 } from '@joint/react';
 import { useId } from 'react';
 import { PRIMARY, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const WHITE = '#fff';
-
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
-    source: { id: '1' },
-    target: { id: '2' },
-    style: {
-      color: PRIMARY,
-      dasharray: '5 5',
-    }
-  },
-};
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal();
 
 interface NodeData {
   readonly [key: string]: unknown;
@@ -34,8 +25,21 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 10 }, size: { width: 120, height: 30 } },
   '2': {
     data: { label: 'Node 2' },
-    position: { x: 100, y: 200 },
+    position: { x: 300, y: 200 },
     size: { width: 120, height: 30 },
+  },
+};
+
+const initialEdges: Record<string, LinkRecord> = {
+  'e1-2': {
+    source: { id: '1' },
+    target: { id: '2' },
+    vertices: [{ x: 340, y: 100 }],
+    style: {
+      targetMarker: 'arrow-sunken',
+      color: PRIMARY,
+      dasharray: '5 5',
+    }
   },
 };
 
@@ -75,9 +79,17 @@ const infoButton = new linkTools.Button({
   },
 });
 
+const targetArrowhead = new linkTools.TargetArrowhead({
+  attributes: {
+    fill: 'transparent',
+    d: 'M -10 -10 V 10 H 10 V -10 Z',
+    cursor: 'grab',
+  }
+});
+
 // 3) creating a tools view
 const toolsView = new dia.ToolsView({
-  tools: [boundaryTool, verticesTool, infoButton],
+  tools: [boundaryTool, verticesTool, infoButton, targetArrowhead],
 });
 
 function Main() {
@@ -90,7 +102,12 @@ function Main() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper id={paperId} className={PAPER_CLASSNAME} height={280} />
+      <Paper
+        id={paperId}
+        className={PAPER_CLASSNAME}
+        height={280}
+        {...ORTHOGONAL_LINKS}
+      />
       <div
         style={{
           position: 'absolute',

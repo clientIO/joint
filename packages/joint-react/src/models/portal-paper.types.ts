@@ -24,7 +24,7 @@ export interface PortalPaperOptions extends dia.Paper.Options {
    * Selector used to locate the React portal target node inside a cell view.
    *
    * By default, only cells whose markup contains the `'__portal__'` selector
-   * (i.e. {@link PortalElement}) are rendered via `renderElement`.
+   * (i.e. {@link ElementModel}) are rendered via `renderElement`.
    * Set this to a different selector (e.g. `'root'`) to render into
    * built-in or custom JointJS shapes.
    *

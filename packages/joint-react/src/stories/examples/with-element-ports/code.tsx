@@ -13,6 +13,9 @@ import {
   useElements,
   HTMLBox,
 } from '@joint/react';
+import { linkRoutingSmooth } from '@joint/react/presets';
+
+const SMOOTH_LINKS = linkRoutingSmooth();
 
 const SECONDARY = '#6366f1';
 
@@ -383,9 +386,7 @@ function Main() {
         height={400}
         snapLinks={true}
         linkPinning={false}
-        defaultConnectionPoint={{
-          name: 'anchor',
-        }}
+        {...SMOOTH_LINKS}
         defaultLink={{
           style: { color: LIGHT },
         }}

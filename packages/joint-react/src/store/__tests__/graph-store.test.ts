@@ -2,7 +2,7 @@
 import { waitFor } from '@testing-library/react';
 import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
-import { PortalElement } from '../../models/portal-element';
+import { ElementModel } from '../../models/element-model';
 import { sendToDevTool } from '../../utils/dev-tools';
 
 
@@ -12,7 +12,7 @@ jest.mock('../../utils/dev-tools', () => ({
 
 const sendToDevToolMock = sendToDevTool as jest.MockedFunction<typeof sendToDevTool>;
 
-const DEFAULT_TEST_NAMESPACE = { ...shapes, PortalElement };
+const DEFAULT_TEST_NAMESPACE = { ...shapes, ElementModel };
 
 describe('GraphStore', () => {
   beforeEach(() => {
@@ -111,7 +111,7 @@ describe('GraphStore', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_TEST_NAMESPACE });
       const existingElement = new dia.Element({
         id: 'existing-element',
-        type: 'PortalElement',
+        type: 'ElementModel',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });
@@ -149,7 +149,7 @@ describe('GraphStore', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_TEST_NAMESPACE });
       const element = new dia.Element({
         id: 'test-element',
-        type: 'PortalElement',
+        type: 'ElementModel',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });
@@ -378,7 +378,7 @@ describe('GraphStore', () => {
       const id = 'measured-element';
 
       store.graph.addCell(
-        new PortalElement({
+        new ElementModel({
           id,
           position: { x: 10, y: 20 },
           size: { width: 100, height: 50 },
@@ -451,7 +451,7 @@ describe('GraphStore', () => {
 
       const element = new dia.Element({
         id: 'graph-element',
-        type: 'PortalElement',
+        type: 'ElementModel',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });

@@ -1,21 +1,66 @@
 import { type dia, util } from '@joint/core';
-import type { LinkLabel } from '../../types/data-types';
-import { defaultLabelStyle } from '../../theme/link-theme';
+import type { LiteralUnion } from '../types';
 
 /**
- * Converts a simplified LinkLabel into a JointJS dia.Link.Label
- * using the PortalLink's defaultLabel selectors (labelText, labelBody).
- * @param id - The unique identifier for the label
- * @param rawLabel - The simplified label definition
- * @param labelStyle - Optional style defaults for label properties
- * @returns The full JointJS label definition
+ * Simplified label definition for graph links.
+ * @group Graph
  */
-export function convertLabel(
-  id: string,
-  rawLabel: LinkLabel,
-  labelStyle?: Partial<LinkLabel>
-): dia.Link.Label & { id: string } {
-  const label = labelStyle ? { ...labelStyle, ...rawLabel } : rawLabel;
+export interface LinkLabel {
+  /** Label text content. */
+  text: string;
+  /** Position along the link. 0–1 is a ratio, >1 is absolute distance in px. */
+  position?: number;
+  /** Offset perpendicular to the link path. A number or `{ x, y }` object. */
+  offset?: number | { x: number; y: number };
+  /** Text color. */
+  color?: string;
+  /** Background color of the label rectangle. */
+  backgroundColor?: string;
+  /** Padding between text and background. Number or `{ x, y }`. @default { x: 4, y: 2 } */
+  backgroundPadding?: number | { x: number; y: number };
+  /** Font size of the label text. */
+  fontSize?: number;
+  /** Font family of the label text. */
+  fontFamily?: string;
+  /** CSS class name applied to the label text element. */
+  className?: string;
+  /** Outline (stroke) color of the label background. */
+  backgroundOutline?: string;
+  /** Outline (stroke) width of the label background. */
+  backgroundOutlineWidth?: number;
+  /** Border radius of the label background. */
+  backgroundBorderRadius?: number;
+  /** Opacity of the label background (0–1). */
+  backgroundOpacity?: number;
+  /** CSS class name applied to the label background. */
+  backgroundClassName?: string;
+  /** Shape of the label background: `'rect'`, `'ellipse'`, or SVG path `d` commands. @default 'rect' */
+  backgroundShape?: LiteralUnion<'rect' | 'ellipse'>;
+}
+
+const defaultLabelStyle = {
+  color: '' as string,
+  fontSize: '' as number | string,
+  fontFamily: '' as string,
+  backgroundColor: '' as string,
+  backgroundOutline: '' as string,
+  backgroundOutlineWidth: '' as number | string,
+  backgroundBorderRadius: 4,
+  backgroundPadding: { x: 4, y: 2 } as { readonly x: number; readonly y: number },
+  position: 0.5,
+  className: '',
+  backgroundClassName: '',
+} as const;
+
+/**
+ * Creates a JointJS link label from simplified options.
+ *
+ * @example
+ * ```ts
+ * linkLabel({ text: 'Hello', color: '#333', position: 0.5 })
+ * ```
+ */
+export function linkLabel(label: LinkLabel): dia.Link.Label {
   const {
     text,
     position = defaultLabelStyle.position,
@@ -66,8 +111,8 @@ export function convertLabel(
   } else if (backgroundShape === 'ellipse') {
     bodyTagName = 'ellipse';
     labelBodyAttributes.ref = 'labelText';
-    labelBodyAttributes.cx = 'calc(0.5 * w)';
-    labelBodyAttributes.cy = 'calc(0.5 * h)';
+    labelBodyAttributes.cx = '0';
+    labelBodyAttributes.cy = '0';
     labelBodyAttributes.rx = `calc(0.5 * w + ${px})`;
     labelBodyAttributes.ry = `calc(0.5 * h + ${py})`;
   } else {
@@ -86,7 +131,6 @@ export function convertLabel(
   if (offset !== undefined) labelPosition.offset = offset;
 
   return {
-    id,
     markup: [
       {
         tagName: bodyTagName,
@@ -105,4 +149,25 @@ export function convertLabel(
     },
     position: labelPosition,
   };
+}
+
+/**
+ * Converts a record of simplified LinkLabel definitions to an array of JointJS labels.
+ *
+ * @example
+ * ```ts
+ * linkLabels({ main: { text: 'Hello', fontSize: 12 } })
+ * ```
+ */
+export function linkLabels(
+  labels: Record<string, LinkLabel>,
+  labelStyle?: Partial<LinkLabel>
+): Array<dia.Link.Label & { id: string }> {
+  return Object.entries(labels).map(([id, rawLabel]) => {
+    const label = labelStyle ? { ...labelStyle, ...rawLabel } : rawLabel;
+    return {
+      id,
+      ...linkLabel(label),
+    };
+  });
 }

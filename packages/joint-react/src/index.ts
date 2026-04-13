@@ -59,16 +59,17 @@ export type {
   LinkStyle,
   LinkLabel,
 } from './types/data-types';
-export type { PortShape as PortShape } from './theme/element-theme';
+export type { PortShape } from './presets/element-ports';
 export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
 
 // Theme
-export type { LinkMarkerName, LinkMarker } from './theme/markers';
+export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
 
 // Models
-export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
-export { PortalLink, PORTAL_LINK_TYPE } from './models/portal-link';
+export { ElementModel, ELEMENT_MODEL_TYPE } from './models/element-model';
+export { LinkModel, LINK_MODEL_TYPE } from './models/link-model';
+export { LinkView } from './models/link-view';
 export { PortalPaper } from './models/portal-paper';
 
 // Data mapping types

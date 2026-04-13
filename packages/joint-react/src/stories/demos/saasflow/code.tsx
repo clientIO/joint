@@ -9,6 +9,10 @@ import {
   type LinkRecord,
 } from '@joint/react';
 
+import { linkRoutingOrthogonal } from '@joint/react/presets';
+
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ sourceOffset: 8, targetOffset: 8 });
+
 import type { dia } from '@joint/core';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
@@ -148,9 +152,7 @@ const initialLinks: Record<string, LinkRecord> = {
       width: 2,
       dasharray: '6,4',
       targetMarker: {
-        d: 'M 0 -4 L 8 0 L 0 4 Z',
-        fill: 'context-stroke',
-        stroke: 'none',
+        markup: [{ tagName: 'path', attributes: { d: 'M 0 -4 L 8 0 L 0 4 Z', fill: 'context-stroke', stroke: 'none' } }],
       },
     },
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
@@ -303,7 +305,7 @@ function ToolbarButton({
 
 function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | null> }>) {
   const theme = useTheme();
-  const { setElement } = useGraph<SaasNodeData>();
+  const { setElement } = useGraph();
 
   const addNode = useCallback(() => {
     const id = `node-${Date.now()}`;
@@ -490,13 +492,7 @@ function Main() {
         snapLinks={{ radius: 30 }}
         magnetThreshold="onleave"
         clickThreshold={10}
-        defaultRouter={{ name: 'rightAngle', args: { margin: 20 } }}
-        defaultConnector={{
-          name: 'straight',
-          args: { cornerType: 'cubic', cornerPreserveAspectRatio: true },
-        }}
-        defaultConnectionPoint={{ name: 'boundary', args: { offset: 8, extrapolate: true } }}
-        defaultLink={{ style: { color: theme.link, width: 2, targetMarker: 'none' } }}
+        {...ORTHOGONAL_LINKS}
         validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         validateConnection={(cellViewS, _magnetS, cellViewT, magnetT) => {
           if (cellViewS === cellViewT) return false;

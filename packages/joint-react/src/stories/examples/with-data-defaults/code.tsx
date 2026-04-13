@@ -109,6 +109,7 @@ function ThemeUpdater({
 
   useEffect(() => {
     const portStyle = getPortStyle(color, portShape);
+
     setElements((previous) =>
       Object.fromEntries(
         Object.entries(previous).map(([id, element]) => [id, { ...element, portStyle }])

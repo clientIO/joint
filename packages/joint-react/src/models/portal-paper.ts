@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { PortalSelector, PortalPaperOptions } from './portal-paper.types';
-import { PORTAL_SELECTOR } from './portal-element';
+import { PORTAL_SELECTOR } from './element-model';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import { PresetPaper } from './preset-paper';
@@ -23,11 +23,6 @@ export class PortalPaper extends PresetPaper {
   private readonly shouldPreserveHostElementOnRemove: boolean;
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();
-
-  protected _ensureElClassName() {
-    // Note: the `className` property is ignored here.
-    this.el.classList.add('jr-portal-paper', 'joint-paper');
-  }
 
   constructor(options: PortalPaperOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;

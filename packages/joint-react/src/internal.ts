@@ -52,13 +52,6 @@ export { createAtom, type Atom } from './store/state-container';
 export * from './state/data-mapping/element-mapper';
 export * from './state/data-mapping/link-mapper';
 
-// Data-Mapping Internals
-export { convertLabel } from './state/data-mapping/convert-labels';
-export { mergeLabelsFromAttributes } from './state/data-mapping/convert-labels-reverse';
-export { convertPorts, createPortGroupsDefault } from './state/data-mapping/convert-ports';
-export { buildLinkPresentationAttributes } from './state/data-mapping/link-attributes';
-export { resolveCellDefaults } from './state/data-mapping/resolve-cell-defaults';
-
 // Render Internals
 export { PaperHTMLContainer } from './components/paper/render-element/paper-html-container';
 export {
@@ -71,8 +64,8 @@ export { assignOptions, pickValues } from './utils/object-utilities';
 export { resolvePaper, resolvePaperId } from './types';
 
 // Constants
-export { PORTAL_ELEMENT_TYPE, PORTAL_SELECTOR } from './models/portal-element';
-export { PORTAL_LINK_TYPE } from './models/portal-link';
+export { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from './models/element-model';
+export { LINK_MODEL_TYPE } from './models/link-model';
 
 // Internal Selectors
 export {

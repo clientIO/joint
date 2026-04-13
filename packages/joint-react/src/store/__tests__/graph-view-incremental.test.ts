@@ -7,7 +7,7 @@ function createGraph(): dia.Graph {
 }
 
 function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50): void {
-  graph.addCell({ id, type: 'PortalElement', position: { x, y }, size: { width, height } });
+  graph.addCell({ id, type: 'ElementModel', position: { x, y }, size: { width, height } });
 }
 
 /** Flush pending microtasks so commitChanges callbacks execute. */

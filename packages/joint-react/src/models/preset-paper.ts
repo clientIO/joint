@@ -1,6 +1,8 @@
 import { dia } from '@joint/core';
-import { connectionPoint } from '../store/default-connection-point';
 import { measureNode } from '../store/default-measure-node';
+import { LinkView } from './link-view';
+import { LINK_MODEL_TYPE, LinkModel } from './link-model';
+import { linkRoutingStraight } from '../presets';
 
 // Inject CSS custom property into all built-in grid pattern colors
 // so they respond to --jr-paper-grid-color.
@@ -69,8 +71,19 @@ export const PresetPaper = dia.Paper.extend({
     clickThreshold: DEFAULT_CLICK_THRESHOLD,
     snapLinks: { radius: DEFAULT_SNAP_RADIUS },
     drawGrid: true,
-    defaultConnectionPoint: connectionPoint,
+    ...linkRoutingStraight(),
     measureNode: measureNode as dia.Paper.Options['measureNode'],
     highlighting: DEFAULT_HIGHLIGHTING,
+    linkView: (link: dia.Link) => {
+      if (link instanceof LinkModel) {
+        return LinkView;
+      }
+    }
   },
+
+  _ensureElClassName() {
+    // Note: the `className` property is ignored here.
+    this.el.classList.add('jr-paper', 'joint-paper');
+  }
+
 }) as typeof dia.Paper;

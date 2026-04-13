@@ -16,6 +16,7 @@ import {
   type RenderElement,
   type IncrementalContainerChanges,
 } from '@joint/react';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { usePaperEvents } from '../../../hooks';
 import Peer, { type DataConnection } from 'peerjs';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
@@ -90,6 +91,7 @@ type AgentNodeData = {
 
 type AgentNode = ElementRecord<AgentNodeData>;
 
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ sourceOffset: 6, targetOffset: 6 });
 const PORT_R = 5;
 
 const initialElements: Record<string, AgentNode> = {
@@ -390,9 +392,7 @@ function createPeerManager(callbacks: {
 // ── Node Component ──────────────────────────────────────────────────────────
 
 function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>) {
-  const { width, height } = useElementSize();
   const theme = useTheme();
-  const { selectorRef } = useMarkup();
   const isDark = theme === DARK;
   const remoteDrag = useContext(RemoteDragContext);
   const elementId = useElementId();
@@ -491,26 +491,6 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>)
           </div>
         )}
       </HTMLHost>
-
-      <circle
-        ref={selectorRef('out')}
-        magnet="active"
-        cursor="crosshair"
-        cx={width / 2}
-        cy={height}
-        r={PORT_R}
-        fill={theme.port}
-        stroke="none"
-      />
-      <circle
-        ref={selectorRef('in')}
-        magnet="passive"
-        cx={width / 2}
-        cy={0}
-        r={PORT_R}
-        fill={theme.port}
-        stroke="none"
-      />
     </>
   );
 }
@@ -981,12 +961,7 @@ function GraphWithRedux() {
             snapLinks={{ radius: 30 }}
             magnetThreshold="onleave"
             clickThreshold={10}
-            defaultRouter={{ name: 'rightAngle', args: { margin: 20 } }}
-            defaultConnector={{
-              name: 'straight',
-              args: { cornerType: 'cubic', cornerPreserveAspectRatio: true },
-            }}
-            defaultConnectionPoint={{ name: 'boundary', args: { offset: 6, extrapolate: true } }}
+            {...ORTHOGONAL_LINKS}
             defaultLink={{ style: { color: theme.link, width: 1.5, targetMarker: 'none' } }}
             validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
             validateConnection={(cellViewS, _magnetS, cellViewT, magnetT) => {

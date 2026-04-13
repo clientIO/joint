@@ -14,9 +14,9 @@ import type { ElementsMeasuredEvent } from '../../../types/event.types';
 import type { ElementRecord, LinkRecord } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
-import { PortalLink, PORTAL_LINK_TYPE } from '../../../models/portal-link';
+import { LinkModel, LINK_MODEL_TYPE } from '../../../models/link-model';
 import { PortalPaper } from '../../../models/portal-paper';
-import { PortalElement } from '../../../models/portal-element';
+import { ElementModel } from '../../../models/element-model';
 import { usePaperStore } from '../../../hooks/use-paper';
 import { useElementData } from '../../../hooks/use-element-data';
 import { useElementSize } from '../../../hooks/use-element-size';
@@ -1215,7 +1215,7 @@ describe('Paper Component', () => {
     });
   });
 
-  it('uses PortalLink from graph namespace when defaultLink is not provided', async () => {
+  it('uses LinkModel from graph namespace when defaultLink is not provided', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
     await act(async () => {
@@ -1230,8 +1230,8 @@ describe('Paper Component', () => {
       expect(ref.current).not.toBeNull();
     });
 
-    class CustomNamespacePortalLink extends PortalLink {}
-    ref.current!.model.layerCollection.cellNamespace.PortalLink = CustomNamespacePortalLink;
+    class CustomNamespaceLinkModel extends LinkModel {}
+    ref.current!.model.layerCollection.cellNamespace.LinkModel = CustomNamespaceLinkModel;
 
     const defaultLinkFactory = ref.current!.options.defaultLink as (
       cellView: dia.CellView,
@@ -1242,11 +1242,11 @@ describe('Paper Component', () => {
       {} as dia.CellView,
       document.createElementNS('http://www.w3.org/2000/svg', 'circle')
     );
-    expect(createdLink).toBeInstanceOf(CustomNamespacePortalLink);
+    expect(createdLink).toBeInstanceOf(CustomNamespaceLinkModel);
   });
 
   describe('defaultLink drag integration', () => {
-    it('uses default PortalLink theme when defaultLink is not provided', async () => {
+    it('uses default LinkModel theme when defaultLink is not provided', async () => {
       const { ref, getLinksSnapshot } = await renderPortDragPaper();
 
       await waitFor(() => {
@@ -1254,8 +1254,8 @@ describe('Paper Component', () => {
       });
 
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
-      expect(createdLink).toBeInstanceOf(PortalLink);
-      expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
+      expect(createdLink).toBeInstanceOf(LinkModel);
+      expect(createdLink.get('type')).toBe(LINK_MODEL_TYPE);
       expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('');
       expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe('');
 
@@ -1347,8 +1347,8 @@ describe('Paper Component', () => {
       });
 
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
-      expect(createdLink).toBeInstanceOf(PortalLink);
-      expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
+      expect(createdLink).toBeInstanceOf(LinkModel);
+      expect(createdLink.get('type')).toBe(LINK_MODEL_TYPE);
       expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('#ff5500');
       expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe(7);
       expect(createdLink.attr(['line', 'class'])).toBe('jr-link-line custom-default-link');
@@ -1397,8 +1397,8 @@ describe('Paper Component', () => {
 
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
       expect(defaultLinkCallback).toHaveBeenCalledTimes(1);
-      expect(createdLink).toBeInstanceOf(PortalLink);
-      expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
+      expect(createdLink).toBeInstanceOf(LinkModel);
+      expect(createdLink.get('type')).toBe(LINK_MODEL_TYPE);
       expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('#22aa55');
       expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe(4);
       expect(createdLink.attr(['wrapper', 'style', 'strokeWidth'])).toBe(16);
@@ -1425,14 +1425,14 @@ describe('Paper Component', () => {
     const EXTERNAL_PAPER_ID = 'external-paper';
 
     it('should adopt an external PortalPaper and expose it via usePaperStore', async () => {
-      const graph = new dia.Graph({}, { cellNamespace: { ...shapes, PortalElement, PortalLink } });
+      const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ElementModel, LinkModel } });
       const container = document.createElement('div');
       document.body.append(container);
 
       const externalPaper = new PortalPaper({
         el: container,
         model: graph,
-        cellNamespace: { ...shapes, PortalElement, PortalLink },
+        cellNamespace: { ...shapes, ElementModel, LinkModel },
         async: false,
       });
 
@@ -1462,14 +1462,14 @@ describe('Paper Component', () => {
     });
 
     it('should not render a host div when external paper is provided', async () => {
-      const graph = new dia.Graph({}, { cellNamespace: { ...shapes, PortalElement, PortalLink } });
+      const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ElementModel, LinkModel } });
       const container = document.createElement('div');
       document.body.append(container);
 
       const externalPaper = new PortalPaper({
         el: container,
         model: graph,
-        cellNamespace: { ...shapes, PortalElement, PortalLink },
+        cellNamespace: { ...shapes, ElementModel, LinkModel },
         async: false,
       });
 
@@ -1638,19 +1638,19 @@ describe('Paper Component', () => {
     });
 
     it('useLink layout works when graph is pre-populated (external graph)', async () => {
-      const graph = new dia.Graph({}, { cellNamespace: { ...shapes, PortalElement, PortalLink } });
+      const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ElementModel, LinkModel } });
       graph.addCells([
-        new PortalElement({
+        new ElementModel({
           id: 'ext-1',
           position: { x: 10, y: 10 },
           size: { width: 80, height: 40 },
         }),
-        new PortalElement({
+        new ElementModel({
           id: 'ext-2',
           position: { x: 200, y: 150 },
           size: { width: 80, height: 40 },
         }),
-        new PortalLink({ id: 'ext-link', source: { id: 'ext-1' }, target: { id: 'ext-2' } }),
+        new LinkModel({ id: 'ext-link', source: { id: 'ext-1' }, target: { id: 'ext-2' } }),
       ]);
 
       await act(async () => {

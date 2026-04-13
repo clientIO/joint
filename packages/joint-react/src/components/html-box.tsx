@@ -9,7 +9,7 @@ const BASE_STYLE: CSSProperties = {
   textAlign: 'center',
   wordBreak: 'break-word',
   display: 'flex',
-  alignItems: 'top',
+  alignItems: 'center',
   justifyContent: 'center',
 };
 

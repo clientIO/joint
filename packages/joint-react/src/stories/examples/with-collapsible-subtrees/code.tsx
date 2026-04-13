@@ -21,6 +21,9 @@ import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
 import '../index.css';
+import { linkRoutingOrthogonal } from '../../../presets';
+
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ cornerType: 'line', cornerRadius: 10, mode: 'top-bottom' });
 
 // Base properties shared by all events
 interface BaseEvent {
@@ -187,8 +190,15 @@ const initialLinks: Record<string, LinkRecord> = {
       anchor: {
         name: 'perpendicular',
       },
+      connectionPoint: {
+        name: 'boundary',
+      }
     },
-    target: { id: 'mte5xr' },
+    target: {
+      id: 'mte5xr',
+      anchor: { name: 'midSide' }
+    },
+    router: { name: 'normal' },
     z: -1,
     style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
@@ -586,7 +596,6 @@ function runLayout(graph: dia.Graph) {
   // Automatic Layout using DirectedGraph
   DirectedGraph.layout(graph.getSubgraph(autoLayoutElements), {
     rankDir: 'TB',
-    setVertices: true,
   });
 
   // Manual Layout for ConditioningEvent (positioned to the right of its neighbor)
@@ -713,11 +722,7 @@ function Main() {
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibilityCallback}
-      defaultConnector={{
-        name: 'straight',
-        args: { cornerType: 'line', cornerRadius: 10 },
-      }}
-      defaultRouter={{ name: 'orthogonal' }}
+      {...ORTHOGONAL_LINKS}
       interactive={false}
       async
       style={PAPER_STYLE}

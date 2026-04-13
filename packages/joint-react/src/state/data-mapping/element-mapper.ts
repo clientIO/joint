@@ -1,7 +1,7 @@
 import { type dia } from '@joint/core';
 import type { ElementRecord } from '../../types/data-types';
-import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
-import { convertPorts, createPortGroupsDefault } from './convert-ports';
+import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { elementPorts } from '../../presets/element-ports';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from './index';
 
@@ -25,8 +25,7 @@ export function mapElementToAttributes<ElementData extends object = Record<strin
     data = {} as ElementData,
     portMap,
     ports,
-    portDefaults,
-    type = PORTAL_ELEMENT_TYPE,
+    type = ELEMENT_MODEL_TYPE,
     ...cellAttributes
   } = element;
 
@@ -41,17 +40,10 @@ export function mapElementToAttributes<ElementData extends object = Record<strin
     if (ports) {
       throw new Error('Cannot use both "portMap" and "ports" on the same element.');
     }
-    if (portDefaults) {
-      throw new Error(
-        'Cannot use both "portMap" and "portDefaults" on the same element. Port defaults are generated automatically when using portMap.'
-      );
-    }
-    attributes.ports = convertPorts(portMap, element.portStyle);
-    attributes.portDefaults = createPortGroupsDefault();
+    attributes.ports = elementPorts(portMap, element.portStyle);
     attributes.portMap = portMap;
-  } else {
-    attributes.ports = ports ?? null;
-    attributes.portDefaults = portDefaults ?? null;
+  } else if (ports) {
+    attributes.ports = ports;
   }
 
   return attributes;
@@ -73,9 +65,6 @@ export function mapAttributesToElement<ElementData extends object = Record<strin
     // Ports
     portMap,
     ports,
-    portDefaults,
-    // Metadata (default-provided key tracking)
-    metadata,
     // 1:1 mapping of all other fields directly on the model
     ...elementRecord
   } = attributes;
@@ -86,22 +75,11 @@ export function mapAttributesToElement<ElementData extends object = Record<strin
     elementRecord.portMap = portMap;
   } else if (ports) {
     elementRecord.ports = ports;
-    elementRecord.portDefaults = portDefaults;
   }
 
   // Only a custom type should be included in the element record.
-  if (type && type !== PORTAL_ELEMENT_TYPE) {
+  if (type && type !== ELEMENT_MODEL_TYPE) {
     elementRecord.type = type;
-  }
-
-  // Remove keys that came from defaults (not user-provided) to prevent round-trip pollution.
-  const omit = metadata?.omit;
-  if (omit) {
-    for (const key of omit) {
-      // @todo - it should be possible to omit size and position defaults as well
-      if (key === 'size' || key === 'position') continue;
-      Reflect.deleteProperty(elementRecord, key);
-    }
   }
 
   return { ...elementRecord };
