@@ -1,11 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  GraphProvider,
-  Paper,
-  HTMLHost,
-  type ElementRecord,
-  type LinkRecord,
-} from '@joint/react';
+import { GraphProvider, Paper, HTMLHost, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
@@ -27,7 +21,11 @@ const initialEdges: Record<string, LinkRecord> = {
   },
 };
 function RenderItem({ label }: Readonly<ElementData>) {
-  return <HTMLHost useModelGeometry className="node" style={{ width: 100, height: 50 }}>{label}</HTMLHost>;
+  return (
+    <HTMLHost className="node" style={{ width: 100, height: 50 }}>
+      {label}
+    </HTMLHost>
+  );
 }
 
 function Main() {
