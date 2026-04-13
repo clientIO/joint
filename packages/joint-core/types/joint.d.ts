@@ -4152,7 +4152,7 @@ export namespace routers {
 
     interface RightAngleRouterArguments {
         margin?: number;
-        minMargin?: number;
+        minMargin?: number | null;
         /** @experimental before version 4.0 */
         useVertices?: boolean;
         sourceDirection?: RightAngleDirections;
