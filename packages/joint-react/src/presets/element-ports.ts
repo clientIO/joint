@@ -99,3 +99,35 @@ export function elementPort(port: ElementPort): dia.Element.Port {
 
   return result;
 }
+
+const PORT_GROUP = 'main';
+
+/**
+ * Converts a record of simplified ElementPort definitions to the full JointJS ports object.
+ * Each port gets absolute positioning under the `'main'` group.
+ *
+ * @example
+ * ```ts
+ * elementPorts({ out: { cx: 'calc(w)', cy: 'calc(h/2)' } })
+ * ```
+ */
+export function elementPorts(ports: Record<string, ElementPort>, portStyle?: Partial<ElementPort>): {
+  groups: Record<string, dia.Element.PortGroup>;
+  items: dia.Element.Port[];
+} {
+  return {
+    groups: {
+      [PORT_GROUP]: {
+        position: { name: 'absolute' },
+      },
+    },
+    items: Object.entries(ports).map(([id, rawPort]) => {
+      const port = portStyle ? { ...portStyle, ...rawPort } : rawPort;
+      return {
+        id,
+        group: PORT_GROUP,
+        ...elementPort(port),
+      };
+    }),
+  };
+}

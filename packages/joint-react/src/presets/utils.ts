@@ -10,7 +10,8 @@ export const EMPTY_OPTIONS = {} as const;
 
 export const BOUNDARY_OPTIONS = {
   // use the endMagnet itself - don't search for a non-group child element
-  selector: false
+  selector: false,
+  extrapolate: true,
 } as const;
 
 /**

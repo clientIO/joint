@@ -1,7 +1,7 @@
 import { type dia } from '@joint/core';
 import type { LinkRecord } from '../../types/data-types';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import { convertLabels } from './convert-labels';
+import { linkLabels } from '../../presets/link-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 import { linkStyle } from '../../presets/link-style';
 import { isRecord } from '../../utils/is';
@@ -52,7 +52,7 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
     if (labels) {
       throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
     }
-    attributes.labels = convertLabels(labelMap, link.labelStyle);
+    attributes.labels = linkLabels(labelMap, link.labelStyle);
     attributes.labelMap = labelMap;
   } else if (labels) {
     attributes.labels = labels;
@@ -83,8 +83,6 @@ export function mapAttributesToLink<LinkData extends object = Record<string, unk
     // Link style
     style,
     attrs,
-    // Metadata (default-provided key tracking)
-    metadata,
     // 1:1 mapping of all other fields directly on the model
     ...linkRecord
   } = attributes;
@@ -106,14 +104,6 @@ export function mapAttributesToLink<LinkData extends object = Record<string, unk
   // Only a custom type should be included in the link record.
   if (type && type !== LINK_MODEL_TYPE) {
     linkRecord.type = type;
-  }
-
-  // Remove keys that came from defaults (not user-provided) to prevent round-trip pollution.
-  const omit = metadata?.omit;
-  if (omit) {
-    for (const key of omit) {
-      Reflect.deleteProperty(linkRecord, key);
-    }
   }
 
   return { ...linkRecord };

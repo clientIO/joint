@@ -100,3 +100,24 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
     position: labelPosition,
   };
 }
+
+/**
+ * Converts a record of simplified LinkLabel definitions to an array of JointJS labels.
+ *
+ * @example
+ * ```ts
+ * linkLabels({ main: { text: 'Hello', fontSize: 12 } })
+ * ```
+ */
+export function linkLabels(
+  labels: Record<string, LinkLabel>,
+  labelStyle?: Partial<LinkLabel>
+): Array<dia.Link.Label & { id: string }> {
+  return Object.entries(labels).map(([id, rawLabel]) => {
+    const label = labelStyle ? { ...labelStyle, ...rawLabel } : rawLabel;
+    return {
+      id,
+      ...linkLabel(label),
+    };
+  });
+}

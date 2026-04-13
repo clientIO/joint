@@ -1,7 +1,7 @@
 import { type dia } from '@joint/core';
 import type { ElementRecord } from '../../types/data-types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import { convertPorts } from './convert-ports';
+import { elementPorts } from '../../presets/element-ports';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from './index';
 
@@ -40,7 +40,7 @@ export function mapElementToAttributes<ElementData extends object = Record<strin
     if (ports) {
       throw new Error('Cannot use both "portMap" and "ports" on the same element.');
     }
-    attributes.ports = convertPorts(portMap, element.portStyle);
+    attributes.ports = elementPorts(portMap, element.portStyle);
     attributes.portMap = portMap;
   } else if (ports) {
     attributes.ports = ports;
@@ -65,8 +65,6 @@ export function mapAttributesToElement<ElementData extends object = Record<strin
     // Ports
     portMap,
     ports,
-    // Metadata (default-provided key tracking)
-    metadata,
     // 1:1 mapping of all other fields directly on the model
     ...elementRecord
   } = attributes;
@@ -82,16 +80,6 @@ export function mapAttributesToElement<ElementData extends object = Record<strin
   // Only a custom type should be included in the element record.
   if (type && type !== ELEMENT_MODEL_TYPE) {
     elementRecord.type = type;
-  }
-
-  // Remove keys that came from defaults (not user-provided) to prevent round-trip pollution.
-  const omit = metadata?.omit;
-  if (omit) {
-    for (const key of omit) {
-      // @todo - it should be possible to omit size and position defaults as well
-      if (key === 'size' || key === 'position') continue;
-      Reflect.deleteProperty(elementRecord, key);
-    }
   }
 
   return { ...elementRecord };

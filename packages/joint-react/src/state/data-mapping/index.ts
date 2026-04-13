@@ -1,8 +1,6 @@
 import type { dia } from '@joint/core';
 
-export * from './convert-labels';
 export * from './convert-labels-reverse';
-export * from './convert-ports';
 export * from './element-mapper';
 export * from './link-mapper';
 
