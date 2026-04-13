@@ -54,7 +54,7 @@ class LabelsLink extends LinkModel {
         },
       ],
       // @todo should we just use `attrs`?
-      // attrs: linkStyle({ color: SECONDARY, targetMarker: 'arrow' }),
+      attrs: linkStyle({ color: SECONDARY, targetMarker: 'arrow' }),
       style: { color: SECONDARY, targetMarker: 'arrow' },
     };
   }
@@ -72,7 +72,7 @@ class LabelMapLink extends LinkModel {
         main: { text: 'labelMap', fontSize: 10, backgroundBorderRadius: 4 },
       },
       // @todo should we just use `attrs`?
-      // attrs: linkStyle({ color: PRIMARY, targetMarker: 'arrow' }),
+      attrs: linkStyle({ color: PRIMARY, targetMarker: 'arrow' }),
       style: { color: PRIMARY, targetMarker: 'arrow' },
     };
   }
@@ -131,7 +131,6 @@ export default function App() {
     <GraphProvider
       elements={elements}
       links={links}
-      // @todo should this be called "types" ?
       cellNamespace={{ PortsElement, PortMapElement, LabelsLink, LabelMapLink }}
     >
       <Paper
