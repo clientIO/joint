@@ -337,9 +337,9 @@ function buildRoundedSegment(offset, path, curr, prev, next) {
  * @property {number} size optional size of a jump arc
  * @return {string} created `D` attribute of SVG path
  */
-export const jumpover = function(sourcePoint, targetPoint, route, opt) {
+export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView) {
 
-    setupUpdating(this);
+    setupUpdating(linkView);
 
     var raw = opt.raw;
     var jumpSize = opt.size || JUMP_SIZE;
@@ -352,7 +352,7 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt) {
         jumpType = JUMP_TYPES[0];
     }
 
-    var paper = this.paper;
+    var paper = linkView.paper;
     var graph = paper.model;
     var allLinks = graph.getLinks();
 
@@ -364,7 +364,7 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt) {
         );
     }
 
-    var thisModel = this.model;
+    var thisModel = linkView.model;
     var thisIndex = allLinks.indexOf(thisModel);
     var defaultConnector = paper.options.defaultConnector || {};
 
