@@ -59,7 +59,7 @@ export type {
   LinkStyle,
   LinkLabel,
 } from './types/data-types';
-export type { PortShape as PortShape } from './theme/element-theme';
+export type { PortShape } from './presets/element-ports';
 export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
 

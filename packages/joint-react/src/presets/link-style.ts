@@ -2,7 +2,20 @@ import type { attributes } from '@joint/core';
 import type { LinkStyle } from '../types/data-types';
 import type { Nullable } from '../types';
 import { resolveMarker } from '../theme/named-link-markers';
-import { defaultLinkStyle } from '../theme/link-theme';
+
+const defaultLinkStyle: Readonly<Required<LinkStyle>> = {
+  color: '',
+  width: '',
+  sourceMarker: 'none',
+  targetMarker: 'none',
+  wrapperWidth: 10,
+  wrapperColor: 'transparent',
+  wrapperClassName: '',
+  className: '',
+  dasharray: '',
+  linecap: '',
+  linejoin: '',
+};
 
 /**
  * Builds the `line` selector attrs from a LinkStyle.

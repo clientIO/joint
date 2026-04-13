@@ -1,6 +1,19 @@
 import { type dia, util } from '@joint/core';
 import type { LinkLabel } from '../types/data-types';
-import { defaultLabelStyle } from '../theme/link-theme';
+
+const defaultLabelStyle = {
+  color: '' as string,
+  fontSize: '' as number | string,
+  fontFamily: '' as string,
+  backgroundColor: '' as string,
+  backgroundOutline: '' as string,
+  backgroundOutlineWidth: '' as number | string,
+  backgroundBorderRadius: 4,
+  backgroundPadding: { x: 4, y: 2 } as { readonly x: number; readonly y: number },
+  position: 0.5,
+  className: '',
+  backgroundClassName: '',
+} as const;
 
 /**
  * Creates a JointJS link label from simplified options.

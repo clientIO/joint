@@ -10,7 +10,6 @@ import {
   mapAttributesToElement,
   mapAttributesToLink,
 } from '../data-mapping';
-import { defaultLinkStyle } from '../../theme/link-theme';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ElementModel, LinkModel };
 
@@ -189,8 +188,8 @@ describe('dataMapper', () => {
       const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' }, style: {} };
 
       const cellJson = mapLinkToAttributes(link);
-      expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
-      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
+      expect(cellJson.attrs?.line?.style?.stroke).toBe('');
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe('');
     });
 
     it('should apply custom theme props', () => {
