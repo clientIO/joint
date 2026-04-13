@@ -82,7 +82,7 @@ export function graphChanges(options: Options) {
       { isUpdateFromReact }: JointJSEventOptions
     ) => {
       if (cell.isElement() && onElementsSizeChange) {
-        const size = cell.get('size');
+        const size = cell.size();
         if (size?.width && size?.height) {
           onElementsSizeChange(String(cell.id), size);
         }

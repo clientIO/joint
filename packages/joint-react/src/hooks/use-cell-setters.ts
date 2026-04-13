@@ -55,7 +55,12 @@ export function useSetElement<NodeData extends object = Record<string, unknown>>
       } as ElementRecord<NodeData>;
 
       const cellAttributes = mapElementToAttributes(mergedData);
-      graphStore.graph.syncCells([{ ...cellAttributes, id } as dia.Cell.JSON], { remove: false });
+      const cell = graphStore.graph.getCell(id);
+      if (cell) {
+        cell.set(cellAttributes);
+      } else {
+        graphStore.graph.addCell({ ...cellAttributes, id } as dia.Cell.JSON);
+      }
     },
     [graphStore]
   );
@@ -82,7 +87,12 @@ export function useSetLink<LinkData extends object = Record<string, unknown>>() 
         ...attributes,
       } as LinkRecord<LinkData>;
       const cellAttributes = mapLinkToAttributes(mergedData);
-      graphStore.graph.syncCells([{ ...cellAttributes, id } as dia.Cell.JSON], { remove: false });
+      const cell = graphStore.graph.getCell(id);
+      if (cell) {
+        cell.set(cellAttributes);
+      } else {
+        graphStore.graph.addCell({ ...cellAttributes, id } as dia.Cell.JSON);
+      }
     },
     [graphStore]
   );
@@ -121,6 +131,11 @@ export function useRemoveLink() {
 /**
  * Returns a setter function for updating all elements in the graph at once.
  * Accepts either a new record or an updater function that receives the current elements.
+ *
+ * Only elements are touched — links are left alone, even when called back-to-back
+ * with `setLinks` inside the same effect. Previously this preserved links by
+ * re-including them in `syncCells`, which wiped out pending link updates that
+ * had not yet been flushed to the graphView container.
  * @group Hooks
  */
 export function useSetElements<NodeData extends object = Record<string, unknown>>() {
@@ -136,19 +151,23 @@ export function useSetElements<NodeData extends object = Record<string, unknown>
 
       const nextElements = isUpdater(elements) ? elements(currentElements) : elements;
 
+      const { graph } = graphStore;
       const cells: dia.Cell.JSON[] = [];
       for (const [id, element] of Object.entries(nextElements)) {
         const cellAttributes = mapElementToAttributes(element);
         cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
       }
 
-      // Preserve existing links so syncCells(remove: true) doesn't wipe them
-      for (const [id, link] of graphView.links.getFull()) {
-        const cellAttributes = mapLinkToAttributes(link);
-        cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
+      graph.startBatch('set-elements');
+      graph.syncCells(cells, { remove: false });
+
+      for (const id of Object.keys(currentElements)) {
+        if (id in nextElements) continue;
+        const cell = graph.getCell(id);
+        if (cell?.isElement()) cell.remove();
       }
 
-      graphStore.graph.syncCells(cells, { remove: true });
+      graph.stopBatch('set-elements');
     },
     [graphStore]
   );
@@ -157,6 +176,11 @@ export function useSetElements<NodeData extends object = Record<string, unknown>
 /**
  * Returns a setter function for updating all links in the graph at once.
  * Accepts either a new record or an updater function that receives the current links.
+ *
+ * Only links are touched — elements are left alone, even when called back-to-back
+ * with `setElements` inside the same effect. Previously this preserved elements by
+ * re-including them in `syncCells`, which wiped out pending element updates that
+ * had not yet been flushed to the graphView container.
  * @group Hooks
  */
 export function useSetLinks<LinkData extends object = Record<string, unknown>>() {
@@ -172,19 +196,23 @@ export function useSetLinks<LinkData extends object = Record<string, unknown>>()
 
       const nextLinks = isUpdater(links) ? links(currentLinks) : links;
 
+      const { graph } = graphStore;
       const cells: dia.Cell.JSON[] = [];
       for (const [id, link] of Object.entries(nextLinks)) {
         const cellAttributes = mapLinkToAttributes(link);
         cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
       }
 
-      // Preserve existing elements so syncCells(remove: true) doesn't wipe them
-      for (const [id, element] of graphView.elements.getFull()) {
-        const cellAttributes = mapElementToAttributes(element);
-        cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
+      graph.startBatch('set-links');
+      graph.syncCells(cells, { remove: false });
+
+      for (const id of Object.keys(currentLinks)) {
+        if (id in nextLinks) continue;
+        const cell = graph.getCell(id);
+        if (cell?.isLink()) cell.remove();
       }
 
-      graphStore.graph.syncCells(cells, { remove: true });
+      graph.stopBatch('set-links');
     },
     [graphStore]
   );

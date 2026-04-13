@@ -160,7 +160,7 @@ export class GraphStore<
       getCellTransform: (id) => {
         const cell = this.graph.getCell(id);
         if (!cell?.isElement()) throw new Error('Cell not valid');
-        const size = cell.get('size');
+        const size = cell.size();
         const position = cell.get('position');
         if (!size) throw new Error('Size not found');
         return {
