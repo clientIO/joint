@@ -9,7 +9,7 @@ import {
   type RenderElement,
   useElements,
   useElementSize,
-  PortalElement,
+  ElementModel,
 } from '@joint/react';
 import { useCallback, useMemo } from 'react';
 
@@ -38,7 +38,7 @@ const initialElements: Record<string, ElementRecord<ElementData>> = {
   'node-1': {
     position: { x: 70, y: 100 },
     size: { width: 160, height: 60 },
-    type: 'MyPortalElement',
+    type: 'MyElementModel',
     data: {
       label: 'Node 1',
       color: PRIMARY,
@@ -47,7 +47,7 @@ const initialElements: Record<string, ElementRecord<ElementData>> = {
   'node-2': {
     position: { x: 370, y: 70 },
     size: { width: 160, height: 60 },
-    type: 'MyPortalElement',
+    type: 'MyElementModel',
     data: {
       label: 'Node 2',
       color: SECONDARY,
@@ -56,7 +56,7 @@ const initialElements: Record<string, ElementRecord<ElementData>> = {
   'node-3': {
     position: { x: 220, y: 250 },
     size: { width: 160, height: 60 },
-    type: 'MyPortalElement',
+    type: 'MyElementModel',
     data: {
       label: 'Node 3',
       color: '#10b981',
@@ -171,7 +171,7 @@ export default function App() {
     return new dia.Graph({}, {
       cellNamespace: {
         ...shapes,
-        MyPortalElement: PortalElement,
+        MyElementModel: ElementModel,
       }
     });
   }, []);

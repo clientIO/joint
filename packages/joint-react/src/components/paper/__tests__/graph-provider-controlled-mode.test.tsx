@@ -452,7 +452,7 @@ describe('GraphProvider Controlled Mode', () => {
           graph.addCell(
             new dia.Element({
               id: '2',
-              type: 'PortalElement',
+              type: 'ElementModel',
               position: { x: 200, y: 200 },
               size: { size: { width: 200, height: 200 } },
             })

@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import { measureNode } from '../store/default-measure-node';
-import { PortalLinkView } from './portal-link-view';
-import { PORTAL_LINK_TYPE, PortalLink } from './portal-link';
+import { LinkView } from './link-view';
+import { LINK_MODEL_TYPE, LinkModel } from './link-model';
 import { linkRoutingStraight } from '../presets';
 
 // Inject CSS custom property into all built-in grid pattern colors
@@ -75,8 +75,8 @@ export const PresetPaper = dia.Paper.extend({
     measureNode: measureNode as dia.Paper.Options['measureNode'],
     highlighting: DEFAULT_HIGHLIGHTING,
     linkView: (link: dia.Link) => {
-      if (link instanceof PortalLink) {
-        return PortalLinkView;
+      if (link instanceof LinkModel) {
+        return LinkView;
       }
     }
   },

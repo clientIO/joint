@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { usePaper } from './use-paper';
 import { useElementId } from './use-element-id';
 import type { dia } from '@joint/core';
-import { PORTAL_SELECTOR } from '../models/portal-element';
+import { PORTAL_SELECTOR } from '../models/element-model';
 
 /**
  * Provides utilities for working with JointJS markup selectors in React-rendered elements.

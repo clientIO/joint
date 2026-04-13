@@ -1,8 +1,8 @@
 import { dia } from '@joint/core';
-export const PORTAL_ELEMENT_TYPE = 'PortalElement';
+export const ELEMENT_MODEL_TYPE = 'ElementModel';
 
 /**
- * Selector for the `<g>` element used as the React portal target inside PortalElement markup.
+ * Selector for the `<g>` element used as the React portal target inside ElementModel markup.
  * @group Models
  */
 export const PORTAL_SELECTOR = '__portal__';
@@ -12,16 +12,16 @@ export const PORTAL_SELECTOR = '__portal__';
  * @group Models
  * @example
  * ```ts
- * import { PortalElement } from '@joint/react';
+ * import { ElementModel } from '@joint/react';
  *
- * const element = new PortalElement({
+ * const element = new ElementModel({
  *   id: '1',
  *   position: { x: 10, y: 20 },
  *   size: { width: 100, height: 50 },
  * });
  * ```
  */
-export class PortalElement<Attributes = dia.Element.Attributes> extends dia.Element<
+export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Element<
   dia.Element.Attributes & Attributes
 > {
   /**
@@ -36,13 +36,13 @@ export class PortalElement<Attributes = dia.Element.Attributes> extends dia.Elem
   ];
 
   /**
-   * Sets the default attributes for the PortalElement.
+   * Sets the default attributes for the ElementModel.
    * @returns The default attributes.
    */
   defaults() {
     return {
       ...super.defaults,
-      type: PORTAL_ELEMENT_TYPE,
+      type: ELEMENT_MODEL_TYPE,
       size: { width: 0, height: 0 },
       // Explicitly set attributes to avoid triggering `change` events.
       // See `element-mapper.ts` to see the values representing "no value"

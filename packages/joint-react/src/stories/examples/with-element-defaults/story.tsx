@@ -13,7 +13,7 @@ export default {
     docs: {
       description: {
         story:
-          'Demonstrates custom PortalElement subclasses with default ports defined in `defaults()`. ' +
+          'Demonstrates custom ElementModel subclasses with default ports defined in `defaults()`. ' +
           'One uses native JointJS `ports` with groups, the other uses `portMap` for absolute positioning.',
       },
       source: {

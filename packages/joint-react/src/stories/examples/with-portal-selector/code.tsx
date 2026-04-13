@@ -15,7 +15,7 @@ import {
   type LinkRecord,
   type PaperProps,
   type RenderElement,
-  PORTAL_ELEMENT_TYPE,
+  ELEMENT_MODEL_TYPE,
   useElement,
 } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -293,14 +293,14 @@ function Main() {
         height="calc(100vh - 100px)"
         snapLinks={{ radius: 25 }}
         renderElement={renderElement}
-        // linkView={PortalLinkView}
+        // linkView={LinkView}
         onViewPostponed={() => false}
-        // elementView={PortalElementView}
+        // elementView={ElementModelView}
         validateMagnet={(_, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         linkPinning={false}
         portalSelector={(cellView, defaultSelector) => {
           const type = cellView.model.get('type');
-          return type === PORTAL_ELEMENT_TYPE ? defaultSelector : 'root';
+          return type === ELEMENT_MODEL_TYPE ? defaultSelector : 'root';
         }}
         style={PAPER_STYLE}
         drawGrid={false}

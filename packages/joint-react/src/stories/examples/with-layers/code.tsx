@@ -5,8 +5,8 @@ import { dia, shapes } from '@joint/core';
 import {
   GraphProvider,
   Paper,
-  PortalElement,
-  PortalLink,
+  ElementModel,
+  LinkModel,
   HTMLHost,
   useElementSize,
   type ElementRecord,
@@ -215,8 +215,8 @@ export default function App() {
       {
         cellNamespace: {
           ...shapes,
-          PortalElement,
-          PortalLink,
+          ElementModel,
+          LinkModel,
           standard: {
             ...shapes.standard,
             Link: FadingLink,

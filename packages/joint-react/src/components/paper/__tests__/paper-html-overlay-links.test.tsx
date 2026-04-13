@@ -44,9 +44,9 @@ describe('Paper with useHTMLOverlay and links', () => {
     });
 
     await waitFor(() => {
-      // PortalLink has SVG markup for the link
+      // LinkModel has SVG markup for the link
       // Check that the link view container exists in the DOM
-      const linkView = container.querySelector('.joint-type-portallink');
+      const linkView = container.querySelector('.joint-type-linkmodel');
       expect(linkView).toBeInTheDocument();
     });
 
@@ -78,8 +78,8 @@ describe('Paper with useHTMLOverlay and links', () => {
     });
 
     await waitFor(() => {
-      // Each PortalElement should have a placeholder rect
-      const reactElements = container.querySelectorAll('.joint-type-portalelement');
+      // Each ElementModel should have a placeholder rect
+      const reactElements = container.querySelectorAll('.joint-type-elementmodel');
       expect(reactElements.length).toBe(2);
 
       for (const element of reactElements) {

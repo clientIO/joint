@@ -67,9 +67,9 @@ export type { PaperEventMap } from './types/event.types';
 export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
 
 // Models
-export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
-export { PortalLink, PORTAL_LINK_TYPE } from './models/portal-link';
-export { PortalLinkView } from './models/portal-link-view';
+export { ElementModel, ELEMENT_MODEL_TYPE } from './models/element-model';
+export { LinkModel, LINK_MODEL_TYPE } from './models/link-model';
+export { LinkView } from './models/link-view';
 export { PortalPaper } from './models/portal-paper';
 
 // Data mapping types

@@ -193,7 +193,7 @@ describe('Paper link flickering prevention', () => {
     });
   });
 
-  it('measureNode returns correct model size for PortalElement', async () => {
+  it('measureNode returns correct model size for ElementModel', async () => {
     // This test verifies that the measureNode callback is set up correctly.
     // Note: In jsdom, SVG transform calculations don't work properly, so we can't
     // verify the final link path coordinates. But we can verify that:

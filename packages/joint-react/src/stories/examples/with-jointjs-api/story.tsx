@@ -18,7 +18,7 @@ Demonstrates how to use the JointJS API directly to populate the diagram.
 
 Instead of passing \`elements\` and \`links\` props to \`GraphProvider\`, this example:
 1. Creates a \`dia.Graph\` instance manually
-2. Creates elements using \`PortalElement\` and links using \`shapes.standard.Link\`
+2. Creates elements using \`ElementModel\` and links using \`shapes.standard.Link\`
 3. Adds them to the graph with \`graph.resetCells()\`
 4. Passes the graph to \`GraphProvider\` via the \`graph\` prop
 5. Uses \`mvc.Listener\` to listen to Paper events via a ref — hovering over a link shows interactive link tools (remove, source/target arrowheads)

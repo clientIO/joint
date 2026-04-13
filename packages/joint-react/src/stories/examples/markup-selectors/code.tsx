@@ -10,8 +10,8 @@ import {
   type LinkRecord,
   type RenderElement,
   type OnTransformElement,
-  PortalElement,
-  PortalLink,
+  ElementModel,
+  LinkModel,
   type ElementRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
@@ -193,7 +193,7 @@ function Main() {
   );
 }
 
-class MyPortalElement extends PortalElement {
+class MyElementModel extends ElementModel {
   defaults() {
     return {
       ...super.defaults(),
@@ -214,8 +214,8 @@ export default function App() {
     {
       cellNamespace: {
         ...shapes,
-        PortalElement: MyPortalElement,
-        PortalLink,
+        ElementModel: MyElementModel,
+        LinkModel,
       },
     }
   );

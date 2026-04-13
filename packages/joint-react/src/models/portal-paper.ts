@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { PortalSelector, PortalPaperOptions } from './portal-paper.types';
-import { PORTAL_SELECTOR } from './portal-element';
+import { PORTAL_SELECTOR } from './element-model';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import { PresetPaper } from './preset-paper';

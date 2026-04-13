@@ -5,9 +5,9 @@ const LINK_CONNECTING_CLASS = 'jr-link--connecting';
 const LINK_SNAPPED_CN = 'jr-link--snapped';
 
 /**
- * Custom LinkView for PortalLink models.
+ * Custom LinkView for LinkModel models.
  */
-export class PortalLinkView extends dia.LinkView {
+export class LinkView extends dia.LinkView {
 
   _beforeArrowheadMove(data: unknown) {
     // @ts-expect-error Protected method override

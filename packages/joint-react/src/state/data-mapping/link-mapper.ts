@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
 import type { LinkRecord } from '../../types/data-types';
-import { PORTAL_LINK_TYPE } from '../../models/portal-link';
+import { LINK_MODEL_TYPE } from '../../models/link-model';
 import { convertLabels } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 import { linkStyle } from '../../presets/link-style';
@@ -26,7 +26,7 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
 
   const {
     data = {} as LinkData,
-    type = PORTAL_LINK_TYPE,
+    type = LINK_MODEL_TYPE,
     // Link style
     style,
     // Labels
@@ -104,7 +104,7 @@ export function mapAttributesToLink<LinkData extends object = Record<string, unk
   }
 
   // Only a custom type should be included in the link record.
-  if (type && type !== PORTAL_LINK_TYPE) {
+  if (type && type !== LINK_MODEL_TYPE) {
     linkRecord.type = type;
   }
 

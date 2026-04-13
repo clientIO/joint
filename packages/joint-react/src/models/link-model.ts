@@ -1,8 +1,8 @@
 import { dia } from '@joint/core';
-import { PORTAL_SELECTOR } from './portal-element';
+import { PORTAL_SELECTOR } from './element-model';
 import { linkStyle } from '../presets/link-style';
 
-export const PORTAL_LINK_TYPE = 'PortalLink';
+export const LINK_MODEL_TYPE = 'LinkModel';
 
 const defaultPresentationAttrs: dia.Link.Attributes['attrs'] = linkStyle();
 
@@ -16,27 +16,27 @@ const defaultPresentationAttrs: dia.Link.Attributes['attrs'] = linkStyle();
  * @group Models
  * @example
  * ```ts
- * import { PortalLink } from '@joint/react';
+ * import { LinkModel } from '@joint/react';
  *
- * const link = new PortalLink({
+ * const link = new LinkModel({
  *   id: 'link-1',
  *   source: '1',
  *   target: '2',
  * });
  * ```
  */
-export class PortalLink<Attributes = dia.Link.Attributes> extends dia.Link<
+export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
   dia.Link.Attributes & Attributes
 > {
   /**
-   * Sets the default attributes for the PortalLink.
+   * Sets the default attributes for the LinkModel.
    * Includes `connection: true` attrs which are required for JointJS to compute link paths.
    * @returns The default attributes.
    */
   defaults() {
     return {
       ...super.defaults,
-      type: PORTAL_LINK_TYPE,
+      type: LINK_MODEL_TYPE,
       attrs: defaultPresentationAttrs,
       // Explicitly set attributes to avoid triggering `change` events.
       // See `link-mapper.ts` to see the values representing "no value"

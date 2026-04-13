@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
 import type { ElementRecord } from '../../types/data-types';
-import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
+import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { convertPorts } from './convert-ports';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from './index';
@@ -25,7 +25,7 @@ export function mapElementToAttributes<ElementData extends object = Record<strin
     data = {} as ElementData,
     portMap,
     ports,
-    type = PORTAL_ELEMENT_TYPE,
+    type = ELEMENT_MODEL_TYPE,
     ...cellAttributes
   } = element;
 
@@ -80,7 +80,7 @@ export function mapAttributesToElement<ElementData extends object = Record<strin
   }
 
   // Only a custom type should be included in the element record.
-  if (type && type !== PORTAL_ELEMENT_TYPE) {
+  if (type && type !== ELEMENT_MODEL_TYPE) {
     elementRecord.type = type;
   }
 

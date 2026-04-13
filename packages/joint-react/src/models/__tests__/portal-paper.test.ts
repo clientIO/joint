@@ -1,10 +1,10 @@
 import { dia, shapes } from '@joint/core';
 import { PortalPaper } from '../portal-paper';
-import { PortalElement } from '../portal-element';
+import { ElementModel } from '../element-model';
 import { GraphStore } from '../../store/graph-store';
 import type { IncrementalChange } from '../../state/incremental.types';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, ElementModel };
 const TEST_PAPER_ID = 'test-paper';
 const toCellId = (id: dia.Cell.ID): string => id as string;
 
@@ -321,12 +321,12 @@ describe('PortalPaper', () => {
     it('should remove link from pendingLinks when hidden', () => {
       paper = createPaper();
 
-      // Use PortalElement which has empty markup (like real React usage)
-      const element1 = new PortalElement({
+      // Use ElementModel which has empty markup (like real React usage)
+      const element1 = new ElementModel({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new PortalElement({
+      const element2 = new ElementModel({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -338,7 +338,7 @@ describe('PortalPaper', () => {
 
       const pendingLinks = getPendingLinks(paper);
 
-      // Link should be in pending (source/target have no children - PortalElement has empty markup)
+      // Link should be in pending (source/target have no children - ElementModel has empty markup)
       expect(pendingLinks.has(link.id as string)).toBe(true);
 
       // Hide the link
@@ -351,15 +351,15 @@ describe('PortalPaper', () => {
   });
 
   describe('pending links visibility', () => {
-    it('should hide link when source element has no children (PortalElement)', () => {
+    it('should hide link when source element has no children (ElementModel)', () => {
       paper = createPaper();
 
-      // Use PortalElement which has empty markup (like real React usage)
-      const element1 = new PortalElement({
+      // Use ElementModel which has empty markup (like real React usage)
+      const element1 = new ElementModel({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new PortalElement({
+      const element2 = new ElementModel({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -371,7 +371,7 @@ describe('PortalPaper', () => {
 
       const linkView = getLinkViewOrThrow(link.id);
 
-      // Link should be hidden (PortalElement has empty markup, no children)
+      // Link should be hidden (ElementModel has empty markup, no children)
       expect(linkView.el.style.visibility).toBe('hidden');
     });
 
@@ -401,15 +401,15 @@ describe('PortalPaper', () => {
       expect(pendingLinks.has(link.id as string)).toBe(false);
     });
 
-    it('should add link to pendingLinks when source/target not ready (PortalElement)', () => {
+    it('should add link to pendingLinks when source/target not ready (ElementModel)', () => {
       paper = createPaper();
 
-      // Use PortalElement which has empty markup
-      const element1 = new PortalElement({
+      // Use ElementModel which has empty markup
+      const element1 = new ElementModel({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new PortalElement({
+      const element2 = new ElementModel({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -447,12 +447,12 @@ describe('PortalPaper', () => {
     it('should show link when source and target elements have children', () => {
       paper = createPaper();
 
-      // Use PortalElement which has empty markup
-      const element1 = new PortalElement({
+      // Use ElementModel which has empty markup
+      const element1 = new ElementModel({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new PortalElement({
+      const element2 = new ElementModel({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -485,12 +485,12 @@ describe('PortalPaper', () => {
     it('should remove link from pendingLinks after showing', () => {
       paper = createPaper();
 
-      // Use PortalElement which has empty markup
-      const element1 = new PortalElement({
+      // Use ElementModel which has empty markup
+      const element1 = new ElementModel({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new PortalElement({
+      const element2 = new ElementModel({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -520,12 +520,12 @@ describe('PortalPaper', () => {
     it('should not show link if only source is ready', () => {
       paper = createPaper();
 
-      // Use PortalElement which has empty markup
-      const element1 = new PortalElement({
+      // Use ElementModel which has empty markup
+      const element1 = new ElementModel({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new PortalElement({
+      const element2 = new ElementModel({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -550,12 +550,12 @@ describe('PortalPaper', () => {
     it('should clean up pendingLinks when link is removed', () => {
       paper = createPaper();
 
-      // Use PortalElement which has empty markup
-      const element1 = new PortalElement({
+      // Use ElementModel which has empty markup
+      const element1 = new ElementModel({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new PortalElement({
+      const element2 = new ElementModel({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -580,12 +580,12 @@ describe('PortalPaper', () => {
     it('should handle checkPendingLinks when link view was removed', () => {
       paper = createPaper();
 
-      // Use PortalElement which has empty markup
-      const element1 = new PortalElement({
+      // Use ElementModel which has empty markup
+      const element1 = new ElementModel({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new PortalElement({
+      const element2 = new ElementModel({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });

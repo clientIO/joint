@@ -15,7 +15,7 @@ function setup() {
 }
 
 function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50) {
-  graph.addCell({ id, type: 'PortalElement', position: { x, y }, size: { width, height } });
+  graph.addCell({ id, type: 'ElementModel', position: { x, y }, size: { width, height } });
 }
 
 function addLink(graph: dia.Graph, id: string, source: string, target: string) {
@@ -277,7 +277,7 @@ describe('graphView', () => {
       graph.resetCells([
         {
           id: 'el-3',
-          type: 'PortalElement',
+          type: 'ElementModel',
           position: { x: 5, y: 5 },
           size: { width: 50, height: 50 },
         },
@@ -611,7 +611,7 @@ describe('graphView', () => {
       const { graph, view } = setup();
       graph.addCell({
         id: 'el-1',
-        type: 'PortalElement',
+        type: 'ElementModel',
         position: { x: 10, y: 20 },
         size: { width: 200, height: 100 },
         data: { label: 'Hello' },
@@ -628,7 +628,7 @@ describe('graphView', () => {
       const { graph, view } = setup();
       graph.addCell({
         id: 'el-1',
-        type: 'PortalElement',
+        type: 'ElementModel',
         position: { x: 10, y: 20 },
         size: { width: 200, height: 100 },
         data: { label: 'Hello' },
@@ -652,7 +652,7 @@ describe('graphView', () => {
       // Step 1: Add element normally
       graph.addCell({
         id: 'el-1',
-        type: 'PortalElement',
+        type: 'ElementModel',
         position: { x: 10, y: 20 },
         size: { width: 200, height: 100 },
         data: { label: 'Hello' },
@@ -689,7 +689,7 @@ describe('graphView', () => {
       // Add element with initial size
       graph.addCell({
         id: 'el-1',
-        type: 'PortalElement',
+        type: 'ElementModel',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         data: { label: 'Resize me' },
@@ -719,7 +719,7 @@ describe('graphView', () => {
       const { graph, view } = setup();
       graph.addCell({
         id: 'el-1',
-        type: 'PortalElement',
+        type: 'ElementModel',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         data: { label: 'Test' },

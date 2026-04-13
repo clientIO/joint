@@ -1,37 +1,37 @@
-import { PortalElement, PORTAL_ELEMENT_TYPE, PORTAL_SELECTOR } from '../portal-element';
+import { ElementModel, ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from '../element-model';
 import { dia } from '@joint/core';
 
 function createElement<Attributes = dia.Element.Attributes>(
   options?: Attributes & dia.Element.Attributes
 ) {
-  return new PortalElement(options);
+  return new ElementModel(options);
 }
 
-describe('portal-element', () => {
-  describe('PortalElement', () => {
-    it('should create a PortalElement instance', () => {
-      const element = new PortalElement({
+describe('element-model', () => {
+  describe('ElementModel', () => {
+    it('should create a ElementModel instance', () => {
+      const element = new ElementModel({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
 
-      expect(element).toBeInstanceOf(PortalElement);
+      expect(element).toBeInstanceOf(ElementModel);
       expect(element).toBeInstanceOf(dia.Element);
-      expect(element.get('type')).toBe(PORTAL_ELEMENT_TYPE);
+      expect(element.get('type')).toBe(ELEMENT_MODEL_TYPE);
     });
 
     it('should have default attributes', () => {
-      const element = new PortalElement({
+      const element = new ElementModel({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
 
       const defaults = element.defaults();
-      expect(defaults.type).toBe(PORTAL_ELEMENT_TYPE);
+      expect(defaults.type).toBe(ELEMENT_MODEL_TYPE);
     });
 
     it('should accept custom attributes', () => {
-      const element = new PortalElement({
+      const element = new ElementModel({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         data: { custom: 'value' },
@@ -45,17 +45,17 @@ describe('portal-element', () => {
         customProp?: string;
       }
 
-      const element = new PortalElement<CustomAttributes>({
+      const element = new ElementModel<CustomAttributes>({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
 
-      expect(element).toBeInstanceOf(PortalElement);
+      expect(element).toBeInstanceOf(ElementModel);
     });
 
     describe('markup', () => {
       it('should have markup with a portal group', () => {
-        const element = new PortalElement();
+        const element = new ElementModel();
         expect(element.markup).toEqual([
           {
             tagName: 'g',
@@ -67,21 +67,21 @@ describe('portal-element', () => {
   });
 
   describe('createElement', () => {
-    it('should create a PortalElement instance', () => {
+    it('should create a ElementModel instance', () => {
       const element = createElement({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
 
-      expect(element).toBeInstanceOf(PortalElement);
-      expect(element.get('type')).toBe(PORTAL_ELEMENT_TYPE);
+      expect(element).toBeInstanceOf(ElementModel);
+      expect(element.get('type')).toBe(ELEMENT_MODEL_TYPE);
     });
 
     it('should create element without options', () => {
       const element = createElement();
 
-      expect(element).toBeInstanceOf(PortalElement);
-      expect(element.get('type')).toBe(PORTAL_ELEMENT_TYPE);
+      expect(element).toBeInstanceOf(ElementModel);
+      expect(element.get('type')).toBe(ELEMENT_MODEL_TYPE);
     });
 
     it('should accept custom attributes', () => {
@@ -95,9 +95,9 @@ describe('portal-element', () => {
     });
   });
 
-  describe('PORTAL_ELEMENT_TYPE', () => {
+  describe('ELEMENT_MODEL_TYPE', () => {
     it('should be defined', () => {
-      expect(PORTAL_ELEMENT_TYPE).toBe('PortalElement');
+      expect(ELEMENT_MODEL_TYPE).toBe('ElementModel');
     });
   });
 });

@@ -1,11 +1,11 @@
-import { GraphProvider, Paper, HTMLBox, PortalElement, PortalLink, type ElementRecord, type LinkRecord } from '@joint/react';
+import { GraphProvider, Paper, HTMLBox, ElementModel, LinkModel, type ElementRecord, type LinkRecord } from '@joint/react';
 import { elementPort, linkLabel, linkStyle } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 
 // ── Custom element with native JointJS `ports` in defaults ──────────────
 
-class PortsElement extends PortalElement {
+class PortsElement extends ElementModel {
   defaults() {
     return {
       ...super.defaults(),
@@ -26,7 +26,7 @@ class PortsElement extends PortalElement {
 
 // ── Custom element with `portMap` in defaults ───────────────────────────
 
-class PortMapElement extends PortalElement {
+class PortMapElement extends ElementModel {
   defaults() {
     return {
       ...super.defaults(),
@@ -42,7 +42,7 @@ class PortMapElement extends PortalElement {
 
 // ── Custom link with native JointJS `labels` in defaults ────────────────
 
-class LabelsLink extends PortalLink {
+class LabelsLink extends LinkModel {
   defaults() {
     return {
       ...super.defaults(),
@@ -62,7 +62,7 @@ class LabelsLink extends PortalLink {
 
 // ── Custom link with `labelMap` in defaults ─────────────────────────────
 
-class LabelMapLink extends PortalLink {
+class LabelMapLink extends LinkModel {
   defaults() {
     return {
       ...super.defaults(),
