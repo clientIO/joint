@@ -747,15 +747,25 @@ export const Graph = Model.extend({
         return this.layerCollection.toArray();
     },
 
+    getCellNamespace() {
+        return this.layerCollection.cellNamespace;
+    },
+
+    getTypeConstructor(type) {
+        if (!type) return null;
+        const Ctor = util.getByPath(this.getCellNamespace(), type, '.');
+        if (!Ctor || !Ctor.prototype) return null;
+        return Ctor;
+    },
+
     getTypeDefaults(type) {
-        if (!type) return {};
         if (!this._typeDefaultsCache) {
             this._typeDefaultsCache = {};
         }
         const cached = this._typeDefaultsCache[type];
         if (cached) return cached;
-        const Ctor = util.getByPath(this.layerCollection.cellNamespace, type, '.');
-        if (!Ctor || !Ctor.prototype) return {};
+        const Ctor = this.getTypeConstructor(type);
+        if (!Ctor) return {};
         const defaults = util.result(Ctor.prototype, 'defaults', {});
         Object.freeze(defaults);
         this._typeDefaultsCache[type] = defaults;
