@@ -8,7 +8,6 @@ import { usePaperEvents } from '../use-paper-events';
 import type { PaperEventsContext } from '../use-paper-events';
 import { usePaper } from '../use-paper';
 import type { PaperEventMap } from '../../types/event.types';
-import { PAPER_ELEMENTS_MEASURED } from '../../types/event.types';
 
 const EMPTY_ELEMENTS = {};
 const EMPTY_LINKS = {};
@@ -28,8 +27,6 @@ const LINK_END = 'target' as dia.LinkEnd;
 const UPDATE_STATS = {} as dia.Paper.UpdateStats;
 const IDLE_OPTIONS = {} as dia.Paper.UpdateViewsAsyncOptions;
 const MATRIX = {} as SVGMatrix;
-const PAPER = {} as dia.Paper;
-const GRAPH = {} as dia.Graph;
 
 const PAPER_EVENT_ARGS: {
   readonly [EventName in keyof PaperEventMap]: Parameters<PaperEventMap[EventName]>;
@@ -94,7 +91,6 @@ const PAPER_EVENT_ARGS: {
   'link:snap:disconnect': [LINK_VIEW, JOINT_EVENT, CELL_VIEW, SVG_NODE, LINK_END],
   'render:done': [UPDATE_STATS, { source: 'render-done' }],
   'render:idle': [IDLE_OPTIONS],
-  [PAPER_ELEMENTS_MEASURED]: [{ isInitial: true, paper: PAPER, graph: GRAPH }],
   translate: [10, 20, { source: 'translate' }],
   scale: [2, 2, { source: 'scale' }],
   resize: [100, 200, { source: 'resize' }],
@@ -392,32 +388,6 @@ describe('use-paper-events', () => {
 
     expect(onCustomEvent).toHaveBeenCalledTimes(1);
     expect(onCustomEvent).toHaveBeenCalledWith(elementViewWithPaper, JOINT_EVENT, 40, 60);
-  });
-
-  it('catches elements:measured event via usePaperEvents', async () => {
-    const wrapper = createPaperWrapper('paper-measured');
-    const onMeasured = jest.fn();
-
-    const { result } = renderHook(
-      () => {
-        const { paper } = usePaper('paper-measured');
-        usePaperEvents('paper-measured', {
-          [PAPER_ELEMENTS_MEASURED]: onMeasured,
-        });
-        return paper;
-      },
-      { wrapper }
-    );
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-    });
-
-    act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_MEASURED);
-    });
-
-    expect(onMeasured).toHaveBeenCalled();
   });
 
   it('supports ref target (useRef<dia.Paper>) for usePaperEvents', async () => {

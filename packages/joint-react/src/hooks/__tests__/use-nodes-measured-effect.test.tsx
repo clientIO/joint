@@ -18,7 +18,10 @@ function createMockResizeEntry(target: Element): ResizeObserverEntry {
 
 const PAPER_ID = 'measured-test-paper';
 
-const ELEMENTS_WITH_SIZE: Record<string, Readonly<{ label: string; size: { width: number; height: number } }>> = {
+const ELEMENTS_WITH_SIZE: Record<
+  string,
+  Readonly<{ label: string; size: { width: number; height: number } }>
+> = {
   a: { label: 'A', size: { width: 100, height: 50 } },
   b: { label: 'B', size: { width: 120, height: 60 } },
 };
@@ -53,7 +56,7 @@ describe('useNodesMeasuredEffect', () => {
       <GraphProvider elements={ELEMENTS_WITH_SIZE}>
         <Listener callback={callback} />
         <Paper id={PAPER_ID} renderElement={RenderElement} />
-      </GraphProvider>,
+      </GraphProvider>
     );
 
     await waitFor(() => {
@@ -85,7 +88,7 @@ describe('useNodesMeasuredEffect', () => {
       <GraphProvider elements={ELEMENTS_WITHOUT_SIZE}>
         <Listener callback={callback} />
         <Paper id={PAPER_ID} renderElement={RenderMeasuredElement} />
-      </GraphProvider>,
+      </GraphProvider>
     );
 
     await waitFor(() => {

@@ -397,17 +397,18 @@ describe('createAtom', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
-  it('notifies listeners on change', () => {
+  it('notifies listeners on change', async () => {
     const atom = createAtom('hello');
     const listener = jest.fn();
     atom.subscribe(listener);
 
     atom.set('world');
+    await flush();
 
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
-  it('notifies multiple listeners', () => {
+  it('notifies multiple listeners', async () => {
     const atom = createAtom(0);
     const listener1 = jest.fn();
     const listener2 = jest.fn();
@@ -415,43 +416,51 @@ describe('createAtom', () => {
     atom.subscribe(listener2);
 
     atom.set(1);
+    await flush();
 
     expect(listener1).toHaveBeenCalledTimes(1);
     expect(listener2).toHaveBeenCalledTimes(1);
   });
 
-  it('unsubscribe stops notifications', () => {
+  it('unsubscribe stops notifications', async () => {
     const atom = createAtom(0);
     const listener = jest.fn();
     const unsubscribe = atom.subscribe(listener);
 
     atom.set(1);
+    await flush();
     expect(listener).toHaveBeenCalledTimes(1);
 
     unsubscribe();
 
     atom.set(2);
+    await flush();
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
-  it('notifies synchronously (no microtask)', () => {
+  it('notifies via microtask scheduler', async () => {
     const atom = createAtom(0);
     const listener = jest.fn();
     atom.subscribe(listener);
 
     atom.set(1);
 
-    // unlike createContainer, atom notifies immediately
-    expect(listener).toHaveBeenCalledTimes(1);
+    // atom.set reads are synchronous, but listener notifications are batched
+    // via simpleScheduler (microtask).
     expect(atom.get()).toBe(1);
+    expect(listener).not.toHaveBeenCalled();
+
+    await flush();
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 
-  it('works with complex objects', () => {
+  it('works with complex objects', async () => {
     const atom = createAtom({ count: 0, measuredCount: 0 });
     const listener = jest.fn();
     atom.subscribe(listener);
 
     atom.set({ count: 5, measuredCount: 3 });
+    await flush();
 
     expect(atom.get()).toEqual({ count: 5, measuredCount: 3 });
     expect(listener).toHaveBeenCalledTimes(1);

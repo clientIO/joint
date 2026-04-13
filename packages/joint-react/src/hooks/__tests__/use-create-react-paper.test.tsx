@@ -309,7 +309,8 @@ describe('use-create-portal-paper', () => {
     await new Promise((resolve) => setTimeout(resolve, 1));
 
     const finalRenderCount = renderCounts.at(-1)!;
-    // StrictMode doubles renders: 2 logical renders × 2 = 4 max
-    expect(finalRenderCount).toBeLessThanOrEqual(4);
+    // StrictMode doubles renders: initial mount + data arrival + measureState bump
+    // (3 logical renders × 2 = 6 max).
+    expect(finalRenderCount).toBeLessThanOrEqual(6);
   });
 });

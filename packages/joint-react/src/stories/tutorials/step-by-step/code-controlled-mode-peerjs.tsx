@@ -72,7 +72,11 @@ const defaultLinks: Record<string, LinkRecord> = {
 // ============================================================================
 
 function RenderItem({ label }: Readonly<ElementData>) {
-  return <HTMLHost useModelGeometry className="node" style={{ width: 100, height: 50 }}>{label}</HTMLHost>;
+  return (
+    <HTMLHost className="node" style={{ width: 100, height: 50 }}>
+      {label}
+    </HTMLHost>
+  );
 }
 
 // ============================================================================
@@ -113,7 +117,10 @@ function createPeerJSManager(callbacks: {
   ) => void;
 }): {
   connectToPeer: (remotePeerId: string) => void;
-  sendStateUpdate: (elements: Record<string, CustomElement>, links: Record<string, LinkRecord>) => void;
+  sendStateUpdate: (
+    elements: Record<string, CustomElement>,
+    links: Record<string, LinkRecord>
+  ) => void;
   isReceivingUpdate: () => boolean;
 } {
   // PeerJS connection management

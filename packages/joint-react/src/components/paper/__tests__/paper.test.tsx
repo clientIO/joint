@@ -757,7 +757,11 @@ describe('Paper Component', () => {
     // Create elements with initial x/y so they can be synced back
     const elementsWithPosition: Record<
       string,
-      { data: { label: string }; position: { x: number; y: number }; size: { width: number; height: number } }
+      {
+        data: { label: string };
+        position: { x: number; y: number };
+        size: { width: number; height: number };
+      }
     > = {
       '1': { data: { label: 'Node 1' }, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
       '2': { data: { label: 'Node 2' }, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
@@ -797,7 +801,8 @@ describe('Paper Component', () => {
   });
   it('should update elements via react state, and then reflect the changes in the paper', async () => {
     function Content() {
-      const [currentElements, setCurrentElements] = useState<Record<string, ElementRecord>>(elements);
+      const [currentElements, setCurrentElements] =
+        useState<Record<string, ElementRecord>>(elements);
 
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>

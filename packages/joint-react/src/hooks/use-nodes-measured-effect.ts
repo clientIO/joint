@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef, type DependencyList } from 'react';
-import { mvc } from '@joint/core';
 import { usePaperStore, useResolvePaperId } from './use-paper';
-import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
+import { type ElementsMeasuredEvent } from '../types/event.types';
 import type { PaperTarget } from '../types';
+import { useGraphStore } from './use-graph-store';
 
 export interface UseOnElementsMeasuredOptions {
   /** When true, the callback fires only once and then unsubscribes. */
@@ -21,19 +21,10 @@ type Callback = (event: ElementsMeasuredEvent) => void;
  * first measurement from subsequent ones.
  *
  * Pass `{ once: true }` to automatically unsubscribe after the first call.
- *
- * Wraps the `elements:measured` paper event.
  * @param callback - Called each time element sizes are measured.
  * @param dependencies - Optional dependency array controlling re-subscription.
  * @param options - Optional settings (e.g. `{ once: true }`).
  * @group Hooks
- * @example
- * ```tsx
- * // React to every measurement (inside a <Paper> component)
- * useNodesMeasuredEffect(({ isInitial }) => {
- *   if (isInitial) runLayout(graph);
- * });
- * ```
  * @example
  * ```tsx
  * // Fire once, then stop listening
@@ -87,19 +78,36 @@ export function useNodesMeasuredEffect(
   callbackRef.current = callback;
 
   const once = options?.once ?? false;
-
+  const { measureState, graph } = useGraphStore();
+  const wasMeasuredRef = useRef(false);
   useLayoutEffect(() => {
     if (!paperStore) return;
     const { paper } = paperStore;
 
-    const controller = new mvc.Listener();
-    controller.listenTo(paper, PAPER_ELEMENTS_MEASURED, (event: ElementsMeasuredEvent) => {
-      callbackRef.current(event);
-      if (once) {
-        controller.stopListening();
+    function handleChanges() {
+      const value = measureState.get();
+      const isMeasured = value > 0;
+      const isInitial = isMeasured && !wasMeasuredRef.current;
+      if (isInitial) {
+        wasMeasuredRef.current = true;
       }
-    });
-    return () => controller.stopListening();
+      callbackRef.current({ isInitial, paper, graph });
+      // The user callback may have moved cells via cell.position()/cell.size().
+      // PortalPaper runs in async mode, so those updates would be queued for the
+      // next rAF — producing a one-frame flash where the element is visible at its
+      // pre-layout position. Flush them synchronously so the next paint already
+      // reflects the post-layout state.
+      paper.updateViews();
+    }
+    // Flush any measurement that happened before subscription (e.g. initial
+    // data sync ran before this paperStore was available).
+    if (measureState.get() > 0) {
+      handleChanges();
+    }
+    const unsubscribeMeasureState = measureState.subscribe(handleChanges);
+    return () => {
+      unsubscribeMeasureState();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paperStore, once, ...(dependencies ?? [])]);
 }

@@ -450,3 +450,214 @@ describe('useSetLink / useRemoveLink', () => {
     });
   });
 });
+
+type CellWithPort = {
+  getPort?: (id: string) => { attrs?: { portBody?: { style?: { fill?: string } } } } | null;
+};
+
+function getPortColor(cell: unknown, portId: string): string | undefined {
+  const element = cell as CellWithPort;
+  const port = element.getPort?.(portId);
+  return port?.attrs?.portBody?.style?.fill;
+}
+
+describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
+  const wrapper = graphProviderWrapper({
+    elements: {
+      a: {
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 40 },
+        portMap: { out: { cx: 'calc(w)', cy: 'calc(0.5*h)' } },
+      },
+      b: {
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 40 },
+        portMap: { in: { cx: 0, cy: 'calc(0.5*h)' } },
+      },
+    },
+    links: {
+      'a-b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
+    },
+  });
+
+  it('setElements should apply portStyle via updater so port fill color updates', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        setElements: useGraph().setElements,
+        elements: useElements(),
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.elements.get('a')).toBeDefined();
+      expect(result.current.elements.get('b')).toBeDefined();
+    });
+
+    act(() =>
+      result.current.setElements((previous) => {
+        const next: Record<string, (typeof previous)[string]> = {};
+        for (const [id, element] of Object.entries(previous)) {
+          next[id] = { ...element, portStyle: { color: '#FF0000', shape: 'ellipse' } };
+        }
+        return next;
+      })
+    );
+
+    await waitFor(() => {
+      const cellA = result.current.graph.getCell('a');
+      const cellB = result.current.graph.getCell('b');
+      expect(getPortColor(cellA, 'out')).toBe('#FF0000');
+      expect(getPortColor(cellB, 'in')).toBe('#FF0000');
+    });
+
+    act(() =>
+      result.current.setElements((previous) => {
+        const next: Record<string, (typeof previous)[string]> = {};
+        for (const [id, element] of Object.entries(previous)) {
+          next[id] = { ...element, portStyle: { color: '#FFBB00', shape: 'rect' } };
+        }
+        return next;
+      })
+    );
+
+    await waitFor(() => {
+      const cellA = result.current.graph.getCell('a');
+      const cellB = result.current.graph.getCell('b');
+      expect(getPortColor(cellA, 'out')).toBe('#FFBB00');
+      expect(getPortColor(cellB, 'in')).toBe('#FFBB00');
+    });
+  });
+
+  it('setElements + setLinks back-to-back should not revert port style', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        setElements: useGraph().setElements,
+        setLinks: useGraph().setLinks,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')).toBeDefined();
+      expect(result.current.graph.getCell('a-b')).toBeDefined();
+    });
+
+    act(() => {
+      result.current.setElements((previous) => {
+        const next: Record<string, (typeof previous)[string]> = {};
+        for (const [id, element] of Object.entries(previous)) {
+          next[id] = { ...element, portStyle: { color: '#FF0000', shape: 'ellipse' } };
+        }
+        return next;
+      });
+      result.current.setLinks((previous) => {
+        const next: Record<string, (typeof previous)[string]> = {};
+        for (const [id, link] of Object.entries(previous)) {
+          next[id] = { ...link, style: { color: '#FF0000' } };
+        }
+        return next;
+      });
+    });
+
+    await waitFor(() => {
+      const cellA = result.current.graph.getCell('a');
+      const cellB = result.current.graph.getCell('b');
+      const linkAB = result.current.graph.getCell('a-b');
+      expect(getPortColor(cellA, 'out')).toBe('#FF0000');
+      expect(getPortColor(cellB, 'in')).toBe('#FF0000');
+      expect(linkAB?.get('attrs')?.line?.style?.stroke ?? '').toBe('#FF0000');
+    });
+  });
+
+  it('setElements should remove elements that are absent from the next record', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        setElements: useGraph().setElements,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')).toBeDefined();
+      expect(result.current.graph.getCell('b')).toBeDefined();
+    });
+
+    act(() => result.current.setElements((previous) => ({ a: previous.a })));
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')).toBeDefined();
+      expect(result.current.graph.getCell('b')).toBeUndefined();
+    });
+  });
+
+  it('setLinks should remove links that are absent from the next record', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        setLinks: useGraph().setLinks,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a-b')).toBeDefined();
+    });
+
+    act(() => result.current.setLinks(() => ({})));
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a-b')).toBeUndefined();
+      expect(result.current.graph.getCell('a')).toBeDefined();
+      expect(result.current.graph.getCell('b')).toBeDefined();
+    });
+  });
+
+  it('setLinks should apply style via updater so link stroke color updates', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        setLinks: useGraph().setLinks,
+        links: useLinks(),
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.links.get('a-b')).toBeDefined();
+    });
+
+    act(() =>
+      result.current.setLinks((previous) => {
+        const next: Record<string, (typeof previous)[string]> = {};
+        for (const [id, link] of Object.entries(previous)) {
+          next[id] = { ...link, style: { color: '#FF0000' } };
+        }
+        return next;
+      })
+    );
+
+    await waitFor(() => {
+      const link = result.current.graph.getCell('a-b');
+      expect(link?.get('attrs')?.line?.style?.stroke ?? '').toBe('#FF0000');
+    });
+
+    act(() =>
+      result.current.setLinks((previous) => {
+        const next: Record<string, (typeof previous)[string]> = {};
+        for (const [id, link] of Object.entries(previous)) {
+          next[id] = { ...link, style: { color: '#FFBB00' } };
+        }
+        return next;
+      })
+    );
+
+    await waitFor(() => {
+      const link = result.current.graph.getCell('a-b');
+      expect(link?.get('attrs')?.line?.style?.stroke ?? '').toBe('#FFBB00');
+    });
+  });
+});

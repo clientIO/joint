@@ -106,7 +106,11 @@ const defaultLinks: Record<string, CustomLink> = {
  * @returns JSX to render inside the element
  */
 function RenderItem({ label }: Readonly<ElementData>) {
-  return <HTMLHost useModelGeometry className="node" style={{ width: 100, height: 50 }}>{label}</HTMLHost>;
+  return (
+    <HTMLHost className="node" style={{ width: 100, height: 50 }}>
+      {label}
+    </HTMLHost>
+  );
 }
 
 // ============================================================================
