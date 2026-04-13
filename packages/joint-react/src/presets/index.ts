@@ -26,6 +26,6 @@ export {
   linkMarkerOneOptional,
   linkMarkerOneOrMany,
 } from './link-markers';
-export { elementPort, elementPorts } from './element-ports';
-export { linkLabel, linkLabels } from './link-labels';
-export { linkStyle, linkStyleLine, linkStyleWrapper } from './link-style';
+export { elementPort, elementPorts, type ElementPort, type PortShape } from './element-ports';
+export { linkLabel, linkLabels, type LinkLabel } from './link-labels';
+export { linkStyle, linkStyleLine, linkStyleWrapper, type LinkStyle } from './link-style';

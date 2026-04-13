@@ -1,7 +1,36 @@
 import type { attributes } from '@joint/core';
-import type { LinkStyle } from '../types/data-types';
-import type { Nullable } from '../types';
-import { resolveMarker } from '../theme/named-link-markers';
+import type { Nullable, LiteralUnion } from '../types';
+import { resolveMarker, type LinkMarker } from '../theme/named-link-markers';
+
+/**
+ * Visual/presentation attributes for a link line and its wrapper.
+ * All properties are optional — empty strings let CSS variables from `theme.css` take over.
+ * @group Graph
+ */
+export interface LinkStyle {
+  /** Stroke color of the link line. Accepts any CSS color value including CSS variables. @default '' */
+  color?: string;
+  /** Stroke width of the link line. Accepts a number (px) or CSS value string. @default '' */
+  width?: number | string;
+  /** Source marker name or custom marker definition. Use `'none'` for no marker. @default 'none' */
+  sourceMarker?: LinkMarker;
+  /** Target marker name or custom marker definition. Use `'none'` for no marker. @default 'none' */
+  targetMarker?: LinkMarker;
+  /** CSS class name to apply to the link line. @default '' */
+  className?: string;
+  /** Stroke dash pattern (SVG `stroke-dasharray` syntax, e.g. `'5,5'`). @default '' */
+  dasharray?: string;
+  /** Stroke line cap for the link line. @default '' */
+  linecap?: LiteralUnion<'butt' | 'round' | 'square'>;
+  /** Stroke line join for the link line. @default '' */
+  linejoin?: LiteralUnion<'miter' | 'round' | 'bevel'>;
+  /** Stroke width of the link wrapper (hit area) in pixels. @default 10 */
+  wrapperWidth?: number;
+  /** Stroke color of the link wrapper (outline). @default 'transparent' */
+  wrapperColor?: string;
+  /** CSS class name to apply to the link wrapper (outline). @default '' */
+  wrapperClassName?: string;
+}
 
 const defaultLinkStyle: Readonly<Required<LinkStyle>> = {
   color: '',

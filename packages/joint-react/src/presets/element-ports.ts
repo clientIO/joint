@@ -1,5 +1,4 @@
 import { type dia } from '@joint/core';
-import type { ElementPort } from '../types/data-types';
 import type { LiteralUnion } from '../types/index';
 
 /**
@@ -9,6 +8,58 @@ import type { LiteralUnion } from '../types/index';
  * - Any other string — interpreted as SVG path `d` commands
  */
 export type PortShape = LiteralUnion<'ellipse' | 'rect'>;
+
+/**
+ * Simplified port definition for declarative port configuration.
+ * Converted to full JointJS port format by the element mapper.
+ * @group Graph
+ */
+export interface ElementPort {
+  /**
+   * X position of the port (absolute positioning).
+   * Supports calc() expressions (e.g., 'calc(w)').
+   * Optional when using group-based positioning.
+   */
+  cx?: number | string;
+  /**
+   * Y position of the port (absolute positioning).
+   * Supports calc() expressions (e.g., 'calc(h)').
+   * Optional when using group-based positioning.
+   */
+  cy?: number | string;
+  /** Width of the port shape. @default 10 */
+  width?: number;
+  /** Height of the port shape. @default 10 */
+  height?: number;
+  /** Fill color of the port shape. @default '#333333' */
+  color?: string;
+  /** Shape of the port. @default 'ellipse' */
+  shape?: PortShape;
+  /** Outline color of the port shape. Accepts any CSS color. @default 'transparent' */
+  outline?: string;
+  /** Outline width of the port shape in px. @default 0 */
+  outlineWidth?: number;
+  /** CSS class name to apply to the port shape. */
+  className?: string;
+  /** Whether the port is limited to only being a target (not source) for links. @default false */
+  passive?: boolean;
+  /** Label displayed next to the port. */
+  label?: string;
+  /** Position of the port label. @default 'outside' */
+  labelPosition?: string;
+  /** Color of the port label text. @default '#333333' */
+  labelColor?: string;
+  /** Font size of the port label text. */
+  labelFontSize?: number;
+  /** Font family of the port label text. */
+  labelFontFamily?: string;
+  /** CSS class name to apply to the port label. */
+  labelClassName?: string;
+  /** Horizontal offset of the port label in pixels. */
+  labelOffsetX?: number;
+  /** Vertical offset of the port label in pixels. */
+  labelOffsetY?: number;
+}
 
 const defaultPortStyle = {
   width: 10,

@@ -1,5 +1,42 @@
 import { type dia, util } from '@joint/core';
-import type { LinkLabel } from '../types/data-types';
+import type { LiteralUnion } from '../types';
+
+/**
+ * Simplified label definition for graph links.
+ * @group Graph
+ */
+export interface LinkLabel {
+  /** Label text content. */
+  text: string;
+  /** Position along the link. 0–1 is a ratio, >1 is absolute distance in px. */
+  position?: number;
+  /** Offset perpendicular to the link path. A number or `{ x, y }` object. */
+  offset?: number | { x: number; y: number };
+  /** Text color. */
+  color?: string;
+  /** Background color of the label rectangle. */
+  backgroundColor?: string;
+  /** Padding between text and background. Number or `{ x, y }`. @default { x: 4, y: 2 } */
+  backgroundPadding?: number | { x: number; y: number };
+  /** Font size of the label text. */
+  fontSize?: number;
+  /** Font family of the label text. */
+  fontFamily?: string;
+  /** CSS class name applied to the label text element. */
+  className?: string;
+  /** Outline (stroke) color of the label background. */
+  backgroundOutline?: string;
+  /** Outline (stroke) width of the label background. */
+  backgroundOutlineWidth?: number;
+  /** Border radius of the label background. */
+  backgroundBorderRadius?: number;
+  /** Opacity of the label background (0–1). */
+  backgroundOpacity?: number;
+  /** CSS class name applied to the label background. */
+  backgroundClassName?: string;
+  /** Shape of the label background: `'rect'`, `'ellipse'`, or SVG path `d` commands. @default 'rect' */
+  backgroundShape?: LiteralUnion<'rect' | 'ellipse'>;
+}
 
 const defaultLabelStyle = {
   color: '' as string,
