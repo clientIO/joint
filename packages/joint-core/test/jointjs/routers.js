@@ -2624,4 +2624,67 @@ QUnit.module('routers', function(hooks) {
 
         assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 150 L -28 150 L -28 175 L 0 175', 'Source above target with vertex inside the target element bbox');
     });
+
+    // minMargin tests
+    // r1 at (0,0), r2 repositioned so their margin zones are adjacent (overlap by exactly ignoreOverlappingMargin).
+    // margin=28, elements side-by-side with a 10px gap → smx1(78) − tmx0(32) = 46
+    // minMargin=5  → ignoreOverlappingMargin = max(0, 28+28 − 2*5)  = 46 → 46 ≤ 46 → ignoreMargin = true
+    // minMargin=null → ignoreOverlappingMargin = 0 (falsy)                    → ignoreMargin = false
+
+    QUnit.test('rightAngle routing - minMargin - source: bottom, target: top', function(assert) {
+        // r1 at (0,0), r2 at (60,20) — elements offset horizontally so their x-margin zones barely touch.
+        // source outside point: (25, 78);  target outside point: (85, -8)
+        const [, r2, l] = this.addTestSubjects('bottom', 'top', { name: 'rightAngle', args: { margin, minMargin: 5 }});
+        r2.position(60, 20);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 50 L 25 78 L 55 78 L 55 -8 L 85 -8 L 85 20', 'minMargin suppresses the margin-overlap detour');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 50 L 25 98 L 138 98 L 138 -8 L 85 -8 L 85 20', 'Without minMargin, route detours around margin zones');
+    });
+
+    QUnit.test('rightAngle routing - minMargin - source: top, target: bottom', function(assert) {
+        // r1 at (0,0), r2 at (60,20) — elements offset horizontally so their x-margin zones barely touch.
+        // source outside point: (25, -28);  target outside point: (85, 98)
+        const [, r2, l] = this.addTestSubjects('top', 'bottom', { name: 'rightAngle', args: { margin, minMargin: 5 }});
+        r2.position(60, 20);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 55 -28 L 55 98 L 85 98 L 85 70', 'minMargin suppresses the margin-overlap detour');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 138 -28 L 138 98 L 85 98 L 85 70', 'Without minMargin, route detours around margin zones');
+    });
+
+    QUnit.test('rightAngle routing - minMargin - source: right, target: left', function(assert) {
+        // r1 at (0,0), r2 at (20,60) — elements offset vertically so their y-margin zones barely touch.
+        // source outside point: (78, 25);  target outside point: (-8, 85)
+        const [, r2, l] = this.addTestSubjects('right', 'left', { name: 'rightAngle', args: { margin, minMargin: 5 }});
+        r2.position(20, 60);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 55 L -8 55 L -8 85 L 20 85', 'minMargin suppresses the margin-overlap detour');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 25 L 98 25 L 98 138 L -8 138 L -8 85 L 20 85', 'Without minMargin, route detours around margin zones');
+    });
+
+    QUnit.test('rightAngle routing - minMargin - source: left, target: right', function(assert) {
+        // r1 at (60,0), r2 at (0,60) — elements offset vertically so their y-margin zones barely touch.
+        // source outside point: (32, 25);  target outside point: (78, 85)
+        const [r1, r2, l] = this.addTestSubjects('left', 'right', { name: 'rightAngle', args: { margin, minMargin: 5 }});
+        r1.position(60, 0);
+        r2.position(0, 60);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 60 25 L 32 25 L 32 55 L 78 55 L 78 85 L 50 85', 'minMargin suppresses the margin-overlap detour');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 60 25 L -28 25 L -28 138 L 78 138 L 78 85 L 50 85', 'Without minMargin, route detours around margin zones');
+    });
 });

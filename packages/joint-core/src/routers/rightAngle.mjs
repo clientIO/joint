@@ -483,9 +483,9 @@ function routeBetweenPoints(source, target, opt = {}) {
     const tmy0 = ty0 - targetMargin;
     const tmy1 = ty1 + targetMargin;
 
-    let ignoreOverlappingMargin = false;
+    let ignoreOverlappingMargin = 0;
     if (minMargin != null) {
-        ignoreOverlappingMargin = (sourceMargin + targetMargin) - 2 * minMargin;
+        ignoreOverlappingMargin = Math.max(0, (sourceMargin + targetMargin) - 2 * minMargin);
     }
 
     const [sourceSide, targetSide] = resolveSides(source, target);
