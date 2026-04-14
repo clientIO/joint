@@ -551,7 +551,8 @@ function routeBetweenPoints(source, target, opt = {}) {
             let ignoreMargin = false;
             if (ignoreOverlappingMargin &&
                 ((Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) ||
-                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin))) {
+                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin) ||
+                (tox - smx0 <= ignoreOverlappingMargin))) {
                 ignoreMargin = true;
             }
 
@@ -618,7 +619,8 @@ function routeBetweenPoints(source, target, opt = {}) {
             let ignoreMargin = false;
             if (ignoreOverlappingMargin &&
                 ((Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) ||
-                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin))) {
+                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin)) ||
+                (smx1 - tox <= ignoreOverlappingMargin)) {
                 ignoreMargin = true;
             }
 
@@ -685,7 +687,8 @@ function routeBetweenPoints(source, target, opt = {}) {
             let ignoreMargin = false;
             if (ignoreOverlappingMargin &&
                 ((Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) ||
-                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin))) {
+                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin)) ||
+                toy - smy0 <= ignoreOverlappingMargin) {
                 ignoreMargin = true;
             }
 
@@ -752,7 +755,8 @@ function routeBetweenPoints(source, target, opt = {}) {
             let ignoreMargin = false;
             if (ignoreOverlappingMargin &&
                 ((Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) ||
-                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin))) {
+                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin)) ||
+                smy1 - toy <= ignoreOverlappingMargin) {
                 ignoreMargin = true;
             }
 

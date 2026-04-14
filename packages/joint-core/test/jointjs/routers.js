@@ -2687,4 +2687,40 @@ QUnit.module('routers', function(hooks) {
         d = this.paper.findViewByModel(l).metrics.data;
         assert.checkDataPath(d, 'M 60 25 L -28 25 L -28 138 L 78 138 L 78 85 L 50 85', 'Without minMargin, route detours around margin zones');
     });
+
+    // The facing-elements condition: source left anchor facing a target right anchor (and the reverse).
+    // Positions are chosen so the anchors' outside points land outside the inflated bboxes (no S-shape),
+    // but the outside points are close enough that tox−smx0 (or smx1−tox) hits ignoreOverlappingMargin.
+    // r1 at (100,0), r2 at (0,60), minMargin=25:
+    //   tox(78) − smx0(72) = 6 = ignoreOverlappingMargin   → fires only the third condition
+    //   smy1(78) − tmy0(32) = 46 > 6, so y-margin conditions do NOT fire
+
+    QUnit.test('rightAngle routing - minMargin facing - source: left, target: right', function(assert) {
+        // r1 at (100,0), r2 at (0,60) — anchors face each other with a 50px gap (tox−smx0=6=ignoreOverlappingMargin).
+        // source outside point: (72, 25);  target outside point: (78, 85)
+        const [r1, r2, l] = this.addTestSubjects('left', 'right', { name: 'rightAngle', args: { margin, minMargin: 25 }});
+        r1.position(100, 0);
+        r2.position(0, 60);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 100 25 L 72 25 L 72 55 L 78 55 L 78 85 L 50 85', 'minMargin suppresses the facing-elements detour');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 100 25 L -28 25 L -28 138 L 78 138 L 78 85 L 50 85', 'Without minMargin, route detours around margin zones');
+    });
+
+    QUnit.test('rightAngle routing - minMargin facing - source: right, target: left', function(assert) {
+        // r1 at (0,0), r2 at (100,60) — anchors face each other with a 50px gap (smx1−tox=6=ignoreOverlappingMargin).
+        // source outside point: (78, 25);  target outside point: (72, 85)
+        const [, r2, l] = this.addTestSubjects('right', 'left', { name: 'rightAngle', args: { margin, minMargin: 25 }});
+        r2.position(100, 60);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 55 L 72 55 L 72 85 L 100 85', 'minMargin suppresses the facing-elements detour');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 25 L 178 25 L 178 138 L 72 138 L 72 85 L 100 85', 'Without minMargin, route detours around margin zones');
+    });
 });
