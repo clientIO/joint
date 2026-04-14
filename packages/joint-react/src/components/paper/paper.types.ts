@@ -12,7 +12,7 @@ type PortalPaperOptionsBase = OmitWithoutIndexSignature<
 >;
 export interface PortalPaperOptions extends PortalPaperOptionsBase {
   /**
-   * Default link for the paper - for example if there is new element added, this will be used as default.
+   * What link to create when the user connects two elements from within the UI.
    */
   readonly defaultLink?:
     | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<LinkRecord>)
@@ -94,7 +94,6 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    *
    * Note: JointJS works with SVG by default, so `renderLink` content is appended inside an SVG node.
    * To render HTML elements, use an SVG `foreignObject`.
-   *
    * @experimental - this feature is experimental and may have limitations or issues. Use at your own risk.
    * This is called when the link data changes.
    * @example

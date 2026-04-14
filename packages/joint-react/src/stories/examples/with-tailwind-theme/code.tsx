@@ -75,22 +75,26 @@ const initialElements: Record<string, ElementRecord<NodeUserData>> = {
   },
 };
 
+const DEFAULT_LINK = {
+  style: { targetMarker: 'arrow' },
+} as const;
+
 const initialLinks: Record<string, LinkRecord> = {
   'a→b': {
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },
-    style: { targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
   'a→c': {
     source: { id: 'a', port: 'out' },
     target: { id: 'c', port: 'in' },
-    style: { targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
   'b→d': {
     source: { id: 'b', port: 'out' },
     target: { id: 'd', port: 'in' },
     labelMap: { info: { text: 'approved' } },
-    style: { targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
     labelStyle: { backgroundPadding: { x: 6, y: 4 } },
   },
   'c→d': {
@@ -193,7 +197,12 @@ function Diagram() {
         onElementsChange={setElements}
         onLinksChange={setLinks}
       >
-        <Paper className={PAPER_CLASSNAME} height={240} renderElement={renderElement} />
+        <Paper
+          className={PAPER_CLASSNAME}
+          height={240}
+          renderElement={renderElement}
+          defaultLink={() => DEFAULT_LINK}
+        />
       </GraphProvider>
     </div>
   );

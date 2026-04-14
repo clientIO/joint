@@ -1,7 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
-import { dia, util } from '@joint/core';
-import type { LinkRecord } from '../types/data-types';
+import { dia } from '@joint/core';
 import {
   useCallback,
   useDeferredValue,
@@ -36,6 +35,7 @@ import {
 } from '../components/paper/render-element/paper-element-item';
 import { createSelectPaperVersion } from '../selectors';
 import { useAreElementsMeasured } from './use-are-elements-measured';
+import { LINK_MODEL_TYPE } from '../internal';
 
 type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
@@ -71,14 +71,9 @@ export interface UseCreatePortalPaperResult {
  * @throws {Error} When `LinkModel` is missing in graph namespace.
  */
 function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
-  const cellNamespace = graph.layerCollection?.cellNamespace;
-  const reactLinkConstructor = cellNamespace?.LinkModel;
-  if (typeof reactLinkConstructor === 'function') {
-    return reactLinkConstructor as LinkModelConstructor;
-  }
-  throw new Error(
-    'Paper: LinkModel constructor is missing in graph.layerCollection.cellNamespace.'
-  );
+  const Ctor = graph.getTypeConstructor(LINK_MODEL_TYPE) as LinkModelConstructor | undefined;
+  if (typeof Ctor !== 'function') throw new Error('Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
+  return Ctor as LinkModelConstructor;
 }
 
 /**
@@ -176,15 +171,13 @@ export function useCreatePortalPaper(
   const hasRenderElement = !!renderElement;
   const hasRenderLink = !!renderLink;
 
-  const defaultLinkJointJS = useCallback(
+  const defaultLinkCallback = useCallback(
     (cellView: dia.CellView, magnet: SVGElement) => {
       const isDefaultLinkFactory = typeof defaultLink === 'function';
       const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
-      const LinkModelModel = getLinkModelConstructor(graph);
+      const LinkModelCtor = getLinkModelConstructor(graph);
       if (!link) {
-        const id = util.uuid();
-        const defaultAttributes = mapLinkToAttributes({ id, data: {} } as LinkRecord);
-        return new LinkModelModel(defaultAttributes);
+        return new LinkModelCtor(mapLinkToAttributes({}));
       }
       if (link instanceof dia.Link) {
         if (isDefaultLinkFactory) {
@@ -192,9 +185,7 @@ export function useCreatePortalPaper(
         }
         return link.clone();
       }
-      const id = util.uuid();
-      const attributes = mapLinkToAttributes({ id, data: {}, ...link } as LinkRecord);
-      return new LinkModelModel(attributes);
+      return new LinkModelCtor(mapLinkToAttributes(link));
     },
 
     [defaultLink, graph]
@@ -210,7 +201,7 @@ export function useCreatePortalPaper(
         ...paperOptions,
         id,
         el: hostElementForCreation,
-        defaultLink: defaultLinkJointJS,
+        defaultLink: defaultLinkCallback,
       },
       renderElement,
       renderLink,
@@ -256,7 +247,7 @@ export function useCreatePortalPaper(
     if (!paper) return;
 
     assignOptions(paper.options, {
-      defaultLink: defaultLinkJointJS,
+      defaultLink: defaultLinkCallback,
       ...paperOptions,
     });
 
@@ -274,7 +265,7 @@ export function useCreatePortalPaper(
     if (scale !== undefined) {
       paper.scale(scale);
     }
-  }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
+  }, [defaultLinkCallback, paper, paperOptions, paperStore, scale]);
 
   const elements = useMemo(() => {
     if (!hasRenderElement) {
