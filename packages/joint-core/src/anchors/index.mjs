@@ -74,16 +74,17 @@ function getMiddleSide(rect, point, opt, endType) {
         }
 
         case SideMode.TOP_BOTTOM:
-            return endType === 'source' ? Side.BOTTOM : Side.TOP;
-
-        case SideMode.BOTTOM_TOP:
             return endType === 'source' ? Side.TOP : Side.BOTTOM;
 
+        case SideMode.BOTTOM_TOP:
+            return endType === 'source' ? Side.BOTTOM : Side.TOP;
+
         case SideMode.LEFT_RIGHT:
-            return endType === 'source' ? Side.RIGHT : Side.LEFT;
+            return endType === 'source' ? Side.LEFT : Side.RIGHT;
 
         case SideMode.RIGHT_LEFT:
-            return endType === 'source' ? Side.LEFT : Side.RIGHT;
+            return endType === 'source' ? Side.RIGHT : Side.LEFT;
+
 
         case SideMode.AUTO:
         default: {
@@ -226,8 +227,8 @@ function _midSide(view, magnet, refPoint, opt, endType, linkView) {
 
 // Can find anchor from model, when there is no selector or the link end
 // is connected to a port
-function _modelCenter(view, _magnet, _refPoint, opt, endType) {
-    return view.model.getPointFromConnectedLink(this.model, endType).offset(opt.dx, opt.dy);
+function _modelCenter(view, _magnet, _refPoint, opt, endType, linkView) {
+    return view.model.getPointFromConnectedLink(linkView.model, endType).offset(opt.dx, opt.dy);
 }
 
 //joint.anchors

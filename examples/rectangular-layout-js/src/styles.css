@@ -1,0 +1,19 @@
+body {
+    font-family: sans-serif;
+    padding: 10px;
+}
+
+#paper {
+    border: 1px solid lightgray;
+    margin: 10px 0;
+}
+
+#logo {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: #ffffff;
+    border: 1px solid #d3d3d3;
+    padding: 5px;
+    box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.3);
+}

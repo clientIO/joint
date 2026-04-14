@@ -359,14 +359,58 @@ QUnit.module('connectionPoints', function(hooks) {
                     const r1BBoxWR = r1.getBBox({ rotate: true });
 
                     line = new g.Line(r1BBoxWR.bottomMiddle().offset(0, 1000), r1BBoxWR.bottomMiddle());
-                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
-                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).bottomMiddle()));
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true }).round();
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).bottomMiddle().round()));
 
                     line = new g.Line(r1BBoxWR.bottomMiddle().offset(1000, 0), r1BBoxWR.bottomMiddle());
-                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
-                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).rightMiddle()));
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true }).round();
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).rightMiddle().round()));
                 });
             });
+        });
+    });
+
+    QUnit.module('rectangle - HTML element magnet', function(hooks) {
+
+        var connectionPointFn = joint.connectionPoints.rectangle;
+        var foElement, foView, htmlMagnet;
+
+        hooks.beforeEach(function() {
+            foElement = new joint.dia.Element({
+                type: 'foTest',
+                position: { x: 0, y: 0 },
+                size: { width: 100, height: 100 },
+                markup: joint.util.svg`
+                    <foreignObject @selector="fo" x="0" y="0" width="100%" height="100%">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="width: 60px; height: 40px;"></div>
+                    </foreignObject>
+                `
+            });
+            graph.addCell(foElement);
+            foView = foElement.findView(paper);
+            htmlMagnet = foView.el.querySelector('div');
+        });
+
+        hooks.afterEach(function() {
+            foElement.remove();
+        });
+
+        QUnit.test('unrotated element - connects at the correct boundary point', function(assert) {
+            // Stub bbox measurement so the test doesn't rely on real DOM layout.
+            sinon.stub(foView, 'getNodeBBox').returns(new g.Rect(0, 0, 60, 40));
+            var line = new g.Line(new g.Point(200, 25), new g.Point(50, 25));
+            var cp = connectionPointFn.call(lv1, line, foView, htmlMagnet, {});
+            assert.ok(cp.round().equals(new g.Point(60, 25)));
+            foView.getNodeBBox.restore();
+        });
+
+        QUnit.test('rotated element - uses model center as pivot, not magnet bbox center', function(assert) {
+            foElement.rotate(90);
+            sinon.stub(foView, 'getNodeUnrotatedBBox').returns(new g.Rect(0, 0, 60, 40));
+            var line = new g.Line(new g.Point(80, 200), new g.Point(80, 10));
+            var cp = connectionPointFn.call(lv1, line, foView, htmlMagnet, {});
+            assert.ok(cp.round().equals(new g.Point(80, 60)), 'connection point is on the actual magnet boundary');
+            foView.getNodeUnrotatedBBox.restore();
         });
     });
 
@@ -447,6 +491,53 @@ QUnit.module('connectionPoints', function(hooks) {
             });
 
 
+        });
+
+        QUnit.module('HTML element magnet', function(hooks) {
+
+            var foElement, foView, htmlMagnet;
+
+            hooks.beforeEach(function() {
+                foElement = new joint.dia.Element({
+                    type: 'foTest',
+                    position: { x: 0, y: 0 },
+                    size: { width: 100, height: 100 },
+                    markup: joint.util.svg`
+                        <foreignObject @selector="fo" x="0" y="0" width="100%" height="100%">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="width: 60px; height: 40px;"></div>
+                        </foreignObject>
+                    `
+                });
+                graph.addCell(foElement);
+                foView = foElement.findView(paper);
+                htmlMagnet = foView.el.querySelector('div');
+            });
+
+            hooks.afterEach(function() {
+                foElement.remove();
+            });
+
+            QUnit.test('connects at boundary, not at raw anchor', function(assert) {
+                // boundaryIntersection used to return line.end (the anchor inside the element)
+                // for non-SVG magnets. It should now delegate to rectangleIntersection.
+                var connectionPointFn = joint.connectionPoints.boundary;
+                sinon.stub(foView, 'getNodeBBox').returns(new g.Rect(0, 0, 60, 40));
+                var line = new g.Line(new g.Point(200, 25), new g.Point(50, 25));
+                var cp = connectionPointFn.call(lv1, line, foView, htmlMagnet, {});
+                assert.ok(cp.round().equals(new g.Point(60, 25)));
+                foView.getNodeBBox.restore();
+            });
+
+            QUnit.test('rotated element - boundary connects at correct side', function(assert) {
+                var connectionPointFn = joint.connectionPoints.boundary;
+                foElement.rotate(45);
+                sinon.stub(foView, 'getNodeBBox').returns(new g.Rect(0, 0, 60, 40));
+                // Line coming from above (lower y) should hit the top after rotation.
+                var line = new g.Line(new g.Point(60, 200), new g.Point(60, 10));
+                var cp = connectionPointFn.call(lv1, line, foView, htmlMagnet, {});
+                assert.ok(cp.round().equals(new g.Point(60, 46)), 'connection point is on the actual bbox boundary');
+                foView.getNodeBBox.restore();
+            });
         });
     });
 });

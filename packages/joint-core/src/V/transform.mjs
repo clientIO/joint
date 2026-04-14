@@ -110,6 +110,25 @@ export function matrixToTransformString(matrixInit = {}) {
 }
 
 /**
+ * @param {SVGElement} node
+ * @returns {SVGSVGElement|null}
+ * @description Returns the root SVG element for the given node,
+ * walking up through nested SVG elements.
+ * Returns `null` if the node is not part of an SVG document.
+ */
+function getRootSVG(node) {
+    let svg = node.ownerSVGElement;
+    if (!svg) {
+        // The node itself may be an <svg> element
+        return node instanceof SVGSVGElement ? node : null;
+    }
+    while (svg.ownerSVGElement) {
+        svg = svg.ownerSVGElement;
+    }
+    return svg;
+}
+
+/**
  *
  * @param {SVGElement} a
  * @param {SVGElement} b
@@ -119,9 +138,12 @@ export function matrixToTransformString(matrixInit = {}) {
  * in order to calculate the correct transformation matrix.
  */
 export function getRelativeTransformation(a, b) {
-    // Different SVG elements, no transformation possible
-    // Note: SVGSVGElement has no `ownerSVGElement`
-    if ((a.ownerSVGElement || a) !== (b.ownerSVGElement || b)) return null;
+    // Elements must be part of an SVG document
+    const rootA = getRootSVG(a);
+    const rootB = getRootSVG(b);
+    if (!rootA || !rootB) return null;
+    // Different SVG documents, no transformation possible
+    if (rootA !== rootB) return null;
     // Get the transformation matrix from `a` to `b`.
     const am = b.getScreenCTM();
     if (!am) return null;

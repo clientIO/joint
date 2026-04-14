@@ -1,0 +1,40 @@
+[
+    { "id": 1, "name": "Great-Grandfather", "sex": "M", "dod": "?" },
+    { "id": 2, "name": "Great-Grandmother", "sex": "F", "dod": "?" },
+
+    { "id": 3, "name": "Paternal Grandfather", "sex": "M", "mother": 2, "father": 1, "dod": "?" },
+    { "id": 4, "name": "Paternal Grandmother", "sex": "F" },
+    { "id": 5, "name": "Maternal Grandfather", "sex": "M" },
+    { "id": 6, "name": "Maternal Grandmother", "sex": "F" },
+    { "id": 7, "name": "Great-Uncle", "sex": "M", "mother": 2, "father": 1, "dod": "?" },
+    { "id": 8, "name": "Great-Aunt", "sex": "F", "mother": 2, "father": 1 },
+
+    { "id": 10, "name": "Father", "sex": "M", "mother": 4, "father": 3 },
+    { "id": 11, "name": "Mother", "sex": "F", "mother": 6, "father": 5 },
+    { "id": 12, "name": "Uncle (paternal)", "sex": "M", "mother": 4, "father": 3 },
+    { "id": 13, "name": "Aunt (by marriage)", "sex": "F" },
+    { "id": 14, "name": "Aunt (paternal)", "sex": "F", "mother": 4, "father": 3 },
+    { "id": 15, "name": "Father-in-Law", "sex": "M" },
+    { "id": 16, "name": "Mother-in-Law", "sex": "F" },
+
+    { "id": 20, "name": "Me", "sex": "M", "mother": 11, "father": 10 },
+    { "id": 21, "name": "Wife", "sex": "F", "mother": 16, "father": 15 },
+    { "id": 22, "name": "Brother", "sex": "M", "mother": 11, "father": 10 },
+    { "id": 27, "name": "Adopted Brother", "sex": "M", "mother": 11, "father": 10, "adopted": true },
+    { "id": 23, "name": "Sister", "sex": "F", "mother": 11, "father": 10 },
+    { "id": 24, "name": "Sister-in-Law", "sex": "F" },
+    { "id": 25, "name": "Cousin", "sex": "M", "mother": 13, "father": 12 },
+    { "id": 26, "name": "Brother-in-Law", "sex": "M", "mother": 16, "father": 15 },
+
+    { "id": 30, "name": "Son", "sex": "M", "mother": 21, "father": 20 },
+    { "id": 31, "name": "Daughter", "sex": "F", "mother": 21, "father": 20 },
+    { "id": 32, "name": "Daughter-in-Law", "sex": "F" },
+    { "id": 33, "name": "Son-in-Law", "sex": "M" },
+    { "id": 34, "name": "Nephew", "sex": "M", "mother": 24, "father": 22 },
+    { "id": 35, "name": "Niece", "sex": "F", "mother": 24, "father": 22 },
+    { "id": 36, "name": "Cousin's Wife", "sex": "F" },
+    { "id": 37, "name": "Second Cousin", "sex": "M", "mother": 36, "father": 25 },
+
+    { "id": 40, "name": "Grandson", "sex": "M", "mother": 32, "father": 30 },
+    { "id": 41, "name": "Granddaughter", "sex": "F", "mother": 31, "father": 33 }
+]
