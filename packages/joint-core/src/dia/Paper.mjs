@@ -392,10 +392,9 @@ export const Paper = View.extend({
         // }
         defaultLink: function() {
             // Do not create hard dependency on the joint.shapes.standard namespace (by importing the standard.Link model directly)
-            const { cellNamespace } = this.model.layerCollection;
-            const ctor = getByPath(cellNamespace, ['standard', 'Link']);
-            if (!ctor) throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
-            return new ctor();
+            const Ctor = this.model.getTypeConstructor('standard.Link');
+            if (!Ctor) throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
+            return new Ctor();
         },
 
         // A connector that is used by links with no connector defined on the model.
@@ -1935,11 +1934,11 @@ export const Paper = View.extend({
                             // The view is currently mounted. Hide the view (detach or remove it).
                             this.registerUnmountedView(view);
                             this._hideView(view);
-                        } else {
-                            // The view is not mounted. We can just update the unmounted list.
-                            // We ADD the current flag to the flag that was already scheduled.
-                            this._mergeUnmountedViewScheduledUpdates(cid, currentFlag);
                         }
+                        // At this point the view is not mounted (either it was just unmounted or was already unmounted).
+                        // Merge the current flag into any already-scheduled updates for this unmounted view.
+                        this._mergeUnmountedViewScheduledUpdates(cid, currentFlag);
+
                         // Delete the current update as it has been processed.
                         delete priorityUpdates[cid];
                         unmountCount++;
@@ -3507,7 +3506,8 @@ export const Paper = View.extend({
         if (view) {
             // The view could have been disposed during dragging
             // e.g. dragged outside of the viewport and hidden
-            view = this.findViewByModel(view.model);
+            // The model can be removed in previous mousemove event handlers
+            view = this.findViewByModel(view.model) || view;
             view.pointermove(evt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
@@ -3528,7 +3528,8 @@ export const Paper = View.extend({
         if (view) {
             // The view could have been disposed during dragging
             // e.g. dragged outside of the viewport and hidden
-            view = this.findViewByModel(view.model);
+            // The model can be removed in previous mouseup event handlers (e.g. when deleting an element after dragging)
+            view = this.findViewByModel(view.model) || view;
             view.pointerup(normalizedEvt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);

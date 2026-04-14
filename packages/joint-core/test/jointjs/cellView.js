@@ -685,4 +685,152 @@ QUnit.module('cellView', function(hooks) {
             });
         });
     });
+
+    QUnit.module('getNodeBoundingRect()', function(hooks) {
+
+        hooks.beforeEach(function() {
+            cellView.model.resize(200, 100).position(50, 30);
+            fixtures.moveToViewport();
+        });
+
+        hooks.afterEach(function() {
+            fixtures.moveOffscreen();
+        });
+
+        QUnit.test('SVG magnet - returns V(magnet).getBBox()', function(assert) {
+            const magnet = cellView.el.querySelector('rect');
+            const rect = cellView.getNodeBoundingRect(magnet);
+            assert.ok(rect instanceof g.Rect);
+            const expected = V(magnet).getBBox();
+            assert.equal(rect.x, expected.x);
+            assert.equal(rect.y, expected.y);
+            assert.equal(rect.width, expected.width);
+            assert.equal(rect.height, expected.height);
+        });
+
+        QUnit.test('measureNode option - delegates to the function', function(assert) {
+            const magnet = cellView.el.querySelector('rect');
+            const expected = { x: 5, y: 10, width: 50, height: 60 };
+            paper.options.measureNode = sinon.stub().returns(expected);
+            const rect = cellView.getNodeBoundingRect(magnet);
+            assert.ok(paper.options.measureNode.calledOnceWith(magnet, cellView));
+            assert.equal(rect.x, expected.x);
+            assert.equal(rect.y, expected.y);
+            assert.equal(rect.width, expected.width);
+            assert.equal(rect.height, expected.height);
+            delete paper.options.measureNode;
+        });
+
+        QUnit.module('HTML element', function(hooks) {
+
+            var foCell;
+            var foView;
+            var htmlMagnet;
+
+            hooks.beforeEach(function() {
+                foCell = new joint.dia.Element({
+                    type: 'foElement',
+                    position: { x: 50, y: 30 },
+                    size: { width: 100, height: 80 },
+                    markup: joint.util.svg`
+                        <foreignObject @selector="fo" width="100" height="80">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;"></div>
+                        </foreignObject>
+                    `
+                });
+                paper.model.addCell(foCell);
+                foView = paper.findViewByModel(foCell);
+                htmlMagnet = foView.el.querySelector('div');
+            });
+
+            hooks.afterEach(function() {
+                foCell.remove();
+            });
+
+            QUnit.test('visible, unrotated - uses BCR center and offsetWidth/offsetHeight', function(assert) {
+                sinon.stub(htmlMagnet, 'checkVisibility').returns(true);
+                // BCR: element at client (50,30), size 100×80, center = (100,70)
+                sinon.stub(htmlMagnet, 'getBoundingClientRect').returns({
+                    x: 50, y: 30, width: 100, height: 80
+                });
+                sinon.stub(htmlMagnet, 'offsetWidth').get(() => 100);
+                sinon.stub(htmlMagnet, 'offsetHeight').get(() => 80);
+                // paper at origin with identity CTM
+                sinon.stub(foView.paper, 'clientToLocalPoint').callsFake(p => new g.Point(p));
+
+                const rect = foView.getNodeBoundingRect(htmlMagnet);
+
+                assert.equal(rect.x, 0);
+                assert.equal(rect.y, 0);
+                assert.equal(rect.width, 100);
+                assert.equal(rect.height, 80);
+
+                foView.paper.clientToLocalPoint.restore();
+            });
+
+            QUnit.test('visible, rotated - dimensions use offsetWidth/offsetHeight, not inflated BCR', function(assert) {
+                foCell.set('angle', 90);
+                sinon.stub(htmlMagnet, 'checkVisibility').returns(true);
+                // BCR for 90°-rotated 100×80 element: AABB is 80×100 (swapped), same center (100,70)
+                sinon.stub(htmlMagnet, 'getBoundingClientRect').returns({
+                    x: 60, y: 20, width: 80, height: 100
+                });
+                sinon.stub(htmlMagnet, 'offsetWidth').get(() => 100);
+                sinon.stub(htmlMagnet, 'offsetHeight').get(() => 80);
+                sinon.stub(foView.paper, 'clientToLocalPoint').callsFake(p => new g.Point(p));
+
+                const rect = foView.getNodeBoundingRect(htmlMagnet);
+
+                // BCR center (100,70) → localCenter (100,70) → undo T(50,30)×R(90°) → preCenter (50,40)
+                // rect = { x:0, y:0, w:100, h:80 } — dimensions are offsetWidth/offsetHeight, not 80×100
+                assert.equal(rect.x, 0);
+                assert.equal(rect.y, 0);
+                assert.equal(rect.width, 100);
+                assert.equal(rect.height, 80);
+
+                foView.paper.clientToLocalPoint.restore();
+            });
+
+            QUnit.test('invisible - returns a zero rect and produces a warning', function(assert) {
+                sinon.stub(htmlMagnet, 'checkVisibility').returns(false);
+                const warnStub = sinon.stub(console, 'warn');
+                const rect = foView.getNodeBoundingRect(htmlMagnet);
+                assert.ok(rect instanceof g.Rect);
+                assert.equal(rect.x, 0);
+                assert.equal(rect.y, 0);
+                assert.equal(rect.width, 0);
+                assert.equal(rect.height, 0);
+                assert.ok(warnStub.calledOnce);
+                warnStub.restore();
+            });
+
+            QUnit.test('invisible - produces a warning regardless of DOM structure', function(assert) {
+                const standaloneDiv = document.createElement('div');
+                sinon.stub(standaloneDiv, 'checkVisibility').returns(false);
+                const warnStub = sinon.stub(console, 'warn');
+                const rect = foView.getNodeBoundingRect(standaloneDiv);
+                assert.ok(rect instanceof g.Rect);
+                assert.equal(rect.width, 0);
+                assert.equal(rect.height, 0);
+                assert.ok(warnStub.calledOnce);
+                warnStub.restore();
+            });
+
+            QUnit.test('result is cached after the first call', function(assert) {
+                sinon.stub(htmlMagnet, 'checkVisibility').returns(true);
+                const getBCRStub = sinon.stub(htmlMagnet, 'getBoundingClientRect').returns({
+                    x: 50, y: 30, width: 100, height: 80
+                });
+                sinon.stub(htmlMagnet, 'offsetWidth').get(() => 100);
+                sinon.stub(htmlMagnet, 'offsetHeight').get(() => 80);
+                sinon.stub(foView.paper, 'clientToLocalPoint').callsFake(p => new g.Point(p));
+
+                foView.getNodeBoundingRect(htmlMagnet);
+                foView.getNodeBoundingRect(htmlMagnet);
+                assert.equal(getBCRStub.callCount, 1);
+
+                foView.paper.clientToLocalPoint.restore();
+            });
+        });
+    });
 });

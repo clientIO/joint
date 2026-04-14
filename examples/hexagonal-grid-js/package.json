@@ -1,0 +1,18 @@
+{
+    "name": "@joint/demo-hexagonal-grid-js",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview"
+    },
+    "devDependencies": {
+        "vite": "^7.3.1"
+    },
+    "dependencies": {
+        "@joint/core": "workspace:^",
+        "honeycomb-grid": "^3.1.8"
+    }
+}

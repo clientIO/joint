@@ -2972,6 +2972,36 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             paper.remove();
         });
+
+        QUnit.test('propagate updates flag when the cell is hidden during the update', function(assert) {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                viewManagement: true,
+                cellVisibility: (cell) => {
+                    const position = cell.position();
+
+                    return position.x <= 200;
+                },
+            });
+
+            const rect = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 50, height: 50 }});
+            rect.addTo(graph);
+
+            const view = rect.findView(paper);
+
+            assert.ok(view.el.parentElement, 'View element mounted in the DOM');
+
+            rect.translate(300, 0);
+
+            assert.notOk(view.el.parentElement, 'View element is removed from the DOM when the cell is hidden');
+
+            paper.updateCellsVisibility({ cellVisibility: () => true });
+
+            assert.equal(view.el.getAttribute('transform'), 'translate(300,0)', 'View has correct transform attribute after visibility update');
+        });
     });
 
     QUnit.module('isViewMounted()', function() {

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Do you want to animate elements in a diagram? See one of the possible approaches in this interactive demo.">
+    <title>JointJS: Electric generator</title>
+</head>
+
+<body id="app">
+    <div id="paper-container"></div>
+    <div id="power-input-container">
+        <label for="power-input">Power</label>
+        <input type="range" id="power-input" min="0" max="4" step="0.1" />
+        <output id="power-output" for="power-input"></output>
+    </div>
+    <a target="_blank" href="https://www.jointjs.com">
+        <img id="logo" src="./assets/jointjs-logo-black.svg" width="200" height="50"></img>
+    </a>
+    <!-- Application files: -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
