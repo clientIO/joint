@@ -8,7 +8,10 @@ import type { dia } from '@joint/core';
  * This function is used to get the target or source of a link.
  * It checks if the id is an object or a string and returns the appropriate value.
  */
-export function getTargetOrSource(id: dia.Cell.ID | dia.Link.EndJSON): dia.Link.EndJSON {
+export function getTargetOrSource(id: dia.Cell.ID | dia.Link.EndJSON | undefined): dia.Link.EndJSON {
+  if (id === undefined) {
+    return {};
+  }
   if (typeof id === 'object') {
     return id;
   }
