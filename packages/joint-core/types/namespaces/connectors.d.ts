@@ -1,32 +1,108 @@
-import { connectors } from '../joint';
+import type * as dia from './dia';
+import type * as g from './g';
 
-// Interfaces
-export type NormalConnectorArguments = connectors.NormalConnectorArguments;
-export type RoundedConnectorArguments = connectors.RoundedConnectorArguments;
-export type SmoothConnectorArguments = connectors.SmoothConnectorArguments;
-export type JumpOverConnectorArguments = connectors.JumpOverConnectorArguments;
-export type StraightConnectorArguments = connectors.StraightConnectorArguments;
-export type CurveConnectorArguments = connectors.CurveConnectorArguments;
-export type ConnectorArgumentsMap = connectors.ConnectorArgumentsMap;
-export type GenericConnector<K extends connectors.ConnectorType> = connectors.GenericConnector<K>;
-export type GenericConnectorJSON<K extends connectors.ConnectorType> = connectors.GenericConnectorJSON<K>;
-export type CurveConnector = connectors.CurveConnector;
+export interface NormalConnectorArguments {
+    raw?: boolean;
+}
 
-// Types
-export type ConnectorType = connectors.ConnectorType;
-export type GenericConnectorArguments<K extends connectors.ConnectorType> = connectors.GenericConnectorArguments<K>;
-export type ConnectorArguments = connectors.ConnectorArguments;
-export type Connector = connectors.Connector;
-export type ConnectorJSON = connectors.ConnectorJSON;
+export interface RoundedConnectorArguments {
+    raw?: boolean;
+    radius?: number;
+}
 
-// Enums
-export import CurveDirections = connectors.CurveDirections;
-export import CurveTangentDirections = connectors.CurveTangentDirections;
+export interface SmoothConnectorArguments {
+    raw?: boolean;
+}
 
-// Variables
-export import normal = connectors.normal;
-export import rounded = connectors.rounded;
-export import smooth = connectors.smooth;
-export import jumpover = connectors.jumpover;
-export import straight = connectors.straight;
-export import curve = connectors.curve;
+export interface JumpOverConnectorArguments {
+    raw?: boolean;
+    size?: number;
+    jump?: 'arc' | 'gap' | 'cubic';
+    radius?: number;
+}
+
+export interface StraightConnectorArguments {
+    raw?: boolean;
+    cornerType?: 'point' | 'cubic' | 'line' | 'gap';
+    cornerRadius?: number;
+    cornerPreserveAspectRatio?: boolean;
+    precision?: number;
+}
+
+export enum CurveDirections {
+    AUTO = 'auto',
+    HORIZONTAL = 'horizontal',
+    VERTICAL = 'vertical',
+    CLOSEST_POINT = 'closest-point',
+    OUTWARDS = 'outwards'
+}
+
+export enum CurveTangentDirections {
+    UP = 'up',
+    DOWN = 'down',
+    LEFT = 'left',
+    RIGHT = 'right',
+    AUTO = 'auto',
+    CLOSEST_POINT = 'closest-point',
+    OUTWARDS = 'outwards'
+}
+
+export interface CurveConnectorArguments {
+    raw?: boolean;
+    direction?: CurveDirections;
+    sourceDirection?: CurveTangentDirections | dia.Point | number;
+    targetDirection?: CurveTangentDirections | dia.Point | number;
+    sourceTangent?: dia.Point;
+    targetTangent?: dia.Point;
+    distanceCoefficient?: number;
+    angleTangentCoefficient?: number;
+    tension?: number;
+    precision?: number;
+}
+
+export interface ConnectorArgumentsMap {
+    'normal': NormalConnectorArguments;
+    'rounded': RoundedConnectorArguments;
+    'smooth': SmoothConnectorArguments;
+    'jumpover': JumpOverConnectorArguments;
+    'straight': StraightConnectorArguments;
+    'curve': CurveConnectorArguments;
+    [key: string]: { [key: string]: any };
+}
+
+export type ConnectorType = keyof ConnectorArgumentsMap;
+
+export type GenericConnectorArguments<K extends ConnectorType> = ConnectorArgumentsMap[K];
+
+export interface GenericConnector<K extends ConnectorType> {
+    (
+        sourcePoint: dia.Point,
+        targetPoint: dia.Point,
+        routePoints: dia.Point[],
+        args?: GenericConnectorArguments<K>,
+        linkView?: dia.LinkView
+    ): string | g.Path;
+}
+
+export interface GenericConnectorJSON<K extends ConnectorType> {
+    name: K;
+    args?: GenericConnectorArguments<K>;
+}
+
+export interface CurveConnector extends GenericConnector<'curve'> {
+    Directions: typeof CurveDirections;
+    TangentDirections: typeof CurveTangentDirections;
+}
+
+export type ConnectorArguments = GenericConnectorArguments<ConnectorType>;
+
+export type Connector = GenericConnector<ConnectorType>;
+
+export type ConnectorJSON = GenericConnectorJSON<ConnectorType>;
+
+export var normal: GenericConnector<'normal'>;
+export var rounded: GenericConnector<'rounded'>;
+export var smooth: GenericConnector<'smooth'>;
+export var jumpover: GenericConnector<'jumpover'>;
+export var straight: GenericConnector<'straight'>;
+export var curve: CurveConnector;

@@ -1,13 +1,23 @@
-import { linkAnchors } from '../joint';
+import type * as anchors from './anchors';
 
-// Interfaces
-export type ConnectionLengthAnchorArguments = linkAnchors.ConnectionLengthAnchorArguments;
-export type ConnectionRatioAnchorArguments = linkAnchors.ConnectionRatioAnchorArguments;
-export type ConnectionPerpendicularAnchorArguments = linkAnchors.ConnectionPerpendicularAnchorArguments;
-export type ConnectionClosestAnchorArguments = linkAnchors.ConnectionClosestAnchorArguments;
+export interface ConnectionLengthAnchorArguments {
+    length?: number;
+}
 
-// Variables
-export import connectionRatio = linkAnchors.connectionRatio;
-export import connectionLength = linkAnchors.connectionLength;
-export import connectionPerpendicular = linkAnchors.connectionPerpendicular;
-export import connectionClosest = linkAnchors.connectionClosest;
+export interface ConnectionRatioAnchorArguments {
+    ratio?: number;
+}
+
+export interface ConnectionPerpendicularAnchorArguments {
+    fallbackAt?: number | string;
+    fixedAt?: number | string;
+}
+
+export interface ConnectionClosestAnchorArguments {
+    fixedAt?: number | string;
+}
+
+export var connectionRatio: anchors.GenericAnchor<'connectionRatio'>;
+export var connectionLength: anchors.GenericAnchor<'connectionLength'>;
+export var connectionPerpendicular: anchors.GenericAnchor<'connectionPerpendicular'>;
+export var connectionClosest: anchors.GenericAnchor<'connectionClosest'>;
