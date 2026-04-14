@@ -4572,7 +4572,8 @@ QUnit.module('graph', function(hooks) {
         });
 
         QUnit.test('should throw when cellNamespace is not set', function(assert) {
-            var graph = new joint.dia.Graph({}, { cellNamespace: null });
+            var graph = this.graph;
+            graph.setCellNamespace(null);
             assert.throws(function() {
                 graph.getTypeConstructor('standard.Rectangle');
             }, /cellNamespace is required/);
