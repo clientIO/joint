@@ -4309,7 +4309,7 @@ export namespace anchors {
     }
 
     interface MidSideAnchorArguments extends RotateAnchorArguments, PaddingAnchorArguments {
-        mode?: 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto';
+        mode?: 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto' | 'top-bottom' | 'bottom-top' | 'left-right' | 'right-left';
         preferenceThreshold?: dia.Sides;
     }
 

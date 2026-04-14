@@ -15,6 +15,10 @@ const SideMode = {
     HORIZONTAL: 'horizontal',
     VERTICAL: 'vertical',
     AUTO: 'auto',
+    TOP_BOTTOM: 'top-bottom',
+    BOTTOM_TOP: 'bottom-top',
+    LEFT_RIGHT: 'left-right',
+    RIGHT_LEFT: 'right-left',
 };
 
 function getModelBBoxFromConnectedLink(element, link, endType, rotate) {
@@ -27,7 +31,7 @@ function getModelBBoxFromConnectedLink(element, link, endType, rotate) {
     return element.getBBox({ rotate });
 }
 
-function getMiddleSide(rect, point, opt) {
+function getMiddleSide(rect, point, opt, endType) {
 
     const { preferenceThreshold = 0, mode } = opt;
     const { x, y } = point;
@@ -68,6 +72,18 @@ function getMiddleSide(rect, point, opt) {
             const cx = left + width / 2;
             return (x < cx) ? Side.LEFT : Side.RIGHT;
         }
+
+        case SideMode.TOP_BOTTOM:
+            return endType === 'source' ? Side.TOP : Side.BOTTOM;
+
+        case SideMode.BOTTOM_TOP:
+            return endType === 'source' ? Side.BOTTOM : Side.TOP;
+
+        case SideMode.LEFT_RIGHT:
+            return endType === 'source' ? Side.LEFT : Side.RIGHT;
+
+        case SideMode.RIGHT_LEFT:
+            return endType === 'source' ? Side.RIGHT : Side.LEFT;
 
         case SideMode.AUTO:
         default: {
@@ -188,7 +204,7 @@ function _midSide(view, magnet, refPoint, opt, endType, linkView) {
 
     if (rotate) refPoint.rotate(center, angle);
 
-    var side = getMiddleSide(bbox, refPoint, opt);
+    var side = getMiddleSide(bbox, refPoint, opt, endType);
     var anchor;
     switch (side) {
         case Side.LEFT:
