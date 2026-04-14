@@ -392,10 +392,9 @@ export const Paper = View.extend({
         // }
         defaultLink: function() {
             // Do not create hard dependency on the joint.shapes.standard namespace (by importing the standard.Link model directly)
-            const { cellNamespace } = this.model.layerCollection;
-            const ctor = getByPath(cellNamespace, ['standard', 'Link']);
-            if (!ctor) throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
-            return new ctor();
+            const Ctor = this.model.getTypeConstructor('standard.Link');
+            if (!Ctor) throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
+            return new Ctor();
         },
 
         // A connector that is used by links with no connector defined on the model.

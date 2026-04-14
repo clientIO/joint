@@ -4522,4 +4522,84 @@ QUnit.module('graph', function(hooks) {
         });
     });
 
+    QUnit.module('getCellNamespace()', function() {
+
+        QUnit.test('should return the cell namespace', function(assert) {
+            var graph = this.graph;
+            assert.equal(graph.getCellNamespace(), joint.shapes);
+        });
+    });
+
+    QUnit.module('setCellNamespace()', function() {
+
+        QUnit.test('should set the cell namespace', function(assert) {
+            var graph = this.graph;
+            var customNamespace = { custom: { MyShape: joint.shapes.standard.Rectangle }};
+            graph.setCellNamespace(customNamespace);
+            assert.equal(graph.getCellNamespace(), customNamespace);
+        });
+
+        QUnit.test('should invalidate the type defaults cache', function(assert) {
+            var graph = this.graph;
+            var defaults1 = graph.getTypeDefaults('standard.Rectangle');
+            assert.ok(defaults1.type === 'standard.Rectangle');
+            // Change namespace to one without standard.Rectangle
+            graph.setCellNamespace({});
+            var defaults2 = graph.getTypeDefaults('standard.Rectangle');
+            assert.deepEqual(defaults2, {});
+        });
+    });
+
+    QUnit.module('getTypeConstructor()', function() {
+
+        QUnit.test('should return the constructor for a valid type', function(assert) {
+            var graph = this.graph;
+            var Ctor = graph.getTypeConstructor('standard.Rectangle');
+            assert.equal(Ctor, joint.shapes.standard.Rectangle);
+        });
+
+        QUnit.test('should return null for an unknown type', function(assert) {
+            var graph = this.graph;
+            var Ctor = graph.getTypeConstructor('nonexistent.Shape');
+            assert.equal(Ctor, null);
+        });
+
+        QUnit.test('should return null for empty type', function(assert) {
+            var graph = this.graph;
+            assert.equal(graph.getTypeConstructor(''), null);
+            assert.equal(graph.getTypeConstructor(null), null);
+            assert.equal(graph.getTypeConstructor(undefined), null);
+        });
+
+        QUnit.test('should throw when cellNamespace is not set', function(assert) {
+            var graph = this.graph;
+            graph.setCellNamespace(null);
+            assert.throws(function() {
+                graph.getTypeConstructor('standard.Rectangle');
+            }, /cellNamespace is required/);
+        });
+    });
+
+    QUnit.module('getTypeDefaults()', function() {
+
+        QUnit.test('should return frozen defaults for a valid type', function(assert) {
+            var graph = this.graph;
+            var defaults = graph.getTypeDefaults('standard.Rectangle');
+            assert.equal(defaults.type, 'standard.Rectangle');
+            assert.ok(Object.isFrozen(defaults));
+        });
+
+        QUnit.test('should cache the result', function(assert) {
+            var graph = this.graph;
+            var defaults1 = graph.getTypeDefaults('standard.Rectangle');
+            var defaults2 = graph.getTypeDefaults('standard.Rectangle');
+            assert.strictEqual(defaults1, defaults2);
+        });
+
+        QUnit.test('should return empty object for unknown type', function(assert) {
+            var graph = this.graph;
+            assert.deepEqual(graph.getTypeDefaults('nonexistent.Shape'), {});
+        });
+    });
+
 });

@@ -747,6 +747,51 @@ export const Graph = Model.extend({
         return this.layerCollection.toArray();
     },
 
+    /**
+     * @public
+     * @description Returns the cell namespace used to resolve cell types.
+     */
+    getCellNamespace() {
+        return this.layerCollection.cellNamespace;
+    },
+
+    /**
+     * @public
+     * @description Sets the cell namespace for the graph.
+     * Invalidates the type defaults cache.
+     */
+    setCellNamespace(namespace) {
+        this.layerCollection.cellNamespace = namespace;
+        this._typeDefaultsCache = {};
+    },
+
+    /**
+     * @public
+     * @description Returns the constructor for a given cell type string, or null.
+     */
+    getTypeConstructor(type) {
+        return this.layerCollection.getTypeConstructor(type);
+    },
+
+    /**
+     * @public
+     * @description Returns frozen default attributes for a cell type.
+     * Results are cached per graph instance.
+     */
+    getTypeDefaults(type) {
+        if (!this._typeDefaultsCache) {
+            this._typeDefaultsCache = {};
+        }
+        const cached = this._typeDefaultsCache[type];
+        if (cached) return cached;
+        const Ctor = this.getTypeConstructor(type);
+        if (!Ctor) return {};
+        const defaults = util.result(Ctor.prototype, 'defaults', {});
+        Object.freeze(defaults);
+        this._typeDefaultsCache[type] = defaults;
+        return defaults;
+    },
+
     getCell: function(cellRef) {
         return this.layerCollection.getCell(cellRef);
     },
