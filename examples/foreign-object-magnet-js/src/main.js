@@ -45,10 +45,6 @@ const borderBadgeMarkup = [
             { tagName: 'div', namespaceURI: 'http://www.w3.org/1999/xhtml', selector: 'leftBadge' }
         ]
     },
-    {
-        tagName: 'rect',
-        selector: 'svgMagnet'
-    }
 ];
 
 // Base attrs: foreignObject covers the full shape; badges are absolutely
@@ -79,15 +75,6 @@ const BASE_ATTRS = {
         width: 'calc(w)',
         height: 'calc(h)',
         overflow: 'visible'
-    },
-    svgMagnet: {
-        width: 60,
-        height: 20,
-        fill: '#7b8cde',
-        stroke: '#7b8cde',
-        strokeWidth: 1,
-        x: 170,
-        y: 120,
     },
     topBadge: { style: { ...BASE_BADGE_STYLE, ...BADGE_POSITIONS.top } },
     rightBadge: { style: { ...BASE_BADGE_STYLE, ...BADGE_POSITIONS.right } },
@@ -135,29 +122,6 @@ const shape1 = new BorderBadgeElement({
         rightBadge: { html: 'Out: 2', style: { backgroundColor: '#27ae60' } },
         bottomBadge: { html: 'Status: OK', style: { backgroundColor: '#16a085' } },
         leftBadge: { html: 'ID: A1', style: { backgroundColor: '#8e44ad' } }
-    },
-    ports: {
-        items: [{
-            size: { width: 32, height: 16 },
-            position: {
-                name: 'absolute',
-                args: { x: 200, y: 0 }
-            },
-            attrs: {
-                portBody: {
-                    magnet: true,
-                    width: 32,
-                    height: 16,
-                    x: -16,
-                    y: -8,
-                    fill: '#03071E'
-                },
-            },
-            markup: [{
-                tagName: 'rect',
-                selector: 'portBody'
-            }]
-        }]
     }
 });
 
@@ -186,9 +150,8 @@ shape2.addTo(graph);
 const link = new shapes.standard.Link({
     source: {
         id: shape1.id,
-        port: shape1.getPorts()[0].id,
-        //magnet: 'rightBadge',
-        connectionPoint: { name: 'rectangle', args: { useModelGeometry: true } }
+        magnet: 'rightBadge',
+        connectionPoint: { name: 'rectangle' }
     },
     target: {
         id: shape2.id,
