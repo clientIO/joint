@@ -4394,6 +4394,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-foreign-object-magnet-js@workspace:examples/foreign-object-magnet-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-foreign-object-magnet-js@workspace:examples/foreign-object-magnet-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-fta-js@workspace:examples/fta-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-fta-js@workspace:examples/fta-js"
