@@ -12,6 +12,11 @@ export class CellCollection extends Collection {
 
     [CELL_COLLECTION_MARKER] = true;
 
+    /** @deprecated Use graph.getCellNamespace() instead. */
+    get cellNamespace() {
+        return this.layer?.collection?.cellNamespace ?? null;
+    }
+
     initialize(_models, opt) {
         this.layer = opt.layer;
     }

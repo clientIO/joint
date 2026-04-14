@@ -174,7 +174,8 @@ export namespace dia {
 
     class CellCollection<C extends Cell = Cell> extends mvc.Collection<C> {
 
-        cellNamespace: any;
+        /** @deprecated Use graph.getCellNamespace() instead. */
+        readonly cellNamespace: any;
         layer: GraphLayer;
 
         minZIndex(): number;
@@ -446,6 +447,8 @@ export namespace dia {
         getCellLayerId(cell: Graph.CellRef): GraphLayer.ID;
 
         getCellNamespace(): Record<string, any>;
+
+        setCellNamespace(namespace: Record<string, any>): void;
 
         getTypeConstructor<T extends Cell = Cell>(type: string): Cell.Constructor<T> | null;
 
