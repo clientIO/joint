@@ -210,8 +210,8 @@ function _midSide(view, magnet, refPoint, opt, endType, linkView) {
 
 // Can find anchor from model, when there is no selector or the link end
 // is connected to a port
-function _modelCenter(view, _magnet, _refPoint, opt, endType) {
-    return view.model.getPointFromConnectedLink(this.model, endType).offset(opt.dx, opt.dy);
+function _modelCenter(view, _magnet, _refPoint, opt, endType, linkView) {
+    return view.model.getPointFromConnectedLink(linkView.model, endType).offset(opt.dx, opt.dy);
 }
 
 //joint.anchors
