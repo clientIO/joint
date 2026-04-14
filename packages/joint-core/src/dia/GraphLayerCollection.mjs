@@ -209,8 +209,12 @@ export const GraphLayerCollection = Collection.extend({
      * @description Returns the constructor for a given cell type string, or null.
      */
     getTypeConstructor(type) {
+        const { cellNamespace } = this;
+        if (!cellNamespace) {
+            throw new Error('dia.Graph: cellNamespace is required to instantiate a Cell from JSON.');
+        }
         if (!type) return null;
-        const Ctor = util.getByPath(this.cellNamespace, type, '.');
+        const Ctor = util.getByPath(cellNamespace, type, '.');
         if (!Ctor || !Ctor.prototype) return null;
         return Ctor;
     },
