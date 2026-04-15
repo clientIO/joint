@@ -5,30 +5,17 @@ import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
+import type { ConnectionEnd, CanConnectOptions } from '../../presets/can-connect';
 
 type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
-  'frozen' | 'defaultLink' | 'autoFreeze' | 'viewManagement'
+  'frozen' | 'defaultLink' | 'validateConnection' | 'autoFreeze' | 'viewManagement'
 >;
-
-/** The source end context passed to the `defaultLink` factory. */
-export interface DefaultLinkSource {
-  /** The ID of the source element. */
-  readonly id: dia.Cell.ID;
-  /** The source element model. */
-  readonly model: dia.Element;
-  /** The port ID if the connection starts from a port, otherwise `null`. */
-  readonly port: string | null;
-  /** The SVG magnet element where the connection starts. */
-  readonly magnet: Element;
-  /** The selector of the magnet element. */
-  readonly selector: string | null;
-}
 
 /** Context passed to the `defaultLink` factory. */
 export interface DefaultLinkContext {
   /** The source end of the connection being created. */
-  readonly source: DefaultLinkSource;
+  readonly source: ConnectionEnd;
   /** The paper instance. */
   readonly paper: dia.Paper;
   /** The graph instance. */
@@ -46,6 +33,16 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
     | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>)
     | dia.Link
     | Partial<LinkRecord>;
+
+  /**
+   * Validates whether a connection between two elements/ports is allowed.
+   *
+   * Accepts a `CanConnectOptions` object with built-in rules and an optional
+   * `validate` callback for custom logic.
+   *
+   * When omitted, defaults to `canConnect()` (no self-loops, no link-to-link, no multi-links).
+   */
+  readonly validateConnection?: CanConnectOptions;
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */

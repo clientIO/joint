@@ -184,9 +184,6 @@ function Main() {
       defaultLink={{
         style: { color: LIGHT },
       }}
-      validateConnection={(sourceView, _sourceMagnet, targetView) =>
-        sourceView.model.id !== targetView.model.id
-      }
       style={PAPER_STYLE}
       drawGrid={false}
     />

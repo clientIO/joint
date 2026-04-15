@@ -24,6 +24,7 @@ import type { PaperProps, PortalPaperOptions, RenderLink } from '../components/p
 import { HTMLBox } from '../components/html-box';
 
 import { mapLinkToAttributes } from '../state/data-mapping';
+import { canConnect, toConnectionEnd } from '../presets/can-connect';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -80,24 +81,18 @@ function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
  * Wraps the user-facing `DefaultLinkContext` API and converts `LinkRecord` results
  * into JointJS link model instances.
  * @param defaultLink
- * @param graph
  */
 function createDefaultLinkCallback(
   defaultLink: PortalPaperOptions['defaultLink'],
-  graph: dia.Graph,
 ) {
   return (cellView: dia.CellView, magnet: SVGElement = cellView.el) => {
+    const paper = cellView.paper!;
+    const graph = paper.model;
     const isFactory = typeof defaultLink === 'function';
     const link = isFactory
       ? defaultLink({
-        source: {
-          id: cellView.model.id,
-          model: cellView.model as dia.Element,
-          port: cellView.findAttribute('port', magnet),
-          magnet,
-          selector: magnet.getAttribute('joint-selector'),
-        },
-        paper: cellView.paper!,
+        source: toConnectionEnd(cellView, magnet),
+        paper,
         graph,
       })
       : defaultLink;
@@ -112,6 +107,7 @@ function createDefaultLinkCallback(
     return new LinkModelCtor(mapLinkToAttributes(link));
   };
 }
+
 
 /**
  * Portals custom link content into the resolved link view container.
@@ -159,6 +155,7 @@ export function useCreatePortalPaper(
     renderElement = defaultRenderElement,
     renderLink,
     defaultLink,
+    validateConnection,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -196,7 +193,7 @@ export function useCreatePortalPaper(
 
   // Subscribe to paper version to trigger re-renders on view mount/unmount changes
   const version = useInternalData(selectPaperVersion);
-  const { addPaper, graph } = useGraphStore();
+  const { addPaper } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
@@ -209,8 +206,13 @@ export function useCreatePortalPaper(
   const hasRenderLink = !!renderLink;
 
   const defaultLinkCallback = useMemo(
-    () => createDefaultLinkCallback(defaultLink, graph),
-    [defaultLink, graph]
+    () => createDefaultLinkCallback(defaultLink),
+    [defaultLink]
+  );
+
+  const validateConnectionCallback = useMemo(
+    () => canConnect(validateConnection),
+    [validateConnection]
   );
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
@@ -224,6 +226,7 @@ export function useCreatePortalPaper(
         id,
         el: hostElementForCreation,
         defaultLink: defaultLinkCallback,
+        validateConnection: validateConnectionCallback,
       },
       renderElement,
       renderLink,
@@ -270,6 +273,7 @@ export function useCreatePortalPaper(
 
     assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
+      validateConnection: validateConnectionCallback,
       ...paperOptions,
     });
 

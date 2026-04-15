@@ -29,3 +29,4 @@ export {
 export { elementPort, elementPorts, type ElementPort, type PortShape } from './element-ports';
 export { linkLabel, linkLabels, type LinkLabel } from './link-labels';
 export { linkStyle, linkStyleLine, linkStyleWrapper, type LinkStyle } from './link-style';
+export { canConnect, toConnectionEnd, type CanConnectOptions, type ConnectionEnd, type ValidateConnectionContext } from './can-connect';

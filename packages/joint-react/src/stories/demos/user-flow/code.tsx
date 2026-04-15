@@ -374,11 +374,11 @@ function Main() {
         validateMagnet={(_cellView, magnet) => {
           return magnet.getAttribute('magnet') !== 'passive';
         }}
-        validateConnection={(cellViewS, magnetS, cellViewT, magnetT) => {
-          if (cellViewS === cellViewT) return false;
-          if (cellViewS.model.isLink() || cellViewT.model.isLink()) return false;
-          if (magnetS?.classList.contains('port-in')) return false;
-          return magnetT?.classList.contains('port-in') ?? false;
+        validateConnection={{
+          validate: ({ source, target }) => {
+            if (source.selector === 'in') return false;
+            return target.selector === 'in';
+          },
         }}
         {...ORTHOGONAL_LINKS}
       />

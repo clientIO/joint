@@ -432,9 +432,6 @@ function Main() {
         },
       }}
       highlighterNamespace={{ ...highlighters, anchors: AnchorsHighlighter }}
-      validateConnection={(sourceView, _sourceMagnet, targetView) =>
-        sourceView.model.isElement() && targetView.model.isElement() && sourceView !== targetView
-      }
     />
   );
 }

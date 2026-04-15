@@ -964,9 +964,8 @@ function GraphWithRedux() {
             {...ORTHOGONAL_LINKS}
             defaultLink={{ style: { color: theme.link, width: 1.5, targetMarker: 'none' } }}
             validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
-            validateConnection={(cellViewS, _magnetS, cellViewT, magnetT) => {
-              if (cellViewS === cellViewT) return false;
-              return magnetT?.getAttribute('magnet') === 'passive';
+            validateConnection={{
+              validate: ({ target }) => target.port === 'in',
             }}
             interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
             renderElement={RenderAgentNode as RenderElement<AgentNodeData>}

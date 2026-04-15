@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import { measureNode } from '../store/default-measure-node';
 import { LinkView } from './link-view';
-import { LINK_MODEL_TYPE, LinkModel } from './link-model';
+import { LinkModel } from './link-model';
 import { linkRoutingStraight } from '../presets';
 
 // Inject CSS custom property into all built-in grid pattern colors
