@@ -10,12 +10,40 @@ type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
   'frozen' | 'defaultLink' | 'autoFreeze' | 'viewManagement'
 >;
+
+/** The source end context passed to the `defaultLink` factory. */
+export interface DefaultLinkSource {
+  /** The ID of the source element. */
+  readonly id: dia.Cell.ID;
+  /** The source element model. */
+  readonly model: dia.Element;
+  /** The port ID if the connection starts from a port, otherwise `null`. */
+  readonly port: string | null;
+  /** The SVG magnet element where the connection starts. */
+  readonly magnet: Element;
+  /** The selector of the magnet element. */
+  readonly selector: string | null;
+}
+
+/** Context passed to the `defaultLink` factory. */
+export interface DefaultLinkContext {
+  /** The source end of the connection being created. */
+  readonly source: DefaultLinkSource;
+  /** The paper instance. */
+  readonly paper: dia.Paper;
+  /** The graph instance. */
+  readonly graph: dia.Graph;
+}
+
 export interface PortalPaperOptions extends PortalPaperOptionsBase {
   /**
-   * What link to create when the user connects two elements from within the UI.
+   * Defines the link created when the user starts dragging from a port or element.
+   *
+   * Can be a factory function receiving connection context, a static `LinkRecord`,
+   * or a `dia.Link` instance.
    */
   readonly defaultLink?:
-    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<LinkRecord>)
+    | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>)
     | dia.Link
     | Partial<LinkRecord>;
 }

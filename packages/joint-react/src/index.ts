@@ -5,7 +5,7 @@
 export { GraphProvider } from './components/graph/graph-provider';
 export type { GraphProviderProps as GraphProps } from './components/graph/graph-provider';
 export { Paper } from './components/paper/paper';
-export type { PaperProps, RenderElement, RenderLink } from './components/paper/paper.types';
+export type { PaperProps, RenderElement, RenderLink, DefaultLinkContext, DefaultLinkSource } from './components/paper/paper.types';
 export { SVGText } from './components/svg-text/svg-text';
 export type { SVGTextProps } from './components/svg-text/svg-text';
 export { HTMLHost } from './components/html-host';

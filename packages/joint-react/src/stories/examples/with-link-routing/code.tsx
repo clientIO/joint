@@ -166,6 +166,11 @@ const PRESET_NAMES: PresetName[] = ['straight', 'orthogonal', 'smooth'];
 const ANCHOR_MODES: LinkMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical', 'top-bottom', 'bottom-top', 'left-right', 'right-left'];
 const CORNER_TYPES: Array<NonNullable<LinkRoutingOrthogonalOptions['cornerType']>> = ['cubic', 'line', 'point', 'gap'];
 
+
+function createLink(): LinkRecord {
+  return DEFAULT_LINK;
+}
+
 function PresetPicker() {
   const [preset, setPreset] = useState<PresetName>('smooth');
   const [linkMode, setLinkMode] = useState<LinkMode>('horizontal');
@@ -199,7 +204,7 @@ function PresetPicker() {
         renderElement={RenderElement}
         gridSize={1}
         drawGridSize={20}
-        defaultLink={DEFAULT_LINK}
+        defaultLink={createLink}
         {...linkPreset}
       />
       <div className="flex flex-wrap items-center gap-4 px-3 py-2 mt-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-sans select-none">

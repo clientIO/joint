@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { dia } from '@joint/core';
 import {
-  useCallback,
   useDeferredValue,
   useEffect,
   useLayoutEffect,
@@ -21,7 +20,7 @@ import { useLinkData } from './use-link-data';
 import { useContainerKeys } from './use-container-keys';
 import type { PaperStore } from '../store';
 import { PortalPaper } from '../models/portal-paper';
-import type { PaperProps, RenderLink } from '../components/paper/paper.types';
+import type { PaperProps, PortalPaperOptions, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 
 import { mapLinkToAttributes } from '../state/data-mapping';
@@ -74,6 +73,44 @@ function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
   const Ctor = graph.getTypeConstructor(LINK_MODEL_TYPE) as LinkModelConstructor | undefined;
   if (typeof Ctor !== 'function') throw new Error('Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
   return Ctor as LinkModelConstructor;
+}
+
+/**
+ * Creates a JointJS-compatible `defaultLink` callback from the React prop.
+ * Wraps the user-facing `DefaultLinkContext` API and converts `LinkRecord` results
+ * into JointJS link model instances.
+ * @param defaultLink
+ * @param graph
+ */
+function createDefaultLinkCallback(
+  defaultLink: PortalPaperOptions['defaultLink'],
+  graph: dia.Graph,
+) {
+  return (cellView: dia.CellView, magnet: SVGElement = cellView.el) => {
+    const isFactory = typeof defaultLink === 'function';
+    const link = isFactory
+      ? defaultLink({
+        source: {
+          id: cellView.model.id,
+          model: cellView.model as dia.Element,
+          port: cellView.findAttribute('port', magnet),
+          magnet,
+          selector: magnet.getAttribute('joint-selector'),
+        },
+        paper: cellView.paper!,
+        graph,
+      })
+      : defaultLink;
+    const LinkModelCtor = getLinkModelConstructor(graph);
+    if (!link) {
+      return new LinkModelCtor(mapLinkToAttributes({}));
+    }
+    if (link instanceof dia.Link) {
+      if (isFactory) return link;
+      return link.clone();
+    }
+    return new LinkModelCtor(mapLinkToAttributes(link));
+  };
 }
 
 /**
@@ -171,23 +208,8 @@ export function useCreatePortalPaper(
   const hasRenderElement = !!renderElement;
   const hasRenderLink = !!renderLink;
 
-  const defaultLinkCallback = useCallback(
-    (cellView: dia.CellView, magnet: SVGElement) => {
-      const isDefaultLinkFactory = typeof defaultLink === 'function';
-      const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
-      const LinkModelCtor = getLinkModelConstructor(graph);
-      if (!link) {
-        return new LinkModelCtor(mapLinkToAttributes({}));
-      }
-      if (link instanceof dia.Link) {
-        if (isDefaultLinkFactory) {
-          return link;
-        }
-        return link.clone();
-      }
-      return new LinkModelCtor(mapLinkToAttributes(link));
-    },
-
+  const defaultLinkCallback = useMemo(
+    () => createDefaultLinkCallback(defaultLink, graph),
     [defaultLink, graph]
   );
 
