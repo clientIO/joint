@@ -8,7 +8,7 @@ module.exports = {
     'rollup-test-bundle': {
         command: 'rollup -c --config-test-bundle'
     },
-    'api-extractor-dts-bundle': {
-        command: 'api-extractor run'
+    'dts-generator': {
+        command: 'dts-bundle-generator --config=dts-generator.config.js'
     }
 };
