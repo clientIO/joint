@@ -7,6 +7,8 @@ import { useElements, useLinks, useGraph } from '../../../hooks';
 import type { ElementRecord, LinkRecord } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 
+const compareIds = (a: string, b: string) => a.localeCompare(b);
+
 describe('GraphProvider Controlled Mode', () => {
   describe('Basic useState integration', () => {
     it('should sync React state to store and graph on initial mount', async () => {
@@ -660,6 +662,108 @@ describe('GraphProvider Controlled Mode', () => {
       await waitFor(() => {
         expect(elementCount).toBe(2);
       });
+    });
+
+    it('should restore initial elements + links after a reset round-trip', async () => {
+      type NodeData = { label: string };
+      const initialElements: Record<string, ElementRecord<NodeData>> = {
+        a: { position: { x: 40, y: 100 }, data: { label: 'Ingest' } },
+        b: { position: { x: 240, y: 100 }, data: { label: 'Transform' } },
+        c: { position: { x: 440, y: 100 }, data: { label: 'Export' } },
+      };
+      const initialLinks: Record<string, LinkRecord> = {
+        'a-b': { source: { id: 'a' }, target: { id: 'b' } },
+        'b-c': { source: { id: 'b' }, target: { id: 'c' } },
+      };
+
+      let elementCount = 0;
+      let linkCount = 0;
+      const graphRef: { current: dia.Graph | null } = { current: null };
+
+      function TestComponent() {
+        const { graph } = useGraph();
+        graphRef.current = graph;
+        elementCount = useElements((items) => items.size);
+        linkCount = useLinks((items) => items.size);
+        return null;
+      }
+
+      let setElementsExternal:
+        | ((updater: Record<string, ElementRecord<NodeData>>) => void)
+        | null = null;
+      let setLinksExternal: ((updater: Record<string, LinkRecord>) => void) | null = null;
+
+      function ControlledGraph() {
+        const [elements, setElements] = useState<Record<string, ElementRecord<NodeData>>>(
+          () => initialElements
+        );
+        const [links, setLinks] = useState<Record<string, LinkRecord>>(() => initialLinks);
+        setElementsExternal = setElements as (
+          updater: Record<string, ElementRecord<NodeData>>
+        ) => void;
+        setLinksExternal = setLinks as (updater: Record<string, LinkRecord>) => void;
+        return (
+          <GraphProvider<NodeData>
+            elements={elements}
+            onElementsChange={setElements}
+            links={links}
+            onLinksChange={setLinks}
+          >
+            <TestComponent />
+          </GraphProvider>
+        );
+      }
+
+      render(<ControlledGraph />);
+
+      await waitFor(() => {
+        expect(elementCount).toBe(3);
+        expect(linkCount).toBe(2);
+      });
+
+      act(() => {
+        setElementsExternal?.({
+          ...initialElements,
+          d: { position: { x: 140, y: 260 }, data: { label: 'Node 1' } },
+        });
+      });
+
+      await waitFor(() => {
+        expect(elementCount).toBe(4);
+      });
+
+      act(() => {
+        setElementsExternal?.(initialElements);
+        setLinksExternal?.(initialLinks);
+      });
+
+      await waitFor(
+        () => {
+          expect(elementCount).toBe(3);
+          expect(linkCount).toBe(2);
+        },
+        { timeout: 3000 }
+      );
+
+      // After reset, the graph itself should still hold all 3 original elements
+      // and 2 original links (no orphaned cells).
+      const graph = graphRef.current!;
+      expect(graph.getElements().map((cell) => String(cell.id)).toSorted(compareIds)).toEqual([
+        'a',
+        'b',
+        'c',
+      ]);
+      expect(graph.getLinks().map((cell) => String(cell.id)).toSorted(compareIds)).toEqual([
+        'a-b',
+        'b-c',
+      ]);
+
+      // Each surviving element's position must match the initial record exactly.
+      for (const cell of graph.getElements()) {
+        const id = String(cell.id);
+        const expected = initialElements[id];
+        expect(cell.get('position')).toEqual(expected.position);
+      }
     });
 
     it('should handle undefined elements/links gracefully', async () => {

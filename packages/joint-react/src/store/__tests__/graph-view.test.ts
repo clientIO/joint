@@ -553,6 +553,43 @@ describe('graphView', () => {
 
       view.destroy();
     });
+
+    it('preserves measured size when controlled-mode updateGraph runs with the original record', async () => {
+      const graph = createGraph();
+      const view = graphView({ graph });
+
+      // Initial controlled-mode sync — user record has no `size`
+      view.updateGraph({
+        elements: { a: { data: { label: 'A' }, position: { x: 50, y: 50 } } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      await flush();
+
+      // Simulate a ResizeObserver / measurement updating the cell size
+      // (this happens outside React state — JointJS owns it).
+      const elementA = graph.getCell('a') as dia.Element;
+      elementA.set('size', { width: 100, height: 50 });
+      await flush();
+
+      expect(view.elements.get('a')?.size).toEqual({ width: 100, height: 50 });
+
+      // User pushes a fresh React state pointing at the original (size-less)
+      // record — typical of a "reset" or a no-op re-render. Without the fix,
+      // updateGraph copied the raw user input into the container and wiped
+      // the measured size.
+      view.updateGraph({
+        elements: { a: { data: { label: 'A' }, position: { x: 50, y: 50 } } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      await flush();
+
+      expect(view.elements.get('a')?.size).toEqual({ width: 100, height: 50 });
+      expect(view.elements.get('a')?.position).toEqual({ x: 50, y: 50 });
+
+      view.destroy();
+    });
   });
 
   describe('selective reference stability', () => {
