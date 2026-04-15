@@ -114,21 +114,11 @@ function saveSnapshotToFile(snapshot: Snapshot, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-function loadSnapshotFromFile(file: File): Promise<Snapshot> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-      try {
-        const parsed = JSON.parse(String(reader.result ?? '')) as Snapshot;
-        if (!parsed?.elements || !parsed?.links) throw new Error('Invalid snapshot');
-        resolve(parsed);
-      } catch (error) {
-        reject(error instanceof Error ? error : new Error(String(error)));
-      }
-    });
-    reader.addEventListener('error', () => reject(new Error('Read failed')));
-    reader.readAsText(file);
-  });
+async function loadSnapshotFromFile(file: File): Promise<Snapshot> {
+  const text = await file.text();
+  const parsed = JSON.parse(text) as Snapshot;
+  if (!parsed?.elements || !parsed?.links) throw new Error('Invalid snapshot');
+  return parsed;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -436,7 +426,7 @@ function useLiveSnapshot(): Snapshot {
   return useMemo<Snapshot>(() => {
     const out: Snapshot = { elements: {}, links: {} };
     for (const [id, element] of elements) {
-      const data = element.data;
+      const { data } = element;
       if (!data) continue;
       out.elements[id] = { data };
     }
@@ -596,7 +586,7 @@ export default function App() {
       setSeed(next);
       setReloadKey((value) => value + 1);
     } catch (error) {
-      console.error('Failed to load snapshot:', error);
+      console.warn('Failed to load snapshot:', error);
     }
   }, []);
 
