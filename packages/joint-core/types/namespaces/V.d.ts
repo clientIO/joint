@@ -1,12 +1,11 @@
 import type * as g from './g';
 
-export const V: VCallable;
-export type V = VElement;
+export import V = Vectorizer;
+
+export { Vectorizer as default };
 
 export const Vectorizer: VCallable;
 export type Vectorizer = VElement;
-
-export { Vectorizer as default };
 
 export namespace Vectorizer {
     interface RotateOptions {
