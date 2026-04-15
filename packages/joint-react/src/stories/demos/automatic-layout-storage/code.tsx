@@ -122,12 +122,12 @@ async function loadSnapshotFromFile(file: File): Promise<Snapshot> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tree layout — places each parent centered over its children's subtree.
-// Reruns every time HTMLHost reports new measurements.
+// Tree layout — DFS assigns each leaf the next column, each parent the
+// midpoint of its children. Reruns every time HTMLHost reports new sizes.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SIBLING_GAP = 32;
-const ROW_GAP = 70;
+const COLUMN_WIDTH = 230;
+const ROW_GAP = 50;
 const PADDING = 40;
 const PAPER_ID = 'automatic-layout-storage-paper';
 
@@ -138,72 +138,58 @@ function LayoutRunner() {
     const elements = graph.getElements();
     if (elements.length === 0) return;
 
-    // Build adjacency + parent map. Treat the graph as a tree by keeping
-    // only the FIRST incoming edge per node.
-    const childrenOf = new Map<string, string[]>();
-    const parentOf = new Map<string, string>();
-    for (const cell of elements) childrenOf.set(String(cell.id), []);
+    // Build a tree (first incoming edge per node wins).
+    const children = new Map<string, string[]>();
+    const hasParent = new Set<string>();
+    for (const cell of elements) children.set(String(cell.id), []);
     for (const link of graph.getLinks()) {
       const source = String(link.get('source')?.id ?? '');
       const target = String(link.get('target')?.id ?? '');
-      if (!childrenOf.has(source) || !childrenOf.has(target)) continue;
-      if (parentOf.has(target)) continue;
-      parentOf.set(target, source);
-      childrenOf.get(source)?.push(target);
-    }
-    const roots = elements
-      .map((cell) => String(cell.id))
-      .filter((id) => !parentOf.has(id));
-
-    const sizeOf = new Map<string, { width: number; height: number }>();
-    for (const cell of elements) {
-      const { width, height } = cell.size();
-      sizeOf.set(String(cell.id), { width, height });
+      if (!children.has(source) || !children.has(target) || hasParent.has(target)) continue;
+      hasParent.add(target);
+      children.get(source)?.push(target);
     }
 
-    // Bottom-up: compute each subtree's horizontal footprint.
-    const subtreeWidth = new Map<string, number>();
-    function widthOf(id: string): number {
-      const cached = subtreeWidth.get(id);
-      if (cached !== undefined) return cached;
-      const own = sizeOf.get(id)?.width ?? 0;
-      const kids = childrenOf.get(id) ?? [];
+    // DFS: leaves take the next column; parents sit centered above their kids.
+    const column = new Map<string, number>();
+    const depth = new Map<string, number>();
+    let nextColumn = 0;
+    const visit = (id: string, d: number): void => {
+      depth.set(id, d);
+      const kids = children.get(id) ?? [];
       if (kids.length === 0) {
-        subtreeWidth.set(id, own);
-        return own;
+        column.set(id, nextColumn);
+        nextColumn += 1;
+        return;
       }
-      const childrenWidth =
-        kids.reduce((sum, kid) => sum + widthOf(kid), 0) + SIBLING_GAP * (kids.length - 1);
-      const result = Math.max(own, childrenWidth);
-      subtreeWidth.set(id, result);
-      return result;
+      for (const kid of kids) visit(kid, d + 1);
+      const first = column.get(kids[0]) ?? 0;
+      const last = column.get(kids.at(-1) ?? '') ?? first;
+      column.set(id, (first + last) / 2);
+    };
+    for (const cell of elements) {
+      if (!hasParent.has(String(cell.id))) visit(String(cell.id), 0);
     }
-    for (const root of roots) widthOf(root);
 
-    // Top-down: place each node centered over its allotted slot.
-    const positions = new Map<string, { x: number; y: number }>();
-    function place(id: string, leftX: number, topY: number): void {
-      const own = sizeOf.get(id) ?? { width: 0, height: 0 };
-      const allotted = subtreeWidth.get(id) ?? own.width;
-      positions.set(id, { x: leftX + (allotted - own.width) / 2, y: topY });
-
-      const kids = childrenOf.get(id) ?? [];
-      const childY = topY + own.height + ROW_GAP;
-      let cursorX = leftX;
-      for (const kid of kids) {
-        place(kid, cursorX, childY);
-        cursorX += (subtreeWidth.get(kid) ?? 0) + SIBLING_GAP;
-      }
+    // Each row's Y is the cumulative height of the rows above it.
+    const rowHeight = new Map<number, number>();
+    for (const cell of elements) {
+      const d = depth.get(String(cell.id)) ?? 0;
+      rowHeight.set(d, Math.max(rowHeight.get(d) ?? 0, cell.size().height));
     }
-    let rootCursorX = PADDING;
-    for (const root of roots) {
-      place(root, rootCursorX, PADDING);
-      rootCursorX += (subtreeWidth.get(root) ?? 0) + SIBLING_GAP;
+    const rowY = new Map<number, number>();
+    let cursorY = PADDING;
+    for (const d of [...rowHeight.keys()].toSorted((a, b) => a - b)) {
+      rowY.set(d, cursorY);
+      cursorY += (rowHeight.get(d) ?? 0) + ROW_GAP;
     }
 
     for (const cell of elements) {
-      const next = positions.get(String(cell.id));
-      if (next) cell.position(next.x, next.y);
+      const id = String(cell.id);
+      cell.position(
+        PADDING + (column.get(id) ?? 0) * COLUMN_WIDTH,
+        rowY.get(depth.get(id) ?? 0) ?? PADDING
+      );
     }
   }, [graph]);
 
@@ -299,12 +285,7 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
           />
           <div style={{ height: 8 }} />
           <FieldLabel>Owner</FieldLabel>
-          <InlineInput
-            value={owner}
-            onChange={updateOwner}
-            onKeyDown={exitOnEnter}
-            font="sans"
-          />
+          <InlineInput value={owner} onChange={updateOwner} onKeyDown={exitOnEnter} font="sans" />
         </div>
       ) : (
         <>
@@ -453,7 +434,9 @@ function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
         <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4, lineHeight: 1.3 }}>
           Just the <code style={inlineCodeStyle}>data</code> field.
         </div>
-        <p style={{ margin: '8px 0 0', fontSize: 12, color: 'rgba(28,36,52,0.6)', lineHeight: 1.5 }}>
+        <p
+          style={{ margin: '8px 0 0', fontSize: 12, color: 'rgba(28,36,52,0.6)', lineHeight: 1.5 }}
+        >
           Click a card to edit its title or owner. Save downloads the JSON below — sizes and
           positions are recomputed on load.
         </p>
@@ -599,11 +582,7 @@ export default function App() {
         style={{ display: 'none' }}
         onChange={handleFileChosen}
       />
-      <GraphProvider<NodeData>
-        key={reloadKey}
-        elements={initialElements}
-        links={initialLinks}
-      >
+      <GraphProvider<NodeData> key={reloadKey} elements={initialElements} links={initialLinks}>
         <InnerShell onLoadFile={handleLoadClick} />
       </GraphProvider>
     </div>
