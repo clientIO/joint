@@ -6,11 +6,17 @@ import {
   Paper,
   HTMLHost,
   useGraph,
+  useElementId,
+  useElements,
+  useLinks,
+  useSetElement,
+  useRemoveElement,
   useNodesMeasuredEffect,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Concept
@@ -19,10 +25,11 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 // source/target. Everything else is automatic:
 //
 //   - size      → measured by <HTMLHost> from the rendered DOM
-//   - position  → recomputed by a BFS layout each time nodes are measured
+//   - position  → recomputed by a tree layout each time nodes are measured
 //   - styles    → declared once in code, not persisted
 //
-// "Save" downloads a tiny JSON file. "Load" reads one back in.
+// Click any node to edit it inline (uses `useSetElement`).
+// "Save .json" downloads a tiny JSON file. "Load .json" reads one back in.
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface NodeData {
@@ -61,8 +68,17 @@ const SEED: Snapshot = {
 // ─────────────────────────────────────────────────────────────────────────────
 // Memo selectors: snapshot → records the GraphProvider expects.
 // Note that we never put position or size here — those come from measurement
-// and layout at runtime.
+// and the layout pass at runtime.
 // ─────────────────────────────────────────────────────────────────────────────
+
+const LINK_ATTRS = {
+  line: {
+    stroke: '#1c2434',
+    strokeWidth: 1.5,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  },
+};
 
 function toElementRecords(snapshot: Snapshot): Record<string, ElementRecord<NodeData>> {
   const result: Record<string, ElementRecord<NodeData>> = {};
@@ -78,14 +94,14 @@ function toLinkRecords(snapshot: Snapshot): Record<string, LinkRecord> {
     result[id] = {
       source: { id: link.source },
       target: { id: link.target },
-      attrs: { line: { stroke: '#1c2434', strokeWidth: 1.5 } },
+      attrs: LINK_ATTRS,
     };
   }
   return result;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// File save / load
+// File save / load (simple .json round-trip)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function saveSnapshotToFile(snapshot: Snapshot, filename: string): void {
@@ -117,13 +133,12 @@ function loadSnapshotFromFile(file: File): Promise<Snapshot> {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tree layout — places each parent centered over its children's subtree.
-// Runs every time HTMLHost reports new measurements.
+// Reruns every time HTMLHost reports new measurements.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SIBLING_GAP = 32;
-const ROW_GAP = 60;
+const ROW_GAP = 70;
 const PADDING = 40;
-
 const PAPER_ID = 'automatic-layout-storage-paper';
 
 function LayoutRunner() {
@@ -133,7 +148,7 @@ function LayoutRunner() {
     const elements = graph.getElements();
     if (elements.length === 0) return;
 
-    // Build adjacency + parent map. We treat the graph as a tree by keeping
+    // Build adjacency + parent map. Treat the graph as a tree by keeping
     // only the FIRST incoming edge per node.
     const childrenOf = new Map<string, string[]>();
     const parentOf = new Map<string, string>();
@@ -156,7 +171,7 @@ function LayoutRunner() {
       sizeOf.set(String(cell.id), { width, height });
     }
 
-    // Bottom-up: compute the horizontal footprint of each subtree.
+    // Bottom-up: compute each subtree's horizontal footprint.
     const subtreeWidth = new Map<string, number>();
     function widthOf(id: string): number {
       const cached = subtreeWidth.get(id);
@@ -175,7 +190,7 @@ function LayoutRunner() {
     }
     for (const root of roots) widthOf(root);
 
-    // Top-down: place each node centered above its allotted slot.
+    // Top-down: place each node centered over its allotted slot.
     const positions = new Map<string, { x: number; y: number }>();
     function place(id: string, leftX: number, topY: number): void {
       const own = sizeOf.get(id) ?? { width: 0, height: 0 };
@@ -207,153 +222,233 @@ function LayoutRunner() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Renderer — a plain HTMLHost card. HTMLHost measures it for us.
+// Renderer — a card with click-to-edit fields.
+// Uses `useSetElement` from inside the graph context to update its own data.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function NodeCard({ title, owner }: Readonly<NodeData>) {
+  const id = useElementId();
+  const setElement = useSetElement<NodeData>();
+  const [isEditing, setIsEditing] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const editorRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (isEditing) titleInputRef.current?.focus();
+  }, [isEditing]);
+
+  // Exit edit mode when the user clicks/taps anywhere outside the card.
+  useEffect(() => {
+    if (!isEditing) return;
+    const handler = (event: MouseEvent) => {
+      if (editorRef.current?.contains(event.target as Node)) return;
+      setIsEditing(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isEditing]);
+
+  // Inputs need to swallow the pointer/mouse events so JointJS doesn't try
+  // to start a drag on the cell while the user is interacting with them.
+  const swallowEditorEvent = useCallback((event: React.SyntheticEvent) => {
+    event.stopPropagation();
+  }, []);
+
+  const enterEdit = useCallback((event: React.MouseEvent) => {
+    event.stopPropagation();
+    setIsEditing(true);
+  }, []);
+
+  const updateTitle = useCallback(
+    (next: string) => setElement(id, { data: { title: next, owner } }),
+    [setElement, id, owner]
+  );
+  const updateOwner = useCallback(
+    (next: string) => setElement(id, { data: { title, owner: next } }),
+    [setElement, id, title]
+  );
+
+  const exitOnEnter = useCallback((event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === 'Escape') {
+      event.preventDefault();
+      setIsEditing(false);
+    }
+  }, []);
+
   return (
     <HTMLHost
       style={{
-        width: 180,
+        width: 200,
         padding: '14px 16px',
         backgroundColor: '#fbf8ee',
-        border: '1px solid rgba(28,36,52,0.18)',
-        borderRadius: 4,
-        boxShadow: '0 8px 20px -16px rgba(28,36,52,0.4)',
+        border: `1px solid ${isEditing ? '#b54f23' : 'rgba(28,36,52,0.18)'}`,
+        borderRadius: 5,
+        boxShadow: isEditing
+          ? '0 0 0 3px rgba(181,79,35,0.12), 0 12px 24px -16px rgba(28,36,52,0.4)'
+          : '0 8px 22px -16px rgba(28,36,52,0.4)',
         fontFamily: 'system-ui, sans-serif',
         color: '#1c2434',
-        cursor: 'grab',
+        cursor: isEditing ? 'default' : 'grab',
+        transition: 'border-color 120ms ease, box-shadow 160ms ease',
       }}
     >
-      <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{title}</div>
-      <div style={{ fontSize: 11, color: 'rgba(28,36,52,0.55)' }}>Owner · {owner}</div>
+      {isEditing ? (
+        <div
+          ref={editorRef}
+          onMouseDown={swallowEditorEvent}
+          onPointerDown={swallowEditorEvent}
+          onClick={swallowEditorEvent}
+        >
+          <FieldLabel>Title</FieldLabel>
+          <InlineInput
+            ref={titleInputRef}
+            value={title}
+            onChange={updateTitle}
+            onKeyDown={exitOnEnter}
+            font="serif"
+          />
+          <div style={{ height: 8 }} />
+          <FieldLabel>Owner</FieldLabel>
+          <InlineInput
+            value={owner}
+            onChange={updateOwner}
+            onKeyDown={exitOnEnter}
+            font="sans"
+          />
+        </div>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={enterEdit}
+            onPointerDown={swallowEditorEvent}
+            style={titleButtonStyle}
+          >
+            {title}
+            <PencilGlyph />
+          </button>
+          <div style={{ fontSize: 11, color: 'rgba(28,36,52,0.55)', marginTop: 4 }}>
+            Owner · {owner}
+          </div>
+        </>
+      )}
     </HTMLHost>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// App
-// ─────────────────────────────────────────────────────────────────────────────
-
-let nextNodeIndex = 1;
-const SAMPLE_TITLES = ['Spike', 'QA pass', 'Polish', 'Audit', 'Migrate', 'Demo'];
-const SAMPLE_OWNERS = ['Aki', 'Mira', 'Theo', 'June', 'Saya'];
-
-export default function App() {
-  const [snapshot, setSnapshot] = useState<Snapshot>(SEED);
-  const [reloadKey, setReloadKey] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  // Memoize the records we hand to GraphProvider so we don't rebuild every render.
-  const elements = useMemo(() => toElementRecords(snapshot), [snapshot]);
-  const links = useMemo(() => toLinkRecords(snapshot), [snapshot]);
-
-  const handleAdd = useCallback(() => {
-    const id = `n${Date.now().toString(36)}`;
-    const title = SAMPLE_TITLES[nextNodeIndex % SAMPLE_TITLES.length];
-    const owner = SAMPLE_OWNERS[nextNodeIndex % SAMPLE_OWNERS.length];
-    nextNodeIndex += 1;
-
-    setSnapshot((previous) => {
-      const existingIds = Object.keys(previous.elements);
-      // Pick a random existing node as parent so the tree fans out instead
-      // of growing as a single chain on the right edge.
-      const parent =
-        existingIds.length > 0
-          ? existingIds[Math.floor(Math.random() * existingIds.length)]
-          : undefined;
-      const linkId = `l${Date.now().toString(36)}`;
-      return {
-        elements: { ...previous.elements, [id]: { data: { title, owner } } },
-        links: parent
-          ? { ...previous.links, [linkId]: { source: parent, target: id } }
-          : previous.links,
-      };
-    });
-    setReloadKey((value) => value + 1);
-  }, []);
-
-  const handleRemoveLast = useCallback(() => {
-    setSnapshot((previous) => {
-      const ids = Object.keys(previous.elements);
-      if (ids.length <= 1) return previous;
-      const lastId = ids.at(-1);
-      if (!lastId) return previous;
-      const nextElements = { ...previous.elements };
-      delete nextElements[lastId];
-      const nextLinks: Snapshot['links'] = {};
-      for (const [id, link] of Object.entries(previous.links)) {
-        if (link.source === lastId || link.target === lastId) continue;
-        nextLinks[id] = link;
-      }
-      return { elements: nextElements, links: nextLinks };
-    });
-    setReloadKey((value) => value + 1);
-  }, []);
-
-  const handleSave = useCallback(() => {
-    saveSnapshotToFile(snapshot, `graph-${Date.now()}.json`);
-  }, [snapshot]);
-
-  const handleLoadClick = useCallback(() => fileInputRef.current?.click(), []);
-
-  const handleFileChosen = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-    const next = await loadSnapshotFromFile(file);
-    setSnapshot(next);
-    setReloadKey((value) => value + 1);
-  }, []);
-
+function FieldLabel({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div style={shellStyle}>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="application/json"
-        style={{ display: 'none' }}
-        onChange={handleFileChosen}
-      />
-
-      <header style={headerStyle}>
-        <div>
-          <div style={eyebrowStyle}>Demo · automatic layout & file persistence</div>
-          <h2 style={titleStyle}>Save the data. Forget the geometry.</h2>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button onClick={handleAdd}>+ Add node</Button>
-          <Button onClick={handleRemoveLast}>− Remove last</Button>
-          <Button onClick={handleSave} primary>
-            Save .json
-          </Button>
-          <Button onClick={handleLoadClick}>Load .json</Button>
-        </div>
-      </header>
-
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        <div style={canvasStyle}>
-          <GraphProvider<NodeData> key={reloadKey} elements={elements} links={links}>
-            <Paper
-              id={PAPER_ID}
-              width="100%"
-              height="100%"
-              style={{ backgroundColor: 'transparent' }}
-              renderElement={NodeCard}
-            />
-            <LayoutRunner />
-          </GraphProvider>
-        </div>
-
-        <Inspector snapshot={snapshot} />
-      </div>
+    <div
+      style={{
+        fontSize: 8,
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase',
+        color: 'rgba(28,36,52,0.5)',
+        marginBottom: 3,
+      }}
+    >
+      {children}
     </div>
   );
 }
 
+interface InlineInputProps {
+  readonly value: string;
+  readonly onChange: (next: string) => void;
+  readonly onKeyDown: (event: React.KeyboardEvent) => void;
+  readonly font: 'serif' | 'sans';
+  readonly ref?: React.Ref<HTMLInputElement>;
+}
+
+function InlineInput({ value, onChange, onKeyDown, font, ref }: Readonly<InlineInputProps>) {
+  return (
+    <input
+      ref={ref}
+      type="text"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      onKeyDown={onKeyDown}
+      style={{
+        width: '100%',
+        padding: '4px 0',
+        margin: 0,
+        background: 'transparent',
+        border: 'none',
+        borderBottom: '1px solid rgba(28,36,52,0.25)',
+        outline: 'none',
+        color: '#1c2434',
+        fontFamily:
+          font === 'serif'
+            ? '"Iowan Old Style", "Palatino Linotype", Georgia, serif'
+            : 'system-ui, sans-serif',
+        fontSize: font === 'serif' ? 16 : 12,
+        fontWeight: font === 'serif' ? 600 : 500,
+      }}
+    />
+  );
+}
+
+const titleButtonStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  width: '100%',
+  padding: 0,
+  margin: 0,
+  fontFamily: '"Iowan Old Style", "Palatino Linotype", Georgia, serif',
+  fontSize: 16,
+  fontWeight: 600,
+  color: '#1c2434',
+  textAlign: 'left',
+  background: 'transparent',
+  border: 'none',
+  cursor: 'text',
+};
+
+function PencilGlyph() {
+  return (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ opacity: 0.35, marginLeft: 6, flexShrink: 0 }}
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Inspector — shows exactly what gets persisted.
+// Inspector — reads live graph state via hooks and projects it back to the
+// minimal Snapshot shape the user actually persists.
 // ─────────────────────────────────────────────────────────────────────────────
+
+function useLiveSnapshot(): Snapshot {
+  const elements = useElements<NodeData>();
+  const links = useLinks();
+
+  return useMemo<Snapshot>(() => {
+    const out: Snapshot = { elements: {}, links: {} };
+    for (const [id, element] of elements) {
+      const data = element.data;
+      if (!data) continue;
+      out.elements[id] = { data };
+    }
+    for (const [id, link] of links) {
+      const source = link.source as { id?: string } | undefined;
+      const target = link.target as { id?: string } | undefined;
+      if (!source?.id || !target?.id) continue;
+      out.links[id] = { source: source.id, target: target.id };
+    }
+    return out;
+  }, [elements, links]);
+}
 
 function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
   const json = useMemo(() => JSON.stringify(snapshot, null, 2), [snapshot]);
@@ -369,8 +464,8 @@ function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
           Just the <code style={inlineCodeStyle}>data</code> field.
         </div>
         <p style={{ margin: '8px 0 0', fontSize: 12, color: 'rgba(28,36,52,0.6)', lineHeight: 1.5 }}>
-          Sizes come from <code style={inlineCodeStyle}>HTMLHost</code> measurement. Positions come
-          from a layout pass after every measure. Neither is saved.
+          Click a card to edit its title or owner. Save downloads the JSON below — sizes and
+          positions are recomputed on load.
         </p>
       </div>
       <div style={statsRowStyle}>
@@ -385,7 +480,148 @@ function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tiny reusable bits
+// Inner shell — lives inside GraphProvider and owns add / remove / save.
+// All operations talk to the live graph; the snapshot for Save and Inspector
+// is derived from `useElements` / `useLinks`.
+// ─────────────────────────────────────────────────────────────────────────────
+
+let nextSampleIndex = 1;
+const SAMPLE_TITLES = ['Spike', 'QA pass', 'Polish', 'Audit', 'Migrate', 'Demo'];
+const SAMPLE_OWNERS = ['Aki', 'Mira', 'Theo', 'June', 'Saya'];
+
+interface InnerShellProps {
+  readonly onLoadFile: () => void;
+}
+
+function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
+  const { graph } = useGraph<NodeData>();
+  const setElement = useSetElement<NodeData>();
+  const removeElement = useRemoveElement();
+  const liveSnapshot = useLiveSnapshot();
+
+  const handleAdd = useCallback(() => {
+    const id = `n${Date.now().toString(36)}`;
+    const title = SAMPLE_TITLES[nextSampleIndex % SAMPLE_TITLES.length];
+    const owner = SAMPLE_OWNERS[nextSampleIndex % SAMPLE_OWNERS.length];
+    nextSampleIndex += 1;
+
+    setElement(id, { data: { title, owner } });
+
+    // Pick a random existing parent so the tree fans out.
+    const others = graph.getElements().filter((cell) => String(cell.id) !== id);
+    if (others.length > 0) {
+      const parent = others[Math.floor(Math.random() * others.length)];
+      graph.addCell({
+        type: 'standard.Link',
+        id: `l${Date.now().toString(36)}`,
+        source: { id: String(parent.id) },
+        target: { id },
+        attrs: LINK_ATTRS,
+      });
+    }
+  }, [setElement, graph]);
+
+  const handleRemoveLast = useCallback(() => {
+    const elements = graph.getElements();
+    if (elements.length <= 1) return;
+    const last = elements.at(-1);
+    if (last) removeElement(String(last.id));
+  }, [graph, removeElement]);
+
+  const handleSave = useCallback(() => {
+    saveSnapshotToFile(liveSnapshot, `graph-${Date.now()}.json`);
+  }, [liveSnapshot]);
+
+  return (
+    <>
+      <header style={headerStyle}>
+        <div>
+          <div style={eyebrowStyle}>Demo · click a card to edit · file persistence</div>
+          <h2 style={titleStyle}>Save the data. Forget the geometry.</h2>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button onClick={handleAdd}>+ Add node</Button>
+          <Button onClick={handleRemoveLast}>− Remove last</Button>
+          <Button onClick={handleSave} primary>
+            Save .json
+          </Button>
+          <Button onClick={onLoadFile}>Load .json</Button>
+        </div>
+      </header>
+
+      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        <div style={canvasStyle}>
+          <Paper
+            id={PAPER_ID}
+            width="100%"
+            height="100%"
+            style={{ backgroundColor: 'transparent' }}
+            {...linkRoutingOrthogonal({
+              sourceOffset: 6,
+              targetOffset: 6,
+              cornerType: 'cubic',
+              margin: 18,
+            })}
+            renderElement={NodeCard}
+          />
+          <LayoutRunner />
+        </div>
+        <Inspector snapshot={liveSnapshot} />
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// App — hosts GraphProvider and the file input. Bumps `reloadKey` on Load
+// so the GraphProvider remounts with the new initial elements.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function App() {
+  const [seed, setSeed] = useState<Snapshot>(SEED);
+  const [reloadKey, setReloadKey] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const initialElements = useMemo(() => toElementRecords(seed), [seed]);
+  const initialLinks = useMemo(() => toLinkRecords(seed), [seed]);
+
+  const handleLoadClick = useCallback(() => fileInputRef.current?.click(), []);
+
+  const handleFileChosen = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const next = await loadSnapshotFromFile(file);
+      setSeed(next);
+      setReloadKey((value) => value + 1);
+    } catch (error) {
+      console.error('Failed to load snapshot:', error);
+    }
+  }, []);
+
+  return (
+    <div style={shellStyle}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json"
+        style={{ display: 'none' }}
+        onChange={handleFileChosen}
+      />
+      <GraphProvider<NodeData>
+        key={reloadKey}
+        elements={initialElements}
+        links={initialLinks}
+      >
+        <InnerShell onLoadFile={handleLoadClick} />
+      </GraphProvider>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tiny reusable bits + styles
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface ButtonProps {
@@ -417,13 +653,9 @@ function Button({ children, onClick, primary }: Readonly<ButtonProps>) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Styles
-// ─────────────────────────────────────────────────────────────────────────────
-
 const shellStyle: React.CSSProperties = {
   width: '100%',
-  height: 640,
+  height: 660,
   backgroundColor: '#f5f0e3',
   color: '#1c2434',
   borderRadius: 6,
