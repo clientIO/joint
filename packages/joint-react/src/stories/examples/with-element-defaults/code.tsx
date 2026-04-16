@@ -1,5 +1,5 @@
 import { GraphProvider, Paper, HTMLBox, ElementModel, LinkModel, type ElementRecord, type LinkRecord } from '@joint/react';
-import { elementPort, elementPorts, linkLabel, linkLabels, linkStyle } from '@joint/react/presets';
+import { elementAttributes, elementPort, linkAttributes, linkLabel, linkStyle } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 
@@ -31,14 +31,12 @@ class PortMapElement extends ElementModel {
     return {
       ...super.defaults(),
       type: 'PortMapElement',
-      ports: elementPorts({
-        in: { cx: 0, cy: 'calc(0.5 * h)', width: 10, height: 10, color: SECONDARY, passive: true },
-        out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', width: 10, height: 10, color: PRIMARY },
+      ...elementAttributes({
+        portMap: {
+          in: { cx: 0, cy: '50%', width: 10, height: 10, color: SECONDARY, passive: true },
+          out: { cx: '100%', cy: '50%', width: 10, height: 10, color: PRIMARY },
+        },
       }),
-      // @todo does not work      // portMap: {
-      //   in: { cx: 0, cy: 'calc(0.5 * h)', width: 10, height: 10, color: SECONDARY, passive: true },
-      //   out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', width: 10, height: 10, color: PRIMARY },
-      // },
     };
   }
 }
@@ -57,8 +55,6 @@ class LabelsLink extends LinkModel {
         },
       ],
       attrs: linkStyle({ color: SECONDARY, targetMarker: 'arrow' }),
-      // @todo should we just use `attrs`?
-      // style: { color: SECONDARY, targetMarker: 'arrow' },
     };
   }
 }
@@ -67,20 +63,14 @@ class LabelsLink extends LinkModel {
 
 class LabelMapLink extends LinkModel {
   defaults() {
-    return {
+    return linkAttributes({
       ...super.defaults(),
       type: 'LabelMapLink',
-      labels: linkLabels({
-        main: { text: 'labelMap', fontSize: 10, backgroundBorderRadius: 4 }
-      }),
-      // @todo does not work
-      // labelMap: {
-      //   main: { text: 'labelMap', fontSize: 10, backgroundBorderRadius: 4 },
-      // },
-      attrs: linkStyle({ color: PRIMARY, targetMarker: 'arrow' }),
-      // @todo should we just use `attrs`?
-      // style: { color: PRIMARY, targetMarker: 'arrow' },
-    };
+      labelMap: {
+        main: { text: 'labelMap', fontSize: 10, backgroundBorderRadius: 4 },
+      },
+      style: { color: PRIMARY, targetMarker: 'arrow' }
+    });
   }
 }
 
