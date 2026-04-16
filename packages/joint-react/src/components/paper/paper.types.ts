@@ -5,7 +5,7 @@ import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
-import type { ConnectionEnd, CanConnectOptions } from '../../presets/can-connect';
+import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 
 type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
@@ -37,12 +37,15 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
   /**
    * Validates whether a connection between two elements/ports is allowed.
    *
-   * Accepts a `CanConnectOptions` object with built-in rules and an optional
-   * `validate` callback for custom logic.
+   * - **Function**: custom validation with built-in rules (no self-loops, no link-to-link, no multi-links).
+   *   Receives `{ source, target, endType, paper, graph }`.
+   * - **Object**: `CanConnectOptions` with built-in rules and optional `validate` callback.
    *
    * When omitted, defaults to `canConnect()` (no self-loops, no link-to-link, no multi-links).
    */
-  readonly validateConnection?: CanConnectOptions;
+  readonly validateConnection?:
+    | CanConnectOptions
+    | ((context: ValidateConnectionContext) => boolean);
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */

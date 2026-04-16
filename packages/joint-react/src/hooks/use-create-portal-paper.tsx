@@ -24,6 +24,7 @@ import type { PaperProps, PortalPaperOptions, RenderLink } from '../components/p
 import { HTMLBox } from '../components/html-box';
 
 import { mapLinkToAttributes } from '../state/data-mapping';
+import type { CanConnectOptions} from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
@@ -211,7 +212,12 @@ export function useCreatePortalPaper(
   );
 
   const validateConnectionCallback = useMemo(
-    () => canConnect(validateConnection),
+    () => {
+      const canConnectionOptions: CanConnectOptions | undefined = typeof validateConnection === 'function'
+        ? { validate: validateConnection }
+        : validateConnection;
+      return canConnect(canConnectionOptions);
+    },
     [validateConnection]
   );
 
