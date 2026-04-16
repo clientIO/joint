@@ -1,18 +1,27 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "target": "ES5",
-    "moduleResolution": "node",
+    "target": "es6",
+    "moduleResolution": "bundler",
     "lib": [
-      "dom"
+      "dom",
+      "es2015"
     ],
+    "alwaysStrict": true,
     "noImplicitAny": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitReturns": true,
     "noImplicitThis": true,
-    "strictNullChecks": false,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "useUnknownInCatchVariables": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
     "noUnusedLocals": true,
-    "skipLibCheck": true
+    "noUnusedParameters": true,
+    "skipLibCheck": false,
+    "types": []
   },
   "compileOnSave": false
 }

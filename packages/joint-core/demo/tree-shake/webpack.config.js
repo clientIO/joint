@@ -1,7 +1,6 @@
 const path = process.cwd() + '/dist';
 
 module.exports = {
-    entry: './index.S.ts',
     mode: 'development',
     output: {
         path,

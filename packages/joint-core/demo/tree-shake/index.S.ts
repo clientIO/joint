@@ -1,5 +1,11 @@
-import * as joint from '../../';
+// TRY ALTERNATING BETWEEN THESE TWO OPTIONS:
+/*
+import { V } from '@joint/core';
+*/
 
-console.log('Point', new joint.g.Point());
+import V from '@joint/core/V';
 
 
+const vel = V('<g><rect/><text/></g>');
+
+console.log('VNode', vel.node);
