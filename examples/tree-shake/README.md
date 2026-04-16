@@ -10,16 +10,10 @@ yarn install
 yarn run build
 ```
 
-To test your local changes, create your `package.tgz` file in the root folder:
-```bash
-yarn pack
-```
-
-If you want to test the published package instead, change the `@joint/core` dependency in this demo's `package.json` to `"@joint/core": "*"`.
+If you want to test the published package instead, change the `@joint/core` dependency in this demo's `package.json` to `"@joint/core": "npm:*"`.
 
 Navigate to this directory, then run:
 ```bash
-yarn install
 yarn start
 ```
 

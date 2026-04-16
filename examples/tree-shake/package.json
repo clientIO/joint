@@ -1,0 +1,36 @@
+{
+  "name": "@joint/demo-tree-shake",
+  "version": "4.2.4",
+  "description": "JointJS - Tree Shake Demo",
+  "main": "index.html",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "license": "MPL-2.0",
+  "private": true,
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "scripts": {
+    "start": "npm run analyze-S && npm run analyze-M && npm run analyze-L && npm run analyze-all",
+    "analyze-S": "ENTRY=S vite build",
+    "analyze-M": "ENTRY=M vite build",
+    "analyze-L": "ENTRY=L vite build",
+    "analyze-all": "ENTRY=all vite build"
+  },
+  "dependencies": {
+    "@joint/core": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3",
+    "vite-bundle-analyzer": "^1.3.6"
+  },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
+  }
+}
