@@ -2574,7 +2574,3 @@ const V = (function() {
 })();
 
 export default V;
-export {
-    V,
-    V as Vectorizer
-};

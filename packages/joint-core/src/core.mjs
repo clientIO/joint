@@ -1,3 +1,5 @@
+import V from './V/index.mjs';
+
 export { config } from './config/index.mjs';
 export { env } from './env/index.mjs';
 export { setTheme } from './setTheme.mjs';
@@ -18,6 +20,6 @@ export * as mvc from './mvc/index.mjs';
 export * as util from './util/index.mjs';
 export {
     V,
-    Vectorizer
-} from './V/index.mjs';
+    V as Vectorizer
+};
 export * as g from './g/index.mjs';

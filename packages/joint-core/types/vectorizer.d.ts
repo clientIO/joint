@@ -1,4 +1,5 @@
 export {
+    default,
     V,
     Vectorizer,
     VElement
