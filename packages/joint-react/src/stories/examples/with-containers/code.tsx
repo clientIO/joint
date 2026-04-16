@@ -91,11 +91,10 @@ function RenderElement(props: Readonly<ContainerData>) {
 }
 
 function validateParentChildRelationship(
-  _childView: dia.CellView,
-  parentView: dia.CellView
+  { parent }: { parent: { model: dia.Cell } }
 ): boolean {
   // Only allow embedding into container elements
-  return Boolean(parentView.model.prop('data/isContainer'));
+  return Boolean(parent.model.prop('data/isContainer'));
 }
 
 function Main() {

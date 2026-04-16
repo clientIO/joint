@@ -6,6 +6,7 @@ export { GraphProvider } from './components/graph/graph-provider';
 export type { GraphProviderProps as GraphProps } from './components/graph/graph-provider';
 export { Paper } from './components/paper/paper';
 export type { PaperProps, RenderElement, RenderLink, DefaultLinkContext } from './components/paper/paper.types';
+export type { EmbeddingNode, ValidateEmbeddingContext, ValidateUnembeddingContext } from './presets/can-embed';
 export type { ConnectionEnd, ValidateConnectionContext, CanConnectOptions } from './presets/can-connect';
 export { SVGText } from './components/svg-text/svg-text';
 export type { SVGTextProps } from './components/svg-text/svg-text';

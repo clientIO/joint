@@ -6,10 +6,11 @@ import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
+import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
 
 type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
-  'frozen' | 'defaultLink' | 'validateConnection' | 'autoFreeze' | 'viewManagement'
+  'frozen' | 'defaultLink' | 'validateConnection' | 'validateEmbedding' | 'validateUnembedding' | 'autoFreeze' | 'viewManagement'
 >;
 
 /** Context passed to the `defaultLink` factory. */
@@ -46,6 +47,18 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
   readonly validateConnection?:
     | CanConnectOptions
     | ((context: ValidateConnectionContext) => boolean);
+
+  /**
+   * Validates whether an element can be embedded into another element.
+   * Receives `{ child, parent, paper, graph }`.
+   */
+  readonly validateEmbedding?: (context: ValidateEmbeddingContext) => boolean;
+
+  /**
+   * Validates whether an element can be unembedded from its parent.
+   * Receives `{ child, paper, graph }`.
+   */
+  readonly validateUnembedding?: (context: ValidateUnembeddingContext) => boolean;
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */

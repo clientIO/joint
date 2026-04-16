@@ -26,6 +26,7 @@ import { HTMLBox } from '../components/html-box';
 import { mapLinkToAttributes } from '../state/data-mapping';
 import type { CanConnectOptions} from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
+import { canEmbed, canUnembed } from '../presets/can-embed';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -157,6 +158,8 @@ export function useCreatePortalPaper(
     renderLink,
     defaultLink,
     validateConnection,
+    validateEmbedding,
+    validateUnembedding,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -221,6 +224,16 @@ export function useCreatePortalPaper(
     [validateConnection]
   );
 
+  const validateEmbeddingCallback = useMemo(
+    () => canEmbed(validateEmbedding),
+    [validateEmbedding]
+  );
+
+  const validateUnembeddingCallback = useMemo(
+    () => canUnembed(validateUnembedding),
+    [validateUnembedding]
+  );
+
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
 
   useLayoutEffect(() => {
@@ -233,6 +246,8 @@ export function useCreatePortalPaper(
         el: hostElementForCreation,
         defaultLink: defaultLinkCallback,
         validateConnection: validateConnectionCallback,
+        validateEmbedding: validateEmbeddingCallback,
+        validateUnembedding: validateUnembeddingCallback,
       },
       renderElement,
       renderLink,
@@ -280,6 +295,8 @@ export function useCreatePortalPaper(
     assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
+      validateEmbedding: validateEmbeddingCallback,
+      validateUnembedding: validateUnembeddingCallback,
       ...paperOptions,
     });
 

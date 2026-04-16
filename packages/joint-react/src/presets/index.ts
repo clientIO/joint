@@ -30,3 +30,4 @@ export { elementPort, elementPorts, type ElementPort, type PortShape } from './e
 export { linkLabel, linkLabels, type LinkLabel } from './link-labels';
 export { linkStyle, linkStyleLine, linkStyleWrapper, type LinkStyle } from './link-style';
 export { canConnect, toConnectionEnd, type CanConnectOptions, type ConnectionEnd, type ValidateConnectionContext } from './can-connect';
+export { canEmbed, canUnembed, type EmbeddingNode, type ValidateEmbeddingContext, type ValidateUnembeddingContext } from './can-embed';
