@@ -1,4 +1,5 @@
 package.tgz
+package/
 build/
 dist/
 node_modules/
