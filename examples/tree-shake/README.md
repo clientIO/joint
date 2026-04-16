@@ -7,7 +7,7 @@ Use Yarn to run this demo.
 You need to build *JointJS* first. Navigate to the root folder and run:
 ```bash
 yarn install
-yarn run build
+yarn run dist
 ```
 
 If you want to test the published package instead, change the `@joint/core` dependency in this demo's `package.json` to `"@joint/core": "npm:*"`.
