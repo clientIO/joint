@@ -47,6 +47,5 @@ export function resolveMarker(marker: LinkMarker | undefined): dia.SVGComplexMar
     ? namedLinkMarkers[marker as keyof typeof namedLinkMarkers]
     : marker;
   if (!resolvedMarker) return null;
-  const { length: _length, ...nativeMarker } = resolvedMarker as LinkMarkerRecord;
-  return nativeMarker;
+  return resolvedMarker as dia.SVGComplexMarkerJSON;
 }
