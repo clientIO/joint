@@ -40,10 +40,10 @@ export type LinkMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 
  * @param sourceOffset - Padding for source end (px). Default: `0`.
  * @param targetOffset - Padding for target end (px). Default: `0`.
  */
-export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetOffset = 0): anchors.Anchor {
+export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetOffset = 0, markerSelector = 'line'): anchors.Anchor {
   return (elementView, magnet, ref, _, endType, linkView) => {
     const userOffset = endType === 'source' ? sourceOffset : targetOffset;
-    const markerLength = getMarkerLength(linkView, endType);
+    const markerLength = getMarkerLength(linkView, endType, markerSelector);
     const padding = userOffset + markerLength;
     if (magnet === elementView.el) {
       // For the root element, use midSide with model geometry and padding

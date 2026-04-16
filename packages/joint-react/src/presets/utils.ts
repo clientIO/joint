@@ -17,10 +17,9 @@ export const BOUNDARY_OPTIONS = {
  * Reads the marker length from the link's native attrs for the given end type.
  * The length is how far to push the line tip from the connection point to accommodate the marker.
  */
-export function getMarkerLength(linkView: dia.LinkView, endType: dia.LinkEnd): number {
-  const attrs = linkView.model.attributes?.attrs;
-  const line = attrs?.line;
-  if (!line) return 0;
-  const marker = endType === 'source' ? line.sourceMarker : line.targetMarker;
+export function getMarkerLength(linkView: dia.LinkView, endType: dia.LinkEnd, selector = 'line'): number {
+  const selectorAttrs = linkView.model.attributes?.attrs?.[selector];
+  if (!selectorAttrs) return 0;
+  const marker = endType === 'source' ? selectorAttrs.sourceMarker : selectorAttrs.targetMarker;
   return (marker as Record<string, unknown>)?.length as number ?? 0;
 }
