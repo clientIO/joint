@@ -2,8 +2,8 @@
 /*
 import { V } from '@joint/core';
 import { shapes } from '@joint/core';
-const { standard } = shapes;
 import { dia } from '@joint/core';
+const { standard } = shapes;
 */
 
 import V from '@joint/core/V';
