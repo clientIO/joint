@@ -140,7 +140,8 @@ export type SVGFilterJSON =
 
 export class CellCollection<C extends Cell = Cell> extends mvc.Collection<C> {
 
-    cellNamespace: any;
+    /** @deprecated Use graph.getCellNamespace() instead. */
+    readonly cellNamespace: any;
     layer: GraphLayer;
 
     minZIndex(): number;
@@ -155,6 +156,8 @@ export class GraphLayerCollection<L extends GraphLayer = GraphLayer> extends mvc
     graph: Graph;
 
     insert(layer: Graph.LayerInit, beforeId: GraphLayer.ID | null, opt?: ObjectHash): void;
+
+    getTypeConstructor<T extends Cell = Cell>(type: string): Cell.Constructor<T> | null;
 
     getCell(cellRef: Graph.CellRef): Cell | undefined;
 
@@ -408,6 +411,14 @@ export class Graph<A extends ObjectHash = Graph.Attributes, S = ModelSetOptions>
     getLayers(): GraphLayer[];
 
     getCellLayerId(cell: Graph.CellRef): GraphLayer.ID;
+
+    getCellNamespace(): Record<string, any>;
+
+    setCellNamespace(namespace: Record<string, any>): void;
+
+    getTypeConstructor<T extends Cell = Cell>(type: string): Cell.Constructor<T> | null;
+
+    getTypeDefaults(type: string): Cell.Attributes;
 
     getCell(id: Graph.CellRef): Cell;
 
@@ -974,7 +985,7 @@ export namespace Link {
         connector?: connectors.Connector | connectors.ConnectorJSON;
     }
 
-    interface Attributes extends Cell.GenericAttributes<Cell.Selectors> {
+    interface Attributes extends GenericAttributes<Cell.Selectors> {
     }
 
     interface LabelPosition {

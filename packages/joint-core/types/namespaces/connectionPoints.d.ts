@@ -16,6 +16,14 @@ export interface StrokeConnectionPointArguments extends DefaultConnectionPointAr
     stroke?: boolean;
 }
 
+export interface BBoxConnectionPointArguments extends StrokeConnectionPointArguments {
+    useModelGeometry?: boolean;
+}
+
+export interface RectangleConnectionPointArguments extends StrokeConnectionPointArguments {
+    useModelGeometry?: boolean;
+}
+
 export interface BoundaryConnectionPointArguments extends StrokeConnectionPointArguments {
     selector?: Array<string | number> | string | false;
     precision?: number;
@@ -26,8 +34,8 @@ export interface BoundaryConnectionPointArguments extends StrokeConnectionPointA
 
 export interface ConnectionPointArgumentsMap {
     'anchor': DefaultConnectionPointArguments;
-    'bbox': StrokeConnectionPointArguments;
-    'rectangle': StrokeConnectionPointArguments;
+    'bbox': BBoxConnectionPointArguments;
+    'rectangle': RectangleConnectionPointArguments;
     'boundary': BoundaryConnectionPointArguments;
     [key: string]: { [key: string]: any };
 }
