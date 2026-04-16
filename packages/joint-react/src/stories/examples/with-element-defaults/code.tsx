@@ -1,4 +1,4 @@
-import { GraphProvider, Paper, HTMLBox, ElementModel, LinkModel, type ElementRecord, type LinkRecord } from '@joint/react';
+import { GraphProvider, Paper, HTMLBox, ElementModel, LinkModel, type ElementRecord, type LinkRecord, useGraph } from '@joint/react';
 import { elementAttributes, elementPort, linkAttributes, linkLabel, linkStyle } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
@@ -28,16 +28,14 @@ class PortsElement extends ElementModel {
 
 class PortMapElement extends ElementModel {
   defaults() {
-    return {
+    return elementAttributes({
       ...super.defaults(),
       type: 'PortMapElement',
-      ...elementAttributes({
-        portMap: {
-          in: { cx: 0, cy: '50%', width: 10, height: 10, color: SECONDARY, passive: true },
-          out: { cx: '100%', cy: '50%', width: 10, height: 10, color: PRIMARY },
-        },
-      }),
-    };
+      portMap: {
+        in: { cx: 0, cy: '50%', width: 10, height: 10, color: SECONDARY, passive: true },
+        out: { cx: '100%', cy: '50%', width: 10, height: 10, color: PRIMARY },
+      },
+    });
   }
 }
 
@@ -122,7 +120,21 @@ function RenderElement({ label }: { label: string }) {
   return <HTMLBox useModelGeometry>{label}</HTMLBox>;
 }
 
+function JSONViewer() {
+  const { graph } = useGraph();
+  const json = graph.toJSON({
+    cellAttributes: {
+      ignoreDefaults: true,
+      ignoreEmptyAttributes: true,
+    }
+  });
+  return <pre style={{ fontSize: 10 }}>{JSON.stringify(json, null, 2)}</pre>;
+
+
+}
+
 export default function App() {
+
   return (
     <GraphProvider
       elements={elements}
@@ -134,6 +146,7 @@ export default function App() {
         height={300}
         renderElement={RenderElement}
       />
+      <JSONViewer/>
     </GraphProvider>
   );
 }

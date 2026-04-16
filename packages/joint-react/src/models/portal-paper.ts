@@ -4,7 +4,7 @@ import type { PortalSelector, PortalPaperOptions } from './portal-paper.types';
 import { PORTAL_SELECTOR } from './element-model';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
-import { PresetPaper } from './preset-paper';
+import { Paper } from '../presets/paper';
 
 const noopViewMountChange = (): void => {
   // No-op default for onViewMountChange callback
@@ -17,7 +17,7 @@ const noopViewMountChange = (): void => {
  * - Emitting view mount/unmount callbacks for graph-store snapshot sync
  * - Hiding links until their source/target elements have rendered
  */
-export class PortalPaper extends PresetPaper {
+export class PortalPaper extends Paper {
   public viewChanges: Map<string, IncrementalChange<dia.Cell>> = new Map();
   public onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;

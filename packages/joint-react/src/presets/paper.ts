@@ -1,8 +1,7 @@
 import { dia } from '@joint/core';
-import { measureNode } from '../store/default-measure-node';
+import { measureNode } from './measure-node';
+import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
-import { LinkModel } from './link-model';
-import { linkRoutingStraight } from '../presets';
 
 // Inject CSS custom property into all built-in grid pattern colors
 // so they respond to --jr-paper-grid-color.
@@ -22,7 +21,7 @@ const DEFAULT_GRID_SIZE = 10;
 const DEFAULT_SNAP_RADIUS = 15;
 
 // @todo - this should sit on the dia.Paper prototype,
-// so it can be overridden by inheriting classes (e.g. PresetPaper)
+// so it can be overridden by inheriting classes (e.g. Paper)
 export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.DEFAULT]: {
     name: 'stroke',
@@ -51,7 +50,7 @@ export const DEFAULT_HIGHLIGHTING = {
   },
 };
 
-export const PresetPaper = dia.Paper.extend({
+export const Paper = dia.Paper.extend({
   options: {
     ...dia.Paper.prototype.options,
     // Required for React integration features:
@@ -74,11 +73,7 @@ export const PresetPaper = dia.Paper.extend({
     ...linkRoutingStraight(),
     measureNode: measureNode as dia.Paper.Options['measureNode'],
     highlighting: DEFAULT_HIGHLIGHTING,
-    linkView: (link: dia.Link) => {
-      if (link instanceof LinkModel) {
-        return LinkView;
-      }
-    }
+    linkView: (_link: dia.Link, NSViewCtor: typeof dia.LinkView | undefined) => NSViewCtor ?? LinkView,
   },
 
   _ensureElClassName() {

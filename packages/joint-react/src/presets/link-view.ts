@@ -1,11 +1,13 @@
 import { dia } from '@joint/core';
-import { linkStyle } from '../presets';
 
 const LINK_CONNECTING_CLASS = 'jr-link--connecting';
 const LINK_SNAPPED_CN = 'jr-link--snapped';
 
 /**
- * Custom LinkView for LinkModel models.
+ * Custom LinkView that adds CSS class hooks for link interaction states.
+ *
+ * - `jr-link--connecting` — while dragging an arrowhead (before snapping)
+ * - `jr-link--snapped` — while the arrowhead is snapped to a valid target
  */
 export class LinkView extends dia.LinkView {
 
@@ -28,19 +30,4 @@ export class LinkView extends dia.LinkView {
     this.el.classList.toggle(LINK_SNAPPED_CN, !!isSnapped);
     return isSnapped;
   }
-
-  // @todo - if we use `style` on the model as a source,
-  // we need to also run update when the style changes
-  // updateDOM() {
-  //     // @ts-expect-error use protected properties
-  //     const { el, model, selectors } = this;
-  //     this.cleanNodesCache();
-  //     // update SVG attributes defined by 'attrs/'.
-  //     const attrs = linkStyle(model.get('style'));
-  //     // @ts-expect-error Protected method override
-  //     this.updateDOMSubtreeAttributes(el, attrs, { selectors });
-  //     // update the label position etc.
-  //     // @ts-expect-error Protected method override
-  //     this.updateLabelPositions();
-  // }
 }
