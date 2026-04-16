@@ -130,9 +130,7 @@ function Main() {
       className={`${PAPER_CLASSNAME} h-[400px]`}
       sorting={dia.Paper.sorting.APPROX}
       linkPinning={false}
-      validateConnection={{
-        validate: ({ target }) => target.port === 'in',
-      }}
+      validateConnection={({ target }) => target.port === 'in'}
       markAvailable
       highlighting={{
         [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {

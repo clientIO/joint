@@ -494,9 +494,7 @@ function Main() {
         clickThreshold={10}
         {...ORTHOGONAL_LINKS}
         validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
-        validateConnection={{
-          validate: ({ target }) => target.port === 'in',
-        }}
+        validateConnection={({ target }) => target.port === 'in'}
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         renderElement={RenderSaasNode}
       />
