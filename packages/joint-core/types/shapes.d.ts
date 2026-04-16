@@ -1,6 +1,6 @@
 import type * as dia from './dia';
 import type * as attributes from './attributes';
-import type { Nullable } from '../common';
+import type { Nullable } from './internal';
 
 export interface SVGTextSelector extends dia.Cell.Selectors {
     text?: Nullable<attributes.SVGTextAttributes>;

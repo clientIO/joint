@@ -15,71 +15,71 @@
       "default": "./dist/joint.min.js"
     },
     "./anchors": {
-      "types": "./types/namespaces/anchors.d.ts",
+      "types": "./types/anchors.d.ts",
       "import": "./src/anchors/index.mjs"
     },
     "./connectionPoints": {
-      "types": "./types/namespaces/connectionPoints.d.ts",
+      "types": "./types/connectionPoints.d.ts",
       "import": "./src/connectionPoints/index.mjs"
     },
     "./connectionStrategies": {
-      "types": "./types/namespaces/connectionStrategies.d.ts",
+      "types": "./types/connectionStrategies.d.ts",
       "import": "./src/connectionStrategies/index.mjs"
     },
     "./connectors": {
-      "types": "./types/namespaces/connectors.d.ts",
+      "types": "./types/connectors.d.ts",
       "import": "./src/connectors/index.mjs"
     },
     "./dia": {
-      "types": "./types/namespaces/dia.d.ts",
+      "types": "./types/dia.d.ts",
       "import": "./src/dia/index.mjs"
     },
     "./elementTools": {
-      "types": "./types/namespaces/elementTools.d.ts",
+      "types": "./types/elementTools.d.ts",
       "import": "./src/elementTools/index.mjs"
     },
     "./g": {
-      "types": "./types/namespaces/g.d.ts",
+      "types": "./types/geometry.d.ts",
       "import": "./src/g/index.mjs"
     },
     "./highlighters": {
-      "types": "./types/namespaces/highlighters.d.ts",
+      "types": "./types/highlighters.d.ts",
       "import": "./src/highlighters/index.mjs"
     },
     "./layout": {
-      "types": "./types/namespaces/layout.d.ts",
+      "types": "./types/layout.d.ts",
       "import": "./src/layout/index.mjs"
     },
     "./linkAnchors": {
-      "types": "./types/namespaces/linkAnchors.d.ts",
+      "types": "./types/linkAnchors.d.ts",
       "import": "./src/linkAnchors/index.mjs"
     },
     "./linkTools": {
-      "types": "./types/namespaces/linkTools.d.ts",
+      "types": "./types/linkTools.d.ts",
       "import": "./src/linkTools/index.mjs"
     },
     "./mvc": {
-      "types": "./types/namespaces/mvc.d.ts",
+      "types": "./types/mvc.d.ts",
       "import": "./src/mvc/index.mjs"
     },
     "./routers": {
-      "types": "./types/namespaces/routers.d.ts",
+      "types": "./types/routers.d.ts",
       "import": "./src/routers/index.mjs"
     },
     "./shapes": {
-      "types": "./types/namespaces/shapes.d.ts",
+      "types": "./types/shapes.d.ts",
       "import": "./src/shapes/index.mjs"
     },
     "./shapes/standard": {
-      "types": "./types/namespaces/shapes-standard.d.ts",
+      "types": "./types/shapes-standard.d.ts",
       "import": "./src/shapes/standard.mjs"
     },
     "./util": {
-      "types": "./types/namespaces/util.d.ts",
+      "types": "./types/util.d.ts",
       "import": "./src/util/index.mjs"
     },
     "./V": {
-      "types": "./types/namespaces/V.d.ts",
+      "types": "./types/vectorizer.d.ts",
       "import": "./src/V/index.mjs"
     },
     "./dist/*": "./dist/*",

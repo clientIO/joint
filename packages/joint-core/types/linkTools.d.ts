@@ -1,5 +1,5 @@
 import type * as dia from './dia';
-import type * as g from './g';
+import type * as g from './geometry';
 import type * as mvc from './mvc';
 import type * as anchors from './anchors';
 import type * as attributes from './attributes';

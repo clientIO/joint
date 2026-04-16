@@ -1,5 +1,5 @@
 /**
- * Shared utility types used across multiple namespace modules.
+ * Shared internal utility types used across multiple namespace modules.
  */
 
 export type NativeEvent = Event;

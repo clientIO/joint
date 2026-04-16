@@ -1,8 +1,8 @@
 import type * as dia from './dia';
-import type * as g from './g';
+import type * as g from './geometry';
 import type * as attributes from './attributes';
 import type * as mvc from './mvc';
-import type { DOMElement } from '../common';
+import type { DOMElement } from './internal';
 
 export function cloneCells(cells: dia.Cell[]): { [id: string]: dia.Cell };
 

@@ -1,7 +1,7 @@
 import type * as dia from './dia';
 import type * as mvc from './mvc';
 import type * as attributes from './attributes';
-import type { Nullable } from '../common';
+import type { Nullable } from './internal';
 
 export interface RectangleSelectors extends dia.Cell.Selectors {
     root?: Nullable<attributes.SVGAttributes>;

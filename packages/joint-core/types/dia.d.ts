@@ -1,6 +1,6 @@
-import type * as g from './g';
+import type * as g from './geometry';
 import type * as mvc from './mvc';
-import type { Vectorizer } from '../vectorizer';
+import type { Vectorizer } from './vectorizer';
 import type * as util from './util';
 import * as attributes from './attributes';
 import type * as routers from './routers';
@@ -10,7 +10,7 @@ import type * as connectionPoints from './connectionPoints';
 import type * as connectionStrategies from './connectionStrategies';
 import type * as highlighters from './highlighters';
 import type * as layout from './layout';
-import type { DOMElement, LiteralUnion, ExcludeIndexSignature, DeepPartial, Nullable } from '../common';
+import type { DOMElement, LiteralUnion, ExcludeIndexSignature, DeepPartial, Nullable } from './internal';
 
 export { attributes };
 

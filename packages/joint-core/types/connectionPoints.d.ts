@@ -1,5 +1,5 @@
 import type * as dia from './dia';
-import type * as g from './g';
+import type * as g from './geometry';
 
 export type ConnectionPointAlignment = 'top' | 'bottom' | 'left' | 'right';
 

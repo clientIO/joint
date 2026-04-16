@@ -1,6 +1,6 @@
 import type * as dia from './dia';
-import type { Vectorizer } from '../vectorizer';
-import type { DOMElement, NativeEvent } from '../common';
+import type { Vectorizer } from './vectorizer';
+import type { DOMElement, NativeEvent } from './internal';
 
 export type Dom = unknown;
 // The following types represent the DOM elements that can be passed to the

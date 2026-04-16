@@ -1,7 +1,7 @@
 import type * as dia from './dia';
 import type * as mvc from './mvc';
 import type * as attributes from './attributes';
-import type { Vectorizer } from '../vectorizer';
+import type { Vectorizer } from './vectorizer';
 
 export interface AddClassHighlighterArguments extends dia.HighlighterView.Options {
     className?: string;
