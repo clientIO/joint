@@ -50,6 +50,13 @@ export const DEFAULT_HIGHLIGHTING = {
   },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const linkView = (_: dia.Link, NSViewCtor: typeof dia.LinkView | null): typeof dia.LinkView<any> => {
+  // Use the namespaced LinkView if provided,
+  // otherwise fall back to the default LinkView.
+  return NSViewCtor ?? LinkView;
+};
+
 export const Paper = dia.Paper.extend({
   options: {
     ...dia.Paper.prototype.options,
@@ -69,11 +76,11 @@ export const Paper = dia.Paper.extend({
     markAvailable: true,
     clickThreshold: DEFAULT_CLICK_THRESHOLD,
     snapLinks: { radius: DEFAULT_SNAP_RADIUS },
+    highlighting: DEFAULT_HIGHLIGHTING,
     drawGrid: true,
     ...linkRoutingStraight(),
-    measureNode: measureNode as dia.Paper.Options['measureNode'],
-    highlighting: DEFAULT_HIGHLIGHTING,
-    linkView: (_link: dia.Link, NSViewCtor: typeof dia.LinkView | undefined) => NSViewCtor ?? LinkView,
+    measureNode,
+    linkView,
   },
 
   _ensureElClassName() {
