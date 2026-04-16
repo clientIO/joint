@@ -31,3 +31,5 @@ export { linkLabel, linkLabels, type LinkLabel } from './link-labels';
 export { linkStyle, linkStyleLine, linkStyleWrapper, type LinkStyle } from './link-style';
 export { canConnect, toConnectionEnd, type CanConnectOptions, type ConnectionEnd, type ValidateConnectionContext } from './can-connect';
 export { canEmbed, canUnembed, type ValidateEmbeddingContext, type ValidateUnembeddingContext } from './can-embed';
+export { elementAttributes } from './element-attributes';
+export { linkAttributes } from './link-attributes';
