@@ -8,7 +8,6 @@ import { elementPorts } from './element-ports';
  * - `portMap` → converted to native `ports` via `elementPorts()`.
  * - `ports` → passed through as-is (native JointJS format).
  * - Both present → throws.
- *
  * @param element - The element record to convert.
  * @returns JointJS-compatible cell attributes.
  */
@@ -16,7 +15,7 @@ export function elementAttributes<ElementData extends object = Record<string, un
   element: ElementRecord<ElementData>,
 ): Record<string, unknown> {
   if (!util.isObject(element)) {
-    throw new Error('Invalid element format: expected an object.');
+    throw new TypeError('Invalid element format: expected an object.');
   }
 
   const {

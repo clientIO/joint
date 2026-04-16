@@ -10,7 +10,6 @@ import { linkStyle } from './link-style';
  * - `labelMap` → converted to native `labels` array via `linkLabels()`.
  * - `labels` (array) → passed through as-is.
  * - Both `labelMap` and `labels` → throws.
- *
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
  */
@@ -18,7 +17,7 @@ export function linkAttributes<LinkData extends object = Record<string, unknown>
   link: LinkRecord<LinkData>,
 ): Record<string, unknown> {
   if (!util.isObject(link)) {
-    throw new Error('Invalid link data: expected an object with link properties.');
+    throw new TypeError('Invalid link data: expected an object with link properties.');
   }
 
   const {
