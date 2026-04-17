@@ -8,8 +8,8 @@ export interface ConnectionEnd {
   readonly model: dia.Cell;
   /** The port ID, or `null` if not connected to a port. */
   readonly port: string | null;
-  /** The SVG magnet element. */
-  readonly magnet: Element;
+  /** The SVG magnet element, or `null` when connecting to the root element. */
+  readonly magnet: Element | null;
   /** The `joint-selector` attribute of the magnet, or `null`. */
   readonly selector: string | null;
 }
@@ -28,14 +28,18 @@ export interface ValidateConnectionContext {
   readonly graph: dia.Graph;
 }
 
-/** Builds a `ConnectionEnd` from a cell view and its magnet element. */
-export function toConnectionEnd(cellView: dia.CellView, magnet: Element): ConnectionEnd {
+/**
+ * Builds a `ConnectionEnd` from a cell view and its magnet element.
+ * @param cellView
+ * @param magnet
+ */
+export function toConnectionEnd(cellView: dia.CellView, magnet: Element | undefined): ConnectionEnd {
   return {
     id: cellView.model.id,
     model: cellView.model,
-    port: cellView.findAttribute('port', magnet),
-    magnet,
-    selector: magnet.getAttribute('joint-selector'),
+    port: magnet ? cellView.findAttribute('port', magnet) : null,
+    magnet: magnet ?? null,
+    selector: magnet?.getAttribute('joint-selector') ?? null,
   };
 }
 
@@ -46,6 +50,14 @@ export interface CanConnectOptions {
   readonly allowLinkToLink?: boolean;
   /** Allow multiple links between the same source+port and target+port. @default false */
   readonly allowMultiLinks?: boolean;
+  /**
+   * Whether connecting to the root element (not a port/magnet) is allowed.
+   * - `true` — always allow root connections
+   * - `false` — never allow root (only ports/magnets)
+   * - `'auto'` — allow root only if the element has no ports
+   * @default 'auto'
+   */
+  readonly allowRootConnection?: boolean | 'auto';
   /** Custom validation on top of the built-in rules. Runs only if built-in checks pass. */
   readonly validate?: (context: ValidateConnectionContext) => boolean;
 }
@@ -56,10 +68,8 @@ export interface CanConnectOptions {
  * By default, rejects self-loops, link-to-link connections, and multi-links.
  * An optional `validate` callback receives a structured `{ source, target, paper, graph }`
  * context and runs only after the built-in checks pass.
- *
  * @param options - Rules and optional custom validator.
  * @returns A JointJS-compatible `validateConnection` function.
- *
  * @example
  * ```ts
  * // Default rules
@@ -77,21 +87,32 @@ export function canConnect(options: CanConnectOptions = {}) {
     allowSelfLoops = false,
     allowLinkToLink = false,
     allowMultiLinks = false,
+    allowRootConnection = 'auto',
     validate,
   } = options;
 
   return (
-    cellViewS: dia.CellView, magnetS: SVGElement,
-    cellViewT: dia.CellView, magnetT: SVGElement,
+    // Note: JointJS passes `undefined` for magnet when the target is the root element
+    cellViewS: dia.CellView, magnetS: SVGElement | undefined,
+    cellViewT: dia.CellView, magnetT: SVGElement | undefined,
     end: dia.LinkEnd, _linkView: dia.LinkView,
   ): boolean => {
     if (!allowSelfLoops && cellViewS === cellViewT) return false;
     if (!allowLinkToLink && (!cellViewS.model.isElement() || !cellViewT.model.isElement())) return false;
+    if (allowRootConnection !== true) {
+      const isRootBlocked = (cellView: dia.CellView, magnet: SVGElement | undefined): boolean => {
+        if (magnet) return false;
+        if (allowRootConnection === false) return true;
+        // 'auto': block root only if element has ports
+        return cellView.model.isElement() && (cellView.model as dia.Element).hasPorts();
+      };
+      if (isRootBlocked(cellViewS, magnetS) || isRootBlocked(cellViewT, magnetT)) return false;
+    }
     if (!allowMultiLinks) {
       const sourceId = cellViewS.model.id;
       const targetId = cellViewT.model.id;
-      const sourcePort = cellViewS.findAttribute('port', magnetS);
-      const targetPort = cellViewT.findAttribute('port', magnetT);
+      const sourcePort = magnetS ? cellViewS.findAttribute('port', magnetS) : null;
+      const targetPort = magnetT ? cellViewT.findAttribute('port', magnetT) : null;
       const graph = cellViewS.paper!.model;
       const links = graph.getConnectedLinks(cellViewS.model);
       for (const link of links) {
