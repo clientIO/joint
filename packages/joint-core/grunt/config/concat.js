@@ -4,7 +4,7 @@ module.exports = function(grunt) {
         types: {
             src: [
                 'types/joint.head.d.ts',
-                'build/api-extractor/joint.d.ts'
+                'build/dts-generator/joint.d.ts'
             ],
             dest:
                 'build/joint.d.ts'

@@ -4602,5 +4602,4 @@ QUnit.module('graph', function(hooks) {
         });
     });
 
-
 });

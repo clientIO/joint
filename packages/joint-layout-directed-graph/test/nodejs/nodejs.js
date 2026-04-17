@@ -13,6 +13,7 @@ describe('require jointjs', function() {
     });
 
     it('should contain Graph constructor', function() {
+
         should.exist(joint);
         should.exist(joint.dia, 'joint.dia is undefined');
         should.exist(joint.dia.Graph, 'joint.dia.Graph is undefined');
@@ -21,8 +22,9 @@ describe('require jointjs', function() {
 
     it('should not contain layout.DirectedGraph object', function() {
 
-        joint.should.have.property('layout');
-        joint.layout.should.not.have.property('DirectedGraph');
+        should.exist(joint);
+        should.exist(joint.layout, 'joint.layout is undefined');
+        should.not.exist(joint.layout.DirectedGraph, 'joint.layout.DirectedGraph should not exist');
     });
 });
 

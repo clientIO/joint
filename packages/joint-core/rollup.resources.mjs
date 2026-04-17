@@ -115,18 +115,6 @@ export const jointNoDependencies = {
     plugins: plugins
 };
 
-export const jointCore = {
-    input: modules.jointCore.src,
-    output: [{
-        file: modules.jointCore.umd,
-        format: 'umd',
-        name: 'joint',
-        freeze: false,
-        footer: JOINT_FOOTER,
-    }],
-    plugins: plugins
-};
-
 export const version = {
     input: 'wrappers/version.wrapper.mjs',
     output: [{
