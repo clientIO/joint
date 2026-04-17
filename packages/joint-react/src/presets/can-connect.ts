@@ -113,17 +113,20 @@ export function canConnect(options: CanConnectOptions = {}) {
       const targetId = cellViewT.model.id;
       const sourcePort = magnetS ? cellViewS.findAttribute('port', magnetS) : null;
       const targetPort = magnetT ? cellViewT.findAttribute('port', magnetT) : null;
+      const sourceMagnet = sourcePort ? null : (magnetS?.getAttribute('joint-selector') ?? null);
+      const targetMagnet = targetPort ? null : (magnetT?.getAttribute('joint-selector') ?? null);
       const graph = cellViewS.paper!.model;
       const links = graph.getConnectedLinks(cellViewS.model);
       for (const link of links) {
-        const linkSource = link.source();
-        const linkTarget = link.target();
-        if (
-          linkSource.id === sourceId && linkTarget.id === targetId &&
-          (linkSource.port ?? null) === sourcePort && (linkTarget.port ?? null) === targetPort
-        ) {
-          return false;
-        }
+        const ls = link.source();
+        const lt = link.target();
+        if (ls.id !== sourceId || lt.id !== targetId) continue;
+        // Compare ports (when connecting to a port)
+        if ((ls.port ?? null) !== sourcePort || (lt.port ?? null) !== targetPort) continue;
+        // Compare magnet selectors (when connecting to a non-port magnet)
+        if ((ls.magnet ?? ls.selector ?? null) !== sourceMagnet) continue;
+        if ((lt.magnet ?? lt.selector ?? null) !== targetMagnet) continue;
+        return false;
       }
     }
     if (validate) {
