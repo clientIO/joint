@@ -11,6 +11,7 @@ import {
   type ElementRecord,
 } from '@joint/react';
 import '../index.css';
+import './styles.css';
 import { linkRoutingSmooth } from '@joint/react/presets';
 
 const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconnected: false });
@@ -31,7 +32,7 @@ const initialElements: Record<string, ElementRecord<TableElement>> = {
       ],
     },
     position: { x: 50, y: 40 },
-    size: { width: 200, height: 172 },
+    size: { width: 200, height: 152 },
   },
   '2': {
     data: {
@@ -43,7 +44,7 @@ const initialElements: Record<string, ElementRecord<TableElement>> = {
       ],
     },
     position: { x: 340, y: 40 },
-    size: { width: 200, height: 172 },
+    size: { width: 200, height: 152 },
   },
 };
 
@@ -99,6 +100,7 @@ function TableNode({ name, rows }: Readonly<Partial<TableElement>>) {
       {rows?.map((row, index) => (
         <div
           key={row.field}
+          className="table-row"
           ref={(node) => {
             if (node) node.setAttribute('magnet', 'active');
             selectorRef(`row-${index}`)(node);
@@ -129,7 +131,6 @@ function Main() {
       magnetThreshold="onleave"
       linkPinning={false}
       {...SMOOTH_LINKS}
-      defaultLink={{}}
       validateConnection={{ allowRootConnection: false }}
       drawGrid={false}
     />

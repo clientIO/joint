@@ -1,0 +1,17 @@
+:root {
+  --jr-paper-highlight-color: rgba(59, 130, 246, 1);
+}
+
+.jr-available-magnet {
+  background: rgba(59, 130, 246, 0.08);
+  outline: 0.5px dashed rgba(59, 130, 246, 0.5);
+  outline-offset: -1.5px;
+}
+
+.jr-available-element .jr-element {
+  border: 1px solid rgba(59, 130, 246, 1);
+}
+
+.joint-element:not(.jr-available-element) .table-row:hover {
+  background: rgba(128, 128, 128, 0.06);
+}
