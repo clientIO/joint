@@ -5,7 +5,7 @@
   "description": "JavaScript diagramming library",
   "sideEffects": false,
   "main": "./dist/joint.min.js",
-  "module": "joint.mjs",
+  "module": "./joint.mjs",
   "types": "./types/index.d.ts",
   "exports": {
     ".": {
@@ -75,10 +75,19 @@
       "import": "./src/util/index.mjs"
     },
     "./dist/*": "./dist/*",
-    "./src/*": "./src/*",
-    "./types/*": "./types/*",
-    "./joint.mjs": "./joint.mjs",
-    "./index.js": "./index.js"
+    "./src/*": {
+      "import": "./src/*"
+    },
+    "./types/*": {
+      "types": "./types/*"
+    },
+    "./joint.mjs": {
+      "import": "./joint.mjs"
+    },
+    "./index.js": {
+      "require": "./index.js",
+      "default": "./index.js"
+    }
   },
   "homepage": "https://jointjs.com",
   "author": {

@@ -1,13 +1,13 @@
 // @ts-check
 
-/** @type import('dts-bundle-generator/config-schema').OutputOptions */
+/** @type {import('dts-bundle-generator/config-schema').OutputOptions} */
 const commonOutputParams = {
     sortNodes: true,
     noBanner: true,
     exportReferencedTypes: false,
 };
 
-/** @type import('dts-bundle-generator/config-schema').BundlerConfig */
+/** @type {import('dts-bundle-generator/config-schema').BundlerConfig} */
 const config = {
     compilationOptions: {
         preferredConfigPath: './tsconfig.json',
