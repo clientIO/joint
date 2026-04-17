@@ -14,7 +14,7 @@
     "hoistingLimits": "workspaces"
   },
   "scripts": {
-    "start": "npm run analyze-S && npm run analyze-M && npm run analyze-L && npm run analyze-all",
+    "build": "npm run analyze-S && npm run analyze-M && npm run analyze-L && npm run analyze-all",
     "analyze-S": "ENTRY=S vite build",
     "analyze-M": "ENTRY=M vite build",
     "analyze-L": "ENTRY=L vite build",

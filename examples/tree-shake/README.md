@@ -10,11 +10,9 @@ yarn install
 yarn run dist
 ```
 
-If you want to test the published package instead, change the `@joint/core` dependency in this demo's `package.json` to `"@joint/core": "npm:*"`.
-
-Navigate to this directory, then run:
+To see a treemap of dependencies included in the bundle by `vite-bundle-analyzer`, navigate to this directory and run:
 ```bash
-yarn start
+yarn run build
 ```
 
 Then open `index.html` in your browser:
