@@ -27,7 +27,7 @@ module.exports = function(grunt) {
         ],
         'build:joint': [
             'shell:rollup-joint',
-            'shell:api-extractor-dts-bundle',
+            'shell:dts-generator',
             'newer:concat:types'
         ],
         'uglify:all':[

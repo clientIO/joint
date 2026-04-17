@@ -1,3 +1,1 @@
-import * as standard from './standard.mjs';
-
-export { standard };
+export * as standard from './standard.mjs';

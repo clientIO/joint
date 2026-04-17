@@ -85,7 +85,6 @@ function getMiddleSide(rect, point, opt, endType) {
         case SideMode.RIGHT_LEFT:
             return endType === 'source' ? Side.RIGHT : Side.LEFT;
 
-
         case SideMode.AUTO:
         default: {
             return rect.sideNearestToPoint(point);
