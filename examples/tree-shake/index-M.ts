@@ -1,13 +1,11 @@
-// TRY ALTERNATING BETWEEN THESE TWO OPTIONS:
-/*
 import { V } from '@joint/core';
-import { shapes } from '@joint/core';
-const { standard } = shapes;
-*/
 
-import V from '@joint/core/V';
+/* subpath import: */
 import * as standard from '@joint/core/shapes/standard';
 
+/* equivalent @joint/core import: */
+//import { shapes } from '@joint/core';
+//const { standard } = shapes;
 
 const vel = V('<g><rect/><text/></g>');
 const namespace = {

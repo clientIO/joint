@@ -5,7 +5,6 @@ export {
     version
 } from './joint';
 export * as shapes from './shapes';
-export * as attributes from './attributes';
 export * as dia from './dia';
 export * as elementTools from './elementTools';
 export * as linkTools from './linkTools';
@@ -25,3 +24,6 @@ export {
     VElement
 } from './vectorizer';
 export * as g from './geometry';
+
+/** @deprecated - use `dia.attributes` */
+export * as attributes from './attributes';

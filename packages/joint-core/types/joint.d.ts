@@ -20,7 +20,6 @@ export function setTheme(theme: string): void;
 export const version: string;
 
 export * as shapes from './shapes';
-export * as attributes from './attributes';
 export * as dia from './dia';
 export * as elementTools from './elementTools';
 export * as linkTools from './linkTools';
@@ -34,3 +33,6 @@ export * as connectors from './connectors';
 export * as routers from './routers';
 export * as mvc from './mvc';
 export * as util from './util';
+
+/** @deprecated - use `dia.attributes` */
+export * as attributes from './attributes';

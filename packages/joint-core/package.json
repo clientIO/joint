@@ -38,10 +38,6 @@
       "types": "./types/elementTools.d.ts",
       "import": "./src/elementTools/index.mjs"
     },
-    "./g": {
-      "types": "./types/geometry.d.ts",
-      "import": "./src/g/index.mjs"
-    },
     "./highlighters": {
       "types": "./types/highlighters.d.ts",
       "import": "./src/highlighters/index.mjs"
@@ -77,10 +73,6 @@
     "./util": {
       "types": "./types/util.d.ts",
       "import": "./src/util/index.mjs"
-    },
-    "./V": {
-      "types": "./types/vectorizer.d.ts",
-      "import": "./src/V/index.mjs"
     },
     "./dist/*": "./dist/*",
     "./src/*": "./src/*",
