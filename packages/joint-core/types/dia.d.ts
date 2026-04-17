@@ -1185,6 +1185,8 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     getNodeBoundingRect(node: SVGElement): g.Rect;
 
+    measureNodeBoundingRect(node: SVGElement): g.Rect;
+
     getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
     getNodeBBox(node: SVGElement): g.Rect;
@@ -1729,8 +1731,8 @@ export namespace Paper {
         moveThreshold?: number;
         magnetThreshold?: number | string;
         // views
-        elementView?: typeof ElementView<any> | ((element: Element) => typeof ElementView<any> | null | undefined);
-        linkView?: typeof LinkView<any> | ((link: Link) => typeof LinkView<any> | null | undefined);
+        elementView?: typeof ElementView<any> | ((element: Element, NSView: typeof ElementView<any> | null) => typeof ElementView<any> | null | undefined);
+        linkView?: typeof LinkView<any> | ((link: Link, NSView: typeof LinkView<any> | null) => typeof LinkView<any> | null | undefined);
         measureNode?: MeasureNodeCallback;
         // embedding
         embeddingMode?: boolean;

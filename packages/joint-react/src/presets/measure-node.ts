@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { g, V } from '@joint/core';
+import { g } from '@joint/core';
 
 /**
  * Default measureNode function that uses the model's bounding box for the root element node.
@@ -10,11 +10,14 @@ import { g, V } from '@joint/core';
  */
 export const measureNode: dia.Paper.MeasureNodeCallback = (node, view): g.Rect => {
 
+  // For the root node of an element, we can use the model's bounding box,
+  // which is more performant and works even if the element is not visible
+  // or attached to the DOM.
   if (node === view.el && view.model.isElement()) {
-    const size = view.model.size();
-    return new g.Rect({ width: size.width, height: size.height, x: 0, y: 0 });
+    const { width, height } = view.model.size();
+    return new g.Rect({ width, height, x: 0, y: 0 });
   }
 
-  // For sub-nodes and links, use the SVG bounding box measurement.
-  return V(node).getBBox();
+  // For sub-nodes and links, use the DOM bounding box measurement.
+  return view.measureNodeBoundingRect(node);
 };

@@ -802,33 +802,35 @@ export const CellView = View.extend({
                 // Measure the node bounding box using the paper's measureNode method.
                 metrics.boundingRect = measureNode(magnet, this);
             } else {
-                if (magnet instanceof HTMLElement) {
-                    if (magnet.checkVisibility()) {
-                        const clientRect = new Rect(magnet.getBoundingClientRect());
-                        const clientCenter = clientRect.center();
-                        const localCenter = this.paper.clientToLocalPoint(clientCenter);
-                        const ctm = this.getRootTranslateMatrix().multiply(this.getNodeRotateMatrix(magnet)).inverse();
-                        const preRotationCenter = V.transformPoint(localCenter, ctm);
-                        // get non-rotated bounding box dimensions
-                        const w = magnet.offsetWidth;
-                        const h = magnet.offsetHeight;
-                        metrics.boundingRect = new Rect(
-                            preRotationCenter.x - w / 2,
-                            preRotationCenter.y - h / 2,
-                            w,
-                            h
-                        );
-                    } else {
-                        console.warn('dia.CellView: A node is not part of the render tree — it may not be visible, or not attached to the DOM. Its bounding box cannot be measured, so anything that depends on its position will be incorrect. Ensure the node and its containing elements are visible and attached to the DOM, or provide a custom measureNode method in the paper options.');
-
-                        metrics.boundingRect = new Rect();
-                    }
-                } else {
-                    metrics.boundingRect = V(magnet).getBBox();
-                }
+                metrics.boundingRect = this.measureNodeBoundingRect(magnet);
             }
         }
         return new Rect(metrics.boundingRect);
+    },
+
+    measureNodeBoundingRect: function(magnet) {
+        if (magnet instanceof SVGElement) {
+            // SVG elements can be measured directly using their getBBox() method.
+            return V(magnet).getBBox();
+        }
+        if (!magnet.checkVisibility()) {
+            console.warn('dia.CellView: A node is not part of the render tree — it may not be visible, or not attached to the DOM. Its bounding box cannot be measured, so anything that depends on its position will be incorrect. Ensure the node and its containing elements are visible and attached to the DOM, or provide a custom measureNode method in the paper options.');
+            return new Rect();
+        }
+        const clientRect = new Rect(magnet.getBoundingClientRect());
+        const clientCenter = clientRect.center();
+        const localCenter = this.paper.clientToLocalPoint(clientCenter);
+        const ctm = this.getRootTranslateMatrix().multiply(this.getNodeRotateMatrix(magnet)).inverse();
+        const preRotationCenter = V.transformPoint(localCenter, ctm);
+        // get non-rotated bounding box dimensions
+        const w = magnet.offsetWidth;
+        const h = magnet.offsetHeight;
+        return new Rect(
+            preRotationCenter.x - w / 2,
+            preRotationCenter.y - h / 2,
+            w,
+            h
+        );
     },
 
     getNodeMatrix: function(magnet) {
