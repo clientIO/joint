@@ -5,8 +5,90 @@
   "description": "JavaScript diagramming library",
   "sideEffects": false,
   "main": "./dist/joint.min.js",
-  "module": "joint.mjs",
+  "module": "./joint.mjs",
   "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./joint.mjs",
+      "require": "./dist/joint.min.js",
+      "default": "./dist/joint.min.js"
+    },
+    "./anchors": {
+      "types": "./types/anchors.d.ts",
+      "import": "./src/anchors/index.mjs"
+    },
+    "./connectionPoints": {
+      "types": "./types/connectionPoints.d.ts",
+      "import": "./src/connectionPoints/index.mjs"
+    },
+    "./connectionStrategies": {
+      "types": "./types/connectionStrategies.d.ts",
+      "import": "./src/connectionStrategies/index.mjs"
+    },
+    "./connectors": {
+      "types": "./types/connectors.d.ts",
+      "import": "./src/connectors/index.mjs"
+    },
+    "./dia": {
+      "types": "./types/dia.d.ts",
+      "import": "./src/dia/index.mjs"
+    },
+    "./elementTools": {
+      "types": "./types/elementTools.d.ts",
+      "import": "./src/elementTools/index.mjs"
+    },
+    "./highlighters": {
+      "types": "./types/highlighters.d.ts",
+      "import": "./src/highlighters/index.mjs"
+    },
+    "./layout": {
+      "types": "./types/layout.d.ts",
+      "import": "./src/layout/index.mjs"
+    },
+    "./linkAnchors": {
+      "types": "./types/linkAnchors.d.ts",
+      "import": "./src/linkAnchors/index.mjs"
+    },
+    "./linkTools": {
+      "types": "./types/linkTools.d.ts",
+      "import": "./src/linkTools/index.mjs"
+    },
+    "./mvc": {
+      "types": "./types/mvc.d.ts",
+      "import": "./src/mvc/index.mjs"
+    },
+    "./routers": {
+      "types": "./types/routers.d.ts",
+      "import": "./src/routers/index.mjs"
+    },
+    "./shapes": {
+      "types": "./types/shapes.d.ts",
+      "import": "./src/shapes/index.mjs"
+    },
+    "./shapes/standard": {
+      "types": "./types/shapes-standard.d.ts",
+      "import": "./src/shapes/standard.mjs"
+    },
+    "./util": {
+      "types": "./types/util.d.ts",
+      "import": "./src/util/index.mjs"
+    },
+    "./dist/*": "./dist/*",
+    "./src/*": {
+      "import": "./src/*"
+    },
+    "./types/*": {
+      "types": "./types/*"
+    },
+    "./joint.mjs": {
+      "import": "./joint.mjs"
+    },
+    "./index.js": {
+      "require": "./index.js",
+      "default": "./index.js"
+    }
+  },
   "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
@@ -58,7 +140,7 @@
   "files": [
     "dist/",
     "src/",
-    "types/*.d.ts",
+    "types/",
     "./index.js",
     "./joint.mjs",
     "./LICENSE",
@@ -70,11 +152,11 @@
     "@babel/plugin-transform-optional-chaining": "7.25.9",
     "@babel/preset-env": "7.26.9",
     "@joint/eslint-config": "workspace:*",
-    "@microsoft/api-extractor": "7.52.10",
     "@rollup/plugin-babel": "^6.0.4",
     "async": "2.6.1",
     "chai": "4.2.0",
     "core-js": "~3.8.3",
+    "dts-bundle-generator": "^9.5.1",
     "es-module-shims": "0.2.4",
     "eslint": "9.39.2",
     "express": "4.21.2",

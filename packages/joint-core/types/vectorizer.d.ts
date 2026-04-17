@@ -1,7 +1,8 @@
-import type { g } from './geometry';
+import type * as g from './geometry';
 
-export const V: VCallable;
-export type V = VElement;
+export import V = Vectorizer;
+
+export { Vectorizer as default };
 
 export const Vectorizer: VCallable;
 export type Vectorizer = VElement;

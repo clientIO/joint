@@ -7,7 +7,6 @@ const JOINT = [
 
 const DIST = [
     modules.version,
-    modules.jointCore,
     modules.geometry,
     modules.vectorizer,
 ].concat(modules.jointPlugins);

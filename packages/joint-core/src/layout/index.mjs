@@ -1,4 +1,2 @@
-import * as Port from './ports/port.mjs';
-import * as PortLabel from './ports/portLabel.mjs';
-
-export { Port, PortLabel };
+export * as Port from './ports/port.mjs';
+export * as PortLabel from './ports/portLabel.mjs';

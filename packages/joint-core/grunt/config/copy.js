@@ -10,8 +10,7 @@ module.exports = function(grunt) {
                 cwd: 'build/',
                 src: [
                     '*',
-                    '!joint.core.js',
-                    '!api-extractor',
+                    '!dts-generator',
                     '!min',
                     '!joint.browserify-bundle.js',
                     '!joint.webpack-bundle.js'
