@@ -39,13 +39,13 @@ export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: 'jj-available-magnet',
+      className: 'jj-is-available',
     },
   },
   [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: 'jj-available-element',
+      className: 'jj-is-available',
     },
   },
 };

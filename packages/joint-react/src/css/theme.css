@@ -45,12 +45,12 @@
     stroke-linecap: var(--jj-link-line-cap, 'butt');
   }
 
-  :where(.jj-link--connecting) {
+  :where(.jj-is-connecting) {
     --jj-link-color: var(--jj-link-connecting-color);
     --jj-link-dash: var(--jj-link-connecting-dash);
   }
 
-  :where(.jj-link--snapped) {
+  :where(.jj-is-snapped) {
     --jj-link-color: var(--jj-link-snapped-color);
     --jj-link-dash: var(--jj-link-snapped-dash);
   }
@@ -82,7 +82,7 @@
     stroke-width: var(--jj-port-outline-width, 2);
   }
 
-  :where(.jj-port-body.jj-available-magnet) {
+  :where(.jj-port-body.jj-is-available) {
     fill: var(--jj-port-available-color, #ef4444);
   }
 
@@ -108,7 +108,7 @@
     font-family: var(--jj-box-font-family, sans-serif);
   }
 
-  :where(.jj-available-element .jj-box) {
+  :where(.jj-is-available .jj-box) {
     border-color: var(--jj-box-available-border, #ef4444);
   }
 }
