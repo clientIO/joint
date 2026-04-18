@@ -12,86 +12,86 @@
 /* ── Slate (default) ───────────────────────────────────────────────────── */
 
 .tw-theme {
-  --jr-link-color: var(--color-slate-400);
-  --jr-link-width: 2;
+  --jj-link-color: var(--color-slate-400);
+  --jj-link-width: 2;
 
-  --jr-label-color: var(--color-slate-700);
-  --jr-label-font-family: var(--font-sans);
-  --jr-label-bg: var(--color-white);
-  --jr-label-stroke: var(--color-slate-300);
+  --jj-label-color: var(--color-slate-700);
+  --jj-label-font-family: var(--font-sans);
+  --jj-label-bg: var(--color-white);
+  --jj-label-stroke: var(--color-slate-300);
 
-  --jr-port-color: var(--color-slate-400);
-  --jr-port-hover-color: var(--color-blue-500);
-  --jr-port-stroke: var(--color-white);
-  --jr-port-stroke-width: 2;
-  --jr-port-label-color: var(--color-slate-500);
+  --jj-port-color: var(--color-slate-400);
+  --jj-port-hover-color: var(--color-blue-500);
+  --jj-port-stroke: var(--color-white);
+  --jj-port-stroke-width: 2;
+  --jj-port-label-color: var(--color-slate-500);
 
   --node-fill: var(--color-slate-50);
   --node-stroke: var(--color-slate-300);
   --node-text: var(--color-slate-800);
 
-  --jr-paper-bg: var(--color-white);
+  --jj-paper-bg: var(--color-white);
 }
 
 /* ── Forest ─────────────────────────────────────────────────────────────── */
 
 .forest {
-  --jr-link-color: var(--color-emerald-600);
+  --jj-link-color: var(--color-emerald-600);
 
-  --jr-label-color: var(--color-emerald-50);
-  --jr-label-bg: var(--color-emerald-900);
-  --jr-label-stroke: var(--color-emerald-700);
+  --jj-label-color: var(--color-emerald-50);
+  --jj-label-bg: var(--color-emerald-900);
+  --jj-label-stroke: var(--color-emerald-700);
 
-  --jr-port-color: var(--color-lime-400);
-  --jr-port-hover-color: var(--color-lime-300);
-  --jr-port-stroke: var(--color-emerald-950);
-  --jr-port-label-color: var(--color-emerald-400);
+  --jj-port-color: var(--color-lime-400);
+  --jj-port-hover-color: var(--color-lime-300);
+  --jj-port-stroke: var(--color-emerald-950);
+  --jj-port-label-color: var(--color-emerald-400);
 
   --node-fill: var(--color-emerald-900);
   --node-stroke: var(--color-emerald-600);
   --node-text: var(--color-emerald-100);
 
-  --jr-paper-bg: var(--color-emerald-950);
+  --jj-paper-bg: var(--color-emerald-950);
 }
 
 /* ── Ocean ──────────────────────────────────────────────────────────────── */
 
 .ocean {
-  --jr-link-color: var(--color-sky-400);
+  --jj-link-color: var(--color-sky-400);
 
-  --jr-label-color: var(--color-sky-100);
-  --jr-label-bg: var(--color-sky-900);
-  --jr-label-stroke: var(--color-sky-600);
+  --jj-label-color: var(--color-sky-100);
+  --jj-label-bg: var(--color-sky-900);
+  --jj-label-stroke: var(--color-sky-600);
 
-  --jr-port-color: var(--color-cyan-300);
-  --jr-port-hover-color: var(--color-cyan-200);
-  --jr-port-stroke: var(--color-sky-950);
-  --jr-port-label-color: var(--color-sky-400);
+  --jj-port-color: var(--color-cyan-300);
+  --jj-port-hover-color: var(--color-cyan-200);
+  --jj-port-stroke: var(--color-sky-950);
+  --jj-port-label-color: var(--color-sky-400);
 
   --node-fill: var(--color-sky-900);
   --node-stroke: var(--color-sky-500);
   --node-text: var(--color-sky-100);
 
-  --jr-paper-bg: var(--color-sky-950);
+  --jj-paper-bg: var(--color-sky-950);
 }
 
 /* ── Sunset ─────────────────────────────────────────────────────────────── */
 
 .sunset {
-  --jr-link-color: var(--color-amber-500);
+  --jj-link-color: var(--color-amber-500);
 
-  --jr-label-color: var(--color-amber-900);
-  --jr-label-bg: var(--color-amber-50);
-  --jr-label-stroke: var(--color-amber-400);
+  --jj-label-color: var(--color-amber-900);
+  --jj-label-bg: var(--color-amber-50);
+  --jj-label-stroke: var(--color-amber-400);
 
-  --jr-port-color: var(--color-orange-500);
-  --jr-port-hover-color: var(--color-orange-400);
-  --jr-port-stroke: var(--color-amber-50);
-  --jr-port-label-color: var(--color-amber-600);
+  --jj-port-color: var(--color-orange-500);
+  --jj-port-hover-color: var(--color-orange-400);
+  --jj-port-stroke: var(--color-amber-50);
+  --jj-port-label-color: var(--color-amber-600);
 
   --node-fill: var(--color-amber-50);
   --node-stroke: var(--color-amber-400);
   --node-text: var(--color-amber-900);
 
-  --jr-paper-bg: var(--color-amber-100);
+  --jj-paper-bg: var(--color-amber-100);
 }

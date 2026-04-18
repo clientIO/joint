@@ -1,13 +1,13 @@
 import { dia } from '@joint/core';
 
-const LINK_CONNECTING_CLASS = 'jr-link--connecting';
-const LINK_SNAPPED_CN = 'jr-link--snapped';
+const LINK_CONNECTING_CLASS = 'jj-link--connecting';
+const LINK_SNAPPED_CN = 'jj-link--snapped';
 
 /**
  * Custom LinkView that adds CSS class hooks for link interaction states.
  *
- * - `jr-link--connecting` — while dragging an arrowhead (before snapping)
- * - `jr-link--snapped` — while the arrowhead is snapped to a valid target
+ * - `jj-link--connecting` — while dragging an arrowhead (before snapping)
+ * - `jj-link--snapped` — while the arrowhead is snapped to a valid target
  */
 export class LinkView extends dia.LinkView {
 

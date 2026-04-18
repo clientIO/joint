@@ -4,7 +4,7 @@ import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
 
 // Inject CSS custom property into all built-in grid pattern colors
-// so they respond to --jr-paper-grid-color.
+// so they respond to --jj-paper-grid-color.
 // @ts-expect-error Accessing protected member to set default grid pattern colors
 // eslint-disable-next-line unicorn/no-array-for-each
 Object.values(dia.Paper.gridPatterns).forEach((pattern) => {
@@ -12,7 +12,7 @@ Object.values(dia.Paper.gridPatterns).forEach((pattern) => {
   for (const subPattern of patterns) {
     if (!subPattern.color) continue;
     // @todo read the fallback color from js theme.
-    subPattern.color = 'var(--jr-paper-grid-color, #9298a5)';
+    subPattern.color = 'var(--jj-paper-grid-color, #9298a5)';
   }
 });
 
@@ -29,7 +29,7 @@ export const DEFAULT_HIGHLIGHTING = {
       attrs: {
         strokeWidth: 2,
         // @todo read the fallback color from js theme.
-        stroke: 'var(--jr-paper-highlight-color, #ff4081)',
+        stroke: 'var(--jj-paper-highlight-color, #ff4081)',
       },
       rx: 4,
       ry: 4,
@@ -39,13 +39,13 @@ export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: 'jr-available-magnet',
+      className: 'jj-available-magnet',
     },
   },
   [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: 'jr-available-element',
+      className: 'jj-available-element',
     },
   },
 };
@@ -85,7 +85,7 @@ export const Paper = dia.Paper.extend({
 
   _ensureElClassName() {
     // Note: the `className` property is ignored here.
-    this.el.classList.add('jr-paper', 'joint-paper');
+    this.el.classList.add('jj-paper', 'joint-paper');
   }
 
 }) as typeof dia.Paper;

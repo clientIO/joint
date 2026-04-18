@@ -12,7 +12,7 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-// Base theme + Tailwind preset (maps --jr-* → Tailwind v4 variables)
+// Base theme + Tailwind preset (maps --jj-* → Tailwind v4 variables)
 import '../../../css/theme.css';
 import './tailwind-theme.css';
 

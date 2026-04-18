@@ -149,7 +149,7 @@ export function elementPort(port: ElementPort): dia.Element.Port {
     {
       tagName: bodyTagName,
       selector: 'portBody',
-      className: `jr-port-body ${className}`.trim(),
+      className: `jj-port-body ${className}`.trim(),
     },
   ];
   result.attrs = { portBody: portBodyAttributes };
@@ -160,7 +160,7 @@ export function elementPort(port: ElementPort): dia.Element.Port {
       markup: [{
         tagName: 'text',
         selector: 'text',
-        className: `jr-port-label ${labelClassName}`.trim(),
+        className: `jj-port-label ${labelClassName}`.trim(),
       }],
     };
     const labelAttributes: Record<string, unknown> = {

@@ -1351,7 +1351,7 @@ describe('Paper Component', () => {
       expect(createdLink.get('type')).toBe(LINK_MODEL_TYPE);
       expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('#ff5500');
       expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe(7);
-      expect(createdLink.attr(['line', 'class'])).toBe('jr-link-line custom-default-link');
+      expect(createdLink.attr(['line', 'class'])).toBe('jj-link-line custom-default-link');
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
           customProperty: 'flat-link-default',

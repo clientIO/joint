@@ -135,12 +135,12 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
       {
         tagName: bodyTagName,
         selector: 'labelBody',
-        className: `jr-link-label-body ${backgroundClassName}`.trim(),
+        className: `jj-link-label-body ${backgroundClassName}`.trim(),
       },
       {
         tagName: 'text',
         selector: 'labelText',
-        className: `jr-link-label-text ${className}`.trim(),
+        className: `jj-link-label-text ${className}`.trim(),
       },
     ],
     attrs: {

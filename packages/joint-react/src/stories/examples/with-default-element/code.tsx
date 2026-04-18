@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useRef } from 'react';
 import { GraphProvider, Paper, HTMLBox, type ElementRecord, type LinkRecord } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-// Base theme — provides --jr-* CSS variable defaults (including element styles)
+// Base theme — provides --jj-* CSS variable defaults (including element styles)
 import '../../../css/theme.css';
 
 // Dark theme overrides

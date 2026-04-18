@@ -16,7 +16,7 @@ export default {
         description:
             'Zero-config element rendering using the built-in `DefaultHTMLHost` component. ' +
             'Elements auto-size to fit their label. Pass `width`/`height` in element data to set an explicit size. ' +
-            'Styled via `--jr-element-*` CSS variables from `theme.css`.',
+            'Styled via `--jj-element-*` CSS variables from `theme.css`.',
     }),
 } satisfies Meta<typeof Code>;
 

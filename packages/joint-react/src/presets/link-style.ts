@@ -78,7 +78,7 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
   }
 
   lineAttributes.targetMarker = targetMarker === 'none' ? null : resolveMarker(targetMarker);
-  lineAttributes.class = `jr-link-line ${className}`.trim();
+  lineAttributes.class = `jj-link-line ${className}`.trim();
 
   return lineAttributes;
 }
@@ -104,7 +104,7 @@ export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVG
       strokeLinecap: linecap,
       strokeLinejoin: linejoin,
     },
-    class: `jr-link-wrapper ${wrapperClassName}`.trim(),
+    class: `jj-link-wrapper ${wrapperClassName}`.trim(),
   };
 }
 
