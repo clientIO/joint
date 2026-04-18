@@ -1212,6 +1212,39 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.notOk(paper.isDefined(highlighter.getMaskId()));
         });
 
+        QUnit.test('Highlight HTML element - falls back to rect mask', function(assert) {
+
+            var HighlighterView = joint.highlighters.mask;
+            var id = 'html-mask-highlighter';
+
+            var foElement = new joint.dia.Element({
+                type: 'foElement',
+                position: { x: 50, y: 30 },
+                size: { width: 100, height: 80 },
+                markup: joint.util.svg`
+                    <foreignObject @selector="fo" width="100" height="80">
+                        <div xmlns="http://www.w3.org/1999/xhtml" @selector="htmlBody" style="width:100%;height:100%;"></div>
+                    </foreignObject>
+                `
+            });
+            foElement.addTo(graph);
+            var foView = foElement.findView(paper);
+            var htmlNode = foView.el.querySelector('[joint-selector="htmlBody"]');
+
+            // Highlight
+            var highlighter = HighlighterView.add(foView, htmlNode, id);
+            assert.ok(highlighter instanceof HighlighterView);
+            assert.ok(paper.isDefined(highlighter.getMaskId()));
+            var maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            assert.equal(maskEl.querySelectorAll('rect').length, 2, 'mask contains two rect elements');
+
+            // Unhighlight
+            joint.dia.HighlighterView.remove(foView, id);
+            assert.notOk(paper.isDefined(highlighter.getMaskId()));
+
+            foElement.remove();
+        });
+
         QUnit.test('Purging the mask nodes', function(assert) {
             // class names
             const HighlighterView = joint.highlighters.mask;
