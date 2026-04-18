@@ -19,5 +19,5 @@ export const measureNode: dia.Paper.MeasureNodeCallback = (node, view): g.Rect =
   }
 
   // For sub-nodes and links, use the DOM bounding box measurement.
-  return view.measureNodeBoundingRect(node);
+  return view.computeNodeBoundingRect(node);
 };

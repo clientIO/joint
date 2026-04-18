@@ -87,7 +87,7 @@ const fieldStyle: React.CSSProperties = {
 };
 
 const typeStyle: React.CSSProperties = {
-  opacity: 0.5,
+  color: '#999',
   fontSize: 11,
 };
 
