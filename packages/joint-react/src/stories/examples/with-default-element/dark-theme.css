@@ -3,10 +3,10 @@
   --jj-paper-grid-color: #45475a;
   --jj-paper-highlight-color: #3ff7c7;
 
-  --jj-element-bg: #313244;
-  --jj-element-color: #cdd6f4;
-  --jj-element-border-color: #585b70;
-  --jj-element-available-border: #25f7ff;
+  --jj-box-bg: #313244;
+  --jj-box-color: #cdd6f4;
+  --jj-box-border-color: #585b70;
+  --jj-box-available-border: #25f7ff;
 
   --jj-link-color: #89b4fa;
 

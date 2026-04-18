@@ -13,7 +13,7 @@ import { useElementSize } from '../hooks';
  * measurement and render with the element's dimensions from the model instead.
  *
  * Does **not** apply any default theme class. For themed styling via
- * `--jj-element-*` CSS variables, use {@link DefaultHTMLHost} instead.
+ * `--jj-box-*` CSS variables, use {@link DefaultHTMLHost} instead.
  *
  * @example
  * ```tsx

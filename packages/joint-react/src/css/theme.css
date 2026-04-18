@@ -98,17 +98,17 @@
 
   /* ── Elements ────────────────────────────────────────────────────────── */
 
-  :where(.jj-element) {
-    background: var(--jj-element-bg, #ffffff);
-    color: var(--jj-element-color, #333333);
-    border: var(--jj-element-border-width, 1px) solid var(--jj-element-border-color, #adb5c1);
-    border-radius: var(--jj-element-border-radius, 4px);
-    padding: var(--jj-element-padding, 8px 12px);
-    font-size: var(--jj-element-font-size, 14px);
-    font-family: var(--jj-element-font-family, sans-serif);
+  :where(.jj-box) {
+    background: var(--jj-box-bg, #ffffff);
+    color: var(--jj-box-color, #333333);
+    border: var(--jj-box-border-width, 1px) solid var(--jj-box-border-color, #adb5c1);
+    border-radius: var(--jj-box-border-radius, 4px);
+    padding: var(--jj-box-padding, 8px 12px);
+    font-size: var(--jj-box-font-size, 14px);
+    font-family: var(--jj-box-font-family, sans-serif);
   }
 
-  :where(.jj-available-element .jj-element) {
-    border-color: var(--jj-element-available-border, #ef4444);
+  :where(.jj-available-element .jj-box) {
+    border-color: var(--jj-box-available-border, #ef4444);
   }
 }

@@ -20,15 +20,15 @@ const AUTO_SIZE_STYLE: CSSProperties = {
 };
 
 /**
- * Default themed HTML host that applies the `jj-element` CSS class.
+ * Default themed HTML host that applies the `jj-box` CSS class.
  * Wraps {@link HTMLHost} (style-neutral foreignObject + measured div) and adds
- * the `jj-element` class for default styling via `--jj-element-*` CSS variables.
+ * the `jj-box` class for default styling via `--jj-box-*` CSS variables.
  * All props are forwarded to HTMLHost.
  *
  * Use `HTMLHost` directly when you want full control without default styles.
  * Use `DefaultHTMLHost` for out-of-the-box themed appearance.
  * @param props - HTML div attributes plus optional `measure` flag.
- * @returns A themed HTMLHost element with the `jj-element` CSS class applied.
+ * @returns A themed HTMLHost element with the `jj-box` CSS class applied.
  * @example
  * ```tsx
  * <Paper renderElement={({ label }) => <DefaultHTMLHost>{label}</DefaultHTMLHost>} />
@@ -36,7 +36,7 @@ const AUTO_SIZE_STYLE: CSSProperties = {
  */
 export function HTMLBox(props: Readonly<HTMLBoxProps> = {}) {
   const { className, style, useModelGeometry, ...rest } = props;
-  const mergedClassName = className ? `jj-element ${className}` : 'jj-element';
+  const mergedClassName = className ? `jj-box ${className}` : 'jj-box';
   const baseStyle = useModelGeometry ? BASE_STYLE : { ...BASE_STYLE, ...AUTO_SIZE_STYLE };
   const mergedStyle = style ? { ...baseStyle, ...style } : baseStyle;
   return <HTMLHost
