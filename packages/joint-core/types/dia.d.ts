@@ -1185,6 +1185,8 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     getNodeBoundingRect(node: SVGElement): g.Rect;
 
+    computeNodeBoundingRect(node: SVGElement | HTMLElement): g.Rect;
+
     getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
     getNodeBBox(node: SVGElement): g.Rect;
