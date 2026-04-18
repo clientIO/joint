@@ -1185,7 +1185,7 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     getNodeBoundingRect(node: SVGElement): g.Rect;
 
-    measureNodeBoundingRect(node: SVGElement): g.Rect;
+    computeNodeBoundingRect(node: SVGElement): g.Rect;
 
     getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
@@ -1541,6 +1541,9 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 
 export namespace Paper {
 
+    /** A callback that resolves which view class to use for a given model. Return `null` or `undefined` to use the default view. */
+    type CellViewCallback<V extends typeof CellViewGeneric<any>> = (model: InstanceType<V> extends CellViewGeneric<infer M> ? M : Cell, NSView: V | null) => V | null | undefined;
+
     interface GradientOptions {
         id?: string;
         type: 'linearGradient' | 'radialGradient';
@@ -1731,8 +1734,8 @@ export namespace Paper {
         moveThreshold?: number;
         magnetThreshold?: number | string;
         // views
-        elementView?: typeof ElementView<any> | ((element: Element, NSView: typeof ElementView<any> | null) => typeof ElementView<any> | null | undefined);
-        linkView?: typeof LinkView<any> | ((link: Link, NSView: typeof LinkView<any> | null) => typeof LinkView<any> | null | undefined);
+        elementView?: typeof ElementView<Element> | CellViewCallback<typeof ElementView<Element>>;
+        linkView?: typeof LinkView<Link> | CellViewCallback<typeof LinkView<Link>>;
         measureNode?: MeasureNodeCallback;
         // embedding
         embeddingMode?: boolean;

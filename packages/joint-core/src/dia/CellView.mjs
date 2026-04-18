@@ -802,20 +802,28 @@ export const CellView = View.extend({
                 // Measure the node bounding box using the paper's measureNode method.
                 metrics.boundingRect = measureNode(magnet, this);
             } else {
-                metrics.boundingRect = this.measureNodeBoundingRect(magnet);
+                metrics.boundingRect = this.computeNodeBoundingRect(magnet);
             }
         }
         return new Rect(metrics.boundingRect);
     },
 
-    measureNodeBoundingRect: function(magnet) {
+    /**
+     * Compute the pre-rotation bounding rectangle of a node in local coordinates.
+     * Unlike {@link getNodeBoundingRect}, the result is never cached and the
+     * paper's `measureNode` callback is not consulted.
+     *
+     * @param {SVGElement|HTMLElement} magnet - The node to measure.
+     * @returns {Rect} The axis-aligned bounding rectangle before rotation.
+     */
+    computeNodeBoundingRect: function(magnet) {
+        if (!magnet.checkVisibility()) {
+            console.warn('dia.CellView: A node is not part of the render tree — it may not be visible, or not attached to the DOM. Its bounding box cannot be measured, so anything that depends on its position will be incorrect. Ensure the node and its containing elements are visible and attached to the DOM, or provide a custom measureNode method in the paper options.');
+            return new Rect(0, 0, 0, 0);
+        }
         if (magnet instanceof SVGElement) {
             // SVG elements can be measured directly using their getBBox() method.
             return V(magnet).getBBox();
-        }
-        if (!magnet.checkVisibility()) {
-            console.warn('dia.CellView: A node is not part of the render tree — it may not be visible, or not attached to the DOM. Its bounding box cannot be measured, so anything that depends on its position will be incorrect. Ensure the node and its containing elements are visible and attached to the DOM, or provide a custom measureNode method in the paper options.');
-            return new Rect();
         }
         const clientRect = new Rect(magnet.getBoundingClientRect());
         const clientCenter = clientRect.center();
