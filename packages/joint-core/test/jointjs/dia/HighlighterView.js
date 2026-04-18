@@ -645,6 +645,43 @@ QUnit.module('HighlighterView', function(hooks) {
             unhighlightSpy.restore();
         });
 
+        QUnit.test('Highlight element by an HTML node', function(assert) {
+
+            var highlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'highlight');
+            var invalidSpy = sinon.spy();
+
+            paper.on('cell:highlight:invalid', invalidSpy);
+
+            var foElement = new joint.dia.Element({
+                type: 'foElement',
+                position: { x: 50, y: 30 },
+                size: { width: 100, height: 80 },
+                markup: joint.util.svg`
+                    <foreignObject @selector="fo" width="100" height="80">
+                        <div xmlns="http://www.w3.org/1999/xhtml" @selector="htmlBody" style="width:100%;height:100%;"></div>
+                    </foreignObject>
+                `
+            });
+            foElement.addTo(graph);
+            var foView = foElement.findView(paper);
+            var htmlNode = foView.el.querySelector('[joint-selector="htmlBody"]');
+
+            assert.ok(htmlNode instanceof HTMLElement, 'node is an HTMLElement');
+            assert.ok(foView.el.contains(htmlNode), 'node is inside the cell view');
+
+            var id = 'html-highlighter';
+            var highlighter = joint.dia.HighlighterView.add(foView, htmlNode, id);
+            assert.ok(highlighter instanceof joint.dia.HighlighterView);
+            assert.ok(highlightSpy.calledOnce);
+            assert.ok(highlightSpy.calledOnceWithExactly(foView, htmlNode));
+            assert.ok(invalidSpy.notCalled);
+
+            joint.dia.HighlighterView.remove(foView, id);
+            foElement.remove();
+
+            highlightSpy.restore();
+        });
+
         QUnit.test('Highlight element by a selector', function(assert) {
 
             var highlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'highlight');
