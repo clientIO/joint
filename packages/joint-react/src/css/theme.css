@@ -66,7 +66,7 @@
   --jj-link-selected-color: var(--jj-color-primary);
   --jj-link-selected-width: 3;
   --jj-link-connecting-color: var(--jj-link-color);
-  --jj-link-connecting-width: 3;
+  --jj-link-connecting-width: 2;
 
   /* ── Link Labels ─────────────────────────────────────────────────────── */
   --jj-label-bg-color: var(--jj-color-surface);
@@ -83,7 +83,7 @@
   --jj-port-border-width: 1px;
   --jj-port-hover-color: var(--jj-color-text);
   --jj-port-border-hover-color: var(--jj-port-border-color);
-  --jj-port-hover-border-width: 4px;
+  --jj-port-hover-border-width: 5;
   --jj-port-connecting-color: var(--jj-color-text);
   --jj-port-connecting-border-color: var(--jj-port-border-color);
   --jj-port-connecting-border-width: var(--jj-port-border-width);
@@ -153,11 +153,16 @@
     stroke-width: var(--jj-port-border-width);
   }
 
-  :where(.jj-port-body:hover) {
+   :where(.jj-port-body[magnet="active"]) {
+    cursor: crosshair;
+   }
+
+  :where(.jj-port-body[magnet="active"]:hover) {
     fill: var(--jj-port-hover-color);
     stroke: var(--jj-port-border-hover-color);
     stroke-width: var(--jj-port-hover-border-width);
     transition: fill 0.2s, stroke 0.2s, stroke-width 0.2s;
+    paint-order: stroke fill;
   }
 
   :where(.jj-port-body.jj-is-available) {

@@ -82,7 +82,7 @@ const defaultPortStyle = {
  *
  * When `cx`/`cy` are provided, the port uses absolute positioning.
  * When omitted, position is left to the port group (e.g. `'left'`, `'right'`).
- *
+ * @param port
  * @example
  * ```ts
  * // Absolute positioned
@@ -140,6 +140,9 @@ export function elementPort(port: ElementPort): dia.Element.Port {
     portBodyAttributes.height = height;
     portBodyAttributes.x = -width / 2;
     portBodyAttributes.y = -height / 2;
+    // default border radius for rect ports
+    portBodyAttributes.rx = 1;
+    portBodyAttributes.ry = 1;
   } else {
     bodyTagName = 'path';
     portBodyAttributes.d = shape;
@@ -180,7 +183,8 @@ const PORT_GROUP = 'main';
 /**
  * Converts a record of simplified ElementPort definitions to the full JointJS ports object.
  * Each port gets absolute positioning under the `'main'` group.
- *
+ * @param ports
+ * @param portStyle
  * @example
  * ```ts
  * elementPorts({ out: { cx: 'calc(w)', cy: 'calc(h/2)' } })

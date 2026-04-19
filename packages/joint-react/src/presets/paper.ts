@@ -2,6 +2,7 @@ import { dia } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
+import { canConnect } from './can-connect';
 
 // Inject CSS custom property into all built-in grid pattern colors
 // so they respond to --jj-paper-grid-color.
@@ -29,8 +30,6 @@ export const DEFAULT_HIGHLIGHTING = {
         strokeWidth: 2,
         stroke: 'var(--jj-paper-highlight-color)',
       },
-      rx: 4,
-      ry: 4,
       padding: 6,
     },
   },

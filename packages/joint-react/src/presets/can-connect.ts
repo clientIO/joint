@@ -95,7 +95,7 @@ export function canConnect(options: CanConnectOptions = {}) {
     // Note: JointJS passes `undefined` for magnet when the target is the root element
     cellViewS: dia.CellView, magnetS: SVGElement | undefined,
     cellViewT: dia.CellView, magnetT: SVGElement | undefined,
-    end: dia.LinkEnd, _linkView: dia.LinkView,
+    end: dia.LinkEnd, linkView: dia.LinkView,
   ): boolean => {
     if (!allowSelfLoops && cellViewS === cellViewT) return false;
     if (!allowLinkToLink && (!cellViewS.model.isElement() || !cellViewT.model.isElement())) return false;
@@ -113,11 +113,12 @@ export function canConnect(options: CanConnectOptions = {}) {
       const targetId = cellViewT.model.id;
       const sourcePort = magnetS ? cellViewS.findAttribute('port', magnetS) : null;
       const targetPort = magnetT ? cellViewT.findAttribute('port', magnetT) : null;
-      const sourceMagnet = sourcePort ? null : (magnetS?.getAttribute('joint-selector') ?? null);
-      const targetMagnet = targetPort ? null : (magnetT?.getAttribute('joint-selector') ?? null);
+      const sourceMagnet = magnetS?.getAttribute('joint-selector') ?? null;
+      const targetMagnet = magnetT?.getAttribute('joint-selector') ?? null;
       const graph = cellViewS.paper!.model;
       const links = graph.getConnectedLinks(cellViewS.model);
       for (const link of links) {
+        if (link === linkView.model) continue;
         const ls = link.source();
         const lt = link.target();
         if (ls.id !== sourceId || lt.id !== targetId) continue;

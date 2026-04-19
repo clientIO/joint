@@ -2,12 +2,14 @@
 
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
+import type {
+  ElementPort} from '@joint/react';
 import {
   GraphProvider,
   Paper,
   HTMLBox,
   type ElementRecord,
-  type DefaultLinkContext,
+  type DefaultLinkContext
 } from '@joint/react';
 
 const RED = '#ef4444';
@@ -15,13 +17,14 @@ const GREEN = '#22c55e';
 const BLUE = '#3b82f6';
 
 const PORT_SIZE = 14;
+const PORT_STYLE: ElementPort = { width: PORT_SIZE, height: PORT_SIZE, shape: 'rect' };
 
 const initialElements: Record<string, ElementRecord> = {
   'node-1': {
     data: { label: 'Source' },
     position: { x: 50, y: 80 },
     size: { width: 140, height: 120 },
-    portStyle: { width: PORT_SIZE, height: PORT_SIZE },
+    portStyle: PORT_STYLE,
     portMap: {
       red: { cx: 'calc(w)', cy: 'calc(0.25 * h)', color: RED },
       green: { cx: 'calc(w)', cy: 'calc(0.5 * h)', color: GREEN },
@@ -32,7 +35,7 @@ const initialElements: Record<string, ElementRecord> = {
     data: { label: 'Target' },
     position: { x: 350, y: 80 },
     size: { width: 140, height: 120 },
-    portStyle: { width: PORT_SIZE, height: PORT_SIZE },
+    portStyle: PORT_STYLE,
     portMap: {
       'in-1': { cx: 0, cy: 'calc(0.33 * h)' },
       'in-2': { cx: 0, cy: 'calc(0.66 * h)' },

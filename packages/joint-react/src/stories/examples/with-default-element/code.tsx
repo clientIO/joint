@@ -33,7 +33,7 @@ const initialElements: Record<string, ElementRecord<Data>> = {
     position: { x: 280, y: 60 },
     portMap: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
-      in: { cx: 0, cy: 'calc(0.5 * h)' },
+      in: { cx: 0, cy: 'calc(0.5 * h)', passive: true },
     },
   },
   c: {
@@ -46,7 +46,7 @@ const initialElements: Record<string, ElementRecord<Data>> = {
     position: { x: 450, y: 60 },
     portMap: {
       in: { cx: 0, cy: 'calc(0.5 * h)', passive: true },
-      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', passive: true },
+      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
     },
   },
   d: {
@@ -56,27 +56,29 @@ const initialElements: Record<string, ElementRecord<Data>> = {
       height: 120,
     },
     position: { x: 620, y: 60 },
-    portMap: { in: { cx: 0, cy: 'calc(0.5 * h)' } },
+    portMap: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true }},
   },
 };
 
 const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
+const DEFAULT_LINK = { style: { targetMarker: 'arrow' } };
+
 
 const initialLinks: Record<string, LinkRecord> = {
   'a-b': {
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },
-    style: { targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
   'b-c': {
     source: { id: 'b', port: 'out' },
     target: { id: 'c', port: 'in' },
-    style: { targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
   'c-d': {
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
-    style: { targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
 };
 
@@ -126,7 +128,12 @@ export default function App() {
         </button>
       </div>
       <GraphProvider elements={initialElements} links={initialLinks}>
-        <Paper className={PAPER_CLASSNAME} height={240} renderElement={RenderElement} />
+        <Paper
+          className={PAPER_CLASSNAME}
+          height={240}
+          renderElement={RenderElement}
+          defaultLink={DEFAULT_LINK}
+        />
       </GraphProvider>
     </div>
   );
