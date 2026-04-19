@@ -28,6 +28,20 @@ const ANGLE_DIRECTION_MAP = {
     90: Directions.BOTTOM
 };
 
+const SIDE_INDEX_MAP = {
+    [Directions.TOP]: 0,
+    [Directions.RIGHT]: 1,
+    [Directions.BOTTOM]: 2,
+    [Directions.LEFT]: 3
+};
+
+const DIRECTION_VECTOR_MAP = {
+    [Directions.LEFT]: { x: -Infinity, y: 0 },
+    [Directions.RIGHT]: { x: Infinity, y: 0 },
+    [Directions.TOP]: { x: 0, y: -Infinity },
+    [Directions.BOTTOM]: { x: 0, y: Infinity }
+};
+
 function getSegmentAngle(line) {
     // TODO: the angle() method is general and therefore unnecessarily heavy for orthogonal links
     return line.angle();
@@ -299,27 +313,148 @@ function pointDataFromVertex({ x, y }) {
     };
 }
 
-function getOutsidePoint(side, pointData, margin) {
-    const outsidePoint = pointData.point.clone();
-
-    const { x0, y0, width, height } = pointData;
+function getOutsidePoint(side, point, bbox) {
+    const outsidePoint = point.clone();
 
     switch (side) {
         case 'left':
-            outsidePoint.x = x0 - margin;
+            outsidePoint.x = bbox.x;
             break;
         case 'right':
-            outsidePoint.x = x0 + width + margin;
+            outsidePoint.x = bbox.x + bbox.width;
             break;
         case 'top':
-            outsidePoint.y = y0 - margin;
+            outsidePoint.y = bbox.y;
             break;
         case 'bottom':
-            outsidePoint.y = y0 + height + margin;
+            outsidePoint.y = bbox.y + bbox.height;
             break;
     }
 
     return outsidePoint;
+}
+
+function getOutsideData(side, point, bbox) {
+    return {
+        point: getOutsidePoint(side, point, bbox),
+        direction: side
+    };
+}
+
+function getBBoxSideIndex(point, rect) {
+    if (point.y === rect.y) return 0;               // top
+    if (point.x === rect.x + rect.width) return 1;  // right
+    if (point.y === rect.y + rect.height) return 2;  // bottom
+    return 3;                                        // left
+}
+
+function isPointOnBBoxBorder(point, rect) {
+    const x2 = rect.x + rect.width;
+    const y2 = rect.y + rect.height;
+    if (point.x === rect.x || point.x === x2) return point.y >= rect.y && point.y <= y2;
+    if (point.y === rect.y || point.y === y2) return point.x >= rect.x && point.x <= x2;
+    return false;
+}
+
+function getShortestPerimeterPath(sourcePoint, targetPoint, bbox) {
+    const corners = [bbox.topLeft(), bbox.topRight(), bbox.bottomRight(), bbox.bottomLeft()];
+    const sourceSideIdx = getBBoxSideIndex(sourcePoint, bbox);
+    const targetSideIdx = getBBoxSideIndex(targetPoint, bbox);
+
+    const cwCorners = [];
+    let idx = (sourceSideIdx + 1) % 4;
+    while (idx !== (targetSideIdx + 1) % 4) {
+        cwCorners.push(corners[idx]);
+        idx = (idx + 1) % 4;
+    }
+
+    const ccwCorners = [];
+    idx = sourceSideIdx;
+    while (idx !== targetSideIdx) {
+        ccwCorners.push(corners[idx]);
+        idx = (idx + 3) % 4;
+    }
+
+    const cwPath = [sourcePoint, ...cwCorners, targetPoint];
+    const ccwPath = [sourcePoint, ...ccwCorners, targetPoint];
+    const pathLen = (pts) => pts.reduce((sum, p, i) => i === 0 ? 0 : sum + pts[i - 1].distance(p), 0);
+
+    return pathLen(cwPath) <= pathLen(ccwPath) ? cwPath : ccwPath;
+}
+
+function removeOrthogonalLoops(path) {
+    let changed = true;
+    while (changed) {
+        changed = false;
+        outer: for (let i = 0; i < path.length - 1; i++) {
+            for (let j = i + 2; j < path.length - 1; j++) {
+                const pi = path[i], pi1 = path[i + 1], pj = path[j], pj1 = path[j + 1];
+                const horizontal = pi.y === pi1.y && pj.y === pj1.y && pi.y === pj.y;
+                const vertical   = pi.x === pi1.x && pj.x === pj1.x && pi.x === pj.x;
+                if (horizontal || vertical) {
+                    const coord = horizontal ? 'x' : 'y';
+                    const iMin = Math.min(pi[coord], pi1[coord]);
+                    const iMax = Math.max(pi[coord], pi1[coord]);
+                    const jMin = Math.min(pj[coord], pj1[coord]);
+                    const jMax = Math.max(pj[coord], pj1[coord]);
+                    if (iMin <= jMax && jMin <= iMax) {
+                        path = [...path.slice(0, i + 1), ...path.slice(j + 1)];
+                        changed = true;
+                        break outer;
+                    }
+                }
+            }
+        }
+    }
+    return path;
+}
+
+function getRayBBoxIntersection(point, direction, bbox) {
+    switch (direction) {
+        case 'left':   return new g.Point(bbox.x, point.y);
+        case 'right':  return new g.Point(bbox.x + bbox.width, point.y);
+        case 'top':    return new g.Point(point.x, bbox.y);
+        case 'bottom': return new g.Point(point.x, bbox.y + bbox.height);
+    }
+}
+
+function getOrthogonalDirections(direction) {
+    return VERTICAL_DIRECTIONS.includes(direction)
+        ? [Directions.LEFT, Directions.RIGHT]
+        : [Directions.TOP, Directions.BOTTOM];
+}
+
+function getRayBBoxEntry(point, direction, bbox) {
+    const x2 = bbox.x + bbox.width;
+    const y2 = bbox.y + bbox.height;
+    switch (direction) {
+        case Directions.LEFT:
+            if (x2 < point.x && point.y >= bbox.y && point.y <= y2) return new g.Point(x2, point.y);
+            break;
+        case Directions.RIGHT:
+            if (bbox.x > point.x && point.y >= bbox.y && point.y <= y2) return new g.Point(bbox.x, point.y);
+            break;
+        case Directions.TOP:
+            if (y2 < point.y && point.x >= bbox.x && point.x <= x2) return new g.Point(point.x, y2);
+            break;
+        case Directions.BOTTOM:
+            if (bbox.y > point.y && point.x >= bbox.x && point.x <= x2) return new g.Point(point.x, bbox.y);
+            break;
+    }
+    return null;
+}
+
+function getNextDirections(currentDirection) {
+    switch (currentDirection) {
+        case Directions.LEFT:
+            return [Directions.TOP, Directions.BOTTOM, Directions.LEFT];
+        case Directions.RIGHT:
+            return [Directions.TOP, Directions.BOTTOM, Directions.RIGHT];
+        case Directions.TOP:
+            return [Directions.LEFT, Directions.RIGHT, Directions.TOP];
+        case Directions.BOTTOM:
+            return [Directions.LEFT, Directions.RIGHT, Directions.BOTTOM];
+    }
 }
 
 function createLoop(from, to, { dx = 0, dy = 0 }) {
@@ -462,53 +597,115 @@ function moveAndExpandBBox(bbox, direction, margin) {
     return bbox;
 }
 
-function routeBetweenPoints(source, target, opt = {}) {
-    const { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
-    const { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight, margin: targetMargin } = target;
+function routeBetweenPoints(sourceData, targetData, opt = {}) {
+    const { point: sourcePoint, margin: sourceMargin } = sourceData;
+    const sourceBBox = new g.Rect(sourceData.x0, sourceData.y0, sourceData.width, sourceData.height);
+    const { point: targetPoint, margin: targetMargin } = targetData;
+    const targetBBox = new g.Rect(targetData.x0, targetData.y0, targetData.width, targetData.height);
+
     const { targetInSourceBBox = false, minMargin } = opt;
 
-    const tx1 = tx0 + targetWidth;
-    const ty1 = ty0 + targetHeight;
-    const sx1 = sx0 + sourceWidth;
-    const sy1 = sy0 + sourceHeight;
-
-    // Key coordinates including the margin
-    const smx0 = sx0 - sourceMargin;
-    const smx1 = sx1 + sourceMargin;
-    const smy0 = sy0 - sourceMargin;
-    const smy1 = sy1 + sourceMargin;
-
-    const tmx0 = tx0 - targetMargin;
-    const tmx1 = tx1 + targetMargin;
-    const tmy0 = ty0 - targetMargin;
-    const tmy1 = ty1 + targetMargin;
-
-    let ignoreOverlappingMargin = 0;
-    if (minMargin != null) {
-        ignoreOverlappingMargin = Math.max(0, (sourceMargin + targetMargin) - 2 * minMargin);
-    }
-
-    const [sourceSide, targetSide] = resolveSides(source, target);
-
-    const sourceOutsidePoint = getOutsidePoint(sourceSide, { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight }, sourceMargin);
-    const targetOutsidePoint = getOutsidePoint(targetSide, { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight }, targetMargin);
-
-    const { x: sox, y: soy } = sourceOutsidePoint;
-    const { x: tox, y: toy } = targetOutsidePoint;
-    const tcx = (tx0 + tx1) / 2;
-    const tcy = (ty0 + ty1) / 2;
-    const scx = (sx0 + sx1) / 2;
-    const scy = (sy0 + sy1) / 2;
-    const middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
-    const middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
-
-    const sourceBBox = new g.Rect(sx0, sy0, sourceWidth, sourceHeight);
-    const targetBBox = new g.Rect(tx0, ty0, targetWidth, targetHeight);
     const inflatedSourceBBox = sourceBBox.clone().inflate(sourceMargin);
+
     const inflatedTargetBBox = targetBBox.clone().inflate(targetMargin);
 
-    const sourceForDistance = Object.assign({}, source, { x1: sx1, y1: sy1, outsidePoint: sourceOutsidePoint, direction: sourceSide });
-    const targetForDistance = Object.assign({}, target, { x1: tx1, y1: ty1, outsidePoint: targetOutsidePoint, direction: targetSide });
+    const inflatedUnionBBox = g.Rect.fromRectUnion(inflatedSourceBBox, inflatedTargetBBox);
+    const inflatedUnionBBoxCorners = [inflatedUnionBBox.topLeft(), inflatedUnionBBox.topRight(), inflatedUnionBBox.bottomRight(), inflatedUnionBBox.bottomLeft()];
+
+    const [sourceSide, targetSide] = resolveSides(sourceData, targetData);
+
+    const sourceInitialPosition = getOutsideData(sourceSide, sourcePoint, inflatedSourceBBox);
+    const targetInitialPosition = getOutsideData(targetSide, targetPoint, inflatedTargetBBox);
+
+    const resultPath = [sourceInitialPosition.point, targetInitialPosition.point];
+
+    const sourceFirstPoint = resultPath[0];
+    const targetFirstPoint = resultPath[1];
+
+    const isSourceFirstPointOnUnionBorder = isPointOnBBoxBorder(sourceFirstPoint, inflatedUnionBBox);
+    const isTargetFirstPointOnUnionBorder = isPointOnBBoxBorder(targetFirstPoint, inflatedUnionBBox);
+
+    if (isSourceFirstPointOnUnionBorder && isTargetFirstPointOnUnionBorder) {
+        /*const sourceSideIdx = getBBoxSideIndex(sourceFirstPoint, inflatedUnionBBox);
+        const targetSideIdx = getBBoxSideIndex(targetFirstPoint, inflatedUnionBBox);
+
+        const cwCorners = [];
+        let idx = (sourceSideIdx + 1) % 4;
+        while (idx !== (targetSideIdx + 1) % 4) {
+            cwCorners.push(inflatedUnionBBoxCorners[idx]);
+            idx = (idx + 1) % 4;
+        }
+
+        const ccwCorners = [];
+        idx = sourceSideIdx;
+        while (idx !== targetSideIdx) {
+            ccwCorners.push(inflatedUnionBBoxCorners[idx]);
+            idx = (idx + 3) % 4;
+        }
+
+        const cwPath = [sourceFirstPoint, ...cwCorners, targetFirstPoint];
+        const ccwPath = [sourceFirstPoint, ...ccwCorners, targetFirstPoint];
+        const pathLen = (pts) => pts.reduce((sum, p, i) => i === 0 ? 0 : sum + pts[i - 1].distance(p), 0);
+
+        return pathLen(cwPath) <= pathLen(ccwPath) ? cwPath : ccwPath;*/
+        return getShortestPerimeterPath(sourceFirstPoint, targetFirstPoint, inflatedUnionBBox);
+    }
+
+    let sourcePrefixPoints, sourceExitPoints;
+    if (isSourceFirstPointOnUnionBorder) {
+        sourcePrefixPoints = [];
+        sourceExitPoints = [sourceFirstPoint];
+    } else {
+        const hitPoint = getRayBBoxEntry(sourceFirstPoint, sourceInitialPosition.direction, inflatedTargetBBox);
+        if (hitPoint) {
+            sourcePrefixPoints = [sourceFirstPoint, hitPoint];
+            const [perpDir1, perpDir2] = getOrthogonalDirections(sourceInitialPosition.direction);
+            sourceExitPoints = [
+                getRayBBoxIntersection(hitPoint, perpDir1, inflatedUnionBBox),
+                getRayBBoxIntersection(hitPoint, perpDir2, inflatedUnionBBox)
+            ];
+        } else {
+            sourcePrefixPoints = [sourceFirstPoint];
+            sourceExitPoints = [getRayBBoxIntersection(sourceFirstPoint, sourceInitialPosition.direction, inflatedUnionBBox)];
+        }
+    }
+
+    let targetSuffixPoints, targetExitPoints;
+    if (isTargetFirstPointOnUnionBorder) {
+        targetSuffixPoints = [];
+        targetExitPoints = [targetFirstPoint];
+    } else {
+        const hitPoint = getRayBBoxEntry(targetFirstPoint, targetInitialPosition.direction, inflatedSourceBBox);
+        if (hitPoint) {
+            targetSuffixPoints = [hitPoint, targetFirstPoint];
+            const [perpDir1, perpDir2] = getOrthogonalDirections(targetInitialPosition.direction);
+            targetExitPoints = [
+                getRayBBoxIntersection(hitPoint, perpDir1, inflatedUnionBBox),
+                getRayBBoxIntersection(hitPoint, perpDir2, inflatedUnionBBox)
+            ];
+        } else {
+            targetSuffixPoints = [targetFirstPoint];
+            targetExitPoints = [getRayBBoxIntersection(targetFirstPoint, targetInitialPosition.direction, inflatedUnionBBox)];
+        }
+    }
+
+    const pathLen = pts => pts.reduce((sum, p, i) => i === 0 ? 0 : sum + pts[i - 1].distance(p), 0);
+    let bestPath = null;
+    for (const srcExit of sourceExitPoints) {
+        for (const tgtExit of targetExitPoints) {
+            const candidate = [...sourcePrefixPoints, ...getShortestPerimeterPath(srcExit, tgtExit, inflatedUnionBBox), ...targetSuffixPoints];
+            if (!bestPath || pathLen(candidate) < pathLen(bestPath)) bestPath = candidate;
+        }
+    }
+    return bestPath;
+    //const sourceCenter = sourceBBox.center();
+    //const targetCenter = targetBBox.center();
+
+    //const middleOfVerticalSides = (sourceCenter.x < targetCenter.x ? (sourceBBox.x1 + targetBBox.x0) : (targetBBox.x1 + sourceBBox.x0)) / 2;
+    //const middleOfHorizontalSides = (sourceCenter.y < targetCenter.y ? (sourceBBox.y1 + targetBBox.y0) : (targetBBox.y1 + sourceBBox.y0)) / 2;
+
+    /*const sourceForDistance = Object.assign({}, sourceData, { x1: sx1, y1: sy1, outsidePoint: sourceOutsidePoint, direction: sourceSide });
+    const targetForDistance = Object.assign({}, targetData, { x1: tx1, y1: ty1, outsidePoint: targetOutsidePoint, direction: targetSide });
 
     // Distances used to determine the shortest route along the connections on horizontal sides for
     // bottom => bottom
@@ -522,10 +719,31 @@ function routeBetweenPoints(source, target, opt = {}) {
     // left => right
     // right => right
     // right => left
-    const [topD, bottomD] = getVerticalDistance(sourceForDistance, targetForDistance);
+    const [topD, bottomD] = getVerticalDistance(sourceForDistance, targetForDistance);*/
+
+    /*const pointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
+    const pointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
+
+    const middleOfAnchors = (sourceOutsidePoint.x + targetOutsidePoint.x) / 2;
+
+    if (pointInsideSource || pointInsideTarget) {
+        return [
+            { x: sourceOutsidePoint.x, y: sourceOutsidePoint.y },
+            { x: sourceOutsidePoint.x, y: middleOfAnchors },
+            { x: targetOutsidePoint.x, y: middleOfAnchors },
+            { x: targetOutsidePoint.x, y: targetOutsidePoint.y }
+        ];
+    }
+
+    return [
+        { x: sourceOutsidePoint.x, y: sourceOutsidePoint.y },
+        { x: sourceOutsidePoint.x, y: middleOfAnchors },
+        { x: targetOutsidePoint.x, y: middleOfAnchors },
+        { x: targetOutsidePoint.x, y: targetOutsidePoint.y }
+    ];*/
 
     // All possible combinations of source and target sides
-    if (sourceSide === 'left' && targetSide === 'right') {
+    /*if (sourceSide === 'left' && targetSide === 'right') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
         const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
 
@@ -1519,7 +1737,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x: sox, y },
             { x: tox, y }
         ];
-    }
+    }*/
 }
 
 function getLoopCoordinates(direction, angle, margin) {
@@ -1550,47 +1768,47 @@ function rightAngleRouter(vertices, opt, linkView) {
     const useVertices = opt.useVertices || false;
 
     const isSourcePort = !!linkView.model.source().port;
-    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor, margin);
+    const sourcePointData = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor, margin);
 
     const isTargetPort = !!linkView.model.target().port;
-    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor, margin);
+    const targetPointData = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor, margin);
 
     const resultVertices = [];
 
     if (!useVertices || vertices.length === 0) {
-        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint, { minMargin }));
+        return simplifyPoints(routeBetweenPoints(sourcePointData, targetPointData, { minMargin }));
     }
 
     const verticesData = vertices.map((v) => pointDataFromVertex(v));
     const [firstVertex] = verticesData;
 
-    const [resolvedSourceDirection] = resolveSides(sourcePoint, firstVertex);
-    const isElement = sourcePoint.view && sourcePoint.view.model.isElement();
-    const sourceBBox = isElement ? moveAndExpandBBox(sourcePoint.view.model.getBBox(), resolvedSourceDirection, margin) : null;
+    const [resolvedSourceDirection] = resolveSides(sourcePointData, firstVertex);
+    const isElement = sourcePointData.view && sourcePointData.view.model.isElement();
+    const sourceBBox = isElement ? moveAndExpandBBox(sourcePointData.view.model.getBBox(), resolvedSourceDirection, margin) : null;
     const isVertexInside = isElement ? sourceBBox.containsPoint(firstVertex.point) : false;
 
     if (isVertexInside) {
-        const outsidePoint = getOutsidePoint(resolvedSourceDirection, sourcePoint, margin);
+        const outsidePoint = getOutsidePoint(resolvedSourceDirection, sourcePointData, margin);
         const firstPointOverlap = outsidePoint.equals(firstVertex.point);
 
-        const alignsVertically = sourcePoint.point.x === firstVertex.point.x;
-        const alignsHorizontally = sourcePoint.point.y === firstVertex.point.y;
+        const alignsVertically = sourcePointData.point.x === firstVertex.point.x;
+        const alignsHorizontally = sourcePointData.point.y === firstVertex.point.y;
 
         const isVerticalAndAligns = alignsVertically && (resolvedSourceDirection === Directions.TOP || resolvedSourceDirection === Directions.BOTTOM);
         const isHorizontalAndAligns = alignsHorizontally && (resolvedSourceDirection === Directions.LEFT || resolvedSourceDirection === Directions.RIGHT);
 
-        const firstSegment = new g.Line(sourcePoint.point, outsidePoint);
+        const firstSegment = new g.Line(sourcePointData.point, outsidePoint);
         const isVertexOnSegment = firstSegment.containsPoint(firstVertex.point);
 
         const isVertexAlignedAndInside = isVertexInside && (isHorizontalAndAligns || isVerticalAndAligns);
 
         if (firstPointOverlap) {
-            resultVertices.push(sourcePoint.point, firstVertex.point);
+            resultVertices.push(sourcePointData.point, firstVertex.point);
             // Set the access direction as the opposite of the source direction that will be used to connect the route with the next vertex
             firstVertex.direction = OPPOSITE_DIRECTIONS[resolvedSourceDirection];
         } else if (isVertexOnSegment || isVertexAlignedAndInside) {
             // Case where there is a need to create a loop
-            const angle = getSegmentAngle(isVertexOnSegment ? firstSegment : new g.Line(sourcePoint.point, firstVertex.point));
+            const angle = getSegmentAngle(isVertexOnSegment ? firstSegment : new g.Line(sourcePointData.point, firstVertex.point));
             const { dx, dy } = getLoopCoordinates(resolvedSourceDirection, angle, margin);
 
             const loop = createLoop({ point: outsidePoint }, firstVertex, { dx, dy });
@@ -1604,15 +1822,15 @@ function rightAngleRouter(vertices, opt, linkView) {
             // No need to create a route, use the `routeBetweenPoints` to construct a route
             firstVertex.direction = resolvedSourceDirection;
             firstVertex.margin = margin;
-            resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { targetInSourceBBox: true, minMargin }), firstVertex.point);
+            resultVertices.push(...routeBetweenPoints(sourcePointData, firstVertex, { targetInSourceBBox: true, minMargin }), firstVertex.point);
         }
     } else {
         // The first point responsible for the initial direction of the route
-        const next = verticesData[1] || targetPoint;
-        const direction = resolveInitialDirection(sourcePoint, firstVertex, next);
+        const next = verticesData[1] || targetPointData;
+        const direction = resolveInitialDirection(sourcePointData, firstVertex, next);
         firstVertex.direction = direction;
 
-        resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { minMargin }), firstVertex.point);
+        resultVertices.push(...routeBetweenPoints(sourcePointData, firstVertex, { minMargin }), firstVertex.point);
     }
 
     for (let i = 0; i < verticesData.length - 1; i++) {
@@ -1668,9 +1886,9 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     const lastVertex = verticesData[verticesData.length - 1];
 
-    if (targetPoint.view && targetPoint.view.model.isElement()) {
-        const [, resolvedTargetDirection] = resolveSides(lastVertex, targetPoint);
-        const outsidePoint = getOutsidePoint(resolvedTargetDirection, targetPoint, margin);
+    if (targetPointData.view && targetPointData.view.model.isElement()) {
+        const [, resolvedTargetDirection] = resolveSides(lastVertex, targetPointData);
+        const outsidePoint = getOutsidePoint(resolvedTargetDirection, targetPointData, margin);
 
         // the last point of `simplified` array is the last defined vertex
         // this will ensure that the last segment continues in a straight line
@@ -1685,17 +1903,17 @@ function rightAngleRouter(vertices, opt, linkView) {
 
             lastVertex.direction = definedDirection;
 
-            let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minMargin });
-            const [p1, p2] = simplifyPoints([...lastSegmentRoute, targetPoint.point]);
+            let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPointData, { minMargin });
+            const [p1, p2] = simplifyPoints([...lastSegmentRoute, targetPointData.point]);
 
             const lastSegment = new g.Line(p1, p2);
             const roundedLastSegmentAngle = Math.round(getSegmentAngle(lastSegment));
             const lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
 
-            const targetBBox = moveAndExpandBBox(targetPoint.view.model.getBBox(), resolvedTargetDirection, margin);
+            const targetBBox = moveAndExpandBBox(targetPointData.view.model.getBBox(), resolvedTargetDirection, margin);
 
-            const alignsVertically = lastVertex.point.x === targetPoint.point.x;
-            const alignsHorizontally = lastVertex.point.y === targetPoint.point.y;
+            const alignsVertically = lastVertex.point.x === targetPointData.point.x;
+            const alignsHorizontally = lastVertex.point.y === targetPointData.point.y;
             const isVertexInside = targetBBox.containsPoint(lastVertex.point);
 
             const isVerticalAndAligns = alignsVertically && (resolvedTargetDirection === Directions.TOP || resolvedTargetDirection === Directions.BOTTOM);
@@ -1710,10 +1928,10 @@ function rightAngleRouter(vertices, opt, linkView) {
             } else if (isVertexInside && resolvedTargetDirection !== OPPOSITE_DIRECTIONS[definedDirection]) {
                 lastVertex.margin = margin;
                 lastVertex.direction = resolvedTargetDirection;
-                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minMargin });
+                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPointData, { minMargin });
             } else if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
                 lastVertex.margin = margin;
-                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minMargin });
+                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPointData, { minMargin });
             }
 
             resultVertices.push(...lastSegmentRoute);
@@ -1721,7 +1939,7 @@ function rightAngleRouter(vertices, opt, linkView) {
     } else {
         // since the target is only a point we can apply the same logic as if we connected two verticesData
         const from = lastVertex;
-        const to = targetPoint;
+        const to = targetPointData;
 
         const connectionSegment = new g.Line(from.point, to.point);
         const connectionSegmentAngle = getSegmentAngle(connectionSegment);
