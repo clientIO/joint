@@ -1,3 +1,6 @@
+/* eslint-disable jsdoc/require-param */
+/* eslint-disable jsdoc/require-returns */
+
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 import type { LinkMarkerRecord } from '../theme/named-link-markers';
 
@@ -20,8 +23,7 @@ const STROKE = 'inherit';
 const SW = 2;
 
 /**
- *
- * @param options
+ * Helper function to apply default options for link markers.
  */
 function defaults(options: LinkMarkerOptions = {}) {
   const {
@@ -35,8 +37,6 @@ function defaults(options: LinkMarkerOptions = {}) {
 
 /**
  * Filled triangle arrow. Tip at 0, body extends into positive X.
- * @param opts
- * @param options
  */
 export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth } = defaults(options);
@@ -53,8 +53,6 @@ export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
 
 /**
  * Open chevron arrow (no back edge). Tip at 0.
- * @param opts
- * @param options
  */
 export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth } = defaults(options);
@@ -71,8 +69,6 @@ export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerReco
 
 /**
  * Arrow with a concave (sunken) back edge.
- * @param opts
- * @param options
  */
 export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth } = defaults(options);
@@ -89,8 +85,6 @@ export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRe
 
 /**
  * Arrow with a split/quill back — back edges form an open V (don't meet).
- * @param opts
- * @param options
  */
 export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth } = defaults(options);
@@ -114,8 +108,6 @@ export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRec
 
 /**
  * Double arrow (two nested triangles).
- * @param opts
- * @param options
  */
 export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth } = defaults(options);
@@ -135,8 +127,6 @@ export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRe
 
 /**
  * Circle marker. Use `fill: 'none'` for outline.
- * @param opts
- * @param options
  */
 export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth } = defaults(options);
@@ -151,8 +141,6 @@ export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord 
 
 /**
  * Diamond (losangle) marker. Use `fill: 'none'` for outline.
- * @param opts
- * @param options
  */
 export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth } = defaults(options);
@@ -168,8 +156,6 @@ export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord
 
 /**
  * Vertical bar at the link end.
- * @param opts
- * @param options
  */
 export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth } = defaults(options);
@@ -184,8 +170,6 @@ export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
 
 /**
  * Cross (X) centered at the link end.
- * @param opts
- * @param options
  */
 export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth } = defaults(options);
@@ -200,8 +184,6 @@ export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
 
 /**
  * Fork — same shape as arrow but pointing the opposite direction.
- * @param opts
- * @param options
  */
 export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth } = defaults(options);
@@ -217,8 +199,6 @@ export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
 
 /**
  * Fork with a closing vertical bar at the tip.
- * @param opts
- * @param options
  */
 export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth } = defaults(options);
@@ -237,8 +217,6 @@ export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerReco
 
 /**
  * Crow's foot — three lines spreading from a point (ER "many").
- * @param opts
- * @param options
  */
 export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth } = defaults(options);
@@ -257,8 +235,6 @@ export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
 
 /**
  * Crow's foot with circle — ER "many optional".
- * @param opts
- * @param options
  */
 export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth } = defaults(options);
@@ -279,8 +255,6 @@ export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerR
 
 /**
  * Two parallel vertical bars — ER "one".
- * @param opts
- * @param options
  */
 export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth } = defaults(options);
@@ -297,8 +271,6 @@ export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
 
 /**
  * Vertical bar with circle — ER "one optional".
- * @param opts
- * @param options
  */
 export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth } = defaults(options);
@@ -318,8 +290,6 @@ export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRe
 
 /**
  * Crow's foot with vertical bar — ER "one or many".
- * @param opts
- * @param options
  */
 export function linkMarkerOneOrMany(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth } = defaults(options);
