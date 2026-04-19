@@ -1,7 +1,10 @@
 import { dia } from '@joint/core';
 import { PORTAL_SELECTOR } from './element-model';
+import { linkStyle } from '../presets/link-style';
 
 export const LINK_MODEL_TYPE = 'LinkModel';
+
+const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
 
 /**
  * A custom JointJS link that can render React components.
@@ -34,6 +37,7 @@ export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
     return {
       ...super.defaults,
       type: LINK_MODEL_TYPE,
+      attrs: defaultLinkStyle,
       // Explicitly set attributes to avoid triggering `change` events.
       // See `link-mapper.ts` to see the values representing "no value"
       data: {},

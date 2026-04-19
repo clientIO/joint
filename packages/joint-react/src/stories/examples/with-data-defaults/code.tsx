@@ -54,6 +54,14 @@ const getLabelStyle = (color: string) => ({
   backgroundOutline: color,
 });
 
+
+const getDefaultLink = (color: string) => {
+  return () => ({
+    style: getLinkStyle(color),
+    labelStyle: getLabelStyle(color),
+  });
+};
+
 const initialElements: Record<string, PortElement> = {
   a: { kind: 'source', data: { label: 'Start' }, position: { x: 50, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.source },
   b: { kind: 'process', data: { label: 'Process' }, position: { x: 250, y: 50 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
@@ -170,6 +178,7 @@ function Diagram() {
           height={340}
           renderElement={renderElement}
           style={PAPER_STYLE}
+          defaultLink={getDefaultLink(color)}
         />
       </GraphProvider>
     </>
