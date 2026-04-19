@@ -1,20 +1,20 @@
 .default-element-demo.dark {
-  --jj-paper-bg: #1e1e2e;
-  --jj-paper-grid-color: #45475a;
-  --jj-paper-highlight-color: #3ff7c7;
+  --jj-paper-color: #1e1e2e;
+  --jj-color-grid: #45475a;
+  --jj-color-primary: #3ff7c7;
 
-  --jj-box-bg: #313244;
-  --jj-box-color: #cdd6f4;
+  --jj-box-color: #313244;
+  --jj-box-text-color: #cdd6f4;
   --jj-box-border-color: #585b70;
   --jj-box-available-border: #25f7ff;
 
   --jj-link-color: #89b4fa;
 
   --jj-label-color: #cdd6f4;
-  --jj-label-bg: #313244;
-  --jj-label-stroke: #585b70;
+  --jj-label-bg-color: #313244;
+  --jj-label-border-color: #585b70;
 
   --jj-port-color: #cdd6f4;
-  --jj-port-outline: #1e1e2e;
-  --jj-port-available-color: #25f7ff;
+  --jj-port-border-color: #1e1e2e;
+  --jj-port-connecting-color: #25f7ff;
 }

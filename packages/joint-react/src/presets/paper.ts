@@ -11,8 +11,7 @@ Object.values(dia.Paper.gridPatterns).forEach((pattern) => {
   const patterns = Array.isArray(pattern) ? pattern : [pattern];
   for (const subPattern of patterns) {
     if (!subPattern.color) continue;
-    // @todo read the fallback color from js theme.
-    subPattern.color = 'var(--jj-paper-grid-color, #9298a5)';
+    subPattern.color = 'var(--jj-paper-grid-color)';
   }
 });
 
@@ -28,8 +27,7 @@ export const DEFAULT_HIGHLIGHTING = {
     options: {
       attrs: {
         strokeWidth: 2,
-        // @todo read the fallback color from js theme.
-        stroke: 'var(--jj-paper-highlight-color, #ff4081)',
+        stroke: 'var(--jj-paper-highlight-color)',
       },
       rx: 4,
       ry: 4,
@@ -78,6 +76,7 @@ export const Paper = dia.Paper.extend({
     snapLinks: { radius: DEFAULT_SNAP_RADIUS },
     highlighting: DEFAULT_HIGHLIGHTING,
     drawGrid: true,
+    magnetThreshold: 'onleave',
     ...linkRoutingStraight(),
     measureNode,
     linkView,

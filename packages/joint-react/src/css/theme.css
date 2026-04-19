@@ -27,11 +27,80 @@
  */
 
 :root {
-  --jj-link-color: #333333;
-  --jj-link-connecting-color: #1971c2;
-  --jj-link-connecting-dash: 8 4;
-  --jj-link-snapped-color: var(--jj-link-connecting-color);
-  --jj-link-snapped-dash: none;
+  /* ── Palette ─────────────────────────────────────────────────────────── */
+  --jj-color-primary: #314b64;
+  --jj-color-primary-contrast: #ffffff;
+  --jj-color-success: #2f9e44;
+  --jj-color-destructive: #e03131;
+  --jj-color-viable: #314b64;
+  --jj-color-nonviable: #868e96;
+  --jj-color-text: #495057;
+  --jj-color-surface: #EFF3F6;
+  --jj-color-border: #ced4da;
+  --jj-color-border-subtle: #e9ecef;
+  --jj-color-grid: #c5cdd5;
+  --jj-color-scroller: #dde6ed;
+  --jj-color-tool: #314b64;
+  --jj-color-tool-contrast: #ffffff;
+  --jj-shape-border-color: #8A98AD;
+  --jj-shape-surface-color: #EFF3F6;
+  --jj-paper-color: #eaf0f4;
+
+  /* ── Paper ───────────────────────────────────────────────────────────── */
+  --jj-paper-border-color: var(--jj-color-border-subtle);
+  --jj-paper-border-style: solid;
+  --jj-paper-border-width: 1px;
+  --jj-paper-box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+  --jj-paper-grid-color: var(--jj-color-grid);
+  --jj-paper-grid-size: 10;
+  --jj-paper-grid-thickness: 1;
+  --jj-paper-highlight-color: var(--jj-color-primary);
+
+  /* ── Links ───────────────────────────────────────────────────────────── */
+  --jj-link-color: var(--jj-color-text);
+  --jj-link-width: 2;
+  --jj-link-dash: none;
+  --jj-link-line-cap: butt;
+  --jj-link-hover-color: var(--jj-color-primary);
+  --jj-link-hover-width: 3;
+  --jj-link-selected-color: var(--jj-color-primary);
+  --jj-link-selected-width: 3;
+  --jj-link-connecting-color: var(--jj-link-color);
+  --jj-link-connecting-width: 3;
+
+  /* ── Link Labels ─────────────────────────────────────────────────────── */
+  --jj-label-bg-color: var(--jj-color-surface);
+  --jj-label-color: var(--jj-color-text);
+  --jj-label-font-size: 14px;
+  --jj-label-font-family: Arial, sans-serif;
+  --jj-label-border-color: var(--jj-color-text);
+  --jj-label-border-width: 1px;
+  --jj-label-border-radius: 4px;
+
+  /* ── Ports ───────────────────────────────────────────────────────────── */
+  --jj-port-color: var(--jj-color-surface);
+  --jj-port-border-color: var(--jj-color-text);
+  --jj-port-border-width: 1px;
+  --jj-port-hover-color: var(--jj-color-text);
+  --jj-port-border-hover-color: var(--jj-port-border-color);
+  --jj-port-hover-border-width: 4px;
+  --jj-port-connecting-color: var(--jj-color-text);
+  --jj-port-connecting-border-color: var(--jj-port-border-color);
+  --jj-port-connecting-border-width: var(--jj-port-border-width);
+  --jj-port-label-color: var(--jj-color-text);
+  --jj-port-label-font-size: 10px;
+  --jj-port-label-font-family: Arial, sans-serif;
+
+  /* ── Box (HTML elements) ─────────────────────────────────────────────── */
+  --jj-box-color: var(--jj-shape-surface-color);
+  --jj-box-text-color: var(--jj-color-text);
+  --jj-box-border-color: var(--jj-shape-border-color);
+  --jj-box-border-width: 1px;
+  --jj-box-border-radius: 4px;
+  --jj-box-padding: 8px 12px;
+  --jj-box-font-size: 14px;
+  --jj-box-font-family: sans-serif;
+  --jj-box-available-border: var(--jj-color-viable);
 }
 
 @layer base {
@@ -39,20 +108,19 @@
   /* ── Links ─────────────────────────────────────────────────────────────── */
 
   :where(.jj-link-line) {
-    stroke: var(--jj-link-color, #333333);
-    stroke-width: var(--jj-link-width, 2);
+    stroke: var(--jj-link-color);
+    stroke-width: var(--jj-link-width);
     stroke-dasharray: var(--jj-link-dash);
-    stroke-linecap: var(--jj-link-line-cap, 'butt');
+    stroke-linecap: var(--jj-link-line-cap);
   }
 
   :where(.jj-is-connecting) {
     --jj-link-color: var(--jj-link-connecting-color);
-    --jj-link-dash: var(--jj-link-connecting-dash);
+    --jj-link-width: var(--jj-link-connecting-width);
   }
 
   :where(.jj-is-snapped) {
-    --jj-link-color: var(--jj-link-snapped-color);
-    --jj-link-dash: var(--jj-link-snapped-dash);
+    --jj-link-color: var(--jj-color-primary);
   }
 
   :where(.jj-link-wrapper) {
@@ -60,55 +128,71 @@
     stroke-width: var(--jj-link-wrapper-width, 10);
   }
 
-  /* ── Labels ────────────────────────────────────────────────────────────── */
+  /* ── Link Labels ───────────────────────────────────────────────────────── */
 
   :where(.jj-link-label-text) {
-    fill: var(--jj-label-color, #333333);
-    font-size: var(--jj-label-font-size, 12px);
-    font-family: var(--jj-label-font-family, sans-serif);
+    fill: var(--jj-label-color);
+    font-size: var(--jj-label-font-size);
+    font-family: var(--jj-label-font-family);
   }
 
   :where(.jj-link-label-body) {
-    fill: var(--jj-label-bg, #ffffff);
-    stroke: var(--jj-label-stroke, #333333);
-    stroke-width: var(--jj-label-stroke-width, 1);
+    fill: var(--jj-label-bg-color);
+    stroke: var(--jj-label-border-color);
+    stroke-width: var(--jj-label-border-width);
+    rx: var(--jj-label-border-radius);
+    ry: var(--jj-label-border-radius);
   }
 
   /* ── Ports ──────────────────────────────────────────────────────────────── */
 
+  /* @todo rename .jj-port */
   :where(.jj-port-body) {
-    fill: var(--jj-port-color, #333333);
-    stroke: var(--jj-port-outline, #EFF2F5);
-    stroke-width: var(--jj-port-outline-width, 2);
+    fill: var(--jj-port-color);
+    stroke: var(--jj-port-border-color);
+    stroke-width: var(--jj-port-border-width);
+  }
+
+  :where(.jj-port-body:hover) {
+    fill: var(--jj-port-hover-color);
+    stroke: var(--jj-port-border-hover-color);
+    stroke-width: var(--jj-port-hover-border-width);
+    transition: fill 0.2s, stroke 0.2s, stroke-width 0.2s;
   }
 
   :where(.jj-port-body.jj-is-available) {
-    fill: var(--jj-port-available-color, #ef4444);
+    fill: var(--jj-port-connecting-color);
+    stroke: var(--jj-port-connecting-border-color);
+    stroke-width: var(--jj-port-connecting-border-width);
+    transition: fill 0.2s, stroke 0.2s, stroke-width 0.2s;
   }
 
   :where(.jj-port-label) {
-    fill: var(--jj-port-label-color, #333333);
+    fill: var(--jj-port-label-color);
+    font-size: var(--jj-port-label-font-size);
+    font-family: var(--jj-port-label-font-family);
   }
 
   /* ── Paper ─────────────────────────────────────────────────────────────── */
 
   :where(.jj-paper) {
-    background-color: var(--jj-paper-bg, #EFF2F5);
+    background-color: var(--jj-paper-color);
   }
 
   /* ── Elements ────────────────────────────────────────────────────────── */
 
   :where(.jj-box) {
-    background: var(--jj-box-bg, #ffffff);
-    color: var(--jj-box-color, #333333);
-    border: var(--jj-box-border-width, 1px) solid var(--jj-box-border-color, #adb5c1);
-    border-radius: var(--jj-box-border-radius, 4px);
-    padding: var(--jj-box-padding, 8px 12px);
-    font-size: var(--jj-box-font-size, 14px);
-    font-family: var(--jj-box-font-family, sans-serif);
+    background: var(--jj-box-color);
+    color: var(--jj-box-text-color);
+    border: var(--jj-box-border-width) solid var(--jj-box-border-color);
+    border-radius: var(--jj-box-border-radius);
+    padding: var(--jj-box-padding);
+    font-size: var(--jj-box-font-size);
+    font-family: var(--jj-box-font-family);
   }
 
   :where(.jj-is-available .jj-box) {
-    border-color: var(--jj-box-available-border, #ef4444);
+    border-color: var(--jj-box-available-border);
+    transition: border-color 0.2s;
   }
 }

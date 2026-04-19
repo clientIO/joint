@@ -8,8 +8,8 @@ We restrict to a specific container here to avoid affecting the Storybook UI.
   --jj-link-color: #6366f1;
   --jj-link-width: 2;
   --jj-label-color: #1e293b;
-  --jj-label-bg: #eef2ff;
-  --jj-label-stroke: #a5b4fc;
+  --jj-label-bg-color: #eef2ff;
+  --jj-label-border-color: #a5b4fc;
 
   --node-bg: #eef2ff;
   --node-stroke: #818cf8;
@@ -23,8 +23,8 @@ We restrict to a specific container here to avoid affecting the Storybook UI.
 .css-theme.dark {
   --jj-link-color: #818cf8;
   --jj-label-color: #e0e7ff;
-  --jj-label-bg: #1e1b4b;
-  --jj-label-stroke: #6366f1;
+  --jj-label-bg-color: #1e1b4b;
+  --jj-label-border-color: #6366f1;
 
   --node-bg: #1e1b4b;
   --node-stroke: #818cf8;
