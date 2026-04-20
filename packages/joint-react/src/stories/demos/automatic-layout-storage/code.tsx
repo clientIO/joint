@@ -1,6 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/pseudo-random */
+// We have pre-loaded tailwind css
 import {
   GraphProvider,
   Paper,
@@ -253,20 +254,11 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
 
   return (
     <HTMLHost
-      style={{
-        width: 200,
-        padding: '14px 16px',
-        backgroundColor: '#fbf8ee',
-        border: `1px solid ${isEditing ? '#b54f23' : 'rgba(28,36,52,0.18)'}`,
-        borderRadius: 5,
-        boxShadow: isEditing
-          ? '0 0 0 3px rgba(181,79,35,0.12), 0 12px 24px -16px rgba(28,36,52,0.4)'
-          : '0 8px 22px -16px rgba(28,36,52,0.4)',
-        fontFamily: 'system-ui, sans-serif',
-        color: '#1c2434',
-        cursor: isEditing ? 'default' : 'grab',
-        transition: 'border-color 120ms ease, box-shadow 160ms ease',
-      }}
+      className={`w-50 px-4 py-3.5 bg-[#fbf8ee] rounded-[5px] font-sans text-[#1c2434] transition-[border-color,box-shadow] duration-150 border ${
+        isEditing
+          ? 'cursor-default border-[#b54f23] shadow-[0_0_0_3px_rgba(181,79,35,0.12),0_12px_24px_-16px_rgba(28,36,52,0.4)]'
+          : 'cursor-grab border-[rgba(28,36,52,0.18)] shadow-[0_8px_22px_-16px_rgba(28,36,52,0.4)]'
+      }`}
     >
       {isEditing ? (
         <div
@@ -283,7 +275,7 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
             onKeyDown={exitOnEnter}
             font="serif"
           />
-          <div style={{ height: 8 }} />
+          <div className="h-2" />
           <FieldLabel>Owner</FieldLabel>
           <InlineInput value={owner} onChange={updateOwner} onKeyDown={exitOnEnter} font="sans" />
         </div>
@@ -293,14 +285,12 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
             type="button"
             onClick={enterEdit}
             onPointerDown={swallowEditorEvent}
-            style={titleButtonStyle}
+            className="flex items-center justify-between w-full p-0 m-0 font-serif text-base font-semibold text-[#1c2434] text-left bg-transparent border-0 cursor-text"
           >
             {title}
             <PencilGlyph />
           </button>
-          <div style={{ fontSize: 11, color: 'rgba(28,36,52,0.55)', marginTop: 4 }}>
-            Owner · {owner}
-          </div>
+          <div className="text-[11px] text-[rgba(28,36,52,0.55)] mt-1">Owner · {owner}</div>
         </>
       )}
     </HTMLHost>
@@ -309,15 +299,7 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
 
 function FieldLabel({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div
-      style={{
-        fontSize: 8,
-        letterSpacing: '0.2em',
-        textTransform: 'uppercase',
-        color: 'rgba(28,36,52,0.5)',
-        marginBottom: 3,
-      }}
-    >
+    <div className="text-[8px] tracking-[0.2em] uppercase text-[rgba(28,36,52,0.5)] mb-0.75">
       {children}
     </div>
   );
@@ -339,42 +321,12 @@ function InlineInput({ value, onChange, onKeyDown, font, ref }: Readonly<InlineI
       value={value}
       onChange={(event) => onChange(event.target.value)}
       onKeyDown={onKeyDown}
-      style={{
-        width: '100%',
-        padding: '4px 0',
-        margin: 0,
-        background: 'transparent',
-        border: 'none',
-        borderBottom: '1px solid rgba(28,36,52,0.25)',
-        outline: 'none',
-        color: '#1c2434',
-        fontFamily:
-          font === 'serif'
-            ? '"Iowan Old Style", "Palatino Linotype", Georgia, serif'
-            : 'system-ui, sans-serif',
-        fontSize: font === 'serif' ? 16 : 12,
-        fontWeight: font === 'serif' ? 600 : 500,
-      }}
+      className={`w-full px-0 py-1 m-0 bg-transparent border-0 border-b border-[rgba(28,36,52,0.25)] outline-none text-[#1c2434] ${
+        font === 'serif' ? 'font-serif text-base font-semibold' : 'font-sans text-xs font-medium'
+      }`}
     />
   );
 }
-
-const titleButtonStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  width: '100%',
-  padding: 0,
-  margin: 0,
-  fontFamily: '"Iowan Old Style", "Palatino Linotype", Georgia, serif',
-  fontSize: 16,
-  fontWeight: 600,
-  color: '#1c2434',
-  textAlign: 'left',
-  background: 'transparent',
-  border: 'none',
-  cursor: 'text',
-};
 
 function PencilGlyph() {
   return (
@@ -387,7 +339,7 @@ function PencilGlyph() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={{ opacity: 0.35, marginLeft: 6, flexShrink: 0 }}
+      className="opacity-35 ml-1.5 shrink-0"
     >
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
@@ -428,26 +380,32 @@ function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
   const linkCount = Object.keys(snapshot.links).length;
 
   return (
-    <aside style={inspectorStyle}>
-      <div style={{ padding: '20px 22px 12px' }}>
-        <div style={eyebrowStyle}>What gets persisted</div>
-        <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4, lineHeight: 1.3 }}>
-          Just the <code style={inlineCodeStyle}>data</code> field.
+    <aside className="w-80 shrink-0 bg-[#f1ebda] border-l border-[rgba(28,36,52,0.12)] flex flex-col">
+      <div className="px-[22px] pt-5 pb-3">
+        <div className="text-[9px] tracking-[0.18em] uppercase text-[rgba(28,36,52,0.5)]">
+          What gets persisted
         </div>
-        <p
-          style={{ margin: '8px 0 0', fontSize: 12, color: 'rgba(28,36,52,0.6)', lineHeight: 1.5 }}
-        >
+        <div className="text-lg font-semibold mt-1 leading-[1.3]">
+          Just the{' '}
+          <code className="font-mono text-xs bg-[rgba(28,36,52,0.08)] px-1.25 py-px rounded-sm">
+            data
+          </code>{' '}
+          field.
+        </div>
+        <p className="mt-2 mb-0 text-xs text-[rgba(28,36,52,0.6)] leading-normal">
           Click a card to edit its title or owner. Save downloads the JSON below — sizes and
           positions are recomputed on load.
         </p>
       </div>
-      <div style={statsRowStyle}>
+      <div className="flex justify-between mx-5.5 py-2 border-t border-b border-dashed border-[rgba(28,36,52,0.18)] font-mono text-[10px] text-[rgba(28,36,52,0.6)]">
         <span>
           {elementCount} nodes · {linkCount} links
         </span>
         <span>{bytes} B</span>
       </div>
-      <pre style={preStyle}>{json}</pre>
+      <pre className="flex-1 m-0 px-5.5 pt-3.5 pb-5.5 overflow-auto font-mono text-[11px] leading-[1.55] text-[#1c2434] bg-transparent whitespace-pre-wrap break-words">
+        {json}
+      </pre>
     </aside>
   );
 }
@@ -504,12 +462,16 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
 
   return (
     <>
-      <header style={headerStyle}>
+      <header className="flex items-center justify-between px-[22px] py-[18px] border-b border-[rgba(28,36,52,0.12)] gap-4">
         <div>
-          <div style={eyebrowStyle}>Demo · click a card to edit · file persistence</div>
-          <h2 style={titleStyle}>Save the data. Forget the geometry.</h2>
+          <div className="text-[9px] tracking-[0.18em] uppercase text-[rgba(28,36,52,0.5)]">
+            Demo · click a card to edit · file persistence
+          </div>
+          <h2 className="mt-1 mb-0 text-[22px] font-semibold tracking-[-0.01em]">
+            Save the data. Forget the geometry.
+          </h2>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="flex gap-2">
           <Button onClick={handleAdd}>+ Add node</Button>
           <Button onClick={handleRemoveLast}>− Remove last</Button>
           <Button onClick={handleSave} primary>
@@ -519,8 +481,8 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
         </div>
       </header>
 
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        <div style={canvasStyle}>
+      <div className="flex-1 flex min-h-0">
+        <div className="flex-1 relative bg-[radial-gradient(rgba(28,36,52,0.12)_1px,transparent_1px)] bg-[length:20px_20px] [background-position:12px_12px]">
           <Paper
             id={PAPER_ID}
             width="100%"
@@ -571,12 +533,12 @@ export default function App() {
   }, []);
 
   return (
-    <div style={shellStyle}>
+    <div className="w-full h-165 bg-[#f5f0e3] text-[#1c2434] rounded-md overflow-hidden border border-[rgba(28,36,52,0.14)] flex flex-col font-sans">
       <input
         ref={fileInputRef}
         type="file"
         accept="application/json"
-        style={{ display: 'none' }}
+        className="hidden"
         onChange={handleFileChosen}
       />
       <GraphProvider<NodeData> key={reloadKey} elements={initialElements} links={initialLinks}>
@@ -587,7 +549,7 @@ export default function App() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tiny reusable bits + styles
+// Tiny reusable bits
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface ButtonProps {
@@ -601,107 +563,13 @@ function Button({ children, onClick, primary }: Readonly<ButtonProps>) {
     <button
       type="button"
       onClick={onClick}
-      style={{
-        padding: '8px 14px',
-        fontSize: 12,
-        fontWeight: 500,
-        fontFamily: 'system-ui, sans-serif',
-        borderRadius: 3,
-        cursor: 'pointer',
-        border: '1px solid',
-        borderColor: primary ? '#b54f23' : 'rgba(28,36,52,0.2)',
-        backgroundColor: primary ? '#b54f23' : '#fbf8ee',
-        color: primary ? '#fbf8ee' : '#1c2434',
-      }}
+      className={`px-3.5 py-2 text-xs font-medium font-sans rounded-sm cursor-pointer border ${
+        primary
+          ? 'border-[#b54f23] bg-[#b54f23] text-[#fbf8ee]'
+          : 'border-[rgba(28,36,52,0.2)] bg-[#fbf8ee] text-[#1c2434]'
+      }`}
     >
       {children}
     </button>
   );
 }
-
-const shellStyle: React.CSSProperties = {
-  width: '100%',
-  height: 660,
-  backgroundColor: '#f5f0e3',
-  color: '#1c2434',
-  borderRadius: 6,
-  overflow: 'hidden',
-  border: '1px solid rgba(28,36,52,0.14)',
-  display: 'flex',
-  flexDirection: 'column',
-  fontFamily: 'system-ui, sans-serif',
-};
-
-const headerStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '18px 22px',
-  borderBottom: '1px solid rgba(28,36,52,0.12)',
-  gap: 16,
-};
-
-const eyebrowStyle: React.CSSProperties = {
-  fontSize: 9,
-  letterSpacing: '0.18em',
-  textTransform: 'uppercase',
-  color: 'rgba(28,36,52,0.5)',
-};
-
-const titleStyle: React.CSSProperties = {
-  margin: '4px 0 0',
-  fontSize: 22,
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-};
-
-const canvasStyle: React.CSSProperties = {
-  flex: 1,
-  position: 'relative',
-  backgroundImage: 'radial-gradient(rgba(28,36,52,0.12) 1px, transparent 1px)',
-  backgroundSize: '20px 20px',
-  backgroundPosition: '12px 12px',
-};
-
-const inspectorStyle: React.CSSProperties = {
-  width: 320,
-  flexShrink: 0,
-  backgroundColor: '#f1ebda',
-  borderLeft: '1px solid rgba(28,36,52,0.12)',
-  display: 'flex',
-  flexDirection: 'column',
-};
-
-const inlineCodeStyle: React.CSSProperties = {
-  fontFamily: 'ui-monospace, monospace',
-  fontSize: 12,
-  backgroundColor: 'rgba(28,36,52,0.08)',
-  padding: '1px 5px',
-  borderRadius: 3,
-};
-
-const statsRowStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  margin: '0 22px',
-  padding: '8px 0',
-  borderTop: '1px dashed rgba(28,36,52,0.18)',
-  borderBottom: '1px dashed rgba(28,36,52,0.18)',
-  fontFamily: 'ui-monospace, monospace',
-  fontSize: 10,
-  color: 'rgba(28,36,52,0.6)',
-};
-
-const preStyle: React.CSSProperties = {
-  flex: 1,
-  margin: 0,
-  padding: '14px 22px 22px',
-  overflow: 'auto',
-  fontFamily: 'ui-monospace, monospace',
-  fontSize: 11,
-  lineHeight: 1.55,
-  color: '#1c2434',
-  backgroundColor: 'transparent',
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-word',
-};
