@@ -12,6 +12,11 @@ export class CellCollection extends Collection {
 
     [CELL_COLLECTION_MARKER] = true;
 
+    /** @deprecated Use graph.getCellNamespace() instead. */
+    get cellNamespace() {
+        return this.layer?.collection?.cellNamespace ?? null;
+    }
+
     initialize(_models, opt) {
         this.layer = opt.layer;
     }
@@ -26,16 +31,8 @@ export class CellCollection extends Collection {
     // based on their `type` attribute and the `cellNamespace` option.
     model(attrs, opt) {
 
-        const namespace = this.cellNamespace;
-
-        if (!namespace) {
-            throw new Error('dia.CellCollection: cellNamespace is required to instantiate a Cell from JSON.');
-        }
-
         const { type } = attrs;
-
-        // Find the model class based on the `type` attribute in the cell namespace
-        const ModelClass = util.getByPath(namespace, type, '.');
+        const ModelClass = this.layer.collection.getTypeConstructor(type);
         if (!ModelClass) {
             throw new Error(`dia.Graph: Could not find cell constructor for type: '${type}'. Make sure to add the constructor to 'cellNamespace'.`);
         }

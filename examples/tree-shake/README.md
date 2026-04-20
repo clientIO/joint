@@ -7,13 +7,12 @@ Use Yarn to run this demo.
 You need to build *JointJS* first. Navigate to the root folder and run:
 ```bash
 yarn install
-yarn run build
+yarn run dist
 ```
 
-Navigate to this directory, then run:
+To see a treemap of dependencies included in the bundle by `vite-bundle-analyzer`, navigate to this directory and run:
 ```bash
-yarn install
-yarn start
+yarn run build
 ```
 
 Then open `index.html` in your browser:
