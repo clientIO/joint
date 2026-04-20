@@ -421,11 +421,11 @@ function ElementsInfo() {
     <div className="flex flex-col gap-2 mt-4">
       <div className="flex flex-col gap-2">
         <div className="text-white text-sm">Elements</div>
-        <ShowJson data={JSON.stringify(elements, null, 2)} />
+        <ShowJson data={JSON.stringify(Object.fromEntries(elements), null, 2)} />
       </div>
       <div className="flex flex-col gap-2">
         <div className="text-white text-sm">Links</div>
-        <ShowJson data={JSON.stringify(links, null, 2)} />
+        <ShowJson data={JSON.stringify(Object.fromEntries(links), null, 2)} />
       </div>
     </div>
   );

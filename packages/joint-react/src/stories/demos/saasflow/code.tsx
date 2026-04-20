@@ -128,6 +128,10 @@ const initialElements: Record<string, SaasNode> = {
   },
 };
 
+const DEFAULT_LINK = () => ({
+  style: { color: DARK.link, width: 2 },
+});
+
 const initialLinks: Record<string, LinkRecord> = {
   'client-pm': {
     source: { id: 'client', port: 'out' },
@@ -470,8 +474,6 @@ function ThemeUpdater() {
 }
 
 function Main() {
-  const isDark = useContext(ThemeContext);
-  const theme = isDark ? DARK : LIGHT;
   const paperRef = useRef<dia.Paper | null>(null);
 
   return (
@@ -497,6 +499,7 @@ function Main() {
         validateConnection={({ target }) => target.port === 'in'}
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         renderElement={RenderSaasNode}
+        defaultLink={DEFAULT_LINK}
       />
       <ThemeUpdater />
       <Toolbar paperRef={paperRef} />

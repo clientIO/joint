@@ -93,12 +93,12 @@ export function canConnect(options: CanConnectOptions = {}) {
 
   return (
     // Note: JointJS passes `undefined` for magnet when the target is the root element
-    cellViewS: dia.CellView, magnetS: SVGElement | undefined,
-    cellViewT: dia.CellView, magnetT: SVGElement | undefined,
+    sourceView: dia.CellView, sourceNode: SVGElement | undefined,
+    targetView: dia.CellView, targetNode: SVGElement | undefined,
     end: dia.LinkEnd, linkView: dia.LinkView,
   ): boolean => {
-    if (!allowSelfLoops && cellViewS === cellViewT) return false;
-    if (!allowLinkToLink && (!cellViewS.model.isElement() || !cellViewT.model.isElement())) return false;
+    if (!allowSelfLoops && sourceView === targetView) return false;
+    if (!allowLinkToLink && (!sourceView.model.isElement() || !targetView.model.isElement())) return false;
     if (allowRootConnection !== true) {
       const isRootBlocked = (cellView: dia.CellView, magnet: SVGElement | undefined): boolean => {
         if (magnet) return false;
@@ -106,35 +106,42 @@ export function canConnect(options: CanConnectOptions = {}) {
         // 'auto': block root only if element has ports
         return cellView.model.isElement() && (cellView.model as dia.Element).hasPorts();
       };
-      if (isRootBlocked(cellViewS, magnetS) || isRootBlocked(cellViewT, magnetT)) return false;
+      if (isRootBlocked(sourceView, sourceNode) || isRootBlocked(targetView, targetNode)) return false;
     }
     if (!allowMultiLinks) {
-      const sourceId = cellViewS.model.id;
-      const targetId = cellViewT.model.id;
-      const sourcePort = magnetS ? cellViewS.findAttribute('port', magnetS) : null;
-      const targetPort = magnetT ? cellViewT.findAttribute('port', magnetT) : null;
-      const sourceMagnet = magnetS?.getAttribute('joint-selector') ?? null;
-      const targetMagnet = magnetT?.getAttribute('joint-selector') ?? null;
-      const graph = cellViewS.paper!.model;
-      const links = graph.getConnectedLinks(cellViewS.model);
+      const sourceId = sourceView.model.id;
+      const targetId = targetView.model.id;
+      const sourcePort = sourceNode ? sourceView.findAttribute('port', sourceNode) : null;
+      const targetPort = targetNode ? targetView.findAttribute('port', targetNode) : null;
+      // If the magnet is the port node itself, ignore the `selector`
+      const sourceMagnet = sourceNode?.hasAttribute('port') ? null : sourceNode?.getAttribute('joint-selector') ?? null;
+      const targetMagnet = targetNode?.hasAttribute('port') ? null : targetNode?.getAttribute('joint-selector') ?? null;
+      const graph = sourceView.paper!.model;
+      const links = graph.getConnectedLinks(sourceView.model);
       for (const link of links) {
         if (link === linkView.model) continue;
         const ls = link.source();
         const lt = link.target();
         if (ls.id !== sourceId || lt.id !== targetId) continue;
-        // Compare ports (when connecting to a port)
-        if ((ls.port ?? null) !== sourcePort || (lt.port ?? null) !== targetPort) continue;
-        // Compare magnet selectors (when connecting to a non-port magnet)
-        if ((ls.magnet ?? ls.selector ?? null) !== sourceMagnet) continue;
-        if ((lt.magnet ?? lt.selector ?? null) !== targetMagnet) continue;
+        // For each end: if a port is involved on either side, compare ports only.
+        // Otherwise fall back to the magnet selector.
+        const lsPort = ls.port ?? null;
+        const ltPort = lt.port ?? null;
+        const sourceMatches = (sourcePort !== null || lsPort !== null)
+          ? lsPort === sourcePort
+          : (ls.magnet ?? ls.selector ?? null) === sourceMagnet;
+        const targetMatches = (targetPort !== null || ltPort !== null)
+          ? ltPort === targetPort
+          : (lt.magnet ?? lt.selector ?? null) === targetMagnet;
+        if (!sourceMatches || !targetMatches) continue;
         return false;
       }
     }
     if (validate) {
-      const paper = cellViewS.paper!;
+      const paper = sourceView.paper!;
       return validate({
-        source: toConnectionEnd(cellViewS, magnetS),
-        target: toConnectionEnd(cellViewT, magnetT),
+        source: toConnectionEnd(sourceView, sourceNode),
+        target: toConnectionEnd(targetView, targetNode),
         endType: end,
         paper,
         graph: paper.model,
