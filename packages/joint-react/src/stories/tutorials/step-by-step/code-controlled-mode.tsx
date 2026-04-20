@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/no-unused-vars */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
@@ -385,8 +386,8 @@ function Main() {
       links={links}
       // Enable controlled mode by providing change handlers
       // When the graph changes (user interaction), GraphProvider will call these
-      onElementsChange={setElements as never}
-      onLinksChange={setLinks as never}
+      onElementsChange={setElements}
+      onLinksChange={setLinks}
     >
       {/*
         Pass state setters to child component so it can update the graph

@@ -214,39 +214,73 @@ export function graphView<
     links: asReadonlyContainer(links),
     syncFromGraph,
     updateGraph(update: UpdateGraphOptions<ElementData, LinkData>) {
-      graphChangesController.updateGraph(update);
-      // After updateGraph with isUpdateFromReact, graphChanges skips the events.
-      // Populate containers directly so hooks see the data.
-      const { elements: userElements, links: userLinks, flag } = update;
-      if (flag !== 'updateFromReact') {
+      const { elementIds, linkIds } = graphChangesController.updateGraph(update);
+      // After syncCells with isUpdateFromReact, graphChanges skips the events
+      // (to avoid an onElementsChange → setState → updateGraph loop).
+      // We still need to refresh the containers so hooks see the new data —
+      // and we MUST read it from the graph, not from the raw user input,
+      // because Backbone preserves attributes that the user did not specify
+      // (e.g. a measured `size` that came from a ResizeObserver). Reading
+      // from the user record would wipe those preserved attributes from the
+      // container while leaving them on the graph cell, putting hooks and
+      // the cell models out of sync.
+      if (update.flag !== 'updateFromReact') {
         return;
       }
 
-      const useElementEntries = Object.entries(userElements);
-      const useLinkEntries = Object.entries(userLinks);
-      for (const [id, data] of useElementEntries) {
+      const userElementIds = new Set(elementIds);
+      const userLinkIds = new Set(linkIds);
+
+      let hasElementChange = false;
+      let hasLinkChange = false;
+
+      for (const id of elementIds) {
         const cell = graph.getCell(id);
-        if (cell?.isElement()) {
-          elements.set(id, data as ElementWithLayout<ElementData>);
-        }
+        if (!cell?.isElement()) continue;
+        elements.set(id, (previous) => {
+          const next = mapAttributesToElement(cell.attributes) as ElementWithLayout<ElementData>;
+          if (!previous) return next;
+          const { data: nextUserData, position, size, ...rest } = next;
+          const {
+            data: previousUserData,
+            position: previousPosition,
+            size: previousSize,
+          } = previous;
+          return {
+            ...previous,
+            ...rest,
+            data: isShallowEqual(previousUserData, nextUserData) ? previousUserData : nextUserData,
+            position: isPositionEqual(previousPosition, position) ? previousPosition : position,
+            size: isSizeEqual(previousSize, size) ? previousSize : size,
+          };
+        });
+        hasElementChange = true;
       }
-      for (const [id, data] of useLinkEntries) {
-        links.set(id, data);
+
+      for (const id of linkIds) {
+        const cell = graph.getCell(id);
+        if (!cell?.isLink()) continue;
+        const linkData = mapAttributesToLink<LinkData>(cell.attributes);
+        links.set(id, linkData);
+        hasLinkChange = true;
       }
+
       // Remove elements/links that are no longer in the user state
       for (const [id] of elements.getFull()) {
-        if (!(id in userElements)) {
+        if (!userElementIds.has(id)) {
           elements.delete(id);
+          hasElementChange = true;
         }
       }
       for (const [id] of links.getFull()) {
-        if (!(id in userLinks)) {
+        if (!userLinkIds.has(id)) {
           links.delete(id);
+          hasLinkChange = true;
         }
       }
 
-      if (elements.getSize() > 0 || useElementEntries.length > 0) elements.commitChanges();
-      if (links.getSize() > 0 || useLinkEntries.length > 0) links.commitChanges();
+      if (hasElementChange) elements.commitChanges();
+      if (hasLinkChange) links.commitChanges();
     },
     destroy() {
       graphChangesController.destroy();

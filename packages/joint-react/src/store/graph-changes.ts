@@ -16,6 +16,15 @@ export interface UpdateGraphOptions<
   readonly flag?: 'updateFromReact';
 }
 
+/**
+ * Ids of the cells that were synced to the graph during an `updateGraph` call.
+ * Returned so callers can iterate them once instead of re-walking the user record.
+ */
+export interface UpdateGraphResult {
+  readonly elementIds: readonly string[];
+  readonly linkIds: readonly string[];
+}
+
 interface OnChangeOptions {
   readonly changes: Map<string, IncrementalChange<dia.Cell>>;
   readonly isInsideBatch: boolean;
@@ -150,21 +159,25 @@ export function graphChanges(options: Options) {
     updateGraph<
       ElementData extends object = Record<string, unknown>,
       LinkData extends object = Record<string, unknown>,
-    >(update: UpdateGraphOptions<ElementData, LinkData>) {
+    >(update: UpdateGraphOptions<ElementData, LinkData>): UpdateGraphResult {
       const { elements, links, flag } = update;
       if (!isSyncedWithReact) {
         isSyncedWithReact = true;
-        return;
+        return { elementIds: [], linkIds: [] };
       }
 
+      const elementIds: string[] = [];
+      const linkIds: string[] = [];
       const graphElements: dia.Cell.JSON[] = Object.entries(elements).map(([id, element]) => {
         const cellAttributes = mapElementToAttributes(element);
         cellAttributes.id = id;
+        elementIds.push(id);
         return cellAttributes as dia.Cell.JSON;
       });
       const graphLinks: dia.Cell.JSON[] = Object.entries(links).map(([id, link]) => {
         const cellAttributes = mapLinkToAttributes(link);
         cellAttributes.id = id;
+        linkIds.push(id);
         return cellAttributes as dia.Cell.JSON;
       });
 
@@ -175,6 +188,8 @@ export function graphChanges(options: Options) {
         isUpdateFromReact: flag === 'updateFromReact',
       });
       graph.stopBatch('updateFromReact');
+
+      return { elementIds, linkIds };
     },
   };
 }
