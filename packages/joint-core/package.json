@@ -78,10 +78,10 @@
     "./src/*": {
       "import": "./src/*"
     },
-    "./types/*": {
-      "types": "./types/*"
+    "./types/*.d.ts": {
+      "types": "./types/*.d.ts"
     },
-    "./internal/types/*": {
+    "./types/*": {
       "types": "./types/*.d.ts"
     },
     "./joint.mjs": {
