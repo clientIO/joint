@@ -65,8 +65,9 @@
   --jj-link-hover-width: 3;
   --jj-link-selected-color: var(--jj-color-primary);
   --jj-link-selected-width: 3;
-  --jj-link-connecting-color: var(--jj-link-color);
+  --jj-link-connecting-color: var(--jj-color-tool);
   --jj-link-connecting-width: 2;
+  --jj-link-connecting-dash: 8 4;
 
   /* ── Link Labels ─────────────────────────────────────────────────────── */
   --jj-label-bg-color: var(--jj-color-surface);
@@ -117,6 +118,7 @@
   :where(.jj-is-connecting) {
     --jj-link-color: var(--jj-link-connecting-color);
     --jj-link-width: var(--jj-link-connecting-width);
+    --jj-link-dash: var(--jj-link-connecting-dash, none);
   }
 
   :where(.jj-is-snapped) {

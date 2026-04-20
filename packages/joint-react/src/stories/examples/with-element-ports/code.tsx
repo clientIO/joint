@@ -131,16 +131,14 @@ const initialElements: Record<string, ElementRecord<PortNodeData>> = {
 
 const initialLinks: Record<string, LinkRecord> = {
   'link-1': {
-    source: { id: 'node-1', port: 'out-1', anchor: { name: 'right', args: { useModelGeometry: true } } },
-    target: { id: 'node-2', port: 'in-1', anchor: { name: 'left', args: { useModelGeometry: true } } },
+    source: { id: 'node-1', port: 'out-1' },
+    target: { id: 'node-2', port: 'in-1' },
     z: -1,
-    connector: { name: 'curve' },
   },
   'link-2': {
-    source: { id: 'node-1', port: 'out-2', anchor: { name: 'right', args: { useModelGeometry: true } } },
-    target: { id: 'node-2', port: 'in-2', anchor: { name: 'left', args: { useModelGeometry: true } } },
+    source: { id: 'node-1', port: 'out-2' },
+    target: { id: 'node-2', port: 'in-2' },
     z: -1,
-    connector: { name: 'curve' },
   },
 };
 
@@ -387,9 +385,6 @@ function Main() {
         snapLinks={true}
         linkPinning={false}
         {...SMOOTH_LINKS}
-        defaultLink={{
-          style: { color: LIGHT },
-        }}
       />
 
       {/* Control Panel */}

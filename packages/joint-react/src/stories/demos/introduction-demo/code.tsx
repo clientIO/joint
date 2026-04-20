@@ -8,7 +8,6 @@ import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
-import './index.css';
 import {
   GraphProvider,
   Paper,
@@ -126,7 +125,6 @@ const links: Record<string, LinkRecord> = {
     style: {
       color: LIGHT,
       width: 2,
-      className: 'link',
       dasharray: '5,5',
       targetMarker: {
         markup: [{ tagName: 'path', attributes: { d: 'M 0 0 L 8 4 L 8 -4 Z', fill: 'context-stroke', stroke: 'context-stroke' } }],
