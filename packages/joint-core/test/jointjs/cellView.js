@@ -708,6 +708,20 @@ QUnit.module('cellView', function(hooks) {
             assert.equal(rect.height, expected.height);
         });
 
+        QUnit.test('SVG magnet - invisible - returns a zero rect and produces a warning', function(assert) {
+            const magnet = cellView.el.querySelector('rect');
+            sinon.stub(magnet, 'checkVisibility').returns(false);
+            const warnStub = sinon.stub(console, 'warn');
+            const rect = cellView.getNodeBoundingRect(magnet);
+            assert.ok(rect instanceof g.Rect);
+            assert.equal(rect.x, 0);
+            assert.equal(rect.y, 0);
+            assert.equal(rect.width, 0);
+            assert.equal(rect.height, 0);
+            assert.ok(warnStub.calledOnce);
+            warnStub.restore();
+        });
+
         QUnit.test('measureNode option - delegates to the function', function(assert) {
             const magnet = cellView.el.querySelector('rect');
             const expected = { x: 5, y: 10, width: 50, height: 60 };
