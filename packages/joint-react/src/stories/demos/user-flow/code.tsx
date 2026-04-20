@@ -374,9 +374,12 @@ function Main() {
         validateMagnet={(_cellView, magnet) => {
           return magnet.getAttribute('magnet') !== 'passive';
         }}
-        validateConnection={({ source, target }) => {
-          if (source.selector === 'in') return false;
-          return target.selector === 'in';
+        validateConnection={{
+          allowRootConnection: false,
+          validate: ({ source, target }) => {
+            if (source.selector === 'in') return false;
+            return target.selector === 'in';
+          }
         }}
         {...ORTHOGONAL_LINKS}
       />

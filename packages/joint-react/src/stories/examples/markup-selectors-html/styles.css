@@ -2,7 +2,7 @@
   --jj-color-primary: rgba(59, 130, 246, 1);
 }
 
-.jj-is-available {
+.table-row.jj-is-available {
   background: rgba(59, 130, 246, 0.08);
   outline: 0.5px dashed rgba(59, 130, 246, 0.5);
   outline-offset: -1.5px;

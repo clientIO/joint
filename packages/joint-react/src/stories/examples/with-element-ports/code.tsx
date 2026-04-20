@@ -180,10 +180,10 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
   const updatePort = (updates: Partial<ElementPort>) => {
     setElement(elementId, (previous) => {
-      const el = previous as ElementRecord;
+      const element = previous as ElementRecord;
       return {
-        ...el,
-        portMap: el.portMap ? { ...el.portMap, [portId]: { ...el.portMap[portId], ...updates } } : el.portMap,
+        ...element,
+        portMap: element.portMap ? { ...element.portMap, [portId]: { ...element.portMap[portId], ...updates } } : element.portMap,
       };
     });
   };
