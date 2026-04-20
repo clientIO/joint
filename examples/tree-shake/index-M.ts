@@ -1,6 +1,7 @@
-import { V } from '@joint/core';
-
-import { shapes } from '@joint/core';
+import {
+    V,
+    shapes,
+} from '@joint/core';
 const standard = shapes.standard;
 
 const vel = V('<g><rect/><text/></g>');
