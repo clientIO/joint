@@ -11,7 +11,6 @@ import {
   useElements,
   useLinks,
   useSetElement,
-  useRemoveElement,
   useNodesMeasuredEffect,
   type ElementRecord,
   type LinkRecord,
@@ -381,7 +380,7 @@ function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
 
   return (
     <aside className="w-80 shrink-0 bg-[#f1ebda] border-l border-[rgba(28,36,52,0.12)] flex flex-col">
-      <div className="px-[22px] pt-5 pb-3">
+      <div className="px-5.5 pt-5 pb-3">
         <div className="text-[9px] tracking-[0.18em] uppercase text-[rgba(28,36,52,0.5)]">
           What gets persisted
         </div>
@@ -425,8 +424,7 @@ interface InnerShellProps {
 }
 
 function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
-  const { graph, setElement, setLink } = useGraph<NodeData>();
-  const removeElement = useRemoveElement();
+  const { graph, setElement, setLink, removeElement } = useGraph<NodeData>();
   const liveSnapshot = useLiveSnapshot();
 
   const handleAdd = useCallback(() => {
@@ -462,7 +460,7 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
 
   return (
     <>
-      <header className="flex items-center justify-between px-[22px] py-[18px] border-b border-[rgba(28,36,52,0.12)] gap-4">
+      <header className="flex items-center justify-between px-5.5 py-4.5 border-b border-[rgba(28,36,52,0.12)] gap-4">
         <div>
           <div className="text-[9px] tracking-[0.18em] uppercase text-[rgba(28,36,52,0.5)]">
             Demo · click a card to edit · file persistence
@@ -523,13 +521,10 @@ export default function App() {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
-    try {
-      const next = await loadSnapshotFromFile(file);
-      setSeed(next);
-      setReloadKey((value) => value + 1);
-    } catch (error) {
-      console.warn('Failed to load snapshot:', error);
-    }
+
+    const next = await loadSnapshotFromFile(file);
+    setSeed(next);
+    setReloadKey((value) => value + 1);
   }, []);
 
   return (
