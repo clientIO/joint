@@ -125,6 +125,7 @@ export const mask = HighlighterView.extend({
     getMaskShape(cellView, vel) {
         const { options, MASK_REPLACE_TAGS } = this;
         const { deep } = options;
+        if (!V.isSVGGraphicsElement(vel)) return null;
         const tagName = vel.tagName();
         let maskRoot;
         if (tagName === 'G') {
