@@ -467,8 +467,7 @@ interface InnerShellProps {
 }
 
 function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
-  const { graph } = useGraph<NodeData>();
-  const setElement = useSetElement<NodeData>();
+  const { graph, setElement, setLink } = useGraph<NodeData>();
   const removeElement = useRemoveElement();
   const liveSnapshot = useLiveSnapshot();
 
@@ -484,15 +483,13 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
     const others = graph.getElements().filter((cell) => String(cell.id) !== id);
     if (others.length > 0) {
       const parent = others[Math.floor(Math.random() * others.length)];
-      graph.addCell({
-        type: 'standard.Link',
-        id: `l${Date.now().toString(36)}`,
+      setLink(`l${Date.now().toString(36)}`, {
         source: { id: String(parent.id) },
         target: { id },
         attrs: LINK_ATTRS,
       });
     }
-  }, [setElement, graph]);
+  }, [setElement, graph, setLink]);
 
   const handleRemoveLast = useCallback(() => {
     const elements = graph.getElements();
