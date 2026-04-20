@@ -2626,10 +2626,8 @@ QUnit.module('routers', function(hooks) {
     });
 
     // minMargin tests
-    // r1 at (0,0), r2 repositioned so their margin zones are adjacent (overlap by exactly ignoreOverlappingMargin).
-    // margin=28, elements side-by-side with a 10px gap → smx1(78) − tmx0(32) = 46
-    // minMargin=5  → ignoreOverlappingMargin = max(0, 28+28 − 2*5)  = 46 → 46 ≤ 46 → ignoreMargin = true
-    // minMargin=null → ignoreOverlappingMargin = 0 (falsy)                    → ignoreMargin = false
+    // r1 at (0,0), r2 repositioned so their margin zones overlap.
+    // margin=28, minMargin=5 → minSourceMargin=minTargetMargin=5, used as tighter routing boundaries.
 
     QUnit.test('rightAngle routing - minMargin - source: bottom, target: top', function(assert) {
         // r1 at (0,0), r2 at (60,20) — elements offset horizontally so their x-margin zones barely touch.
@@ -2638,7 +2636,7 @@ QUnit.module('routers', function(hooks) {
         r2.position(60, 20);
 
         let d = this.paper.findViewByModel(l).metrics.data;
-        assert.checkDataPath(d, 'M 25 50 L 25 78 L 55 78 L 55 -8 L 85 -8 L 85 20', 'minMargin suppresses the margin-overlap detour');
+        assert.checkDataPath(d, 'M 25 50 L 25 98 L 138 98 L 138 -8 L 85 -8 L 85 20', 'minMargin - source: bottom, target: top');
 
         l.router({ name: 'rightAngle', args: { margin }});
         d = this.paper.findViewByModel(l).metrics.data;
@@ -2652,7 +2650,7 @@ QUnit.module('routers', function(hooks) {
         r2.position(60, 20);
 
         let d = this.paper.findViewByModel(l).metrics.data;
-        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 55 -28 L 55 98 L 85 98 L 85 70', 'minMargin suppresses the margin-overlap detour');
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 138 -28 L 138 98 L 85 98 L 85 70', 'minMargin - source: top, target: bottom');
 
         l.router({ name: 'rightAngle', args: { margin }});
         d = this.paper.findViewByModel(l).metrics.data;
@@ -2666,7 +2664,7 @@ QUnit.module('routers', function(hooks) {
         r2.position(20, 60);
 
         let d = this.paper.findViewByModel(l).metrics.data;
-        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 55 L -8 55 L -8 85 L 20 85', 'minMargin suppresses the margin-overlap detour');
+        assert.checkDataPath(d, 'M 50 25 L 98 25 L 98 138 L -8 138 L -8 85 L 20 85', 'minMargin - source: right, target: left');
 
         l.router({ name: 'rightAngle', args: { margin }});
         d = this.paper.findViewByModel(l).metrics.data;
@@ -2681,7 +2679,7 @@ QUnit.module('routers', function(hooks) {
         r2.position(0, 60);
 
         let d = this.paper.findViewByModel(l).metrics.data;
-        assert.checkDataPath(d, 'M 60 25 L 32 25 L 32 55 L 78 55 L 78 85 L 50 85', 'minMargin suppresses the margin-overlap detour');
+        assert.checkDataPath(d, 'M 60 25 L -28 25 L -28 138 L 78 138 L 78 85 L 50 85', 'minMargin - source: left, target: right');
 
         l.router({ name: 'rightAngle', args: { margin }});
         d = this.paper.findViewByModel(l).metrics.data;
@@ -2689,11 +2687,8 @@ QUnit.module('routers', function(hooks) {
     });
 
     // The facing-elements condition: source left anchor facing a target right anchor (and the reverse).
-    // Positions are chosen so the anchors' outside points land outside the inflated bboxes (no S-shape),
-    // but the outside points are close enough that tox−smx0 (or smx1−tox) hits ignoreOverlappingMargin.
-    // r1 at (100,0), r2 at (0,60), minMargin=25:
-    //   tox(78) − smx0(72) = 6 = ignoreOverlappingMargin   → fires only the third condition
-    //   smy1(78) − tmy0(32) = 46 > 6, so y-margin conditions do NOT fire
+    // Positions are chosen so the anchors' outside points land outside the inflated bboxes (no S-shape).
+    // r1 at (100,0), r2 at (0,60), minMargin=25: minSourceMargin=minTargetMargin=25.
 
     QUnit.test('rightAngle routing - minMargin facing - source: left, target: right', function(assert) {
         // r1 at (100,0), r2 at (0,60) — anchors face each other with a 50px gap (tox−smx0=6=ignoreOverlappingMargin).
@@ -2703,7 +2698,7 @@ QUnit.module('routers', function(hooks) {
         r2.position(0, 60);
 
         let d = this.paper.findViewByModel(l).metrics.data;
-        assert.checkDataPath(d, 'M 100 25 L 72 25 L 72 55 L 78 55 L 78 85 L 50 85', 'minMargin suppresses the facing-elements detour');
+        assert.checkDataPath(d, 'M 100 25 L -28 25 L -28 138 L 78 138 L 78 85 L 50 85', 'minMargin facing - source: left, target: right');
 
         l.router({ name: 'rightAngle', args: { margin }});
         d = this.paper.findViewByModel(l).metrics.data;
@@ -2717,7 +2712,7 @@ QUnit.module('routers', function(hooks) {
         r2.position(100, 60);
 
         let d = this.paper.findViewByModel(l).metrics.data;
-        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 55 L 72 55 L 72 85 L 100 85', 'minMargin suppresses the facing-elements detour');
+        assert.checkDataPath(d, 'M 50 25 L 178 25 L 178 138 L 72 138 L 72 85 L 100 85', 'minMargin facing - source: right, target: left');
 
         l.router({ name: 'rightAngle', args: { margin }});
         d = this.paper.findViewByModel(l).metrics.data;

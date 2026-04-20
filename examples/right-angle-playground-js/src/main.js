@@ -11,8 +11,8 @@ class ResizeTool extends elementTools.Control {
     setPosition(view, coordinates) {
         const model = view.model;
         model.resize(
-            Math.max(Math.round(coordinates.x / 2) * 2, 10),
-            Math.max(Math.round(coordinates.y / 2) * 2, 10)
+            Math.max(Math.round(coordinates.x / 10) * 10, 50),
+            Math.max(Math.round(coordinates.y / 10) * 10, 50)
         );
     }
 }
@@ -30,7 +30,7 @@ const paper = new dia.Paper({
     cellViewNamespace: shapes,
     defaultRouter: { name: 'rightAngle', args: {
         useVertices: true,
-        margin: 20,
+        margin: 40,
         minMargin: 10
     }},
     defaultConnector: { name: 'rounded' },
@@ -44,6 +44,8 @@ const paper = new dia.Paper({
         }
     }
 });
+
+paper.setGrid({ name: 'dot'});
 
 const rect = new shapes.standard.Rectangle({
     position: { x: 120, y: 120 },
