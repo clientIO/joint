@@ -71,7 +71,7 @@
     "test": "grunt test",
     "test-server": "grunt test:server",
     "test-client": "grunt test:client",
-    "test-ts": "grunt ts:test",
+    "test-ts": "grunt ts:test && grunt ts:test-exports",
     "test-coverage": "grunt test:coverage",
     "test-coverage-lcov": "yarn run test-coverage --reporter=lcov",
     "test-bundles": "grunt test:bundles",
