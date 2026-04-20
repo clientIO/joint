@@ -882,15 +882,15 @@ function routeBetweenPoints(source, target, opt = {}) {
         if (tOffsetY < sOffsetY) {
             // Use the shortest path along the connections on horizontal sides
             if (rightDistance > leftDistance) {
-                x = Math.min(sOffsetX, tMinMarginX0);
+                x = Math.min(sOffsetX, tMarginX0);
             } else {
-                x = Math.max(sOffsetX, tMinMarginX1);
+                x = Math.max(sOffsetX, tMarginX1);
             }
         } else {
             if (rightDistance > leftDistance) {
-                x = Math.min(tOffsetX, sMinMarginX0);
+                x = Math.min(tOffsetX, sMarginX0);
             } else {
-                x = Math.max(tOffsetX, sMinMarginX1);
+                x = Math.max(tOffsetX, sMarginX1);
             }
         }
 
@@ -922,15 +922,15 @@ function routeBetweenPoints(source, target, opt = {}) {
         if (tOffsetY > sOffsetY) {
             // Use the shortest path along the connections on horizontal sides
             if (rightDistance > leftDistance) {
-                x = Math.min(sOffsetX, tMinMarginX0);
+                x = Math.min(sOffsetX, tMarginX0);
             } else {
-                x = Math.max(sOffsetX, tMinMarginX1);
+                x = Math.max(sOffsetX, tMarginX1);
             }
         } else {
             if (rightDistance > leftDistance) {
-                x = Math.min(tOffsetX, sMinMarginX0);
+                x = Math.min(tOffsetX, sMarginX0);
             } else {
-                x = Math.max(tOffsetX, sMinMarginX1);
+                x = Math.max(tOffsetX, sMarginX1);
             }
         }
 
@@ -961,15 +961,15 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         if (tOffsetX > sOffsetX) {
             if (topDistance <= bottomDistance) {
-                y = Math.min(sMinMarginY0, tOffsetY);
+                y = Math.min(sMarginY0, tOffsetY);
             } else {
-                y = Math.max(sMinMarginY1, tOffsetY);
+                y = Math.max(sMarginY1, tOffsetY);
             }
         } else {
             if (topDistance <= bottomDistance) {
-                y = Math.min(tMinMarginY0, sOffsetY);
+                y = Math.min(tMarginY0, sOffsetY);
             } else {
-                y = Math.max(tMinMarginY1, sOffsetY);
+                y = Math.max(tMarginY1, sOffsetY);
             }
         }
 
@@ -1000,15 +1000,15 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         if (tOffsetX <= sOffsetX) {
             if (topDistance <= bottomDistance) {
-                y = Math.min(sMinMarginY0, tOffsetY);
+                y = Math.min(sMarginY0, tOffsetY);
             } else {
-                y = Math.max(sMinMarginY1, tOffsetY);
+                y = Math.max(sMarginY1, tOffsetY);
             }
         } else {
             if (topDistance <= bottomDistance) {
-                y = Math.min(tMinMarginY0, sOffsetY);
+                y = Math.min(tMarginY0, sOffsetY);
             } else {
-                y = Math.max(tMinMarginY1, sOffsetY);
+                y = Math.max(tMarginY1, sOffsetY);
             }
         }
 
@@ -1024,8 +1024,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         // The target point is inside the source element
         if (isPointInsideSource) {
             if (sOffsetX <= tMinMarginX1) {
-                const x = Math.max(sOffsetX + sourceMargin, tOffsetX);
-                const y = Math.min(sMinMarginY0, tMinMarginY0);
+                const x = Math.max(sMarginX1, tOffsetX);
+                const y = Math.min(sMarginY0, tMarginY0);
 
                 // Target anchor is on the right side of the source anchor
                 return [
@@ -1048,7 +1048,7 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         if (sMinMarginY0 > tOffsetY) {
             if (sOffsetX < tOffsetX) {
-                let y = tMinMarginY0;
+                let y = tMarginY0;
 
                 if (tMinMarginY1 <= sMinMarginY0 && tMinMarginX1 >= sOffsetX) {
                     y = middleOfHorizontalSides;
@@ -1075,8 +1075,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         if (x > sMinMarginX0 && sOffsetY < tBoxY1) {
-            const y = Math.min(sMinMarginY0, tMinMarginY0);
-            const x = Math.max(sMinMarginX1, tMinMarginX1);
+            const y = Math.min(sMarginY0, tMarginY0);
+            const x = Math.max(sMarginX1, tMarginX1);
             return [
                 { x: sOffsetX, y },
                 { x, y },
@@ -1096,7 +1096,7 @@ function routeBetweenPoints(source, target, opt = {}) {
         if (isPointInsideSource) {
             if (sOffsetX >= tMinMarginX0) {
                 const x = Math.min(sOffsetX - sourceMargin, tOffsetX);
-                const y = Math.min(sMinMarginY0, tMinMarginY0);
+                const y = Math.min(sMarginY0, tMarginY0);
 
                 // Target anchor is on the left side of the source anchor
                 return [
@@ -1119,7 +1119,7 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         if (sMinMarginY0 > tOffsetY) {
             if (sOffsetX > tOffsetX) {
-                let y = tMinMarginY0;
+                let y = tMarginY0;
 
                 if (tMinMarginY1 <= sMinMarginY0 && tMinMarginX0 <= sOffsetX) {
                     y = middleOfHorizontalSides;
@@ -1135,7 +1135,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             return [{ x: sOffsetX, y: tOffsetY }];
         }
 
-        const x = Math.min(tMinMarginX0, middleOfVerticalSides);
+        const x = Math.min(tMarginX0, middleOfVerticalSides);
 
         if (sOffsetX < tOffsetX && sBoxY1 >= tOffsetY) {
             return [
@@ -1145,8 +1145,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         if (x < sMinMarginX1 && sOffsetY < tBoxY1) {
-            const y = Math.min(sMinMarginY0, tMinMarginY0);
-            const x = Math.min(sMinMarginX0, tMinMarginX0);
+            const y = Math.min(sMarginY0, tMarginY0);
+            const x = Math.min(sMarginX0, tMarginX0);
             return [
                 { x: sOffsetX, y },
                 { x, y },
@@ -1166,7 +1166,7 @@ function routeBetweenPoints(source, target, opt = {}) {
         if (isPointInsideSource) {
             if (sOffsetX <= tMinMarginX1) {
                 const x = Math.max(sOffsetX + sourceMargin, tOffsetX);
-                const y = Math.max(sMinMarginY1, tMinMarginY1);
+                const y = Math.max(sMarginY1, tMarginY1);
 
                 // Target anchor is on the right side of the source anchor
                 return [
@@ -1189,7 +1189,7 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         if (sMinMarginY1 < tOffsetY) {
             if (sOffsetX < tOffsetX) {
-                let y = tMinMarginY1;
+                let y = tMarginY1;
 
                 if (tMinMarginY0 >= sMinMarginY1 && tMinMarginX1 >= sOffsetX) {
                     y = middleOfHorizontalSides;
@@ -1205,7 +1205,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             return [{ x: sOffsetX, y: tOffsetY }];
         }
 
-        const x = Math.max(middleOfVerticalSides, tMinMarginX1);
+        const x = Math.max(middleOfVerticalSides, tMarginX1);
 
         if (sOffsetX > tOffsetX && sBoxY0 <= tOffsetY) {
             return [
@@ -1216,8 +1216,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         if (x > sMinMarginX0 && sOffsetY > tBoxY0) {
-            const y = Math.max(sMinMarginY1, tMinMarginY1);
-            const x = Math.max(sMinMarginX1, tMinMarginX1);
+            const y = Math.max(sMarginY1, tMarginY1);
+            const x = Math.max(sMarginX1, tMarginX1);
             return [
                 { x: sOffsetX, y },
                 { x, y },
@@ -1237,7 +1237,7 @@ function routeBetweenPoints(source, target, opt = {}) {
         if (isPointInsideSource) {
             if (sOffsetX >= tMinMarginX0) {
                 const x = Math.min(sOffsetX - sourceMargin, tOffsetX);
-                const y = Math.max(sMinMarginY1, tMinMarginY1);
+                const y = Math.max(sMarginY1, tMarginY1);
 
                 // Target anchor is on the left side of the source anchor
                 return [
@@ -1276,7 +1276,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             return [{ x: sOffsetX, y: tOffsetY }];
         }
 
-        const x = Math.min(tMinMarginX0, middleOfVerticalSides);
+        const x = Math.min(tMarginX0, middleOfVerticalSides);
 
         if (sOffsetX < tOffsetX && sBoxY0 <= tOffsetY) {
             return [
@@ -1287,8 +1287,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         if (x < sMinMarginX1 && sOffsetY > tBoxY0) {
-            const y = Math.max(sMinMarginY1, tMinMarginY1);
-            const x = Math.min(sMinMarginX0, tMinMarginX0);
+            const y = Math.max(sMarginY1, tMarginY1);
+            const x = Math.min(sMarginX0, tMarginX0);
             return [
                 { x: sOffsetX, y },
                 { x, y },
@@ -1307,8 +1307,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         // The target point is inside the source element
         if (isPointInsideSource) {
             if (sOffsetY <= tMinMarginY1) {
-                const x = Math.min(sMinMarginX0, tMinMarginX0);
-                const y = Math.max(sOffsetY + sourceMargin, tOffsetY);
+                const x = Math.min(sMarginX0, tMarginX0);
+                const y = Math.max(sOffsetY, tOffsetY);
 
                 return [
                     { x, y: sOffsetY },
@@ -1318,7 +1318,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             }
 
             // Target anchor is above the source anchor
-            const anchorMiddleY = (sOffsetY - sourceMargin + tOffsetY) / 2;
+            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
 
             return [
                 { x: sOffsetX, y: sOffsetY },
@@ -1329,7 +1329,7 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         if (sMinMarginX0 > tOffsetX) {
             if (sOffsetY < tOffsetY) {
-                let x = tMinMarginX0;
+                let x = tMarginX0;
 
                 if (tMinMarginX1 <= sMinMarginX0 && tMinMarginY1 >= sOffsetY) {
                     x = middleOfVerticalSides;
@@ -1345,7 +1345,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             return [{ x: tOffsetX, y: sOffsetY }];
         }
 
-        const y = Math.max(tMinMarginY1, middleOfHorizontalSides);
+        const y = Math.max(tMarginY1, middleOfHorizontalSides);
 
         if (sOffsetY > tOffsetY && sBoxX1 >= tOffsetX) {
             return [
@@ -1356,8 +1356,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         if (y > sMinMarginY0 && sOffsetX < tBoxX1) {
-            const x = Math.min(sMinMarginX0, tMinMarginX0);
-            const y = Math.max(sMinMarginY1, tMinMarginY1);
+            const x = Math.min(sMarginX0, tMarginX0);
+            const y = Math.max(sMarginY1, tMarginY1);
 
             return [
                 { x, y: sOffsetY },
@@ -1378,7 +1378,7 @@ function routeBetweenPoints(source, target, opt = {}) {
         if (isPointInsideSource) {
             if (sOffsetY >= tMinMarginY0) {
                 const y = Math.min(sOffsetY - sourceMargin, tOffsetY);
-                const x = Math.min(sMinMarginX0, tMinMarginX0);
+                const x = Math.min(sMarginX0, tMarginX0);
 
                 // Target anchor is on the top side of the source anchor
                 return [
@@ -1401,7 +1401,7 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         if (sMinMarginX0 > tOffsetX) {
             if (sOffsetY > tOffsetY) {
-                let x = tMinMarginX0;
+                let x = tMarginX0;
 
                 if (tMinMarginX1 <= sMinMarginX0 && tMinMarginY0 <= sOffsetY) {
                     x = middleOfVerticalSides;
@@ -1417,7 +1417,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             return [{ x: tOffsetX, y: sOffsetY }];
         }
 
-        const y = Math.min(tMinMarginY0, middleOfHorizontalSides);
+        const y = Math.min(tMarginY0, middleOfHorizontalSides);
 
         if (sOffsetY < tOffsetY && sBoxX1 >= tOffsetX) {
             return [
@@ -1427,8 +1427,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         if (y < sMinMarginY1 && sOffsetX < tBoxX1) {
-            const x = Math.min(sMinMarginX0, tMinMarginX0);
-            const y = Math.min(sMinMarginY0, tMinMarginY0);
+            const x = Math.min(sMarginX0, tMarginX0);
+            const y = Math.min(sMarginY0, tMarginY0);
             return [
                 { x, y: sOffsetY },
                 { x, y },
@@ -1447,7 +1447,7 @@ function routeBetweenPoints(source, target, opt = {}) {
         // The target point is inside the source element
         if (isPointInsideSource) {
             if (sOffsetY >= tMinMarginY0) {
-                const x = Math.max(sMinMarginX1, tMinMarginX1);
+                const x = Math.max(sMarginX1, tMarginX1);
                 const y = Math.min(sOffsetY - sourceMargin, tOffsetY);
 
                 // Target anchor is on the top side of the source anchor
@@ -1471,7 +1471,7 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         if (sMinMarginX1 < tOffsetX) {
             if (sOffsetY > tOffsetY) {
-                let x = tMinMarginX1;
+                let x = tMarginX1;
 
                 if (tMinMarginX0 >= sMinMarginX1 && tMinMarginY0 <= sOffsetY) {
                     x = middleOfVerticalSides;
@@ -1487,7 +1487,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             return [{ x: tOffsetX, y: sOffsetY }];
         }
 
-        const y = Math.min(tMinMarginY0, middleOfHorizontalSides);
+        const y = Math.min(tMarginY0, middleOfHorizontalSides);
 
         if (sOffsetY < tOffsetY && sBoxX0 <= tOffsetX) {
             return [
@@ -1497,8 +1497,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         if (y < sMinMarginY1 && sOffsetX > tBoxX0) {
-            const x = Math.max(sMinMarginX1, tMinMarginX1);
-            const y = Math.min(sMinMarginY0, tMinMarginY0);
+            const x = Math.max(sMarginX1, tMarginX1);
+            const y = Math.min(sMarginY0, tMarginY0);
 
             return [
                 { x, y: sOffsetY },
@@ -1518,7 +1518,7 @@ function routeBetweenPoints(source, target, opt = {}) {
         // The target point is inside the source element
         if (isPointInsideSource) {
             if (sOffsetY <= tMinMarginY1) {
-                const x = Math.max(sMinMarginX1, tMinMarginX1);
+                const x = Math.max(sMarginX1, tMarginX1);
                 const y = Math.max(sOffsetY + sourceMargin, tOffsetY);
 
                 return [
@@ -1540,7 +1540,7 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         if (sMinMarginX1 < tOffsetX) {
             if (sOffsetY < tOffsetY) {
-                let x = tMinMarginX1;
+                let x = tMarginX1;
 
                 if (tMinMarginX0 >= sMinMarginX1 && tMinMarginY1 >= sOffsetY) {
                     x = middleOfVerticalSides;
@@ -1556,7 +1556,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             return [{ x: tOffsetX, y: sOffsetY }];
         }
 
-        const y = Math.max(tMinMarginY1, middleOfHorizontalSides);
+        const y = Math.max(tMarginY1, middleOfHorizontalSides);
 
         if (sOffsetY > tOffsetY && sBoxX0 <= tOffsetX) {
             return [
@@ -1567,8 +1567,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         if (y > sMinMarginY0 && sOffsetX > tBoxX0) {
-            const x = Math.max(sMinMarginX1, tMinMarginX1);
-            const y = Math.max(sMinMarginY1, tMinMarginY1);
+            const x = Math.max(sMarginX1, tMarginX1);
+            const y = Math.max(sMarginY1, tMarginY1);
 
             return [
                 { x, y: sOffsetY },
