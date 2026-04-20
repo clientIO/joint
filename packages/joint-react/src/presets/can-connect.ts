@@ -43,6 +43,86 @@ export function toConnectionEnd(cellView: dia.CellView, magnet: Element | undefi
   };
 }
 
+/**
+ * Checks whether connecting to the root of a cell view (no magnet) is blocked.
+ * @param cellView - The cell view being connected to.
+ * @param magnet - The magnet element, or `undefined` for the root.
+ * @param mode - Root connection policy: `true` allows, `false` blocks, `'auto'` blocks only if the element has ports.
+ */
+function isRootBlocked(
+  cellView: dia.CellView,
+  magnet: SVGElement | undefined,
+  mode: boolean | 'auto',
+): boolean {
+  if (magnet) return false;
+  if (mode === true) return false;
+  if (mode === false) return true;
+  return cellView.model.isElement() && (cellView.model as dia.Element).hasPorts();
+}
+
+/**
+ * Resolves the port ID of a link end attached to a magnet, or `null` if not on a port.
+ * @param cellView - The cell view of the end.
+ * @param magnet - The magnet element, or `undefined` for the root.
+ */
+function getEndPort(cellView: dia.CellView, magnet: SVGElement | undefined): string | null {
+  return magnet ? cellView.findAttribute('port', magnet) : null;
+}
+
+/**
+ * Resolves the magnet selector of a link end, or `null` if the magnet is a port node itself.
+ * @param magnet - The magnet element, or `undefined` for the root.
+ */
+function getEndMagnetSelector(magnet: SVGElement | undefined): string | null {
+  if (!magnet || magnet.hasAttribute('port')) return null;
+  return magnet.getAttribute('joint-selector') ?? null;
+}
+
+/**
+ * Checks whether an existing link end matches the end being validated.
+ * Port identity wins when either side is a port; otherwise compares magnet selectors.
+ * @param existing - The existing link's end descriptor.
+ * @param port - The port ID of the new end, or `null`.
+ * @param magnet - The magnet selector of the new end, or `null`.
+ */
+function endMatches(
+  existing: dia.Link.EndJSON,
+  port: string | null,
+  magnet: string | null,
+): boolean {
+  const existingPort = existing.port ?? null;
+  if (port !== null || existingPort !== null) return existingPort === port;
+  return (existing.magnet ?? existing.selector ?? null) === magnet;
+}
+
+/**
+ * Returns `true` if a duplicate link already exists between the two ends
+ * (ignoring the link currently being validated).
+ */
+function hasDuplicateLink(
+  sourceView: dia.CellView, sourceNode: SVGElement | undefined,
+  targetView: dia.CellView, targetNode: SVGElement | undefined,
+  linkView: dia.LinkView,
+): boolean {
+  const sourceId = sourceView.model.id;
+  const targetId = targetView.model.id;
+  const sourcePort = getEndPort(sourceView, sourceNode);
+  const targetPort = getEndPort(targetView, targetNode);
+  const sourceMagnet = getEndMagnetSelector(sourceNode);
+  const targetMagnet = getEndMagnetSelector(targetNode);
+  const links = sourceView.paper!.model.getConnectedLinks(sourceView.model);
+  for (const link of links) {
+    if (link === linkView.model) continue;
+    const ls = link.source();
+    const lt = link.target();
+    if (ls.id !== sourceId || lt.id !== targetId) continue;
+    if (!endMatches(ls, sourcePort, sourceMagnet)) continue;
+    if (!endMatches(lt, targetPort, targetMagnet)) continue;
+    return true;
+  }
+  return false;
+}
+
 export interface CanConnectOptions {
   /** Allow connecting a cell to itself. @default false */
   readonly allowSelfLoops?: boolean;
@@ -99,43 +179,10 @@ export function canConnect(options: CanConnectOptions = {}) {
   ): boolean => {
     if (!allowSelfLoops && sourceView === targetView) return false;
     if (!allowLinkToLink && (!sourceView.model.isElement() || !targetView.model.isElement())) return false;
-    if (allowRootConnection !== true) {
-      const isRootBlocked = (cellView: dia.CellView, magnet: SVGElement | undefined): boolean => {
-        if (magnet) return false;
-        if (allowRootConnection === false) return true;
-        // 'auto': block root only if element has ports
-        return cellView.model.isElement() && (cellView.model as dia.Element).hasPorts();
-      };
-      if (isRootBlocked(sourceView, sourceNode) || isRootBlocked(targetView, targetNode)) return false;
-    }
-    if (!allowMultiLinks) {
-      const sourceId = sourceView.model.id;
-      const targetId = targetView.model.id;
-      const sourcePort = sourceNode ? sourceView.findAttribute('port', sourceNode) : null;
-      const targetPort = targetNode ? targetView.findAttribute('port', targetNode) : null;
-      // If the magnet is the port node itself, ignore the `selector`
-      const sourceMagnet = sourceNode?.hasAttribute('port') ? null : sourceNode?.getAttribute('joint-selector') ?? null;
-      const targetMagnet = targetNode?.hasAttribute('port') ? null : targetNode?.getAttribute('joint-selector') ?? null;
-      const graph = sourceView.paper!.model;
-      const links = graph.getConnectedLinks(sourceView.model);
-      for (const link of links) {
-        if (link === linkView.model) continue;
-        const ls = link.source();
-        const lt = link.target();
-        if (ls.id !== sourceId || lt.id !== targetId) continue;
-        // For each end: if a port is involved on either side, compare ports only.
-        // Otherwise fall back to the magnet selector.
-        const lsPort = ls.port ?? null;
-        const ltPort = lt.port ?? null;
-        const sourceMatches = (sourcePort !== null || lsPort !== null)
-          ? lsPort === sourcePort
-          : (ls.magnet ?? ls.selector ?? null) === sourceMagnet;
-        const targetMatches = (targetPort !== null || ltPort !== null)
-          ? ltPort === targetPort
-          : (lt.magnet ?? lt.selector ?? null) === targetMagnet;
-        if (!sourceMatches || !targetMatches) continue;
-        return false;
-      }
+    if (isRootBlocked(sourceView, sourceNode, allowRootConnection)) return false;
+    if (isRootBlocked(targetView, targetNode, allowRootConnection)) return false;
+    if (!allowMultiLinks && hasDuplicateLink(sourceView, sourceNode, targetView, targetNode, linkView)) {
+      return false;
     }
     if (validate) {
       const paper = sourceView.paper!;
