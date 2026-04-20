@@ -710,14 +710,24 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleOfAnchors = (sOffsetX + tOffsetX) / 2;
+            const middleX = (sOffsetX + tOffsetX) / 2;
 
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: middleOfAnchors, y: sOffsetY },
-                { x: middleOfAnchors, y: tOffsetY },
-                { x: tOffsetX, y: tOffsetY }
-            ];
+            if (sMinMarginY0 < tMinMarginY1) {
+                return [
+                    { x: sOffsetX, y: sMinMarginY0 },
+                    { x: middleX, y: sMinMarginY0 },
+                    { x: middleX, y: tMinMarginY1 },
+                    { x: tOffsetX, y: tMinMarginY1 }
+                ];
+            } else {
+                const middleY = (sOffsetY + tOffsetY) / 2;
+                return [
+                    { x: sOffsetX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: tOffsetX, y: middleY }
+                ];
+            }
         }
 
         if (sMinMarginY0 < tOffsetY) {
@@ -730,16 +740,24 @@ function routeBetweenPoints(source, target, opt = {}) {
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
             if ((x >= sMinMarginX0 && x <= sMinMarginX1) || (x >= tMinMarginX0 && x <= tMinMarginX1)) {
+                if (sMinMarginY0 > tMinMarginY1) {
+                    const y = (sBoxY0 + tBoxY1) / 2;
+                    return [
+                        { x: sOffsetX, y },
+                        { x: tOffsetX, y },
+                    ];
+                }
+
                 if (sMinMarginX1 >= tMinMarginX0 && isLeftShorter) {
-                    x = Math.min(tMinMarginX0, sMinMarginX0);
+                    x = Math.min(tMarginX0, sMarginX0);
                 } else if (sMinMarginX0 <= tMinMarginX1 && !isLeftShorter) {
-                    x = Math.max(tMinMarginX1, sMinMarginX1);
+                    x = Math.max(tMarginX1, sMarginX1);
                 }
 
                 // This handles the case when the source and target elements overlap as well as
                 // the case when the source is to the left of the target element.
-                y1 = Math.min(sOffsetY, tMinMarginY0);
-                y2 = Math.max(tOffsetY, sMinMarginY1);
+                y1 = Math.min(sOffsetY, tBoxY0 - targetMargin);
+                y2 = Math.max(tOffsetY, sBoxY1 + sourceMargin);
 
                 // This is an edge case when the source and target intersect and
                 if ((isLeftShorter && sOffsetX < tBoxX0) || (!isLeftShorter && sOffsetX > tBoxX1)) {
@@ -770,14 +788,24 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleOfAnchors = (sOffsetX + tOffsetX) / 2;
+            const middleX = (sOffsetX + tOffsetX) / 2;
 
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: middleOfAnchors, y: sOffsetY },
-                { x: middleOfAnchors, y: tOffsetY },
-                { x: tOffsetX, y: tOffsetY }
-            ];
+            if (sMinMarginY1 > tMinMarginY0) {
+                return [
+                    { x: sOffsetX, y: sMinMarginY1 },
+                    { x: middleX, y: sMinMarginY1 },
+                    { x: middleX, y: tMinMarginY0 },
+                    { x: tOffsetX, y: tMinMarginY0 }
+                ];
+            } else {
+                const middleY = (sOffsetY + tOffsetY) / 2;
+                return [
+                    { x: sOffsetX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: tOffsetX, y: middleY }
+                ];
+            }
         }
 
         if (sMinMarginY1 > tOffsetY) {
@@ -790,16 +818,24 @@ function routeBetweenPoints(source, target, opt = {}) {
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
             if ((x >= sMinMarginX0 && x <= sMinMarginX1) || (x >= tMinMarginX0 && x <= tMinMarginX1)) {
+                if (sMinMarginY1 < tMinMarginY0) {
+                    const y = (sBoxY1 + tBoxY0) / 2;
+                    return [
+                        { x: sOffsetX, y },
+                        { x: tOffsetX, y },
+                    ];
+                }
+
                 if (sMinMarginX1 >= tMinMarginX0 && isLeftShorter) {
-                    x = Math.min(tMinMarginX0, sMinMarginX0);
+                    x = Math.min(tMarginX0, sMarginX0);
                 } else if (sMinMarginX0 <= tMinMarginX1 && !isLeftShorter) {
-                    x = Math.max(tMinMarginX1, sMinMarginX1);
+                    x = Math.max(tMarginX1, sMarginX1);
                 }
 
                 // This handles the case when the source and target elements overlap as well as
                 // the case when the source is to the left of the target element.
-                y1 = Math.max(sOffsetY, tMinMarginY1);
-                y2 = Math.min(tOffsetY, sMinMarginY0);
+                y1 = Math.max(sOffsetY, tBoxY1 + targetMargin);
+                y2 = Math.min(tOffsetY, sBoxY0 - sourceMargin);
 
                 // This is an edge case when the source and target intersect and
                 if ((isLeftShorter && sOffsetX < tBoxX0) || (!isLeftShorter && sOffsetX > tBoxX1)) {
