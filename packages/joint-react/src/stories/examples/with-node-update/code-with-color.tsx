@@ -64,7 +64,7 @@ function Main() {
 
 export default function WithColor() {
   return (
-    <GraphProvider elements={initialElements} links={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

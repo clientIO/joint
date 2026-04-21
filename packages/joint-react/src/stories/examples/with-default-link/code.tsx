@@ -63,7 +63,7 @@ function RenderElement(data: Readonly<{ label: string }>) {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements}>
+    <GraphProvider initialElements={initialElements}>
       <Paper
         renderElement={RenderElement}
         className={PAPER_CLASSNAME}

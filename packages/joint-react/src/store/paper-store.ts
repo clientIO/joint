@@ -161,6 +161,7 @@ export class PaperStore {
   /**
    * Flushes pending link changes via setPaperViews so React re-reads correct link layout.
    * Called from afterRender when JointJS has finished rendering.
+   * @param graphStore
    */
   private flushPendingLinkChanges(graphStore: GraphStore): void {
     simpleScheduler(() => {

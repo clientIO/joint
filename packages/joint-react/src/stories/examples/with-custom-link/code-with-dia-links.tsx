@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+ 
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
@@ -83,8 +83,8 @@ const links: Record<string, LinkRecord> = {
 export default function App() {
   return (
     <GraphProvider
-      links={links as Record<string, LinkRecord>}
-      elements={initialElements}
+      initialLinks={links as Record<string, LinkRecord>}
+      initialElements={initialElements}
       cellNamespace={{ LinkModel }}
     >
       <Main />

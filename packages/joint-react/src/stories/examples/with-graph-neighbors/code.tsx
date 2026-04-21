@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import {
@@ -317,7 +317,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} links={initialLinks}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
       <Main />
     </GraphProvider>
   );

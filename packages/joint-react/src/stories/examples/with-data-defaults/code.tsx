@@ -171,7 +171,7 @@ function Diagram() {
       >
         {alternate ? '\u25A0 Square ports' : '\u25CF Round ports'}
       </button>
-      <GraphProvider<ElementData> elements={initialElements} links={initialLinks}>
+      <GraphProvider<ElementData> initialElements={initialElements} initialLinks={initialLinks}>
         <ThemeUpdater color={color} portShape={portShape} />
         <Paper
           className={PAPER_CLASSNAME}

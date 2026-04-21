@@ -5,6 +5,12 @@ import { getMarkerLength, MODEL_GEOMETRY_OPTIONS } from './utils';
 /**
  * Anchor that uses `center` with model geometry for the root element and ports,
  * and plain `center` (DOM-measured) for custom magnets.
+ * @param elementView
+ * @param magnet
+ * @param ref
+ * @param _
+ * @param endType
+ * @param linkView
  */
 export const centerAnchor: anchors.Anchor = (
   elementView, magnet, ref, _, endType, linkView
@@ -18,6 +24,12 @@ export const centerAnchor: anchors.Anchor = (
 /**
  * Anchor that uses `perpendicular` with model geometry for the root element and ports,
  * and plain `perpendicular` (DOM-measured) for custom magnets.
+ * @param elementView
+ * @param magnet
+ * @param ref
+ * @param _
+ * @param endType
+ * @param linkView
  */
 export const perpendicularAnchor: anchors.Anchor = (
   elementView, magnet, ref, _, endType, linkView
@@ -36,9 +48,10 @@ export type LinkMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 
  * - Root element → `midSide` with model geometry and the given `mode`.
  * - Port magnet → a specific side of the port bbox, with optional padding.
  * - Other magnets → `midSide` (DOM-based)
-* @param mode - The `midSide` mode. Default: `'auto'`.
+ * @param mode - The `midSide` mode. Default: `'auto'`.
  * @param sourceOffset - Padding for source end (px). Default: `0`.
  * @param targetOffset - Padding for target end (px). Default: `0`.
+ * @param markerSelector
  */
 export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetOffset = 0, markerSelector = 'line'): anchors.Anchor {
   return (elementView, magnet, ref, _, endType, linkView) => {

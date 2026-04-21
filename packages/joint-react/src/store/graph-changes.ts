@@ -11,8 +11,10 @@ export interface UpdateGraphOptions<
   ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
 > {
-  readonly elements: Record<string, ElementRecord<ElementData>>;
-  readonly links: Record<string, LinkRecord<LinkData>>;
+  /** Element records to sync. If omitted, existing element cells are preserved untouched. */
+  readonly elements?: Record<string, ElementRecord<ElementData>>;
+  /** Link records to sync. If omitted, existing link cells are preserved untouched. */
+  readonly links?: Record<string, LinkRecord<LinkData>>;
   readonly flag?: 'updateFromReact';
 }
 
@@ -21,7 +23,9 @@ export interface UpdateGraphOptions<
  * Returned so callers can iterate them once instead of re-walking the user record.
  */
 export interface UpdateGraphResult {
+  /** Empty when the corresponding stream was omitted from the update. */
   readonly elementIds: readonly string[];
+  /** Empty when the corresponding stream was omitted from the update. */
   readonly linkIds: readonly string[];
 }
 
@@ -43,6 +47,8 @@ interface JointJSEventOptions {
 /**
  * Sets up listeners for JointJS graph mutations and translates them into incremental change events.
  * Batching is always on: layout changes are immediate, data changes fire on batch:stop.
+ * @param options - Graph listener configuration.
+ * @returns Controller exposing updateGraph and destroy.
  */
 export function graphChanges(options: Options) {
   const { graph, onElementsSizeChange } = options;
@@ -51,6 +57,10 @@ export function graphChanges(options: Options) {
   let batchDepth = 0;
   let isSyncedWithReact = true;
 
+  /**
+   * Schedules onChanges to fire on next tick.
+   * @param data - Change options to pass to the handler.
+   */
   function onChanges(data: OnChangeOptions) {
     simpleScheduler(() => {
       options.onChanges(data);
@@ -59,6 +69,7 @@ export function graphChanges(options: Options) {
 
   /**
    * Returns true when inside a batch operation.
+   * @returns true when inside a JointJS batch operation.
    */
   function isInsideBatch() {
     return batchDepth > 0;
@@ -66,6 +77,8 @@ export function graphChanges(options: Options) {
 
   /**
    * Records a cell change and notifies the change handler.
+   * @param cell - The cell that changed.
+   * @param type - Kind of change.
    */
   function onCellEvent(cell: dia.Cell, type: 'change' | 'add' | 'remove') {
     changes.set(String(cell.id), { type, data: cell });
@@ -168,22 +181,37 @@ export function graphChanges(options: Options) {
 
       const elementIds: string[] = [];
       const linkIds: string[] = [];
-      const graphElements: dia.Cell.JSON[] = Object.entries(elements).map(([id, element]) => {
-        const cellAttributes = mapElementToAttributes(element);
-        cellAttributes.id = id;
-        elementIds.push(id);
-        return cellAttributes as dia.Cell.JSON;
-      });
-      const graphLinks: dia.Cell.JSON[] = Object.entries(links).map(([id, link]) => {
-        const cellAttributes = mapLinkToAttributes(link);
-        cellAttributes.id = id;
-        linkIds.push(id);
-        return cellAttributes as dia.Cell.JSON;
-      });
+      const cellsToSync: dia.Cell.JSON[] = [];
+
+      if (elements) {
+        for (const [id, element] of Object.entries(elements)) {
+          const cellAttributes = mapElementToAttributes(element);
+          cellAttributes.id = id;
+          elementIds.push(id);
+          cellsToSync.push(cellAttributes as dia.Cell.JSON);
+        }
+      } else {
+        // Preserve untouched element cells by re-emitting their current JSON.
+        for (const cell of graph.getElements()) {
+          cellsToSync.push(cell.toJSON());
+        }
+      }
+
+      if (links) {
+        for (const [id, link] of Object.entries(links)) {
+          const cellAttributes = mapLinkToAttributes(link);
+          cellAttributes.id = id;
+          linkIds.push(id);
+          cellsToSync.push(cellAttributes as dia.Cell.JSON);
+        }
+      } else {
+        for (const cell of graph.getLinks()) {
+          cellsToSync.push(cell.toJSON());
+        }
+      }
 
       graph.startBatch('updateFromReact');
-
-      graph.syncCells([...graphElements, ...graphLinks], {
+      graph.syncCells(cellsToSync, {
         remove: true,
         isUpdateFromReact: flag === 'updateFromReact',
       });

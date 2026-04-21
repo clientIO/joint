@@ -478,8 +478,8 @@ function Main() {
 
   return (
     <GraphProvider<SaasNodeData>
-      elements={initialElements}
-      links={initialLinks}
+      initialElements={initialElements}
+      initialLinks={initialLinks}
     >
       <Paper
         ref={paperRef}

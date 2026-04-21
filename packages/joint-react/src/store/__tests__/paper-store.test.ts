@@ -232,7 +232,14 @@ describe('PaperStore', () => {
       portMagnet.getBBox = jest.fn(() => ({ x: -5, y: -5, width: 10, height: 10 }) as DOMRect);
 
       const element = new dia.Element({ size: { width: 200, height: 100 } });
-      const cellView = { el: rootNode, model: element } as unknown as dia.CellView;
+      const cellView = {
+        el: rootNode,
+        model: element,
+        computeNodeBoundingRect: (node: SVGGraphicsElement) => {
+          const bbox = node.getBBox();
+          return { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
+        },
+      } as unknown as dia.CellView;
 
       const result = measureNode!(portMagnet as SVGGraphicsElement, cellView);
 

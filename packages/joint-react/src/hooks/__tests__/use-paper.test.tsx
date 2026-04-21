@@ -16,7 +16,7 @@ function renderTestElement() {
 
 function createPaperWrapper(paperId = 'paper-under-test') {
   return ({ children }: { children: ReactNode }) => (
-    <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+    <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
       <Paper id={paperId} width={100} height={100} renderElement={renderTestElement}>
         {children}
       </Paper>
@@ -26,8 +26,8 @@ function createPaperWrapper(paperId = 'paper-under-test') {
 
 describe('use-paper', () => {
   const graphWrapper = graphProviderWrapper({
-    elements: EMPTY_ELEMENTS,
-    links: EMPTY_LINKS,
+    initialElements: EMPTY_ELEMENTS,
+    initialLinks: EMPTY_LINKS,
   });
 
   it('returns paper instance from Paper context', async () => {
@@ -134,7 +134,7 @@ describe('useResolvePaperId', () => {
     }
 
     render(
-      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+      <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
         <TestComponent />
       </GraphProvider>
     );
@@ -163,7 +163,7 @@ describe('useResolvePaperId', () => {
     }
 
     render(
-      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+      <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
         <TestComponent />
       </GraphProvider>
     );

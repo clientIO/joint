@@ -644,7 +644,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ShapeData> elements={initialElements} links={initialLinks}>
+    <GraphProvider<ShapeData> initialElements={initialElements} initialLinks={initialLinks}>
       <Main />
     </GraphProvider>
   );

@@ -23,7 +23,8 @@ function areMapsShallowEqual<R>(a: Map<string, R>, b: Map<string, R>): boolean {
  * - **Map mode** (`ids?`): returns all/filtered items as a stable Map. Per-ID subscription for IDs.
  * - **Map mode with transform** (`ids?, mapItem`): same, but applies `mapItem` to each value.
  * - **Selector mode** (`selector, isEqual?`): applies selector to full Map, custom equality.
- *
+ * @param container
+ * @param ids
  * @internal
  */
 export function useContainerItems<T>(

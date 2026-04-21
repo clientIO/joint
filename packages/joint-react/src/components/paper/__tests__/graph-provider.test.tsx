@@ -55,7 +55,7 @@ describe('graph', () => {
       return null;
     }
     render(
-      <GraphProvider elements={elements} links={{ link1: link }}>
+      <GraphProvider initialElements={elements} initialLinks={{ link1: link }}>
         <TestComponent />
       </GraphProvider>
     );
@@ -115,7 +115,7 @@ describe('graph', () => {
       return null;
     }
     render(
-      <GraphProvider elements={elements}>
+      <GraphProvider initialElements={elements}>
         <TestComponent />
       </GraphProvider>
     );
@@ -250,7 +250,7 @@ describe('graph', () => {
       return null;
     }
     render(
-      <GraphProvider elements={elements} links={{ link1: link }}>
+      <GraphProvider initialElements={elements} initialLinks={{ link1: link }}>
         <TestComponent />
       </GraphProvider>
     );
@@ -424,7 +424,7 @@ describe('graph', () => {
     }
 
     render(
-      <GraphProvider elements={elements} links={links}>
+      <GraphProvider initialElements={elements} initialLinks={links}>
         <TestComponent />
       </GraphProvider>
     );
@@ -492,7 +492,7 @@ describe('graph', () => {
       const renderLink = useCallback(() => <CaptureLinkDataUpdated />, []);
 
       return (
-        <GraphProvider elements={elements} links={links} onLinksChange={setLinks}>
+        <GraphProvider initialElements={elements} links={links} onLinksChange={setLinks}>
           <Paper
             width={100}
             height={100}

@@ -9,6 +9,7 @@ describe('LinkModel', () => {
         {
           tagName: 'path',
           selector: 'wrapper',
+          className: 'jj-link-wrapper',
           attributes: {
             fill: 'none',
             cursor: 'pointer',
@@ -18,6 +19,7 @@ describe('LinkModel', () => {
         {
           tagName: 'path',
           selector: 'line',
+          className: 'jj-link-line',
           attributes: {
             fill: 'none',
             pointerEvents: 'none',

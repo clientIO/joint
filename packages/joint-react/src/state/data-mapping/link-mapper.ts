@@ -5,7 +5,10 @@ import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 import type { CellAttributes } from '.';
 
-/** Forward mapper using the React default link type. */
+/**
+ * Forward mapper using the React default link type.
+ * @param link
+ */
 export function mapLinkToAttributes<LinkData extends object = Record<string, unknown>>(
   link: LinkRecord<LinkData>
 ): CellAttributes {
@@ -22,6 +25,7 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
  * - No `labelMap` → return `labels` as-is.
  *
  * 1:1 mapping — no `presentation` wrapper.
+ * @param attributes
  */
 export function mapAttributesToLink<LinkData extends object = Record<string, unknown>>(
   attributes: dia.Link.Attributes

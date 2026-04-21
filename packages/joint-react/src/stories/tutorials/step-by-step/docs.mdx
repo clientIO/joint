@@ -70,7 +70,7 @@ Wrap your app with the `GraphProvider` component to provide the graph context to
 ```tsx
 import { GraphProvider } from '@joint/react';
 
-<GraphProvider elements={elements} links={links}>
+<GraphProvider initialElements={elements} initialLinks={links}>
   {/* Add Paper or other components here */}
 </GraphProvider>
 ```
@@ -164,7 +164,7 @@ const mapDataToElementAttributes = ({
   ...(data.ports && { ports: data.ports }),
 });
 
-<GraphProvider elements={elements} mapDataToElementAttributes={mapDataToElementAttributes}>
+<GraphProvider initialElements={elements} mapDataToElementAttributes={mapDataToElementAttributes}>
   <Paper />
 </GraphProvider>;
 ```
@@ -387,7 +387,7 @@ ${CodeControlledModePeerJS}
 The graph manages its own state internally. Use this for simple, read-only diagrams.
 
 ```tsx
-<GraphProvider elements={initialElements} links={initialLinks}>
+<GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
   <Paper />
 </GraphProvider>
 ```
@@ -513,7 +513,7 @@ const elements = {
 
 export function MultiViews() {
   return (
-    <GraphProvider elements={elements}>
+    <GraphProvider initialElements={elements}>
       {/* Main interactive canvas */}
       <Paper id="main" width={800} height={500} />
 
@@ -561,7 +561,7 @@ function FitToContent() {
 
 export function WithHook() {
   return (
-    <GraphProvider elements={elements}>
+    <GraphProvider initialElements={elements}>
       <Paper id="main" />
       <FitToContent />
     </GraphProvider>
@@ -588,7 +588,7 @@ export function WithRef() {
   }, []);
 
   return (
-    <GraphProvider elements={elements}>
+    <GraphProvider initialElements={elements}>
       <Paper id="zoomed" ref={paperRef} />
     </GraphProvider>
   );
@@ -604,7 +604,7 @@ export function WithRef() {
 ```tsx
 function GraphWithMinimap() {
   return (
-    <GraphProvider elements={elements} links={links}>
+    <GraphProvider initialElements={elements} initialLinks={links}>
       <Paper id="main"  height={400} />
       <div style={{ position: 'absolute', right: 16, bottom: 16 }}>
         <Paper id="mini" width={180} height={120} interactive={false} scale={0.2} />
@@ -620,10 +620,10 @@ function GraphWithMinimap() {
 function EditorWithPreview() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16 }}>
-      <GraphProvider elements={elements} links={links}>
+      <GraphProvider initialElements={elements} initialLinks={links}>
         <Paper id="editable" />
       </GraphProvider>
-      <GraphProvider elements={elements} links={links}>
+      <GraphProvider initialElements={elements} initialLinks={links}>
         <Paper id="preview" interactive={false} />
       </GraphProvider>
     </div>
@@ -642,7 +642,7 @@ const renderElement = ({ label }) => (
 
 function HtmlNodes() {
   return (
-    <GraphProvider elements={elements}>
+    <GraphProvider initialElements={elements}>
       <Paper useHTMLOverlay renderElement={renderElement} />
     </GraphProvider>
   );

@@ -9,6 +9,12 @@ import { BOUNDARY_OPTIONS, EMPTY_OPTIONS, getMarkerLength, MODEL_GEOMETRY_OPTION
  * - Default port magnets (elements with a `port` attribute)
  *
  * Uses `boundary` for custom sub-elements registered via `selectorRef`.
+ * @param endPathSegmentLine
+ * @param endView
+ * @param endMagnet
+ * @param _opt
+ * @param endType
+ * @param linkView
  */
 export const boundaryPoint: connectionPoints.ConnectionPoint = (
   endPathSegmentLine,
@@ -29,6 +35,12 @@ export const boundaryPoint: connectionPoints.ConnectionPoint = (
  * For ports: returns the anchor (already at port edge via smartAnchor).
  * For root element: returns the anchor (already on boundary via midSide).
  * For custom magnets: uses `rectangle` with model geometry.
+ * @param endPathSegmentLine
+ * @param endView
+ * @param endMagnet
+ * @param _opt
+ * @param endType
+ * @param linkView
  */
 export const anchorPoint: connectionPoints.ConnectionPoint = (
   endPathSegmentLine,
@@ -47,6 +59,10 @@ export const anchorPoint: connectionPoints.ConnectionPoint = (
 
 /**
  * Wraps a connection point function and applies per-end offsets to the result.
+ * @param cp
+ * @param sourceOffset
+ * @param targetOffset
+ * @param markerSelector
  */
 export function withOffsets(
   cp: connectionPoints.ConnectionPoint,

@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 /* eslint-disable @eslint-react/no-array-index-key */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
@@ -142,7 +142,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} links={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

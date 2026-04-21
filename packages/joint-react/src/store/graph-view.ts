@@ -91,8 +91,11 @@ export function graphView<
                   position: previousPosition,
                   size: previousSize,
                 } = previous;
+                // Use `rest` as the source of truth — `mapAttributesToElement`
+                // returns the complete current attribute set, so spreading
+                // `previous` would re-introduce keys that JointJS has unset
+                // (e.g. `parent` after an embed is undone).
                 const newItem = {
-                  ...previous,
                   ...rest,
                   data: isShallowEqual(previousUserData, userData) ? previousUserData : userData,
                   position: isPositionEqual(previousPosition, position)
@@ -220,62 +223,61 @@ export function graphView<
       // We still need to refresh the containers so hooks see the new data —
       // and we MUST read it from the graph, not from the raw user input,
       // because Backbone preserves attributes that the user did not specify
-      // (e.g. a measured `size` that came from a ResizeObserver). Reading
-      // from the user record would wipe those preserved attributes from the
-      // container while leaving them on the graph cell, putting hooks and
-      // the cell models out of sync.
+      // (e.g. a measured `size` that came from a ResizeObserver).
+      // Only refresh the streams that were actually synced — if `update.elements`
+      // is omitted, element cells and the elements container are untouched here.
       if (update.flag !== 'updateFromReact') {
         return;
       }
 
-      const userElementIds = new Set(elementIds);
-      const userLinkIds = new Set(linkIds);
-
       let hasElementChange = false;
       let hasLinkChange = false;
 
-      for (const id of elementIds) {
-        const cell = graph.getCell(id);
-        if (!cell?.isElement()) continue;
-        elements.set(id, (previous) => {
-          const next = mapAttributesToElement(cell.attributes) as ElementWithLayout<ElementData>;
-          if (!previous) return next;
-          const { data: nextUserData, position, size, ...rest } = next;
-          const {
-            data: previousUserData,
-            position: previousPosition,
-            size: previousSize,
-          } = previous;
-          return {
-            ...previous,
-            ...rest,
-            data: isShallowEqual(previousUserData, nextUserData) ? previousUserData : nextUserData,
-            position: isPositionEqual(previousPosition, position) ? previousPosition : position,
-            size: isSizeEqual(previousSize, size) ? previousSize : size,
-          };
-        });
-        hasElementChange = true;
-      }
-
-      for (const id of linkIds) {
-        const cell = graph.getCell(id);
-        if (!cell?.isLink()) continue;
-        const linkData = mapAttributesToLink<LinkData>(cell.attributes);
-        links.set(id, linkData);
-        hasLinkChange = true;
-      }
-
-      // Remove elements/links that are no longer in the user state
-      for (const [id] of elements.getFull()) {
-        if (!userElementIds.has(id)) {
-          elements.delete(id);
+      if (update.elements !== undefined) {
+        const userElementIds = new Set(elementIds);
+        for (const id of elementIds) {
+          const cell = graph.getCell(id);
+          if (!cell?.isElement()) continue;
+          elements.set(id, (previous) => {
+            const next = mapAttributesToElement(cell.attributes) as ElementWithLayout<ElementData>;
+            if (!previous) return next;
+            const { data: nextUserData, position, size, ...rest } = next;
+            const {
+              data: previousUserData,
+              position: previousPosition,
+              size: previousSize,
+            } = previous;
+            return {
+              ...rest,
+              data: isShallowEqual(previousUserData, nextUserData) ? previousUserData : nextUserData,
+              position: isPositionEqual(previousPosition, position) ? previousPosition : position,
+              size: isSizeEqual(previousSize, size) ? previousSize : size,
+            };
+          });
           hasElementChange = true;
         }
+        for (const [id] of elements.getFull()) {
+          if (!userElementIds.has(id)) {
+            elements.delete(id);
+            hasElementChange = true;
+          }
+        }
       }
-      for (const [id] of links.getFull()) {
-        if (!userLinkIds.has(id)) {
-          links.delete(id);
+
+      if (update.links !== undefined) {
+        const userLinkIds = new Set(linkIds);
+        for (const id of linkIds) {
+          const cell = graph.getCell(id);
+          if (!cell?.isLink()) continue;
+          const linkData = mapAttributesToLink<LinkData>(cell.attributes);
+          links.set(id, linkData);
           hasLinkChange = true;
+        }
+        for (const [id] of links.getFull()) {
+          if (!userLinkIds.has(id)) {
+            links.delete(id);
+            hasLinkChange = true;
+          }
         }
       }
 

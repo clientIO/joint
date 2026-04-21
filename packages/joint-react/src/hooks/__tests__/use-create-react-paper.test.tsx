@@ -14,7 +14,7 @@ function renderTestElement() {
 
 function createGraphWrapper() {
   return ({ children }: { children: ReactNode }) => (
-    <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+    <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
       {children}
     </GraphProvider>
   );
@@ -295,7 +295,7 @@ describe('use-create-portal-paper', () => {
     };
 
     render(
-      <GraphProvider elements={initialElements} links={initialLinks}>
+      <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
         <RenderCountHost onRenderCount={onRenderCount} />
       </GraphProvider>
     );

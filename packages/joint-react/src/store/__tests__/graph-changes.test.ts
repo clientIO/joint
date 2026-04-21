@@ -46,7 +46,7 @@ describe('graphChanges', () => {
       await flush();
 
       expect(onChanges).toHaveBeenCalled();
-      const { changes } = onChanges.mock.calls[0][0];
+      const [[{ changes }]] = onChanges.mock.calls;
       expect(changes.get('el-1')).toEqual(expect.objectContaining({ type: 'add' }));
     });
 
@@ -61,7 +61,7 @@ describe('graphChanges', () => {
       await flush();
 
       expect(onChanges).toHaveBeenCalled();
-      const lastCall = onChanges.mock.calls.at(-1)[0];
+      const [lastCall] = onChanges.mock.calls.at(-1) ?? [];
       expect(lastCall.changes.get('el-1')).toEqual(expect.objectContaining({ type: 'change' }));
     });
 
@@ -75,7 +75,7 @@ describe('graphChanges', () => {
       await flush();
 
       expect(onChanges).toHaveBeenCalled();
-      const lastCall = onChanges.mock.calls.at(-1)[0];
+      const [lastCall] = onChanges.mock.calls.at(-1) ?? [];
       expect(lastCall.changes.get('el-1')).toEqual(expect.objectContaining({ type: 'remove' }));
     });
 
@@ -90,7 +90,7 @@ describe('graphChanges', () => {
       await flush();
 
       expect(onChanges).toHaveBeenCalled();
-      const lastCall = onChanges.mock.calls.at(-1)[0];
+      const [lastCall] = onChanges.mock.calls.at(-1) ?? [];
       expect(lastCall.changes.get('link-1')).toEqual(expect.objectContaining({ type: 'add' }));
     });
 
@@ -111,7 +111,7 @@ describe('graphChanges', () => {
       await flush();
 
       expect(onChanges).toHaveBeenCalled();
-      const lastCall = onChanges.mock.calls.at(-1)[0];
+      const [lastCall] = onChanges.mock.calls.at(-1) ?? [];
       expect(lastCall.changes.get('el-2')).toEqual(expect.objectContaining({ type: 'add' }));
       // old element should not be in changes (reset clears the map first)
       expect(lastCall.changes.has('el-1')).toBe(false);
@@ -160,8 +160,7 @@ describe('graphChanges', () => {
 
       // batch:stop still fires onChanges, but it should not contain a 'remove' entry for el-1
       // because the remove event itself was filtered by isUpdateFromReact
-      for (const call of onChanges.mock.calls) {
-        const { changes } = call[0];
+      for (const [{ changes }] of onChanges.mock.calls) {
         const change = changes.get('el-1');
         expect(change?.type).not.toBe('remove');
       }
@@ -174,7 +173,7 @@ describe('graphChanges', () => {
       addElement(graph, 'el-1');
       await flush();
 
-      const { isInsideBatch } = onChanges.mock.calls[0][0];
+      const [[{ isInsideBatch }]] = onChanges.mock.calls;
       expect(isInsideBatch).toBe(false);
     });
 
@@ -186,7 +185,7 @@ describe('graphChanges', () => {
       await flush();
 
       // During batch, onChanges is still called but with isInsideBatch=true
-      const duringBatch = onChanges.mock.calls[0][0];
+      const [[duringBatch]] = onChanges.mock.calls;
       expect(duringBatch.isInsideBatch).toBe(true);
 
       onChanges.mockClear();
@@ -195,7 +194,7 @@ describe('graphChanges', () => {
 
       // On batch stop, onChanges is called again with isInsideBatch=false
       expect(onChanges).toHaveBeenCalled();
-      const afterBatch = onChanges.mock.calls.at(-1)[0];
+      const [afterBatch] = onChanges.mock.calls.at(-1) ?? [];
       expect(afterBatch.isInsideBatch).toBe(false);
     });
 
@@ -208,7 +207,7 @@ describe('graphChanges', () => {
 
       // batch:stop always fires onChanges with the current (empty) changes map
       expect(onChanges).toHaveBeenCalled();
-      const { changes, isInsideBatch } = onChanges.mock.calls.at(-1)[0];
+      const [{ changes, isInsideBatch }] = onChanges.mock.calls.at(-1) ?? [];
       expect(changes.size).toBe(0);
       expect(isInsideBatch).toBe(false);
     });
@@ -231,7 +230,7 @@ describe('graphChanges', () => {
       await flush();
       // Outer stop should trigger
       expect(onChanges).toHaveBeenCalled();
-      const { isInsideBatch } = onChanges.mock.calls.at(-1)[0];
+      const [{ isInsideBatch }] = onChanges.mock.calls.at(-1) ?? [];
       expect(isInsideBatch).toBe(false);
     });
   });
@@ -292,5 +291,61 @@ describe('graphChanges', () => {
 
       expect(onChanges).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('updateGraph partial sync', () => {
+  it('preserves existing element cells when only links are provided', () => {
+    const graph = createGraph();
+    graph.addCells([
+      { id: 'e1', type: 'ElementModel', position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
+    ]);
+    const controller = graphChanges({ graph, onChanges: () => {} });
+
+    controller.updateGraph({ links: {}, flag: 'updateFromReact' });
+
+    expect(graph.getCell('e1')).toBeDefined();
+    controller.destroy();
+  });
+
+  it('preserves existing link cells when only elements are provided', () => {
+    const graph = createGraph();
+    graph.addCells([
+      { id: 'e1', type: 'ElementModel', position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
+      { id: 'e2', type: 'ElementModel', position: { x: 50, y: 50 }, size: { width: 10, height: 10 } },
+      { id: 'l1', type: 'standard.Link', source: { id: 'e1' }, target: { id: 'e2' } },
+    ]);
+    const controller = graphChanges({ graph, onChanges: () => {} });
+
+    controller.updateGraph({
+      elements: {
+        e1: { position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
+        e2: { position: { x: 50, y: 50 }, size: { width: 10, height: 10 } },
+      },
+      flag: 'updateFromReact',
+    });
+
+    expect(graph.getCell('l1')).toBeDefined();
+    controller.destroy();
+  });
+
+  it('removes missing link cells when links stream is provided', () => {
+    const graph = createGraph();
+    graph.addCells([
+      { id: 'e1', type: 'ElementModel', position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
+      { id: 'e2', type: 'ElementModel', position: { x: 50, y: 50 }, size: { width: 10, height: 10 } },
+      { id: 'l1', type: 'standard.Link', source: { id: 'e1' }, target: { id: 'e2' } },
+      { id: 'l2', type: 'standard.Link', source: { id: 'e2' }, target: { id: 'e1' } },
+    ]);
+    const controller = graphChanges({ graph, onChanges: () => {} });
+
+    controller.updateGraph({
+      links: { l1: { source: 'e1', target: 'e2' } },
+      flag: 'updateFromReact',
+    });
+
+    expect(graph.getCell('l1')).toBeDefined();
+    expect(graph.getCell('l2')).toBeUndefined();
+    controller.destroy();
   });
 });

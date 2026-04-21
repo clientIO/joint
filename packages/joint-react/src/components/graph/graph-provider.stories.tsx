@@ -20,24 +20,33 @@ const meta: Meta<typeof GraphProvider> = {
   tags: ['component'],
   parameters: makeRootDocumentation({
     description: `
-The **GraphProvider** component provides a shared Graph context for all its descendants. It manages the graph state (elements and links) and makes it available to child components through React context.
+The **GraphProvider** component provides a shared Graph context for all its descendants.
+
+**Modes (per stream — elements and links are independent):**
+- **Uncontrolled:** Pass \`initialElements\` / \`initialLinks\`. JointJS owns the data after mount.
+- **Controlled:** Pass \`elements\` + \`onElementsChange\` (and/or \`links\` + \`onLinksChange\`). React owns the data; the graph stays in sync.
+- **Mixed:** Any combination — e.g. controlled elements + uncontrolled links — is supported.
+
+**Notifications:**
+- \`onElementsChange\` / \`onLinksChange\` fire in both modes. In uncontrolled mode they are notification-only.
+- \`onIncrementalChange\` is orthogonal; fires in any mode with granular added/changed/removed sets.
 
 **Key Features:**
-- Manages graph state (elements and links)
-- Provides context for hooks like \`useElement\`, \`useLinks\`, \`useElements\`
-- Supports multiple Paper instances within the same provider
-- Handles graph updates and subscriptions efficiently
+- Manages graph state for elements and links.
+- Provides context for hooks like \`useElement\`, \`useLinks\`, \`useElements\`.
+- Supports multiple Paper instances within the same provider.
+- Handles graph updates and subscriptions efficiently.
     `,
     usage: `
 \`\`\`tsx
 import { GraphProvider, Paper } from '@joint/react';
 
-const elements = {
+const initialElements = {
   '1': { x: 100, y: 100, width: 100, height: 50 },
   '2': { x: 250, y: 200, width: 100, height: 50 },
 };
 
-const links = {
+const initialLinks = {
   'l1': { source: '1', target: '2' },
 };
 
@@ -47,7 +56,7 @@ function RenderElement() {
 
 function MyDiagram() {
   return (
-    <GraphProvider elements={elements} links={links}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
       <Paper renderElement={RenderElement} />
     </GraphProvider>
   );
@@ -55,15 +64,18 @@ function MyDiagram() {
 \`\`\`
     `,
     props: `
-- **elements**: Record of element objects keyed by ID (required)
-- **links**: Record of link objects keyed by ID (required)
-- **children**: React nodes (typically Paper components)
-- **onChange**: Callback fired when graph state changes
+- **initialElements** / **initialLinks**: uncontrolled record of cells (used on mount; JointJS owns the data after).
+- **elements** / **links**: controlled record of cells (each pairs with its onChange callback).
+- **onElementsChange** / **onLinksChange**: notification in uncontrolled mode; required write-back in controlled mode.
+- **onIncrementalChange**: granular add/change/remove sets — works in any mode.
+- **graph**: optional pre-built JointJS \`dia.Graph\` instance.
+- **store**: optional pre-built \`GraphStore\` instance.
+- **children**: React nodes (typically Paper components).
     `,
     apiURL: API_URL,
     code: `import { GraphProvider, Paper } from '@joint/react'
 
-<GraphProvider elements={elements} links={links}>
+<GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
   <Paper renderElement={RenderElement} />
 </GraphProvider>
     `,
@@ -99,8 +111,8 @@ function RenderHTMLElement() {
 
 export const Default: Story = {
   args: {
-    elements: testElements,
-    links: testLinks,
+    initialElements: testElements,
+    initialLinks: testLinks,
     children: <Paper className={PAPER_CLASSNAME} renderElement={RenderHTMLElement} />,
   },
   parameters: {
@@ -125,8 +137,8 @@ function Component() {
 
 export const ConditionalRender: Story = {
   args: {
-    elements: testElements,
-    links: testLinks,
+    initialElements: testElements,
+    initialLinks: testLinks,
     children: <Component />,
   },
   parameters: {

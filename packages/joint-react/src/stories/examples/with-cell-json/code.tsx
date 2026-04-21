@@ -178,8 +178,8 @@ export default function App() {
   return (
     <GraphProvider
       graph={graph}
-      elements={initialElements}
-      links={initialLinks}
+      initialElements={initialElements}
+      initialLinks={initialLinks}
     >
       <Main />
     </GraphProvider>

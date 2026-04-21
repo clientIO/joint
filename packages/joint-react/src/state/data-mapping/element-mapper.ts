@@ -4,7 +4,10 @@ import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { elementAttributes } from '../../presets/element-attributes';
 import type { CellAttributes } from './index';
 
-/** Forward mapper using the React default element type. */
+/**
+ * Forward mapper using the React default element type.
+ * @param element
+ */
 export function mapElementToAttributes<ElementData extends object = Record<string, unknown>>(
   element: ElementRecord<ElementData>
 ): CellAttributes {
@@ -20,6 +23,7 @@ export function mapElementToAttributes<ElementData extends object = Record<strin
  * - No `portMap` → return `ports` as-is.
  *
  * 1:1 mapping — no `presentation` wrapper.
+ * @param attributes
  */
 export function mapAttributesToElement<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes

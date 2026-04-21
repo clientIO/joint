@@ -26,7 +26,7 @@ function renderTestElement() {
 
 function createPaperWrapper(paperId = 'test-paper') {
   return ({ children }: { children: ReactNode }) => (
-    <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+    <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
       <Paper id={paperId} width={100} height={100} renderElement={renderTestElement}>
         {children}
       </Paper>
@@ -36,7 +36,7 @@ function createPaperWrapper(paperId = 'test-paper') {
 
 function createGraphWrapper() {
   return ({ children }: { children: ReactNode }) => (
-    <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+    <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
       {children}
     </GraphProvider>
   );
@@ -450,7 +450,7 @@ describe('FeaturesProvider', () => {
     }
 
     render(
-      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+      <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
         <Paper id="feat-paper" width={100} height={100} renderElement={renderTestElement}>
           <FeaturesProvider target="paper" id="scroller" onAddFeature={onAddFeature}>
             <CaptureFeatures />
@@ -481,7 +481,7 @@ describe('FeaturesProvider', () => {
     }
 
     render(
-      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+      <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
         <FeaturesProvider target="graph" id="command-manager" onAddFeature={onAddFeature}>
           <CaptureFeatures />
         </FeaturesProvider>

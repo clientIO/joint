@@ -244,7 +244,7 @@ export default function App() {
   };
 
   return (
-    <GraphProvider graph={graph} elements={elements} links={links}>
+    <GraphProvider graph={graph} initialElements={elements} initialLinks={links}>
       <Main hiddenLayers={hiddenLayers} toggleLayer={toggleLayer} />
     </GraphProvider>
   );

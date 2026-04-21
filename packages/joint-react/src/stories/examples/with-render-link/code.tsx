@@ -86,7 +86,7 @@ export default function App() {
   const [useLinkModels, setUseLinkModels] = useState(true);
 
   return (
-    <GraphProvider elements={initialElements} links={initialLinks}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
       <div className="flex flex-col gap-2">
         <button
           type="button"

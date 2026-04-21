@@ -41,7 +41,7 @@ const renderElement = useCallback(
   [],
 );
 
-<GraphProvider elements={elements}>
+<GraphProvider initialElements={elements}>
   <Paper renderElement={renderElement} />
 </GraphProvider>
 \`\`\`

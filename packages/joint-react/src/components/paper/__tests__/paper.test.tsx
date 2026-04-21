@@ -14,6 +14,7 @@ import type { ElementsMeasuredEvent } from '../../../types/event.types';
 import type { ElementRecord, LinkRecord } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
+import type { DefaultLinkContext } from '../paper.types';
 import { LinkModel, LINK_MODEL_TYPE } from '../../../models/link-model';
 import { PortalPaper } from '../../../models/portal-paper';
 import { ElementModel } from '../../../models/element-model';
@@ -77,7 +78,7 @@ const PROP_HEIGHT = 180;
 type DefaultLinkProperty =
   | dia.Link
   | Partial<LinkRecord>
-  | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<LinkRecord>);
+  | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>);
 
 type PortDragElementView = dia.ElementView & {
   findPortNode: (portId: string, selector?: string) => SVGElement | null;
@@ -293,7 +294,7 @@ async function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
 
   await act(async () => {
     render(
-      <GraphProvider elements={getPortDragElements()}>
+      <GraphProvider initialElements={getPortDragElements()}>
         <Paper
           ref={ref}
           defaultLink={defaultLink}
@@ -383,7 +384,7 @@ describe('Paper Component', () => {
     const PAPER_ID = 'test-measured';
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
           <Paper
             id={PAPER_ID}
@@ -406,7 +407,7 @@ describe('Paper Component', () => {
   it('renders elements correctly with useHTMLOverlay enabled', async () => {
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper useHTMLOverlay renderElement={() => <TestLabelElement />} />
         </GraphProvider>
       );
@@ -460,7 +461,7 @@ describe('Paper Component', () => {
   it('applies default clickThreshold and custom clickThreshold', async () => {
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -470,7 +471,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper clickThreshold={20} renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -482,7 +483,7 @@ describe('Paper Component', () => {
   it('applies scale to the Paper', async () => {
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper scale={2} renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -500,7 +501,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
           <Paper id={PAPER_ID} renderElement={() => <div>Test</div>} />
         </GraphProvider>
@@ -524,7 +525,7 @@ describe('Paper Component', () => {
         }, 100);
       }, []);
       return (
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           {isReady && (
             <>
               <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
@@ -549,7 +550,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -580,7 +581,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} renderElement={() => <div>Test</div>} />
           <CapturePaperRef paperRef={ref} />
         </GraphProvider>
@@ -612,7 +613,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <PaperWithEffectRefCapture />
         </GraphProvider>
       );
@@ -643,7 +644,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={{}}>
+        <GraphProvider initialElements={{}}>
           <PaperWithEffectRefCapture />
         </GraphProvider>
       );
@@ -664,7 +665,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={{}}>
+        <GraphProvider initialElements={{}}>
           <Paper ref={ref} />
         </GraphProvider>
       );
@@ -698,7 +699,7 @@ describe('Paper Component', () => {
     function Component() {
       const ref = useRef<dia.Paper | null>(null);
       return (
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} renderElement={() => <div>Test</div>} />
           <ChangeScale paperRef={ref} />
         </GraphProvider>
@@ -738,7 +739,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} renderElement={() => <div>Test</div>} />
           <ChangeScale />
         </GraphProvider>
@@ -848,7 +849,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={view1Ref} renderElement={() => <div>Test</div>} />
           <Paper ref={view2Ref} renderElement={() => <div>Test</div>} />
         </GraphProvider>
@@ -870,7 +871,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -892,7 +893,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper
             ref={ref}
             defaultConnectionPoint={{ name: 'boundary' }}
@@ -916,7 +917,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} width="100%" renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -934,7 +935,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} height="100%" renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -952,7 +953,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} width="100%" height="100%" renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -970,7 +971,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper
             ref={ref}
             className="custom-paper-class flowchart-paper"
@@ -1007,7 +1008,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper
             ref={ref}
             style={{ width: '640px', height: '360px' }}
@@ -1040,7 +1041,7 @@ describe('Paper Component', () => {
     try {
       await act(async () => {
         render(
-          <GraphProvider elements={elements}>
+          <GraphProvider initialElements={elements}>
             <Paper
               ref={ref}
               className="paper-host-sized-by-class"
@@ -1076,7 +1077,7 @@ describe('Paper Component', () => {
     try {
       await act(async () => {
         render(
-          <GraphProvider elements={elements}>
+          <GraphProvider initialElements={elements}>
             <Paper
               ref={ref}
               className="paper-host-size-conflict"
@@ -1113,7 +1114,7 @@ describe('Paper Component', () => {
     try {
       await act(async () => {
         render(
-          <GraphProvider elements={elements}>
+          <GraphProvider initialElements={elements}>
             <Paper
               ref={ref}
               className="paper-host-size-priority"
@@ -1149,7 +1150,7 @@ describe('Paper Component', () => {
 
       await act(async () => {
         render(
-          <GraphProvider elements={elements}>
+          <GraphProvider initialElements={elements}>
             <Paper
               ref={ref}
               className={withClassName ? CUSTOM_PAPER_CLASSNAME : undefined}
@@ -1201,7 +1202,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} width="100%" height="100%" renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -1220,7 +1221,7 @@ describe('Paper Component', () => {
 
     await act(async () => {
       render(
-        <GraphProvider elements={elements}>
+        <GraphProvider initialElements={elements}>
           <Paper ref={ref} renderElement={() => <div>Test</div>} />
         </GraphProvider>
       );
@@ -1238,8 +1239,18 @@ describe('Paper Component', () => {
       magnet: SVGElement
     ) => dia.Link;
 
+    const paper = ref.current!;
+    const graph = paper.model;
+    const sourceCell = graph.getCells()[0];
+    const cellView = {
+      model: sourceCell,
+      paper,
+      el: document.createElementNS('http://www.w3.org/2000/svg', 'g'),
+      findAttribute: () => null,
+    } as unknown as dia.CellView;
+
     const createdLink = defaultLinkFactory(
-      {} as dia.CellView,
+      cellView,
       document.createElementNS('http://www.w3.org/2000/svg', 'circle')
     );
     expect(createdLink).toBeInstanceOf(CustomNamespaceLinkModel);
@@ -1300,7 +1311,7 @@ describe('Paper Component', () => {
 
     it('supports defaultLink as a callback returning a dia.Link when dragging between ports', async () => {
       const defaultLinkCallback = jest.fn(
-        (_cellView: dia.CellView, _magnet: SVGElement): dia.Link =>
+        (_context: DefaultLinkContext): dia.Link =>
           new shapes.standard.Link({
             attrs: {
               line: {
@@ -1321,9 +1332,9 @@ describe('Paper Component', () => {
       if (!firstCall) {
         throw new Error('Expected defaultLink callback to be called at least once.');
       }
-      const [calledCellView, calledMagnet] = firstCall;
-      expect(calledCellView.model.id).toBe(SOURCE_ELEMENT_ID);
-      expect(calledMagnet.getAttribute('port')).toBe(SOURCE_PORT_ID);
+      const [calledContext] = firstCall;
+      expect(calledContext.source.id).toBe(SOURCE_ELEMENT_ID);
+      expect(calledContext.source.port).toBe(SOURCE_PORT_ID);
       expect(createdLink).toBeInstanceOf(shapes.standard.Link);
       expect(createdLink.attr(['line', 'stroke'])).toBe('#abcdef');
       expect(createdLink.getSourceCell()?.id).toBe(SOURCE_ELEMENT_ID);
@@ -1378,7 +1389,7 @@ describe('Paper Component', () => {
 
     it('supports defaultLink callback returning LinkRecord when dragging between ports', async () => {
       const defaultLinkCallback = jest.fn(
-        (_cellView: dia.CellView, _magnet: SVGElement): Partial<LinkRecord> => ({
+        (_context: DefaultLinkContext): Partial<LinkRecord> => ({
           data: { customProperty: 'callback-flat-link-default' },
           style: {
             color: '#22aa55',
@@ -1511,7 +1522,7 @@ describe('Paper Component', () => {
 
         return (
           <GraphProvider
-            elements={{
+            initialElements={{
               'el-1': {
                 data: { label: 'Visible Node' },
                 size: { width: 100, height: 50 },
@@ -1608,7 +1619,7 @@ describe('Paper Component', () => {
     it('useLink provides layout with sourceX/sourceY/targetX/targetY on initial load', async () => {
       await act(async () => {
         render(
-          <GraphProvider elements={testElements} links={testLinks}>
+          <GraphProvider initialElements={testElements} initialLinks={testLinks}>
             <Paper
               height={400}
               renderElement={() => <rect width={100} height={50} />}

@@ -132,7 +132,7 @@ export interface AppProps {
 
 export default function App({ variant = 'mask' }: Readonly<AppProps>) {
   return (
-    <GraphProvider elements={initialElements} links={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main variant={variant} />
     </GraphProvider>
   );

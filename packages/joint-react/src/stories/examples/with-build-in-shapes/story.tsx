@@ -36,7 +36,7 @@ const mapDataToElementAttributes = ({
 
 // Pass to GraphProvider
 <GraphProvider
-  elements={elements}
+  initialElements={elements}
   mapDataToElementAttributes={mapDataToElementAttributes}
 >
   <Paper />

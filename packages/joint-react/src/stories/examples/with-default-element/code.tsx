@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
-import { GraphProvider, Paper, HTMLBox, type ElementRecord, type LinkRecord } from '@joint/react';
+import { useState, useCallback, useMemo, useRef, memo } from 'react';
+import { GraphProvider, Paper, HTMLBox, type ElementRecord, type LinkRecord, type LinkMarkerName } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jj-* CSS variable defaults (including element styles)
@@ -61,7 +61,7 @@ const initialElements: Record<string, ElementRecord<Data>> = {
 };
 
 const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
-const DEFAULT_LINK = { style: { targetMarker: 'arrow' } };
+const DEFAULT_LINK = { style: { targetMarker: 'arrow' as LinkMarkerName } };
 
 
 const initialLinks: Record<string, LinkRecord> = {
@@ -82,13 +82,14 @@ const initialLinks: Record<string, LinkRecord> = {
   },
 };
 
-function RenderElement({ label, width, height }: Readonly<Data>) {
+const RenderElement = memo(function RenderElement({ label, width, height }: Readonly<Data>) {
+  const boxStyle = useMemo(() => ({ width, height }), [width, height]);
   return (
-    <HTMLBox style={{ width, height }}>
+    <HTMLBox style={boxStyle}>
       {label}
     </HTMLBox>
   );
-}
+});
 
 export default function App() {
   const [isDark, setIsDark] = useState(false);
@@ -127,7 +128,7 @@ export default function App() {
           {isDark ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark'}
         </button>
       </div>
-      <GraphProvider elements={initialElements} links={initialLinks}>
+      <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
         <Paper
           className={PAPER_CLASSNAME}
           height={240}

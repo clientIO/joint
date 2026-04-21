@@ -526,7 +526,7 @@ export default function App() {
   const [isLight, setIsLight] = useState(false);
   return (
     <div className={`flowchart-wrapper${isLight ? ' light-theme' : ''}`}>
-      <GraphProvider elements={flowchartNodes} links={flowchartLinks}>
+      <GraphProvider initialElements={flowchartNodes} initialLinks={flowchartLinks}>
         <Main />
       </GraphProvider>
       <ThemeSwitch onClick={() => setIsLight((v) => !v)} />
