@@ -91,8 +91,11 @@ export function graphView<
                   position: previousPosition,
                   size: previousSize,
                 } = previous;
+                // Use `rest` as the source of truth — `mapAttributesToElement`
+                // returns the complete current attribute set, so spreading
+                // `previous` would re-introduce keys that JointJS has unset
+                // (e.g. `parent` after an unembed).
                 const newItem = {
-                  ...previous,
                   ...rest,
                   data: isShallowEqual(previousUserData, userData) ? previousUserData : userData,
                   position: isPositionEqual(previousPosition, position)
@@ -247,7 +250,6 @@ export function graphView<
             size: previousSize,
           } = previous;
           return {
-            ...previous,
             ...rest,
             data: isShallowEqual(previousUserData, nextUserData) ? previousUserData : nextUserData,
             position: isPositionEqual(previousPosition, position) ? previousPosition : position,

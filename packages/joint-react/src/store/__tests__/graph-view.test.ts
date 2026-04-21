@@ -813,6 +813,65 @@ describe('graphView', () => {
     });
   });
 
+  describe('embedding — parent attribute reactivity', () => {
+    it('reflects parent after embed', async () => {
+      const { graph, view } = setup();
+      addElement(graph, 'parent-1', 0, 0, 400, 300);
+      addElement(graph, 'child-1', 50, 50, 100, 50);
+      await flush();
+
+      const parent = graph.getCell('parent-1') as dia.Element;
+      const child = graph.getCell('child-1') as dia.Element;
+      parent.embed(child);
+      await flush();
+
+      expect(view.elements.get('child-1')).toEqual(
+        expect.objectContaining({ parent: 'parent-1' })
+      );
+    });
+
+    it('removes parent from element record after unembed', async () => {
+      const { graph, view } = setup();
+      addElement(graph, 'parent-1', 0, 0, 400, 300);
+      addElement(graph, 'child-1', 50, 50, 100, 50);
+      await flush();
+
+      const parent = graph.getCell('parent-1') as dia.Element;
+      const child = graph.getCell('child-1') as dia.Element;
+      parent.embed(child);
+      await flush();
+
+      expect(view.elements.get('child-1')?.parent).toBe('parent-1');
+
+      parent.unembed(child);
+      await flush();
+
+      // After unembed, `parent` must be gone from the element record
+      expect(view.elements.get('child-1')?.parent).toBeUndefined();
+    });
+
+    it('reflects embeds array on parent after embed/unembed', async () => {
+      const { graph, view } = setup();
+      addElement(graph, 'parent-1', 0, 0, 400, 300);
+      addElement(graph, 'child-1', 50, 50, 100, 50);
+      await flush();
+
+      const parent = graph.getCell('parent-1') as dia.Element;
+      const child = graph.getCell('child-1') as dia.Element;
+      parent.embed(child);
+      await flush();
+
+      expect(view.elements.get('parent-1')?.embeds).toEqual(['child-1']);
+
+      parent.unembed(child);
+      await flush();
+
+      // After unembed, `embeds` should no longer contain child-1 (either empty or undefined)
+      const embedsAfter = view.elements.get('parent-1')?.embeds as string[] | undefined;
+      expect(embedsAfter === undefined || embedsAfter.length === 0).toBe(true);
+    });
+  });
+
   describe('isUpdateFromReact filtering', () => {
     it('ignores changes with isUpdateFromReact flag', async () => {
       const { graph, view } = setup();
