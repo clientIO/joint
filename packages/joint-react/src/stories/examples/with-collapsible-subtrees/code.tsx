@@ -266,7 +266,7 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
   const id = useElementId();
   const { setElement } = useGraph<FTAElement>();
   const gatePatternUrl = useGatePattern();
-  const { selectorRef } = useMarkup();
+  const { magnetRef } = useMarkup();
 
   const gateSvgPath = useMemo(() => {
     // Add vertical line extending upward for better connection
@@ -316,7 +316,7 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
     <>
       {/* Gate */}
       <path
-        ref={selectorRef('gate')}
+        ref={magnetRef('gate')}
         stroke={LIGHT}
         strokeWidth={2}
         fill={gatePatternUrl}

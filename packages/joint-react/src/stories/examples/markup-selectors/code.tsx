@@ -61,7 +61,7 @@ interface ItemProps {
 
 const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, width, rowY }, ref) {
   return (
-    <g ref={ref} magnet="active" className="item">
+    <g ref={ref} className="item">
       {index > 0 && (
         <line x1={0} y1={rowY} x2={width} y2={rowY} stroke={PRIMARY} strokeOpacity={0.3} />
       )}
@@ -83,7 +83,7 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
 
 function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
   const contentRef = useRef(null);
-  const { selectorRef } = useMarkup();
+  const { magnetRef } = useMarkup();
 
   const transform: OnTransformElement = useCallback(({ height }) => {
     return {
@@ -129,7 +129,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
           return (
             <Item
               key={label}
-              ref={selectorRef(`item-${index}`)}
+              ref={magnetRef(`item-${index}`)}
               label={label}
               index={index}
               width={width}
