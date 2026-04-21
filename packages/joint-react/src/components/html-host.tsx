@@ -14,7 +14,6 @@ import { useElementSize } from '../hooks';
  *
  * Does **not** apply any default theme class. For themed styling via
  * `--jj-box-*` CSS variables, use {@link DefaultHTMLHost} instead.
- *
  * @example
  * ```tsx
  * <Paper renderElement={({ label }) => (
@@ -37,6 +36,11 @@ interface HTMLFrameProps extends Omit<HTMLHostProps, 'useModelGeometry'> {
 /**
  * Shared rendering primitive: a `<div>` inside a `<foreignObject>`.
  * Forces static positioning to work around Safari foreignObject quirks.
+ * @param root0
+ * @param root0.nodeRef
+ * @param root0.width
+ * @param root0.height
+ * @param root0.style
  */
 function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFrameProps>) {
   // Force static positioning — Safari mispositions foreignObject children with position: relative or backdrop-filter.
@@ -66,6 +70,8 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
 /**
  * Internal component that uses the element's size from the model.
  * Rendered when `useModelGeometry` is set.
+ * @param root0
+ * @param root0.style
  */
 function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
   const { width, height } = useElementSize();
@@ -82,6 +88,8 @@ function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElem
 /**
  * Internal component that measures its DOM node and syncs the size to the graph element.
  * Rendered by default when `useModelGeometry` is not set.
+ * @param root0
+ * @param root0.style
  */
 function MeasuredHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
   const nodeRef = useRef<HTMLDivElement>(null);

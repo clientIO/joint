@@ -99,7 +99,7 @@ const PAPER_EVENT_ARGS: {
 
 function createPaperWrapper(paperId: string) {
   return ({ children }: { children: ReactNode }) => (
-    <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+    <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
       <Paper id={paperId} width={100} height={100} renderElement={renderTestElement}>
         {children}
       </Paper>
@@ -362,7 +362,7 @@ describe('use-paper-events', () => {
     const paperHolder = { current: null as dia.Paper | null };
 
     render(
-      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+      <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
         <UsePaperEventsWithPaperIdPattern onCustomEvent={onCustomEvent} paperHolder={paperHolder} />
       </GraphProvider>
     );
@@ -417,7 +417,7 @@ describe('use-paper-events', () => {
 
     function Wrapper() {
       return (
-        <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+        <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
           <TestComponent />
         </GraphProvider>
       );
@@ -442,7 +442,7 @@ describe('use-paper-events', () => {
     }
 
     const { unmount } = render(
-      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+      <GraphProvider initialElements={EMPTY_ELEMENTS} initialLinks={EMPTY_LINKS}>
         <TestComponent />
         <PaperExtractor />
       </GraphProvider>

@@ -91,7 +91,7 @@ describe('useLink', () => {
 
     // After move, layout.d should update to match the new native link path
     await waitFor(() => {
-      const layout = result.current.layout;
+      const {layout} = result.current;
       expect(layout).toBeDefined();
       expect(layout!.d).not.toBe('');
       // The path must have changed from the initial position

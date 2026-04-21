@@ -315,7 +315,7 @@ function PresetPicker() {
 export default function App() {
   return (
     <div>
-      <GraphProvider elements={initialElements} links={initialLinks}>
+      <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
         <PresetPicker />
       </GraphProvider>
     </div>

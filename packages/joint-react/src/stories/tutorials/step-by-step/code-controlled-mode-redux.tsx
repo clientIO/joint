@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/cognitive-complexity */
+ 
 /* eslint-disable @typescript-eslint/no-dynamic-delete */
 /* eslint-disable @eslint-react/hooks-extra/no-direct-set-state-in-use-effect */
 /* eslint-disable sonarjs/pseudo-random */

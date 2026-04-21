@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unified-signatures */
+ 
 import { useMemo } from 'react';
 import type { CellId } from '../types/cell-id';
 import { useGraphStore } from './use-graph-store';
@@ -17,7 +17,6 @@ import type { ElementWithLayout } from '../types/data-types';
  * - **No args**: returns all elements as a stable `Map`.
  * - **IDs**: returns a filtered subset.
  * - **Selector**: applies a selector over the full `Map`.
- *
  * @group Hooks
  */
 export function useElements<T extends object = Record<string, unknown>>(): Map<

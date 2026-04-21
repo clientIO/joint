@@ -192,7 +192,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} links={initialLinks}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
       <Main />
     </GraphProvider>
   );

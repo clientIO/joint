@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 import { PAPER_CLASSNAME, PAPER_STYLE } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import '../index.css';
@@ -205,8 +205,8 @@ function Main() {
 export default function App() {
   return (
     <GraphProvider<NativeElementUserData>
-      elements={initialElements}
-      links={initialLinks}
+      initialElements={initialElements}
+      initialLinks={initialLinks}
     >
       <Main />
     </GraphProvider>

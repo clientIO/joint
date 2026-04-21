@@ -888,3 +888,38 @@ describe('graphView', () => {
     });
   });
 });
+
+describe('updateGraph partial sync', () => {
+  it('updates only links container when called with links only', () => {
+    const graph = createGraph();
+    graph.addCells([
+      { id: 'e1', type: 'ElementModel', position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
+    ]);
+    const view = graphView({ graph });
+    view.syncFromGraph();
+
+    view.updateGraph({
+      links: { l1: { source: 'e1', target: 'e1' } },
+      flag: 'updateFromReact',
+    });
+
+    expect(view.elements.get('e1')).toBeDefined();
+    expect(view.links.get('l1')).toBeDefined();
+    view.destroy();
+  });
+
+  it('updates only elements container when called with elements only', () => {
+    const graph = createGraph();
+    const view = graphView({ graph });
+    view.syncFromGraph();
+
+    view.updateGraph({
+      elements: { e1: { position: { x: 0, y: 0 }, size: { width: 10, height: 10 } } },
+      flag: 'updateFromReact',
+    });
+
+    expect(view.elements.get('e1')).toBeDefined();
+    expect(view.links.getSize()).toBe(0);
+    view.destroy();
+  });
+});

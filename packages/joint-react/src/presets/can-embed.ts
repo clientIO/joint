@@ -22,6 +22,10 @@ export interface ValidateUnembeddingContext {
   readonly graph: dia.Graph;
 }
 
+/**
+ *
+ * @param view
+ */
 function toEmbeddingInfo(view: dia.ElementView) {
   return { id: view.model.id, model: view.model } as const;
 }
@@ -30,10 +34,8 @@ function toEmbeddingInfo(view: dia.ElementView) {
  * Creates a JointJS-native `validateEmbedding` function.
  * Converts positional `(childView, parentView)` args into a structured
  * `{ child, parent, paper, graph }` context for the validate callback.
- *
  * @param validate - Optional custom validation. Defaults to `() => true`.
  * @returns A JointJS-compatible `validateEmbedding` function.
- *
  * @example
  * ```ts
  * paper.options.validateEmbedding = canEmbed(
@@ -58,10 +60,8 @@ export function canEmbed(validate?: (context: ValidateEmbeddingContext) => boole
  * Creates a JointJS-native `validateUnembedding` function.
  * Converts the positional `(childView)` arg into a structured
  * `{ child, paper, graph }` context for the validate callback.
- *
  * @param validate - Optional custom validation. Defaults to `() => true`.
  * @returns A JointJS-compatible `validateUnembedding` function.
- *
  * @example
  * ```ts
  * paper.options.validateUnembedding = canUnembed(

@@ -29,7 +29,7 @@ const links: Record<string, LinkRecord> = {
 describe('Paper with useHTMLOverlay and links', () => {
   it('renders links when useHTMLOverlay is enabled', async () => {
     const { container } = render(
-      <GraphProvider elements={elements} links={links}>
+      <GraphProvider initialElements={elements} initialLinks={links}>
         <Paper
           useHTMLOverlay
           renderElement={() => <TestElementRenderer />}
@@ -65,7 +65,7 @@ describe('Paper with useHTMLOverlay and links', () => {
 
   it('renders placeholder rect in SVG element when useHTMLOverlay is enabled', async () => {
     const { container } = render(
-      <GraphProvider elements={elements} links={links}>
+      <GraphProvider initialElements={elements} initialLinks={links}>
         <Paper
           useHTMLOverlay
           renderElement={() => <TestElementRenderer />}
@@ -113,7 +113,7 @@ describe('Paper with useHTMLOverlay and links', () => {
     };
 
     const { container } = render(
-      <GraphProvider elements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper
           useHTMLOverlay
           renderElement={() => <TestElementRenderer />}
@@ -176,7 +176,7 @@ describe('Paper with useHTMLOverlay and links', () => {
     }
 
     const { container } = render(
-      <GraphProvider elements={elements} links={links}>
+      <GraphProvider initialElements={elements} initialLinks={links}>
         <Paper
           useHTMLOverlay
           renderElement={() => <TestElementRenderer />}

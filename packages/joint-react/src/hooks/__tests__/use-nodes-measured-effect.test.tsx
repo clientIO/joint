@@ -53,7 +53,7 @@ describe('useNodesMeasuredEffect', () => {
     const callback = jest.fn();
 
     render(
-      <GraphProvider elements={ELEMENTS_WITH_SIZE}>
+      <GraphProvider initialElements={ELEMENTS_WITH_SIZE}>
         <Listener callback={callback} />
         <Paper id={PAPER_ID} renderElement={RenderElement} />
       </GraphProvider>
@@ -85,7 +85,7 @@ describe('useNodesMeasuredEffect', () => {
     });
 
     render(
-      <GraphProvider elements={ELEMENTS_WITHOUT_SIZE}>
+      <GraphProvider initialElements={ELEMENTS_WITHOUT_SIZE}>
         <Listener callback={callback} />
         <Paper id={PAPER_ID} renderElement={RenderMeasuredElement} />
       </GraphProvider>

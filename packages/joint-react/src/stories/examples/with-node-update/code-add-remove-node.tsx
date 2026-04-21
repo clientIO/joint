@@ -104,7 +104,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} links={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

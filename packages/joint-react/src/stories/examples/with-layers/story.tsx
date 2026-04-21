@@ -38,7 +38,7 @@ const graph = useMemo(() => {
   return g;
 }, []);
 
-<GraphProvider graph={graph} elements={elements} links={links}>
+<GraphProvider graph={graph} initialElements={elements} initialLinks={links}>
   ...
 </GraphProvider>
 \`\`\`

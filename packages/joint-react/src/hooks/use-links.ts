@@ -16,7 +16,6 @@ import { useContainerItems } from './use-container-items';
  * - **No args**: returns all links as a stable `Map`.
  * - **IDs**: returns a filtered subset.
  * - **Selector**: applies a selector over the full `Map`.
- *
  * @group Hooks
  */
 export function useLinks<T extends object = Record<string, unknown>>(): Map<CellId, LinkRecord<T>>;

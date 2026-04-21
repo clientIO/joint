@@ -9,7 +9,6 @@ import type { ElementWithLayout } from '../types/data-types';
  * Use it only inside `renderElement` or components rendered from within.
  *
  * Returns element data with guaranteed position, size, and angle.
- *
  * @example
  * ```tsx
  * const element = useElement();

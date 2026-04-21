@@ -1,9 +1,10 @@
-import type { routers, connectors as connectorTypes } from '@joint/core';
-import { anchors, connectionPoints, connectors as connectorFns, g } from '@joint/core';
+import type { routers, connectors as connectorTypes , anchors, connectionPoints} from '@joint/core';
+import { connectors as connectorFns, g } from '@joint/core';
 
 /**
  * Wraps a router so it falls back to straight-line routing when either end
  * of the link is not connected to an element.
+ * @param router
  */
 export function straightRouterUntilConnected(router: routers.Router): routers.Router {
   return (vertices, args, linkView) => {
@@ -21,10 +22,11 @@ export function straightRouterUntilConnected(router: routers.Router): routers.Ro
 /**
  * Wraps a connector so it falls back to the `straight` connector when either end
  * of the link is not connected to an element.
+ * @param connector
  */
 export function straightConnectorUntilConnected(connector: connectorTypes.Connector): connectorTypes.Connector {
   return (sourcePoint, targetPoint, routePoints, args, linkView) => {
-    if (!linkView || !linkView.model.getSourceCell() || !linkView.model.getTargetCell()) {
+    if (!linkView?.model.getSourceCell() || !linkView.model.getTargetCell()) {
       return connectorFns.straight(sourcePoint, targetPoint, routePoints, {}, linkView);
     }
     return connector(sourcePoint, targetPoint, routePoints, args, linkView);
@@ -33,6 +35,8 @@ export function straightConnectorUntilConnected(connector: connectorTypes.Connec
 
 /**
  * Wraps an anchor — uses `connected` when both ends are attached, `disconnected` otherwise.
+ * @param connected
+ * @param disconnected
  */
 export function anchorWhenConnected(connected: anchors.Anchor, disconnected: anchors.Anchor): anchors.Anchor {
   return (elementView, magnet, ref, opt, endType, linkView) => {
@@ -46,6 +50,8 @@ export function anchorWhenConnected(connected: anchors.Anchor, disconnected: anc
 
 /**
  * Wraps a connection point — uses `connected` when both ends are attached, `disconnected` otherwise.
+ * @param connected
+ * @param disconnected
  */
 export function connectionPointWhenConnected(connected: connectionPoints.ConnectionPoint, disconnected: connectionPoints.ConnectionPoint): connectionPoints.ConnectionPoint {
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {

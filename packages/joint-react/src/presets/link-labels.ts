@@ -54,7 +54,7 @@ const defaultLabelStyle = {
 
 /**
  * Creates a JointJS link label from simplified options.
- *
+ * @param label
  * @example
  * ```ts
  * linkLabel({ text: 'Hello', color: '#333', position: 0.5 })
@@ -153,7 +153,8 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
 
 /**
  * Converts a record of simplified LinkLabel definitions to an array of JointJS labels.
- *
+ * @param labels
+ * @param labelStyle
  * @example
  * ```ts
  * linkLabels({ main: { text: 'Hello', fontSize: 12 } })

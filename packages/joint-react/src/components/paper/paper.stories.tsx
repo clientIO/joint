@@ -55,7 +55,7 @@ function RenderElement() {
 
 function MyDiagram() {
   return (
-    <GraphProvider elements={elements} links={links}>
+    <GraphProvider initialElements={elements} initialLinks={links}>
       <Paper
         renderElement={RenderElement}
         height={600}
@@ -81,7 +81,7 @@ function RenderElement() {
   return <rect rx={10} ry={10} width={size?.width} height={size?.height} fill="blue" />;
 }
 
-<GraphProvider elements={elements} links={links}>
+<GraphProvider initialElements={elements} initialLinks={links}>
   <Paper renderElement={RenderElement} height={600} />
 </GraphProvider>
     `,

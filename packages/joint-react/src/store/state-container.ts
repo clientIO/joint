@@ -46,6 +46,7 @@ export function asReadonlyContainer<T>(container: Container<T>): ReadonlyContain
 
 /**
  * Creates a keyed container with per-id subscriptions and batched change notifications.
+ * @param _name
  */
 export function createContainer<T>(_name?: string): Container<T> {
   const container = new Map<string, T>();

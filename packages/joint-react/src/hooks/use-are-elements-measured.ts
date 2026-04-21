@@ -1,6 +1,9 @@
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStore } from 'react';
 
+/**
+ *
+ */
 export function useAreElementsMeasured() {
   const { measureState } = useGraphStore();
   return useSyncExternalStore(

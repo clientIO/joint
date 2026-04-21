@@ -107,7 +107,7 @@ function checkLinkPathsNotAtOrigin(container: HTMLElement): boolean {
 describe('Paper link flickering prevention', () => {
   it('INVARIANT: links should not have paths before element content is rendered (SVG mode)', async () => {
     const { container } = render(
-      <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
+      <GraphProvider initialElements={TEST_ELEMENTS} initialLinks={TEST_LINKS}>
         <Paper
           renderElement={() => <TestFlickerElementSvg />}
         />
@@ -156,7 +156,7 @@ describe('Paper link flickering prevention', () => {
 
   it('INVARIANT: links should not have paths before element content is rendered (HTML overlay mode)', async () => {
     const { container } = render(
-      <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
+      <GraphProvider initialElements={TEST_ELEMENTS} initialLinks={TEST_LINKS}>
         <Paper
           useHTMLOverlay
           renderElement={() => <TestFlickerElement />}
@@ -202,7 +202,7 @@ describe('Paper link flickering prevention', () => {
     // 3. The measureNode fix is applied (verified by other passing tests)
 
     const { container } = render(
-      <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
+      <GraphProvider initialElements={TEST_ELEMENTS} initialLinks={TEST_LINKS}>
         <Paper
           useHTMLOverlay
           renderElement={() => <TestFlickerElement />}
@@ -238,7 +238,7 @@ describe('Paper link flickering prevention', () => {
 
   it('link paths should have correct coordinates (not at origin 0,0)', async () => {
     const { container } = render(
-      <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
+      <GraphProvider initialElements={TEST_ELEMENTS} initialLinks={TEST_LINKS}>
         <Paper
           useHTMLOverlay
           renderElement={() => <TestFlickerElement />}
@@ -279,7 +279,7 @@ describe('Paper link flickering prevention', () => {
 
   it('should maintain consistency during initial render (no state changes)', async () => {
     const { container } = render(
-      <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
+      <GraphProvider initialElements={TEST_ELEMENTS} initialLinks={TEST_LINKS}>
         <Paper
           useHTMLOverlay
           renderElement={() => <TestFlickerElement />}
@@ -319,7 +319,7 @@ describe('Paper link flickering prevention', () => {
     const startTime = performance.now();
 
     const { container } = render(
-      <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
+      <GraphProvider initialElements={TEST_ELEMENTS} initialLinks={TEST_LINKS}>
         <Paper
           useHTMLOverlay
           renderElement={() => <TestFlickerElement />}

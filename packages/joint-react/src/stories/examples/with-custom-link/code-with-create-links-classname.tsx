@@ -27,7 +27,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider links={initialEdges} elements={initialElements}>
+    <GraphProvider initialLinks={initialEdges} initialElements={initialElements}>
       <Main />
     </GraphProvider>
   );

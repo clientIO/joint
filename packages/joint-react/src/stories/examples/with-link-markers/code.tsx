@@ -86,8 +86,8 @@ const elements: Record<string, ElementRecord> = {
 function buildLinks(scale: number): Record<string, LinkRecord> {
   const result: Record<string, LinkRecord> = {};
   for (const entry of MARKER_ENTRIES) {
-    const [name, factory, extraOpts] = entry;
-    const marker = factory({ scale, ...extraOpts });
+    const [name, factory, extraOptions] = entry;
+    const marker = factory({ scale, ...extraOptions });
     result[name] = {
       source: { id: 'left', port: name },
       target: { id: 'right', port: name },
@@ -119,12 +119,12 @@ export default function App() {
 
   const handleScaleChange = (newScale: number) => {
     setScale(newScale);
-    setLinkState((prev) => {
-      const next = { ...prev };
+    setLinkState((previous) => {
+      const next = { ...previous };
       for (const entry of MARKER_ENTRIES) {
-        const [name, factory, extraOpts] = entry;
-        const marker = factory({ scale: newScale, ...extraOpts });
-        next[name] = { ...prev[name], style: { ...prev[name]?.style, sourceMarker: marker, targetMarker: marker } };
+        const [name, factory, extraOptions] = entry;
+        const marker = factory({ scale: newScale, ...extraOptions });
+        next[name] = { ...previous[name], style: { ...previous[name]?.style, sourceMarker: marker, targetMarker: marker } };
       }
       return next;
     });

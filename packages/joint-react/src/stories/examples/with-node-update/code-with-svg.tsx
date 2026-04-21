@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+ 
 import { GraphProvider, Paper, useElementSize, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -43,7 +43,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} links={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

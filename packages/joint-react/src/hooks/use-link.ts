@@ -22,7 +22,6 @@ export type ResolvedLink<D extends object = Record<string, unknown>> = LinkRecor
  * Returns link data with the current paper's layout resolved
  * (source/target coordinates and SVG path).
  * @experimental
- *
  * @example
  * ```tsx
  * const link = useLink();

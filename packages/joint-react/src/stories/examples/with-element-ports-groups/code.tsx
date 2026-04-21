@@ -77,7 +77,7 @@ function RenderElement({ label }: { label: string }) {
 
 export default function App() {
   return (
-    <GraphProvider elements={elements} links={links}>
+    <GraphProvider initialElements={elements} initialLinks={links}>
       <Paper
         className={PAPER_CLASSNAME}
         height={380}

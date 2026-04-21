@@ -947,8 +947,8 @@ function GraphWithRedux() {
         }}
       >
         <GraphProvider
-          elements={themedElements}
-          links={themedLinks}
+          initialElements={themedElements}
+          initialLinks={themedLinks}
           onIncrementalChange={handleIncrementalChange}
         >
           <Paper

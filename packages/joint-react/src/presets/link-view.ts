@@ -23,9 +23,9 @@ export class LinkView extends dia.LinkView {
     this.el.classList.remove(LINK_CONNECTING_CLASS, LINK_SNAPPED_CN);
   }
 
-  _snapArrowhead(evt: dia.Event, x: number, y: number) {
+  _snapArrowhead(event_: dia.Event, x: number, y: number) {
     // @ts-expect-error Protected method override
-    const isSnapped = super._snapArrowhead(evt, x, y);
+    const isSnapped = super._snapArrowhead(event_, x, y);
     this.el.classList.toggle(LINK_CONNECTING_CLASS, !isSnapped);
     this.el.classList.toggle(LINK_SNAPPED_CN, !!isSnapped);
     return isSnapped;

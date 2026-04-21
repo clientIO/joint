@@ -84,6 +84,9 @@ export function useNodesMeasuredEffect(
     if (!paperStore) return;
     const { paper } = paperStore;
 
+    /**
+     *
+     */
     function handleChanges() {
       const value = measureState.get();
       const isMeasured = value > 0;

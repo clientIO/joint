@@ -536,7 +536,7 @@ export default function App() {
         className="hidden"
         onChange={handleFileChosen}
       />
-      <GraphProvider<NodeData> key={reloadKey} elements={initialElements} links={initialLinks}>
+      <GraphProvider<NodeData> key={reloadKey} initialElements={initialElements} initialLinks={initialLinks}>
         <InnerShell onLoadFile={handleLoadClick} />
       </GraphProvider>
     </div>

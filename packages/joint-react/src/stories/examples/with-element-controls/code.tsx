@@ -786,7 +786,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements}>
+    <GraphProvider initialElements={initialElements}>
       <Main />
     </GraphProvider>
   );

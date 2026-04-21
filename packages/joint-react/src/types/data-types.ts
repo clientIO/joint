@@ -1,10 +1,10 @@
 import type { dia } from '@joint/core';
-import type { ElementPort, PortShape } from '../presets/element-ports';
+import type { ElementPort,  } from '../presets/element-ports';
 import type { LinkStyle } from '../presets/link-style';
 import type { LinkLabel } from '../presets/link-labels';
 import type { ElementPosition, ElementSize } from './cell-data';
 
-export type { ElementPort, PortShape, LinkStyle, LinkLabel };
+
 
 // ── Element Types ─────────────────────────────────────────────────────────────
 
@@ -63,3 +63,7 @@ export type ElementWithLayout<E extends object = Record<string, unknown>> = Elem
   size: Required<ElementSize>;
   angle: number;
 };
+
+export {type PortShape, type ElementPort} from '../presets/element-ports';
+export {type LinkStyle} from '../presets/link-style';
+export {type LinkLabel} from '../presets/link-labels';

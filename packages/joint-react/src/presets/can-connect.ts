@@ -98,6 +98,11 @@ function endMatches(
 /**
  * Returns `true` if a duplicate link already exists between the two ends
  * (ignoring the link currently being validated).
+ * @param sourceView
+ * @param sourceNode
+ * @param targetView
+ * @param targetNode
+ * @param linkView
  */
 function hasDuplicateLink(
   sourceView: dia.CellView, sourceNode: SVGElement | undefined,
