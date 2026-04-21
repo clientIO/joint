@@ -142,27 +142,27 @@ const initialElements: Record<string, ElementRecord<CustomElement>> = {
 const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
-    target: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } } },
+    target: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -50, dy: -20 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
   link2: {
     source: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
-    target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -80, dy: -20 } } },
+    target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -80, dy: -30 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
   link3: {
-    source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 80, dy: -20 } } },
-    target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } } },
+    source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 90, dy: -20 } } },
+    target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 50, dy: 0 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
   link4: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } } },
-    target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 } } },
+    target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 0, dy: -50 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
   link5: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
-    target: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } } },
+    target: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 50, dy: 0 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
 };
@@ -423,6 +423,7 @@ function Main() {
           id: end.id,
         };
       }}
+      validateConnection={{ allowMultiLinks: true }}
       snapLinks
       defaultLink={() => new shapes.standard.Link({ attrs: { line: { stroke: LIGHT } } })}
       // Highlighting configuration

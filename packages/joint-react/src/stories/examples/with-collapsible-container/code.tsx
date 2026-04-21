@@ -11,6 +11,7 @@ import {
   type ElementRecord,
   type LinkRecord,
   useElementSize,
+  jsx,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
@@ -131,6 +132,10 @@ const elements: Record<string, ElementRecord<ContainerUserData>> = {
   },
 };
 
+const MARKER = {
+  markup: jsx(<path d="M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4" fill="none" strokeWidth={1.5} />),
+};
+
 const links: Record<string, LinkRecord> = {
   'link-1-2': {
     source: { id: 'child-1' },
@@ -139,9 +144,7 @@ const links: Record<string, LinkRecord> = {
     style: {
       color: LINK_COLOR,
       width: 1,
-      targetMarker: {
-        markup: [{ tagName: 'path', attributes: { d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4', fill: 'none', stroke: 'context-stroke', 'stroke-width': '2' } }],
-      },
+      targetMarker: MARKER,
     },
   },
   'link-1-3': {
@@ -151,9 +154,7 @@ const links: Record<string, LinkRecord> = {
     style: {
       color: LINK_COLOR,
       width: 1,
-      targetMarker: {
-        markup: [{ tagName: 'path', attributes: { d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4', fill: 'none', stroke: 'context-stroke', 'stroke-width': '2' } }],
-      },
+      targetMarker: MARKER,
     },
   },
   'link-4-5': {
@@ -163,9 +164,7 @@ const links: Record<string, LinkRecord> = {
     style: {
       color: LINK_COLOR,
       width: 1,
-      targetMarker: {
-        markup: [{ tagName: 'path', attributes: { d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4', fill: 'none', stroke: 'context-stroke', 'stroke-width': '2' } }],
-      },
+      targetMarker: MARKER,
     },
   },
   'link-1-b': {
@@ -175,9 +174,7 @@ const links: Record<string, LinkRecord> = {
     style: {
       color: LINK_COLOR,
       width: 1,
-      targetMarker: {
-        markup: [{ tagName: 'path', attributes: { d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4', fill: 'none', stroke: 'context-stroke', 'stroke-width': '2' } }],
-      },
+      targetMarker: MARKER,
     },
   },
 };

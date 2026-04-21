@@ -489,8 +489,8 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
             {...linkRoutingOrthogonal({
               sourceOffset: 6,
               targetOffset: 6,
-              cornerType: 'cubic',
               margin: 18,
+              mode: 'bottom-top'
             })}
             renderElement={NodeCard}
           />
