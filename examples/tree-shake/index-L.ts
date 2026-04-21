@@ -1,13 +1,9 @@
-import { V } from '@joint/core';
-
-/* subpath import: */
-import * as standard from '@joint/core/shapes/standard';
-import * as dia from '@joint/core/dia';
-
-/* equivalent @joint/core import: */
-//import { shapes } from '@joint/core';
-//import { dia } from '@joint/core';
-//const { standard } = shapes;
+import {
+    V,
+    shapes,
+    dia,
+} from '@joint/core';
+const standard = shapes.standard;
 
 const vel = V('<g><rect/><text/></g>');
 const namespace = {

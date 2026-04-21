@@ -2718,4 +2718,27 @@ QUnit.module('routers', function(hooks) {
         d = this.paper.findViewByModel(l).metrics.data;
         assert.checkDataPath(d, 'M 50 25 L 178 25 L 178 138 L 72 138 L 72 85 L 100 85', 'Without minMargin, route detours around margin zones');
     });
+
+    QUnit.test('rightAngle routing with source anchor outside the element bbox', function(assert) {
+        // Source `top` anchor offset above the element — outside the element bbox.
+        // The router must include the anchor in its source bbox union so the routing
+        // area reflects where the anchor actually sits, not just the element body.
+        const [r1, , l] = this.addTestSubjects('top', 'top', rightAngleRouter, {
+            sourceAnchor: { dy: -50 },
+            targetAnchor: {}
+        });
+
+        const linkView = this.paper.findViewByModel(l);
+        assert.notOk(r1.getBBox().containsPoint(linkView.sourceAnchor), 'Source anchor is outside the element bbox');
+        assert.checkDataPath(linkView.metrics.data, 'M 25 -50 L 25 -78 L 78 -78 L 78 100 L 25 100 L 25 150', 'Source anchor 50px above the element');
+
+        // Move the anchor 1px further up. The segments derived from the source bbox
+        // union (the first three points) must shift by 1px as well.
+        l.source(l.getSourceCell(), {
+            anchor: { name: 'top', args: { dy: -51 }}
+        });
+
+        assert.notOk(r1.getBBox().containsPoint(linkView.sourceAnchor), 'Source anchor is still outside the element bbox');
+        assert.checkDataPath(linkView.metrics.data, 'M 25 -51 L 25 -79 L 78 -79 L 78 100 L 25 100 L 25 150', 'Source anchor 51px above the element — path shifts by 1px');
+    });
 });

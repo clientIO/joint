@@ -256,7 +256,7 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     }
 }
 
-function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAnchor, margin) {
+function pointDataFromAnchor(view, anchor, bbox, direction, isPort, margin) {
     if (direction === Directions.AUTO) {
         direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
@@ -268,10 +268,16 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAncho
         y: y0,
         width = 0,
         height = 0
-    } = isElement ? g.Rect.fromRectUnion(bbox, view.model.getBBox()) : fallBackAnchor;
+    } = isElement
+        // Find the union of:
+        // - the element bbox
+        // - the ports may overlap the element body
+        // - the anchor point may be outside the element body and port
+        ? g.Rect.fromRectUnion(anchor, bbox, view.model.getBBox())
+        : anchor;
 
     return {
-        point,
+        point: anchor,
         x0,
         y0,
         view,
@@ -1613,10 +1619,10 @@ function rightAngleRouter(vertices, opt, linkView) {
     const useVertices = opt.useVertices || false;
 
     const isSourcePort = !!linkView.model.source().port;
-    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor, margin);
+    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, margin);
 
     const isTargetPort = !!linkView.model.target().port;
-    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor, margin);
+    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, margin);
 
     const resultVertices = [];
 

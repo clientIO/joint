@@ -4,18 +4,14 @@
     ],
     "compilerOptions": {
         "target": "es6",
-        "moduleResolution": "node",
+        "module": "esnext",
+        "moduleResolution": "bundler",
         "pretty": true,
         "sourceMap": true,
         // The following options are enabled when using 'strict: true'
         "alwaysStrict": true,
         "noImplicitAny": true,
         "noImplicitThis": true,
-        /*
-            strictBindCallApply has design limitation with overloads in TypeScript
-            https://github.com/microsoft/TypeScript/issues/38353
-            https://github.com/microsoft/TypeScript/issues/42196
-        */
         "strictBindCallApply": true,
         "strictFunctionTypes": true,
         "strictNullChecks": true,
@@ -24,7 +20,7 @@
         // 'strict' options **End**
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
-        "noUnusedLocals": false,
+        "noUnusedLocals": true,
         "skipLibCheck": false,
         "types": [],
     }
