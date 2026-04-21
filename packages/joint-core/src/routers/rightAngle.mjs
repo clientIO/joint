@@ -256,7 +256,7 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     }
 }
 
-function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAnchor, margin) {
+function pointDataFromAnchor(view, anchor, bbox, direction, isPort, margin) {
     if (direction === Directions.AUTO) {
         direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
@@ -268,10 +268,16 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAncho
         y: y0,
         width = 0,
         height = 0
-    } = isElement ? g.Rect.fromRectUnion(bbox, view.model.getBBox()) : fallBackAnchor;
+    } = isElement
+        // Find the union of:
+        // - the element bbox
+        // - the ports may overlap the element body
+        // - the anchor point may be outside the element body and port
+        ? g.Rect.fromRectUnion(anchor, bbox, view.model.getBBox())
+        : anchor;
 
     return {
-        point,
+        point: anchor,
         x0,
         y0,
         view,
@@ -422,7 +428,7 @@ function getVerticalDistance(source, target) {
         const boundaryDefiningShape = source.direction === Directions.LEFT ? leftShape : rightShape;
 
         topBoundary = boundaryDefiningShape.y0;
-        bottomBoundary = boundaryDefiningShape.y1;  
+        bottomBoundary = boundaryDefiningShape.y1;
     }
 
     const { y: soy } = sourcePoint;
@@ -527,7 +533,7 @@ function routeBetweenPoints(source, target, opt = {}) {
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
             const middleOfAnchors = (soy + toy) / 2;
-            
+
             return [
                 { x: sox, y: soy },
                 { x: sox, y: middleOfAnchors },
@@ -556,7 +562,7 @@ function routeBetweenPoints(source, target, opt = {}) {
                 // the case when the source is to the left of the target element.
                 x1 = Math.min(sox, tmx0);
                 x2 = Math.max(tox, smx1);
-            
+
                 // This is an edge case when the source and target intersect and
                 if ((isUpwardsShorter && soy < ty0) || (!isUpwardsShorter && soy > ty1)) {
                     // the path should no longer rely on minimal x boundary in `x1`
@@ -587,7 +593,7 @@ function routeBetweenPoints(source, target, opt = {}) {
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
             const middleOfAnchors = (soy + toy) / 2;
-            
+
             return [
                 { x: sox, y: soy },
                 { x: sox, y: middleOfAnchors },
@@ -720,7 +726,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             let x = middleOfVerticalSides;
             let y1 = soy;
             let y2 = toy;
-            
+
             const isLeftShorter = leftD < rightD;
 
             // If the source and target elements overlap, we need to make sure the connection
@@ -841,7 +847,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x: tox, y: y1 }
         ];
     } else if (sourceSide === 'left' && targetSide === 'left') {
-        const useUShapeConnection = 
+        const useUShapeConnection =
             targetInSourceBBox ||
             g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
             (sox <= tox && (inflatedSourceBBox.bottomRight().y <= toy || inflatedSourceBBox.topRight().y >= toy)) ||
@@ -1513,10 +1519,10 @@ function rightAngleRouter(vertices, opt, linkView) {
     const useVertices = opt.useVertices || false;
 
     const isSourcePort = !!linkView.model.source().port;
-    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor, margin);
+    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, margin);
 
     const isTargetPort = !!linkView.model.target().port;
-    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor, margin);
+    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, margin);
 
     const resultVertices = [];
 
@@ -1547,7 +1553,7 @@ function rightAngleRouter(vertices, opt, linkView) {
 
         const isVertexAlignedAndInside = isVertexInside && (isHorizontalAndAligns || isVerticalAndAligns);
 
-        
+
 
         if (firstPointOverlap) {
             resultVertices.push(sourcePoint.point, firstVertex.point);
@@ -1666,7 +1672,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             const isVerticalAndAligns = alignsVertically && (resolvedTargetDirection === Directions.TOP || resolvedTargetDirection === Directions.BOTTOM);
             const isHorizontalAndAligns = alignsHorizontally && (resolvedTargetDirection === Directions.LEFT || resolvedTargetDirection === Directions.RIGHT);
 
-            
+
             if (!lastPointOverlap && isVertexInside && (isHorizontalAndAligns || isVerticalAndAligns)) {
                 // Handle special cases when the last vertex is inside the target element
                 // and in is aligned with the connection point => construct a loop
