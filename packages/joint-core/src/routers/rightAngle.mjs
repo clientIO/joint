@@ -1046,11 +1046,11 @@ function routeBetweenPoints(source, target, opt = {}) {
             ];
         }
 
-        if (sMinMarginY0 > tOffsetY) {
+        if (sMarginY0 > tOffsetY) {
             if (sOffsetX < tOffsetX) {
                 let y = tMarginY0;
 
-                if (tMinMarginY1 <= sMinMarginY0 && tMinMarginX1 >= sOffsetX) {
+                if (tMinMarginY1 <= sMinMarginY0 && tMarginX1 >= sOffsetX) {
                     y = middleOfHorizontalSides;
                 }
 
@@ -1117,11 +1117,11 @@ function routeBetweenPoints(source, target, opt = {}) {
             ];
         }
 
-        if (sMinMarginY0 > tOffsetY) {
+        if (sMarginY0 > tOffsetY) {
             if (sOffsetX > tOffsetX) {
                 let y = tMarginY0;
 
-                if (tMinMarginY1 <= sMinMarginY0 && tMinMarginX0 <= sOffsetX) {
+                if (tMinMarginY1 <= sMinMarginY0 && tMarginX0 <= sOffsetX) {
                     y = middleOfHorizontalSides;
                 }
 
@@ -1187,11 +1187,11 @@ function routeBetweenPoints(source, target, opt = {}) {
             ];
         }
 
-        if (sMinMarginY1 < tOffsetY) {
+        if (sMarginY1 < tOffsetY) {
             if (sOffsetX < tOffsetX) {
                 let y = tMarginY1;
 
-                if (tMinMarginY0 >= sMinMarginY1 && tMinMarginX1 >= sOffsetX) {
+                if (tMinMarginY0 >= sMinMarginY1 && tMarginX1 >= sOffsetX) {
                     y = middleOfHorizontalSides;
                 }
 
@@ -1258,11 +1258,11 @@ function routeBetweenPoints(source, target, opt = {}) {
             ];
         }
 
-        if (sMinMarginY1 < tOffsetY) {
+        if (sMarginY1 < tOffsetY) {
             if (sOffsetX > tOffsetX) {
-                let y = tMinMarginY1;
+                let y = tMarginY1;
 
-                if (tMinMarginY0 >= sMinMarginY1 && tMinMarginX0 <= sOffsetX) {
+                if (tMinMarginY0 >= sMinMarginY1 && tMarginX0 <= sOffsetX) {
                     y = middleOfHorizontalSides;
                 }
 
@@ -1331,7 +1331,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             if (sOffsetY < tOffsetY) {
                 let x = tMarginX0;
 
-                if (tMinMarginX1 <= sMinMarginX0 && tMinMarginY1 >= sOffsetY) {
+                if (tMinMarginX1 <= sMinMarginX0 && tMarginY1 >= sOffsetY) {
                     x = middleOfVerticalSides;
                 }
 
@@ -1403,7 +1403,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             if (sOffsetY > tOffsetY) {
                 let x = tMarginX0;
 
-                if (tMinMarginX1 <= sMinMarginX0 && tMinMarginY0 <= sOffsetY) {
+                if (tMinMarginX1 <= sMinMarginX0 && tMarginY0 <= sOffsetY) {
                     x = middleOfVerticalSides;
                 }
 
@@ -1469,11 +1469,11 @@ function routeBetweenPoints(source, target, opt = {}) {
             ];
         }
 
-        if (sMinMarginX1 < tOffsetX) {
+        if (sMarginX1 < tOffsetX) {
             if (sOffsetY > tOffsetY) {
                 let x = tMarginX1;
 
-                if (tMinMarginX0 >= sMinMarginX1 && tMinMarginY0 <= sOffsetY) {
+                if (tMinMarginX0 >= sMinMarginX1 && tMarginY0 <= sOffsetY) {
                     x = middleOfVerticalSides;
                 }
 
@@ -1538,11 +1538,11 @@ function routeBetweenPoints(source, target, opt = {}) {
             ];
         }
 
-        if (sMinMarginX1 < tOffsetX) {
+        if (sMarginX1 < tOffsetX) {
             if (sOffsetY < tOffsetY) {
                 let x = tMarginX1;
 
-                if (tMinMarginX0 >= sMinMarginX1 && tMinMarginY1 >= sOffsetY) {
+                if (tMinMarginX0 >= sMinMarginX1 && tMarginY1 >= sOffsetY) {
                     x = middleOfVerticalSides;
                 }
 
