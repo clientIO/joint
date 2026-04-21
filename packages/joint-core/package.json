@@ -14,72 +14,15 @@
       "require": "./dist/joint.min.js",
       "default": "./dist/joint.min.js"
     },
-    "./anchors": {
-      "types": "./types/anchors.d.ts",
-      "import": "./src/anchors/index.mjs"
-    },
-    "./connectionPoints": {
-      "types": "./types/connectionPoints.d.ts",
-      "import": "./src/connectionPoints/index.mjs"
-    },
-    "./connectionStrategies": {
-      "types": "./types/connectionStrategies.d.ts",
-      "import": "./src/connectionStrategies/index.mjs"
-    },
-    "./connectors": {
-      "types": "./types/connectors.d.ts",
-      "import": "./src/connectors/index.mjs"
-    },
-    "./dia": {
-      "types": "./types/dia.d.ts",
-      "import": "./src/dia/index.mjs"
-    },
-    "./elementTools": {
-      "types": "./types/elementTools.d.ts",
-      "import": "./src/elementTools/index.mjs"
-    },
-    "./highlighters": {
-      "types": "./types/highlighters.d.ts",
-      "import": "./src/highlighters/index.mjs"
-    },
-    "./layout": {
-      "types": "./types/layout.d.ts",
-      "import": "./src/layout/index.mjs"
-    },
-    "./linkAnchors": {
-      "types": "./types/linkAnchors.d.ts",
-      "import": "./src/linkAnchors/index.mjs"
-    },
-    "./linkTools": {
-      "types": "./types/linkTools.d.ts",
-      "import": "./src/linkTools/index.mjs"
-    },
-    "./mvc": {
-      "types": "./types/mvc.d.ts",
-      "import": "./src/mvc/index.mjs"
-    },
-    "./routers": {
-      "types": "./types/routers.d.ts",
-      "import": "./src/routers/index.mjs"
-    },
-    "./shapes": {
-      "types": "./types/shapes.d.ts",
-      "import": "./src/shapes/index.mjs"
-    },
-    "./shapes/standard": {
-      "types": "./types/shapes-standard.d.ts",
-      "import": "./src/shapes/standard.mjs"
-    },
-    "./util": {
-      "types": "./types/util.d.ts",
-      "import": "./src/util/index.mjs"
-    },
     "./dist/*": "./dist/*",
     "./src/*": {
       "import": "./src/*"
     },
+    "./types/*.d.ts": {
+      "types": "./types/*.d.ts"
+    },
     "./types/*": {
-      "types": "./types/*"
+      "types": "./types/*.d.ts"
     },
     "./joint.mjs": {
       "import": "./joint.mjs"
@@ -128,7 +71,7 @@
     "test": "grunt test",
     "test-server": "grunt test:server",
     "test-client": "grunt test:client",
-    "test-ts": "grunt ts:test",
+    "test-ts": "grunt test:ts",
     "test-coverage": "grunt test:coverage",
     "test-coverage-lcov": "yarn run test-coverage --reporter=lcov",
     "test-bundles": "grunt test:bundles",
