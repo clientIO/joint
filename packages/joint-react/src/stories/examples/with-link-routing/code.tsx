@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useMemo, useState } from 'react';
 import {
   GraphProvider, Paper, HTMLBox, useMarkup, useElementSize,
@@ -6,7 +7,7 @@ import {
 import {
   linkRoutingStraight, linkRoutingOrthogonal, linkRoutingSmooth,
   type LinkRoutingStraightOptions, type LinkRoutingOrthogonalOptions, type LinkRoutingSmoothOptions,
-  type LinkMode,
+  type LinkMode
 } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
@@ -24,6 +25,7 @@ interface NodeData {
 const PORT_OUT: ElementPort = { cx: 'calc(w)', cy: 'calc(h/2)', width: 16, height: 16 };
 const PORT_IN: ElementPort = { cx: 0, cy: 'calc(h/2)', passive: true, width: 16, height: 16 };
 const PORT_ERROR: ElementPort = { cx: 'calc(w/2)', cy: 'calc(h)', width: 16, height: 16 };
+const DEFAULT_LINK: LinkRecord = { style: { color: PRIMARY, targetMarker: 'arrow' }};
 
 const initialElements: Record<string, ElementRecord<NodeData>> = {
   a: {
@@ -60,21 +62,22 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
   },
 };
 
+
 const initialLinks: Record<string, LinkRecord> = {
   'a-b': {
+    ...DEFAULT_LINK,
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },
-    style: { color: PRIMARY, targetMarker: 'arrow' },
   },
   'c-d': {
+    ...DEFAULT_LINK,
     source: { id: 'c' },
     target: { id: 'd' },
-    style: { color: PRIMARY, targetMarker: 'arrow' },
   },
   'e-f': {
+    ...DEFAULT_LINK,
     source: { id: 'e', selector: 'connector' },
     target: { id: 'f', selector: 'connector' },
-    style: { color: PRIMARY, targetMarker: 'arrow' },
   },
 };
 
@@ -148,9 +151,12 @@ function buildPreset(
 ) {
   const base = { mode, sourceOffset, targetOffset };
   switch (name) {
-    case 'straight': return linkRoutingStraight({ sourceOffset, targetOffset } satisfies LinkRoutingStraightOptions);
-    case 'orthogonal': return linkRoutingOrthogonal({ ...base, cornerType, cornerRadius, straightWhenDisconnected } satisfies LinkRoutingOrthogonalOptions);
-    case 'smooth': return linkRoutingSmooth({ ...base, straightWhenDisconnected } satisfies LinkRoutingSmoothOptions);
+    case 'straight': { return linkRoutingStraight({ sourceOffset, targetOffset } satisfies LinkRoutingStraightOptions);
+    }
+    case 'orthogonal': { return linkRoutingOrthogonal({ ...base, cornerType, cornerRadius, straightWhenDisconnected } satisfies LinkRoutingOrthogonalOptions);
+    }
+    case 'smooth': { return linkRoutingSmooth({ ...base, straightWhenDisconnected } satisfies LinkRoutingSmoothOptions);
+    }
   }
 }
 
@@ -158,21 +164,26 @@ function buildPreset(
 
 const PRESET_NAMES: PresetName[] = ['straight', 'orthogonal', 'smooth'];
 const ANCHOR_MODES: LinkMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical', 'top-bottom', 'bottom-top', 'left-right', 'right-left'];
-const CORNER_TYPES: NonNullable<LinkRoutingOrthogonalOptions['cornerType']>[] = ['cubic', 'line', 'point', 'gap'];
+const CORNER_TYPES: Array<NonNullable<LinkRoutingOrthogonalOptions['cornerType']>> = ['cubic', 'line', 'point', 'gap'];
+
+
+function createLink(): LinkRecord {
+  return DEFAULT_LINK;
+}
 
 function PresetPicker() {
   const [preset, setPreset] = useState<PresetName>('smooth');
-  const [anchorMode, setLinkMode] = useState<LinkMode>('horizontal');
+  const [linkMode, setLinkMode] = useState<LinkMode>('horizontal');
   const [sourceOffset, setSourceOffset] = useState(0);
   const [targetOffset, setTargetOffset] = useState(0);
   const [cornerType, setCornerType] = useState<LinkRoutingOrthogonalOptions['cornerType']>('cubic');
   const [cornerRadius, setCornerRadius] = useState(8);
-  const [straightWhenDisconnected, setDirectWhileDragging] = useState(true);
+  const [straightWhenDisconnected, setStraightWhenDisconnected] = useState(true);
 
   const { paper } = usePaper('main-paper');
   const linkPreset = useMemo(
-    () => buildPreset(preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhenDisconnected),
-    [preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhenDisconnected]
+    () => buildPreset(preset, linkMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhenDisconnected),
+    [preset, linkMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhenDisconnected]
   );
 
   useEffect(() => {
@@ -193,6 +204,7 @@ function PresetPicker() {
         renderElement={RenderElement}
         gridSize={1}
         drawGridSize={20}
+        defaultLink={createLink}
         {...linkPreset}
       />
       <div className="flex flex-wrap items-center gap-4 px-3 py-2 mt-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-sans select-none">
@@ -226,7 +238,7 @@ function PresetPicker() {
               <span className="text-xs">mode</span>
               <select
                 className="px-1.5 py-0.5 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                value={anchorMode}
+                value={linkMode}
                 onChange={(event) => setLinkMode(event.target.value as LinkMode)}
               >
                 {ANCHOR_MODES.map((m) => (
@@ -259,7 +271,7 @@ function PresetPicker() {
                 type="checkbox"
                 className="accent-indigo-500"
                 checked={straightWhenDisconnected}
-                onChange={(event) => setDirectWhileDragging(event.target.checked)}
+                onChange={(event) => setStraightWhenDisconnected(event.target.checked)}
               />
               <span className="text-xs">straight when disconnected</span>
             </label>

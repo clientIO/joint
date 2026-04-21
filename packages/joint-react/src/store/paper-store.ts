@@ -4,13 +4,11 @@ import type { RenderElement, RenderLink } from '../components';
 import type { PortalSelector } from '../models/portal-paper.types';
 import type { GraphStore } from './graph-store';
 import { PortalPaper } from '../models/portal-paper';
-import { DEFAULT_HIGHLIGHTING } from '../models/preset-paper';
 import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { PaperStoreState } from './graph-store';
 import { simpleScheduler } from '../utils/scheduler';
 
-type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
 /**
  * Options for adding a new paper instance to the graph store.
  */
@@ -107,13 +105,6 @@ export class PaperStore {
       this.paper = externalPaper;
     } else {
       const { graph } = graphStore;
-      const mergedHighlighting: dia.Paper.Options['highlighting'] =
-        paperOptions.highlighting === false
-          ? false
-          : {
-              ...DEFAULT_HIGHLIGHTING,
-              ...(paperOptions.highlighting as PaperHighlighting),
-            };
       // Create a new PortalPaper instance
       // PortalPaper handles view lifecycle internally via insertView/removeView
       // NOTE: We don't use cellVisibility to hide links because JointJS's
@@ -144,8 +135,6 @@ export class PaperStore {
           };
         })(),
         ...paperOptions,
-        // Internal (not overridable)
-        highlighting: mergedHighlighting,
         onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
           graphStore.setPaperViews(this.paperId, changes);
         },

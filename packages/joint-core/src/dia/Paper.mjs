@@ -2601,7 +2601,7 @@ export const Paper = View.extend({
         const { options } = this;
         const { cellViewNamespace } = options;
         const type = cell.get('type') + 'View';
-        const namespaceViewClass = getByPath(cellViewNamespace, type, '.');
+        const namespaceViewClass = getByPath(cellViewNamespace, type, '.') ?? null;
         // A class taken from the paper options.
         let optionalViewClass;
         let defaultViewClass;
@@ -2621,7 +2621,7 @@ export const Paper = View.extend({
         //  3. if no view was found, use the default
         return (optionalViewClass.prototype instanceof ViewBase)
             ? namespaceViewClass || optionalViewClass
-            : optionalViewClass.call(this, cell) || namespaceViewClass || defaultViewClass;
+            : optionalViewClass.call(this, cell, namespaceViewClass) || namespaceViewClass || defaultViewClass;
     },
 
     // Returns a CellView instance or its placeholder for the given cell.

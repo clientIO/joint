@@ -128,6 +128,10 @@ const initialElements: Record<string, SaasNode> = {
   },
 };
 
+const DEFAULT_LINK = () => ({
+  style: { color: DARK.link, width: 2 },
+});
+
 const initialLinks: Record<string, LinkRecord> = {
   'client-pm': {
     source: { id: 'client', port: 'out' },
@@ -470,8 +474,6 @@ function ThemeUpdater() {
 }
 
 function Main() {
-  const isDark = useContext(ThemeContext);
-  const theme = isDark ? DARK : LIGHT;
   const paperRef = useRef<dia.Paper | null>(null);
 
   return (
@@ -494,12 +496,10 @@ function Main() {
         clickThreshold={10}
         {...ORTHOGONAL_LINKS}
         validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
-        validateConnection={(cellViewS, _magnetS, cellViewT, magnetT) => {
-          if (cellViewS === cellViewT) return false;
-          return magnetT?.getAttribute('magnet') === 'passive';
-        }}
+        validateConnection={({ target }) => target.port === 'in'}
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         renderElement={RenderSaasNode}
+        defaultLink={DEFAULT_LINK}
       />
       <ThemeUpdater />
       <Toolbar paperRef={paperRef} />

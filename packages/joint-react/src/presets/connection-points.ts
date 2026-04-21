@@ -52,11 +52,12 @@ export function withOffsets(
   cp: connectionPoints.ConnectionPoint,
   sourceOffset: number,
   targetOffset: number,
+  markerSelector = 'line',
 ): connectionPoints.ConnectionPoint {
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
     const point = cp(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
     const userOffset = endType === 'source' ? sourceOffset : targetOffset;
-    const markerLength = getMarkerLength(linkView, endType);
+    const markerLength = getMarkerLength(linkView, endType, markerSelector);
     const offset = userOffset + markerLength;
     if (offset === 0) return point;
     const ref = endPathSegmentLine.start;

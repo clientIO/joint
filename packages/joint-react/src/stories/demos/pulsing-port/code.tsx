@@ -130,12 +130,7 @@ function Main() {
       className={`${PAPER_CLASSNAME} h-[400px]`}
       sorting={dia.Paper.sorting.APPROX}
       linkPinning={false}
-      validateConnection={(cellViewS, magnetS, cellViewT, magnetT) => {
-        if (cellViewS === cellViewT) return false;
-        if (!magnetS || !magnetT) return false;
-        // Prevent linking to output ports.
-        return magnetT.getAttribute('port') === 'in';
-      }}
+      validateConnection={({ target }) => target.port === 'in'}
       markAvailable
       highlighting={{
         [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {

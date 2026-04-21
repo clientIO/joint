@@ -1,63 +1,16 @@
 import { type dia } from '@joint/core';
 import type { LinkRecord } from '../../types/data-types';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import { linkLabels } from '../../presets/link-labels';
+import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
-import { linkStyle } from '../../presets/link-style';
-import { isRecord } from '../../utils/is';
 import type { CellAttributes } from '.';
 
-/**
- * Forward mapper: converts a LinkRecord to JointJS cell attributes.
- *
- * - `labelMap` → converted to native `labels` array, stored on the model for reverse mapping.
- * - `labels` (array) → passed through as-is (native JointJS format).
- * - Both present → throws an error.
- * - `style` → converted to SVG `attrs` via `linkStyle`.
- *
- * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
- */
+/** Forward mapper using the React default link type. */
 export function mapLinkToAttributes<LinkData extends object = Record<string, unknown>>(
   link: LinkRecord<LinkData>
 ): CellAttributes {
-  if (!isRecord(link)) {
-    throw new Error('Invalid link data: expected an object with link properties.');
-  }
-
-  const {
-    data = {} as LinkData,
-    type = LINK_MODEL_TYPE,
-    // Link style
-    style,
-    // Labels
-    labelMap,
-    labels,
-    ...linkAttributes
-  } = link;
-
-  const attributes: CellAttributes = {
-    ...linkAttributes,
-    type,
-    data,
-  };
-
-  // style/attrs dual-format: if `style` is present, `attrs` will be generated from it.
-  if (style) {
-    attributes.attrs = linkStyle(style);
-    attributes.style = style;
-  }
-
-  // labelMap/labels dual-format: if `labelMap` is present, `labels` will be generated from it.
-  if (labelMap) {
-    if (labels) {
-      throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
-    }
-    attributes.labels = linkLabels(labelMap, link.labelStyle);
-    attributes.labelMap = labelMap;
-  } else if (labels) {
-    attributes.labels = labels;
-  }
-
+  const attributes = linkAttributes(link) as CellAttributes;
+  if (!attributes.type) attributes.type = LINK_MODEL_TYPE;
   return attributes;
 }
 

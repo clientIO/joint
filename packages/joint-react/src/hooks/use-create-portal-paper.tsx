@@ -1,9 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
-import { dia, util } from '@joint/core';
-import type { LinkRecord } from '../types/data-types';
+import { dia } from '@joint/core';
 import {
-  useCallback,
   useDeferredValue,
   useEffect,
   useLayoutEffect,
@@ -22,10 +20,13 @@ import { useLinkData } from './use-link-data';
 import { useContainerKeys } from './use-container-keys';
 import type { PaperStore } from '../store';
 import { PortalPaper } from '../models/portal-paper';
-import type { PaperProps, RenderLink } from '../components/paper/paper.types';
+import type { PaperProps, PortalPaperOptions, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 
 import { mapLinkToAttributes } from '../state/data-mapping';
+import type { CanConnectOptions} from '../presets/can-connect';
+import { canConnect, toConnectionEnd } from '../presets/can-connect';
+import { canEmbed, canUnembed } from '../presets/can-embed';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -36,6 +37,7 @@ import {
 } from '../components/paper/render-element/paper-element-item';
 import { createSelectPaperVersion } from '../selectors';
 import { useAreElementsMeasured } from './use-are-elements-measured';
+import { LINK_MODEL_TYPE } from '../internal';
 
 type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
@@ -71,15 +73,43 @@ export interface UseCreatePortalPaperResult {
  * @throws {Error} When `LinkModel` is missing in graph namespace.
  */
 function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
-  const cellNamespace = graph.layerCollection?.cellNamespace;
-  const reactLinkConstructor = cellNamespace?.LinkModel;
-  if (typeof reactLinkConstructor === 'function') {
-    return reactLinkConstructor as LinkModelConstructor;
-  }
-  throw new Error(
-    'Paper: LinkModel constructor is missing in graph.layerCollection.cellNamespace.'
-  );
+  const Ctor = graph.getTypeConstructor(LINK_MODEL_TYPE) as LinkModelConstructor | undefined;
+  if (typeof Ctor !== 'function') throw new Error('Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
+  return Ctor as LinkModelConstructor;
 }
+
+/**
+ * Creates a JointJS-compatible `defaultLink` callback from the React prop.
+ * Wraps the user-facing `DefaultLinkContext` API and converts `LinkRecord` results
+ * into JointJS link model instances.
+ * @param defaultLink
+ */
+function createDefaultLinkCallback(
+  defaultLink: PortalPaperOptions['defaultLink'],
+) {
+  return (cellView: dia.CellView, magnet: SVGElement = cellView.el) => {
+    const paper = cellView.paper!;
+    const graph = paper.model;
+    const isFactory = typeof defaultLink === 'function';
+    const link = isFactory
+      ? defaultLink({
+        source: toConnectionEnd(cellView, magnet),
+        paper,
+        graph,
+      })
+      : defaultLink;
+    const LinkModelCtor = getLinkModelConstructor(graph);
+    if (!link) {
+      return new LinkModelCtor(mapLinkToAttributes({}));
+    }
+    if (link instanceof dia.Link) {
+      if (isFactory) return link;
+      return link.clone();
+    }
+    return new LinkModelCtor(mapLinkToAttributes(link));
+  };
+}
+
 
 /**
  * Portals custom link content into the resolved link view container.
@@ -127,6 +157,9 @@ export function useCreatePortalPaper(
     renderElement = defaultRenderElement,
     renderLink,
     defaultLink,
+    validateConnection,
+    validateEmbedding,
+    validateUnembedding,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -164,7 +197,7 @@ export function useCreatePortalPaper(
 
   // Subscribe to paper version to trigger re-renders on view mount/unmount changes
   const version = useInternalData(selectPaperVersion);
-  const { addPaper, graph } = useGraphStore();
+  const { addPaper } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
@@ -176,28 +209,29 @@ export function useCreatePortalPaper(
   const hasRenderElement = !!renderElement;
   const hasRenderLink = !!renderLink;
 
-  const defaultLinkJointJS = useCallback(
-    (cellView: dia.CellView, magnet: SVGElement) => {
-      const isDefaultLinkFactory = typeof defaultLink === 'function';
-      const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
-      const LinkModelModel = getLinkModelConstructor(graph);
-      if (!link) {
-        const id = util.uuid();
-        const defaultAttributes = mapLinkToAttributes({ id, data: {} } as LinkRecord);
-        return new LinkModelModel(defaultAttributes);
-      }
-      if (link instanceof dia.Link) {
-        if (isDefaultLinkFactory) {
-          return link;
-        }
-        return link.clone();
-      }
-      const id = util.uuid();
-      const attributes = mapLinkToAttributes({ id, data: {}, ...link } as LinkRecord);
-      return new LinkModelModel(attributes);
-    },
+  const defaultLinkCallback = useMemo(
+    () => createDefaultLinkCallback(defaultLink),
+    [defaultLink]
+  );
 
-    [defaultLink, graph]
+  const validateConnectionCallback = useMemo(
+    () => {
+      const canConnectionOptions: CanConnectOptions | undefined = typeof validateConnection === 'function'
+        ? { validate: validateConnection }
+        : validateConnection;
+      return canConnect(canConnectionOptions);
+    },
+    [validateConnection]
+  );
+
+  const validateEmbeddingCallback = useMemo(
+    () => canEmbed(validateEmbedding),
+    [validateEmbedding]
+  );
+
+  const validateUnembeddingCallback = useMemo(
+    () => canUnembed(validateUnembedding),
+    [validateUnembedding]
   );
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
@@ -210,7 +244,10 @@ export function useCreatePortalPaper(
         ...paperOptions,
         id,
         el: hostElementForCreation,
-        defaultLink: defaultLinkJointJS,
+        defaultLink: defaultLinkCallback,
+        validateConnection: validateConnectionCallback,
+        validateEmbedding: validateEmbeddingCallback,
+        validateUnembedding: validateUnembeddingCallback,
       },
       renderElement,
       renderLink,
@@ -256,7 +293,10 @@ export function useCreatePortalPaper(
     if (!paper) return;
 
     assignOptions(paper.options, {
-      defaultLink: defaultLinkJointJS,
+      defaultLink: defaultLinkCallback,
+      validateConnection: validateConnectionCallback,
+      validateEmbedding: validateEmbeddingCallback,
+      validateUnembedding: validateUnembeddingCallback,
       ...paperOptions,
     });
 
@@ -274,7 +314,7 @@ export function useCreatePortalPaper(
     if (scale !== undefined) {
       paper.scale(scale);
     }
-  }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
+  }, [defaultLinkCallback, paper, paperOptions, paperStore, scale]);
 
   const elements = useMemo(() => {
     if (!hasRenderElement) {

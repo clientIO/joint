@@ -1,6 +1,6 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+
 import { forwardRef, useCallback, useRef } from 'react';
 import {
   GraphProvider,
@@ -10,13 +10,10 @@ import {
   type LinkRecord,
   type RenderElement,
   type OnTransformElement,
-  ElementModel,
-  LinkModel,
   type ElementRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
-import { dia, shapes } from '@joint/core';
 import { linkRoutingSmooth } from '@joint/react/presets';
 
 const ROW_HEIGHT = 30;
@@ -184,43 +181,18 @@ function Main() {
       defaultLink={{
         style: { color: LIGHT },
       }}
-      validateConnection={(sourceView, _sourceMagnet, targetView) =>
-        sourceView.model.id !== targetView.model.id
-      }
+      validateConnection={{
+        allowRootConnection: false
+      }}
       style={PAPER_STYLE}
       drawGrid={false}
     />
   );
 }
 
-class MyElementModel extends ElementModel {
-  defaults() {
-    return {
-      ...super.defaults(),
-      attrs: {
-        root: {
-          magnet: false,
-        },
-      },
-    };
-  }
-
-  // useCSSSelectors: boolean = true;
-}
-
 export default function App() {
-  const graph = new dia.Graph(
-    {},
-    {
-      cellNamespace: {
-        ...shapes,
-        ElementModel: MyElementModel,
-        LinkModel,
-      },
-    }
-  );
   return (
-    <GraphProvider elements={initialElements} links={initialLinks} graph={graph}>
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Main />
     </GraphProvider>
   );

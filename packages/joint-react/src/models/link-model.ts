@@ -4,7 +4,7 @@ import { linkStyle } from '../presets/link-style';
 
 export const LINK_MODEL_TYPE = 'LinkModel';
 
-const defaultPresentationAttrs: dia.Link.Attributes['attrs'] = linkStyle();
+const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
 
 /**
  * A custom JointJS link that can render React components.
@@ -37,11 +37,10 @@ export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
     return {
       ...super.defaults,
       type: LINK_MODEL_TYPE,
-      attrs: defaultPresentationAttrs,
+      attrs: defaultLinkStyle,
       // Explicitly set attributes to avoid triggering `change` events.
       // See `link-mapper.ts` to see the values representing "no value"
       data: {},
-      labels: null,
     } as unknown as dia.Link.Attributes & Attributes;
   }
 
@@ -49,6 +48,7 @@ export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
     {
       tagName: 'path',
       selector: 'wrapper',
+      className: 'jj-link-wrapper',
       attributes: {
         fill: 'none',
         cursor: 'pointer',
@@ -58,12 +58,14 @@ export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
     {
       tagName: 'path',
       selector: 'line',
+      className: 'jj-link-line',
       attributes: {
         fill: 'none',
         pointerEvents: 'none',
         strokeLinejoin: 'round',
       },
     },
+    // @todo: should we remove it for now?
     {
       tagName: 'g',
       selector: PORTAL_SELECTOR,

@@ -47,8 +47,6 @@ export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Eleme
       // Explicitly set attributes to avoid triggering `change` events.
       // See `element-mapper.ts` to see the values representing "no value"
       data: {},
-      ports: null,
-      portDefaults: null,
     } as unknown as dia.Element.Attributes & Attributes;
   }
 }

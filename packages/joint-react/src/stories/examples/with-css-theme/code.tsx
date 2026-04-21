@@ -10,7 +10,7 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-// Base theme — provides --jr-* CSS variable defaults
+// Base theme — provides --jj-* CSS variable defaults
 import '../../../css/theme.css';
 
 // Plain CSS overrides for light/dark (no Tailwind)
@@ -130,7 +130,7 @@ function Diagram() {
           {isDark ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark'}
         </button>
         <span style={{ fontSize: 12, color: '#94a3b8' }}>
-          Links inherit color from <code>--jr-link-color</code>. The amber link overrides via{' '}
+          Links inherit color from <code>--jj-link-color</code>. The amber link overrides via{' '}
           <code>color</code> prop.
         </span>
       </div>

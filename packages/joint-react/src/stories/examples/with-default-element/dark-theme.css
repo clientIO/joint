@@ -1,20 +1,20 @@
 .default-element-demo.dark {
-  --jr-paper-bg: #1e1e2e;
-  --jr-paper-grid-color: #45475a;
-  --jr-paper-highlight-color: #3ff7c7;
+  --jj-paper-color: #1e1e2e;
+  --jj-color-grid: #45475a;
+  --jj-color-primary: #3ff7c7;
 
-  --jr-element-bg: #313244;
-  --jr-element-color: #cdd6f4;
-  --jr-element-border-color: #585b70;
-  --jr-element-available-border: #25f7ff;
+  --jj-box-color: #313244;
+  --jj-box-text-color: #cdd6f4;
+  --jj-box-border-color: #585b70;
+  --jj-box-available-border: #25f7ff;
 
-  --jr-link-color: #89b4fa;
+  --jj-link-color: #89b4fa;
 
-  --jr-label-color: #cdd6f4;
-  --jr-label-bg: #313244;
-  --jr-label-stroke: #585b70;
+  --jj-label-color: #cdd6f4;
+  --jj-label-bg-color: #313244;
+  --jj-label-border-color: #585b70;
 
-  --jr-port-color: #cdd6f4;
-  --jr-port-outline: #1e1e2e;
-  --jr-port-available-color: #25f7ff;
+  --jj-port-color: #cdd6f4;
+  --jj-port-border-color: #1e1e2e;
+  --jj-port-connecting-color: #25f7ff;
 }

@@ -1,6 +1,8 @@
-import type { dia } from '@joint/core';
+/* eslint-disable jsdoc/require-param */
+/* eslint-disable jsdoc/require-returns */
+
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
-import { LinkMarkerRecord } from '../theme/named-link-markers';
+import type { LinkMarkerRecord } from '../theme/named-link-markers';
 
 export interface LinkMarkerOptions {
   /** Unique ID for the marker. If not provided, a default ID will be generated based on the options. */
@@ -14,27 +16,30 @@ export interface LinkMarkerOptions {
   readonly strokeWidth?: number;
 }
 /** Default fill color for markers. */
-const FILL = 'context-stroke';
+const FILL = 'inherit';
 /** Default stroke color for markers. */
-const STROKE = 'context-stroke';
+const STROKE = 'inherit';
 /** Default stroke width for markers. */
 const SW = 2;
 
-function defaults(opts: LinkMarkerOptions = {}) {
+/**
+ * Helper function to apply default options for link markers.
+ */
+function defaults(options: LinkMarkerOptions = {}) {
   const {
     scale = 1,
     fill = FILL,
     stroke = STROKE,
     strokeWidth = SW,
-  } = opts;
+  } = options;
   return { scale, fill, stroke, strokeWidth };
 }
 
 /**
  * Filled triangle arrow. Tip at 0, body extends into positive X.
  */
-export function linkMarkerArrow(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, fill, stroke, strokeWidth } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
@@ -49,8 +54,8 @@ export function linkMarkerArrow(opts?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Open chevron arrow (no back edge). Tip at 0.
  */
-export function linkMarkerArrowOpen(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, stroke, strokeWidth } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
@@ -65,8 +70,8 @@ export function linkMarkerArrowOpen(opts?: LinkMarkerOptions): LinkMarkerRecord 
 /**
  * Arrow with a concave (sunken) back edge.
  */
-export function linkMarkerArrowSunken(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, fill, stroke, strokeWidth } = defaults(options);
   const w = 10 * scale;
   const h = 5 * scale;
   const indent = 3 * scale;
@@ -81,8 +86,8 @@ export function linkMarkerArrowSunken(opts?: LinkMarkerOptions): LinkMarkerRecor
 /**
  * Arrow with a split/quill back — back edges form an open V (don't meet).
  */
-export function linkMarkerArrowQuill(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, fill, stroke, strokeWidth } = defaults(options);
   const w = 10 * scale;
   const h = 5 * scale;
   const indent = 3 * scale;
@@ -104,8 +109,8 @@ export function linkMarkerArrowQuill(opts?: LinkMarkerOptions): LinkMarkerRecord
 /**
  * Double arrow (two nested triangles).
  */
-export function linkMarkerArrowDouble(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, fill, stroke, strokeWidth } = defaults(options);
   const w = 7 * scale;
   const h = 4 * scale;
   const gap = 8 * scale;
@@ -123,8 +128,8 @@ export function linkMarkerArrowDouble(opts?: LinkMarkerOptions): LinkMarkerRecor
 /**
  * Circle marker. Use `fill: 'none'` for outline.
  */
-export function linkMarkerCircle(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, fill, stroke, strokeWidth } = defaults(options);
   const r = 4 * scale;
   return {
     markup: jsx(
@@ -137,8 +142,8 @@ export function linkMarkerCircle(opts?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Diamond (losangle) marker. Use `fill: 'none'` for outline.
  */
-export function linkMarkerDiamond(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, fill, stroke, strokeWidth } = defaults(options);
   const w = 5 * scale;
   const h = 5 * scale;
   return {
@@ -152,8 +157,8 @@ export function linkMarkerDiamond(opts?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Vertical bar at the link end.
  */
-export function linkMarkerLine(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, stroke, strokeWidth } = defaults(options);
   const h = 5 * scale;
   return {
     markup: jsx(
@@ -166,8 +171,8 @@ export function linkMarkerLine(opts?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Cross (X) centered at the link end.
  */
-export function linkMarkerCross(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, stroke, strokeWidth } = defaults(options);
   const d = 5 * scale;
   return {
     markup: jsx(
@@ -180,8 +185,8 @@ export function linkMarkerCross(opts?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Fork — same shape as arrow but pointing the opposite direction.
  */
-export function linkMarkerFork(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, fill, stroke, strokeWidth } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
@@ -195,8 +200,8 @@ export function linkMarkerFork(opts?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Fork with a closing vertical bar at the tip.
  */
-export function linkMarkerForkClose(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, fill, stroke, strokeWidth } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
@@ -213,8 +218,8 @@ export function linkMarkerForkClose(opts?: LinkMarkerOptions): LinkMarkerRecord 
 /**
  * Crow's foot — three lines spreading from a point (ER "many").
  */
-export function linkMarkerMany(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, stroke, strokeWidth } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
@@ -231,8 +236,8 @@ export function linkMarkerMany(opts?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Crow's foot with circle — ER "many optional".
  */
-export function linkMarkerManyOptional(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, stroke, strokeWidth } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   const r = 4 * scale;
@@ -251,8 +256,8 @@ export function linkMarkerManyOptional(opts?: LinkMarkerOptions): LinkMarkerReco
 /**
  * Two parallel vertical bars — ER "one".
  */
-export function linkMarkerOne(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, stroke, strokeWidth } = defaults(options);
   const h = 5 * scale;
   return {
     markup: jsx(
@@ -267,8 +272,8 @@ export function linkMarkerOne(opts?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Vertical bar with circle — ER "one optional".
  */
-export function linkMarkerOneOptional(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, stroke, strokeWidth } = defaults(options);
   const h = 5 * scale;
   const r = 4 * scale;
   const circleX = -r;
@@ -286,8 +291,8 @@ export function linkMarkerOneOptional(opts?: LinkMarkerOptions): LinkMarkerRecor
 /**
  * Crow's foot with vertical bar — ER "one or many".
  */
-export function linkMarkerOneOrMany(opts?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(opts);
+export function linkMarkerOneOrMany(options?: LinkMarkerOptions): LinkMarkerRecord {
+  const { scale, stroke, strokeWidth } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {

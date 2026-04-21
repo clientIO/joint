@@ -8,7 +8,6 @@ import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
-import './index.css';
 import {
   GraphProvider,
   Paper,
@@ -126,7 +125,6 @@ const links: Record<string, LinkRecord> = {
     style: {
       color: LIGHT,
       width: 2,
-      className: 'link',
       dasharray: '5,5',
       targetMarker: {
         markup: [{ tagName: 'path', attributes: { d: 'M 0 0 L 8 4 L 8 -4 Z', fill: 'context-stroke', stroke: 'context-stroke' } }],
@@ -423,11 +421,11 @@ function ElementsInfo() {
     <div className="flex flex-col gap-2 mt-4">
       <div className="flex flex-col gap-2">
         <div className="text-white text-sm">Elements</div>
-        <ShowJson data={JSON.stringify(elements, null, 2)} />
+        <ShowJson data={JSON.stringify(Object.fromEntries(elements), null, 2)} />
       </div>
       <div className="flex flex-col gap-2">
         <div className="text-white text-sm">Links</div>
-        <ShowJson data={JSON.stringify(links, null, 2)} />
+        <ShowJson data={JSON.stringify(Object.fromEntries(links), null, 2)} />
       </div>
     </div>
   );

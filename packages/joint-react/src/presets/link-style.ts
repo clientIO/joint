@@ -49,6 +49,7 @@ const defaultLinkStyle: Readonly<Required<LinkStyle>> = {
 /**
  * Builds the `line` selector attrs from a LinkStyle.
  * Handles stroke, markers, dash patterns, and CSS class.
+ * @param style
  */
 export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {
   const {
@@ -74,11 +75,28 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
   };
 
   if (sourceMarker !== 'none') {
-    lineAttributes.sourceMarker = resolveMarker(sourceMarker);
+    lineAttributes.sourceMarker = {
+      // if color is set, apply it to marker stroke and fill
+      attrs: {
+        stroke: color || 'var(--jj-link-color)',
+        fill: color || 'var(--jj-link-color)',
+      },
+      ...resolveMarker(sourceMarker)
+    };
   }
 
-  lineAttributes.targetMarker = targetMarker === 'none' ? null : resolveMarker(targetMarker);
-  lineAttributes.class = `jr-link-line ${className}`.trim();
+  if (targetMarker !== 'none') {
+    lineAttributes.targetMarker = {
+      // if color is set, apply it to marker stroke and fill
+      attrs: {
+        stroke: color || 'var(--jj-link-color)',
+        fill: color || 'var(--jj-link-color)',
+      },
+      ...resolveMarker(targetMarker)
+    };
+  }
+
+  lineAttributes.class = `jj-link-line ${className}`.trim();
 
   return lineAttributes;
 }
@@ -86,6 +104,7 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
 /**
  * Builds the `wrapper` selector attrs from a LinkStyle.
  * Handles hit-area stroke, width, and CSS class.
+ * @param style
  */
 export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {
   const {
@@ -104,13 +123,13 @@ export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVG
       strokeLinecap: linecap,
       strokeLinejoin: linejoin,
     },
-    class: `jr-link-wrapper ${wrapperClassName}`.trim(),
+    class: `jj-link-wrapper ${wrapperClassName}`.trim(),
   };
 }
 
 /**
  * Converts a `LinkStyle` into JointJS SVG `attrs` for `line` and `wrapper` selectors.
- *
+ * @param style
  * @example
  * ```ts
  * const attrs = linkStyle({ color: '#333', width: 2, targetMarker: 'arrow' });

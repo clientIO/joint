@@ -26,13 +26,12 @@ const unit = 4;
 const bevel = 2 * unit;
 const nodeFontSize = 13;
 const labelFontSize = 15;
+const linkOffset = unit * 1.5;
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   cornerType: 'line',
   cornerRadius: bevel,
   margin: unit * 7,
-  sourceOffset: unit * 2,
-  targetOffset: unit * 2
 });
 
 type NodeElementData = {
@@ -75,10 +74,10 @@ const flowchartNodes: Record<string, ElementRecord<NodeElementData>> = {
     data: { label: 'Ship Items to Customer', type: 'step', cx: 550, cy: 500 },
   },
 };
-const TOP = { name: 'top', args: { useModelGeometry: true } } as const;
-const BOTTOM = { name: 'bottom', args: { useModelGeometry: true } } as const;
-const LEFT = { name: 'left', args: { useModelGeometry: true } } as const;
-const RIGHT = { name: 'right', args: { useModelGeometry: true } } as const;
+const TOP = { name: 'top', args: { useModelGeometry: true, dy: -linkOffset } } as const;
+const BOTTOM = { name: 'bottom', args: { useModelGeometry: true, dy: linkOffset } } as const;
+const LEFT = { name: 'left', args: { useModelGeometry: true, dx: -linkOffset } } as const;
+const RIGHT = { name: 'right', args: { useModelGeometry: true, dx: linkOffset } } as const;
 
 const LINK_OPTIONS: Partial<LinkRecord> = {
   z: 2,
@@ -381,7 +380,7 @@ function Main() {
           coords: dia.Point,
           endView: dia.CellView
         ) => {
-          const bbox = endView.model.getBBox();
+          const bbox = endView.model.getBBox().inflate(linkOffset);
           const point = bbox.pointNearestToPoint(coords);
           const center = bbox.center();
           const snapRadius = 10;
@@ -397,10 +396,12 @@ function Main() {
           tools: [
             new linkTools.TargetAnchor({
               snap: snapAnchor,
+              restrictArea: false,
               resetAnchor: true,
             }),
             new linkTools.SourceAnchor({
               snap: snapAnchor,
+              restrictArea: false,
               resetAnchor: true,
             }),
           ],

@@ -23,8 +23,7 @@ import { DirectedGraph } from '@joint/layout-directed-graph';
 import '../index.css';
 import { linkRoutingOrthogonal } from '../../../presets';
 
-const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ cornerType: 'line', cornerRadius: 10, mode: 'top-bottom' });
-
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ cornerType: 'line', cornerRadius: 10, mode: 'bottom-top' });
 // Base properties shared by all events
 interface BaseEvent {
   readonly label: string;

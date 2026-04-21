@@ -3,7 +3,6 @@ import Code from './code';
 
 import RawCode from './code?raw';
 
-import CodeCss from './index.css?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
@@ -16,7 +15,7 @@ export default {
         story: 'Demo of jointjs with react using custom nodes',
       },
       source: {
-        code: `${RawCode} \n <style>\n${CodeCss}</style>`,
+        code: `${RawCode}`,
       },
     },
   },

@@ -5,19 +5,60 @@ import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
+import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
+import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
 
 type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
-  'frozen' | 'defaultLink' | 'autoFreeze' | 'viewManagement'
+  'frozen' | 'defaultLink' | 'validateConnection' | 'validateEmbedding' | 'validateUnembedding' | 'autoFreeze' | 'viewManagement'
 >;
+
+/** Context passed to the `defaultLink` factory. */
+export interface DefaultLinkContext {
+  /** The source end of the connection being created. */
+  readonly source: ConnectionEnd;
+  /** The paper instance. */
+  readonly paper: dia.Paper;
+  /** The graph instance. */
+  readonly graph: dia.Graph;
+}
+
 export interface PortalPaperOptions extends PortalPaperOptionsBase {
   /**
-   * Default link for the paper - for example if there is new element added, this will be used as default.
+   * Defines the link created when the user starts dragging from a port or element.
+   *
+   * Can be a factory function receiving connection context, a static `LinkRecord`,
+   * or a `dia.Link` instance.
    */
   readonly defaultLink?:
-    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<LinkRecord>)
+    | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>)
     | dia.Link
     | Partial<LinkRecord>;
+
+  /**
+   * Validates whether a connection between two elements/ports is allowed.
+   *
+   * - **Function**: custom validation with built-in rules (no self-loops, no link-to-link, no multi-links).
+   *   Receives `{ source, target, endType, paper, graph }`.
+   * - **Object**: `CanConnectOptions` with built-in rules and optional `validate` callback.
+   *
+   * When omitted, defaults to `canConnect()` (no self-loops, no link-to-link, no multi-links).
+   */
+  readonly validateConnection?:
+    | CanConnectOptions
+    | ((context: ValidateConnectionContext) => boolean);
+
+  /**
+   * Validates whether an element can be embedded into another element.
+   * Receives `{ child, parent, paper, graph }`.
+   */
+  readonly validateEmbedding?: (context: ValidateEmbeddingContext) => boolean;
+
+  /**
+   * Validates whether an element can be unembedded from its parent.
+   * Receives `{ child, paper, graph }`.
+   */
+  readonly validateUnembedding?: (context: ValidateUnembeddingContext) => boolean;
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */
@@ -94,7 +135,6 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    *
    * Note: JointJS works with SVG by default, so `renderLink` content is appended inside an SVG node.
    * To render HTML elements, use an SVG `foreignObject`.
-   *
    * @experimental - this feature is experimental and may have limitations or issues. Use at your own risk.
    * This is called when the link data changes.
    * @example

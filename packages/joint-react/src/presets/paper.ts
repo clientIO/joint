@@ -1,19 +1,17 @@
 import { dia } from '@joint/core';
-import { measureNode } from '../store/default-measure-node';
+import { measureNode } from './measure-node';
+import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
-import { LINK_MODEL_TYPE, LinkModel } from './link-model';
-import { linkRoutingStraight } from '../presets';
 
 // Inject CSS custom property into all built-in grid pattern colors
-// so they respond to --jr-paper-grid-color.
+// so they respond to --jj-paper-grid-color.
 // @ts-expect-error Accessing protected member to set default grid pattern colors
 // eslint-disable-next-line unicorn/no-array-for-each
 Object.values(dia.Paper.gridPatterns).forEach((pattern) => {
   const patterns = Array.isArray(pattern) ? pattern : [pattern];
   for (const subPattern of patterns) {
     if (!subPattern.color) continue;
-    // @todo read the fallback color from js theme.
-    subPattern.color = 'var(--jr-paper-grid-color, #9298a5)';
+    subPattern.color = 'var(--jj-paper-grid-color)';
   }
 });
 
@@ -22,15 +20,14 @@ const DEFAULT_GRID_SIZE = 10;
 const DEFAULT_SNAP_RADIUS = 15;
 
 // @todo - this should sit on the dia.Paper prototype,
-// so it can be overridden by inheriting classes (e.g. PresetPaper)
+// so it can be overridden by inheriting classes (e.g. Paper)
 export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.DEFAULT]: {
     name: 'stroke',
     options: {
       attrs: {
         strokeWidth: 2,
-        // @todo read the fallback color from js theme.
-        stroke: 'var(--jr-paper-highlight-color, #ff4081)',
+        stroke: 'var(--jj-paper-highlight-color)',
       },
       rx: 4,
       ry: 4,
@@ -40,18 +37,25 @@ export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: 'jr-available-magnet',
+      className: 'jj-is-available',
     },
   },
   [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: 'jr-available-element',
+      className: 'jj-is-available',
     },
   },
 };
 
-export const PresetPaper = dia.Paper.extend({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const linkView = (_: dia.Link, NSViewCtor: typeof dia.LinkView | null): typeof dia.LinkView<any> => {
+  // Use the namespaced LinkView if provided,
+  // otherwise fall back to the default LinkView.
+  return NSViewCtor ?? LinkView;
+};
+
+export const Paper = dia.Paper.extend({
   options: {
     ...dia.Paper.prototype.options,
     // Required for React integration features:
@@ -70,20 +74,17 @@ export const PresetPaper = dia.Paper.extend({
     markAvailable: true,
     clickThreshold: DEFAULT_CLICK_THRESHOLD,
     snapLinks: { radius: DEFAULT_SNAP_RADIUS },
-    drawGrid: true,
-    ...linkRoutingStraight(),
-    measureNode: measureNode as dia.Paper.Options['measureNode'],
     highlighting: DEFAULT_HIGHLIGHTING,
-    linkView: (link: dia.Link) => {
-      if (link instanceof LinkModel) {
-        return LinkView;
-      }
-    }
+    drawGrid: true,
+    magnetThreshold: 'onleave',
+    ...linkRoutingStraight(),
+    measureNode,
+    linkView,
   },
 
   _ensureElClassName() {
     // Note: the `className` property is ignored here.
-    this.el.classList.add('jr-paper', 'joint-paper');
+    this.el.classList.add('jj-paper', 'joint-paper');
   }
 
 }) as typeof dia.Paper;

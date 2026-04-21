@@ -39,6 +39,8 @@ interface BaseLinkOptions {
   readonly targetOffset?: number;
   /** Use straight-line routing when an end is not connected. Default: `true`. */
   readonly straightWhenDisconnected?: boolean;
+  /** The attrs selector that holds the marker definitions. Default: `'line'`. */
+  readonly markerSelector?: string;
 }
 
 export interface LinkRoutingStraightOptions extends BaseLinkOptions {
@@ -55,7 +57,7 @@ export interface LinkRoutingStraightOptions extends BaseLinkOptions {
  * The shortest path with no routing — a single line from source to target.
  */
 export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): LinkRouting {
-  const { sourceOffset = 0, targetOffset = 0, cornerType = 'point', cornerRadius = 0, perpendicular = false } = options;
+  const { sourceOffset = 0, targetOffset = 0, cornerType = 'point', cornerRadius = 0, perpendicular = false, markerSelector } = options;
   return {
     defaultRouter: { name: 'normal' },
     defaultConnector: {
@@ -63,7 +65,7 @@ export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): L
       args: { cornerType, cornerRadius, cornerPreserveAspectRatio: true }
     },
     defaultAnchor: perpendicular ? perpendicularAnchor : centerAnchor,
-    defaultConnectionPoint: withOffsets(boundaryPoint, sourceOffset, targetOffset),
+    defaultConnectionPoint: withOffsets(boundaryPoint, sourceOffset, targetOffset, markerSelector),
   };
 }
 
@@ -89,6 +91,7 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
     targetOffset = 0,
     straightWhenDisconnected = true,
     margin,
+    markerSelector,
   } = options;
   const router = rightAngleRouter(margin);
 
@@ -99,8 +102,8 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
         name: 'straight',
         args: { cornerType, cornerRadius, cornerPreserveAspectRatio: true }
       },
-      defaultAnchor: anchorWhenConnected(midSideAnchor(mode, sourceOffset, targetOffset), centerAnchor),
-      defaultConnectionPoint: connectionPointWhenConnected(anchorPoint, withOffsets(boundaryPoint, sourceOffset, targetOffset)),
+      defaultAnchor: anchorWhenConnected(midSideAnchor(mode, sourceOffset, targetOffset, markerSelector), centerAnchor),
+      defaultConnectionPoint: connectionPointWhenConnected(anchorPoint, withOffsets(boundaryPoint, sourceOffset, targetOffset, markerSelector)),
     };
   }
 
@@ -110,7 +113,7 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
       name: 'straight',
       args: { cornerType, cornerRadius, cornerPreserveAspectRatio: true }
     },
-    defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset),
+    defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset, markerSelector),
     defaultConnectionPoint: anchorPoint,
   };
 }
@@ -122,16 +125,16 @@ export interface LinkRoutingSmoothOptions extends BaseLinkOptions {}
  * Renders links as bezier curves for a softer, more organic look.
  */
 export function linkRoutingSmooth(options: LinkRoutingSmoothOptions = {}): LinkRouting {
-  const { mode, sourceOffset = 0, targetOffset = 0, straightWhenDisconnected = true } = options;
+  const { mode, sourceOffset = 0, targetOffset = 0, straightWhenDisconnected = true, markerSelector } = options;
 
   if (straightWhenDisconnected) {
     return {
       defaultRouter: { name: 'normal' },
       defaultConnector: straightConnectorUntilConnected(outwardsCurveConnector),
-      defaultAnchor: anchorWhenConnected(midSideAnchor(mode, sourceOffset, targetOffset), centerAnchor),
+      defaultAnchor: anchorWhenConnected(midSideAnchor(mode, sourceOffset, targetOffset, markerSelector), centerAnchor),
       defaultConnectionPoint: connectionPointWhenConnected(
         connectionPoints.anchor as connectionPoints.ConnectionPoint,
-        withOffsets(boundaryPoint, sourceOffset, targetOffset)
+        withOffsets(boundaryPoint, sourceOffset, targetOffset, markerSelector)
       ),
     };
   }
@@ -139,7 +142,7 @@ export function linkRoutingSmooth(options: LinkRoutingSmoothOptions = {}): LinkR
   return {
     defaultRouter: { name: 'normal' },
     defaultConnector: outwardsCurveConnector,
-    defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset),
+    defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset, markerSelector),
     defaultConnectionPoint: { name: 'anchor' },
   };
 }

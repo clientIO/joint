@@ -1,51 +1,15 @@
 import { type dia } from '@joint/core';
 import type { ElementRecord } from '../../types/data-types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import { elementPorts } from '../../presets/element-ports';
-import { isRecord } from '../../utils/is';
+import { elementAttributes } from '../../presets/element-attributes';
 import type { CellAttributes } from './index';
 
-/**
- * Forward mapper: converts an ElementRecord to JointJS cell attributes.
- *
- * - `portMap` → converted to native `ports`, stored on the model for reverse mapping.
- * - `ports` → passed through as-is (native JointJS format).
- * - Both present → throws an error.
- *
- * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
- */
+/** Forward mapper using the React default element type. */
 export function mapElementToAttributes<ElementData extends object = Record<string, unknown>>(
   element: ElementRecord<ElementData>
 ): CellAttributes {
-  if (!isRecord(element)) {
-    throw new Error('Invalid element format: expected an object.');
-  }
-
-  const {
-    data = {} as ElementData,
-    portMap,
-    ports,
-    type = ELEMENT_MODEL_TYPE,
-    ...cellAttributes
-  } = element;
-
-  const attributes: CellAttributes = {
-    ...cellAttributes,
-    type,
-    data,
-  };
-
-  // portMap/ports dual-format: if `portMap` is present, `ports` will be generated from it.
-  if (portMap) {
-    if (ports) {
-      throw new Error('Cannot use both "portMap" and "ports" on the same element.');
-    }
-    attributes.ports = elementPorts(portMap, element.portStyle);
-    attributes.portMap = portMap;
-  } else if (ports) {
-    attributes.ports = ports;
-  }
-
+  const attributes = elementAttributes(element) as CellAttributes;
+  if (!attributes.type) attributes.type = ELEMENT_MODEL_TYPE;
   return attributes;
 }
 
