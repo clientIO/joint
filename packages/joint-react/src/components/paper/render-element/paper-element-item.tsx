@@ -26,7 +26,7 @@ export interface ElementItemProps {
  * @internal
  */
 function SVGElementItemComponent(props: ElementItemProps) {
-  const { renderElement, portalElement, areElementsMeasured } = props;
+  const { renderElement: RenderElement, portalElement, areElementsMeasured } = props;
   const id = useElementId();
   const data = useElementData();
   const graphStore = useGraphStore();
@@ -43,7 +43,7 @@ function SVGElementItemComponent(props: ElementItemProps) {
   }
 
   // Pass user data (D) to renderElement — only re-renders when data changes
-  const element = renderElement(data);
+  const element = <RenderElement {...data} />;
   return createPortal(element, portalElement);
 }
 
@@ -63,7 +63,7 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
  * @internal
  */
 function HTMLElementItemComponent(props: ElementItemProps) {
-  const { renderElement, portalElement } = props;
+  const { renderElement: RenderElement, portalElement } = props;
   const id = useElementId();
   const data = useElementData();
 
@@ -87,7 +87,7 @@ function HTMLElementItemComponent(props: ElementItemProps) {
     return null;
   }
 
-  const element = renderElement(data);
+  const element = <RenderElement {...data} />;
   const container = (
     <div model-id={id} style={style}>
       {element}
