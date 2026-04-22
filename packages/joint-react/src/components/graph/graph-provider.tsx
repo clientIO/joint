@@ -37,13 +37,6 @@ interface GraphProviderBaseProps<
   /** Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle. */
   readonly store?: GraphStore<ElementData, LinkData>;
   /**
-   * Defer state updates during JointJS batch operations (e.g. drag) and flush
-   * them after `batch:stop`. Off by default — every change triggers an
-   * immediate React update.
-   * @default false
-   */
-  readonly enableBatchUpdates?: boolean;
-  /**
    * Notification fired with granular `added` / `changed` / `removed` sets
    * after each commit. Independent of controlled/uncontrolled mode — fires
    * in either. Wire up to external stores (Redux, Zustand, etc.).

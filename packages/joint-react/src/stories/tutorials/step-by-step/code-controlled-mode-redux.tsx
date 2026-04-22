@@ -1,4 +1,3 @@
- 
 /* eslint-disable @typescript-eslint/no-dynamic-delete */
 /* eslint-disable @eslint-react/hooks-extra/no-direct-set-state-in-use-effect */
 /* eslint-disable sonarjs/pseudo-random */
@@ -251,7 +250,6 @@ function GraphWithRedux() {
     <GraphProvider<ElementData>
       elements={elements}
       links={links}
-      enableBatchUpdates
       onIncrementalChange={handleIncrementalChange}
     >
       <ReduxConnectedPaperApp />
