@@ -20,20 +20,6 @@ type LockedPaperOptionKeys =
   | 'async'
   | 'sorting';
 
-/**
- * Options exposed via the `options` escape hatch but not as top-level props.
- * Future structured wrappers may promote any of these to top-level.
- */
-type UnofficialPaperOptionKeys =
-  | 'validateMagnet'
-  | 'restrictTranslate'
-  | 'allowLink'
-  | 'guard'
-  | 'findParentBy'
-  | 'onViewUpdate'
-  | 'onViewPostponed'
-  | 'multiLinks';
-
 type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
   | 'defaultLink'
@@ -42,7 +28,6 @@ type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   | 'validateUnembedding'
   | 'connectionStrategy'
   | LockedPaperOptionKeys
-  | UnofficialPaperOptionKeys
 >;
 
 /** Context passed to the `defaultLink` factory. */
@@ -112,7 +97,7 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
    * `frozen`, `autoFreeze`, `overflow`) are excluded here — overriding them
    * would break portal rendering.
    */
-  readonly options?: Partial<OmitWithoutIndexSignature<dia.Paper.Options, LockedPaperOptionKeys>>;
+  readonly options?: dia.Paper.Options;
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */
