@@ -16,8 +16,12 @@ export interface LinkLabel {
   color?: string;
   /** Background color of the label rectangle. */
   backgroundColor?: string;
-  /** Padding between text and background. Number or `{ x, y }`. @default { x: 4, y: 2 } */
-  backgroundPadding?: number | { x: number; y: number };
+  /**
+   * Padding between text and background.
+   * A number (applied on both axes) or `{ horizontal, vertical }`.
+   * @default { horizontal: 4, vertical: 2 }
+   */
+  backgroundPadding?: number | { horizontal?: number; vertical?: number };
   /** Font size of the label text. */
   fontSize?: number;
   /** Font family of the label text. */
@@ -46,7 +50,7 @@ const defaultLabelStyle = {
   backgroundOutline: '' as string,
   backgroundOutlineWidth: '' as number | string,
   backgroundBorderRadius: 4,
-  backgroundPadding: { x: 4, y: 2 } as { readonly x: number; readonly y: number },
+  backgroundPadding: { horizontal: 4, vertical: 2 } as { readonly horizontal: number; readonly vertical: number },
   position: 0.5,
   className: '',
   backgroundClassName: '',
@@ -79,8 +83,8 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
     backgroundShape = 'rect',
   } = label;
 
-  const px = typeof backgroundPadding === 'number' ? backgroundPadding : backgroundPadding.x;
-  const py = typeof backgroundPadding === 'number' ? backgroundPadding : backgroundPadding.y;
+  const ph = typeof backgroundPadding === 'number' ? backgroundPadding : backgroundPadding.horizontal ?? 0;
+  const pv = typeof backgroundPadding === 'number' ? backgroundPadding : backgroundPadding.vertical ?? 0;
 
   const labelTextAttributes: Record<string, unknown> = {
     text,
@@ -104,17 +108,17 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
     labelBodyAttributes.ref = 'labelText';
     labelBodyAttributes.rx = backgroundBorderRadius;
     labelBodyAttributes.ry = backgroundBorderRadius;
-    labelBodyAttributes.x = `calc(x - ${px})`;
-    labelBodyAttributes.y = `calc(y - ${py})`;
-    labelBodyAttributes.width = `calc(w + ${px * 2})`;
-    labelBodyAttributes.height = `calc(h + ${py * 2})`;
+    labelBodyAttributes.x = `calc(x - ${ph})`;
+    labelBodyAttributes.y = `calc(y - ${pv})`;
+    labelBodyAttributes.width = `calc(w + ${ph * 2})`;
+    labelBodyAttributes.height = `calc(h + ${pv * 2})`;
   } else if (backgroundShape === 'ellipse') {
     bodyTagName = 'ellipse';
     labelBodyAttributes.ref = 'labelText';
     labelBodyAttributes.cx = '0';
     labelBodyAttributes.cy = '0';
-    labelBodyAttributes.rx = `calc(0.5 * w + ${px})`;
-    labelBodyAttributes.ry = `calc(0.5 * h + ${py})`;
+    labelBodyAttributes.rx = `calc(0.5 * w + ${ph})`;
+    labelBodyAttributes.ry = `calc(0.5 * h + ${pv})`;
   } else {
     bodyTagName = 'path';
     labelBodyAttributes.d = backgroundShape;

@@ -121,7 +121,7 @@ const LABEL: LinkLabel = {
   className: 'jj-flow-label-text',
   backgroundClassName: 'jj-flow-label-body',
   backgroundOutlineWidth: unit,
-  backgroundPadding: { x: labelPx, y: labelPy },
+  backgroundPadding: { horizontal: labelPx, vertical: labelPy },
   fontSize: labelFontSize,
   backgroundShape: bevelRectPath(labelPx, labelPy, bevel),
 };

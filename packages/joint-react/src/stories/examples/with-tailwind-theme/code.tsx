@@ -95,7 +95,7 @@ const initialLinks: Record<string, LinkRecord> = {
     target: { id: 'd', port: 'in' },
     labelMap: { info: { text: 'approved' } },
     ...DEFAULT_LINK,
-    labelStyle: { backgroundPadding: { x: 6, y: 4 } },
+    labelStyle: { backgroundPadding: { horizontal: 6, vertical: 4 } },
   },
   'c→d': {
     source: { id: 'c', port: 'out' },

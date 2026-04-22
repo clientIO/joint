@@ -146,27 +146,39 @@ const initialElements: Record<string, ElementRecord<CustomElement>> = {
 const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
-    target: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40 - ANCHOR_MARGIN, dy: -20 } } },
+    target: {
+      id: 'square2',
+      anchor: { name: 'modelCenter', args: { dx: -40 - ANCHOR_MARGIN, dy: -20 } },
+    },
     ...DEFAULT_LINK,
   },
   link2: {
     source: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
-    target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -80, dy: -30 } } },
+    target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -100, dy: -30 } } },
     ...DEFAULT_LINK,
   },
   link3: {
-    source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 90, dy: -20 } } },
-    target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 40 + ANCHOR_MARGIN, dy: 0 } } },
+    source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 100, dy: -20 } } },
+    target: {
+      id: 'ellipse1',
+      anchor: { name: 'modelCenter', args: { dx: 40 + ANCHOR_MARGIN, dy: 0 } },
+    },
     ...DEFAULT_LINK,
   },
   link4: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } } },
-    target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 - ANCHOR_MARGIN } } },
+    target: {
+      id: 'ellipse1',
+      anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 - ANCHOR_MARGIN } },
+    },
     ...DEFAULT_LINK,
   },
   link5: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
-    target: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40 + ANCHOR_MARGIN, dy: 0 } } },
+    target: {
+      id: 'square1',
+      anchor: { name: 'modelCenter', args: { dx: 40 + ANCHOR_MARGIN, dy: 0 } },
+    },
     ...DEFAULT_LINK,
   },
 };
