@@ -128,7 +128,6 @@ function Main() {
       width="100%"
       renderElement={NodeElement}
       className={`${PAPER_CLASSNAME} h-[400px]`}
-      sorting={dia.Paper.sorting.APPROX}
       linkPinning={false}
       validateConnection={({ target }) => target.port === 'in'}
       markAvailable
@@ -146,9 +145,6 @@ function Main() {
       }}
       {...ORTHOGONAL_LINKS}
       snapLinks={{ radius: 25 }}
-      validateMagnet={(_cellView, magnet) => {
-        return magnet.getAttribute('magnet') !== 'passive';
-      }}
     />
   );
 }

@@ -418,7 +418,6 @@ function Main() {
       drawGrid={{ name: 'mesh', args: { color: GRID_COLOR } }}
       style={PAPER_STYLE}
       linkPinning={false}
-      async
       {...ORTHOGONAL_LINKS}
       // Connection strategy - find closest anchor point
       connectionStrategy={{

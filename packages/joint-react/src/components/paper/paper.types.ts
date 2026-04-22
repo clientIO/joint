@@ -9,9 +9,40 @@ import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
 import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
 
+/**
+ * Options joint-react controls internally — not exposed as top-level props
+ * and also omitted from the `options` escape hatch to prevent breakage.
+ */
+type LockedPaperOptionKeys =
+  | 'frozen'
+  | 'autoFreeze'
+  | 'viewManagement'
+  | 'async'
+  | 'sorting';
+
+/**
+ * Options exposed via the `options` escape hatch but not as top-level props.
+ * Future structured wrappers may promote any of these to top-level.
+ */
+type UnofficialPaperOptionKeys =
+  | 'validateMagnet'
+  | 'restrictTranslate'
+  | 'allowLink'
+  | 'guard'
+  | 'findParentBy'
+  | 'onViewUpdate'
+  | 'onViewPostponed'
+  | 'multiLinks';
+
 type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
-  'frozen' | 'defaultLink' | 'validateConnection' | 'validateEmbedding' | 'validateUnembedding' | 'connectionStrategy' | 'autoFreeze' | 'viewManagement'
+  | 'defaultLink'
+  | 'validateConnection'
+  | 'validateEmbedding'
+  | 'validateUnembedding'
+  | 'connectionStrategy'
+  | LockedPaperOptionKeys
+  | UnofficialPaperOptionKeys
 >;
 
 /** Context passed to the `defaultLink` factory. */
@@ -71,6 +102,17 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
    * Receives `{ child, paper, graph }`.
    */
   readonly validateUnembedding?: (context: ValidateUnembeddingContext) => boolean;
+
+  /**
+   * Escape hatch for raw `dia.Paper.Options` not exposed as dedicated props
+   * (e.g. `allowLink`, `validateMagnet`, `restrictTranslate`).
+   *
+   * When both this and a top-level prop set the same key, the top-level prop
+   * wins. Options locked by joint-react (`async`, `sorting`, `viewManagement`,
+   * `frozen`, `autoFreeze`, `overflow`) are excluded here — overriding them
+   * would break portal rendering.
+   */
+  readonly options?: Partial<OmitWithoutIndexSignature<dia.Paper.Options, LockedPaperOptionKeys>>;
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */
@@ -221,8 +263,9 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    * Set this to a different selector (e.g. `'root'`) to render into
    * built-in or custom JointJS shapes.
    *
-   * A function receives the cell view and the default selector, and returns
-   * a selector string or `null` to skip rendering for that cell.
+   * A function receives `{ model, defaultSelector, paper, graph }` and returns
+   * a selector string, an `Element` node directly, or `null` to skip rendering
+   * for that cell. Return `defaultSelector` to use the default portal target.
    * @example
    * ```tsx
    * // Render into the 'root' selector of all shapes
@@ -230,11 +273,10 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    * ```
    * @example
    * ```tsx
-   * // Use a function for conditional rendering
-   * <Paper portalSelector={(cellView, defaultSelector) => {
-   *   if (cellView.model.get('type') === 'standard.Rectangle') return 'root';
-   *   return defaultSelector;
-   * }} renderElement={...} />
+   * // Conditional rendering based on cell type
+   * <Paper portalSelector={({ model, defaultSelector }) =>
+   *   model.get('type') === 'standard.Rectangle' ? 'root' : defaultSelector
+   * } renderElement={...} />
    * ```
    */
   readonly portalSelector?: PortalSelector;

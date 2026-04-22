@@ -723,7 +723,6 @@ function Main() {
       cellVisibility={cellVisibilityCallback}
       {...ORTHOGONAL_LINKS}
       interactive={false}
-      async
       style={PAPER_STYLE}
       drawGrid={false}
     />

@@ -293,15 +293,10 @@ function Main() {
         height="calc(100vh - 100px)"
         snapLinks={{ radius: 25 }}
         renderElement={renderElement}
-        // linkView={LinkView}
-        onViewPostponed={() => false}
-        // elementView={ElementModelView}
-        validateMagnet={(_, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         linkPinning={false}
-        portalSelector={(cellView, defaultSelector) => {
-          const type = cellView.model.get('type');
-          return type === ELEMENT_MODEL_TYPE ? defaultSelector : 'root';
-        }}
+        portalSelector={({ model, defaultSelector }) =>
+          model.get('type') === ELEMENT_MODEL_TYPE ? defaultSelector : 'root'
+        }
         style={PAPER_STYLE}
         drawGrid={false}
       >

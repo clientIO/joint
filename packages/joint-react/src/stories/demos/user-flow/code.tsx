@@ -369,9 +369,6 @@ function Main() {
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         linkPinning={false}
         snapLinks={{ radius: 50 }}
-        validateMagnet={(_cellView, magnet) => {
-          return magnet.getAttribute('magnet') !== 'passive';
-        }}
         validateConnection={{
           allowRootConnection: false,
           validate: ({ source, target }) => {

@@ -500,7 +500,6 @@ function Main() {
       className={`${PAPER_CLASSNAME} h-150`}
       width="100%"
       interactive={false}
-      sorting={dia.Paper.sorting.NONE}
       style={{ background: BG_COLOR }}
       drawGrid={false}
     />

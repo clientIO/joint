@@ -433,7 +433,6 @@ function Main() {
       cellVisibility={cellVisibility}
       interactive={{ linkMove: false }}
       style={{ backgroundColor: '#F3F7F6' }}
-      async
     />
   );
 }

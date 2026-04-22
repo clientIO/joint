@@ -165,6 +165,7 @@ export function useCreatePortalPaper(
     useHTMLOverlay,
     scale,
     portalSelector,
+    options: escapeHatchOptions,
     // These are React host props and must not be forwarded to dia.Paper options.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     className,
@@ -250,6 +251,7 @@ export function useCreatePortalPaper(
 
     const { paperStore, remove } = addPaper(id, {
       paperOptions: {
+        ...escapeHatchOptions,
         ...paperOptions,
         id,
         el: hostElementForCreation,
@@ -303,6 +305,7 @@ export function useCreatePortalPaper(
     if (!paper) return;
 
     assignOptions(paper.options, {
+      ...escapeHatchOptions,
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
       connectionStrategy: connectionStrategyCallback,
@@ -331,6 +334,7 @@ export function useCreatePortalPaper(
     connectionStrategyCallback,
     validateEmbeddingCallback,
     validateUnembeddingCallback,
+    escapeHatchOptions,
     paper,
     paperOptions,
     paperStore,

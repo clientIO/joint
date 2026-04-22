@@ -72,7 +72,6 @@ function buildTablePorts(rows: string[][]): Record<string, ElementPort> {
 const PAPER_PROPS: PaperProps = {
   ...linkRoutingOrthogonal({ cornerType: 'line', margin: 25 }),
   snapLinks: { radius: 25 },
-  sorting: dia.Paper.sorting.APPROX,
   linkPinning: false,
   width: '100%',
 };

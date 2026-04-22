@@ -85,17 +85,18 @@ export class PortalPaper extends Paper {
    */
   getCellViewPortalNode(cellView: dia.CellView): SVGElement | HTMLElement | null {
     const { portalSelector } = this;
-    if (portalSelector !== undefined) {
-      if (typeof portalSelector === 'function') {
-        const result = portalSelector(cellView, PORTAL_SELECTOR);
-        if (result === null) return null;
-        if (result instanceof Element) return result as SVGElement | HTMLElement;
-        return cellView.findNode(result);
-      }
-      if (portalSelector === null) return null;
-      return cellView.findNode(portalSelector);
-    }
-    return cellView.findNode(PORTAL_SELECTOR);
+    if (portalSelector === undefined) return cellView.findNode(PORTAL_SELECTOR);
+    if (portalSelector === null) return null;
+    if (typeof portalSelector === 'string') return cellView.findNode(portalSelector);
+    const result = portalSelector({
+      model: cellView.model,
+      defaultSelector: PORTAL_SELECTOR,
+      paper: this,
+      graph: this.model,
+    });
+    if (result === null) return null;
+    if (result instanceof Element) return result as SVGElement | HTMLElement;
+    return cellView.findNode(result);
   }
 
   /**
