@@ -461,7 +461,7 @@ function getPortColor(cell: unknown, portId: string): string | undefined {
   return port?.attrs?.portBody?.style?.fill;
 }
 
-describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
+describe('useGraph().resetElements / useGraph().resetLinks (batch replace)', () => {
   const wrapper = graphProviderWrapper({
     elements: {
       a: {
@@ -480,11 +480,11 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     },
   });
 
-  it('setElements should apply portStyle via updater so port fill color updates', async () => {
+  it('resetElements should apply portStyle via updater so port fill color updates', async () => {
     const { result } = renderHook(
       () => ({
         graph: useGraph().graph,
-        setElements: useGraph().setElements,
+        resetElements: useGraph().resetElements,
         elements: useElements(),
       }),
       { wrapper }
@@ -496,7 +496,7 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     });
 
     act(() =>
-      result.current.setElements((previous) => {
+      result.current.resetElements((previous) => {
         const next: Record<string, (typeof previous)[string]> = {};
         for (const [id, element] of Object.entries(previous)) {
           next[id] = { ...element, portStyle: { color: '#FF0000', shape: 'ellipse' } };
@@ -513,7 +513,7 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     });
 
     act(() =>
-      result.current.setElements((previous) => {
+      result.current.resetElements((previous) => {
         const next: Record<string, (typeof previous)[string]> = {};
         for (const [id, element] of Object.entries(previous)) {
           next[id] = { ...element, portStyle: { color: '#FFBB00', shape: 'rect' } };
@@ -530,12 +530,12 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     });
   });
 
-  it('setElements + setLinks back-to-back should not revert port style', async () => {
+  it('resetElements + resetLinks back-to-back should not revert port style', async () => {
     const { result } = renderHook(
       () => ({
         graph: useGraph().graph,
-        setElements: useGraph().setElements,
-        setLinks: useGraph().setLinks,
+        resetElements: useGraph().resetElements,
+        resetLinks: useGraph().resetLinks,
       }),
       { wrapper }
     );
@@ -546,14 +546,14 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     });
 
     act(() => {
-      result.current.setElements((previous) => {
+      result.current.resetElements((previous) => {
         const next: Record<string, (typeof previous)[string]> = {};
         for (const [id, element] of Object.entries(previous)) {
           next[id] = { ...element, portStyle: { color: '#FF0000', shape: 'ellipse' } };
         }
         return next;
       });
-      result.current.setLinks((previous) => {
+      result.current.resetLinks((previous) => {
         const next: Record<string, (typeof previous)[string]> = {};
         for (const [id, link] of Object.entries(previous)) {
           next[id] = { ...link, style: { color: '#FF0000' } };
@@ -572,11 +572,11 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     });
   });
 
-  it('setElements should remove elements that are absent from the next record', async () => {
+  it('resetElements should remove elements that are absent from the next record', async () => {
     const { result } = renderHook(
       () => ({
         graph: useGraph().graph,
-        setElements: useGraph().setElements,
+        resetElements: useGraph().resetElements,
       }),
       { wrapper }
     );
@@ -586,7 +586,7 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
       expect(result.current.graph.getCell('b')).toBeDefined();
     });
 
-    act(() => result.current.setElements((previous) => ({ a: previous.a })));
+    act(() => result.current.resetElements((previous) => ({ a: previous.a })));
 
     await waitFor(() => {
       expect(result.current.graph.getCell('a')).toBeDefined();
@@ -594,11 +594,11 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     });
   });
 
-  it('setLinks should remove links that are absent from the next record', async () => {
+  it('resetLinks should remove links that are absent from the next record', async () => {
     const { result } = renderHook(
       () => ({
         graph: useGraph().graph,
-        setLinks: useGraph().setLinks,
+        resetLinks: useGraph().resetLinks,
       }),
       { wrapper }
     );
@@ -607,7 +607,7 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
       expect(result.current.graph.getCell('a-b')).toBeDefined();
     });
 
-    act(() => result.current.setLinks(() => ({})));
+    act(() => result.current.resetLinks(() => ({})));
 
     await waitFor(() => {
       expect(result.current.graph.getCell('a-b')).toBeUndefined();
@@ -616,11 +616,11 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     });
   });
 
-  it('setLinks should apply style via updater so link stroke color updates', async () => {
+  it('resetLinks should apply style via updater so link stroke color updates', async () => {
     const { result } = renderHook(
       () => ({
         graph: useGraph().graph,
-        setLinks: useGraph().setLinks,
+        resetLinks: useGraph().resetLinks,
         links: useLinks(),
       }),
       { wrapper }
@@ -631,7 +631,7 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     });
 
     act(() =>
-      result.current.setLinks((previous) => {
+      result.current.resetLinks((previous) => {
         const next: Record<string, (typeof previous)[string]> = {};
         for (const [id, link] of Object.entries(previous)) {
           next[id] = { ...link, style: { color: '#FF0000' } };
@@ -646,7 +646,7 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
     });
 
     act(() =>
-      result.current.setLinks((previous) => {
+      result.current.resetLinks((previous) => {
         const next: Record<string, (typeof previous)[string]> = {};
         for (const [id, link] of Object.entries(previous)) {
           next[id] = { ...link, style: { color: '#FFBB00' } };
@@ -659,5 +659,332 @@ describe('useGraph().setElements / useGraph().setLinks (batch setters)', () => {
       const link = result.current.graph.getCell('a-b');
       expect(link?.get('attrs')?.line?.style?.stroke ?? '').toBe('#FFBB00');
     });
+  });
+
+  it('resetElements preserves cell instance identity for unchanged elements', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        resetElements: useGraph().resetElements,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')).toBeDefined();
+    });
+
+    const cellBefore = result.current.graph.getCell('a');
+
+    act(() =>
+      result.current.resetElements((previous) => ({
+        ...previous,
+        a: { ...previous.a, position: { x: 42, y: 42 } },
+      }))
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')?.get('position')).toEqual({ x: 42, y: 42 });
+    });
+
+    // Key regression guard: syncCells updates attrs in place, so the model
+    // instance must be the same object. If this switched to graph.resetCells,
+    // the instance would be recreated and the equality would fail.
+    expect(result.current.graph.getCell('a')).toBe(cellBefore);
+  });
+
+  it('resetLinks preserves cell instance identity for unchanged links', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        resetLinks: useGraph().resetLinks,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a-b')).toBeDefined();
+    });
+
+    const linkBefore = result.current.graph.getCell('a-b');
+
+    act(() =>
+      result.current.resetLinks((previous) => ({
+        ...previous,
+        'a-b': { ...previous['a-b'], style: { color: '#123456' } },
+      }))
+    );
+
+    await waitFor(() => {
+      const link = result.current.graph.getCell('a-b');
+      expect(link?.get('attrs')?.line?.style?.stroke ?? '').toBe('#123456');
+    });
+
+    expect(result.current.graph.getCell('a-b')).toBe(linkBefore);
+  });
+
+  it('resetElements preserves links when endpoint elements remain', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        resetElements: useGraph().resetElements,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a-b')).toBeDefined();
+    });
+
+    const linkBefore = result.current.graph.getCell('a-b');
+
+    // Replace element attrs but keep both endpoints — connected link must
+    // survive the reset untouched. JointJS cascades `cell.remove()` to
+    // connected links, so this test guards against `resetElements` wrongly
+    // sweeping endpoints it shouldn't.
+    act(() =>
+      result.current.resetElements((previous) => ({
+        a: { ...previous.a, position: { x: 1, y: 1 } },
+        b: { ...previous.b, position: { x: 2, y: 2 } },
+      }))
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')?.get('position')).toEqual({ x: 1, y: 1 });
+    });
+
+    expect(result.current.graph.getCell('a-b')).toBe(linkBefore);
+  });
+
+  it('resetLinks does not touch existing elements', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        resetLinks: useGraph().resetLinks,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')).toBeDefined();
+    });
+
+    const cellABefore = result.current.graph.getCell('a');
+    const cellBBefore = result.current.graph.getCell('b');
+
+    act(() => result.current.resetLinks(() => ({})));
+
+    await waitFor(() => {
+      expect(result.current.graph.getLinks().length).toBe(0);
+    });
+
+    expect(result.current.graph.getCell('a')).toBe(cellABefore);
+    expect(result.current.graph.getCell('b')).toBe(cellBBefore);
+  });
+});
+
+describe('useGraph().updateElements / useGraph().updateLinks (bulk merge)', () => {
+  const wrapper = graphProviderWrapper({
+    elements: {
+      a: {
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 40 },
+        portMap: { out: { cx: 'calc(w)', cy: 'calc(0.5*h)' } },
+      },
+      b: {
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 40 },
+        portMap: { in: { cx: 0, cy: 'calc(0.5*h)' } },
+      },
+    },
+    links: {
+      'a-b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
+    },
+  });
+
+  it('updateElements merges partial patches without touching omitted fields', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        updateElements: useGraph().updateElements,
+        elements: useElements(),
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.elements.get('a')?.size).toEqual({ width: 100, height: 40 });
+    });
+
+    // Partial patch — only position supplied. size and portMap must survive.
+    act(() =>
+      result.current.updateElements({
+        a: { position: { x: 500, y: 500 } } as never,
+      })
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')?.get('position')).toEqual({ x: 500, y: 500 });
+      expect(result.current.graph.getCell('a')?.get('size')).toEqual({ width: 100, height: 40 });
+    });
+  });
+
+  it('updateElements does NOT remove elements absent from the record', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        updateElements: useGraph().updateElements,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')).toBeDefined();
+      expect(result.current.graph.getCell('b')).toBeDefined();
+    });
+
+    // Patch only 'a'. 'b' is not in the record — must stay.
+    act(() =>
+      result.current.updateElements({
+        a: { position: { x: 10, y: 10 } } as never,
+      })
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')?.get('position')).toEqual({ x: 10, y: 10 });
+    });
+
+    expect(result.current.graph.getCell('b')).toBeDefined();
+  });
+
+  it('updateElements creates elements that did not exist', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        updateElements: useGraph().updateElements,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')).toBeDefined();
+    });
+
+    act(() =>
+      result.current.updateElements({
+        c: { position: { x: 400, y: 400 }, size: { width: 50, height: 50 } } as never,
+      })
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('c')).toBeDefined();
+      expect(result.current.graph.getCell('c')?.get('position')).toEqual({ x: 400, y: 400 });
+    });
+  });
+
+  it('updateElements does not touch existing links', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        updateElements: useGraph().updateElements,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a-b')).toBeDefined();
+    });
+
+    const linkBefore = result.current.graph.getCell('a-b');
+
+    act(() =>
+      result.current.updateElements({
+        a: { position: { x: 999, y: 999 } } as never,
+      })
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a')?.get('position')).toEqual({ x: 999, y: 999 });
+    });
+
+    expect(result.current.graph.getCell('a-b')).toBe(linkBefore);
+  });
+
+  it('updateLinks merges partial patches without touching omitted fields', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        updateLinks: useGraph().updateLinks,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a-b')).toBeDefined();
+    });
+
+    act(() =>
+      result.current.updateLinks({
+        'a-b': { style: { color: '#00AAFF' } } as never,
+      })
+    );
+
+    await waitFor(() => {
+      const link = result.current.graph.getCell('a-b');
+      expect(link?.get('attrs')?.line?.style?.stroke ?? '').toBe('#00AAFF');
+      // source/target must survive the partial patch
+      expect(link?.get('source')).toEqual({ id: 'a', port: 'out' });
+      expect(link?.get('target')).toEqual({ id: 'b', port: 'in' });
+    });
+  });
+
+  it('updateLinks does NOT remove links absent from the record', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        updateLinks: useGraph().updateLinks,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a-b')).toBeDefined();
+    });
+
+    act(() => result.current.updateLinks({}));
+
+    await waitFor(() => {
+      // Nothing changed — empty update is a no-op for existing links.
+      expect(result.current.graph.getCell('a-b')).toBeDefined();
+    });
+  });
+
+  it('updateLinks does not touch existing elements', async () => {
+    const { result } = renderHook(
+      () => ({
+        graph: useGraph().graph,
+        updateLinks: useGraph().updateLinks,
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('a-b')).toBeDefined();
+    });
+
+    const cellABefore = result.current.graph.getCell('a');
+
+    act(() =>
+      result.current.updateLinks({
+        'a-b': { style: { color: '#FF00FF' } } as never,
+      })
+    );
+
+    await waitFor(() => {
+      const link = result.current.graph.getCell('a-b');
+      expect(link?.get('attrs')?.line?.style?.stroke ?? '').toBe('#FF00FF');
+    });
+
+    expect(result.current.graph.getCell('a')).toBe(cellABefore);
   });
 });

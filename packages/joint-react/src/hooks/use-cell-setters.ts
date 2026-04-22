@@ -129,16 +129,26 @@ export function useRemoveLink() {
 }
 
 /**
- * Returns a setter function for updating all elements in the graph at once.
- * Accepts either a new record or an updater function that receives the current elements.
+ * Returns a function that **replaces** all elements in the graph at once.
  *
- * Only elements are touched — links are left alone, even when called back-to-back
- * with `setLinks` inside the same effect. Previously this preserved links by
- * re-including them in `syncCells`, which wiped out pending link updates that
- * had not yet been flushed to the graphView container.
+ * Semantics mirror `graph.resetCells` but scoped to elements only:
+ * - elements present in the new record are added or merged,
+ * - elements absent from the new record are removed,
+ * - links are left completely untouched.
+ *
+ * Implementation uses `graph.syncCells` (the batch-optimized sync primitive)
+ * plus a targeted removal pass, rather than `graph.resetCells`, so cell
+ * instance identity is preserved for unchanged elements and only touched
+ * cells trigger React re-renders.
+ *
+ * Accepts either a new record or an updater that receives the current elements.
+ *
+ * For single-element updates prefer `useSetElement`. For bulk merges that must
+ * NOT remove missing entries, use `useUpdateElements`.
  * @group Hooks
+ * @returns A stable callback that replaces all elements in the graph.
  */
-export function useSetElements<NodeData extends object = Record<string, unknown>>() {
+export function useResetElements<NodeData extends object = Record<string, unknown>>() {
   const graphStore = useGraphStore();
   return useCallback(
     (elements: Updater<Record<CellId, ElementRecord<NodeData>>>) => {
@@ -158,7 +168,7 @@ export function useSetElements<NodeData extends object = Record<string, unknown>
         cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
       }
 
-      graph.startBatch('set-elements');
+      graph.startBatch('reset-elements');
       graph.syncCells(cells, { remove: false });
 
       for (const id of Object.keys(currentElements)) {
@@ -167,23 +177,33 @@ export function useSetElements<NodeData extends object = Record<string, unknown>
         if (cell?.isElement()) cell.remove();
       }
 
-      graph.stopBatch('set-elements');
+      graph.stopBatch('reset-elements');
     },
     [graphStore]
   );
 }
 
 /**
- * Returns a setter function for updating all links in the graph at once.
- * Accepts either a new record or an updater function that receives the current links.
+ * Returns a function that **replaces** all links in the graph at once.
  *
- * Only links are touched — elements are left alone, even when called back-to-back
- * with `setElements` inside the same effect. Previously this preserved elements by
- * re-including them in `syncCells`, which wiped out pending element updates that
- * had not yet been flushed to the graphView container.
+ * Semantics mirror `graph.resetCells` but scoped to links only:
+ * - links present in the new record are added or merged,
+ * - links absent from the new record are removed,
+ * - elements are left completely untouched.
+ *
+ * Implementation uses `graph.syncCells` (the batch-optimized sync primitive)
+ * plus a targeted removal pass, rather than `graph.resetCells`, so cell
+ * instance identity is preserved for unchanged links and only touched cells
+ * trigger React re-renders.
+ *
+ * Accepts either a new record or an updater that receives the current links.
+ *
+ * For single-link updates prefer `useSetLink`. For bulk merges that must NOT
+ * remove missing entries, use `useUpdateLinks`.
  * @group Hooks
+ * @returns A stable callback that replaces all links in the graph.
  */
-export function useSetLinks<LinkData extends object = Record<string, unknown>>() {
+export function useResetLinks<LinkData extends object = Record<string, unknown>>() {
   const graphStore = useGraphStore();
   return useCallback(
     (links: Updater<Record<CellId, LinkRecord<LinkData>>>) => {
@@ -203,7 +223,7 @@ export function useSetLinks<LinkData extends object = Record<string, unknown>>()
         cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
       }
 
-      graph.startBatch('set-links');
+      graph.startBatch('reset-links');
       graph.syncCells(cells, { remove: false });
 
       for (const id of Object.keys(currentLinks)) {
@@ -212,7 +232,97 @@ export function useSetLinks<LinkData extends object = Record<string, unknown>>()
         if (cell?.isLink()) cell.remove();
       }
 
-      graph.stopBatch('set-links');
+      graph.stopBatch('reset-links');
+    },
+    [graphStore]
+  );
+}
+
+/**
+ * Returns a function that **bulk-merges** elements without removing any.
+ *
+ * Wraps `graph.syncCells(cells, { remove: false })`. For each entry in the
+ * record: if an element with that id exists, its attributes are merged; if it
+ * does not, it is created. Elements absent from the record are kept as-is.
+ * Links are never touched.
+ *
+ * Use this when you want to patch many elements at once without the "remove
+ * missing" semantics of `useResetElements`.
+ *
+ * Accepts either a new record or an updater that receives the current elements.
+ * @group Hooks
+ * @returns A stable callback that bulk-merges elements into the graph.
+ */
+export function useUpdateElements<NodeData extends object = Record<string, unknown>>() {
+  const graphStore = useGraphStore();
+  return useCallback(
+    (elements: Updater<Record<CellId, ElementRecord<NodeData>>>) => {
+      const graphView = graphStore.getGraphView<NodeData>();
+
+      const currentElements: Record<CellId, ElementRecord<NodeData>> = {};
+      for (const [id, item] of graphView.elements.getFull()) {
+        currentElements[id] = item;
+      }
+
+      const nextElements = isUpdater(elements) ? elements(currentElements) : elements;
+
+      const { graph } = graphStore;
+      const cells: dia.Cell.JSON[] = [];
+      for (const [id, element] of Object.entries(nextElements)) {
+        const existing = currentElements[id];
+        const mergedData = existing ? ({ ...existing, ...element } as ElementRecord<NodeData>) : element;
+        const cellAttributes = mapElementToAttributes(mergedData);
+        cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
+      }
+
+      graph.startBatch('update-elements');
+      graph.syncCells(cells, { remove: false });
+      graph.stopBatch('update-elements');
+    },
+    [graphStore]
+  );
+}
+
+/**
+ * Returns a function that **bulk-merges** links without removing any.
+ *
+ * Wraps `graph.syncCells(cells, { remove: false })`. For each entry in the
+ * record: if a link with that id exists, its attributes are merged; if it does
+ * not, it is created. Links absent from the record are kept as-is. Elements
+ * are never touched.
+ *
+ * Use this when you want to patch many links at once without the "remove
+ * missing" semantics of `useResetLinks`.
+ *
+ * Accepts either a new record or an updater that receives the current links.
+ * @group Hooks
+ * @returns A stable callback that bulk-merges links into the graph.
+ */
+export function useUpdateLinks<LinkData extends object = Record<string, unknown>>() {
+  const graphStore = useGraphStore();
+  return useCallback(
+    (links: Updater<Record<CellId, LinkRecord<LinkData>>>) => {
+      const graphView = graphStore.getGraphView<Record<string, unknown>, LinkData>();
+
+      const currentLinks: Record<CellId, LinkRecord<LinkData>> = {};
+      for (const [id, item] of graphView.links.getFull()) {
+        currentLinks[id] = item;
+      }
+
+      const nextLinks = isUpdater(links) ? links(currentLinks) : links;
+
+      const { graph } = graphStore;
+      const cells: dia.Cell.JSON[] = [];
+      for (const [id, link] of Object.entries(nextLinks)) {
+        const existing = currentLinks[id];
+        const mergedData = existing ? ({ ...existing, ...link } as LinkRecord<LinkData>) : link;
+        const cellAttributes = mapLinkToAttributes(mergedData);
+        cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
+      }
+
+      graph.startBatch('update-links');
+      graph.syncCells(cells, { remove: false });
+      graph.stopBatch('update-links');
     },
     [graphStore]
   );
