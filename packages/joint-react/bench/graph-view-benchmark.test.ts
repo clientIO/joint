@@ -1,20 +1,25 @@
 /* eslint-disable no-console */
 import { Bench } from 'tinybench';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { dia } from '@joint/core';
-import type { PaperStore } from '../src/store';
 import { DEFAULT_CELL_NAMESPACE, GraphStore } from '../src/store/graph-store';
 import { graphView } from '../src/store/graph-view';
+import { saveBenchResults } from './save-baseline';
+
+const benchDirectory = path.dirname(fileURLToPath(import.meta.url));
+const baselinePath = path.join(benchDirectory, 'baseline-pre-refactor.json');
 
 function createGraph(): dia.Graph {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 }
 
 function populateGraph(graph: dia.Graph, count: number): void {
-  const cells: object[] = [];
+  const cells: dia.Graph.CellInit[] = [];
   for (let index = 0; index < count; index++) {
     cells.push({
       id: `el-${index}`,
-      type: 'PortalElement',
+      type: 'ElementModel',
       position: { x: index * 10, y: index * 10 },
       size: { width: 100, height: 50 },
     });
@@ -22,7 +27,7 @@ function populateGraph(graph: dia.Graph, count: number): void {
   for (let index = 0; index < count - 1; index++) {
     cells.push({
       id: `link-${index}`,
-      type: 'PortalLink',
+      type: 'LinkModel',
       source: { id: `el-${index}` },
       target: { id: `el-${index + 1}` },
     });
@@ -43,8 +48,6 @@ function createWithGraphView(count: number) {
   populateGraph(graph, count);
   const view = graphView({
     graph,
-    getPaperStores: () => new Map<string, PaperStore>(),
-    mappings: {},
   });
 
   for (let index = 0; index < count; index++) {
@@ -129,6 +132,7 @@ describe('graph-view benchmark: baseline vs graphView vs GraphStore', () => {
       await bench.run();
       console.log(`\n--- ${size} elements — position change ---`);
       logResults(bench);
+      saveBenchResults(bench, `graph-view/position-change/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(3);
     }, 30_000);
 
@@ -165,6 +169,7 @@ describe('graph-view benchmark: baseline vs graphView vs GraphStore', () => {
       await bench.run();
       console.log(`\n--- ${size} elements — data (attr) change ---`);
       logResults(bench);
+      saveBenchResults(bench, `graph-view/data-change/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(3);
     }, 30_000);
 
@@ -213,6 +218,7 @@ describe('graph-view benchmark: baseline vs graphView vs GraphStore', () => {
       await bench.run();
       console.log(`\n--- ${size} elements — batch 10 position changes ---`);
       logResults(bench);
+      saveBenchResults(bench, `graph-view/batch-position-change/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(3);
     }, 30_000);
   }
