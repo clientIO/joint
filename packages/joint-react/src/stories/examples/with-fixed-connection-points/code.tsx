@@ -16,6 +16,10 @@ const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   targetOffset: 10
 });
 
+const DEFAULT_LINK: LinkRecord = {
+  style: { color: LIGHT, width: 2, targetMarker: 'arrow' }
+};
+
 import '../index.css';
 
 // ----------------------------------------------------------------------------
@@ -143,27 +147,27 @@ const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
     target: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -50, dy: -20 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
   link2: {
     source: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -80, dy: -30 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
   link3: {
     source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 90, dy: -20 } } },
     target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 50, dy: 0 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
   link4: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } } },
     target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 0, dy: -50 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
   link5: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 50, dy: 0 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    ...DEFAULT_LINK,
   },
 };
 
@@ -405,27 +409,29 @@ function Main() {
       async
       {...ORTHOGONAL_LINKS}
       // Connection strategy - find closest anchor point
-      connectionStrategy={(end, view, _magnet, coords) => {
-        const model = view.model as dia.Element;
-        const { width, height } = model.size();
-        const shapeType = model.prop('data/shapeType') as ShapeType;
-        const anchors = getAnchors(shapeType, width, height);
-        const relativePoint = model.getRelativePointFromAbsolute(coords);
-        const anchor = findClosestAnchor(anchors, relativePoint);
-        return {
-          anchor: {
-            name: 'modelCenter',
-            args: {
-              dx: anchor.x - width / 2,
-              dy: anchor.y - height / 2,
+      connectionStrategy={{
+        customize: ({ end, model, dropPoint }) => {
+          const element = model as dia.Element;
+          const { width, height } = element.size();
+          const shapeType = element.prop('data/shapeType') as ShapeType;
+          const anchors = getAnchors(shapeType, width, height);
+          const relativePoint = element.getRelativePointFromAbsolute(dropPoint);
+          const anchor = findClosestAnchor(anchors, relativePoint);
+          return {
+            anchor: {
+              name: 'modelCenter',
+              args: {
+                dx: anchor.x - width / 2,
+                dy: anchor.y - height / 2,
+              },
             },
-          },
-          id: end.id,
-        };
+            id: end.id,
+          };
+        },
       }}
       validateConnection={{ allowMultiLinks: true }}
       snapLinks
-      defaultLink={() => new shapes.standard.Link({ attrs: { line: { stroke: LIGHT } } })}
+      defaultLink={DEFAULT_LINK}
       // Highlighting configuration
       highlighting={{
         connecting: {

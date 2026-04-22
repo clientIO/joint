@@ -7,10 +7,11 @@ import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
+import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
 
 type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
-  'frozen' | 'defaultLink' | 'validateConnection' | 'validateEmbedding' | 'validateUnembedding' | 'autoFreeze' | 'viewManagement'
+  'frozen' | 'defaultLink' | 'validateConnection' | 'validateEmbedding' | 'validateUnembedding' | 'connectionStrategy' | 'autoFreeze' | 'viewManagement'
 >;
 
 /** Context passed to the `defaultLink` factory. */
@@ -47,6 +48,17 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
   readonly validateConnection?:
     | CanConnectOptions
     | ((context: ValidateConnectionContext) => boolean);
+
+  /**
+   * Decides how the end JSON is stored when the user drops a link end.
+   *
+   * - **Function**: receives `{ end, model, magnet, dropPoint, endType, link, paper, graph }`
+   *   and returns the modified `EndJSON`.
+   * - **Object**: `ConnectionStrategyOptions` with `pin` preset and/or `customize` callback.
+   */
+  readonly connectionStrategy?:
+    | ConnectionStrategyOptions
+    | ((context: ConnectionStrategyContext) => dia.Link.EndJSON);
 
   /**
    * Validates whether an element can be embedded into another element.

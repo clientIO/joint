@@ -26,6 +26,7 @@ import { HTMLBox } from '../components/html-box';
 import { mapLinkToAttributes } from '../state/data-mapping';
 import type { CanConnectOptions} from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
+import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
@@ -158,6 +159,7 @@ export function useCreatePortalPaper(
     renderLink,
     defaultLink,
     validateConnection,
+    connectionStrategy,
     validateEmbedding,
     validateUnembedding,
     useHTMLOverlay,
@@ -224,6 +226,13 @@ export function useCreatePortalPaper(
     [validateConnection]
   );
 
+  const connectionStrategyCallback = useMemo(() => {
+    const resolvedOptions: ConnectionStrategyOptions | undefined = typeof connectionStrategy === 'function'
+      ? { customize: connectionStrategy }
+      : connectionStrategy;
+    return resolvedOptions ? connectionStrategyPreset(resolvedOptions) : undefined;
+  }, [connectionStrategy]);
+
   const validateEmbeddingCallback = useMemo(
     () => canEmbed(validateEmbedding),
     [validateEmbedding]
@@ -246,6 +255,7 @@ export function useCreatePortalPaper(
         el: hostElementForCreation,
         defaultLink: defaultLinkCallback,
         validateConnection: validateConnectionCallback,
+        connectionStrategy: connectionStrategyCallback,
         validateEmbedding: validateEmbeddingCallback,
         validateUnembedding: validateUnembeddingCallback,
       },
@@ -295,6 +305,7 @@ export function useCreatePortalPaper(
     assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
+      connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
       ...paperOptions,
@@ -314,7 +325,17 @@ export function useCreatePortalPaper(
     if (scale !== undefined) {
       paper.scale(scale);
     }
-  }, [defaultLinkCallback, paper, paperOptions, paperStore, scale]);
+  }, [
+    defaultLinkCallback,
+    validateConnectionCallback,
+    connectionStrategyCallback,
+    validateEmbeddingCallback,
+    validateUnembeddingCallback,
+    paper,
+    paperOptions,
+    paperStore,
+    scale,
+  ]);
 
   const elements = useMemo(() => {
     if (!hasRenderElement) {

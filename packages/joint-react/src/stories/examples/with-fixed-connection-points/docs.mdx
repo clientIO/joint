@@ -53,20 +53,21 @@ function getAnchors(shapeType: string, width: number, height: number): Point[] {
 When creating a new link, the `connectionStrategy` prop finds the closest anchor point to the cursor:
 
 ```tsx
-connectionStrategy={(end, view, _magnet, coords) => {
-  const model = view.model;
-  const size = model.size();
-  const shapeType = model.prop('data/shapeType');
-  const anchors = getAnchors(shapeType, size.width, size.height);
-  const relPoint = model.getRelativePointFromAbsolute(coords);
-  const anchor = findClosestAnchor(anchors, relPoint);
-  return {
-    anchor: {
-      name: 'modelCenter',
-      args: { dx: anchor.x - size.width/2, dy: anchor.y - size.height/2 }
-    },
-    id: end.id,
-  };
+connectionStrategy={{
+  customize: ({ end, model, dropPoint }) => {
+    const size = model.size();
+    const shapeType = model.prop('data/shapeType');
+    const anchors = getAnchors(shapeType, size.width, size.height);
+    const relPoint = model.getRelativePointFromAbsolute(dropPoint);
+    const anchor = findClosestAnchor(anchors, relPoint);
+    return {
+      anchor: {
+        name: 'modelCenter',
+        args: { dx: anchor.x - size.width/2, dy: anchor.y - size.height/2 }
+      },
+      id: end.id,
+    };
+  },
 }}
 ```
 
