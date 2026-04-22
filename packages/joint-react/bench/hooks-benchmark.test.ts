@@ -1,7 +1,13 @@
 /* eslint-disable no-console */
 import { Bench } from 'tinybench';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { createContainer, asReadonlyContainer } from '../src/store/state-container';
 import type { ReadonlyContainer } from '../src/store/state-container';
+import { saveBenchResults } from './save-baseline';
+
+const benchDirectory = path.dirname(fileURLToPath(import.meta.url));
+const baselinePath = path.join(benchDirectory, 'baseline-pre-refactor.json');
 
 interface ItemData {
   data: { label: string };
@@ -68,6 +74,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       await bench.run();
       console.log(`\n--- ${size} items — container key derivation ---`);
       logResults(bench);
+      saveBenchResults(bench, `hooks/key-derivation/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(1);
     }, 30_000);
 
@@ -86,6 +93,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       await bench.run();
       console.log(`\n--- ${size} items — full iteration + selector ---`);
       logResults(bench);
+      saveBenchResults(bench, `hooks/full-iteration-selector/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(1);
     }, 30_000);
 
@@ -104,6 +112,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       await bench.run();
       console.log(`\n--- ${size} items — single-ID get + selector ---`);
       logResults(bench);
+      saveBenchResults(bench, `hooks/single-id-get-selector/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(1);
     }, 30_000);
 
@@ -134,6 +143,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       await bench.run();
       console.log(`\n--- ${size} items — shallow Map comparison ---`);
       logResults(bench);
+      saveBenchResults(bench, `hooks/shallow-map-comparison/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(2);
     }, 30_000);
   }
