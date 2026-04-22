@@ -25,6 +25,8 @@ export {
   linkMarkerOne,
   linkMarkerOneOptional,
   linkMarkerOneOrMany,
+  type LinkMarkerRecord,
+  type LinkMarkerOptions,
 } from './link-markers';
 export { elementPort, elementPorts, type ElementPort, type PortShape } from './element-ports';
 export { linkLabel, linkLabels, type LinkLabel } from './link-labels';
