@@ -106,19 +106,19 @@ function Element({ label, color }: Readonly<{ label: string; color: string }>) {
 
 /**
  * Applies theme-dependent styling (port color/shape, link style) to all cells
- * when `color` or `portShape` changes. Uses `setElements`/`setLinks` to update
- * everything in a single batch instead of iterating cell by cell.
+ * when `color` or `portShape` changes. Uses `updateElements`/`updateLinks` to
+ * patch every cell in one batch without removing anything else.
  */
 function ThemeUpdater({
   color,
   portShape,
 }: Readonly<{ color: string; portShape: 'ellipse' | 'rect' }>) {
-  const { setElements, setLinks } = useGraph<ElementData>();
+  const { updateElements, updateLinks } = useGraph<ElementData>();
 
   useEffect(() => {
     const portStyle = getPortStyle(color, portShape);
 
-    setElements((previous) =>
+    updateElements((previous) =>
       Object.fromEntries(
         Object.entries(previous).map(([id, element]) => [id, { ...element, portStyle }])
       )
@@ -126,12 +126,12 @@ function ThemeUpdater({
 
     const style = getLinkStyle(color);
     const labelStyle = getLabelStyle(color);
-    setLinks((previous) =>
+    updateLinks((previous) =>
       Object.fromEntries(
         Object.entries(previous).map(([id, link]) => [id, { ...link, style, labelStyle }])
       )
     );
-  }, [color, portShape, setElements, setLinks]);
+  }, [color, portShape, updateElements, updateLinks]);
 
   return null;
 }

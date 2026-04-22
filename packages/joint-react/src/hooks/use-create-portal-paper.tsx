@@ -24,7 +24,7 @@ import type { PaperProps, PortalPaperOptions, RenderLink } from '../components/p
 import { HTMLBox } from '../components/html-box';
 
 import { mapLinkToAttributes } from '../state/data-mapping';
-import type { CanConnectOptions} from '../presets/can-connect';
+import type { CanConnectOptions } from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
 import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
@@ -76,7 +76,10 @@ export interface UseCreatePortalPaperResult {
  */
 function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
   const Ctor = graph.getTypeConstructor(LINK_MODEL_TYPE) as LinkModelConstructor | undefined;
-  if (typeof Ctor !== 'function') throw new Error('Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
+  if (typeof Ctor !== 'function')
+    throw new Error(
+      'Paper: no default link model found. Use `options.defaultLink` to specify a default link model.'
+    );
   return Ctor as LinkModelConstructor;
 }
 
@@ -86,19 +89,17 @@ function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
  * into JointJS link model instances.
  * @param defaultLink
  */
-function createDefaultLinkCallback(
-  defaultLink: PortalPaperOptions['defaultLink'],
-) {
+function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink']) {
   return (cellView: dia.CellView, magnet: SVGElement = cellView.el) => {
     const paper = cellView.paper!;
     const graph = paper.model;
     const isFactory = typeof defaultLink === 'function';
     const link = isFactory
       ? defaultLink({
-        source: toConnectionEnd(cellView, magnet),
-        paper,
-        graph,
-      })
+          source: toConnectionEnd(cellView, magnet),
+          paper,
+          graph,
+        })
       : defaultLink;
     const LinkModelCtor = getLinkModelConstructor(graph);
     if (!link) {
@@ -111,7 +112,6 @@ function createDefaultLinkCallback(
     return new LinkModelCtor(mapLinkToAttributes(link));
   };
 }
-
 
 /**
  * Portals custom link content into the resolved link view container.
@@ -214,20 +214,15 @@ export function useCreatePortalPaper(
   const hasRenderElement = !!renderElement;
   const hasRenderLink = !!renderLink;
 
-  const defaultLinkCallback = useMemo(
-    () => createDefaultLinkCallback(defaultLink),
-    [defaultLink]
-  );
+  const defaultLinkCallback = useMemo(() => createDefaultLinkCallback(defaultLink), [defaultLink]);
 
-  const validateConnectionCallback = useMemo(
-    () => {
-      const canConnectionOptions: CanConnectOptions | undefined = typeof validateConnection === 'function'
+  const validateConnectionCallback = useMemo(() => {
+    const canConnectionOptions: CanConnectOptions | undefined =
+      typeof validateConnection === 'function'
         ? { validate: validateConnection }
         : validateConnection;
-      return canConnect(canConnectionOptions);
-    },
-    [validateConnection]
-  );
+    return canConnect(canConnectionOptions);
+  }, [validateConnection]);
 
   const connectionStrategyCallback = useMemo(() => {
     const resolvedOptions: ConnectionStrategyOptions | undefined = typeof connectionStrategy === 'function'
