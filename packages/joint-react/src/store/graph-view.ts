@@ -109,8 +109,10 @@ function mergeCellRecord<ElementData extends object, LinkData extends object>(
 
 /**
  * Convert a JointJS cell to its CellRecord representation, routing by type:
- *  - Elements → element mapper, with id/type guaranteed
- *  - Links → link mapper, with id/type guaranteed
+ *  - Elements → element mapper, with id/type guaranteed AND
+ *    `position`/`size`/`angle`/`data` normalised to non-undefined values so
+ *    consumers can rely on `ResolvedElementRecord`'s required-field contract.
+ *  - Links → link mapper, with id/type/source/target/data normalised.
  *  - Anything else → pass-through of attributes
  * @param cell - graph cell
  * @returns CellRecord suitable for the cells container
@@ -118,21 +120,36 @@ function mergeCellRecord<ElementData extends object, LinkData extends object>(
 function toCellRecord<E extends object, L extends object>(cell: dia.Cell): CellRecord<E, L> {
   if (cell.isElement()) {
     const record = (mapAttributesToElement as MapAttributesToElement<E>)(cell.attributes);
-    const withIdAndType = {
+    const previousPosition = record.position;
+    const previousSize = record.size;
+    const withDefaults = {
       ...record,
       id: cell.id,
       type: record.type ?? ELEMENT_MODEL_TYPE,
+      position: {
+        x: previousPosition?.x ?? 0,
+        y: previousPosition?.y ?? 0,
+      },
+      size: {
+        width: previousSize?.width ?? 0,
+        height: previousSize?.height ?? 0,
+      },
+      angle: record.angle ?? 0,
+      data: (record.data ?? ({} as E)) as E,
     };
-    return withIdAndType as unknown as CellRecord<E, L>;
+    return withDefaults as unknown as CellRecord<E, L>;
   }
   if (cell.isLink()) {
     const record = (mapAttributesToLink as MapAttributesToLink<L>)(cell.attributes);
-    const withIdAndType = {
+    const withDefaults = {
       ...record,
       id: cell.id,
       type: record.type ?? LINK_MODEL_TYPE,
+      source: record.source ?? {},
+      target: record.target ?? {},
+      data: (record.data ?? ({} as L)) as L,
     };
-    return withIdAndType as unknown as CellRecord<E, L>;
+    return withDefaults as unknown as CellRecord<E, L>;
   }
   return { ...cell.attributes, id: cell.id } as unknown as CellRecord<E, L>;
 }

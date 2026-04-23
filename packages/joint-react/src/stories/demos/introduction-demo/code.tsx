@@ -10,7 +10,7 @@ import {
   GraphProvider,
   Paper,
   useElement,
-    useGraph,
+  useGraph,
   useMeasureNode,
   useNodesMeasuredEffect,
   useCells,
@@ -166,7 +166,7 @@ function MessageComponent({
       break;
     }
   }
-  const { id } = useElement<ElementData>();
+  const id = useElement((element) => element.id);
   const { setCell } = useGraph<ElementData>();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);

@@ -21,25 +21,6 @@ export type ElementSize = {
   readonly height?: number;
 };
 
-/**
- * Element position as it lives in the store after JointJS defaults — both
- * `x` and `y` are guaranteed (JointJS `dia.Element` defaults to
- * `{ x: 0, y: 0 }`).
- */
-export type ResolvedElementPosition = {
-  readonly x: number;
-  readonly y: number;
-};
-
-/**
- * Element size as it lives in the store after JointJS defaults — both
- * `width` and `height` are guaranteed (JointJS `dia.Element` defaults to
- * `{ width: 1, height: 1 }`).
- */
-export type ResolvedElementSize = {
-  readonly width: number;
-  readonly height: number;
-};
 
 // ── Element Layout (internal — used by size observer) ───────────────────────
 

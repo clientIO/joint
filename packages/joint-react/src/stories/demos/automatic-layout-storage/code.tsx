@@ -201,9 +201,9 @@ function LayoutRunner() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function NodeCard() {
-  const element = useElement<NodeData>();
-  const { id } = element;
-  const { title = '', owner = '' } = element.data ?? {};
+  const data = useElement<NodeData, NodeData>((element) => element.data);
+  const id = useElement((element) => element.id);
+  const { title = '', owner = '' } = data ?? {};
   const { setCell } = useGraph<NodeData>();
   const [isEditing, setIsEditing] = useState(false);
   const titleInputRef = useRef<HTMLInputElement | null>(null);

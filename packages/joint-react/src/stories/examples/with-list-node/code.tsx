@@ -1,4 +1,3 @@
-
 /* eslint-disable @eslint-react/no-array-index-key */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
@@ -44,7 +43,7 @@ const initialCells: Cells<ListNodeData> = [
 ];
 
 function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
-  const { id } = useElement<ListNodeData>();
+  const id = useElement((element) => element.id);
   const padding = 10;
   const headerHeight = 50;
   const elementRef = useRef<HTMLDivElement>(null);
