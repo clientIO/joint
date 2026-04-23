@@ -88,6 +88,8 @@ export enum RightAngleDirections {
 export interface RightAngleRouterArguments {
     margin?: number;
     minMargin?: number | null;
+    sourceMargin?: number | null;
+    targetMargin?: number | null;
     /** @experimental before version 4.0 */
     useVertices?: boolean;
     sourceDirection?: RightAngleDirections;

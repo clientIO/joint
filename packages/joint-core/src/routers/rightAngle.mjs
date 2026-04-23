@@ -1867,13 +1867,17 @@ function getLoopCoordinates(direction, angle, margin) {
 function rightAngleRouter(vertices, opt, linkView) {
     const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, minMargin = null } = opt;
     const margin = opt.margin || 20;
+
+    const sourceMargin = opt.sourceMargin || margin;
+    const targetMargin = opt.targetMargin || margin;
+
     const useVertices = opt.useVertices || false;
 
     const isSourcePort = !!linkView.model.source().port;
-    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, margin);
+    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, sourceMargin);
 
     const isTargetPort = !!linkView.model.target().port;
-    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, margin);
+    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, targetMargin);
 
     const resultVertices = [];
 
@@ -1886,11 +1890,11 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     const [resolvedSourceDirection] = resolveSides(sourcePoint, firstVertex);
     const isElement = sourcePoint.view && sourcePoint.view.model.isElement();
-    const sourceBBox = isElement ? moveAndExpandBBox(sourcePoint.view.model.getBBox(), resolvedSourceDirection, margin) : null;
+    const sourceBBox = isElement ? moveAndExpandBBox(sourcePoint.view.model.getBBox(), resolvedSourceDirection, sourceMargin) : null;
     const isVertexInside = isElement ? sourceBBox.containsPoint(firstVertex.point) : false;
 
     if (isVertexInside) {
-        const outsidePoint = getOutsidePoint(resolvedSourceDirection, sourcePoint, margin);
+        const outsidePoint = getOutsidePoint(resolvedSourceDirection, sourcePoint, sourceMargin);
         const firstPointOverlap = outsidePoint.equals(firstVertex.point);
 
         const alignsVertically = sourcePoint.point.x === firstVertex.point.x;
