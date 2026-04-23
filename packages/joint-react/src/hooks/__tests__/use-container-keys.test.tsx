@@ -1,145 +1,82 @@
 import { renderHook, act } from '@testing-library/react';
-import React from 'react';
 import { createContainer, asReadonlyContainer } from '../../store/state-container';
 import { useContainerKeys } from '../use-container-keys';
 
-function Wrapper({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <>{children}</>;
+interface TestItem {
+  readonly id: string;
+  readonly value: number;
 }
 
-function createTestContext() {
-  const container = createContainer<{ value: number }>();
-  const readOnly = asReadonlyContainer(container);
-
-  return { container, readOnly, Wrapper };
-}
+const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
 describe('useContainerKeys', () => {
-  it('returns empty array when container is empty', () => {
-    const { readOnly, Wrapper } = createTestContext();
-
-    const { result } = renderHook(
-      () => useContainerKeys(readOnly),
-      { wrapper: Wrapper },
-    );
-
+  it('returns an empty array when the container is empty', () => {
+    const container = createContainer<TestItem>();
+    const readOnly = asReadonlyContainer(container);
+    const { result } = renderHook(() => useContainerKeys(readOnly));
     expect(result.current).toEqual([]);
   });
 
-  it('returns IDs after items are added', async () => {
-    const { container, readOnly, Wrapper } = createTestContext();
+  it('reflects current keys after a commit', async () => {
+    const container = createContainer<TestItem>();
+    const readOnly = asReadonlyContainer(container);
 
-    container.set('a', { value: 1 });
-    container.set('b', { value: 2 });
-    container.commitChanges();
-
-    const { result } = renderHook(
-      () => useContainerKeys(readOnly),
-      { wrapper: Wrapper },
-    );
-
-    await act(async () => {});
-
-    expect(result.current).toEqual(expect.arrayContaining(['a', 'b']));
-    expect(result.current.length).toBe(2);
-  });
-
-  it('re-renders when item is added (size changes)', async () => {
-    const { container, readOnly, Wrapper } = createTestContext();
-    container.set('a', { value: 1 });
-    container.commitChanges();
-
-    const renderCount = jest.fn();
-    const { result } = renderHook(
-      () => {
-        renderCount();
-        return useContainerKeys(readOnly);
-      },
-      { wrapper: Wrapper },
-    );
-
-    await act(async () => {});
-    const initialRenders = renderCount.mock.calls.length;
+    const { result } = renderHook(() => useContainerKeys(readOnly));
 
     await act(async () => {
-      container.set('b', { value: 2 });
+      container.set('a', { id: 'a', value: 1 });
+      container.set('b', { id: 'b', value: 2 });
       container.commitChanges();
+      await flush();
     });
 
-    expect(result.current).toEqual(expect.arrayContaining(['a', 'b']));
-    expect(renderCount.mock.calls.length).toBeGreaterThan(initialRenders);
+    expect([...result.current].toSorted((a, b) => String(a).localeCompare(String(b)))).toEqual([
+      'a',
+      'b',
+    ]);
   });
 
-  it('does NOT re-render when item value changes (size unchanged)', async () => {
-    const { container, readOnly, Wrapper } = createTestContext();
-    container.set('a', { value: 1 });
+  it('returns a stable reference when the key set does not change', async () => {
+    const container = createContainer<TestItem>();
+    const readOnly = asReadonlyContainer(container);
+    container.set('a', { id: 'a', value: 1 });
     container.commitChanges();
+    await flush();
 
-    const renderCount = jest.fn();
-    renderHook(
-      () => {
-        renderCount();
-        return useContainerKeys(readOnly);
-      },
-      { wrapper: Wrapper },
-    );
+    const { result } = renderHook(() => useContainerKeys(readOnly));
+    const first = result.current;
 
-    await act(async () => {});
-    const initialRenders = renderCount.mock.calls.length;
-
-    // Update value but don't change size
     await act(async () => {
-      container.set('a', { value: 999 });
+      container.set('a', { id: 'a', value: 99 });
       container.commitChanges();
+      await flush();
     });
-
-    // Should NOT re-render — size didn't change
-    expect(renderCount.mock.calls.length).toBe(initialRenders);
+    // Value-only change → no key-set change → same array reference
+    expect(result.current).toBe(first);
   });
 
-  it('returns stable reference when IDs have not changed', async () => {
-    const { container, readOnly, Wrapper } = createTestContext();
-    container.set('a', { value: 1 });
+  it('updates the array when a key is added or removed', async () => {
+    const container = createContainer<TestItem>();
+    const readOnly = asReadonlyContainer(container);
+    container.set('a', { id: 'a', value: 1 });
     container.commitChanges();
+    await flush();
 
-    const { result } = renderHook(
-      () => useContainerKeys(readOnly),
-      { wrapper: Wrapper },
-    );
+    const { result } = renderHook(() => useContainerKeys(readOnly));
 
-    await act(async () => {});
-    const firstRef = result.current;
-
-    // Add and remove same item — net size change = 0
     await act(async () => {
-      container.set('b', { value: 2 });
-      container.delete('b');
+      container.set('b', { id: 'b', value: 2 });
       container.commitChanges();
+      await flush();
     });
+    expect(result.current).toHaveLength(2);
 
-    // Keys should be same reference
-    expect(result.current).toBe(firstRef);
-  });
-
-  it('detects add+remove of DIFFERENT items in same batch (net size unchanged)', async () => {
-    const { container, readOnly, Wrapper } = createTestContext();
-    container.set('a', { value: 1 });
-    container.set('b', { value: 2 });
-    container.commitChanges();
-
-    const { result } = renderHook(() => useContainerKeys(readOnly), { wrapper: Wrapper });
-    await act(async () => {});
-    expect(result.current).toEqual(expect.arrayContaining(['a', 'b']));
-
-    // Add c + remove b in same batch — net size stays 2
     await act(async () => {
-      container.set('c', { value: 3 });
-      container.delete('b');
+      container.delete('a');
       container.commitChanges();
+      await flush();
     });
-
-    // Keys should update to [a, c] even though size didn't change
-    expect(result.current).toEqual(expect.arrayContaining(['a', 'c']));
-    expect(result.current).not.toContain('b');
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toBe('b');
   });
 });

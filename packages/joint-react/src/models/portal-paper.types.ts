@@ -1,5 +1,6 @@
 import type { dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
+import type { CellId } from '../types/cell.types';
 
 /**
  * Resolves the JointJS selector used to find the React portal target node
@@ -19,7 +20,7 @@ export type PortalSelector =
  * Options for creating a PortalPaper instance with lifecycle callbacks.
  */
 export interface PortalPaperOptions extends dia.Paper.Options {
-  readonly onViewMountChange?: (changes: Map<string, IncrementalChange<dia.Cell>>) => void;
+  readonly onViewMountChange?: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;
   /**
    * Selector used to locate the React portal target node inside a cell view.
    *

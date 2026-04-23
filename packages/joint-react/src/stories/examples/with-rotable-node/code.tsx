@@ -1,14 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   GraphProvider,
-  Paper,
-  useElements,
-  usePaper,
   HTMLHost,
-  useElementId,
+  Paper,
+  useCells,
+  useElement,
   useGraph,
+  usePaper,
+  type Cells,
   type ElementRecord,
-  type LinkRecord,
 } from '@joint/react';
 import '../index.css';
 import { useCallback } from 'react';
@@ -19,34 +19,37 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 20, y: 100 } },
-  '2': { data: { label: 'Node 2' }, position: { x: 200, y: 100 } },
-};
-
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+const initialCells: Cells<NodeData> = [
+  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 20, y: 100 } },
+  { id: '2', type: 'ElementModel', data: { label: 'Node 2' }, position: { x: 200, y: 100 } },
+  {
+    id: 'e1-2',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
-function RotatableNode({ label }: Readonly<NodeData>) {
-  const id = useElementId();
+function RotatableNode() {
+  const element = useElement<NodeData>();
+  const { id } = element;
+  const label = element.data?.label ?? '';
   const { paper } = usePaper();
-  const { setElement } = useGraph();
+  const { setCell } = useGraph();
 
   const dragHandle = useCallback(
     (event: PointerEvent) => {
       if (!paper) return;
       const graph = paper.model;
       const point = paper.clientToLocalPoint(event.clientX, event.clientY);
-      const center = graph.getCell(id).getBBox().center();
+      const cell = graph.getCell(id);
+      if (!cell) return;
+      const center = cell.getBBox().center();
       const deg = center.angleBetween(point, center.clone().offset(0, -1));
-      setElement(id, (previous) => ({ ...previous, angle: Math.round(deg) }));
+      setCell({ id, angle: Math.round(deg) } as ElementRecord<NodeData>);
     },
-    [id, paper, setElement]
+    [id, paper, setCell]
   );
 
   const handlePointerDown = useCallback(
@@ -88,8 +91,14 @@ function RotatableNode({ label }: Readonly<NodeData>) {
 }
 
 function Main() {
-  const elementRotation = useElements((elements) =>
-    [...elements.values()].map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
+  const { isElement } = useGraph<NodeData>();
+  const elementRotation = useCells<NodeData, unknown, readonly string[]>((cells) =>
+    cells
+      .filter((cell) => isElement(cell))
+      .map((cell) => {
+        const element = cell as ElementRecord<NodeData>;
+        return `${(element.angle ?? 0).toString().padStart(3, '0')} deg`;
+      })
   );
 
   return (
@@ -110,7 +119,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

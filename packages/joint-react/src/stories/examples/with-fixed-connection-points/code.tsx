@@ -1,8 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useId, useRef } from 'react';
-import type { LinkRecord, ElementRecord } from '@joint/react';
-import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents } from '@joint/react';
+import type { Cells } from '@joint/react';
+import {
+  GraphProvider,
+  jsx,
+  Paper,
+  useElementSize,
+  usePaperEvents,
+} from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -114,58 +120,73 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 }
 
 // ----------------------------------------------------------------------------
-// Initial Data
+// Initial Cells
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, ElementRecord<CustomElement>> = {
-  square1: {
+const initialCells: Cells<CustomElement> = [
+  {
+    id: 'square1',
+    type: 'ElementModel',
     data: { shapeType: ShapeTypes.square, label: 'S1' },
     position: { x: 100, y: 100 },
     size: { width: 80, height: 80 },
   },
-  square2: {
+  {
+    id: 'square2',
+    type: 'ElementModel',
     data: { shapeType: ShapeTypes.square, label: 'S2' },
     position: { x: 340, y: 100 },
     size: { width: 80, height: 80 },
   },
-  ellipse1: {
+  {
+    id: 'ellipse1',
+    type: 'ElementModel',
     data: { shapeType: ShapeTypes.ellipse, label: 'E' },
     position: { x: 220, y: 300 },
     size: { width: 80, height: 80 },
   },
-  rectangle1: {
+  {
+    id: 'rectangle1',
+    type: 'ElementModel',
     data: { shapeType: ShapeTypes.rectangle },
     position: { x: 100, y: 500 },
     size: { width: 320, height: 40 },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  link1: {
+  {
+    id: 'link1',
+    type: 'LinkModel',
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
     target: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
-  link2: {
+  {
+    id: 'link2',
+    type: 'LinkModel',
     source: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -80, dy: -20 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
-  link3: {
+  {
+    id: 'link3',
+    type: 'LinkModel',
     source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 80, dy: -20 } } },
     target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
-  link4: {
+  {
+    id: 'link4',
+    type: 'LinkModel',
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } } },
     target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
-  link5: {
+  {
+    id: 'link5',
+    type: 'LinkModel',
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } } },
     style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
-};
+];
 
 // ----------------------------------------------------------------------------
 // Custom Highlighter
@@ -195,7 +216,7 @@ const AnchorsHighlighter = dia.HighlighterView.extend({
 // Shapes
 // ----------------------------------------------------------------------------
 function Rectangle({ label }: Readonly<SquareElement | RectangleElement>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return (
     <>
       <path
@@ -222,7 +243,7 @@ function Rectangle({ label }: Readonly<SquareElement | RectangleElement>) {
 }
 
 function Ellipse({ label }: Readonly<EllipseElement>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return (
     <>
       <ellipse
@@ -254,14 +275,15 @@ function Ellipse({ label }: Readonly<EllipseElement>) {
 // ----------------------------------------------------------------------------
 // Element Rendering
 // ----------------------------------------------------------------------------
-function RenderElement(element: CustomElement) {
-  switch (element.shapeType) {
+function RenderElement(data: CustomElement | undefined) {
+  if (!data) return null;
+  switch (data.shapeType) {
     case ShapeTypes.square:
     case ShapeTypes.rectangle: {
-      return <Rectangle {...element} />;
+      return <Rectangle {...data} />;
     }
     case ShapeTypes.ellipse: {
-      return <Ellipse {...element} />;
+      return <Ellipse {...data} />;
     }
   }
 }
@@ -441,7 +463,7 @@ function Main() {
 // ----------------------------------------------------------------------------
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

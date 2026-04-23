@@ -2,6 +2,9 @@ import { useCallback } from 'react';
 import { GraphProvider, Paper, type GraphProviderProps, type PaperProps } from '../components';
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../store/graph-store';
+import { ELEMENT_MODEL_TYPE } from '../models/element-model';
+import { LINK_MODEL_TYPE } from '../models/link-model';
+import type { CellRecord } from '../types/cell.types';
 
 /**
  * Testing helper to create a new JointJS graph instance.
@@ -58,18 +61,24 @@ export function paperRenderElementWrapper(options: Options): React.JSXElementCon
 
 export const simpleRenderElementWrapper = paperRenderElementWrapper({
   graphProviderProps: {
-    initialElements: {
-      '1': {
-        data: undefined,
+    initialCells: [
+      {
+        id: '1',
+        type: ELEMENT_MODEL_TYPE,
         size: { width: 97, height: 99 },
-      },
-    },
-    initialLinks: {
-      '3': {
+      } as CellRecord,
+      {
+        id: '2',
+        type: ELEMENT_MODEL_TYPE,
+        size: { width: 50, height: 50 },
+      } as CellRecord,
+      {
+        id: '3',
+        type: LINK_MODEL_TYPE,
         source: { id: '1' },
         target: { id: '2' },
-      },
-    },
+      } as CellRecord,
+    ],
   },
 });
 

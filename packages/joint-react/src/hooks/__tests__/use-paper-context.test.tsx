@@ -1,21 +1,23 @@
 import { render, renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper, paperRenderElementWrapper } from '../../utils/test-wrappers';
 import { usePaperStore } from '../use-paper';
+import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import type { CellRecord } from '../../types/cell.types';
 
 describe('use-paper-context', () => {
   const graphWrapper = graphProviderWrapper({
-    elements: {},
-    links: {},
+    initialCells: [],
   });
 
   const wrapper = paperRenderElementWrapper({
     graphProviderProps: {
-      elements: {
-        '1': {
-          data: undefined,
+      initialCells: [
+        {
+          id: '1',
+          type: ELEMENT_MODEL_TYPE,
           size: { width: 100, height: 100 },
-        },
-      },
+        } as CellRecord,
+      ],
     },
     paperProps: {
       id: 'paper-store-under-test',

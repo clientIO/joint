@@ -116,7 +116,6 @@ describe('dataMapper', () => {
       const portMap: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
       };
-      const id = 'el-1';
       const element: ElementRecord = {
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
@@ -134,7 +133,6 @@ describe('dataMapper', () => {
       const portMap: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
       };
-      const id = 'el-1';
       const element: ElementRecord = {
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
@@ -152,7 +150,6 @@ describe('dataMapper', () => {
       const portMap: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
       };
-      const id = 'el-1';
       const element: ElementRecord = {
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
@@ -184,7 +181,6 @@ describe('dataMapper', () => {
     });
 
     it('should apply theme defaults', () => {
-      const id = 'link-1';
       const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' }, style: {} };
 
       const cellJson = mapLinkToAttributes(link);
@@ -193,7 +189,6 @@ describe('dataMapper', () => {
     });
 
     it('should apply custom theme props', () => {
-      const id = 'link-1';
       const link: LinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
@@ -211,7 +206,6 @@ describe('dataMapper', () => {
     });
 
     it('should store user data in cell.data', () => {
-      const id = 'link-1';
       const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
 
       const cellJson = mapLinkToAttributes(link);
@@ -239,7 +233,6 @@ describe('dataMapper', () => {
     });
 
     it('should convert labels Record to JointJS labels array', () => {
-      const id = 'link-1';
       const link: LinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
@@ -283,7 +276,6 @@ describe('dataMapper', () => {
     });
 
     it('should handle source/target with ports', () => {
-      const id = 'link-1';
       const link: LinkRecord = {
         source: { id: 'el-1', port: 'p1' },
         target: { id: 'el-2', port: 'p2' },

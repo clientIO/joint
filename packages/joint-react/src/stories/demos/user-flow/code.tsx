@@ -10,11 +10,13 @@
 import {
   GraphProvider,
   Paper,
-  useElementId,
+  useElement,
   useElementSize,
   useMarkup,
   HTMLHost,
+  type Cells,
   type CellId,
+  type CellRecord,
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
@@ -81,6 +83,8 @@ const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
 
 const initialElements: Record<string, NodeType> = {
   '1': {
+    id: '1',
+    type: 'ElementModel',
     data: {
       title: 'User Action',
       description: 'Transfer funds',
@@ -91,6 +95,8 @@ const initialElements: Record<string, NodeType> = {
     z: 10,
   },
   '2': {
+    id: '2',
+    type: 'ElementModel',
     data: {
       title: 'Entity',
       description: 'Transfer funds',
@@ -101,6 +107,8 @@ const initialElements: Record<string, NodeType> = {
     z: 10,
   },
   '3': {
+    id: '3',
+    type: 'ElementModel',
     data: {
       title: 'User Action',
       description: 'Get account balance',
@@ -114,16 +122,22 @@ const initialElements: Record<string, NodeType> = {
 
 const initialLinks: Record<string, LinkRecord> = {
   link1: {
+    id: 'link1',
+    type: 'LinkModel',
     source: { id: '1', magnet: '1' },
     target: { id: '2', magnet: 'in' },
     z: 11,
   },
   link2: {
+    id: 'link2',
+    type: 'LinkModel',
     source: { id: '2', magnet: '1' },
     target: { id: '3', magnet: 'in' },
     z: 11,
   },
   link3: {
+    id: 'link3',
+    type: 'LinkModel',
     source: { id: '3', magnet: '2' },
     target: { id: '1', magnet: 'in' },
     z: 11,
@@ -143,9 +157,9 @@ function RenderElementBase({
   onAddPort,
   onRemovePort,
 }: Readonly<RenderElementProps>) {
-  const id = useElementId();
+  const { id } = useElement();
   const { selectorRef } = useMarkup();
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
 
   let icon: string;
   switch (nodeType) {
@@ -286,76 +300,84 @@ function RenderElementBase({
   );
 }
 const RenderElement = memo(RenderElementBase);
-function Main() {
-  const [elements, setElements] = useState<Record<string, ElementRecord<NodeData>>>(initialElements);
-  const isDark = useContext(ThemeContext);
 
-  function fixLinks(initialLinks: Record<string, LinkRecord>) {
-    const next: Record<string, LinkRecord> = {};
-    for (const [linkId, link] of Object.entries(initialLinks)) {
-      next[linkId] = {
-        ...link,
-        style: { ...link.style, color: isDark ? 'rgba(255,255,255,0.35)' : '#000000' },
-      };
-    }
-    return next;
+function buildInitialCells(isDark: boolean): Cells<NodeData> {
+  const linkColor = isDark ? 'rgba(255,255,255,0.35)' : '#000000';
+  const cells: Array<CellRecord<NodeData>> = [];
+  for (const node of Object.values(initialElements)) cells.push(node);
+  for (const link of Object.values(initialLinks)) {
+    cells.push({ ...link, style: { ...link.style, color: linkColor } });
   }
-  const [links, setLinks] = useState<Record<string, LinkRecord>>(() => fixLinks(initialLinks));
+  return cells;
+}
+
+function Main() {
+  const isDark = useContext(ThemeContext);
+  const [cells, setCells] = useState<Cells<NodeData>>(() => buildInitialCells(isDark));
+
   useLayoutEffect(() => {
-    setLinks(fixLinks); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Sync link colors with theme
+    const linkColor = isDark ? 'rgba(255,255,255,0.35)' : '#000000';
+    setCells((previous) =>
+      previous.map((cell): CellRecord<NodeData> => {
+        if (cell.type !== 'LinkModel') return cell;
+        const link = cell as LinkRecord;
+        return { ...link, style: { ...link.style, color: linkColor } };
+      })
+    ); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Sync link colors with theme
   }, [isDark]);
+
   const onAddPort = useCallback((id: CellId) => {
-    setElements((previous) => {
-      const node = previous[id];
-      if (!node?.data) return previous;
-      const updated = appendOutputPort(node.data);
-      return {
-        ...previous,
-        [id]: { ...node, data: updated },
-      };
-    });
+    setCells((previous) =>
+      previous.map((cell): CellRecord<NodeData> => {
+        if (cell.type !== 'ElementModel') return cell;
+        if (cell.id !== id) return cell;
+        const node = cell as ElementRecord<NodeData>;
+        if (!node.data) return cell;
+        return { ...node, data: appendOutputPort(node.data) };
+      })
+    );
   }, []);
 
   const onRemovePort = useCallback((id: CellId, portId: string) => {
-    setElements((previous) => {
-      const node = previous[id];
-      if (!node?.data) return previous;
-      return {
-        ...previous,
-        [id]: {
-          ...node,
-          data: {
-            ...node.data,
-            outputPorts: node.data.outputPorts.filter((p) => p.id !== portId),
-          },
-        },
-      };
-    });
-    setLinks((previous) => {
-      const next: Record<string, LinkRecord> = {};
-      for (const [linkId, link] of Object.entries(previous)) {
-        const isSource = link.source?.id === id && link.source?.magnet === portId;
-        const isTarget = link.target?.id === id && link.target?.magnet === portId;
-        if (!isSource && !isTarget) {
-          next[linkId] = link;
-        }
-      }
-      return next;
-    });
+    const keepPort = (port: { id: string }) => port.id !== portId;
+    setCells((previous) =>
+      previous
+        .map((cell): CellRecord<NodeData> | undefined => {
+          if (cell.type === 'ElementModel') {
+            if (cell.id !== id) return cell;
+            const node = cell as ElementRecord<NodeData>;
+            if (!node.data) return cell;
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                outputPorts: node.data.outputPorts.filter(keepPort),
+              },
+            };
+          }
+          if (cell.type === 'LinkModel') {
+            const link = cell as LinkRecord;
+            const isSource = link.source?.id === id && link.source?.magnet === portId;
+            const isTarget = link.target?.id === id && link.target?.magnet === portId;
+            if (isSource || isTarget) return undefined;
+            return link;
+          }
+          return cell;
+        })
+        .filter((cell): cell is CellRecord<NodeData> => cell !== undefined)
+    );
   }, []);
 
   const renderElement: RenderElement<NodeData> = useCallback(
-    (element) => <RenderElement {...element} onAddPort={onAddPort} onRemovePort={onRemovePort} />,
+    (data) => {
+      if (!data) return null;
+      return <RenderElement {...data} onAddPort={onAddPort} onRemovePort={onRemovePort} />;
+    },
     [onAddPort, onRemovePort]
   );
 
   return (
-    <GraphProvider
-      elements={elements}
-      links={links}
-      onElementsChange={setElements}
-      onLinksChange={setLinks}
-    >
+    <GraphProvider<NodeData> cells={cells} onCellsChange={setCells}>
       <Paper
         gridSize={5}
         drawGrid={false}

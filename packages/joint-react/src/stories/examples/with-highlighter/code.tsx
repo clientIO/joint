@@ -4,8 +4,7 @@ import {
   Paper,
   useMarkup,
   useElementSize,
-  type ElementRecord,
-  type LinkRecord,
+  type Cells,
   usePaperEvents,
 } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
@@ -18,32 +17,36 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': {
+const initialCells: Cells<NodeData> = [
+  {
+    id: '1',
+    type: 'ElementModel',
     data: { label: 'Node 1' },
     position: { x: 100, y: 50 },
     size: { width: 125, height: 25 },
   },
-  '2': {
+  {
+    id: '2',
+    type: 'ElementModel',
     data: { label: 'Node 2' },
     position: { x: 100, y: 200 },
     size: { width: 120, height: 25 },
   },
-};
-
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+  {
+    id: 'e1-2',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
 type HighlighterVariant = 'mask' | 'opacity';
 
-function RenderElement({ label }: Readonly<NodeData>) {
+function RenderElement(data: NodeData | undefined) {
   const { selectorRef } = useMarkup();
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const label = data?.label;
   return (
     <g width={width} height={height} className="node">
       <rect
@@ -132,7 +135,7 @@ export interface AppProps {
 
 export default function App({ variant = 'mask' }: Readonly<AppProps>) {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider initialCells={initialCells}>
       <Main variant={variant} />
     </GraphProvider>
   );

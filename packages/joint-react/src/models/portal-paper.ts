@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { CellId } from '../types/cell-id';
+import type { CellId } from '../types/cell.types';
 import type { PortalSelector, PortalPaperOptions } from './portal-paper.types';
 import { PORTAL_SELECTOR } from './element-model';
 import type { IncrementalChange } from '../state/incremental.types';
@@ -18,8 +18,8 @@ const noopViewMountChange = (): void => {
  * - Hiding links until their source/target elements have rendered
  */
 export class PortalPaper extends Paper {
-  public viewChanges: Map<string, IncrementalChange<dia.Cell>> = new Map();
-  public onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => void;
+  public viewChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
+  public onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();

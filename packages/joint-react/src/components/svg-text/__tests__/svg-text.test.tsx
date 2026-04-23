@@ -14,6 +14,7 @@ import { paperRenderElementWrapper } from '../../../utils/test-wrappers';
 import { SVGText } from '../svg-text';
 import { util } from '@joint/core';
 import { render, waitFor } from '@testing-library/react';
+import { ELEMENT_MODEL_TYPE } from '../../../models/element-model';
 
 const UPPERCASE_STYLE = { textTransform: 'uppercase' } as const;
 
@@ -77,12 +78,13 @@ describe('SVGText', () => {
       {
         wrapper: paperRenderElementWrapper({
           graphProviderProps: {
-            elements: {
-              '1': {
-                data: undefined,
+            initialCells: [
+              {
+                id: '1',
+                type: ELEMENT_MODEL_TYPE,
                 size: { width: 120, height: 40 },
               },
-            },
+            ],
           },
         }),
       }

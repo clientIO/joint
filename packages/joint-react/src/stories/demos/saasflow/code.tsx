@@ -5,6 +5,8 @@ import {
   Paper,
   useGraph,
   HTMLHost,
+  type Cells,
+  type CellRecord,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
@@ -78,8 +80,10 @@ type SaasNode = ElementRecord<SaasNodeData>;
 
 const PORT_R = 5;
 
-const initialElements: Record<string, SaasNode> = {
-  client: {
+const initialCells: Cells<SaasNodeData> = [
+  {
+    id: 'client',
+    type: 'ElementModel',
     data: {
       title: 'Client: SaaSflow',
       subtitle: 'Onboarded: 25 Jun',
@@ -94,7 +98,9 @@ const initialElements: Record<string, SaasNode> = {
     },
     portStyle: { color: DARK.port, outline: DARK.canvas, outlineWidth: 2 },
   },
-  pm: {
+  {
+    id: 'pm',
+    type: 'ElementModel',
     data: {
       title: 'Project Manager',
       subtitle: 'Managing progress',
@@ -110,7 +116,9 @@ const initialElements: Record<string, SaasNode> = {
     },
     portStyle: { color: DARK.port, outline: DARK.canvas, outlineWidth: 2 },
   },
-  designer: {
+  {
+    id: 'designer',
+    type: 'ElementModel',
     data: {
       title: 'UX Designer',
       subtitle: 'Designing interfaces',
@@ -126,14 +134,9 @@ const initialElements: Record<string, SaasNode> = {
     },
     portStyle: { color: DARK.port, outline: DARK.canvas, outlineWidth: 2 },
   },
-};
-
-const DEFAULT_LINK = () => ({
-  style: { color: DARK.link, width: 2 },
-});
-
-const initialLinks: Record<string, LinkRecord> = {
-  'client-pm': {
+  {
+    id: 'client-pm',
+    type: 'LinkModel',
     source: { id: 'client', port: 'out' },
     target: { id: 'pm', port: 'in' },
     style: { color: DARK.link, width: 2, targetMarker: 'none' },
@@ -148,7 +151,9 @@ const initialLinks: Record<string, LinkRecord> = {
     },
     labelStyle: { color: DARK.sub, backgroundColor: DARK.canvas, backgroundOutline: DARK.cardBorder },
   },
-  'pm-designer': {
+  {
+    id: 'pm-designer',
+    type: 'LinkModel',
     source: { id: 'pm', port: 'out' },
     target: { id: 'designer', port: 'in' },
     style: {
@@ -170,7 +175,11 @@ const initialLinks: Record<string, LinkRecord> = {
     },
     labelStyle: { color: DARK.sub, backgroundColor: DARK.canvas, backgroundOutline: DARK.cardBorder },
   },
-};
+];
+
+const DEFAULT_LINK = () => ({
+  style: { color: DARK.link, width: 2 },
+});
 
 // ── Node Component ──────────────────────────────────────────────────────────
 
@@ -203,7 +212,12 @@ function ProgressBar({
   );
 }
 
-function RenderSaasNode({ title, subtitle, icon, status, tags, progress }: Readonly<SaasNodeData>) {
+function RenderSaasNode(data: SaasNodeData | undefined) {
+  const { title = '', subtitle = '', icon = '', status, tags, progress } = data ?? {
+    title: '',
+    subtitle: '',
+    icon: '',
+  };
   const theme = useTheme();
   const isDark = theme === DARK;
 
@@ -309,7 +323,7 @@ function ToolbarButton({
 
 function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | null> }>) {
   const theme = useTheme();
-  const { setElement } = useGraph();
+  const { addCell } = useGraph<SaasNodeData>();
 
   const addNode = useCallback(() => {
     const id = `node-${Date.now()}`;
@@ -322,7 +336,9 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
       'fas fa-tasks',
     ];
     const pick = Math.floor(Math.random() * names.length); // eslint-disable-line sonarjs/pseudo-random
-    setElement(id, {
+    addCell({
+      id,
+      type: 'ElementModel',
       data: {
         title: names[pick],
         subtitle: 'New team member',
@@ -337,7 +353,7 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
       },
       portStyle: { color: theme.port, outline: theme.canvas, outlineWidth: 2 },
     } satisfies SaasNode);
-  }, [setElement, theme]);
+  }, [addCell, theme]);
 
   const onFit = useCallback(() => {
     paperRef.current?.transformToFitContent({
@@ -452,23 +468,33 @@ const PAPER_ID = 'saasflow-paper';
 function ThemeUpdater() {
   const isDark = useContext(ThemeContext);
   const theme = isDark ? DARK : LIGHT;
-  const { graph, setElement, setLink } = useGraph<SaasNodeData>();
+  const { updateCells, isElement, isLink } = useGraph<SaasNodeData>();
 
   useEffect(() => {
-    for (const element of graph.getElements()) {
-      setElement(String(element.id), (previous) => ({
-        ...previous,
-        portStyle: { color: theme.port, outline: theme.canvas, outlineWidth: 2 },
-      }));
-    }
-    for (const link of graph.getLinks()) {
-      setLink(String(link.id), (previous) => ({
-        ...previous,
-        style: { ...previous.style, color: theme.link },
-        labelStyle: { color: theme.sub, backgroundColor: theme.canvas, backgroundOutline: theme.cardBorder },
-      }));
-    }
-  }, [theme, graph, setElement, setLink]);
+    updateCells((previous) =>
+      previous.map((cell): CellRecord<SaasNodeData> => {
+        if (isElement(cell)) {
+          return {
+            ...(cell as ElementRecord<SaasNodeData>),
+            portStyle: { color: theme.port, outline: theme.canvas, outlineWidth: 2 },
+          };
+        }
+        if (isLink(cell)) {
+          const link = cell as LinkRecord;
+          return {
+            ...link,
+            style: { ...link.style, color: theme.link },
+            labelStyle: {
+              color: theme.sub,
+              backgroundColor: theme.canvas,
+              backgroundOutline: theme.cardBorder,
+            },
+          };
+        }
+        return cell;
+      })
+    );
+  }, [theme, updateCells, isElement, isLink]);
 
   return null;
 }
@@ -477,10 +503,7 @@ function Main() {
   const paperRef = useRef<dia.Paper | null>(null);
 
   return (
-    <GraphProvider<SaasNodeData>
-      initialElements={initialElements}
-      initialLinks={initialLinks}
-    >
+    <GraphProvider<SaasNodeData> initialCells={initialCells}>
       <Paper
         ref={paperRef}
         id={PAPER_ID}

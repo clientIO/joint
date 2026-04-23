@@ -1,37 +1,38 @@
-import { useElementId } from './use-element-id';
+import { useContext } from 'react';
+import { CellIdContext } from '../context';
+import { useCells } from './use-cells';
 import { useGraphStore } from './use-graph-store';
-import { isStrictEqual, identitySelector } from '../utils/selector-utils';
-import { useContainerItem } from './use-container-item';
-import type { ElementWithLayout } from '../types/data-types';
+import { isElementType } from '../utils/cell-type';
+import type { ElementRecord } from '../types/cell.types';
 
 /**
- * Hook to access a specific graph element from the current Paper context.
- * Use it only inside `renderElement` or components rendered from within.
- *
- * Returns element data with guaranteed position, size, and angle.
- * @example
- * ```tsx
- * const element = useElement();
- * const { position, size, data } = element;
- * ```
- * @example
- * ```tsx
- * const width = useElement((el) => el.size.width);
- * ```
- * @param selector - Extracts part of the element. Defaults to identity.
- * @param isEqual - Equality check. Defaults to `Object.is`.
- * @returns The selected element data.
- * @group Hooks
+ * Read the current element record (context-scoped; requires `CellIdContext`).
+ * @template ElementData - user data shape on this element
+ * @returns full ElementRecord for the current id
  */
-export function useElement<D extends object = Record<string, unknown>, R = ElementWithLayout<D>>(
-  selector: (item: ElementWithLayout<D>) => R = identitySelector as (
-    item: ElementWithLayout<D>
-  ) => R,
-  isEqual: (a: R, b: R) => boolean = isStrictEqual
-): R {
-  const id = useElementId();
-  const {
-    graphView: { elements },
-  } = useGraphStore<D>();
-  return useContainerItem(elements, id, selector, isEqual) as R;
+export function useElement<ElementData = unknown>(): ElementRecord<ElementData>;
+/**
+ * Read a selected slice from the current element record.
+ * @template ElementData - user data shape on this element
+ * @template Selected - selector return type
+ * @param selector - derives a value from the current element record
+ * @returns selected value
+ */
+export function useElement<ElementData, Selected>(
+  selector: (element: ElementRecord<ElementData>) => Selected
+): Selected;
+export function useElement<ElementData, Selected>(
+  selector?: (element: ElementRecord<ElementData>) => Selected
+): ElementRecord<ElementData> | Selected {
+  const id = useContext(CellIdContext);
+  if (id === undefined) {
+    throw new Error('useElement() must be used inside renderElement');
+  }
+  const cell = useCells<ElementData, unknown>(id);
+  const { graph } = useGraphStore();
+  if (!cell || !isElementType(cell.type, graph)) {
+    throw new Error(`useElement(): cell "${String(id)}" is not an element`);
+  }
+  const element = cell as ElementRecord<ElementData>;
+  return selector ? selector(element) : element;
 }

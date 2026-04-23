@@ -7,75 +7,92 @@ const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
 describe('getValue', () => {
   it('returns the value directly when not a function', () => {
-    expect(getValue('old', 'new')).toBe('new');
+    expect(getValue({ id: 'old' }, { id: 'new' })).toEqual({ id: 'new' });
   });
 
   it('calls the updater function with previous value', () => {
-    expect(getValue(1, (previous) => (previous ?? 0) + 10)).toBe(11);
+    expect(getValue({ id: 'a', v: 1 }, (previous) => ({ id: 'a', v: (previous?.v ?? 0) + 10 }))).toEqual({
+      id: 'a',
+      v: 11,
+    });
   });
 
   it('passes undefined-capable previous to updater', () => {
-    const updater = jest.fn((previous: number | undefined) => (previous ?? 0) + 5);
-    getValue(3, updater);
-    expect(updater).toHaveBeenCalledWith(3);
+    const updater = jest.fn((previous: { id: string; v: number } | undefined) => ({
+      id: 'a',
+      v: (previous?.v ?? 0) + 5,
+    }));
+    getValue({ id: 'a', v: 3 }, updater);
+    expect(updater).toHaveBeenCalledWith({ id: 'a', v: 3 });
   });
 });
 
 describe('createContainer', () => {
+  type Item = { readonly id: string; x: number; y: number };
   function setup() {
-    return createContainer<{ x: number; y: number }>();
+    return createContainer<Item>();
   }
 
-  describe('get / add / delete / getSize', () => {
+  describe('get / add / delete / getSize / has', () => {
     it('returns undefined for missing id', () => {
       const container = setup();
       expect(container.get('a')).toBeUndefined();
+      expect(container.has('a')).toBe(false);
     });
 
     it('adds and retrieves a value', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
-      expect(container.get('a')).toEqual({ x: 1, y: 2 });
+      expect(container.get('a')).toEqual({ id: 'a', x: 1, y: 2 });
+      expect(container.has('a')).toBe(true);
     });
 
-    it('updates an existing value with a direct value', async () => {
+    it('updates an existing value with a direct value (slot replace, stable array ref)', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
-      container.set('a', { x: 10, y: 20 });
+      const refBefore = container.getAll();
+      container.set('a', { id: 'a', x: 10, y: 20 });
       container.commitChanges();
       await flush();
-      expect(container.get('a')).toEqual({ x: 10, y: 20 });
+      expect(container.get('a')).toEqual({ id: 'a', x: 10, y: 20 });
+      expect(container.getAll()).toBe(refBefore);
     });
 
     it('updates an existing value with an updater function', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
-      container.set('a', (previous) => ({ x: (previous?.x ?? 0) + 5, y: (previous?.y ?? 0) + 5 }));
+      container.set('a', (previous) => ({
+        id: 'a',
+        x: (previous?.x ?? 0) + 5,
+        y: (previous?.y ?? 0) + 5,
+      }));
       container.commitChanges();
       await flush();
-      expect(container.get('a')).toEqual({ x: 6, y: 7 });
+      expect(container.get('a')).toEqual({ id: 'a', x: 6, y: 7 });
     });
 
-    it('ignores add when value is falsy', async () => {
-      const container = createContainer<string>();
-      container.set('a', '');
+    it('ignores set when updater returns undefined', async () => {
+      const container = setup();
+      container.set('a', (): Item | undefined => {
+        return;
+      });
       container.commitChanges();
       await flush();
       expect(container.get('a')).toBeUndefined();
       expect(container.getSize()).toBe(0);
     });
 
-    it('ignores add when value is strictly equal to previous', async () => {
+    it('ignores set when value is strictly equal to previous', async () => {
       const container = setup();
-      const value = { x: 1, y: 2 };
+      const value: Item = { id: 'a', x: 1, y: 2 };
       container.set('a', value);
       container.commitChanges();
       await flush();
@@ -90,9 +107,11 @@ describe('createContainer', () => {
       expect(listener).not.toHaveBeenCalled();
     });
 
-    it('deletes an existing value', async () => {
+    it('deletes an existing value with swap-pop', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.set('b', { id: 'b', x: 3, y: 4 });
+      container.set('c', { id: 'c', x: 5, y: 6 });
       container.commitChanges();
       await flush();
 
@@ -101,7 +120,26 @@ describe('createContainer', () => {
       await flush();
 
       expect(container.get('a')).toBeUndefined();
-      expect(container.getSize()).toBe(0);
+      expect(container.has('a')).toBe(false);
+      expect(container.getSize()).toBe(2);
+      const ids = container
+        .getAll()
+        .map((item) => item.id)
+        .toSorted((a, b) => String(a).localeCompare(String(b)));
+      expect(ids).toEqual(['b', 'c']);
+    });
+
+    it('delete of the last item does not swap', async () => {
+      const container = setup();
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.set('b', { id: 'b', x: 3, y: 4 });
+      container.commitChanges();
+      await flush();
+
+      container.delete('b');
+      container.commitChanges();
+      await flush();
+      expect(container.getAll().map((item) => item.id)).toEqual(['a']);
     });
 
     it('delete is a no-op for missing id', async () => {
@@ -118,8 +156,8 @@ describe('createContainer', () => {
 
     it('tracks size correctly through add and delete', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
-      container.set('b', { x: 3, y: 4 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.set('b', { id: 'b', x: 3, y: 4 });
       container.commitChanges();
       await flush();
       expect(container.getSize()).toBe(2);
@@ -131,10 +169,56 @@ describe('createContainer', () => {
     });
   });
 
+  describe('reset — atomic replace-all', () => {
+    it('replaces all items', async () => {
+      const container = setup();
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.set('b', { id: 'b', x: 3, y: 4 });
+      container.commitChanges();
+      await flush();
+
+      container.reset([
+        { id: 'x', x: 10, y: 20 },
+        { id: 'y', x: 30, y: 40 },
+      ]);
+      container.commitChanges();
+      await flush();
+
+      expect(container.has('a')).toBe(false);
+      expect(container.has('b')).toBe(false);
+      expect(container.get('x')?.x).toBe(10);
+      expect(container.get('y')?.y).toBe(40);
+      expect(container.getSize()).toBe(2);
+    });
+
+    it('empty reset clears', async () => {
+      const container = setup();
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.commitChanges();
+      await flush();
+
+      container.reset([]);
+      container.commitChanges();
+      await flush();
+      expect(container.getSize()).toBe(0);
+    });
+
+    it('reset bumps version once per call', () => {
+      const container = setup();
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      const v0 = container.getVersion();
+      container.reset([
+        { id: 'b', x: 2, y: 3 },
+        { id: 'c', x: 4, y: 5 },
+      ]);
+      expect(container.getVersion()).toBe(v0 + 1);
+    });
+  });
+
   describe('commitChanges', () => {
     it('does nothing when there are no changes', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
@@ -148,14 +232,14 @@ describe('createContainer', () => {
 
     it('notifies listeners for changed ids', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
       const listener = jest.fn();
       container.subscribe('a', listener);
 
-      container.set('a', { x: 10, y: 20 });
+      container.set('a', { id: 'a', x: 10, y: 20 });
       container.commitChanges();
       await flush();
 
@@ -164,7 +248,7 @@ describe('createContainer', () => {
 
     it('notifies listeners on delete', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
@@ -180,30 +264,48 @@ describe('createContainer', () => {
 
     it('does not notify listeners for unrelated ids', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
       const listenerA = jest.fn();
       container.subscribe('a', listenerA);
 
-      container.set('b', { x: 3, y: 4 });
+      container.set('b', { id: 'b', x: 3, y: 4 });
       container.commitChanges();
       await flush();
 
       expect(listenerA).not.toHaveBeenCalled();
     });
 
-    it('clears the changes queue after commit', async () => {
+    it('dedupes dirty ids within one commit (multiple sets → one listener call)', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
       const listener = jest.fn();
       container.subscribe('a', listener);
 
-      container.set('a', { x: 10, y: 20 });
+      container.set('a', { id: 'a', x: 10, y: 20 });
+      container.set('a', { id: 'a', x: 100, y: 200 });
+      container.commitChanges();
+      await flush();
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(container.get('a')).toEqual({ id: 'a', x: 100, y: 200 });
+    });
+
+    it('clears the changes queue after commit', async () => {
+      const container = setup();
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.commitChanges();
+      await flush();
+
+      const listener = jest.fn();
+      container.subscribe('a', listener);
+
+      container.set('a', { id: 'a', x: 10, y: 20 });
       container.commitChanges();
       await flush();
 
@@ -213,37 +315,17 @@ describe('createContainer', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('batches multiple changes into a single commit', async () => {
-      const container = setup();
-      container.set('a', { x: 1, y: 2 });
-      container.commitChanges();
-      await flush();
-
-      const listener = jest.fn();
-      container.subscribe('a', listener);
-
-      container.set('a', { x: 10, y: 20 });
-      container.set('a', { x: 100, y: 200 });
-      container.commitChanges();
-      await flush();
-
-      // listener called twice — once per queued change for 'a'
-      expect(listener).toHaveBeenCalledTimes(2);
-      expect(container.get('a')).toEqual({ x: 100, y: 200 });
-    });
-
     it('defers execution via microtask', () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
 
       const listener = jest.fn();
       container.subscribe('a', listener);
 
-      container.set('a', { x: 10, y: 20 });
+      container.set('a', { id: 'a', x: 10, y: 20 });
       container.commitChanges();
 
-      // listener should NOT have been called yet (microtask not flushed)
       expect(listener).not.toHaveBeenCalled();
     });
   });
@@ -251,29 +333,29 @@ describe('createContainer', () => {
   describe('subscribe', () => {
     it('returns an unsubscribe function', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
       const listener = jest.fn();
       const unsubscribe = container.subscribe('a', listener);
 
-      container.set('a', { x: 10, y: 20 });
+      container.set('a', { id: 'a', x: 10, y: 20 });
       container.commitChanges();
       await flush();
       expect(listener).toHaveBeenCalledTimes(1);
 
       unsubscribe();
 
-      container.set('a', { x: 100, y: 200 });
+      container.set('a', { id: 'a', x: 100, y: 200 });
       container.commitChanges();
       await flush();
-      expect(listener).toHaveBeenCalledTimes(1); // not called again
+      expect(listener).toHaveBeenCalledTimes(1);
     });
 
     it('supports multiple listeners for the same id', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
@@ -282,7 +364,7 @@ describe('createContainer', () => {
       container.subscribe('a', listener1);
       container.subscribe('a', listener2);
 
-      container.set('a', { x: 10, y: 20 });
+      container.set('a', { id: 'a', x: 10, y: 20 });
       container.commitChanges();
       await flush();
 
@@ -296,7 +378,7 @@ describe('createContainer', () => {
       const unsubscribe = container.subscribe('a', listener);
       unsubscribe();
 
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
       expect(listener).not.toHaveBeenCalled();
@@ -309,7 +391,7 @@ describe('createContainer', () => {
       const listener = jest.fn();
       container.subscribeToSize(listener);
 
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
@@ -318,7 +400,7 @@ describe('createContainer', () => {
 
     it('notifies when size changes after delete', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
@@ -334,14 +416,14 @@ describe('createContainer', () => {
 
     it('does not notify when size stays the same (update)', async () => {
       const container = setup();
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
 
       const listener = jest.fn();
       container.subscribeToSize(listener);
 
-      container.set('a', { x: 10, y: 20 }); // update, not add
+      container.set('a', { id: 'a', x: 10, y: 20 });
       container.commitChanges();
       await flush();
 
@@ -353,22 +435,125 @@ describe('createContainer', () => {
       const listener = jest.fn();
       const unsubscribe = container.subscribeToSize(listener);
 
-      container.set('a', { x: 1, y: 2 });
+      container.set('a', { id: 'a', x: 1, y: 2 });
       container.commitChanges();
       await flush();
       expect(listener).toHaveBeenCalledTimes(1);
 
       unsubscribe();
 
-      container.set('b', { x: 3, y: 4 });
+      container.set('b', { id: 'b', x: 3, y: 4 });
       container.commitChanges();
       await flush();
-      expect(listener).toHaveBeenCalledTimes(1); // not called again
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('subscribeToAll', () => {
+    it('fires once per commit regardless of dirty count', async () => {
+      const container = setup();
+      const full = jest.fn();
+      container.subscribeToAll(full);
+
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.set('b', { id: 'b', x: 3, y: 4 });
+      container.commitChanges();
+      await flush();
+
+      expect(full).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns an unsubscribe function', async () => {
+      const container = setup();
+      const full = jest.fn();
+      const unsubscribe = container.subscribeToAll(full);
+
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.commitChanges();
+      await flush();
+      expect(full).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
+
+      container.set('b', { id: 'b', x: 3, y: 4 });
+      container.commitChanges();
+      await flush();
+      expect(full).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('reference stability', () => {
+    it('getAll returns the same array reference across data-only mutations', async () => {
+      const container = setup();
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.set('b', { id: 'b', x: 3, y: 4 });
+      container.commitChanges();
+      await flush();
+      const ref1 = container.getAll();
+      container.set('a', { id: 'a', x: 999, y: 999 });
+      container.commitChanges();
+      await flush();
+      expect(container.getAll()).toBe(ref1);
+    });
+
+    it('getAll returns the same array reference across swap-pop deletes', async () => {
+      const container = setup();
+      container.set('a', { id: 'a', x: 1, y: 2 });
+      container.set('b', { id: 'b', x: 3, y: 4 });
+      container.commitChanges();
+      await flush();
+      const ref1 = container.getAll();
+      container.delete('a');
+      container.commitChanges();
+      await flush();
+      expect(container.getAll()).toBe(ref1);
+    });
+
+    it('version is monotonically increasing', () => {
+      const container = setup();
+      const versions: number[] = [];
+      for (let index = 0; index < 50; index++) {
+        container.set(`k${index}`, { id: `k${index}`, x: index, y: index });
+        versions.push(container.getVersion());
+      }
+      for (let index = 1; index < versions.length; index++) {
+        expect(versions[index]).toBeGreaterThan(versions[index - 1]);
+      }
+    });
+  });
+
+  describe('stress — 10k random ops keep items[] and indexById in sync', () => {
+    it('invariants hold', () => {
+      const container = setup();
+      const oracle = new Map<string, Item>();
+      let counter = 0;
+      // Deterministic pseudo-random sequence — no crypto required for a stress invariant test.
+      let seed = 1;
+      const rand = (): number => {
+        seed = (seed * 9301 + 49_297) % 233_280;
+        return seed / 233_280;
+      };
+      for (let index = 0; index < 10_000; index++) {
+        const op = rand();
+        const id = `k${Math.floor(rand() * 500)}`;
+        if (op < 0.7) {
+          const v: Item = { id, x: counter++, y: counter };
+          container.set(id, v);
+          oracle.set(id, v);
+        } else {
+          container.delete(id);
+          oracle.delete(id);
+        }
+      }
+      expect(container.getSize()).toBe(oracle.size);
+      for (const [id, v] of oracle) expect(container.get(id)).toEqual(v);
     });
   });
 });
 
 describe('createAtom', () => {
+  const flushAtom = () => new Promise<void>((resolve) => queueMicrotask(resolve));
+
   it('returns initial value', () => {
     const atom = createAtom(42);
     expect(atom.get()).toBe(42);
@@ -403,7 +588,7 @@ describe('createAtom', () => {
     atom.subscribe(listener);
 
     atom.set('world');
-    await flush();
+    await flushAtom();
 
     expect(listener).toHaveBeenCalledTimes(1);
   });
@@ -416,7 +601,7 @@ describe('createAtom', () => {
     atom.subscribe(listener2);
 
     atom.set(1);
-    await flush();
+    await flushAtom();
 
     expect(listener1).toHaveBeenCalledTimes(1);
     expect(listener2).toHaveBeenCalledTimes(1);
@@ -428,13 +613,13 @@ describe('createAtom', () => {
     const unsubscribe = atom.subscribe(listener);
 
     atom.set(1);
-    await flush();
+    await flushAtom();
     expect(listener).toHaveBeenCalledTimes(1);
 
     unsubscribe();
 
     atom.set(2);
-    await flush();
+    await flushAtom();
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
@@ -445,12 +630,10 @@ describe('createAtom', () => {
 
     atom.set(1);
 
-    // atom.set reads are synchronous, but listener notifications are batched
-    // via simpleScheduler (microtask).
     expect(atom.get()).toBe(1);
     expect(listener).not.toHaveBeenCalled();
 
-    await flush();
+    await flushAtom();
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
@@ -460,7 +643,7 @@ describe('createAtom', () => {
     atom.subscribe(listener);
 
     atom.set({ count: 5, measuredCount: 3 });
-    await flush();
+    await flushAtom();
 
     expect(atom.get()).toEqual({ count: 5, measuredCount: 3 });
     expect(listener).toHaveBeenCalledTimes(1);

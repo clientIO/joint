@@ -23,7 +23,7 @@ export interface ValidateUnembeddingContext {
 }
 
 /**
- *
+ * Converts a `dia.ElementView` into a structured `{ id, model }` info record.
  * @param view
  */
 function toEmbeddingInfo(view: dia.ElementView) {

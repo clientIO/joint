@@ -6,10 +6,10 @@ import {
   Paper,
   useGraph,
   HTMLHost,
+  useCells,
+  type Cells,
   type ElementRecord,
   type LinkRecord,
-  useElements,
-  useLinks,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
@@ -23,40 +23,48 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': {
+const initialCells: Cells<NodeData> = [
+  {
+    id: '1',
+    type: 'ElementModel',
     data: { label: 'Node A', color: PRIMARY },
     position: { x: 50, y: 50 },
     size: { width: 120, height: 60 },
   },
-  '2': {
+  {
+    id: '2',
+    type: 'ElementModel',
     data: { label: 'Node B', color: SECONDARY },
     position: { x: 250, y: 50 },
     size: { width: 120, height: 60 },
   },
-  '3': {
+  {
+    id: '3',
+    type: 'ElementModel',
     data: { label: 'Node C', color: PRIMARY },
     position: { x: 150, y: 180 },
     size: { width: 120, height: 60 },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'link-1-2': {
+  {
+    id: 'link-1-2',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
     color: DARK,
   },
-  'link-1-3': {
+  {
+    id: 'link-1-3',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '3' },
     color: DARK,
   },
-};
+];
 
 // --- Node Component ---
 
-function RenderElement({ label, color }: Readonly<NodeData>) {
+function RenderElement(element: Readonly<ElementRecord<NodeData>>) {
+  const { label = '', color = PRIMARY } = element.data ?? {};
   return (
     <HTMLHost
       useModelGeometry
@@ -94,7 +102,7 @@ function ElementControls({
   size: layout,
   angle,
 }: Readonly<ElementControlsProps>) {
-  const { setElement, removeElement } = useGraph<NodeData>();
+  const { setCell, removeCell } = useGraph<NodeData>();
   const inputStyle = {
     padding: '6px 10px',
     border: '1px solid rgba(0, 0, 0, 0.15)',
@@ -133,10 +141,18 @@ function ElementControls({
           type="text"
           value={element.label}
           onChange={(event) =>
-            setElement(id, (previous) => ({
-              ...previous,
-              data: { ...previous.data!, label: event.target.value },
-            } as ElementRecord<NodeData>))
+            setCell((previous) => {
+              const previousElement = previous as ElementRecord<NodeData>;
+              const data = previousElement.data as NodeData | undefined;
+              if (!data) {
+                return { ...previousElement, id } as ElementRecord<NodeData>;
+              }
+              return {
+                ...previousElement,
+                id,
+                data: { ...data, label: event.target.value },
+              } as ElementRecord<NodeData>;
+            })
           }
           style={{ ...inputStyle, flex: 1 }}
         />
@@ -149,10 +165,18 @@ function ElementControls({
           type="color"
           value={element.color}
           onChange={(event) =>
-            setElement(id, (previous) => ({
-              ...previous,
-              data: { ...previous.data!, color: event.target.value },
-            } as ElementRecord<NodeData>))
+            setCell((previous) => {
+              const previousElement = previous as ElementRecord<NodeData>;
+              const data = previousElement.data as NodeData | undefined;
+              if (!data) {
+                return { ...previousElement, id } as ElementRecord<NodeData>;
+              }
+              return {
+                ...previousElement,
+                id,
+                data: { ...data, color: event.target.value },
+              } as ElementRecord<NodeData>;
+            })
           }
           style={{
             width: 36,
@@ -172,10 +196,14 @@ function ElementControls({
           type="number"
           value={position?.x ?? 0}
           onChange={(event) =>
-            setElement(id, (previous) => ({
-              ...previous,
-              position: { x: Number(event.target.value), y: previous.position?.y ?? 0 },
-            }))
+            setCell((previous) => {
+              const previousElement = previous as ElementRecord<NodeData>;
+              return {
+                ...previousElement,
+                id,
+                position: { x: Number(event.target.value), y: previousElement.position?.y ?? 0 },
+              } as ElementRecord<NodeData>;
+            })
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="X"
@@ -184,10 +212,14 @@ function ElementControls({
           type="number"
           value={position?.y ?? 0}
           onChange={(event) =>
-            setElement(id, (previous) => ({
-              ...previous,
-              position: { x: previous.position?.x ?? 0, y: Number(event.target.value) },
-            }))
+            setCell((previous) => {
+              const previousElement = previous as ElementRecord<NodeData>;
+              return {
+                ...previousElement,
+                id,
+                position: { x: previousElement.position?.x ?? 0, y: Number(event.target.value) },
+              } as ElementRecord<NodeData>;
+            })
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="Y"
@@ -201,10 +233,14 @@ function ElementControls({
           type="number"
           value={layout?.width ?? 0}
           onChange={(event) =>
-            setElement(id, (previous) => ({
-              ...previous,
-              size: { width: Number(event.target.value), height: previous.size?.height ?? 0 },
-            }))
+            setCell((previous) => {
+              const previousElement = previous as ElementRecord<NodeData>;
+              return {
+                ...previousElement,
+                id,
+                size: { width: Number(event.target.value), height: previousElement.size?.height ?? 0 },
+              } as ElementRecord<NodeData>;
+            })
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="W"
@@ -213,10 +249,14 @@ function ElementControls({
           type="number"
           value={layout?.height ?? 0}
           onChange={(event) =>
-            setElement(id, (previous) => ({
-              ...previous,
-              size: { width: previous.size?.width ?? 0, height: Number(event.target.value) },
-            }))
+            setCell((previous) => {
+              const previousElement = previous as ElementRecord<NodeData>;
+              return {
+                ...previousElement,
+                id,
+                size: { width: previousElement.size?.width ?? 0, height: Number(event.target.value) },
+              } as ElementRecord<NodeData>;
+            })
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="H"
@@ -232,7 +272,7 @@ function ElementControls({
           max="360"
           value={angle ?? 0}
           onChange={(event) =>
-            setElement(id, (previous) => ({ ...previous, angle: Number(event.target.value) }))
+            setCell({ id, angle: Number(event.target.value) } as ElementRecord<NodeData>)
           }
           style={{ flex: 1, accentColor: PRIMARY }}
         />
@@ -241,7 +281,7 @@ function ElementControls({
 
       {/* Remove */}
       <button
-        onClick={() => removeElement(id)}
+        onClick={() => removeCell(id)}
         style={{
           marginTop: 4,
           padding: '8px 12px',
@@ -271,7 +311,7 @@ interface LinkControlsProps {
 }
 
 function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
-  const { setLink, removeLink } = useGraph();
+  const { setCell, removeCell } = useGraph();
   const sourceId = getLinkEndpointId(link.source);
   const targetId = getLinkEndpointId(link.target);
 
@@ -296,10 +336,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
           type="color"
           value={(link.color as string) ?? '#000000'}
           onChange={(event) =>
-            setLink(id, (previous) => ({
-              ...previous,
-              color: event.target.value,
-            }))
+            setCell({ id, type: 'LinkModel', color: event.target.value } as LinkRecord)
           }
           style={{
             width: 36,
@@ -314,7 +351,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 
       {/* Remove */}
       <button
-        onClick={() => removeLink(id)}
+        onClick={() => removeCell(id)}
         style={{
           marginTop: 4,
           padding: '8px 12px',
@@ -335,14 +372,16 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 }
 
 function AddElementForm() {
-  const { setElement } = useGraph<NodeData>();
-  const elements = useElements();
+  const { addCell } = useGraph<NodeData>();
+  const elementIds = useCells<NodeData, unknown, string[]>((cells) =>
+    cells.filter((c) => c.type === 'ElementModel').map((c) => String(c.id))
+  );
   const [label, setLabel] = useState('');
 
   const handleAdd = () => {
     if (!label.trim()) return;
 
-    const existingIds = [...elements.keys()]
+    const existingIds = elementIds
       .map(Number)
       .filter((numberValue) => !Number.isNaN(numberValue));
     const newId = String(Math.max(0, ...existingIds) + 1);
@@ -352,7 +391,9 @@ function AddElementForm() {
     // eslint-disable-next-line sonarjs/pseudo-random -- Random position for demo purposes
     const randomY = 50 + Math.random() * 150;
 
-    setElement(newId, {
+    addCell({
+      id: newId,
+      type: 'ElementModel',
       data: { label: label.trim(), color: PRIMARY },
       position: { x: randomX, y: randomY },
     });
@@ -409,12 +450,18 @@ function AddElementForm() {
 }
 
 function AddLinkForm() {
-  const { setLink } = useGraph();
-  const elements = useElements();
+  const { addCell } = useGraph<NodeData>();
+  const elements = useCells<NodeData, unknown, Array<[string, ElementRecord<NodeData>]>>((cells) => {
+    const result: Array<[string, ElementRecord<NodeData>]> = [];
+    for (const cell of cells) {
+      if (cell.type === 'ElementModel') {
+        result.push([String(cell.id), cell as ElementRecord<NodeData>]);
+      }
+    }
+    return result;
+  });
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
-
-  const elementIds = [...elements.keys()];
 
   const selectStyle = {
     flex: 1,
@@ -432,7 +479,9 @@ function AddLinkForm() {
     if (!source || !target || source === target) return;
 
     const newId = `link-${source}-${target}-${Date.now()}`;
-    setLink(newId, {
+    addCell({
+      id: newId,
+      type: 'LinkModel',
       source: { id: source },
       target: { id: target },
       color: LIGHT,
@@ -459,9 +508,9 @@ function AddLinkForm() {
           style={selectStyle}
         >
           <option value="">From...</option>
-          {elementIds.map((id) => (
+          {elements.map(([id, element]) => (
             <option key={id} value={id}>
-              {(elements.get(id)?.data as NodeData | undefined)?.label}
+              {element.data?.label}
             </option>
           ))}
         </select>
@@ -471,9 +520,9 @@ function AddLinkForm() {
           style={selectStyle}
         >
           <option value="">To...</option>
-          {elementIds.map((id) => (
+          {elements.map(([id, element]) => (
             <option key={id} value={id}>
-              {(elements.get(id)?.data as NodeData | undefined)?.label}
+              {element.data?.label}
             </option>
           ))}
         </select>
@@ -499,8 +548,16 @@ function AddLinkForm() {
 
 // --- Main Component ---
 function Main() {
-  const elements = useElements<NodeData>();
-  const links = useLinks();
+  const cells = useCells<NodeData>();
+  const elements: Array<[string, ElementRecord<NodeData>]> = [];
+  const links: Array<[string, LinkRecord]> = [];
+  for (const cell of cells) {
+    if (cell.type === 'ElementModel') {
+      elements.push([String(cell.id), cell as ElementRecord<NodeData>]);
+    } else if (cell.type === 'LinkModel') {
+      links.push([String(cell.id), cell as LinkRecord]);
+    }
+  }
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
       {/* Canvas */}
@@ -557,9 +614,9 @@ function Main() {
             letterSpacing: '0.05em',
           }}
         >
-          Nodes ({elements.size})
+          Nodes ({elements.length})
         </div>
-        {[...elements.entries()].map(([id, element]) => (
+        {elements.map(([id, element]) => (
           <ElementControls
             key={id}
             id={id}
@@ -582,9 +639,9 @@ function Main() {
             letterSpacing: '0.05em',
           }}
         >
-          Links ({links.size})
+          Links ({links.length})
         </div>
-        {[...links.entries()].map(([id, link]) => (
+        {links.map(([id, link]) => (
           <LinkControls key={id} id={id} link={link} />
         ))}
       </div>
@@ -594,7 +651,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider<NodeData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

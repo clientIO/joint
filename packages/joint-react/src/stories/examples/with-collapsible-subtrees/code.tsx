@@ -1,13 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { LinkRecord } from '@joint/react';
+import type { LinkRecord, Cells } from '@joint/react';
 import {
   type ElementRecord,
   GraphProvider,
   jsx,
   Paper,
   SVGText,
-  useElementId,
+  useElement,
   useElementSize,
   useGraph,
   useMarkup,
@@ -60,148 +60,53 @@ type FTAElement =
   | ExternalEvent
   | ConditioningEvent;
 
-const initialElements: Record<string, ElementRecord<FTAElement>> = {
-  ot8h17: {
-    data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' },
-    size: { width: 120, height: 150 },
-  },
-  d8jpey: {
-    data: { type: 'IntermediateEvent', label: 'Fall from the Scaffolding', gate: 'AND' },
-    size: { width: 120, height: 150 },
-  },
-  is079n: {
-    data: { type: 'IntermediateEvent', label: 'Safety Belt Not Working', gate: 'OR' },
-    size: { width: 120, height: 150 },
-  },
-  ht8wnb: {
-    data: { type: 'IntermediateEvent', label: 'Fall By Accident', gate: 'OR' },
-    size: { width: 120, height: 150 },
-  },
-  '07vhpd': {
-    data: { type: 'IntermediateEvent', label: 'Broken By Equipment', gate: 'OR' },
-    size: { width: 120, height: 150 },
-  },
-  d8ojep: {
-    data: { type: 'IntermediateEvent', label: 'Did not Wear Safety Belt', gate: 'OR' },
-    size: { width: 120, height: 150 },
-  },
-  szf1q3: {
-    data: { type: 'UndevelopedEvent', label: 'Slip and Fall' },
-    size: { width: 140, height: 80 },
-  },
-  kj5m9a: {
-    data: { type: 'UndevelopedEvent', label: 'Lose Balance' },
-    size: { width: 140, height: 80 },
-  },
-  tcv79r: {
-    data: { type: 'UndevelopedEvent', label: 'Upholder Broken' },
-    size: { width: 140, height: 80 },
-  },
-  ylp4gu: {
-    data: { type: 'BasicEvent', label: 'Safety Belt Broken' },
-    size: { width: 80, height: 80 },
-  },
-  q2vwnc: {
-    data: { type: 'BasicEvent', label: 'Forgot to Wear' },
-    size: { width: 80, height: 80 },
-  },
-  x8rboj: {
-    data: { type: 'ExternalEvent', label: 'Take off When Walking' },
-    size: { width: 80, height: 100 },
-  },
-  mte5xr: {
-    data: { type: 'ConditioningEvent', label: 'Height and Ground Condition' },
-    size: { width: 140, height: 80 },
-  },
-};
+const initialElements: Array<ElementRecord<FTAElement>> = [
+  { id: 'ot8h17', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' }, size: { width: 120, height: 150 } },
+  { id: 'd8jpey', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Fall from the Scaffolding', gate: 'AND' }, size: { width: 120, height: 150 } },
+  { id: 'is079n', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Safety Belt Not Working', gate: 'OR' }, size: { width: 120, height: 150 } },
+  { id: 'ht8wnb', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Fall By Accident', gate: 'OR' }, size: { width: 120, height: 150 } },
+  { id: '07vhpd', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Broken By Equipment', gate: 'OR' }, size: { width: 120, height: 150 } },
+  { id: 'd8ojep', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Did not Wear Safety Belt', gate: 'OR' }, size: { width: 120, height: 150 } },
+  { id: 'szf1q3', type: 'ElementModel', data: { type: 'UndevelopedEvent', label: 'Slip and Fall' }, size: { width: 140, height: 80 } },
+  { id: 'kj5m9a', type: 'ElementModel', data: { type: 'UndevelopedEvent', label: 'Lose Balance' }, size: { width: 140, height: 80 } },
+  { id: 'tcv79r', type: 'ElementModel', data: { type: 'UndevelopedEvent', label: 'Upholder Broken' }, size: { width: 140, height: 80 } },
+  { id: 'ylp4gu', type: 'ElementModel', data: { type: 'BasicEvent', label: 'Safety Belt Broken' }, size: { width: 80, height: 80 } },
+  { id: 'q2vwnc', type: 'ElementModel', data: { type: 'BasicEvent', label: 'Forgot to Wear' }, size: { width: 80, height: 80 } },
+  { id: 'x8rboj', type: 'ElementModel', data: { type: 'ExternalEvent', label: 'Take off When Walking' }, size: { width: 80, height: 100 } },
+  { id: 'mte5xr', type: 'ElementModel', data: { type: 'ConditioningEvent', label: 'Height and Ground Condition' }, size: { width: 140, height: 80 } },
+];
 
-const initialLinks: Record<string, LinkRecord> = {
-  'link-0': {
-    source: { id: 'ot8h17' },
-    target: { id: 'd8jpey' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-1': {
-    source: { id: 'd8jpey' },
-    target: { id: 'is079n' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-2': {
-    source: { id: 'd8jpey' },
-    target: { id: 'ht8wnb' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-3': {
-    source: { id: 'is079n' },
-    target: { id: '07vhpd' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-4': {
-    source: { id: 'is079n' },
-    target: { id: 'd8ojep' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-5': {
-    source: { id: 'ht8wnb' },
-    target: { id: 'szf1q3' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-6': {
-    source: { id: 'ht8wnb' },
-    target: { id: 'kj5m9a' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-7': {
-    source: { id: '07vhpd' },
-    target: { id: 'tcv79r' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-8': {
-    source: { id: '07vhpd' },
-    target: { id: 'ylp4gu' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-9': {
-    source: { id: 'd8ojep' },
-    target: { id: 'q2vwnc' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-10': {
-    source: { id: 'd8ojep' },
-    target: { id: 'x8rboj' },
-    z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
-  },
-  'link-11': {
+const DEFAULT_LINK_STYLE = { color: PRIMARY, width: 2, targetMarker: 'none' as const };
+
+const initialLinks: LinkRecord[] = [
+  { id: 'link-0', type: 'LinkModel', source: { id: 'ot8h17' }, target: { id: 'd8jpey' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-1', type: 'LinkModel', source: { id: 'd8jpey' }, target: { id: 'is079n' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-2', type: 'LinkModel', source: { id: 'd8jpey' }, target: { id: 'ht8wnb' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-3', type: 'LinkModel', source: { id: 'is079n' }, target: { id: '07vhpd' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-4', type: 'LinkModel', source: { id: 'is079n' }, target: { id: 'd8ojep' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-5', type: 'LinkModel', source: { id: 'ht8wnb' }, target: { id: 'szf1q3' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-6', type: 'LinkModel', source: { id: 'ht8wnb' }, target: { id: 'kj5m9a' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-7', type: 'LinkModel', source: { id: '07vhpd' }, target: { id: 'tcv79r' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-8', type: 'LinkModel', source: { id: '07vhpd' }, target: { id: 'ylp4gu' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-9', type: 'LinkModel', source: { id: 'd8ojep' }, target: { id: 'q2vwnc' }, z: -1, style: DEFAULT_LINK_STYLE },
+  { id: 'link-10', type: 'LinkModel', source: { id: 'd8ojep' }, target: { id: 'x8rboj' }, z: -1, style: DEFAULT_LINK_STYLE },
+  {
+    id: 'link-11',
+    type: 'LinkModel',
     source: {
       id: 'ot8h17',
       magnet: 'gate',
-      anchor: {
-        name: 'perpendicular',
-      },
-      connectionPoint: {
-        name: 'boundary',
-      }
+      anchor: { name: 'perpendicular' },
+      connectionPoint: { name: 'boundary' },
     },
-    target: {
-      id: 'mte5xr',
-      anchor: { name: 'midSide' }
-    },
+    target: { id: 'mte5xr', anchor: { name: 'midSide' } },
     router: { name: 'normal' },
     z: -1,
-    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
+    style: DEFAULT_LINK_STYLE,
   },
-};
+];
+
+const initialCells: Cells<FTAElement> = [...initialElements, ...initialLinks];
 
 // ----------------------------------------------------------------------------
 // Custom Hooks
@@ -262,9 +167,9 @@ function useGatePattern() {
 // Shapes
 // ----------------------------------------------------------------------------
 function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
-  const { width, height } = useElementSize();
-  const id = useElementId();
-  const { setElement } = useGraph<FTAElement>();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { id } = useElement();
+  const { setCell } = useGraph<FTAElement>();
   const gatePatternUrl = useGatePattern();
   const { selectorRef } = useMarkup();
 
@@ -306,11 +211,19 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
     const nextIndex = (currentIndex + 1) % GATE_TYPES.length;
     const nextGate = GATE_TYPES[nextIndex];
 
-    setElement(id, (previous) => ({
-      ...previous,
-      data: { ...(previous.data as IntermediateEvent), gate: nextGate },
-    }));
-  }, [id, gate, setElement]);
+    setCell((previous) => {
+      const previousElement = previous as ElementRecord<FTAElement>;
+      const data = previousElement.data as IntermediateEvent | undefined;
+      if (!data) {
+        return { ...previousElement, id } as ElementRecord<FTAElement>;
+      }
+      return {
+        ...previousElement,
+        id,
+        data: { ...data, gate: nextGate },
+      } as ElementRecord<FTAElement>;
+    });
+  }, [id, gate, setCell]);
 
   return (
     <>
@@ -376,7 +289,7 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
 }
 
 function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -408,7 +321,7 @@ function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
 }
 
 function BasicEventNode(props: Readonly<BasicEvent>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   const bodyPatternUrl = useElementPattern();
   const { label } = props;
   return (
@@ -442,7 +355,7 @@ function BasicEventNode(props: Readonly<BasicEvent>) {
 }
 
 function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -474,7 +387,7 @@ function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
 }
 
 function ConditioningEventNode({ label }: Readonly<ConditioningEvent>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -511,22 +424,23 @@ function ConditioningEventNode({ label }: Readonly<ConditioningEvent>) {
 // ----------------------------------------------------------------------------
 // Render Dispatcher
 // ----------------------------------------------------------------------------
-function RenderFTAElement(props: Readonly<FTAElement>) {
-  switch (props.type) {
+function RenderFTAElement(data: FTAElement | undefined) {
+  if (!data) return null;
+  switch (data.type) {
     case 'IntermediateEvent': {
-      return <IntermediateEventNode {...props} />;
+      return <IntermediateEventNode {...data} />;
     }
     case 'UndevelopedEvent': {
-      return <UndevelopedEventNode {...props} />;
+      return <UndevelopedEventNode {...data} />;
     }
     case 'BasicEvent': {
-      return <BasicEventNode {...props} />;
+      return <BasicEventNode {...data} />;
     }
     case 'ExternalEvent': {
-      return <ExternalEventNode {...props} />;
+      return <ExternalEventNode {...data} />;
     }
     case 'ConditioningEvent': {
-      return <ConditioningEventNode {...props} />;
+      return <ConditioningEventNode {...data} />;
     }
   }
 }
@@ -709,7 +623,7 @@ function Main() {
   useNodesMeasuredEffect(paperId, handleElementsMeasured);
 
   const renderElement = useCallback(
-    (props: Readonly<FTAElement>) => <RenderFTAElement {...props} />,
+    (data: FTAElement | undefined) => RenderFTAElement(data),
     []
   );
 
@@ -732,7 +646,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider<FTAElement> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

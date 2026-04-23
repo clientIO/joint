@@ -1,6 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { usePaper } from './use-paper';
-import { useElementId } from './use-element-id';
+import { CellIdContext } from '../context';
 import type { dia } from '@joint/core';
 import { PORTAL_SELECTOR } from '../models/element-model';
 
@@ -32,7 +32,10 @@ import { PORTAL_SELECTOR } from '../models/element-model';
  */
 export function useMarkup() {
     const { paper } = usePaper();
-    const id = useElementId();
+    const id = useContext(CellIdContext);
+    if (id === undefined) {
+      throw new Error('useMarkup() must be used inside renderElement');
+    }
     const selectorRef = useCallback((selector: string) => {
         if (selector === PORTAL_SELECTOR) {
             throw new Error(

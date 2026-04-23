@@ -1,34 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
- 
+
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
 import {
   GraphProvider,
-  type ElementRecord,
-  type LinkRecord,
+  type Cells,
 } from '@joint/react';
 import { Paper } from '../../../components/paper/paper';
 
 type ElementData = { label: string; color: string };
-const initialElements: Record<string, ElementRecord<ElementData>> = {
-  '1': {
-    data: { label: 'Node 1', color: PRIMARY },
-    position: { x: 100, y: 15 },
-    size: {
-      width: 140,
-      height: 50,
-    },
-  },
-  '2': {
-    data: { label: 'Node 2', color: PRIMARY },
-    position: { x: 100, y: 200 },
-    size: {
-      width: 140,
-      height: 50,
-    },
-  },
-};
 
 class LinkModel extends shapes.standard.Link {
   defaults() {
@@ -63,6 +44,30 @@ class LinkModel extends shapes.standard.Link {
   }
 }
 
+const initialCells: Cells<ElementData> = [
+  {
+    id: '1',
+    type: 'ElementModel',
+    data: { label: 'Node 1', color: PRIMARY },
+    position: { x: 100, y: 15 },
+    size: { width: 140, height: 50 },
+  },
+  {
+    id: '2',
+    type: 'ElementModel',
+    data: { label: 'Node 2', color: PRIMARY },
+    position: { x: 100, y: 200 },
+    size: { width: 140, height: 50 },
+  },
+  {
+    id: '1123',
+    type: 'LinkModel',
+    source: { id: '1' },
+    target: { id: '2' },
+    attrs: LinkModel.getPresentationAttributes(PRIMARY),
+  },
+];
+
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
@@ -71,20 +76,10 @@ function Main() {
   );
 }
 
-const links: Record<string, LinkRecord> = {
-  '1123': {
-    source: { id: '1' },
-    target: { id: '2' },
-    type: 'LinkModel',
-    attrs: LinkModel.getPresentationAttributes(PRIMARY)
-  },
-};
-
 export default function App() {
   return (
     <GraphProvider
-      initialLinks={links as Record<string, LinkRecord>}
-      initialElements={initialElements}
+      initialCells={initialCells}
       cellNamespace={{ LinkModel }}
     >
       <Main />

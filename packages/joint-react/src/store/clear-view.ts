@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { CellId } from '../types/cell-id';
+import type { CellId } from '../types/cell.types';
 import type { IncrementalChange } from '../state/incremental.types';
 
 /**
@@ -79,7 +79,7 @@ export function clearConnectedLinkViews(
   cellId: CellId,
   onValidateLink?: (link: dia.Link) => boolean
 ) {
-  const changes: Map<string, IncrementalChange<dia.Cell>> = new Map();
+  const changes: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
   const cell = graph.getCell(cellId);
   if (!cell) {
     return changes;

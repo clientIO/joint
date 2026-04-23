@@ -1,7 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type dia, g, highlighters, V } from '@joint/core';
-import type { ElementRecord } from '@joint/react';
 import {
   GraphProvider,
   Paper,
@@ -9,6 +8,7 @@ import {
   useElementSize,
   useGraph,
   useNodesMeasuredEffect,
+  type Cells,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
@@ -27,34 +27,42 @@ interface ShapeElement {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<ShapeElement>> = {
-  rectangle: {
+const initialCells: Cells<ShapeElement> = [
+  {
+    id: 'rectangle',
+    type: 'ElementModel',
     data: { type: ShapeTypes.rectangle, label: 'Rectangle' },
     size: { width: 100, height: 100 },
     position: { x: 20, y: 20 },
   },
-  circle: {
+  {
+    id: 'circle',
+    type: 'ElementModel',
     data: { type: ShapeTypes.circle, label: 'Circle' },
     size: { width: 100, height: 100 },
     position: { x: 160, y: 20 },
   },
-  ellipse: {
+  {
+    id: 'ellipse',
+    type: 'ElementModel',
     data: { type: ShapeTypes.ellipse, label: 'Ellipse' },
     size: { width: 150, height: 100 },
     position: { x: 320, y: 20 },
   },
-  path: {
+  {
+    id: 'path',
+    type: 'ElementModel',
     data: { type: ShapeTypes.path, label: 'Path' },
     size: { width: 100, height: 100 },
     position: { x: 520, y: 20 },
   },
-};
+];
 
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
 function RectangleShape({ label }: Readonly<ShapeElement>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return (
     <>
       <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} />
@@ -74,7 +82,7 @@ function RectangleShape({ label }: Readonly<ShapeElement>) {
 }
 
 function CircleShape({ label }: Readonly<ShapeElement>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return (
     <>
       <circle
@@ -101,7 +109,7 @@ function CircleShape({ label }: Readonly<ShapeElement>) {
 }
 
 function EllipseShape({ label }: Readonly<ShapeElement>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return (
     <>
       <ellipse
@@ -129,7 +137,7 @@ function EllipseShape({ label }: Readonly<ShapeElement>) {
 }
 
 function PathShape({ label }: Readonly<ShapeElement>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return (
     <>
       <path
@@ -155,19 +163,20 @@ function PathShape({ label }: Readonly<ShapeElement>) {
 // ----------------------------------------------------------------------------
 // Renderer
 // ----------------------------------------------------------------------------
-function RenderElement(props: Readonly<ShapeElement>) {
-  switch (props.type) {
+function RenderElement(data: ShapeElement | undefined) {
+  if (!data) return null;
+  switch (data.type) {
     case ShapeTypes.rectangle: {
-      return <RectangleShape {...props} />;
+      return <RectangleShape {...data} />;
     }
     case ShapeTypes.circle: {
-      return <CircleShape {...props} />;
+      return <CircleShape {...data} />;
     }
     case ShapeTypes.ellipse: {
-      return <EllipseShape {...props} />;
+      return <EllipseShape {...data} />;
     }
     case ShapeTypes.path: {
-      return <PathShape {...props} />;
+      return <PathShape {...data} />;
     }
   }
 }
@@ -256,7 +265,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

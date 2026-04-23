@@ -1,18 +1,28 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useMemo, useState } from 'react';
 import {
-  GraphProvider, Paper, HTMLBox, useMarkup, useElementSize,
-  type ElementRecord, type ElementPort, type LinkRecord, usePaper,
+  GraphProvider,
+  Paper,
+  HTMLBox,
+  useMarkup,
+  useElementSize,
+  type Cells,
+  type ElementPort,
+  type LinkRecord,
+  usePaper,
 } from '@joint/react';
 import {
-  linkRoutingStraight, linkRoutingOrthogonal, linkRoutingSmooth,
-  type LinkRoutingStraightOptions, type LinkRoutingOrthogonalOptions, type LinkRoutingSmoothOptions,
-  type LinkMode
+  linkRoutingStraight,
+  linkRoutingOrthogonal,
+  linkRoutingSmooth,
+  type LinkRoutingStraightOptions,
+  type LinkRoutingOrthogonalOptions,
+  type LinkRoutingSmoothOptions,
+  type LinkMode,
 } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 import type { dia } from '@joint/core';
-
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
@@ -25,61 +35,75 @@ interface NodeData {
 const PORT_OUT: ElementPort = { cx: 'calc(w)', cy: 'calc(h/2)', width: 16, height: 16 };
 const PORT_IN: ElementPort = { cx: 0, cy: 'calc(h/2)', passive: true, width: 16, height: 16 };
 const PORT_ERROR: ElementPort = { cx: 'calc(w/2)', cy: 'calc(h)', width: 16, height: 16 };
-const DEFAULT_LINK: LinkRecord = { style: { color: PRIMARY, targetMarker: 'arrow' }};
+const DEFAULT_LINK_STYLE: LinkRecord['style'] = { color: PRIMARY, targetMarker: 'arrow' };
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  a: {
+const initialCells: Cells<NodeData> = [
+  {
+    id: 'a',
+    type: 'ElementModel',
     data: { label: 'Port A' },
     position: { x: 50, y: 50 },
     size: { width: 120, height: 60 },
     portMap: { out: PORT_OUT, error: PORT_ERROR },
   },
-  b: {
+  {
+    id: 'b',
+    type: 'ElementModel',
     data: { label: 'Port B' },
     position: { x: 350, y: 80 },
     size: { width: 120, height: 60 },
     portMap: { in: PORT_IN, out: PORT_OUT },
   },
-  c: {
+  {
+    id: 'c',
+    type: 'ElementModel',
     data: { label: 'Root A' },
     position: { x: 200, y: 220 },
     size: { width: 120, height: 60 },
   },
-  d: {
+  {
+    id: 'd',
+    type: 'ElementModel',
     data: { label: 'Root B' },
     position: { x: 500, y: 250 },
     size: { width: 120, height: 60 },
   },
-  e: {
+  {
+    id: 'e',
+    type: 'ElementModel',
     data: { label: 'Magnet A', type: 'svg' },
     position: { x: 80, y: 370 },
     size: { width: 140, height: 80 },
   },
-  f: {
+  {
+    id: 'f',
+    type: 'ElementModel',
     data: { label: 'Magnet B', type: 'svg' },
     position: { x: 420, y: 400 },
     size: { width: 140, height: 80 },
   },
-};
-
-
-const initialLinks: Record<string, LinkRecord> = {
-  'a-b': {
-    ...DEFAULT_LINK,
+  {
+    id: 'a-b',
+    type: 'LinkModel',
+    style: DEFAULT_LINK_STYLE,
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },
   },
-  'c-d': {
-    ...DEFAULT_LINK,
+  {
+    id: 'c-d',
+    type: 'LinkModel',
+    style: DEFAULT_LINK_STYLE,
     source: { id: 'c' },
     target: { id: 'd' },
   },
-  'e-f': {
-    ...DEFAULT_LINK,
+  {
+    id: 'e-f',
+    type: 'LinkModel',
+    style: DEFAULT_LINK_STYLE,
     source: { id: 'e', selector: 'connector' },
     target: { id: 'f', selector: 'connector' },
   },
-};
+];
 
 // ── Element renderers ───────────────────────────────────────────────────────
 
@@ -89,7 +113,7 @@ function RenderHTMLElement({ label }: Readonly<NodeData>) {
 
 function RenderSVGElement({ label }: Readonly<NodeData>) {
   const { selectorRef } = useMarkup();
-  const { width = 0, height = 0 } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return (
     <>
       <rect
@@ -131,7 +155,8 @@ function RenderSVGElement({ label }: Readonly<NodeData>) {
   );
 }
 
-function RenderElement(data: Readonly<NodeData>) {
+function RenderElement(data: NodeData | undefined) {
+  if (!data) return null;
   if (data.type === 'svg') return <RenderSVGElement {...data} />;
   return <RenderHTMLElement {...data} />;
 }
@@ -147,15 +172,29 @@ function buildPreset(
   targetOffset: number,
   cornerType: LinkRoutingOrthogonalOptions['cornerType'],
   cornerRadius: number,
-  straightWhenDisconnected: boolean,
+  straightWhenDisconnected: boolean
 ) {
   const base = { mode, sourceOffset, targetOffset };
   switch (name) {
-    case 'straight': { return linkRoutingStraight({ sourceOffset, targetOffset } satisfies LinkRoutingStraightOptions);
+    case 'straight': {
+      return linkRoutingStraight({
+        sourceOffset,
+        targetOffset,
+      } satisfies LinkRoutingStraightOptions);
     }
-    case 'orthogonal': { return linkRoutingOrthogonal({ ...base, cornerType, cornerRadius, straightWhenDisconnected } satisfies LinkRoutingOrthogonalOptions);
+    case 'orthogonal': {
+      return linkRoutingOrthogonal({
+        ...base,
+        cornerType,
+        cornerRadius,
+        straightWhenDisconnected,
+      } satisfies LinkRoutingOrthogonalOptions);
     }
-    case 'smooth': { return linkRoutingSmooth({ ...base, straightWhenDisconnected } satisfies LinkRoutingSmoothOptions);
+    case 'smooth': {
+      return linkRoutingSmooth({
+        ...base,
+        straightWhenDisconnected,
+      } satisfies LinkRoutingSmoothOptions);
     }
   }
 }
@@ -163,12 +202,26 @@ function buildPreset(
 // ── Controls ────────────────────────────────────────────────────────────────
 
 const PRESET_NAMES: PresetName[] = ['straight', 'orthogonal', 'smooth'];
-const ANCHOR_MODES: LinkMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical', 'top-bottom', 'bottom-top', 'left-right', 'right-left'];
-const CORNER_TYPES: Array<NonNullable<LinkRoutingOrthogonalOptions['cornerType']>> = ['cubic', 'line', 'point', 'gap'];
+const ANCHOR_MODES: LinkMode[] = [
+  'auto',
+  'horizontal',
+  'vertical',
+  'prefer-horizontal',
+  'prefer-vertical',
+  'top-bottom',
+  'bottom-top',
+  'left-right',
+  'right-left',
+];
+const CORNER_TYPES: Array<NonNullable<LinkRoutingOrthogonalOptions['cornerType']>> = [
+  'cubic',
+  'line',
+  'point',
+  'gap',
+];
 
-
-function createLink(): LinkRecord {
-  return DEFAULT_LINK;
+function createLink() {
+  return { style: DEFAULT_LINK_STYLE };
 }
 
 function PresetPicker() {
@@ -182,8 +235,25 @@ function PresetPicker() {
 
   const { paper } = usePaper('main-paper');
   const linkPreset = useMemo(
-    () => buildPreset(preset, linkMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhenDisconnected),
-    [preset, linkMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhenDisconnected]
+    () =>
+      buildPreset(
+        preset,
+        linkMode,
+        sourceOffset,
+        targetOffset,
+        cornerType,
+        cornerRadius,
+        straightWhenDisconnected
+      ),
+    [
+      preset,
+      linkMode,
+      sourceOffset,
+      targetOffset,
+      cornerType,
+      cornerRadius,
+      straightWhenDisconnected,
+    ]
   );
 
   useEffect(() => {
@@ -242,7 +312,9 @@ function PresetPicker() {
                 onChange={(event) => setLinkMode(event.target.value as LinkMode)}
               >
                 {ANCHOR_MODES.map((m) => (
-                  <option key={m} value={m}>{m}</option>
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
                 ))}
               </select>
             </label>
@@ -288,10 +360,14 @@ function PresetPicker() {
                 <select
                   className="px-1.5 py-0.5 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                   value={cornerType}
-                  onChange={(event) => setCornerType(event.target.value as LinkRoutingOrthogonalOptions['cornerType'])}
+                  onChange={(event) =>
+                    setCornerType(event.target.value as LinkRoutingOrthogonalOptions['cornerType'])
+                  }
                 >
                   {CORNER_TYPES.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -315,7 +391,7 @@ function PresetPicker() {
 export default function App() {
   return (
     <div>
-      <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+      <GraphProvider initialCells={initialCells}>
         <PresetPicker />
       </GraphProvider>
     </div>

@@ -3,6 +3,7 @@ import type { dia } from '@joint/core';
 export * from './convert-labels-reverse';
 export * from './element-mapper';
 export * from './link-mapper';
+export * from './cell-mapper';
 
 /**
  * Like `dia.Cell.JSON` but with `id` optional.

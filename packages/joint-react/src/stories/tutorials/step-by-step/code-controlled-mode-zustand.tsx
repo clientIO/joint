@@ -15,25 +15,32 @@
  * 1. **Zustand Store**: A simple store created with `create()` that manages
  *    state and provides actions to update it.
  *
- * 2. **React-Controlled Mode**: We read elements/links from the Zustand store
- *    and pass them as props to GraphProvider with onElementsChange/onLinksChange
- *    callbacks to sync graph changes back to Zustand.
+ * 2. **React-Controlled Mode**: We read the unified `cells` array from the
+ *    Zustand store and pass it as a prop to `GraphProvider` with an
+ *    `onCellsChange` callback that writes back into the store.
  *
- * 3. **Simple API**: Zustand has a very simple API - just create a store,
- *    define state and actions, and use hooks to access them.
+ * 3. **Single Unified Slot**: Elements and links live side by side in the
+ *    same `cells: Cells` array, distinguished by the `type` field.
  *
  * HOW IT WORKS:
  *
- * 1. Create a Zustand store with elements and links state
- * 2. Create actions to update the state (addElement, removeLastElement, etc.)
- * 3. Read elements/links from the store via useGraphStore hooks
- * 4. Pass them as props to GraphProvider with onElementsChange/onLinksChange
- * 5. All state changes automatically sync between the graph and Zustand
+ * 1. Create a Zustand store with a `cells` array and actions on it
+ * 2. Read `cells` from the store via `useGraphStore`
+ * 3. Pass it as `cells` to `GraphProvider` with `onCellsChange={setCells}`
+ * 4. All state changes automatically sync between the graph and Zustand
  *
  * ============================================================================
  */
 
-import { GraphProvider, HTMLHost, type ElementRecord, type LinkRecord, Paper } from '@joint/react';
+import {
+  GraphProvider,
+  HTMLHost,
+  Paper,
+  useElement,
+  type Cells,
+  type ElementRecord,
+  type LinkRecord,
+} from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { create } from 'zustand';
@@ -47,28 +54,38 @@ import { create } from 'zustand';
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementRecord<ElementData>;
-
-const defaultElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'World' }, position: { x: 100, y: 200 } },
-};
-
-const defaultLinks: Record<string, LinkRecord> = {
-  'e1-2': {
+const defaultCells: Cells<ElementData> = [
+  {
+    id: '1',
+    type: 'ElementModel',
+    data: { label: 'Hello' },
+    position: { x: 100, y: 15 },
+  },
+  {
+    id: '2',
+    type: 'ElementModel',
+    data: { label: 'World' },
+    position: { x: 100, y: 200 },
+  },
+  {
+    id: 'e1-2',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
 // ============================================================================
 // STEP 2: Custom Element Renderer
 // ============================================================================
 
-function RenderItem({ label }: Readonly<ElementData>) {
+const NODE_STYLE = { width: 100, height: 50 };
+
+function RenderItem() {
+  const label = useElement<ElementData>().data?.label ?? '';
   return (
-    <HTMLHost className="node" style={{ width: 100, height: 50 }}>
+    <HTMLHost className="node" style={NODE_STYLE}>
       {label}
     </HTMLHost>
   );
@@ -82,17 +99,13 @@ function RenderItem({ label }: Readonly<ElementData>) {
  * Zustand store interface for graph state.
  */
 interface GraphStore {
-  /** Record of all elements (nodes) in the graph keyed by ID */
-  elements: Record<string, CustomElement>;
-  /** Record of all links (edges) in the graph keyed by ID */
-  links: Record<string, LinkRecord>;
-  /** Action to set elements (used by onElementsChange callback) */
-  setElements: (updater: React.SetStateAction<Record<string, CustomElement>>) => void;
-  /** Action to set links (used by onLinksChange callback) */
-  setLinks: (updater: React.SetStateAction<Record<string, LinkRecord>>) => void;
-  /** Action to add a new element */
-  addElement: (id: string, data: CustomElement) => void;
-  /** Action to remove the last element */
+  /** Unified cells array — elements and links together. */
+  cells: Cells<ElementData>;
+  /** Setter that accepts a value or updater (mirrors React's setState). */
+  setCells: (updater: React.SetStateAction<Cells<ElementData>>) => void;
+  /** Action to add a new element. */
+  addElement: (element: ElementRecord<ElementData>) => void;
+  /** Action to remove the last element (and its connected links). */
   removeLastElement: () => void;
 }
 
@@ -101,51 +114,43 @@ interface GraphStore {
  * Zustand stores are simple - just define state and actions in one place.
  */
 const useGraphStore = create<GraphStore>((set) => ({
-  elements: defaultElements,
-  links: defaultLinks,
+  cells: defaultCells,
 
-  setElements: (updater: React.SetStateAction<Record<string, CustomElement>>) => {
+  setCells: (updater) => {
     set((state) => ({
-      elements: typeof updater === 'function' ? updater(state.elements) : updater,
+      cells: typeof updater === 'function' ? updater(state.cells) : updater,
     }));
   },
 
-  setLinks: (updater: React.SetStateAction<Record<string, LinkRecord>>) => {
-    set((state) => ({
-      links: typeof updater === 'function' ? updater(state.links) : updater,
-    }));
-  },
-
-  addElement: (id: string, element: CustomElement) => {
-    set((state) => ({
-      elements: { ...state.elements, [id]: element },
-    }));
+  addElement: (element) => {
+    set((state) => ({ cells: [...state.cells, element] }));
   },
 
   removeLastElement: () => {
     set((state) => {
-      const elementIds = Object.keys(state.elements);
-      if (elementIds.length === 0) {
-        return state;
-      }
-      const removedElementId = elementIds.at(-1);
-      if (!removedElementId) {
-        return state;
-      }
-      // eslint-disable-next-line sonarjs/no-unused-vars
-      const { [removedElementId]: _removed, ...newElements } = state.elements;
-
-      const newLinks: Record<string, LinkRecord> = {};
-      for (const [id, link] of Object.entries(state.links)) {
-        if (link.source !== removedElementId && link.target !== removedElementId) {
-          newLinks[id] = link;
+      // Find the last element cell (not a link)
+      let removedElementIndex = -1;
+      for (let index = state.cells.length - 1; index >= 0; index--) {
+        if (state.cells[index].type === 'ElementModel') {
+          removedElementIndex = index;
+          break;
         }
       }
+      if (removedElementIndex === -1) return state;
 
-      return {
-        elements: newElements,
-        links: newLinks,
-      };
+      const removedElementId = state.cells[removedElementIndex].id;
+      const nextCells = state.cells.filter((cell, index) => {
+        if (index === removedElementIndex) return false;
+        if (cell.type === 'LinkModel') {
+          const link = cell as LinkRecord;
+          if (link.source?.id === removedElementId || link.target?.id === removedElementId) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      return { cells: nextCells };
     });
   },
 }));
@@ -172,11 +177,13 @@ function PaperApp() {
           onClick={() => {
             // Use Zustand action to add a new element
             const newId = Math.random().toString(36).slice(7);
-            const newElement: CustomElement = {
+            const newElement: ElementRecord<ElementData> = {
+              id: newId,
+              type: 'ElementModel',
               data: { label: 'New Node' },
               position: { x: Math.random() * 200, y: Math.random() * 200 },
             };
-            addElement(newId, newElement);
+            addElement(newElement);
           }}
         >
           Add Element
@@ -197,25 +204,15 @@ function PaperApp() {
 }
 
 /**
- * Main component that reads state from Zustand and connects it to GraphProvider
- * using React-controlled mode.
+ * Main component that reads cells from Zustand and connects them to
+ * GraphProvider using React-controlled mode.
  */
 function Main() {
-  // Read elements and links from Zustand store
-  const elements = useGraphStore((state) => state.elements);
-  const links = useGraphStore((state) => state.links);
-
-  // Get setter actions from Zustand store for onElementsChange/onLinksChange callbacks
-  const setElements = useGraphStore((state) => state.setElements);
-  const setLinks = useGraphStore((state) => state.setLinks);
+  const cells = useGraphStore((state) => state.cells);
+  const setCells = useGraphStore((state) => state.setCells);
 
   return (
-    <GraphProvider
-      elements={elements}
-      links={links}
-      onElementsChange={setElements as never}
-      onLinksChange={setLinks as never}
-    >
+    <GraphProvider<ElementData> cells={cells} onCellsChange={setCells}>
       <PaperApp />
     </GraphProvider>
   );
@@ -228,11 +225,12 @@ function Main() {
  *
  * To use Zustand with `@joint/react`:
  *
- * 1. Create a Zustand store with create() containing elements and links
- * 2. Define actions to update the state (addElement, removeLastElement, etc.)
- * 3. Read elements/links from the store via useGraphStore hooks
- * 4. Pass them as props to GraphProvider with onElementsChange/onLinksChange
- * 5. Use Zustand hooks (useGraphStore) to access actions in components
+ * 1. Create a Zustand store that owns a single `cells` array (elements +
+ *    links together, distinguished by `type`).
+ * 2. Define actions to update the state (addElement, removeLastElement, etc).
+ * 3. Read cells from the store via `useGraphStore`.
+ * 4. Pass them to `GraphProvider` as `cells={cells}` with `onCellsChange`.
+ * 5. Use Zustand hooks to access actions in components.
  *
  * Benefits:
  * - Simple, lightweight API

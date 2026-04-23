@@ -1,17 +1,25 @@
-import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useSyncExternalStore,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
-import { useGraphStore, usePaper, useElementId, useElementData } from '../../../hooks';
-import { useElementPosition } from '../../../hooks/use-element-position';
-import { useElementSize } from '../../../hooks/use-element-size';
+import { useGraphStore, usePaper } from '../../../hooks';
+import { useCellId } from '../../../hooks/use-cell-id';
+import type { CellId, ElementRecord } from '../../../types/cell.types';
 
 /**
  * Props for element item portal components.
- * No `id` or data props — the component reads data via hooks from CellIdContext.
+ * Reads the current cell id from `CellIdContext` and subscribes to its
+ * record via the graph store directly.
  */
 export interface ElementItemProps {
-  /** Function that renders the element content. Receives element data from hooks internally. */
-  readonly renderElement: (element: Record<string, unknown>) => ReactNode;
+  /** Renderer receiving only the element's `data` slice. */
+  readonly renderElement: (data: unknown) => ReactNode;
   /** The DOM element to portal into. */
   readonly portalElement: SVGElement | HTMLElement | null;
   /** Whether all auto-sized elements have been measured. */
@@ -19,16 +27,56 @@ export interface ElementItemProps {
 }
 
 /**
- * SVG element portal component.
- * Reads element data via useElementData from CellIdContext — no data props needed.
- * Clears cached views after measurement to force re-render with correct dimensions.
- * @param props
+ * Subscribe only to the `data` slice of the current element. Returns the
+ * same reference across unrelated cell updates (position / size / angle
+ * changes preserve the `data` ref via `mergeElementRecord`), so React
+ * skips the re-render unless `data` actually changed.
+ * @returns current element's `data`, possibly undefined
+ */
+function useElementDataSnapshot(id: CellId): unknown {
+  const store = useGraphStore();
+  const { cells } = store.graphView;
+  const subscribe = useCallback(
+    (listener: () => void) => cells.subscribe(id, listener),
+    [cells, id]
+  );
+  const getSnapshot = useCallback(
+    () => (cells.get(id) as ElementRecord | undefined)?.data,
+    [cells, id]
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
+/**
+ * Read the current element record (full cell). Used by the HTML portal
+ * wrapper which also needs position and size for its absolute-positioned
+ * container div.
+ * @returns current element record, or a placeholder when missing
+ */
+function useCurrentElementRecord(id: CellId): ElementRecord {
+  const store = useGraphStore();
+  const { cells } = store.graphView;
+  const subscribe = useCallback(
+    (listener: () => void) => cells.subscribe(id, listener),
+    [cells, id]
+  );
+  const getSnapshot = useCallback(() => cells.get(id), [cells, id]);
+  const cell = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  return (cell ?? { id, type: '' }) as unknown as ElementRecord;
+}
+
+/**
+ * SVG element portal component. Subscribes only to the element's `data`
+ * slice — position and size are handled by JointJS's view transform and
+ * never cause a React re-render here. Clears cached views after
+ * measurement to force re-render with correct dimensions.
+ * @param props - render/portal props
  * @internal
  */
 function SVGElementItemComponent(props: ElementItemProps) {
   const { renderElement: RenderElement, portalElement, areElementsMeasured } = props;
-  const id = useElementId();
-  const data = useElementData();
+  const id = useCellId();
+  const data = useElementDataSnapshot(id);
   const graphStore = useGraphStore();
   const { paper } = usePaper();
   useLayoutEffect(() => {
@@ -42,33 +90,32 @@ function SVGElementItemComponent(props: ElementItemProps) {
     return null;
   }
 
-  // Pass user data (D) to renderElement — only re-renders when data changes
-  const element = <RenderElement {...data} />;
-  return createPortal(element, portalElement);
+  return createPortal(RenderElement(data), portalElement);
 }
 
 /**
- * Helper paper render component wrapped in a portal to render SVGElement.
- * @param props - The props for the component.
- * @group Components
- * @returns The rendered element inside the portal.
+ * SVG portal wrapper used by `renderElement`.
  * @internal
  */
 export const SVGElementItem = typedMemo(SVGElementItemComponent);
 
 /**
- * HTML element portal component with absolute positioning.
- * Reads position/size from the elements container for CSS positioning.
- * @param props
+ * HTML element portal component with absolute positioning. Reads
+ * `position` / `size` directly from the element record; `renderElement`
+ * only receives `data` and is memoised on the `data` reference so position
+ * or size updates re-style the wrapper without re-invoking the user render.
+ * @param props - render/portal props
  * @internal
  */
 function HTMLElementItemComponent(props: ElementItemProps) {
   const { renderElement: RenderElement, portalElement } = props;
-  const id = useElementId();
-  const data = useElementData();
+  const id = useCellId();
+  const element = useCurrentElementRecord(id);
 
-  const { x, y } = useElementPosition();
-  const { width, height } = useElementSize();
+  const x = element.position?.x ?? 0;
+  const y = element.position?.y ?? 0;
+  const width = element.size?.width ?? 0;
+  const height = element.size?.height ?? 0;
 
   const style = useMemo(
     (): CSSProperties => ({
@@ -83,14 +130,20 @@ function HTMLElementItemComponent(props: ElementItemProps) {
     [height, width, x, y]
   );
 
+  // Only re-invoke the user's render when `data` actually changes — position
+  // and size changes flow into `style` above without touching the renderer.
+  const renderedContent = useMemo(
+    () => RenderElement(element.data),
+    [RenderElement, element.data]
+  );
+
   if (!portalElement) {
     return null;
   }
 
-  const element = <RenderElement {...data} />;
   const container = (
     <div model-id={id} style={style}>
-      {element}
+      {renderedContent}
     </div>
   );
 
@@ -98,10 +151,7 @@ function HTMLElementItemComponent(props: ElementItemProps) {
 }
 
 /**
- * Helper paper render component wrapped in a portal to render HTMLElement.
- * @param props - The props for the component.
- * @group Components
- * @returns The rendered element inside the portal.
+ * HTML portal wrapper used by `renderElement` with `useHTMLOverlay`.
  * @internal
  */
 export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
@@ -110,10 +160,12 @@ export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
  * SVG hit area for elements rendered in the HTML overlay layer.
  * Renders a transparent rectangle matching the element's size so that
  * pointer events (click, hover, drag) are captured by the SVG paper.
- * @group Components
  * @internal
  */
 export function ElementHitArea() {
-  const { width, height } = useElementSize();
+  const id = useCellId();
+  const element = useCurrentElementRecord(id);
+  const width = element.size?.width ?? 0;
+  const height = element.size?.height ?? 0;
   return <rect width={width} height={height} fill="transparent" />;
 }

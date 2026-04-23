@@ -163,8 +163,7 @@ describe('use-graph-events', () => {
 
   it('cleans up listeners on unmount', async () => {
     const wrapper = graphProviderWrapper({
-      elements: {},
-      links: {},
+      initialCells: [],
     });
 
     const onBatchStart = jest.fn();

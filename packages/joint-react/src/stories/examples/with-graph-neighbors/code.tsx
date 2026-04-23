@@ -9,8 +9,7 @@ import {
   useGraph,
   useMarkup,
   usePaperEvents,
-  type ElementRecord,
-  type LinkRecord,
+  type Cells,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -26,101 +25,28 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  server: {
-    data: { label: 'Server' },
-    position: { x: 300, y: 30 },
-    size: { width: 120, height: 40 },
-  },
-  db: {
-    data: { label: 'Database' },
-    position: { x: 80, y: 120 },
-    size: { width: 120, height: 40 },
-  },
-  cache: {
-    data: { label: 'Cache' },
-    position: { x: 520, y: 120 },
-    size: { width: 120, height: 40 },
-  },
-  auth: {
-    data: { label: 'Auth' },
-    position: { x: 120, y: 250 },
-    size: { width: 120, height: 40 },
-  },
-  api: {
-    data: { label: 'API' },
-    position: { x: 480, y: 250 },
-    size: { width: 120, height: 40 },
-  },
-  worker: {
-    data: { label: 'Worker' },
-    position: { x: 80, y: 380 },
-    size: { width: 120, height: 40 },
-  },
-  queue: {
-    data: { label: 'Queue' },
-    position: { x: 520, y: 380 },
-    size: { width: 120, height: 40 },
-  },
-  logs: {
-    data: { label: 'Logs' },
-    position: { x: 300, y: 420 },
-    size: { width: 120, height: 40 },
-  },
-};
+const SIZE = { width: 120, height: 40 };
 
-const initialLinks: Record<string, LinkRecord> = {
-  'l-server-db': {
-    source: { id: 'server' },
-    target: { id: 'db' },
-    style: { color: LIGHT },
-  },
-  'l-server-cache': {
-    source: { id: 'server' },
-    target: { id: 'cache' },
-    style: { color: LIGHT },
-  },
-  'l-server-api': {
-    source: { id: 'server' },
-    target: { id: 'api' },
-    style: { color: LIGHT },
-  },
-  'l-db-auth': {
-    source: { id: 'db' },
-    target: { id: 'auth' },
-    style: { color: LIGHT },
-  },
-  'l-cache-api': {
-    source: { id: 'cache' },
-    target: { id: 'api' },
-    style: { color: LIGHT },
-  },
-  'l-auth-worker': {
-    source: { id: 'auth' },
-    target: { id: 'worker' },
-    style: { color: LIGHT },
-  },
-  'l-api-queue': {
-    source: { id: 'api' },
-    target: { id: 'queue' },
-    style: { color: LIGHT },
-  },
-  'l-worker-logs': {
-    source: { id: 'worker' },
-    target: { id: 'logs' },
-    style: { color: LIGHT },
-  },
-  'l-queue-logs': {
-    source: { id: 'queue' },
-    target: { id: 'logs' },
-    style: { color: LIGHT },
-  },
-  'l-db-cache': {
-    source: { id: 'db' },
-    target: { id: 'cache' },
-    style: { color: LIGHT },
-  },
-};
+const initialCells: Cells<NodeData> = [
+  { id: 'server', type: 'ElementModel', data: { label: 'Server' }, position: { x: 300, y: 30 }, size: SIZE },
+  { id: 'db', type: 'ElementModel', data: { label: 'Database' }, position: { x: 80, y: 120 }, size: SIZE },
+  { id: 'cache', type: 'ElementModel', data: { label: 'Cache' }, position: { x: 520, y: 120 }, size: SIZE },
+  { id: 'auth', type: 'ElementModel', data: { label: 'Auth' }, position: { x: 120, y: 250 }, size: SIZE },
+  { id: 'api', type: 'ElementModel', data: { label: 'API' }, position: { x: 480, y: 250 }, size: SIZE },
+  { id: 'worker', type: 'ElementModel', data: { label: 'Worker' }, position: { x: 80, y: 380 }, size: SIZE },
+  { id: 'queue', type: 'ElementModel', data: { label: 'Queue' }, position: { x: 520, y: 380 }, size: SIZE },
+  { id: 'logs', type: 'ElementModel', data: { label: 'Logs' }, position: { x: 300, y: 420 }, size: SIZE },
+  { id: 'l-server-db', type: 'LinkModel', source: { id: 'server' }, target: { id: 'db' }, style: { color: LIGHT } },
+  { id: 'l-server-cache', type: 'LinkModel', source: { id: 'server' }, target: { id: 'cache' }, style: { color: LIGHT } },
+  { id: 'l-server-api', type: 'LinkModel', source: { id: 'server' }, target: { id: 'api' }, style: { color: LIGHT } },
+  { id: 'l-db-auth', type: 'LinkModel', source: { id: 'db' }, target: { id: 'auth' }, style: { color: LIGHT } },
+  { id: 'l-cache-api', type: 'LinkModel', source: { id: 'cache' }, target: { id: 'api' }, style: { color: LIGHT } },
+  { id: 'l-auth-worker', type: 'LinkModel', source: { id: 'auth' }, target: { id: 'worker' }, style: { color: LIGHT } },
+  { id: 'l-api-queue', type: 'LinkModel', source: { id: 'api' }, target: { id: 'queue' }, style: { color: LIGHT } },
+  { id: 'l-worker-logs', type: 'LinkModel', source: { id: 'worker' }, target: { id: 'logs' }, style: { color: LIGHT } },
+  { id: 'l-queue-logs', type: 'LinkModel', source: { id: 'queue' }, target: { id: 'logs' }, style: { color: LIGHT } },
+  { id: 'l-db-cache', type: 'LinkModel', source: { id: 'db' }, target: { id: 'cache' }, style: { color: LIGHT } },
+];
 
 // ============================================================================
 // Highlight State
@@ -155,7 +81,7 @@ const DIMMED_OPACITY = 0.3;
 
 function RenderNode({ label }: Readonly<NodeData>) {
   const { selectorRef } = useMarkup();
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return (
     <g className="cursor-pointer">
       <rect
@@ -295,7 +221,10 @@ function Main() {
     [graph]
   );
 
-  const renderElement = useCallback((props: NodeData) => <RenderNode {...props} />, []);
+  const renderElement = useCallback(
+    (data: NodeData | undefined) => (data ? <RenderNode {...data} /> : null),
+    []
+  );
 
   return (
     <Paper
@@ -317,7 +246,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

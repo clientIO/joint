@@ -7,9 +7,10 @@ import type { ReadonlyContainer } from '../src/store/state-container';
 import { saveBenchResults } from './save-baseline';
 
 const benchDirectory = path.dirname(fileURLToPath(import.meta.url));
-const baselinePath = path.join(benchDirectory, 'baseline-pre-refactor.json');
+const baselinePath = path.join(benchDirectory, 'baseline-post-refactor.json');
 
 interface ItemData {
+  id: string;
   data: { label: string };
   x: number;
   y: number;
@@ -26,8 +27,10 @@ function selectOptionalItemData(item: ItemData | undefined): { label: string } |
 function populateContainer(count: number): ReadonlyContainer<ItemData> {
   const container = createContainer<ItemData>();
   for (let index = 0; index < count; index++) {
-    container.set(`node-${index}`, { data: { label: `Node ${index}` }, x: index * 10, y: index * 10 });
+    const id = `node-${index}`;
+    container.set(id, { id, data: { label: `Node ${index}` }, x: index * 10, y: index * 10 });
   }
+  container.commitChanges();
   return asReadonlyContainer(container);
 }
 
@@ -61,7 +64,9 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       const bench = new Bench({ time: 1000 });
 
       bench.add(`key derivation (${size})`, () => {
-        const keys = [...container.getFull().keys()];
+        const items = container.getAll();
+        const keys: string[] = [];
+        for (const item of items) keys.push(item.id);
         // Simulate comparison with previous keys
         if (keys.length === previousKeys.length) {
           for (const [index, key] of keys.entries()) {
@@ -84,8 +89,8 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
 
       bench.add(`full iteration + selector (${size})`, () => {
         const result = new Map<string, { label: string }>();
-        for (const [id, item] of container.getFull()) {
-          result.set(id, selectItemData(item));
+        for (const item of container.getAll()) {
+          result.set(item.id, selectItemData(item));
         }
         return result;
       });
@@ -121,10 +126,10 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       const mapA = new Map<string, { label: string }>();
       const mapB = new Map<string, { label: string }>();
 
-      for (const [id, item] of container.getFull()) {
+      for (const item of container.getAll()) {
         const reference = item.data;
-        mapA.set(id, reference);
-        mapB.set(id, reference); // Same references — equal case
+        mapA.set(item.id, reference);
+        mapB.set(item.id, reference); // Same references — equal case
       }
 
       const bench = new Bench({ time: 1000 });

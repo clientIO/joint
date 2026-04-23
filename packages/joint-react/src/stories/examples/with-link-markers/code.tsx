@@ -1,6 +1,10 @@
-import { useState } from 'react';
-import type { LinkRecord, ElementRecord, ElementPort } from '@joint/react';
-import { GraphProvider, Paper, HTMLBox } from '@joint/react';
+import { useCallback, useMemo, useState, type ChangeEvent } from 'react';
+import type { Cells, ElementPort, ElementRecord, LinkRecord } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  HTMLBox,
+} from '@joint/react';
 import {
   linkMarkerArrow, linkMarkerArrowOpen, linkMarkerArrowSunken,
   linkMarkerArrowQuill, linkMarkerArrowDouble,
@@ -68,27 +72,33 @@ function buildPortMap(side: 'left' | 'right'): Record<string, ElementPort> {
 
 const elementHeight = PADDING * 2 + (MARKER_ENTRIES.length - 1) * PORT_GAP;
 
-const elements: Record<string, ElementRecord> = {
-  left: {
+const initialElements: ElementRecord[] = [
+  {
+    id: 'left',
+    type: 'ElementModel',
     data: {},
     position: { x: 50, y: 30 },
     size: { width: ELEMENT_WIDTH, height: elementHeight },
     portMap: buildPortMap('right'),
   },
-  right: {
+  {
+    id: 'right',
+    type: 'ElementModel',
     data: {},
     position: { x: 50 + ELEMENT_WIDTH + ELEMENT_GAP, y: 30 },
     size: { width: ELEMENT_WIDTH, height: elementHeight },
     portMap: buildPortMap('left'),
   },
-};
+];
 
-function buildLinks(scale: number): Record<string, LinkRecord> {
-  const result: Record<string, LinkRecord> = {};
+function buildLinks(scale: number): LinkRecord[] {
+  const result: LinkRecord[] = [];
   for (const entry of MARKER_ENTRIES) {
     const [name, factory, extraOptions] = entry;
     const marker = factory({ scale, ...extraOptions });
-    result[name] = {
+    result.push({
+      id: name,
+      type: 'LinkModel',
       source: { id: 'left', port: name },
       target: { id: 'right', port: name },
       style: {
@@ -103,7 +113,7 @@ function buildLinks(scale: number): Record<string, LinkRecord> {
           fontSize: 10,
         },
       },
-    };
+    });
   }
   return result;
 }
@@ -114,21 +124,19 @@ function RenderElement() {
 
 export default function App() {
   const [scale, setScale] = useState(1);
-  const [elementState, setElementState] = useState(elements);
-  const [linkState, setLinkState] = useState(() => buildLinks(scale));
+  const [links, setLinks] = useState<LinkRecord[]>(() => buildLinks(scale));
+
+  const cells = useMemo<Cells>(() => [...initialElements, ...links], [links]);
 
   const handleScaleChange = (newScale: number) => {
     setScale(newScale);
-    setLinkState((previous) => {
-      const next = { ...previous };
-      for (const entry of MARKER_ENTRIES) {
-        const [name, factory, extraOptions] = entry;
-        const marker = factory({ scale: newScale, ...extraOptions });
-        next[name] = { ...previous[name], style: { ...previous[name]?.style, sourceMarker: marker, targetMarker: marker } };
-      }
-      return next;
-    });
+    setLinks(buildLinks(newScale));
   };
+
+  const handleScaleInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => handleScaleChange(Number(event.target.value)),
+    []
+  );
 
   return (
     <div>
@@ -141,13 +149,13 @@ export default function App() {
             max={3}
             step={0.1}
             value={scale}
-            onChange={(e) => handleScaleChange(Number(e.target.value))}
+            onChange={handleScaleInputChange}
             className="w-40"
           />
           <span className="text-xs w-8">{scale.toFixed(1)}</span>
         </label>
       </div>
-      <GraphProvider elements={elementState} links={linkState} onElementsChange={setElementState} onLinksChange={setLinkState}>
+      <GraphProvider cells={cells}>
         <Paper
           scale={1.7}
           className={`${PAPER_CLASSNAME} h-[1400px]`}

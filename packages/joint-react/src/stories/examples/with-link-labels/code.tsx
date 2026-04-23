@@ -1,8 +1,7 @@
 import {
-  type ElementRecord,
   GraphProvider,
   Paper,
-  type LinkRecord,
+  type Cells,
 } from '@joint/react';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
@@ -14,19 +13,20 @@ interface ShapeData {
 
 const INTERACTIVE_OPTIONS = { labelMove: true } as const;
 
-const initialElements: Record<string, ElementRecord<ShapeData>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 50, y: 50 }, size: { width: 100, height: 40 } },
-  '2': { data: { label: 'Node 2' }, position: { x: 300, y: 50 }, size: { width: 100, height: 40 } },
-  '3': { data: { label: 'Node 3' }, position: { x: 50, y: 200 }, size: { width: 100, height: 40 } },
-  '4': {
+const initialCells: Cells<ShapeData> = [
+  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 50, y: 50 }, size: { width: 100, height: 40 } },
+  { id: '2', type: 'ElementModel', data: { label: 'Node 2' }, position: { x: 300, y: 50 }, size: { width: 100, height: 40 } },
+  { id: '3', type: 'ElementModel', data: { label: 'Node 3' }, position: { x: 50, y: 200 }, size: { width: 100, height: 40 } },
+  {
+    id: '4',
+    type: 'ElementModel',
     data: { label: 'Node 4' },
     position: { x: 300, y: 200 },
     size: { width: 100, height: 40 },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'l1-2': {
+  {
+    id: 'l1-2',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: 'blue', targetMarker: 'arrow' },
@@ -42,7 +42,9 @@ const initialLinks: Record<string, LinkRecord> = {
       },
     },
   },
-  'l1-4': {
+  {
+    id: 'l1-4',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '4' },
     labelMap: {
@@ -51,7 +53,9 @@ const initialLinks: Record<string, LinkRecord> = {
       },
     },
   },
-  'l3-4': {
+  {
+    id: 'l3-4',
+    type: 'LinkModel',
     source: { id: '3' },
     target: { id: '4' },
     labelMap: {
@@ -75,7 +79,7 @@ const initialLinks: Record<string, LinkRecord> = {
       },
     },
   },
-};
+];
 
 function Main() {
   return (
@@ -90,7 +94,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

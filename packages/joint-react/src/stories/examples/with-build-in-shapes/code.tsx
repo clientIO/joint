@@ -1,19 +1,21 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
+import { GraphProvider, Paper, type Cells, type CellRecord } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-const initialElements: Record<string, ElementRecord> = {
+const initialCells: Cells = [
   // Row 1: Basic shapes
-  rectangle: {
+  {
+    id: 'rectangle',
     position: { x: 20, y: 20 },
     size: { width: 100, height: 50 },
     type: 'standard.Rectangle',
     attrs: { body: { fill: PRIMARY }, label: { fill: 'white', text: 'Rectangle' } },
   },
-  circle: {
+  {
+    id: 'circle',
     position: { x: 150, y: 20 },
     size: { width: 60, height: 60 },
     type: 'standard.Circle',
@@ -22,7 +24,8 @@ const initialElements: Record<string, ElementRecord> = {
       label: { fill: 'white', text: 'Circle' },
     },
   },
-  ellipse: {
+  {
+    id: 'ellipse',
     position: { x: 240, y: 20 },
     size: { width: 100, height: 50 },
     type: 'standard.Ellipse',
@@ -31,14 +34,16 @@ const initialElements: Record<string, ElementRecord> = {
       label: { fill: 'white', text: 'Ellipse' },
     },
   },
-  cylinder: {
+  {
+    id: 'cylinder',
     position: { x: 370, y: 10 },
     size: { width: 60, height: 70 },
     type: 'standard.Cylinder',
     attrs: { body: { fill: SECONDARY }, top: { fill: '#4f46e5' } },
   },
   // Row 2: Path shapes
-  path: {
+  {
+    id: 'path',
     position: { x: 20, y: 110 },
     size: { width: 80, height: 80 },
     type: 'standard.Path',
@@ -51,7 +56,8 @@ const initialElements: Record<string, ElementRecord> = {
       label: { fill: 'white', text: 'Path' },
     },
   },
-  polygon: {
+  {
+    id: 'polygon',
     position: { x: 130, y: 110 },
     size: { width: 80, height: 80 },
     type: 'standard.Polygon',
@@ -60,7 +66,8 @@ const initialElements: Record<string, ElementRecord> = {
       label: { fill: 'white', text: 'Polygon' },
     },
   },
-  polyline: {
+  {
+    id: 'polyline',
     position: { x: 240, y: 110 },
     size: { width: 100, height: 80 },
     type: 'standard.Polyline',
@@ -75,7 +82,8 @@ const initialElements: Record<string, ElementRecord> = {
       label: { y: 70, fill: 'white', text: 'Polyline' },
     },
   },
-  textblock: {
+  {
+    id: 'textblock',
     position: { x: 370, y: 110 },
     size: { width: 100, height: 60 },
     type: 'standard.TextBlock',
@@ -85,7 +93,8 @@ const initialElements: Record<string, ElementRecord> = {
     },
   },
   // Row 3: Headered and Image shapes
-  headered: {
+  {
+    id: 'headered',
     position: { x: 20, y: 220 },
     size: { width: 120, height: 80 },
     type: 'standard.HeaderedRectangle',
@@ -96,7 +105,8 @@ const initialElements: Record<string, ElementRecord> = {
       bodyText: { fill: '#374151', text: 'Body' },
     },
   },
-  image: {
+  {
+    id: 'image',
     position: { x: 170, y: 220 },
     size: { width: 60, height: 60 },
     type: 'standard.Image',
@@ -105,7 +115,8 @@ const initialElements: Record<string, ElementRecord> = {
       label: { fill: 'white', text: 'Image' },
     },
   },
-  'bordered-image': {
+  {
+    id: 'bordered-image',
     position: { x: 260, y: 220 },
     size: { width: 70, height: 70 },
     type: 'standard.BorderedImage',
@@ -115,7 +126,8 @@ const initialElements: Record<string, ElementRecord> = {
       label: { fill: 'white', text: 'Bordered' },
     },
   },
-  'embedded-image': {
+  {
+    id: 'embedded-image',
     position: { x: 360, y: 220 },
     size: { width: 150, height: 70 },
     type: 'standard.EmbeddedImage',
@@ -126,7 +138,8 @@ const initialElements: Record<string, ElementRecord> = {
     },
   },
   // Row 4: More shapes and link targets
-  'inscribed-image': {
+  {
+    id: 'inscribed-image',
     position: { x: 20, y: 330 },
     size: { width: 70, height: 70 },
     type: 'standard.InscribedImage',
@@ -137,55 +150,59 @@ const initialElements: Record<string, ElementRecord> = {
       label: { fill: 'white', text: 'Inscribed' },
     },
   },
-  'link-source': {
+  {
+    id: 'link-source',
     position: { x: 150, y: 350 },
     size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
     attrs: { body: { fill: PRIMARY }, label: { fill: 'white', text: 'Source' } },
   },
-  'link-target-1': {
+  {
+    id: 'link-target-1',
     position: { x: 350, y: 320 },
     size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
     attrs: { body: { fill: SECONDARY }, label: { fill: 'white', text: 'Target 1' } },
   },
-  'link-target-2': {
+  {
+    id: 'link-target-2',
     position: { x: 350, y: 420 },
     size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
     attrs: { body: { fill: PRIMARY }, label: { fill: 'white', text: 'Target 2' } },
   },
-  'link-target-3': {
+  {
+    id: 'link-target-3',
     position: { x: 520, y: 320 },
     size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
     attrs: { body: { fill: SECONDARY }, label: { fill: 'white', text: 'Target 3' } },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'link-standard': {
+  {
+    id: 'link-standard',
     source: { id: 'link-source' },
     target: { id: 'link-target-1' },
     type: 'standard.Link',
     attrs: { line: { stroke: PRIMARY } },
     labels: [{ attrs: { text: { text: 'Link' } } }],
   },
-  'link-double': {
+  {
+    id: 'link-double',
     source: { id: 'link-source' },
     target: { id: 'link-target-2' },
     type: 'standard.DoubleLink',
     attrs: { line: { stroke: SECONDARY }, outline: { stroke: '#c7d2fe' } },
     labels: [{ attrs: { text: { text: 'DoubleLink' } } }],
   },
-  'link-shadow': {
+  {
+    id: 'link-shadow',
     source: { id: 'link-target-1' },
     target: { id: 'link-target-3' },
     type: 'standard.ShadowLink',
     attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
-};
+] satisfies CellRecord[];
 
 function Main() {
   return (
@@ -197,10 +214,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
-      initialElements={initialElements}
-      initialLinks={initialLinks}
-    >
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

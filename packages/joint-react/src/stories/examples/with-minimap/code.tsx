@@ -3,12 +3,11 @@ import '../index.css';
 import { useCallback } from 'react';
 import {
   GraphProvider,
+  HTMLBox,
   Paper,
   useElementSize,
-  type ElementRecord,
-  type LinkRecord,
+  type Cells,
   type RenderElement,
-  HTMLBox,
 } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -18,34 +17,38 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': {
+const initialCells: Cells<NodeData> = [
+  {
+    id: '1',
+    type: 'ElementModel',
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 10 },
     size: { width: 120, height: 60 },
   },
-  '2': {
+  {
+    id: '2',
+    type: 'ElementModel',
     data: { label: 'Node 2', color: SECONDARY },
     position: { x: 100, y: 200 },
     size: { width: 120, height: 60 },
   },
-};
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+  {
+    id: 'e1-2',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
     color: LIGHT,
   },
-};
+];
 
 function MinimapElement({ color }: Readonly<NodeData>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 
 function MiniMap() {
   const renderElement: RenderElement<NodeData> = useCallback(
-    (data) => <MinimapElement {...data} />,
+    (data) => <MinimapElement {...(data as NodeData)} />,
     []
   );
 
@@ -63,7 +66,8 @@ function MiniMap() {
   );
 }
 
-function RenderElement({ label, color }: Readonly<NodeData>) {
+function RenderNode({ data }: Readonly<{ data: NodeData | undefined }>) {
+  const { label = '', color = '#fff' } = data ?? {};
   return (
     <HTMLBox useModelGeometry style={{ backgroundColor: color, color: 'white', alignItems: 'center', justifyContent: 'center', display: 'flex', borderRadius: 10 }}>
       {label}
@@ -72,13 +76,17 @@ function RenderElement({ label, color }: Readonly<NodeData>) {
 }
 
 function Main() {
+  const renderElement: RenderElement<NodeData> = useCallback(
+    (data) => <RenderNode data={data} />,
+    []
+  );
   return (
     <div className="flex flex-row relative">
       <Paper
         id="main-view"
         className={PAPER_CLASSNAME}
         height={280}
-        renderElement={RenderElement}
+        renderElement={renderElement}
       />
       <MiniMap />
     </div>
@@ -87,7 +95,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

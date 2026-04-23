@@ -6,11 +6,10 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  type ElementRecord,
-  type LinkRecord,
+  useCellId,
+  useLinkLayout,
+  type Cells,
   type RenderLink,
-  useElementId,
-  useLink,
 } from '@joint/react';
 import { useCallback, useState } from 'react';
 
@@ -19,26 +18,31 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-  '3': { data: { label: 'Node 3' }, position: { x: 300, y: 100 } },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'link-1': {
+const initialCells: Cells<NodeData> = [
+  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'ElementModel', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  { id: '3', type: 'ElementModel', data: { label: 'Node 3' }, position: { x: 300, y: 100 } },
+  {
+    id: 'link-1',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
   },
-  'link-2': {
+  {
+    id: 'link-2',
+    type: 'LinkModel',
     source: { id: '2' },
     target: { id: '3' },
   },
-};
+];
 
 function LinkPath() {
-  const { layout } = useLink();
-  const id = useElementId();
+  // Link geometry is paper-scoped (the same link can render on multiple
+  // papers with different routing) so it lives on a dedicated hook, not on
+  // the LinkRecord. `useLinkLayout()` reads it from the surrounding paper
+  // context and re-reads whenever JointJS finishes a render pass.
+  const id = useCellId();
+  const layout = useLinkLayout();
 
   if (!layout) return null;
 
@@ -86,7 +90,7 @@ export default function App() {
   const [useLinkModels, setUseLinkModels] = useState(true);
 
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider initialCells={initialCells}>
       <div className="flex flex-col gap-2">
         <button
           type="button"
