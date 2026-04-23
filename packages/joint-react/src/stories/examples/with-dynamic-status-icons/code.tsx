@@ -3,10 +3,10 @@
 import { type dia, g, highlighters, V } from '@joint/core';
 import {
   GraphProvider,
+  useElement,
   Paper,
   SVGText,
-  useElementSize,
-  useGraph,
+    useGraph,
   useNodesMeasuredEffect,
   type Cells,
 } from '@joint/react';
@@ -62,7 +62,7 @@ const initialCells: Cells<ShapeElement> = [
 // Shapes
 // ----------------------------------------------------------------------------
 function RectangleShape({ label }: Readonly<ShapeElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} />
@@ -82,7 +82,7 @@ function RectangleShape({ label }: Readonly<ShapeElement>) {
 }
 
 function CircleShape({ label }: Readonly<ShapeElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <circle
@@ -109,7 +109,7 @@ function CircleShape({ label }: Readonly<ShapeElement>) {
 }
 
 function EllipseShape({ label }: Readonly<ShapeElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <ellipse
@@ -137,7 +137,7 @@ function EllipseShape({ label }: Readonly<ShapeElement>) {
 }
 
 function PathShape({ label }: Readonly<ShapeElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <path

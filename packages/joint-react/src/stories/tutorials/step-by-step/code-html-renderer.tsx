@@ -3,8 +3,7 @@ import {
   GraphProvider,
   Paper,
   useElement,
-  useElementSize,
-  useMeasureNode,
+    useMeasureNode,
   usePaper,
   type Cells,
 } from '@joint/react';
@@ -87,7 +86,7 @@ function HTMLItem() {
 }
 
 function SVGItem() {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return <rect rx={10} ry={10} width={width} height={height} fill="blue" />;
 }
 

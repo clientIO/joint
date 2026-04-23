@@ -6,8 +6,7 @@ import {
   Paper,
   useGraph,
   useElement,
-  useElementSize,
-  useCells,
+    useCells,
   type Cells,
   type ElementRecord,
   type LinkRecord,
@@ -253,7 +252,7 @@ function calculateROI(cost: number, value: number): number {
 
 function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
   const { setCell } = useGraph<ShapeData>();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
 
   const handleFundsChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,7 +354,7 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
 
 function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) {
   const { setCell } = useGraph<ShapeData>();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
 
   const handlePercentageChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -463,7 +462,7 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
 function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const { id: cellId } = useElement<ShapeData>();
   const { graph } = useGraph();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
 
   // Use graph topology to find the connected product (inbound neighbor via link)
   const { value, roi } = useCells<ShapeData, unknown, typeof DEFAULT_ROI_VALUE>((cells) => {
@@ -551,7 +550,7 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
 function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const { id: cellId } = useElement<ShapeData>();
   const { graph } = useGraph();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
   const { value, roi } = useCells<ShapeData, unknown, typeof DEFAULT_ROI_VALUE>((cells) => {

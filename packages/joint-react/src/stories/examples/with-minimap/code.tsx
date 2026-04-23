@@ -3,10 +3,10 @@ import '../index.css';
 import { useCallback } from 'react';
 import {
   GraphProvider,
+  useElement,
   HTMLBox,
   Paper,
-  useElementSize,
-  type Cells,
+    type Cells,
   type RenderElement,
 } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -42,7 +42,7 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function MinimapElement({ color }: Readonly<NodeData>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 

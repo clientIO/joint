@@ -10,8 +10,7 @@ import {
   GraphProvider,
   Paper,
   useElement,
-  useElementSize,
-  useGraph,
+    useGraph,
   useMeasureNode,
   useNodesMeasuredEffect,
   useCells,
@@ -128,7 +127,16 @@ const initialCells: Cells<ElementData> = [
       width: 2,
       dasharray: '5,5',
       targetMarker: {
-        markup: [{ tagName: 'path', attributes: { d: 'M 0 0 L 8 4 L 8 -4 Z', fill: 'context-stroke', stroke: 'context-stroke' } }],
+        markup: [
+          {
+            tagName: 'path',
+            attributes: {
+              d: 'M 0 0 L 8 4 L 8 -4 Z',
+              fill: 'context-stroke',
+              stroke: 'context-stroke',
+            },
+          },
+        ],
       },
     },
   },
@@ -204,7 +212,7 @@ const ROW_HEIGHT = 45;
 const ROW_START = 65;
 // Define the table element
 function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const tableWidth = width;
   const tableHeight = height;
   return (
@@ -261,7 +269,7 @@ function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>
 }
 
 function MinimapRenderElement() {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return <rect width={width} height={height} fill={'white'} rx={10} ry={10} />;
 }
 // Minimap component
@@ -529,7 +537,16 @@ function Main() {
               className: 'link',
               dasharray: '5,5',
               targetMarker: {
-                markup: [{ tagName: 'path', attributes: { d: 'M 0 0 L 8 4 L 8 -4 Z', fill: 'context-stroke', stroke: 'context-stroke' } }],
+                markup: [
+                  {
+                    tagName: 'path',
+                    attributes: {
+                      d: 'M 0 0 L 8 4 L 8 -4 Z',
+                      fill: 'context-stroke',
+                      stroke: 'context-stroke',
+                    },
+                  },
+                ],
               },
             },
           }}

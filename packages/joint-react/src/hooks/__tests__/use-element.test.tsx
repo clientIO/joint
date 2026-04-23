@@ -1,8 +1,9 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, renderHook, act } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { CellIdContext } from '../../context';
 import { useElement } from '../use-element';
+import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type { Cells, CellRecord, ElementRecord } from '../../types/cell.types';
@@ -142,5 +143,72 @@ describe('useElement', () => {
       )
     ).toThrow();
     spy.mockRestore();
+  });
+});
+
+const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
+function plainWrapper({ children }: { readonly children: React.ReactNode }) {
+  return <GraphProvider initialCells={INITIAL}>{children}</GraphProvider>;
+}
+
+describe('useElement (id argument form)', () => {
+  it('returns the element record for an explicit id without needing context', async () => {
+    const { result } = renderHook(() => useElement('el'), { wrapper: plainWrapper });
+    await act(async () => flush());
+    expect(result.current.id).toBe('el');
+    expect(result.current.size?.width).toBe(30);
+  });
+
+  it('selector form returns selected slice', async () => {
+    const { result } = renderHook(() => useElement('el', (element) => element.size), {
+      wrapper: plainWrapper,
+    });
+    await act(async () => flush());
+    expect(result.current).toEqual({ width: 30, height: 40 });
+  });
+
+  it('throws when explicit id is a link', () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => renderHook(() => useElement('l'), { wrapper: plainWrapper })).toThrow();
+    spy.mockRestore();
+  });
+
+  it('selector returning a fresh array does not infinite-loop', async () => {
+    const { result } = renderHook(
+      () => useElement('el', (element) => [element.id, element.type]),
+      { wrapper: plainWrapper }
+    );
+    await act(async () => flush());
+    expect(result.current).toEqual(['el', ELEMENT_MODEL_TYPE]);
+  });
+
+  it('subscribes only to the requested id — unrelated cells do not re-render', async () => {
+    const renderSpy = jest.fn();
+    let storeRef!: ReturnType<typeof useGraphStore>;
+    function Probe() {
+      storeRef = useGraphStore();
+      return null;
+    }
+    function Consumer() {
+      const element = useElement('el');
+      renderSpy(element.id);
+      return null;
+    }
+    renderHook(() => null, {
+      wrapper: ({ children }) => (
+        <GraphProvider initialCells={INITIAL}>
+          <Probe />
+          <Consumer />
+          {children}
+        </GraphProvider>
+      ),
+    });
+    await act(async () => flush());
+    const before = renderSpy.mock.calls.length;
+    await act(async () => {
+      storeRef.graph.getCell('a')?.set('position', { x: 99, y: 99 });
+      await flush();
+    });
+    expect(renderSpy.mock.calls.length).toBe(before);
   });
 });

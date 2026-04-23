@@ -8,8 +8,7 @@ import {
   useGraph,
   usePaperEvents,
   SVGText,
-  useElementSize,
-  type Cells,
+    type Cells,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
@@ -223,7 +222,7 @@ function ExpandButton({
 }
 
 function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const { id } = useElement();
   const { graph } = useGraph();
 
@@ -286,7 +285,7 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>)
 }
 
 function ChildNode({ label }: Readonly<{ label: string }>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       {/* Body */}

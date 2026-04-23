@@ -2,10 +2,10 @@
 import type { Cells, ValidateEmbeddingContext } from '@joint/react';
 import {
   GraphProvider,
+  useElement,
   Paper,
   HTMLHost,
-  useElementSize,
-} from '@joint/react';
+  } from '@joint/react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 type ContainerData = {
@@ -51,7 +51,7 @@ const initialCells: Cells<ContainerData> = [
 ];
 
 function ContainerNode({ label }: Readonly<ContainerData>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <g>
       <rect

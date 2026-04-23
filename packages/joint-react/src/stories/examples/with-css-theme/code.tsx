@@ -2,9 +2,9 @@
 import { useState, useCallback, useRef } from 'react';
 import {
   GraphProvider,
+  useElement,
   Paper,
-  useElementSize,
-  type Cells,
+    type Cells,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -90,7 +90,7 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function Node({ label }: Readonly<{ label: string }>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <rect

@@ -2,11 +2,11 @@
 
 import {
   GraphProvider,
+  useElement,
   Paper,
   SVGText,
   useCells,
-  useElementSize,
-  useGraph,
+    useGraph,
   type Cells,
   type ElementRecord,
 } from '@joint/react';
@@ -123,7 +123,7 @@ const initialCells: Cells<ShapeData> = [
 // Generator Component
 // ----------------------------------------------------------------------------
 function GeneratorNode({ power }: Readonly<GeneratorData>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
   const { setCell } = useGraph<ShapeData>();
@@ -259,7 +259,7 @@ function useGeneratorPower(): number {
 // Bulb Component
 // ----------------------------------------------------------------------------
 function BulbNode({ watts }: Readonly<BulbData>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const glassRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
 

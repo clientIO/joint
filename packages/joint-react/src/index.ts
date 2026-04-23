@@ -29,8 +29,6 @@ export { useCells } from './hooks/use-cells';
 export { useCell } from './hooks/use-cell';
 export { useCellId } from './hooks/use-cell-id';
 export { useElement } from './hooks/use-element';
-export { useElementSize } from './hooks/use-element-size';
-export { useElementPosition } from './hooks/use-element-position';
 export { useLink } from './hooks/use-link';
 export { useLinkLayout } from './hooks/use-link-layout';
 export { useGraph } from './hooks/use-graph';
@@ -67,10 +65,20 @@ export type {
   CustomRecord,
   KnownCellType,
   CellTypeName,
+  ResolvedCellRecord,
+  ResolvedCells,
+  ResolvedElementRecord,
+  ResolvedLinkRecord,
 } from './types/cell.types';
 
 // Types — geometry / presets
-export type { ElementPosition, ElementSize, LinkLayout } from './types/cell-data';
+export type {
+  ElementPosition,
+  ElementSize,
+  ResolvedElementPosition,
+  ResolvedElementSize,
+  LinkLayout,
+} from './types/cell-data';
 export type { ElementPort, PortShape } from './presets/element-ports';
 export type { LinkStyle } from './presets/link-style';
 export type { LinkLabel } from './presets/link-labels';

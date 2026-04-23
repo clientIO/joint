@@ -4,10 +4,10 @@ import '../index.css';
 import { dia, highlighters } from '@joint/core';
 import {
   GraphProvider,
+  useElement,
   Paper,
   useCells,
-  useElementSize,
-  useGraph,
+    useGraph,
   useMeasureNode,
   usePaper,
   usePaperEvents,
@@ -156,7 +156,7 @@ function Shape({
 }
 
 function MinimapShape({ color = 'lightgray' }: Readonly<ElementUserData>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 

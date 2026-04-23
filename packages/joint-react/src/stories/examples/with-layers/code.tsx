@@ -4,12 +4,12 @@
 import { dia, shapes } from '@joint/core';
 import {
   GraphProvider,
+  useElement,
   Paper,
   ElementModel,
   LinkModel,
   HTMLHost,
-  useElementSize,
-  type Cells,
+    type Cells,
 } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -83,7 +83,7 @@ const initialCells: Cells<LayeredElementData> = [
 ];
 
 function BackgroundNode({ label, color }: Readonly<LayeredElementData>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <g className="fade-in">
       <rect

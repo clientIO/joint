@@ -2,13 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type {
-  Cells,
-  ElementRecord,
-  LinkRecord,
-  LinkLabel,
-  TransformOptions,
-} from '@joint/react';
+import type { Cells, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
 import {
   GraphProvider,
   Paper,
@@ -43,16 +37,56 @@ type NodeElementData = {
 
 const flowchartNodes: Array<ElementRecord<NodeElementData>> = [
   { id: 'start', type: 'ElementModel', data: { label: 'Start', type: 'start', cx: 60, cy: 40 } },
-  { id: 'addToCart', type: 'ElementModel', data: { label: 'Add to Cart', type: 'step', cx: 195, cy: 40 } },
-  { id: 'checkoutItems', type: 'ElementModel', data: { label: 'Checkout Items', type: 'step', cx: 365, cy: 40 } },
-  { id: 'addShippingInfo', type: 'ElementModel', data: { label: 'Add Shipping Info', type: 'step', cx: 550, cy: 40 } },
-  { id: 'addPaymentInfo', type: 'ElementModel', data: { label: 'Add Payment Info', type: 'step', cx: 550, cy: 150 } },
-  { id: 'validPayment', type: 'ElementModel', data: { label: 'Valid Payment?', type: 'decision', cx: 550, cy: 270 } },
-  { id: 'presentErrorMessage', type: 'ElementModel', data: { label: 'Present Error Message', type: 'step', cx: 810, cy: 380 } },
-  { id: 'sendOrder', type: 'ElementModel', data: { label: 'Send Order to Warehouse', type: 'step', cx: 230, cy: 270 } },
-  { id: 'packOrder', type: 'ElementModel', data: { label: 'Pack Order', type: 'step', cx: 40, cy: 380 } },
-  { id: 'qualityCheck', type: 'ElementModel', data: { label: 'Quality Check?', type: 'decision', cx: 230, cy: 500 } },
-  { id: 'shipItems', type: 'ElementModel', data: { label: 'Ship Items to Customer', type: 'step', cx: 550, cy: 500 } },
+  {
+    id: 'addToCart',
+    type: 'ElementModel',
+    data: { label: 'Add to Cart', type: 'step', cx: 195, cy: 40 },
+  },
+  {
+    id: 'checkoutItems',
+    type: 'ElementModel',
+    data: { label: 'Checkout Items', type: 'step', cx: 365, cy: 40 },
+  },
+  {
+    id: 'addShippingInfo',
+    type: 'ElementModel',
+    data: { label: 'Add Shipping Info', type: 'step', cx: 550, cy: 40 },
+  },
+  {
+    id: 'addPaymentInfo',
+    type: 'ElementModel',
+    data: { label: 'Add Payment Info', type: 'step', cx: 550, cy: 150 },
+  },
+  {
+    id: 'validPayment',
+    type: 'ElementModel',
+    data: { label: 'Valid Payment?', type: 'decision', cx: 550, cy: 270 },
+  },
+  {
+    id: 'presentErrorMessage',
+    type: 'ElementModel',
+    data: { label: 'Present Error Message', type: 'step', cx: 810, cy: 380 },
+  },
+  {
+    id: 'sendOrder',
+    type: 'ElementModel',
+    data: { label: 'Send Order to Warehouse', type: 'step', cx: 230, cy: 270 },
+  },
+  {
+    id: 'packOrder',
+    type: 'ElementModel',
+    data: { label: 'Pack Order', type: 'step', cx: 40, cy: 380 },
+  },
+  {
+    id: 'qualityCheck',
+    type: 'ElementModel',
+    data: { label: 'Quality Check?', type: 'decision', cx: 230, cy: 500 },
+  },
+  {
+    id: 'shipItems',
+    type: 'ElementModel',
+    data: { label: 'Ship Items to Customer', type: 'step', cx: 550, cy: 500 },
+  },
 ];
 const TOP = { name: 'top', args: { useModelGeometry: true, dy: -linkOffset } } as const;
 const BOTTOM = { name: 'bottom', args: { useModelGeometry: true, dy: linkOffset } } as const;
@@ -66,7 +100,13 @@ const LINK_OPTIONS: Partial<LinkRecord> = {
     className: 'jj-flow-line link',
     wrapperClassName: 'jj-flow-outline',
     targetMarker: {
-      markup: [{ tagName: 'path', attributes: { d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z` }, className: 'jj-flow-arrowhead' }],
+      markup: [
+        {
+          tagName: 'path',
+          attributes: { d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z` },
+          className: 'jj-flow-arrowhead',
+        },
+      ],
     },
   },
 };

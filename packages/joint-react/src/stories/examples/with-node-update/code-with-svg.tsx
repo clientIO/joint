@@ -2,9 +2,9 @@
 
 import {
   GraphProvider,
+  useElement,
   Paper,
-  useElementSize,
-  type Cells,
+    type Cells,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -33,7 +33,7 @@ const initialCells: Cells = [
 ];
 
 function RenderElement() {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <rect
       rx={10}

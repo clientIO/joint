@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import {
   GraphProvider,
+  useElement,
   Paper,
   SVGText,
-  useElementSize,
-  useGraph,
+    useGraph,
   useMarkup,
   usePaperEvents,
   type Cells,
@@ -81,7 +81,7 @@ const DIMMED_OPACITY = 0.3;
 
 function RenderNode({ label }: Readonly<NodeData>) {
   const { selectorRef } = useMarkup();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <g className="cursor-pointer">
       <rect

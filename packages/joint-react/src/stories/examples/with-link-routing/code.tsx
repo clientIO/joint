@@ -2,11 +2,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   GraphProvider,
+  useElement,
   Paper,
   HTMLBox,
   useMarkup,
-  useElementSize,
-  type Cells,
+    type Cells,
   type ElementPort,
   type LinkRecord,
   usePaper,

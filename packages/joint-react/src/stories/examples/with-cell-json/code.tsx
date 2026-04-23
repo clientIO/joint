@@ -3,13 +3,13 @@ import { shapes, dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
+  useElement,
   Paper,
   type Cells,
   type ElementRecord,
   type RenderElement,
   useCells,
-  useElementSize,
-  ElementModel,
+    ElementModel,
 } from '@joint/react';
 import { useCallback, useMemo } from 'react';
 
@@ -86,7 +86,7 @@ const initialCells: Cells<ElementData> = [
 // ============================================================================
 
 function ElementShape({ label, color }: Readonly<ElementData>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <rect
