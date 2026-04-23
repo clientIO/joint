@@ -11,7 +11,7 @@ import {
   GraphProvider,
   Paper,
   useElement,
-    useMarkup,
+  useMarkup,
   HTMLHost,
   type Cells,
   type CellId,
@@ -21,14 +21,7 @@ import {
   type RenderElement,
 } from '@joint/react';
 
-import {
-  createContext,
-  memo,
-  useCallback,
-  useContext,
-  useLayoutEffect,
-  useState,
-} from 'react';
+import { createContext, memo, useCallback, useContext, useLayoutEffect, useState } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 
@@ -156,7 +149,7 @@ function RenderElementBase({
   onAddPort,
   onRemovePort,
 }: Readonly<RenderElementProps>) {
-  const { id } = useElement();
+  const id = useElement((element) => element.id);
   const { selectorRef } = useMarkup();
   const { width, height } = useElement((element) => element.size);
 
@@ -400,7 +393,7 @@ function Main() {
           validate: ({ source, target }) => {
             if (source.selector === 'in') return false;
             return target.selector === 'in';
-          }
+          },
         }}
         {...ORTHOGONAL_LINKS}
       />

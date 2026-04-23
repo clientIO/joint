@@ -124,7 +124,7 @@ export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryC
       // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
       renderElement={() => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        const { id } = useElement();
+        const id = useElement((element) => element.id);
         return <HTMLNode className="node">{id}</HTMLNode>;
       }}
     />

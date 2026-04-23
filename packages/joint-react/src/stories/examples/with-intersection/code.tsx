@@ -26,7 +26,7 @@ const initialCells: Cells<NodeData> = [
 
 function ResizableNode(data: NodeData | undefined) {
   const { graph } = useGraph();
-  const { id } = useElement();
+  const id = useElement((element) => element.id);
   const element = graph.getCell(id) as dia.Element;
 
   const isIntersected = useCells(() => {

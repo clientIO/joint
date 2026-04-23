@@ -8,7 +8,7 @@ import {
   Paper,
   SVGText,
   useElement,
-    useGraph,
+  useGraph,
   useMarkup,
   useNodesMeasuredEffect,
   usePaper,
@@ -22,7 +22,11 @@ import { DirectedGraph } from '@joint/layout-directed-graph';
 import '../index.css';
 import { linkRoutingOrthogonal } from '../../../presets';
 
-const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ cornerType: 'line', cornerRadius: 10, mode: 'bottom-top' });
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
+  cornerType: 'line',
+  cornerRadius: 10,
+  mode: 'bottom-top',
+});
 // Base properties shared by all events
 interface BaseEvent {
   readonly label: string;
@@ -60,35 +64,177 @@ type FTAElement =
   | ConditioningEvent;
 
 const initialElements: Array<ElementRecord<FTAElement>> = [
-  { id: 'ot8h17', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' }, size: { width: 120, height: 150 } },
-  { id: 'd8jpey', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Fall from the Scaffolding', gate: 'AND' }, size: { width: 120, height: 150 } },
-  { id: 'is079n', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Safety Belt Not Working', gate: 'OR' }, size: { width: 120, height: 150 } },
-  { id: 'ht8wnb', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Fall By Accident', gate: 'OR' }, size: { width: 120, height: 150 } },
-  { id: '07vhpd', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Broken By Equipment', gate: 'OR' }, size: { width: 120, height: 150 } },
-  { id: 'd8ojep', type: 'ElementModel', data: { type: 'IntermediateEvent', label: 'Did not Wear Safety Belt', gate: 'OR' }, size: { width: 120, height: 150 } },
-  { id: 'szf1q3', type: 'ElementModel', data: { type: 'UndevelopedEvent', label: 'Slip and Fall' }, size: { width: 140, height: 80 } },
-  { id: 'kj5m9a', type: 'ElementModel', data: { type: 'UndevelopedEvent', label: 'Lose Balance' }, size: { width: 140, height: 80 } },
-  { id: 'tcv79r', type: 'ElementModel', data: { type: 'UndevelopedEvent', label: 'Upholder Broken' }, size: { width: 140, height: 80 } },
-  { id: 'ylp4gu', type: 'ElementModel', data: { type: 'BasicEvent', label: 'Safety Belt Broken' }, size: { width: 80, height: 80 } },
-  { id: 'q2vwnc', type: 'ElementModel', data: { type: 'BasicEvent', label: 'Forgot to Wear' }, size: { width: 80, height: 80 } },
-  { id: 'x8rboj', type: 'ElementModel', data: { type: 'ExternalEvent', label: 'Take off When Walking' }, size: { width: 80, height: 100 } },
-  { id: 'mte5xr', type: 'ElementModel', data: { type: 'ConditioningEvent', label: 'Height and Ground Condition' }, size: { width: 140, height: 80 } },
+  {
+    id: 'ot8h17',
+    type: 'ElementModel',
+    data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' },
+    size: { width: 120, height: 150 },
+  },
+  {
+    id: 'd8jpey',
+    type: 'ElementModel',
+    data: { type: 'IntermediateEvent', label: 'Fall from the Scaffolding', gate: 'AND' },
+    size: { width: 120, height: 150 },
+  },
+  {
+    id: 'is079n',
+    type: 'ElementModel',
+    data: { type: 'IntermediateEvent', label: 'Safety Belt Not Working', gate: 'OR' },
+    size: { width: 120, height: 150 },
+  },
+  {
+    id: 'ht8wnb',
+    type: 'ElementModel',
+    data: { type: 'IntermediateEvent', label: 'Fall By Accident', gate: 'OR' },
+    size: { width: 120, height: 150 },
+  },
+  {
+    id: '07vhpd',
+    type: 'ElementModel',
+    data: { type: 'IntermediateEvent', label: 'Broken By Equipment', gate: 'OR' },
+    size: { width: 120, height: 150 },
+  },
+  {
+    id: 'd8ojep',
+    type: 'ElementModel',
+    data: { type: 'IntermediateEvent', label: 'Did not Wear Safety Belt', gate: 'OR' },
+    size: { width: 120, height: 150 },
+  },
+  {
+    id: 'szf1q3',
+    type: 'ElementModel',
+    data: { type: 'UndevelopedEvent', label: 'Slip and Fall' },
+    size: { width: 140, height: 80 },
+  },
+  {
+    id: 'kj5m9a',
+    type: 'ElementModel',
+    data: { type: 'UndevelopedEvent', label: 'Lose Balance' },
+    size: { width: 140, height: 80 },
+  },
+  {
+    id: 'tcv79r',
+    type: 'ElementModel',
+    data: { type: 'UndevelopedEvent', label: 'Upholder Broken' },
+    size: { width: 140, height: 80 },
+  },
+  {
+    id: 'ylp4gu',
+    type: 'ElementModel',
+    data: { type: 'BasicEvent', label: 'Safety Belt Broken' },
+    size: { width: 80, height: 80 },
+  },
+  {
+    id: 'q2vwnc',
+    type: 'ElementModel',
+    data: { type: 'BasicEvent', label: 'Forgot to Wear' },
+    size: { width: 80, height: 80 },
+  },
+  {
+    id: 'x8rboj',
+    type: 'ElementModel',
+    data: { type: 'ExternalEvent', label: 'Take off When Walking' },
+    size: { width: 80, height: 100 },
+  },
+  {
+    id: 'mte5xr',
+    type: 'ElementModel',
+    data: { type: 'ConditioningEvent', label: 'Height and Ground Condition' },
+    size: { width: 140, height: 80 },
+  },
 ];
 
 const DEFAULT_LINK_STYLE = { color: PRIMARY, width: 2, targetMarker: 'none' as const };
 
 const initialLinks: LinkRecord[] = [
-  { id: 'link-0', type: 'LinkModel', source: { id: 'ot8h17' }, target: { id: 'd8jpey' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-1', type: 'LinkModel', source: { id: 'd8jpey' }, target: { id: 'is079n' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-2', type: 'LinkModel', source: { id: 'd8jpey' }, target: { id: 'ht8wnb' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-3', type: 'LinkModel', source: { id: 'is079n' }, target: { id: '07vhpd' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-4', type: 'LinkModel', source: { id: 'is079n' }, target: { id: 'd8ojep' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-5', type: 'LinkModel', source: { id: 'ht8wnb' }, target: { id: 'szf1q3' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-6', type: 'LinkModel', source: { id: 'ht8wnb' }, target: { id: 'kj5m9a' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-7', type: 'LinkModel', source: { id: '07vhpd' }, target: { id: 'tcv79r' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-8', type: 'LinkModel', source: { id: '07vhpd' }, target: { id: 'ylp4gu' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-9', type: 'LinkModel', source: { id: 'd8ojep' }, target: { id: 'q2vwnc' }, z: -1, style: DEFAULT_LINK_STYLE },
-  { id: 'link-10', type: 'LinkModel', source: { id: 'd8ojep' }, target: { id: 'x8rboj' }, z: -1, style: DEFAULT_LINK_STYLE },
+  {
+    id: 'link-0',
+    type: 'LinkModel',
+    source: { id: 'ot8h17' },
+    target: { id: 'd8jpey' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-1',
+    type: 'LinkModel',
+    source: { id: 'd8jpey' },
+    target: { id: 'is079n' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-2',
+    type: 'LinkModel',
+    source: { id: 'd8jpey' },
+    target: { id: 'ht8wnb' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-3',
+    type: 'LinkModel',
+    source: { id: 'is079n' },
+    target: { id: '07vhpd' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-4',
+    type: 'LinkModel',
+    source: { id: 'is079n' },
+    target: { id: 'd8ojep' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-5',
+    type: 'LinkModel',
+    source: { id: 'ht8wnb' },
+    target: { id: 'szf1q3' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-6',
+    type: 'LinkModel',
+    source: { id: 'ht8wnb' },
+    target: { id: 'kj5m9a' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-7',
+    type: 'LinkModel',
+    source: { id: '07vhpd' },
+    target: { id: 'tcv79r' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-8',
+    type: 'LinkModel',
+    source: { id: '07vhpd' },
+    target: { id: 'ylp4gu' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-9',
+    type: 'LinkModel',
+    source: { id: 'd8ojep' },
+    target: { id: 'q2vwnc' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
+  {
+    id: 'link-10',
+    type: 'LinkModel',
+    source: { id: 'd8ojep' },
+    target: { id: 'x8rboj' },
+    z: -1,
+    style: DEFAULT_LINK_STYLE,
+  },
   {
     id: 'link-11',
     type: 'LinkModel',
@@ -167,7 +313,7 @@ function useGatePattern() {
 // ----------------------------------------------------------------------------
 function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
   const { width, height } = useElement((element) => element.size);
-  const { id } = useElement();
+  const id = useElement((element) => element.id);
   const { setCell } = useGraph<FTAElement>();
   const gatePatternUrl = useGatePattern();
   const { selectorRef } = useMarkup();
@@ -621,10 +767,7 @@ function Main() {
 
   useNodesMeasuredEffect(paperId, handleElementsMeasured);
 
-  const renderElement = useCallback(
-    (data: FTAElement | undefined) => RenderFTAElement(data),
-    []
-  );
+  const renderElement = useCallback((data: FTAElement | undefined) => RenderFTAElement(data), []);
 
   return (
     <Paper
