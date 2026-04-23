@@ -1,12 +1,7 @@
 import type { Cell as DiaCell, Link as DiaLink } from '@joint/core/dia';
 import type { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import type { LINK_MODEL_TYPE } from '../models/link-model';
-import type {
-  ElementPosition,
-  ElementSize,
-  ResolvedElementPosition,
-  ResolvedElementSize,
-} from './cell-data';
+import type { ElementPosition, ElementSize } from './cell-data';
 import type { ElementPort } from '../presets/element-ports';
 import type { LinkStyle } from '../presets/link-style';
 import type { LinkLabel } from '../presets/link-labels';
@@ -88,8 +83,8 @@ export interface LinkRecord<LinkData = unknown> extends BaseCell {
  */
 export interface ResolvedElementRecord<ElementData = unknown> extends BaseCell {
   readonly type: typeof ELEMENT_MODEL_TYPE;
-  readonly position: ResolvedElementPosition;
-  readonly size: ResolvedElementSize;
+  readonly position: Required<ElementPosition>;
+  readonly size: Required<ElementSize>;
   readonly angle: number;
   readonly data: ElementData;
   readonly portMap?: Record<string, ElementPort>;

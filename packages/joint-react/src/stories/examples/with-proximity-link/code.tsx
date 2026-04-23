@@ -44,9 +44,8 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
 }
 
 function ResizableNode() {
-  const element = useElement<NodeData>();
-  const { id } = element;
-  const label = element.data?.label ?? '';
+  const id = useElement((element) => element.id);
+  const label = useElement<NodeData, string>((element) => element.data?.label ?? '');
 
   const { graph, setCell, addCell, removeCell } = useGraph();
   const closeIds = useCells<NodeData, unknown, readonly dia.Cell.ID[]>(() => {

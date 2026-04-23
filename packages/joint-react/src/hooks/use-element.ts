@@ -13,6 +13,15 @@ import type { CellId, ResolvedCellRecord, ResolvedElementRecord } from '../types
 export function useElement<ElementData = unknown>(): ResolvedElementRecord<ElementData>;
 /**
  * Read a selected slice from the current element record (context-scoped).
+ *
+ * Both generics must be specified together for the selector form: TypeScript
+ * will not infer `Selected` when only `ElementData` is supplied (defaults
+ * would silently make `Selected = unknown`). For ergonomic typed access,
+ * either:
+ * - annotate the selector parameter:
+ *   `useElement((el: ResolvedElementRecord<NodeData>) => el.data)`
+ * - or use the no-arg form and read fields off the record:
+ *   `const { data } = useElement<NodeData>();`
  * @template ElementData - user data shape on this element
  * @template Selected - selector return type
  * @param selector - derives a value from the current resolved element record
@@ -70,9 +79,7 @@ export function useElement<ElementData, Selected>(
     );
   }
 
-  let userSelector:
-    | ((element: ResolvedElementRecord<ElementData>) => Selected)
-    | undefined;
+  let userSelector: ((element: ResolvedElementRecord<ElementData>) => Selected) | undefined;
   let isEqual: ((a: Selected, b: Selected) => boolean) | undefined;
   if (typeof argument1 === 'function') {
     userSelector = argument1;

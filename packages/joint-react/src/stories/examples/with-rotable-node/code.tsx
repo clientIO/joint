@@ -32,9 +32,8 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function RotatableNode() {
-  const element = useElement<NodeData>();
-  const { id } = element;
-  const label = element.data?.label ?? '';
+  const label = useElement<NodeData, string>((element) => element.data?.label ?? '');
+  const id = useElement((element) => element.id);
   const { paper } = usePaper();
   const { setCell } = useGraph();
 
