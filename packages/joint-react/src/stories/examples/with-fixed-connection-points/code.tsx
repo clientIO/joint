@@ -420,26 +420,24 @@ function Main() {
       linkPinning={false}
       {...ORTHOGONAL_LINKS}
       // Connection strategy - find closest anchor point
-      connectionStrategy={{
-        customize: ({ end, model, dropPoint, endType }) => {
-          const element = model as dia.Element;
-          const { width, height } = element.size();
-          const shapeType = element.prop('data/shapeType') as ShapeType;
-          const margin = endType === 'target' ? ANCHOR_MARGIN : 0;
-          const anchors = getAnchors(shapeType, width, height, margin);
-          const relativePoint = element.getRelativePointFromAbsolute(dropPoint);
-          const anchor = findClosestAnchor(anchors, relativePoint);
-          return {
-            anchor: {
-              name: 'modelCenter',
-              args: {
-                dx: anchor.x - width / 2,
-                dy: anchor.y - height / 2,
-              },
+      connectionStrategy={({ end, model, dropPoint, endType }) => {
+        const element = model as dia.Element;
+        const { width, height } = element.size();
+        const shapeType = element.prop('data/shapeType') as ShapeType;
+        const margin = endType === 'target' ? ANCHOR_MARGIN : 0;
+        const anchors = getAnchors(shapeType, width, height, margin);
+        const relativePoint = element.getRelativePointFromAbsolute(dropPoint);
+        const anchor = findClosestAnchor(anchors, relativePoint);
+        return {
+          anchor: {
+            name: 'modelCenter',
+            args: {
+              dx: anchor.x - width / 2,
+              dy: anchor.y - height / 2,
             },
-            id: end.id,
-          };
-        },
+          },
+          id: end.id,
+        };
       }}
       validateConnection={{ allowMultiLinks: true }}
       snapLinks

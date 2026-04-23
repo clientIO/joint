@@ -371,6 +371,7 @@ function Main() {
         snapLinks={{ radius: 50 }}
         validateConnection={{
           allowRootConnection: false,
+
           validate: ({ source, target }) => {
             if (source.selector === 'in') return false;
             return target.selector === 'in';

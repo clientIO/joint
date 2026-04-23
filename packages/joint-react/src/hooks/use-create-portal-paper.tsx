@@ -251,7 +251,6 @@ export function useCreatePortalPaper(
 
     const { paperStore, remove } = addPaper(id, {
       paperOptions: {
-        ...escapeHatchOptions,
         ...paperOptions,
         id,
         el: hostElementForCreation,
@@ -260,6 +259,7 @@ export function useCreatePortalPaper(
         connectionStrategy: connectionStrategyCallback,
         validateEmbedding: validateEmbeddingCallback,
         validateUnembedding: validateUnembeddingCallback,
+        ...escapeHatchOptions,
       },
       renderElement,
       renderLink,
@@ -305,25 +305,22 @@ export function useCreatePortalPaper(
     if (!paper) return;
 
     assignOptions(paper.options, {
-      ...escapeHatchOptions,
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
       connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
       ...paperOptions,
+      ...escapeHatchOptions,
     });
 
-    const { drawGrid, theme, gridSize } = paperOptions;
+    const { drawGrid, gridSize } = paperOptions;
 
     if (drawGrid !== undefined) {
       paper.setGrid(drawGrid);
     }
     if (gridSize !== undefined) {
       paper.setGridSize(gridSize);
-    }
-    if (theme !== undefined) {
-      paper.setTheme(theme);
     }
     if (scale !== undefined) {
       paper.scale(scale);

@@ -1,34 +1,11 @@
 import type { dia } from '@joint/core';
 import type { LinkRecord } from '../../types/data-types';
-import type { OmitWithoutIndexSignature } from '../../types';
 import type { PortalSelector } from '../../models/portal-paper.types';
-import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
 import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
-
-/**
- * Options joint-react controls internally — not exposed as top-level props
- * and also omitted from the `options` escape hatch to prevent breakage.
- */
-type LockedPaperOptionKeys =
-  | 'frozen'
-  | 'autoFreeze'
-  | 'viewManagement'
-  | 'async'
-  | 'sorting';
-
-type PortalPaperOptionsBase = OmitWithoutIndexSignature<
-  dia.Paper.Options,
-  | 'defaultLink'
-  | 'validateConnection'
-  | 'validateEmbedding'
-  | 'validateUnembedding'
-  | 'connectionStrategy'
-  | LockedPaperOptionKeys
->;
 
 /** Context passed to the `defaultLink` factory. */
 export interface DefaultLinkContext {
@@ -40,7 +17,15 @@ export interface DefaultLinkContext {
   readonly graph: dia.Graph;
 }
 
-export interface PortalPaperOptions extends PortalPaperOptionsBase {
+/**
+ * Officially supported Paper options. Pass-through props inherit their exact
+ * native types via indexed access (`dia.Paper.Options['name']`), so any
+ * type-level change in JointJS propagates automatically. Anything not listed
+ * here is reachable via the `options` escape hatch, never implicitly exposed.
+ */
+export interface PortalPaperOptions {
+  // ── Wrapped (structured) ─────────────────────────────────────────────────
+
   /**
    * Defines the link created when the user starts dragging from a port or element.
    *
@@ -88,14 +73,78 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
    */
   readonly validateUnembedding?: (context: ValidateUnembeddingContext) => boolean;
 
+  // ── Identification ───────────────────────────────────────────────────────
+  /** Unique identifier used by joint-react to track the paper instance. */
+  readonly id?: string;
+
+  // ── Sizing & appearance ──────────────────────────────────────────────────
+  readonly width?: dia.Paper.Options['width'];
+  readonly height?: dia.Paper.Options['height'];
+  readonly drawGrid?: dia.Paper.Options['drawGrid'];
+  readonly drawGridSize?: dia.Paper.Options['drawGridSize'];
+  readonly gridSize?: dia.Paper.Options['gridSize'];
+  readonly background?: dia.Paper.Options['background'];
+  readonly labelsLayer?: dia.Paper.Options['labelsLayer'];
+  readonly overflow?: dia.Paper.Options['overflow'];
+
+  // ── Interactions ─────────────────────────────────────────────────────────
+  readonly interactive?: dia.Paper.Options['interactive'];
+  readonly highlighting?: dia.Paper.Options['highlighting'];
+  readonly snapLabels?: dia.Paper.Options['snapLabels'];
+  readonly snapLinks?: dia.Paper.Options['snapLinks'];
+  readonly snapLinksSelf?: dia.Paper.Options['snapLinksSelf'];
+  readonly markAvailable?: dia.Paper.Options['markAvailable'];
+  readonly linkPinning?: dia.Paper.Options['linkPinning'];
+
+  // ── Event thresholds / prevention ────────────────────────────────────────
+  readonly clickThreshold?: dia.Paper.Options['clickThreshold'];
+  readonly moveThreshold?: dia.Paper.Options['moveThreshold'];
+  readonly magnetThreshold?: dia.Paper.Options['magnetThreshold'];
+  readonly preventContextMenu?: dia.Paper.Options['preventContextMenu'];
+  readonly preventDefaultViewAction?: dia.Paper.Options['preventDefaultViewAction'];
+  readonly preventDefaultBlankAction?: dia.Paper.Options['preventDefaultBlankAction'];
+
+  // ── Views ────────────────────────────────────────────────────────────────
+  readonly elementView?: dia.Paper.Options['elementView'];
+  readonly linkView?: dia.Paper.Options['linkView'];
+  readonly measureNode?: dia.Paper.Options['measureNode'];
+
+  // ── Embedding ────────────────────────────────────────────────────────────
+  readonly embeddingMode?: dia.Paper.Options['embeddingMode'];
+  readonly frontParentOnly?: dia.Paper.Options['frontParentOnly'];
+
+  // ── Cell visibility ──────────────────────────────────────────────────────
+  readonly cellVisibility?: dia.Paper.Options['cellVisibility'];
+
+  // ── Namespaces ───────────────────────────────────────────────────────────
+  readonly cellViewNamespace?: dia.Paper.Options['cellViewNamespace'];
+  readonly layerViewNamespace?: dia.Paper.Options['layerViewNamespace'];
+  readonly routerNamespace?: dia.Paper.Options['routerNamespace'];
+  readonly connectorNamespace?: dia.Paper.Options['connectorNamespace'];
+  readonly highlighterNamespace?: dia.Paper.Options['highlighterNamespace'];
+  readonly anchorNamespace?: dia.Paper.Options['anchorNamespace'];
+  readonly linkAnchorNamespace?: dia.Paper.Options['linkAnchorNamespace'];
+  readonly connectionPointNamespace?: dia.Paper.Options['connectionPointNamespace'];
+
+  // ── Defaults (routing / connecting) ──────────────────────────────────────
+  readonly defaultRouter?: dia.Paper.Options['defaultRouter'];
+  readonly defaultConnector?: dia.Paper.Options['defaultConnector'];
+  readonly defaultAnchor?: dia.Paper.Options['defaultAnchor'];
+  readonly defaultLinkAnchor?: dia.Paper.Options['defaultLinkAnchor'];
+  readonly defaultConnectionPoint?: dia.Paper.Options['defaultConnectionPoint'];
+
+  // ── Escape hatch ─────────────────────────────────────────────────────────
+
   /**
-   * Escape hatch for raw `dia.Paper.Options` not exposed as dedicated props
-   * (e.g. `allowLink`, `validateMagnet`, `restrictTranslate`).
+   * Raw `dia.Paper.Options` passthrough for anything joint-react doesn't
+   * expose as a dedicated prop (e.g. `allowLink`, `validateMagnet`,
+   * `restrictTranslate`, `onViewPostponed`).
    *
-   * When both this and a top-level prop set the same key, the top-level prop
-   * wins. Options locked by joint-react (`async`, `sorting`, `viewManagement`,
-   * `frozen`, `autoFreeze`, `overflow`) are excluded here — overriding them
-   * would break portal rendering.
+   * Values set here override top-level props of the same name — treat this
+   * as the authoritative form for users who need direct access to the raw
+   * JointJS API. Avoid overriding joint-react-controlled options
+   * (`async`, `sorting`, `viewManagement`, `frozen`, `autoFreeze`) — the
+   * portal rendering depends on their set values.
    */
   readonly options?: dia.Paper.Options;
 }
@@ -228,18 +277,6 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    * @default false
    */
   readonly useHTMLOverlay?: boolean;
-  /**
-   * When enabled, renders elements as SVG elements instead of foreignObject.
-   * @default false
-   */
-  readonly useSVGElements?: boolean;
-
-  /**
-   * Callback called when an element view is rendered in the paper.
-   * @param elementView - The element view that was rendered.
-   */
-  readonly onRenderElement?: OnPaperRenderElement;
-
   /**
    * Selector used to locate the React portal target node inside a cell view.
    *
