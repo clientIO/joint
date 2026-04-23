@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { GraphProvider, Paper, useElementSize, type Cells, type RenderElement } from '@joint/react';
+import { GraphProvider, Paper, useElement, type Cells, type RenderElement } from '@joint/react';
 import { useCallback } from 'react';
 
 // define element data shape
@@ -15,7 +15,7 @@ const initialCells: Cells<ElementData> = [
 ];
 
 function RenderItem({ color }: Readonly<ElementData>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return <rect rx={10} ry={10} width={width} height={height} fill={color} />;
 }
 

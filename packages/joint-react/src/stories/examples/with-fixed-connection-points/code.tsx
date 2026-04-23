@@ -4,10 +4,10 @@ import { useEffect, useId, useRef } from 'react';
 import type { Cells } from '@joint/react';
 import {
   GraphProvider,
+  useElement,
   jsx,
   Paper,
-  useElementSize,
-  usePaperEvents,
+    usePaperEvents,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
@@ -216,7 +216,7 @@ const AnchorsHighlighter = dia.HighlighterView.extend({
 // Shapes
 // ----------------------------------------------------------------------------
 function Rectangle({ label }: Readonly<SquareElement | RectangleElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <path
@@ -243,7 +243,7 @@ function Rectangle({ label }: Readonly<SquareElement | RectangleElement>) {
 }
 
 function Ellipse({ label }: Readonly<EllipseElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <ellipse

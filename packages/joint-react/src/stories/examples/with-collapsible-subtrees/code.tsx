@@ -8,8 +8,7 @@ import {
   Paper,
   SVGText,
   useElement,
-  useElementSize,
-  useGraph,
+    useGraph,
   useMarkup,
   useNodesMeasuredEffect,
   usePaper,
@@ -167,7 +166,7 @@ function useGatePattern() {
 // Shapes
 // ----------------------------------------------------------------------------
 function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const { id } = useElement();
   const { setCell } = useGraph<FTAElement>();
   const gatePatternUrl = useGatePattern();
@@ -289,7 +288,7 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
 }
 
 function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -321,7 +320,7 @@ function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
 }
 
 function BasicEventNode(props: Readonly<BasicEvent>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const bodyPatternUrl = useElementPattern();
   const { label } = props;
   return (
@@ -355,7 +354,7 @@ function BasicEventNode(props: Readonly<BasicEvent>) {
 }
 
 function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -387,7 +386,7 @@ function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
 }
 
 function ConditioningEventNode({ label }: Readonly<ConditioningEvent>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const bodyPatternUrl = useElementPattern();
 
   return (

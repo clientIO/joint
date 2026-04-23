@@ -2,12 +2,7 @@
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import type { OnTransformElement, Cells } from '@joint/react';
-import {
-  GraphProvider,
-  Paper,
-  useMeasureNode,
-  type RenderElement,
-} from '@joint/react';
+import { GraphProvider, Paper, useCell, useMeasureNode, type RenderElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type Data = { label: string };
@@ -76,10 +71,17 @@ function Card({ label }: Readonly<Partial<Data>>) {
   );
 }
 
+function CardRenderer(data: Data | undefined) {
+  // Demonstrates calling `useCell()` inside a component used by `renderElement`.
+  const cell = useCell();
+  return <Card label={data?.label ?? String(cell.id)} />;
+}
+
 function Main() {
-  const renderElement: RenderElement<Data> = useCallback((data) => {
-    return <Card label={data?.label} />;
-  }, []);
+  const renderElement: RenderElement<Data> = useCallback(
+    (data) => <CardRenderer {...(data ?? ({} as Data))} />,
+    []
+  );
   return <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />;
 }
 

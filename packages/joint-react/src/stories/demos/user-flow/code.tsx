@@ -11,8 +11,7 @@ import {
   GraphProvider,
   Paper,
   useElement,
-  useElementSize,
-  useMarkup,
+    useMarkup,
   HTMLHost,
   type Cells,
   type CellId,
@@ -159,7 +158,7 @@ function RenderElementBase({
 }: Readonly<RenderElementProps>) {
   const { id } = useElement();
   const { selectorRef } = useMarkup();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
 
   let icon: string;
   switch (nodeType) {

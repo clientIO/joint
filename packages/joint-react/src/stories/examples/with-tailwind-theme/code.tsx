@@ -6,8 +6,7 @@ import {
   GraphProvider,
   Paper,
   useElement,
-  useElementSize,
-  type Cells,
+    type Cells,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -119,7 +118,7 @@ const initialCells: Cells<NodeUserData> = [
 
 function Node() {
   const element = useElement<NodeUserData>();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = element.size;
   const label = element.data?.label ?? '';
   return (
     <>

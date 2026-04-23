@@ -1,10 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   GraphProvider,
+  useElement,
   Paper,
   useMarkup,
-  useElementSize,
-  type Cells,
+    type Cells,
   usePaperEvents,
 } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
@@ -45,7 +45,7 @@ type HighlighterVariant = 'mask' | 'opacity';
 
 function RenderElement(data: NodeData | undefined) {
   const { selectorRef } = useMarkup();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const label = data?.label;
   return (
     <g width={width} height={height} className="node">

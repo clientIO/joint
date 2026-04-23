@@ -3,13 +3,14 @@ import {
   useLayoutEffect,
   useMemo,
   useSyncExternalStore,
+  type ComponentType,
   type CSSProperties,
-  type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
 import { useGraphStore, usePaper } from '../../../hooks';
 import { useCellId } from '../../../hooks/use-cell-id';
+import { ELEMENT_MODEL_TYPE } from '../../../models/element-model';
 import type { CellId, ElementRecord } from '../../../types/cell.types';
 
 /**
@@ -18,8 +19,13 @@ import type { CellId, ElementRecord } from '../../../types/cell.types';
  * record via the graph store directly.
  */
 export interface ElementItemProps {
-  /** Renderer receiving only the element's `data` slice. */
-  readonly renderElement: (data: unknown) => ReactNode;
+  /**
+   * Element renderer. Invoked as a JSX component with the element's `data`
+   * spread as props — so wrapping it in `React.memo` works (React calls the
+   * memo wrapper, not the inner function). Use `useCell(c => c.id)` inside
+   * the renderer when the id is needed.
+   */
+  readonly renderElement: ComponentType<Record<string, unknown>>;
   /** The DOM element to portal into. */
   readonly portalElement: SVGElement | HTMLElement | null;
   /** Whether all auto-sized elements have been measured. */
@@ -31,9 +37,10 @@ export interface ElementItemProps {
  * same reference across unrelated cell updates (position / size / angle
  * changes preserve the `data` ref via `mergeElementRecord`), so React
  * skips the re-render unless `data` actually changed.
+ * @param id - cell id to subscribe to
  * @returns current element's `data`, possibly undefined
  */
-function useElementDataSnapshot(id: CellId): unknown {
+function useElementDataSnapshot(id: CellId): Record<string, unknown> | undefined {
   const store = useGraphStore();
   const { cells } = store.graphView;
   const subscribe = useCallback(
@@ -41,7 +48,7 @@ function useElementDataSnapshot(id: CellId): unknown {
     [cells, id]
   );
   const getSnapshot = useCallback(
-    () => (cells.get(id) as ElementRecord | undefined)?.data,
+    () => (cells.get(id) as ElementRecord | undefined)?.data as Record<string, unknown> | undefined,
     [cells, id]
   );
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
@@ -51,6 +58,7 @@ function useElementDataSnapshot(id: CellId): unknown {
  * Read the current element record (full cell). Used by the HTML portal
  * wrapper which also needs position and size for its absolute-positioned
  * container div.
+ * @param id - cell id to subscribe to
  * @returns current element record, or a placeholder when missing
  */
 function useCurrentElementRecord(id: CellId): ElementRecord {
@@ -62,7 +70,13 @@ function useCurrentElementRecord(id: CellId): ElementRecord {
   );
   const getSnapshot = useCallback(() => cells.get(id), [cells, id]);
   const cell = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  return (cell ?? { id, type: '' }) as unknown as ElementRecord;
+  if (cell === undefined) {
+    // Placeholder when the cell is not (yet) in the store — only the id is
+    // truly known. The full ElementRecord shape is partially populated.
+    const placeholder: ElementRecord = { id, type: ELEMENT_MODEL_TYPE };
+    return placeholder;
+  }
+  return cell as ElementRecord;
 }
 
 /**
@@ -90,7 +104,9 @@ function SVGElementItemComponent(props: ElementItemProps) {
     return null;
   }
 
-  return createPortal(RenderElement(data), portalElement);
+  // Render as JSX (not function call) so a `React.memo`-wrapped
+  // `RenderElement` actually short-circuits on prop equality.
+  return createPortal(<RenderElement {...(data ?? {})} />, portalElement);
 }
 
 /**
@@ -130,24 +146,20 @@ function HTMLElementItemComponent(props: ElementItemProps) {
     [height, width, x, y]
   );
 
-  // Only re-invoke the user's render when `data` actually changes — position
-  // and size changes flow into `style` above without touching the renderer.
-  const renderedContent = useMemo(
-    () => RenderElement(element.data),
-    [RenderElement, element.data]
-  );
-
   if (!portalElement) {
     return null;
   }
 
-  const container = (
-    <div model-id={id} style={style}>
-      {renderedContent}
-    </div>
-  );
+  // Render as JSX (not function call) so a `React.memo`-wrapped
+  // `RenderElement` actually short-circuits on prop equality.
+  const dataProps = (element.data as Record<string, unknown> | undefined) ?? {};
 
-  return createPortal(container, portalElement);
+  return createPortal(
+    <div model-id={id} style={style}>
+      <RenderElement {...dataProps} />
+    </div>,
+    portalElement
+  );
 }
 
 /**

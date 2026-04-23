@@ -1,8 +1,8 @@
 import {
   GraphProvider,
+  useElement,
   Paper,
-  useElementSize,
-  useNodesMeasuredEffect,
+    useNodesMeasuredEffect,
   type Cells,
   type ElementRecord,
 } from '@joint/react';
@@ -115,7 +115,7 @@ const initialCells: Cells<ControlledElement> = [
 // Label Component
 // ----------------------------------------------------------------------------
 function Label({ label }: Readonly<{ label: string }>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <text
       textAnchor="middle"
@@ -135,7 +135,7 @@ function Label({ label }: Readonly<{ label: string }>) {
 // Shapes
 // ----------------------------------------------------------------------------
 function LinkedProcess({ label }: Readonly<BaseElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
 
   return (
     <>
@@ -148,7 +148,7 @@ function LinkedProcess({ label }: Readonly<BaseElement>) {
 }
 
 function InputShape({ label }: Readonly<BaseElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <path
@@ -163,7 +163,7 @@ function InputShape({ label }: Readonly<BaseElement>) {
 }
 
 function MarkShape({ label }: Readonly<BaseElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const hh = height * 0.5;
   return (
     <>
@@ -179,7 +179,7 @@ function MarkShape({ label }: Readonly<BaseElement>) {
 }
 
 function ActorShape({ label }: Readonly<BaseElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const headY = 0.2;
   const bodyY = 0.4;
   const legsY = 0.7;
@@ -202,7 +202,7 @@ function ActorShape({ label }: Readonly<BaseElement>) {
 }
 
 function Parallelogram({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <path
@@ -217,7 +217,7 @@ function Parallelogram({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function Hexagon({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -233,7 +233,7 @@ function Hexagon({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function StepShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -249,7 +249,7 @@ function StepShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function TrapezoidShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -265,7 +265,7 @@ function TrapezoidShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function DocumentShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, height / 2));
   return (
     <>
@@ -281,7 +281,7 @@ function DocumentShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function ShipmentShape({ label }: Readonly<BaseElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const scale = Math.min(width / 256, height / 256);
   const tx = (width - 256 * scale) / 2;
   const ty = (height - 256 * scale) / 2;
@@ -300,7 +300,7 @@ function ShipmentShape({ label }: Readonly<BaseElement>) {
 }
 
 function PlusShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -316,7 +316,7 @@ function PlusShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <path
@@ -331,7 +331,7 @@ function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>
 }
 
 function NoteShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -355,7 +355,7 @@ function NoteShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const dx = Math.max(0, Math.min(dividerX, width));
   const dy = Math.max(0, Math.min(dividerY, height));
   return (
@@ -381,7 +381,7 @@ function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableEleme
 }
 
 function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const cx = Math.max(0, Math.min(cornerX, width));
   const cy = Math.max(0, Math.min(cornerY, height));
   return (
@@ -430,7 +430,7 @@ function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>)
 }
 
 function CardShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>

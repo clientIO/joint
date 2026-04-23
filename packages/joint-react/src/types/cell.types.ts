@@ -1,7 +1,12 @@
 import type { Cell as DiaCell, Link as DiaLink } from '@joint/core/dia';
 import type { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import type { LINK_MODEL_TYPE } from '../models/link-model';
-import type { ElementPosition, ElementSize } from './cell-data';
+import type {
+  ElementPosition,
+  ElementSize,
+  ResolvedElementPosition,
+  ResolvedElementSize,
+} from './cell-data';
 import type { ElementPort } from '../presets/element-ports';
 import type { LinkStyle } from '../presets/link-style';
 import type { LinkLabel } from '../presets/link-labels';
@@ -67,6 +72,55 @@ export interface LinkRecord<LinkData = unknown> extends BaseCell {
 }
 
 /**
+ * Element record as it lives in the store after JointJS / `elementAttributes`
+ * defaults have been applied. Reading hooks (`useElement`, `useCell`,
+ * `useCells`) return the `Resolved` variant so consumers don't need
+ * `?? {}` / `?? 0` fallbacks for fields the store always populates.
+ *
+ * Always populated by the framework:
+ * - `position` — JointJS `dia.Element` defaults to `{ x: 0, y: 0 }`.
+ * - `size` — JointJS `dia.Element` defaults to `{ width: 1, height: 1 }`.
+ * - `angle` — JointJS `dia.Element` defaults to `0`.
+ * - `data` — `elementAttributes` defaults to `{} as ElementData`.
+ *
+ * Use {@link ElementRecord} for input shapes (cell creation, setters) where
+ * these fields are optional and will be filled in by the framework.
+ */
+export interface ResolvedElementRecord<ElementData = unknown> extends BaseCell {
+  readonly type: typeof ELEMENT_MODEL_TYPE;
+  readonly position: ResolvedElementPosition;
+  readonly size: ResolvedElementSize;
+  readonly angle: number;
+  readonly data: ElementData;
+  readonly portMap?: Record<string, ElementPort>;
+  readonly portStyle?: Partial<ElementPort>;
+  readonly [key: string]: unknown;
+}
+
+/**
+ * Link record as it lives in the store after JointJS / `linkAttributes`
+ * defaults have been applied. Reading hooks (`useLink`, `useCell`,
+ * `useCells`) return the `Resolved` variant.
+ *
+ * Always populated by the framework:
+ * - `source` — JointJS `dia.Link` defaults to `{}`.
+ * - `target` — JointJS `dia.Link` defaults to `{}`.
+ * - `data` — `linkAttributes` defaults to `{} as LinkData`.
+ *
+ * Use {@link LinkRecord} for input shapes (cell creation, setters).
+ */
+export interface ResolvedLinkRecord<LinkData = unknown> extends BaseCell {
+  readonly type: typeof LINK_MODEL_TYPE;
+  readonly source: DiaLink.EndJSON;
+  readonly target: DiaLink.EndJSON;
+  readonly data: LinkData;
+  readonly style?: LinkStyle;
+  readonly labelMap?: Record<string, LinkLabel>;
+  readonly labelStyle?: Partial<LinkLabel>;
+  readonly [key: string]: unknown;
+}
+
+/**
  * Any custom cell type that is not ElementRecord/LinkRecord. `type` is
  * inherited from BaseCell as `KnownCellType | (string & {})`, and the
  * index signature lets authors attach arbitrary fields.
@@ -91,9 +145,23 @@ export type CellRecord<ElementData = unknown, LinkData = unknown> =
   | LinkRecord<LinkData>
   | CustomRecord;
 
+/**
+ * Cell type as it leaves the store — element / link branches use the
+ * `Resolved*` variants where framework-populated fields are required.
+ */
+export type ResolvedCellRecord<ElementData = unknown, LinkData = unknown> =
+  | ResolvedElementRecord<ElementData>
+  | ResolvedLinkRecord<LinkData>
+  | CustomRecord;
+
 /** Readonly array of cells — used in GraphProvider props, setters, and selectors. */
 export type Cells<ElementData = unknown, LinkData = unknown> = ReadonlyArray<
   CellRecord<ElementData, LinkData>
+>;
+
+/** Readonly array of resolved cells — returned by reading hooks. */
+export type ResolvedCells<ElementData = unknown, LinkData = unknown> = ReadonlyArray<
+  ResolvedCellRecord<ElementData, LinkData>
 >;
 
 /** Short alias for cell ids; same as dia.Cell.ID. */

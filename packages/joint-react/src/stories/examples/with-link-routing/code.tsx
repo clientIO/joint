@@ -2,11 +2,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   GraphProvider,
+  useElement,
   Paper,
   HTMLBox,
   useMarkup,
-  useElementSize,
-  type Cells,
+    type Cells,
   type ElementPort,
   type LinkRecord,
   usePaper,
@@ -113,7 +113,7 @@ function RenderHTMLElement({ label }: Readonly<NodeData>) {
 
 function RenderSVGElement({ label }: Readonly<NodeData>) {
   const { selectorRef } = useMarkup();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <rect

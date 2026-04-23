@@ -4,9 +4,9 @@ import type { dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
+  useElement,
   Paper,
-  useElementSize,
-  type Cells,
+    type Cells,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -167,7 +167,7 @@ const initialCells: Cells<NativeElementUserData> = [
 ];
 
 function Node({ color, label }: Readonly<{ color: string; label: string }>) {
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   const cx = width / 2;
   const cy = height / 2;
   return (

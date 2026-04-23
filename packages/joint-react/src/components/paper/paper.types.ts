@@ -2,8 +2,13 @@ import type { dia } from '@joint/core';
 import type { LinkRecord as OldLinkRecord } from '../../types/data-types';
 import type { OmitWithoutIndexSignature } from '../../types';
 import type { PortalSelector } from '../../models/portal-paper.types';
-import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { PortalPaper } from '../../models/portal-paper';
+
+/**
+ * Callback fired when an `ElementView` is rendered in the paper. Wired to
+ * `dia.Paper`'s `'render:element'` event.
+ */
+export type OnPaperRenderElement = (elementView: dia.ElementView) => void;
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
@@ -68,17 +73,20 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
  * applied by JointJS's view layer without touching React at all (SVG mode)
  * or by a thin wrapper div that doesn't invoke the renderer (HTML mode).
  *
- * If the renderer needs the id or other slices, use the context hooks:
- * - `useCellId()` — current cell id
- * - `useElement()` — full record, with optional selector
- * - `useElementPosition()` / `useElementSize()` — thin slice subscriptions
+ * Rendered as JSX (`<RenderElement {...data} />`) so wrapping it in
+ * `React.memo` actually short-circuits on prop equality.
+ *
+ * If the renderer needs the id, position, size, or other slices, use the
+ * context hooks: `useCellId()`, `useElement()` (with optional selector), or
+ * `useCell(c => c.position / c.size / ...)`.
  */
 export type RenderElement<ElementData = unknown> = (data: ElementData | undefined) => ReactNode;
 
 /**
  * Render function for links. Receives the link's `data` slice only — same
- * performance rationale as `RenderElement`. Use `useCellId()` or `useLink()`
- * inside the renderer when source / target / id are needed.
+ * performance rationale as `RenderElement`. Use `useLink()` (with an
+ * optional selector) inside the renderer when source / target / id are
+ * needed.
  */
 export type RenderLink<LinkData = unknown> = (data: LinkData | undefined) => ReactNode;
 
