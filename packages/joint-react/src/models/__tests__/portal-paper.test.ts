@@ -3,6 +3,7 @@ import { PortalPaper } from '../portal-paper';
 import { ElementModel } from '../element-model';
 import { GraphStore } from '../../store/graph-store';
 import type { IncrementalChange } from '../../state/incremental.types';
+import type { CellId } from '../../types/cell.types';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ElementModel };
 const TEST_PAPER_ID = 'test-paper';
@@ -51,7 +52,7 @@ describe('PortalPaper', () => {
     return new PortalPaper({
       el: container,
       model: graphStore.graph,
-      onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
+      onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => {
         graphStore.setPaperViews(TEST_PAPER_ID, changes);
       },
       cellNamespace: DEFAULT_CELL_NAMESPACE,

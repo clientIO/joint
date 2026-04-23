@@ -1,4 +1,4 @@
- 
+
 /* eslint-disable @eslint-react/no-array-index-key */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
@@ -7,11 +7,11 @@ import { useCallback, useRef, type PropsWithChildren } from 'react';
 import {
   GraphProvider,
   Paper,
+  useElement,
   useMeasureNode,
-  type OnTransformElement,
+  type Cells,
   type ElementRecord,
-  type LinkRecord,
-  useElementId,
+  type OnTransformElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
@@ -21,20 +21,30 @@ interface ListNodeData {
   readonly inputs: string[];
 }
 
-const initialElements: Record<string, ElementRecord<ListNodeData>> = {
-  '1': { data: { label: 'Node 1', inputs: [] }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'Node 2', inputs: [] }, position: { x: 500, y: 200 } },
-};
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+const initialCells: Cells<ListNodeData> = [
+  {
+    id: '1',
+    type: 'ElementModel',
+    data: { label: 'Node 1', inputs: [] },
+    position: { x: 100, y: 15 },
+  },
+  {
+    id: '2',
+    type: 'ElementModel',
+    data: { label: 'Node 2', inputs: [] },
+    position: { x: 500, y: 200 },
+  },
+  {
+    id: 'e1-2',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
 function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
-  const id = useElementId();
+  const { id } = useElement<ListNodeData>();
   const padding = 10;
   const headerHeight = 50;
   const elementRef = useRef<HTMLDivElement>(null);
@@ -53,13 +63,18 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
 
   const { width, height } = useMeasureNode(elementRef, { transform });
 
-  const { setElement } = useGraph<ListNodeData>();
+  const { setCell } = useGraph<ListNodeData>();
 
   const addInput = () => {
-    setElement(id, (previous) => {
-      const previousData = previous.data as unknown as ListNodeData;
+    setCell((previous) => {
+      const previousElement = previous as ElementRecord<ListNodeData>;
+      const previousData = previousElement.data;
       const previousInputs = Array.isArray(previousData?.inputs) ? previousData.inputs : [];
-      return { ...previous, data: { ...previousData, inputs: [...previousInputs, ''] } };
+      return {
+        ...previousElement,
+        id,
+        data: { ...(previousData ?? { label: '', inputs: [] }), inputs: [...previousInputs, ''] },
+      } as ElementRecord<ListNodeData>;
     });
   };
 
@@ -105,9 +120,14 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
                   onChange={(event) => {
                     const newInputs = [...inputs];
                     newInputs[index] = event.target.value;
-                    setElement(id, (previous) => {
-                      const previousData = previous.data as unknown as ListNodeData;
-                      return { ...previous, data: { ...previousData, inputs: newInputs } };
+                    setCell((previous) => {
+                      const previousElement = previous as ElementRecord<ListNodeData>;
+                      const previousData = previousElement.data;
+                      return {
+                        ...previousElement,
+                        id,
+                        data: { ...(previousData ?? { label: '', inputs: [] }), inputs: newInputs },
+                      } as ElementRecord<ListNodeData>;
                     });
                   }}
                 />
@@ -121,8 +141,11 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
   );
 }
 
+const DEFAULT_LIST_NODE_DATA: ListNodeData = { label: '', inputs: [] };
+
 function Main() {
-  const renderElement = useCallback(({ label, inputs }: ListNodeData) => {
+  const renderElement = useCallback((data: ListNodeData | undefined) => {
+    const { label, inputs } = data ?? DEFAULT_LIST_NODE_DATA;
     return (
       <ListElement label={label} inputs={inputs}>
         {label}
@@ -142,7 +165,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

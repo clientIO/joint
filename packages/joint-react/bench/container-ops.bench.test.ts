@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 import { describe, test } from '@jest/globals';
 import { Bench } from 'tinybench';
-import { join } from 'node:path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Container } from '../src/store/container';
+import { createContainer, type Container } from '../src/store/state-container';
 import { saveBenchResults } from './save-baseline';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const OUTPUT = join(__dirname, 'baseline-pre-refactor.json');
+const BENCH_DIR = fileURLToPath(new URL('.', import.meta.url));
+const OUTPUT = path.join(BENCH_DIR, 'baseline-post-refactor.json');
 
 interface TestCell {
   readonly id: string;
@@ -15,8 +15,8 @@ interface TestCell {
 }
 
 function populate(container: Container<TestCell>, n: number): void {
-  for (let i = 0; i < n; i++) {
-    container.set(`id-${i}`, { id: `id-${i}`, value: i });
+  for (let index = 0; index < n; index++) {
+    container.set(`id-${index}`, { id: `id-${index}`, value: index });
   }
   container.commitChanges();
 }
@@ -37,15 +37,14 @@ describe('container-ops: O(1) flat-micro benchmark', () => {
   for (const n of SIZES) {
     test(`n=${n} — set existing`, async () => {
       const bench = new Bench({ iterations: 20 });
-      const container = new Container<TestCell>();
+      const container = createContainer<TestCell>();
       populate(container, n);
-      let i = 0;
+      let index = 0;
 
       bench.add(`container/set-existing/n=${n}`, () => {
-        container.set(`id-${i % n}`, { id: `id-${i % n}`, value: i });
-        i++;
+        container.set(`id-${index % n}`, { id: `id-${index % n}`, value: index });
+        index++;
       });
-      await bench.warmup();
       await bench.run();
       logResults(bench);
       saveBenchResults(bench, `container/set-existing/n=${n}`, OUTPUT);
@@ -53,16 +52,15 @@ describe('container-ops: O(1) flat-micro benchmark', () => {
 
     test(`n=${n} — set insert (new id)`, async () => {
       const bench = new Bench({ iterations: 20 });
-      const container = new Container<TestCell>();
+      const container = createContainer<TestCell>();
       populate(container, n);
-      let i = n;
+      let index = n;
 
       bench.add(`container/set-insert/n=${n}`, () => {
-        const id = `new-${i}`;
-        container.set(id, { id, value: i });
-        i++;
+        const id = `new-${index}`;
+        container.set(id, { id, value: index });
+        index++;
       });
-      await bench.warmup();
       await bench.run();
       logResults(bench);
       saveBenchResults(bench, `container/set-insert/n=${n}`, OUTPUT);
@@ -70,17 +68,16 @@ describe('container-ops: O(1) flat-micro benchmark', () => {
 
     test(`n=${n} — delete (swap-pop) + re-insert`, async () => {
       const bench = new Bench({ iterations: 20 });
-      const container = new Container<TestCell>();
+      const container = createContainer<TestCell>();
       populate(container, n);
-      let i = 0;
+      let index = 0;
 
       bench.add(`container/delete/n=${n}`, () => {
-        const id = `id-${i % n}`;
+        const id = `id-${index % n}`;
         container.delete(id);
-        container.set(id, { id, value: i });
-        i++;
+        container.set(id, { id, value: index });
+        index++;
       });
-      await bench.warmup();
       await bench.run();
       logResults(bench);
       saveBenchResults(bench, `container/delete/n=${n}`, OUTPUT);

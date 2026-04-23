@@ -1,5 +1,5 @@
 import type { routers, connectors as connectorTypes , anchors, connectionPoints} from '@joint/core';
-import { connectors as connectorFns, g } from '@joint/core';
+import { connectors as connectorFns } from '@joint/core';
 
 /**
  * Wraps a router so it falls back to straight-line routing when either end

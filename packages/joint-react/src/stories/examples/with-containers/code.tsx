@@ -1,6 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { LinkRecord, ElementRecord, ValidateEmbeddingContext } from '@joint/react';
-import { GraphProvider, Paper, HTMLHost, useElementSize } from '@joint/react';
+import type { Cells, ValidateEmbeddingContext } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  HTMLHost,
+  useElementSize,
+} from '@joint/react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 type ContainerData = {
@@ -9,39 +14,44 @@ type ContainerData = {
   readonly [key: string]: unknown;
 };
 
-const elements: Record<string, ElementRecord<ContainerData>> = {
-  container: {
+const initialCells: Cells<ContainerData> = [
+  {
+    id: 'container',
+    type: 'ElementModel',
     position: { x: 50, y: 50 },
     size: { width: 300, height: 200 },
     data: { label: 'Container', isContainer: true },
     z: 1,
   },
-  'child-1': {
+  {
+    id: 'child-1',
+    type: 'ElementModel',
     position: { x: 70, y: 80 },
     data: { label: 'Child 1' },
     parent: 'container',
     z: 2,
   },
-  'child-2': {
+  {
+    id: 'child-2',
+    type: 'ElementModel',
     position: { x: 200, y: 80 },
     data: { label: 'Child 2' },
     parent: 'container',
     z: 2,
   },
-};
-
-const links: Record<string, LinkRecord> = {
-  'link-1': {
+  {
+    id: 'link-1',
+    type: 'LinkModel',
     source: { id: 'child-1' },
     target: { id: 'child-2' },
     parent: 'container',
     style: { color: 'white' },
     z: 2,
   },
-};
+];
 
 function ContainerNode({ label }: Readonly<ContainerData>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return (
     <g>
       <rect
@@ -82,11 +92,12 @@ function ChildElement({ label }: Readonly<ContainerData>) {
   );
 }
 
-function RenderElement(props: Readonly<ContainerData>) {
-  if (props.isContainer) {
-    return <ContainerNode {...props} />;
+function RenderElement(data: ContainerData | undefined) {
+  if (!data) return null;
+  if (data.isContainer) {
+    return <ContainerNode {...data} />;
   }
-  return <ChildElement {...props} />;
+  return <ChildElement {...data} />;
 }
 
 function validateParentChildRelationship(
@@ -125,7 +136,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={elements} initialLinks={links}>
+    <GraphProvider<ContainerData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

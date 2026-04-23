@@ -11,7 +11,7 @@
  * - `activeObservedElementByDomNode` — `WeakMap` for O(1) lookup in the ResizeObserver callback
  */
 import type { dia } from '@joint/core';
-import type { CellId } from '../types/cell-id';
+import type { CellId } from '../types/cell.types';
 import type { ElementLayout } from '../types/cell-data';
 import type { ElementRecord } from '../types/data-types';
 
@@ -81,7 +81,7 @@ interface Options {
     id: CellId
   ) => ElementLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the elements from the container */
-  readonly getElements: () => Map<string, ElementRecord>;
+  readonly getElements: () => Map<CellId, ElementRecord>;
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (data: Record<CellId, ElementLayoutOptionalXY>) => void;
 }
@@ -127,7 +127,7 @@ interface ProcessSizeChangeOptions {
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly elements: Map<string, ElementRecord>;
+  readonly elements: Map<CellId, ElementRecord>;
   readonly mutableLayouts: Record<CellId, ElementLayoutOptionalXY>;
 }
 

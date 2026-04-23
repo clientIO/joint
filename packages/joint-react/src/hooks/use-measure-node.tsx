@@ -1,10 +1,10 @@
-import { useLayoutEffect, type RefObject } from 'react';
-import { useElementId } from './use-element-id';
+import { useContext, useLayoutEffect, type RefObject } from 'react';
+import { CellIdContext } from '../context';
 import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
 import { usePaper } from './use-paper';
 import type { ElementSize } from '../types/cell-data';
-import { useElementSize } from './use-element-size';
+import { useElement } from './use-element';
 
 /**
  * Controls element visibility until the first measurement completes.
@@ -152,8 +152,15 @@ export function useMeasureNode(
   const { transform, visibility } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode } = useGraphStore();
   const { paper } = usePaper();
-  const id = useElementId();
-  const layout = useElementSize();
+  const id = useContext(CellIdContext);
+  if (id === undefined) {
+    throw new Error('useMeasureNode() must be used inside renderElement');
+  }
+  const size = useElement((element) => element.size);
+  const layout: Required<ElementSize> = {
+    width: size?.width ?? 0,
+    height: size?.height ?? 0,
+  };
 
   useLayoutEffect(() => {
     const element = nodeRef.current;

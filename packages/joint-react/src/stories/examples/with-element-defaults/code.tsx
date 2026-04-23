@@ -1,4 +1,12 @@
-import { GraphProvider, Paper, HTMLBox, ElementModel, LinkModel, type ElementRecord, type LinkRecord, useGraph } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  HTMLBox,
+  ElementModel,
+  LinkModel,
+  useGraph,
+  type Cells,
+} from '@joint/react';
 import { elementAttributes, elementPort, linkAttributes, linkLabel, linkStyle } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
@@ -74,50 +82,60 @@ class LabelMapLink extends LinkModel {
 
 // ── Data ────────────────────────────────────────────────────────────────
 
-const elements: Record<string, ElementRecord> = {
-  a: {
+interface NodeData {
+  readonly label: string;
+}
+
+const initialCells: Cells<NodeData> = [
+  {
+    id: 'a',
     type: 'PortsElement',
     data: { label: 'Ports (native)' },
     position: { x: 50, y: 50 },
     size: { width: 140, height: 60 },
   },
-  b: {
+  {
+    id: 'b',
     type: 'PortsElement',
     data: { label: 'Ports (native)' },
     position: { x: 50, y: 160 },
     size: { width: 140, height: 60 },
   },
-  c: {
+  {
+    id: 'c',
     type: 'PortMapElement',
     data: { label: 'PortMap' },
     position: { x: 350, y: 50 },
     size: { width: 140, height: 60 },
   },
-  d: {
+  {
+    id: 'd',
     type: 'PortMapElement',
     data: { label: 'PortMap' },
     position: { x: 350, y: 160 },
     size: { width: 140, height: 60 },
   },
-};
-
-const links: Record<string, LinkRecord> = {
-  'a-c': {
+  {
+    id: 'a-c',
     type: 'LabelsLink',
     source: { id: 'a', port: 'out1' },
     target: { id: 'c', port: 'in' },
   },
-  'b-d': {
+  {
+    id: 'b-d',
     type: 'LabelMapLink',
     source: { id: 'b', port: 'out1' },
     target: { id: 'd', port: 'in' },
   },
-};
+];
 
 // ── Component ───────────────────────────────────────────────────────────
 
-function RenderElement({ label }: { label: string }) {
-  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
+const JSON_VIEWER_STYLE = { fontSize: 10 } as const;
+const CELL_NAMESPACE = { PortsElement, PortMapElement, LabelsLink, LabelMapLink };
+
+function renderElement(data: NodeData | undefined) {
+  return <HTMLBox useModelGeometry>{data?.label}</HTMLBox>;
 }
 
 function JSONViewer() {
@@ -128,7 +146,7 @@ function JSONViewer() {
       ignoreEmptyAttributes: true,
     }
   });
-  return <pre style={{ fontSize: 10 }}>{JSON.stringify(json, null, 2)}</pre>;
+  return <pre style={JSON_VIEWER_STYLE}>{JSON.stringify(json, null, 2)}</pre>;
 
 
 }
@@ -137,14 +155,13 @@ export default function App() {
 
   return (
     <GraphProvider
-      initialElements={elements}
-      initialLinks={links}
-      cellNamespace={{ PortsElement, PortMapElement, LabelsLink, LabelMapLink }}
+      initialCells={initialCells}
+      cellNamespace={CELL_NAMESPACE}
     >
       <Paper
         className={PAPER_CLASSNAME}
         height={300}
-        renderElement={RenderElement}
+        renderElement={renderElement}
       />
       <JSONViewer/>
     </GraphProvider>

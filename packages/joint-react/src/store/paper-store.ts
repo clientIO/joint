@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { CellId } from '../types/cell-id';
+import type { CellId } from '../types/cell.types';
 import type { RenderElement, RenderLink } from '../components';
 import type { PortalSelector } from '../models/portal-paper.types';
 import type { GraphStore } from './graph-store';
@@ -78,7 +78,7 @@ export class PaperStore {
   public features: Record<string, Feature> = {};
 
   /** Link changes pending flush — populated by clearView, flushed in afterRender. */
-  private pendingLinkChanges: Map<string, IncrementalChange<dia.Cell>> = new Map();
+  private pendingLinkChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
 
   constructor(options: PaperStoreOptions) {
     const {
@@ -99,7 +99,7 @@ export class PaperStore {
     if (externalPaper) {
       // Adopt an externally created PortalPaper (e.g. from PortalStencil).
       // Hook into view mount changes so the GraphStore stays in sync.
-      externalPaper.onViewMountChange = (changes: Map<string, IncrementalChange<dia.Cell>>) => {
+      externalPaper.onViewMountChange = (changes: Map<CellId, IncrementalChange<dia.Cell>>) => {
         graphStore.setPaperViews(this.paperId, changes);
       };
       this.paper = externalPaper;
@@ -117,6 +117,10 @@ export class PaperStore {
         afterRender: (() => {
           // Re-entrance guard to prevent infinite loops
           let isProcessing = false;
+          // `afterRender` is invoked by JointJS with the `PortalPaper` as its
+          // `this`, so we cannot use an arrow function; we must capture the
+          // outer `PaperStore` instance to call `flushPendingLinkChanges`.
+          // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
           const store = this;
           return function (this: PortalPaper) {
             if (isProcessing) {
@@ -135,7 +139,7 @@ export class PaperStore {
           };
         })(),
         ...paperOptions,
-        onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
+        onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => {
           graphStore.setPaperViews(this.paperId, changes);
         },
       });
@@ -152,7 +156,7 @@ export class PaperStore {
    * Queues link changes for flush after the next JointJS render cycle.
    * @param changes - Link changes to queue
    */
-  public addPendingLinkChanges(changes: Map<string, IncrementalChange<dia.Cell>>): void {
+  public addPendingLinkChanges(changes: Map<CellId, IncrementalChange<dia.Cell>>): void {
     for (const [id, change] of changes) {
       this.pendingLinkChanges.set(id, change);
     }

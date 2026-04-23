@@ -1,13 +1,14 @@
-import type { ElementPosition } from '../types/cell-data';
 import { useElement } from './use-element';
+import type { ElementPosition } from '../types/cell-data';
 
 /**
- * Returns the position of the current element.
- * Must be used inside `renderElement` or a component rendered within it.
- * Only re-renders when the element's position reference changes.
- * @returns The position `{ x, y }` of the current element.
- * @group Hooks
+ * Read the position of the current element (context-scoped; requires `CellIdContext`).
+ *
+ * Thin selector-style wrapper over `useElement` that subscribes only to the
+ * `position` slice — rerenders only when `{ x, y }` changes, not on every
+ * element update. Returns `undefined` when the element has no position set.
+ * @returns the current element's position, or undefined when unset
  */
-export function useElementPosition(): Required<ElementPosition> {
-  return useElement((element) => element.position);
+export function useElementPosition(): ElementPosition | undefined {
+  return useElement<unknown, ElementPosition | undefined>((element) => element.position);
 }

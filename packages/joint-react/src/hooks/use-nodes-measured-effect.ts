@@ -85,7 +85,7 @@ export function useNodesMeasuredEffect(
     const { paper } = paperStore;
 
     /**
-     *
+     * Fires the once-per-mount measurement callback when element measurement completes.
      */
     function handleChanges() {
       const value = measureState.get();

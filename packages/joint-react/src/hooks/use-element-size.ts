@@ -1,15 +1,15 @@
-import type { ElementSize } from '../types/cell-data';
 import { useElement } from './use-element';
+import type { ElementSize } from '../types/cell-data';
 
-const EMPTY_SIZE: ElementSize = { width: 0, height: 0 };
 /**
- * Returns the size of the current element.
- * Must be used inside `renderElement` or a component rendered within it.
- * Only re-renders when the element's size reference changes.
- * @returns The size `{ width, height }` of the current element.
- * @group Hooks
+ * Read the size of the current element (context-scoped; requires `CellIdContext`).
+ *
+ * Thin selector-style wrapper over `useElement` that subscribes only to the
+ * `size` slice — rerenders only when `{ width, height }` changes, not on
+ * every element update. Returns `undefined` before the element has been
+ * measured.
+ * @returns the current element's size, or undefined when unmeasured
  */
-export function useElementSize(): Required<ElementSize> {
-  const { width = 0, height = 0 } = useElement((element) => element.size) ?? EMPTY_SIZE;
-  return { width, height };
+export function useElementSize(): ElementSize | undefined {
+  return useElement<unknown, ElementSize | undefined>((element) => element.size);
 }

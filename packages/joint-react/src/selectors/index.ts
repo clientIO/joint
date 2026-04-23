@@ -1,5 +1,4 @@
 import type { GraphStoreInternalSnapshot } from '../store/graph-store';
-import type { ElementLayout } from '../types/cell-data';
 
 // ── Element layout selectors ────────────────────────────────────────────────
 

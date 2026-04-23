@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { usePaper } from './use-paper';
-import { useElementId } from './use-element-id';
+import { useCellId } from './use-cell-id';
 import type { dia } from '@joint/core';
 import { PORTAL_SELECTOR } from '../models/element-model';
 
@@ -63,7 +63,7 @@ export interface MarkupUtils {
  */
 export function useMarkup(): MarkupUtils {
     const { paper } = usePaper();
-    const id = useElementId();
+    const id = useCellId();
     const applySelector = useCallback((node: Element | null, selector: string) => {
         const elementView = paper.findViewByModel(id) as dia.ElementView | undefined;
         if (!elementView) return;

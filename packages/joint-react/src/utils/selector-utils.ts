@@ -28,7 +28,7 @@ export function isShallowEqual(
 }
 
 /**
- *
+ * Returns true when both sizes have the same width and height.
  * @param a
  * @param b
  */
@@ -39,7 +39,7 @@ export function isSizeEqual(a?: ElementSize, b?: ElementSize): boolean {
 }
 
 /**
- *
+ * Returns true when both positions have the same x and y.
  * @param a
  * @param b
  */

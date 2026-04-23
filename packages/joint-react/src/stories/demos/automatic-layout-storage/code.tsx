@@ -7,11 +7,11 @@ import {
   Paper,
   HTMLHost,
   useGraph,
-  useElementId,
-  useElements,
-  useLinks,
-  useSetElement,
+  useElement,
+  useCells,
   useNodesMeasuredEffect,
+  type Cells,
+  type CellRecord,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
@@ -28,7 +28,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 //   - position  → recomputed by a tree layout each time nodes are measured
 //   - styles    → declared once in code, not persisted
 //
-// Click any node to edit it inline (uses `useSetElement`).
+// Click any node to edit it inline (uses `useGraph().setCell`).
 // "Save .json" downloads a tiny JSON file. "Load .json" reads one back in.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -37,7 +37,8 @@ interface NodeData {
   readonly owner: string;
 }
 
-// The persisted shape mirrors what GraphProvider accepts: Record-keyed by id.
+// The persisted shape mirrors what GraphProvider accepts: keyed by id,
+// but stripped to the minimum — data on elements, source/target on links.
 interface Snapshot {
   readonly elements: Record<string, { data: NodeData }>;
   readonly links: Record<string, { source: string; target: string }>;
@@ -66,7 +67,7 @@ const SEED: Snapshot = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Memo selectors: snapshot → records the GraphProvider expects.
+// Memo selector: snapshot → unified Cells array the GraphProvider expects.
 // Note that we never put position or size here — those come from measurement
 // and the layout pass at runtime.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,24 +81,21 @@ const LINK_ATTRS = {
   },
 };
 
-function toElementRecords(snapshot: Snapshot): Record<string, ElementRecord<NodeData>> {
-  const result: Record<string, ElementRecord<NodeData>> = {};
+function toCells(snapshot: Snapshot): Cells<NodeData> {
+  const cells: Array<ElementRecord<NodeData> | LinkRecord> = [];
   for (const [id, node] of Object.entries(snapshot.elements)) {
-    result[id] = { data: node.data };
+    cells.push({ id, type: 'ElementModel', data: node.data });
   }
-  return result;
-}
-
-function toLinkRecords(snapshot: Snapshot): Record<string, LinkRecord> {
-  const result: Record<string, LinkRecord> = {};
   for (const [id, link] of Object.entries(snapshot.links)) {
-    result[id] = {
+    cells.push({
+      id,
+      type: 'LinkModel',
       source: { id: link.source },
       target: { id: link.target },
       attrs: LINK_ATTRS,
-    };
+    });
   }
-  return result;
+  return cells;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -199,12 +197,14 @@ function LayoutRunner() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Renderer — a card with click-to-edit fields.
-// Uses `useSetElement` from inside the graph context to update its own data.
+// Uses `useGraph().setCell` from inside the graph context to update its own data.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function NodeCard({ title, owner }: Readonly<NodeData>) {
-  const id = useElementId();
-  const setElement = useSetElement<NodeData>();
+function NodeCard() {
+  const element = useElement<NodeData>();
+  const { id } = element;
+  const { title = '', owner = '' } = element.data ?? {};
+  const { setCell } = useGraph<NodeData>();
   const [isEditing, setIsEditing] = useState(false);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const editorRef = useRef<HTMLDivElement | null>(null);
@@ -236,12 +236,12 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
   }, []);
 
   const updateTitle = useCallback(
-    (next: string) => setElement(id, { data: { title: next, owner } }),
-    [setElement, id, owner]
+    (next: string) => setCell({ id, data: { title: next, owner } } as CellRecord<NodeData>),
+    [setCell, id, owner]
   );
   const updateOwner = useCallback(
-    (next: string) => setElement(id, { data: { title, owner: next } }),
-    [setElement, id, title]
+    (next: string) => setCell({ id, data: { title, owner: next } } as CellRecord<NodeData>),
+    [setCell, id, title]
   );
 
   const exitOnEnter = useCallback((event: React.KeyboardEvent) => {
@@ -352,24 +352,28 @@ function PencilGlyph() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function useLiveSnapshot(): Snapshot {
-  const elements = useElements<NodeData>();
-  const links = useLinks();
+  const cells = useCells<NodeData>();
+  const { isElement, isLink } = useGraph<NodeData>();
 
   return useMemo<Snapshot>(() => {
     const out: Snapshot = { elements: {}, links: {} };
-    for (const [id, element] of elements) {
-      const { data } = element;
-      if (!data) continue;
-      out.elements[id] = { data };
-    }
-    for (const [id, link] of links) {
-      const source = link.source as { id?: string } | undefined;
-      const target = link.target as { id?: string } | undefined;
-      if (!source?.id || !target?.id) continue;
-      out.links[id] = { source: source.id, target: target.id };
+    for (const cell of cells) {
+      if (isElement(cell)) {
+        const element = cell as ElementRecord<NodeData>;
+        if (!element.data) continue;
+        out.elements[String(element.id)] = { data: element.data };
+        continue;
+      }
+      if (isLink(cell)) {
+        const link = cell as LinkRecord;
+        const source = link.source as { id?: string } | undefined;
+        const target = link.target as { id?: string } | undefined;
+        if (!source?.id || !target?.id) continue;
+        out.links[String(link.id)] = { source: String(source.id), target: String(target.id) };
+      }
     }
     return out;
-  }, [elements, links]);
+  }, [cells, isElement, isLink]);
 }
 
 function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
@@ -412,7 +416,7 @@ function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Inner shell — lives inside GraphProvider and owns add / remove / save.
 // All operations talk to the live graph; the snapshot for Save and Inspector
-// is derived from `useElements` / `useLinks`.
+// is derived from `useCells()`.
 // ─────────────────────────────────────────────────────────────────────────────
 
 let nextSampleIndex = 1;
@@ -424,7 +428,7 @@ interface InnerShellProps {
 }
 
 function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
-  const { graph, setElement, setLink, removeElement } = useGraph<NodeData>();
+  const { graph, addCell, removeCell } = useGraph<NodeData>();
   const liveSnapshot = useLiveSnapshot();
 
   const handleAdd = useCallback(() => {
@@ -433,26 +437,28 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
     const owner = SAMPLE_OWNERS[nextSampleIndex % SAMPLE_OWNERS.length];
     nextSampleIndex += 1;
 
-    setElement(id, { data: { title, owner } });
+    addCell({ id, type: 'ElementModel', data: { title, owner } });
 
     // Pick a random existing parent so the tree fans out.
     const others = graph.getElements().filter((cell) => String(cell.id) !== id);
     if (others.length > 0) {
       const parent = others[Math.floor(Math.random() * others.length)];
-      setLink(`l${Date.now().toString(36)}`, {
+      addCell({
+        id: `l${Date.now().toString(36)}`,
+        type: 'LinkModel',
         source: { id: String(parent.id) },
         target: { id },
         attrs: LINK_ATTRS,
-      });
+      } as CellRecord<NodeData>);
     }
-  }, [setElement, graph, setLink]);
+  }, [addCell, graph]);
 
   const handleRemoveLast = useCallback(() => {
     const elements = graph.getElements();
     if (elements.length <= 1) return;
     const last = elements.at(-1);
-    if (last) removeElement(String(last.id));
-  }, [graph, removeElement]);
+    if (last) removeCell(String(last.id));
+  }, [graph, removeCell]);
 
   const handleSave = useCallback(() => {
     saveSnapshotToFile(liveSnapshot, `graph-${Date.now()}.json`);
@@ -504,7 +510,7 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // App — hosts GraphProvider and the file input. Bumps `reloadKey` on Load
-// so the GraphProvider remounts with the new initial elements.
+// so the GraphProvider remounts with the new initial cells.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -512,8 +518,7 @@ export default function App() {
   const [reloadKey, setReloadKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const initialElements = useMemo(() => toElementRecords(seed), [seed]);
-  const initialLinks = useMemo(() => toLinkRecords(seed), [seed]);
+  const initialCells = useMemo(() => toCells(seed), [seed]);
 
   const handleLoadClick = useCallback(() => fileInputRef.current?.click(), []);
 
@@ -536,7 +541,7 @@ export default function App() {
         className="hidden"
         onChange={handleFileChosen}
       />
-      <GraphProvider<NodeData> key={reloadKey} initialElements={initialElements} initialLinks={initialLinks}>
+      <GraphProvider<NodeData> key={reloadKey} initialCells={initialCells}>
         <InnerShell onLoadFile={handleLoadClick} />
       </GraphProvider>
     </div>

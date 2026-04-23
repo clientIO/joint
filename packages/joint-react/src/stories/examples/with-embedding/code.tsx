@@ -6,9 +6,10 @@ import {
   HTMLBox,
   GraphProvider,
   Paper,
-  useElements,
+  useCells,
   useGraph,
   useGraphEvents,
+  type Cells,
   type ElementRecord,
 } from '@joint/react';
 import { useState } from 'react';
@@ -17,8 +18,10 @@ import { useState } from 'react';
 // Data
 // ============================================================================
 type Data = { label: string };
-const initialElements: Record<string, ElementRecord<Data>> = {
-  container: {
+const initialCells: Cells<Data> = [
+  {
+    id: 'container',
+    type: 'ElementModel',
     data: {
       label: 'Container',
     },
@@ -26,7 +29,9 @@ const initialElements: Record<string, ElementRecord<Data>> = {
     size: { width: 300, height: 200 },
     z: 1,
   },
-  child: {
+  {
+    id: 'child',
+    type: 'ElementModel',
     data: {
       label: 'Drag me',
     },
@@ -35,7 +40,7 @@ const initialElements: Record<string, ElementRecord<Data>> = {
     z: 2,
     parent: 'container',
   },
-};
+];
 
 // ============================================================================
 // Raw Cell Attributes Hook
@@ -72,7 +77,10 @@ type Tab = 'data' | 'cell';
 
 function InspectorPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('data');
-  const elements = useElements<Data>();
+  const cells = useCells<Data>();
+  const elements = cells.filter(
+    (cell): cell is ElementRecord<Data> => cell.type === 'ElementModel'
+  );
   const rawAttributes = useRawAttributes();
 
   return (
@@ -111,13 +119,13 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({ elements }: Readonly<{ elements: Map<string, ElementRecord<Data>> }>) {
+function ElementDataView({ elements }: Readonly<{ elements: ReadonlyArray<ElementRecord<Data>> }>) {
   return (
     <>
-      <h3 className="text-base font-bold mb-3">useElements() Data</h3>
-      {[...elements.entries()].map(([id, element]) => (
-        <div key={id} className="mb-3 p-2 rounded bg-gray-800">
-          <div className="font-bold mb-1">{id}</div>
+      <h3 className="text-base font-bold mb-3">useCells() Elements</h3>
+      {elements.map((element) => (
+        <div key={String(element.id)} className="mb-3 p-2 rounded bg-gray-800">
+          <div className="font-bold mb-1">{String(element.id)}</div>
           <pre className="text-xs text-gray-300 whitespace-pre-wrap">
             {JSON.stringify(element, null, 2)}
           </pre>
@@ -151,8 +159,8 @@ function CellAttributesView({
 
 const PAPER_STYLE = { flex: 1 };
 
-function RenderElement(data: { label: string }) {
-  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+function RenderElement(data: Data | undefined) {
+  return <HTMLBox useModelGeometry>{data?.label}</HTMLBox>;
 }
 
 function Main() {
@@ -172,7 +180,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

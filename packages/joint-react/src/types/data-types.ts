@@ -50,20 +50,6 @@ export interface LinkRecord<D extends object = Record<string, unknown>>
   labelMap?: Record<string, LinkLabel>;
 }
 
-// ── Container Types (internal) ───────────────────────────────────────────────
-
-/**
- * Adds guaranteed layout fields to element data.
- * Used internally by graph-view containers and returned by hooks like `useElement`.
- * @group Graph
- */
-export type ElementWithLayout<E extends object = Record<string, unknown>> = ElementRecord<E> & {
-  data: E;
-  position: Required<ElementPosition>;
-  size: Required<ElementSize>;
-  angle: number;
-};
-
-export {type PortShape, type ElementPort} from '../presets/element-ports';
-export {type LinkStyle} from '../presets/link-style';
-export {type LinkLabel} from '../presets/link-labels';
+export { type PortShape, type ElementPort } from '../presets/element-ports';
+export { type LinkStyle } from '../presets/link-style';
+export { type LinkLabel } from '../presets/link-labels';

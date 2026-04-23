@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable no-shadow */
 /* eslint-disable @eslint-react/no-array-index-key */
 /* eslint-disable sonarjs/no-small-switch */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
@@ -11,19 +9,19 @@ import { linkRoutingOrthogonal } from '@joint/react/presets';
 import {
   GraphProvider,
   Paper,
-  useElementId,
+  useElement,
+  useElementSize,
   useGraph,
   useMeasureNode,
   useNodesMeasuredEffect,
+  useCells,
+  type Cells,
   type CellId,
+  type CellRecord,
   type ElementRecord,
   type ElementPort,
-  type LinkRecord,
   type PaperProps,
   usePaperEvents,
-  useElementSize,
-  useElements,
-  useLinks,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
@@ -76,9 +74,11 @@ const PAPER_PROPS: PaperProps = {
   width: '100%',
 };
 
-// Create initial elements and links with typing support as Records
-const elements: Record<string, ElementRecord> = {
-  '1': {
+// Create initial cells with typing support.
+const initialCells: Cells<ElementData> = [
+  {
+    id: '1',
+    type: 'ElementModel',
     data: {
       elementType: 'alert',
       title: 'This is error element',
@@ -87,7 +87,9 @@ const elements: Record<string, ElementRecord> = {
     },
     position: { x: 50, y: 110 },
   },
-  '2': {
+  {
+    id: '2',
+    type: 'ElementModel',
     data: {
       elementType: 'info',
       title: 'This is info element',
@@ -96,7 +98,9 @@ const elements: Record<string, ElementRecord> = {
     },
     position: { x: 550, y: 110 },
   },
-  '3': {
+  {
+    id: '3',
+    type: 'ElementModel',
     data: {
       elementType: 'table',
       columnNames: ['Column 1', 'Column 2', 'Column 3'],
@@ -114,11 +118,9 @@ const elements: Record<string, ElementRecord> = {
       ['Row 7', 'Row 8', 'Row 9'],
     ]),
   },
-};
-
-// Create initial links from table element port to another element as Record
-const links: Record<string, LinkRecord> = {
-  link2: {
+  {
+    id: 'link2',
+    type: 'LinkModel',
     source: { id: '3', port: 'out-3-0' }, // Port from table element
     target: { id: '1' },
     style: {
@@ -130,7 +132,7 @@ const links: Record<string, LinkRecord> = {
       },
     },
   },
-};
+];
 
 // Define the message component
 function MessageComponent({
@@ -155,8 +157,8 @@ function MessageComponent({
       break;
     }
   }
-  const id = useElementId();
-  const { setElement } = useGraph<ElementData>();
+  const { id } = useElement<ElementData>();
+  const { setCell } = useGraph<ElementData>();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);
   return (
@@ -178,10 +180,18 @@ function MessageComponent({
             className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
             placeholder="Type here..."
             onChange={({ target: { value } }) => {
-              setElement(id, (previous) => ({
-                ...previous,
-                data: { ...(previous.data as MessageElementData), inputText: value },
-              }));
+              setCell((previous) => {
+                const previousElement = previous as ElementRecord<ElementData>;
+                const data = previousElement.data as MessageElementData | undefined;
+                if (!data) {
+                  return { ...previousElement, id } as ElementRecord<ElementData>;
+                }
+                return {
+                  ...previousElement,
+                  id,
+                  data: { ...data, inputText: value },
+                } as ElementRecord<ElementData>;
+              });
             }}
           />
         </div>
@@ -194,7 +204,7 @@ const ROW_HEIGHT = 45;
 const ROW_START = 65;
 // Define the table element
 function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   const tableWidth = width;
   const tableHeight = height;
   return (
@@ -251,7 +261,7 @@ function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>
 }
 
 function MinimapRenderElement() {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize() ?? {};
   return <rect width={width} height={height} fill={'white'} rx={10} ry={10} />;
 }
 // Minimap component
@@ -414,17 +424,23 @@ function ToolBar(props: Readonly<ToolbarProps>) {
 
 // Show elements and links info
 function ElementsInfo() {
-  const elements = useElements();
-  const links = useLinks();
+  const cells = useCells<ElementData>();
+  const { isElement, isLink } = useGraph();
+  const elements: Record<string, CellRecord<ElementData>> = {};
+  const links: Record<string, CellRecord<ElementData>> = {};
+  for (const cell of cells) {
+    if (isElement(cell)) elements[String(cell.id)] = cell;
+    else if (isLink(cell)) links[String(cell.id)] = cell;
+  }
   return (
     <div className="flex flex-col gap-2 mt-4">
       <div className="flex flex-col gap-2">
         <div className="text-white text-sm">Elements</div>
-        <ShowJson data={JSON.stringify(Object.fromEntries(elements), null, 2)} />
+        <ShowJson data={JSON.stringify(elements, null, 2)} />
       </div>
       <div className="flex flex-col gap-2">
         <div className="text-white text-sm">Links</div>
-        <ShowJson data={JSON.stringify(Object.fromEntries(links), null, 2)} />
+        <ShowJson data={JSON.stringify(links, null, 2)} />
       </div>
     </div>
   );
@@ -437,15 +453,16 @@ function Main() {
   const [showElementsInfo, setShowElementsInfo] = useState(false);
   const paperCtxRef = useRef<dia.Paper | null>(null);
 
-  const renderElement = useCallback((elementData: ElementData) => {
-    const { elementType } = elementData;
+  const renderElement = useCallback((data: ElementData | undefined) => {
+    if (!data) return null;
+    const { elementType } = data;
     switch (elementType) {
       case 'alert':
       case 'info': {
-        return <MessageComponent {...elementData} />;
+        return <MessageComponent {...data} />;
       }
       case 'table': {
-        return <TableElementComponent {...elementData} />;
+        return <TableElementComponent {...data} />;
       }
     }
   }, []);
@@ -529,7 +546,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={elements} initialLinks={links}>
+    <GraphProvider<ElementData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

@@ -15,24 +15,32 @@
  * 1. **Atoms**: Jotai uses atoms - small, independent pieces of state.
  *    Each atom can be read and written independently.
  *
- * 2. **React-Controlled Mode**: We read elements/links from Jotai atoms
- *    and pass them as props to GraphProvider with onElementsChange/onLinksChange
- *    callbacks that update the atoms.
+ * 2. **React-Controlled Mode**: We read the unified `cells` array from a
+ *    Jotai atom and pass it as a prop to `GraphProvider` with an
+ *    `onCellsChange` callback that writes back into the atom.
  *
- * 3. **Atomic State**: Jotai's atomic approach means you can split state
- *    into small pieces and compose them together.
+ * 3. **Single Unified Slot**: `GraphProvider` now takes a single `cells`
+ *    prop (elements and links live in the same array, distinguished by the
+ *    `type` field). This maps very naturally to Jotai's atomic model.
  *
  * HOW IT WORKS:
  *
- * 1. Create Jotai atoms for elements and links
- * 2. Read atom values and pass them as props to GraphProvider
- * 3. Use onElementsChange/onLinksChange to update atoms when graph changes
+ * 1. Create a Jotai atom for the cells array
+ * 2. Read the atom value and pass it as `cells` to `GraphProvider`
+ * 3. Pass a setter into `onCellsChange` so graph edits flow back to Jotai
  * 4. All state changes automatically sync to the graph
  *
  * ============================================================================
  */
 
-import { GraphProvider, HTMLHost, type ElementRecord, type LinkRecord, Paper } from '@joint/react';
+import {
+  GraphProvider,
+  HTMLHost,
+  Paper,
+  useElement,
+  type Cells,
+  type ElementRecord,
+} from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback } from 'react';
@@ -47,28 +55,38 @@ import { atom, createStore, useAtomValue, useSetAtom, Provider as JotaiProvider 
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementRecord<ElementData>;
-
-const defaultElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'World' }, position: { x: 100, y: 200 } },
-};
-
-const defaultLinks: Record<string, LinkRecord> = {
-  'e1-2': {
+const defaultCells: Cells<ElementData> = [
+  {
+    id: '1',
+    type: 'ElementModel',
+    data: { label: 'Hello' },
+    position: { x: 100, y: 15 },
+  },
+  {
+    id: '2',
+    type: 'ElementModel',
+    data: { label: 'World' },
+    position: { x: 100, y: 200 },
+  },
+  {
+    id: 'e1-2',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
 // ============================================================================
 // STEP 2: Custom Element Renderer
 // ============================================================================
 
-function RenderItem({ label }: Readonly<ElementData>) {
+const NODE_STYLE = { width: 100, height: 50 };
+
+function RenderItem() {
+  const label = useElement<ElementData>().data?.label ?? '';
   return (
-    <HTMLHost className="node" style={{ width: 100, height: 50 }}>
+    <HTMLHost className="node" style={NODE_STYLE}>
       {label}
     </HTMLHost>
   );
@@ -85,26 +103,19 @@ function RenderItem({ label }: Readonly<ElementData>) {
 const jotaiStore = createStore();
 
 /**
- * Jotai atom for graph elements.
- * Atoms are the building blocks of Jotai - they hold state.
+ * Single Jotai atom holding the unified cells array.
  */
-const elementsAtom = atom<Record<string, CustomElement>>(defaultElements);
-
-/**
- * Jotai atom for graph links.
- */
-const linksAtom = atom<Record<string, LinkRecord>>(defaultLinks);
+const cellsAtom = atom<Cells<ElementData>>(defaultCells);
 
 // ============================================================================
 // STEP 4: Component Implementation
 // ============================================================================
 
 /**
- * PaperApp component that uses Jotai atoms for graph actions.
+ * PaperApp component that uses the Jotai atom for graph actions.
  */
 function PaperApp() {
-  const setElements = useSetAtom(elementsAtom);
-  const setLinks = useSetAtom(linksAtom);
+  const setCells = useSetAtom(cellsAtom);
 
   return (
     <div className="flex flex-col gap-4">
@@ -115,17 +126,16 @@ function PaperApp() {
           type="button"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
           onClick={() => {
-            // Create a new element and add it to the elements atom
+            // Append a new element cell to the atom
             const newId = Math.random().toString(36).slice(7);
-            const newElement: CustomElement = {
+            const newElement: ElementRecord<ElementData> = {
+              id: newId,
+              type: 'ElementModel',
               data: { label: 'New Node' },
               position: { x: Math.random() * 200, y: Math.random() * 200 },
             };
 
-            setElements((currentElements) => ({
-              ...currentElements,
-              [newId]: newElement,
-            }));
+            setCells((currentCells) => [...currentCells, newElement]);
           }}
         >
           Add Element
@@ -134,34 +144,35 @@ function PaperApp() {
           type="button"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
           onClick={() => {
-            const currentElements = jotaiStore.get(elementsAtom);
-            const currentLinks = jotaiStore.get(linksAtom);
+            const currentCells = jotaiStore.get(cellsAtom);
 
-            const elementIds = Object.keys(currentElements);
-            if (elementIds.length === 0) {
-              return;
-            }
-
-            // Remove the last element
-            const removedElementId = elementIds.at(-1);
-            if (!removedElementId) {
-              return;
-            }
-
-            // eslint-disable-next-line sonarjs/no-unused-vars
-            const { [removedElementId]: _removed, ...newElements } = currentElements;
-
-            // Remove links connected to the removed element
-            const newLinks: Record<string, LinkRecord> = {};
-            for (const [id, link] of Object.entries(currentLinks)) {
-              if (link.source !== removedElementId && link.target !== removedElementId) {
-                newLinks[id] = link;
+            // Find the last element cell (not a link)
+            let removedElementIndex = -1;
+            for (let index = currentCells.length - 1; index >= 0; index--) {
+              if (currentCells[index].type === 'ElementModel') {
+                removedElementIndex = index;
+                break;
               }
             }
+            if (removedElementIndex === -1) return;
 
-            // Update both atoms
-            setElements(newElements);
-            setLinks(newLinks);
+            const removedElementId = currentCells[removedElementIndex].id;
+            const nextCells = currentCells.filter((cell, index) => {
+              if (index === removedElementIndex) return false;
+              // Also drop links touching the removed element
+              if (cell.type === 'LinkModel') {
+                const { source, target } = cell as {
+                  source?: { id?: unknown };
+                  target?: { id?: unknown };
+                };
+                if (source?.id === removedElementId || target?.id === removedElementId) {
+                  return false;
+                }
+              }
+              return true;
+            });
+
+            setCells(nextCells);
           }}
         >
           Remove Last
@@ -173,40 +184,26 @@ function PaperApp() {
 
 /**
  * Main component that sets up Jotai and connects it to GraphProvider.
- * Reads elements/links from Jotai atoms and passes them as props.
+ * Reads cells from a Jotai atom and passes them as a prop.
  */
 function Main() {
-  // Read elements and links from Jotai atoms
-  const elements = useAtomValue(elementsAtom);
-  const links = useAtomValue(linksAtom);
-  const jotaiSetElements = useSetAtom(elementsAtom);
-  const jotaiSetLinks = useSetAtom(linksAtom);
+  // Read cells from the Jotai atom
+  const cells = useAtomValue(cellsAtom);
+  const jotaiSetCells = useSetAtom(cellsAtom);
 
-  // Callbacks to sync graph changes back to Jotai atoms
-  const handleElementsChange = useCallback(
-    (updater: React.SetStateAction<Record<string, CustomElement>>) => {
-      const newElements =
-        typeof updater === 'function' ? updater(jotaiStore.get(elementsAtom)) : updater;
-      jotaiSetElements(newElements);
+  // Bridge GraphProvider's cells setter into Jotai. The callback may be
+  // a value or an updater function, so we mirror the React state API.
+  const handleCellsChange = useCallback(
+    (updater: React.SetStateAction<Cells<ElementData>>) => {
+      const nextCells =
+        typeof updater === 'function' ? updater(jotaiStore.get(cellsAtom)) : updater;
+      jotaiSetCells(nextCells);
     },
-    [jotaiSetElements]
-  );
-
-  const handleLinksChange = useCallback(
-    (updater: React.SetStateAction<Record<string, LinkRecord>>) => {
-      const newLinks = typeof updater === 'function' ? updater(jotaiStore.get(linksAtom)) : updater;
-      jotaiSetLinks(newLinks);
-    },
-    [jotaiSetLinks]
+    [jotaiSetCells]
   );
 
   return (
-    <GraphProvider
-      elements={elements}
-      links={links}
-      onElementsChange={handleElementsChange as never}
-      onLinksChange={handleLinksChange as never}
-    >
+    <GraphProvider<ElementData> cells={cells} onCellsChange={handleCellsChange}>
       <PaperApp />
     </GraphProvider>
   );
@@ -219,10 +216,11 @@ function Main() {
  *
  * To use Jotai with @joint/react:
  *
- * 1. Create Jotai atoms for elements and links using atom()
- * 2. Read atom values with useAtomValue() and pass as props to GraphProvider
- * 3. Use onElementsChange/onLinksChange callbacks to update atoms
- * 4. Use useSetAtom() in components to update atoms directly for custom actions
+ * 1. Create a single Jotai atom for the unified cells array
+ * 2. Read the atom value with useAtomValue() and pass it as `cells` to
+ *    GraphProvider
+ * 3. Use `onCellsChange` to push every graph commit back into the atom
+ * 4. Use useSetAtom() in components to update the atom for custom actions
  *
  * Benefits:
  * - Atomic state management - split state into small pieces

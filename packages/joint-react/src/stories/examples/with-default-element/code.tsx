@@ -1,5 +1,11 @@
 import { useState, useCallback, useMemo, useRef, memo } from 'react';
-import { GraphProvider, Paper, HTMLBox, type ElementRecord, type LinkRecord, type LinkMarkerName } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  HTMLBox,
+  type Cells,
+  type LinkMarkerName,
+} from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jj-* CSS variable defaults (including element styles)
@@ -15,8 +21,13 @@ interface Data {
   readonly [key: string]: unknown;
 }
 
-const initialElements: Record<string, ElementRecord<Data>> = {
-  a: {
+const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
+const DEFAULT_LINK = { style: { targetMarker: 'arrow' as LinkMarkerName } };
+
+const initialCells: Cells<Data> = [
+  {
+    id: 'a',
+    type: 'ElementModel',
     // No width or height — element auto-sizes to fit label
     data: {
       label: 'no width or height',
@@ -24,7 +35,9 @@ const initialElements: Record<string, ElementRecord<Data>> = {
     position: { x: 100, y: 60 },
     portMap: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } },
   },
-  b: {
+  {
+    id: 'b',
+    type: 'ElementModel',
     // Explicit width — height grows to fit content
     data: {
       label: 'fixed width, auto height',
@@ -36,7 +49,9 @@ const initialElements: Record<string, ElementRecord<Data>> = {
       in: { cx: 0, cy: 'calc(0.5 * h)', passive: true },
     },
   },
-  c: {
+  {
+    id: 'c',
+    type: 'ElementModel',
     // Explicit width and height — fixed box, content clipped
     data: {
       label: 'fixed width and height',
@@ -49,40 +64,42 @@ const initialElements: Record<string, ElementRecord<Data>> = {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
     },
   },
-  d: {
+  {
+    id: 'd',
+    type: 'ElementModel',
     // Explicit height — width grows to fit content
     data: {
       label: 'auto width, fixed height',
       height: 120,
     },
     position: { x: 620, y: 60 },
-    portMap: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true }},
+    portMap: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true } },
   },
-};
-
-const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
-const DEFAULT_LINK = { style: { targetMarker: 'arrow' as LinkMarkerName } };
-
-
-const initialLinks: Record<string, LinkRecord> = {
-  'a-b': {
+  {
+    id: 'a-b',
+    type: 'LinkModel',
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },
     ...DEFAULT_LINK,
   },
-  'b-c': {
+  {
+    id: 'b-c',
+    type: 'LinkModel',
     source: { id: 'b', port: 'out' },
     target: { id: 'c', port: 'in' },
     ...DEFAULT_LINK,
   },
-  'c-d': {
+  {
+    id: 'c-d',
+    type: 'LinkModel',
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
     ...DEFAULT_LINK,
   },
-};
+];
 
-const RenderElement = memo(function({ label, width, height }: Readonly<Data>) {
+const RenderElement = memo(function RenderElement({ data }: Readonly<{ data: Data | undefined }>) {
+  const { label, width, height } = data ?? ({} as Data);
   const boxStyle = useMemo(() => ({ width, height }), [width, height]);
   return (
     <HTMLBox style={boxStyle}>
@@ -90,6 +107,10 @@ const RenderElement = memo(function({ label, width, height }: Readonly<Data>) {
     </HTMLBox>
   );
 });
+
+function renderElement(data: Data | undefined) {
+  return <RenderElement data={data} />;
+}
 
 export default function App() {
   const [isDark, setIsDark] = useState(false);
@@ -125,14 +146,14 @@ export default function App() {
     <div ref={wrapperRef} className="default-element-demo">
       <div style={TOOLBAR_STYLE}>
         <button type="button" onClick={toggleTheme} style={buttonStyle}>
-          {isDark ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark'}
+          {isDark ? '☀️ Light' : '🌙 Dark'}
         </button>
       </div>
-      <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+      <GraphProvider initialCells={initialCells}>
         <Paper
           className={PAPER_CLASSNAME}
           height={240}
-          renderElement={RenderElement}
+          renderElement={renderElement}
           defaultLink={DEFAULT_LINK}
         />
       </GraphProvider>

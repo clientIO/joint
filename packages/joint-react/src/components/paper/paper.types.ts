@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { LinkRecord } from '../../types/data-types';
+import type { LinkRecord as OldLinkRecord } from '../../types/data-types';
 import type { PortalSelector } from '../../models/portal-paper.types';
 import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
@@ -34,9 +34,9 @@ export interface PortalPaperOptions {
    * or a `dia.Link` instance.
    */
   readonly defaultLink?:
-    | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>)
+    | ((context: DefaultLinkContext) => dia.Link | Partial<OldLinkRecord>)
     | dia.Link
-    | Partial<LinkRecord>;
+    | Partial<OldLinkRecord>;
 
   /**
    * Validates whether a connection between two elements/ports is allowed.
@@ -156,15 +156,26 @@ export interface PortalPaperOptions {
   readonly options?: dia.Paper.Options;
 }
 
-/** Render function for elements. Receives user data `D` from the element's `data` field. */
-export type RenderElement<ElementData extends object = Record<string, unknown>> = (
-  data: ElementData
-) => ReactNode;
+/**
+ * Render function for elements. Receives the element's `data` slice only —
+ * so the renderer re-runs ONLY when `data` changes, not when `position`,
+ * `size`, `angle`, or other cell attributes update. Position and size are
+ * applied by JointJS's view layer without touching React at all (SVG mode)
+ * or by a thin wrapper div that doesn't invoke the renderer (HTML mode).
+ *
+ * If the renderer needs the id or other slices, use the context hooks:
+ * - `useCellId()` — current cell id
+ * - `useElement()` — full record, with optional selector
+ * - `useElementPosition()` / `useElementSize()` — thin slice subscriptions
+ */
+export type RenderElement<ElementData = unknown> = (data: ElementData | undefined) => ReactNode;
 
-/** Render function for links. Receives user data `D` from the link's `data` field. */
-export type RenderLink<LinkData extends object = Record<string, unknown>> = (
-  data: LinkData
-) => ReactNode;
+/**
+ * Render function for links. Receives the link's `data` slice only — same
+ * performance rationale as `RenderElement`. Use `useCellId()` or `useLink()`
+ * inside the renderer when source / target / id are needed.
+ */
+export type RenderLink<LinkData = unknown> = (data: LinkData | undefined) => ReactNode;
 
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.

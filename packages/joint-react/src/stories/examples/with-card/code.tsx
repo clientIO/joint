@@ -1,23 +1,32 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import type { ElementRecord, OnTransformElement } from '@joint/react';
-import { GraphProvider, Paper, useMeasureNode, type LinkRecord, type RenderElement } from '@joint/react';
+import type { OnTransformElement, Cells } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useMeasureNode,
+  type RenderElement,
+} from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type Data = { label: string };
-const initialElements: Record<string, ElementRecord<Data>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 10 } },
-  '2': { data: { label: 'Node 2 with longer text' }, position: { x: 250, y: 150 } },
-};
-
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+const initialCells: Cells<Data> = [
+  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 100, y: 10 } },
+  {
+    id: '2',
+    type: 'ElementModel',
+    data: { label: 'Node 2 with longer text' },
+    position: { x: 250, y: 150 },
+  },
+  {
+    id: 'e1-2',
+    type: 'LinkModel',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
 function Card({ label }: Readonly<Partial<Data>>) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -69,14 +78,14 @@ function Card({ label }: Readonly<Partial<Data>>) {
 
 function Main() {
   const renderElement: RenderElement<Data> = useCallback((data) => {
-    return <Card label={data.label} />;
+    return <Card label={data?.label} />;
   }, []);
   return <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />;
 }
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider<Data> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

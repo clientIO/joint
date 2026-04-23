@@ -1,12 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   GraphProvider,
-  Paper,
-  useElementId,
-  useGraph,
-  type ElementRecord,
   HTMLBox,
-  useElements,
+  Paper,
+  useCells,
+  useElement,
+  useGraph,
+  type Cells,
+  type CellRecord,
 } from '@joint/react';
 import { util } from '@joint/core';
 import '../index.css';
@@ -22,12 +23,12 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-  '3': { data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
-  '4': { data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
-};
+const initialCells: Cells<NodeData> = [
+  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'ElementModel', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  { id: '3', type: 'ElementModel', data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
+  { id: '4', type: 'ElementModel', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
+];
 
 const PROXIMITY_THRESHOLD = 60;
 
@@ -42,36 +43,50 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
   };
 }
 
-function ResizableNode({ label }: Readonly<NodeData>) {
-  const id = useElementId();
+function ResizableNode() {
+  const element = useElement<NodeData>();
+  const { id } = element;
+  const label = element.data?.label ?? '';
 
-  const { graph } = useGraph();
-  const element = graph.getCell(id);
-  const closeIds = useElements(() => {
-    const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
+  const { graph, setCell, addCell, removeCell } = useGraph();
+  const closeIds = useCells<NodeData, unknown, readonly dia.Cell.ID[]>(() => {
+    const currentElement = graph.getCell(id);
+    if (!currentElement) return [];
+    const area = currentElement.getBBox().inflate(PROXIMITY_THRESHOLD);
     const proximityElements = graph
       .findElementsInArea(area)
       .filter((element_) => element_.id !== id);
     return proximityElements.map((element_) => element_.id);
   }, util.isEqual);
-  const { setLink, removeLink } = useGraph();
 
   useEffect(() => {
     for (const closeId of closeIds) {
       const { linkId, source, target } = getProximityLink(id, closeId);
-      setLink(linkId, {
-        source,
-        target,
-        style: { color: PRIMARY, width: 2, dasharray: '5 5' },
-      });
+      const existing = graph.getCell(linkId) as unknown as CellRecord | undefined;
+      if (existing) {
+        setCell({
+          id: linkId,
+          source,
+          target,
+          style: { color: PRIMARY, width: 2, dasharray: '5 5' },
+        } as CellRecord);
+      } else {
+        addCell({
+          id: linkId,
+          type: 'LinkModel',
+          source,
+          target,
+          style: { color: PRIMARY, width: 2, dasharray: '5 5' },
+        });
+      }
     }
     return () => {
       for (const closeId of closeIds) {
         const { linkId } = getProximityLink(id, closeId);
-        removeLink(linkId);
+        removeCell(linkId);
       }
     };
-  }, [closeIds, id, removeLink, setLink]);
+  }, [addCell, closeIds, graph, id, removeCell, setCell]);
 
   return <HTMLBox>{label}</HTMLBox>;
 }
@@ -91,7 +106,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

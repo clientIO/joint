@@ -1,11 +1,10 @@
+export * from './use-cells';
+export * from './use-cell';
 export * from './use-graph';
 export * from './use-paper';
-export * from './use-elements';
-export * from './use-links';
 export * from './use-element';
+export * from './use-link';
 export * from './use-measure-node';
-export * from './use-element-id';
-export * from './use-link-id';
 export * from './use-paper-events';
 export * from './use-graph-events';
 export * from './use-imperative-api';
@@ -18,9 +17,3 @@ export * from './use-markup';
 export * from './use-nodes-measured-effect';
 export * from './use-create-portal-paper';
 export * from './use-create-features';
-
-// New hooks (v2 API)
-export * from './use-element-data';
-export * from './use-element-position';
-export * from './use-element-size';
-export * from './use-link-data';

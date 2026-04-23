@@ -10,7 +10,7 @@ import {
   LinkModel,
   useGraph,
   useMeasureNode,
-  useElementId,
+  useElement,
   usePaper,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -62,7 +62,7 @@ function createGraph(): dia.Graph {
 function Node({ label, color }: Readonly<ElementData>) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(ref);
-  const id = useElementId();
+  const { id } = useElement();
   const { graph } = useGraph();
 
   const handleClick = () => {
@@ -149,7 +149,8 @@ function Main() {
     };
   }, [paper]);
 
-  const renderElement = (data: ElementData) => {
+  const renderElement = (data: ElementData | undefined) => {
+    if (!data) return null;
     return <Node label={data.label} color={data.color} />;
   };
 

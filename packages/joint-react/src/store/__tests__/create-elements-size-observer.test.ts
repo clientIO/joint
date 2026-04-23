@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 import type { dia } from '@joint/core';
-import type { CellId } from '../../types/cell-id';
+import type { CellId } from '../../types/cell.types';
 import type { GraphStoreObserver } from '../create-elements-size-observer';
 
 // Mock ResizeObserver for testing

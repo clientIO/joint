@@ -1,29 +1,27 @@
 /* eslint-disable no-console */
 /**
- * Controlled-mode benchmark (Phase 0 baseline — Task 0.1).
+ * Controlled-mode benchmark — measures the sync round-trip cost of `GraphStore`
+ * wired as a fully controlled component: external state holds a unified `cells`
+ * array, `onIncrementalCellsChange` fires on every graph mutation, and the
+ * external holder pushes updated snapshots back via `graphView.updateGraph({
+ * cells, flag: 'updateFromReact' })`.
  *
- * Measures the sync round-trip cost of the current `GraphStore` when it is
- * wired as a fully controlled component: external state holds
- * `elements`/`links` records, `onIncrementalChange`/`onElementsChange`/
- * `onLinksChange` fires on every graph mutation, and the external holder
- * pushes updated records back via `graphView.updateGraph({ flag: 'updateFromReact' })`.
- *
- * Today's GraphProvider API uses `elements`/`links` (props) and
- * `initialElements`/`initialLinks` (uncontrolled bootstrap) — NOT
- * `initialCells`/`cells`. That rename lands in later phases of the
- * unified-cells refactor; this file stays on the current API so the
- * resulting numbers are a true pre-refactor baseline.
+ * This file was migrated from the pre-refactor `initialElements`/`initialLinks`
+ * API (captured in `baseline-post-refactor.json`) to the unified cells API. The
+ * baseline entries under `controlled/position-change/n=*` and
+ * `controlled/updateGraph/n=*` remain comparable because the benchmarks exercise
+ * the same underlying mutation path.
  */
 import { Bench } from 'tinybench';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE, GraphStore } from '../src/store/graph-store';
-import type { ElementRecord, LinkRecord } from '../src/types/data-types';
+import type { Cells, CellRecord } from '../src/types/cell.types';
 import { saveBenchResults } from './save-baseline';
 
 const benchDirectory = path.dirname(fileURLToPath(import.meta.url));
-const baselinePath = path.join(benchDirectory, 'baseline-pre-refactor.json');
+const baselinePath = path.join(benchDirectory, 'baseline-post-refactor.json');
 
 interface ChangeCounter {
   count: number;
@@ -32,52 +30,50 @@ interface ChangeCounter {
 interface ControlledScenario {
   readonly graph: dia.Graph;
   readonly store: GraphStore;
-  readonly elements: Readonly<Record<string, ElementRecord>>;
-  readonly links: Readonly<Record<string, LinkRecord>>;
+  readonly cells: Cells;
   readonly counter: ChangeCounter;
 }
 
-function buildInitialRecords(count: number): {
-  elements: Record<string, ElementRecord>;
-  links: Record<string, LinkRecord>;
-} {
-  const elements: Record<string, ElementRecord> = {};
+function buildInitialCells(count: number): Cells {
+  const cells: CellRecord[] = [];
   for (let index = 0; index < count; index++) {
-    elements[`el-${index}`] = {
+    cells.push({
+      id: `el-${index}`,
+      type: 'ElementModel',
       position: { x: index * 10, y: index * 10 },
       size: { width: 100, height: 50 },
-    };
+    });
   }
-  const links: Record<string, LinkRecord> = {};
   for (let index = 0; index < count - 1; index++) {
-    links[`link-${index}`] = {
+    cells.push({
+      id: `link-${index}`,
+      type: 'LinkModel',
       source: { id: `el-${index}` },
       target: { id: `el-${index + 1}` },
-    };
+    });
   }
-  return { elements, links };
+  return cells;
 }
 
 /**
- * Creates a GraphStore wired with `onIncrementalChange`, mirroring the
- * controlled-mode pattern shown in `code-controlled-mode-redux.tsx`.
+ * Creates a GraphStore wired with `onIncrementalCellsChange`, mirroring the
+ * controlled-mode pattern shown in the step-by-step/redux tutorial.
  * The callback counts invocations so the optimizer cannot dead-code it.
  */
 function createControlledScenario(count: number): ControlledScenario {
   const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
-  const { elements, links } = buildInitialRecords(count);
+  const cells = buildInitialCells(count);
   const counter: ChangeCounter = { count: 0 };
 
   const store = new GraphStore({
     graph,
-    initialElements: elements,
-    initialLinks: links,
-    onIncrementalChange: () => {
+    initialCells: cells,
+    onIncrementalCellsChange: () => {
       counter.count += 1;
     },
   });
 
-  return { graph, store, elements, links, counter };
+  return { graph, store, cells, counter };
 }
 
 function logResults(bench: Bench): void {
@@ -91,11 +87,11 @@ function logResults(bench: Bench): void {
   }
 }
 
-describe('controlled-mode benchmark: baseline round-trip via GraphStore + onIncrementalChange', () => {
+describe('controlled-mode benchmark: round-trip via GraphStore + onIncrementalCellsChange', () => {
   const sizes = [10, 100, 1000, 10_000] as const;
 
   for (const size of sizes) {
-    it(`controlled n=${size} — graph→React direction (cell.set('position') triggers onIncrementalChange)`, async () => {
+    it(`controlled n=${size} — graph→React direction (cell.set('position') triggers onIncrementalCellsChange)`, async () => {
       const scenario = createControlledScenario(size);
       const cells: dia.Element[] = [];
       for (let index = 0; index < size; index++) {
@@ -124,34 +120,30 @@ describe('controlled-mode benchmark: baseline round-trip via GraphStore + onIncr
       logResults(bench);
       saveBenchResults(bench, `controlled/position-change/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(1);
-      // Sanity: the callback must have fired at least once, otherwise we are
-      // not measuring the controlled round-trip, just a bare graph mutation.
       expect(scenario.counter.count).toBeGreaterThan(0);
     }, 60_000);
 
-    it(`controlled n=${size} — React→graph direction (graphView.updateGraph pushes new records)`, async () => {
+    it(`controlled n=${size} — React→graph direction (graphView.updateGraph pushes new cells)`, async () => {
       const scenario = createControlledScenario(size);
 
       // Pre-build two pre-computed snapshots outside the hot loop so the
       // measurement captures only `updateGraph`'s cost, not the per-iteration
-      // object-spread allocation of a fresh `elements` record.
-      const firstId = 'el-0';
-      const snapshotA: Record<string, ElementRecord> = { ...scenario.elements };
-      const snapshotB: Record<string, ElementRecord> = {
-        ...scenario.elements,
-        [firstId]: {
+      // array-spread allocation of a fresh `cells` snapshot.
+      const snapshotA: Cells = scenario.cells;
+      const snapshotB: Cells = scenario.cells.map((cell, index) => {
+        if (index !== 0) return cell;
+        return {
+          ...cell,
           position: { x: 999, y: 999 },
-          size: { width: 100, height: 50 },
-        },
-      };
+        } as CellRecord;
+      });
 
       let useA = true;
       const bench = new Bench({ time: 1000 });
 
       bench.add(`controlled/updateGraph/n=${size}`, () => {
         scenario.store.graphView.updateGraph({
-          elements: useA ? snapshotA : snapshotB,
-          links: scenario.links,
+          cells: useA ? snapshotA : snapshotB,
           flag: 'updateFromReact',
         });
         useA = !useA;

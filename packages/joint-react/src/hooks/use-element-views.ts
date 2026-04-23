@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { CellId } from '../types/cell-id';
+import type { CellId } from '../types/cell.types';
 import { useCallback, useState } from 'react';
 
 export type OnPaperRenderElement = (elementView: dia.ElementView) => void;
