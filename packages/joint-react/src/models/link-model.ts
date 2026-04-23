@@ -1,5 +1,4 @@
 import { dia } from '@joint/core';
-import { PORTAL_SELECTOR } from './element-model';
 import { linkStyle } from '../presets/link-style';
 
 export const LINK_MODEL_TYPE = 'LinkModel';
@@ -28,6 +27,14 @@ const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
 export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
   dia.Link.Attributes & Attributes
 > {
+  /**
+   * Selector of the node that serves as the React portal target inside this cell.
+   * Links render into their root `<g>` — the experimental `renderLink` mounts
+   * there when enabled. No dedicated portal group is kept in the markup so
+   * React-less links stay lean.
+   */
+  portalSelector = 'root';
+
   /**
    * Sets the default attributes for the LinkModel.
    * Includes `connection: true` attrs which are required for JointJS to compute link paths.
@@ -64,11 +71,6 @@ export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
         pointerEvents: 'none',
         strokeLinejoin: 'round',
       },
-    },
-    // @todo: should we remove it for now?
-    {
-      tagName: 'g',
-      selector: PORTAL_SELECTOR,
     },
   ];
 }

@@ -1,7 +1,6 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { PortalSelector, PortalPaperOptions } from './portal-paper.types';
-import { PORTAL_SELECTOR } from './element-model';
+import type { PortalHostCell, PortalSelector, PortalPaperOptions } from './portal-paper.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import { Paper } from '../presets/paper';
@@ -78,23 +77,32 @@ export class PortalPaper extends Paper {
   /**
    * Resolves the portal target node from a cell view.
    *
-   * When {@link PortalPaperOptions.portalSelector | portalSelector} is set,
-   * it overrides the default `'__portal__'` selector lookup.
+   * Resolution order:
+   * 1. Paper-level {@link PortalPaperOptions.portalSelector | portalSelector} if set.
+   * 2. The cell's own `portalSelector` field (`ElementModel` → `'__portal__'`,
+   *    `LinkModel` → `'root'`). Cells without the field are skipped.
    * @param cellView - The cell view to resolve the portal node for.
-   * @returns The portal DOM node, or null if not found.
+   * @returns The portal DOM node, or null if not found / skipped.
    */
   getCellViewPortalNode(cellView: dia.CellView): SVGElement | HTMLElement | null {
     const { portalSelector } = this;
-    if (portalSelector === undefined) return cellView.findNode(PORTAL_SELECTOR);
+    const cell: dia.Cell & PortalHostCell = cellView.model;
+    const defaultSelector = cell.portalSelector ?? null;
+
+    if (portalSelector === undefined) {
+      return defaultSelector ? cellView.findNode(defaultSelector) : null;
+    }
     if (portalSelector === null) return null;
     if (typeof portalSelector === 'string') return cellView.findNode(portalSelector);
     const result = portalSelector({
-      model: cellView.model,
-      defaultSelector: PORTAL_SELECTOR,
+      model: cell,
       paper: this,
       graph: this.model,
     });
     if (result === null) return null;
+    if (result === undefined) {
+      return defaultSelector ? cellView.findNode(defaultSelector) : null;
+    }
     if (result instanceof Element) return result as SVGElement | HTMLElement;
     return cellView.findNode(result);
   }

@@ -278,27 +278,31 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    */
   readonly useHTMLOverlay?: boolean;
   /**
-   * Selector used to locate the React portal target node inside a cell view.
+   * Paper-level override for the React portal target selector.
    *
-   * By default, only cells whose markup contains the `'__portal__'` selector
-   * (i.e. {@link ElementModel}) are rendered via `renderElement`.
-   * Set this to a different selector (e.g. `'root'`) to render into
-   * built-in or custom JointJS shapes.
+   * By default, each cell uses its own `portalSelector` field —
+   * `ElementModel` renders into its `'__portal__'` group, `LinkModel` into its
+   * root `<g>`. Built-in JointJS shapes have no `portalSelector` field and
+   * are skipped. Set this prop to force a single selector or a dynamic one
+   * across all cells.
    *
-   * A function receives `{ model, defaultSelector, paper, graph }` and returns
-   * a selector string, an `Element` node directly, or `null` to skip rendering
-   * for that cell. Return `defaultSelector` to use the default portal target.
+   * A function receives `{ model, paper, graph }` and may return:
+   * - a **selector string** — look up that node,
+   * - an **`Element`** — use that DOM node directly,
+   * - **`null`** — skip rendering for this cell,
+   * - **`undefined`** (or no return) — fall back to the cell's own `portalSelector`.
    * @example
    * ```tsx
-   * // Render into the 'root' selector of all shapes
+   * // Render into the 'root' selector of all cells
    * <Paper portalSelector="root" renderElement={...} />
    * ```
    * @example
    * ```tsx
-   * // Conditional rendering based on cell type
-   * <Paper portalSelector={({ model, defaultSelector }) =>
-   *   model.get('type') === 'standard.Rectangle' ? 'root' : defaultSelector
-   * } renderElement={...} />
+   * // Route built-in shapes to 'root'; let ElementModel cells use their default
+   * <Paper portalSelector={({ model }) => {
+   *   if (model.get('type') === 'standard.Rectangle') return 'root';
+   *   // implicit: use the cell's own portalSelector
+   * }} renderElement={...} />
    * ```
    */
   readonly portalSelector?: PortalSelector;

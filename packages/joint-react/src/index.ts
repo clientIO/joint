@@ -74,6 +74,7 @@ export { ElementModel, ELEMENT_MODEL_TYPE } from './models/element-model';
 export { LinkModel, LINK_MODEL_TYPE } from './models/link-model';
 export { LinkView } from './presets/link-view';
 export { PortalPaper } from './models/portal-paper';
+export type { PortalHostCell, PortalSelector, PortalSelectorContext } from './models/portal-paper.types';
 
 // Data mapping types
 export type { CellAttributes } from './state/data-mapping';

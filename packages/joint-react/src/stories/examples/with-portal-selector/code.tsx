@@ -294,9 +294,10 @@ function Main() {
         snapLinks={{ radius: 25 }}
         renderElement={renderElement}
         linkPinning={false}
-        portalSelector={({ model, defaultSelector }) =>
-          model.get('type') === ELEMENT_MODEL_TYPE ? defaultSelector : 'root'
-        }
+        portalSelector={({ model }) => {
+          if (model.get('type') !== ELEMENT_MODEL_TYPE) return 'root';
+          // implicit: use the default selector for ElementModel cells
+        }}
         style={PAPER_STYLE}
         drawGrid={false}
       >
