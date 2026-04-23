@@ -62,7 +62,7 @@ function createGraph(): dia.Graph {
 function Node({ label, color }: Readonly<ElementData>) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(ref);
-  const { id } = useElement();
+  const id = useElement((element) => element.id);
   const { graph } = useGraph();
 
   const handleClick = () => {

@@ -8,7 +8,7 @@ import {
   useGraph,
   usePaperEvents,
   SVGText,
-    type Cells,
+  type Cells,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
@@ -223,7 +223,7 @@ function ExpandButton({
 
 function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>) {
   const { width, height } = useElement((element) => element.size);
-  const { id } = useElement();
+  const id = useElement((element) => element.id);
   const { graph } = useGraph();
 
   const handleToggle = useCallback(() => {

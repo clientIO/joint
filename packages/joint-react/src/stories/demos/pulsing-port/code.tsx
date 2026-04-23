@@ -84,7 +84,7 @@ const initialCells: Cells = [
 ];
 
 function NodeElement() {
-  const { id } = useElement();
+  const id = useElement((element) => element.id);
 
   const isConnected = useCells((cells) =>
     cells.some((cell) => {
@@ -103,7 +103,9 @@ function NodeElement() {
         minWidth: 100,
         minHeight: 50,
       }}
-    >{id}</HTMLBox>
+    >
+      {id}
+    </HTMLBox>
   );
 }
 
