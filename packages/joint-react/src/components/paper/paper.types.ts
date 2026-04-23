@@ -107,7 +107,6 @@ export interface PortalPaperOptions {
   // ── Views ────────────────────────────────────────────────────────────────
   readonly elementView?: dia.Paper.Options['elementView'];
   readonly linkView?: dia.Paper.Options['linkView'];
-  readonly measureNode?: dia.Paper.Options['measureNode'];
 
   // ── Embedding ────────────────────────────────────────────────────────────
   readonly embeddingMode?: dia.Paper.Options['embeddingMode'];
