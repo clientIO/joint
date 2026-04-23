@@ -33,7 +33,7 @@ const paper = new dia.Paper({
         margin: 40,
         minMargin: 10,
         sourceMargin: 40,
-        targetMargin: 20
+        targetMargin: 30
     }},
     defaultConnector: { name: 'rounded' },
     background: {

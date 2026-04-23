@@ -740,7 +740,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             }
         }
 
-        if (sMinMarginY0 < tOffsetY) {
+        if (sMarginY0 < tOffsetY) {
             let x = middleOfVerticalSides;
             let y1 = sOffsetY;
             let y2 = tOffsetY;
@@ -820,7 +820,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             }
         }
 
-        if (sMinMarginY1 > tOffsetY) {
+        if (sMarginY1 > tOffsetY) {
             let x = middleOfVerticalSides;
             let y1 = sOffsetY;
             let y2 = tOffsetY;
