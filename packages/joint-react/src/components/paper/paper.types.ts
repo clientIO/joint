@@ -104,10 +104,6 @@ export interface PortalPaperOptions {
   readonly preventDefaultViewAction?: dia.Paper.Options['preventDefaultViewAction'];
   readonly preventDefaultBlankAction?: dia.Paper.Options['preventDefaultBlankAction'];
 
-  // ── Views ────────────────────────────────────────────────────────────────
-  readonly elementView?: dia.Paper.Options['elementView'];
-  readonly linkView?: dia.Paper.Options['linkView'];
-
   // ── Embedding ────────────────────────────────────────────────────────────
   readonly embeddingMode?: dia.Paper.Options['embeddingMode'];
   readonly frontParentOnly?: dia.Paper.Options['frontParentOnly'];
