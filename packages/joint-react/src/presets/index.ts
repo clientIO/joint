@@ -39,5 +39,11 @@ export {
   type ConnectionStrategyPin,
 } from './connection-strategy';
 export { canEmbed, canUnembed, type ValidateEmbeddingContext, type ValidateUnembeddingContext } from './can-embed';
+export {
+  toNativeRestrictTranslate,
+  type RestrictTranslate,
+  type RestrictTranslateCallback,
+  type RestrictTranslateContext,
+} from './restrict-translate';
 export { elementAttributes } from './element-attributes';
 export { linkAttributes } from './link-attributes';
