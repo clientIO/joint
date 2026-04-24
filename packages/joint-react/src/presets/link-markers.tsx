@@ -1,8 +1,17 @@
 /* eslint-disable jsdoc/require-param */
 /* eslint-disable jsdoc/require-returns */
 
+import type { dia } from '@joint/core';
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
-import type { LinkMarkerRecord } from '../theme/named-link-markers';
+
+/**
+ * A link marker record — an SVG complex marker JSON with an optional `length`
+ * used by connection-point math to offset the line tip by the marker's visual footprint.
+ * The built-in marker factories always set a `length`; inline user markers may omit it.
+ */
+export interface LinkMarkerRecord extends dia.SVGComplexMarkerJSON {
+  readonly length?: number;
+}
 
 export interface LinkMarkerOptions {
   /** Unique ID for the marker. If not provided, a default ID will be generated based on the options. */

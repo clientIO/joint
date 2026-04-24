@@ -88,7 +88,7 @@ function RenderHTMLElement({ label }: Readonly<NodeData>) {
 }
 
 function RenderSVGElement({ label }: Readonly<NodeData>) {
-  const { selectorRef } = useMarkup();
+  const { magnetRef } = useMarkup();
   const { width = 0, height = 0 } = useElementSize();
   return (
     <>
@@ -114,8 +114,7 @@ function RenderSVGElement({ label }: Readonly<NodeData>) {
         {label}
       </text>
       <rect
-        ref={selectorRef('connector')}
-        magnet="active"
+        ref={magnetRef('connector')}
         x={2}
         y={height - 40}
         width={width - 4}

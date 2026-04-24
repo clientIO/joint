@@ -1,5 +1,4 @@
 import { LinkModel, LINK_MODEL_TYPE } from '../link-model';
-import { PORTAL_SELECTOR } from '../element-model';
 
 describe('LinkModel', () => {
   describe('markup', () => {
@@ -26,11 +25,12 @@ describe('LinkModel', () => {
             strokeLinejoin: 'round',
           },
         },
-        {
-          tagName: 'g',
-          selector: PORTAL_SELECTOR,
-        },
       ]);
+    });
+
+    it('should expose portalSelector set to "root"', () => {
+      const link = new LinkModel();
+      expect(link.portalSelector).toBe('root');
     });
 
     it('should not contain theme-derived visual properties', () => {

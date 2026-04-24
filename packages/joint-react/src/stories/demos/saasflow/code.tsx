@@ -143,7 +143,7 @@ const initialLinks: Record<string, LinkRecord> = {
         text: 'Assigns',
         fontSize: 10,
         backgroundBorderRadius: 10,
-        backgroundPadding: { x: 8, y: 4 },
+        backgroundPadding: { horizontal: 8, vertical: 4 },
       },
     },
     labelStyle: { color: DARK.sub, backgroundColor: DARK.canvas, backgroundOutline: DARK.cardBorder },
@@ -165,7 +165,7 @@ const initialLinks: Record<string, LinkRecord> = {
         text: 'Delegates',
         fontSize: 10,
         backgroundBorderRadius: 10,
-        backgroundPadding: { x: 8, y: 4 },
+        backgroundPadding: { horizontal: 8, vertical: 4 },
       },
     },
     labelStyle: { color: DARK.sub, backgroundColor: DARK.canvas, backgroundOutline: DARK.cardBorder },
@@ -495,7 +495,6 @@ function Main() {
         magnetThreshold="onleave"
         clickThreshold={10}
         {...ORTHOGONAL_LINKS}
-        validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         validateConnection={({ target }) => target.port === 'in'}
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         renderElement={RenderSaasNode}

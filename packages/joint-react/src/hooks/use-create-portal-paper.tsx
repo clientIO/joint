@@ -26,7 +26,9 @@ import { HTMLBox } from '../components/html-box';
 import { mapLinkToAttributes } from '../state/data-mapping';
 import type { CanConnectOptions} from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
+import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
+import { toNativeRestrictTranslate } from '../presets/restrict-translate';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -158,11 +160,14 @@ export function useCreatePortalPaper(
     renderLink,
     defaultLink,
     validateConnection,
+    connectionStrategy,
     validateEmbedding,
     validateUnembedding,
+    restrictTranslate,
     useHTMLOverlay,
     scale,
     portalSelector,
+    options: escapeHatchOptions,
     // These are React host props and must not be forwarded to dia.Paper options.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     className,
@@ -224,6 +229,13 @@ export function useCreatePortalPaper(
     [validateConnection]
   );
 
+  const connectionStrategyCallback = useMemo(() => {
+    const resolvedOptions: ConnectionStrategyOptions | undefined = typeof connectionStrategy === 'function'
+      ? { customize: connectionStrategy }
+      : connectionStrategy;
+    return resolvedOptions ? connectionStrategyPreset(resolvedOptions) : undefined;
+  }, [connectionStrategy]);
+
   const validateEmbeddingCallback = useMemo(
     () => canEmbed(validateEmbedding),
     [validateEmbedding]
@@ -232,6 +244,11 @@ export function useCreatePortalPaper(
   const validateUnembeddingCallback = useMemo(
     () => canUnembed(validateUnembedding),
     [validateUnembedding]
+  );
+
+  const restrictTranslateValue = useMemo(
+    () => toNativeRestrictTranslate(restrictTranslate),
+    [restrictTranslate]
   );
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
@@ -246,8 +263,11 @@ export function useCreatePortalPaper(
         el: hostElementForCreation,
         defaultLink: defaultLinkCallback,
         validateConnection: validateConnectionCallback,
+        connectionStrategy: connectionStrategyCallback,
         validateEmbedding: validateEmbeddingCallback,
         validateUnembedding: validateUnembeddingCallback,
+        restrictTranslate: restrictTranslateValue,
+        ...escapeHatchOptions,
       },
       renderElement,
       renderLink,
@@ -295,12 +315,15 @@ export function useCreatePortalPaper(
     assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
+      connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
+      restrictTranslate: restrictTranslateValue,
       ...paperOptions,
+      ...escapeHatchOptions,
     });
 
-    const { drawGrid, theme, gridSize } = paperOptions;
+    const { drawGrid, gridSize } = paperOptions;
 
     if (drawGrid !== undefined) {
       paper.setGrid(drawGrid);
@@ -308,13 +331,22 @@ export function useCreatePortalPaper(
     if (gridSize !== undefined) {
       paper.setGridSize(gridSize);
     }
-    if (theme !== undefined) {
-      paper.setTheme(theme);
-    }
     if (scale !== undefined) {
       paper.scale(scale);
     }
-  }, [defaultLinkCallback, paper, paperOptions, paperStore, scale]);
+  }, [
+    defaultLinkCallback,
+    validateConnectionCallback,
+    connectionStrategyCallback,
+    validateEmbeddingCallback,
+    validateUnembeddingCallback,
+    restrictTranslateValue,
+    escapeHatchOptions,
+    paper,
+    paperOptions,
+    paperStore,
+    scale,
+  ]);
 
   const elements = useMemo(() => {
     if (!hasRenderElement) {

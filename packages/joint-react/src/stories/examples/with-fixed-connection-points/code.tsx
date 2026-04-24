@@ -2,9 +2,9 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useId, useRef } from 'react';
 import type { LinkRecord, ElementRecord } from '@joint/react';
-import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents } from '@joint/react';
+import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents, resolveLinkMarker } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
-import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
+import { dia, elementTools, linkTools, highlighters, g } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
@@ -12,9 +12,11 @@ const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   cornerType: 'line',
   cornerRadius: 5,
   margin: 40,
-  sourceOffset: 10,
-  targetOffset: 10
 });
+
+const DEFAULT_LINK: LinkRecord = {
+  style: { color: LIGHT, width: 2, targetMarker: 'arrow' }
+};
 
 import '../index.css';
 
@@ -55,43 +57,45 @@ const GRID_COLOR = '#1a2938';
 const ANCHOR_FILL = '#f6f740';
 const ANCHOR_STROKE = '#131e29';
 
+/** Distance (px) to shift the dropped link-end away from the shape edge. */
+const ANCHOR_MARGIN = resolveLinkMarker('arrow')?.length ?? 0;
 // ----------------------------------------------------------------------------
 // Anchor Helper Functions
 // ----------------------------------------------------------------------------
 
-function getAnchors(shapeType: ShapeType, width: number, height: number): dia.Point[] {
+function getAnchors(shapeType: ShapeType, width: number, height: number, margin = 0): dia.Point[] {
   switch (shapeType) {
     case ShapeTypes.square: {
-      // 3 anchors on each side
+      // 3 anchors on each side, shifted outward by `margin`.
       return [
-        { x: width / 4, y: 0 },
-        { x: width / 2, y: 0 },
-        { x: (width / 4) * 3, y: 0 },
-        { x: width, y: height / 4 },
-        { x: width, y: height / 2 },
-        { x: width, y: (height / 4) * 3 },
-        { x: (width / 4) * 3, y: height },
-        { x: width / 2, y: height },
-        { x: width / 4, y: height },
-        { x: 0, y: (height / 4) * 3 },
-        { x: 0, y: height / 2 },
-        { x: 0, y: height / 4 },
+        { x: width / 4, y: -margin },
+        { x: width / 2, y: -margin },
+        { x: (width / 4) * 3, y: -margin },
+        { x: width + margin, y: height / 4 },
+        { x: width + margin, y: height / 2 },
+        { x: width + margin, y: (height / 4) * 3 },
+        { x: (width / 4) * 3, y: height + margin },
+        { x: width / 2, y: height + margin },
+        { x: width / 4, y: height + margin },
+        { x: -margin, y: (height / 4) * 3 },
+        { x: -margin, y: height / 2 },
+        { x: -margin, y: height / 4 },
       ];
     }
     case ShapeTypes.rectangle: {
       const anchors: dia.Point[] = [];
       for (let xPosition = 20; xPosition < width; xPosition += 20) {
-        anchors.push({ x: xPosition, y: 0 }, { x: xPosition, y: height });
+        anchors.push({ x: xPosition, y: -margin }, { x: xPosition, y: height + margin });
       }
       return anchors;
     }
     case ShapeTypes.ellipse: {
-      // 1 anchor on each side
+      // 1 anchor on each side, shifted outward by `margin`.
       return [
-        { x: width / 2, y: 0 },
-        { x: width, y: height / 2 },
-        { x: width / 2, y: height },
-        { x: 0, y: height / 2 },
+        { x: width / 2, y: -margin },
+        { x: width + margin, y: height / 2 },
+        { x: width / 2, y: height + margin },
+        { x: -margin, y: height / 2 },
       ];
     }
     default: {
@@ -142,28 +146,40 @@ const initialElements: Record<string, ElementRecord<CustomElement>> = {
 const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
-    target: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    target: {
+      id: 'square2',
+      anchor: { name: 'modelCenter', args: { dx: -40 - ANCHOR_MARGIN, dy: -20 } },
+    },
+    ...DEFAULT_LINK,
   },
   link2: {
     source: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
-    target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -80, dy: -20 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -100, dy: -30 } } },
+    ...DEFAULT_LINK,
   },
   link3: {
-    source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 80, dy: -20 } } },
-    target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 100, dy: -20 } } },
+    target: {
+      id: 'ellipse1',
+      anchor: { name: 'modelCenter', args: { dx: 40 + ANCHOR_MARGIN, dy: 0 } },
+    },
+    ...DEFAULT_LINK,
   },
   link4: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } } },
-    target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    target: {
+      id: 'ellipse1',
+      anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 - ANCHOR_MARGIN } },
+    },
+    ...DEFAULT_LINK,
   },
   link5: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
-    target: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } } },
-    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
+    target: {
+      id: 'square1',
+      anchor: { name: 'modelCenter', args: { dx: 40 + ANCHOR_MARGIN, dy: 0 } },
+    },
+    ...DEFAULT_LINK,
   },
 };
 
@@ -402,15 +418,15 @@ function Main() {
       drawGrid={{ name: 'mesh', args: { color: GRID_COLOR } }}
       style={PAPER_STYLE}
       linkPinning={false}
-      async
       {...ORTHOGONAL_LINKS}
       // Connection strategy - find closest anchor point
-      connectionStrategy={(end, view, _magnet, coords) => {
-        const model = view.model as dia.Element;
-        const { width, height } = model.size();
-        const shapeType = model.prop('data/shapeType') as ShapeType;
-        const anchors = getAnchors(shapeType, width, height);
-        const relativePoint = model.getRelativePointFromAbsolute(coords);
+      connectionStrategy={({ end, model, dropPoint, endType }) => {
+        const element = model as dia.Element;
+        const { width, height } = element.size();
+        const shapeType = element.prop('data/shapeType') as ShapeType;
+        const margin = endType === 'target' ? ANCHOR_MARGIN : 0;
+        const anchors = getAnchors(shapeType, width, height, margin);
+        const relativePoint = element.getRelativePointFromAbsolute(dropPoint);
         const anchor = findClosestAnchor(anchors, relativePoint);
         return {
           anchor: {
@@ -423,8 +439,9 @@ function Main() {
           id: end.id,
         };
       }}
+      validateConnection={{ allowMultiLinks: true }}
       snapLinks
-      defaultLink={() => new shapes.standard.Link({ attrs: { line: { stroke: LIGHT } } })}
+      defaultLink={DEFAULT_LINK}
       // Highlighting configuration
       highlighting={{
         connecting: {

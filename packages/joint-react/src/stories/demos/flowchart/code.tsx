@@ -121,7 +121,7 @@ const LABEL: LinkLabel = {
   className: 'jj-flow-label-text',
   backgroundClassName: 'jj-flow-label-body',
   backgroundOutlineWidth: unit,
-  backgroundPadding: { x: labelPx, y: labelPy },
+  backgroundPadding: { horizontal: labelPx, vertical: labelPy },
   fontSize: labelFontSize,
   backgroundShape: bevelRectPath(labelPx, labelPy, bevel),
 };
@@ -473,8 +473,8 @@ function Main() {
       id={paperId}
       gridSize={5}
       height={600}
-      overflow={true}
-      snapLabels={true}
+      overflow
+      snapLabels
       className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
       renderElement={RenderFlowchartNode as RenderElement<NodeElementData>}
       interactive={{ linkMove: false }}

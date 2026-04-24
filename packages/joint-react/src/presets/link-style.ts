@@ -1,6 +1,6 @@
 import type { attributes } from '@joint/core';
 import type { Nullable, LiteralUnion } from '../types';
-import { resolveMarker, type LinkMarker } from '../theme/named-link-markers';
+import { resolveLinkMarker, type LinkMarker } from '../theme/named-link-markers';
 
 /**
  * Visual/presentation attributes for a link line and its wrapper.
@@ -81,7 +81,7 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
         stroke: color || 'var(--jj-link-color)',
         fill: color || 'var(--jj-link-color)',
       },
-      ...resolveMarker(sourceMarker)
+      ...resolveLinkMarker(sourceMarker)
     };
   }
 
@@ -92,7 +92,7 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
         stroke: color || 'var(--jj-link-color)',
         fill: color || 'var(--jj-link-color)',
       },
-      ...resolveMarker(targetMarker)
+      ...resolveLinkMarker(targetMarker)
     };
   }
 

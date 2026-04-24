@@ -1,17 +1,12 @@
 import type { dia } from '@joint/core';
 import type { LinkRecord } from '../../types/data-types';
-import type { OmitWithoutIndexSignature } from '../../types';
 import type { PortalSelector } from '../../models/portal-paper.types';
-import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
-
-type PortalPaperOptionsBase = OmitWithoutIndexSignature<
-  dia.Paper.Options,
-  'frozen' | 'defaultLink' | 'validateConnection' | 'validateEmbedding' | 'validateUnembedding' | 'autoFreeze' | 'viewManagement'
->;
+import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
+import type { RestrictTranslate } from '../../presets/restrict-translate';
 
 /** Context passed to the `defaultLink` factory. */
 export interface DefaultLinkContext {
@@ -23,7 +18,15 @@ export interface DefaultLinkContext {
   readonly graph: dia.Graph;
 }
 
-export interface PortalPaperOptions extends PortalPaperOptionsBase {
+/**
+ * Officially supported Paper options. Pass-through props inherit their exact
+ * native types via indexed access (`dia.Paper.Options['name']`), so any
+ * type-level change in JointJS propagates automatically. Anything not listed
+ * here is reachable via the `options` escape hatch, never implicitly exposed.
+ */
+export interface PortalPaperOptions {
+  // ── Wrapped (structured) ─────────────────────────────────────────────────
+
   /**
    * Defines the link created when the user starts dragging from a port or element.
    *
@@ -49,6 +52,17 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
     | ((context: ValidateConnectionContext) => boolean);
 
   /**
+   * Decides how the end JSON is stored when the user drops a link end.
+   *
+   * - **Function**: receives `{ end, model, magnet, dropPoint, endType, link, paper, graph }`
+   *   and returns the modified `EndJSON`.
+   * - **Object**: `ConnectionStrategyOptions` with `pin` preset and/or `customize` callback.
+   */
+  readonly connectionStrategy?:
+    | ConnectionStrategyOptions
+    | ((context: ConnectionStrategyContext) => dia.Link.EndJSON);
+
+  /**
    * Validates whether an element can be embedded into another element.
    * Receives `{ child, parent, paper, graph }`.
    */
@@ -59,6 +73,87 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
    * Receives `{ child, paper, graph }`.
    */
   readonly validateUnembedding?: (context: ValidateUnembeddingContext) => boolean;
+
+  /**
+   * Restricts where an element can be translated (dragged) to.
+   *
+   * - `true` — restrict to the paper area.
+   * - `false` — no restriction.
+   * - `dia.BBox` — restrict to a static bounding box.
+   * - Function — receives `{ model, pointerStart, paper, graph }` and returns
+   *   a bounding box, boolean, or per-point constraint callback.
+   */
+  readonly restrictTranslate?: RestrictTranslate;
+
+  // ── Identification ───────────────────────────────────────────────────────
+  /** Unique identifier used by joint-react to track the paper instance. */
+  readonly id?: string;
+
+  // ── Sizing & appearance ──────────────────────────────────────────────────
+  readonly width?: dia.Paper.Options['width'];
+  readonly height?: dia.Paper.Options['height'];
+  readonly drawGrid?: dia.Paper.Options['drawGrid'];
+  readonly drawGridSize?: dia.Paper.Options['drawGridSize'];
+  readonly gridSize?: dia.Paper.Options['gridSize'];
+  readonly background?: dia.Paper.Options['background'];
+  readonly labelsLayer?: dia.Paper.Options['labelsLayer'];
+  readonly overflow?: dia.Paper.Options['overflow'];
+
+  // ── Interactions ─────────────────────────────────────────────────────────
+  readonly interactive?: dia.Paper.Options['interactive'];
+  readonly highlighting?: dia.Paper.Options['highlighting'];
+  readonly snapLabels?: dia.Paper.Options['snapLabels'];
+  readonly snapLinks?: dia.Paper.Options['snapLinks'];
+  readonly snapLinksSelf?: dia.Paper.Options['snapLinksSelf'];
+  readonly markAvailable?: dia.Paper.Options['markAvailable'];
+  readonly linkPinning?: dia.Paper.Options['linkPinning'];
+
+  // ── Event thresholds / prevention ────────────────────────────────────────
+  readonly clickThreshold?: dia.Paper.Options['clickThreshold'];
+  readonly moveThreshold?: dia.Paper.Options['moveThreshold'];
+  readonly magnetThreshold?: dia.Paper.Options['magnetThreshold'];
+  readonly preventContextMenu?: dia.Paper.Options['preventContextMenu'];
+  readonly preventDefaultViewAction?: dia.Paper.Options['preventDefaultViewAction'];
+  readonly preventDefaultBlankAction?: dia.Paper.Options['preventDefaultBlankAction'];
+
+  // ── Embedding ────────────────────────────────────────────────────────────
+  readonly embeddingMode?: dia.Paper.Options['embeddingMode'];
+  readonly frontParentOnly?: dia.Paper.Options['frontParentOnly'];
+
+  // ── Cell visibility ──────────────────────────────────────────────────────
+  readonly cellVisibility?: dia.Paper.Options['cellVisibility'];
+
+  // ── Namespaces ───────────────────────────────────────────────────────────
+  readonly cellViewNamespace?: dia.Paper.Options['cellViewNamespace'];
+  readonly layerViewNamespace?: dia.Paper.Options['layerViewNamespace'];
+  readonly routerNamespace?: dia.Paper.Options['routerNamespace'];
+  readonly connectorNamespace?: dia.Paper.Options['connectorNamespace'];
+  readonly highlighterNamespace?: dia.Paper.Options['highlighterNamespace'];
+  readonly anchorNamespace?: dia.Paper.Options['anchorNamespace'];
+  readonly linkAnchorNamespace?: dia.Paper.Options['linkAnchorNamespace'];
+  readonly connectionPointNamespace?: dia.Paper.Options['connectionPointNamespace'];
+
+  // ── Defaults (routing / connecting) ──────────────────────────────────────
+  readonly defaultRouter?: dia.Paper.Options['defaultRouter'];
+  readonly defaultConnector?: dia.Paper.Options['defaultConnector'];
+  readonly defaultAnchor?: dia.Paper.Options['defaultAnchor'];
+  readonly defaultLinkAnchor?: dia.Paper.Options['defaultLinkAnchor'];
+  readonly defaultConnectionPoint?: dia.Paper.Options['defaultConnectionPoint'];
+
+  // ── Escape hatch ─────────────────────────────────────────────────────────
+
+  /**
+   * Raw `dia.Paper.Options` passthrough for anything joint-react doesn't
+   * expose as a dedicated prop (e.g. `allowLink`, `validateMagnet`,
+   * `restrictTranslate`, `onViewPostponed`).
+   *
+   * Values set here override top-level props of the same name — treat this
+   * as the authoritative form for users who need direct access to the raw
+   * JointJS API. Avoid overriding joint-react-controlled options
+   * (`async`, `sorting`, `viewManagement`, `frozen`, `autoFreeze`) — the
+   * portal rendering depends on their set values.
+   */
+  readonly options?: dia.Paper.Options;
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */
@@ -190,38 +285,30 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    */
   readonly useHTMLOverlay?: boolean;
   /**
-   * When enabled, renders elements as SVG elements instead of foreignObject.
-   * @default false
-   */
-  readonly useSVGElements?: boolean;
-
-  /**
-   * Callback called when an element view is rendered in the paper.
-   * @param elementView - The element view that was rendered.
-   */
-  readonly onRenderElement?: OnPaperRenderElement;
-
-  /**
-   * Selector used to locate the React portal target node inside a cell view.
+   * Paper-level override for the React portal target selector.
    *
-   * By default, only cells whose markup contains the `'__portal__'` selector
-   * (i.e. {@link ElementModel}) are rendered via `renderElement`.
-   * Set this to a different selector (e.g. `'root'`) to render into
-   * built-in or custom JointJS shapes.
+   * By default, each cell uses its own `portalSelector` field —
+   * `ElementModel` renders into its `'__portal__'` group, `LinkModel` into its
+   * root `<g>`. Built-in JointJS shapes have no `portalSelector` field and
+   * are skipped. Set this prop to force a single selector or a dynamic one
+   * across all cells.
    *
-   * A function receives the cell view and the default selector, and returns
-   * a selector string or `null` to skip rendering for that cell.
+   * A function receives `{ model, paper, graph }` and may return:
+   * - a **selector string** — look up that node,
+   * - an **`Element`** — use that DOM node directly,
+   * - **`null`** — skip rendering for this cell,
+   * - **`undefined`** (or no return) — fall back to the cell's own `portalSelector`.
    * @example
    * ```tsx
-   * // Render into the 'root' selector of all shapes
+   * // Render into the 'root' selector of all cells
    * <Paper portalSelector="root" renderElement={...} />
    * ```
    * @example
    * ```tsx
-   * // Use a function for conditional rendering
-   * <Paper portalSelector={(cellView, defaultSelector) => {
-   *   if (cellView.model.get('type') === 'standard.Rectangle') return 'root';
-   *   return defaultSelector;
+   * // Route built-in shapes to 'root'; let ElementModel cells use their default
+   * <Paper portalSelector={({ model }) => {
+   *   if (model.get('type') === 'standard.Rectangle') return 'root';
+   *   // implicit: use the cell's own portalSelector
    * }} renderElement={...} />
    * ```
    */

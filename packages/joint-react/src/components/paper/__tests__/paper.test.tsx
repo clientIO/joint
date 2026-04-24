@@ -887,9 +887,8 @@ describe('Paper Component', () => {
     });
   });
 
-  it('allows user to override defaultConnectionPoint and measureNode', async () => {
+  it('allows user to override defaultConnectionPoint', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
-    const customMeasureNode = jest.fn();
 
     await act(async () => {
       render(
@@ -897,7 +896,6 @@ describe('Paper Component', () => {
           <Paper
             ref={ref}
             defaultConnectionPoint={{ name: 'boundary' }}
-            measureNode={customMeasureNode}
             renderElement={() => <div>Test</div>}
           />
         </GraphProvider>
@@ -906,9 +904,25 @@ describe('Paper Component', () => {
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
-      const paperOptions = ref.current!.options;
-      expect(paperOptions.defaultConnectionPoint).toEqual({ name: 'boundary' });
-      expect(paperOptions.measureNode).toBe(customMeasureNode);
+      expect(ref.current!.options.defaultConnectionPoint).toEqual({ name: 'boundary' });
+    });
+  });
+
+  it('passes `options` escape-hatch values through to paper.options', async () => {
+    const ref: RefObject<dia.Paper | null> = { current: null };
+    const allowLink = jest.fn(() => true);
+
+    await act(async () => {
+      render(
+        <GraphProvider initialElements={elements}>
+          <Paper ref={ref} options={{ allowLink }} renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      expect(ref.current!.options.allowLink).toBe(allowLink);
     });
   });
 

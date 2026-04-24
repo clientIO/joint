@@ -25,6 +25,12 @@ export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Eleme
   dia.Element.Attributes & Attributes
 > {
   /**
+   * Selector of the node that serves as the React portal target inside this cell.
+   * Read by `PortalPaper` to locate where `renderElement` mounts.
+   */
+  portalSelector = PORTAL_SELECTOR;
+
+  /**
    * Markup containing a dedicated `<g>` group for React portal rendering.
    * Ports and highlighters are appended after this group, ensuring correct stacking order.
    */

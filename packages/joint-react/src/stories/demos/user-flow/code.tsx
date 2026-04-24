@@ -144,7 +144,7 @@ function RenderElementBase({
   onRemovePort,
 }: Readonly<RenderElementProps>) {
   const id = useElementId();
-  const { selectorRef } = useMarkup();
+  const { magnetRef } = useMarkup();
   const { width, height } = useElementSize();
 
   let icon: string;
@@ -213,9 +213,8 @@ function RenderElementBase({
       </HTMLHost>
       {/* Input port */}
       <circle
-        ref={selectorRef('in')}
+        ref={magnetRef('in', { passive: true })}
         className="port-in"
-        magnet="passive"
         cx={INPUT_PORT_CENTER_X}
         cy={0}
         r={INPUT_PORT_RADIUS}
@@ -227,9 +226,8 @@ function RenderElementBase({
       {outputPorts.map((port, index) => (
         <g
           key={port.id}
-          ref={selectorRef(port.id)}
+          ref={magnetRef(port.id)}
           className="port-out"
-          magnet="active"
           cursor="crosshair"
           transform={`translate(${getPortCenterX(index)}, ${height - PORT_BOTTOM_MARGIN})`}
         >
@@ -371,11 +369,9 @@ function Main() {
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         linkPinning={false}
         snapLinks={{ radius: 50 }}
-        validateMagnet={(_cellView, magnet) => {
-          return magnet.getAttribute('magnet') !== 'passive';
-        }}
         validateConnection={{
           allowRootConnection: false,
+
           validate: ({ source, target }) => {
             if (source.selector === 'in') return false;
             return target.selector === 'in';

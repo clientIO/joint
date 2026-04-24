@@ -92,7 +92,7 @@ const typeStyle: React.CSSProperties = {
 };
 
 function TableNode({ name, rows }: Readonly<Partial<TableElement>>) {
-  const { selectorRef } = useMarkup();
+  const { magnetRef } = useMarkup();
 
   return (
     <HTMLBox useModelGeometry style={cardStyle}>
@@ -101,10 +101,7 @@ function TableNode({ name, rows }: Readonly<Partial<TableElement>>) {
         <div
           key={row.field}
           className="table-row"
-          ref={(node) => {
-            if (node) node.setAttribute('magnet', 'active');
-            selectorRef(`row-${index}`)(node);
-          }}
+          ref={magnetRef(`row-${index}`)}
           style={{
             ...rowStyle,
             borderBottom: '1px solid rgba(128, 128, 128, 0.15)',

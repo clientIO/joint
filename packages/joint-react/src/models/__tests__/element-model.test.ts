@@ -63,6 +63,11 @@ describe('element-model', () => {
           },
         ]);
       });
+
+      it('should expose portalSelector pointing at the portal group', () => {
+        const element = new ElementModel();
+        expect(element.portalSelector).toBe(PORTAL_SELECTOR);
+      });
     });
   });
 

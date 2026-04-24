@@ -82,7 +82,7 @@ const initialLinks: Record<string, LinkRecord> = {
   },
 };
 
-const RenderElement = memo(function RenderElement({ label, width, height }: Readonly<Data>) {
+const RenderElement = memo(function({ label, width, height }: Readonly<Data>) {
   const boxStyle = useMemo(() => ({ width, height }), [width, height]);
   return (
     <HTMLBox style={boxStyle}>

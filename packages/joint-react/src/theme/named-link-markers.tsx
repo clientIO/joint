@@ -1,4 +1,3 @@
-import type { dia } from '@joint/core';
 import { isString } from '../utils/is';
 import {
   linkMarkerArrow,
@@ -6,7 +5,10 @@ import {
   linkMarkerArrowSunken,
   linkMarkerCircle,
   linkMarkerDiamond,
+  type LinkMarkerRecord,
 } from '../presets/link-markers';
+
+export type { LinkMarkerRecord };
 
 /**
  * Built-in marker shapes for links.
@@ -23,29 +25,20 @@ export const namedLinkMarkers = {
 export type LinkMarkerName = keyof typeof namedLinkMarkers;
 
 /**
- * Resolves a marker name or custom marker to a MarkerJSON.
- * @param marker - Marker name, custom marker, or null
- * @returns The resolved marker JSON or null
+ * A named preset or a custom {@link LinkMarkerRecord}.
  */
 export type LinkMarker = LinkMarkerName | LinkMarkerRecord;
 
 /**
- * A record representing a custom link marker, containing the SVG markup and optional length.
- */
-export interface LinkMarkerRecord extends dia.SVGComplexMarkerJSON {
-  length?: number;
-}
-
-/**
- * Resolves a LinkMarker to a dia.SVGComplexMarkerJSON or null.
+ * Resolves a LinkMarker to a {@link LinkMarkerRecord} or null.
  * @param marker - The LinkMarker to resolve
- * @returns The resolved dia.SVGComplexMarkerJSON or null
+ * @returns The resolved marker or null
  */
-export function resolveMarker(marker: LinkMarker | undefined): dia.SVGComplexMarkerJSON | null {
+export function resolveLinkMarker(marker: LinkMarker | undefined): LinkMarkerRecord | null {
   if (marker === undefined || marker === 'none') return null;
   const resolvedMarker = isString(marker)
     ? namedLinkMarkers[marker as keyof typeof namedLinkMarkers]
     : marker;
   if (!resolvedMarker) return null;
-  return resolvedMarker as dia.SVGComplexMarkerJSON;
+  return resolvedMarker;
 }

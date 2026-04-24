@@ -72,7 +72,6 @@ function buildTablePorts(rows: string[][]): Record<string, ElementPort> {
 const PAPER_PROPS: PaperProps = {
   ...linkRoutingOrthogonal({ cornerType: 'line', margin: 25 }),
   snapLinks: { radius: 25 },
-  sorting: dia.Paper.sorting.APPROX,
   linkPinning: false,
   width: '100%',
 };
@@ -161,7 +160,7 @@ function MessageComponent({
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);
   return (
-    <foreignObject width={width} height={height} overflow="visible" magnet="passive">
+    <foreignObject width={width} height={height} overflow="visible">
       <div ref={elementRef} className={MESSAGE_NODE_CLASSNAME}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 items-start">

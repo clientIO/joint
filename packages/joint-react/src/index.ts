@@ -66,13 +66,15 @@ export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
 
 // Theme
-export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
+export type { LinkMarkerName, LinkMarker, LinkMarkerRecord } from './theme/named-link-markers';
+export { resolveLinkMarker } from './theme/named-link-markers';
 
 // Models
 export { ElementModel, ELEMENT_MODEL_TYPE } from './models/element-model';
 export { LinkModel, LINK_MODEL_TYPE } from './models/link-model';
 export { LinkView } from './presets/link-view';
 export { PortalPaper } from './models/portal-paper';
+export type { PortalHostCell, PortalSelector, PortalSelectorContext } from './models/portal-paper.types';
 
 // Data mapping types
 export type { CellAttributes } from './state/data-mapping';

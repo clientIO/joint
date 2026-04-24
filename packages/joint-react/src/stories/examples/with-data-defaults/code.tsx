@@ -49,7 +49,7 @@ const getLabelStyle = (color: string) => ({
   color: LIGHT,
   fontSize: 11,
   fontFamily: 'monospace',
-  backgroundPadding: { x: 10, y: 5 },
+  backgroundPadding: { horizontal: 10, vertical: 5 },
   backgroundColor: '#1e293b',
   backgroundOutline: color,
 });
