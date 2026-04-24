@@ -6,7 +6,6 @@
 export { useGraphStore } from './hooks/use-graph-store';
 export { useInternalData } from './hooks/use-stores';
 export { useImperativeApi } from './hooks/use-imperative-api';
-export type { OnPaperRenderElement } from './components/paper/paper.types';
 export { useCreatePortalPaper } from './hooks/use-create-portal-paper';
 export { useCreateFeature } from './hooks/use-create-features';
 export { useCombinedRef } from './hooks/use-combined-ref';

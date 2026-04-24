@@ -113,7 +113,7 @@ function RenderHTMLElement({ label }: Readonly<NodeData>) {
 
 function RenderSVGElement({ label }: Readonly<NodeData>) {
   const { magnetRef } = useMarkup();
-  const { width = 0, height = 0 } = useElementSize() ?? {};
+  const { width, height } = useElement((element) => element.size);
   return (
     <>
       <rect

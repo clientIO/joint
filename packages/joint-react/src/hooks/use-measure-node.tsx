@@ -156,11 +156,7 @@ export function useMeasureNode(
   if (id === undefined) {
     throw new Error('useMeasureNode() must be used inside renderElement');
   }
-  const size = useElement((element) => element.size);
-  const layout: Required<ElementSize> = {
-    width: size?.width ?? 0,
-    height: size?.height ?? 0,
-  };
+  const layout = useElement((element) => element.size);
 
   useLayoutEffect(() => {
     const element = nodeRef.current;

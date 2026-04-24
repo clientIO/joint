@@ -424,15 +424,14 @@ function Main() {
       drawGrid={{ name: 'mesh', args: { color: GRID_COLOR } }}
       style={PAPER_STYLE}
       linkPinning={false}
-      async
       {...ORTHOGONAL_LINKS}
       // Connection strategy - find closest anchor point
-      connectionStrategy={(end, view, _magnet, coords) => {
-        const model = view.model as dia.Element;
-        const { width, height } = model.size();
-        const shapeType = model.prop('data/shapeType') as ShapeType;
+      connectionStrategy={({ end, model, dropPoint }) => {
+        const element = model as dia.Element;
+        const { width, height } = element.size();
+        const shapeType = element.prop('data/shapeType') as ShapeType;
         const anchors = getAnchors(shapeType, width, height);
-        const relativePoint = model.getRelativePointFromAbsolute(coords);
+        const relativePoint = element.getRelativePointFromAbsolute(dropPoint);
         const anchor = findClosestAnchor(anchors, relativePoint);
         return {
           anchor: {

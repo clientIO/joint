@@ -55,13 +55,19 @@ function useElementDataSnapshot(id: CellId): Record<string, unknown> | undefined
 }
 
 /**
- * Read the current element record (full cell). Used by the HTML portal
- * wrapper which also needs position and size for its absolute-positioned
- * container div.
+ * Subscribes to the cell by id and returns the raw (un-resolved)
+ * `ElementRecord`. Returns a `{ id, type }` placeholder during the brief
+ * window between `insertView` firing and the cell landing in the store, so
+ * portal wrappers can mount a 0×0 container synchronously rather than
+ * crashing. Callers must tolerate optional `position` / `size`.
+ *
+ * Contrast with the public `useElement()` hook, which returns the
+ * `ResolvedElementRecord` (position/size/angle/data required) and throws
+ * when the cell is missing.
  * @param id - cell id to subscribe to
- * @returns current element record, or a placeholder when missing
+ * @returns current element record, or a `{ id, type }` placeholder when missing
  */
-function useCurrentElementRecord(id: CellId): ElementRecord {
+function useUnresolvedElement(id: CellId): ElementRecord {
   const store = useGraphStore();
   const { cells } = store.graphView;
   const subscribe = useCallback(
@@ -126,7 +132,7 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
 function HTMLElementItemComponent(props: ElementItemProps) {
   const { renderElement: RenderElement, portalElement } = props;
   const id = useCellId();
-  const element = useCurrentElementRecord(id);
+  const element = useUnresolvedElement(id);
 
   const x = element.position?.x ?? 0;
   const y = element.position?.y ?? 0;
@@ -176,7 +182,7 @@ export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
  */
 export function ElementHitArea() {
   const id = useCellId();
-  const element = useCurrentElementRecord(id);
+  const element = useUnresolvedElement(id);
   const width = element.size?.width ?? 0;
   const height = element.size?.height ?? 0;
   return <rect width={width} height={height} fill="transparent" />;

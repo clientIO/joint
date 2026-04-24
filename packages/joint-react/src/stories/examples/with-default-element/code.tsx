@@ -98,8 +98,8 @@ const initialCells: Cells<Data> = [
   },
 ];
 
-const RenderElement = memo(function RenderElement({ data }: Readonly<{ data: Data | undefined }>) {
-  const { label, width, height } = data ?? ({} as Data);
+const RenderElement = memo(function RenderElement({ data }: Readonly<{ data: Data }>) {
+  const { label, width, height } = data;
   const boxStyle = useMemo(() => ({ width, height }), [width, height]);
   return (
     <HTMLBox style={boxStyle}>
@@ -108,7 +108,7 @@ const RenderElement = memo(function RenderElement({ data }: Readonly<{ data: Dat
   );
 });
 
-function renderElement(data: Data | undefined) {
+function renderElement(data: Data) {
   return <RenderElement data={data} />;
 }
 

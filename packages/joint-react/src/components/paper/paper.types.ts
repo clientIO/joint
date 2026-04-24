@@ -1,13 +1,7 @@
 import type { dia } from '@joint/core';
-import type { LinkRecord as OldLinkRecord } from '../../types/data-types';
+import type { LinkRecord } from '../../types/data-types';
 import type { PortalSelector } from '../../models/portal-paper.types';
 import type { PortalPaper } from '../../models/portal-paper';
-
-/**
- * Callback fired when an `ElementView` is rendered in the paper. Wired to
- * `dia.Paper`'s `'render:element'` event.
- */
-export type OnPaperRenderElement = (elementView: dia.ElementView) => void;
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
@@ -40,9 +34,9 @@ export interface PortalPaperOptions {
    * or a `dia.Link` instance.
    */
   readonly defaultLink?:
-    | ((context: DefaultLinkContext) => dia.Link | Partial<OldLinkRecord>)
+    | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>)
     | dia.Link
-    | Partial<OldLinkRecord>;
+    | Partial<LinkRecord>;
 
   /**
    * Validates whether a connection between two elements/ports is allowed.
@@ -172,19 +166,24 @@ export interface PortalPaperOptions {
  * Rendered as JSX (`<RenderElement {...data} />`) so wrapping it in
  * `React.memo` actually short-circuits on prop equality.
  *
+ * The framework guarantees `data` is at least `{}` at this boundary, even
+ * for built-in JointJS shapes that ship without a `data` field.
+ *
  * If the renderer needs the id, position, size, or other slices, use the
  * context hooks: `useCellId()`, `useElement()` (with optional selector), or
  * `useCell(c => c.position / c.size / ...)`.
  */
-export type RenderElement<ElementData = unknown> = (data: ElementData | undefined) => ReactNode;
+export type RenderElement<ElementData = unknown> = (data: ElementData) => ReactNode;
 
 /**
  * Render function for links. Receives the link's `data` slice only — same
  * performance rationale as `RenderElement`. Use `useLink()` (with an
  * optional selector) inside the renderer when source / target / id are
  * needed.
+ *
+ * The framework guarantees `data` is at least `{}` at this boundary.
  */
-export type RenderLink<LinkData = unknown> = (data: LinkData | undefined) => ReactNode;
+export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
 
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.

@@ -77,9 +77,7 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
  * @param root0.style
  */
 function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
-  const size = useElement((element) => element.size);
-  const width = size?.width;
-  const height = size?.height;
+  const { width, height } = useElement((element) => element.size);
   const mergedStyle = useMemo<CSSProperties>(
     () => ({ width, height, ...style }),
     [width, height, style]

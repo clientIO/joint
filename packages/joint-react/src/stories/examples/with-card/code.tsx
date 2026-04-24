@@ -71,15 +71,15 @@ function Card({ label }: Readonly<Partial<Data>>) {
   );
 }
 
-function CardRenderer(data: Data | undefined) {
+function CardRenderer(data: Data) {
   // Demonstrates calling `useCell()` inside a component used by `renderElement`.
   const cell = useCell();
-  return <Card label={data?.label ?? String(cell.id)} />;
+  return <Card label={data.label ?? String(cell.id)} />;
 }
 
 function Main() {
   const renderElement: RenderElement<Data> = useCallback(
-    (data) => <CardRenderer {...(data ?? ({} as Data))} />,
+    (data) => <CardRenderer {...data} />,
     []
   );
   return <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />;

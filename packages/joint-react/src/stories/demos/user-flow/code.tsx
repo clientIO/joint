@@ -150,7 +150,7 @@ function RenderElementBase({
   onRemovePort,
 }: Readonly<RenderElementProps>) {
   const id = useElement((element) => element.id);
-  const { selectorRef } = useMarkup();
+  const { magnetRef } = useMarkup();
   const { width, height } = useElement((element) => element.size);
 
   let icon: string;

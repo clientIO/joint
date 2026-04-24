@@ -45,6 +45,8 @@ import type { CellId } from '../types/cell.types';
 
 type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
+const EMPTY_DATA: Readonly<Record<string, unknown>> = Object.freeze({});
+
 export interface UseCreatePortalPaperOptions extends PaperProps {
   /**
    * Host element ref where the paper should be mounted automatically.
@@ -141,7 +143,11 @@ function LinkItem({
     [cells, id]
   );
   const getSnapshot = useCallback(
-    () => (id === undefined ? undefined : (cells.get(id) as LinkRecord | undefined)?.data),
+    () => {
+      if (id === undefined) return EMPTY_DATA;
+      const record = cells.get(id) as LinkRecord | undefined;
+      return record?.data ?? EMPTY_DATA;
+    },
     [cells, id]
   );
   const data = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
@@ -378,7 +384,7 @@ export function useCreatePortalPaper(
       return null;
     }
     return deferredElementIds.map((elementId) => {
-      const elementView = paperStore?.getElementView(String(elementId));
+      const elementView = paperStore?.getElementView(elementId);
       if (!elementView?.paper) {
         return null;
       }
@@ -393,7 +399,7 @@ export function useCreatePortalPaper(
       }
 
       return (
-        <CellIdContext.Provider key={elementId} value={String(elementId)}>
+        <CellIdContext.Provider key={elementId} value={elementId}>
           {useHTMLOverlay && HTMLRendererContainer ? (
             <>
               <HTMLElementItem
@@ -435,7 +441,7 @@ export function useCreatePortalPaper(
     }
 
     return deferredLinkIds.map((linkId) => {
-      const linkView = paperStore?.getLinkView(String(linkId));
+      const linkView = paperStore?.getLinkView(linkId);
       if (!linkView?.paper) {
         return null;
       }
@@ -450,7 +456,7 @@ export function useCreatePortalPaper(
       }
 
       return (
-        <CellIdContext.Provider key={linkId} value={String(linkId)}>
+        <CellIdContext.Provider key={linkId} value={linkId}>
           <LinkItem portalElement={portalNode} renderLink={renderLink} />
         </CellIdContext.Provider>
       );
