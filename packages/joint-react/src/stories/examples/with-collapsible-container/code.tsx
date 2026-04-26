@@ -3,6 +3,7 @@ import { useCallback, useEffect, useId } from 'react';
 import { dia, elementTools } from '@joint/core';
 import {
   GraphProvider,
+  jsx,
   Paper,
   useCellId,
   useElement,
@@ -79,22 +80,14 @@ type ContainerUserData = ContainerData | ChildData;
 // Initial Data
 // ============================================================================
 
+const MARKER = {
+  markup: jsx(<path d="M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4" fill="none" strokeWidth={1.5} />),
+};
+
 const CONTAINER_LINK_STYLE = {
   color: LINK_COLOR,
   width: 1,
-  targetMarker: {
-    markup: [
-      {
-        tagName: 'path',
-        attributes: {
-          d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
-          fill: 'none',
-          stroke: 'context-stroke',
-          'stroke-width': '2',
-        },
-      },
-    ],
-  },
+  targetMarker: MARKER,
 };
 
 const initialCells: Cells<ContainerUserData> = [
