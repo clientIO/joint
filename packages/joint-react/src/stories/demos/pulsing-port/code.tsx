@@ -78,9 +78,9 @@ const NODE_PORTS: Record<string, ElementPort> = {
 };
 
 const initialCells: Cells = [
-  { id: '1', type: 'ElementModel', position: { x: 50, y: 50 }, portMap: NODE_PORTS },
-  { id: '2', type: 'ElementModel', position: { x: 350, y: 50 }, portMap: NODE_PORTS },
-  { id: '3', type: 'ElementModel', position: { x: 150, y: 250 }, portMap: NODE_PORTS },
+  { id: '1', type: 'element', position: { x: 50, y: 50 }, portMap: NODE_PORTS },
+  { id: '2', type: 'element', position: { x: 350, y: 50 }, portMap: NODE_PORTS },
+  { id: '3', type: 'element', position: { x: 150, y: 250 }, portMap: NODE_PORTS },
 ];
 
 function NodeElement() {
@@ -88,7 +88,7 @@ function NodeElement() {
 
   const isConnected = useCells((cells) =>
     cells.some((cell) => {
-      if (cell.type !== 'LinkModel') return false;
+      if (cell.type !== 'link') return false;
       const { source } = cell as { source?: { id?: unknown } };
       const { target } = cell as { target?: { id?: unknown } };
       return source?.id === id || target?.id === id;

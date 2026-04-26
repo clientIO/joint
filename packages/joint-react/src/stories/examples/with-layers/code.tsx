@@ -27,7 +27,7 @@ const initialCells: Cells<LayeredElementData> = [
   // Background layer elements
   {
     id: 'bg-1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Background 1', color: '#374151', isBackground: true },
     position: { x: 20, y: 20 },
     size: { width: 200, height: 150 },
@@ -35,7 +35,7 @@ const initialCells: Cells<LayeredElementData> = [
   },
   {
     id: 'bg-2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Background 2', color: '#374151', isBackground: true },
     position: { x: 250, y: 20 },
     size: { width: 200, height: 150 },
@@ -44,14 +44,14 @@ const initialCells: Cells<LayeredElementData> = [
   // Main layer elements
   {
     id: 'main-1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Main 1', color: PRIMARY },
     position: { x: 50, y: 50 },
     layer: 'main',
   },
   {
     id: 'main-2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Main 2', color: PRIMARY },
     position: { x: 280, y: 50 },
     layer: 'main',
@@ -59,7 +59,7 @@ const initialCells: Cells<LayeredElementData> = [
   // Foreground layer element
   {
     id: 'fg-1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Foreground', color: SECONDARY },
     position: { x: 100, y: 200 },
     layer: 'foreground',
@@ -67,7 +67,7 @@ const initialCells: Cells<LayeredElementData> = [
   // Links assigned to layers
   {
     id: 'link-1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'main-1' },
     target: { id: 'main-2' },
     style: { color: PRIMARY, className: 'fade-in' },
@@ -75,7 +75,7 @@ const initialCells: Cells<LayeredElementData> = [
   },
   {
     id: 'link-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'main-2' },
     target: { id: 'fg-1' },
     style: { color: SECONDARY, className: 'fade-in' },

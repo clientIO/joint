@@ -117,35 +117,35 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 const initialCells: Cells<ShapeData> = [
   {
     id: 'square1',
-    type: 'ElementModel',
+    type: 'element',
     data: { shapeType: ShapeTypes.square, label: 'S1' },
     position: { x: 100, y: 100 },
     size: { width: 80, height: 80 },
   },
   {
     id: 'square2',
-    type: 'ElementModel',
+    type: 'element',
     data: { shapeType: ShapeTypes.square, label: 'S2' },
     position: { x: 340, y: 100 },
     size: { width: 80, height: 80 },
   },
   {
     id: 'ellipse1',
-    type: 'ElementModel',
+    type: 'element',
     data: { shapeType: ShapeTypes.ellipse, label: 'E' },
     position: { x: 220, y: 300 },
     size: { width: 80, height: 80 },
   },
   {
     id: 'rectangle1',
-    type: 'ElementModel',
+    type: 'element',
     data: { shapeType: ShapeTypes.rectangle },
     position: { x: 100, y: 500 },
     size: { width: 320, height: 40 },
   },
   {
     id: 'link1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
     target: {
       id: 'square2',
@@ -155,14 +155,14 @@ const initialCells: Cells<ShapeData> = [
   },
   {
     id: 'link2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -100, dy: -30 } } },
     ...DEFAULT_LINK,
   },
   {
     id: 'link3',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 100, dy: -20 } } },
     target: {
       id: 'ellipse1',
@@ -172,7 +172,7 @@ const initialCells: Cells<ShapeData> = [
   },
   {
     id: 'link4',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } } },
     target: {
       id: 'ellipse1',
@@ -182,7 +182,7 @@ const initialCells: Cells<ShapeData> = [
   },
   {
     id: 'link5',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: {
       id: 'square1',

@@ -94,7 +94,7 @@ const CONTAINER_LINK_STYLE = {
 const initialCells: Cells<ContainerUserData> = [
   {
     id: 'container-a',
-    type: 'ElementModel',
+    type: 'element',
     data: { elementType: ElementType.Container, title: 'Container A', collapsed: false },
     position: { x: 50, y: 50 },
     size: { width: 340, height: 280 },
@@ -102,7 +102,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'container-b',
-    type: 'ElementModel',
+    type: 'element',
     data: { elementType: ElementType.Container, title: 'Container B', collapsed: false },
     position: { x: 280, y: 180 },
     size: { width: 180, height: 130 },
@@ -111,7 +111,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'child-1',
-    type: 'ElementModel',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '1' },
     position: { x: 150, y: 100 },
     size: { width: 50, height: 50 },
@@ -120,7 +120,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'child-2',
-    type: 'ElementModel',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '2' },
     position: { x: 100, y: 200 },
     size: { width: 50, height: 50 },
@@ -129,7 +129,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'child-3',
-    type: 'ElementModel',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '3' },
     position: { x: 200, y: 200 },
     size: { width: 50, height: 50 },
@@ -138,7 +138,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'child-4',
-    type: 'ElementModel',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '4' },
     position: { x: 300, y: 220 },
     size: { width: 50, height: 50 },
@@ -147,7 +147,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'child-5',
-    type: 'ElementModel',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '5' },
     position: { x: 390, y: 220 },
     size: { width: 50, height: 50 },
@@ -156,7 +156,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'link-1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'child-1' },
     target: { id: 'child-2' },
     z: 2,
@@ -164,7 +164,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'link-1-3',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'child-1' },
     target: { id: 'child-3' },
     z: 2,
@@ -172,7 +172,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'link-4-5',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'child-4' },
     target: { id: 'child-5' },
     z: 4,
@@ -180,7 +180,7 @@ const initialCells: Cells<ContainerUserData> = [
   },
   {
     id: 'link-1-b',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'child-1' },
     target: { id: 'container-b' },
     z: 4,

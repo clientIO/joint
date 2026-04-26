@@ -7,16 +7,16 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type Data = { label: string };
 const initialCells: Cells<Data> = [
-  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 100, y: 10 } },
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 10 } },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 2 with longer text' },
     position: { x: 250, y: 150 },
   },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },

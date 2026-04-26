@@ -84,12 +84,12 @@ const LINK_ATTRS = {
 function toCells(snapshot: Snapshot): Cells<NodeData> {
   const cells: Array<ElementRecord<NodeData> | LinkRecord> = [];
   for (const [id, node] of Object.entries(snapshot.elements)) {
-    cells.push({ id, type: 'ElementModel', data: node.data });
+    cells.push({ id, type: 'element', data: node.data });
   }
   for (const [id, link] of Object.entries(snapshot.links)) {
     cells.push({
       id,
-      type: 'LinkModel',
+      type: 'link',
       source: { id: link.source },
       target: { id: link.target },
       attrs: LINK_ATTRS,
@@ -435,7 +435,7 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
     const owner = SAMPLE_OWNERS[nextSampleIndex % SAMPLE_OWNERS.length];
     nextSampleIndex += 1;
 
-    addCell({ id, type: 'ElementModel', data: { title, owner } });
+    addCell({ id, type: 'element', data: { title, owner } });
 
     // Pick a random existing parent so the tree fans out.
     const others = graph.getElements().filter((cell) => String(cell.id) !== id);
@@ -443,7 +443,7 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
       const parent = others[Math.floor(Math.random() * others.length)];
       addCell({
         id: `l${Date.now().toString(36)}`,
-        type: 'LinkModel',
+        type: 'link',
         source: { id: String(parent.id) },
         target: { id },
         attrs: LINK_ATTRS,

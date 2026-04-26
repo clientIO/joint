@@ -18,7 +18,7 @@ type ContainerData = {
 const initialCells: Cells<ContainerData> = [
   {
     id: 'container',
-    type: 'ElementModel',
+    type: 'element',
     position: { x: 50, y: 50 },
     size: { width: 300, height: 200 },
     data: { label: 'Container', isContainer: true },
@@ -26,7 +26,7 @@ const initialCells: Cells<ContainerData> = [
   },
   {
     id: 'child-1',
-    type: 'ElementModel',
+    type: 'element',
     position: { x: 70, y: 80 },
     data: { label: 'Child 1' },
     parent: 'container',
@@ -34,7 +34,7 @@ const initialCells: Cells<ContainerData> = [
   },
   {
     id: 'child-2',
-    type: 'ElementModel',
+    type: 'element',
     position: { x: 200, y: 80 },
     data: { label: 'Child 2' },
     parent: 'container',
@@ -42,7 +42,7 @@ const initialCells: Cells<ContainerData> = [
   },
   {
     id: 'link-1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'child-1' },
     target: { id: 'child-2' },
     parent: 'container',

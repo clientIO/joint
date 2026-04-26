@@ -83,7 +83,7 @@ const PORT_R = 5;
 const initialCells: Cells<SaasNodeData> = [
   {
     id: 'client',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       title: 'Client: SaaSflow',
       subtitle: 'Onboarded: 25 Jun',
@@ -100,7 +100,7 @@ const initialCells: Cells<SaasNodeData> = [
   },
   {
     id: 'pm',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       title: 'Project Manager',
       subtitle: 'Managing progress',
@@ -118,7 +118,7 @@ const initialCells: Cells<SaasNodeData> = [
   },
   {
     id: 'designer',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       title: 'UX Designer',
       subtitle: 'Designing interfaces',
@@ -136,7 +136,7 @@ const initialCells: Cells<SaasNodeData> = [
   },
   {
     id: 'client-pm',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'client', port: 'out' },
     target: { id: 'pm', port: 'in' },
     style: { color: DARK.link, width: 2, targetMarker: 'none' },
@@ -153,7 +153,7 @@ const initialCells: Cells<SaasNodeData> = [
   },
   {
     id: 'pm-designer',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'pm', port: 'out' },
     target: { id: 'designer', port: 'in' },
     style: {
@@ -334,7 +334,7 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
     const pick = Math.floor(Math.random() * names.length); // eslint-disable-line sonarjs/pseudo-random
     addCell({
       id,
-      type: 'ElementModel',
+      type: 'element',
       data: {
         title: names[pick],
         subtitle: 'New team member',

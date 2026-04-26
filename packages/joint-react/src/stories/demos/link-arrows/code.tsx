@@ -391,7 +391,7 @@ function buildLinks(): LinkRecord[] {
     const y = row * (MARGIN + LINK_BBOX_HEIGHT);
     links.push({
       id: `marker-${index + 1}`,
-      type: 'LinkModel',
+      type: 'link',
       source: { x, y },
       target: { x: x + LINK_BBOX_WIDTH, y: y + LINK_BBOX_HEIGHT },
       style: {

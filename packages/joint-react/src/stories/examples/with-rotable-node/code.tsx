@@ -22,11 +22,11 @@ interface NodeData {
 }
 
 const initialCells: Cells<NodeData> = [
-  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 20, y: 100 } },
-  { id: '2', type: 'ElementModel', data: { label: 'Node 2' }, position: { x: 200, y: 100 } },
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 20, y: 100 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 200, y: 100 } },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },

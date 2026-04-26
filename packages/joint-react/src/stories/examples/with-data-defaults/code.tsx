@@ -59,22 +59,22 @@ const getDefaultLink = (color: string) => {
 };
 
 const initialCells: Cells<ElementData> = [
-  { id: 'a', type: 'ElementModel', kind: 'source', data: { label: 'Start' }, position: { x: 50, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.source },
-  { id: 'b', type: 'ElementModel', kind: 'process', data: { label: 'Process' }, position: { x: 250, y: 50 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
-  { id: 'c', type: 'ElementModel', kind: 'process', data: { label: 'Review' }, position: { x: 250, y: 230 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
-  { id: 'd', type: 'ElementModel', kind: 'sink', data: { label: 'Done' }, position: { x: 480, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.sink },
-  { id: 'a-b', type: 'LinkModel', source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
-  { id: 'a-c', type: 'LinkModel', source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
+  { id: 'a', type: 'element', kind: 'source', data: { label: 'Start' }, position: { x: 50, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.source },
+  { id: 'b', type: 'element', kind: 'process', data: { label: 'Process' }, position: { x: 250, y: 50 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
+  { id: 'c', type: 'element', kind: 'process', data: { label: 'Review' }, position: { x: 250, y: 230 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
+  { id: 'd', type: 'element', kind: 'sink', data: { label: 'Done' }, position: { x: 480, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.sink },
+  { id: 'a-b', type: 'link', source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
+  { id: 'a-c', type: 'link', source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   {
     id: 'b-d',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'b', port: 'out' },
     target: { id: 'd', port: 'in' },
     labelMap: { status: { text: 'approved' } },
   },
   {
     id: 'c-d',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
     labelMap: { status: { text: 'pending' } },

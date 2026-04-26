@@ -16,19 +16,19 @@ type ElementData = { label: string };
 const initialCells: Cells<ElementData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Hello' },
     position: { x: 100, y: 15 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'World' },
     position: { x: 100, y: 200 },
   },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY, width: 2 },

@@ -23,7 +23,7 @@ interface TableData {
 const initialCells: Cells<TableData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       name: 'users',
       rows: [
@@ -37,7 +37,7 @@ const initialCells: Cells<TableData> = [
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       name: 'orders',
       rows: [
@@ -51,7 +51,7 @@ const initialCells: Cells<TableData> = [
   },
   {
     id: 'l1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1', magnet: 'row-0' },
     target: { id: '2', magnet: 'row-1' },
   },

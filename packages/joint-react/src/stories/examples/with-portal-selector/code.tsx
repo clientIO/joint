@@ -49,20 +49,20 @@ const PAPER_PROPS: PaperProps = {
 const initialCells: Cells<ElementUserData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { title: 'This is error element' },
     position: { x: 50, y: 110 },
     angle: 30,
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { title: 'This is info element' },
     position: { x: 550, y: 110 },
   },
   {
     id: '3',
-    type: 'ElementModel',
+    type: 'element',
     data: { color: '#f87171' },
     position: { x: 50, y: 370 },
   },
@@ -76,7 +76,7 @@ const initialCells: Cells<ElementUserData> = [
   // Links now use built-in theme properties: color, width, sourceMarker, targetMarker
   {
     id: 'link1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: {
@@ -87,7 +87,7 @@ const initialCells: Cells<ElementUserData> = [
   },
   {
     id: 'link2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '3' },
     target: { id: '4' },
     style: { color: 'green' },

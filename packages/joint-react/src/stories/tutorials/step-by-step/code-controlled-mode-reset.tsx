@@ -16,7 +16,7 @@
  *   1. One slot, one array.
  *        A single `cells: Cells<NodeData>` array holds both elements AND
  *        links. Each record carries its own `id` and `type` — either
- *        `'ElementModel'` or `'LinkModel'` — so TypeScript narrows the
+ *        `'element'` or `'link'` — so TypeScript narrows the
  *        shape on the type discriminator.
  *
  *   2. Controlled mode = `cells` + `onCellsChange`.
@@ -70,35 +70,35 @@ const LINK_STYLE = { color: PRIMARY, width: 2, targetMarker: 'arrow' } as const;
 const initialCells: Cells<NodeData> = [
   {
     id: 'ingest',
-    type: 'ElementModel',
+    type: 'element',
     position: { x: 40, y: 100 },
     size: { width: 140, height: 60 },
     data: { label: 'Ingest', kind: 'source' },
   },
   {
     id: 'transform',
-    type: 'ElementModel',
+    type: 'element',
     position: { x: 240, y: 100 },
     size: { width: 140, height: 60 },
     data: { label: 'Transform', kind: 'step' },
   },
   {
     id: 'export',
-    type: 'ElementModel',
+    type: 'element',
     position: { x: 440, y: 100 },
     size: { width: 140, height: 60 },
     data: { label: 'Export', kind: 'sink' },
   },
   {
     id: 'ingest-transform',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'ingest' },
     target: { id: 'transform' },
     style: LINK_STYLE,
   },
   {
     id: 'transform-export',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'transform' },
     target: { id: 'export' },
     style: LINK_STYLE,
@@ -138,7 +138,7 @@ const renderWorkflowNode: RenderElement<NodeData> = WorkflowNode;
 
 export default function App() {
   // React state owns the single source of truth. Typed as `Cells<NodeData>`
-  // so TypeScript narrows on `type === 'ElementModel' | 'LinkModel'`.
+  // so TypeScript narrows on `type === 'element' | 'link'`.
   const [cells, setCells] = useState<Cells<NodeData>>(initialCells);
 
   // Reset is literally "set state back to the initial snapshot". No imperative

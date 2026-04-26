@@ -123,7 +123,7 @@ function DataPanel() {
     (cells) => {
       const result: Array<[string, ElementRecord<ElementData>]> = [];
       for (const cell of cells) {
-        if (cell.type === 'MyElementModel' || cell.type === 'ElementModel') {
+        if (cell.type === 'MyElementModel' || cell.type === 'element') {
           result.push([String(cell.id), cell as ElementRecord<ElementData>]);
         }
       }

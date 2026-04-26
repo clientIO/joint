@@ -24,28 +24,28 @@ type NodeData = {
 const initialCells: Cells<NodeData> = [
   {
     id: 'a',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Source' },
     position: { x: 50, y: 60 },
     size: { width: 120, height: 50 },
   },
   {
     id: 'b',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Process' },
     position: { x: 280, y: 20 },
     size: { width: 120, height: 50 },
   },
   {
     id: 'c',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Review' },
     position: { x: 280, y: 120 },
     size: { width: 120, height: 50 },
   },
   {
     id: 'd',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Output' },
     position: { x: 510, y: 60 },
     size: { width: 120, height: 50 },
@@ -54,7 +54,7 @@ const initialCells: Cells<NodeData> = [
   // One link overrides color to show per-link precedence.
   {
     id: 'a→b',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'a' },
     target: { id: 'b' },
     style: { targetMarker: 'arrow' },
@@ -62,7 +62,7 @@ const initialCells: Cells<NodeData> = [
   },
   {
     id: 'a→c',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'a' },
     target: { id: 'c' },
     style: { targetMarker: 'arrow' },
@@ -70,7 +70,7 @@ const initialCells: Cells<NodeData> = [
   },
   {
     id: 'b→d',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'b' },
     target: { id: 'd' },
     style: { targetMarker: 'arrow' },
@@ -78,7 +78,7 @@ const initialCells: Cells<NodeData> = [
   },
   {
     id: 'c→d',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'c' },
     target: { id: 'd' },
     style: {

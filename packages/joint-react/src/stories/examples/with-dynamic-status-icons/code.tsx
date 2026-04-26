@@ -31,28 +31,28 @@ interface ShapeData {
 const initialCells: Cells<ShapeData> = [
   {
     id: 'rectangle',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: ShapeTypes.rectangle, label: 'Rectangle' },
     size: { width: 100, height: 100 },
     position: { x: 20, y: 20 },
   },
   {
     id: 'circle',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: ShapeTypes.circle, label: 'Circle' },
     size: { width: 100, height: 100 },
     position: { x: 160, y: 20 },
   },
   {
     id: 'ellipse',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: ShapeTypes.ellipse, label: 'Ellipse' },
     size: { width: 150, height: 100 },
     position: { x: 320, y: 20 },
   },
   {
     id: 'path',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: ShapeTypes.path, label: 'Path' },
     size: { width: 100, height: 100 },
     position: { x: 520, y: 20 },

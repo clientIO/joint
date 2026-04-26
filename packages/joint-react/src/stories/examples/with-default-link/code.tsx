@@ -25,7 +25,7 @@ interface NodeData {
 const initialCells: Cells<NodeData> = [
   {
     id: 'node-1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Source' },
     position: { x: 50, y: 80 },
     size: { width: 140, height: 120 },
@@ -38,7 +38,7 @@ const initialCells: Cells<NodeData> = [
   },
   {
     id: 'node-2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Target' },
     position: { x: 350, y: 80 },
     size: { width: 140, height: 120 },

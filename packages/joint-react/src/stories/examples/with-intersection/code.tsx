@@ -18,10 +18,10 @@ interface NodeData {
 }
 
 const initialCells: Cells<NodeData> = [
-  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
-  { id: '2', type: 'ElementModel', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-  { id: '3', type: 'ElementModel', data: { label: 'Node 3' }, position: { x: 200, y: 100 } },
-  { id: '4', type: 'ElementModel', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 200, y: 100 } },
+  { id: '4', type: 'element', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
 ];
 
 function ResizableNode(data: NodeData) {

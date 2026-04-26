@@ -29,7 +29,7 @@ type TestElementData = {
 export const testCells: Cells<TestElementData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       label: 'Node 1',
       color: PRIMARY,
@@ -41,7 +41,7 @@ export const testCells: Cells<TestElementData> = [
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       label: 'Node 2',
       color: PRIMARY,
@@ -53,7 +53,7 @@ export const testCells: Cells<TestElementData> = [
   },
   {
     id: 'l-1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },

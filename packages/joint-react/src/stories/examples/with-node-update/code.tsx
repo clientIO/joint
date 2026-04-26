@@ -19,19 +19,19 @@ interface NodeData {
 const initialCells: Cells<NodeData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 1', color: '#4f46e5' },
     position: { x: 100, y: 15 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 2', color: '#4f46e5' },
     position: { x: 100, y: 200 },
   },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
   },

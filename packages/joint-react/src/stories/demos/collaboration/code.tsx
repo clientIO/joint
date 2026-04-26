@@ -114,7 +114,7 @@ const PORT_IN = {
 const initialElements: Record<string, AgentNode> = {
   orchestrator: {
     id: 'orchestrator',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       title: 'Orchestrator',
       role: 'Task delegation',
@@ -126,7 +126,7 @@ const initialElements: Record<string, AgentNode> = {
   },
   researcher: {
     id: 'researcher',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       title: 'Researcher',
       role: 'Data gathering',
@@ -138,7 +138,7 @@ const initialElements: Record<string, AgentNode> = {
   },
   writer: {
     id: 'writer',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       title: 'Writer',
       role: 'Content creation',
@@ -153,7 +153,7 @@ const initialElements: Record<string, AgentNode> = {
 const initialLinks: Record<string, LinkRecord> = {
   'o-r': {
     id: 'o-r',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'orchestrator', port: 'out' },
     target: { id: 'researcher', port: 'in' },
     style: { color: DARK.link, width: 1.5, targetMarker: 'none' },
@@ -161,7 +161,7 @@ const initialLinks: Record<string, LinkRecord> = {
   },
   'o-w': {
     id: 'o-w',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'orchestrator', port: 'out' },
     target: { id: 'writer', port: 'in' },
     style: { color: DARK.link, width: 1.5, targetMarker: 'none' },
@@ -177,10 +177,10 @@ interface GraphState {
 }
 
 function isElementType(cell: CellRecord): cell is ElementRecord<AgentNodeData> {
-  return cell.type === 'ElementModel';
+  return cell.type === 'element';
 }
 function isLinkType(cell: CellRecord): cell is LinkRecord {
-  return cell.type === 'LinkModel';
+  return cell.type === 'link';
 }
 
 const graphSlice = createSlice({
@@ -698,7 +698,7 @@ function Toolbar() {
     const pick = agents[Math.floor(Math.random() * agents.length)];
     addCell({
       id,
-      type: 'ElementModel',
+      type: 'element',
       data: pick,
       position: { x: 100 + Math.random() * 300, y: 100 + Math.random() * 300 },
       portMap: {
@@ -888,7 +888,7 @@ function GraphWithRedux() {
       cells.push({
         ...element,
         id,
-        type: 'ElementModel',
+        type: 'element',
         portMap: {
           out: {
             cx: 'calc(0.5 * w)',
@@ -914,7 +914,7 @@ function GraphWithRedux() {
       cells.push({
         ...link,
         id,
-        type: 'LinkModel',
+        type: 'link',
         style: { ...link.style, color: theme.link },
       });
     }

@@ -25,25 +25,25 @@ interface NodeData {
 const initialCells: Cells<NodeData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 1', color: '#ffffff' },
     position: { x: 40, y: 70 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 2', color: '#ffffff' },
     position: { x: 270, y: 120 },
   },
   {
     id: '3',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 2', color: '#ffffff' },
     position: { x: 30, y: 180 },
   },
   {
     id: 'e1-1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     color: PRIMARY,

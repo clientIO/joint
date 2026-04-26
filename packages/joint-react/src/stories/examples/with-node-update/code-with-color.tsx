@@ -21,21 +21,21 @@ interface NodeData {
 const initialCells: Cells<NodeData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 15 },
     size: { width: 100, height: 50 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 2', color: SECONDARY },
     position: { x: 100, y: 200 },
     size: { width: 100, height: 50 },
   },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     color: LIGHT,

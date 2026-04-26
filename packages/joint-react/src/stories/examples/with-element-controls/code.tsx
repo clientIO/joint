@@ -80,7 +80,7 @@ function pos(id: string, index: number, w: number, h: number, data: ControlledDa
   const row = Math.floor(index / COLUMNS_COUNT);
   return {
     id,
-    type: 'ElementModel',
+    type: 'element',
     data,
     position: {
       x: MARGIN + col * COLUMNS_GAP + (COLUMNS_GAP - w) / 2,

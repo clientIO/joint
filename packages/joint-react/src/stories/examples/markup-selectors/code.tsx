@@ -29,7 +29,7 @@ interface StackedData {
 const initialCells: Cells<StackedData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       name: 'Component A',
       labels: ['Header', 'Body', 'Footer'],
@@ -38,7 +38,7 @@ const initialCells: Cells<StackedData> = [
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       name: 'Component B',
       labels: ['Input', 'Process', 'Output'],
@@ -47,7 +47,7 @@ const initialCells: Cells<StackedData> = [
   },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1', magnet: 'item-2' },
     target: { id: '2', magnet: 'item-2' },
     style: { color: LIGHT },

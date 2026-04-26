@@ -32,35 +32,35 @@ interface CenterData {
 const initialCells: Cells<CenterData> = [
   {
     id: 'node-1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node One' },
     position: { x: 70, y: 100 },
     size: { width: 160, height: 60 },
   },
   {
     id: 'node-2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node Two' },
     position: { x: 370, y: 70 },
     size: { width: 160, height: 60 },
   },
   {
     id: 'node-3',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node Three' },
     position: { x: 220, y: 250 },
     size: { width: 160, height: 60 },
   },
   {
     id: 'link-1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'node-1' },
     target: { id: 'node-2' },
     color: PRIMARY,
   },
   {
     id: 'link-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'node-1' },
     target: { id: 'node-3' },
     color: PRIMARY,
@@ -74,7 +74,7 @@ const initialCells: Cells<CenterData> = [
 function DataPanel() {
   const cells = useCells<CenterData>();
   const elements = cells.filter(
-    (cell): cell is ElementRecord<CenterData> => cell.type === 'ElementModel'
+    (cell): cell is ElementRecord<CenterData> => cell.type === 'element'
   );
   return (
     <div className="p-4 min-w-50 text-sm font-mono">

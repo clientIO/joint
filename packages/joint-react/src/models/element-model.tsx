@@ -1,5 +1,5 @@
 import { dia } from '@joint/core';
-export const ELEMENT_MODEL_TYPE = 'ElementModel';
+export const ELEMENT_MODEL_TYPE = 'element';
 
 /**
  * Selector for the `<g>` element used as the React portal target inside ElementModel markup.

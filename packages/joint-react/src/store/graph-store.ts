@@ -8,8 +8,8 @@ import {
   type GraphStoreObserver,
   type SetMeasuredNodeOptions,
 } from './create-elements-size-observer';
-import { ElementModel } from '../models/element-model';
-import { LinkModel } from '../models/link-model';
+import { ELEMENT_MODEL_TYPE, ElementModel } from '../models/element-model';
+import { LINK_MODEL_TYPE, LinkModel } from '../models/link-model';
 import { isElementType, isLinkType } from '../utils/cell-type';
 import { clearConnectedLinkViews } from './clear-view';
 import { LAYOUT_UPDATE_EVENT } from './graph-changes';
@@ -22,8 +22,8 @@ import { simpleScheduler } from '../utils/scheduler';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
-  ElementModel,
-  LinkModel,
+  [ELEMENT_MODEL_TYPE]: ElementModel,
+  [LINK_MODEL_TYPE]: LinkModel,
 };
 
 /**

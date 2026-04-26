@@ -40,7 +40,7 @@ const DEFAULT_LINK = {
 const initialCells: Cells<NodeUserData> = [
   {
     id: 'a',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Source' },
     position: { x: 50, y: 70 },
     size: ELEMENT_SIZE,
@@ -51,7 +51,7 @@ const initialCells: Cells<NodeUserData> = [
   },
   {
     id: 'b',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Process' },
     position: { x: 290, y: 20 },
     size: ELEMENT_SIZE,
@@ -63,7 +63,7 @@ const initialCells: Cells<NodeUserData> = [
   },
   {
     id: 'c',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Review' },
     position: { x: 290, y: 120 },
     size: ELEMENT_SIZE,
@@ -75,7 +75,7 @@ const initialCells: Cells<NodeUserData> = [
   },
   {
     id: 'd',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Output' },
     position: { x: 550, y: 70 },
     size: ELEMENT_SIZE,
@@ -86,21 +86,21 @@ const initialCells: Cells<NodeUserData> = [
   },
   {
     id: 'a→b',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },
     ...DEFAULT_LINK,
   },
   {
     id: 'a→c',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'a', port: 'out' },
     target: { id: 'c', port: 'in' },
     ...DEFAULT_LINK,
   },
   {
     id: 'b→d',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'b', port: 'out' },
     target: { id: 'd', port: 'in' },
     labelMap: { info: { text: 'approved' } },
@@ -109,7 +109,7 @@ const initialCells: Cells<NodeUserData> = [
   },
   {
     id: 'c→d',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
     style: { color: '#e11d48', targetMarker: 'arrow' },

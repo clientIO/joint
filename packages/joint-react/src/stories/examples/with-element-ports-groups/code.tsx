@@ -20,7 +20,7 @@ interface NodeData {
 const initialCells: Cells<NodeData> = [
   {
     id: 'a',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node A' },
     position: { x: 50, y: 80 },
     size: { width: 120, height: 60 },
@@ -38,7 +38,7 @@ const initialCells: Cells<NodeData> = [
   },
   {
     id: 'b',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node B' },
     position: { x: 350, y: 50 },
     size: { width: 120, height: 80 },
@@ -56,7 +56,7 @@ const initialCells: Cells<NodeData> = [
   },
   {
     id: 'c',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node C' },
     position: { x: 350, y: 220 },
     size: { width: 120, height: 60 },
@@ -73,14 +73,14 @@ const initialCells: Cells<NodeData> = [
   },
   {
     id: 'a-b',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'a', port: 'out1' },
     target: { id: 'b', port: 'in1' },
     style: { color: PRIMARY, targetMarker: 'arrow' },
   },
   {
     id: 'b-c',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'b', port: 'out1' },
     target: { id: 'c', port: 'in1' },
     style: { color: SECONDARY, targetMarker: 'arrow' },

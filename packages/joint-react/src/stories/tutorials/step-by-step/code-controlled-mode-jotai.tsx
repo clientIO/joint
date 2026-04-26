@@ -58,19 +58,19 @@ type ElementData = { label: string };
 const defaultCells: Cells<ElementData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Hello' },
     position: { x: 100, y: 15 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'World' },
     position: { x: 100, y: 200 },
   },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
@@ -130,7 +130,7 @@ function PaperApp() {
             const newId = Math.random().toString(36).slice(7);
             const newElement: ElementRecord<ElementData> = {
               id: newId,
-              type: 'ElementModel',
+              type: 'element',
               data: { label: 'New Node' },
               position: { x: Math.random() * 200, y: Math.random() * 200 },
             };
@@ -149,7 +149,7 @@ function PaperApp() {
             // Find the last element cell (not a link)
             let removedElementIndex = -1;
             for (let index = currentCells.length - 1; index >= 0; index--) {
-              if (currentCells[index].type === 'ElementModel') {
+              if (currentCells[index].type === 'element') {
                 removedElementIndex = index;
                 break;
               }
@@ -160,7 +160,7 @@ function PaperApp() {
             const nextCells = currentCells.filter((cell, index) => {
               if (index === removedElementIndex) return false;
               // Also drop links touching the removed element
-              if (cell.type === 'LinkModel') {
+              if (cell.type === 'link') {
                 const { source, target } = cell as {
                   source?: { id?: unknown };
                   target?: { id?: unknown };

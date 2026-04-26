@@ -18,8 +18,8 @@
  *    through React state updates.
  *
  * 2. **Unified `cells` slot**: Elements and links live in one array,
- *    distinguished by the `type` field (`'ElementModel'` /
- *    `'LinkModel'`). There is no separate elements/links prop anymore.
+ *    distinguished by the `type` field (`'element'` /
+ *    `'link'`). There is no separate elements/links prop anymore.
  *
  * 3. **Bidirectional Sync**: GraphProvider automatically synchronizes changes
  *    in both directions:
@@ -66,25 +66,25 @@ type ElementData = { label: string };
  * Initial cells (nodes and links) for the graph.
  *
  * Every cell requires both `id` and `type`:
- * - Element cells use `type: 'ElementModel'` plus `position`/`size`.
- * - Link cells use `type: 'LinkModel'` plus `source`/`target`.
+ * - Element cells use `type: 'element'` plus `position`/`size`.
+ * - Link cells use `type: 'link'` plus `source`/`target`.
  */
 const defaultCells: Cells<ElementData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Hello' },
     position: { x: 100, y: 15 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'World' },
     position: { x: 100, y: 200 },
   },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
@@ -176,7 +176,7 @@ function PaperApp({ onCellsChange }: Readonly<PaperAppProps>) {
             // Build the new element cell. It must include id AND type.
             const newElement: ElementRecord<ElementData> = {
               id: newId,
-              type: 'ElementModel',
+              type: 'element',
               data: { label: 'New Node' },
               position: { x: Math.random() * 200, y: Math.random() * 200 },
             };
@@ -200,7 +200,7 @@ function PaperApp({ onCellsChange }: Readonly<PaperAppProps>) {
               // Find the last element cell (ignore links)
               let removedIndex = -1;
               for (let index = cells.length - 1; index >= 0; index--) {
-                if (cells[index].type === 'ElementModel') {
+                if (cells[index].type === 'element') {
                   removedIndex = index;
                   break;
                 }
@@ -211,7 +211,7 @@ function PaperApp({ onCellsChange }: Readonly<PaperAppProps>) {
 
               return cells.filter((cell, index) => {
                 if (index === removedIndex) return false;
-                if (cell.type === 'LinkModel') {
+                if (cell.type === 'link') {
                   const link = cell as LinkRecord;
                   if (link.source?.id === removedId || link.target?.id === removedId) {
                     return false;

@@ -21,7 +21,7 @@ type Data = { label: string };
 const initialCells: Cells<Data> = [
   {
     id: 'container',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       label: 'Container',
     },
@@ -31,7 +31,7 @@ const initialCells: Cells<Data> = [
   },
   {
     id: 'child',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       label: 'Drag me',
     },
@@ -79,7 +79,7 @@ function InspectorPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('data');
   const cells = useCells<Data>();
   const elements = cells.filter(
-    (cell): cell is ElementRecord<Data> => cell.type === 'ElementModel'
+    (cell): cell is ElementRecord<Data> => cell.type === 'element'
   );
   const rawAttributes = useRawAttributes();
 

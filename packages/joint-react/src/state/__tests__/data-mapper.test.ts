@@ -11,7 +11,7 @@ import {
   mapAttributesToLink,
 } from '../data-mapping';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ElementModel, LinkModel };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, element: ElementModel, link: LinkModel };
 
 describe('dataMapper', () => {
   let graph: dia.Graph;
@@ -36,7 +36,7 @@ describe('dataMapper', () => {
       const cellJson = mapElementToAttributes(element);
       expect(cellJson.position).toEqual({ x: 10, y: 20 });
       expect(cellJson.size).toEqual({ width: 100, height: 50 });
-      expect(cellJson.type).toBe('ElementModel');
+      expect(cellJson.type).toBe('element');
 
       graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
@@ -73,7 +73,7 @@ describe('dataMapper', () => {
     it('should include all cell.data properties regardless of previousData', () => {
       const id = 'el-1';
       const cellJson = {
-        type: 'ElementModel',
+        type: 'element',
         id,
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },

@@ -5,7 +5,7 @@ import { GraphStore } from '../../store/graph-store';
 import type { IncrementalChange } from '../../state/incremental.types';
 import type { CellId } from '../../types/cell.types';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ElementModel };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, element: ElementModel };
 const TEST_PAPER_ID = 'test-paper';
 const toCellId = (id: dia.Cell.ID): string => id as string;
 

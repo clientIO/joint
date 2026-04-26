@@ -27,7 +27,7 @@ const DEFAULT_LINK = { style: { targetMarker: 'arrow' as LinkMarkerName } };
 const initialCells: Cells<Data> = [
   {
     id: 'a',
-    type: 'ElementModel',
+    type: 'element',
     // No width or height — element auto-sizes to fit label
     data: {
       label: 'no width or height',
@@ -37,7 +37,7 @@ const initialCells: Cells<Data> = [
   },
   {
     id: 'b',
-    type: 'ElementModel',
+    type: 'element',
     // Explicit width — height grows to fit content
     data: {
       label: 'fixed width, auto height',
@@ -51,7 +51,7 @@ const initialCells: Cells<Data> = [
   },
   {
     id: 'c',
-    type: 'ElementModel',
+    type: 'element',
     // Explicit width and height — fixed box, content clipped
     data: {
       label: 'fixed width and height',
@@ -66,7 +66,7 @@ const initialCells: Cells<Data> = [
   },
   {
     id: 'd',
-    type: 'ElementModel',
+    type: 'element',
     // Explicit height — width grows to fit content
     data: {
       label: 'auto width, fixed height',
@@ -77,21 +77,21 @@ const initialCells: Cells<Data> = [
   },
   {
     id: 'a-b',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },
     ...DEFAULT_LINK,
   },
   {
     id: 'b-c',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'b', port: 'out' },
     target: { id: 'c', port: 'in' },
     ...DEFAULT_LINK,
   },
   {
     id: 'c-d',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
     ...DEFAULT_LINK,

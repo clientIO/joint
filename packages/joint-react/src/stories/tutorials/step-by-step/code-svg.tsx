@@ -11,9 +11,9 @@ type ElementData = { color: string };
 
 // Unified cells array — elements and links live in the same stream, each with `id` + `type`.
 const initialCells: Cells<ElementData> = [
-  { id: '1', type: 'ElementModel', data: { color: PRIMARY }, position: { x: 100, y: 15 },  size: { width: 100, height: 25 } },
-  { id: '2', type: 'ElementModel', data: { color: PRIMARY }, position: { x: 100, y: 200 }, size: { width: 100, height: 25 } },
-  { id: 'e1-2', type: 'LinkModel', source: { id: '1' }, target: { id: '2' }, style: { color: PRIMARY, width: 2 } },
+  { id: '1', type: 'element', data: { color: PRIMARY }, position: { x: 100, y: 15 },  size: { width: 100, height: 25 } },
+  { id: '2', type: 'element', data: { color: PRIMARY }, position: { x: 100, y: 200 }, size: { width: 100, height: 25 } },
+  { id: 'e1-2', type: 'link', source: { id: '1' }, target: { id: '2' }, style: { color: PRIMARY, width: 2 } },
 ];
 
 function RenderItem({ color }: Readonly<ElementData>) {

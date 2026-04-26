@@ -78,7 +78,7 @@ const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
 const initialElements: Record<string, NodeType> = {
   '1': {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       title: 'User Action',
       description: 'Transfer funds',
@@ -90,7 +90,7 @@ const initialElements: Record<string, NodeType> = {
   },
   '2': {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       title: 'Entity',
       description: 'Transfer funds',
@@ -102,7 +102,7 @@ const initialElements: Record<string, NodeType> = {
   },
   '3': {
     id: '3',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       title: 'User Action',
       description: 'Get account balance',
@@ -117,21 +117,21 @@ const initialElements: Record<string, NodeType> = {
 const initialLinks: Record<string, LinkRecord> = {
   link1: {
     id: 'link1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1', magnet: '1' },
     target: { id: '2', magnet: 'in' },
     z: 11,
   },
   link2: {
     id: 'link2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '2', magnet: '1' },
     target: { id: '3', magnet: 'in' },
     z: 11,
   },
   link3: {
     id: 'link3',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '3', magnet: '2' },
     target: { id: '1', magnet: 'in' },
     z: 11,
@@ -311,7 +311,7 @@ function Main() {
     const linkColor = isDark ? 'rgba(255,255,255,0.35)' : '#000000';
     setCells((previous) =>
       previous.map((cell): CellRecord<NodeData> => {
-        if (cell.type !== 'LinkModel') return cell;
+        if (cell.type !== 'link') return cell;
         const link = cell as LinkRecord;
         return { ...link, style: { ...link.style, color: linkColor } };
       })
@@ -321,7 +321,7 @@ function Main() {
   const onAddPort = useCallback((id: CellId) => {
     setCells((previous) =>
       previous.map((cell): CellRecord<NodeData> => {
-        if (cell.type !== 'ElementModel') return cell;
+        if (cell.type !== 'element') return cell;
         if (cell.id !== id) return cell;
         const node = cell as ElementRecord<NodeData>;
         if (!node.data) return cell;
@@ -335,7 +335,7 @@ function Main() {
     setCells((previous) =>
       previous
         .map((cell): CellRecord<NodeData> | undefined => {
-          if (cell.type === 'ElementModel') {
+          if (cell.type === 'element') {
             if (cell.id !== id) return cell;
             const node = cell as ElementRecord<NodeData>;
             if (!node.data) return cell;
@@ -347,7 +347,7 @@ function Main() {
               },
             };
           }
-          if (cell.type === 'LinkModel') {
+          if (cell.type === 'link') {
             const link = cell as LinkRecord;
             const isSource = link.source?.id === id && link.source?.magnet === portId;
             const isTarget = link.target?.id === id && link.target?.magnet === portId;

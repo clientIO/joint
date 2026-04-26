@@ -40,7 +40,7 @@ export function selectElementData<ElementData = unknown>(
 /** Reads `cell.id`. Note: `useCellId()` is cheaper when only the id is needed. */
 export const selectCellId = (cell: ResolvedCellRecord) => cell.id;
 
-/** Reads `cell.type` (e.g. `'ElementModel'`, `'LinkModel'`, or a built-in JointJS type). */
+/** Reads `cell.type` (e.g. `'element'`, `'link'`, or a built-in JointJS type). */
 export const selectCellType = (cell: ResolvedCellRecord) => cell.type;
 
 /**

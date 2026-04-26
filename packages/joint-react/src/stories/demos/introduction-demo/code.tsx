@@ -79,7 +79,7 @@ const PAPER_PROPS: PaperProps = {
 const initialCells: Cells<ElementData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       elementType: 'alert',
       title: 'This is error element',
@@ -90,7 +90,7 @@ const initialCells: Cells<ElementData> = [
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       elementType: 'info',
       title: 'This is info element',
@@ -101,7 +101,7 @@ const initialCells: Cells<ElementData> = [
   },
   {
     id: '3',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       elementType: 'table',
       columnNames: ['Column 1', 'Column 2', 'Column 3'],
@@ -121,7 +121,7 @@ const initialCells: Cells<ElementData> = [
   },
   {
     id: 'link2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '3', port: 'out-3-0' }, // Port from table element
     target: { id: '1' },
     style: {

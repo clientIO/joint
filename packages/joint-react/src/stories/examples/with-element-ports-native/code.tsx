@@ -93,7 +93,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
 const initialCells: Cells<NativeElementUserData> = [
   {
     id: 'node-1',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       color: INDIGO,
       label: 'Source',
@@ -106,7 +106,7 @@ const initialCells: Cells<NativeElementUserData> = [
   },
   {
     id: 'node-2',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       color: VIOLET,
       label: 'Transform',
@@ -119,7 +119,7 @@ const initialCells: Cells<NativeElementUserData> = [
   },
   {
     id: 'node-3',
-    type: 'ElementModel',
+    type: 'element',
     data: {
       color: INDIGO,
       label: 'Sink',
@@ -132,35 +132,35 @@ const initialCells: Cells<NativeElementUserData> = [
   },
   {
     id: 'link-1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'node-1', port: 'out-1' },
     target: { id: 'node-2', port: 'in-1' },
     style: { color: EMERALD },
   },
   {
     id: 'link-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'node-1', port: 'out-2' },
     target: { id: 'node-3', port: 'in-1' },
     style: { color: EMERALD },
   },
   {
     id: 'link-3',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'node-1', port: 'out-3' },
     target: { id: 'node-3', port: 'in-2' },
     style: { color: EMERALD },
   },
   {
     id: 'link-4',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'node-2', port: 'out-1' },
     target: { id: 'node-3', port: 'in-3' },
     style: { color: EMERALD },
   },
   {
     id: 'link-5',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'node-2', port: 'out-2' },
     target: { id: 'node-1', port: 'in-2' },
     style: { color: EMERALD },

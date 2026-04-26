@@ -57,19 +57,19 @@ type ElementData = { label: string };
 const defaultCells: Cells<ElementData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Hello' },
     position: { x: 100, y: 15 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'World' },
     position: { x: 100, y: 200 },
   },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
@@ -131,7 +131,7 @@ const useGraphStore = create<GraphStore>((set) => ({
       // Find the last element cell (not a link)
       let removedElementIndex = -1;
       for (let index = state.cells.length - 1; index >= 0; index--) {
-        if (state.cells[index].type === 'ElementModel') {
+        if (state.cells[index].type === 'element') {
           removedElementIndex = index;
           break;
         }
@@ -141,7 +141,7 @@ const useGraphStore = create<GraphStore>((set) => ({
       const removedElementId = state.cells[removedElementIndex].id;
       const nextCells = state.cells.filter((cell, index) => {
         if (index === removedElementIndex) return false;
-        if (cell.type === 'LinkModel') {
+        if (cell.type === 'link') {
           const link = cell as LinkRecord;
           if (link.source?.id === removedElementId || link.target?.id === removedElementId) {
             return false;
@@ -179,7 +179,7 @@ function PaperApp() {
             const newId = Math.random().toString(36).slice(7);
             const newElement: ElementRecord<ElementData> = {
               id: newId,
-              type: 'ElementModel',
+              type: 'element',
               data: { label: 'New Node' },
               position: { x: Math.random() * 200, y: Math.random() * 200 },
             };

@@ -13,19 +13,19 @@ import { PAPER_CLASSNAME } from 'storybook-config/theme';
 const initialCells: Cells = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     position: { x: 100, y: 15 },
     size: { width: 130, height: 35 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     position: { x: 100, y: 200 },
     size: { width: 130, height: 35 },
   },
   {
     id: 'e1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     color: '#4f46e5',

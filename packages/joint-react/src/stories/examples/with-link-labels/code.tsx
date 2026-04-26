@@ -14,19 +14,19 @@ interface ShapeData {
 const INTERACTIVE_OPTIONS = { labelMove: true } as const;
 
 const initialCells: Cells<ShapeData> = [
-  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 50, y: 50 }, size: { width: 100, height: 40 } },
-  { id: '2', type: 'ElementModel', data: { label: 'Node 2' }, position: { x: 300, y: 50 }, size: { width: 100, height: 40 } },
-  { id: '3', type: 'ElementModel', data: { label: 'Node 3' }, position: { x: 50, y: 200 }, size: { width: 100, height: 40 } },
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 50, y: 50 }, size: { width: 100, height: 40 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 300, y: 50 }, size: { width: 100, height: 40 } },
+  { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 50, y: 200 }, size: { width: 100, height: 40 } },
   {
     id: '4',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 4' },
     position: { x: 300, y: 200 },
     size: { width: 100, height: 40 },
   },
   {
     id: 'l1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: 'blue', targetMarker: 'arrow' },
@@ -44,7 +44,7 @@ const initialCells: Cells<ShapeData> = [
   },
   {
     id: 'l1-4',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '4' },
     labelMap: {
@@ -55,7 +55,7 @@ const initialCells: Cells<ShapeData> = [
   },
   {
     id: 'l3-4',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '3' },
     target: { id: '4' },
     labelMap: {

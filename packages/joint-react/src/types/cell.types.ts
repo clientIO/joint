@@ -126,8 +126,8 @@ export interface CustomRecord extends BaseCell {
 
 /**
  * The public Cell type: discriminated union over the `type` literal.
- * - `type === 'ElementModel'` → ElementRecord<E>
- * - `type === 'LinkModel'`    → LinkRecord<L>
+ * - `type === 'element'` → ElementRecord<E>
+ * - `type === 'link'`    → LinkRecord<L>
  * - otherwise                  → CustomRecord
  *
  * Note: TS discriminant-narrowing is imperfect here because every literal is

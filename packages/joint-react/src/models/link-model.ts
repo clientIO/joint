@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import { linkStyle } from '../presets/link-style';
 
-export const LINK_MODEL_TYPE = 'LinkModel';
+export const LINK_MODEL_TYPE = 'link';
 
 const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
 

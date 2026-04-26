@@ -99,7 +99,7 @@ const YEARS = Object.keys(historicalPrices);
 const initialElements: ShapeElement[] = [
   {
     id: 'investment',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'Investment', funds: 100, year: 2018 },
     position: { x: 100, y: 280 },
     size: { width: 140, height: 225 },
@@ -107,7 +107,7 @@ const initialElements: ShapeElement[] = [
   },
   {
     id: 'gold',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'Product', name: 'gold', label: 'Gold', percentage: 25, color: GOLD_COLOR },
     position: { x: 300, y: 100 },
     size: { width: 140, height: 120 },
@@ -115,7 +115,7 @@ const initialElements: ShapeElement[] = [
   },
   {
     id: 'bitcoin',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'Product', name: 'bitcoin', label: 'Bitcoin', percentage: 25, color: BTC_COLOR },
     position: { x: 300, y: 330 },
     size: { width: 140, height: 120 },
@@ -123,7 +123,7 @@ const initialElements: ShapeElement[] = [
   },
   {
     id: 'sp500',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'Product', name: 'sp500', label: 'S&P 500', percentage: 50, color: SP500_COLOR },
     position: { x: 300, y: 560 },
     size: { width: 140, height: 120 },
@@ -131,7 +131,7 @@ const initialElements: ShapeElement[] = [
   },
   {
     id: 'goldPerf',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'ProductPerformance', label: 'Gold' },
     position: { x: 600, y: 200 },
     size: { width: 200, height: 115 },
@@ -140,7 +140,7 @@ const initialElements: ShapeElement[] = [
   },
   {
     id: 'bitcoinPerf',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'ProductPerformance', label: 'Bitcoin' },
     position: { x: 600, y: 320 },
     size: { width: 200, height: 115 },
@@ -149,7 +149,7 @@ const initialElements: ShapeElement[] = [
   },
   {
     id: 'sp500Perf',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'ProductPerformance', label: 'S&P 500' },
     position: { x: 600, y: 440 },
     size: { width: 200, height: 115 },
@@ -158,7 +158,7 @@ const initialElements: ShapeElement[] = [
   },
   {
     id: 'performance',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'OverallPerformance' },
     // The position and size of this element will be adjusted to fit its embedded performance nodes
     z: -1,
@@ -175,7 +175,7 @@ const DEFAULT_LINK_STYLE = {
 const initialLinks: LinkRecord[] = [
   {
     id: 'link1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'investment', anchor: { name: 'top', args: { dy: 1 } } },
     target: { id: 'gold', anchor: { name: 'left', args: { dx: -5 } } },
     style: { color: LINK_COLOR, ...DEFAULT_LINK_STYLE },
@@ -183,7 +183,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'investment', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'bitcoin', anchor: { name: 'left', args: { dx: -5 } } },
     style: { color: LINK_COLOR, ...DEFAULT_LINK_STYLE },
@@ -191,7 +191,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link3',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'investment', anchor: { name: 'bottom', args: { dy: -1 } } },
     target: { id: 'sp500', anchor: { name: 'left', args: { dx: -5 } } },
     style: { color: LINK_COLOR, ...DEFAULT_LINK_STYLE },
@@ -199,7 +199,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link4',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'gold', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'goldPerf', anchor: { name: 'left', args: { dx: -5 } } },
     style: { color: GOLD_COLOR, ...DEFAULT_LINK_STYLE },
@@ -207,7 +207,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link5',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'bitcoin', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'bitcoinPerf', anchor: { name: 'left', args: { dx: -5 } } },
     style: { color: BTC_COLOR, ...DEFAULT_LINK_STYLE },
@@ -215,7 +215,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link6',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'sp500', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'sp500Perf', anchor: { name: 'left', args: { dx: -5 } } },
     style: { color: SP500_COLOR, ...DEFAULT_LINK_STYLE },

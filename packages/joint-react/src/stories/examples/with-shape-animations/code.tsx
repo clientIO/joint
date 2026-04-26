@@ -83,28 +83,28 @@ const wireStyle = {
 const initialCells: Cells<ShapeData> = [
   {
     id: 'generator',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: ShapeTypes.generator, power: 0.9 },
     position: { x: 50, y: 50 },
     size: { width: 60, height: 80 },
   },
   {
     id: 'bulb1',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: ShapeTypes.bulb, watts: 100 },
     position: { x: 150, y: 45 },
     size: { width: 28, height: 30 },
   },
   {
     id: 'bulb2',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: ShapeTypes.bulb, watts: 40 },
     position: { x: 150, y: 105 },
     size: { width: 28, height: 30 },
   },
   {
     id: 'wire1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'generator' },
     target: { id: 'bulb1' },
     style: wireStyle,
@@ -112,7 +112,7 @@ const initialCells: Cells<ShapeData> = [
   },
   {
     id: 'wire2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'generator' },
     target: { id: 'bulb2' },
     style: wireStyle,

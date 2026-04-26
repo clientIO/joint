@@ -26,10 +26,10 @@ interface NodeData {
 }
 
 const initialCells: Cells<NodeData> = [
-  { id: '1', type: 'ElementModel', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
-  { id: '2', type: 'ElementModel', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-  { id: '3', type: 'ElementModel', data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
-  { id: '4', type: 'ElementModel', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
+  { id: '4', type: 'element', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
 ];
 
 const PROXIMITY_THRESHOLD = 60;
@@ -74,7 +74,7 @@ function ResizableNode() {
       } else {
         addCell({
           id: linkId,
-          type: 'LinkModel',
+          type: 'link',
           source,
           target,
           style: { color: PRIMARY, width: 2, dasharray: '5 5' },

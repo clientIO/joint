@@ -68,79 +68,79 @@ type FTAData =
 const initialElements: Array<ElementRecord<FTAData>> = [
   {
     id: 'ot8h17',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' },
     size: { width: 120, height: 150 },
   },
   {
     id: 'd8jpey',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'IntermediateEvent', label: 'Fall from the Scaffolding', gate: 'AND' },
     size: { width: 120, height: 150 },
   },
   {
     id: 'is079n',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'IntermediateEvent', label: 'Safety Belt Not Working', gate: 'OR' },
     size: { width: 120, height: 150 },
   },
   {
     id: 'ht8wnb',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'IntermediateEvent', label: 'Fall By Accident', gate: 'OR' },
     size: { width: 120, height: 150 },
   },
   {
     id: '07vhpd',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'IntermediateEvent', label: 'Broken By Equipment', gate: 'OR' },
     size: { width: 120, height: 150 },
   },
   {
     id: 'd8ojep',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'IntermediateEvent', label: 'Did not Wear Safety Belt', gate: 'OR' },
     size: { width: 120, height: 150 },
   },
   {
     id: 'szf1q3',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'UndevelopedEvent', label: 'Slip and Fall' },
     size: { width: 140, height: 80 },
   },
   {
     id: 'kj5m9a',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'UndevelopedEvent', label: 'Lose Balance' },
     size: { width: 140, height: 80 },
   },
   {
     id: 'tcv79r',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'UndevelopedEvent', label: 'Upholder Broken' },
     size: { width: 140, height: 80 },
   },
   {
     id: 'ylp4gu',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'BasicEvent', label: 'Safety Belt Broken' },
     size: { width: 80, height: 80 },
   },
   {
     id: 'q2vwnc',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'BasicEvent', label: 'Forgot to Wear' },
     size: { width: 80, height: 80 },
   },
   {
     id: 'x8rboj',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'ExternalEvent', label: 'Take off When Walking' },
     size: { width: 80, height: 100 },
   },
   {
     id: 'mte5xr',
-    type: 'ElementModel',
+    type: 'element',
     data: { type: 'ConditioningEvent', label: 'Height and Ground Condition' },
     size: { width: 140, height: 80 },
   },
@@ -151,7 +151,7 @@ const DEFAULT_LINK_STYLE = { color: PRIMARY, width: 2, targetMarker: 'none' as c
 const initialLinks: LinkRecord[] = [
   {
     id: 'link-0',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'ot8h17' },
     target: { id: 'd8jpey' },
     z: -1,
@@ -159,7 +159,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'd8jpey' },
     target: { id: 'is079n' },
     z: -1,
@@ -167,7 +167,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'd8jpey' },
     target: { id: 'ht8wnb' },
     z: -1,
@@ -175,7 +175,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-3',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'is079n' },
     target: { id: '07vhpd' },
     z: -1,
@@ -183,7 +183,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-4',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'is079n' },
     target: { id: 'd8ojep' },
     z: -1,
@@ -191,7 +191,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-5',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'ht8wnb' },
     target: { id: 'szf1q3' },
     z: -1,
@@ -199,7 +199,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-6',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'ht8wnb' },
     target: { id: 'kj5m9a' },
     z: -1,
@@ -207,7 +207,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-7',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '07vhpd' },
     target: { id: 'tcv79r' },
     z: -1,
@@ -215,7 +215,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-8',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '07vhpd' },
     target: { id: 'ylp4gu' },
     z: -1,
@@ -223,7 +223,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-9',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'd8ojep' },
     target: { id: 'q2vwnc' },
     z: -1,
@@ -231,7 +231,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-10',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'd8ojep' },
     target: { id: 'x8rboj' },
     z: -1,
@@ -239,7 +239,7 @@ const initialLinks: LinkRecord[] = [
   },
   {
     id: 'link-11',
-    type: 'LinkModel',
+    type: 'link',
     source: {
       id: 'ot8h17',
       magnet: 'gate',

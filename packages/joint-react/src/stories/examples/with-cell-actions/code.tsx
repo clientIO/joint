@@ -26,35 +26,35 @@ type NodeData = {
 const initialCells: Cells<NodeData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node A', color: PRIMARY },
     position: { x: 50, y: 50 },
     size: { width: 120, height: 60 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node B', color: SECONDARY },
     position: { x: 250, y: 50 },
     size: { width: 120, height: 60 },
   },
   {
     id: '3',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node C', color: PRIMARY },
     position: { x: 150, y: 180 },
     size: { width: 120, height: 60 },
   },
   {
     id: 'link-1-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     color: DARK,
   },
   {
     id: 'link-1-3',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '3' },
     color: DARK,
@@ -336,7 +336,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
           type="color"
           value={(link.color as string) ?? '#000000'}
           onChange={(event) =>
-            setCell({ id, type: 'LinkModel', color: event.target.value } as LinkRecord)
+            setCell({ id, type: 'link', color: event.target.value } as LinkRecord)
           }
           style={{
             width: 36,
@@ -374,7 +374,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 function AddElementForm() {
   const { addCell } = useGraph<NodeData>();
   const elementIds = useCells<NodeData, unknown, string[]>((cells) =>
-    cells.filter((c) => c.type === 'ElementModel').map((c) => String(c.id))
+    cells.filter((c) => c.type === 'element').map((c) => String(c.id))
   );
   const [label, setLabel] = useState('');
 
@@ -393,7 +393,7 @@ function AddElementForm() {
 
     addCell({
       id: newId,
-      type: 'ElementModel',
+      type: 'element',
       data: { label: label.trim(), color: PRIMARY },
       position: { x: randomX, y: randomY },
     });
@@ -454,7 +454,7 @@ function AddLinkForm() {
   const elements = useCells<NodeData, unknown, Array<[string, ElementRecord<NodeData>]>>((cells) => {
     const result: Array<[string, ElementRecord<NodeData>]> = [];
     for (const cell of cells) {
-      if (cell.type === 'ElementModel') {
+      if (cell.type === 'element') {
         result.push([String(cell.id), cell as ElementRecord<NodeData>]);
       }
     }
@@ -481,7 +481,7 @@ function AddLinkForm() {
     const newId = `link-${source}-${target}-${Date.now()}`;
     addCell({
       id: newId,
-      type: 'LinkModel',
+      type: 'link',
       source: { id: source },
       target: { id: target },
       color: LIGHT,
@@ -552,9 +552,9 @@ function Main() {
   const elements: Array<[string, ElementRecord<NodeData>]> = [];
   const links: Array<[string, LinkRecord]> = [];
   for (const cell of cells) {
-    if (cell.type === 'ElementModel') {
+    if (cell.type === 'element') {
       elements.push([String(cell.id), cell as ElementRecord<NodeData>]);
-    } else if (cell.type === 'LinkModel') {
+    } else if (cell.type === 'link') {
       links.push([String(cell.id), cell as LinkRecord]);
     }
   }

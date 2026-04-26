@@ -14,7 +14,7 @@ type ElementData = { label: string; color: string };
 class LinkModel extends shapes.standard.Link {
   defaults() {
     return util.defaultsDeep(super.defaults, {
-      type: 'LinkModel',
+      type: 'link',
       attrs: LinkModel.getPresentationAttributes(PRIMARY),
     });
   }
@@ -47,21 +47,21 @@ class LinkModel extends shapes.standard.Link {
 const initialCells: Cells<ElementData> = [
   {
     id: '1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 15 },
     size: { width: 140, height: 50 },
   },
   {
     id: '2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 2', color: PRIMARY },
     position: { x: 100, y: 200 },
     size: { width: 140, height: 50 },
   },
   {
     id: '1123',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     attrs: LinkModel.getPresentationAttributes(PRIMARY),

@@ -36,55 +36,55 @@ type NodeElementData = {
 };
 
 const flowchartNodes: Array<ElementRecord<NodeElementData>> = [
-  { id: 'start', type: 'ElementModel', data: { label: 'Start', type: 'start', cx: 60, cy: 40 } },
+  { id: 'start', type: 'element', data: { label: 'Start', type: 'start', cx: 60, cy: 40 } },
   {
     id: 'addToCart',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Add to Cart', type: 'step', cx: 195, cy: 40 },
   },
   {
     id: 'checkoutItems',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Checkout Items', type: 'step', cx: 365, cy: 40 },
   },
   {
     id: 'addShippingInfo',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Add Shipping Info', type: 'step', cx: 550, cy: 40 },
   },
   {
     id: 'addPaymentInfo',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Add Payment Info', type: 'step', cx: 550, cy: 150 },
   },
   {
     id: 'validPayment',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Valid Payment?', type: 'decision', cx: 550, cy: 270 },
   },
   {
     id: 'presentErrorMessage',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Present Error Message', type: 'step', cx: 810, cy: 380 },
   },
   {
     id: 'sendOrder',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Send Order to Warehouse', type: 'step', cx: 230, cy: 270 },
   },
   {
     id: 'packOrder',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Pack Order', type: 'step', cx: 40, cy: 380 },
   },
   {
     id: 'qualityCheck',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Quality Check?', type: 'decision', cx: 230, cy: 500 },
   },
   {
     id: 'shipItems',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Ship Items to Customer', type: 'step', cx: 550, cy: 500 },
   },
 ];
@@ -150,7 +150,7 @@ const flowchartLinks: LinkRecord[] = [
   // start(50,40) → addToCart(200,40): horizontal right
   {
     id: 'flow1',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'start', magnet: 'body', anchor: RIGHT },
     target: { id: 'addToCart', magnet: 'body', anchor: LEFT },
@@ -158,7 +158,7 @@ const flowchartLinks: LinkRecord[] = [
   // addToCart(200,40) → checkoutItems(350,40): horizontal right
   {
     id: 'flow2',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'addToCart', magnet: 'body', anchor: RIGHT },
     target: { id: 'checkoutItems', magnet: 'body', anchor: LEFT },
@@ -166,7 +166,7 @@ const flowchartLinks: LinkRecord[] = [
   // checkoutItems(350,40) → addShippingInfo(500,40): horizontal right
   {
     id: 'flow3',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'checkoutItems', magnet: 'body', anchor: RIGHT },
     target: { id: 'addShippingInfo', magnet: 'body', anchor: LEFT },
@@ -174,7 +174,7 @@ const flowchartLinks: LinkRecord[] = [
   // addShippingInfo(500,40) → addPaymentInfo(500,140): vertical down
   {
     id: 'flow4',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'addShippingInfo', magnet: 'body', anchor: BOTTOM },
     target: { id: 'addPaymentInfo', magnet: 'body', anchor: TOP },
@@ -182,7 +182,7 @@ const flowchartLinks: LinkRecord[] = [
   // addPaymentInfo(500,140) → validPayment(500,250): vertical down
   {
     id: 'flow5',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'addPaymentInfo', magnet: 'body', anchor: BOTTOM },
     target: { id: 'validPayment', magnet: 'body', anchor: TOP },
@@ -190,7 +190,7 @@ const flowchartLinks: LinkRecord[] = [
   // validPayment(500,250) → presentErrorMessage(750,350): down-right
   {
     id: 'flow6',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'validPayment', magnet: 'body', anchor: BOTTOM },
     target: { id: 'presentErrorMessage', magnet: 'body', anchor: LEFT },
@@ -199,7 +199,7 @@ const flowchartLinks: LinkRecord[] = [
   // presentErrorMessage(750,350) → addPaymentInfo(500,140): up-left
   {
     id: 'flow7',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'presentErrorMessage', magnet: 'body', anchor: TOP },
     target: { id: 'addPaymentInfo', magnet: 'body', anchor: RIGHT },
@@ -207,7 +207,7 @@ const flowchartLinks: LinkRecord[] = [
   // validPayment(500,250) → sendOrder(200,250): horizontal left
   {
     id: 'flow8',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'validPayment', magnet: 'body', anchor: LEFT },
     target: { id: 'sendOrder', magnet: 'body', anchor: RIGHT },
@@ -216,7 +216,7 @@ const flowchartLinks: LinkRecord[] = [
   // sendOrder(200,250) → packOrder(40,350): down-left
   {
     id: 'flow9',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'sendOrder', magnet: 'body', anchor: LEFT },
     target: { id: 'packOrder', magnet: 'body', anchor: TOP },
@@ -224,7 +224,7 @@ const flowchartLinks: LinkRecord[] = [
   // packOrder(40,350) → qualityCheck(200,460): down-right
   {
     id: 'flow10',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'packOrder', magnet: 'body', anchor: BOTTOM },
     target: { id: 'qualityCheck', magnet: 'body', anchor: LEFT },
@@ -232,7 +232,7 @@ const flowchartLinks: LinkRecord[] = [
   // qualityCheck(200,460) → shipItems(500,460): horizontal right
   {
     id: 'flow11',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'qualityCheck', magnet: 'body', anchor: RIGHT },
     target: { id: 'shipItems', magnet: 'body', anchor: LEFT },
@@ -241,7 +241,7 @@ const flowchartLinks: LinkRecord[] = [
   // qualityCheck(200,460) → sendOrder(200,250): vertical up
   {
     id: 'flow12',
-    type: 'LinkModel',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'qualityCheck', magnet: 'body', anchor: TOP },
     target: { id: 'sendOrder', magnet: 'body', anchor: BOTTOM },

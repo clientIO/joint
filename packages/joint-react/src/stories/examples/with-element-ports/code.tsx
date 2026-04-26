@@ -79,7 +79,7 @@ const PORT_SIZE = 16;
 const initialCells: Cells<PortNodeData> = [
   {
     id: 'node-1',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 50, y: 100 },
     size: { width: 140, height: 80 },
@@ -103,7 +103,7 @@ const initialCells: Cells<PortNodeData> = [
   },
   {
     id: 'node-2',
-    type: 'ElementModel',
+    type: 'element',
     data: { label: 'Node 2', color: SECONDARY },
     position: { x: 350, y: 100 },
     size: { width: 140, height: 80 },
@@ -127,14 +127,14 @@ const initialCells: Cells<PortNodeData> = [
   },
   {
     id: 'link-1',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'node-1', port: 'out-1' },
     target: { id: 'node-2', port: 'in-1' },
     z: -1,
   },
   {
     id: 'link-2',
-    type: 'LinkModel',
+    type: 'link',
     source: { id: 'node-1', port: 'out-2' },
     target: { id: 'node-2', port: 'in-2' },
     z: -1,
@@ -378,7 +378,7 @@ function RenderElement(data: PortNodeData) {
 function Main() {
   const cells = useCells<PortNodeData>();
   const elements = cells.filter(
-    (cell): cell is ElementRecord<PortNodeData> => cell.type === 'ElementModel'
+    (cell): cell is ElementRecord<PortNodeData> => cell.type === 'element'
   );
 
   return (

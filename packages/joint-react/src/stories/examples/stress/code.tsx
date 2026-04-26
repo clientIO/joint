@@ -39,7 +39,7 @@ function buildInitialCells(xNodes = 15, yNodes = 30): Cells<StressNodeData> {
       const id = `stress-${nodeId.toString()}`;
       cells.push({
         id,
-        type: 'ElementModel',
+        type: 'element',
         data: { label: `Node ${nodeId}`, fontSize: 11 },
         position: { x: x * 100, y: y * 50 },
         size: { width: 80, height: 30 },
@@ -48,7 +48,7 @@ function buildInitialCells(xNodes = 15, yNodes = 30): Cells<StressNodeData> {
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
         cells.push({
           id: `edge-${edgeId.toString()}`,
-          type: 'LinkModel',
+          type: 'link',
           source: { id: `stress-${recentNodeId.toString()}` },
           target: { id: `stress-${nodeId.toString()}` },
           z: -1,
@@ -74,7 +74,7 @@ function Main({
 }>) {
   const randomizePosition = useCallback(
     (cell: CellRecord<StressNodeData>): CellRecord<StressNodeData> => {
-      if (cell.type !== 'ElementModel') return cell;
+      if (cell.type !== 'element') return cell;
       return {
         ...(cell as ElementRecord<StressNodeData>),
         position: { x: Math.random() * 1500, y: Math.random() * 1500 },

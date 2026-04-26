@@ -25,7 +25,7 @@ function buildCells(): Cells {
 
     cells.push({
       id: name,
-      type: 'LinkModel',
+      type: 'link',
       source: { x, y },
       target: { x: x + LINK_LENGTH, y },
       style: {

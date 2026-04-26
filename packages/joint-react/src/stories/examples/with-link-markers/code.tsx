@@ -75,7 +75,7 @@ const elementHeight = PADDING * 2 + (MARKER_ENTRIES.length - 1) * PORT_GAP;
 const initialElements: ElementRecord[] = [
   {
     id: 'left',
-    type: 'ElementModel',
+    type: 'element',
     data: {},
     position: { x: 50, y: 30 },
     size: { width: ELEMENT_WIDTH, height: elementHeight },
@@ -83,7 +83,7 @@ const initialElements: ElementRecord[] = [
   },
   {
     id: 'right',
-    type: 'ElementModel',
+    type: 'element',
     data: {},
     position: { x: 50 + ELEMENT_WIDTH + ELEMENT_GAP, y: 30 },
     size: { width: ELEMENT_WIDTH, height: elementHeight },
@@ -98,7 +98,7 @@ function buildLinks(scale: number): LinkRecord[] {
     const marker = factory({ scale, ...extraOptions });
     result.push({
       id: name,
-      type: 'LinkModel',
+      type: 'link',
       source: { id: 'left', port: name },
       target: { id: 'right', port: name },
       style: {

@@ -21,15 +21,15 @@ const INPUT_CLASSNAME =
 
 type ElementData = { label: string };
 const initialCells: Cells<ElementData> = [
-  { id: '1', type: 'ElementModel', data: { label: 'Node 1' } },
-  { id: '2', type: 'ElementModel', data: { label: 'Node 2' } },
-  { id: '3', type: 'ElementModel', data: { label: 'Node 3' } },
-  { id: '4', type: 'ElementModel', data: { label: 'Node 4' } },
-  { id: '5', type: 'ElementModel', data: { label: 'Node 5' } },
-  { id: '6', type: 'ElementModel', data: { label: 'Node 6' } },
-  { id: '7', type: 'ElementModel', data: { label: 'Node 7' } },
-  { id: '8', type: 'ElementModel', data: { label: 'Node 8' } },
-  { id: '9', type: 'ElementModel', data: { label: 'Node 9' } },
+  { id: '1', type: 'element', data: { label: 'Node 1' } },
+  { id: '2', type: 'element', data: { label: 'Node 2' } },
+  { id: '3', type: 'element', data: { label: 'Node 3' } },
+  { id: '4', type: 'element', data: { label: 'Node 4' } },
+  { id: '5', type: 'element', data: { label: 'Node 5' } },
+  { id: '6', type: 'element', data: { label: 'Node 6' } },
+  { id: '7', type: 'element', data: { label: 'Node 7' } },
+  { id: '8', type: 'element', data: { label: 'Node 8' } },
+  { id: '9', type: 'element', data: { label: 'Node 9' } },
 ];
 
 function Main() {
@@ -70,7 +70,7 @@ function Main() {
 
   const elementsLength = useCells<ElementData, unknown, number>((cells) => {
     let count = 0;
-    for (const cell of cells) if (cell.type === 'ElementModel') count += 1;
+    for (const cell of cells) if (cell.type === 'element') count += 1;
     return count;
   });
   return (
@@ -97,7 +97,7 @@ function Main() {
             const newId = `${Math.random()}`;
             addCell({
               id: newId,
-              type: 'ElementModel',
+              type: 'element',
               data: { label: `Node ${elementsLength + 1}` },
             });
           }}
