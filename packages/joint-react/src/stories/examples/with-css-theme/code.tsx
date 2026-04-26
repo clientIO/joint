@@ -121,7 +121,7 @@ function Diagram() {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const renderElement: RenderElement<NodeData> = useCallback(
-    (data) => <Node label={data?.label ?? ''} />,
+    (data) => <Node label={data.label} />,
     []
   );
 

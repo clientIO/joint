@@ -3,11 +3,13 @@ import {
   GraphProvider,
   HTMLBox,
   Paper,
+  useCellId,
   useCells,
   useElement,
   useGraph,
   type Cells,
   type CellRecord,
+  type ResolvedElementRecord,
 } from '@joint/react';
 import { util } from '@joint/core';
 import '../index.css';
@@ -44,8 +46,8 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
 }
 
 function ResizableNode() {
-  const id = useElement((element) => element.id);
-  const label = useElement<NodeData, string>((element) => element.data?.label ?? '');
+  const id = useCellId();
+  const label = useElement((element: ResolvedElementRecord<NodeData>) => element.data.label);
 
   const { graph, setCell, addCell, removeCell } = useGraph();
   const closeIds = useCells<NodeData, unknown, readonly dia.Cell.ID[]>(() => {

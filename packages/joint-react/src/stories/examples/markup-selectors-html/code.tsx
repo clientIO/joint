@@ -138,7 +138,7 @@ function TableNode({ name, rows }: Readonly<Partial<TableElement>>) {
 
 function Main() {
   const renderElement: RenderElement<TableElement> = useCallback((data) => {
-    return <TableNode name={data?.name} rows={data?.rows} />;
+    return <TableNode name={data.name} rows={data.rows} />;
   }, []);
 
   return (

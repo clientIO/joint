@@ -167,7 +167,7 @@ function MinimapShape({ color = 'lightgray' }: Readonly<ElementUserData>) {
 
 function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
   const renderElement: RenderElement<ElementUserData> = useCallback(
-    (data) => <MinimapShape color={data?.color ?? 'white'} />,
+    (data) => <MinimapShape color={data.color ?? 'white'} />,
     []
   );
 

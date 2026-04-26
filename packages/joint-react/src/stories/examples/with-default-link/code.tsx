@@ -64,8 +64,8 @@ function defaultLink({ source }: DefaultLinkContext) {
   };
 }
 
-function RenderElement(data: NodeData | undefined) {
-  return <HTMLBox useModelGeometry>{data?.label}</HTMLBox>;
+function RenderElement(data: NodeData) {
+  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
 }
 
 export default function App() {

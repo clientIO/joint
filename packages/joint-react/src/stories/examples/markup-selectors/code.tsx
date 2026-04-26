@@ -156,7 +156,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
 
 function Main() {
   const renderElement: RenderElement<StackedElement> = useCallback((data) => {
-    return <StackedNode name={data?.name} labels={data?.labels} />;
+    return <StackedNode name={data.name} labels={data.labels} />;
   }, []);
 
   return (

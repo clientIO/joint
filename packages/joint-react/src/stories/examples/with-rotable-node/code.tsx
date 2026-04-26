@@ -3,12 +3,14 @@ import {
   GraphProvider,
   HTMLHost,
   Paper,
+  useCellId,
   useCells,
   useElement,
   useGraph,
   usePaper,
   type Cells,
   type ElementRecord,
+  type ResolvedElementRecord,
 } from '@joint/react';
 import '../index.css';
 import { useCallback } from 'react';
@@ -32,8 +34,8 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function RotatableNode() {
-  const label = useElement<NodeData, string>((element) => element.data?.label ?? '');
-  const id = useElement((element) => element.id);
+  const label = useElement((element: ResolvedElementRecord<NodeData>) => element.data.label);
+  const id = useCellId();
   const { paper } = usePaper();
   const { setCell } = useGraph();
 

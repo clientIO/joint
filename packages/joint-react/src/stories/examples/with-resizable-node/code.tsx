@@ -5,6 +5,7 @@ import {
   useElement,
   useMeasureNode,
   type Cells,
+  type ResolvedElementRecord,
 } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
@@ -29,7 +30,7 @@ const initialCells: Cells<NodeData> = [
 
 function ResizableNode() {
   const nodeRef = useRef<HTMLDivElement>(null);
-  const label = useElement<NodeData>().data?.label ?? '';
+  const label = useElement((element: ResolvedElementRecord<NodeData>) => element.data.label);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     const node = nodeRef.current;
     if (!node) return;

@@ -134,8 +134,8 @@ const initialCells: Cells<NodeData> = [
 const JSON_VIEWER_STYLE = { fontSize: 10 } as const;
 const CELL_NAMESPACE = { PortsElement, PortMapElement, LabelsLink, LabelMapLink };
 
-function renderElement(data: NodeData | undefined) {
-  return <HTMLBox useModelGeometry>{data?.label}</HTMLBox>;
+function renderElement(data: NodeData) {
+  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
 }
 
 function JSONViewer() {

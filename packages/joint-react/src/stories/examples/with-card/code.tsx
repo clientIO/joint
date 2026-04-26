@@ -2,7 +2,7 @@
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import type { OnTransformElement, Cells } from '@joint/react';
-import { GraphProvider, Paper, useCell, useMeasureNode, type RenderElement } from '@joint/react';
+import { GraphProvider, Paper, useCellId, useMeasureNode, type RenderElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type Data = { label: string };
@@ -72,9 +72,10 @@ function Card({ label }: Readonly<Partial<Data>>) {
 }
 
 function CardRenderer(data: Data) {
-  // Demonstrates calling `useCell()` inside a component used by `renderElement`.
-  const cell = useCell();
-  return <Card label={data.label ?? String(cell.id)} />;
+  // Demonstrates calling `useCellId()` inside a component used by `renderElement`
+  // to read the cell id without subscribing to store updates.
+  const id = useCellId();
+  return <Card label={data.label ?? String(id)} />;
 }
 
 function Main() {

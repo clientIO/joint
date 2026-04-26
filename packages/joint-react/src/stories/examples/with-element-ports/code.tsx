@@ -369,8 +369,8 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
   );
 }
 
-function RenderElement(data: PortNodeData | undefined) {
-  return <HTMLBox useModelGeometry>{data?.label}</HTMLBox>;
+function RenderElement(data: PortNodeData) {
+  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
 }
 
 // --- Main ---

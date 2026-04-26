@@ -119,7 +119,7 @@ const initialCells: Cells<NodeUserData> = [
 function Node() {
   const element = useElement<NodeUserData>();
   const { width, height } = element.size;
-  const label = element.data?.label ?? '';
+  const label = element.data.label;
   return (
     <>
       <rect

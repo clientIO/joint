@@ -138,7 +138,7 @@ function Diagram() {
   const portShape = alternate ? ('rect' as const) : ('ellipse' as const);
 
   const renderElement: RenderElement<ElementData> = useCallback(
-    (data) => <Element label={data?.label ?? ''} color={color} />,
+    (data) => <Element label={data.label} color={color} />,
     [color]
   );
 

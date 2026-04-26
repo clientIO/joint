@@ -64,8 +64,8 @@ function Main() {
     makeLayoutWithGrid({ graph, gridXSize });
   }, []);
 
-  const renderElement = useCallback((data: ElementData | undefined) => {
-    return <HTMLBox className="flex items-center justify-center">{data?.label}</HTMLBox>;
+  const renderElement = useCallback((data: ElementData) => {
+    return <HTMLBox className="flex items-center justify-center">{data.label}</HTMLBox>;
   }, []);
 
   const elementsLength = useCells<ElementData, unknown, number>((cells) => {
