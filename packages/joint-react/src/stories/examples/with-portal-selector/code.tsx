@@ -14,7 +14,6 @@ import {
   ELEMENT_MODEL_TYPE,
   type CellId,
   type Cells,
-  type ElementRecord,
   type PaperProps,
   type RenderElement,
 } from '@joint/react';
@@ -251,13 +250,15 @@ function Badge({
   );
 }
 
-function RenderElementWithBadge({ element }: Readonly<{ element: ElementRecord<ElementUserData> }>) {
-  const { width = 0 } = element.size ?? {};
-  const color = element.data?.color ?? 'lightgray';
-  const title = element.data?.title ?? 'No Title';
+function RenderElementWithBadge({
+  color = 'lightgray',
+  title = 'No Title',
+}: Readonly<ElementUserData>) {
+  const { width } = useElement((element) => element.size);
+  const cellType = useElement((element) => element.type);
   // Only render the default Shape for our ElementModel type. Custom JointJS
   // shapes (e.g. standard.Cylinder) render themselves via their native markup.
-  const isElementModel = element.type === 'ElementModel';
+  const isElementModel = cellType === ELEMENT_MODEL_TYPE;
   return (
     <>
       {isElementModel ? <Shape color={color} title={title} /> : null}
@@ -272,8 +273,8 @@ function Main() {
   const [showMinimap, setShowMinimap] = useState(false);
   const [selectedElement, setSelectedElement] = useState<CellId | null>(null);
 
-  const renderElement = useCallback(
-    (element: ElementRecord<ElementUserData>) => <RenderElementWithBadge element={element} />,
+  const renderElement: RenderElement<ElementUserData> = useCallback(
+    (data) => <RenderElementWithBadge {...data} />,
     []
   );
 
