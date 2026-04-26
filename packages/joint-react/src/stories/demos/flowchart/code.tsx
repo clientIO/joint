@@ -393,12 +393,10 @@ const DecisionNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(DecisionN
 const StartNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StartNodeRaw);
 const StepNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(StepNodeRaw);
 
-function RenderFlowchartNode(data: NodeElementData | undefined) {
+function RenderFlowchartNode(data: NodeElementData) {
   const { selectorRef } = useMarkup();
 
   const bodyRef = selectorRef('body');
-
-  if (!data) return null;
 
   if (data.type === 'decision') {
     return <DecisionNode ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...data} />;

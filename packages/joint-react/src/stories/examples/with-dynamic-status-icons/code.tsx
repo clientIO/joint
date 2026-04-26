@@ -22,12 +22,12 @@ const ShapeTypes = {
 
 type ShapeType = (typeof ShapeTypes)[keyof typeof ShapeTypes];
 
-interface ShapeElement {
+interface ShapeData {
   readonly type: ShapeType;
   readonly label: string;
 }
 
-const initialCells: Cells<ShapeElement> = [
+const initialCells: Cells<ShapeData> = [
   {
     id: 'rectangle',
     type: 'ElementModel',
@@ -61,7 +61,7 @@ const initialCells: Cells<ShapeElement> = [
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function RectangleShape({ label }: Readonly<ShapeElement>) {
+function RectangleShape({ label }: Readonly<ShapeData>) {
   const { width, height } = useElement((element) => element.size);
   return (
     <>
@@ -81,7 +81,7 @@ function RectangleShape({ label }: Readonly<ShapeElement>) {
   );
 }
 
-function CircleShape({ label }: Readonly<ShapeElement>) {
+function CircleShape({ label }: Readonly<ShapeData>) {
   const { width, height } = useElement((element) => element.size);
   return (
     <>
@@ -108,7 +108,7 @@ function CircleShape({ label }: Readonly<ShapeElement>) {
   );
 }
 
-function EllipseShape({ label }: Readonly<ShapeElement>) {
+function EllipseShape({ label }: Readonly<ShapeData>) {
   const { width, height } = useElement((element) => element.size);
   return (
     <>
@@ -136,7 +136,7 @@ function EllipseShape({ label }: Readonly<ShapeElement>) {
   );
 }
 
-function PathShape({ label }: Readonly<ShapeElement>) {
+function PathShape({ label }: Readonly<ShapeData>) {
   const { width, height } = useElement((element) => element.size);
   return (
     <>
@@ -163,8 +163,7 @@ function PathShape({ label }: Readonly<ShapeElement>) {
 // ----------------------------------------------------------------------------
 // Renderer
 // ----------------------------------------------------------------------------
-function RenderElement(data: ShapeElement | undefined) {
-  if (!data) return null;
+function RenderElement(data: ShapeData) {
   switch (data.type) {
     case ShapeTypes.rectangle: {
       return <RectangleShape {...data} />;

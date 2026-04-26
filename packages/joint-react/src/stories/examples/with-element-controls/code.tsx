@@ -32,39 +32,39 @@ type ElementType =
   | 'cube'
   | 'card';
 
-interface BaseElement {
+interface BaseData {
   type: ElementType;
   label: string;
 }
 
-interface OffsetElement extends BaseElement {
+interface OffsetData extends BaseData {
   type: 'parallelogram' | 'hexagon' | 'step' | 'trapezoid' | 'document' | 'plus' | 'note' | 'card';
   offset: number;
 }
 
-interface ArrowElement extends BaseElement {
+interface ArrowData extends BaseData {
   type: 'arrow';
   arrowHeight: number;
   thickness: number;
 }
 
-interface TableElement extends BaseElement {
+interface TableData extends BaseData {
   type: 'table';
   dividerX: number;
   dividerY: number;
 }
 
-interface CubeElement extends BaseElement {
+interface CubeData extends BaseData {
   type: 'cube';
   cornerX: number;
   cornerY: number;
 }
 
-interface SimpleElement extends BaseElement {
+interface SimpleData extends BaseData {
   type: 'linkedProcess' | 'input' | 'mark' | 'actor' | 'shipment';
 }
 
-type ControlledElement = OffsetElement | ArrowElement | TableElement | CubeElement | SimpleElement;
+type ControlledData = OffsetData | ArrowData | TableData | CubeData | SimpleData;
 
 // ----------------------------------------------------------------------------
 // Layout Constants
@@ -74,7 +74,7 @@ const COLUMNS_COUNT = 4;
 const COLUMNS_GAP = 200;
 const ROW_GAP = 140;
 
-function pos(id: string, index: number, w: number, h: number, data: ControlledElement): ElementRecord<ControlledElement> {
+function pos(id: string, index: number, w: number, h: number, data: ControlledData): ElementRecord<ControlledData> {
   const col = index % COLUMNS_COUNT;
   const row = Math.floor(index / COLUMNS_COUNT);
   return {
@@ -92,7 +92,7 @@ function pos(id: string, index: number, w: number, h: number, data: ControlledEl
 // ----------------------------------------------------------------------------
 // Initial Cells
 // ----------------------------------------------------------------------------
-const initialCells: Cells<ControlledElement> = [
+const initialCells: Cells<ControlledData> = [
   pos('linkedProcess', 0, 120, 50, { type: 'linkedProcess', label: 'Linked Process' }),
   pos('input', 1, 100, 50, { type: 'input', label: 'Input' }),
   pos('mark', 2, 120, 50, { type: 'mark', label: 'Mark' }),
@@ -134,7 +134,7 @@ function Label({ label }: Readonly<{ label: string }>) {
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function LinkedProcess({ label }: Readonly<BaseElement>) {
+function LinkedProcess({ label }: Readonly<BaseData>) {
   const { width, height } = useElement((element) => element.size);
 
   return (
@@ -147,7 +147,7 @@ function LinkedProcess({ label }: Readonly<BaseElement>) {
   );
 }
 
-function InputShape({ label }: Readonly<BaseElement>) {
+function InputShape({ label }: Readonly<BaseData>) {
   const { width, height } = useElement((element) => element.size);
   return (
     <>
@@ -162,7 +162,7 @@ function InputShape({ label }: Readonly<BaseElement>) {
   );
 }
 
-function MarkShape({ label }: Readonly<BaseElement>) {
+function MarkShape({ label }: Readonly<BaseData>) {
   const { width, height } = useElement((element) => element.size);
   const hh = height * 0.5;
   return (
@@ -178,7 +178,7 @@ function MarkShape({ label }: Readonly<BaseElement>) {
   );
 }
 
-function ActorShape({ label }: Readonly<BaseElement>) {
+function ActorShape({ label }: Readonly<BaseData>) {
   const { width, height } = useElement((element) => element.size);
   const headY = 0.2;
   const bodyY = 0.4;
@@ -201,7 +201,7 @@ function ActorShape({ label }: Readonly<BaseElement>) {
   );
 }
 
-function Parallelogram({ offset = 0, label }: Readonly<OffsetElement>) {
+function Parallelogram({ offset = 0, label }: Readonly<OffsetData>) {
   const { width, height } = useElement((element) => element.size);
   return (
     <>
@@ -216,7 +216,7 @@ function Parallelogram({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function Hexagon({ offset = 0, label }: Readonly<OffsetElement>) {
+function Hexagon({ offset = 0, label }: Readonly<OffsetData>) {
   const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
@@ -232,7 +232,7 @@ function Hexagon({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function StepShape({ offset = 0, label }: Readonly<OffsetElement>) {
+function StepShape({ offset = 0, label }: Readonly<OffsetData>) {
   const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width));
   return (
@@ -248,7 +248,7 @@ function StepShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function TrapezoidShape({ offset = 0, label }: Readonly<OffsetElement>) {
+function TrapezoidShape({ offset = 0, label }: Readonly<OffsetData>) {
   const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
@@ -264,7 +264,7 @@ function TrapezoidShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function DocumentShape({ offset = 0, label }: Readonly<OffsetElement>) {
+function DocumentShape({ offset = 0, label }: Readonly<OffsetData>) {
   const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, height / 2));
   return (
@@ -280,7 +280,7 @@ function DocumentShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function ShipmentShape({ label }: Readonly<BaseElement>) {
+function ShipmentShape({ label }: Readonly<BaseData>) {
   const { width, height } = useElement((element) => element.size);
   const scale = Math.min(width / 256, height / 256);
   const tx = (width - 256 * scale) / 2;
@@ -299,7 +299,7 @@ function ShipmentShape({ label }: Readonly<BaseElement>) {
   );
 }
 
-function PlusShape({ offset = 0, label }: Readonly<OffsetElement>) {
+function PlusShape({ offset = 0, label }: Readonly<OffsetData>) {
   const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
@@ -315,7 +315,7 @@ function PlusShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>) {
+function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowData>) {
   const { width, height } = useElement((element) => element.size);
   return (
     <>
@@ -330,7 +330,7 @@ function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>
   );
 }
 
-function NoteShape({ offset = 0, label }: Readonly<OffsetElement>) {
+function NoteShape({ offset = 0, label }: Readonly<OffsetData>) {
   const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width));
   return (
@@ -354,7 +354,7 @@ function NoteShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableElement>) {
+function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableData>) {
   const { width, height } = useElement((element) => element.size);
   const dx = Math.max(0, Math.min(dividerX, width));
   const dy = Math.max(0, Math.min(dividerY, height));
@@ -380,7 +380,7 @@ function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableEleme
   );
 }
 
-function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>) {
+function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeData>) {
   const { width, height } = useElement((element) => element.size);
   const cx = Math.max(0, Math.min(cornerX, width));
   const cy = Math.max(0, Math.min(cornerY, height));
@@ -429,7 +429,7 @@ function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>)
   );
 }
 
-function CardShape({ offset = 0, label }: Readonly<OffsetElement>) {
+function CardShape({ offset = 0, label }: Readonly<OffsetData>) {
   const { width, height } = useElement((element) => element.size);
   const o = Math.max(0, Math.min(offset, width));
   return (
@@ -651,8 +651,7 @@ class CardOffsetControl extends elementTools.Control {
 // ----------------------------------------------------------------------------
 // Render Element
 // ----------------------------------------------------------------------------
-function renderElement(data: ControlledElement | undefined) {
-  if (!data) return null;
+function renderElement(data: ControlledData) {
   switch (data.type) {
     case 'linkedProcess': {
       return <LinkedProcess {...data} />;

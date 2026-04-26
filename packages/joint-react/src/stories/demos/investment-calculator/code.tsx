@@ -646,8 +646,7 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
 // Render Dispatcher
 // ----------------------------------------------------------------------------
 
-function RenderElement(data: ShapeData | undefined) {
-  if (!data) return null;
+function RenderElement(data: ShapeData) {
   switch (data.type) {
     case 'Investment': {
       return <InvestmentNode {...data} />;

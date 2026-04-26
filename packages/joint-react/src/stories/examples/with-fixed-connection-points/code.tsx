@@ -35,24 +35,10 @@ const ShapeTypes = {
 
 type ShapeType = (typeof ShapeTypes)[keyof typeof ShapeTypes];
 
-interface BaseElement {
+interface ShapeData {
   readonly shapeType: ShapeType;
   readonly label?: string;
 }
-
-interface SquareElement extends BaseElement {
-  readonly shapeType: typeof ShapeTypes.square;
-}
-
-interface RectangleElement extends BaseElement {
-  readonly shapeType: typeof ShapeTypes.rectangle;
-}
-
-interface EllipseElement extends BaseElement {
-  readonly shapeType: typeof ShapeTypes.ellipse;
-}
-
-type CustomElement = SquareElement | RectangleElement | EllipseElement;
 
 // ----------------------------------------------------------------------------
 // Colors
@@ -122,7 +108,7 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 // ----------------------------------------------------------------------------
 // Initial Cells
 // ----------------------------------------------------------------------------
-const initialCells: Cells<CustomElement> = [
+const initialCells: Cells<ShapeData> = [
   {
     id: 'square1',
     type: 'ElementModel',
@@ -215,7 +201,7 @@ const AnchorsHighlighter = dia.HighlighterView.extend({
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function Rectangle({ label }: Readonly<SquareElement | RectangleElement>) {
+function Rectangle({ label }: Readonly<ShapeData>) {
   const { width, height } = useElement((element) => element.size);
   return (
     <>
@@ -242,7 +228,7 @@ function Rectangle({ label }: Readonly<SquareElement | RectangleElement>) {
   );
 }
 
-function Ellipse({ label }: Readonly<EllipseElement>) {
+function Ellipse({ label }: Readonly<ShapeData>) {
   const { width, height } = useElement((element) => element.size);
   return (
     <>
@@ -275,8 +261,7 @@ function Ellipse({ label }: Readonly<EllipseElement>) {
 // ----------------------------------------------------------------------------
 // Element Rendering
 // ----------------------------------------------------------------------------
-function RenderElement(data: CustomElement | undefined) {
-  if (!data) return null;
+function RenderElement(data: ShapeData) {
   switch (data.shapeType) {
     case ShapeTypes.square:
     case ShapeTypes.rectangle: {

@@ -10,7 +10,7 @@ import {
   Paper,
   usePaperEvents,
   useCells,
-  useElement,
+  useCellId,
   HTMLBox,
 } from '@joint/react';
 
@@ -84,7 +84,7 @@ const initialCells: Cells = [
 ];
 
 function NodeElement() {
-  const id = useElement((element) => element.id);
+  const id = useCellId();
 
   const isConnected = useCells((cells) =>
     cells.some((cell) => {

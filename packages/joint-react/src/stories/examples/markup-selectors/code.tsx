@@ -21,12 +21,12 @@ const ELEMENT_WIDTH = 160;
 const HEADER_COLOR = '#f6c744';
 const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconnected: false });
 
-interface StackedElement {
+interface StackedData {
   readonly name: string;
   readonly labels: readonly string[];
 }
 
-const initialCells: Cells<StackedElement> = [
+const initialCells: Cells<StackedData> = [
   {
     id: '1',
     type: 'ElementModel',
@@ -83,7 +83,7 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
   );
 });
 
-function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
+function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
   const contentRef = useRef(null);
   const { magnetRef } = useMarkup();
 
@@ -155,7 +155,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<StackedElement> = useCallback((data) => {
+  const renderElement: RenderElement<StackedData> = useCallback((data) => {
     return <StackedNode name={data.name} labels={data.labels} />;
   }, []);
 
@@ -194,7 +194,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<StackedElement> initialCells={initialCells}>
+    <GraphProvider<StackedData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

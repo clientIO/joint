@@ -6,7 +6,7 @@ import { useCallback, useRef, type PropsWithChildren } from 'react';
 import {
   GraphProvider,
   Paper,
-  useElement,
+  useCellId,
   useMeasureNode,
   type Cells,
   type ElementRecord,
@@ -43,7 +43,7 @@ const initialCells: Cells<ListNodeData> = [
 ];
 
 function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
-  const id = useElement((element) => element.id);
+  const id = useCellId();
   const padding = 10;
   const headerHeight = 50;
   const elementRef = useRef<HTMLDivElement>(null);
@@ -140,11 +140,9 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
   );
 }
 
-const DEFAULT_LIST_NODE_DATA: ListNodeData = { label: '', inputs: [] };
-
 function Main() {
-  const renderElement = useCallback((data: ListNodeData | undefined) => {
-    const { label, inputs } = data ?? DEFAULT_LIST_NODE_DATA;
+  const renderElement = useCallback((data: ListNodeData) => {
+    const { label, inputs } = data;
     return (
       <ListElement label={label} inputs={inputs}>
         {label}

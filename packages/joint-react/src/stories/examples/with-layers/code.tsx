@@ -125,8 +125,7 @@ function ElementNode({ label, color }: Readonly<LayeredElementData>) {
   );
 }
 
-function RenderElement(data: LayeredElementData | undefined) {
-  if (!data) return null;
+function RenderElement(data: LayeredElementData) {
   if (data.isBackground) {
     return <BackgroundNode {...data} />;
   }

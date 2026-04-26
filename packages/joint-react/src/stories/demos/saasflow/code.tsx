@@ -212,12 +212,8 @@ function ProgressBar({
   );
 }
 
-function RenderSaasNode(data: SaasNodeData | undefined) {
-  const { title = '', subtitle = '', icon = '', status, tags, progress } = data ?? {
-    title: '',
-    subtitle: '',
-    icon: '',
-  };
+function RenderSaasNode(data: SaasNodeData) {
+  const { title, subtitle, icon, status, tags, progress } = data;
   const theme = useTheme();
   const isDark = theme === DARK;
 

@@ -9,6 +9,7 @@ import { linkRoutingOrthogonal } from '@joint/react/presets';
 import {
   GraphProvider,
   Paper,
+  useCellId,
   useElement,
   useGraph,
   useMeasureNode,
@@ -165,7 +166,7 @@ function MessageComponent({
       break;
     }
   }
-  const id = useElement((element) => element.id);
+  const id = useCellId();
   const { setCell } = useGraph<ElementData>();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);
@@ -461,8 +462,7 @@ function Main() {
   const [showElementsInfo, setShowElementsInfo] = useState(false);
   const paperCtxRef = useRef<dia.Paper | null>(null);
 
-  const renderElement = useCallback((data: ElementData | undefined) => {
-    if (!data) return null;
+  const renderElement = useCallback((data: ElementData) => {
     const { elementType } = data;
     switch (elementType) {
       case 'alert':

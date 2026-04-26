@@ -10,6 +10,7 @@
 import {
   GraphProvider,
   Paper,
+  useCellId,
   useElement,
   useMarkup,
   HTMLHost,
@@ -149,7 +150,7 @@ function RenderElementBase({
   onAddPort,
   onRemovePort,
 }: Readonly<RenderElementProps>) {
-  const id = useElement((element) => element.id);
+  const id = useCellId();
   const { magnetRef } = useMarkup();
   const { width, height } = useElement((element) => element.size);
 

@@ -3,7 +3,7 @@ import {
   GraphProvider,
   useGraph,
   Paper,
-  useElement,
+  useCellId,
   HTMLBox,
   useCells,
   type Cells,
@@ -24,16 +24,16 @@ const initialCells: Cells<NodeData> = [
   { id: '4', type: 'ElementModel', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
 ];
 
-function ResizableNode(data: NodeData | undefined) {
+function ResizableNode(data: NodeData) {
   const { graph } = useGraph();
-  const id = useElement((element) => element.id);
+  const id = useCellId();
   const element = graph.getCell(id) as dia.Element;
 
   const isIntersected = useCells(() => {
     return graph.findElementsUnderElement(element).length > 0;
   });
 
-  return <HTMLBox style={{ borderColor: isIntersected ? PRIMARY : '' }}>{data?.label}</HTMLBox>;
+  return <HTMLBox style={{ borderColor: isIntersected ? PRIMARY : '' }}>{data.label}</HTMLBox>;
 }
 
 function Main() {

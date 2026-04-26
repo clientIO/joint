@@ -6,14 +6,16 @@ import {
   GraphProvider,
   Paper,
   HTMLHost,
-  useGraph,
+  useCellId,
   useElement,
+  useGraph,
   useCells,
   useNodesMeasuredEffect,
   type Cells,
   type CellRecord,
   type ElementRecord,
   type LinkRecord,
+  type ResolvedElementRecord,
 } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -201,9 +203,9 @@ function LayoutRunner() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function NodeCard() {
-  const data = useElement<NodeData, NodeData>((element) => element.data);
-  const id = useElement((element) => element.id);
-  const { title = '', owner = '' } = data ?? {};
+  const data = useElement((element: ResolvedElementRecord<NodeData>) => element.data);
+  const id = useCellId();
+  const { title, owner } = data;
   const { setCell } = useGraph<NodeData>();
   const [isEditing, setIsEditing] = useState(false);
   const titleInputRef = useRef<HTMLInputElement | null>(null);

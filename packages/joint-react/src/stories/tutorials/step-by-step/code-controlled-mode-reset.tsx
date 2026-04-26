@@ -110,8 +110,7 @@ const initialCells: Cells<NodeData> = [
 // transform and never re-invoke this function, so there is no per-frame
 // React work during a drag.
 
-function WorkflowNode(data: NodeData | undefined) {
-  if (!data) return null;
+function WorkflowNode(data: NodeData) {
   const { background, color } = KIND_STYLES[data.kind];
   return (
     <HTMLHost

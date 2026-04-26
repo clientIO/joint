@@ -159,8 +159,8 @@ function CellAttributesView({
 
 const PAPER_STYLE = { flex: 1 };
 
-function RenderElement(data: Data | undefined) {
-  return <HTMLBox useModelGeometry>{data?.label}</HTMLBox>;
+function RenderElement(data: Data) {
+  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
 }
 
 function Main() {

@@ -7,6 +7,7 @@ import {
   jsx,
   Paper,
   SVGText,
+  useCellId,
   useElement,
   useGraph,
   useMarkup,
@@ -56,14 +57,14 @@ interface ConditioningEvent extends BaseEvent {
   readonly type: 'ConditioningEvent';
 }
 
-type FTAElement =
+type FTAData =
   | IntermediateEvent
   | UndevelopedEvent
   | BasicEvent
   | ExternalEvent
   | ConditioningEvent;
 
-const initialElements: Array<ElementRecord<FTAElement>> = [
+const initialElements: Array<ElementRecord<FTAData>> = [
   {
     id: 'ot8h17',
     type: 'ElementModel',
@@ -251,7 +252,7 @@ const initialLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: Cells<FTAElement> = [...initialElements, ...initialLinks];
+const initialCells: Cells<FTAData> = [...initialElements, ...initialLinks];
 
 // ----------------------------------------------------------------------------
 // Custom Hooks
@@ -313,8 +314,8 @@ function useGatePattern() {
 // ----------------------------------------------------------------------------
 function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
   const { width, height } = useElement((element) => element.size);
-  const id = useElement((element) => element.id);
-  const { setCell } = useGraph<FTAElement>();
+  const id = useCellId();
+  const { setCell } = useGraph<FTAData>();
   const gatePatternUrl = useGatePattern();
   const { magnetRef } = useMarkup();
 
@@ -357,16 +358,16 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
     const nextGate = GATE_TYPES[nextIndex];
 
     setCell((previous) => {
-      const previousElement = previous as ElementRecord<FTAElement>;
+      const previousElement = previous as ElementRecord<FTAData>;
       const data = previousElement.data as IntermediateEvent | undefined;
       if (!data) {
-        return { ...previousElement, id } as ElementRecord<FTAElement>;
+        return { ...previousElement, id } as ElementRecord<FTAData>;
       }
       return {
         ...previousElement,
         id,
         data: { ...data, gate: nextGate },
-      } as ElementRecord<FTAElement>;
+      } as ElementRecord<FTAData>;
     });
   }, [id, gate, setCell]);
 
@@ -569,8 +570,7 @@ function ConditioningEventNode({ label }: Readonly<ConditioningEvent>) {
 // ----------------------------------------------------------------------------
 // Render Dispatcher
 // ----------------------------------------------------------------------------
-function RenderFTAElement(data: FTAElement | undefined) {
-  if (!data) return null;
+function RenderFTAElement(data: FTAData) {
   switch (data.type) {
     case 'IntermediateEvent': {
       return <IntermediateEventNode {...data} />;
@@ -767,7 +767,7 @@ function Main() {
 
   useNodesMeasuredEffect(paperId, handleElementsMeasured);
 
-  const renderElement = useCallback((data: FTAElement | undefined) => RenderFTAElement(data), []);
+  const renderElement = useCallback((data: FTAData) => RenderFTAElement(data), []);
 
   return (
     <Paper
@@ -787,7 +787,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<FTAElement> initialCells={initialCells}>
+    <GraphProvider<FTAData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

@@ -321,8 +321,7 @@ function BulbNode({ watts }: Readonly<BulbData>) {
 // ----------------------------------------------------------------------------
 // Render Dispatcher
 // ----------------------------------------------------------------------------
-function RenderShapeElement(data: ShapeData | undefined) {
-  if (!data) return null;
+function RenderShapeElement(data: ShapeData) {
   switch (data.type) {
     case ShapeTypes.generator: {
       return <GeneratorNode {...data} />;

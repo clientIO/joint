@@ -15,12 +15,12 @@ import { linkRoutingSmooth } from '@joint/react/presets';
 
 const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconnected: false });
 
-interface TableElement {
+interface TableData {
   readonly name: string;
   readonly rows: ReadonlyArray<{ readonly field: string; readonly type: string }>;
 }
 
-const initialCells: Cells<TableElement> = [
+const initialCells: Cells<TableData> = [
   {
     id: '1',
     type: 'ElementModel',
@@ -125,7 +125,7 @@ function TableRow({ field, type, index }: Readonly<TableRowProps>) {
   );
 }
 
-function TableNode({ name, rows }: Readonly<Partial<TableElement>>) {
+function TableNode({ name, rows }: Readonly<Partial<TableData>>) {
   return (
     <HTMLBox useModelGeometry style={cardStyle}>
       <div style={headerStyle}>{name}</div>
@@ -137,7 +137,7 @@ function TableNode({ name, rows }: Readonly<Partial<TableElement>>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<TableElement> = useCallback((data) => {
+  const renderElement: RenderElement<TableData> = useCallback((data) => {
     return <TableNode name={data.name} rows={data.rows} />;
   }, []);
 
@@ -157,7 +157,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<TableElement> initialCells={initialCells}>
+    <GraphProvider<TableData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

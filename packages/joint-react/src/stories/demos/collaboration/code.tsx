@@ -365,8 +365,8 @@ function createPeerManager(callbacks: {
 
 // ── Node Component ──────────────────────────────────────────────────────────
 
-function RenderAgentNode(data: AgentNodeData | undefined) {
-  const { title = '', role = '', icon = '', status = 'idle' } = data ?? {};
+function RenderAgentNode(data: AgentNodeData) {
+  const { title, role, icon, status } = data;
   const theme = useTheme();
   const isDark = theme === DARK;
   const remoteDrag = useContext(RemoteDragContext);

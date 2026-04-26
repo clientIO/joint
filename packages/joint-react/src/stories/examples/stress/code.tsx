@@ -24,8 +24,8 @@ const RENDER_ELEMENT_STYLE: React.CSSProperties = {
   justifyContent: 'center',
 };
 
-function RenderElement(data: StressNodeData | undefined) {
-  return <HTMLBox useModelGeometry style={RENDER_ELEMENT_STYLE}>{data?.label}</HTMLBox>;
+function RenderElement(data: StressNodeData) {
+  return <HTMLBox useModelGeometry style={RENDER_ELEMENT_STYLE}>{data.label}</HTMLBox>;
 }
 
 function buildInitialCells(xNodes = 15, yNodes = 30): Cells<StressNodeData> {

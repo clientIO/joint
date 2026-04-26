@@ -4,6 +4,7 @@ import { dia, elementTools } from '@joint/core';
 import {
   GraphProvider,
   Paper,
+  useCellId,
   useElement,
   useGraph,
   usePaperEvents,
@@ -61,18 +62,18 @@ const ElementType = {
 
 type ElementType = (typeof ElementType)[keyof typeof ElementType];
 
-interface ContainerElement {
+interface ContainerData {
   elementType: typeof ElementType.Container;
   title: string;
   collapsed: boolean;
 }
 
-interface ChildElement {
+interface ChildData {
   elementType: typeof ElementType.Child;
   label: string;
 }
 
-type ContainerUserData = ContainerElement | ChildElement;
+type ContainerUserData = ContainerData | ChildData;
 
 // ============================================================================
 // Initial Data
@@ -221,9 +222,9 @@ function ExpandButton({
   );
 }
 
-function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>) {
+function ContainerNode({ title, collapsed = false }: Readonly<ContainerData>) {
   const { width, height } = useElement((element) => element.size);
-  const id = useElement((element) => element.id);
+  const id = useCellId();
   const { graph } = useGraph();
 
   const handleToggle = useCallback(() => {
@@ -389,8 +390,7 @@ function Main() {
     return !hasCollapsedAncestor(cell);
   }, []);
 
-  const renderElement = useCallback((data: ContainerUserData | undefined) => {
-    if (!data) return null;
+  const renderElement = useCallback((data: ContainerUserData) => {
     switch (data.elementType) {
       case ElementType.Container: {
         return <ContainerNode {...data} />;

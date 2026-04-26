@@ -222,7 +222,7 @@ function Main() {
   );
 
   const renderElement = useCallback(
-    (data: NodeData | undefined) => (data ? <RenderNode {...data} /> : null),
+    (data: NodeData) => <RenderNode {...data} />,
     []
   );
 

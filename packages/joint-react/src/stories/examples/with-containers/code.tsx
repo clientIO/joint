@@ -92,8 +92,7 @@ function ChildElement({ label }: Readonly<ContainerData>) {
   );
 }
 
-function RenderElement(data: ContainerData | undefined) {
-  if (!data) return null;
+function RenderElement(data: ContainerData) {
   if (data.isContainer) {
     return <ContainerNode {...data} />;
   }

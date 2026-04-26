@@ -43,10 +43,10 @@ const initialCells: Cells<NodeData> = [
 
 type HighlighterVariant = 'mask' | 'opacity';
 
-function RenderElement(data: NodeData | undefined) {
+function RenderElement(data: NodeData) {
   const { selectorRef } = useMarkup();
   const { width, height } = useElement((element) => element.size);
-  const label = data?.label;
+  const label = data.label;
   return (
     <g width={width} height={height} className="node">
       <rect

@@ -17,7 +17,7 @@ import {
  * JointJS's top-left position (x, y).
  * The cx/cy values are derived from position + size for display purposes.
  */
-interface CenterElement {
+interface CenterData {
   readonly label: string;
 }
 
@@ -29,7 +29,7 @@ interface CenterElement {
  * Initial cells store standard top-left position. The DataPanel derives
  * center coordinates (cx, cy) from position + size for display.
  */
-const initialCells: Cells<CenterElement> = [
+const initialCells: Cells<CenterData> = [
   {
     id: 'node-1',
     type: 'ElementModel',
@@ -72,9 +72,9 @@ const initialCells: Cells<CenterElement> = [
 // ============================================================================
 
 function DataPanel() {
-  const cells = useCells<CenterElement>();
+  const cells = useCells<CenterData>();
   const elements = cells.filter(
-    (cell): cell is ElementRecord<CenterElement> => cell.type === 'ElementModel'
+    (cell): cell is ElementRecord<CenterData> => cell.type === 'ElementModel'
   );
   return (
     <div className="p-4 min-w-50 text-sm font-mono">

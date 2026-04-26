@@ -154,8 +154,7 @@ function RenderSVGElement({ label }: Readonly<NodeData>) {
   );
 }
 
-function RenderElement(data: NodeData | undefined) {
-  if (!data) return null;
+function RenderElement(data: NodeData) {
   if (data.type === 'svg') return <RenderSVGElement {...data} />;
   return <RenderHTMLElement {...data} />;
 }

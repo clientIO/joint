@@ -66,8 +66,8 @@ function MiniMap() {
   );
 }
 
-function RenderNode({ data }: Readonly<{ data: NodeData | undefined }>) {
-  const { label = '', color = '#fff' } = data ?? {};
+function RenderNode({ data }: Readonly<{ data: NodeData }>) {
+  const { label, color } = data;
   return (
     <HTMLBox useModelGeometry style={{ backgroundColor: color, color: 'white', alignItems: 'center', justifyContent: 'center', display: 'flex', borderRadius: 10 }}>
       {label}
