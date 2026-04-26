@@ -10,6 +10,7 @@ import {
   useMarkup,
   usePaperEvents,
   type Cells,
+  selectElementSize,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -81,7 +82,7 @@ const DIMMED_OPACITY = 0.3;
 
 function RenderNode({ label }: Readonly<NodeData>) {
   const { selectorRef } = useMarkup();
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <g className="cursor-pointer">
       <rect

@@ -6,6 +6,8 @@ import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
 import {
   GraphProvider,
+  selectElementSize,
+  useCellId,
   useElement,
   useMeasureNode,
   type Cells,
@@ -94,9 +96,9 @@ export function RenderItemDecorator(
   );
 }
 
-function RenderSimpleRectElement() {
-  const { size, data } = useElement<{ color: string }>();
-  return <rect width={size?.width} height={size?.height} fill={data?.color} />;
+function RenderSimpleRectElement(data: { color: string }) {
+  const { width, height } = useElement(selectElementSize);
+  return <rect width={width} height={height} fill={data.color} />;
 }
 
 export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX.Element }>) {
@@ -124,7 +126,7 @@ export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryC
       // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
       renderElement={() => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        const id = useElement((element) => element.id);
+        const id = useCellId();
         return <HTMLNode className="node">{id}</HTMLNode>;
       }}
     />

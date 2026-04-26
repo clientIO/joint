@@ -5,7 +5,8 @@ import {
   useElement,
   Paper,
   HTMLHost,
-  } from '@joint/react';
+  selectElementSize,
+} from '@joint/react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 type ContainerData = {
@@ -51,7 +52,7 @@ const initialCells: Cells<ContainerData> = [
 ];
 
 function ContainerNode({ label }: Readonly<ContainerData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <g>
       <rect

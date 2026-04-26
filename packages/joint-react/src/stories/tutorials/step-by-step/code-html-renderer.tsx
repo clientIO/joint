@@ -6,6 +6,7 @@ import {
     useMeasureNode,
   usePaper,
   type Cells,
+  selectElementSize,
 } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -86,7 +87,7 @@ function HTMLItem() {
 }
 
 function SVGItem() {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return <rect rx={10} ry={10} width={width} height={height} fill="blue" />;
 }
 

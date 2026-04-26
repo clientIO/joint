@@ -9,6 +9,7 @@ import {
   Paper,
   resolveLinkMarker,
   usePaperEvents,
+  selectElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, g } from '@joint/core';
@@ -219,7 +220,7 @@ const AnchorsHighlighter = dia.HighlighterView.extend({
 // Shapes
 // ----------------------------------------------------------------------------
 function Rectangle({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <path
@@ -246,7 +247,7 @@ function Rectangle({ label }: Readonly<ShapeData>) {
 }
 
 function Ellipse({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <ellipse

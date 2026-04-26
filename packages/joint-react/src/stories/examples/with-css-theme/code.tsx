@@ -6,6 +6,7 @@ import {
   Paper,
     type Cells,
   type RenderElement,
+  selectElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -90,7 +91,7 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function Node({ label }: Readonly<{ label: string }>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect

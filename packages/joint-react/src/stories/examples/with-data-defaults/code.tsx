@@ -8,6 +8,7 @@ import {
   type Cells,
   type ElementPort,
   type RenderElement,
+  selectElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
 
@@ -81,7 +82,7 @@ const initialCells: Cells<ElementData> = [
 ];
 
 function Element({ label, color }: Readonly<{ label: string; color: string }>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect width={width} height={height} rx="6" fill="#1e293b" stroke={color} strokeWidth="2" />

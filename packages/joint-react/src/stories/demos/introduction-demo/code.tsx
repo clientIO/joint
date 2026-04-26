@@ -22,6 +22,7 @@ import {
   type ElementPort,
   type PaperProps,
   usePaperEvents,
+  selectElementSize,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
@@ -213,7 +214,7 @@ const ROW_HEIGHT = 45;
 const ROW_START = 65;
 // Define the table element
 function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const tableWidth = width;
   const tableHeight = height;
   return (
@@ -270,7 +271,7 @@ function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>
 }
 
 function MinimapRenderElement() {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return <rect width={width} height={height} fill={'white'} rx={10} ry={10} />;
 }
 // Minimap component

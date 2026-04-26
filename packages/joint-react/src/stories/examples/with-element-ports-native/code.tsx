@@ -8,6 +8,7 @@ import {
   Paper,
     type Cells,
   type RenderElement,
+  selectElementSize,
 } from '@joint/react';
 import { useCallback } from 'react';
 
@@ -167,7 +168,7 @@ const initialCells: Cells<NativeElementUserData> = [
 ];
 
 function Node({ color, label }: Readonly<{ color: string; label: string }>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const cx = width / 2;
   const cy = height / 2;
   return (

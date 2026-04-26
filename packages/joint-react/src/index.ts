@@ -48,6 +48,17 @@ export { useGraphEvents } from './hooks/use-graph-events';
 // Hooks — Misc
 export { useMarkup } from './hooks/use-markup';
 
+// Cell selectors — pass to `useElement` / `useCell`
+export {
+  selectElementPosition,
+  selectElementSize,
+  selectElementAngle,
+  selectElementData,
+  selectCellId,
+  selectCellType,
+  selectCellParent,
+} from './selectors/cell-selectors';
+
 // Utilities
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
 export * from './state/data-mapping/element-mapper';

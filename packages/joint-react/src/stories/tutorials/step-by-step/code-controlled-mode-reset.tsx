@@ -32,10 +32,12 @@
  *   4. `renderElement` receives `data` only.
  *        Position, size, angle etc. are handled by JointJS's view layer and
  *        do NOT re-invoke the user renderer. If a renderer needs more than
- *        `data`, use `useCellId()` / `useElement()` / `useElement((element) => element.size)`.
+ *        `data`, use `useCellId()` / `useElement()` / `useElement(selectElementSize)`.
  * ============================================================================
  */
-import { GraphProvider, HTMLHost, Paper, type Cells, type RenderElement } from '@joint/react';
+import { GraphProvider, HTMLHost, Paper, type Cells, type RenderElement,
+ selectElementSize,
+} from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback, useState } from 'react';

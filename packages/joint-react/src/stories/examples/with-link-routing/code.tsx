@@ -10,6 +10,7 @@ import {
   type ElementPort,
   type LinkRecord,
   usePaper,
+  selectElementSize,
 } from '@joint/react';
 import {
   linkRoutingStraight,
@@ -113,7 +114,7 @@ function RenderHTMLElement({ label }: Readonly<NodeData>) {
 
 function RenderSVGElement({ label }: Readonly<NodeData>) {
   const { magnetRef } = useMarkup();
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect

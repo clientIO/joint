@@ -16,6 +16,8 @@ import {
   type Cells,
   type PaperProps,
   type RenderElement,
+  selectCellType,
+  selectElementSize,
 } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -156,7 +158,7 @@ function Shape({
 }
 
 function MinimapShape({ color = 'lightgray' }: Readonly<ElementUserData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 
@@ -254,8 +256,8 @@ function RenderElementWithBadge({
   color = 'lightgray',
   title = 'No Title',
 }: Readonly<ElementUserData>) {
-  const { width } = useElement((element) => element.size);
-  const cellType = useElement((element) => element.type);
+  const { width } = useElement(selectElementSize);
+  const cellType = useElement(selectCellType);
   // Only render the default Shape for our ElementModel type. Custom JointJS
   // shapes (e.g. standard.Cylinder) render themselves via their native markup.
   const isElementModel = cellType === ELEMENT_MODEL_TYPE;

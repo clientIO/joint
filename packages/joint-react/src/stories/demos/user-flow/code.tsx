@@ -20,6 +20,7 @@ import {
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
+  selectElementSize,
 } from '@joint/react';
 
 import { createContext, memo, useCallback, useContext, useLayoutEffect, useState } from 'react';
@@ -152,7 +153,7 @@ function RenderElementBase({
 }: Readonly<RenderElementProps>) {
   const id = useCellId();
   const { magnetRef } = useMarkup();
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
 
   let icon: string;
   switch (nodeType) {

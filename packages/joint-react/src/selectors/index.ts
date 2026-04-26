@@ -1,6 +1,8 @@
 import type { GraphStoreInternalSnapshot } from '../store/graph-store';
 
-// ── Element layout selectors ────────────────────────────────────────────────
+// ── Public cell selectors ───────────────────────────────────────────────────
+
+export * from './cell-selectors';
 
 // ── Internal selectors ──────────────────────────────────────────────────────
 

@@ -8,6 +8,7 @@ import {
   Paper,
     type Cells,
   type RenderElement,
+  selectElementSize,
 } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -42,7 +43,7 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function MinimapElement({ color }: Readonly<NodeData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 

@@ -5,6 +5,7 @@ import {
   useElement,
   Paper,
     type Cells,
+    selectElementSize,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -33,7 +34,7 @@ const initialCells: Cells = [
 ];
 
 function RenderElement() {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <rect
       rx={10}

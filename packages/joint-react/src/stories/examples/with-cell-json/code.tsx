@@ -10,6 +10,7 @@ import {
   type RenderElement,
   useCells,
     ElementModel,
+    selectElementSize,
 } from '@joint/react';
 import { useCallback, useMemo } from 'react';
 
@@ -86,7 +87,7 @@ const initialCells: Cells<ElementData> = [
 // ============================================================================
 
 function ElementShape({ label, color }: Readonly<ElementData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect

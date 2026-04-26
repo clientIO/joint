@@ -9,6 +9,7 @@ import {
     useGraph,
   type Cells,
   type ElementRecord,
+  selectElementSize,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
 import { linkRoutingStraight } from '@joint/react/presets';
@@ -123,7 +124,7 @@ const initialCells: Cells<ShapeData> = [
 // Generator Component
 // ----------------------------------------------------------------------------
 function GeneratorNode({ power }: Readonly<GeneratorData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
   const { setCell } = useGraph<ShapeData>();
@@ -259,7 +260,7 @@ function useGeneratorPower(): number {
 // Bulb Component
 // ----------------------------------------------------------------------------
 function BulbNode({ watts }: Readonly<BulbData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const glassRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
 

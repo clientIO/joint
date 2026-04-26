@@ -9,6 +9,7 @@ import {
     useGraph,
   useNodesMeasuredEffect,
   type Cells,
+  selectElementSize,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
@@ -62,7 +63,7 @@ const initialCells: Cells<ShapeData> = [
 // Shapes
 // ----------------------------------------------------------------------------
 function RectangleShape({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} />
@@ -82,7 +83,7 @@ function RectangleShape({ label }: Readonly<ShapeData>) {
 }
 
 function CircleShape({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <circle
@@ -109,7 +110,7 @@ function CircleShape({ label }: Readonly<ShapeData>) {
 }
 
 function EllipseShape({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <ellipse
@@ -137,7 +138,7 @@ function EllipseShape({ label }: Readonly<ShapeData>) {
 }
 
 function PathShape({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <path

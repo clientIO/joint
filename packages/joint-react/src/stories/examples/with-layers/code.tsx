@@ -10,6 +10,7 @@ import {
   LinkModel,
   HTMLHost,
     type Cells,
+    selectElementSize,
 } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -83,7 +84,7 @@ const initialCells: Cells<LayeredElementData> = [
 ];
 
 function BackgroundNode({ label, color }: Readonly<LayeredElementData>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   return (
     <g className="fade-in">
       <rect

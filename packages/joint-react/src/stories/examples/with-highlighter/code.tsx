@@ -6,6 +6,7 @@ import {
   useMarkup,
     type Cells,
   usePaperEvents,
+  selectElementSize,
 } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
 import '../index.css';
@@ -45,7 +46,7 @@ type HighlighterVariant = 'mask' | 'opacity';
 
 function RenderElement(data: NodeData) {
   const { selectorRef } = useMarkup();
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const label = data.label;
   return (
     <g width={width} height={height} className="node">

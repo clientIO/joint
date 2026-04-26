@@ -7,7 +7,6 @@ import {
   Paper,
   HTMLHost,
   useCellId,
-  useElement,
   useGraph,
   useCells,
   useNodesMeasuredEffect,
@@ -15,7 +14,6 @@ import {
   type CellRecord,
   type ElementRecord,
   type LinkRecord,
-  type ResolvedElementRecord,
 } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -202,10 +200,8 @@ function LayoutRunner() {
 // Uses `useGraph().setCell` from inside the graph context to update its own data.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function NodeCard() {
-  const data = useElement((element: ResolvedElementRecord<NodeData>) => element.data);
+function NodeCard({ title, owner }: NodeData) {
   const id = useCellId();
-  const { title, owner } = data;
   const { setCell } = useGraph<NodeData>();
   const [isEditing, setIsEditing] = useState(false);
   const titleInputRef = useRef<HTMLInputElement | null>(null);

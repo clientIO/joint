@@ -14,6 +14,7 @@ import {
   useNodesMeasuredEffect,
   usePaper,
   usePaperEvents,
+  selectElementSize,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useId, useMemo, useRef } from 'react';
@@ -313,7 +314,7 @@ function useGatePattern() {
 // Shapes
 // ----------------------------------------------------------------------------
 function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const id = useCellId();
   const { setCell } = useGraph<FTAData>();
   const gatePatternUrl = useGatePattern();
@@ -435,7 +436,7 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
 }
 
 function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -467,7 +468,7 @@ function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
 }
 
 function BasicEventNode(props: Readonly<BasicEvent>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const bodyPatternUrl = useElementPattern();
   const { label } = props;
   return (
@@ -501,7 +502,7 @@ function BasicEventNode(props: Readonly<BasicEvent>) {
 }
 
 function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -533,7 +534,7 @@ function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
 }
 
 function ConditioningEventNode({ label }: Readonly<ConditioningEvent>) {
-  const { width, height } = useElement((element) => element.size);
+  const { width, height } = useElement(selectElementSize);
   const bodyPatternUrl = useElementPattern();
 
   return (
