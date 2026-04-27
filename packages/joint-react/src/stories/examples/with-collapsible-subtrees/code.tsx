@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { LinkRecord, Cells } from '@joint/react';
+import type { LinkRecord, Cells, LinkStyle } from '@joint/react';
 import {
   type ElementRecord,
   GraphProvider,
@@ -146,7 +146,7 @@ const initialElements: Array<ElementRecord<FTAData>> = [
   },
 ];
 
-const DEFAULT_LINK_STYLE = { color: PRIMARY, width: 2, targetMarker: 'none' as const };
+const DEFAULT_LINK_STYLE: LinkStyle = { color: PRIMARY, width: 2, targetMarker: 'none' };
 
 const initialLinks: LinkRecord[] = [
   {
