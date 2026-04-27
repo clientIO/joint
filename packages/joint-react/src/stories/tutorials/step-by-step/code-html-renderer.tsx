@@ -75,8 +75,7 @@ function Controls() {
   );
 }
 
-function HTMLItem() {
-  const label = useElement<ElementData>().data?.label ?? '';
+function HTMLItem({ label }: ElementData) {
   const elementRef = useRef<HTMLDivElement>(null);
   useMeasureNode(elementRef);
   return (
@@ -94,12 +93,10 @@ function SVGItem() {
 function Main() {
   const [isHTMLEnabled, setIsHTMLEnabled] = useState(true);
 
-  const renderItem = useCallback(() => {
-    if (isHTMLEnabled) {
-      return <HTMLItem />;
-    }
-    return <SVGItem />;
-  }, [isHTMLEnabled]);
+  const renderItem = useCallback(
+    (data: ElementData) => (isHTMLEnabled ? <HTMLItem {...data} /> : <SVGItem />),
+    [isHTMLEnabled]
+  );
 
   return (
     <Paper

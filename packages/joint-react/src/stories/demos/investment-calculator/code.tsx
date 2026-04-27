@@ -4,9 +4,10 @@ import type { dia } from '@joint/core';
 import {
   GraphProvider,
   Paper,
-  useGraph,
+  useCellId,
+  useCells,
   useElement,
-    useCells,
+  useGraph,
   type Cells,
   type ElementRecord,
   type LinkRecord,
@@ -461,7 +462,7 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
 // ----------------------------------------------------------------------------
 
 function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
-  const { id: cellId } = useElement<ShapeData>();
+  const cellId = useCellId();
   const { graph } = useGraph();
   const { width, height } = useElement(selectElementSize);
 
@@ -549,7 +550,7 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
 // ----------------------------------------------------------------------------
 
 function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
-  const { id: cellId } = useElement<ShapeData>();
+  const cellId = useCellId();
   const { graph } = useGraph();
   const { width, height } = useElement(selectElementSize);
 

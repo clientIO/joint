@@ -63,6 +63,7 @@ const initialCells: Cells<ShapeData> = [
 // Shapes
 // ----------------------------------------------------------------------------
 function RectangleShape({ label }: Readonly<ShapeData>) {
+
   const { width, height } = useElement(selectElementSize);
   return (
     <>

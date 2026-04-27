@@ -44,7 +44,6 @@ import {
   GraphProvider,
   HTMLHost,
   Paper,
-  useElement,
   type Cells,
   type ElementRecord,
   type LinkRecord,
@@ -98,11 +97,10 @@ const defaultCells: Cells<ElementData> = [
 /**
  * Custom render function for graph elements.
  *
- * Reads the current element via `useElement()` and renders the label inside
- * an HTMLHost (foreignObject wrapper).
+ * Receives the element's `data` slice as props (framework spreads it via
+ * JSX) and renders the label inside an HTMLHost (foreignObject wrapper).
  */
-function RenderItem() {
-  const label = useElement<ElementData>().data?.label ?? '';
+function RenderItem({ label }: ElementData) {
   return (
     <HTMLHost className="node" style={{ width: 100, height: 50 }}>
       {label}

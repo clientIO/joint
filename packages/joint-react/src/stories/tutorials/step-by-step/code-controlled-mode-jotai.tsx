@@ -37,7 +37,6 @@ import {
   GraphProvider,
   HTMLHost,
   Paper,
-  useElement,
   type Cells,
   type ElementRecord,
 } from '@joint/react';
@@ -83,8 +82,7 @@ const defaultCells: Cells<ElementData> = [
 
 const NODE_STYLE = { width: 100, height: 50 };
 
-function RenderItem() {
-  const label = useElement<ElementData>().data?.label ?? '';
+function RenderItem({ label }: ElementData) {
   return (
     <HTMLHost className="node" style={NODE_STYLE}>
       {label}

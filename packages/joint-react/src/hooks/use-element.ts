@@ -14,14 +14,25 @@ export function useElement<ElementData = unknown>(): ResolvedElementRecord<Eleme
 /**
  * Read a selected slice from the current element record (context-scoped).
  *
- * Both generics must be specified together for the selector form: TypeScript
- * will not infer `Selected` when only `ElementData` is supplied (defaults
- * would silently make `Selected = unknown`). For ergonomic typed access,
- * either:
- * - annotate the selector parameter:
- *   `useElement((el: ResolvedElementRecord<NodeData>) => el.data)`
- * - or use the no-arg form and read fields off the record:
- *   `const { data } = useElement<NodeData>();`
+ * Prefer this selector form over the no-arg `useElement<T>()` overload — the
+ * selector subscribes to one slice and short-circuits re-renders via
+ * `Object.is`, whereas the no-arg form re-renders on every cell change
+ * (position, size, angle, data).
+ *
+ * For element data: take it from the `renderElement` callback's argument
+ * (the framework spreads `data` as JSX props). For other slices, use the
+ * named selectors:
+ * - `useElement(selectElementSize)`
+ * - `useElement(selectElementPosition)`
+ * - `useElement(selectElementAngle)`
+ * - `useElement(selectElementData<NodeData>)` (rarely needed; usually `data`
+ *   already arrives via the renderElement param)
+ *
+ * For an inline selector with full IntelliSense, annotate the parameter:
+ * `useElement((element: ResolvedElementRecord<NodeData>) => element.data.label)`.
+ *
+ * Note: TypeScript can't infer `Selected` from `useElement<NodeData>(s)` alone —
+ * supply both generics or annotate the selector parameter.
  * @template ElementData - user data shape on this element
  * @template Selected - selector return type
  * @param selector - derives a value from the current resolved element record

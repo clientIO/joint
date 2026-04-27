@@ -4,7 +4,7 @@ import {
   GraphProvider,
   HTMLBox,
   Paper,
-  useElement,
+  useCellId,
   type Cells,
   type ElementRecord,
 } from '@joint/react';
@@ -42,9 +42,8 @@ const initialCells: Cells<NodeData> = [
   },
 ];
 
-function RenderElement() {
-  const element = useElement<NodeData>();
-  const color = element.data?.color ?? '#ffffff';
+function RenderElement({ color }: NodeData) {
+  const id = useCellId();
   const { setCell } = useGraph<NodeData>();
   return (
     <HTMLBox useModelGeometry
@@ -59,7 +58,7 @@ function RenderElement() {
             const previousElement = previous as ElementRecord<NodeData>;
             return {
               ...previousElement,
-              id: element.id,
+              id,
               data: { ...(previousElement.data ?? { label: '', color: '#ffffff' }), color: event.target.value },
             } as ElementRecord<NodeData>;
           });

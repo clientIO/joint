@@ -35,9 +35,7 @@
  *        `data`, use `useCellId()` / `useElement()` / `useElement(selectElementSize)`.
  * ============================================================================
  */
-import { GraphProvider, HTMLHost, Paper, type Cells, type RenderElement,
- selectElementSize,
-} from '@joint/react';
+import { GraphProvider, HTMLHost, Paper, type Cells, type RenderElement } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback, useState } from 'react';

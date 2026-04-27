@@ -5,9 +5,9 @@ import { useState, useCallback, useRef } from 'react';
 import {
   GraphProvider,
   Paper,
+  selectElementSize,
   useElement,
-    type Cells,
-  type RenderElement,
+  type Cells,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -116,10 +116,8 @@ const initialCells: Cells<NodeUserData> = [
   },
 ];
 
-function Node() {
-  const element = useElement<NodeUserData>();
-  const { width, height } = element.size;
-  const label = element.data.label;
+function Node({ label }: NodeUserData) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect
@@ -168,8 +166,6 @@ function Diagram() {
   const [theme, setTheme] = useState<Theme>('default');
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const renderElement: RenderElement<NodeUserData> = useCallback(() => <Node />, []);
-
   const selectTheme = useCallback((next: Theme) => {
     setTheme(next);
     const element = wrapperRef.current;
@@ -205,7 +201,7 @@ function Diagram() {
         <Paper
           className={PAPER_CLASSNAME}
           height={240}
-          renderElement={renderElement}
+          renderElement={Node}
           defaultLink={() => DEFAULT_LINK}
         />
       </GraphProvider>
