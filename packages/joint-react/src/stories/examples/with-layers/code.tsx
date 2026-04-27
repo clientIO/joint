@@ -4,13 +4,13 @@
 import { dia, shapes } from '@joint/core';
 import {
   GraphProvider,
+  useElement,
   Paper,
   ElementModel,
   LinkModel,
   HTMLHost,
-  useElementSize,
-  type ElementRecord,
-  type LinkRecord,
+    type Cells,
+    selectElementSize,
 } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -22,58 +22,69 @@ interface LayeredElementData {
   readonly isBackground?: boolean;
 }
 
-// Elements assigned to different layers
-const elements: Record<string, ElementRecord<LayeredElementData>> = {
+// Cells assigned to different layers
+const initialCells: Cells<LayeredElementData> = [
   // Background layer elements
-  'bg-1': {
+  {
+    id: 'bg-1',
+    type: 'element',
     data: { label: 'Background 1', color: '#374151', isBackground: true },
     position: { x: 20, y: 20 },
     size: { width: 200, height: 150 },
     layer: 'background',
   },
-  'bg-2': {
+  {
+    id: 'bg-2',
+    type: 'element',
     data: { label: 'Background 2', color: '#374151', isBackground: true },
     position: { x: 250, y: 20 },
     size: { width: 200, height: 150 },
     layer: 'background',
   },
   // Main layer elements
-  'main-1': {
+  {
+    id: 'main-1',
+    type: 'element',
     data: { label: 'Main 1', color: PRIMARY },
     position: { x: 50, y: 50 },
     layer: 'main',
   },
-  'main-2': {
+  {
+    id: 'main-2',
+    type: 'element',
     data: { label: 'Main 2', color: PRIMARY },
     position: { x: 280, y: 50 },
     layer: 'main',
   },
-  // Foreground layer elements
-  'fg-1': {
+  // Foreground layer element
+  {
+    id: 'fg-1',
+    type: 'element',
     data: { label: 'Foreground', color: SECONDARY },
     position: { x: 100, y: 200 },
     layer: 'foreground',
   },
-};
-
-// Links assigned to layers
-const links: Record<string, LinkRecord> = {
-  'link-1': {
+  // Links assigned to layers
+  {
+    id: 'link-1',
+    type: 'link',
     source: { id: 'main-1' },
     target: { id: 'main-2' },
     style: { color: PRIMARY, className: 'fade-in' },
     layer: 'main',
   },
-  'link-2': {
+  {
+    id: 'link-2',
+    type: 'link',
     source: { id: 'main-2' },
     target: { id: 'fg-1' },
     style: { color: SECONDARY, className: 'fade-in' },
-    layer: 'foreground'
+    layer: 'foreground',
   },
-};
+];
 
 function BackgroundNode({ label, color }: Readonly<LayeredElementData>) {
-  const { width, height } = useElementSize();
+  const { width, height } = useElement(selectElementSize);
   return (
     <g className="fade-in">
       <rect
@@ -115,11 +126,11 @@ function ElementNode({ label, color }: Readonly<LayeredElementData>) {
   );
 }
 
-function RenderElement(props: Readonly<LayeredElementData>) {
-  if (props.isBackground) {
-    return <BackgroundNode {...props} />;
+function RenderElement(data: LayeredElementData) {
+  if (data.isBackground) {
+    return <BackgroundNode {...data} />;
   }
-  return <ElementNode {...props} />;
+  return <ElementNode {...data} />;
 }
 
 interface MainProps {
@@ -244,7 +255,7 @@ export default function App() {
   };
 
   return (
-    <GraphProvider graph={graph} initialElements={elements} initialLinks={links}>
+    <GraphProvider graph={graph} initialCells={initialCells}>
       <Main hiddenLayers={hiddenLayers} toggleLayer={toggleLayer} />
     </GraphProvider>
   );

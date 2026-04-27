@@ -120,7 +120,7 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
   };
 }
 
-export interface LinkRoutingSmoothOptions extends BaseLinkOptions {}
+export type LinkRoutingSmoothOptions = BaseLinkOptions;
 
 /**
  * Smooth curved links between elements.

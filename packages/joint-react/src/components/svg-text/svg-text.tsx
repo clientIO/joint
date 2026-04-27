@@ -1,9 +1,10 @@
 import { type dia, util, V, type Vectorizer } from '@joint/core';
-import React, { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
-import type { CellId } from '../../types/cell-id';
+import React, { forwardRef, useContext, useEffect, type SVGTextElementAttributes } from 'react';
+import type { CellId } from '../../types/cell.types';
 import { useCombinedRef } from '../../hooks/use-combined-ref';
 import { isNumber } from '../../utils/is';
-import { useElementId, useGraph } from '../../hooks';
+import { useGraph } from '../../hooks';
+import { CellIdContext } from '../../context';
 
 /** Options for resolving text wrap width. */
 interface BreakTextWidthOptions {
@@ -137,7 +138,11 @@ function Component(props: SVGTextProps, ref: React.ForwardedRef<SVGTextElement>)
   } = props;
 
   const textRef = useCombinedRef<SVGTextElement>(ref);
-  const cellId = useElementId();
+  const cellIdValue = useContext(CellIdContext);
+  if (cellIdValue === undefined) {
+    throw new Error('SVGText must be used inside renderElement');
+  }
+  const cellId = cellIdValue;
   const { graph } = useGraph();
   useEffect(() => {
     if (!textRef.current) {

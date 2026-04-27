@@ -1,35 +1,43 @@
 import { useCallback, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { ReadonlyContainer } from '../store/state-container';
+import type { CellId, WithId } from '../types/cell.types';
 
 /**
- * Internal hook: subscribe to container changes and return a stable array of IDs.
- * Only re-renders when the set of IDs changes (additions or removals).
- * Used by Paper to know which elements/links to render without subscribing to data changes.
+ * Internal hook: subscribe to container size changes and return a stable array of IDs.
+ * Re-renders only when the set of IDs changes (additions or removals).
  * @param container - The container to watch for size changes.
- * @returns A stable string array of IDs. Same reference when IDs haven't changed.
+ * @returns A stable array of cell IDs. Same reference when IDs haven't changed.
  * @internal
  */
-export function useContainerKeys(container: ReadonlyContainer<unknown>): string[] {
-  const previousKeysRef = useRef<string[]>([]);
+export function useContainerKeys<T extends WithId>(container: ReadonlyContainer<T>): CellId[] {
+  const previousKeysRef = useRef<CellId[]>([]);
 
   const subscribe = useCallback(
-    (onStoreChange: () => void) => container.subscribeToFull(onStoreChange),
+    (onStoreChange: () => void) => container.subscribeToSize(onStoreChange),
     [container]
   );
 
   const getSnapshot = useCallback(() => container.getVersion(), [container]);
 
   const select = useCallback(() => {
-    const currentKeys = [...container.getFull().keys()];
+    const items = container.getAll();
     const previous = previousKeysRef.current;
 
-    // Return same reference if IDs haven't changed
-    if (
-      previous.length === currentKeys.length &&
-      previous.every((key, index) => key === currentKeys[index])
-    ) {
-      return previous;
+    if (items.length === previous.length) {
+      let same = true;
+      for (const [index, item] of items.entries()) {
+        if (item.id !== previous[index]) {
+          same = false;
+          break;
+        }
+      }
+      if (same) return previous;
+    }
+
+    const currentKeys: CellId[] = Array.from({ length: items.length });
+    for (const [index, item] of items.entries()) {
+      currentKeys[index] = item.id;
     }
 
     previousKeysRef.current = currentKeys;

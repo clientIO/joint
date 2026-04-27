@@ -1,6 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { HTMLBox, GraphProvider, Paper, useElementId, type ElementRecord, type LinkRecord } from '@joint/react';
+import {
+  GraphProvider,
+  HTMLBox,
+  Paper,
+  useCellId,
+  type Cells,
+  type ElementRecord,
+} from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
@@ -11,30 +18,33 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': {
+const initialCells: Cells<NodeData> = [
+  {
+    id: '1',
+    type: 'element',
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 15 },
     size: { width: 100, height: 50 },
   },
-  '2': {
+  {
+    id: '2',
+    type: 'element',
     data: { label: 'Node 2', color: SECONDARY },
     position: { x: 100, y: 200 },
     size: { width: 100, height: 50 },
   },
-};
-
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+  {
+    id: 'e1-2',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     color: LIGHT,
   },
-};
+];
 
-function RenderElement({ color }: Readonly<NodeData>) {
-  const id = useElementId();
-  const { setElement } = useGraph<NodeData>();
+function RenderElement({ color }: NodeData) {
+  const id = useCellId();
+  const { setCell } = useGraph<NodeData>();
   return (
     <HTMLBox useModelGeometry
       style={{ backgroundColor: color }}
@@ -44,10 +54,14 @@ function RenderElement({ color }: Readonly<NodeData>) {
         className="nodrag"
         type="color"
         onChange={(event) => {
-          setElement(id, (previous) => ({
-            ...previous,
-            data: { ...(previous.data as unknown as NodeData), color: event.target.value },
-          }));
+          setCell((previous) => {
+            const previousElement = previous as ElementRecord<NodeData>;
+            return {
+              ...previousElement,
+              id,
+              data: { ...(previousElement.data ?? { label: '', color: '#ffffff' }), color: event.target.value },
+            } as ElementRecord<NodeData>;
+          });
         }}
         defaultValue={color}
       />
@@ -64,7 +78,7 @@ function Main() {
 
 export default function WithColor() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

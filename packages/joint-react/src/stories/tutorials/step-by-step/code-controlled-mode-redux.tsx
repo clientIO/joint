@@ -1,5 +1,3 @@
- 
-/* eslint-disable @typescript-eslint/no-dynamic-delete */
 /* eslint-disable @eslint-react/hooks-extra/no-direct-set-state-in-use-effect */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
@@ -7,10 +5,13 @@
 import {
   GraphProvider,
   HTMLHost,
-  type ElementRecord,
-  type LinkRecord,
   Paper,
-  type IncrementalContainerChanges,
+  type CellId,
+  type CellRecord,
+  type Cells,
+  type ElementRecord,
+  type IncrementalCellsChange,
+  type LinkRecord,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -33,13 +34,13 @@ import undoable, { ActionCreators } from 'redux-undo';
  * 4. **Undo/Redo**: Easy undo/redo using redux-undo library.
  *
  * ============================================================================
- * KEY CONCEPT: onIncrementalChange callback
+ * KEY CONCEPT: onIncrementalCellsChange callback
  * ============================================================================
  *
- * We use the `onIncrementalChange` callback on GraphProvider to receive granular
- * change notifications (added/changed/removed elements and links) from the
- * graph. This is ideal for Redux because we can dispatch specific actions
- * based on incremental change type, rather than replacing the entire state.
+ * We use the `onIncrementalCellsChange` callback on GraphProvider to receive
+ * granular change notifications (added/changed/removed cells) from the graph.
+ * This is ideal for Redux because we can dispatch one action that applies the
+ * incremental change set, rather than replacing the entire state.
  *
  * ============================================================================
  */
@@ -49,125 +50,121 @@ import undoable, { ActionCreators } from 'redux-undo';
 // ============================================================================
 
 /**
- * The shape of our graph state in Redux.
- * Contains elements and links records.
- * History is managed automatically by redux-undo.
- */
-/**
  * Custom element data with a label property.
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementRecord<ElementData>;
-
+/**
+ * Our Redux graph state stores a single unified cells array — elements and
+ * links live side by side, distinguished by the `type` field.
+ * History is managed automatically by redux-undo.
+ */
 interface GraphState {
-  /** Record of all elements (nodes) in the graph keyed by ID */
-  readonly elements: Record<string, CustomElement>;
-  /** Record of all links (edges) in the graph keyed by ID */
-  readonly links: Record<string, LinkRecord>;
+  readonly cells: Cells<ElementData>;
 }
 
 // ============================================================================
 // STEP 2: Create Redux Slice with Actions
 // ============================================================================
 
-/**
- * Initial elements for the graph.
- */
-const defaultElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'World' }, position: { x: 100, y: 200 } },
-};
-
-/**
- * Initial links for the graph.
- */
-const defaultLinks: Record<string, LinkRecord> = {
-  'e1-2': {
+const defaultCells: Cells<ElementData> = [
+  {
+    id: '1',
+    type: 'element',
+    data: { label: 'Hello' },
+    position: { x: 100, y: 15 },
+  },
+  {
+    id: '2',
+    type: 'element',
+    data: { label: 'World' },
+    position: { x: 100, y: 200 },
+  },
+  {
+    id: 'e1-2',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
 /**
  * Redux slice for managing graph state.
- * The `applyIncrementalChanges` action handles granular updates from `onIncrementalChange`.
- * Undo/redo functionality is handled automatically by redux-undo wrapper.
+ * The `applyIncrementalCellsChange` action handles granular updates from
+ * `onIncrementalCellsChange`. Undo/redo functionality is handled by the
+ * redux-undo wrapper.
  */
 const graphSlice = createSlice({
   name: 'graph',
   initialState: {
-    elements: defaultElements,
-    links: defaultLinks,
+    cells: defaultCells,
   } satisfies GraphState as GraphState,
   reducers: {
     /**
      * Adds a new element to the graph.
      */
-    addElement: (state, action: PayloadAction<{ id: string } & CustomElement>) => {
-      const { id, ...element } = action.payload;
-      state.elements[id] = element;
+    addElement: (state, action: PayloadAction<ElementRecord<ElementData>>) => {
+      state.cells = [...state.cells, action.payload];
     },
     /**
-     * Removes the last element from the graph.
-     * Also removes all links connected to that element.
+     * Removes the last element from the graph, and any links that touched it.
      */
     removeLastElement: (state) => {
-      const elementIds = Object.keys(state.elements);
-      if (elementIds.length === 0) {
-        return;
-      }
-      const removedElementId = elementIds.at(-1);
-      if (!removedElementId) {
-        return;
-      }
-      delete state.elements[removedElementId];
-      if (removedElementId) {
-        for (const [id, link] of Object.entries(state.links)) {
-          if (link.source?.id === removedElementId || link.target?.id === removedElementId) {
-            delete state.links[id];
-          }
+      let removedElementIndex = -1;
+      for (let index = state.cells.length - 1; index >= 0; index--) {
+        if (state.cells[index].type === 'element') {
+          removedElementIndex = index;
+          break;
         }
       }
+      if (removedElementIndex === -1) return;
+
+      const removedElementId = state.cells[removedElementIndex].id;
+      state.cells = state.cells.filter((cell, index) => {
+        if (index === removedElementIndex) return false;
+        if (cell.type === 'link') {
+          const link = cell as LinkRecord;
+          if (link.source?.id === removedElementId || link.target?.id === removedElementId) {
+            return false;
+          }
+        }
+        return true;
+      });
     },
     /**
-     * Applies granular incremental changes from the graph's onIncrementalChange callback.
-     * This handles add/change/remove/reset for both elements and links.
+     * Applies granular incremental changes from the graph's
+     * `onIncrementalCellsChange` callback. Handles add/change/remove for
+     * any cell type.
      */
-    applyIncrementalChanges: (
+    applyIncrementalCellsChange: (
       state,
-      action: PayloadAction<IncrementalContainerChanges<ElementData>>
+      action: PayloadAction<IncrementalCellsChange<ElementData>>
     ) => {
-      const { elements, links } = action.payload;
+      const { added, changed, removed } = action.payload;
 
-      // Handle element incremental changes
-      for (const [id, data] of elements.added) {
-        state.elements[id] = data as unknown as CustomElement;
-      }
-      for (const [id, data] of elements.changed) {
-        state.elements[id] = data as unknown as CustomElement;
-      }
-      for (const id of elements.removed) {
-        delete state.elements[id];
+      const byId = new Map<CellId, CellRecord<ElementData>>();
+      for (const cell of state.cells) {
+        byId.set(cell.id, cell as CellRecord<ElementData>);
       }
 
-      // Handle link incremental changes
-      for (const [id, data] of links.added) {
-        state.links[id] = data as LinkRecord;
+      for (const [id, cell] of added) {
+        byId.set(id, cell as CellRecord<ElementData>);
       }
-      for (const [id, data] of links.changed) {
-        state.links[id] = data as LinkRecord;
+      for (const [id, cell] of changed) {
+        byId.set(id, cell as CellRecord<ElementData>);
       }
-      for (const id of links.removed) {
-        delete state.links[id];
+      for (const id of removed) {
+        byId.delete(id);
       }
+
+      state.cells = [...byId.values()];
     },
   },
 });
 
 // Export actions for use in components
-export const { addElement, removeLastElement, applyIncrementalChanges } = graphSlice.actions;
+export const { addElement, removeLastElement, applyIncrementalCellsChange } = graphSlice.actions;
 
 // Export undo/redo actions from redux-undo
 export const undo = () => ActionCreators.undo();
@@ -177,10 +174,6 @@ export const redo = () => ActionCreators.redo();
 // STEP 3: Create Redux Store
 // ============================================================================
 
-/**
- * Creates a Redux store configured for the graph.
- * The graph reducer is wrapped with redux-undo for undo/redo support.
- */
 const store = configureStore({
   reducer: {
     graph: undoable(graphSlice.reducer, {
@@ -207,10 +200,7 @@ type UndoableGraphState = {
 // STEP 4: Selectors
 // ============================================================================
 
-const selectElements = (state: GraphRootState) =>
-  (state.graph as UndoableGraphState).present.elements;
-
-const selectLinks = (state: GraphRootState) => (state.graph as UndoableGraphState).present.links;
+const selectCells = (state: GraphRootState) => (state.graph as UndoableGraphState).present.cells;
 
 // ============================================================================
 // STEP 5: Component Implementation
@@ -219,40 +209,39 @@ const selectLinks = (state: GraphRootState) => (state.graph as UndoableGraphStat
 /**
  * Custom render function for graph elements.
  */
-function RenderItem({ label }: Readonly<ElementData>) {
+const NODE_STYLE = { width: 100, height: 50 };
+
+function RenderItem({ label }: ElementData) {
   return (
-    <HTMLHost className="node" style={{ width: 100, height: 50 }}>
+    <HTMLHost className="node" style={NODE_STYLE}>
       {label}
     </HTMLHost>
   );
 }
 
 /**
- * Inner component that reads elements/links from Redux and passes them
- * to GraphProvider with onIncrementalChange callback.
- * This must be inside a Redux Provider to access the store.
+ * Inner component that reads cells from Redux and passes them to
+ * GraphProvider with the `onIncrementalCellsChange` callback. Must be
+ * inside a Redux Provider to access the store.
  */
 function GraphWithRedux() {
-  const elements = useSelector(selectElements);
-  const links = useSelector(selectLinks);
+  const cells = useSelector(selectCells);
   const reduxStore = useStore<GraphRootState>();
   const { dispatch } = reduxStore;
 
-  // onIncrementalChange receives granular change info (added/changed/removed/reset)
-  // and dispatches a single Redux action with the full incremental change payload.
-  const handleIncrementalChange = useCallback(
-    (changes: IncrementalContainerChanges<ElementData>) => {
-      dispatch(applyIncrementalChanges(changes));
+  // onIncrementalCellsChange receives granular change info and dispatches a
+  // single Redux action with the full incremental payload.
+  const handleIncrementalCellsChange = useCallback(
+    (changes: IncrementalCellsChange<ElementData>) => {
+      dispatch(applyIncrementalCellsChange(changes));
     },
     [dispatch]
   );
 
   return (
     <GraphProvider<ElementData>
-      elements={elements}
-      links={links}
-      enableBatchUpdates
-      onIncrementalChange={handleIncrementalChange}
+      cells={cells}
+      onIncrementalCellsChange={handleIncrementalCellsChange}
     >
       <ReduxConnectedPaperApp />
     </GraphProvider>
@@ -319,11 +308,13 @@ function ReduxConnectedPaperApp() {
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
           onClick={() => {
             const newId = Math.random().toString(36).slice(7);
-            const newElement: CustomElement = {
+            const newElement: ElementRecord<ElementData> = {
+              id: newId,
+              type: 'element',
               data: { label: 'New Node' },
               position: { x: Math.random() * 200, y: Math.random() * 200 },
             };
-            dispatch(addElement({ id: newId, ...newElement }));
+            dispatch(addElement(newElement));
           }}
         >
           Add Element
@@ -369,17 +360,18 @@ function ReduxConnectedPaperApp() {
  *
  * To use Redux with `@joint/react`:
  *
- * 1. Create a Redux slice for your graph state (elements and links)
- * 2. Add an `applyIncrementalChanges` action to handle granular graph changes
- * 3. Wrap your app with Redux Provider
- * 4. Use `useSelector` to read elements/links from Redux
- * 5. Pass elements/links as props with `onIncrementalChange` callback
- * 6. Dispatch Redux actions to update the graph state
+ * 1. Create a Redux slice holding a single unified `cells` array.
+ * 2. Add an `applyIncrementalCellsChange` action to handle granular graph
+ *    changes from the `onIncrementalCellsChange` callback.
+ * 3. Wrap your app with Redux Provider.
+ * 4. Use `useSelector` to read cells from Redux.
+ * 5. Pass `cells` as a prop with `onIncrementalCellsChange` callback.
+ * 6. Dispatch Redux actions to update the graph state.
  *
  * Benefits:
- * - All graph state is in Redux, making it easy to integrate with other features
+ * - All graph state is in Redux, easy to integrate with other features
  * - Redux DevTools for debugging and time-travel
- * - Granular incremental changes via `onIncrementalChange` (added/changed/removed)
+ * - Granular incremental changes via `onIncrementalCellsChange`
  * - Easy undo/redo using redux-undo library
  * - Easy to add middleware (persistence, etc.)
  *

@@ -6,8 +6,7 @@ import {
   jsx,
   Paper,
   usePaperEvents,
-  type ElementRecord,
-  type LinkRecord,
+  type Cells,
 } from '@joint/react';
 import { useId } from 'react';
 import { PRIMARY, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -21,17 +20,24 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 10 }, size: { width: 120, height: 30 } },
-  '2': {
+const initialCells: Cells<NodeData> = [
+  {
+    id: '1',
+    type: 'element',
+    data: { label: 'Node 1' },
+    position: { x: 100, y: 10 },
+    size: { width: 120, height: 30 },
+  },
+  {
+    id: '2',
+    type: 'element',
     data: { label: 'Node 2' },
     position: { x: 300, y: 200 },
     size: { width: 120, height: 30 },
   },
-};
-
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+  {
+    id: 'e1-2',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     vertices: [{ x: 340, y: 100 }],
@@ -39,9 +45,9 @@ const initialEdges: Record<string, LinkRecord> = {
       targetMarker: 'arrow-sunken',
       color: PRIMARY,
       dasharray: '5 5',
-    }
+    },
   },
-};
+];
 
 // 1) creating link tools
 const verticesTool = new linkTools.Vertices({
@@ -121,7 +127,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

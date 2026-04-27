@@ -1,42 +1,48 @@
 import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
-import type { ElementRecord, LinkRecord } from '../types/data-types';
-import { mapElementToAttributes, mapLinkToAttributes } from '../state/data-mapping';
+import type { CellId, Cells } from '../types/cell.types';
+import { mapCellToAttributes } from '../state/data-mapping';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
 
+/**
+ * Options for applying a React-driven cells snapshot to the graph.
+ *
+ * A single unified `cells` stream replaces the earlier `elements` / `links`
+ * split. Each record is routed internally by `type`:
+ *  - `ELEMENT_MODEL_TYPE` → mapped via the element mapper
+ *  - `LINK_MODEL_TYPE` → mapped via the link mapper
+ *  - anything else → passed through as raw attributes
+ */
 export interface UpdateGraphOptions<
   ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
 > {
-  /** Element records to sync. If omitted, existing element cells are preserved untouched. */
-  readonly elements?: Record<string, ElementRecord<ElementData>>;
-  /** Link records to sync. If omitted, existing link cells are preserved untouched. */
-  readonly links?: Record<string, LinkRecord<LinkData>>;
+  /** Cell records to sync. If omitted, the current graph cells are preserved untouched. */
+  readonly cells?: Cells<ElementData, LinkData>;
   readonly flag?: 'updateFromReact';
 }
 
 /**
  * Ids of the cells that were synced to the graph during an `updateGraph` call.
- * Returned so callers can iterate them once instead of re-walking the user record.
+ * Returned so callers can iterate them once instead of re-walking the user input.
  */
 export interface UpdateGraphResult {
-  /** Empty when the corresponding stream was omitted from the update. */
-  readonly elementIds: readonly string[];
-  /** Empty when the corresponding stream was omitted from the update. */
-  readonly linkIds: readonly string[];
+  /** Empty when no `cells` were provided in the update. */
+  readonly cellIds: readonly CellId[];
 }
 
 interface OnChangeOptions {
-  readonly changes: Map<string, IncrementalChange<dia.Cell>>;
+  readonly changes: Map<CellId, IncrementalChange<dia.Cell>>;
   readonly isInsideBatch: boolean;
 }
+
 interface Options {
   readonly graph: dia.Graph;
   readonly onChanges: (options: OnChangeOptions) => void;
-  readonly onElementsSizeChange?: (id: string, size: { width: number; height: number }) => void;
+  readonly onElementsSizeChange?: (id: CellId, size: { width: number; height: number }) => void;
 }
 
 interface JointJSEventOptions {
@@ -52,7 +58,7 @@ interface JointJSEventOptions {
  */
 export function graphChanges(options: Options) {
   const { graph, onElementsSizeChange } = options;
-  const changes = new Map<string, IncrementalChange<dia.Cell>>();
+  const changes = new Map<CellId, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
   let isSyncedWithReact = true;
@@ -81,7 +87,7 @@ export function graphChanges(options: Options) {
    * @param type - Kind of change.
    */
   function onCellEvent(cell: dia.Cell, type: 'change' | 'add' | 'remove') {
-    changes.set(String(cell.id), { type, data: cell });
+    changes.set(cell.id, { type, data: cell });
     onChanges({ changes, isInsideBatch: isInsideBatch() });
   }
 
@@ -105,7 +111,7 @@ export function graphChanges(options: Options) {
     ) => {
       if (cell.isElement() && onElementsSizeChange) {
         const size = cell.size();
-        onElementsSizeChange(String(cell.id), size);
+        onElementsSizeChange(cell.id, size);
       }
       if (isUpdateFromReact) return;
       onCellEvent(cell, 'add');
@@ -132,7 +138,7 @@ export function graphChanges(options: Options) {
       changes.clear();
       const cells = collection.models;
       for (const cell of cells) {
-        changes.set(String(cell.id), { type: 'add', data: cell });
+        changes.set(cell.id, { type: 'add', data: cell });
       }
       onChanges({ changes, isInsideBatch: isInsideBatch() });
     }
@@ -147,8 +153,7 @@ export function graphChanges(options: Options) {
     'change:size',
     (cell: dia.Cell, newSize: { width: number; height: number }) => {
       if (!onElementsSizeChange) return;
-      const id = String(cell.id);
-      onElementsSizeChange(id, newSize);
+      onElementsSizeChange(cell.id, newSize);
     }
   );
 
@@ -173,41 +178,21 @@ export function graphChanges(options: Options) {
       ElementData extends object = Record<string, unknown>,
       LinkData extends object = Record<string, unknown>,
     >(update: UpdateGraphOptions<ElementData, LinkData>): UpdateGraphResult {
-      const { elements, links, flag } = update;
+      const { cells, flag } = update;
       if (!isSyncedWithReact) {
         isSyncedWithReact = true;
-        return { elementIds: [], linkIds: [] };
+        return { cellIds: [] };
+      }
+      if (!cells) {
+        return { cellIds: [] };
       }
 
-      const elementIds: string[] = [];
-      const linkIds: string[] = [];
+      const cellIds: CellId[] = [];
       const cellsToSync: dia.Cell.JSON[] = [];
 
-      if (elements) {
-        for (const [id, element] of Object.entries(elements)) {
-          const cellAttributes = mapElementToAttributes(element);
-          cellAttributes.id = id;
-          elementIds.push(id);
-          cellsToSync.push(cellAttributes as dia.Cell.JSON);
-        }
-      } else {
-        // Preserve untouched element cells by re-emitting their current JSON.
-        for (const cell of graph.getElements()) {
-          cellsToSync.push(cell.toJSON());
-        }
-      }
-
-      if (links) {
-        for (const [id, link] of Object.entries(links)) {
-          const cellAttributes = mapLinkToAttributes(link);
-          cellAttributes.id = id;
-          linkIds.push(id);
-          cellsToSync.push(cellAttributes as dia.Cell.JSON);
-        }
-      } else {
-        for (const cell of graph.getLinks()) {
-          cellsToSync.push(cell.toJSON());
-        }
+      for (const cell of cells) {
+        cellIds.push(cell.id);
+        cellsToSync.push(mapCellToAttributes(cell, graph));
       }
 
       graph.startBatch('updateFromReact');
@@ -217,7 +202,7 @@ export function graphChanges(options: Options) {
       });
       graph.stopBatch('updateFromReact');
 
-      return { elementIds, linkIds };
+      return { cellIds };
     },
   };
 }

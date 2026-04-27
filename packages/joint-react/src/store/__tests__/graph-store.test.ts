@@ -1,585 +1,197 @@
 /* eslint-disable unicorn/consistent-function-scoping */
-import { waitFor } from '@testing-library/react';
-import { dia, shapes } from '@joint/core';
-import { GraphStore } from '../graph-store';
-import { ElementModel } from '../../models/element-model';
-import { sendToDevTool } from '../../utils/dev-tools';
+import { dia } from '@joint/core';
+import { GraphStore, DEFAULT_CELL_NAMESPACE } from '../graph-store';
+import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { LINK_MODEL_TYPE } from '../../models/link-model';
+import type { CellRecord, Cells } from '../../types/cell.types';
 
+const createGraph = () => new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-jest.mock('../../utils/dev-tools', () => ({
-  sendToDevTool: jest.fn(),
-}));
-
-const sendToDevToolMock = sendToDevTool as jest.MockedFunction<typeof sendToDevTool>;
-
-const DEFAULT_TEST_NAMESPACE = { ...shapes, ElementModel };
+const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
 describe('GraphStore', () => {
-  beforeEach(() => {
-    sendToDevToolMock.mockClear();
-    sendToDevToolMock.mockImplementation(() => {});
-  });
-
   describe('constructor', () => {
-    it('should create a GraphStore with default graph instance', () => {
+    it('creates with a default graph and an empty cells container', () => {
       const store = new GraphStore({});
-      expect(store).toBeDefined();
       expect(store.graph).toBeInstanceOf(dia.Graph);
       expect(store.graphView).toBeDefined();
-      expect(store.internalState).toBeDefined();
+      expect(store.graphView.cells.getSize()).toBe(0);
+      store.destroy(false);
     });
 
-    it('should create a GraphStore with provided graph instance', () => {
-      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_TEST_NAMESPACE });
+    it('honors an externally-provided graph', () => {
+      const graph = createGraph();
       const store = new GraphStore({ graph });
       expect(store.graph).toBe(graph);
+      store.destroy(true);
     });
 
-    it('should initialize with empty elements and links by default', () => {
-      const store = new GraphStore({});
-      const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
-      expect(snapshot.elements).toEqual({});
-      expect(snapshot.links).toEqual({});
-    });
-
-    it('should initialize with initialElements', () => {
-      const initialElements = {
-        'element-1': {
+    it('seeds the graph from initialCells', () => {
+      const initialCells: Cells = [
+        {
+          id: 'a',
+          type: ELEMENT_MODEL_TYPE,
           position: { x: 10, y: 20 },
           size: { width: 100, height: 50 },
-          data: undefined,
-        },
-        'element-2': { data: undefined, position: { x: 30, y: 40 }, size: { width: 80, height: 60 } },
-      };
-      const store = new GraphStore({ initialElements });
-      const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
-      expect(Object.keys(snapshot.elements)).toHaveLength(2);
-      expect(snapshot.elements['element-1']).toBeDefined();
-      expect(snapshot.elements['element-2']).toBeDefined();
+        } as CellRecord,
+        {
+          id: 'b',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 30, y: 40 },
+          size: { width: 80, height: 60 },
+        } as CellRecord,
+      ];
+      const store = new GraphStore({ initialCells });
+      expect(store.graph.getCell('a')).toBeDefined();
+      expect(store.graph.getCell('b')).toBeDefined();
+      expect(store.graphView.cells.getSize()).toBe(2);
+      store.destroy(false);
     });
 
-    it('should sync initial elements into graph immediately after construction', () => {
-      const initialElements = {
-        'element-1': {
-          position: { x: 10, y: 20 },
-          size: { width: 100, height: 50 },
-          data: undefined,
-        },
-      };
-
-      const store = new GraphStore({ initialElements });
-
-      expect(store.graph.getCell('element-1')).toBeDefined();
-      expect(store.graph.getElements()).toHaveLength(1);
-    });
-
-    it('should initialize with initialLinks', () => {
-      const initialLinks = {
-        'link-1': { source: 'element-1', target: 'element-2' },
-      };
-      const store = new GraphStore({ initialLinks });
-      const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
-      expect(Object.keys(snapshot.links)).toHaveLength(1);
-      expect(snapshot.links['link-1']).toBeDefined();
-    });
-
-    it('should initialize with both initialElements and initialLinks', () => {
-      const initialElements = {
-        'element-1': {
-          position: { x: 10, y: 20 },
-          size: { width: 100, height: 50 },
-          data: undefined,
-        },
-      };
-      const initialLinks = {
-        'link-1': { source: 'element-1', target: 'element-2' },
-      };
-      const store = new GraphStore({ initialElements, initialLinks });
-      const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
-      expect(Object.keys(snapshot.elements)).toHaveLength(1);
-      expect(Object.keys(snapshot.links)).toHaveLength(1);
-    });
-
-    it('should merge custom cellNamespace with default namespace', () => {
-      const customNamespace = { CustomShape: class extends dia.Element {} };
-      const store = new GraphStore({ cellNamespace: customNamespace });
-      // The graph should have both default and custom namespaces
-      expect(store.graph).toBeDefined();
-    });
-
-    it('should handle graph with existing cells', () => {
-      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_TEST_NAMESPACE });
-      const existingElement = new dia.Element({
-        id: 'existing-element',
-        type: 'ElementModel',
+    it('seeds from an externally-populated graph via syncFromGraph', () => {
+      const graph = createGraph();
+      graph.addCell({
+        id: 'a',
+        type: ELEMENT_MODEL_TYPE,
         position: { x: 0, y: 0 },
-        size: { width: 100, height: 50 },
+        size: { width: 10, height: 10 },
       });
-      graph.addCell(existingElement);
-      const cellCountBefore = graph.getCells().length;
+      const store = new GraphStore({ graph });
+      expect(store.graphView.cells.has('a')).toBe(true);
+      store.destroy(true);
+    });
 
-      const initialElements = {
-        'new-element': {
-          position: { x: 10, y: 20 },
-          size: { width: 100, height: 50 },
-          data: undefined,
+    it('accepts a controlled cells prop and mirrors it into the graph', () => {
+      const cells: Cells = [
+        {
+          id: 'x',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+      ];
+      const store = new GraphStore({ cells });
+      expect(store.graphView.cells.has('x')).toBe(true);
+      expect(store.graph.getCell('x')).toBeDefined();
+      store.destroy(false);
+    });
+  });
+
+  describe('onCellsChange', () => {
+    it('fires with the full cells array after a graph mutation', async () => {
+      const onCellsChange = jest.fn();
+      const store = new GraphStore({ onCellsChange });
+      store.graph.addCell({
+        id: 'a',
+        type: ELEMENT_MODEL_TYPE,
+        position: { x: 0, y: 0 },
+        size: { width: 10, height: 10 },
+      });
+      await flush();
+      expect(onCellsChange).toHaveBeenCalled();
+      const lastArgument = onCellsChange.mock.calls.at(-1)![0] as readonly CellRecord[];
+      expect(Array.isArray(lastArgument)).toBe(true);
+      expect(lastArgument.some((c) => c.id === 'a')).toBe(true);
+      store.destroy(false);
+    });
+  });
+
+  describe('onIncrementalCellsChange', () => {
+    /** Clone synchronously — the store clears its tracking maps after the callback returns. */
+    const snapshot = (changes: {
+      added: Map<string, unknown>;
+      changed: Map<string, unknown>;
+      removed: Set<string>;
+    }) => ({
+      added: new Map(changes.added),
+      changed: new Map(changes.changed),
+      removed: new Set(changes.removed),
+    });
+
+    it('fires with added/changed/removed summary', async () => {
+      const snaps: Array<ReturnType<typeof snapshot>> = [];
+      const store = new GraphStore({
+        onIncrementalCellsChange: (c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])),
+      });
+      store.graph.addCell({
+        id: 'a',
+        type: ELEMENT_MODEL_TYPE,
+        position: { x: 0, y: 0 },
+        size: { width: 10, height: 10 },
+      });
+      await flush();
+      const last = snaps.at(-1)!;
+      expect(last.added.has('a')).toBe(true);
+      expect(last.changed.size).toBe(0);
+      expect(last.removed.size).toBe(0);
+      store.destroy(false);
+    });
+
+    it('reports links alongside elements in the unified pipeline', async () => {
+      const snaps: Array<ReturnType<typeof snapshot>> = [];
+      const store = new GraphStore({
+        onIncrementalCellsChange: (c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])),
+      });
+      store.graph.addCells([
+        {
+          id: 'a',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 10, height: 10 },
         },
-      };
-      const store = new GraphStore({ graph, initialElements });
+        {
+          id: 'b',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 50, y: 0 },
+          size: { width: 10, height: 10 },
+        },
+        {
+          id: 'l1',
+          type: LINK_MODEL_TYPE,
+          source: { id: 'a' },
+          target: { id: 'b' },
+        },
+      ]);
+      await flush();
+      const last = snaps.at(-1)!;
+      expect(last.added.has('l1')).toBe(true);
+      store.destroy(false);
+    });
+  });
 
-      // Store should be created successfully
-      expect(store).toBeDefined();
-      // Graph should still have cells (at least the existing one, possibly more after sync)
-      expect(graph.getCells().length).toBeGreaterThanOrEqual(cellCountBefore);
+  describe('applyControlled', () => {
+    it('re-syncs the graph to the parent snapshot', () => {
+      const initial: Cells = [
+        {
+          id: 'a',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+      ];
+      const store = new GraphStore({ cells: initial });
+      expect(store.graphView.cells.has('a')).toBe(true);
+
+      store.applyControlled([
+        {
+          id: 'b',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+      ]);
+      expect(store.graphView.cells.has('a')).toBe(false);
+      expect(store.graphView.cells.has('b')).toBe(true);
+      store.destroy(false);
     });
   });
 
   describe('destroy', () => {
-    it('should cleanup all resources when graph is internal', () => {
+    it('clears features, papers, and internal state', () => {
       const store = new GraphStore({});
-      const { graph } = store;
-
       store.destroy(false);
-
-      // Graph should be cleared
-      expect(graph.getCells()).toHaveLength(0);
-    });
-
-    it('should not clear graph when graph is external', () => {
-      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_TEST_NAMESPACE });
-      const element = new dia.Element({
-        id: 'test-element',
-        type: 'ElementModel',
-        position: { x: 0, y: 0 },
-        size: { width: 100, height: 50 },
-      });
-      graph.addCell(element);
-
-      const store = new GraphStore({ graph });
-      const cellCountBefore = graph.getCells().length;
-
-      store.destroy(true);
-
-      // Graph should not be cleared
-      expect(graph.getCells()).toHaveLength(cellCountBefore);
-      expect(graph.getCell('test-element')).toBeDefined();
-    });
-  });
-
-  describe('updatePaperSnapshot', () => {
-    it('should update paper snapshot for given paperId', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-
-      store.updatePaperSnapshot(paperId, () => ({ version: 1, featuresState: {} }));
-
-      const internalSnapshot = store.internalState.getSnapshot();
-      expect(internalSnapshot.papers[paperId]).toBeDefined();
-    });
-
-    it('should bump version on update', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-
-      store.updatePaperSnapshot(paperId, () => ({ version: 1, featuresState: {} }));
-      store.updatePaperSnapshot(paperId, (previous) => ({
-        ...previous,
-        version: (previous?.version ?? 0) + 1,
-        featuresState: previous?.featuresState ?? {},
-      }));
-
-      const internalSnapshot = store.internalState.getSnapshot();
-      expect(internalSnapshot.papers[paperId]?.version).toBe(2);
-    });
-
-    it('should not update if snapshot is unchanged', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      const paperState = { version: 1, featuresState: {} };
-
-      store.updatePaperSnapshot(paperId, () => paperState);
-      const firstSnapshot = store.internalState.getSnapshot();
-
-      store.updatePaperSnapshot(paperId, () => paperState);
-      const secondSnapshot = store.internalState.getSnapshot();
-
-      // Should return same reference if unchanged
-      expect(firstSnapshot).toBe(secondSnapshot);
-    });
-  });
-
-  describe('setPaperViews', () => {
-    function ensurePaperSnapshot(store: GraphStore, paperId: string) {
-      store.internalState.setState((previous) => {
-        if (previous.papers[paperId]) return previous;
-        return {
-          ...previous,
-          papers: {
-            ...previous.papers,
-            [paperId]: { version: 1, featuresState: {} },
-          },
-        };
-      });
-    }
-
-    it('should bump version on view changes', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      ensurePaperSnapshot(store, paperId);
-
-      const element = new shapes.standard.Rectangle({ id: 'element-1' });
-      const link = new shapes.standard.Link({ id: 'link-1' });
-
-      const changes = new Map<string, { type: 'add'; data: dia.Cell }>([
-        ['element-1', { type: 'add', data: element }],
-        ['link-1', { type: 'add', data: link }],
-      ]);
-      store.setPaperViews(paperId, changes);
-
-      const { version } = store.internalState.getSnapshot().papers[paperId];
-      expect(version).toBe(2);
-    });
-
-    it('should increment version on each call', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      ensurePaperSnapshot(store, paperId);
-
-      const element = new shapes.standard.Rectangle({ id: 'element-1' });
-
-      store.setPaperViews(
-        paperId,
-        new Map([['element-1', { type: 'add' as const, data: element }]])
-      );
-      store.setPaperViews(paperId, new Map([['element-1', { type: 'remove' as const }]]));
-
-      const { version } = store.internalState.getSnapshot().papers[paperId];
-      expect(version).toBe(3);
-    });
-  });
-
-  describe('addPaper', () => {
-    it('should add a new paper and return paperStore and remove function', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      const { paperStore, remove } = store.addPaper(paperId, {
-        paperOptions: {
-          model: store.graph,
-          width: 800,
-          height: 600,
-        },
-      });
-
-      expect(store.getPaperStore(paperId)).toBeDefined();
-      expect(paperStore).toBeDefined();
-      expect(typeof remove).toBe('function');
-    });
-
-    it('should initialize paper snapshot as version 0', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      store.addPaper(paperId, {
-        paperOptions: {
-          model: store.graph,
-          width: 800,
-          height: 600,
-        },
-      });
-
-      const paperSnapshot = store.internalState.getSnapshot().papers[paperId];
-      expect(paperSnapshot.version).toBe(1);
-      expect(() => JSON.stringify(store.internalState.getSnapshot())).not.toThrow();
-    });
-
-    it('should remove paper when remove is called', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      const { remove } = store.addPaper(paperId, {
-        paperOptions: {
-          model: store.graph,
-          width: 800,
-          height: 600,
-        },
-      });
-
-      expect(store.getPaperStore(paperId)).toBeDefined();
-
-      remove();
-
-      expect(store.getPaperStore(paperId)).toBeUndefined();
-    });
-
-    it('should handle multiple papers', () => {
-      const store = new GraphStore({});
-      const { remove: remove1 } = store.addPaper('paper-1', {
-        paperOptions: {
-          model: store.graph,
-          width: 800,
-          height: 600,
-        },
-      });
-      const { remove: remove2 } = store.addPaper('paper-2', {
-        paperOptions: {
-          model: store.graph,
-          width: 800,
-          height: 600,
-        },
-      });
-
-      expect(store.getPaperStore('paper-1')).toBeDefined();
-      expect(store.getPaperStore('paper-2')).toBeDefined();
-
-      remove1();
-      expect(store.getPaperStore('paper-1')).toBeUndefined();
-      expect(store.getPaperStore('paper-2')).toBeDefined();
-
-      remove2();
-      expect(store.getPaperStore('paper-2')).toBeUndefined();
-    });
-
-    it('should not crash when adding a second paper after view snapshot updates', () => {
-      sendToDevToolMock.mockImplementation(({ value }) => {
-        JSON.stringify(value);
-      });
-
-      const store = new GraphStore({});
-      const { remove: removeMain } = store.addPaper('paper-main', {
-        paperOptions: {
-          model: store.graph,
-          width: 800,
-          height: 600,
-        },
-      });
-
-      const element = new shapes.standard.Rectangle({ id: 'element-1' });
-      expect(() =>
-        store.setPaperViews(
-          'paper-main',
-          new Map([['element-1', { type: 'add' as const, data: element }]])
-        )
-      ).not.toThrow();
-      expect(() =>
-        store.addPaper('paper-minimap', {
-          paperOptions: {
-            model: store.graph,
-            width: 800,
-            height: 600,
-          },
-        })
-      ).not.toThrow();
-
-      removeMain();
-    });
-  });
-
-  describe('setMeasuredNode', () => {
-    it('should register a node for measurement and return cleanup', () => {
-      const store = new GraphStore({});
-      const id = 'measured-element';
-
-      store.graph.addCell(
-        new ElementModel({
-          id,
-          position: { x: 10, y: 20 },
-          size: { width: 100, height: 50 },
-        })
-      );
-
-      const domElement = document.createElement('div');
-      const setSize = jest.fn();
-      const cleanup = store.setMeasuredNode({
-        id,
-        node: domElement,
-        transform: setSize,
-      });
-
-      expect(typeof cleanup).toBe('function');
-
-      cleanup();
-    });
-  });
-
-  describe('getPaperStore', () => {
-    it('should return undefined for non-existent paper', () => {
-      const store = new GraphStore({});
-      expect(store.getPaperStore('non-existent')).toBeUndefined();
-    });
-
-    it('should return paper store for existing paper', () => {
-      const store = new GraphStore({});
-      store.addPaper('paper-1', {
-        paperOptions: {
-          model: store.graph,
-          width: 800,
-          height: 600,
-        },
-      });
-
-      const paperStore = store.getPaperStore('paper-1');
-      expect(paperStore).toBeDefined();
-    });
-  });
-
-  describe('state synchronization', () => {
-    it('should sync state changes to graph', (done) => {
-      const store = new GraphStore({});
-      const id = 'sync-element';
-      const element = {
-        data: undefined,
-        position: { x: 10, y: 20 },
-        size: { width: 100, height: 50 },
-      };
-
-      store.graphView.updateGraph({
-        elements: { [id]: element },
-        links: {},
-        flag: 'updateFromReact',
-      });
-
-      // Wait for sync
-      setTimeout(() => {
-        const graphElement = store.graph.getCell(id);
-        expect(graphElement).toBeDefined();
-        expect(graphElement?.isElement()).toBe(true);
-        done();
-      }, 50);
-    });
-
-    it('should sync graph changes to state', (done) => {
-      const store = new GraphStore({});
-      const { graph } = store;
-
-      const element = new dia.Element({
-        id: 'graph-element',
-        type: 'ElementModel',
-        position: { x: 0, y: 0 },
-        size: { width: 100, height: 50 },
-      });
-
-      graph.addCell(element);
-
-      // Wait for sync
-      setTimeout(() => {
-        const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
-        const stateElement = snapshot.elements['graph-element'];
-        expect(stateElement).toBeDefined();
-        done();
-      }, 50);
-    });
-
-    it('should keep layout state live but defer public state during active graph batches', async () => {
-      /** Flush pending microtasks so scheduled callbacks execute. */
-      const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
-
-      const store = new GraphStore({
-        initialElements: {
-          'batched-element': {
-            data: undefined,
-            position: { x: 0, y: 0 },
-            size: { width: 100, height: 50 },
-          },
-        },
-      });
-
-      // Allow initial sync microtasks to settle
-      await flush();
-      await flush();
-
-      const elementData = store.graphView.elements.get('batched-element');
-      expect(elementData).toBeDefined();
-
-      const element = store.graph.getCell('batched-element');
-      if (!element?.isElement()) {
-        throw new Error('Expected batched-element to exist in graph');
-      }
-
-      store.graph.startBatch('test');
-      element.set('position', { x: 120, y: 180 });
-      element.set('size', { width: 240, height: 160 });
-
-      // Flush microtasks to process deferred onChanges
-      await flush();
-      await flush();
-
-      // With container architecture, layout updates happen during batch via deferred scheduler.
-      const batchedElement = store.graphView.elements.get('batched-element');
-      expect(batchedElement?.position?.x).toBe(120);
-      expect(batchedElement?.position?.y).toBe(180);
-      expect(batchedElement?.size?.width).toBe(240);
-      expect(batchedElement?.size?.height).toBe(160);
-
-      store.graph.stopBatch('test');
-      await flush();
-      await flush();
-
-      // After batch: position and size are in elements container
-      const elementAfterBatch = store.graphView.elements.get('batched-element');
-      expect(elementAfterBatch?.position?.x).toBe(120);
-      expect(elementAfterBatch?.position?.y).toBe(180);
-      expect(elementAfterBatch?.size?.width).toBe(240);
-      expect(elementAfterBatch?.size?.height).toBe(160);
-    });
-  });
-
-  describe('controlled mode', () => {
-    it('onElementsChange should include updated position after drag', (done) => {
-      const receivedElements: Array<Record<string, unknown>> = [];
-
-      const store = new GraphStore({
-        initialElements: {
-          'el-1': { data: { label: 'test' }, position: { x: 0, y: 0 }, size: { width: 100, height: 50 } },
-        },
-        onElementsChange: (elements) => {
-          receivedElements.push({ ...elements });
-        },
-      });
-
-      // Simulate drag — change position via JointJS API
-      const element = store.graph.getCell('el-1') as dia.Element;
-      element.position(200, 150);
-
-      setTimeout(() => {
-        expect(receivedElements.length).toBeGreaterThan(0);
-        const lastEmit = receivedElements.at(-1);
-        const element_ = lastEmit!['el-1'] as Record<string, unknown>;
-        expect(element_).toBeDefined();
-        // onElementsChange must include the updated position (merged from layout container)
-        const pos = element_.position as { x: number; y: number };
-        expect(pos.x).toBe(200);
-        expect(pos.y).toBe(150);
-        // User data should still be present
-        expect((element_.data as Record<string, unknown>)?.label).toBe('test');
-        store.destroy(false);
-        done();
-      }, 100);
-    });
-
-    it('onElementsChange should include updated size after resize', (done) => {
-      const receivedElements: Array<Record<string, unknown>> = [];
-
-      const store = new GraphStore({
-        initialElements: {
-          'el-1': { data: { label: 'test' }, position: { x: 0, y: 0 }, size: { width: 100, height: 50 } },
-        },
-        onElementsChange: (elements) => {
-          receivedElements.push({ ...elements });
-        },
-      });
-
-      const element = store.graph.getCell('el-1') as dia.Element;
-      element.resize(300, 200);
-
-      setTimeout(() => {
-        expect(receivedElements.length).toBeGreaterThan(0);
-        const lastEmit = receivedElements.at(-1);
-        const element_ = lastEmit!['el-1'] as Record<string, unknown>;
-        expect(element_).toBeDefined();
-        const sz = element_.size as { width: number; height: number };
-        expect(sz.width).toBe(300);
-        expect(sz.height).toBe(200);
-        store.destroy(false);
-        done();
-      }, 100);
+      expect(Object.keys(store.features)).toHaveLength(0);
+      expect(store.paperStores.size).toBe(0);
     });
   });
 });

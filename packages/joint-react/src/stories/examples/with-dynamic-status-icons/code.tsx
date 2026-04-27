@@ -1,14 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type dia, g, highlighters, V } from '@joint/core';
-import type { ElementRecord } from '@joint/react';
 import {
   GraphProvider,
+  useElement,
   Paper,
   SVGText,
-  useElementSize,
-  useGraph,
+    useGraph,
   useNodesMeasuredEffect,
+  type Cells,
+  selectElementSize,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
@@ -22,39 +23,48 @@ const ShapeTypes = {
 
 type ShapeType = (typeof ShapeTypes)[keyof typeof ShapeTypes];
 
-interface ShapeElement {
+interface ShapeData {
   readonly type: ShapeType;
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<ShapeElement>> = {
-  rectangle: {
+const initialCells: Cells<ShapeData> = [
+  {
+    id: 'rectangle',
+    type: 'element',
     data: { type: ShapeTypes.rectangle, label: 'Rectangle' },
     size: { width: 100, height: 100 },
     position: { x: 20, y: 20 },
   },
-  circle: {
+  {
+    id: 'circle',
+    type: 'element',
     data: { type: ShapeTypes.circle, label: 'Circle' },
     size: { width: 100, height: 100 },
     position: { x: 160, y: 20 },
   },
-  ellipse: {
+  {
+    id: 'ellipse',
+    type: 'element',
     data: { type: ShapeTypes.ellipse, label: 'Ellipse' },
     size: { width: 150, height: 100 },
     position: { x: 320, y: 20 },
   },
-  path: {
+  {
+    id: 'path',
+    type: 'element',
     data: { type: ShapeTypes.path, label: 'Path' },
     size: { width: 100, height: 100 },
     position: { x: 520, y: 20 },
   },
-};
+];
 
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function RectangleShape({ label }: Readonly<ShapeElement>) {
-  const { width, height } = useElementSize();
+function RectangleShape({ label }: Readonly<ShapeData>) {
+
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} />
@@ -73,8 +83,8 @@ function RectangleShape({ label }: Readonly<ShapeElement>) {
   );
 }
 
-function CircleShape({ label }: Readonly<ShapeElement>) {
-  const { width, height } = useElementSize();
+function CircleShape({ label }: Readonly<ShapeData>) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <circle
@@ -100,8 +110,8 @@ function CircleShape({ label }: Readonly<ShapeElement>) {
   );
 }
 
-function EllipseShape({ label }: Readonly<ShapeElement>) {
-  const { width, height } = useElementSize();
+function EllipseShape({ label }: Readonly<ShapeData>) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <ellipse
@@ -128,8 +138,8 @@ function EllipseShape({ label }: Readonly<ShapeElement>) {
   );
 }
 
-function PathShape({ label }: Readonly<ShapeElement>) {
-  const { width, height } = useElementSize();
+function PathShape({ label }: Readonly<ShapeData>) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <path
@@ -155,19 +165,19 @@ function PathShape({ label }: Readonly<ShapeElement>) {
 // ----------------------------------------------------------------------------
 // Renderer
 // ----------------------------------------------------------------------------
-function RenderElement(props: Readonly<ShapeElement>) {
-  switch (props.type) {
+function RenderElement(data: ShapeData) {
+  switch (data.type) {
     case ShapeTypes.rectangle: {
-      return <RectangleShape {...props} />;
+      return <RectangleShape {...data} />;
     }
     case ShapeTypes.circle: {
-      return <CircleShape {...props} />;
+      return <CircleShape {...data} />;
     }
     case ShapeTypes.ellipse: {
-      return <EllipseShape {...props} />;
+      return <EllipseShape {...data} />;
     }
     case ShapeTypes.path: {
-      return <PathShape {...props} />;
+      return <PathShape {...data} />;
     }
   }
 }
@@ -255,7 +265,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

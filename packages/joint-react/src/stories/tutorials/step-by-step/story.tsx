@@ -4,6 +4,7 @@ import CodeSVG from './code-svg';
 import CodeHTML from './code-html';
 import CodeHTMLPortal from './code-html-renderer';
 import CodeControlledMode from './code-controlled-mode';
+import CodeControlledModeReset from './code-controlled-mode-reset';
 import CodeControlledModeRedux from './code-controlled-mode-redux';
 import CodeControlledModePeerJS from './code-controlled-mode-peerjs';
 import CodeControlledModeZustand from './code-controlled-mode-zustand';
@@ -28,6 +29,10 @@ export const HTMLRenderer: Story = {
 
 export const ControlledMode: Story = {
   render: CodeControlledMode as never,
+};
+
+export const ControlledModeReset: Story = {
+  render: CodeControlledModeReset as never,
 };
 
 export const ControlledModeRedux: Story = {

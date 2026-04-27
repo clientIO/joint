@@ -5,29 +5,27 @@ import {
   GraphProvider,
   Paper,
   useMeasureNode,
-  type ElementRecord,
-  type LinkRecord,
+  type Cells,
   type OnTransformElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
-
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
-    source: { id: '1' },
-    target: { id: '2' },
-  },
-};
 
 interface NodeData {
   readonly [key: string]: unknown;
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-};
+const initialCells: Cells<NodeData> = [
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  {
+    id: 'e1-2',
+    type: 'link',
+    source: { id: '1' },
+    target: { id: '2' },
+  },
+];
 
 function RenderedRect({ label }: Readonly<NodeData>) {
   const textMargin = 20;
@@ -74,7 +72,7 @@ function RenderedRect({ label }: Readonly<NodeData>) {
 
 function Main() {
   const renderElement: RenderElement<NodeData> = useCallback(
-    (props) => <RenderedRect {...props} />,
+    (data) => <RenderedRect label={data?.label ?? ''} />,
     []
   );
   return (
@@ -93,7 +91,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

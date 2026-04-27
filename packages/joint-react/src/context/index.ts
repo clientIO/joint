@@ -1,11 +1,13 @@
 import { createContext } from 'react';
-import type { CellId } from '../types/cell-id';
+import type { CellId } from '../types/cell.types';
 import type { GraphStore, PaperStore } from '../store';
 import type { Feature } from '../types/feature.types';
 
 export type { Feature } from '../types/feature.types';
 
-export const GraphStoreContext = createContext<GraphStore<any, any> | null>(null);
+// The context is deliberately untyped by ElementData/LinkData: consumers cast
+// to their own specialized GraphStore<E, L> at the call site.
+export const GraphStoreContext = createContext<GraphStore | null>(null);
 export const PaperStoreContext = createContext<PaperStore | null>(null);
 
 export const CellIdContext = createContext<CellId | undefined>(undefined);

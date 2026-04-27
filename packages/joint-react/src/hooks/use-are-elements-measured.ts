@@ -2,7 +2,7 @@ import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStore } from 'react';
 
 /**
- *
+ * Returns `true` when at least one element has been measured.
  */
 export function useAreElementsMeasured() {
   const { measureState } = useGraphStore();

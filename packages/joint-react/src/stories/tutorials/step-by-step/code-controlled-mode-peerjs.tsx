@@ -18,8 +18,9 @@
  * 2. **State Synchronization**: When one peer updates the graph, the change
  *    is sent to all connected peers via PeerJS data channels.
  *
- * 3. **Controlled Mode**: We use React-controlled mode (onElementsChange/onLinksChange)
- *    to manage state, and sync that state across peers using PeerJS.
+ * 3. **Controlled Mode**: We use React-controlled mode (`cells` +
+ *    `onCellsChange`) to manage state, and sync that state across peers
+ *    using PeerJS. All cells — elements AND links — live in a single array.
  *
  * 4. **Connection Flow**:
  *    - Each peer gets a unique ID when they load the page
@@ -31,13 +32,19 @@
  * 1. Peer A loads page -> Gets ID "abc123"
  * 2. Peer B loads page -> Gets ID "xyz789"
  * 3. Peer A enters "xyz789" -> Connects to Peer B
- * 4. Peer A adds element -> State updates -> Sent to Peer B via PeerJS
- * 5. Peer B receives update -> Updates local state -> Graph updates
+ * 4. Peer A adds element -> Cells change -> Sent to Peer B via PeerJS
+ * 5. Peer B receives update -> Updates local cells -> Graph updates
  *
  * ============================================================================
  */
 
-import { GraphProvider, HTMLHost, type ElementRecord, type LinkRecord, Paper } from '@joint/react';
+import {
+  GraphProvider,
+  HTMLHost,
+  Paper,
+  type Cells,
+  type ElementRecord,
+} from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback, useRef, useState } from 'react';
@@ -52,28 +59,37 @@ import Peer, { type DataConnection } from 'peerjs';
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementRecord<ElementData>;
-
-const defaultElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'World' }, position: { x: 100, y: 200 } },
-};
-
-const defaultLinks: Record<string, LinkRecord> = {
-  'e1-2': {
+const defaultCells: Cells<ElementData> = [
+  {
+    id: '1',
+    type: 'element',
+    data: { label: 'Hello' },
+    position: { x: 100, y: 15 },
+  },
+  {
+    id: '2',
+    type: 'element',
+    data: { label: 'World' },
+    position: { x: 100, y: 200 },
+  },
+  {
+    id: 'e1-2',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
 // ============================================================================
 // STEP 2: Custom Element Renderer
 // ============================================================================
 
-function RenderItem({ label }: Readonly<ElementData>) {
+const NODE_STYLE = { width: 100, height: 50 };
+
+function RenderItem({ label }: ElementData) {
   return (
-    <HTMLHost className="node" style={{ width: 100, height: 50 }}>
+    <HTMLHost className="node" style={NODE_STYLE}>
       {label}
     </HTMLHost>
   );
@@ -85,12 +101,11 @@ function RenderItem({ label }: Readonly<ElementData>) {
 
 /**
  * Message types for PeerJS communication.
- * We send structured messages to synchronize state between peers.
+ * We send a single `cells` array to synchronize state between peers.
  */
 interface StateSyncMessage {
   type: 'state-update';
-  elements: Record<string, CustomElement>;
-  links: Record<string, LinkRecord>;
+  cells: Cells<ElementData>;
 }
 
 /**
@@ -101,9 +116,9 @@ interface StateSyncMessage {
  * 2. Sends state updates to connected peers when local state changes
  * 3. Receives state updates from peers and notifies React via callbacks
  *
- * The key advantage: ALL state changes (including position changes from dragging)
- * are automatically captured and synced, because GraphProvider calls
- * onElementsChange/onLinksChange for every change.
+ * The key advantage: ALL state changes (including position changes from
+ * dragging) are automatically captured and synced, because GraphProvider
+ * calls `onCellsChange` for every graph commit.
  */
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
@@ -111,16 +126,10 @@ function createPeerJSManager(callbacks: {
   onPeerIdChange: (id: string | null) => void;
   onConnectionStatusChange: (status: ConnectionStatus) => void;
   onConnectedPeerIdChange: (id: string | null) => void;
-  onRemoteStateUpdate: (
-    elements: Record<string, CustomElement>,
-    links: Record<string, LinkRecord>
-  ) => void;
+  onRemoteStateUpdate: (cells: Cells<ElementData>) => void;
 }): {
   connectToPeer: (remotePeerId: string) => void;
-  sendStateUpdate: (
-    elements: Record<string, CustomElement>,
-    links: Record<string, LinkRecord>
-  ) => void;
+  sendStateUpdate: (cells: Cells<ElementData>) => void;
   isReceivingUpdate: () => boolean;
 } {
   // PeerJS connection management
@@ -132,10 +141,7 @@ function createPeerJSManager(callbacks: {
     callbacks;
 
   // Send state update to all connected peers
-  const sendStateUpdate = (
-    elements: Record<string, CustomElement>,
-    links: Record<string, LinkRecord>
-  ) => {
+  const sendStateUpdate = (cells: Cells<ElementData>) => {
     // Don't send if we're currently receiving an update (prevent loops)
     if (isReceiving) {
       return;
@@ -143,8 +149,7 @@ function createPeerJSManager(callbacks: {
 
     const message: StateSyncMessage = {
       type: 'state-update',
-      elements,
-      links,
+      cells,
     };
 
     // Send to all connected peers
@@ -159,7 +164,7 @@ function createPeerJSManager(callbacks: {
   const handlePeerUpdate = (message: StateSyncMessage) => {
     if (message.type === 'state-update') {
       isReceiving = true;
-      onRemoteStateUpdate(message.elements, message.links);
+      onRemoteStateUpdate(message.cells);
       // Reset flag after a short delay
       setTimeout(() => {
         isReceiving = false;
@@ -317,16 +322,12 @@ function Main() {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [copyFeedback, setCopyFeedback] = useState(false);
 
-  // Graph state managed by React
-  const [elements, setElements] = useState<Record<string, CustomElement>>(defaultElements);
-  const [links, setLinks] = useState<Record<string, LinkRecord>>(defaultLinks);
+  // Graph state managed by React — a single unified cells array.
+  const [cells, setCells] = useState<Cells<ElementData>>(defaultCells);
 
-  // Refs to track latest state — avoids stale closures in callbacks
-  // captured once by GraphStore at creation time.
-  const elementsRef = useRef(elements);
-  const linksRef = useRef(links);
-  elementsRef.current = elements;
-  linksRef.current = links;
+  // Ref tracks the latest cells for stable callbacks.
+  const cellsRef = useRef(cells);
+  cellsRef.current = cells;
 
   // Create PeerJS manager (only once) with callbacks passed at creation time
   const [peerManager] = useState(() =>
@@ -334,37 +335,21 @@ function Main() {
       onPeerIdChange: setPeerId,
       onConnectionStatusChange: setConnectionStatus,
       onConnectedPeerIdChange: setConnectedPeerId,
-      onRemoteStateUpdate: (remoteElements, remoteLinks) => {
-        setElements(remoteElements);
-        setLinks(remoteLinks);
+      onRemoteStateUpdate: (remoteCells) => {
+        setCells(remoteCells);
       },
     })
   );
 
   // When graph changes locally, send to peers.
-  // These callbacks are stable (no state in deps) because they use refs.
-  // GraphStore captures them once at creation — stability is critical.
-  const handleElementsChange = useCallback(
-    (action: React.SetStateAction<Record<string, CustomElement>>) => {
-      setElements((previous) => {
+  // Stable callback (no deps on cells) because it reads from the ref.
+  const handleCellsChange = useCallback(
+    (action: React.SetStateAction<Cells<ElementData>>) => {
+      setCells((previous) => {
         const next = typeof action === 'function' ? action(previous) : action;
-        elementsRef.current = next;
+        cellsRef.current = next;
         if (!peerManager.isReceivingUpdate()) {
-          peerManager.sendStateUpdate(next, linksRef.current);
-        }
-        return next;
-      });
-    },
-    [peerManager]
-  );
-
-  const handleLinksChange = useCallback(
-    (action: React.SetStateAction<Record<string, LinkRecord>>) => {
-      setLinks((previous) => {
-        const next = typeof action === 'function' ? action(previous) : action;
-        linksRef.current = next;
-        if (!peerManager.isReceivingUpdate()) {
-          peerManager.sendStateUpdate(elementsRef.current, next);
+          peerManager.sendStateUpdate(next);
         }
         return next;
       });
@@ -396,44 +381,51 @@ function Main() {
 
   const handleAddElement = useCallback(() => {
     const newId = Math.random().toString(36).slice(7);
-    const newElement: CustomElement = {
+    const newElement: ElementRecord<ElementData> = {
+      id: newId,
+      type: 'element',
       data: { label: 'New Node' },
       position: { x: Math.random() * 200, y: Math.random() * 200 },
     };
-    setElements((previous) => {
-      const next = { ...previous, [newId]: newElement };
-      elementsRef.current = next;
-      peerManager.sendStateUpdate(next, linksRef.current);
+    setCells((previous) => {
+      const next = [...previous, newElement];
+      cellsRef.current = next;
+      peerManager.sendStateUpdate(next);
       return next;
     });
   }, [peerManager]);
 
   const handleRemoveLast = useCallback(() => {
-    setElements((previousElements) => {
-      const elementIds = Object.keys(previousElements);
-      if (elementIds.length === 0) return previousElements;
+    setCells((previous) => {
+      // Find the last element cell (not a link)
+      let removedElementIndex = -1;
+      for (let index = previous.length - 1; index >= 0; index--) {
+        if (previous[index].type === 'element') {
+          removedElementIndex = index;
+          break;
+        }
+      }
+      if (removedElementIndex === -1) return previous;
 
-      const removedElementId = elementIds.at(-1);
-      if (!removedElementId) return previousElements;
+      const removedElementId = previous[removedElementIndex].id;
 
-      // eslint-disable-next-line sonarjs/no-unused-vars
-      const { [removedElementId]: _removed, ...newElements } = previousElements;
-
-      // Remove connected links
-      setLinks((previousLinks) => {
-        const newLinks: Record<string, LinkRecord> = {};
-        for (const [id, link] of Object.entries(previousLinks)) {
-          if (link.source !== removedElementId && link.target !== removedElementId) {
-            newLinks[id] = link;
+      const next = previous.filter((cell, index) => {
+        if (index === removedElementIndex) return false;
+        if (cell.type === 'link') {
+          const { source, target } = cell as {
+            source?: { id?: unknown };
+            target?: { id?: unknown };
+          };
+          if (source?.id === removedElementId || target?.id === removedElementId) {
+            return false;
           }
         }
-        elementsRef.current = newElements;
-        linksRef.current = newLinks;
-        peerManager.sendStateUpdate(newElements, newLinks);
-        return newLinks;
+        return true;
       });
 
-      return newElements;
+      cellsRef.current = next;
+      peerManager.sendStateUpdate(next);
+      return next;
     });
   }, [peerManager]);
 
@@ -513,12 +505,7 @@ function Main() {
       </div>
 
       {/* Graph */}
-      <GraphProvider
-        elements={elements}
-        links={links}
-        onElementsChange={handleElementsChange as never}
-        onLinksChange={handleLinksChange as never}
-      >
+      <GraphProvider<ElementData> cells={cells} onCellsChange={handleCellsChange}>
         <PaperApp onAddElement={handleAddElement} onRemoveLast={handleRemoveLast} />
       </GraphProvider>
     </div>
@@ -542,9 +529,9 @@ function Main() {
  * HOW IT WORKS:
  *
  * - Each peer creates a PeerJS connection with a unique ID
- * - When connected, state changes are sent via WebRTC data channels
+ * - When connected, the full cells array is sent via WebRTC data channels
  * - Received updates are applied to local React state
- * - GraphProvider syncs state changes to the JointJS graph
+ * - GraphProvider syncs cells changes to the JointJS graph
  *
  * Benefits:
  * - Real-time collaboration

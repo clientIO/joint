@@ -1,12 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   GraphProvider,
-  Paper,
-  useElementId,
-  useGraph,
-  type ElementRecord,
   HTMLBox,
-  useElements,
+  Paper,
+  useCellId,
+  useCells,
+  useElement,
+  useGraph,
+  type Cells,
+  type ResolvedElementRecord,
 } from '@joint/react';
 import { util } from '@joint/core';
 import '../index.css';
@@ -22,12 +24,12 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-  '3': { data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
-  '4': { data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
-};
+const initialCells: Cells<NodeData> = [
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
+  { id: '4', type: 'element', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
+];
 
 const PROXIMITY_THRESHOLD = 60;
 
@@ -42,24 +44,28 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
   };
 }
 
-function ResizableNode({ label }: Readonly<NodeData>) {
-  const id = useElementId();
+function ResizableNode() {
+  const id = useCellId();
+  const label = useElement((element: ResolvedElementRecord<NodeData>) => element.data.label);
 
-  const { graph } = useGraph();
-  const element = graph.getCell(id);
-  const closeIds = useElements(() => {
-    const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
+  const { graph, addCell, removeCell } = useGraph();
+  const closeIds = useCells<NodeData, unknown, readonly dia.Cell.ID[]>(() => {
+    const currentElement = graph.getCell(id);
+    if (!currentElement) return [];
+    const area = currentElement.getBBox().inflate(PROXIMITY_THRESHOLD);
     const proximityElements = graph
       .findElementsInArea(area)
       .filter((element_) => element_.id !== id);
     return proximityElements.map((element_) => element_.id);
   }, util.isEqual);
-  const { setLink, removeLink } = useGraph();
 
   useEffect(() => {
     for (const closeId of closeIds) {
       const { linkId, source, target } = getProximityLink(id, closeId);
-      setLink(linkId, {
+      if (graph.getCell(linkId)) continue;
+      addCell({
+        id: linkId,
+        type: 'link',
         source,
         target,
         style: { color: PRIMARY, width: 2, dasharray: '5 5' },
@@ -68,10 +74,10 @@ function ResizableNode({ label }: Readonly<NodeData>) {
     return () => {
       for (const closeId of closeIds) {
         const { linkId } = getProximityLink(id, closeId);
-        removeLink(linkId);
+        removeCell(linkId);
       }
     };
-  }, [closeIds, id, removeLink, setLink]);
+  }, [addCell, closeIds, graph, id, removeCell]);
 
   return <HTMLBox>{label}</HTMLBox>;
 }
@@ -91,7 +97,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

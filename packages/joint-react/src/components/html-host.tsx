@@ -1,6 +1,6 @@
-import { useRef, type CSSProperties, type HTMLAttributes, type RefObject } from 'react';
+import { useMemo, useRef, type CSSProperties, type HTMLAttributes, type RefObject } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
-import { useElementSize } from '../hooks';
+import { useElement } from '../hooks/use-element';
 
 /**
  * Style-neutral element host: a `<div>` inside a `<foreignObject>`.
@@ -44,7 +44,10 @@ interface HTMLFrameProps extends Omit<HTMLHostProps, 'useModelGeometry'> {
  */
 function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFrameProps>) {
   // Force static positioning — Safari mispositions foreignObject children with position: relative or backdrop-filter.
-  const mergedStyle: CSSProperties = { ...style, position: 'static' };
+  const mergedStyle = useMemo<CSSProperties>(
+    () => ({ ...style, position: 'static' }),
+    [style]
+  );
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div ref={nodeRef} {...rest} style={mergedStyle} />
@@ -74,15 +77,12 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
  * @param root0.style
  */
 function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
-  const { width, height } = useElementSize();
-  return (
-    <HTMLFrame
-      width={width}
-      height={height}
-      style={{ width, height, ...style }}
-      {...rest}
-    />
+  const { width, height } = useElement((element) => element.size);
+  const mergedStyle = useMemo<CSSProperties>(
+    () => ({ width, height, ...style }),
+    [width, height, style]
   );
+  return <HTMLFrame width={width} height={height} style={mergedStyle} {...rest} />;
 }
 
 /**
@@ -94,12 +94,16 @@ function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElem
 function MeasuredHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const measuredSize = useMeasureNode(nodeRef);
+  const mergedStyle = useMemo<CSSProperties>(
+    () => ({ width: 'max-content', height: 'max-content', ...style }),
+    [style]
+  );
   return (
     <HTMLFrame
       nodeRef={nodeRef}
       width={measuredSize.width}
       height={measuredSize.height}
-      style={{ width: 'max-content', height: 'max-content', ...style }}
+      style={mergedStyle}
       {...rest}
     />
   );

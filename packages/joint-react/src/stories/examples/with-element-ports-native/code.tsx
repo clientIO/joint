@@ -1,14 +1,14 @@
- 
+
 import { PAPER_CLASSNAME, PAPER_STYLE } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
+  useElement,
   Paper,
-  useElementSize,
-  type ElementRecord,
-  type LinkRecord,
+    type Cells,
   type RenderElement,
+  selectElementSize,
 } from '@joint/react';
 import { useCallback } from 'react';
 
@@ -90,8 +90,10 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
   return { groups, items };
 }
 
-const initialElements: Record<string, ElementRecord<NativeElementUserData>> = {
-  'node-1': {
+const initialCells: Cells<NativeElementUserData> = [
+  {
+    id: 'node-1',
+    type: 'element',
     data: {
       color: INDIGO,
       label: 'Source',
@@ -102,7 +104,9 @@ const initialElements: Record<string, ElementRecord<NativeElementUserData>> = {
     size: { width: 160, height: 100 },
     ports: buildNativePorts(['in-1', 'in-2'], ['out-1', 'out-2', 'out-3']),
   },
-  'node-2': {
+  {
+    id: 'node-2',
+    type: 'element',
     data: {
       color: VIOLET,
       label: 'Transform',
@@ -113,7 +117,9 @@ const initialElements: Record<string, ElementRecord<NativeElementUserData>> = {
     size: { width: 160, height: 100 },
     ports: buildNativePorts(['in-1', 'in-2'], ['out-1', 'out-2']),
   },
-  'node-3': {
+  {
+    id: 'node-3',
+    type: 'element',
     data: {
       color: INDIGO,
       label: 'Sink',
@@ -124,38 +130,45 @@ const initialElements: Record<string, ElementRecord<NativeElementUserData>> = {
     size: { width: 160, height: 100 },
     ports: buildNativePorts(['in-1', 'in-2', 'in-3'], ['out-1']),
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'link-1': {
+  {
+    id: 'link-1',
+    type: 'link',
     source: { id: 'node-1', port: 'out-1' },
     target: { id: 'node-2', port: 'in-1' },
     style: { color: EMERALD },
   },
-  'link-2': {
+  {
+    id: 'link-2',
+    type: 'link',
     source: { id: 'node-1', port: 'out-2' },
     target: { id: 'node-3', port: 'in-1' },
     style: { color: EMERALD },
   },
-  'link-3': {
+  {
+    id: 'link-3',
+    type: 'link',
     source: { id: 'node-1', port: 'out-3' },
     target: { id: 'node-3', port: 'in-2' },
     style: { color: EMERALD },
   },
-  'link-4': {
+  {
+    id: 'link-4',
+    type: 'link',
     source: { id: 'node-2', port: 'out-1' },
     target: { id: 'node-3', port: 'in-3' },
     style: { color: EMERALD },
   },
-  'link-5': {
+  {
+    id: 'link-5',
+    type: 'link',
     source: { id: 'node-2', port: 'out-2' },
     target: { id: 'node-1', port: 'in-2' },
     style: { color: EMERALD },
   },
-};
+];
 
 function Node({ color, label }: Readonly<{ color: string; label: string }>) {
-  const { width = 0, height = 0 } = useElementSize();
+  const { width, height } = useElement(selectElementSize);
   const cx = width / 2;
   const cy = height / 2;
   return (
@@ -186,7 +199,7 @@ function Node({ color, label }: Readonly<{ color: string; label: string }>) {
 
 function Main() {
   const renderElement: RenderElement<NativeElementUserData> = useCallback(
-    (data) => <Node color={data.color} label={data.label} />,
+    (data) => (data ? <Node color={data.color} label={data.label} /> : null),
     []
   );
 
@@ -204,10 +217,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<NativeElementUserData>
-      initialElements={initialElements}
-      initialLinks={initialLinks}
-    >
+    <GraphProvider<NativeElementUserData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

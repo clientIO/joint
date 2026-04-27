@@ -1,5 +1,13 @@
 /* eslint-disable sonarjs/pseudo-random */
-import { HTMLBox, GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
+import {
+  HTMLBox,
+  GraphProvider,
+  Paper,
+  type Cells,
+  type CellRecord,
+  type ElementRecord,
+  type LinkRecord,
+} from '@joint/react';
 import '../index.css';
 import React, { useCallback, useState, startTransition } from 'react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -16,13 +24,12 @@ const RENDER_ELEMENT_STYLE: React.CSSProperties = {
   justifyContent: 'center',
 };
 
-function RenderElement(data: { label: string }) {
+function RenderElement(data: StressNodeData) {
   return <HTMLBox useModelGeometry style={RENDER_ELEMENT_STYLE}>{data.label}</HTMLBox>;
 }
 
-function initialElements(xNodes = 15, yNodes = 30) {
-  const nodes: Record<string, ElementRecord<StressNodeData>> = {};
-  const edges: Record<string, LinkRecord> = {};
+function buildInitialCells(xNodes = 15, yNodes = 30): Cells<StressNodeData> {
+  const cells: Array<CellRecord<StressNodeData>> = [];
   let nodeId = 1;
   let edgeId = 1;
   let recentNodeId: number | null = null;
@@ -30,20 +37,23 @@ function initialElements(xNodes = 15, yNodes = 30) {
   for (let y = 0; y < yNodes; y++) {
     for (let x = 0; x < xNodes; x++) {
       const id = `stress-${nodeId.toString()}`;
-      nodes[id] = {
+      cells.push({
+        id,
+        type: 'element',
         data: { label: `Node ${nodeId}`, fontSize: 11 },
         position: { x: x * 100, y: y * 50 },
         size: { width: 80, height: 30 },
-      };
+      } satisfies ElementRecord<StressNodeData>);
 
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
-        const edgeIdString = `edge-${edgeId.toString()}`;
-        edges[edgeIdString] = {
+        cells.push({
+          id: `edge-${edgeId.toString()}`,
+          type: 'link',
           source: { id: `stress-${recentNodeId.toString()}` },
           target: { id: `stress-${nodeId.toString()}` },
           z: -1,
           style: { color: '#999999', dasharray: '5 2', width: 1 },
-        };
+        } satisfies LinkRecord);
         edgeId++;
       }
 
@@ -52,31 +62,31 @@ function initialElements(xNodes = 15, yNodes = 30) {
     }
   }
 
-  return { nodes, edges };
+  return cells;
 }
 
-const { nodes: initialNodes, edges: initialEdges } = initialElements(15, 30);
+const initialCells = buildInitialCells(15, 30);
 
 function Main({
-  setElements,
+  setCells,
 }: Readonly<{
-  setElements: React.Dispatch<React.SetStateAction<Record<string, ElementRecord<StressNodeData>>>>;
+  setCells: React.Dispatch<React.SetStateAction<Cells<StressNodeData>>>;
 }>) {
+  const randomizePosition = useCallback(
+    (cell: CellRecord<StressNodeData>): CellRecord<StressNodeData> => {
+      if (cell.type !== 'element') return cell;
+      return {
+        ...(cell as ElementRecord<StressNodeData>),
+        position: { x: Math.random() * 1500, y: Math.random() * 1500 },
+      };
+    },
+    []
+  );
   const updatePos = useCallback(() => {
     startTransition(() => {
-      setElements((previousElements) => {
-        const newElements: Record<string, ElementRecord<StressNodeData>> = {};
-        for (const [id, node] of Object.entries(previousElements)) {
-          newElements[id] = {
-            ...node,
-            position: { x: Math.random() * 1500, y: Math.random() * 1500 },
-          };
-        }
-
-        return newElements;
-      });
+      setCells((previous) => previous.map(randomizePosition));
     });
-  }, [setElements]);
+  }, [setCells, randomizePosition]);
 
   return (
     <div className="flex flex-row relative">
@@ -95,17 +105,11 @@ function Main({
 }
 
 export default function App() {
-  const [elements, setElements] = useState<Record<string, ElementRecord<StressNodeData>>>(initialNodes);
-  const [links, setLinks] = useState<Record<string, LinkRecord>>(initialEdges);
+  const [cells, setCells] = useState<Cells<StressNodeData>>(initialCells);
 
   return (
-    <GraphProvider
-      elements={elements}
-      links={links}
-      onElementsChange={setElements as never}
-      onLinksChange={setLinks as never}
-    >
-      <Main setElements={setElements} />
+    <GraphProvider<StressNodeData> cells={cells} onCellsChange={setCells}>
+      <Main setCells={setCells} />
     </GraphProvider>
   );
 }

@@ -7,10 +7,10 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  type ElementRecord,
-  useElements,
+  useCells,
   HTMLBox,
   useNodesMeasuredEffect,
+  type Cells,
 } from '@joint/react';
 import { useCallback, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
@@ -20,21 +20,20 @@ const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 
 type ElementData = { label: string };
-const initialElements: Record<string, ElementRecord<ElementData>> = {
-  '1': { data: { label: 'Node 1' } },
-  '2': { data: { label: 'Node 2' } },
-  '3': { data: { label: 'Node 3' } },
-  '4': { data: { label: 'Node 4' } },
-  '5': { data: { label: 'Node 5' } },
-  '6': { data: { label: 'Node 6' } },
-  '7': { data: { label: 'Node 7' } },
-  '8': { data: { label: 'Node 8' } },
-  '9': { data: { label: 'Node 9' } },
-};
+const initialCells: Cells<ElementData> = [
+  { id: '1', type: 'element', data: { label: 'Node 1' } },
+  { id: '2', type: 'element', data: { label: 'Node 2' } },
+  { id: '3', type: 'element', data: { label: 'Node 3' } },
+  { id: '4', type: 'element', data: { label: 'Node 4' } },
+  { id: '5', type: 'element', data: { label: 'Node 5' } },
+  { id: '6', type: 'element', data: { label: 'Node 6' } },
+  { id: '7', type: 'element', data: { label: 'Node 7' } },
+  { id: '8', type: 'element', data: { label: 'Node 8' } },
+  { id: '9', type: 'element', data: { label: 'Node 9' } },
+];
 
 function Main() {
-  const { graph } = useGraph();
-  const { setElement } = useGraph<ElementData>();
+  const { graph, addCell } = useGraph<ElementData>();
   const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
@@ -65,11 +64,15 @@ function Main() {
     makeLayoutWithGrid({ graph, gridXSize });
   }, []);
 
-  const renderElement = useCallback((data: { label: string }) => {
+  const renderElement = useCallback((data: ElementData) => {
     return <HTMLBox className="flex items-center justify-center">{data.label}</HTMLBox>;
   }, []);
 
-  const elementsLength = useElements((items) => items.size);
+  const elementsLength = useCells<ElementData, unknown, number>((cells) => {
+    let count = 0;
+    for (const cell of cells) if (cell.type === 'element') count += 1;
+    return count;
+  });
   return (
     <div className="flex flex-col">
       <div className="mb-8 flex flex-row items-center">
@@ -92,7 +95,9 @@ function Main() {
         <button
           onClick={() => {
             const newId = `${Math.random()}`;
-            setElement(newId, {
+            addCell({
+              id: newId,
+              type: 'element',
               data: { label: `Node ${elementsLength + 1}` },
             });
           }}
@@ -115,7 +120,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider<ElementData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

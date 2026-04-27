@@ -51,12 +51,11 @@ The **SVGText** component renders SVG text with automatic sizing and wrapping ca
     `,
     usage: `
 \`\`\`tsx
-import { SVGText, useMeasureNode } from '@joint/react';
-import { useElement } from '@joint/react';
+import { SVGText, useMeasureNode, useElement, selectElementSize } from '@joint/react';
 import { useRef } from 'react';
 
 function RenderElement() {
-  const { width, height } = useElement();
+  const { width, height } = useElement(selectElementSize);
   const gRef = useRef<SVGGElement>(null);
   useMeasureNode(gRef);
   return (

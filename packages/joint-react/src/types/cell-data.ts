@@ -21,6 +21,7 @@ export type ElementSize = {
   readonly height?: number;
 };
 
+
 // ── Element Layout (internal — used by size observer) ───────────────────────
 
 /**

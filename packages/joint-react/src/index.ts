@@ -5,9 +5,18 @@
 export { GraphProvider } from './components/graph/graph-provider';
 export type { GraphProviderProps as GraphProps } from './components/graph/graph-provider';
 export { Paper } from './components/paper/paper';
-export type { PaperProps, RenderElement, RenderLink, DefaultLinkContext } from './components/paper/paper.types';
+export type {
+  PaperProps,
+  RenderElement,
+  RenderLink,
+  DefaultLinkContext,
+} from './components/paper/paper.types';
 export type { ValidateEmbeddingContext, ValidateUnembeddingContext } from './presets/can-embed';
-export type { ConnectionEnd, ValidateConnectionContext, CanConnectOptions } from './presets/can-connect';
+export type {
+  ConnectionEnd,
+  ValidateConnectionContext,
+  CanConnectOptions,
+} from './presets/can-connect';
 export { SVGText } from './components/svg-text/svg-text';
 export type { SVGTextProps } from './components/svg-text/svg-text';
 export { HTMLHost } from './components/html-host';
@@ -15,54 +24,69 @@ export type { HTMLHostProps } from './components/html-host';
 export { HTMLBox } from './components/html-box';
 export type { HTMLBoxProps } from './components/html-box';
 
-// Hooks — Get Data
-export { useGraph } from './hooks/use-graph';
-export { usePaper } from './hooks/use-paper';
-export { useElements } from './hooks/use-elements';
-export { useLinks } from './hooks/use-links';
+// Hooks — cells API (primary)
+export { useCells } from './hooks/use-cells';
+export { useCell } from './hooks/use-cell';
+export { useCellId } from './hooks/use-cell-id';
 export { useElement } from './hooks/use-element';
 export { useLink } from './hooks/use-link';
-export type { ResolvedLink } from './hooks/use-link';
+export { useLinkLayout } from './hooks/use-link-layout';
+export { useGraph } from './hooks/use-graph';
+export type { UseGraphResult } from './hooks/use-graph';
+export { useGraphStore } from './hooks/use-graph-store';
+export { usePaper, usePaperStore } from './hooks/use-paper';
 
 // Hooks — Measurement
 export { useMeasureNode } from './hooks/use-measure-node';
 export type { OnTransformElement, TransformOptions } from './store/create-elements-size-observer';
 export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
-// Hooks — Set
-export * from './hooks/use-cell-setters';
-
 // Hooks — Events
 export { usePaperEvents } from './hooks/use-paper-events';
 export { useGraphEvents } from './hooks/use-graph-events';
 
-// Hooks — Data API (v2)
-export { useElementData } from './hooks/use-element-data';
-export { useElementPosition } from './hooks/use-element-position';
-export { useElementSize } from './hooks/use-element-size';
-export { useLinkData } from './hooks/use-link-data';
-
-// Hooks — Context
-export { useElementId } from './hooks/use-element-id';
-export { useLinkId } from './hooks/use-link-id';
+// Hooks — Misc
 export { useMarkup } from './hooks/use-markup';
+
+// Cell selectors — pass to `useElement` / `useCell`
+export {
+  selectElementPosition,
+  selectElementSize,
+  selectElementAngle,
+  selectElementData,
+  selectCellId,
+  selectCellType,
+  selectCellParent,
+} from './selectors/cell-selectors';
 
 // Utilities
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
 export * from './state/data-mapping/element-mapper';
 export * from './state/data-mapping/link-mapper';
+export * from './state/data-mapping/cell-mapper';
 
-// Types
-export type { ElementPosition, ElementSize } from './types/cell-data';
+// Types — unified cells
 export type {
+  CellRecord,
+  Cells,
+  CellId,
+  BaseCell,
   ElementRecord,
-  ElementPort,
   LinkRecord,
-  LinkStyle,
-  LinkLabel,
-} from './types/data-types';
-export type { PortShape } from './presets/element-ports';
-export type { CellId } from './types/cell-id';
+  CustomRecord,
+  KnownCellType,
+  CellTypeName,
+  ResolvedCellRecord,
+  ResolvedCells,
+  ResolvedElementRecord,
+  ResolvedLinkRecord,
+} from './types/cell.types';
+
+// Types — geometry / presets
+export type { ElementPosition, ElementSize, LinkLayout } from './types/cell-data';
+export type { ElementPort, PortShape } from './presets/element-ports';
+export type { LinkStyle } from './presets/link-style';
+export type { LinkLabel } from './presets/link-labels';
 export type { PaperEventMap } from './types/event.types';
 
 // Theme
@@ -80,4 +104,4 @@ export type { PortalHostCell, PortalSelector, PortalSelectorContext } from './mo
 export type { CellAttributes } from './state/data-mapping';
 
 // Store types
-export type { IncrementalContainerChanges } from './store/graph-view';
+export type { IncrementalCellsChange } from './store/graph-view';

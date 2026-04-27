@@ -1,8 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useId, useRef } from 'react';
-import type { LinkRecord, ElementRecord } from '@joint/react';
-import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents, resolveLinkMarker } from '@joint/react';
+import type { Cells, LinkStyle } from '@joint/react';
+import {
+  GraphProvider,
+  useElement,
+  jsx,
+  Paper,
+  resolveLinkMarker,
+  usePaperEvents,
+  selectElementSize,
+} from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, g } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -14,9 +22,11 @@ const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   margin: 40,
 });
 
-const DEFAULT_LINK: LinkRecord = {
-  style: { color: LIGHT, width: 2, targetMarker: 'arrow' }
-};
+/** Distance (px) to shift the dropped link-end away from the shape edge. */
+const ANCHOR_MARGIN = resolveLinkMarker('arrow')?.length ?? 0;
+
+const DEFAULT_LINK_STYLE: LinkStyle = { color: LIGHT, width: 2, targetMarker: 'arrow' };
+const DEFAULT_LINK = { style: DEFAULT_LINK_STYLE };
 
 import '../index.css';
 
@@ -31,24 +41,10 @@ const ShapeTypes = {
 
 type ShapeType = (typeof ShapeTypes)[keyof typeof ShapeTypes];
 
-interface BaseElement {
+interface ShapeData {
   readonly shapeType: ShapeType;
   readonly label?: string;
 }
-
-interface SquareElement extends BaseElement {
-  readonly shapeType: typeof ShapeTypes.square;
-}
-
-interface RectangleElement extends BaseElement {
-  readonly shapeType: typeof ShapeTypes.rectangle;
-}
-
-interface EllipseElement extends BaseElement {
-  readonly shapeType: typeof ShapeTypes.ellipse;
-}
-
-type CustomElement = SquareElement | RectangleElement | EllipseElement;
 
 // ----------------------------------------------------------------------------
 // Colors
@@ -57,8 +53,6 @@ const GRID_COLOR = '#1a2938';
 const ANCHOR_FILL = '#f6f740';
 const ANCHOR_STROKE = '#131e29';
 
-/** Distance (px) to shift the dropped link-end away from the shape edge. */
-const ANCHOR_MARGIN = resolveLinkMarker('arrow')?.length ?? 0;
 // ----------------------------------------------------------------------------
 // Anchor Helper Functions
 // ----------------------------------------------------------------------------
@@ -118,33 +112,40 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 }
 
 // ----------------------------------------------------------------------------
-// Initial Data
+// Initial Cells
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, ElementRecord<CustomElement>> = {
-  square1: {
+const initialCells: Cells<ShapeData> = [
+  {
+    id: 'square1',
+    type: 'element',
     data: { shapeType: ShapeTypes.square, label: 'S1' },
     position: { x: 100, y: 100 },
     size: { width: 80, height: 80 },
   },
-  square2: {
+  {
+    id: 'square2',
+    type: 'element',
     data: { shapeType: ShapeTypes.square, label: 'S2' },
     position: { x: 340, y: 100 },
     size: { width: 80, height: 80 },
   },
-  ellipse1: {
+  {
+    id: 'ellipse1',
+    type: 'element',
     data: { shapeType: ShapeTypes.ellipse, label: 'E' },
     position: { x: 220, y: 300 },
     size: { width: 80, height: 80 },
   },
-  rectangle1: {
+  {
+    id: 'rectangle1',
+    type: 'element',
     data: { shapeType: ShapeTypes.rectangle },
     position: { x: 100, y: 500 },
     size: { width: 320, height: 40 },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  link1: {
+  {
+    id: 'link1',
+    type: 'link',
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
     target: {
       id: 'square2',
@@ -152,12 +153,16 @@ const initialLinks: Record<string, LinkRecord> = {
     },
     ...DEFAULT_LINK,
   },
-  link2: {
+  {
+    id: 'link2',
+    type: 'link',
     source: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -100, dy: -30 } } },
     ...DEFAULT_LINK,
   },
-  link3: {
+  {
+    id: 'link3',
+    type: 'link',
     source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 100, dy: -20 } } },
     target: {
       id: 'ellipse1',
@@ -165,7 +170,9 @@ const initialLinks: Record<string, LinkRecord> = {
     },
     ...DEFAULT_LINK,
   },
-  link4: {
+  {
+    id: 'link4',
+    type: 'link',
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } } },
     target: {
       id: 'ellipse1',
@@ -173,7 +180,9 @@ const initialLinks: Record<string, LinkRecord> = {
     },
     ...DEFAULT_LINK,
   },
-  link5: {
+  {
+    id: 'link5',
+    type: 'link',
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: {
       id: 'square1',
@@ -181,7 +190,7 @@ const initialLinks: Record<string, LinkRecord> = {
     },
     ...DEFAULT_LINK,
   },
-};
+];
 
 // ----------------------------------------------------------------------------
 // Custom Highlighter
@@ -210,8 +219,8 @@ const AnchorsHighlighter = dia.HighlighterView.extend({
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function Rectangle({ label }: Readonly<SquareElement | RectangleElement>) {
-  const { width, height } = useElementSize();
+function Rectangle({ label }: Readonly<ShapeData>) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <path
@@ -237,8 +246,8 @@ function Rectangle({ label }: Readonly<SquareElement | RectangleElement>) {
   );
 }
 
-function Ellipse({ label }: Readonly<EllipseElement>) {
-  const { width, height } = useElementSize();
+function Ellipse({ label }: Readonly<ShapeData>) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <ellipse
@@ -270,14 +279,14 @@ function Ellipse({ label }: Readonly<EllipseElement>) {
 // ----------------------------------------------------------------------------
 // Element Rendering
 // ----------------------------------------------------------------------------
-function RenderElement(element: CustomElement) {
-  switch (element.shapeType) {
+function RenderElement(data: ShapeData) {
+  switch (data.shapeType) {
     case ShapeTypes.square:
     case ShapeTypes.rectangle: {
-      return <Rectangle {...element} />;
+      return <Rectangle {...data} />;
     }
     case ShapeTypes.ellipse: {
-      return <Ellipse {...element} />;
+      return <Ellipse {...data} />;
     }
   }
 }
@@ -458,7 +467,7 @@ function Main() {
 // ----------------------------------------------------------------------------
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

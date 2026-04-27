@@ -6,9 +6,8 @@ import {
   Paper,
   HTMLBox,
   useMarkup,
-  type LinkRecord,
+  type Cells,
   type RenderElement,
-  type ElementRecord,
 } from '@joint/react';
 import '../index.css';
 import './styles.css';
@@ -16,13 +15,15 @@ import { linkRoutingSmooth } from '@joint/react/presets';
 
 const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconnected: false });
 
-interface TableElement {
+interface TableData {
   readonly name: string;
   readonly rows: ReadonlyArray<{ readonly field: string; readonly type: string }>;
 }
 
-const initialElements: Record<string, ElementRecord<TableElement>> = {
-  '1': {
+const initialCells: Cells<TableData> = [
+  {
+    id: '1',
+    type: 'element',
     data: {
       name: 'users',
       rows: [
@@ -34,7 +35,9 @@ const initialElements: Record<string, ElementRecord<TableElement>> = {
     position: { x: 50, y: 40 },
     size: { width: 200, height: 152 },
   },
-  '2': {
+  {
+    id: '2',
+    type: 'element',
     data: {
       name: 'orders',
       rows: [
@@ -46,14 +49,13 @@ const initialElements: Record<string, ElementRecord<TableElement>> = {
     position: { x: 340, y: 40 },
     size: { width: 200, height: 152 },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'l1': {
+  {
+    id: 'l1',
+    type: 'link',
     source: { id: '1', magnet: 'row-0' },
     target: { id: '2', magnet: 'row-1' },
   },
-};
+];
 
 const cardStyle: React.CSSProperties = {
   flexDirection: 'column',
@@ -91,32 +93,51 @@ const typeStyle: React.CSSProperties = {
   fontSize: 11,
 };
 
-function TableNode({ name, rows }: Readonly<Partial<TableElement>>) {
-  const { magnetRef } = useMarkup();
+interface TableRowProps {
+  readonly field: string;
+  readonly type: string;
+  readonly index: number;
+}
 
+function TableRow({ field, type, index }: Readonly<TableRowProps>) {
+  const { selectorRef } = useMarkup();
+  const selectorRefForRow = selectorRef(`row-${index}`);
+  const setRowRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (node) node.setAttribute('magnet', 'active');
+      selectorRefForRow(node);
+    },
+    [selectorRefForRow]
+  );
+
+  return (
+    <div
+      className="table-row"
+      ref={setRowRef}
+      style={{
+        ...rowStyle,
+        borderBottom: '1px solid rgba(128, 128, 128, 0.15)',
+      }}
+    >
+      <span style={fieldStyle}>{field}</span>
+      <span style={typeStyle}>{type}</span>
+    </div>
+  );
+}
+
+function TableNode({ name, rows }: Readonly<Partial<TableData>>) {
   return (
     <HTMLBox useModelGeometry style={cardStyle}>
       <div style={headerStyle}>{name}</div>
       {rows?.map((row, index) => (
-        <div
-          key={row.field}
-          className="table-row"
-          ref={magnetRef(`row-${index}`)}
-          style={{
-            ...rowStyle,
-            borderBottom: '1px solid rgba(128, 128, 128, 0.15)',
-          }}
-        >
-          <span style={fieldStyle}>{row.field}</span>
-          <span style={typeStyle}>{row.type}</span>
-        </div>
+        <TableRow key={row.field} field={row.field} type={row.type} index={index} />
       ))}
     </HTMLBox>
   );
 }
 
 function Main() {
-  const renderElement: RenderElement<TableElement> = useCallback((data) => {
+  const renderElement: RenderElement<TableData> = useCallback((data) => {
     return <TableNode name={data.name} rows={data.rows} />;
   }, []);
 
@@ -136,7 +157,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider<TableData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

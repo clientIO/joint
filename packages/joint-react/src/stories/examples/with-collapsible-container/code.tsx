@@ -3,15 +3,15 @@ import { useCallback, useEffect, useId } from 'react';
 import { dia, elementTools } from '@joint/core';
 import {
   GraphProvider,
+  jsx,
   Paper,
-  useElementId,
+  useCellId,
+  useElement,
   useGraph,
   usePaperEvents,
   SVGText,
-  type ElementRecord,
-  type LinkRecord,
-  useElementSize,
-  jsx,
+  type Cells,
+  selectElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
@@ -64,120 +64,129 @@ const ElementType = {
 
 type ElementType = (typeof ElementType)[keyof typeof ElementType];
 
-interface ContainerElement {
+interface ContainerData {
   elementType: typeof ElementType.Container;
   title: string;
   collapsed: boolean;
 }
 
-interface ChildElement {
+interface ChildData {
   elementType: typeof ElementType.Child;
   label: string;
 }
 
-type ContainerUserData = ContainerElement | ChildElement;
+type ContainerUserData = ContainerData | ChildData;
 
 // ============================================================================
 // Initial Data
 // ============================================================================
 
-const elements: Record<string, ElementRecord<ContainerUserData>> = {
-  'container-a': {
+const MARKER = {
+  markup: jsx(<path d="M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4" fill="none" strokeWidth={1.5} />),
+};
+
+const CONTAINER_LINK_STYLE = {
+  color: LINK_COLOR,
+  width: 1,
+  targetMarker: MARKER,
+};
+
+const initialCells: Cells<ContainerUserData> = [
+  {
+    id: 'container-a',
+    type: 'element',
     data: { elementType: ElementType.Container, title: 'Container A', collapsed: false },
     position: { x: 50, y: 50 },
     size: { width: 340, height: 280 },
     z: 1,
   },
-  'container-b': {
+  {
+    id: 'container-b',
+    type: 'element',
     data: { elementType: ElementType.Container, title: 'Container B', collapsed: false },
     position: { x: 280, y: 180 },
     size: { width: 180, height: 130 },
     z: 3,
     parent: 'container-a',
   },
-  'child-1': {
+  {
+    id: 'child-1',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '1' },
     position: { x: 150, y: 100 },
     size: { width: 50, height: 50 },
     z: 2,
     parent: 'container-a',
   },
-  'child-2': {
+  {
+    id: 'child-2',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '2' },
     position: { x: 100, y: 200 },
     size: { width: 50, height: 50 },
     z: 2,
     parent: 'container-a',
   },
-  'child-3': {
+  {
+    id: 'child-3',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '3' },
     position: { x: 200, y: 200 },
     size: { width: 50, height: 50 },
     z: 2,
     parent: 'container-a',
   },
-  'child-4': {
+  {
+    id: 'child-4',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '4' },
     position: { x: 300, y: 220 },
     size: { width: 50, height: 50 },
     z: 4,
     parent: 'container-b',
   },
-  'child-5': {
+  {
+    id: 'child-5',
+    type: 'element',
     data: { elementType: ElementType.Child, label: '5' },
     position: { x: 390, y: 220 },
     size: { width: 50, height: 50 },
     z: 4,
     parent: 'container-b',
   },
-};
-
-const MARKER = {
-  markup: jsx(<path d="M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4" fill="none" strokeWidth={1.5} />),
-};
-
-const links: Record<string, LinkRecord> = {
-  'link-1-2': {
+  {
+    id: 'link-1-2',
+    type: 'link',
     source: { id: 'child-1' },
     target: { id: 'child-2' },
     z: 2,
-    style: {
-      color: LINK_COLOR,
-      width: 1,
-      targetMarker: MARKER,
-    },
+    style: CONTAINER_LINK_STYLE,
   },
-  'link-1-3': {
+  {
+    id: 'link-1-3',
+    type: 'link',
     source: { id: 'child-1' },
     target: { id: 'child-3' },
     z: 2,
-    style: {
-      color: LINK_COLOR,
-      width: 1,
-      targetMarker: MARKER,
-    },
+    style: CONTAINER_LINK_STYLE,
   },
-  'link-4-5': {
+  {
+    id: 'link-4-5',
+    type: 'link',
     source: { id: 'child-4' },
     target: { id: 'child-5' },
     z: 4,
-    style: {
-      color: LINK_COLOR,
-      width: 1,
-      targetMarker: MARKER,
-    },
+    style: CONTAINER_LINK_STYLE,
   },
-  'link-1-b': {
+  {
+    id: 'link-1-b',
+    type: 'link',
     source: { id: 'child-1' },
     target: { id: 'container-b' },
     z: 4,
-    style: {
-      color: LINK_COLOR,
-      width: 1,
-      targetMarker: MARKER,
-    },
+    style: CONTAINER_LINK_STYLE,
   },
-};
+];
 
 // ============================================================================
 // Components
@@ -207,9 +216,9 @@ function ExpandButton({
   );
 }
 
-function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>) {
-  const { width, height } = useElementSize();
-  const id = useElementId();
+function ContainerNode({ title, collapsed = false }: Readonly<ContainerData>) {
+  const { width, height } = useElement(selectElementSize);
+  const id = useCellId();
   const { graph } = useGraph();
 
   const handleToggle = useCallback(() => {
@@ -271,7 +280,7 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>)
 }
 
 function ChildNode({ label }: Readonly<{ label: string }>) {
-  const { width, height } = useElementSize();
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       {/* Body */}
@@ -375,13 +384,13 @@ function Main() {
     return !hasCollapsedAncestor(cell);
   }, []);
 
-  const renderElement = useCallback((element: ContainerUserData) => {
-    switch (element.elementType) {
+  const renderElement = useCallback((data: ContainerUserData) => {
+    switch (data.elementType) {
       case ElementType.Container: {
-        return <ContainerNode {...element} />;
+        return <ContainerNode {...data} />;
       }
       case ElementType.Child: {
-        return <ChildNode {...element} />;
+        return <ChildNode {...data} />;
       }
     }
   }, []);
@@ -439,7 +448,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={elements} initialLinks={links}>
+    <GraphProvider<ContainerUserData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

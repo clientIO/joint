@@ -2,9 +2,10 @@
 import {
   GraphProvider,
   Paper,
+  useElement,
   useMeasureNode,
-  type ElementRecord,
-  type LinkRecord,
+  type Cells,
+  type ResolvedElementRecord,
 } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
@@ -15,21 +16,21 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-};
-
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+const initialCells: Cells<NodeData> = [
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  {
+    id: 'e1-2',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
-function ResizableNode({ label }: Readonly<NodeData>) {
+function ResizableNode() {
   const nodeRef = useRef<HTMLDivElement>(null);
+  const label = useElement((element: ResolvedElementRecord<NodeData>) => element.data.label);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     const node = nodeRef.current;
     if (!node) return;
@@ -88,7 +89,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

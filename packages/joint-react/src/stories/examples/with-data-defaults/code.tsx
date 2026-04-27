@@ -2,22 +2,18 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
   GraphProvider,
+  useElement,
   Paper,
-  useElementSize,
-  useGraph,
-  type ElementRecord,
+    useGraph,
+  type Cells,
   type ElementPort,
-  type LinkRecord,
   type RenderElement,
+  selectElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
 
 interface ElementData {
   label: string;
-}
-
-interface PortElement extends ElementRecord<ElementData> {
-  kind: 'source' | 'process' | 'sink';
 }
 
 const outPort: ElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
@@ -62,30 +58,31 @@ const getDefaultLink = (color: string) => {
   });
 };
 
-const initialElements: Record<string, PortElement> = {
-  a: { kind: 'source', data: { label: 'Start' }, position: { x: 50, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.source },
-  b: { kind: 'process', data: { label: 'Process' }, position: { x: 250, y: 50 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
-  c: { kind: 'process', data: { label: 'Review' }, position: { x: 250, y: 230 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
-  d: { kind: 'sink', data: { label: 'Done' }, position: { x: 480, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.sink },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'a-b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
-  'a-c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
-  'b-d': {
+const initialCells: Cells<ElementData> = [
+  { id: 'a', type: 'element', kind: 'source', data: { label: 'Start' }, position: { x: 50, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.source },
+  { id: 'b', type: 'element', kind: 'process', data: { label: 'Process' }, position: { x: 250, y: 50 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
+  { id: 'c', type: 'element', kind: 'process', data: { label: 'Review' }, position: { x: 250, y: 230 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
+  { id: 'd', type: 'element', kind: 'sink', data: { label: 'Done' }, position: { x: 480, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.sink },
+  { id: 'a-b', type: 'link', source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
+  { id: 'a-c', type: 'link', source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
+  {
+    id: 'b-d',
+    type: 'link',
     source: { id: 'b', port: 'out' },
     target: { id: 'd', port: 'in' },
     labelMap: { status: { text: 'approved' } },
   },
-  'c-d': {
+  {
+    id: 'c-d',
+    type: 'link',
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
     labelMap: { status: { text: 'pending' } },
   },
-};
+];
 
 function Element({ label, color }: Readonly<{ label: string; color: string }>) {
-  const { width, height } = useElementSize();
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect width={width} height={height} rx="6" fill="#1e293b" stroke={color} strokeWidth="2" />
@@ -106,32 +103,32 @@ function Element({ label, color }: Readonly<{ label: string; color: string }>) {
 
 /**
  * Applies theme-dependent styling (port color/shape, link style) to all cells
- * when `color` or `portShape` changes. Uses `setElements`/`setLinks` to update
- * everything in a single batch instead of iterating cell by cell.
+ * when `color` or `portShape` changes. Uses `updateCells` to patch every cell
+ * in one batch without removing anything else.
  */
 function ThemeUpdater({
   color,
   portShape,
 }: Readonly<{ color: string; portShape: 'ellipse' | 'rect' }>) {
-  const { setElements, setLinks } = useGraph<ElementData>();
+  const { updateCells, isElement, isLink } = useGraph<ElementData>();
 
   useEffect(() => {
     const portStyle = getPortStyle(color, portShape);
-
-    setElements((previous) =>
-      Object.fromEntries(
-        Object.entries(previous).map(([id, element]) => [id, { ...element, portStyle }])
-      )
-    );
-
     const style = getLinkStyle(color);
     const labelStyle = getLabelStyle(color);
-    setLinks((previous) =>
-      Object.fromEntries(
-        Object.entries(previous).map(([id, link]) => [id, { ...link, style, labelStyle }])
-      )
+
+    updateCells((previous) =>
+      previous.map((cell) => {
+        if (isElement(cell)) {
+          return { ...cell, portStyle };
+        }
+        if (isLink(cell)) {
+          return { ...cell, style, labelStyle };
+        }
+        return cell;
+      })
     );
-  }, [color, portShape, setElements, setLinks]);
+  }, [color, portShape, updateCells, isElement, isLink]);
 
   return null;
 }
@@ -169,9 +166,9 @@ function Diagram() {
           transition: 'background 0.2s',
         }}
       >
-        {alternate ? '\u25A0 Square ports' : '\u25CF Round ports'}
+        {alternate ? '■ Square ports' : '● Round ports'}
       </button>
-      <GraphProvider<ElementData> initialElements={initialElements} initialLinks={initialLinks}>
+      <GraphProvider<ElementData> initialCells={initialCells}>
         <ThemeUpdater color={color} portShape={portShape} />
         <Paper
           className={PAPER_CLASSNAME}

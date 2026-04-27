@@ -1,26 +1,40 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, HTMLHost, type ElementRecord, type LinkRecord } from '@joint/react';
+import {
+  GraphProvider,
+  HTMLHost,
+  Paper,
+  type Cells,
+} from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 // define element type with custom properties
 type ElementData = { label: string };
 
-// define initial elements as Record
-const initialElements: Record<string, ElementRecord<ElementData>> = {
-  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'World' }, position: { x: 100, y: 200 } },
-};
-
-// define initial edges as Record
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+// Unified cells (elements + links in one array; each requires id + type)
+const initialCells: Cells<ElementData> = [
+  {
+    id: '1',
+    type: 'element',
+    data: { label: 'Hello' },
+    position: { x: 100, y: 15 },
+  },
+  {
+    id: '2',
+    type: 'element',
+    data: { label: 'World' },
+    position: { x: 100, y: 200 },
+  },
+  {
+    id: 'e1-2',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY, width: 2 },
   },
-};
-function RenderItem({ label }: Readonly<ElementData>) {
+];
+
+function RenderItem({ label }: ElementData) {
   return (
     <HTMLHost className="node" style={{ width: 100, height: 50 }}>
       {label}
@@ -38,7 +52,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialLinks={initialEdges} initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

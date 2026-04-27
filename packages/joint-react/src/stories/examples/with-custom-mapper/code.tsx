@@ -3,9 +3,9 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElements,
+  useCells,
+  type Cells,
   type ElementRecord,
-  type LinkRecord,
 } from '@joint/react';
 
 // ============================================================================
@@ -17,7 +17,7 @@ import {
  * JointJS's top-left position (x, y).
  * The cx/cy values are derived from position + size for display purposes.
  */
-interface CenterElement {
+interface CenterData {
   readonly label: string;
 }
 
@@ -26,56 +26,66 @@ interface CenterElement {
 // ============================================================================
 
 /**
- * Initial elements store standard top-left position. The DataPanel derives
+ * Initial cells store standard top-left position. The DataPanel derives
  * center coordinates (cx, cy) from position + size for display.
  */
-const initialElements: Record<string, ElementRecord<CenterElement>> = {
-  'node-1': {
+const initialCells: Cells<CenterData> = [
+  {
+    id: 'node-1',
+    type: 'element',
     data: { label: 'Node One' },
     position: { x: 70, y: 100 },
     size: { width: 160, height: 60 },
   },
-  'node-2': {
+  {
+    id: 'node-2',
+    type: 'element',
     data: { label: 'Node Two' },
     position: { x: 370, y: 70 },
     size: { width: 160, height: 60 },
   },
-  'node-3': {
+  {
+    id: 'node-3',
+    type: 'element',
     data: { label: 'Node Three' },
     position: { x: 220, y: 250 },
     size: { width: 160, height: 60 },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'link-1': {
+  {
+    id: 'link-1',
+    type: 'link',
     source: { id: 'node-1' },
     target: { id: 'node-2' },
     color: PRIMARY,
   },
-  'link-2': {
+  {
+    id: 'link-2',
+    type: 'link',
     source: { id: 'node-1' },
     target: { id: 'node-3' },
     color: PRIMARY,
   },
-};
+];
 
 // ============================================================================
 // Data Panel — shows live cx/cy values
 // ============================================================================
 
 function DataPanel() {
-  const elements = useElements<CenterElement>();
+  const cells = useCells<CenterData>();
+  const elements = cells.filter(
+    (cell): cell is ElementRecord<CenterData> => cell.type === 'element'
+  );
   return (
     <div className="p-4 min-w-50 text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Element Data (cx, cy)</h3>
-      {[...elements.entries()].map(([id, { data, position, size }]) => {
+      {elements.map(({ id, data, position, size }) => {
         const x = position?.x ?? 0;
         const y = position?.y ?? 0;
         const width = size?.width ?? 100;
         const height = size?.height ?? 60;
         return (
-          <div key={id} className="mb-3 p-2 rounded bg-gray-800">
+          <div key={String(id)} className="mb-3 p-2 rounded bg-gray-800">
             <div className="font-bold mb-1">{data?.label}</div>
             <div>cx: {Math.round(x + width / 2)}</div>
             <div>cy: {Math.round(y + height / 2)}</div>
@@ -110,10 +120,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
-      initialElements={initialElements}
-      initialLinks={initialLinks}
-    >
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

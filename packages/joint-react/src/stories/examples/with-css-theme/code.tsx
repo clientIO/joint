@@ -2,11 +2,11 @@
 import { useState, useCallback, useRef } from 'react';
 import {
   GraphProvider,
+  useElement,
   Paper,
-  useElementSize,
-  type ElementRecord,
-  type LinkRecord,
+    type Cells,
   type RenderElement,
+  selectElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -21,35 +21,64 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  a: { data: { label: 'Source' }, position: { x: 50, y: 60 }, size: { width: 120, height: 50 } },
-  b: { data: { label: 'Process' }, position: { x: 280, y: 20 }, size: { width: 120, height: 50 } },
-  c: { data: { label: 'Review' }, position: { x: 280, y: 120 }, size: { width: 120, height: 50 } },
-  d: { data: { label: 'Output' }, position: { x: 510, y: 60 }, size: { width: 120, height: 50 } },
-};
-
-// Links: no explicit color/width — CSS variables provide styling.
-// One link overrides color to show per-link precedence.
-const initialLinks: Record<string, LinkRecord> = {
-  'a→b': {
+const initialCells: Cells<NodeData> = [
+  {
+    id: 'a',
+    type: 'element',
+    data: { label: 'Source' },
+    position: { x: 50, y: 60 },
+    size: { width: 120, height: 50 },
+  },
+  {
+    id: 'b',
+    type: 'element',
+    data: { label: 'Process' },
+    position: { x: 280, y: 20 },
+    size: { width: 120, height: 50 },
+  },
+  {
+    id: 'c',
+    type: 'element',
+    data: { label: 'Review' },
+    position: { x: 280, y: 120 },
+    size: { width: 120, height: 50 },
+  },
+  {
+    id: 'd',
+    type: 'element',
+    data: { label: 'Output' },
+    position: { x: 510, y: 60 },
+    size: { width: 120, height: 50 },
+  },
+  // Links: no explicit color/width — CSS variables provide styling.
+  // One link overrides color to show per-link precedence.
+  {
+    id: 'a→b',
+    type: 'link',
     source: { id: 'a' },
     target: { id: 'b' },
     style: { targetMarker: 'arrow' },
     labelMap: { flow: { text: 'async' } },
   },
-  'a→c': {
+  {
+    id: 'a→c',
+    type: 'link',
     source: { id: 'a' },
     target: { id: 'c' },
     style: { targetMarker: 'arrow' },
     labelMap: { flow: { text: 'sync' } },
   },
-  'b→d': {
+  {
+    id: 'b→d',
+    type: 'link',
     source: { id: 'b' },
     target: { id: 'd' },
     style: { targetMarker: 'arrow' },
     labelMap: { status: { text: 'approved' } },
   },
-  'c→d': {
+  {
+    id: 'c→d',
+    type: 'link',
     source: { id: 'c' },
     target: { id: 'd' },
     style: {
@@ -59,10 +88,10 @@ const initialLinks: Record<string, LinkRecord> = {
     },
     labelMap: { status: { text: 'pending' } },
   },
-};
+];
 
 function Node({ label }: Readonly<{ label: string }>) {
-  const { width, height } = useElementSize();
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect
@@ -88,8 +117,7 @@ function Node({ label }: Readonly<{ label: string }>) {
 }
 
 function Diagram() {
-  const [elements, setElements] = useState<Record<string, ElementRecord<NodeData>>>(initialElements);
-  const [links, setLinks] = useState<Record<string, LinkRecord>>(initialLinks);
+  const [cells, setCells] = useState<Cells<NodeData>>(initialCells);
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -134,12 +162,7 @@ function Diagram() {
           <code>color</code> prop.
         </span>
       </div>
-      <GraphProvider<NodeData>
-        elements={elements}
-        links={links}
-        onElementsChange={setElements}
-        onLinksChange={setLinks}
-      >
+      <GraphProvider<NodeData> cells={cells} onCellsChange={setCells}>
         <Paper
           className={PAPER_CLASSNAME}
           style={{ background: 'var(--paper-bg)' }}

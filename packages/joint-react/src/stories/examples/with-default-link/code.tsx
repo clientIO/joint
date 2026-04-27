@@ -2,14 +2,13 @@
 
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
-import type {
-  ElementPort} from '@joint/react';
+import type { ElementPort } from '@joint/react';
 import {
   GraphProvider,
   Paper,
   HTMLBox,
-  type ElementRecord,
-  type DefaultLinkContext
+  type Cells,
+  type DefaultLinkContext,
 } from '@joint/react';
 
 const RED = '#ef4444';
@@ -19,8 +18,14 @@ const BLUE = '#3b82f6';
 const PORT_SIZE = 14;
 const PORT_STYLE: ElementPort = { width: PORT_SIZE, height: PORT_SIZE, shape: 'rect' };
 
-const initialElements: Record<string, ElementRecord> = {
-  'node-1': {
+interface NodeData {
+  readonly label: string;
+}
+
+const initialCells: Cells<NodeData> = [
+  {
+    id: 'node-1',
+    type: 'element',
     data: { label: 'Source' },
     position: { x: 50, y: 80 },
     size: { width: 140, height: 120 },
@@ -31,7 +36,9 @@ const initialElements: Record<string, ElementRecord> = {
       blue: { cx: 'calc(w)', cy: 'calc(0.75 * h)', color: BLUE },
     },
   },
-  'node-2': {
+  {
+    id: 'node-2',
+    type: 'element',
     data: { label: 'Target' },
     position: { x: 350, y: 80 },
     size: { width: 140, height: 120 },
@@ -41,7 +48,7 @@ const initialElements: Record<string, ElementRecord> = {
       'in-2': { cx: 0, cy: 'calc(0.66 * h)' },
     },
   },
-};
+];
 
 const PORT_COLORS: Record<string, string> = {
   red: RED,
@@ -57,13 +64,13 @@ function defaultLink({ source }: DefaultLinkContext) {
   };
 }
 
-function RenderElement(data: Readonly<{ label: string }>) {
+function RenderElement(data: NodeData) {
   return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
 }
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Paper
         renderElement={RenderElement}
         className={PAPER_CLASSNAME}

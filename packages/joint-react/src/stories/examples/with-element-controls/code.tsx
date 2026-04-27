@@ -1,9 +1,11 @@
 import {
   GraphProvider,
+  useElement,
   Paper,
-  useElementSize,
-  useNodesMeasuredEffect,
+    useNodesMeasuredEffect,
+  type Cells,
   type ElementRecord,
+  selectElementSize,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
@@ -31,39 +33,39 @@ type ElementType =
   | 'cube'
   | 'card';
 
-interface BaseElement {
+interface BaseData {
   type: ElementType;
   label: string;
 }
 
-interface OffsetElement extends BaseElement {
+interface OffsetData extends BaseData {
   type: 'parallelogram' | 'hexagon' | 'step' | 'trapezoid' | 'document' | 'plus' | 'note' | 'card';
   offset: number;
 }
 
-interface ArrowElement extends BaseElement {
+interface ArrowData extends BaseData {
   type: 'arrow';
   arrowHeight: number;
   thickness: number;
 }
 
-interface TableElement extends BaseElement {
+interface TableData extends BaseData {
   type: 'table';
   dividerX: number;
   dividerY: number;
 }
 
-interface CubeElement extends BaseElement {
+interface CubeData extends BaseData {
   type: 'cube';
   cornerX: number;
   cornerY: number;
 }
 
-interface SimpleElement extends BaseElement {
+interface SimpleData extends BaseData {
   type: 'linkedProcess' | 'input' | 'mark' | 'actor' | 'shipment';
 }
 
-type ControlledElement = OffsetElement | ArrowElement | TableElement | CubeElement | SimpleElement;
+type ControlledData = OffsetData | ArrowData | TableData | CubeData | SimpleData;
 
 // ----------------------------------------------------------------------------
 // Layout Constants
@@ -73,10 +75,13 @@ const COLUMNS_COUNT = 4;
 const COLUMNS_GAP = 200;
 const ROW_GAP = 140;
 
-function pos(index: number, w: number, h: number) {
+function pos(id: string, index: number, w: number, h: number, data: ControlledData): ElementRecord<ControlledData> {
   const col = index % COLUMNS_COUNT;
   const row = Math.floor(index / COLUMNS_COUNT);
   return {
+    id,
+    type: 'element',
+    data,
     position: {
       x: MARGIN + col * COLUMNS_GAP + (COLUMNS_GAP - w) / 2,
       y: MARGIN + row * ROW_GAP + (ROW_GAP - h) / 2,
@@ -86,56 +91,32 @@ function pos(index: number, w: number, h: number) {
 }
 
 // ----------------------------------------------------------------------------
-// Initial Elements
+// Initial Cells
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, ElementRecord<ControlledElement>> = {
-  linkedProcess: {
-    data: { type: 'linkedProcess', label: 'Linked Process' },
-    ...pos(0, 120, 50),
-  },
-  input: { data: { type: 'input', label: 'Input' }, ...pos(1, 100, 50) },
-  mark: { data: { type: 'mark', label: 'Mark' }, ...pos(2, 120, 50) },
-  actor: { data: { type: 'actor', label: 'Actor' }, ...pos(15, 50, 100) },
-  parallelogram: {
-    data: { type: 'parallelogram', label: 'Parallelogram', offset: 10 },
-    ...pos(4, 80, 60),
-  },
-  hexagon: {
-    data: { type: 'hexagon', label: 'Hexagon', offset: 20 },
-    ...pos(5, 90, 60),
-  },
-  step: { data: { type: 'step', label: 'Step', offset: 20 }, ...pos(6, 90, 60) },
-  trapezoid: {
-    data: { type: 'trapezoid', label: 'Trapezoid', offset: 20 },
-    ...pos(7, 120, 60),
-  },
-  document: {
-    data: { type: 'document', label: 'Document', offset: 20 },
-    ...pos(8, 120, 50),
-  },
-  shipment: { data: { type: 'shipment', label: 'Shipment' }, ...pos(3, 70, 50) },
-  plus: { data: { type: 'plus', label: 'Plus', offset: 20 }, ...pos(10, 70, 70) },
-  arrow: {
-    data: { type: 'arrow', label: 'Arrow', arrowHeight: 33, thickness: 33 },
-    ...pos(11, 100, 100),
-  },
-  note: { data: { type: 'note', label: 'Note', offset: 20 }, ...pos(12, 100, 100) },
-  table: {
-    data: { type: 'table', label: 'Table', dividerX: 25, dividerY: 25 },
-    ...pos(13, 100, 100),
-  },
-  cube: {
-    data: { type: 'cube', label: 'Cube', cornerX: 100 / 3, cornerY: 40 },
-    ...pos(14, 100, 100),
-  },
-  card: { data: { type: 'card', label: 'Card', offset: 20 }, ...pos(9, 100, 60) },
-};
+const initialCells: Cells<ControlledData> = [
+  pos('linkedProcess', 0, 120, 50, { type: 'linkedProcess', label: 'Linked Process' }),
+  pos('input', 1, 100, 50, { type: 'input', label: 'Input' }),
+  pos('mark', 2, 120, 50, { type: 'mark', label: 'Mark' }),
+  pos('actor', 15, 50, 100, { type: 'actor', label: 'Actor' }),
+  pos('parallelogram', 4, 80, 60, { type: 'parallelogram', label: 'Parallelogram', offset: 10 }),
+  pos('hexagon', 5, 90, 60, { type: 'hexagon', label: 'Hexagon', offset: 20 }),
+  pos('step', 6, 90, 60, { type: 'step', label: 'Step', offset: 20 }),
+  pos('trapezoid', 7, 120, 60, { type: 'trapezoid', label: 'Trapezoid', offset: 20 }),
+  pos('document', 8, 120, 50, { type: 'document', label: 'Document', offset: 20 }),
+  pos('shipment', 3, 70, 50, { type: 'shipment', label: 'Shipment' }),
+  pos('plus', 10, 70, 70, { type: 'plus', label: 'Plus', offset: 20 }),
+  pos('arrow', 11, 100, 100, { type: 'arrow', label: 'Arrow', arrowHeight: 33, thickness: 33 }),
+  pos('note', 12, 100, 100, { type: 'note', label: 'Note', offset: 20 }),
+  pos('table', 13, 100, 100, { type: 'table', label: 'Table', dividerX: 25, dividerY: 25 }),
+  pos('cube', 14, 100, 100, { type: 'cube', label: 'Cube', cornerX: 100 / 3, cornerY: 40 }),
+  pos('card', 9, 100, 60, { type: 'card', label: 'Card', offset: 20 }),
+];
 
 // ----------------------------------------------------------------------------
 // Label Component
 // ----------------------------------------------------------------------------
 function Label({ label }: Readonly<{ label: string }>) {
-  const { width, height } = useElementSize();
+  const { width, height } = useElement(selectElementSize);
   return (
     <text
       textAnchor="middle"
@@ -154,8 +135,8 @@ function Label({ label }: Readonly<{ label: string }>) {
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function LinkedProcess({ label }: Readonly<BaseElement>) {
-  const { width, height } = useElementSize();
+function LinkedProcess({ label }: Readonly<BaseData>) {
+  const { width, height } = useElement(selectElementSize);
 
   return (
     <>
@@ -167,8 +148,8 @@ function LinkedProcess({ label }: Readonly<BaseElement>) {
   );
 }
 
-function InputShape({ label }: Readonly<BaseElement>) {
-  const { width, height } = useElementSize();
+function InputShape({ label }: Readonly<BaseData>) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <path
@@ -182,8 +163,8 @@ function InputShape({ label }: Readonly<BaseElement>) {
   );
 }
 
-function MarkShape({ label }: Readonly<BaseElement>) {
-  const { width, height } = useElementSize();
+function MarkShape({ label }: Readonly<BaseData>) {
+  const { width, height } = useElement(selectElementSize);
   const hh = height * 0.5;
   return (
     <>
@@ -198,8 +179,8 @@ function MarkShape({ label }: Readonly<BaseElement>) {
   );
 }
 
-function ActorShape({ label }: Readonly<BaseElement>) {
-  const { width, height } = useElementSize();
+function ActorShape({ label }: Readonly<BaseData>) {
+  const { width, height } = useElement(selectElementSize);
   const headY = 0.2;
   const bodyY = 0.4;
   const legsY = 0.7;
@@ -221,8 +202,8 @@ function ActorShape({ label }: Readonly<BaseElement>) {
   );
 }
 
-function Parallelogram({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useElementSize();
+function Parallelogram({ offset = 0, label }: Readonly<OffsetData>) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <path
@@ -236,8 +217,8 @@ function Parallelogram({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function Hexagon({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useElementSize();
+function Hexagon({ offset = 0, label }: Readonly<OffsetData>) {
+  const { width, height } = useElement(selectElementSize);
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -252,8 +233,8 @@ function Hexagon({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function StepShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useElementSize();
+function StepShape({ offset = 0, label }: Readonly<OffsetData>) {
+  const { width, height } = useElement(selectElementSize);
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -268,8 +249,8 @@ function StepShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function TrapezoidShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useElementSize();
+function TrapezoidShape({ offset = 0, label }: Readonly<OffsetData>) {
+  const { width, height } = useElement(selectElementSize);
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -284,8 +265,8 @@ function TrapezoidShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function DocumentShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useElementSize();
+function DocumentShape({ offset = 0, label }: Readonly<OffsetData>) {
+  const { width, height } = useElement(selectElementSize);
   const o = Math.max(0, Math.min(offset, height / 2));
   return (
     <>
@@ -300,8 +281,8 @@ function DocumentShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function ShipmentShape({ label }: Readonly<BaseElement>) {
-  const { width, height } = useElementSize();
+function ShipmentShape({ label }: Readonly<BaseData>) {
+  const { width, height } = useElement(selectElementSize);
   const scale = Math.min(width / 256, height / 256);
   const tx = (width - 256 * scale) / 2;
   const ty = (height - 256 * scale) / 2;
@@ -319,8 +300,8 @@ function ShipmentShape({ label }: Readonly<BaseElement>) {
   );
 }
 
-function PlusShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useElementSize();
+function PlusShape({ offset = 0, label }: Readonly<OffsetData>) {
+  const { width, height } = useElement(selectElementSize);
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -335,8 +316,8 @@ function PlusShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>) {
-  const { width, height } = useElementSize();
+function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowData>) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <path
@@ -350,8 +331,8 @@ function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>
   );
 }
 
-function NoteShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useElementSize();
+function NoteShape({ offset = 0, label }: Readonly<OffsetData>) {
+  const { width, height } = useElement(selectElementSize);
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -374,8 +355,8 @@ function NoteShape({ offset = 0, label }: Readonly<OffsetElement>) {
   );
 }
 
-function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableElement>) {
-  const { width, height } = useElementSize();
+function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableData>) {
+  const { width, height } = useElement(selectElementSize);
   const dx = Math.max(0, Math.min(dividerX, width));
   const dy = Math.max(0, Math.min(dividerY, height));
   return (
@@ -400,8 +381,8 @@ function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableEleme
   );
 }
 
-function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>) {
-  const { width, height } = useElementSize();
+function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeData>) {
+  const { width, height } = useElement(selectElementSize);
   const cx = Math.max(0, Math.min(cornerX, width));
   const cy = Math.max(0, Math.min(cornerY, height));
   return (
@@ -449,8 +430,8 @@ function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>)
   );
 }
 
-function CardShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useElementSize();
+function CardShape({ offset = 0, label }: Readonly<OffsetData>) {
+  const { width, height } = useElement(selectElementSize);
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -671,55 +652,55 @@ class CardOffsetControl extends elementTools.Control {
 // ----------------------------------------------------------------------------
 // Render Element
 // ----------------------------------------------------------------------------
-function renderElement(element: ControlledElement) {
-  switch (element.type) {
+function renderElement(data: ControlledData) {
+  switch (data.type) {
     case 'linkedProcess': {
-      return <LinkedProcess {...element} />;
+      return <LinkedProcess {...data} />;
     }
     case 'input': {
-      return <InputShape {...element} />;
+      return <InputShape {...data} />;
     }
     case 'mark': {
-      return <MarkShape {...element} />;
+      return <MarkShape {...data} />;
     }
     case 'actor': {
-      return <ActorShape {...element} />;
+      return <ActorShape {...data} />;
     }
     case 'parallelogram': {
-      return <Parallelogram {...element} />;
+      return <Parallelogram {...data} />;
     }
     case 'hexagon': {
-      return <Hexagon {...element} />;
+      return <Hexagon {...data} />;
     }
     case 'step': {
-      return <StepShape {...element} />;
+      return <StepShape {...data} />;
     }
     case 'trapezoid': {
-      return <TrapezoidShape {...element} />;
+      return <TrapezoidShape {...data} />;
     }
     case 'document': {
-      return <DocumentShape {...element} />;
+      return <DocumentShape {...data} />;
     }
     case 'shipment': {
-      return <ShipmentShape {...element} />;
+      return <ShipmentShape {...data} />;
     }
     case 'plus': {
-      return <PlusShape {...element} />;
+      return <PlusShape {...data} />;
     }
     case 'arrow': {
-      return <Arrow {...element} />;
+      return <Arrow {...data} />;
     }
     case 'note': {
-      return <NoteShape {...element} />;
+      return <NoteShape {...data} />;
     }
     case 'table': {
-      return <TableShape {...element} />;
+      return <TableShape {...data} />;
     }
     case 'cube': {
-      return <CubeShape {...element} />;
+      return <CubeShape {...data} />;
     }
     case 'card': {
-      return <CardShape {...element} />;
+      return <CardShape {...data} />;
     }
     default: {
       return null;
@@ -786,7 +767,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

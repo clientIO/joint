@@ -1,7 +1,9 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
 import { graphChanges } from '../graph-changes';
-import type { ElementRecord } from '../../types/data-types';
+import type { CellRecord, Cells } from '../../types/cell.types';
+import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { LINK_MODEL_TYPE } from '../../models/link-model';
 
 function createGraph() {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
@@ -20,7 +22,7 @@ function setup() {
 function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50) {
   graph.addCell({
     id,
-    type: 'ElementModel',
+    type: 'element',
     position: { x, y },
     size: { width, height },
   });
@@ -103,7 +105,7 @@ describe('graphChanges', () => {
       graph.resetCells([
         {
           id: 'el-2',
-          type: 'ElementModel',
+          type: 'element',
           position: { x: 0, y: 0 },
           size: { width: 50, height: 50 },
         },
@@ -124,7 +126,7 @@ describe('graphChanges', () => {
       graph.addCell(
         {
           id: 'el-1',
-          type: 'ElementModel',
+          type: 'element',
           position: { x: 0, y: 0 },
           size: { width: 50, height: 50 },
         },
@@ -236,27 +238,62 @@ describe('graphChanges', () => {
   });
 
   describe('updateGraph', () => {
-    it('syncs elements to the graph', () => {
+    it('syncs a unified cells array to the graph', () => {
       const { graph, controller } = setup();
-      controller.updateGraph({
-        elements: {
-          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as ElementRecord,
-        },
-        links: {},
-      });
+      const cells: Cells = [
+        {
+          id: 'el-1',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 10, y: 20 },
+          size: { width: 100, height: 50 },
+        } as CellRecord,
+      ];
+      controller.updateGraph({ cells });
 
       const element = graph.getCell('el-1') as dia.Element;
       expect(element).toBeDefined();
       expect(element.position()).toEqual({ x: 10, y: 20 });
     });
 
-    it('removes elements not in the update', () => {
+    it('removes cells not in the update', () => {
       const { graph, controller } = setup();
       addElement(graph, 'el-1');
 
-      controller.updateGraph({ elements: {}, links: {} });
+      controller.updateGraph({ cells: [] });
 
       expect(graph.getCell('el-1')).toBeUndefined();
+    });
+
+    it('routes links and elements through the unified cells input', () => {
+      const { graph, controller } = setup();
+      const cells: Cells = [
+        {
+          id: 'a',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+        {
+          id: 'b',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 50, y: 0 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+        {
+          id: 'l1',
+          type: LINK_MODEL_TYPE,
+          source: { id: 'a' },
+          target: { id: 'b' },
+        } as CellRecord,
+      ];
+      controller.updateGraph({ cells });
+
+      expect(graph.getCell('a')).toBeDefined();
+      expect(graph.getCell('b')).toBeDefined();
+      const link = graph.getCell('l1') as dia.Link;
+      expect(link).toBeDefined();
+      expect(link.source()).toEqual({ id: 'a' });
+      expect(link.target()).toEqual({ id: 'b' });
     });
 
     it('uses syncCells with isUpdateFromReact flag', () => {
@@ -264,17 +301,48 @@ describe('graphChanges', () => {
       onChanges.mockClear();
 
       controller.updateGraph({
-        elements: {
-          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as ElementRecord,
-        },
-        links: {},
+        cells: [
+          {
+            id: 'el-1',
+            type: ELEMENT_MODEL_TYPE,
+            position: { x: 10, y: 20 },
+            size: { width: 100, height: 50 },
+          } as CellRecord,
+        ],
         flag: 'updateFromReact',
       });
 
-      // syncCells with isUpdateFromReact=true should not trigger onChanges
       expect(onChanges).not.toHaveBeenCalled();
-      // But the element should still be in the graph
       expect(graph.getCell('el-1')).toBeDefined();
+    });
+
+    it('returns an empty cellIds list when no cells were provided', () => {
+      const { controller } = setup();
+      const result = controller.updateGraph({});
+      expect(result.cellIds).toEqual([]);
+    });
+
+    it('returns the ids of synced cells', () => {
+      const { controller } = setup();
+      const cells: Cells = [
+        {
+          id: 'el-1',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+        {
+          id: 'el-2',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 20, y: 20 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+      ];
+      const result = controller.updateGraph({ cells });
+      expect([...result.cellIds].toSorted((a, b) => String(a).localeCompare(String(b)))).toEqual([
+        'el-1',
+        'el-2',
+      ]);
     });
   });
 
@@ -291,61 +359,5 @@ describe('graphChanges', () => {
 
       expect(onChanges).not.toHaveBeenCalled();
     });
-  });
-});
-
-describe('updateGraph partial sync', () => {
-  it('preserves existing element cells when only links are provided', () => {
-    const graph = createGraph();
-    graph.addCells([
-      { id: 'e1', type: 'ElementModel', position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
-    ]);
-    const controller = graphChanges({ graph, onChanges: () => {} });
-
-    controller.updateGraph({ links: {}, flag: 'updateFromReact' });
-
-    expect(graph.getCell('e1')).toBeDefined();
-    controller.destroy();
-  });
-
-  it('preserves existing link cells when only elements are provided', () => {
-    const graph = createGraph();
-    graph.addCells([
-      { id: 'e1', type: 'ElementModel', position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
-      { id: 'e2', type: 'ElementModel', position: { x: 50, y: 50 }, size: { width: 10, height: 10 } },
-      { id: 'l1', type: 'standard.Link', source: { id: 'e1' }, target: { id: 'e2' } },
-    ]);
-    const controller = graphChanges({ graph, onChanges: () => {} });
-
-    controller.updateGraph({
-      elements: {
-        e1: { position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
-        e2: { position: { x: 50, y: 50 }, size: { width: 10, height: 10 } },
-      },
-      flag: 'updateFromReact',
-    });
-
-    expect(graph.getCell('l1')).toBeDefined();
-    controller.destroy();
-  });
-
-  it('removes missing link cells when links stream is provided', () => {
-    const graph = createGraph();
-    graph.addCells([
-      { id: 'e1', type: 'ElementModel', position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
-      { id: 'e2', type: 'ElementModel', position: { x: 50, y: 50 }, size: { width: 10, height: 10 } },
-      { id: 'l1', type: 'standard.Link', source: { id: 'e1' }, target: { id: 'e2' } },
-      { id: 'l2', type: 'standard.Link', source: { id: 'e2' }, target: { id: 'e1' } },
-    ]);
-    const controller = graphChanges({ graph, onChanges: () => {} });
-
-    controller.updateGraph({
-      links: { l1: { source: 'e1', target: 'e2' } },
-      flag: 'updateFromReact',
-    });
-
-    expect(graph.getCell('l1')).toBeDefined();
-    expect(graph.getCell('l2')).toBeUndefined();
-    controller.destroy();
   });
 });

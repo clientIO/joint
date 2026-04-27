@@ -8,7 +8,7 @@ function createElement<Attributes = dia.Element.Attributes>(
 }
 
 describe('element-model', () => {
-  describe('ElementModel', () => {
+  describe('element', () => {
     it('should create a ElementModel instance', () => {
       const element = new ElementModel({
         position: { x: 10, y: 20 },
@@ -102,7 +102,7 @@ describe('element-model', () => {
 
   describe('ELEMENT_MODEL_TYPE', () => {
     it('should be defined', () => {
-      expect(ELEMENT_MODEL_TYPE).toBe('ElementModel');
+      expect(ELEMENT_MODEL_TYPE).toBe('element');
     });
   });
 });

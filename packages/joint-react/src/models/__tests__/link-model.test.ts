@@ -1,6 +1,6 @@
 import { LinkModel, LINK_MODEL_TYPE } from '../link-model';
 
-describe('LinkModel', () => {
+describe('link', () => {
   describe('markup', () => {
     it('should have wrapper and line path markup with structural attributes only', () => {
       const link = new LinkModel();

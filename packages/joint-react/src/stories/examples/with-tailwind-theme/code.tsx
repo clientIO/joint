@@ -5,10 +5,9 @@ import { useState, useCallback, useRef } from 'react';
 import {
   GraphProvider,
   Paper,
-  useElementSize,
-  type ElementRecord,
-  type LinkRecord,
-  type RenderElement,
+  selectElementSize,
+  useElement,
+  type Cells,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -34,8 +33,14 @@ const PORT_STYLE = {
 
 const ELEMENT_SIZE = { width: 120, height: 50 };
 
-const initialElements: Record<string, ElementRecord<NodeUserData>> = {
-  a: {
+const DEFAULT_LINK = {
+  style: { targetMarker: 'arrow' },
+} as const;
+
+const initialCells: Cells<NodeUserData> = [
+  {
+    id: 'a',
+    type: 'element',
     data: { label: 'Source' },
     position: { x: 50, y: 70 },
     size: ELEMENT_SIZE,
@@ -44,7 +49,9 @@ const initialElements: Record<string, ElementRecord<NodeUserData>> = {
     },
     portStyle: PORT_STYLE,
   },
-  b: {
+  {
+    id: 'b',
+    type: 'element',
     data: { label: 'Process' },
     position: { x: 290, y: 20 },
     size: ELEMENT_SIZE,
@@ -54,7 +61,9 @@ const initialElements: Record<string, ElementRecord<NodeUserData>> = {
     },
     portStyle: PORT_STYLE,
   },
-  c: {
+  {
+    id: 'c',
+    type: 'element',
     data: { label: 'Review' },
     position: { x: 290, y: 120 },
     size: ELEMENT_SIZE,
@@ -64,7 +73,9 @@ const initialElements: Record<string, ElementRecord<NodeUserData>> = {
     },
     portStyle: PORT_STYLE,
   },
-  d: {
+  {
+    id: 'd',
+    type: 'element',
     data: { label: 'Output' },
     position: { x: 550, y: 70 },
     size: ELEMENT_SIZE,
@@ -73,39 +84,40 @@ const initialElements: Record<string, ElementRecord<NodeUserData>> = {
     },
     portStyle: PORT_STYLE,
   },
-};
-
-const DEFAULT_LINK = {
-  style: { targetMarker: 'arrow' },
-} as const;
-
-const initialLinks: Record<string, LinkRecord> = {
-  'a→b': {
+  {
+    id: 'a→b',
+    type: 'link',
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },
     ...DEFAULT_LINK,
   },
-  'a→c': {
+  {
+    id: 'a→c',
+    type: 'link',
     source: { id: 'a', port: 'out' },
     target: { id: 'c', port: 'in' },
     ...DEFAULT_LINK,
   },
-  'b→d': {
+  {
+    id: 'b→d',
+    type: 'link',
     source: { id: 'b', port: 'out' },
     target: { id: 'd', port: 'in' },
     labelMap: { info: { text: 'approved' } },
     ...DEFAULT_LINK,
     labelStyle: { backgroundPadding: { horizontal: 6, vertical: 4 } },
   },
-  'c→d': {
+  {
+    id: 'c→d',
+    type: 'link',
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
     style: { color: '#e11d48', targetMarker: 'arrow' },
   },
-};
+];
 
-function Node({ label }: Readonly<{ label: string }>) {
-  const { width, height } = useElementSize();
+function Node({ label }: NodeUserData) {
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect
@@ -150,15 +162,9 @@ const themeLabels: Record<Theme, string> = {
 };
 
 function Diagram() {
-  const [elements, setElements] = useState<Record<string, ElementRecord<NodeUserData>>>(initialElements);
-  const [links, setLinks] = useState<Record<string, LinkRecord>>(initialLinks);
+  const [cells, setCells] = useState<Cells<NodeUserData>>(initialCells);
   const [theme, setTheme] = useState<Theme>('default');
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  const renderElement: RenderElement<NodeUserData> = useCallback(
-    (data) => <Node label={data.label} />,
-    []
-  );
 
   const selectTheme = useCallback((next: Theme) => {
     setTheme(next);
@@ -191,16 +197,11 @@ function Diagram() {
           </label>
         ))}
       </fieldset>
-      <GraphProvider<NodeUserData>
-        elements={elements}
-        links={links}
-        onElementsChange={setElements}
-        onLinksChange={setLinks}
-      >
+      <GraphProvider<NodeUserData> cells={cells} onCellsChange={setCells}>
         <Paper
           className={PAPER_CLASSNAME}
           height={240}
-          renderElement={renderElement}
+          renderElement={Node}
           defaultLink={() => DEFAULT_LINK}
         />
       </GraphProvider>

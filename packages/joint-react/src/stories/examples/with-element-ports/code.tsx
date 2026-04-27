@@ -1,17 +1,17 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 import { V } from '@joint/core';
 import {
   GraphProvider,
   Paper,
   useGraph,
-  type ElementRecord,
-  type ElementPort,
-  type LinkRecord,
-  useElements,
+  useCells,
   HTMLBox,
+  type Cells,
+  type ElementPort,
+  type ElementRecord,
 } from '@joint/react';
 import { linkRoutingSmooth } from '@joint/react/presets';
 
@@ -76,14 +76,13 @@ function getShapeLabel(shape: string): string {
 
 const PORT_SIZE = 16;
 
-const initialElements: Record<string, ElementRecord<PortNodeData>> = {
-  'node-1': {
+const initialCells: Cells<PortNodeData> = [
+  {
+    id: 'node-1',
+    type: 'element',
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 50, y: 100 },
-    size: {
-      width: 140,
-      height: 80,
-    },
+    size: { width: 140, height: 80 },
     portStyle: { width: PORT_SIZE, height: PORT_SIZE, color: SECONDARY },
     portMap: {
       'out-1': {
@@ -102,13 +101,12 @@ const initialElements: Record<string, ElementRecord<PortNodeData>> = {
       },
     },
   },
-  'node-2': {
+  {
+    id: 'node-2',
+    type: 'element',
     data: { label: 'Node 2', color: SECONDARY },
     position: { x: 350, y: 100 },
-    size: {
-      width: 140,
-      height: 80,
-    },
+    size: { width: 140, height: 80 },
     portStyle: { width: PORT_SIZE, height: PORT_SIZE, color: PRIMARY },
     portMap: {
       'in-1': {
@@ -127,20 +125,21 @@ const initialElements: Record<string, ElementRecord<PortNodeData>> = {
       },
     },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'link-1': {
+  {
+    id: 'link-1',
+    type: 'link',
     source: { id: 'node-1', port: 'out-1' },
     target: { id: 'node-2', port: 'in-1' },
     z: -1,
   },
-  'link-2': {
+  {
+    id: 'link-2',
+    type: 'link',
     source: { id: 'node-1', port: 'out-2' },
     target: { id: 'node-2', port: 'in-2' },
     z: -1,
   },
-};
+];
 
 // --- Styles ---
 
@@ -176,15 +175,18 @@ interface PortControlProps {
 }
 
 function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
-  const { setElement } = useGraph();
+  const { setCell } = useGraph();
 
   const updatePort = (updates: Partial<ElementPort>) => {
-    setElement(elementId, (previous) => {
+    setCell((previous) => {
       const element = previous as ElementRecord;
       return {
         ...element,
-        portMap: element.portMap ? { ...element.portMap, [portId]: { ...element.portMap[portId], ...updates } } : element.portMap,
-      };
+        id: elementId,
+        portMap: element.portMap
+          ? { ...element.portMap, [portId]: { ...element.portMap[portId], ...updates } }
+          : element.portMap,
+      } as ElementRecord;
     });
   };
 
@@ -367,14 +369,17 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
   );
 }
 
-function RenderElement(data: { label: string }) {
+function RenderElement(data: PortNodeData) {
   return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
 }
 
 // --- Main ---
 
 function Main() {
-  const elements = useElements<PortNodeData>();
+  const cells = useCells<PortNodeData>();
+  const elements = cells.filter(
+    (cell): cell is ElementRecord<PortNodeData> => cell.type === 'element'
+  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 400, position: 'relative' }}>
@@ -418,8 +423,8 @@ function Main() {
           Port Properties
         </div>
 
-        {[...elements.entries()].map(([id, element]) => (
-          <ElementPortControls key={id} id={id} element={element} />
+        {elements.map((element) => (
+          <ElementPortControls key={String(element.id)} id={String(element.id)} element={element} />
         ))}
       </div>
     </div>
@@ -428,10 +433,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
-      initialElements={initialElements}
-      initialLinks={initialLinks}
-    >
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

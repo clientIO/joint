@@ -156,15 +156,34 @@ export interface PortalPaperOptions {
   readonly options?: dia.Paper.Options;
 }
 
-/** Render function for elements. Receives user data `D` from the element's `data` field. */
-export type RenderElement<ElementData extends object = Record<string, unknown>> = (
-  data: ElementData
-) => ReactNode;
+/**
+ * Render function for elements. Receives the element's `data` slice only —
+ * so the renderer re-runs ONLY when `data` changes, not when `position`,
+ * `size`, `angle`, or other cell attributes update. Position and size are
+ * applied by JointJS's view layer without touching React at all (SVG mode)
+ * or by a thin wrapper div that doesn't invoke the renderer (HTML mode).
+ *
+ * Rendered as JSX (`<RenderElement {...data} />`) so wrapping it in
+ * `React.memo` actually short-circuits on prop equality.
+ *
+ * The framework guarantees `data` is at least `{}` at this boundary, even
+ * for built-in JointJS shapes that ship without a `data` field.
+ *
+ * If the renderer needs the id, position, size, or other slices, use the
+ * context hooks: `useCellId()`, `useElement()` (with optional selector), or
+ * `useCell(c => c.position / c.size / ...)`.
+ */
+export type RenderElement<ElementData = unknown> = (data: ElementData) => ReactNode;
 
-/** Render function for links. Receives user data `D` from the link's `data` field. */
-export type RenderLink<LinkData extends object = Record<string, unknown>> = (
-  data: LinkData
-) => ReactNode;
+/**
+ * Render function for links. Receives the link's `data` slice only — same
+ * performance rationale as `RenderElement`. Use `useLink()` (with an
+ * optional selector) inside the renderer when source / target / id are
+ * needed.
+ *
+ * The framework guarantees `data` is at least `{}` at this boundary.
+ */
+export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
 
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.

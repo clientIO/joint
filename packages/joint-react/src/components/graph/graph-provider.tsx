@@ -1,19 +1,15 @@
 import type { dia } from '@joint/core';
-import type { CellId } from '../../types/cell-id';
 import React, { useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
-import { GraphStore, type GraphStoreOptions } from '../../store';
-import type { IncrementalContainerChanges } from '../../store/graph-view';
-import type { ElementRecord, LinkRecord } from '../../types/data-types';
-
-type ElementsRecord<ElementData extends object> = Record<CellId, ElementRecord<ElementData>>;
-type LinksRecord<LinkData extends object> = Record<CellId, LinkRecord<LinkData>>;
+import { GraphStore } from '../../store';
+import type { IncrementalCellsChange } from '../../store/graph-view';
+import type { Cells } from '../../types/cell.types';
 
 /**
- * Props common to every GraphProvider mode.
- * @template ElementData - User data attached to each element.
- * @template LinkData - User data attached to each link.
+ * Props common to every `GraphProvider` mode.
+ * @template ElementData - User data attached to each element record.
+ * @template LinkData - User data attached to each link record.
  */
 interface GraphProviderBaseProps<
   ElementData extends object = Record<string, unknown>,
@@ -37,98 +33,65 @@ interface GraphProviderBaseProps<
   /** Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle. */
   readonly store?: GraphStore<ElementData, LinkData>;
   /**
-   * Defer state updates during JointJS batch operations (e.g. drag) and flush
-   * them after `batch:stop`. Off by default — every change triggers an
-   * immediate React update.
-   * @default false
-   */
-  readonly enableBatchUpdates?: boolean;
-  /**
    * Notification fired with granular `added` / `changed` / `removed` sets
-   * after each commit. Independent of controlled/uncontrolled mode — fires
-   * in either. Wire up to external stores (Redux, Zustand, etc.).
+   * after each commit. Independent of controlled/uncontrolled mode.
    */
-  readonly onIncrementalChange?: (
-    changes: IncrementalContainerChanges<ElementData, LinkData>
+  readonly onIncrementalCellsChange?: (
+    changes: IncrementalCellsChange<ElementData, LinkData>
   ) => void;
 }
 
 /**
- * Elements-stream props. Either `elements` (controlled) or `initialElements`
- * (uncontrolled) — the discriminated union forbids passing both.
+ * Uncontrolled — parent provides seed cells only, JointJS drives the graph.
+ * @template ElementData - user data on each element
+ * @template LinkData - user data on each link
  */
-type GraphProviderElementsProps<ElementData extends object> =
-  | {
-      /**
-       * Controlled elements record keyed by cell ID. Pair with `onElementsChange`
-       * to write changes back to React state.
-       */
-      readonly elements: ElementsRecord<ElementData>;
-      readonly initialElements?: never;
-      /**
-       * Fires whenever elements change. In controlled mode (when `elements` is
-       * provided), consumers MUST update their state from this callback for the
-       * graph to reflect new data.
-       */
-      readonly onElementsChange?: Dispatch<SetStateAction<ElementsRecord<ElementData>>>;
-    }
-  | {
-      readonly elements?: never;
-      /**
-       * Uncontrolled initial elements record. Used only on mount; subsequent
-       * changes from React are ignored. JointJS drives the graph from here.
-       */
-      readonly initialElements?: ElementsRecord<ElementData>;
-      /**
-       * Fires whenever elements change. In uncontrolled mode this is a
-       * notification only — React state is NOT pushed back to the graph.
-       */
-      readonly onElementsChange?: (elements: ElementsRecord<ElementData>) => void;
-    };
+interface GraphProviderUncontrolledProps<
+  ElementData extends object,
+  LinkData extends object,
+> extends GraphProviderBaseProps<ElementData, LinkData> {
+  readonly initialCells?: Cells<ElementData, LinkData>;
+  readonly cells?: never;
+  /** Notification-only callback — React state is NOT pushed back into the graph. */
+  readonly onCellsChange?: (cells: Cells<ElementData, LinkData>) => void;
+}
 
 /**
- * Links-stream props. Either `links` (controlled) or `initialLinks`
- * (uncontrolled) — the discriminated union forbids passing both.
+ * Controlled — parent is the source of truth; GraphProvider keeps the graph
+ * synced to the `cells` prop.
+ * @template ElementData - user data on each element
+ * @template LinkData - user data on each link
  */
-type GraphProviderLinksProps<LinkData extends object> =
-  | {
-      /**
-       * Controlled links record keyed by cell ID. Pair with `onLinksChange`
-       * to write changes back to React state.
-       */
-      readonly links: LinksRecord<LinkData>;
-      readonly initialLinks?: never;
-      /** Fires whenever links change. In controlled mode, consumers MUST update state. */
-      readonly onLinksChange?: Dispatch<SetStateAction<LinksRecord<LinkData>>>;
-    }
-  | {
-      readonly links?: never;
-      /** Uncontrolled initial links record. Used only on mount. */
-      readonly initialLinks?: LinksRecord<LinkData>;
-      /** Notification-only callback — React state is NOT pushed back to the graph. */
-      readonly onLinksChange?: (links: LinksRecord<LinkData>) => void;
-    };
+interface GraphProviderControlledProps<
+  ElementData extends object,
+  LinkData extends object,
+> extends GraphProviderBaseProps<ElementData, LinkData> {
+  readonly cells: Cells<ElementData, LinkData>;
+  readonly initialCells?: never;
+  /**
+   * Fires whenever cells change. Consumers MUST update their React state
+   * from this callback for the graph to reflect new data.
+   */
+  readonly onCellsChange?: Dispatch<SetStateAction<Cells<ElementData, LinkData>>>;
+}
 
 /**
- * Props for `GraphProvider`. Elements and links are independent streams —
- * any combination of controlled/uncontrolled is valid.
+ * Props for `GraphProvider`. Cells are a single unified stream — either
+ * `initialCells` (uncontrolled) or `cells` (controlled).
  *
- * **Modes (per stream):**
- * - **Uncontrolled:** Pass `initialElements` / `initialLinks`. JointJS owns the graph.
- *   `onElementsChange` / `onLinksChange` may still be passed as notifications.
- * - **Controlled:** Pass `elements` / `links` and `onElementsChange` / `onLinksChange`.
- *   React owns the data; the graph is kept in sync from React state.
- *
- * Mixed (e.g. controlled elements + uncontrolled links) is fully supported.
+ * **Modes:**
+ * - **Uncontrolled:** Pass `initialCells`. JointJS owns the graph after mount.
+ *   `onCellsChange` may still be passed as a notification-only callback.
+ * - **Controlled:** Pass `cells` and `onCellsChange`. React owns the data.
  * @template ElementData - User data attached to each element record.
  * @template LinkData - User data attached to each link record.
  */
 export type GraphProviderProps<
   ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
-> = GraphProviderBaseProps<ElementData, LinkData> &
-  GraphProviderElementsProps<ElementData> &
-  GraphProviderLinksProps<LinkData>;
+> =
+  | GraphProviderUncontrolledProps<ElementData, LinkData>
+  | GraphProviderControlledProps<ElementData, LinkData>;
 
 /**
  * Internal generic base component for GraphProvider.
@@ -142,24 +105,17 @@ function GraphBase<
   const {
     children,
     store,
-    onIncrementalChange,
-    onElementsChange,
-    onLinksChange,
+    onIncrementalCellsChange,
+    onCellsChange,
     ref: forwardedRef,
-    ...rest
-  } = props as GraphProviderBaseProps<ElementData, LinkData> & {
-    elements?: ElementsRecord<ElementData>;
-    initialElements?: ElementsRecord<ElementData>;
-    links?: LinksRecord<LinkData>;
-    initialLinks?: LinksRecord<LinkData>;
-    onElementsChange?: GraphStoreOptions<ElementData, LinkData>['onElementsChange'];
-    onLinksChange?: GraphStoreOptions<ElementData, LinkData>['onLinksChange'];
-    ref?: React.Ref<dia.Graph | null>;
-  };
+    graph,
+    cellNamespace,
+    cellModel,
+  } = props;
 
-  const { elements, links, initialElements, initialLinks } = rest;
-  const isElementsControlled = elements !== undefined;
-  const isLinksControlled = links !== undefined;
+  const cellsProperty = 'cells' in props ? props.cells : undefined;
+  const initialCells = 'initialCells' in props ? props.initialCells : undefined;
+  const isControlled = cellsProperty !== undefined;
 
   const { isReady, ref } = useImperativeApi<GraphStore<ElementData, LinkData>, dia.Graph>(
     {
@@ -168,27 +124,32 @@ function GraphBase<
       onLoad() {
         const graphStore =
           store ??
-          new GraphStore<ElementData, LinkData>({
-            graph: rest.graph,
-            cellNamespace: rest.cellNamespace,
-            cellModel: rest.cellModel,
-            initialElements: isElementsControlled ? elements : initialElements,
-            initialLinks: isLinksControlled ? links : initialLinks,
-            onIncrementalChange,
-            onElementsChange: onElementsChange as GraphStoreOptions<
-              ElementData,
-              LinkData
-            >['onElementsChange'],
-            onLinksChange: onLinksChange as GraphStoreOptions<
-              ElementData,
-              LinkData
-            >['onLinksChange'],
-          });
+          (isControlled
+            ? new GraphStore<ElementData, LinkData>({
+                graph,
+                cellNamespace,
+                cellModel,
+                cells: cellsProperty,
+                onCellsChange: onCellsChange as
+                  | ((cells: Cells<ElementData, LinkData>) => void)
+                  | undefined,
+                onIncrementalCellsChange,
+              })
+            : new GraphStore<ElementData, LinkData>({
+                graph,
+                cellNamespace,
+                cellModel,
+                initialCells,
+                onCellsChange: onCellsChange as
+                  | ((cells: Cells<ElementData, LinkData>) => void)
+                  | undefined,
+                onIncrementalCellsChange,
+              }));
 
         return {
           cleanup() {
             if (store) return;
-            graphStore.destroy(!!rest.graph);
+            graphStore.destroy(!!graph);
           },
           instance: graphStore,
         };
@@ -198,20 +159,9 @@ function GraphBase<
   );
 
   useLayoutEffect(() => {
-    if (!isElementsControlled || !isReady || !ref.current) return;
-    ref.current.graphView.updateGraph({
-      elements: elements ?? {},
-      flag: 'updateFromReact',
-    });
-  }, [elements, isElementsControlled, isReady, ref]);
-
-  useLayoutEffect(() => {
-    if (!isLinksControlled || !isReady || !ref.current) return;
-    ref.current.graphView.updateGraph({
-      links: links ?? {},
-      flag: 'updateFromReact',
-    });
-  }, [links, isLinksControlled, isReady, ref]);
+    if (!isControlled || !isReady || !ref.current) return;
+    ref.current.applyControlled(cellsProperty ?? []);
+  }, [cellsProperty, isControlled, isReady, ref]);
 
   if (!isReady) {
     return null;
@@ -221,46 +171,28 @@ function GraphBase<
 }
 
 /**
- * GraphProvider is the main component that provides graph context to its children.
+ * GraphProvider supplies graph context to its children.
  *
- * **Modes of operation (per stream — elements and links are independent):**
+ * **Modes of operation:**
  *
- * 1. **Uncontrolled mode** (default): JointJS owns the graph after mount.
+ * 1. **Uncontrolled** (JointJS owns the graph after mount):
  * ```tsx
- * <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+ * <GraphProvider initialCells={[...]}>
  *   <Paper />
  * </GraphProvider>
  * ```
  *
- * 2. **React-controlled mode:** React owns the data and pushes updates to the graph.
+ * 2. **Controlled** (React owns the cells array):
  * ```tsx
- * const [elements, setElements] = useState({});
- * const [links, setLinks] = useState({});
- *
- * <GraphProvider
- *   elements={elements}
- *   links={links}
- *   onElementsChange={setElements}
- *   onLinksChange={setLinks}
- * >
+ * const [cells, setCells] = useState<Cells>([...]);
+ * <GraphProvider cells={cells} onCellsChange={setCells}>
  *   <Paper />
  * </GraphProvider>
  * ```
  *
- * 3. **Mixed mode:** controlled elements + uncontrolled links (or vice versa).
+ * 3. **Incremental-notification** (external store, Redux/Zustand):
  * ```tsx
- * <GraphProvider
- *   elements={elements}
- *   onElementsChange={setElements}
- *   initialLinks={initialLinks}
- * >
- *   <Paper />
- * </GraphProvider>
- * ```
- *
- * 4. **Incremental-controlled mode:**
- * ```tsx
- * <GraphProvider onIncrementalChange={(changes) => dispatch(changes)}>
+ * <GraphProvider onIncrementalCellsChange={(c) => dispatch(c)}>
  *   <Paper />
  * </GraphProvider>
  * ```

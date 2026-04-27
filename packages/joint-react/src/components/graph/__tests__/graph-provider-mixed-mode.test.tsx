@@ -1,40 +1,59 @@
-/* eslint-disable sonarjs/no-identical-functions */
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../graph-provider';
-import { useElements, useLinks } from '../../../hooks';
-import type { ElementRecord, LinkRecord } from '../../../types/data-types';
+import { GraphStoreContext } from '../../../context';
+import type { GraphStore } from '../../../store';
+import type { CellRecord } from '../../../types/cell.types';
 
-const INITIAL_ELEMENT_E1: ElementRecord = { size: { width: 10, height: 10 } };
-const INITIAL_ELEMENT_E2: ElementRecord = { size: { width: 20, height: 20 } };
-const INITIAL_ELEMENTS_E1E2: Record<string, ElementRecord> = {
-  e1: { size: { width: 10, height: 10 } },
-  e2: { size: { width: 10, height: 10 } },
-};
-const INITIAL_LINKS_L1: Record<string, LinkRecord> = { l1: { source: 'e1', target: 'e1' } };
-const LINK_L1: LinkRecord = { source: 'e1', target: 'e2' };
+type Cells = ReadonlyArray<CellRecord<Record<string, unknown>, Record<string, unknown>>>;
+import { ELEMENT_MODEL_TYPE } from '../../../models/element-model';
+import { LINK_MODEL_TYPE } from '../../../models/link-model';
 
-describe('GraphProvider mixed mode', () => {
-  it('controlled elements + uncontrolled links: links survive an elements update', async () => {
-    let elementCount = 0;
-    let linkCount = 0;
-    function Probe() {
-      elementCount = useElements((items) => items.size);
-      linkCount = useLinks((items) => items.size);
-      return null;
-    }
+const INITIAL_CONTROLLED_CELLS: Cells = [
+  {
+    id: 'e1',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 0, y: 0 },
+    size: { width: 10, height: 10 },
+  } as CellRecord,
+];
 
-    let externalSetElements!: (next: Record<string, ElementRecord>) => void;
+const INITIAL_UNCONTROLLED_CELLS: Cells = [
+  {
+    id: 'e1',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 0, y: 0 },
+    size: { width: 10, height: 10 },
+  } as CellRecord,
+  {
+    id: 'e2',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 50, y: 50 },
+    size: { width: 10, height: 10 },
+  } as CellRecord,
+];
+
+function replaceCells(setCells: React.Dispatch<React.SetStateAction<Cells>>, next: Cells) {
+  setCells(next);
+}
+
+describe('GraphProvider controlled / uncontrolled', () => {
+  let storeRef!: GraphStore;
+  function Probe() {
+    const store = useContext(GraphStoreContext);
+    if (store) storeRef = store as GraphStore;
+    return null;
+  }
+
+  it('controlled: pushing a new cells array replaces the graph state', async () => {
+    let externalSetCells!: (next: Cells) => void;
     function App() {
-      const [elements, setElements] = useState<Record<string, ElementRecord>>({
-        e1: INITIAL_ELEMENT_E1,
-      });
-      externalSetElements = setElements;
+      const [cells, setCells] = useState<Cells>(INITIAL_CONTROLLED_CELLS);
+      externalSetCells = (next) => replaceCells(setCells, next);
       return (
-        <GraphProvider
-          elements={elements}
-          onElementsChange={setElements}
-          initialLinks={INITIAL_LINKS_L1}
+        <GraphProvider<Record<string, unknown>, Record<string, unknown>>
+          cells={cells}
+          onCellsChange={setCells as React.Dispatch<React.SetStateAction<Cells>>}
         >
           <Probe />
         </GraphProvider>
@@ -42,53 +61,44 @@ describe('GraphProvider mixed mode', () => {
     }
 
     render(<App />);
-    await waitFor(() => expect(elementCount).toBe(1));
-    expect(linkCount).toBe(1);
+    await waitFor(() => expect(storeRef).toBeDefined());
+    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(1));
 
     act(() => {
-      externalSetElements({
-        e1: INITIAL_ELEMENT_E1,
-        e2: INITIAL_ELEMENT_E2,
-      });
+      externalSetCells([
+        {
+          id: 'e1',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+        {
+          id: 'e2',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 50, y: 50 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+        {
+          id: 'l1',
+          type: LINK_MODEL_TYPE,
+          source: { id: 'e1' },
+          target: { id: 'e2' },
+        } as CellRecord,
+      ]);
     });
 
-    await waitFor(() => expect(elementCount).toBe(2));
-    expect(linkCount).toBe(1);
+    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(3));
+    expect(storeRef.graphView.cells.has('l1')).toBe(true);
   });
 
-  it('uncontrolled elements + controlled links: elements survive a links update', async () => {
-    let elementCount = 0;
-    let linkCount = 0;
-    function Probe() {
-      elementCount = useElements((items) => items.size);
-      linkCount = useLinks((items) => items.size);
-      return null;
-    }
+  it('uncontrolled: initialCells seed the graph but subsequent state does not re-sync from React', async () => {
+    render(
+      <GraphProvider initialCells={INITIAL_UNCONTROLLED_CELLS}>
+        <Probe />
+      </GraphProvider>
+    );
 
-    let externalSetLinks!: (next: Record<string, LinkRecord>) => void;
-    function App() {
-      const [links, setLinks] = useState<Record<string, LinkRecord>>({});
-      externalSetLinks = setLinks;
-      return (
-        <GraphProvider
-          initialElements={INITIAL_ELEMENTS_E1E2}
-          links={links}
-          onLinksChange={setLinks}
-        >
-          <Probe />
-        </GraphProvider>
-      );
-    }
-
-    render(<App />);
-    await waitFor(() => expect(elementCount).toBe(2));
-    expect(linkCount).toBe(0);
-
-    act(() => {
-      externalSetLinks({ l1: LINK_L1 });
-    });
-
-    await waitFor(() => expect(linkCount).toBe(1));
-    expect(elementCount).toBe(2);
+    await waitFor(() => expect(storeRef).toBeDefined());
+    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(2));
   });
 });

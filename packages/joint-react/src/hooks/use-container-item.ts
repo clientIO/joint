@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { ReadonlyContainer } from '../store/state-container';
+import type { CellId, WithId } from '../types/cell.types';
 import { isStrictEqual } from '../utils/selector-utils';
 
 /**
  * Internal hook: subscribe to a single ID in a container with a selector.
- * All singular hooks (useElementData, useElementSize, useElementPosition) delegate to this.
  * @param container - The container to subscribe to.
  * @param id - The ID of the item to subscribe to.
  * @param selector - Extracts the desired slice from the item.
@@ -13,9 +13,9 @@ import { isStrictEqual } from '../utils/selector-utils';
  * @returns The selected value from the item, or undefined if the item does not exist.
  * @internal
  */
-export function useContainerItem<T, R>(
+export function useContainerItem<T extends WithId, R>(
   container: ReadonlyContainer<T>,
-  id: string,
+  id: CellId,
   selector: (item: T) => R,
   isEqual: (a: R, b: R) => boolean = isStrictEqual
 ): R | undefined {

@@ -16,15 +16,16 @@ import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
 import { usePaperStore } from './use-paper';
 import { useInternalData } from './use-stores';
-import { useLinkData } from './use-link-data';
 import { useContainerKeys } from './use-container-keys';
+import { useCallback, useSyncExternalStore } from 'react';
+import type { LinkRecord } from '../types/cell.types';
 import type { PaperStore } from '../store';
 import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, PortalPaperOptions, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 
 import { mapLinkToAttributes } from '../state/data-mapping';
-import type { CanConnectOptions} from '../presets/can-connect';
+import type { CanConnectOptions } from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
 import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
@@ -40,8 +41,11 @@ import {
 import { createSelectPaperVersion } from '../selectors';
 import { useAreElementsMeasured } from './use-are-elements-measured';
 import { LINK_MODEL_TYPE } from '../internal';
+import type { CellId } from '../types/cell.types';
 
 type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
+
+const EMPTY_DATA: Readonly<Record<string, unknown>> = Object.freeze({});
 
 export interface UseCreatePortalPaperOptions extends PaperProps {
   /**
@@ -76,7 +80,10 @@ export interface UseCreatePortalPaperResult {
  */
 function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
   const Ctor = graph.getTypeConstructor(LINK_MODEL_TYPE) as LinkModelConstructor | undefined;
-  if (typeof Ctor !== 'function') throw new Error('Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
+  if (typeof Ctor !== 'function')
+    throw new Error(
+      'Paper: no default link model found. Use `options.defaultLink` to specify a default link model.'
+    );
   return Ctor as LinkModelConstructor;
 }
 
@@ -86,19 +93,17 @@ function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
  * into JointJS link model instances.
  * @param defaultLink
  */
-function createDefaultLinkCallback(
-  defaultLink: PortalPaperOptions['defaultLink'],
-) {
+function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink']) {
   return (cellView: dia.CellView, magnet: SVGElement = cellView.el) => {
     const paper = cellView.paper!;
     const graph = paper.model;
     const isFactory = typeof defaultLink === 'function';
     const link = isFactory
       ? defaultLink({
-        source: toConnectionEnd(cellView, magnet),
-        paper,
-        graph,
-      })
+          source: toConnectionEnd(cellView, magnet),
+          paper,
+          graph,
+        })
       : defaultLink;
     const LinkModelCtor = getLinkModelConstructor(graph);
     if (!link) {
@@ -112,13 +117,15 @@ function createDefaultLinkCallback(
   };
 }
 
-
 /**
  * Portals custom link content into the resolved link view container.
- * Reads link data via useLinkData from CellIdContext and passes it to renderLink.
+ * Subscribes only to the link's `data` slice — source / target / endpoint
+ * updates don't re-invoke the user renderer. If a renderer needs the full
+ * link record (source/target/id), use `useLink()` or `useCellId()` from
+ * inside it.
  * @param props - Link props.
  * @param props.portalElement - Link portal container element.
- * @param props.renderLink - Callback used to render link content.
+ * @param props.renderLink - Callback used to render link content from data.
  * @returns Portaled link content, or null when container is unavailable.
  */
 function LinkItem({
@@ -128,23 +135,38 @@ function LinkItem({
   readonly portalElement: SVGElement | HTMLElement;
   readonly renderLink: RenderLink;
 }) {
-  const data = useLinkData();
-  if (!portalElement) {
+  const id = useContext(CellIdContext);
+  const store = useGraphStore();
+  const { cells } = store.graphView;
+  const subscribe = useCallback(
+    (listener: () => void) => (id === undefined ? () => {} : cells.subscribe(id, listener)),
+    [cells, id]
+  );
+  const getSnapshot = useCallback(
+    () => {
+      if (id === undefined) return EMPTY_DATA;
+      const record = cells.get(id) as LinkRecord | undefined;
+      return record?.data ?? EMPTY_DATA;
+    },
+    [cells, id]
+  );
+  const data = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  if (!portalElement || id === undefined) {
     return null;
   }
-
   const linkContent = renderLink(data);
   return createPortal(linkContent, portalElement);
 }
 
 /**
  * The default element if the user doesn't provide a renderElement function.
- * Renders the label in a DefaultHTMLHost.
- * @param data - Element data containing the label to render.
+ * Renders `data.label` inside a DefaultHTMLHost.
+ * @param data - the element's user data slice
  * @returns A JSX element rendering the label inside a DefaultHTMLHost with default styling.
  */
-const defaultRenderElement = (data: Record<string, unknown>) => {
-  return <HTMLBox>{data?.label as string}</HTMLBox>;
+const defaultRenderElement = (data: unknown) => {
+  const label = (data as { label?: string } | undefined)?.label;
+  return <HTMLBox>{label}</HTMLBox>;
 };
 
 /**
@@ -185,10 +207,24 @@ export function useCreatePortalPaper(
   const graphStore = useGraphStore();
   const areElementsMeasured = useAreElementsMeasured();
 
-  // Subscribe to container size — only re-renders when elements/links are added or removed.
-  // This replaces the expensive Object.keys(elementsState) which fired on every data change.
-  const elementIds = useContainerKeys(graphStore.graphView.elements);
-  const linkIds = useContainerKeys(graphStore.graphView.links);
+  // Subscribe to cells-container size — only re-renders when cells are added or removed.
+  // Partition the id list by type so element / link portals can be rendered separately.
+  const allCellIds = useContainerKeys(graphStore.graphView.cells);
+  const { elementIds, linkIds } = useMemo(() => {
+    const elements: CellId[] = [];
+    const links: CellId[] = [];
+    const container = graphStore.graphView.cells;
+    for (const cellId of allCellIds) {
+      const cell = container.get(cellId);
+      if (!cell) continue;
+      if (graphStore.isElement(cell)) {
+        elements.push(cellId);
+      } else if (graphStore.isLink(cell)) {
+        links.push(cellId);
+      }
+    }
+    return { elementIds: elements, linkIds: links };
+  }, [allCellIds, graphStore]);
 
   const deferredElementIdsRaw = useDeferredValue(elementIds);
   const deferredLinkIdsRaw = useDeferredValue(linkIds);
@@ -214,20 +250,15 @@ export function useCreatePortalPaper(
   const hasRenderElement = !!renderElement;
   const hasRenderLink = !!renderLink;
 
-  const defaultLinkCallback = useMemo(
-    () => createDefaultLinkCallback(defaultLink),
-    [defaultLink]
-  );
+  const defaultLinkCallback = useMemo(() => createDefaultLinkCallback(defaultLink), [defaultLink]);
 
-  const validateConnectionCallback = useMemo(
-    () => {
-      const canConnectionOptions: CanConnectOptions | undefined = typeof validateConnection === 'function'
+  const validateConnectionCallback = useMemo(() => {
+    const canConnectionOptions: CanConnectOptions | undefined =
+      typeof validateConnection === 'function'
         ? { validate: validateConnection }
         : validateConnection;
-      return canConnect(canConnectionOptions);
-    },
-    [validateConnection]
-  );
+    return canConnect(canConnectionOptions);
+  }, [validateConnection]);
 
   const connectionStrategyCallback = useMemo(() => {
     const resolvedOptions: ConnectionStrategyOptions | undefined = typeof connectionStrategy === 'function'

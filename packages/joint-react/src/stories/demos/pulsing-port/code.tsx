@@ -1,16 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useId, useRef } from 'react';
+import { useId } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
-import type { ElementRecord, ElementPort } from '@joint/react';
+import type { ElementPort, Cells } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
   GraphProvider,
   jsx,
   Paper,
   usePaperEvents,
-  useLinks,
-  useElementId,
+  useCells,
+  useCellId,
   HTMLBox,
 } from '@joint/react';
 
@@ -77,18 +77,21 @@ const NODE_PORTS: Record<string, ElementPort> = {
   },
 };
 
-const elements: Record<string, ElementRecord> = {
-  '1': { position: { x: 50, y: 50 }, portMap: NODE_PORTS },
-  '2': { position: { x: 350, y: 50 }, portMap: NODE_PORTS },
-  '3': { position: { x: 150, y: 250 }, portMap: NODE_PORTS },
-};
+const initialCells: Cells = [
+  { id: '1', type: 'element', position: { x: 50, y: 50 }, portMap: NODE_PORTS },
+  { id: '2', type: 'element', position: { x: 350, y: 50 }, portMap: NODE_PORTS },
+  { id: '3', type: 'element', position: { x: 150, y: 250 }, portMap: NODE_PORTS },
+];
 
 function NodeElement() {
-  const id = useElementId();
+  const id = useCellId();
 
-  const isConnected = useLinks((links) =>
-    [...links.values()].some((link) => {
-      return link.source?.id === id || link.target?.id === id;
+  const isConnected = useCells((cells) =>
+    cells.some((cell) => {
+      if (cell.type !== 'link') return false;
+      const { source } = cell as { source?: { id?: unknown } };
+      const { target } = cell as { target?: { id?: unknown } };
+      return source?.id === id || target?.id === id;
     })
   );
 
@@ -100,7 +103,9 @@ function NodeElement() {
         minWidth: 100,
         minHeight: 50,
       }}
-    >{id}</HTMLBox>
+    >
+      {id}
+    </HTMLBox>
   );
 }
 
@@ -151,7 +156,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={elements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

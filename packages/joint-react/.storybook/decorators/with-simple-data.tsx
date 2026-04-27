@@ -4,12 +4,18 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
-import { GraphProvider, useElementId, useMeasureNode, type ElementRecord, type LinkRecord } from '@joint/react';
+import {
+  GraphProvider,
+  selectElementSize,
+  useCellId,
+  useElement,
+  useMeasureNode,
+  type Cells,
+  type ElementRecord,
+} from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
-import { useElementData } from '../../src/hooks/use-element-data';
-import { useElementSize } from '../../src/hooks/use-element-size';
 
 export type StoryFunction = PartialStoryFn<any, any>;
 export type StoryCtx = StoryContext<any, any>;
@@ -20,8 +26,10 @@ type TestElementData = {
   hoverColor: string;
 };
 
-export const testElements: Record<string, ElementRecord<TestElementData>> = {
-  '1': {
+export const testCells: Cells<TestElementData> = [
+  {
+    id: '1',
+    type: 'element',
     data: {
       label: 'Node 1',
       color: PRIMARY,
@@ -31,39 +39,31 @@ export const testElements: Record<string, ElementRecord<TestElementData>> = {
     size: { width: 150, height: 50 },
     angle: 0,
   },
-  '2': {
+  {
+    id: '2',
+    type: 'element',
     data: {
       label: 'Node 2',
       color: PRIMARY,
       hoverColor: 'blue',
     },
-    position: {
-      x: 200,
-      y: 250,
-    },
-    size: {
-      width: 150,
-      height: 50,
-    },
+    position: { x: 200, y: 250 },
+    size: { width: 150, height: 50 },
     angle: 0,
   },
-};
-
-export type SimpleElement = (typeof testElements)[string];
-export const testLinks: Record<string, LinkRecord> = {
-  'l-1': {
-    source: '1',
-    target: '2',
-    color: PRIMARY,
+  {
+    id: 'l-1',
+    type: 'link',
+    source: { id: '1' },
+    target: { id: '2' },
+    style: { color: PRIMARY },
   },
-};
+];
+
+export type SimpleElement = ElementRecord<TestElementData>;
 
 export function SimpleGraphProviderDecorator({ children }: Readonly<PropsWithChildren>) {
-  return (
-    <GraphProvider elements={testElements} links={testLinks}>
-      {children}
-    </GraphProvider>
-  );
+  return <GraphProvider initialCells={testCells}>{children}</GraphProvider>;
 }
 
 export function SimpleGraphDecorator(Story: StoryFunction, { args }: StoryCtx) {
@@ -78,16 +78,12 @@ export function RenderItemDecorator(
   properties: Readonly<{
     renderElement: () => JSX.Element;
     renderLink?: () => JSX.Element;
-    elements?: Record<string, ElementRecord>;
-    links?: Record<string, LinkRecord>;
+    cells?: Cells;
   }>
 ) {
   return (
     <div style={{ width: '100%', height: 450 }}>
-      <GraphProvider
-        elements={properties.elements ?? testElements}
-        links={properties.links ?? testLinks}
-      >
+      <GraphProvider initialCells={properties.cells ?? testCells}>
         <Paper
           height={450}
           className={PAPER_CLASSNAME}
@@ -100,11 +96,9 @@ export function RenderItemDecorator(
   );
 }
 
-function RenderSimpleRectElement() {
-  const size = useElementSize();
-
-  const data = useElementData<{ color: string }>();
-  return <rect width={size?.width} height={size?.height} fill={data?.color} />;
+function RenderSimpleRectElement(data: { color: string }) {
+  const { width, height } = useElement(selectElementSize);
+  return <rect width={width} height={height} fill={data.color} />;
 }
 
 export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX.Element }>) {
@@ -132,7 +126,7 @@ export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryC
       // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
       renderElement={() => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        const id = useElementId();
+        const id = useCellId();
         return <HTMLNode className="node">{id}</HTMLNode>;
       }}
     />

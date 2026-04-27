@@ -3,13 +3,14 @@ import { shapes, dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
+  useElement,
   Paper,
+  type Cells,
   type ElementRecord,
-  type LinkRecord,
   type RenderElement,
-  useElements,
-  useElementSize,
-  ElementModel,
+  useCells,
+    ElementModel,
+    selectElementSize,
 } from '@joint/react';
 import { useCallback, useMemo } from 'react';
 
@@ -34,8 +35,9 @@ interface ElementData {
 // Data
 // ============================================================================
 
-const initialElements: Record<string, ElementRecord<ElementData>> = {
-  'node-1': {
+const initialCells: Cells<ElementData> = [
+  {
+    id: 'node-1',
     position: { x: 70, y: 100 },
     size: { width: 160, height: 60 },
     type: 'MyElementModel',
@@ -44,7 +46,8 @@ const initialElements: Record<string, ElementRecord<ElementData>> = {
       color: PRIMARY,
     },
   },
-  'node-2': {
+  {
+    id: 'node-2',
     position: { x: 370, y: 70 },
     size: { width: 160, height: 60 },
     type: 'MyElementModel',
@@ -53,7 +56,8 @@ const initialElements: Record<string, ElementRecord<ElementData>> = {
       color: SECONDARY,
     },
   },
-  'node-3': {
+  {
+    id: 'node-3',
     position: { x: 220, y: 250 },
     size: { width: 160, height: 60 },
     type: 'MyElementModel',
@@ -62,29 +66,28 @@ const initialElements: Record<string, ElementRecord<ElementData>> = {
       color: '#10b981',
     },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'link-1': {
+  {
+    id: 'link-1',
     type: 'standard.Link',
     source: { id: 'node-1' },
     target: { id: 'node-2' },
     labels: [{ attrs: { text: { text: 'Link 1' } } }],
   },
-  'link-2': {
+  {
+    id: 'link-2',
     type: 'standard.Link',
     source: { id: 'node-1' },
     target: { id: 'node-3' },
     labels: [{ attrs: { text: { text: 'Link 1' } } }],
   },
-};
+];
 
 // ============================================================================
 // Element Shape
 // ============================================================================
 
 function ElementShape({ label, color }: Readonly<ElementData>) {
-  const { width, height } = useElementSize();
+  const { width, height } = useElement(selectElementSize);
   return (
     <>
       <rect
@@ -116,11 +119,21 @@ function ElementShape({ label, color }: Readonly<ElementData>) {
 // ============================================================================
 
 function DataPanel() {
-  const elements = useElements<ElementData>();
+  const elements = useCells<ElementData, unknown, Array<[string, ElementRecord<ElementData>]>>(
+    (cells) => {
+      const result: Array<[string, ElementRecord<ElementData>]> = [];
+      for (const cell of cells) {
+        if (cell.type === 'MyElementModel' || cell.type === 'element') {
+          result.push([String(cell.id), cell as ElementRecord<ElementData>]);
+        }
+      }
+      return result;
+    }
+  );
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Cell JSON Data</h3>
-      {[...elements.entries()].map(([id, element]) => (
+      {elements.map(([id, element]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
           <div className="font-bold mb-1">{element.data?.label}</div>
           <div>
@@ -146,7 +159,7 @@ const PAPER_STYLE = { flex: 1 };
 
 function Main() {
   const renderElement: RenderElement<ElementData> = useCallback(
-    (props) => <ElementShape {...props} />,
+    (data) => (data ? <ElementShape {...data} /> : null),
     []
   );
   return (
@@ -176,11 +189,7 @@ export default function App() {
     });
   }, []);
   return (
-    <GraphProvider
-      graph={graph}
-      initialElements={initialElements}
-      initialLinks={initialLinks}
-    >
+    <GraphProvider<ElementData> graph={graph} initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

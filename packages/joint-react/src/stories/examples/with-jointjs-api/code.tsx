@@ -8,9 +8,9 @@ import {
   Paper,
   ElementModel,
   LinkModel,
+  useCellId,
   useGraph,
   useMeasureNode,
-  useElementId,
   usePaper,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -62,7 +62,7 @@ function createGraph(): dia.Graph {
 function Node({ label, color }: Readonly<ElementData>) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(ref);
-  const id = useElementId();
+  const id = useCellId();
   const { graph } = useGraph();
 
   const handleClick = () => {
@@ -149,9 +149,7 @@ function Main() {
     };
   }, [paper]);
 
-  const renderElement = (data: ElementData) => {
-    return <Node label={data.label} color={data.color} />;
-  };
+  const renderElement = (data: ElementData) => <Node label={data.label} color={data.color} />;
 
   return (
     <Paper id="my-paper" className={PAPER_CLASSNAME} height={380} renderElement={renderElement} />

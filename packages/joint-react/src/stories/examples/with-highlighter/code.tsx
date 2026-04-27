@@ -1,12 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   GraphProvider,
+  useElement,
   Paper,
   useMarkup,
-  useElementSize,
-  type ElementRecord,
-  type LinkRecord,
+    type Cells,
   usePaperEvents,
+  selectElementSize,
 } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
 import '../index.css';
@@ -18,32 +18,36 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': {
+const initialCells: Cells<NodeData> = [
+  {
+    id: '1',
+    type: 'element',
     data: { label: 'Node 1' },
     position: { x: 100, y: 50 },
     size: { width: 125, height: 25 },
   },
-  '2': {
+  {
+    id: '2',
+    type: 'element',
     data: { label: 'Node 2' },
     position: { x: 100, y: 200 },
     size: { width: 120, height: 25 },
   },
-};
-
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+  {
+    id: 'e1-2',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: PRIMARY },
   },
-};
+];
 
 type HighlighterVariant = 'mask' | 'opacity';
 
-function RenderElement({ label }: Readonly<NodeData>) {
+function RenderElement(data: NodeData) {
   const { selectorRef } = useMarkup();
-  const { width, height } = useElementSize();
+  const { width, height } = useElement(selectElementSize);
+  const label = data.label;
   return (
     <g width={width} height={height} className="node">
       <rect
@@ -132,7 +136,7 @@ export interface AppProps {
 
 export default function App({ variant = 'mask' }: Readonly<AppProps>) {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider initialCells={initialCells}>
       <Main variant={variant} />
     </GraphProvider>
   );

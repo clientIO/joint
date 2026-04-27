@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from 'react';
 import { dia, util } from '@joint/core';
-import type { LinkRecord, LinkMarker } from '@joint/react';
+import type { LinkRecord, LinkMarker, Cells } from '@joint/react';
 import { GraphProvider, Paper, usePaperEvents, usePaper, jsx } from '@joint/react';
 import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
 
@@ -382,14 +382,16 @@ const LINKS_PER_ROW = 10;
 const LINK_BBOX_WIDTH = 40;
 const LINK_BBOX_HEIGHT = 100;
 
-function buildLinks(): Record<string, LinkRecord> {
-  const links: Record<string, LinkRecord> = {};
+function buildLinks(): LinkRecord[] {
+  const links: LinkRecord[] = [];
   for (const [index, marker] of markers.entries()) {
     const col = index % LINKS_PER_ROW;
     const row = Math.floor(index / LINKS_PER_ROW);
     const x = col * (MARGIN + LINK_BBOX_WIDTH);
     const y = row * (MARGIN + LINK_BBOX_HEIGHT);
-    links[`marker-${index + 1}`] = {
+    links.push({
+      id: `marker-${index + 1}`,
+      type: 'link',
       source: { x, y },
       target: { x: x + LINK_BBOX_WIDTH, y: y + LINK_BBOX_HEIGHT },
       style: {
@@ -398,12 +400,12 @@ function buildLinks(): Record<string, LinkRecord> {
         sourceMarker: marker,
         targetMarker: marker,
       },
-    };
+    });
   }
   return links;
 }
 
-const links = buildLinks();
+const initialCells: Cells = buildLinks();
 
 // Custom highlighter that shows a text label next to the link
 const TextHighlighter = dia.HighlighterView.extend({
@@ -508,7 +510,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider links={links}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

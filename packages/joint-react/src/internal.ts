@@ -6,12 +6,9 @@
 export { useGraphStore } from './hooks/use-graph-store';
 export { useInternalData } from './hooks/use-stores';
 export { useImperativeApi } from './hooks/use-imperative-api';
-export { useElementViews } from './hooks/use-element-views';
-export type { OnPaperRenderElement } from './hooks/use-element-views';
 export { useCreatePortalPaper } from './hooks/use-create-portal-paper';
 export { useCreateFeature } from './hooks/use-create-features';
 export { useCombinedRef } from './hooks/use-combined-ref';
-export { useRefValue } from './hooks/use-ref-value';
 export { usePaperStore, useResolvePaperId } from './hooks/use-paper';
 
 // Feature System

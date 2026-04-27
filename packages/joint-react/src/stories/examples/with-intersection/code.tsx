@@ -3,10 +3,10 @@ import {
   GraphProvider,
   useGraph,
   Paper,
-  useElementId,
-  type ElementRecord,
+  useCellId,
   HTMLBox,
-  useElements,
+  useCells,
+  type Cells,
 } from '@joint/react';
 import '../index.css';
 import type { dia } from '@joint/core';
@@ -17,23 +17,23 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
-  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-  '3': { data: { label: 'Node 3' }, position: { x: 200, y: 100 } },
-  '4': { data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
-};
+const initialCells: Cells<NodeData> = [
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 200, y: 100 } },
+  { id: '4', type: 'element', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
+];
 
-function ResizableNode({ label }: Readonly<NodeData>) {
+function ResizableNode(data: NodeData) {
   const { graph } = useGraph();
-  const id = useElementId();
+  const id = useCellId();
   const element = graph.getCell(id) as dia.Element;
 
-  const isIntersected = useElements(() => {
+  const isIntersected = useCells(() => {
     return graph.findElementsUnderElement(element).length > 0;
   });
 
-  return <HTMLBox style={{ borderColor: isIntersected ? PRIMARY : '' }}>{label}</HTMLBox>;
+  return <HTMLBox style={{ borderColor: isIntersected ? PRIMARY : '' }}>{data.label}</HTMLBox>;
 }
 
 function Main() {
@@ -46,7 +46,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

@@ -1,102 +1,182 @@
-import { renderHook, waitFor, act } from '@testing-library/react';
-import { paperRenderLinkWrapper } from '../../utils/test-wrappers';
+import React from 'react';
+import { render, renderHook, act } from '@testing-library/react';
+import { GraphProvider } from '../../components/graph/graph-provider';
+import { CellIdContext } from '../../context';
 import { useLink } from '../use-link';
-import { useGraph } from '../use-graph';
-import type { dia } from '@joint/core';
+import { useGraphStore } from '../use-graph-store';
+import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { LINK_MODEL_TYPE } from '../../models/link-model';
+import type { Cells, CellRecord, LinkRecord } from '../../types/cell.types';
+
+const INITIAL: Cells = [
+  {
+    id: 'a',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 0, y: 0 },
+    size: { width: 10, height: 10 },
+  } as CellRecord,
+  {
+    id: 'b',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 50, y: 0 },
+    size: { width: 10, height: 10 },
+  } as CellRecord,
+  {
+    id: 'l',
+    type: LINK_MODEL_TYPE,
+    source: { id: 'a' },
+    target: { id: 'b' },
+    data: { weight: 42 },
+  } as CellRecord,
+];
+
+type ReadCallback = (value: unknown) => void;
+type Selector = (link: LinkRecord) => unknown;
+
+function ProbeFull({ onRead }: { readonly onRead: ReadCallback }) {
+  const value = useLink();
+  onRead(value);
+  return null;
+}
+
+function ProbeWithSelector({
+  onRead,
+  selector,
+}: {
+  readonly onRead: ReadCallback;
+  readonly selector: Selector;
+}) {
+  const value = useLink(selector);
+  onRead(value);
+  return null;
+}
+
+const pickSource: Selector = (link) => link.source;
+const noop: ReadCallback = () => {};
+
+let capturedValue: unknown;
+const captureValue: ReadCallback = (value) => {
+  capturedValue = value;
+};
 
 describe('useLink', () => {
-  const wrapper = paperRenderLinkWrapper({
-    graphProviderProps: {
-      elements: {
-        '1': { data: undefined, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
-        '2': { data: undefined, position: { x: 100, y: 100 }, size: { width: 10, height: 10 } },
-      },
-      links: {
-        'link-1': { source: { id: '1' }, target: { id: '2' }, color: '#FF0000' },
-      },
-    },
-    paperProps: {
-      renderLink: () => <line />,
-    },
-  });
-
-  it('should get link without selector', async () => {
-    const { result } = renderHook(() => useLink(), { wrapper });
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-      expect(result.current.source).toEqual({ id: '1' });
-      expect(result.current.target).toEqual({ id: '2' });
-    });
-  });
-
-  it('should get link with selector', async () => {
-    const { result } = renderHook(
-      () => useLink((link) => link.source),
-      { wrapper }
+  it('returns the full link record when context is provided', () => {
+    capturedValue = undefined;
+    render(
+      <GraphProvider initialCells={INITIAL}>
+        <CellIdContext.Provider value="l">
+          <ProbeFull onRead={captureValue} />
+        </CellIdContext.Provider>
+      </GraphProvider>
     );
-
-    await waitFor(() => {
-      expect(result.current).toEqual({ id: '1' });
-    });
+    const rec = capturedValue as LinkRecord<{ weight: number }>;
+    expect(rec.id).toBe('l');
+    expect(rec.type).toBe(LINK_MODEL_TYPE);
+    expect(rec.data?.weight).toBe(42);
   });
 
-  it('layout.d should match native JointJS link path after element move', async () => {
-    let graphRef: dia.Graph | null = null;
-
-    const moveWrapper = paperRenderLinkWrapper({
-      graphProviderProps: {
-        elements: {
-          a: { data: undefined, position: { x: 0, y: 0 }, size: { width: 100, height: 50 } },
-          b: { data: undefined, position: { x: 300, y: 200 }, size: { width: 100, height: 50 } },
-        },
-        links: {
-          'link-1': { source: 'a', target: 'b' },
-        },
-      },
-      paperProps: {
-        renderLink: () => <line />,
-      },
-    });
-
-    const { result } = renderHook(
-      () => {
-        const { graph } = useGraph();
-        graphRef = graph;
-        return useLink();
-      },
-      { wrapper: moveWrapper }
+  it('supports a selector', () => {
+    capturedValue = undefined;
+    render(
+      <GraphProvider initialCells={INITIAL}>
+        <CellIdContext.Provider value="l">
+          <ProbeWithSelector onRead={captureValue} selector={pickSource} />
+        </CellIdContext.Provider>
+      </GraphProvider>
     );
+    expect(capturedValue).toEqual({ id: 'a' });
+  });
 
-    // Wait for initial render with layout
-    await waitFor(() => {
-      expect(result.current.layout).toBeDefined();
-      expect(result.current.layout!.d).not.toBe('');
+  it('throws when used outside CellIdContext', () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() =>
+      render(
+        <GraphProvider initialCells={INITIAL}>
+          <ProbeFull onRead={noop} />
+        </GraphProvider>
+      )
+    ).toThrow();
+    spy.mockRestore();
+  });
+
+  it('throws when the current id is not a link', () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() =>
+      render(
+        <GraphProvider initialCells={INITIAL}>
+          <CellIdContext.Provider value="a">
+            <ProbeFull onRead={noop} />
+          </CellIdContext.Provider>
+        </GraphProvider>
+      )
+    ).toThrow();
+    spy.mockRestore();
+  });
+});
+
+const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
+function plainWrapper({ children }: { readonly children: React.ReactNode }) {
+  return <GraphProvider initialCells={INITIAL}>{children}</GraphProvider>;
+}
+
+describe('useLink (id argument form)', () => {
+  it('returns the link record for an explicit id without needing context', async () => {
+    const { result } = renderHook(() => useLink('l'), { wrapper: plainWrapper });
+    await act(async () => flush());
+    expect(result.current.id).toBe('l');
+    expect(result.current.type).toBe(LINK_MODEL_TYPE);
+  });
+
+  it('selector form returns selected slice', async () => {
+    const { result } = renderHook(() => useLink('l', (link) => link.target), {
+      wrapper: plainWrapper,
     });
+    await act(async () => flush());
+    expect(result.current).toEqual({ id: 'b' });
+  });
 
-    const initialD = result.current.layout!.d;
+  it('throws when explicit id is an element', () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => renderHook(() => useLink('a'), { wrapper: plainWrapper })).toThrow();
+    spy.mockRestore();
+  });
 
-    // JSDOM does not compute real SVG geometry, so d will contain NaN.
-    // Skip the move assertion in that case — this test is meaningful
-    // only in a real browser environment.
-    if (initialD.includes('NaN')) {
-      return;
+  it('selector returning a fresh array does not infinite-loop', async () => {
+    const { result } = renderHook(
+      () => useLink('l', (link) => [link.id, link.type]),
+      { wrapper: plainWrapper }
+    );
+    await act(async () => flush());
+    expect(result.current).toEqual(['l', LINK_MODEL_TYPE]);
+  });
+
+  it('subscribes only to the requested id — unrelated cells do not re-render', async () => {
+    const renderSpy = jest.fn();
+    let storeRef!: ReturnType<typeof useGraphStore>;
+    function Probe() {
+      storeRef = useGraphStore();
+      return null;
     }
-
-    // Move element — simulates user dragging
-    act(() => {
-      const element = graphRef!.getCell('b') as dia.Element;
-      element.position(100, 400);
+    function Consumer() {
+      const link = useLink('l');
+      renderSpy(link.id);
+      return null;
+    }
+    renderHook(() => null, {
+      wrapper: ({ children }) => (
+        <GraphProvider initialCells={INITIAL}>
+          <Probe />
+          <Consumer />
+          {children}
+        </GraphProvider>
+      ),
     });
-
-    // After move, layout.d should update to match the new native link path
-    await waitFor(() => {
-      const {layout} = result.current;
-      expect(layout).toBeDefined();
-      expect(layout!.d).not.toBe('');
-      // The path must have changed from the initial position
-      expect(layout!.d).not.toBe(initialD);
+    await act(async () => flush());
+    const before = renderSpy.mock.calls.length;
+    await act(async () => {
+      storeRef.graph.getCell('a')?.set('position', { x: 99, y: 99 });
+      await flush();
     });
-
+    expect(renderSpy.mock.calls.length).toBe(before);
   });
 });

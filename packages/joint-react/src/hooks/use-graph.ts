@@ -1,124 +1,119 @@
 import { useMemo } from 'react';
 import type { dia } from '@joint/core';
-import type { CellId } from '../types/cell-id';
-import type { ElementRecord, LinkRecord } from '../types/data-types';
 import { useGraphStore } from './use-graph-store';
 import {
-  useRemoveElement,
-  useRemoveLink,
-  useSetElement,
-  useSetElements,
-  useSetLink,
-  useSetLinks,
-  type Updater,
+  useAddCell,
+  useAddCells,
+  useSetCell,
+  useRemoveCell,
+  useRemoveCells,
+  useResetCells,
+  useUpdateCells,
 } from './use-cell-setters';
+import type { CellId, CellRecord, Cells } from '../types/cell.types';
 
 /**
- * Result of the useGraph hook.
+ * Public imperative API returned by {@link useGraph}.
+ *
+ * Setters mirror JointJS `syncCells` / `addCells` / `removeCells` semantics and
+ * preserve reference identity where possible — every write wraps a graph batch
+ * with the internal `isUpdateFromReact` flag so React-driven changes do not
+ * echo back into the subscription pipeline.
+ * @template ElementData - user data shape on elements
+ * @template LinkData - user data shape on links
  */
-interface UseGraphResult<
-  NodeData extends object = Record<string, unknown>,
+export interface UseGraphResult<
+  ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
 > {
   /** The JointJS graph instance. */
   readonly graph: dia.Graph;
+  /** Add one cell. Throws if a cell with the same id already exists. */
+  readonly addCell: (cell: CellRecord<ElementData, LinkData>) => void;
+  /** Add many cells atomically. Throws on any id collision before writing anything. */
+  readonly addCells: (cells: Cells<ElementData, LinkData>) => void;
   /**
-   * Sets or updates a single element in the graph. Merges with existing data.
-   *
-   * For best performance, prefer this over `setElements` when updating individual cells.
-   * @example
-   * ```tsx
-   * setElement('1', { position: { x: 100, y: 150 } });
-   * setElement('1', (prev) => ({ ...prev, data: { ...prev.data, label: 'New' } }));
-   * ```
+   * Update an existing cell. Takes either a full `CellRecord` (id via
+   * `cell.id`) or an updater `(prev: CellRecord) => CellRecord` that must
+   * return a record whose `id` matches the target. Merges over existing
+   * attributes. Throws if the id does not resolve to a cell.
    */
-  readonly setElement: (id: CellId, attributesOrUpdater: Updater<ElementRecord<NodeData>>) => void;
+  readonly setCell: (
+    input:
+      | CellRecord<ElementData, LinkData>
+      | ((
+          previous: CellRecord<ElementData, LinkData>
+        ) => CellRecord<ElementData, LinkData>)
+  ) => void;
+  /** Remove a cell by id. No-op when the id is missing. */
+  readonly removeCell: (id: CellId) => void;
+  /** Remove multiple cells by id. Missing ids are silently skipped. */
+  readonly removeCells: (ids: readonly CellId[]) => void;
+  /** Atomically replace the cell set. */
+  readonly resetCells: (
+    input:
+      | Cells<ElementData, LinkData>
+      | ((previous: Cells<ElementData, LinkData>) => Cells<ElementData, LinkData>)
+  ) => void;
+  /** Apply an updater to the current cells array. */
+  readonly updateCells: (
+    updater: (previous: Cells<ElementData, LinkData>) => Cells<ElementData, LinkData>
+  ) => void;
   /**
-   * Removes an element from the graph by its ID.
-   * @param id - The ID of the element to remove
+   * Predicate / type guard: true when the input resolves to an element cell.
+   * Delegates to `GraphStore.isElement` — consults the graph's type registry
+   * so any `dia.Element` subclass (including custom shapes) is recognised,
+   * not just our default `ElementModel`.
    */
-  readonly removeElement: (id: CellId) => void;
+  readonly isElement: (input: CellRecord<ElementData, LinkData>) => boolean;
   /**
-   * Sets or updates a single link in the graph. Merges with existing data.
-   *
-   * For best performance, prefer this over `setLinks` when updating individual cells.
-   * @example
-   * ```tsx
-   * setLink('l-1', { source: { id: '1' }, target: { id: '2' } });
-   * setLink('l-1', (prev) => ({ ...prev, style: { color: 'red' } }));
-   * ```
+   * Predicate / type guard: true when the input resolves to a link cell.
+   * Delegates to `GraphStore.isLink` — consults the graph's type registry so
+   * any `dia.Link` subclass (including custom shapes) is recognised, not just
+   * our default `LinkModel`.
    */
-  readonly setLink: (id: CellId, attributesOrUpdater: Updater<LinkRecord<LinkData>>) => void;
-  /**
-   * Removes a link from the graph by its ID.
-   * @param id - The ID of the link to remove
-   */
-  readonly removeLink: (id: CellId) => void;
-  /**
-   * Replaces all elements in the graph at once.
-   *
-   * Uses `syncCells` with `remove: true`, so elements not in the new record are removed.
-   * Existing links are preserved. For single-element updates prefer `setElement` — it is
-   * more efficient because it only syncs one cell.
-   * @example
-   * ```tsx
-   * setElements({ el1: { position: { x: 0, y: 0 } } });
-   * setElements((prev) => ({ ...prev, el2: { position: { x: 100, y: 100 } } }));
-   * ```
-   */
-  readonly setElements: (elements: Updater<Record<CellId, ElementRecord<NodeData>>>) => void;
-  /**
-   * Replaces all links in the graph at once.
-   *
-   * Uses `syncCells` with `remove: true`, so links not in the new record are removed.
-   * Existing elements are preserved. For single-link updates prefer `setLink` — it is
-   * more efficient because it only syncs one cell.
-   * @example
-   * ```tsx
-   * setLinks({ 'l-1': { source: { id: 'a' }, target: { id: 'b' } } });
-   * setLinks((prev) => ({ ...prev, 'l-2': { source: { id: 'c' }, target: { id: 'd' } } }));
-   * ```
-   */
-  readonly setLinks: (links: Updater<Record<CellId, LinkRecord<LinkData>>>) => void;
+  readonly isLink: (input: CellRecord<ElementData, LinkData>) => boolean;
 }
 
 /**
- * Custom hook to retrieve the graph instance and actions for manipulating elements and links.
+ * Hook exposing the graph instance and the full unified cell-mutation API.
  *
- * Returns the JointJS graph instance along with methods for setting and removing elements and links.
- * For best performance, prefer single-cell operations (`setElement`, `setLink`) over batch
- * operations (`setElements`, `setLinks`) when updating individual cells.
- * @see https://docs.jointjs.com/api/dia/Graph/
- * @group Hooks
- * @returns An object containing the graph instance and cell manipulation methods.
- * @example
- * ```tsx
- * const { graph, setElement, removeElement, setLink, removeLink, setElements, setLinks } = useGraph()
- * ```
+ * All setters run through the internal `isUpdateFromReact` flag so listeners
+ * do not echo React-driven changes back through the subscription pipeline.
+ * `isElement` / `isLink` delegate to the `GraphStore` methods, which consult
+ * the graph's type registry so custom cell types narrow correctly.
+ * @template ElementData - user data shape on elements
+ * @template LinkData - user data shape on links
+ * @returns the imperative API described by {@link UseGraphResult}
  */
 export function useGraph<
-  NodeData extends object = Record<string, unknown>,
+  ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
->(): UseGraphResult<NodeData, LinkData> {
-  const graphStore = useGraphStore();
+>(): UseGraphResult<ElementData, LinkData> {
+  const store = useGraphStore<ElementData, LinkData>();
+  const { graph } = store;
 
-  const setElement = useSetElement<NodeData>();
-  const setLink = useSetLink<LinkData>();
-  const removeElement = useRemoveElement();
-  const removeLink = useRemoveLink();
-  const setElements = useSetElements<NodeData>();
-  const setLinks = useSetLinks<LinkData>();
+  const addCell = useAddCell<ElementData, LinkData>();
+  const addCells = useAddCells<ElementData, LinkData>();
+  const setCell = useSetCell<ElementData, LinkData>();
+  const removeCell = useRemoveCell();
+  const removeCells = useRemoveCells();
+  const resetCells = useResetCells<ElementData, LinkData>();
+  const updateCells = useUpdateCells<ElementData, LinkData>();
 
   return useMemo(
     () => ({
-      graph: graphStore.graph,
-      setElement,
-      setLink,
-      removeElement,
-      removeLink,
-      setElements,
-      setLinks,
+      graph,
+      addCell,
+      addCells,
+      setCell,
+      removeCell,
+      removeCells,
+      resetCells,
+      updateCells,
+      isElement: store.isElement,
+      isLink: store.isLink,
     }),
-    [graphStore.graph, setElement, setLink, removeElement, removeLink, setElements, setLinks]
+    [graph, store, addCell, addCells, setCell, removeCell, removeCells, resetCells, updateCells]
   );
 }

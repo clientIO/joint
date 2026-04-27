@@ -3,7 +3,7 @@ import { mapAttributesToLink } from '../../state/data-mapping';
 import { ElementModel } from '../../models/element-model';
 import { LinkModel, LINK_MODEL_TYPE } from '../../models/link-model';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ElementModel, LinkModel };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, element: ElementModel, link: LinkModel };
 
 describe('graph-state-selectors link mapping', () => {
   let graph: dia.Graph;

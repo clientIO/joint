@@ -1,22 +1,23 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
-import { dia, highlighters, g, V } from '@joint/core';
+import { dia, highlighters } from '@joint/core';
 import {
   GraphProvider,
+  useElement,
   Paper,
+  useCells,
   useGraph,
+  useMeasureNode,
   usePaper,
   usePaperEvents,
-  useMeasureNode,
-  useElementSize,
+  ELEMENT_MODEL_TYPE,
   type CellId,
-  type ElementRecord,
-  type LinkRecord,
+  type Cells,
   type PaperProps,
   type RenderElement,
-  ELEMENT_MODEL_TYPE,
-  useElement,
+  selectCellType,
+  selectElementSize,
 } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -33,7 +34,6 @@ const MINIMAP_HEIGHT = 150;
 
 interface ElementUserData {
   readonly [key: string]: unknown;
-  readonly type?: 'default' | 'error' | 'info';
   readonly title?: string;
   readonly color?: string;
 }
@@ -46,31 +46,37 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const elements: Record<string, ElementRecord<ElementUserData>> = {
-  '1': {
+const initialCells: Cells<ElementUserData> = [
+  {
+    id: '1',
+    type: 'element',
     data: { title: 'This is error element' },
     position: { x: 50, y: 110 },
     angle: 30,
   },
-  '2': {
+  {
+    id: '2',
+    type: 'element',
     data: { title: 'This is info element' },
     position: { x: 550, y: 110 },
   },
-  '3': {
+  {
+    id: '3',
+    type: 'element',
     data: { color: '#f87171' },
     position: { x: 50, y: 370 },
   },
-  '4': {
+  {
+    id: '4',
     type: 'standard.Cylinder',
     data: { color: '#60a5fa' },
     position: { x: 550, y: 370 },
     size: { width: 100, height: 150 },
   },
-};
-
-// Links now use built-in theme properties: color, width, sourceMarker, targetMarker
-const links: Record<string, LinkRecord> = {
-  link1: {
+  // Links now use built-in theme properties: color, width, sourceMarker, targetMarker
+  {
+    id: 'link1',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: {
@@ -79,17 +85,20 @@ const links: Record<string, LinkRecord> = {
       className: 'dashed-link',
     },
   },
-  link2: {
+  {
+    id: 'link2',
+    type: 'link',
     source: { id: '3' },
     target: { id: '4' },
     style: { color: 'green' },
   },
-  link3: {
+  {
+    id: 'link3',
     type: 'standard.ShadowLink',
     source: { id: '2' },
     target: { id: '4' },
   },
-};
+];
 
 // ============================================================================
 // Helpers
@@ -149,7 +158,7 @@ function Shape({
 }
 
 function MinimapShape({ color = 'lightgray' }: Readonly<ElementUserData>) {
-  const { width, height } = useElementSize();
+  const { width, height } = useElement(selectElementSize);
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 
@@ -159,7 +168,7 @@ function MinimapShape({ color = 'lightgray' }: Readonly<ElementUserData>) {
 
 function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
   const renderElement: RenderElement<ElementUserData> = useCallback(
-    ({ color = 'white' }) => <MinimapShape color={color} />,
+    (data) => <MinimapShape color={data.color ?? 'white'} />,
     []
   );
 
@@ -247,11 +256,14 @@ function RenderElementWithBadge({
   color = 'lightgray',
   title = 'No Title',
 }: Readonly<ElementUserData>) {
-  const { width } = useElementSize();
-  const type = useElement(element => element.type);
+  const { width } = useElement(selectElementSize);
+  const cellType = useElement(selectCellType);
+  // Only render the default Shape for our ElementModel type. Custom JointJS
+  // shapes (e.g. standard.Cylinder) render themselves via their native markup.
+  const isElementModel = cellType === ELEMENT_MODEL_TYPE;
   return (
     <>
-      {type ?? <Shape color={color} title={title} />}
+      {isElementModel ? <Shape color={color} title={title} /> : null}
       <Badge x={width + 10} y={-10} size={10} color={color} />
     </>
   );
@@ -263,11 +275,14 @@ function Main() {
   const [showMinimap, setShowMinimap] = useState(false);
   const [selectedElement, setSelectedElement] = useState<CellId | null>(null);
 
-  const renderElement = useCallback((data: ElementUserData) => {
-    return <RenderElementWithBadge {...data} />;
-  }, []);
+  const renderElement: RenderElement<ElementUserData> = useCallback(
+    (data) => <RenderElementWithBadge {...data} />,
+    []
+  );
 
   const { graph } = useGraph();
+  // Subscribe to cells so the story reflects graph size in devtools if needed.
+  useCells();
 
   usePaperEvents(
     paperId,
@@ -334,10 +349,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
-      initialElements={elements}
-      initialLinks={links}
-    >
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

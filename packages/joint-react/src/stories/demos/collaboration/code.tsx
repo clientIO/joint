@@ -6,20 +6,19 @@
 import {
   GraphProvider,
   Paper,
-  useElementId,
-  useElementSize,
+  useCellId,
   useGraph,
-  useMarkup,
   HTMLHost,
+  type Cells,
+  type CellRecord,
   type ElementRecord,
   type LinkRecord,
-  type RenderElement,
-  type IncrementalContainerChanges,
+  type IncrementalCellsChange,
 } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { usePaperEvents } from '../../../hooks';
 import Peer, { type DataConnection } from 'peerjs';
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { configureStore, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { Provider, useSelector, useStore } from 'react-redux';
 
@@ -94,8 +93,28 @@ type AgentNode = ElementRecord<AgentNodeData>;
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ sourceOffset: 6, targetOffset: 6 });
 const PORT_R = 5;
 
+const PORT_OUT = {
+  cx: 'calc(0.5 * w)',
+  cy: 'calc(h)',
+  width: PORT_R * 2,
+  height: PORT_R * 2,
+  color: DARK.port,
+  outlineWidth: 0,
+};
+const PORT_IN = {
+  cx: 'calc(0.5 * w)',
+  cy: 0,
+  width: PORT_R * 2,
+  height: PORT_R * 2,
+  color: DARK.port,
+  outlineWidth: 0,
+  passive: true,
+};
+
 const initialElements: Record<string, AgentNode> = {
   orchestrator: {
+    id: 'orchestrator',
+    type: 'element',
     data: {
       title: 'Orchestrator',
       role: 'Task delegation',
@@ -103,27 +122,11 @@ const initialElements: Record<string, AgentNode> = {
       status: 'online',
     },
     position: { x: 250, y: 60 },
-    portMap: {
-      out: {
-        cx: 'calc(0.5 * w)',
-        cy: 'calc(h)',
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outlineWidth: 0,
-      },
-      in: {
-        cx: 'calc(0.5 * w)',
-        cy: 0,
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outlineWidth: 0,
-        passive: true,
-      },
-    },
+    portMap: { out: PORT_OUT, in: PORT_IN },
   },
   researcher: {
+    id: 'researcher',
+    type: 'element',
     data: {
       title: 'Researcher',
       role: 'Data gathering',
@@ -131,27 +134,11 @@ const initialElements: Record<string, AgentNode> = {
       status: 'busy',
     },
     position: { x: 80, y: 300 },
-    portMap: {
-      out: {
-        cx: 'calc(0.5 * w)',
-        cy: 'calc(h)',
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outlineWidth: 0,
-      },
-      in: {
-        cx: 'calc(0.5 * w)',
-        cy: 0,
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outlineWidth: 0,
-        passive: true,
-      },
-    },
+    portMap: { out: PORT_OUT, in: PORT_IN },
   },
   writer: {
+    id: 'writer',
+    type: 'element',
     data: {
       title: 'Writer',
       role: 'Content creation',
@@ -159,36 +146,22 @@ const initialElements: Record<string, AgentNode> = {
       status: 'idle',
     },
     position: { x: 430, y: 300 },
-    portMap: {
-      out: {
-        cx: 'calc(0.5 * w)',
-        cy: 'calc(h)',
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outlineWidth: 0,
-      },
-      in: {
-        cx: 'calc(0.5 * w)',
-        cy: 0,
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outlineWidth: 0,
-        passive: true,
-      },
-    },
+    portMap: { out: PORT_OUT, in: PORT_IN },
   },
 };
 
 const initialLinks: Record<string, LinkRecord> = {
   'o-r': {
+    id: 'o-r',
+    type: 'link',
     source: { id: 'orchestrator', port: 'out' },
     target: { id: 'researcher', port: 'in' },
     style: { color: DARK.link, width: 1.5, targetMarker: 'none' },
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
   },
   'o-w': {
+    id: 'o-w',
+    type: 'link',
     source: { id: 'orchestrator', port: 'out' },
     target: { id: 'writer', port: 'in' },
     style: { color: DARK.link, width: 1.5, targetMarker: 'none' },
@@ -203,6 +176,13 @@ interface GraphState {
   readonly links: Record<string, LinkRecord>;
 }
 
+function isElementType(cell: CellRecord): cell is ElementRecord<AgentNodeData> {
+  return cell.type === 'element';
+}
+function isLinkType(cell: CellRecord): cell is LinkRecord {
+  return cell.type === 'link';
+}
+
 const graphSlice = createSlice({
   name: 'graph',
   initialState: {
@@ -211,26 +191,20 @@ const graphSlice = createSlice({
   } satisfies GraphState as GraphState,
   reducers: {
     applyIncrementalChanges: (state, action: PayloadAction<CollabChanges>) => {
-      const { elements, links } = action.payload;
+      const { added, changed, removed } = action.payload;
 
-      for (const [id, data] of elements.added) {
-        state.elements[id] = data as unknown as ElementRecord<AgentNodeData>;
+      for (const [id, cell] of added) {
+        if (isElementType(cell)) state.elements[String(id)] = cell;
+        else if (isLinkType(cell)) state.links[String(id)] = cell;
       }
-      for (const [id, data] of elements.changed) {
-        state.elements[id] = data as unknown as ElementRecord<AgentNodeData>;
+      for (const [id, cell] of changed) {
+        if (isElementType(cell)) state.elements[String(id)] = cell;
+        else if (isLinkType(cell)) state.links[String(id)] = cell;
       }
-      for (const id of elements.removed) {
-        delete state.elements[id];
-      }
-
-      for (const [id, data] of links.added) {
-        state.links[id] = data as LinkRecord;
-      }
-      for (const [id, data] of links.changed) {
-        state.links[id] = data as LinkRecord;
-      }
-      for (const id of links.removed) {
-        delete state.links[id];
+      for (const id of removed) {
+        const key = String(id);
+        delete state.elements[key];
+        delete state.links[key];
       }
     },
   },
@@ -255,7 +229,7 @@ const selectLinks = (state: CollabRootState) => state.graph.links;
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
-type CollabChanges = IncrementalContainerChanges<AgentNodeData>;
+type CollabChanges = IncrementalCellsChange<AgentNodeData>;
 
 interface SyncMessage {
   readonly type: 'incremental' | 'presence' | 'drag';
@@ -391,11 +365,12 @@ function createPeerManager(callbacks: {
 
 // ── Node Component ──────────────────────────────────────────────────────────
 
-function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>) {
+function RenderAgentNode(data: AgentNodeData) {
+  const { title, role, icon, status } = data;
   const theme = useTheme();
   const isDark = theme === DARK;
   const remoteDrag = useContext(RemoteDragContext);
-  const elementId = useElementId();
+  const elementId = String(useCellId());
   const isRemoteDragging = remoteDrag.dragging.has(elementId);
 
   const statusColors: Record<string, string> = {
@@ -646,7 +621,7 @@ const SIMULATE_NODES = [
 function Toolbar() {
   const theme = useTheme();
   const isDark = theme === DARK;
-  const { setElement } = useGraph<AgentNodeData>();
+  const { setCell, addCell } = useGraph<AgentNodeData>();
   const reduxStore = useStore<CollabRootState>();
   const [simulating, setSimulating] = useState<Set<string>>(() => new Set());
   const intervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
@@ -683,7 +658,7 @@ function Toolbar() {
             const current = reduxStore.getState().graph.elements[nodeId];
             if (!current) return;
 
-            setElement(nodeId, { ...current, position: { x, y } } as AgentNode);
+            setCell({ id: nodeId, position: { x, y } } as CellRecord<AgentNodeData>);
           }, 30);
 
           intervalsRef.current.set(nodeId, interval);
@@ -691,7 +666,7 @@ function Toolbar() {
         return next;
       });
     },
-    [reduxStore, setElement]
+    [reduxStore, setCell]
   );
 
   useEffect(() => {
@@ -721,7 +696,9 @@ function Toolbar() {
       { title: 'Debugger', role: 'Error analysis', icon: 'fas fa-bug', status: 'online' as const },
     ];
     const pick = agents[Math.floor(Math.random() * agents.length)];
-    setElement(id, {
+    addCell({
+      id,
+      type: 'element',
       data: pick,
       position: { x: 100 + Math.random() * 300, y: 100 + Math.random() * 300 },
       portMap: {
@@ -743,8 +720,8 @@ function Toolbar() {
           passive: true,
         },
       },
-    } as AgentNode);
-  }, [setElement, theme]);
+    } satisfies AgentNode);
+  }, [addCell, theme]);
 
   return (
     <div
@@ -904,38 +881,45 @@ function GraphWithRedux() {
     [dispatch, manager]
   );
 
-  // Theme links
-  const themedLinks: Record<string, LinkRecord> = {};
-  for (const [id, link] of Object.entries(links)) {
-    themedLinks[id] = { ...link, style: { ...link.style, color: theme.link } };
-  }
-
-  // Theme element ports
-  const themedElements: Record<string, ElementRecord<AgentNodeData>> = {};
-  for (const [id, element] of Object.entries(elements)) {
-    themedElements[id] = {
-      ...element,
-      portMap: {
-        out: {
-          cx: 'calc(0.5 * w)',
-          cy: 'calc(h)',
-          width: PORT_R * 2,
-          height: PORT_R * 2,
-          color: theme.port,
-          outlineWidth: 0,
+  // Merge elements + links into a single Cells array (themed).
+  const themedCells = useMemo<Cells<AgentNodeData>>(() => {
+    const cells: Array<CellRecord<AgentNodeData>> = [];
+    for (const [id, element] of Object.entries(elements)) {
+      cells.push({
+        ...element,
+        id,
+        type: 'element',
+        portMap: {
+          out: {
+            cx: 'calc(0.5 * w)',
+            cy: 'calc(h)',
+            width: PORT_R * 2,
+            height: PORT_R * 2,
+            color: theme.port,
+            outlineWidth: 0,
+          },
+          in: {
+            cx: 'calc(0.5 * w)',
+            cy: 0,
+            width: PORT_R * 2,
+            height: PORT_R * 2,
+            color: theme.port,
+            outlineWidth: 0,
+            passive: true,
+          },
         },
-        in: {
-          cx: 'calc(0.5 * w)',
-          cy: 0,
-          width: PORT_R * 2,
-          height: PORT_R * 2,
-          color: theme.port,
-          outlineWidth: 0,
-          passive: true,
-        },
-      },
-    };
-  }
+      });
+    }
+    for (const [id, link] of Object.entries(links)) {
+      cells.push({
+        ...link,
+        id,
+        type: 'link',
+        style: { ...link.style, color: theme.link },
+      });
+    }
+    return cells;
+  }, [elements, links, theme]);
 
   return (
     <UserContext.Provider value={{ color: myColor, name: 'You' }}>
@@ -946,10 +930,9 @@ function GraphWithRedux() {
           name: peerName ? peerName.slice(0, 6) : 'Peer',
         }}
       >
-        <GraphProvider
-          initialElements={themedElements}
-          initialLinks={themedLinks}
-          onIncrementalChange={handleIncrementalChange}
+        <GraphProvider<AgentNodeData>
+          initialCells={themedCells}
+          onIncrementalCellsChange={handleIncrementalChange}
         >
           <Paper
             id={PAPER_ID}
@@ -965,7 +948,7 @@ function GraphWithRedux() {
             defaultLink={{ style: { color: theme.link, width: 1.5, targetMarker: 'none' } }}
             validateConnection={({ target }) => target.port === 'in'}
             interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
-            renderElement={RenderAgentNode as RenderElement<AgentNodeData>}
+            renderElement={RenderAgentNode}
             style={{ backgroundColor: theme.canvas }}
           />
           <ConnectionPanel

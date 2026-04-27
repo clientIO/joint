@@ -2,11 +2,11 @@ import { useCallback, useRef, useState } from 'react';
 import {
   GraphProvider,
   Paper,
+  useElement,
+    useMeasureNode,
   usePaper,
-  useElementSize,
-  useMeasureNode,
-  type ElementRecord,
-  type LinkRecord,
+  type Cells,
+  selectElementSize,
 } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -14,20 +14,30 @@ import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 // Define element type with custom properties
 type ElementData = { label: string };
 
-// Define initial elements as Record
-const initialElements: Record<string, ElementRecord<ElementData>> = {
-  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 25 } },
-  '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 25 } },
-};
-
-// Define initial edges as Record
-const initialEdges: Record<string, LinkRecord> = {
-  'e1-2': {
+// Unified cells (elements + links in one array; each requires id + type)
+const initialCells: Cells<ElementData> = [
+  {
+    id: '1',
+    type: 'element',
+    data: { label: 'Hello' },
+    position: { x: 100, y: 15 },
+    size: { width: 100, height: 25 },
+  },
+  {
+    id: '2',
+    type: 'element',
+    data: { label: 'World' },
+    position: { x: 100, y: 200 },
+    size: { width: 100, height: 25 },
+  },
+  {
+    id: 'e1-2',
+    type: 'link',
     source: { id: '1' },
     target: { id: '2' },
     style: { color: '#3498db', width: 2 }, // Primary color
   },
-};
+];
 
 let zoomLevel = 1;
 
@@ -64,28 +74,27 @@ function Controls() {
     </div>
   );
 }
+
+function HTMLItem({ label }: ElementData) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useMeasureNode(elementRef);
+  return (
+    <div ref={elementRef} className="node">
+      <div>{label}</div>
+    </div>
+  );
+}
+
+function SVGItem() {
+  const { width, height } = useElement(selectElementSize);
+  return <rect rx={10} ry={10} width={width} height={height} fill="blue" />;
+}
+
 function Main() {
   const [isHTMLEnabled, setIsHTMLEnabled] = useState(true);
 
-  // Infer element type from the initial elements
-
   const renderItem = useCallback(
-    ({ label }: ElementData) => {
-      if (isHTMLEnabled) {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const elementRef = useRef<HTMLDivElement>(null);
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        useMeasureNode(elementRef);
-        return (
-          <div ref={elementRef} className="node">
-            <div>{label}</div>
-          </div>
-        );
-      }
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const { width, height } = useElementSize();
-      return <rect rx={10} ry={10} width={width} height={height} fill="blue" />;
-    },
+    (data: ElementData) => (isHTMLEnabled ? <HTMLItem {...data} /> : <SVGItem />),
     [isHTMLEnabled]
   );
 
@@ -113,7 +122,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialLinks={initialEdges} initialElements={initialElements}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

@@ -1,5 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import type { CellId } from '../types/cell-id';
+import type { CellId, CellRecord, Cells } from '../types/cell.types';
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
@@ -8,21 +8,22 @@ import {
   type GraphStoreObserver,
   type SetMeasuredNodeOptions,
 } from './create-elements-size-observer';
-import { ElementModel } from '../models/element-model';
-import { LinkModel } from '../models/link-model';
+import { ELEMENT_MODEL_TYPE, ElementModel } from '../models/element-model';
+import { LINK_MODEL_TYPE, LinkModel } from '../models/link-model';
+import { isElementType, isLinkType } from '../utils/cell-type';
 import { clearConnectedLinkViews } from './clear-view';
 import { LAYOUT_UPDATE_EVENT } from './graph-changes';
 import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
-import { graphView, type GraphView, type IncrementalContainerChanges } from './graph-view';
-import type { ElementRecord, LinkRecord } from '../types/data-types';
+import { graphView, type GraphView, type IncrementalCellsChange } from './graph-view';
+import type { ElementRecord } from '../types/data-types';
 import { simpleScheduler } from '../utils/scheduler';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
-  ElementModel,
-  LinkModel,
+  [ELEMENT_MODEL_TYPE]: ElementModel,
+  [LINK_MODEL_TYPE]: LinkModel,
 };
 
 /**
@@ -44,23 +45,44 @@ export interface GraphStoreInternalSnapshot {
 }
 
 /**
- * Configuration options for creating a GraphStore instance.
+ * Options common to all `GraphStore` constructor variants.
+ *
+ * The controlled / uncontrolled split is modelled with a discriminated union
+ * to rule out the nonsensical combination of `cells` and `initialCells`
+ * being passed together.
  */
-export interface GraphStoreOptions<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
-> {
+interface GraphStoreOptionsBase {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
-  readonly initialElements?: Record<CellId, ElementRecord<ElementData>>;
-  readonly initialLinks?: Record<CellId, LinkRecord<LinkData>>;
-  readonly onIncrementalChange?: (
-    changes: IncrementalContainerChanges<ElementData, LinkData>
+  readonly onIncrementalCellsChange?: <E extends object, L extends object>(
+    changes: IncrementalCellsChange<E, L>
   ) => void;
-  readonly onElementsChange?: (elements: Record<string, ElementRecord<ElementData>>) => void;
-  readonly onLinksChange?: (links: Record<string, LinkRecord<LinkData>>) => void;
 }
+
+/** Uncontrolled mode: parent provides only seed data. */
+interface GraphStoreOptionsUncontrolled<ElementData extends object, LinkData extends object>
+  extends GraphStoreOptionsBase {
+  readonly initialCells?: Cells<ElementData, LinkData>;
+  readonly cells?: never;
+  readonly onCellsChange?: (cells: Cells<ElementData, LinkData>) => void;
+}
+
+/** Controlled mode: parent is the source of truth; store applies snapshots. */
+interface GraphStoreOptionsControlled<ElementData extends object, LinkData extends object>
+  extends GraphStoreOptionsBase {
+  readonly cells: Cells<ElementData, LinkData>;
+  readonly initialCells?: never;
+  readonly onCellsChange?: (cells: Cells<ElementData, LinkData>) => void;
+}
+
+export type GraphStoreOptions<
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
+> =
+  | GraphStoreOptionsUncontrolled<ElementData, LinkData>
+  | GraphStoreOptionsControlled<ElementData, LinkData>;
+
 /**
  * Central store for managing graph state, synchronization, and paper instances.
  */
@@ -86,15 +108,14 @@ export class GraphStore<
 
   constructor(public readonly config: GraphStoreOptions<ElementData, LinkData>) {
     const {
-      initialElements = {},
-      initialLinks = {},
       cellModel,
       cellNamespace = DEFAULT_CELL_NAMESPACE,
       graph,
-      onIncrementalChange,
-      onElementsChange,
-      onLinksChange,
+      onCellsChange,
+      onIncrementalCellsChange,
     } = config;
+    const controlledCells = 'cells' in config ? config.cells : undefined;
+    const initialCells = 'initialCells' in config ? config.initialCells : undefined;
 
     this.graph =
       graph ??
@@ -115,7 +136,7 @@ export class GraphStore<
       graphFeaturesVersion: 1,
     });
 
-    const elementsMeasured = new Set<string>();
+    const elementsMeasured = new Set<CellId>();
     const onElementSizeChange = () => {
       if (elementsMeasured.size > 0) {
         this.measureState.set((previous) => previous + 1);
@@ -124,26 +145,34 @@ export class GraphStore<
     this.graphView = graphView<ElementData, LinkData>({
       graph: this.graph,
       onIncrementalChange: this.buildIncrementalChangeHandler(
-        onIncrementalChange,
-        onElementsChange,
-        onLinksChange
+        onIncrementalCellsChange as
+          | ((changes: IncrementalCellsChange<ElementData, LinkData>) => void)
+          | undefined,
+        onCellsChange
       ),
       onElementsSizeChange: (id, size) => {
-        // Trigger re-measure of elements on size change
         if (size.width > 0 && size.height > 0) {
           elementsMeasured.add(id);
         } else {
           elementsMeasured.delete(id);
         }
-        // we schedule it, so basically we can to it as single operation, that means, we can confidentially could say that
-        // 1. measureState > 0 means that we have some measured elements (on-load)
-        // 2. measureState changes means changes triggered.
         simpleScheduler(onElementSizeChange);
       },
     });
 
     this.observer = createElementsSizeObserver({
-      getElements: () => this.graphView.elements.getFull() as Map<CellId, ElementRecord>,
+      getElements: () => {
+        // The observer only cares about element-typed cells. Build a Map on
+        // demand from the unified cells container — cold path, called only
+        // when the ResizeObserver fires.
+        const map = new Map<CellId, ElementRecord>();
+        for (const cell of this.graphView.cells.getAll()) {
+          if (this.isElement(cell)) {
+            map.set(cell.id, cell as unknown as ElementRecord);
+          }
+        }
+        return map as unknown as Map<string, ElementRecord>;
+      },
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('resize');
         for (const [id, data] of Object.entries(updatedElements)) {
@@ -172,91 +201,89 @@ export class GraphStore<
       },
     });
 
-    // Initial sync: populate graph from initial data or read existing graph cells
-    const hasInitialData =
-      Object.keys(initialElements).length > 0 || Object.keys(initialLinks).length > 0;
-
-    if (hasInitialData) {
+    // Initial sync
+    const seedCells = controlledCells ?? initialCells;
+    if (seedCells && seedCells.length > 0) {
       this.graphView.updateGraph({
-        elements: initialElements,
-        links: initialLinks,
+        cells: seedCells,
         flag: 'updateFromReact',
       });
     } else if (this.graph.getCells().length > 0) {
-      // External graph already has cells — populate graphView containers
+      // External graph already has cells — populate the cells container
       // directly without calling resetCells(). resetCells() would destroy
-      // and recreate all paper element views, breaking any external
-      // references to those views (e.g. stencil drag's cloneView).
+      // and recreate all paper element views, breaking external references
+      // (e.g. stencil drag's cloneView).
       this.graphView.syncFromGraph();
     }
   }
 
+  /**
+   * Build the incremental-change relay that fans out store-level callbacks.
+   * Calling `onIncrementalCellsChange` with the raw `{added, changed, removed}`
+   * summary, and `onCellsChange` with the full cells-array snapshot.
+   * @param onIncrementalCellsChange - user callback for the summary
+   * @param onCellsChange - user callback for the full-array snapshot
+   * @returns combined handler, or undefined when both are absent (avoids allocation)
+   */
   private buildIncrementalChangeHandler(
-    onIncrementalChange:
-      | ((changes: IncrementalContainerChanges<ElementData, LinkData>) => void)
+    onIncrementalCellsChange:
+      | ((changes: IncrementalCellsChange<ElementData, LinkData>) => void)
       | undefined,
-    onElementsChange: ((elements: Record<string, ElementRecord<ElementData>>) => void) | undefined,
-    onLinksChange: ((links: Record<string, LinkRecord<LinkData>>) => void) | undefined
-  ): ((changes: IncrementalContainerChanges<ElementData, LinkData>) => void) | undefined {
-    if (!onIncrementalChange && !onElementsChange && !onLinksChange) {
+    onCellsChange: ((cells: Cells<ElementData, LinkData>) => void) | undefined
+  ): ((changes: IncrementalCellsChange<ElementData, LinkData>) => void) | undefined {
+    if (!onIncrementalCellsChange && !onCellsChange) {
       return undefined;
     }
     return (changes) => {
-      onIncrementalChange?.(changes);
-
-      if (onElementsChange) {
-        this.notifyElementsChange(changes, onElementsChange);
-      }
-
-      if (onLinksChange) {
-        this.notifyLinksChange(changes, onLinksChange);
+      onIncrementalCellsChange?.(changes);
+      if (onCellsChange) {
+        onCellsChange(this.graphView.cells.getAll() as Cells<ElementData, LinkData>);
       }
     };
   }
 
-  private notifyElementsChange(
-    changes: IncrementalContainerChanges<ElementData, LinkData>,
-    onElementsChange: (elements: Record<string, ElementRecord<ElementData>>) => void
-  ) {
-    const hasElementChanges =
-      changes.elements.added.size > 0 ||
-      changes.elements.changed.size > 0 ||
-      changes.elements.removed.size > 0;
-
-    if (!hasElementChanges) return;
-
-    const elements: Record<string, ElementRecord<ElementData>> = {};
-    for (const [id, item] of this.graphView.elements.getFull()) {
-      elements[id] = item;
-    }
-
-    onElementsChange(elements);
+  /**
+   * Apply a controlled cells snapshot (called by GraphProvider when the
+   * parent-owned `cells` prop changes). Equivalent to `graphView.updateGraph`
+   * with the react-origin flag set.
+   * @param cells - new cells snapshot from the parent
+   */
+  public applyControlled(cells: Cells<ElementData, LinkData>) {
+    this.graphView.updateGraph({ cells, flag: 'updateFromReact' });
   }
 
-  private notifyLinksChange(
-    changes: IncrementalContainerChanges<ElementData, LinkData>,
-    onLinksChange: (links: Record<string, LinkRecord<LinkData>>) => void
-  ) {
-    const hasLinkChanges =
-      changes.links.added.size > 0 ||
-      changes.links.changed.size > 0 ||
-      changes.links.removed.size > 0;
+  /**
+   * Type guard: does the input resolve to an element cell?
+   *
+   * Accepts a cell record, an existing cell id, or a bare type name. Falls
+   * back to `graph.getTypeConstructor(type).prototype.isElement()` when the
+   * type is not our default `ElementModel`, so any `dia.Element` subclass
+   * registered in the cell namespace (`standard.Rectangle`, custom shapes,
+   * etc.) is correctly recognised.
+   * @param cell - cell record, cell id, or type name
+   * @returns `true` when the resolved type extends `dia.Element`
+   */
+  public isElement = (cell: CellRecord<ElementData, LinkData>): boolean => {
+    return isElementType(cell.type, this.graph);
+  };
 
-    if (!hasLinkChanges) return;
-
-    const links = Object.fromEntries(
-      [...this.graphView.links.getFull()].map(([id, item]) => {
-        const { ...linkData } = item;
-        return [id, linkData];
-      })
-    ) as Record<string, LinkRecord<LinkData>>;
-    onLinksChange(links);
-  }
+  /**
+   * Type guard: does the input resolve to a link cell?
+   *
+   * Accepts a cell record, an existing cell id, or a bare type name. Falls
+   * back to `graph.getTypeConstructor(type).prototype.isLink()` when the type
+   * is not our default `LinkModel`, so any `dia.Link` subclass registered in
+   * the cell namespace is correctly recognised.
+   * @param cell - cell record, cell id, or type name
+   * @returns `true` when the resolved type extends `dia.Link`
+   */
+  public isLink = (cell: CellRecord<ElementData, LinkData>): boolean => {
+    return isLinkType(cell.type, this.graph);
+  };
 
   // --- Public API ---
 
   public destroy = (isGraphExternal: boolean) => {
-    // Clean graph-level features first
     for (const feature of Object.values(this.features)) {
       feature.clean?.();
     }
@@ -319,7 +346,6 @@ export class GraphStore<
       throw new Error(`Paper with id ${paperId} not found`);
     }
     paperStore.features[feature.id] = feature;
-    // bump version to trigger re-render of paper content with new feature
     this.bumpPaperVersion(paperId);
   }
 
@@ -335,11 +361,10 @@ export class GraphStore<
     }
     feature.clean?.();
     Reflect.deleteProperty(paperStore.features, featureId);
-    // bump version to trigger re-render of paper content without removed feature
     this.bumpPaperVersion(paperId);
   }
 
-  public setPaperViews(paperId: string, changes: Map<string, IncrementalChange<dia.Cell>>) {
+  public setPaperViews(paperId: string, changes: Map<CellId, IncrementalChange<dia.Cell>>) {
     this.bumpPaperVersion(paperId);
     this.graph.trigger(LAYOUT_UPDATE_EVENT, { changes });
   }
@@ -370,13 +395,12 @@ export class GraphStore<
   };
 
   /**
-   * This method clears the cached view for a given element and its connected links on the specified paper.
-   * It is used to force re-rendering of the element and its links when their layout might have changed.
-   * The method accepts an optional `onValidateLink` callback to filter which connected links should be cleared.
-   * @param options - An object containing the cellId of the element, an optional onValidateLink callback, and the paper instance.
-   * @param options.cellId - The ID of the element whose view should be cleared.
-   * @param options.onValidateLink - Optional callback to filter which connected links should be cleared.
-   * @param options.paper - The paper instance to clear views from.
+   * Clear the cached view for an element and its connected links on a paper.
+   * Forces re-rendering after layout might have changed.
+   * @param options - element id, optional link filter, target paper
+   * @param options.cellId - id of the element whose view to clear
+   * @param options.onValidateLink - optional filter for which connected links to clear
+   * @param options.paper - target paper instance
    */
   public clearViewForElementAndLinks = (options: {
     readonly cellId: CellId;
@@ -390,9 +414,7 @@ export class GraphStore<
     }
 
     elementView.cleanNodesCache();
-    const linkChanges = clearConnectedLinkViews(paper, this.graph, cellId, onValidateLink);
-    // Queue link changes — afterRender will flush them once JointJS finishes
-    // its async render cycle and link views have correct geometry.
+    const linkChanges = clearConnectedLinkViews(paper, this.graph, String(cellId), onValidateLink);
     if (linkChanges?.size) {
       for (const [, store] of this.paperStores) {
         if (store.paper === paper) {

@@ -7,10 +7,9 @@ import {
   Paper,
   useMeasureNode,
   useMarkup,
-  type LinkRecord,
+  type Cells,
   type RenderElement,
   type OnTransformElement,
-  type ElementRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
@@ -22,35 +21,38 @@ const ELEMENT_WIDTH = 160;
 const HEADER_COLOR = '#f6c744';
 const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconnected: false });
 
-interface StackedElement {
+interface StackedData {
   readonly name: string;
   readonly labels: readonly string[];
 }
 
-const initialElements: Record<string, ElementRecord<StackedElement>> = {
-  '1': {
+const initialCells: Cells<StackedData> = [
+  {
+    id: '1',
+    type: 'element',
     data: {
       name: 'Component A',
       labels: ['Header', 'Body', 'Footer'],
     },
     position: { x: 50, y: 50 },
   },
-  '2': {
+  {
+    id: '2',
+    type: 'element',
     data: {
       name: 'Component B',
       labels: ['Input', 'Process', 'Output'],
     },
     position: { x: 300, y: 50 },
   },
-};
-
-const initialLinks: Record<string, LinkRecord> = {
-  'e1-2': {
+  {
+    id: 'e1-2',
+    type: 'link',
     source: { id: '1', magnet: 'item-2' },
     target: { id: '2', magnet: 'item-2' },
     style: { color: LIGHT },
   },
-};
+];
 
 interface ItemProps {
   readonly label: string;
@@ -81,7 +83,7 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
   );
 });
 
-function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
+function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
   const contentRef = useRef(null);
   const { magnetRef } = useMarkup();
 
@@ -153,7 +155,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<StackedElement> = useCallback((data) => {
+  const renderElement: RenderElement<StackedData> = useCallback((data) => {
     return <StackedNode name={data.name} labels={data.labels} />;
   }, []);
 
@@ -192,7 +194,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider<StackedData> initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

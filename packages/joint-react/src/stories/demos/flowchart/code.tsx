@@ -2,13 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type {
-  ElementRecord,
-  LinkRecord,
-  LinkLabel,
-  RenderElement,
-  TransformOptions,
-} from '@joint/react';
+import type { Cells, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
 import {
   GraphProvider,
   Paper,
@@ -41,39 +35,59 @@ type NodeElementData = {
   readonly cy: number;
 };
 
-const flowchartNodes: Record<string, ElementRecord<NodeElementData>> = {
-  start: { data: { label: 'Start', type: 'start', cx: 60, cy: 40 } },
-  addToCart: {
+const flowchartNodes: Array<ElementRecord<NodeElementData>> = [
+  { id: 'start', type: 'element', data: { label: 'Start', type: 'start', cx: 60, cy: 40 } },
+  {
+    id: 'addToCart',
+    type: 'element',
     data: { label: 'Add to Cart', type: 'step', cx: 195, cy: 40 },
   },
-  checkoutItems: {
+  {
+    id: 'checkoutItems',
+    type: 'element',
     data: { label: 'Checkout Items', type: 'step', cx: 365, cy: 40 },
   },
-  addShippingInfo: {
+  {
+    id: 'addShippingInfo',
+    type: 'element',
     data: { label: 'Add Shipping Info', type: 'step', cx: 550, cy: 40 },
   },
-  addPaymentInfo: {
+  {
+    id: 'addPaymentInfo',
+    type: 'element',
     data: { label: 'Add Payment Info', type: 'step', cx: 550, cy: 150 },
   },
-  validPayment: {
+  {
+    id: 'validPayment',
+    type: 'element',
     data: { label: 'Valid Payment?', type: 'decision', cx: 550, cy: 270 },
   },
-  presentErrorMessage: {
+  {
+    id: 'presentErrorMessage',
+    type: 'element',
     data: { label: 'Present Error Message', type: 'step', cx: 810, cy: 380 },
   },
-  sendOrder: {
+  {
+    id: 'sendOrder',
+    type: 'element',
     data: { label: 'Send Order to Warehouse', type: 'step', cx: 230, cy: 270 },
   },
-  packOrder: {
+  {
+    id: 'packOrder',
+    type: 'element',
     data: { label: 'Pack Order', type: 'step', cx: 40, cy: 380 },
   },
-  qualityCheck: {
+  {
+    id: 'qualityCheck',
+    type: 'element',
     data: { label: 'Quality Check?', type: 'decision', cx: 230, cy: 500 },
   },
-  shipItems: {
+  {
+    id: 'shipItems',
+    type: 'element',
     data: { label: 'Ship Items to Customer', type: 'step', cx: 550, cy: 500 },
   },
-};
+];
 const TOP = { name: 'top', args: { useModelGeometry: true, dy: -linkOffset } } as const;
 const BOTTOM = { name: 'bottom', args: { useModelGeometry: true, dy: linkOffset } } as const;
 const LEFT = { name: 'left', args: { useModelGeometry: true, dx: -linkOffset } } as const;
@@ -86,7 +100,13 @@ const LINK_OPTIONS: Partial<LinkRecord> = {
     className: 'jj-flow-line link',
     wrapperClassName: 'jj-flow-outline',
     targetMarker: {
-      markup: [{ tagName: 'path', attributes: { d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z` }, className: 'jj-flow-arrowhead' }],
+      markup: [
+        {
+          tagName: 'path',
+          attributes: { d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z` },
+          className: 'jj-flow-arrowhead',
+        },
+      ],
     },
   },
 };
@@ -126,84 +146,110 @@ const LABEL: LinkLabel = {
   backgroundShape: bevelRectPath(labelPx, labelPy, bevel),
 };
 
-const flowchartLinks: Record<string, LinkRecord> = {
+const flowchartLinks: LinkRecord[] = [
   // start(50,40) → addToCart(200,40): horizontal right
-  flow1: {
+  {
+    id: 'flow1',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'start', magnet: 'body', anchor: RIGHT },
     target: { id: 'addToCart', magnet: 'body', anchor: LEFT },
   },
   // addToCart(200,40) → checkoutItems(350,40): horizontal right
-  flow2: {
+  {
+    id: 'flow2',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'addToCart', magnet: 'body', anchor: RIGHT },
     target: { id: 'checkoutItems', magnet: 'body', anchor: LEFT },
   },
   // checkoutItems(350,40) → addShippingInfo(500,40): horizontal right
-  flow3: {
+  {
+    id: 'flow3',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'checkoutItems', magnet: 'body', anchor: RIGHT },
     target: { id: 'addShippingInfo', magnet: 'body', anchor: LEFT },
   },
   // addShippingInfo(500,40) → addPaymentInfo(500,140): vertical down
-  flow4: {
+  {
+    id: 'flow4',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'addShippingInfo', magnet: 'body', anchor: BOTTOM },
     target: { id: 'addPaymentInfo', magnet: 'body', anchor: TOP },
   },
   // addPaymentInfo(500,140) → validPayment(500,250): vertical down
-  flow5: {
+  {
+    id: 'flow5',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'addPaymentInfo', magnet: 'body', anchor: BOTTOM },
     target: { id: 'validPayment', magnet: 'body', anchor: TOP },
   },
   // validPayment(500,250) → presentErrorMessage(750,350): down-right
-  flow6: {
+  {
+    id: 'flow6',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'validPayment', magnet: 'body', anchor: BOTTOM },
     target: { id: 'presentErrorMessage', magnet: 'body', anchor: LEFT },
     labelMap: { no: { ...LABEL, text: 'No' } },
   },
   // presentErrorMessage(750,350) → addPaymentInfo(500,140): up-left
-  flow7: {
+  {
+    id: 'flow7',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'presentErrorMessage', magnet: 'body', anchor: TOP },
     target: { id: 'addPaymentInfo', magnet: 'body', anchor: RIGHT },
   },
   // validPayment(500,250) → sendOrder(200,250): horizontal left
-  flow8: {
+  {
+    id: 'flow8',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'validPayment', magnet: 'body', anchor: LEFT },
     target: { id: 'sendOrder', magnet: 'body', anchor: RIGHT },
     labelMap: { yes: { ...LABEL, text: 'Yes' } },
   },
   // sendOrder(200,250) → packOrder(40,350): down-left
-  flow9: {
+  {
+    id: 'flow9',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'sendOrder', magnet: 'body', anchor: LEFT },
     target: { id: 'packOrder', magnet: 'body', anchor: TOP },
   },
   // packOrder(40,350) → qualityCheck(200,460): down-right
-  flow10: {
+  {
+    id: 'flow10',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'packOrder', magnet: 'body', anchor: BOTTOM },
     target: { id: 'qualityCheck', magnet: 'body', anchor: LEFT },
   },
   // qualityCheck(200,460) → shipItems(500,460): horizontal right
-  flow11: {
+  {
+    id: 'flow11',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'qualityCheck', magnet: 'body', anchor: RIGHT },
     target: { id: 'shipItems', magnet: 'body', anchor: LEFT },
     labelMap: { ok: { ...LABEL, text: 'Ok' } },
   },
   // qualityCheck(200,460) → sendOrder(200,250): vertical up
-  flow12: {
+  {
+    id: 'flow12',
+    type: 'link',
     ...LINK_OPTIONS,
     source: { id: 'qualityCheck', magnet: 'body', anchor: TOP },
     target: { id: 'sendOrder', magnet: 'body', anchor: BOTTOM },
     labelMap: { notOk: { ...LABEL, text: 'Not Ok' } },
   },
-};
+];
+
+const initialCells: Cells<NodeElementData> = [...flowchartNodes, ...flowchartLinks];
 
 interface PropsWithClick {
   readonly onMouseEnter?: () => void;
@@ -347,19 +393,18 @@ const DecisionNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(DecisionN
 const StartNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StartNodeRaw);
 const StepNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(StepNodeRaw);
 
-function RenderFlowchartNode(props: Readonly<NodeElementData>) {
-  const { type } = props;
+function RenderFlowchartNode(data: NodeElementData) {
   const { selectorRef } = useMarkup();
 
   const bodyRef = selectorRef('body');
 
-  if (type === 'decision') {
-    return <DecisionNode ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...props} />;
+  if (data.type === 'decision') {
+    return <DecisionNode ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...data} />;
   }
-  if (type === 'start') {
-    return <StartNode ref={bodyRef as React.ForwardedRef<SVGRectElement>} {...props} />;
+  if (data.type === 'start') {
+    return <StartNode ref={bodyRef as React.ForwardedRef<SVGRectElement>} {...data} />;
   }
-  return <StepNode ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...props} />;
+  return <StepNode ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...data} />;
 }
 
 // Create link tools
@@ -476,7 +521,7 @@ function Main() {
       overflow
       snapLabels
       className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
-      renderElement={RenderFlowchartNode as RenderElement<NodeElementData>}
+      renderElement={RenderFlowchartNode}
       interactive={{ linkMove: false }}
       drawGrid={false}
       {...ORTHOGONAL_LINKS}
@@ -526,7 +571,7 @@ export default function App() {
   const [isLight, setIsLight] = useState(false);
   return (
     <div className={`flowchart-wrapper${isLight ? ' light-theme' : ''}`}>
-      <GraphProvider initialElements={flowchartNodes} initialLinks={flowchartLinks}>
+      <GraphProvider initialCells={initialCells}>
         <Main />
       </GraphProvider>
       <ThemeSwitch onClick={() => setIsLight((v) => !v)} />
