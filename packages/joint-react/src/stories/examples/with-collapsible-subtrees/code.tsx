@@ -707,8 +707,8 @@ function addExpandTools(paper: dia.Paper) {
 function Main() {
   const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
-  const cellVisibilityCallback = useCallback((cell: dia.Cell) => {
-    return !cell.prop('hidden');
+  const cellVisibilityCallback = useCallback(({ model }: { model: dia.Cell }) => {
+    return !model.prop('hidden');
   }, []);
 
   const handleElementsMeasured = useCallback(

@@ -364,15 +364,15 @@ function Main() {
   const { graph } = useGraph();
 
   // Cell visibility callback - hides children when parent container is collapsed
-  const cellVisibility = useCallback((cell: dia.Cell) => {
+  const cellVisibility = useCallback(({ model }: { model: dia.Cell }) => {
     const hasCollapsedAncestor = (cellToCheck: dia.Cell) => {
       return cellToCheck
         .getAncestors()
         .some((ancestor) => ancestor.prop('data/collapsed') === true);
     };
 
-    if (cell.isLink()) {
-      const link = cell as dia.Link;
+    if (model.isLink()) {
+      const link = model as dia.Link;
       const sourceCell = link.getSourceCell();
       const targetCell = link.getTargetCell();
       // Hide link if source or target (or their ancestors) is collapsed
@@ -381,7 +381,7 @@ function Main() {
       return true;
     }
 
-    return !hasCollapsedAncestor(cell);
+    return !hasCollapsedAncestor(model);
   }, []);
 
   const renderElement = useCallback((data: ContainerUserData) => {

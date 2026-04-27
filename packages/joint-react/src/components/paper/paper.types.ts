@@ -6,6 +6,7 @@ import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
 import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
+import type { CellVisibility } from '../../presets/cell-visibility';
 
 /** Context passed to the `defaultLink` factory. */
 export interface DefaultLinkContext {
@@ -109,7 +110,12 @@ export interface PortalPaperOptions {
   readonly frontParentOnly?: dia.Paper.Options['frontParentOnly'];
 
   // ── Cell visibility ──────────────────────────────────────────────────────
-  readonly cellVisibility?: dia.Paper.Options['cellVisibility'];
+  /**
+   * Predicate deciding whether a cell should be rendered. Receives
+   * `{ model, isMounted, paper, graph }`; return `false` to hide the cell.
+   * Native positional form is reachable via the `options` escape hatch.
+   */
+  readonly cellVisibility?: CellVisibility;
 
   // ── Namespaces ───────────────────────────────────────────────────────────
   readonly cellViewNamespace?: dia.Paper.Options['cellViewNamespace'];

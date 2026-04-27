@@ -173,8 +173,8 @@ function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
         height={300}
         className={PAPER_CLASSNAME}
         renderElement={RenderElement}
-        cellVisibility={(cell: dia.Cell) => {
-          const cellLayer = cell.layer();
+        cellVisibility={({ model }) => {
+          const cellLayer = model.layer();
           return !cellLayer || !hiddenLayers.has(cellLayer);
         }}
         style={PAPER_STYLE}

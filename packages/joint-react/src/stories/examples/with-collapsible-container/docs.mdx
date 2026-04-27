@@ -46,23 +46,23 @@ const elements = {
 The `cellVisibility` callback hides elements and links when their ancestor container is collapsed:
 
 ```tsx
-const cellVisibility = useCallback((cell: dia.Cell) => {
+const cellVisibility = useCallback(({ model }) => {
   const hasCollapsedAncestor = (cellToCheck: dia.Cell) => {
     return cellToCheck.getAncestors().some(
       (ancestor) => ancestor.prop('data/collapsed') === true
     );
   };
 
-  if (cell.isLink()) {
-    const sourceCell = link.getSourceCell();
-    const targetCell = link.getTargetCell();
+  if (model.isLink()) {
+    const sourceCell = model.getSourceCell();
+    const targetCell = model.getTargetCell();
     // Hide link if source or target has collapsed ancestor
     if (sourceCell && hasCollapsedAncestor(sourceCell)) return false;
     if (targetCell && hasCollapsedAncestor(targetCell)) return false;
     return true;
   }
 
-  return !hasCollapsedAncestor(cell);
+  return !hasCollapsedAncestor(model);
 }, []);
 ```
 

@@ -26,8 +26,8 @@ Collapsible subtrees are useful for:
 Elements and links have a `hidden` property that controls their visibility. The `cellVisibility` prop on the Paper component filters which cells are rendered:
 
 ```tsx
-const cellVisibilityCallback = useCallback((cell: dia.Cell) => {
-  return !cell.prop('data/hidden');
+const cellVisibilityCallback = useCallback(({ model }) => {
+  return !model.prop('data/hidden');
 }, []);
 ```
 

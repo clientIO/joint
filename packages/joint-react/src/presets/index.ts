@@ -39,5 +39,10 @@ export {
   type ConnectionStrategyPin,
 } from './connection-strategy';
 export { canEmbed, canUnembed, type ValidateEmbeddingContext, type ValidateUnembeddingContext } from './can-embed';
+export {
+  toNativeCellVisibility,
+  type CellVisibility,
+  type CellVisibilityContext,
+} from './cell-visibility';
 export { elementAttributes } from './element-attributes';
 export { linkAttributes } from './link-attributes';

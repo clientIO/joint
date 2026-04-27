@@ -29,6 +29,7 @@ import type { CanConnectOptions } from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
 import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
+import { toNativeCellVisibility } from '../presets/cell-visibility';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -184,6 +185,7 @@ export function useCreatePortalPaper(
     connectionStrategy,
     validateEmbedding,
     validateUnembedding,
+    cellVisibility,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -275,6 +277,11 @@ export function useCreatePortalPaper(
     [validateUnembedding]
   );
 
+  const cellVisibilityCallback = useMemo(
+    () => toNativeCellVisibility(cellVisibility),
+    [cellVisibility]
+  );
+
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
 
   useLayoutEffect(() => {
@@ -290,6 +297,7 @@ export function useCreatePortalPaper(
         connectionStrategy: connectionStrategyCallback,
         validateEmbedding: validateEmbeddingCallback,
         validateUnembedding: validateUnembeddingCallback,
+        cellVisibility: cellVisibilityCallback,
         ...escapeHatchOptions,
       },
       renderElement,
@@ -341,6 +349,7 @@ export function useCreatePortalPaper(
       connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
+      cellVisibility: cellVisibilityCallback,
       ...paperOptions,
       ...escapeHatchOptions,
     });
@@ -362,6 +371,7 @@ export function useCreatePortalPaper(
     connectionStrategyCallback,
     validateEmbeddingCallback,
     validateUnembeddingCallback,
+    cellVisibilityCallback,
     escapeHatchOptions,
     paper,
     paperOptions,
