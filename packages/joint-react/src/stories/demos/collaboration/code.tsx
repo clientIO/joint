@@ -947,7 +947,6 @@ function GraphWithRedux() {
             {...ORTHOGONAL_LINKS}
             defaultLink={{ style: { color: theme.link, width: 1.5, targetMarker: 'none' } }}
             validateConnection={({ target }) => target.port === 'in'}
-            interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
             renderElement={RenderAgentNode}
             style={{ backgroundColor: theme.canvas }}
           />

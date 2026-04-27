@@ -382,7 +382,6 @@ function Main() {
         renderElement={renderElement}
         clickThreshold={10}
         magnetThreshold={'onleave'}
-        interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         linkPinning={false}
         snapLinks={{ radius: 50 }}
         validateConnection={{

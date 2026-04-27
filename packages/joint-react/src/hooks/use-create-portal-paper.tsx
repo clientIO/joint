@@ -30,6 +30,7 @@ import { canConnect, toConnectionEnd } from '../presets/can-connect';
 import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
 import { toNativeCellVisibility } from '../presets/cell-visibility';
+import { toNativeInteractive } from '../presets/interactive';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -186,6 +187,7 @@ export function useCreatePortalPaper(
     validateEmbedding,
     validateUnembedding,
     cellVisibility,
+    interactive,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -282,6 +284,11 @@ export function useCreatePortalPaper(
     [cellVisibility]
   );
 
+  const interactiveValue = useMemo(
+    () => toNativeInteractive(interactive),
+    [interactive]
+  );
+
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
 
   useLayoutEffect(() => {
@@ -298,6 +305,7 @@ export function useCreatePortalPaper(
         validateEmbedding: validateEmbeddingCallback,
         validateUnembedding: validateUnembeddingCallback,
         cellVisibility: cellVisibilityCallback,
+        interactive: interactiveValue,
         ...escapeHatchOptions,
       },
       renderElement,
@@ -350,6 +358,7 @@ export function useCreatePortalPaper(
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
       cellVisibility: cellVisibilityCallback,
+      interactive: interactiveValue,
       ...paperOptions,
       ...escapeHatchOptions,
     });
@@ -372,6 +381,7 @@ export function useCreatePortalPaper(
     validateEmbeddingCallback,
     validateUnembeddingCallback,
     cellVisibilityCallback,
+    interactiveValue,
     escapeHatchOptions,
     paper,
     paperOptions,

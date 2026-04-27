@@ -428,9 +428,6 @@ function Main() {
         renderElement={RenderShapeElement}
         scale={3}
         {...STRAIGHT_LINKS}
-        interactive={{
-          linkMove: false,
-        }}
       />
       <PowerControl />
     </div>

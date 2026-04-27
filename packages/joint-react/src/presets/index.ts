@@ -44,5 +44,12 @@ export {
   type CellVisibility,
   type CellVisibilityContext,
 } from './cell-visibility';
+export {
+  toNativeInteractive,
+  type Interactive,
+  type InteractiveCallback,
+  type InteractiveContext,
+  type Interaction,
+} from './interactive';
 export { elementAttributes } from './element-attributes';
 export { linkAttributes } from './link-attributes';

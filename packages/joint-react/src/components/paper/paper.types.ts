@@ -7,6 +7,7 @@ import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
 import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
 import type { CellVisibility } from '../../presets/cell-visibility';
+import type { Interactive } from '../../presets/interactive';
 
 /** Context passed to the `defaultLink` factory. */
 export interface DefaultLinkContext {
@@ -89,7 +90,14 @@ export interface PortalPaperOptions {
   readonly overflow?: dia.Paper.Options['overflow'];
 
   // ── Interactions ─────────────────────────────────────────────────────────
-  readonly interactive?: dia.Paper.Options['interactive'];
+  /**
+   * Interaction permissions. Accepts:
+   * - `boolean` — enable/disable all interactions.
+   * - `InteractivityOptions` — granular toggle per interaction kind.
+   * - Function — receives `{ model, interaction, paper, graph }` and returns either form.
+   * Native `(cellView, event)` callback is reachable via the `options` escape hatch.
+   */
+  readonly interactive?: Interactive;
   readonly highlighting?: dia.Paper.Options['highlighting'];
   readonly snapLabels?: dia.Paper.Options['snapLabels'];
   readonly snapLinks?: dia.Paper.Options['snapLinks'];

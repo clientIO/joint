@@ -440,7 +440,6 @@ function Main() {
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibility}
-      interactive={{ linkMove: false }}
       style={{ backgroundColor: '#F3F7F6' }}
     />
   );
