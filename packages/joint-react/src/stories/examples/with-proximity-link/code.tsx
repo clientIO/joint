@@ -8,7 +8,6 @@ import {
   useElement,
   useGraph,
   type Cells,
-  type CellRecord,
   type ResolvedElementRecord,
 } from '@joint/react';
 import { util } from '@joint/core';
@@ -49,7 +48,7 @@ function ResizableNode() {
   const id = useCellId();
   const label = useElement((element: ResolvedElementRecord<NodeData>) => element.data.label);
 
-  const { graph, setCell, addCell, removeCell } = useGraph();
+  const { graph, addCell, removeCell } = useGraph();
   const closeIds = useCells<NodeData, unknown, readonly dia.Cell.ID[]>(() => {
     const currentElement = graph.getCell(id);
     if (!currentElement) return [];
@@ -63,23 +62,14 @@ function ResizableNode() {
   useEffect(() => {
     for (const closeId of closeIds) {
       const { linkId, source, target } = getProximityLink(id, closeId);
-      const existing = graph.getCell(linkId) as unknown as CellRecord | undefined;
-      if (existing) {
-        setCell({
-          id: linkId,
-          source,
-          target,
-          style: { color: PRIMARY, width: 2, dasharray: '5 5' },
-        } as CellRecord);
-      } else {
-        addCell({
-          id: linkId,
-          type: 'link',
-          source,
-          target,
-          style: { color: PRIMARY, width: 2, dasharray: '5 5' },
-        });
-      }
+      if (graph.getCell(linkId)) continue;
+      addCell({
+        id: linkId,
+        type: 'link',
+        source,
+        target,
+        style: { color: PRIMARY, width: 2, dasharray: '5 5' },
+      });
     }
     return () => {
       for (const closeId of closeIds) {
@@ -87,7 +77,7 @@ function ResizableNode() {
         removeCell(linkId);
       }
     };
-  }, [addCell, closeIds, graph, id, removeCell, setCell]);
+  }, [addCell, closeIds, graph, id, removeCell]);
 
   return <HTMLBox>{label}</HTMLBox>;
 }
