@@ -100,7 +100,6 @@ function Main() {
       <Paper
         className={PAPER_CLASSNAME}
         clickThreshold={10}
-        interactive={{ linkMove: false }}
         {...ORTHOGONAL_LINKS}
         height={380}
         renderElement={RenderElement}

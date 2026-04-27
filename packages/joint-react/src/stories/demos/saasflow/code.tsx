@@ -515,7 +515,6 @@ function Main() {
         clickThreshold={10}
         {...ORTHOGONAL_LINKS}
         validateConnection={({ target }) => target.port === 'in'}
-        interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         renderElement={RenderSaasNode}
         defaultLink={DEFAULT_LINK}
       />

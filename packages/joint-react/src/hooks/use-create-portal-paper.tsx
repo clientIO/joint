@@ -29,7 +29,8 @@ import type { CanConnectOptions } from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
 import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
-import { toNativeRestrictTranslate } from '../presets/restrict-translate';
+import { toNativeCellVisibility } from '../presets/cell-visibility';
+import { toNativeInteractive } from '../presets/interactive';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -185,7 +186,8 @@ export function useCreatePortalPaper(
     connectionStrategy,
     validateEmbedding,
     validateUnembedding,
-    restrictTranslate,
+    cellVisibility,
+    interactive,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -277,9 +279,14 @@ export function useCreatePortalPaper(
     [validateUnembedding]
   );
 
-  const restrictTranslateValue = useMemo(
-    () => toNativeRestrictTranslate(restrictTranslate),
-    [restrictTranslate]
+  const cellVisibilityCallback = useMemo(
+    () => toNativeCellVisibility(cellVisibility),
+    [cellVisibility]
+  );
+
+  const interactiveValue = useMemo(
+    () => toNativeInteractive(interactive),
+    [interactive]
   );
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
@@ -297,7 +304,8 @@ export function useCreatePortalPaper(
         connectionStrategy: connectionStrategyCallback,
         validateEmbedding: validateEmbeddingCallback,
         validateUnembedding: validateUnembeddingCallback,
-        restrictTranslate: restrictTranslateValue,
+        cellVisibility: cellVisibilityCallback,
+        interactive: interactiveValue,
         ...escapeHatchOptions,
       },
       renderElement,
@@ -349,7 +357,8 @@ export function useCreatePortalPaper(
       connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
-      restrictTranslate: restrictTranslateValue,
+      cellVisibility: cellVisibilityCallback,
+      interactive: interactiveValue,
       ...paperOptions,
       ...escapeHatchOptions,
     });
@@ -371,7 +380,8 @@ export function useCreatePortalPaper(
     connectionStrategyCallback,
     validateEmbeddingCallback,
     validateUnembeddingCallback,
-    restrictTranslateValue,
+    cellVisibilityCallback,
+    interactiveValue,
     escapeHatchOptions,
     paper,
     paperOptions,

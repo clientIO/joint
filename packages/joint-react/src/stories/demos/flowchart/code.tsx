@@ -522,7 +522,6 @@ function Main() {
       snapLabels
       className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
       renderElement={RenderFlowchartNode}
-      interactive={{ linkMove: false }}
       drawGrid={false}
       {...ORTHOGONAL_LINKS}
     />

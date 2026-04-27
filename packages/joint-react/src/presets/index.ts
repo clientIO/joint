@@ -40,10 +40,16 @@ export {
 } from './connection-strategy';
 export { canEmbed, canUnembed, type ValidateEmbeddingContext, type ValidateUnembeddingContext } from './can-embed';
 export {
-  toNativeRestrictTranslate,
-  type RestrictTranslate,
-  type RestrictTranslateCallback,
-  type RestrictTranslateContext,
-} from './restrict-translate';
+  toNativeCellVisibility,
+  type CellVisibility,
+  type CellVisibilityContext,
+} from './cell-visibility';
+export {
+  toNativeInteractive,
+  type Interactive,
+  type InteractiveCallback,
+  type InteractiveContext,
+  type Interaction,
+} from './interactive';
 export { elementAttributes } from './element-attributes';
 export { linkAttributes } from './link-attributes';

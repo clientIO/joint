@@ -81,8 +81,8 @@ const toggleLayer = (layerId: string) => {
 
 <Paper
   ref={storeRef}
-  cellVisibility={(cell) => {
-    const cellLayer = cell.layer();
+  cellVisibility={({ model }) => {
+    const cellLayer = model.layer();
     return !hiddenLayers.has(cellLayer);
   }}
 />

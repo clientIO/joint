@@ -6,7 +6,8 @@ import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
 import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
-import type { RestrictTranslate } from '../../presets/restrict-translate';
+import type { CellVisibility } from '../../presets/cell-visibility';
+import type { Interactive } from '../../presets/interactive';
 
 /** Context passed to the `defaultLink` factory. */
 export interface DefaultLinkContext {
@@ -74,17 +75,6 @@ export interface PortalPaperOptions {
    */
   readonly validateUnembedding?: (context: ValidateUnembeddingContext) => boolean;
 
-  /**
-   * Restricts where an element can be translated (dragged) to.
-   *
-   * - `true` — restrict to the paper area.
-   * - `false` — no restriction.
-   * - `dia.BBox` — restrict to a static bounding box.
-   * - Function — receives `{ model, pointerStart, paper, graph }` and returns
-   *   a bounding box, boolean, or per-point constraint callback.
-   */
-  readonly restrictTranslate?: RestrictTranslate;
-
   // ── Identification ───────────────────────────────────────────────────────
   /** Unique identifier used by joint-react to track the paper instance. */
   readonly id?: string;
@@ -100,7 +90,14 @@ export interface PortalPaperOptions {
   readonly overflow?: dia.Paper.Options['overflow'];
 
   // ── Interactions ─────────────────────────────────────────────────────────
-  readonly interactive?: dia.Paper.Options['interactive'];
+  /**
+   * Interaction permissions. Accepts:
+   * - `boolean` — enable/disable all interactions.
+   * - `InteractivityOptions` — granular toggle per interaction kind.
+   * - Function — receives `{ model, interaction, paper, graph }` and returns either form.
+   * Native `(cellView, event)` callback is reachable via the `options` escape hatch.
+   */
+  readonly interactive?: Interactive;
   readonly highlighting?: dia.Paper.Options['highlighting'];
   readonly snapLabels?: dia.Paper.Options['snapLabels'];
   readonly snapLinks?: dia.Paper.Options['snapLinks'];
@@ -121,7 +118,12 @@ export interface PortalPaperOptions {
   readonly frontParentOnly?: dia.Paper.Options['frontParentOnly'];
 
   // ── Cell visibility ──────────────────────────────────────────────────────
-  readonly cellVisibility?: dia.Paper.Options['cellVisibility'];
+  /**
+   * Predicate deciding whether a cell should be rendered. Receives
+   * `{ model, isMounted, paper, graph }`; return `false` to hide the cell.
+   * Native positional form is reachable via the `options` escape hatch.
+   */
+  readonly cellVisibility?: CellVisibility;
 
   // ── Namespaces ───────────────────────────────────────────────────────────
   readonly cellViewNamespace?: dia.Paper.Options['cellViewNamespace'];
