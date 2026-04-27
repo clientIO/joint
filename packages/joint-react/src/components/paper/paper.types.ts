@@ -6,7 +6,6 @@ import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
 import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
-import type { RestrictTranslate } from '../../presets/restrict-translate';
 
 /** Context passed to the `defaultLink` factory. */
 export interface DefaultLinkContext {
@@ -73,17 +72,6 @@ export interface PortalPaperOptions {
    * Receives `{ child, paper, graph }`.
    */
   readonly validateUnembedding?: (context: ValidateUnembeddingContext) => boolean;
-
-  /**
-   * Restricts where an element can be translated (dragged) to.
-   *
-   * - `true` — restrict to the paper area.
-   * - `false` — no restriction.
-   * - `dia.BBox` — restrict to a static bounding box.
-   * - Function — receives `{ model, pointerStart, paper, graph }` and returns
-   *   a bounding box, boolean, or per-point constraint callback.
-   */
-  readonly restrictTranslate?: RestrictTranslate;
 
   // ── Identification ───────────────────────────────────────────────────────
   /** Unique identifier used by joint-react to track the paper instance. */

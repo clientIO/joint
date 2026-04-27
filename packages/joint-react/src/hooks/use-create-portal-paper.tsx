@@ -29,7 +29,6 @@ import type { CanConnectOptions } from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
 import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
-import { toNativeRestrictTranslate } from '../presets/restrict-translate';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -185,7 +184,6 @@ export function useCreatePortalPaper(
     connectionStrategy,
     validateEmbedding,
     validateUnembedding,
-    restrictTranslate,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -277,11 +275,6 @@ export function useCreatePortalPaper(
     [validateUnembedding]
   );
 
-  const restrictTranslateValue = useMemo(
-    () => toNativeRestrictTranslate(restrictTranslate),
-    [restrictTranslate]
-  );
-
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
 
   useLayoutEffect(() => {
@@ -297,7 +290,6 @@ export function useCreatePortalPaper(
         connectionStrategy: connectionStrategyCallback,
         validateEmbedding: validateEmbeddingCallback,
         validateUnembedding: validateUnembeddingCallback,
-        restrictTranslate: restrictTranslateValue,
         ...escapeHatchOptions,
       },
       renderElement,
@@ -349,7 +341,6 @@ export function useCreatePortalPaper(
       connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
-      restrictTranslate: restrictTranslateValue,
       ...paperOptions,
       ...escapeHatchOptions,
     });
@@ -371,7 +362,6 @@ export function useCreatePortalPaper(
     connectionStrategyCallback,
     validateEmbeddingCallback,
     validateUnembeddingCallback,
-    restrictTranslateValue,
     escapeHatchOptions,
     paper,
     paperOptions,
