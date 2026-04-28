@@ -39,14 +39,12 @@ export function mapCellToAttributes<
   // (`[key: string]: unknown`) doesn't widen `cell.type` to `unknown`.
   const cellType = (cell as { readonly type?: string }).type;
   if (cellType !== undefined && isElementType(cellType, graph)) {
-    const attributes = mapElementToAttributes(
-      cell as ElementRecord<Element['data']>
-    ) as dia.Cell.JSON;
+    const attributes = mapElementToAttributes(cell as ElementRecord<Element['data']>);
     if (cell.id !== undefined) attributes.id = cell.id;
     return attributes;
   }
   if (cellType !== undefined && isLinkType(cellType, graph)) {
-    const attributes = mapLinkToAttributes(cell as LinkRecord<Link['data']>) as dia.Cell.JSON;
+    const attributes = mapLinkToAttributes(cell as LinkRecord<Link['data']>);
     if (cell.id !== undefined) attributes.id = cell.id;
     return attributes;
   }

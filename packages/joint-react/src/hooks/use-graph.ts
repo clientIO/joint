@@ -30,9 +30,9 @@ export type GraphCellInput<
  * with the internal `isUpdateFromReact` flag so React-driven changes do not
  * echo back into the subscription pipeline.
  * @template Element - element record shape (e.g. `ElementRecord<MyData>` for
- *                    write input, `ResolvedElementRecord<MyData>` for reads)
+ *                    write input, `Internal<ElementRecord<MyData>>` for reads)
  * @template Link - link record shape (e.g. `LinkRecord<MyData>` /
- *                  `ResolvedLinkRecord<MyData>`)
+ *                  `Internal<LinkRecord<MyData>>`)
  */
 export interface UseGraphResult<
   Element extends ElementAttributes = ElementAttributes,
@@ -94,9 +94,9 @@ export interface UseGraphResult<
  * `isElement` / `isLink` delegate to the `GraphStore` methods, which consult
  * the graph's type registry so custom cell types narrow correctly.
  * @template Element - element record shape (use `ElementRecord<MyData>` for input,
- *                    `ResolvedElementRecord<MyData>` for read shapes)
+ *                    `Internal<ElementRecord<MyData>>` for read shapes)
  * @template Link - link record shape (use `LinkRecord<MyData>` /
- *                  `ResolvedLinkRecord<MyData>`)
+ *                  `Internal<LinkRecord<MyData>>`)
  * @returns the imperative API described by {@link UseGraphResult}
  */
 export function useGraph<

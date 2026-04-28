@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { type CellRecord, GraphProvider, HTMLHost, Paper, useCellId, useCells, useGraph, type ElementRecord, type ResolvedElementRecord } from '@joint/react';
+import { type CellRecord, GraphProvider, HTMLHost, Paper, useCellId, useCells, useGraph, type ElementRecord, type Internal } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -83,7 +83,7 @@ function RenderElement({ label }: Readonly<NodeData>) {
 
 function Main() {
   const { isElement } = useGraph<ElementRecord<NodeData>>();
-  const elements = useCells<ResolvedElementRecord<NodeData>, ReadonlyArray<ElementRecord<NodeData>>>(
+  const elements = useCells<Internal<ElementRecord<NodeData>>, ReadonlyArray<ElementRecord<NodeData>>>(
     (cells) => cells.filter((cell) => isElement(cell)) as ReadonlyArray<ElementRecord<NodeData>>
   );
   return (

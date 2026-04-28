@@ -3,7 +3,6 @@ import type { LinkAttributes, WithType } from '../../types/cell.types';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
-import type { CellAttributes } from '.';
 
 /**
  * Forward mapper using the React default link type.
@@ -11,25 +10,14 @@ import type { CellAttributes } from '.';
  */
 export function mapLinkToAttributes<LinkData = unknown>(
   link: LinkAttributes & WithType & { readonly data?: LinkData }
-): CellAttributes {
-  const attributes = linkAttributes(link) as CellAttributes;
+): dia.Cell.JSON {
+  const attributes = linkAttributes(link) as dia.Cell.JSON;
   if (!attributes.type) attributes.type = LINK_MODEL_TYPE;
   return attributes;
 }
 
 /**
- * Link record produced by {@link mapAttributesToLink}.
- *
- * Wider than {@link import('../../types/cell.types').LinkRecord} — `type` is
- * optional (only present when the cell is a custom subclass) and the user
- * `data` field is opaque until the consumer narrows it. This shape is what the
- * controlled-mode pipeline actually emits when reading from a `dia.Cell`.
- */
-type MappedLinkRecord<LinkData = unknown> = LinkAttributes &
-  Partial<WithType> & { readonly data?: LinkData };
-
-/**
- * Converts JointJS link attributes back to a LinkRecord.
+ * Converts JointJS link attributes back to a link record.
  *
  * - `style` on model → return in record.
  * - `labelMap` on model → return `labelMap` (merge updated positions from native `labels`).
@@ -40,7 +28,7 @@ type MappedLinkRecord<LinkData = unknown> = LinkAttributes &
  */
 export function mapAttributesToLink<LinkData = unknown>(
   attributes: dia.Link.Attributes
-): MappedLinkRecord<LinkData> {
+): LinkAttributes & { readonly data?: LinkData } {
   const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     id,
@@ -68,7 +56,7 @@ export function mapAttributesToLink<LinkData = unknown>(
     linkRecord.labels = labels;
   }
 
-  return { ...linkRecord } as MappedLinkRecord<LinkData>;
+  return { ...linkRecord } as LinkAttributes & { readonly data?: LinkData };
 }
 
 export type MapAttributesToLink<LinkData = unknown> = typeof mapAttributesToLink<LinkData>;

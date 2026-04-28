@@ -1,8 +1,7 @@
 import type {
   ElementRecord,
   LinkRecord,
-  ResolvedElementRecord,
-  ResolvedLinkRecord,
+  Internal,
   ElementAttributes,
   LinkAttributes,
 } from '../cell.types';
@@ -33,8 +32,8 @@ describe('cell.types shape', () => {
     expect(link.id).toBe('b');
   });
 
-  it('ResolvedElementRecord requires position/size/angle/data', () => {
-    const r: ResolvedElementRecord<{ x: number }> = {
+  it('Internal<ElementRecord> requires position/size/angle/data', () => {
+    const r: Internal<ElementRecord<{ x: number }>> = {
       id: 'c',
       type: 'element',
       position: { x: 0, y: 0 },
@@ -45,8 +44,8 @@ describe('cell.types shape', () => {
     expect(r.position.x).toBe(0);
   });
 
-  it('ResolvedLinkRecord requires source/target/data', () => {
-    const r: ResolvedLinkRecord<{ k: string }> = {
+  it('Internal<LinkRecord> requires source/target/data', () => {
+    const r: Internal<LinkRecord<{ k: string }>> = {
       id: 'd',
       type: 'link',
       source: { id: 'a' },

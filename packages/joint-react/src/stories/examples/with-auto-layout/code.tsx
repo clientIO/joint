@@ -3,7 +3,7 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
-import { GraphProvider, Paper, useGraph, useCells, HTMLBox, useNodesMeasuredEffect, type CellRecord, type ElementRecord, type ResolvedCellRecord } from '@joint/react';
+import { GraphProvider, Paper, useGraph, useCells, HTMLBox, useNodesMeasuredEffect, type CellRecord, type ElementRecord, type Internal } from '@joint/react';
 import { useCallback, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -60,7 +60,7 @@ function Main() {
     return <HTMLBox className="flex items-center justify-center">{data.label}</HTMLBox>;
   }, []);
 
-  const elementsLength = useCells<ResolvedCellRecord, number>((cells) => {
+  const elementsLength = useCells<Internal, number>((cells) => {
     let count = 0;
     for (const cell of cells) if (cell.type === 'element') count += 1;
     return count;

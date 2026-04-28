@@ -10,7 +10,7 @@ import {
   useGraph,
   usePaper,
   type ElementRecord,
-  type ResolvedElementRecord,
+  type Internal,
 } from '@joint/react';
 import '../index.css';
 import { useCallback } from 'react';
@@ -34,7 +34,7 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 ];
 
 function RotatableNode() {
-  const label = useCell((element: ResolvedElementRecord<NodeData>) => element.data.label);
+  const label = useCell((element: Internal<ElementRecord<NodeData>>) => element.data.label);
   const id = useCellId();
   const { paper } = usePaper();
   const { setCell } = useGraph();
@@ -93,7 +93,7 @@ function RotatableNode() {
 
 function Main() {
   const { isElement } = useGraph<ElementRecord<NodeData>>();
-  const elementRotation = useCells<ResolvedElementRecord<NodeData>, readonly string[]>((cells) =>
+  const elementRotation = useCells<Internal<ElementRecord<NodeData>>, readonly string[]>((cells) =>
     cells
       .filter((cell) => isElement(cell))
       .map((cell) => {

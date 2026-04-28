@@ -6,8 +6,9 @@ import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type {
   CellRecord,
-  ResolvedElementRecord,
-  ResolvedLinkRecord,
+  ElementRecord,
+  LinkRecord,
+  Internal,
 } from '../../types/cell.types';
 
 interface ElementUserData {
@@ -17,8 +18,8 @@ interface LinkUserData {
   readonly kind: string;
 }
 
-type MyElement = ResolvedElementRecord<ElementUserData>;
-type MyLink = ResolvedLinkRecord<LinkUserData>;
+type MyElement = Internal<ElementRecord<ElementUserData>>;
+type MyLink = Internal<LinkRecord<LinkUserData>>;
 
 const initialCells: readonly CellRecord[] = [
   {

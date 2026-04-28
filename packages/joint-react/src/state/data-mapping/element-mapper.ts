@@ -2,7 +2,6 @@ import { type dia } from '@joint/core';
 import type { ElementAttributes, WithType } from '../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { elementAttributes } from '../../presets/element-attributes';
-import type { CellAttributes } from './index';
 
 /**
  * Forward mapper using the React default element type.
@@ -10,25 +9,14 @@ import type { CellAttributes } from './index';
  */
 export function mapElementToAttributes<ElementData = unknown>(
   element: ElementAttributes & WithType & { readonly data?: ElementData }
-): CellAttributes {
-  const attributes = elementAttributes(element) as CellAttributes;
+): dia.Cell.JSON {
+  const attributes = elementAttributes(element) as dia.Cell.JSON;
   if (!attributes.type) attributes.type = ELEMENT_MODEL_TYPE;
   return attributes;
 }
 
 /**
- * Element record produced by {@link mapAttributesToElement}.
- *
- * Wider than {@link import('../../types/cell.types').ElementRecord} — `type` is
- * optional (only present when the cell is a custom subclass) and the user `data`
- * field is opaque until the consumer narrows it. This shape is what the
- * controlled-mode pipeline actually emits when reading from a `dia.Cell`.
- */
-export type MappedElementRecord<ElementData = unknown> = ElementAttributes &
-  Partial<WithType> & { readonly data?: ElementData };
-
-/**
- * Converts JointJS element attributes back to an ElementRecord.
+ * Converts JointJS element attributes back to an element record.
  *
  * - `portMap` on model → return `portMap` (ignore native `ports`).
  * - No `portMap` → return `ports` as-is.
@@ -38,7 +26,7 @@ export type MappedElementRecord<ElementData = unknown> = ElementAttributes &
  */
 export function mapAttributesToElement<ElementData = unknown>(
   attributes: dia.Element.Attributes
-): MappedElementRecord<ElementData> {
+): ElementAttributes & { readonly data?: ElementData } {
   const {
     type,
     // Ports
@@ -61,7 +49,7 @@ export function mapAttributesToElement<ElementData = unknown>(
     elementRecord.type = type;
   }
 
-  return { ...elementRecord } as MappedElementRecord<ElementData>;
+  return { ...elementRecord } as ElementAttributes & { readonly data?: ElementData };
 }
 
 export type MapAttributesToElement<ElementData = unknown> =

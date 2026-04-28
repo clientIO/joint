@@ -71,9 +71,7 @@ export type {
   LinkRecord,
   KnownCellType,
   CellTypeName,
-  ResolvedCellRecord,
-  ResolvedElementRecord,
-  ResolvedLinkRecord,
+  Internal,
   ElementAttributes,
   LinkAttributes,
   CellAttributes,
@@ -101,9 +99,6 @@ export type {
   PortalSelector,
   PortalSelectorContext,
 } from './models/portal-paper.types';
-
-// Data mapping types
-export type { CellAttributes } from './state/data-mapping';
 
 // Store types
 export type { IncrementalCellsChange } from './store/graph-view';

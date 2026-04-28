@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useState } from 'react';
-import { GraphProvider, Paper, useGraph, HTMLHost, useCells, type CellRecord, type ElementRecord, type LinkRecord, type ResolvedCellRecord, type ResolvedElementRecord } from '@joint/react';
+import { GraphProvider, Paper, useGraph, HTMLHost, useCells, type CellRecord, type ElementRecord, type LinkRecord, type Internal,  } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
 
@@ -364,7 +364,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 
 function AddElementForm() {
   const { setCell } = useGraph<ElementRecord<NodeData>>();
-  const elementIds = useCells<ResolvedCellRecord, string[]>((cells) =>
+  const elementIds = useCells<Internal, string[]>((cells) =>
     cells.filter((c) => c.type === 'element').map((c) => String(c.id))
   );
   const [label, setLabel] = useState('');
@@ -442,11 +442,11 @@ function AddElementForm() {
 
 function AddLinkForm() {
   const { setCell } = useGraph<ElementRecord<NodeData>>();
-  const elements = useCells<ResolvedCellRecord, Array<[string, ResolvedElementRecord<NodeData>]>>((cells) => {
-    const result: Array<[string, ResolvedElementRecord<NodeData>]> = [];
+  const elements = useCells<Internal, Array<[string, Internal<ElementRecord<NodeData>>]>>((cells) => {
+    const result: Array<[string, Internal<ElementRecord<NodeData>>]> = [];
     for (const cell of cells) {
       if (cell.type === 'element') {
-        result.push([String(cell.id), cell as ResolvedElementRecord<NodeData>]);
+        result.push([String(cell.id), cell as Internal<ElementRecord<NodeData>>]);
       }
     }
     return result;

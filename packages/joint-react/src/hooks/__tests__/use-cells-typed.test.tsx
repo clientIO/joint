@@ -3,12 +3,12 @@ import { renderHook, act } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { useCells } from '../use-cells';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import type { CellRecord, ResolvedElementRecord } from '../../types/cell.types';
+import type { CellRecord, ElementRecord, Internal } from '../../types/cell.types';
 
 interface ElementUserData {
   readonly label: string;
 }
-type MyElement = ResolvedElementRecord<ElementUserData>;
+type MyElement = Internal<ElementRecord<ElementUserData>>;
 
 const pickLabels = (cells: readonly MyElement[]): string[] =>
   cells.map((cell) => cell.data.label);
@@ -51,7 +51,7 @@ describe('useCells — record-shaped generics', () => {
     expect(result.current).toEqual(['hi', 'lo']);
   });
 
-  it('untyped selector defaults Cell to ResolvedCellRecord', async () => {
+  it('untyped selector defaults Cell to Internal<CellRecord>', async () => {
     const { result } = renderHook(() => useCells((cells) => cells.length), { wrapper });
     await act(async () => flush());
     expect(result.current).toBe(2);

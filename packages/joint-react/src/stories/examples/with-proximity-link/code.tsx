@@ -8,8 +8,8 @@ import {
   useCells,
   useGraph,
   type CellRecord,
-  type ResolvedCellRecord,
-  type ResolvedElementRecord,
+  type ElementRecord,
+  type Internal,
 } from '@joint/react';
 import '../index.css';
 import { useEffect } from 'react';
@@ -24,7 +24,7 @@ interface NodeData {
   readonly label: string;
 }
 
-type ProximityElement = ResolvedElementRecord<NodeData>;
+type ProximityElement = Internal<ElementRecord<NodeData>>;
 
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
@@ -46,7 +46,7 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
   };
 }
 
-function isProximityElement(cell: ResolvedCellRecord): cell is ProximityElement {
+function isProximityElement(cell: Internal<CellRecord>): cell is ProximityElement {
   return cell.type === 'element';
 }
 

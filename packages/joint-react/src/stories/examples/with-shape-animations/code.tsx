@@ -9,7 +9,7 @@ import {
   useCells,
   useGraph,
   type ElementRecord,
-  type ResolvedElementRecord,
+  type Internal,
   selectElementSize,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
@@ -247,7 +247,7 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
  * Reads generator power reactively from the cells container.
  */
 function useGeneratorPower(): number {
-  return useCells<ResolvedElementRecord<ShapeData>, number>((cells) => {
+  return useCells<Internal<ElementRecord<ShapeData>>, number>((cells) => {
     const generator = cells.find((cell) => cell.id === GENERATOR_ID) as
       | ElementRecord<ShapeData>
       | undefined;

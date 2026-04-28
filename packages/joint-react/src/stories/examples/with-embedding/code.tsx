@@ -4,13 +4,14 @@ import { type dia } from '@joint/core';
 import '../index.css';
 import {
   type CellRecord,
+  type ElementRecord,
   HTMLBox,
   GraphProvider,
   Paper,
   useCells,
   useGraph,
   useGraphEvents,
-  type ResolvedElementRecord,
+  type Internal,
 } from '@joint/react';
 import { useState } from 'react';
 
@@ -79,7 +80,7 @@ function InspectorPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('data');
   const cells = useCells();
   const elements = cells.filter(
-    (cell): cell is ResolvedElementRecord<Data> => cell.type === 'element'
+    (cell): cell is Internal<ElementRecord<Data>> => cell.type === 'element'
   );
   const rawAttributes = useRawAttributes();
 
@@ -121,7 +122,7 @@ function InspectorPanel() {
 
 function ElementDataView({
   elements,
-}: Readonly<{ elements: ReadonlyArray<ResolvedElementRecord<Data>> }>) {
+}: Readonly<{ elements: ReadonlyArray<Internal<ElementRecord<Data>>> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useCells() Elements</h3>

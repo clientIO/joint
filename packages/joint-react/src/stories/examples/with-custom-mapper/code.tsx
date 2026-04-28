@@ -1,6 +1,6 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { type CellRecord, GraphProvider, Paper, useCells, type ResolvedElementRecord } from '@joint/react';
+import { type CellRecord, type ElementRecord, GraphProvider, Paper, useCells, type Internal } from '@joint/react';
 
 // ============================================================================
 // Types
@@ -68,7 +68,7 @@ const initialCells: ReadonlyArray<CellRecord<CenterData>> = [
 function DataPanel() {
   const cells = useCells();
   const elements = cells.filter(
-    (cell): cell is ResolvedElementRecord<CenterData> => cell.type === 'element'
+    (cell): cell is Internal<ElementRecord<CenterData>> => cell.type === 'element'
   );
   return (
     <div className="p-4 min-w-50 text-sm font-mono">

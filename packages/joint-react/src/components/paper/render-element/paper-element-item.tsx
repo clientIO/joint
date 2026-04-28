@@ -62,7 +62,7 @@ function useElementDataSnapshot(id: CellId): Record<string, unknown> | undefined
  * crashing. Callers must tolerate optional `position` / `size`.
  *
  * Contrast with the public `useCell()` hook, which returns the
- * `ResolvedElementRecord` (position/size/angle/data required) and throws
+ * `Internal<ElementRecord>` (position/size/angle/data required) and throws
  * when the cell is missing.
  * @param id - cell id to subscribe to
  * @returns current element record, or a `{ id, type }` placeholder when missing

@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import type { dia } from '@joint/core';
-import { type CellRecord, GraphProvider, Paper, useCell, useCellId, useCells, useGraph, type ElementRecord, type LinkRecord, type ResolvedElementRecord, selectElementSize } from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, useCell, useCellId, useCells, useGraph, type ElementRecord, type LinkRecord, type Internal, selectElementSize } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { linkRoutingSmooth } from '@joint/react/presets';
 import { useCallback, useEffect, useRef } from 'react';
@@ -456,7 +456,7 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const { width, height } = useCell(selectElementSize);
 
   // Use graph topology to find the connected product (inbound neighbor via link)
-  const { value, roi } = useCells<ResolvedElementRecord<ShapeData>, typeof DEFAULT_ROI_VALUE>((cells) => {
+  const { value, roi } = useCells<Internal<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>((cells) => {
     const cell = graph.getCell(cellId);
     if (!cell?.isElement()) {
       return DEFAULT_ROI_VALUE;
@@ -544,7 +544,7 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const { width, height } = useCell(selectElementSize);
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useCells<ResolvedElementRecord<ShapeData>, typeof DEFAULT_ROI_VALUE>((cells) => {
+  const { value, roi } = useCells<Internal<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>((cells) => {
     const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
       | ElementRecord<ShapeData>
       | undefined;

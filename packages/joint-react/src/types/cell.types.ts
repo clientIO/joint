@@ -71,21 +71,18 @@ export interface ElementRecord<ElementData = unknown> extends ElementAttributes,
 }
 
 /**
- * Element record as it lives in the store after JointJS / `elementAttributes`
- * defaults have been applied. Reading hooks (`useCell`, `useCells`)
- * return the `Resolved` variant so consumers don't need
- * `?? {}` / `?? 0` fallbacks for fields the store always populates.
+ * Internal element record shape — what the store holds after JointJS /
+ * `elementAttributes` defaults are applied. Reach via {@link Internal}
+ * (`Internal<ElementRecord<MyData>>`); kept private so the public surface is
+ * a single utility.
  *
  * Always populated by the framework:
- * - `position` — JointJS `dia.Element` defaults to `{ x: 0, y: 0 }`.
- * - `size` — JointJS `dia.Element` defaults to `{ width: 1, height: 1 }`.
- * - `angle` — JointJS `dia.Element` defaults to `0`.
+ * - `position` — `dia.Element` defaults to `{ x: 0, y: 0 }`.
+ * - `size` — `dia.Element` defaults to `{ width: 1, height: 1 }`.
+ * - `angle` — `dia.Element` defaults to `0`.
  * - `data` — `elementAttributes` defaults to `{} as ElementData`.
- *
- * Use {@link ElementRecord} for input shapes (cell creation, setters) where
- * these fields are optional and will be filled in by the framework.
  */
-export interface ResolvedElementRecord<ElementData = unknown> extends ElementAttributes, WithType {
+interface InternalElementRecord<ElementData = unknown> extends ElementAttributes, WithType {
   readonly id: DiaCell.ID;
   readonly type: typeof ELEMENT_MODEL_TYPE;
   readonly position: Required<ElementPosition>;
@@ -123,18 +120,17 @@ export interface LinkRecord<LinkData = unknown> extends LinkAttributes, WithType
 }
 
 /**
- * Link record as it lives in the store after JointJS / `linkAttributes`
- * defaults have been applied. Reading hooks (`useCell`, `useCells`)
- * return the `Resolved` variant.
+ * Internal link record shape — what the store holds after JointJS /
+ * `linkAttributes` defaults are applied. Reach via {@link Internal}
+ * (`Internal<LinkRecord<MyData>>`); kept private so the public surface is a
+ * single utility.
  *
  * Always populated by the framework:
- * - `source` — JointJS `dia.Link` defaults to `{}`.
- * - `target` — JointJS `dia.Link` defaults to `{}`.
+ * - `source` — `dia.Link` defaults to `{}`.
+ * - `target` — `dia.Link` defaults to `{}`.
  * - `data` — `linkAttributes` defaults to `{} as LinkData`.
- *
- * Use {@link LinkRecord} for input shapes (cell creation, setters).
  */
-export interface ResolvedLinkRecord<LinkData = unknown> extends LinkAttributes, WithType {
+interface InternalLinkRecord<LinkData = unknown> extends LinkAttributes, WithType {
   readonly id: DiaCell.ID;
   readonly type: typeof LINK_MODEL_TYPE;
   readonly source: DiaLink.EndJSON;
@@ -172,13 +168,43 @@ export type CellRecord<ElementData = unknown, LinkData = unknown> =
   | LinkRecord<LinkData>;
 
 /**
- * Read-side cell union — element / link branches with framework-populated
- * fields required. Custom records compose explicitly:
- * `ResolvedCellRecord | MyCustomRecord`.
+ * Resolves any input cell shape to its internal store form — the variant with
+ * framework-populated fields (`id`, `position`, `size`, `angle`, `data` for
+ * elements; `id`, `source`, `target`, `data` for links) required.
+ *
+ * Distributes over unions, so a single utility covers every input flavor:
+ *
+ * | Input                              | Result                            |
+ * |------------------------------------|-----------------------------------|
+ * | `Internal<ElementRecord<D>>`       | element with required fields      |
+ * | `Internal<LinkRecord<D>>`          | link with required fields         |
+ * | `Internal<ElementAttributes>`      | element with `data: unknown`      |
+ * | `Internal<LinkAttributes>`         | link with `data: unknown`         |
+ * | `Internal<CellRecord<E, L>>`       | resolved element or resolved link |
+ * | `Internal<CellAttributes>`         | resolved element or resolved link |
+ * | `Internal` (default)               | `Internal<CellRecord>`            |
+ *
+ * Custom records (with their own `type` literal that doesn't match
+ * `ElementRecord` / `LinkRecord`) pass through unchanged so the store shape
+ * can be composed: `Internal<CellRecord> | MyCustomRecord`.
+ *
+ * Reading hooks (`useCell`, `useCells`) yield the `Internal` variant so
+ * consumers don't need `?? {}` / `?? 0` fallbacks for fields the store
+ * always populates.
+ * @example
+ * ```ts
+ * useCell((el: Internal<ElementRecord<MyData>>) => el.data.label);
+ * ```
  */
-export type ResolvedCellRecord<ElementData = unknown, LinkData = unknown> =
-  | ResolvedElementRecord<ElementData>
-  | ResolvedLinkRecord<LinkData>;
+export type Internal<T = CellRecord> = T extends ElementRecord<infer ElementData>
+  ? InternalElementRecord<ElementData>
+  : T extends LinkRecord<infer LinkData>
+    ? InternalLinkRecord<LinkData>
+    : T extends ElementAttributes
+      ? InternalElementRecord<T['data']>
+      : T extends LinkAttributes
+        ? InternalLinkRecord<T['data']>
+        : T;
 
 /** Short alias for cell ids; same as dia.Cell.ID. */
 // @todo - remove, and just use jointjs dia.Cell.ID everywhere. This type alias doesn't add anything and just creates an extra import to keep in sync.

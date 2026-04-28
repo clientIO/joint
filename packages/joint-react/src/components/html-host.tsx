@@ -1,7 +1,7 @@
 import { useMemo, useRef, type CSSProperties, type HTMLAttributes, type RefObject } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
 import { useCell } from '../hooks/use-cell';
-import type { ResolvedElementRecord } from '../types/cell.types';
+import { selectElementSize } from '../selectors';
 
 /**
  * Style-neutral element host: a `<div>` inside a `<foreignObject>`.
@@ -45,10 +45,7 @@ interface HTMLFrameProps extends Omit<HTMLHostProps, 'useModelGeometry'> {
  */
 function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFrameProps>) {
   // Force static positioning — Safari mispositions foreignObject children with position: relative or backdrop-filter.
-  const mergedStyle = useMemo<CSSProperties>(
-    () => ({ ...style, position: 'static' }),
-    [style]
-  );
+  const mergedStyle = useMemo<CSSProperties>(() => ({ ...style, position: 'static' }), [style]);
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div ref={nodeRef} {...rest} style={mergedStyle} />
@@ -64,11 +61,7 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
 export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
   const { useModelGeometry = false, ...rest } = props;
 
-  return useModelGeometry ? (
-    <StaticHTMLFrame {...rest} />
-  ) : (
-    <MeasuredHTMLFrame {...rest} />
-  );
+  return useModelGeometry ? <StaticHTMLFrame {...rest} /> : <MeasuredHTMLFrame {...rest} />;
 }
 
 /**
@@ -78,7 +71,7 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
  * @param root0.style
  */
 function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
-  const size = useCell((element: ResolvedElementRecord) => element.size);
+  const size = useCell(selectElementSize);
   const { width, height } = size ?? { width: 0, height: 0 };
   const mergedStyle = useMemo<CSSProperties>(
     () => ({ width, height, ...style }),

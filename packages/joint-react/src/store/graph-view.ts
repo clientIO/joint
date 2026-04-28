@@ -117,7 +117,7 @@ function mergeCellRecord<Element extends ElementAttributes, Link extends LinkAtt
  * Convert a JointJS cell to its CellRecord representation, routing by type:
  *  - Elements → element mapper, with id/type guaranteed AND
  *    `position`/`size`/`angle`/`data` normalised to non-undefined values so
- *    consumers can rely on `ResolvedElementRecord`'s required-field contract.
+ *    consumers can rely on `Internal<ElementRecord>`'s required-field contract.
  *  - Links → link mapper, with id/type/source/target/data normalised.
  *  - Anything else → pass-through of attributes
  * @param cell - graph cell
