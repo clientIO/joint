@@ -46,7 +46,7 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const initialCells: ReadonlyArray<CellRecordBase> = [
+const initialCells: readonly CellRecordBase[] = [
   {
     id: '1',
     type: 'element',

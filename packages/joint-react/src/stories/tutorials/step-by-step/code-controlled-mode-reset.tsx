@@ -1,5 +1,4 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 /**
  * ============================================================================
@@ -35,7 +34,7 @@
  *        `data`, use `useCellId()` / `useCell()` / `useCell(selectElementSize)`.
  * ============================================================================
  */
-import { type ElementRecord,  type CellRecord, GraphProvider, HTMLHost, Paper, type RenderElement } from '@joint/react';
+import { type CellRecord, GraphProvider, HTMLHost, Paper, type RenderElement } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback, useState } from 'react';
@@ -110,7 +109,7 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 // transform and never re-invoke this function, so there is no per-frame
 // React work during a drag.
 
-function WorkflowNode(data: NodeData) {
+function WorkflowNode(data: Readonly<NodeData>) {
   const { background, color } = KIND_STYLES[data.kind];
   return (
     <HTMLHost

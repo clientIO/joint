@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
 import { type CellRecord, GraphProvider } from '@joint/react';
 import { Paper } from '../../../components/paper/paper';

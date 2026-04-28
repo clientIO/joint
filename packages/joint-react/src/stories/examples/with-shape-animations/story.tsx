@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
 import '../index.css';
 import Code from './code';
 import { makeRootDocumentation } from '../../utils/make-story';

@@ -1,7 +1,18 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback, useEffect, useId } from 'react';
 import { dia, elementTools } from '@joint/core';
-import { type ElementRecord,  type CellRecord, GraphProvider, jsx, Paper, useCell, useCellId, useGraph, usePaperEvents, SVGText, selectElementSize } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  jsx,
+  Paper,
+  useCell,
+  useCellId,
+  useGraph,
+  usePaperEvents,
+  SVGText,
+  selectElementSize,
+} from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 
@@ -71,7 +82,9 @@ type ContainerUserData = ContainerData | ChildData;
 // ============================================================================
 
 const MARKER = {
-  markup: jsx(<path d="M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4" fill="none" strokeWidth={1.5} />),
+  markup: jsx(
+    <path d="M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4" fill="none" strokeWidth={1.5} />
+  ),
 };
 
 const CONTAINER_LINK_STYLE = {

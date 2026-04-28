@@ -6,7 +6,24 @@ import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
-import { GraphProvider, Paper, useCell, useCellId, useCells, useGraph, useMeasureNode, useNodesMeasuredEffect, type CellId, type CellRecord, type CellRecordBase, type ElementRecord, type ElementPort, type PaperProps, usePaperEvents, selectElementSize } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useCell,
+  useCellId,
+  useCells,
+  useGraph,
+  useMeasureNode,
+  useNodesMeasuredEffect,
+  type CellId,
+  type CellRecord,
+  type CellRecordBase,
+  type ElementRecord,
+  type ElementPort,
+  type PaperProps,
+  usePaperEvents,
+  selectElementSize,
+} from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
 
@@ -422,7 +439,7 @@ function ElementsInfo() {
   const elements: Record<string, CellRecordBase> = {};
   const links: Record<string, CellRecordBase> = {};
   for (const cell of cells) {
-    if (cell.id === undefined) continue;
+    if (cell.id == undefined) continue;
     if (isElement(cell)) elements[String(cell.id)] = cell;
     else if (isLink(cell)) links[String(cell.id)] = cell;
   }

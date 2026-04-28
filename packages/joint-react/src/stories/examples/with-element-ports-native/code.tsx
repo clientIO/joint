@@ -1,7 +1,14 @@
 import { PAPER_CLASSNAME, PAPER_STYLE } from 'storybook-config/theme';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import '../index.css';
-import { type ElementRecord,  type CellRecord, GraphProvider, useCell, Paper, type RenderElement, selectElementSize } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  useCell,
+  Paper,
+  type RenderElement,
+  selectElementSize,
+} from '@joint/react';
 import { useCallback } from 'react';
 
 // Element palette

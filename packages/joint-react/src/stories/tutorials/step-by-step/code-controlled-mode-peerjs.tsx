@@ -38,14 +38,7 @@
  * ============================================================================
  */
 
-import {
-  type CellRecord,
-  GraphProvider,
-  HTMLHost,
-  Paper,
-  type ElementRecord,
-  type LinkRecord,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, HTMLHost, Paper, type ElementRecord } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback, useRef, useState } from 'react';
@@ -506,10 +499,7 @@ function Main() {
       </div>
 
       {/* Graph */}
-      <GraphProvider
-        cells={cells}
-        onCellsChange={handleCellsChange}
-      >
+      <GraphProvider cells={cells} onCellsChange={handleCellsChange}>
         <PaperApp onAddElement={handleAddElement} onRemoveLast={handleRemoveLast} />
       </GraphProvider>
     </div>

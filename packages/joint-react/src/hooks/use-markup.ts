@@ -6,31 +6,34 @@ import { PORTAL_SELECTOR } from '../models/element-model';
 
 /** Options for `magnetRef`. */
 export interface MagnetRefOptions {
-    /**
-     * Whether the magnet is passive — only a valid connection target, not a source.
-     * When `false` (default), the magnet is `active` and links can start from it.
-     */
-    readonly passive?: boolean;
+  /**
+   * Whether the magnet is passive — only a valid connection target, not a source.
+   * When `false` (default), the magnet is `active` and links can start from it.
+   */
+  readonly passive?: boolean;
 }
 
 /** Markup utilities returned by `useMarkup`. */
 export interface MarkupUtils {
-    /**
-     * Returns a React ref callback that registers the node under the given selector name.
-     * Sets the `joint-selector` attribute on the node and adds it to `elementView.selectors`
-     * so links and tools can target it by name.
-     * @param selector - Unique selector name within the element (e.g. `'body'`, `'item-0'`).
-     * @throws If `selector` equals the reserved portal selector name.
-     */
-    readonly selectorRef: (selector: string) => (node: Element | null) => void;
-    /**
-     * Returns a React ref callback that registers the node under the given selector name
-     * AND marks it as a JointJS magnet — a valid endpoint for link connections.
-     * @param selector - Unique selector name within the element (e.g. `'port-in'`, `'row-0'`).
-     * @param options - Magnet behavior options.
-     * @throws If `selector` equals the reserved portal selector name.
-     */
-    readonly magnetRef: (selector: string, options?: MagnetRefOptions) => (node: Element | null) => void;
+  /**
+   * Returns a React ref callback that registers the node under the given selector name.
+   * Sets the `joint-selector` attribute on the node and adds it to `elementView.selectors`
+   * so links and tools can target it by name.
+   * @param selector - Unique selector name within the element (e.g. `'body'`, `'item-0'`).
+   * @throws If `selector` equals the reserved portal selector name.
+   */
+  readonly selectorRef: (selector: string) => (node: Element | null) => void;
+  /**
+   * Returns a React ref callback that registers the node under the given selector name
+   * AND marks it as a JointJS magnet — a valid endpoint for link connections.
+   * @param selector - Unique selector name within the element (e.g. `'port-in'`, `'row-0'`).
+   * @param options - Magnet behavior options.
+   * @throws If `selector` equals the reserved portal selector name.
+   */
+  readonly magnetRef: (
+    selector: string,
+    options?: MagnetRefOptions
+  ) => (node: Element | null) => void;
 }
 
 /**
@@ -62,42 +65,51 @@ export interface MarkupUtils {
  * ```
  */
 export function useMarkup(): MarkupUtils {
-    const { paper } = usePaper();
-    const id = useCellId();
-    const applySelector = useCallback((node: Element | null, selector: string) => {
-        const elementView = paper.findViewByModel(id) as dia.ElementView | undefined;
-        if (!elementView) return;
-        if (node) {
-            node.setAttribute('joint-selector', selector);
-            // @ts-expect-error - selector is dynamic key on selectors object
-            elementView.selectors[selector] = node;
-        } else {
-            // @ts-expect-error - selector is dynamic key on selectors object
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete elementView.selectors[selector];
-        }
-    }, [paper, id]);
-    const selectorRef = useCallback((selector: string) => {
-        assertSelector(selector);
-        return (node: Element | null) => applySelector(node, selector);
-    }, [applySelector]);
-    const magnetRef = useCallback((selector: string, options: MagnetRefOptions = {}) => {
-        assertSelector(selector);
-        const magnetValue = options.passive ? 'passive' : 'active';
-        return (node: Element | null) => {
-            if (node) node.setAttribute('magnet', magnetValue);
-            applySelector(node, selector);
-        };
-    }, [applySelector]);
-    return useMemo(() => ({ selectorRef, magnetRef }), [selectorRef, magnetRef]);
+  const { paper } = usePaper();
+  const id = useCellId();
+  const applySelector = useCallback(
+    (node: Element | null, selector: string) => {
+      const elementView = paper.findViewByModel(id) as dia.ElementView | undefined;
+      if (!elementView) return;
+      if (node) {
+        node.setAttribute('joint-selector', selector);
+        // @ts-expect-error - selector is dynamic key on selectors object
+        elementView.selectors[selector] = node;
+      } else {
+        // @ts-expect-error - selector is dynamic key on selectors object
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete elementView.selectors[selector];
+      }
+    },
+    [paper, id]
+  );
+  const selectorRef = useCallback(
+    (selector: string) => {
+      assertSelector(selector);
+      return (node: Element | null) => applySelector(node, selector);
+    },
+    [applySelector]
+  );
+  const magnetRef = useCallback(
+    (selector: string, options: MagnetRefOptions = {}) => {
+      assertSelector(selector);
+      const magnetValue = options.passive ? 'passive' : 'active';
+      return (node: Element | null) => {
+        if (node) node.setAttribute('magnet', magnetValue);
+        applySelector(node, selector);
+      };
+    },
+    [applySelector]
+  );
+  return useMemo(() => ({ selectorRef, magnetRef }), [selectorRef, magnetRef]);
 }
 
-const RESERVED_SELECTORS = [PORTAL_SELECTOR, 'root', 'portRoot'];
+const RESERVED_SELECTORS = new Set([PORTAL_SELECTOR, 'root', 'portRoot']);
 
 function assertSelector(selector: string) {
-    if (RESERVED_SELECTORS.includes(selector)) {
-        throw new Error(
-            `Selector name "${selector}" is reserved. Please choose a different selector name.`
-        );
-    }
+  if (RESERVED_SELECTORS.has(selector)) {
+    throw new Error(
+      `Selector name "${selector}" is reserved. Please choose a different selector name.`
+    );
+  }
 }

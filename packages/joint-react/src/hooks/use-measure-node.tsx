@@ -173,7 +173,7 @@ export function useMeasureNode(
     throw new Error('useMeasureNode() must be used inside renderElement');
   }
   const layout = useCell((element: ResolvedElementRecord) => element.size);
-  if (layout === undefined) {
+  if (layout == undefined) {
     throw new Error(`useMeasureNode(): no element with id "${String(id)}"`);
   }
 

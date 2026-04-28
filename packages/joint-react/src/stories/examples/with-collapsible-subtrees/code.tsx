@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
+import type { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
 import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useNodesMeasuredEffect, usePaper, usePaperEvents, selectElementSize } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useId, useMemo, useRef } from 'react';

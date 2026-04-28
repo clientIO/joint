@@ -1,7 +1,7 @@
-import { CellRecord, LinkRecord } from '@joint/react';
+import type { CellRecord, LinkRecord } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { LinkMarkerName } from '../../../theme/named-link-markers';
+import type { LinkMarkerName } from '../../../theme/named-link-markers';
 import { namedLinkMarkers } from '../../../theme/named-link-markers';
 
 const LINK_LENGTH = 160;

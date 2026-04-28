@@ -2,7 +2,7 @@
 
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
-import { CellRecord, ElementPort } from '@joint/react';
+import type { CellRecord, ElementPort } from '@joint/react';
 import { GraphProvider, Paper, HTMLBox, type DefaultLinkContext } from '@joint/react';
 
 const RED = '#ef4444';

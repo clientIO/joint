@@ -6,7 +6,7 @@ import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ sourceOffset: 8, targetOffset: 8 });
 
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 // ── Theme ───────────────────────────────────────────────────────────────────

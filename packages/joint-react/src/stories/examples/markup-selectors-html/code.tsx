@@ -1,7 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { useCallback } from 'react';
-import { type ElementRecord,  type CellRecord, GraphProvider, Paper, HTMLBox, useMarkup, type RenderElement } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  Paper,
+  HTMLBox,
+  useMarkup,
+  type RenderElement,
+} from '@joint/react';
 import '../index.css';
 import './styles.css';
 import { linkRoutingSmooth } from '@joint/react/presets';

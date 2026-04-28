@@ -5,7 +5,7 @@
 import '../index.css';
 import { GraphProvider, Paper, useGraph, useCells, HTMLBox, useNodesMeasuredEffect, type CellRecord, type ElementRecord, type ResolvedCellRecord } from '@joint/react';
 import { useCallback, useId, useRef, useState } from 'react';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const INPUT_CLASSNAME =

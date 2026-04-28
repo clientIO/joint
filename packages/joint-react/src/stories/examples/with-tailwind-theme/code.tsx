@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import { useState, useCallback, useRef } from 'react';
-import { type ElementRecord,  type CellRecord, GraphProvider, Paper, selectElementSize, useCell } from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, selectElementSize, useCell } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme + Tailwind preset (maps --jj-* → Tailwind v4 variables)

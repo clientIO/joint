@@ -60,7 +60,7 @@ function LabelEditor({ id, label }: Readonly<{ id: string; label: string }>) {
 
 function Main() {
   const { isElement } = useGraph<MyElement>();
-  const elements = useCells<MyResolvedElement, ReadonlyArray<MyResolvedElement>>(
+  const elements = useCells<MyResolvedElement, readonly MyResolvedElement[]>(
     (cells) => cells.filter((cell) => isElement(cell))
   );
   return (

@@ -1,7 +1,17 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { shapes, dia } from '@joint/core';
 import '../index.css';
-import { type CellRecordBase, GraphProvider, useCell, Paper, type ElementRecord, type ResolvedElementRecord, type RenderElement, useCells, ElementModel, selectElementSize } from '@joint/react';
+import {
+  type CellRecordBase,
+  GraphProvider,
+  useCell,
+  Paper,
+  type ElementRecord,
+  type RenderElement,
+  useCells,
+  ElementModel,
+  selectElementSize,
+} from '@joint/react';
 import { useCallback, useMemo } from 'react';
 
 // ============================================================================
@@ -25,7 +35,7 @@ interface ElementData {
 // Data
 // ============================================================================
 
-const initialCells: ReadonlyArray<CellRecordBase> = [
+const initialCells: readonly CellRecordBase[] = [
   {
     id: 'node-1',
     position: { x: 70, y: 100 },
@@ -169,12 +179,15 @@ function Main() {
 
 export default function App() {
   const graph = useMemo(() => {
-    return new dia.Graph({}, {
-      cellNamespace: {
-        ...shapes,
-        MyElementModel: ElementModel,
+    return new dia.Graph(
+      {},
+      {
+        cellNamespace: {
+          ...shapes,
+          MyElementModel: ElementModel,
+        },
       }
-    });
+    );
   }, []);
   return (
     <GraphProvider graph={graph} initialCells={initialCells}>

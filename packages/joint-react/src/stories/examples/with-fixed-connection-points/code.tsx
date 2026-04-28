@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useId, useRef } from 'react';
-import { CellRecord, LinkStyle } from '@joint/react';
+import type { CellRecord, LinkStyle } from '@joint/react';
 import { GraphProvider, useCell, jsx, Paper, resolveLinkMarker, usePaperEvents, selectElementSize } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, g } from '@joint/core';

@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import '../index.css';
 import CodeWithCreateLinks from './code-with-create-links';
 import CodeWithDiaLinksClassName from './code-with-create-links-classname';

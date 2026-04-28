@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { type ElementRecord,  type CellRecord, GraphProvider, Paper } from '@joint/react';
+import { type CellRecord, GraphProvider, Paper } from '@joint/react';
 type ElementData = { label: string };
 const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   {

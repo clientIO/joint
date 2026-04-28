@@ -1,6 +1,6 @@
-/* eslint-disable no-shadow */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable react-hooks/exhaustive-deps */
+ 
+ 
+ 
 
 /* eslint-disable unicorn/prevent-abbreviations */
 
@@ -301,7 +301,7 @@ function Main() {
         const link = cell as LinkRecord;
         return { ...link, style: { ...link.style, color: linkColor } };
       })
-    ); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Sync link colors with theme
+    );  
   }, [isDark]);
 
   const onAddPort = useCallback((id: CellId) => {

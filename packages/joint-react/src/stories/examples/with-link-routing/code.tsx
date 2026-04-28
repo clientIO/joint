@@ -4,7 +4,7 @@ import { type CellRecord, GraphProvider, useCell, Paper, HTMLBox, useMarkup, typ
 import { linkRoutingStraight, linkRoutingOrthogonal, linkRoutingSmooth, type LinkRoutingStraightOptions, type LinkRoutingOrthogonalOptions, type LinkRoutingSmoothOptions, type LinkMode } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 
 // ── Data ────────────────────────────────────────────────────────────────────
 

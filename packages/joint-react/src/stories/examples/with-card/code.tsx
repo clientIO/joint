@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import { type ElementRecord,  CellRecord, OnTransformElement } from '@joint/react';
+import type { CellRecord, OnTransformElement } from '@joint/react';
 import { GraphProvider, Paper, useCellId, useMeasureNode, type RenderElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
@@ -71,7 +71,7 @@ function Card({ label }: Readonly<Partial<Data>>) {
   );
 }
 
-function CardRenderer(data: Data) {
+function CardRenderer(data: Readonly<Data>) {
   // Demonstrates calling `useCellId()` inside a component used by `renderElement`
   // to read the cell id without subscribing to store updates.
   const id = useCellId();
@@ -79,10 +79,7 @@ function CardRenderer(data: Data) {
 }
 
 function Main() {
-  const renderElement: RenderElement<Data> = useCallback(
-    (data) => <CardRenderer {...data} />,
-    []
-  );
+  const renderElement: RenderElement<Data> = useCallback((data) => <CardRenderer {...data} />, []);
   return <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />;
 }
 

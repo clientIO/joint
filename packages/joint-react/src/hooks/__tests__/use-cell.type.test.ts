@@ -50,7 +50,7 @@ const expectType = <Expected>(_actual: Expected): void => {
 // All hook calls below are wrapped in `if (false)` so TypeScript still
 // type-checks them, but Jest never executes them — these are pure
 // compile-time assertions and the hooks would throw at module scope.
-// eslint-disable-next-line sonarjs/no-redundant-boolean
+ 
 if (false as boolean) {
 
 // ── useCell ────────────────────────────────────────────────────────────────

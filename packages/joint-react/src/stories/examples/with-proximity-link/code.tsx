@@ -15,7 +15,7 @@ import '../index.css';
 import { useEffect } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { linkRoutingStraight } from '@joint/react/presets';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 
 const STRAIGHT_LINKS = linkRoutingStraight({ perpendicular: true });
 

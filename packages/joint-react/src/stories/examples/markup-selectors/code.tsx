@@ -1,8 +1,15 @@
-
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { forwardRef, useCallback, useRef } from 'react';
-import { type ElementRecord,  type CellRecord, GraphProvider, Paper, useMeasureNode, useMarkup, type RenderElement, type OnTransformElement } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  Paper,
+  useMeasureNode,
+  useMarkup,
+  type RenderElement,
+  type OnTransformElement,
+} from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
 import { linkRoutingSmooth } from '@joint/react/presets';
@@ -176,7 +183,7 @@ function Main() {
         style: { color: LIGHT },
       }}
       validateConnection={{
-        allowRootConnection: false
+        allowRootConnection: false,
       }}
       style={PAPER_STYLE}
       drawGrid={false}

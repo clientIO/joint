@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import { type CellRecord, GraphProvider, Paper, useCell, useCellId, useCells, useGraph, type ElementRecord, type LinkRecord, type ResolvedElementRecord, selectElementSize } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { linkRoutingSmooth } from '@joint/react/presets';

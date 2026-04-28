@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useId } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
-import { CellRecordBase, ElementPort } from '@joint/react';
+import type { CellRecordBase, ElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { GraphProvider, jsx, Paper, usePaperEvents, useCells, useCellId, HTMLBox } from '@joint/react';
 

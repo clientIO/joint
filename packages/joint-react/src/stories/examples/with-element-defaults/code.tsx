@@ -79,7 +79,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: ReadonlyArray<CellRecordBase> = [
+const initialCells: readonly CellRecordBase[] = [
   {
     id: 'a',
     type: 'PortsElement',

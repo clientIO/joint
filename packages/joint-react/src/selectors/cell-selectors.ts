@@ -20,6 +20,8 @@ import type {
  * widen the cell type generic and slip a non-element record through. In
  * that case the slice would silently be `undefined` — surface that as a
  * loud programmer-error instead.
+ * @param cell
+ * @param selectorName
  */
 function assertElementCell(
   cell: ResolvedElementRecord,
@@ -34,19 +36,28 @@ function assertElementCell(
 
 // ── Element slice selectors ────────────────────────────────────────────────
 
-/** Reads `element.position`. Stable ref while the element doesn't move. */
+/**
+ * Reads `element.position`. Stable ref while the element doesn't move.
+ * @param element
+ */
 export function selectElementPosition(element: ResolvedElementRecord) {
   assertElementCell(element, 'selectElementPosition');
   return element.position;
 }
 
-/** Reads `element.size`. Stable ref while the element isn't resized. */
+/**
+ * Reads `element.size`. Stable ref while the element isn't resized.
+ * @param element
+ */
 export function selectElementSize(element: ResolvedElementRecord) {
   assertElementCell(element, 'selectElementSize');
   return element.size;
 }
 
-/** Reads `element.angle`. */
+/**
+ * Reads `element.angle`.
+ * @param element
+ */
 export function selectElementAngle(element: ResolvedElementRecord) {
   assertElementCell(element, 'selectElementAngle');
   return element.angle;
@@ -56,6 +67,7 @@ export function selectElementAngle(element: ResolvedElementRecord) {
  * Reads `element.data` typed as `ElementData`. Pass the type as an
  * instantiation: `useCell(selectElementData<NodeData>)` — TypeScript
  * propagates `NodeData` through to the hook's `Selected` inference.
+ * @param element
  */
 export function selectElementData<ElementData = unknown>(
   element: ResolvedElementRecord<ElementData>
@@ -66,10 +78,16 @@ export function selectElementData<ElementData = unknown>(
 
 // ── Cell-level selectors (work for both elements and links) ───────────────
 
-/** Reads `cell.id`. Note: `useCellId()` is cheaper when only the id is needed. */
+/**
+ * Reads `cell.id`. Note: `useCellId()` is cheaper when only the id is needed.
+ * @param cell
+ */
 export const selectCellId = (cell: ResolvedCellRecord) => cell.id;
 
-/** Reads `cell.type` (e.g. `'element'`, `'link'`, or a built-in JointJS type). */
+/**
+ * Reads `cell.type` (e.g. `'element'`, `'link'`, or a built-in JointJS type).
+ * @param cell
+ */
 export const selectCellType = (cell: ResolvedCellRecord) => cell.type;
 
 /**
@@ -77,6 +95,7 @@ export const selectCellType = (cell: ResolvedCellRecord) => cell.type;
  * for top-level cells). The field lives on the record's index signature,
  * so we narrow it here for callers. Works for both elements and links —
  * any cell can be embedded.
+ * @param cell
  */
 export const selectCellParent = (cell: ResolvedCellRecord): CellId | undefined =>
   cell.parent as CellId | undefined;

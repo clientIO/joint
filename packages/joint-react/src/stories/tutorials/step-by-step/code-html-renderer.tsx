@@ -75,7 +75,7 @@ function Controls() {
   );
 }
 
-function HTMLItem({ label }: ElementData) {
+function HTMLItem({ label }: Readonly<ElementData>) {
   const elementRef = useRef<HTMLDivElement>(null);
   useMeasureNode(elementRef);
   return (

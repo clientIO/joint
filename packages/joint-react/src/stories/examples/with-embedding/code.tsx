@@ -2,7 +2,16 @@
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { type dia } from '@joint/core';
 import '../index.css';
-import { type CellRecord, HTMLBox, GraphProvider, Paper, useCells, useGraph, useGraphEvents, type ElementRecord, type ResolvedElementRecord } from '@joint/react';
+import {
+  type CellRecord,
+  HTMLBox,
+  GraphProvider,
+  Paper,
+  useCells,
+  useGraph,
+  useGraphEvents,
+  type ResolvedElementRecord,
+} from '@joint/react';
 import { useState } from 'react';
 
 // ============================================================================
@@ -110,7 +119,9 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({ elements }: Readonly<{ elements: ReadonlyArray<ResolvedElementRecord<Data>> }>) {
+function ElementDataView({
+  elements,
+}: Readonly<{ elements: ReadonlyArray<ResolvedElementRecord<Data>> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useCells() Elements</h3>
@@ -157,7 +168,10 @@ function RenderElement({ label }: Readonly<Data>) {
 function Main() {
   return (
     <div className="flex w-full h-full">
-      <Paper className={PAPER_CLASSNAME} style={PAPER_STYLE} embeddingMode
+      <Paper
+        className={PAPER_CLASSNAME}
+        style={PAPER_STYLE}
+        embeddingMode
         renderElement={RenderElement}
       />
       <InspectorPanel />

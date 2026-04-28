@@ -1,6 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useState, useCallback, useRef } from 'react';
-import { type ElementRecord,  type CellRecord, GraphProvider, useCell, Paper, type RenderElement, selectElementSize } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  useCell,
+  Paper,
+  type RenderElement,
+  selectElementSize,
+} from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jj-* CSS variable defaults

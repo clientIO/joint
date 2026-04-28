@@ -191,6 +191,7 @@ export const reactTsConfig = defineConfig([
                         refs: false,
                         utils: false,
                         util: false,
+                        utils: false
                     },
                 },
             ],

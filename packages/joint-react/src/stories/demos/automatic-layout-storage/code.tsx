@@ -2,7 +2,18 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/pseudo-random */
 // We have pre-loaded tailwind css
-import { GraphProvider, Paper, HTMLHost, useCellId, useGraph, useCells, useNodesMeasuredEffect, type CellRecord, type ElementRecord, type LinkRecord } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  HTMLHost,
+  useCellId,
+  useGraph,
+  useCells,
+  useNodesMeasuredEffect,
+  type CellRecord,
+  type ElementRecord,
+  type LinkRecord,
+} from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -188,7 +199,7 @@ function LayoutRunner() {
 // Uses `useGraph().setCell` from inside the graph context to update its own data.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function NodeCard({ title, owner }: NodeData) {
+function NodeCard({ title, owner }: Readonly<NodeData>) {
   const id = useCellId();
   const { setCell } = useGraph<ElementRecord<NodeData>>();
   const [isEditing, setIsEditing] = useState(false);
@@ -482,7 +493,7 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
               sourceOffset: 6,
               targetOffset: 6,
               margin: 18,
-              mode: 'bottom-top'
+              mode: 'bottom-top',
             })}
             renderElement={NodeCard}
           />

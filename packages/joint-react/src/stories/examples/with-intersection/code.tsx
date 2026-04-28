@@ -1,7 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { type CellRecord, GraphProvider, useGraph, Paper, useCellId, HTMLBox, useCells } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  useGraph,
+  Paper,
+  useCellId,
+  HTMLBox,
+  useCells,
+} from '@joint/react';
 import '../index.css';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 interface NodeData {
@@ -16,7 +24,7 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '4', type: 'element', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
 ];
 
-function ResizableNode(data: NodeData) {
+function ResizableNode(data: Readonly<NodeData>) {
   const { graph } = useGraph();
   const id = useCellId();
   const element = graph.getCell(id) as dia.Element;

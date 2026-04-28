@@ -96,7 +96,7 @@ export function RenderItemDecorator(
   );
 }
 
-function RenderSimpleRectElement(data: { color: string }) {
+function RenderSimpleRectElement(data: Readonly<{ color: string }>) {
   const size = useCell(selectElementSize);
   return <rect width={size.width} height={size.height} fill={data.color} />;
 }

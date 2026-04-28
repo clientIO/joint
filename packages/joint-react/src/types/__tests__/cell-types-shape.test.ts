@@ -9,7 +9,7 @@ import type {
 
 describe('cell.types shape', () => {
   it('ElementRecord absorbs dia.Element.Attributes pass-through', () => {
-    const el: ElementRecord<{ label: string }> = {
+    const element: ElementRecord<{ label: string }> = {
       id: 'a',
       type: 'element',
       data: { label: 'x' },
@@ -18,7 +18,7 @@ describe('cell.types shape', () => {
       embeds: [],
       z: 1,
     };
-    expect(el.id).toBe('a');
+    expect(element.id).toBe('a');
   });
 
   it('LinkRecord absorbs dia.Link.Attributes pass-through', () => {

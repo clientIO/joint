@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, type ChangeEvent } from 'react';
-import { CellRecord, ElementPort, ElementRecord, LinkRecord } from '@joint/react';
+import type { CellRecord, ElementPort, ElementRecord, LinkRecord } from '@joint/react';
 import { GraphProvider, Paper, HTMLBox } from '@joint/react';
 import { linkMarkerArrow, linkMarkerArrowOpen, linkMarkerArrowSunken, linkMarkerArrowQuill, linkMarkerArrowDouble, linkMarkerCircle, linkMarkerDiamond, linkMarkerLine, linkMarkerCross, linkMarkerFork, linkMarkerForkClose, linkMarkerMany, linkMarkerManyOptional, linkMarkerOne, linkMarkerOneOptional, linkMarkerOneOrMany, linkRoutingSmooth } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
