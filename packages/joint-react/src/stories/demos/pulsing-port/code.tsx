@@ -148,7 +148,7 @@ function Main() {
         ...highlighters,
         pulse: Pulse,
       }}
-      {...ORTHOGONAL_LINKS}
+      linkRouting={ORTHOGONAL_LINKS}
       snapLinks={{ radius: 25 }}
     />
   );

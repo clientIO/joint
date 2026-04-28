@@ -39,7 +39,7 @@ interface ElementUserData {
 }
 
 const PAPER_PROPS: PaperProps = {
-  ...linkRoutingOrthogonal(),
+  linkRouting: linkRoutingOrthogonal(),
 };
 
 // ============================================================================

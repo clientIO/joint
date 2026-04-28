@@ -149,7 +149,7 @@ export default function App() {
           width="100%"
           drawGrid={false}
           renderElement={RenderElement}
-          {...SMOOTH_LINKS}
+          linkRouting={SMOOTH_LINKS}
         />
       </GraphProvider>
     </div>

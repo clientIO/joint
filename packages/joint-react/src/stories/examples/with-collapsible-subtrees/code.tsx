@@ -761,7 +761,7 @@ function Main() {
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibilityCallback}
-      {...ORTHOGONAL_LINKS}
+      linkRouting={ORTHOGONAL_LINKS}
       interactive={false}
       style={PAPER_STYLE}
       drawGrid={false}

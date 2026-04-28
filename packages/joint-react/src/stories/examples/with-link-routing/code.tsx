@@ -260,7 +260,7 @@ function PresetPicker() {
         gridSize={1}
         drawGridSize={20}
         defaultLink={createLink}
-        {...linkPreset}
+        linkRouting={linkPreset}
       />
       <div className="flex flex-wrap items-center gap-4 px-3 py-2 mt-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-sans select-none">
         {/* Preset selector */}

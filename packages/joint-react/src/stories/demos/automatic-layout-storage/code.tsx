@@ -492,7 +492,7 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
             width="100%"
             height="100%"
             style={{ backgroundColor: 'transparent' }}
-            {...linkRoutingOrthogonal({
+            linkRouting={linkRoutingOrthogonal({
               sourceOffset: 6,
               targetOffset: 6,
               margin: 18,

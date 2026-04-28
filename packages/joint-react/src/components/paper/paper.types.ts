@@ -8,6 +8,7 @@ import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../..
 import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
 import type { CellVisibility } from '../../presets/cell-visibility';
 import type { Interactive } from '../../presets/interactive';
+import type { LinkRouting } from '../../presets/link-routing';
 
 /**
  * Value accepted by the Paper `transform` prop. Strings are parsed via the
@@ -143,12 +144,23 @@ export interface PortalPaperOptions {
   readonly linkAnchorNamespace?: dia.Paper.Options['linkAnchorNamespace'];
   readonly connectionPointNamespace?: dia.Paper.Options['connectionPointNamespace'];
 
-  // ── Defaults (routing / connecting) ──────────────────────────────────────
-  readonly defaultRouter?: dia.Paper.Options['defaultRouter'];
-  readonly defaultConnector?: dia.Paper.Options['defaultConnector'];
-  readonly defaultAnchor?: dia.Paper.Options['defaultAnchor'];
-  readonly defaultLinkAnchor?: dia.Paper.Options['defaultLinkAnchor'];
-  readonly defaultConnectionPoint?: dia.Paper.Options['defaultConnectionPoint'];
+  // ── Link routing bundle ──────────────────────────────────────────────────
+  /**
+   * Bundle of link routing defaults (router, connector, anchor, connection
+   * point). Use a preset (`linkRoutingStraight`, `linkRoutingOrthogonal`,
+   * `linkRoutingSmooth`) or pass a custom object of the same shape.
+   *
+   * `defaultLinkAnchor` is reachable via the `options` escape hatch.
+   *
+   * Values inside `options` override matching keys here.
+   * @example
+   * ```tsx
+   * import { linkRoutingOrthogonal } from '@joint/react/presets';
+   *
+   * <Paper linkRouting={linkRoutingOrthogonal()} />
+   * ```
+   */
+  readonly linkRouting?: LinkRouting;
 
   // ── Escape hatch ─────────────────────────────────────────────────────────
 

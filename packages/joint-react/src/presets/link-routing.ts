@@ -1,5 +1,4 @@
-import { connectionPoints } from '@joint/core';
-import type { PaperProps } from '../components/paper/paper.types';
+import { connectionPoints, type dia } from '@joint/core';
 import type { LinkMode } from './anchors';
 import { centerAnchor, perpendicularAnchor, midSideAnchor } from './anchors';
 import { boundaryPoint, anchorPoint, withOffsets } from './connection-points';
@@ -13,22 +12,23 @@ import {
 
 /**
  * Ready-made Paper configurations for common link routing styles.
- * Each preset is a function that returns Paper props for router, connector,
- * anchor, and connection point. Call with no args for defaults, or pass
- * options to customize.
+ * Each preset is a function that returns a `LinkRouting` bundle for router,
+ * connector, anchor, and connection point. Call with no args for defaults,
+ * or pass options to customize.
  * @example
  * ```tsx
  * import { linkRoutingOrthogonal } from '@joint/react/presets';
  *
- * const linkPreset = linkRoutingOrthogonal();
- * <Paper {...linkPreset} />
+ * <Paper linkRouting={linkRoutingOrthogonal()} />
  * ```
  */
 
-export type LinkRouting = Pick<
-  PaperProps,
-  'defaultRouter' | 'defaultConnector' | 'defaultAnchor' | 'defaultConnectionPoint'
->;
+export interface LinkRouting {
+  readonly defaultRouter?: dia.Paper.Options['defaultRouter'];
+  readonly defaultConnector?: dia.Paper.Options['defaultConnector'];
+  readonly defaultAnchor?: dia.Paper.Options['defaultAnchor'];
+  readonly defaultConnectionPoint?: dia.Paper.Options['defaultConnectionPoint'];
+}
 
 interface BaseLinkOptions {
   /** Anchor mode for root elements and custom magnets. Passed to `midSide`. */

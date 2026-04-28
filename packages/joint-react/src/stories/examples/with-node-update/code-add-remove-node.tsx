@@ -109,7 +109,7 @@ function Main() {
       <Paper
         className={PAPER_CLASSNAME}
         clickThreshold={10}
-        {...ORTHOGONAL_LINKS}
+        linkRouting={ORTHOGONAL_LINKS}
         height={380}
         renderElement={RenderElement}
       />

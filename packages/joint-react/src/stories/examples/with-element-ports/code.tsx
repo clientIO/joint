@@ -393,7 +393,7 @@ function Main() {
         height={400}
         snapLinks={true}
         linkPinning={false}
-        {...SMOOTH_LINKS}
+        linkRouting={SMOOTH_LINKS}
       />
 
       {/* Control Panel */}

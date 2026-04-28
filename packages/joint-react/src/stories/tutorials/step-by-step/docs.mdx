@@ -171,13 +171,14 @@ const mapDataToElementAttributes = ({
 
 ### b. Customizing behavior
 
-Customize link behavior with props like `defaultRouter` and `defaultConnector`:
+Customize link behavior with the `linkRouting` prop. Use a preset
+(`linkRoutingStraight`, `linkRoutingOrthogonal`, `linkRoutingSmooth`) or
+pass a custom bundle of router / connector / anchor / connection point:
 
 ```tsx
-<Paper
-  defaultRouter={{ name: 'manhattan' }}
-  defaultConnector={{ name: 'smooth' }}
-/>
+import { linkRoutingOrthogonal } from '@joint/react/presets';
+
+<Paper linkRouting={linkRoutingOrthogonal()} />
 ```
 
 ---

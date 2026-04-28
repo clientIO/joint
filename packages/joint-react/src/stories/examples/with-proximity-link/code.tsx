@@ -106,7 +106,7 @@ function Main() {
         className={PAPER_CLASSNAME}
         height={280}
         renderElement={ResizableNode}
-        {...STRAIGHT_LINKS}
+        linkRouting={STRAIGHT_LINKS}
       />
     </div>
   );
