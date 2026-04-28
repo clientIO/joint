@@ -1,9 +1,4 @@
-import { ELEMENT_MODEL_TYPE } from '../models/element-model';
-import type {
-  CellId,
-  ResolvedCellRecord,
-  ResolvedElementRecord,
-} from '../types/cell.types';
+import type { CellId, ResolvedCellRecord, ResolvedElementRecord } from '../types/cell.types';
 
 /**
  * Selector helpers to pass into `useCell` / `useCells`.
@@ -14,26 +9,6 @@ import type {
  * other slices changed.
  */
 
-/**
- * Runtime guard for element-only selectors. The TS signatures already
- * restrict the input to `ResolvedElementRecord`, but a caller can still
- * widen the cell type generic and slip a non-element record through. In
- * that case the slice would silently be `undefined` — surface that as a
- * loud programmer-error instead.
- * @param cell
- * @param selectorName
- */
-function assertElementCell(
-  cell: ResolvedElementRecord,
-  selectorName: string
-): asserts cell is ResolvedElementRecord {
-  if (cell.type !== ELEMENT_MODEL_TYPE) {
-    throw new Error(
-      `${selectorName}: expected element cell (type === "${ELEMENT_MODEL_TYPE}"), got type "${String(cell.type)}" (id "${String(cell.id)}").`
-    );
-  }
-}
-
 // ── Element slice selectors ────────────────────────────────────────────────
 
 /**
@@ -41,7 +16,6 @@ function assertElementCell(
  * @param element
  */
 export function selectElementPosition(element: ResolvedElementRecord) {
-  assertElementCell(element, 'selectElementPosition');
   return element.position;
 }
 
@@ -50,7 +24,6 @@ export function selectElementPosition(element: ResolvedElementRecord) {
  * @param element
  */
 export function selectElementSize(element: ResolvedElementRecord) {
-  assertElementCell(element, 'selectElementSize');
   return element.size;
 }
 
@@ -59,7 +32,6 @@ export function selectElementSize(element: ResolvedElementRecord) {
  * @param element
  */
 export function selectElementAngle(element: ResolvedElementRecord) {
-  assertElementCell(element, 'selectElementAngle');
   return element.angle;
 }
 
@@ -72,7 +44,6 @@ export function selectElementAngle(element: ResolvedElementRecord) {
 export function selectElementData<ElementData = unknown>(
   element: ResolvedElementRecord<ElementData>
 ): ElementData {
-  assertElementCell(element, 'selectElementData');
   return element.data;
 }
 
