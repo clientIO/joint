@@ -1,11 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type CellRecordBase } from '@joint/react';
+import { GraphProvider, Paper, type CellAttributes } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-const initialCells: readonly CellRecordBase[] = [
+const initialCells: readonly CellAttributes[] = [
   // Row 1: Basic shapes
   {
     id: 'rectangle',
@@ -202,7 +202,7 @@ const initialCells: readonly CellRecordBase[] = [
     attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
-] satisfies CellRecordBase[];
+] satisfies CellAttributes[];
 
 function Main() {
   return (

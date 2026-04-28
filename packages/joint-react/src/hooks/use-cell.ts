@@ -1,7 +1,7 @@
 import { useContext, useMemo } from 'react';
 import { CellIdContext } from '../context';
 import { useCells } from './use-cells';
-import type { CellId, CellRecordBase, ResolvedCellRecord } from '../types/cell.types';
+import type { CellId, CellAttributes, ResolvedCellRecord } from '../types/cell.types';
 
 /**
  * Read the current cell from the closest `CellIdContext` — the id is provided
@@ -14,7 +14,7 @@ import type { CellId, CellRecordBase, ResolvedCellRecord } from '../types/cell.t
  * @template Cell - resolved cell record shape (defaults to ResolvedCellRecord)
  * @returns the current resolved cell record
  */
-export function useCell<Cell extends CellRecordBase = ResolvedCellRecord>(): Cell;
+export function useCell<Cell extends CellAttributes = ResolvedCellRecord>(): Cell;
 /**
  * Read a selected slice from the current cell (context-scoped). Re-renders
  * only when `isEqual(prev, next)` returns false.
@@ -26,7 +26,7 @@ export function useCell<Cell extends CellRecordBase = ResolvedCellRecord>(): Cel
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCell<Cell extends CellRecordBase = ResolvedCellRecord, Selected = Cell>(
+export function useCell<Cell extends CellAttributes = ResolvedCellRecord, Selected = Cell>(
   selector: (cell: Cell) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
@@ -40,7 +40,7 @@ export function useCell<Cell extends CellRecordBase = ResolvedCellRecord, Select
  * @param id - cell id to track
  * @returns the resolved cell record
  */
-export function useCell<Cell extends CellRecordBase = ResolvedCellRecord>(
+export function useCell<Cell extends CellAttributes = ResolvedCellRecord>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   id: CellId
 ): Cell;
@@ -55,12 +55,12 @@ export function useCell<Cell extends CellRecordBase = ResolvedCellRecord>(
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCell<Cell extends CellRecordBase = ResolvedCellRecord, Selected = Cell>(
+export function useCell<Cell extends CellAttributes = ResolvedCellRecord, Selected = Cell>(
   id: CellId,
   selector: (cell: Cell) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
-export function useCell<Cell extends CellRecordBase = ResolvedCellRecord, Selected = Cell>(
+export function useCell<Cell extends CellAttributes = ResolvedCellRecord, Selected = Cell>(
   argument1?: CellId | ((cell: Cell) => Selected),
   argument2?: ((cell: Cell) => Selected) | ((a: Selected, b: Selected) => boolean),
   argument3?: (a: Selected, b: Selected) => boolean
@@ -110,4 +110,3 @@ export function useCell<Cell extends CellRecordBase = ResolvedCellRecord, Select
     isEqual as ((a: Cell | Selected, b: Cell | Selected) => boolean) | undefined
   );
 }
-

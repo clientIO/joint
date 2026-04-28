@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { useGraphStore } from './use-graph-store';
-import type { CellId, CellRecordBase, ResolvedCellRecord } from '../types/cell.types';
+import type { CellId, CellAttributes, ResolvedCellRecord } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
 
 /** Union of all possible `useCells` return shapes (depends on argument form). */
-type UseCellsResult<Cell extends CellRecordBase, Selected> =
+type UseCellsResult<Cell extends CellAttributes, Selected> =
   | readonly Cell[]
   | Cell
   | undefined
@@ -83,7 +83,7 @@ function arrayAwareEqual(a: unknown, b: unknown): boolean {
  * @param subscribedIds - cell ids to pick
  * @returns array of resolved cells in id order (missing ids omitted)
  */
-function pickCells<Cell extends CellRecordBase>(
+function pickCells<Cell extends CellAttributes>(
   container: ReadonlyContainer<Cell>,
   subscribedIds: readonly CellId[]
 ): readonly Cell[] {
@@ -105,7 +105,7 @@ function pickCells<Cell extends CellRecordBase>(
  * @param cellSelector - selector for the single-id form (optional)
  * @returns selected value or raw cell / cells
  */
-function computeNext<Cell extends CellRecordBase, Selected>(
+function computeNext<Cell extends CellAttributes, Selected>(
   container: ReadonlyContainer<Cell>,
   targetId: CellId | undefined,
   subscribedIds: readonly CellId[] | undefined,
@@ -124,7 +124,7 @@ function computeNext<Cell extends CellRecordBase, Selected>(
 }
 
 /** Normalised arguments after dispatching by the runtime call shape. */
-interface ParsedUseCellsArgs<Cell extends CellRecordBase, Selected> {
+interface ParsedUseCellsArgs<Cell extends CellAttributes, Selected> {
   readonly targetId: CellId | undefined;
   readonly ids: readonly CellId[] | undefined;
   readonly arraySelector: ((cells: readonly Cell[]) => Selected) | undefined;
@@ -140,11 +140,8 @@ interface ParsedUseCellsArgs<Cell extends CellRecordBase, Selected> {
  * @param argument3 - third positional arg (isEqual when the form admits it)
  * @returns the normalised input
  */
-function parseUseCellsArgs<Cell extends CellRecordBase, Selected>(
-  argument1?:
-    | CellId
-    | readonly CellId[]
-    | ((cells: readonly Cell[]) => Selected),
+function parseUseCellsArgs<Cell extends CellAttributes, Selected>(
+  argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
   argument2?:
     | ((cells: readonly Cell[]) => Selected)
     | ((cell: Cell | undefined) => Selected)
@@ -209,16 +206,14 @@ function parseUseCellsArgs<Cell extends CellRecordBase, Selected>(
  * @template Cell - resolved cell record shape (defaults to ResolvedCellRecord)
  * @returns readonly resolved cells array
  */
-export function useCells<
-  Cell extends CellRecordBase = ResolvedCellRecord,
->(): readonly Cell[];
+export function useCells<Cell extends CellAttributes = ResolvedCellRecord>(): readonly Cell[];
 /**
  * Subscribe to a single cell by id.
  * @template Cell - resolved cell record shape (defaults to ResolvedCellRecord)
  * @param id - cell id to track
  * @returns current resolved cell, or undefined when missing
  */
-export function useCells<Cell extends CellRecordBase = ResolvedCellRecord>(
+export function useCells<Cell extends CellAttributes = ResolvedCellRecord>(
   id: CellId
 ): Cell | undefined;
 /**
@@ -232,7 +227,7 @@ export function useCells<Cell extends CellRecordBase = ResolvedCellRecord>(
  * @returns selected value
  */
 export function useCells<
-  Cell extends CellRecordBase = ResolvedCellRecord,
+  Cell extends CellAttributes = ResolvedCellRecord,
   Selected = Cell | undefined,
 >(
   id: CellId,
@@ -252,7 +247,7 @@ export function useCells<
  * @param ids - cell ids to track
  * @returns array of resolved cells (only those that exist; missing ids are skipped)
  */
-export function useCells<Cell extends CellRecordBase = ResolvedCellRecord>(
+export function useCells<Cell extends CellAttributes = ResolvedCellRecord>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   ids: readonly CellId[]
 ): readonly Cell[];
@@ -267,7 +262,7 @@ export function useCells<Cell extends CellRecordBase = ResolvedCellRecord>(
  * @returns selected value
  */
 export function useCells<
-  Cell extends CellRecordBase = ResolvedCellRecord,
+  Cell extends CellAttributes = ResolvedCellRecord,
   Selected = readonly Cell[],
 >(
   ids: readonly CellId[],
@@ -283,14 +278,14 @@ export function useCells<
  * @returns selected value
  */
 export function useCells<
-  Cell extends CellRecordBase = ResolvedCellRecord,
+  Cell extends CellAttributes = ResolvedCellRecord,
   Selected = readonly Cell[],
 >(
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 export function useCells<
-  Cell extends CellRecordBase = ResolvedCellRecord,
+  Cell extends CellAttributes = ResolvedCellRecord,
   Selected = readonly Cell[],
 >(
   argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
@@ -367,20 +362,21 @@ export function useCells<
     return Object.is;
   }, [userIsEqual, ids, hasSelector]);
 
-  const select = useCallback((): Result => {
-    const next = computeNext<Cell, Selected>(
-      container,
-      targetId,
-      idsRef.current,
-      arraySelectorRef.current,
-      cellSelectorRef.current
-    );
-    if (cachedRef.current.hasValue && isEqual(cachedRef.current.value, next)) {
-      return cachedRef.current.value;
-    }
-    cachedRef.current = { hasValue: true, value: next };
-    return next;
-  },
+  const select = useCallback(
+    (): Result => {
+      const next = computeNext<Cell, Selected>(
+        container,
+        targetId,
+        idsRef.current,
+        arraySelectorRef.current,
+        cellSelectorRef.current
+      );
+      if (cachedRef.current.hasValue && isEqual(cachedRef.current.value, next)) {
+        return cachedRef.current.value;
+      }
+      cachedRef.current = { hasValue: true, value: next };
+      return next;
+    },
     // idsKey stands in for the ids array reference; selectors are read via
     // refs so `select` stays stable across renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps

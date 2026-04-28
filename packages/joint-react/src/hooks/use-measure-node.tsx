@@ -5,7 +5,7 @@ import type { OnTransformElement } from '../store/create-elements-size-observer'
 import { usePaper } from './use-paper';
 import type { ElementSize } from '../types/cell-data';
 import { useCell } from './use-cell';
-import type { ResolvedElementRecord } from '../types/cell.types';
+import { selectElementSize } from '../selectors';
 
 /**
  * Controls element visibility until the first measurement completes.
@@ -172,7 +172,7 @@ export function useMeasureNode(
   if (id === undefined) {
     throw new Error('useMeasureNode() must be used inside renderElement');
   }
-  const layout = useCell((element: ResolvedElementRecord) => element.size);
+  const layout = useCell(selectElementSize);
   if (layout == undefined) {
     throw new Error(`useMeasureNode(): no element with id "${String(id)}"`);
   }

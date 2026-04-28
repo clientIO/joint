@@ -2,11 +2,7 @@ import { useCallback } from 'react';
 import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { mapCellToAttributes } from '../state/data-mapping';
-import type {
-  BaseElementRecord,
-  BaseLinkRecord,
-  CellId,
-} from '../types/cell.types';
+import type { ElementAttributes, LinkAttributes, CellId } from '../types/cell.types';
 
 // Why no `{ isUpdateFromReact: true }` flag on these imperative setters:
 // the flag is used only by the controlled-mode `graphView.updateGraph` path
@@ -18,16 +14,12 @@ import type {
 // every keystroke (the bug this note guards).
 
 /** Cell record union accepted by setters. */
-type SettableCell<
-  Element extends BaseElementRecord,
-  Link extends BaseLinkRecord,
-> = Element | Link;
+type SettableCell<Element extends ElementAttributes, Link extends LinkAttributes> = Element | Link;
 
 /** Read-only cell array used by reset/update setters. */
-type SettableCells<
-  Element extends BaseElementRecord,
-  Link extends BaseLinkRecord,
-> = ReadonlyArray<SettableCell<Element, Link>>;
+type SettableCells<Element extends ElementAttributes, Link extends LinkAttributes> = ReadonlyArray<
+  SettableCell<Element, Link>
+>;
 
 /**
  * Returns a function that adds-or-updates a cell.
@@ -45,8 +37,8 @@ type SettableCells<
  * @returns memoized setCell setter
  */
 export function useSetCell<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 >() {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
@@ -103,10 +95,7 @@ export function useSetCell<
  * @param store - graph store used to read `prev` for the updater form
  * @returns resolved cell record
  */
-function resolveSetCellInput<
-  Element extends BaseElementRecord,
-  Link extends BaseLinkRecord,
->(
+function resolveSetCellInput<Element extends ElementAttributes, Link extends LinkAttributes>(
   input:
     | SettableCell<Element, Link>
     | ((previous: SettableCell<Element, Link>) => SettableCell<Element, Link>),
@@ -176,8 +165,8 @@ export function useRemoveCells() {
  * @returns memoized resetCells setter
  */
 export function useResetCells<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 >() {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
@@ -204,8 +193,8 @@ export function useResetCells<
  * @returns memoized updateCells setter
  */
 export function useUpdateCells<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 >() {
   const store = useGraphStore<Element, Link>();
   return useCallback(

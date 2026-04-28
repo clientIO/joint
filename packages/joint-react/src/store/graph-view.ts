@@ -1,11 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
-import type {
-  BaseElementRecord,
-  BaseLinkRecord,
-  CellId,
-} from '../types/cell.types';
+import type { ElementAttributes, LinkAttributes, CellId } from '../types/cell.types';
 import type { ElementPosition, ElementSize } from './../types/cell-data';
 import {
   mapAttributesToElement,
@@ -21,14 +17,14 @@ import { LINK_MODEL_TYPE } from '../models/link-model';
 
 /** Cell record union accepted by the unified cells stream. */
 type GraphCellUnion<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > = Element | Link;
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalCellsChange<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > {
   readonly added: Map<CellId, GraphCellUnion<Element, Link>>;
   readonly changed: Map<CellId, GraphCellUnion<Element, Link>>;
@@ -36,8 +32,8 @@ export interface IncrementalCellsChange<
 }
 
 interface GraphViewState<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > {
   readonly graph: dia.Graph;
   readonly onIncrementalChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
@@ -62,10 +58,7 @@ interface GraphViewState<
  * @param next - freshly mapped record from the graph
  * @returns merged record; may be `previous` itself when nothing changed
  */
-function mergeCellRecord<
-  Element extends BaseElementRecord,
-  Link extends BaseLinkRecord,
->(
+function mergeCellRecord<Element extends ElementAttributes, Link extends LinkAttributes>(
   previous: GraphCellUnion<Element, Link> | undefined,
   next: GraphCellUnion<Element, Link>
 ): GraphCellUnion<Element, Link> {
@@ -130,10 +123,9 @@ function mergeCellRecord<
  * @param cell - graph cell
  * @returns CellRecord suitable for the cells container
  */
-function toCellRecord<
-  Element extends BaseElementRecord,
-  Link extends BaseLinkRecord,
->(cell: dia.Cell): GraphCellUnion<Element, Link> {
+function toCellRecord<Element extends ElementAttributes, Link extends LinkAttributes>(
+  cell: dia.Cell
+): GraphCellUnion<Element, Link> {
   if (cell.isElement()) {
     type ElementData = Element['data'];
     const record = (mapAttributesToElement as MapAttributesToElement<ElementData>)(cell.attributes);
@@ -173,8 +165,8 @@ function toCellRecord<
 }
 
 export function graphView<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 >(options: GraphViewState<Element, Link>) {
   const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
@@ -323,6 +315,6 @@ export function graphView<
 }
 
 export type GraphView<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > = ReturnType<typeof graphView<Element, Link>>;

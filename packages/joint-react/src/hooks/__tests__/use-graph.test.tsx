@@ -6,13 +6,13 @@ import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type {
-  BaseElementRecord,
-  BaseLinkRecord,
+  ElementAttributes,
+  LinkAttributes,
   CellRecord,
   ElementRecord,
 } from '../../types/cell.types';
 
-type AnyCell = BaseElementRecord | BaseLinkRecord;
+type AnyCell = ElementAttributes | LinkAttributes;
 
 const INITIAL: readonly CellRecord[] = [
   {
@@ -181,22 +181,27 @@ describe('useGraph', () => {
     it('narrows an element cell', async () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
-      expect(result.current.isElement({ id: 'a', type: ELEMENT_MODEL_TYPE } as CellRecord)).toBe(true);
-      expect(result.current.isLink({ id: 'a', type: ELEMENT_MODEL_TYPE } as CellRecord)).toBe(false);
+      expect(result.current.isElement({ id: 'a', type: ELEMENT_MODEL_TYPE } as CellRecord)).toBe(
+        true
+      );
+      expect(result.current.isLink({ id: 'a', type: ELEMENT_MODEL_TYPE } as CellRecord)).toBe(
+        false
+      );
     });
 
     it('narrows a link cell', async () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
       expect(result.current.isLink({ id: 'l1', type: LINK_MODEL_TYPE } as CellRecord)).toBe(true);
-      expect(result.current.isElement({ id: 'l1', type: LINK_MODEL_TYPE } as CellRecord)).toBe(false);
+      expect(result.current.isElement({ id: 'l1', type: LINK_MODEL_TYPE } as CellRecord)).toBe(
+        false
+      );
     });
 
     it('classifies cells fetched from the graph view container', async () => {
-      const { result } = renderHook(
-        () => ({ api: useGraph(), store: useGraphStore() }),
-        { wrapper }
-      );
+      const { result } = renderHook(() => ({ api: useGraph(), store: useGraphStore() }), {
+        wrapper,
+      });
       await waitFor(() => expect(result.current).toBeDefined());
       await flush();
       const elementCell = result.current.store.graphView.cells.get('a')!;

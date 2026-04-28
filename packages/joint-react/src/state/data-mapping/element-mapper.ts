@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { BaseElementRecord, WithType } from '../../types/cell.types';
+import type { ElementAttributes, WithType } from '../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { elementAttributes } from '../../presets/element-attributes';
 import type { CellAttributes } from './index';
@@ -9,7 +9,7 @@ import type { CellAttributes } from './index';
  * @param element
  */
 export function mapElementToAttributes<ElementData = unknown>(
-  element: BaseElementRecord & WithType & { readonly data?: ElementData }
+  element: ElementAttributes & WithType & { readonly data?: ElementData }
 ): CellAttributes {
   const attributes = elementAttributes(element) as CellAttributes;
   if (!attributes.type) attributes.type = ELEMENT_MODEL_TYPE;
@@ -24,7 +24,7 @@ export function mapElementToAttributes<ElementData = unknown>(
  * field is opaque until the consumer narrows it. This shape is what the
  * controlled-mode pipeline actually emits when reading from a `dia.Cell`.
  */
-export type MappedElementRecord<ElementData = unknown> = BaseElementRecord &
+export type MappedElementRecord<ElementData = unknown> = ElementAttributes &
   Partial<WithType> & { readonly data?: ElementData };
 
 /**

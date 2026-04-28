@@ -2,7 +2,7 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { shapes, dia } from '@joint/core';
 import '../index.css';
 import {
-  type CellRecordBase,
+  type CellAttributes,
   GraphProvider,
   useCell,
   Paper,
@@ -35,7 +35,7 @@ interface ElementData {
 // Data
 // ============================================================================
 
-const initialCells: readonly CellRecordBase[] = [
+const initialCells: readonly CellAttributes[] = [
   {
     id: 'node-1',
     position: { x: 70, y: 100 },

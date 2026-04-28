@@ -1,10 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import { type CellRecordBase, GraphProvider, useCell, Paper, selectElementSize } from '@joint/react';
+import {
+  type CellAttributes,
+  GraphProvider,
+  useCell,
+  Paper,
+  selectElementSize,
+} from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialCells: readonly CellRecordBase[] = [
+const initialCells: readonly CellAttributes[] = [
   {
     id: '1',
     type: 'element',

@@ -74,9 +74,9 @@ export type {
   ResolvedCellRecord,
   ResolvedElementRecord,
   ResolvedLinkRecord,
-  BaseElementRecord,
-  BaseLinkRecord,
-  CellRecordBase,
+  ElementAttributes,
+  LinkAttributes,
+  CellAttributes,
 } from './types/cell.types';
 
 // Types — geometry / presets

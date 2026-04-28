@@ -1,5 +1,5 @@
 import { util } from '@joint/core';
-import type { BaseLinkRecord, WithType } from '../types/cell.types';
+import type { LinkAttributes, WithType } from '../types/cell.types';
 import { linkLabels } from './link-labels';
 import { linkStyle } from './link-style';
 
@@ -14,20 +14,13 @@ import { linkStyle } from './link-style';
  * @returns JointJS-compatible cell attributes.
  */
 export function linkAttributes<LinkData = unknown>(
-  link: BaseLinkRecord & WithType & { readonly data?: LinkData },
+  link: LinkAttributes & WithType & { readonly data?: LinkData }
 ): Record<string, unknown> {
   if (!util.isObject(link)) {
     throw new TypeError('Invalid link data: expected an object with link properties.');
   }
 
-  const {
-    data = {} as LinkData,
-    type,
-    style,
-    labelMap,
-    labels,
-    ...rest
-  } = link;
+  const { data = {} as LinkData, type, style, labelMap, labels, ...rest } = link;
 
   const attributes: Record<string, unknown> = {
     ...rest,

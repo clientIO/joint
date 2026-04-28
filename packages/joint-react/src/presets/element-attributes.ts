@@ -1,5 +1,5 @@
 import { util } from '@joint/core';
-import type { BaseElementRecord, WithType } from '../types/cell.types';
+import type { ElementAttributes, WithType } from '../types/cell.types';
 import { elementPorts } from './element-ports';
 
 /**
@@ -12,19 +12,13 @@ import { elementPorts } from './element-ports';
  * @returns JointJS-compatible cell attributes.
  */
 export function elementAttributes<ElementData = unknown>(
-  element: BaseElementRecord & WithType & { readonly data?: ElementData },
+  element: ElementAttributes & WithType & { readonly data?: ElementData }
 ): Record<string, unknown> {
   if (!util.isObject(element)) {
     throw new TypeError('Invalid element format: expected an object.');
   }
 
-  const {
-    data = {} as ElementData,
-    portMap,
-    ports,
-    type,
-    ...rest
-  } = element;
+  const { data = {} as ElementData, portMap, ports, type, ...rest } = element;
 
   const attributes: Record<string, unknown> = {
     ...rest,

@@ -1,5 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import type { BaseElementRecord, BaseLinkRecord, CellId } from '../types/cell.types';
+import type { ElementAttributes, LinkAttributes, CellId } from '../types/cell.types';
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
@@ -53,8 +53,8 @@ export interface GraphStoreInternalSnapshot {
  * being passed together.
  */
 interface GraphStoreOptionsBase<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
@@ -64,8 +64,8 @@ interface GraphStoreOptionsBase<
 
 /** Uncontrolled mode: parent provides only seed data. */
 interface GraphStoreOptionsUncontrolled<
-  Element extends BaseElementRecord,
-  Link extends BaseLinkRecord,
+  Element extends ElementAttributes,
+  Link extends LinkAttributes,
 > extends GraphStoreOptionsBase<Element, Link> {
   readonly initialCells?: ReadonlyArray<Element | Link>;
   readonly cells?: never;
@@ -74,8 +74,8 @@ interface GraphStoreOptionsUncontrolled<
 
 /** Controlled mode: parent is the source of truth; store applies snapshots. */
 interface GraphStoreOptionsControlled<
-  Element extends BaseElementRecord,
-  Link extends BaseLinkRecord,
+  Element extends ElementAttributes,
+  Link extends LinkAttributes,
 > extends GraphStoreOptionsBase<Element, Link> {
   readonly cells: ReadonlyArray<Element | Link>;
   readonly initialCells?: never;
@@ -83,16 +83,16 @@ interface GraphStoreOptionsControlled<
 }
 
 export type GraphStoreOptions<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > = GraphStoreOptionsUncontrolled<Element, Link> | GraphStoreOptionsControlled<Element, Link>;
 
 /**
  * Central store for managing graph state, synchronization, and paper instances.
  */
 export class GraphStore<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > {
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<number> = createAtom(0);
@@ -104,8 +104,8 @@ export class GraphStore<
   public readonly graphView: GraphView<Element, Link>;
 
   public getGraphView<
-    E extends BaseElementRecord = BaseElementRecord,
-    L extends BaseLinkRecord = BaseLinkRecord,
+    E extends ElementAttributes = ElementAttributes,
+    L extends LinkAttributes = LinkAttributes,
   >(): GraphView<E, L> {
     return this.graphView as unknown as GraphView<E, L>;
   }

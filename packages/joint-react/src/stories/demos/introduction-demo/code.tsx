@@ -17,7 +17,7 @@ import {
   useNodesMeasuredEffect,
   type CellId,
   type CellRecord,
-  type CellRecordBase,
+  type CellAttributes,
   type ElementRecord,
   type ElementPort,
   type PaperProps,
@@ -436,8 +436,8 @@ function ToolBar(props: Readonly<ToolbarProps>) {
 function ElementsInfo() {
   const cells = useCells();
   const { isElement, isLink } = useGraph();
-  const elements: Record<string, CellRecordBase> = {};
-  const links: Record<string, CellRecordBase> = {};
+  const elements: Record<string, CellAttributes> = {};
+  const links: Record<string, CellAttributes> = {};
   for (const cell of cells) {
     if (cell.id == undefined) continue;
     if (isElement(cell)) elements[String(cell.id)] = cell;

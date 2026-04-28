@@ -3,11 +3,30 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useCellId, useGraph, HTMLHost, type CellRecord, type CellRecordBase, type ElementRecord, type LinkRecord, type IncrementalCellsChange } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useCellId,
+  useGraph,
+  HTMLHost,
+  type CellRecord,
+  type CellAttributes,
+  type ElementRecord,
+  type LinkRecord,
+  type IncrementalCellsChange,
+} from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { usePaperEvents } from '../../../hooks';
 import Peer, { type DataConnection } from 'peerjs';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { configureStore, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { Provider, useSelector, useStore } from 'react-redux';
 
@@ -165,10 +184,10 @@ interface GraphState {
   readonly links: Record<string, LinkRecord>;
 }
 
-function isElementType(cell: CellRecordBase): cell is ElementRecord<AgentNodeData> {
+function isElementType(cell: CellAttributes): cell is ElementRecord<AgentNodeData> {
   return cell.type === 'element';
 }
-function isLinkType(cell: CellRecordBase): cell is LinkRecord {
+function isLinkType(cell: CellAttributes): cell is LinkRecord {
   return cell.type === 'link';
 }
 

@@ -2,9 +2,17 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useId } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
-import type { CellRecordBase, ElementPort } from '@joint/react';
+import type { CellAttributes, ElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { GraphProvider, jsx, Paper, usePaperEvents, useCells, useCellId, HTMLBox } from '@joint/react';
+import {
+  GraphProvider,
+  jsx,
+  Paper,
+  usePaperEvents,
+  useCells,
+  useCellId,
+  HTMLBox,
+} from '@joint/react';
 
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 
@@ -69,7 +77,7 @@ const NODE_PORTS: Record<string, ElementPort> = {
   },
 };
 
-const initialCells: readonly CellRecordBase[] = [
+const initialCells: readonly CellAttributes[] = [
   { id: '1', type: 'element', position: { x: 50, y: 50 }, portMap: NODE_PORTS },
   { id: '2', type: 'element', position: { x: 350, y: 50 }, portMap: NODE_PORTS },
   { id: '3', type: 'element', position: { x: 150, y: 250 }, portMap: NODE_PORTS },

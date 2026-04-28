@@ -52,7 +52,7 @@ export interface WithType extends WithId {
  * - Allows arbitrary extra fields via the index signature so callers can
  *   attach custom data without losing type safety on known fields.
  */
-export interface BaseElementRecord
+export interface ElementAttributes
   extends WithId,
     Omit<DiaElement.Attributes, 'id' | 'type' | 'position' | 'size' | 'angle'> {
   readonly position?: ElementPosition;
@@ -65,7 +65,7 @@ export interface BaseElementRecord
   readonly type?: CellTypeName;
 }
 /** Element-flavored cell; narrowed when `type === ELEMENT_MODEL_TYPE`. */
-export interface ElementRecord<ElementData = unknown> extends BaseElementRecord, WithType {
+export interface ElementRecord<ElementData = unknown> extends ElementAttributes, WithType {
   readonly type: typeof ELEMENT_MODEL_TYPE;
   readonly data: ElementData;
 }
@@ -85,7 +85,7 @@ export interface ElementRecord<ElementData = unknown> extends BaseElementRecord,
  * Use {@link ElementRecord} for input shapes (cell creation, setters) where
  * these fields are optional and will be filled in by the framework.
  */
-export interface ResolvedElementRecord<ElementData = unknown> extends BaseElementRecord, WithType {
+export interface ResolvedElementRecord<ElementData = unknown> extends ElementAttributes, WithType {
   readonly id: DiaCell.ID;
   readonly type: typeof ELEMENT_MODEL_TYPE;
   readonly position: Required<ElementPosition>;
@@ -103,7 +103,7 @@ export interface ResolvedElementRecord<ElementData = unknown> extends BaseElemen
  * - Allows arbitrary extra fields via the index signature so callers can
  *   attach custom data without losing type safety on known fields.
  */
-export interface BaseLinkRecord
+export interface LinkAttributes
   extends WithId,
     Omit<DiaLink.Attributes, 'id' | 'type' | 'source' | 'target'> {
   readonly source?: DiaLink.EndJSON;
@@ -117,7 +117,7 @@ export interface BaseLinkRecord
 }
 
 /** Link-flavored cell; narrowed when `type === LINK_MODEL_TYPE`. */
-export interface LinkRecord<LinkData = unknown> extends BaseLinkRecord, WithType {
+export interface LinkRecord<LinkData = unknown> extends LinkAttributes, WithType {
   readonly type: typeof LINK_MODEL_TYPE;
   readonly data?: LinkData;
 }
@@ -134,7 +134,7 @@ export interface LinkRecord<LinkData = unknown> extends BaseLinkRecord, WithType
  *
  * Use {@link LinkRecord} for input shapes (cell creation, setters).
  */
-export interface ResolvedLinkRecord<LinkData = unknown> extends BaseLinkRecord, WithType {
+export interface ResolvedLinkRecord<LinkData = unknown> extends LinkAttributes, WithType {
   readonly id: DiaCell.ID;
   readonly type: typeof LINK_MODEL_TYPE;
   readonly source: DiaLink.EndJSON;
@@ -145,17 +145,17 @@ export interface ResolvedLinkRecord<LinkData = unknown> extends BaseLinkRecord, 
 /**
  * Structural upper bound for any cell record. Use as the constraint when
  * defining custom cell types with non-`'element'` / non-`'link'` `type`
- * literals — extend either {@link BaseElementRecord} or {@link BaseLinkRecord}
+ * literals — extend either {@link ElementAttributes} or {@link LinkAttributes}
  * (or this union) and pick your own `type` literal:
  * ```ts
- * interface MyCustomNode extends BaseElementRecord {
+ * interface MyCustomNode extends ElementAttributes {
  *   readonly type: 'my-node';
  *   readonly data: MyData;
  * }
  * type AppCell = CellRecord | MyCustomNode;
  * ```
  */
-export type CellRecordBase = BaseElementRecord | BaseLinkRecord;
+export type CellAttributes = ElementAttributes | LinkAttributes;
 
 /**
  * Discriminated union over the `type` literal:

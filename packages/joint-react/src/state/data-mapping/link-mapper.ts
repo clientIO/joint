@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { BaseLinkRecord, WithType } from '../../types/cell.types';
+import type { LinkAttributes, WithType } from '../../types/cell.types';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
@@ -10,7 +10,7 @@ import type { CellAttributes } from '.';
  * @param link
  */
 export function mapLinkToAttributes<LinkData = unknown>(
-  link: BaseLinkRecord & WithType & { readonly data?: LinkData }
+  link: LinkAttributes & WithType & { readonly data?: LinkData }
 ): CellAttributes {
   const attributes = linkAttributes(link) as CellAttributes;
   if (!attributes.type) attributes.type = LINK_MODEL_TYPE;
@@ -25,7 +25,7 @@ export function mapLinkToAttributes<LinkData = unknown>(
  * `data` field is opaque until the consumer narrows it. This shape is what the
  * controlled-mode pipeline actually emits when reading from a `dia.Cell`.
  */
-export type MappedLinkRecord<LinkData = unknown> = BaseLinkRecord &
+type MappedLinkRecord<LinkData = unknown> = LinkAttributes &
   Partial<WithType> & { readonly data?: LinkData };
 
 /**
@@ -44,7 +44,6 @@ export function mapAttributesToLink<LinkData = unknown>(
   const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     id,
-    type,
     // Labels
     labelMap,
     labels,
@@ -69,16 +68,9 @@ export function mapAttributesToLink<LinkData = unknown>(
     linkRecord.labels = labels;
   }
 
-  // Only a custom type should be included in the link record.
-  if (type && type !== LINK_MODEL_TYPE) {
-    linkRecord.type = type;
-  }
-
   return { ...linkRecord } as MappedLinkRecord<LinkData>;
 }
 
-export type MapAttributesToLink<LinkData = unknown> =
-  typeof mapAttributesToLink<LinkData>;
+export type MapAttributesToLink<LinkData = unknown> = typeof mapAttributesToLink<LinkData>;
 
-export type MapLinkToAttributes<LinkData = unknown> =
-  typeof mapLinkToAttributes<LinkData>;
+export type MapLinkToAttributes<LinkData = unknown> = typeof mapLinkToAttributes<LinkData>;

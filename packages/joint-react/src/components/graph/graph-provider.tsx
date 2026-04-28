@@ -4,10 +4,10 @@ import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { IncrementalCellsChange } from '../../store/graph-view';
-import type { BaseElementRecord, BaseLinkRecord } from '../../types/cell.types';
+import type { ElementAttributes, LinkAttributes } from '../../types/cell.types';
 
 /** Cells array accepted by GraphProvider. */
-type ProviderCells<Element extends BaseElementRecord, Link extends BaseLinkRecord> = ReadonlyArray<
+type ProviderCells<Element extends ElementAttributes, Link extends LinkAttributes> = ReadonlyArray<
   Element | Link
 >;
 
@@ -17,8 +17,8 @@ type ProviderCells<Element extends BaseElementRecord, Link extends BaseLinkRecor
  * @template LinkData - User data attached to each link record.
  */
 interface GraphProviderBaseProps<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > {
   /**
    * Pre-existing JointJS graph instance to use. If omitted, GraphProvider
@@ -50,8 +50,8 @@ interface GraphProviderBaseProps<
  * @template LinkData - user data on each link
  */
 interface GraphProviderUncontrolledProps<
-  Element extends BaseElementRecord,
-  Link extends BaseLinkRecord,
+  Element extends ElementAttributes,
+  Link extends LinkAttributes,
 > extends GraphProviderBaseProps<Element, Link> {
   readonly initialCells?: ProviderCells<Element, Link>;
   readonly cells?: never;
@@ -66,8 +66,8 @@ interface GraphProviderUncontrolledProps<
  * @template LinkData - user data on each link
  */
 interface GraphProviderControlledProps<
-  Element extends BaseElementRecord,
-  Link extends BaseLinkRecord,
+  Element extends ElementAttributes,
+  Link extends LinkAttributes,
 > extends GraphProviderBaseProps<Element, Link> {
   readonly cells: ProviderCells<Element, Link>;
   readonly initialCells?: never;
@@ -90,18 +90,18 @@ interface GraphProviderControlledProps<
  * @template LinkData - User data attached to each link record.
  */
 export type GraphProviderProps<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > = GraphProviderUncontrolledProps<Element, Link> | GraphProviderControlledProps<Element, Link>;
 
 /**
  * Provider props normalised to the unparameterised base shape.
  *
  * Internally GraphProvider stores the `GraphStore` with default generics
- * (`BaseElementRecord` / `BaseLinkRecord`). Each `useGraphStore<E, L>()` call
+ * (`ElementAttributes` / `LinkAttributes`). Each `useGraphStore<E, L>()` call
  * re-binds the generics on read — the runtime instance is the same.
  */
-type GraphProviderBaseInternalProps = GraphProviderProps<BaseElementRecord, BaseLinkRecord> & {
+type GraphProviderBaseInternalProps = GraphProviderProps<ElementAttributes, LinkAttributes> & {
   ref?: React.Ref<dia.Graph | null>;
 };
 
@@ -132,7 +132,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
   const isControlled = cellsProperty !== undefined;
 
   const { isReady, ref } = useImperativeApi<
-    GraphStore<BaseElementRecord, BaseLinkRecord>,
+    GraphStore<ElementAttributes, LinkAttributes>,
     dia.Graph
   >(
     {
@@ -142,7 +142,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
         const graphStore =
           store ??
           (isControlled
-            ? new GraphStore<BaseElementRecord, BaseLinkRecord>({
+            ? new GraphStore<ElementAttributes, LinkAttributes>({
                 graph,
                 cellNamespace,
                 cellModel,
@@ -150,7 +150,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
                 onCellsChange,
                 onIncrementalCellsChange,
               })
-            : new GraphStore<BaseElementRecord, BaseLinkRecord>({
+            : new GraphStore<ElementAttributes, LinkAttributes>({
                 graph,
                 cellNamespace,
                 cellModel,
@@ -212,8 +212,8 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
  * @see GraphProviderProps for all available props
  */
 export const GraphProvider = GraphBase as <
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 >(
   props: GraphProviderProps<Element, Link> & {
     ref?: React.Ref<dia.Graph | null>;

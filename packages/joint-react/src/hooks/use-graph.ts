@@ -8,11 +8,7 @@ import {
   useResetCells,
   useUpdateCells,
 } from './use-cell-setters';
-import type {
-  BaseElementRecord,
-  BaseLinkRecord,
-  CellId,
-} from '../types/cell.types';
+import type { ElementAttributes, LinkAttributes, CellId } from '../types/cell.types';
 
 /**
  * Union of the records this `useGraph` instance accepts as cell input —
@@ -22,8 +18,8 @@ import type {
  * @template Link - link record shape
  */
 export type GraphCellInput<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > = Element | Link;
 
 /**
@@ -39,8 +35,8 @@ export type GraphCellInput<
  *                  `ResolvedLinkRecord<MyData>`)
  */
 export interface UseGraphResult<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 > {
   /** The JointJS graph instance. */
   readonly graph: dia.Graph;
@@ -104,8 +100,8 @@ export interface UseGraphResult<
  * @returns the imperative API described by {@link UseGraphResult}
  */
 export function useGraph<
-  Element extends BaseElementRecord = BaseElementRecord,
-  Link extends BaseLinkRecord = BaseLinkRecord,
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
 >(): UseGraphResult<Element, Link> {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;

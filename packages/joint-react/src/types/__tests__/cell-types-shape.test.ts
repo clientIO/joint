@@ -3,8 +3,8 @@ import type {
   LinkRecord,
   ResolvedElementRecord,
   ResolvedLinkRecord,
-  BaseElementRecord,
-  BaseLinkRecord,
+  ElementAttributes,
+  LinkAttributes,
 } from '../cell.types';
 
 describe('cell.types shape', () => {
@@ -57,9 +57,9 @@ describe('cell.types shape', () => {
   });
 
   it('Base records accept any extra fields (index signature)', () => {
-    const b: BaseElementRecord = { type: 'custom', anything: 1 };
+    const b: ElementAttributes = { type: 'custom', anything: 1 };
     expect(b.anything).toBe(1);
-    const l: BaseLinkRecord = { type: 'custom', extra: 'x' };
+    const l: LinkAttributes = { type: 'custom', extra: 'x' };
     expect(l.extra).toBe('x');
   });
 });
