@@ -614,7 +614,7 @@ export namespace Cell {
 
     interface ExportOptions {
         ignoreDefaults?: boolean | string[];
-        ignoreEmptyAttributes?: boolean;
+        ignoreEmptyAttributes?: boolean | ((key: string, path: string[]) => boolean);
     }
 
     type UnsetCallback<V> = (

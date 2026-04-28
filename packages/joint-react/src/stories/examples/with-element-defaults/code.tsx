@@ -155,7 +155,7 @@ function JSONViewer() {
   const json = graph.toJSON({
     cellAttributes: {
       ignoreDefaults: true,
-      ignoreEmptyAttributes: true,
+      ignoreEmptyAttributes: () => true,
     },
   });
   return <pre style={JSON_VIEWER_STYLE}>{JSON.stringify(json, null, 2)}</pre>;
