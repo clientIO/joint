@@ -29,6 +29,7 @@ import {
 } from '../util/util.mjs';
 import { Model } from '../mvc/Model.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
+import { removeEmptyAttributes, removeAtTopLevelOnly } from '../util/removeEmptyAttributes.mjs';
 import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';
 import { config } from '../config/index.mjs';
@@ -42,31 +43,6 @@ const attributesMerger = function(a, b) {
         return cloneDeep(b);
     }
 };
-
-// Recursive predicate-driven removal. The predicate `(key, path) => boolean` is
-// invoked bottom-up for every empty `{}`; returning truthy drops the key. A
-// parent that becomes empty after its children are removed is itself a candidate.
-function removeEmptyAttributes(obj, predicate, path) {
-
-    for (const key in obj) {
-
-        const objValue = obj[key];
-        const isRealObject = isObject(objValue) && !Array.isArray(objValue);
-
-        if (!isRealObject) continue;
-
-        const childPath = path ? path.concat(key) : [key];
-        removeEmptyAttributes(objValue, predicate, childPath);
-
-        if (isEmpty(objValue) && predicate(key, childPath)) {
-            delete obj[key];
-        }
-    }
-}
-
-// Default predicate for `ignoreEmptyAttributes: true` — drops top-level empties
-// only, preserving the original (pre-recursive) behavior.
-const isTopLevelEmpty = (_key, path) => path.length === 1;
 
 export const Cell = Model.extend({
 
@@ -107,7 +83,7 @@ export const Cell = Model.extend({
         if (typeof ignoreEmptyAttributes === 'function') {
             removeEmptyPredicate = ignoreEmptyAttributes;
         } else if (ignoreEmptyAttributes) {
-            removeEmptyPredicate = isTopLevelEmpty;
+            removeEmptyPredicate = removeAtTopLevelOnly;
         }
 
         if (ignoreDefaults === false) {
