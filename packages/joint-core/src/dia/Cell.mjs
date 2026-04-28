@@ -74,8 +74,9 @@ export const Cell = Model.extend({
 
         // `ignoreEmptyAttributes`:
         //  - `false` (default) — keep all empties.
-        //  - `true` — drop top-level empties only (sugar for the
-        //    `(key, path) => path.length === 1` predicate).
+        //  - `true` — drops top-level empties only, for backwards compatibility.
+        //    TODO(next major): `true` should drop all empties (recursive). Pass
+        //    `removeAtTopLevelOnly` explicitly to preserve the legacy behavior.
         //  - `(key, path) => boolean` — recursive predicate; truthy drops the key
         //    bottom-up (so a parent emptied by child removal is itself a candidate).
         let removeEmptyPredicate = null;
