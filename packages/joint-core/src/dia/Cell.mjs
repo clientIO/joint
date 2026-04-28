@@ -43,9 +43,11 @@ const attributesMerger = function(a, b) {
     }
 };
 
-function removeEmptyAttributes(obj) {
+// Recursive predicate-driven removal. The predicate `(key, path) => boolean` is
+// invoked bottom-up for every empty `{}`; returning truthy drops the key. A
+// parent that becomes empty after its children are removed is itself a candidate.
+function removeEmptyAttributes(obj, predicate, path) {
 
-    // Remove toplevel empty attributes
     for (const key in obj) {
 
         const objValue = obj[key];
@@ -53,11 +55,18 @@ function removeEmptyAttributes(obj) {
 
         if (!isRealObject) continue;
 
-        if (isEmpty(objValue)) {
+        const childPath = path ? path.concat(key) : [key];
+        removeEmptyAttributes(objValue, predicate, childPath);
+
+        if (isEmpty(objValue) && predicate(key, childPath)) {
             delete obj[key];
         }
     }
 }
+
+// Default predicate for `ignoreEmptyAttributes: true` — drops top-level empties
+// only, preserving the original (pre-recursive) behavior.
+const isTopLevelEmpty = (_key, path) => path.length === 1;
 
 export const Cell = Model.extend({
 
@@ -88,13 +97,26 @@ export const Cell = Model.extend({
         const { ignoreDefaults, ignoreEmptyAttributes = false } = opt || {};
         const defaults = result(this.constructor.prototype, 'defaults');
 
+        // `ignoreEmptyAttributes`:
+        //  - `false` (default) — keep all empties.
+        //  - `true` — drop top-level empties only (sugar for the
+        //    `(key, path) => path.length === 1` predicate).
+        //  - `(key, path) => boolean` — recursive predicate; truthy drops the key
+        //    bottom-up (so a parent emptied by child removal is itself a candidate).
+        let removeEmptyPredicate = null;
+        if (typeof ignoreEmptyAttributes === 'function') {
+            removeEmptyPredicate = ignoreEmptyAttributes;
+        } else if (ignoreEmptyAttributes) {
+            removeEmptyPredicate = isTopLevelEmpty;
+        }
+
         if (ignoreDefaults === false) {
             // Return all attributes without omitting the defaults
             const finalAttributes = cloneDeep(this.attributes);
 
-            if (!ignoreEmptyAttributes) return finalAttributes;
-
-            removeEmptyAttributes(finalAttributes);
+            if (removeEmptyPredicate) {
+                removeEmptyAttributes(finalAttributes, removeEmptyPredicate);
+            }
 
             return finalAttributes;
         }
@@ -117,8 +139,8 @@ export const Cell = Model.extend({
         // Omit `id` and `type` attribute from the defaults since it should be always present
         const finalAttributes = objectDifference(attributes, omit(defaultAttributes, 'id', 'type'), { maxDepth: 4 });
 
-        if (ignoreEmptyAttributes) {
-            removeEmptyAttributes(finalAttributes);
+        if (removeEmptyPredicate) {
+            removeEmptyAttributes(finalAttributes, removeEmptyPredicate);
         }
 
         return finalAttributes;
