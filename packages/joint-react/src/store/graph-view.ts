@@ -219,8 +219,11 @@ export function graphView<
               else changed!.set(id, record);
             }
             hasChange = true;
-            if (data.isElement()) {
-              // An element move/resize affects connected links' routes.
+            // Connected-links sweep is only needed on `change` (an element
+            // moved or resized — its links' routes need re-snapshotting).
+            // On `add`, the link gets its own change-set entry from JointJS
+            // and will be written in this loop without re-ordering issues.
+            if (!isAdd && data.isElement()) {
               for (const link of graph.getConnectedLinks(data)) {
                 writeCell(link);
               }

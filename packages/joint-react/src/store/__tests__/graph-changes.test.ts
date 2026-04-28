@@ -96,6 +96,29 @@ describe('graphChanges', () => {
       expect(lastCall.changes.get('link-1')).toEqual(expect.objectContaining({ type: 'add' }));
     });
 
+    it('calls onChanges synchronously on graph reset (bypasses scheduler)', () => {
+      const { graph, onChanges } = setup();
+      addElement(graph, 'el-1');
+
+      // Reset must invoke onChanges within the same tick — callers (e.g.
+      // GraphStore constructor) rely on the cells container being
+      // observable immediately after `graph.resetCells(...)` returns.
+      onChanges.mockClear();
+      graph.resetCells([
+        {
+          id: 'reset-el',
+          type: 'element',
+          position: { x: 0, y: 0 },
+          size: { width: 50, height: 50 },
+        },
+      ]);
+
+      expect(onChanges).toHaveBeenCalledTimes(1);
+      const [[{ changes }]] = onChanges.mock.calls;
+      expect(changes.has('reset-el')).toBe(true);
+      expect(changes.has('el-1')).toBe(false);
+    });
+
     it('calls onChanges on graph reset', async () => {
       const { graph, onChanges } = setup();
       addElement(graph, 'el-1');

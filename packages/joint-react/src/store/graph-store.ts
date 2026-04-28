@@ -1,9 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import type {
-  BaseElementRecord,
-  BaseLinkRecord,
-  CellId,
-} from '../types/cell.types';
+import type { BaseElementRecord, BaseLinkRecord, CellId } from '../types/cell.types';
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
@@ -89,9 +85,7 @@ interface GraphStoreOptionsControlled<
 export type GraphStoreOptions<
   Element extends BaseElementRecord = BaseElementRecord,
   Link extends BaseLinkRecord = BaseLinkRecord,
-> =
-  | GraphStoreOptionsUncontrolled<Element, Link>
-  | GraphStoreOptionsControlled<Element, Link>;
+> = GraphStoreOptionsUncontrolled<Element, Link> | GraphStoreOptionsControlled<Element, Link>;
 
 /**
  * Central store for managing graph state, synchronization, and paper instances.
@@ -213,14 +207,11 @@ export class GraphStore<
     // Initial sync
     const seedCells = controlledCells ?? initialCells;
     if (seedCells && seedCells.length > 0) {
-      // Replace existing graph state with the seed cells. resetCells() is
-      // called directly (not through graphView.updateGraph) so the seed
-      // is treated as authoritative initial state rather than a React-side
-      // diff. syncFromGraph then populates the cells container from the
-      // resulting JointJS graph.
+      // Replace existing graph state with the seed cells. The graph-changes
+      // listener handles `reset` synchronously and populates the cells
+      // container — no manual `syncFromGraph` needed.
       const mapped = seedCells.map((cell) => mapCellToAttributes(cell, this.graph));
       this.graph.resetCells(mapped);
-      this.graphView.syncFromGraph();
     } else if (this.graph.getCells().length > 0) {
       // External graph already has cells — populate the cells container
       // directly without calling resetCells(). resetCells() would destroy
@@ -242,9 +233,7 @@ export class GraphStore<
     onIncrementalCellsChange:
       | ((changes: IncrementalCellsChange<Element, Link>) => void)
       | undefined,
-    onCellsChange:
-      | ((cells: ReadonlyArray<Element | Link>) => void)
-      | undefined
+    onCellsChange: ((cells: ReadonlyArray<Element | Link>) => void) | undefined
   ): ((changes: IncrementalCellsChange<Element, Link>) => void) | undefined {
     if (!onIncrementalCellsChange && !onCellsChange) {
       return undefined;
@@ -252,9 +241,7 @@ export class GraphStore<
     return (changes) => {
       onIncrementalCellsChange?.(changes);
       if (onCellsChange) {
-        onCellsChange(
-          this.graphView.cells.getAll() as ReadonlyArray<Element | Link>
-        );
+        onCellsChange(this.graphView.cells.getAll() as ReadonlyArray<Element | Link>);
       }
     };
   }
@@ -436,7 +423,7 @@ export class GraphStore<
     const linkChanges = clearConnectedLinkViews(paper, this.graph, String(cellId), onValidateLink);
     if (linkChanges?.size) {
       for (const [, store] of this.paperStores) {
-        if (store.paper === paper) {
+        if (store.paper == paper) {
           store.addPendingLinkChanges(linkChanges);
           break;
         }

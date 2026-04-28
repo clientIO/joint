@@ -136,15 +136,18 @@ export function graphChanges(options: Options) {
   controller.listenTo(
     graph,
     'reset',
-    (collection: mvc.Collection<dia.Cell>, { isUpdateFromReact }: JointJSEventOptions) => {
-      if (isUpdateFromReact) return;
+    (collection: mvc.Collection<dia.Cell>, eventOptions: JointJSEventOptions = {}) => {
+      if (eventOptions.isUpdateFromReact) return;
       isSyncedWithReact = true;
       changes.clear();
-      const cells = collection.models;
-      for (const cell of cells) {
+      for (const cell of collection.models) {
         changes.set(cell.id, { type: 'add', data: cell });
       }
-      onChanges({ changes, isInsideBatch: isInsideBatch() });
+      // Bypass the simpleScheduler wrapper used for normal cell events.
+      // `reset` is a one-shot bulk operation and callers (e.g. GraphStore
+      // constructor) expect the cells container to be observable
+      // synchronously after `graph.resetCells(...)` returns.
+      options.onChanges({ changes, isInsideBatch: isInsideBatch() });
     }
   );
 
