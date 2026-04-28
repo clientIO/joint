@@ -809,7 +809,7 @@ QUnit.module('cell', function(hooks) {
                     size: { width: 100, height: 50 },
                     position: { x: 0, y: 0 },
                     foo: {},
-                    bar: { baz: {} },
+                    bar: { baz: {}},
                     extraDefault: { nested: 'value' }
                 }
             });
