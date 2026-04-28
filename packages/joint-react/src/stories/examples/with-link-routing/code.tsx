@@ -152,7 +152,8 @@ function buildPreset(
   targetOffset: number,
   cornerType: LinkRoutingOrthogonalOptions['cornerType'],
   cornerRadius: number,
-  straightWhenDisconnected: boolean
+  straightWhenDisconnected: boolean,
+  perpendicular: boolean
 ) {
   const base = { mode, sourceOffset, targetOffset };
   switch (name) {
@@ -160,6 +161,7 @@ function buildPreset(
       return linkRoutingStraight({
         sourceOffset,
         targetOffset,
+        perpendicular,
       } satisfies LinkRoutingStraightOptions);
     }
     case 'orthogonal': {
@@ -212,6 +214,7 @@ function PresetPicker() {
   const [cornerType, setCornerType] = useState<LinkRoutingOrthogonalOptions['cornerType']>('cubic');
   const [cornerRadius, setCornerRadius] = useState(8);
   const [straightWhenDisconnected, setStraightWhenDisconnected] = useState(true);
+  const [perpendicular, setPerpendicular] = useState(false);
 
   const { paper } = usePaper('main-paper');
   const linkPreset = useMemo(
@@ -223,7 +226,8 @@ function PresetPicker() {
         targetOffset,
         cornerType,
         cornerRadius,
-        straightWhenDisconnected
+        straightWhenDisconnected,
+        perpendicular
       ),
     [
       preset,
@@ -233,6 +237,7 @@ function PresetPicker() {
       cornerType,
       cornerRadius,
       straightWhenDisconnected,
+      perpendicular,
     ]
   );
 
@@ -329,6 +334,22 @@ function PresetPicker() {
             </label>
           )}
         </div>
+
+        {/* Straight-specific options */}
+        {preset === 'straight' && (
+          <>
+            <div className="w-px h-5 bg-slate-300" />
+            <label className="flex items-center gap-1.5 text-slate-600 cursor-pointer">
+              <input
+                type="checkbox"
+                className="accent-indigo-500"
+                checked={perpendicular}
+                onChange={(event) => setPerpendicular(event.target.checked)}
+              />
+              <span className="text-xs">perpendicular</span>
+            </label>
+          </>
+        )}
 
         {/* Orthogonal-specific options */}
         {preset === 'orthogonal' && (

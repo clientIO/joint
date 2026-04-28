@@ -307,13 +307,7 @@ function ToolbarButton({
   );
 }
 
-function Toolbar({
-  paperRef,
-  setTransform,
-}: Readonly<{
-  paperRef: React.RefObject<dia.Paper | null>;
-  setTransform: React.Dispatch<React.SetStateAction<DOMMatrix>>;
-}>) {
+function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | null> }>) {
   const theme = useTheme();
   const { setCell } = useGraph<ElementRecord<SaasNodeData>>();
 
