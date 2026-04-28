@@ -144,7 +144,7 @@ export default function App() {
       </div>
       <GraphProvider cells={cells}>
         <Paper
-          scale={1.7}
+          transform={`scale(1.7)`}
           className={`${PAPER_CLASSNAME} h-[1400px]`}
           width="100%"
           drawGrid={false}

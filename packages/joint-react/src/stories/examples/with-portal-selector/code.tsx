@@ -189,7 +189,7 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
         {...PAPER_PROPS}
         interactive={false}
         height="100%"
-        scale={scale}
+        transform={`scale(${scale})`}
         renderElement={renderElement}
         style={{ backgroundColor: LIGHT }}
         drawGrid={false}

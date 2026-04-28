@@ -9,6 +9,14 @@ import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../..
 import type { CellVisibility } from '../../presets/cell-visibility';
 import type { Interactive } from '../../presets/interactive';
 
+/**
+ * Value accepted by the Paper `transform` prop. Strings are parsed via the
+ * native `DOMMatrix` constructor (CSS transform syntax — `scale()`,
+ * `translate()`, `rotate()`, `matrix()` etc.). `DOMMatrix` instances pass
+ * through. `SVGMatrix === DOMMatrix` in modern `lib.dom.d.ts`.
+ */
+export type PaperTransform = string | DOMMatrix;
+
 /** Context passed to the `defaultLink` factory. */
 export interface DefaultLinkContext {
   /** The source end of the connection being created. */
@@ -286,10 +294,15 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    */
   readonly className?: string;
   /**
-   * The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
+   * Sets the paper's viewport transform via `paper.matrix(...)`. Accepts
+   * either a CSS transform string (e.g. `'scale(0.5)'`,
+   * `'translate(10px, 20px) rotate(15deg)'`) or a `DOMMatrix`. Useful for
+   * zoom, minimap, and arbitrary viewport transforms.
+   * @example
+   * transform="scale(0.4)"
+   * transform={new DOMMatrix().scale(2).translate(10, 20)}
    */
-
-  readonly scale?: number;
+  readonly transform?: PaperTransform;
 
   /**
    * The threshold for click events in pixels.

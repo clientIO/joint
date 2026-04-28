@@ -31,6 +31,7 @@ import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategy
 import { canEmbed, canUnembed } from '../presets/can-embed';
 import { toNativeCellVisibility } from '../presets/cell-visibility';
 import { toNativeInteractive } from '../presets/interactive';
+import { toSVGMatrix } from '../utils/transform';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -191,7 +192,7 @@ export function useCreatePortalPaper(
     cellVisibility,
     interactive,
     useHTMLOverlay,
-    scale,
+    transform,
     portalSelector,
     options: escapeHatchOptions,
     // These are React host props and must not be forwarded to dia.Paper options.
@@ -312,7 +313,7 @@ export function useCreatePortalPaper(
       },
       renderElement,
       renderLink,
-      scale,
+      transform,
       portalSelector,
       paper: externalPaper,
     });
@@ -373,8 +374,8 @@ export function useCreatePortalPaper(
     if (gridSize !== undefined) {
       paper.setGridSize(gridSize);
     }
-    if (scale !== undefined) {
-      paper.scale(scale);
+    if (transform !== undefined) {
+      paper.matrix(toSVGMatrix(transform));
     }
   }, [
     defaultLinkCallback,
@@ -388,7 +389,7 @@ export function useCreatePortalPaper(
     paper,
     paperOptions,
     paperStore,
-    scale,
+    transform,
   ]);
 
   const elements = useMemo(() => {
