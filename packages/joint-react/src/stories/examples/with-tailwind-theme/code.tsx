@@ -1,14 +1,7 @@
-
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import { useState, useCallback, useRef } from 'react';
-import {
-  GraphProvider,
-  Paper,
-  selectElementSize,
-  useElement,
-  type Cells,
-} from '@joint/react';
+import { type ElementRecord,  type CellRecord, GraphProvider, Paper, selectElementSize, useCell } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme + Tailwind preset (maps --jj-* → Tailwind v4 variables)
@@ -37,7 +30,7 @@ const DEFAULT_LINK = {
   style: { targetMarker: 'arrow' },
 } as const;
 
-const initialCells: Cells<NodeUserData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeUserData>> = [
   {
     id: 'a',
     type: 'element',
@@ -116,8 +109,9 @@ const initialCells: Cells<NodeUserData> = [
   },
 ];
 
-function Node({ label }: NodeUserData) {
-  const { width, height } = useElement(selectElementSize);
+function Node({ label }: Readonly<NodeUserData>) {
+  const { width, height } = useCell(selectElementSize);
+
   return (
     <>
       <rect
@@ -162,7 +156,7 @@ const themeLabels: Record<Theme, string> = {
 };
 
 function Diagram() {
-  const [cells, setCells] = useState<Cells<NodeUserData>>(initialCells);
+  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeUserData>>>(initialCells);
   const [theme, setTheme] = useState<Theme>('default');
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -197,7 +191,7 @@ function Diagram() {
           </label>
         ))}
       </fieldset>
-      <GraphProvider<NodeUserData> cells={cells} onCellsChange={setCells}>
+      <GraphProvider cells={cells} onCellsChange={setCells}>
         <Paper
           className={PAPER_CLASSNAME}
           height={240}

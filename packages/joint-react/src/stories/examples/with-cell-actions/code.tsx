@@ -1,16 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useState } from 'react';
-import {
-  GraphProvider,
-  Paper,
-  useGraph,
-  HTMLHost,
-  useCells,
-  type Cells,
-  type ElementRecord,
-  type LinkRecord,
-} from '@joint/react';
+import { GraphProvider, Paper, useGraph, HTMLHost, useCells, type CellRecord, type ElementRecord, type LinkRecord, type ResolvedCellRecord, type ResolvedElementRecord } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
 
@@ -23,7 +14,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -102,7 +93,7 @@ function ElementControls({
   size: layout,
   angle,
 }: Readonly<ElementControlsProps>) {
-  const { setCell, removeCell } = useGraph<NodeData>();
+  const { setCell, removeCell } = useGraph<ElementRecord<NodeData>>();
   const inputStyle = {
     padding: '6px 10px',
     border: '1px solid rgba(0, 0, 0, 0.15)',
@@ -372,8 +363,8 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 }
 
 function AddElementForm() {
-  const { addCell } = useGraph<NodeData>();
-  const elementIds = useCells<NodeData, unknown, string[]>((cells) =>
+  const { setCell } = useGraph<ElementRecord<NodeData>>();
+  const elementIds = useCells<ResolvedCellRecord, string[]>((cells) =>
     cells.filter((c) => c.type === 'element').map((c) => String(c.id))
   );
   const [label, setLabel] = useState('');
@@ -391,7 +382,7 @@ function AddElementForm() {
     // eslint-disable-next-line sonarjs/pseudo-random -- Random position for demo purposes
     const randomY = 50 + Math.random() * 150;
 
-    addCell({
+    setCell({
       id: newId,
       type: 'element',
       data: { label: label.trim(), color: PRIMARY },
@@ -450,12 +441,12 @@ function AddElementForm() {
 }
 
 function AddLinkForm() {
-  const { addCell } = useGraph<NodeData>();
-  const elements = useCells<NodeData, unknown, Array<[string, ElementRecord<NodeData>]>>((cells) => {
-    const result: Array<[string, ElementRecord<NodeData>]> = [];
+  const { setCell } = useGraph<ElementRecord<NodeData>>();
+  const elements = useCells<ResolvedCellRecord, Array<[string, ResolvedElementRecord<NodeData>]>>((cells) => {
+    const result: Array<[string, ResolvedElementRecord<NodeData>]> = [];
     for (const cell of cells) {
       if (cell.type === 'element') {
-        result.push([String(cell.id), cell as ElementRecord<NodeData>]);
+        result.push([String(cell.id), cell as ResolvedElementRecord<NodeData>]);
       }
     }
     return result;
@@ -479,7 +470,7 @@ function AddLinkForm() {
     if (!source || !target || source === target) return;
 
     const newId = `link-${source}-${target}-${Date.now()}`;
-    addCell({
+    setCell({
       id: newId,
       type: 'link',
       source: { id: source },
@@ -510,7 +501,7 @@ function AddLinkForm() {
           <option value="">From...</option>
           {elements.map(([id, element]) => (
             <option key={id} value={id}>
-              {element.data?.label}
+              {element.data.label}
             </option>
           ))}
         </select>
@@ -522,7 +513,7 @@ function AddLinkForm() {
           <option value="">To...</option>
           {elements.map(([id, element]) => (
             <option key={id} value={id}>
-              {element.data?.label}
+              {element.data.label}
             </option>
           ))}
         </select>
@@ -548,7 +539,7 @@ function AddLinkForm() {
 
 // --- Main Component ---
 function Main() {
-  const cells = useCells<NodeData>();
+  const cells = useCells();
   const elements: Array<[string, ElementRecord<NodeData>]> = [];
   const links: Array<[string, LinkRecord]> = [];
   for (const cell of cells) {
@@ -651,7 +642,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<NodeData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

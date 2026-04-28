@@ -1,17 +1,7 @@
  
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import {
-  GraphProvider,
-  useElement,
-  Paper,
-  SVGText,
-    useGraph,
-  useMarkup,
-  usePaperEvents,
-  type Cells,
-  selectElementSize,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useMarkup, usePaperEvents, selectElementSize } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
@@ -28,7 +18,7 @@ interface NodeData {
 
 const SIZE = { width: 120, height: 40 };
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: 'server', type: 'element', data: { label: 'Server' }, position: { x: 300, y: 30 }, size: SIZE },
   { id: 'db', type: 'element', data: { label: 'Database' }, position: { x: 80, y: 120 }, size: SIZE },
   { id: 'cache', type: 'element', data: { label: 'Cache' }, position: { x: 520, y: 120 }, size: SIZE },
@@ -82,7 +72,7 @@ const DIMMED_OPACITY = 0.3;
 
 function RenderNode({ label }: Readonly<NodeData>) {
   const { selectorRef } = useMarkup();
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <g className="cursor-pointer">
       <rect

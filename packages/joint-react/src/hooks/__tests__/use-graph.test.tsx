@@ -5,9 +5,16 @@ import { useGraph } from '../use-graph';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import type { Cells, CellRecord, ElementRecord } from '../../types/cell.types';
+import type {
+  BaseElementRecord,
+  BaseLinkRecord,
+  CellRecord,
+  ElementRecord,
+} from '../../types/cell.types';
 
-const INITIAL: Cells = [
+type AnyCell = BaseElementRecord | BaseLinkRecord;
+
+const INITIAL: readonly CellRecord[] = [
   {
     id: 'a',
     type: ELEMENT_MODEL_TYPE,
@@ -36,7 +43,7 @@ const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
 // Hoisted so the nested-function-depth lint rule doesn't fire inside the
 // `await act(async () => { ... })` + `setCell(fn)` call stack.
-function shiftAXBy10(previous: CellRecord): CellRecord {
+function shiftAXBy10(previous: AnyCell): AnyCell {
   if (previous.id !== 'a') return { id: 'a', type: ELEMENT_MODEL_TYPE } as CellRecord;
   const element = previous as ElementRecord;
   return {
@@ -50,7 +57,6 @@ describe('useGraph', () => {
     const { result } = renderHook(() => useGraph(), { wrapper });
     await waitFor(() => expect(result.current).toBeDefined());
     expect(result.current.graph).toBeDefined();
-    expect(typeof result.current.addCell).toBe('function');
     expect(typeof result.current.setCell).toBe('function');
     expect(typeof result.current.removeCell).toBe('function');
     expect(typeof result.current.resetCells).toBe('function');
@@ -58,12 +64,12 @@ describe('useGraph', () => {
     expect(typeof result.current.isLink).toBe('function');
   });
 
-  describe('addCell', () => {
-    it('adds a new cell', async () => {
+  describe('setCell — add path (id missing on graph)', () => {
+    it('adds a new cell when no cell with the given id exists', async () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
       await act(async () => {
-        result.current.addCell({
+        result.current.setCell({
           id: 'c',
           type: ELEMENT_MODEL_TYPE,
           position: { x: 100, y: 0 },
@@ -72,18 +78,11 @@ describe('useGraph', () => {
         await flush();
       });
       expect(result.current.graph.getCell('c')).toBeDefined();
-    });
-
-    it('throws when id already exists', async () => {
-      const { result } = renderHook(() => useGraph(), { wrapper });
-      await waitFor(() => expect(result.current).toBeDefined());
-      expect(() =>
-        result.current.addCell({ id: 'a', type: ELEMENT_MODEL_TYPE } as CellRecord)
-      ).toThrow();
+      expect(result.current.graph.getCell('c')?.get('position')).toEqual({ x: 100, y: 0 });
     });
   });
 
-  describe('setCell', () => {
+  describe('setCell — update path (id exists)', () => {
     it('updates an existing cell via full CellRecord (id from cell.id)', async () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
@@ -108,14 +107,6 @@ describe('useGraph', () => {
         await flush();
       });
       expect(result.current.graph.getCell('a')?.get('position')).toEqual({ x: 10, y: 0 });
-    });
-
-    it('throws when id does not resolve to an existing cell', async () => {
-      const { result } = renderHook(() => useGraph(), { wrapper });
-      await waitFor(() => expect(result.current).toBeDefined());
-      expect(() =>
-        result.current.setCell({ id: 'missing', type: ELEMENT_MODEL_TYPE } as CellRecord)
-      ).toThrow();
     });
   });
 

@@ -1,7 +1,7 @@
-import type { Cells, LinkRecord } from '@joint/react';
+import { CellRecord, LinkRecord } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import type { LinkMarkerName } from '../../../theme/named-link-markers';
+import { LinkMarkerName } from '../../../theme/named-link-markers';
 import { namedLinkMarkers } from '../../../theme/named-link-markers';
 
 const LINK_LENGTH = 160;
@@ -14,7 +14,7 @@ const markerNames = Object.keys(namedLinkMarkers).filter(
   (name) => name !== 'none'
 ) as LinkMarkerName[];
 
-function buildCells(): Cells {
+function buildCells(): readonly CellRecord[] {
   const cells: LinkRecord[] = [];
 
   for (const [index, name] of markerNames.entries()) {

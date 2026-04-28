@@ -1,7 +1,11 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
-import type { CellId, CellRecord } from '../types/cell.types';
+import type {
+  BaseElementRecord,
+  BaseLinkRecord,
+  CellId,
+} from '../types/cell.types';
 import type { ElementPosition, ElementSize } from './../types/cell-data';
 import {
   mapAttributesToElement,
@@ -15,22 +19,28 @@ import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-
 import { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import { LINK_MODEL_TYPE } from '../models/link-model';
 
+/** Cell record union accepted by the unified cells stream. */
+type GraphCellUnion<
+  Element extends BaseElementRecord = BaseElementRecord,
+  Link extends BaseLinkRecord = BaseLinkRecord,
+> = Element | Link;
+
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalCellsChange<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends BaseElementRecord = BaseElementRecord,
+  Link extends BaseLinkRecord = BaseLinkRecord,
 > {
-  readonly added: Map<CellId, CellRecord<ElementData, LinkData>>;
-  readonly changed: Map<CellId, CellRecord<ElementData, LinkData>>;
+  readonly added: Map<CellId, GraphCellUnion<Element, Link>>;
+  readonly changed: Map<CellId, GraphCellUnion<Element, Link>>;
   readonly removed: Set<CellId>;
 }
 
 interface GraphViewState<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends BaseElementRecord = BaseElementRecord,
+  Link extends BaseLinkRecord = BaseLinkRecord,
 > {
   readonly graph: dia.Graph;
-  readonly onIncrementalChange?: (changes: IncrementalCellsChange<ElementData, LinkData>) => void;
+  readonly onIncrementalChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
   readonly onElementsSizeChange?: (id: CellId, size: { width: number; height: number }) => void;
 }
 
@@ -52,10 +62,13 @@ interface GraphViewState<
  * @param next - freshly mapped record from the graph
  * @returns merged record; may be `previous` itself when nothing changed
  */
-function mergeCellRecord<ElementData extends object, LinkData extends object>(
-  previous: CellRecord<ElementData, LinkData> | undefined,
-  next: CellRecord<ElementData, LinkData>
-): CellRecord<ElementData, LinkData> {
+function mergeCellRecord<
+  Element extends BaseElementRecord,
+  Link extends BaseLinkRecord,
+>(
+  previous: GraphCellUnion<Element, Link> | undefined,
+  next: GraphCellUnion<Element, Link>
+): GraphCellUnion<Element, Link> {
   if (!previous) return next;
 
   const previousRecord = previous as unknown as Record<string, unknown>;
@@ -104,7 +117,7 @@ function mergeCellRecord<ElementData extends object, LinkData extends object>(
     data: mergedData,
     position: mergedPosition,
     size: mergedSize,
-  } as unknown as CellRecord<ElementData, LinkData>;
+  } as unknown as GraphCellUnion<Element, Link>;
 }
 
 /**
@@ -117,9 +130,13 @@ function mergeCellRecord<ElementData extends object, LinkData extends object>(
  * @param cell - graph cell
  * @returns CellRecord suitable for the cells container
  */
-function toCellRecord<E extends object, L extends object>(cell: dia.Cell): CellRecord<E, L> {
+function toCellRecord<
+  Element extends BaseElementRecord,
+  Link extends BaseLinkRecord,
+>(cell: dia.Cell): GraphCellUnion<Element, Link> {
   if (cell.isElement()) {
-    const record = (mapAttributesToElement as MapAttributesToElement<E>)(cell.attributes);
+    type ElementData = Element['data'];
+    const record = (mapAttributesToElement as MapAttributesToElement<ElementData>)(cell.attributes);
     const previousPosition = record.position;
     const previousSize = record.size;
     const withDefaults = {
@@ -135,36 +152,37 @@ function toCellRecord<E extends object, L extends object>(cell: dia.Cell): CellR
         height: previousSize?.height ?? 0,
       },
       angle: record.angle ?? 0,
-      data: (record.data ?? ({} as E)) as E,
+      data: (record.data ?? {}) as ElementData,
     };
-    return withDefaults as unknown as CellRecord<E, L>;
+    return withDefaults as unknown as GraphCellUnion<Element, Link>;
   }
   if (cell.isLink()) {
-    const record = (mapAttributesToLink as MapAttributesToLink<L>)(cell.attributes);
+    type LinkData = Link['data'];
+    const record = (mapAttributesToLink as MapAttributesToLink<LinkData>)(cell.attributes);
     const withDefaults = {
       ...record,
       id: cell.id,
       type: record.type ?? LINK_MODEL_TYPE,
       source: record.source ?? {},
       target: record.target ?? {},
-      data: (record.data ?? ({} as L)) as L,
+      data: (record.data ?? {}) as LinkData,
     };
-    return withDefaults as unknown as CellRecord<E, L>;
+    return withDefaults as unknown as GraphCellUnion<Element, Link>;
   }
-  return { ...cell.attributes, id: cell.id } as unknown as CellRecord<E, L>;
+  return { ...cell.attributes, id: cell.id } as unknown as GraphCellUnion<Element, Link>;
 }
 
 export function graphView<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
->(options: GraphViewState<ElementData, LinkData>) {
+  Element extends BaseElementRecord = BaseElementRecord,
+  Link extends BaseLinkRecord = BaseLinkRecord,
+>(options: GraphViewState<Element, Link>) {
   const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
-  const cells = createContainer<CellRecord<ElementData, LinkData>>('Cells');
+  const cells = createContainer<GraphCellUnion<Element, Link>>('Cells');
 
   const trackChanges = onIncrementalChange !== undefined;
-  const added = trackChanges ? new Map<CellId, CellRecord<ElementData, LinkData>>() : undefined;
-  const changed = trackChanges ? new Map<CellId, CellRecord<ElementData, LinkData>>() : undefined;
+  const added = trackChanges ? new Map<CellId, GraphCellUnion<Element, Link>>() : undefined;
+  const changed = trackChanges ? new Map<CellId, GraphCellUnion<Element, Link>>() : undefined;
   const removed = trackChanges ? new Set<CellId>() : undefined;
 
   /**
@@ -175,10 +193,10 @@ export function graphView<
    * @param cell - graph cell
    * @returns the merged record (may be the previous reference when unchanged)
    */
-  function writeCell(cell: dia.Cell): CellRecord<ElementData, LinkData> {
+  function writeCell(cell: dia.Cell): GraphCellUnion<Element, Link> {
     cells.set(cell.id, (previous) => {
-      const next = toCellRecord<ElementData, LinkData>(cell);
-      return mergeCellRecord<ElementData, LinkData>(previous, next);
+      const next = toCellRecord<Element, Link>(cell);
+      return mergeCellRecord<Element, Link>(previous, next);
     });
     return cells.get(cell.id)!;
   }
@@ -260,7 +278,7 @@ export function graphView<
   return {
     cells: asReadonlyContainer(cells),
     syncFromGraph,
-    updateGraph(update: UpdateGraphOptions<ElementData, LinkData>) {
+    updateGraph(update: UpdateGraphOptions<Element, Link>) {
       const { cellIds } = graphChangesController.updateGraph(update);
       if (update.flag !== 'updateFromReact') return;
       if (!update.cells) return;
@@ -283,6 +301,9 @@ export function graphView<
       if (cells.getSize() > cellIds.length) {
         const userIds = new Set<CellId>(cellIds);
         for (const item of cells.getAll()) {
+          // Items inside the container always have an id; the optionality on
+          // `WithId.id` is only for input shapes.
+          if (item.id === undefined) continue;
           if (!userIds.has(item.id)) {
             cells.delete(item.id);
             hasChange = true;
@@ -299,6 +320,6 @@ export function graphView<
 }
 
 export type GraphView<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
-> = ReturnType<typeof graphView<ElementData, LinkData>>;
+  Element extends BaseElementRecord = BaseElementRecord,
+  Link extends BaseLinkRecord = BaseLinkRecord,
+> = ReturnType<typeof graphView<Element, Link>>;

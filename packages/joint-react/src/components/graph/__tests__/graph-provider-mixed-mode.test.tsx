@@ -15,7 +15,7 @@ const INITIAL_CONTROLLED_CELLS: Cells = [
     type: ELEMENT_MODEL_TYPE,
     position: { x: 0, y: 0 },
     size: { width: 10, height: 10 },
-  } as CellRecord,
+  } as CellRecord<Record<string, unknown>, Record<string, unknown>>,
 ];
 
 const INITIAL_UNCONTROLLED_CELLS: Cells = [
@@ -24,13 +24,13 @@ const INITIAL_UNCONTROLLED_CELLS: Cells = [
     type: ELEMENT_MODEL_TYPE,
     position: { x: 0, y: 0 },
     size: { width: 10, height: 10 },
-  } as CellRecord,
+  } as CellRecord<Record<string, unknown>, Record<string, unknown>>,
   {
     id: 'e2',
     type: ELEMENT_MODEL_TYPE,
     position: { x: 50, y: 50 },
     size: { width: 10, height: 10 },
-  } as CellRecord,
+  } as CellRecord<Record<string, unknown>, Record<string, unknown>>,
 ];
 
 function replaceCells(setCells: React.Dispatch<React.SetStateAction<Cells>>, next: Cells) {
@@ -51,7 +51,7 @@ describe('GraphProvider controlled / uncontrolled', () => {
       const [cells, setCells] = useState<Cells>(INITIAL_CONTROLLED_CELLS);
       externalSetCells = (next) => replaceCells(setCells, next);
       return (
-        <GraphProvider<Record<string, unknown>, Record<string, unknown>>
+        <GraphProvider
           cells={cells}
           onCellsChange={setCells as React.Dispatch<React.SetStateAction<Cells>>}
         >
@@ -71,19 +71,19 @@ describe('GraphProvider controlled / uncontrolled', () => {
           type: ELEMENT_MODEL_TYPE,
           position: { x: 0, y: 0 },
           size: { width: 10, height: 10 },
-        } as CellRecord,
+        } as CellRecord<Record<string, unknown>, Record<string, unknown>>,
         {
           id: 'e2',
           type: ELEMENT_MODEL_TYPE,
           position: { x: 50, y: 50 },
           size: { width: 10, height: 10 },
-        } as CellRecord,
+        } as CellRecord<Record<string, unknown>, Record<string, unknown>>,
         {
           id: 'l1',
           type: LINK_MODEL_TYPE,
           source: { id: 'e1' },
           target: { id: 'e2' },
-        } as CellRecord,
+        } as CellRecord<Record<string, unknown>, Record<string, unknown>>,
       ]);
     });
 

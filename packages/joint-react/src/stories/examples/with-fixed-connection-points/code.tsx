@@ -1,16 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useId, useRef } from 'react';
-import type { Cells, LinkStyle } from '@joint/react';
-import {
-  GraphProvider,
-  useElement,
-  jsx,
-  Paper,
-  resolveLinkMarker,
-  usePaperEvents,
-  selectElementSize,
-} from '@joint/react';
+import { CellRecord, LinkStyle } from '@joint/react';
+import { GraphProvider, useCell, jsx, Paper, resolveLinkMarker, usePaperEvents, selectElementSize } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, g } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -112,9 +104,9 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 }
 
 // ----------------------------------------------------------------------------
-// Initial Cells
+// Initial readonly CellRecord[]
 // ----------------------------------------------------------------------------
-const initialCells: Cells<ShapeData> = [
+const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   {
     id: 'square1',
     type: 'element',
@@ -220,7 +212,7 @@ const AnchorsHighlighter = dia.HighlighterView.extend({
 // Shapes
 // ----------------------------------------------------------------------------
 function Rectangle({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <path
@@ -247,7 +239,7 @@ function Rectangle({ label }: Readonly<ShapeData>) {
 }
 
 function Ellipse({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <ellipse
@@ -279,7 +271,7 @@ function Ellipse({ label }: Readonly<ShapeData>) {
 // ----------------------------------------------------------------------------
 // Element Rendering
 // ----------------------------------------------------------------------------
-function RenderElement(data: ShapeData) {
+function RenderElement(data: Readonly<ShapeData>) {
   switch (data.shapeType) {
     case ShapeTypes.square:
     case ShapeTypes.rectangle: {

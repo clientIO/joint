@@ -32,18 +32,19 @@
  * 1. Peer A loads page -> Gets ID "abc123"
  * 2. Peer B loads page -> Gets ID "xyz789"
  * 3. Peer A enters "xyz789" -> Connects to Peer B
- * 4. Peer A adds element -> Cells change -> Sent to Peer B via PeerJS
+ * 4. Peer A adds element -> readonly CellRecord[] change -> Sent to Peer B via PeerJS
  * 5. Peer B receives update -> Updates local cells -> Graph updates
  *
  * ============================================================================
  */
 
 import {
+  type CellRecord,
   GraphProvider,
   HTMLHost,
   Paper,
-  type Cells,
   type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -59,7 +60,7 @@ import Peer, { type DataConnection } from 'peerjs';
  */
 type ElementData = { label: string };
 
-const defaultCells: Cells<ElementData> = [
+const defaultCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -87,7 +88,7 @@ const defaultCells: Cells<ElementData> = [
 
 const NODE_STYLE = { width: 100, height: 50 };
 
-function RenderItem({ label }: ElementData) {
+function RenderItem({ label }: Readonly<ElementData>) {
   return (
     <HTMLHost className="node" style={NODE_STYLE}>
       {label}
@@ -105,7 +106,7 @@ function RenderItem({ label }: ElementData) {
  */
 interface StateSyncMessage {
   type: 'state-update';
-  cells: Cells<ElementData>;
+  cells: ReadonlyArray<CellRecord<ElementData>>;
 }
 
 /**
@@ -126,10 +127,10 @@ function createPeerJSManager(callbacks: {
   onPeerIdChange: (id: string | null) => void;
   onConnectionStatusChange: (status: ConnectionStatus) => void;
   onConnectedPeerIdChange: (id: string | null) => void;
-  onRemoteStateUpdate: (cells: Cells<ElementData>) => void;
+  onRemoteStateUpdate: (cells: ReadonlyArray<CellRecord<ElementData>>) => void;
 }): {
   connectToPeer: (remotePeerId: string) => void;
-  sendStateUpdate: (cells: Cells<ElementData>) => void;
+  sendStateUpdate: (cells: ReadonlyArray<CellRecord<ElementData>>) => void;
   isReceivingUpdate: () => boolean;
 } {
   // PeerJS connection management
@@ -141,7 +142,7 @@ function createPeerJSManager(callbacks: {
     callbacks;
 
   // Send state update to all connected peers
-  const sendStateUpdate = (cells: Cells<ElementData>) => {
+  const sendStateUpdate = (cells: ReadonlyArray<CellRecord<ElementData>>) => {
     // Don't send if we're currently receiving an update (prevent loops)
     if (isReceiving) {
       return;
@@ -323,7 +324,7 @@ function Main() {
   const [copyFeedback, setCopyFeedback] = useState(false);
 
   // Graph state managed by React — a single unified cells array.
-  const [cells, setCells] = useState<Cells<ElementData>>(defaultCells);
+  const [cells, setCells] = useState<ReadonlyArray<CellRecord<ElementData>>>(defaultCells);
 
   // Ref tracks the latest cells for stable callbacks.
   const cellsRef = useRef(cells);
@@ -344,7 +345,7 @@ function Main() {
   // When graph changes locally, send to peers.
   // Stable callback (no deps on cells) because it reads from the ref.
   const handleCellsChange = useCallback(
-    (action: React.SetStateAction<Cells<ElementData>>) => {
+    (action: React.SetStateAction<ReadonlyArray<CellRecord<ElementData>>>) => {
       setCells((previous) => {
         const next = typeof action === 'function' ? action(previous) : action;
         cellsRef.current = next;
@@ -505,7 +506,10 @@ function Main() {
       </div>
 
       {/* Graph */}
-      <GraphProvider<ElementData> cells={cells} onCellsChange={handleCellsChange}>
+      <GraphProvider
+        cells={cells}
+        onCellsChange={handleCellsChange}
+      >
         <PaperApp onAddElement={handleAddElement} onRemoveLast={handleRemoveLast} />
       </GraphProvider>
     </div>

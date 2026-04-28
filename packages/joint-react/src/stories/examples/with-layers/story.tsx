@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import { CellRecord } from '@joint/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import '../index.css';
 import Code from './code';
 import CodeRaw from './code?raw';
@@ -43,7 +44,7 @@ const graph = useMemo(() => {
 </GraphProvider>
 \`\`\`
 
-### Assigning Cells to Layers
+### Assigning readonly CellRecord[] to Layers
 
 Use the \`layer\` property on elements and links to assign them to a layer:
 

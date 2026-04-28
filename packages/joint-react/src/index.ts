@@ -22,14 +22,11 @@ export type { SVGTextProps } from './components/svg-text/svg-text';
 export { HTMLHost } from './components/html-host';
 export type { HTMLHostProps } from './components/html-host';
 export { HTMLBox } from './components/html-box';
-export type { HTMLBoxProps } from './components/html-box';
 
 // Hooks — cells API (primary)
 export { useCells } from './hooks/use-cells';
 export { useCell } from './hooks/use-cell';
 export { useCellId } from './hooks/use-cell-id';
-export { useElement } from './hooks/use-element';
-export { useLink } from './hooks/use-link';
 export { useLinkLayout } from './hooks/use-link-layout';
 export { useGraph } from './hooks/use-graph';
 export type { UseGraphResult } from './hooks/use-graph';
@@ -48,7 +45,7 @@ export { useGraphEvents } from './hooks/use-graph-events';
 // Hooks — Misc
 export { useMarkup } from './hooks/use-markup';
 
-// Cell selectors — pass to `useElement` / `useCell`
+// Cell selectors — pass to `useCell` / `useCells`
 export {
   selectElementPosition,
   selectElementSize,
@@ -68,18 +65,18 @@ export * from './state/data-mapping/cell-mapper';
 // Types — unified cells
 export type {
   CellRecord,
-  Cells,
   CellId,
-  BaseCell,
+  WithType,
   ElementRecord,
   LinkRecord,
-  CustomRecord,
   KnownCellType,
   CellTypeName,
   ResolvedCellRecord,
-  ResolvedCells,
   ResolvedElementRecord,
   ResolvedLinkRecord,
+  BaseElementRecord,
+  BaseLinkRecord,
+  CellRecordBase,
 } from './types/cell.types';
 
 // Types — geometry / presets
@@ -90,15 +87,20 @@ export type { LinkLabel } from './presets/link-labels';
 export type { PaperEventMap } from './types/event.types';
 
 // Theme
-export type { LinkMarkerName, LinkMarker, LinkMarkerRecord } from './theme/named-link-markers';
+export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
 export { resolveLinkMarker } from './theme/named-link-markers';
+export type { LinkMarkerRecord } from './presets/link-markers';
 
 // Models
 export { ElementModel, ELEMENT_MODEL_TYPE } from './models/element-model';
 export { LinkModel, LINK_MODEL_TYPE } from './models/link-model';
 export { LinkView } from './presets/link-view';
 export { PortalPaper } from './models/portal-paper';
-export type { PortalHostCell, PortalSelector, PortalSelectorContext } from './models/portal-paper.types';
+export type {
+  PortalHostCell,
+  PortalSelector,
+  PortalSelectorContext,
+} from './models/portal-paper.types';
 
 // Data mapping types
 export type { CellAttributes } from './state/data-mapping';

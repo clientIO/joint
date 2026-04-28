@@ -1,21 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { LinkRecord, Cells, LinkStyle } from '@joint/react';
-import {
-  type ElementRecord,
-  GraphProvider,
-  jsx,
-  Paper,
-  SVGText,
-  useCellId,
-  useElement,
-  useGraph,
-  useMarkup,
-  useNodesMeasuredEffect,
-  usePaper,
-  usePaperEvents,
-  selectElementSize,
-} from '@joint/react';
+import { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
+import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useNodesMeasuredEffect, usePaper, usePaperEvents, selectElementSize } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useId, useMemo, useRef } from 'react';
 import { dia, elementTools } from '@joint/core';
@@ -253,7 +239,7 @@ const initialLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: Cells<FTAData> = [...initialElements, ...initialLinks];
+const initialCells: ReadonlyArray<CellRecord<FTAData>> = [...initialElements, ...initialLinks];
 
 // ----------------------------------------------------------------------------
 // Custom Hooks
@@ -314,9 +300,9 @@ function useGatePattern() {
 // Shapes
 // ----------------------------------------------------------------------------
 function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const id = useCellId();
-  const { setCell } = useGraph<FTAData>();
+  const { setCell } = useGraph<ElementRecord<FTAData>>();
   const gatePatternUrl = useGatePattern();
   const { magnetRef } = useMarkup();
 
@@ -436,7 +422,7 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
 }
 
 function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -468,7 +454,7 @@ function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
 }
 
 function BasicEventNode(props: Readonly<BasicEvent>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const bodyPatternUrl = useElementPattern();
   const { label } = props;
   return (
@@ -502,7 +488,7 @@ function BasicEventNode(props: Readonly<BasicEvent>) {
 }
 
 function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -534,7 +520,7 @@ function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
 }
 
 function ConditioningEventNode({ label }: Readonly<ConditioningEvent>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -571,7 +557,7 @@ function ConditioningEventNode({ label }: Readonly<ConditioningEvent>) {
 // ----------------------------------------------------------------------------
 // Render Dispatcher
 // ----------------------------------------------------------------------------
-function RenderFTAElement(data: FTAData) {
+function RenderFTAElement(data: Readonly<FTAData>) {
   switch (data.type) {
     case 'IntermediateEvent': {
       return <IntermediateEventNode {...data} />;
@@ -788,7 +774,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<FTAData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

@@ -112,7 +112,9 @@ export function createContainer<T extends WithId>(_name?: string): Container<T> 
       if (index !== lastIndex) {
         const last = items[lastIndex];
         items[index] = last;
-        indexById.set(last.id, index);
+        // Stored items are always keyed by id; the optional `id` is for
+        // input shapes only.
+        indexById.set(last.id as CellId, index);
       }
       items.pop();
       indexById.delete(id);
@@ -120,14 +122,16 @@ export function createContainer<T extends WithId>(_name?: string): Container<T> 
       version++;
     },
     reset(next: readonly T[]) {
-      for (const previous of items) changes.push(previous.id);
+      // Stored items are always keyed by id; the optional `id` is for input
+      // shapes only.
+      for (const previous of items) changes.push(previous.id as CellId);
       items.length = 0;
       indexById.clear();
       let index = 0;
       for (const item of next) {
         items.push(item);
-        indexById.set(item.id, index);
-        changes.push(item.id);
+        indexById.set(item.id as CellId, index);
+        changes.push(item.id as CellId);
         index++;
       }
       version++;

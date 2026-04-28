@@ -1,6 +1,7 @@
 import { useMemo, useRef, type CSSProperties, type HTMLAttributes, type RefObject } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
-import { useElement } from '../hooks/use-element';
+import { useCell } from '../hooks/use-cell';
+import type { ResolvedElementRecord } from '../types/cell.types';
 
 /**
  * Style-neutral element host: a `<div>` inside a `<foreignObject>`.
@@ -77,7 +78,8 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
  * @param root0.style
  */
 function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
-  const { width, height } = useElement((element) => element.size);
+  const size = useCell((element: ResolvedElementRecord) => element.size);
+  const { width, height } = size ?? { width: 0, height: 0 };
   const mergedStyle = useMemo<CSSProperties>(
     () => ({ width, height, ...style }),
     [width, height, style]

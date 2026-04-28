@@ -1,20 +1,7 @@
 import { useCallback, useMemo, useState, type ChangeEvent } from 'react';
-import type { Cells, ElementPort, ElementRecord, LinkRecord } from '@joint/react';
-import {
-  GraphProvider,
-  Paper,
-  HTMLBox,
-} from '@joint/react';
-import {
-  linkMarkerArrow, linkMarkerArrowOpen, linkMarkerArrowSunken,
-  linkMarkerArrowQuill, linkMarkerArrowDouble,
-  linkMarkerCircle, linkMarkerDiamond,
-  linkMarkerLine, linkMarkerCross,
-  linkMarkerFork, linkMarkerForkClose,
-  linkMarkerMany, linkMarkerManyOptional,
-  linkMarkerOne, linkMarkerOneOptional, linkMarkerOneOrMany,
-  linkRoutingSmooth,
-} from '@joint/react/presets';
+import { CellRecord, ElementPort, ElementRecord, LinkRecord } from '@joint/react';
+import { GraphProvider, Paper, HTMLBox } from '@joint/react';
+import { linkMarkerArrow, linkMarkerArrowOpen, linkMarkerArrowSunken, linkMarkerArrowQuill, linkMarkerArrowDouble, linkMarkerCircle, linkMarkerDiamond, linkMarkerLine, linkMarkerCross, linkMarkerFork, linkMarkerForkClose, linkMarkerMany, linkMarkerManyOptional, linkMarkerOne, linkMarkerOneOptional, linkMarkerOneOrMany, linkRoutingSmooth } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const PORT_GAP = 30;
@@ -126,7 +113,7 @@ export default function App() {
   const [scale, setScale] = useState(1);
   const [links, setLinks] = useState<LinkRecord[]>(() => buildLinks(scale));
 
-  const cells = useMemo<Cells>(() => [...initialElements, ...links], [links]);
+  const cells = useMemo<readonly CellRecord[]>(() => [...initialElements, ...links], [links]);
 
   const handleScaleChange = (newScale: number) => {
     setScale(newScale);

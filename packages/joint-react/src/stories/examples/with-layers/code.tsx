@@ -2,16 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, shapes } from '@joint/core';
-import {
-  GraphProvider,
-  useElement,
-  Paper,
-  ElementModel,
-  LinkModel,
-  HTMLHost,
-    type Cells,
-    selectElementSize,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, useCell, Paper, ElementModel, LinkModel, HTMLHost, selectElementSize } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
@@ -22,8 +13,8 @@ interface LayeredElementData {
   readonly isBackground?: boolean;
 }
 
-// Cells assigned to different layers
-const initialCells: Cells<LayeredElementData> = [
+// readonly CellRecord[] assigned to different layers
+const initialCells: ReadonlyArray<CellRecord<LayeredElementData>> = [
   // Background layer elements
   {
     id: 'bg-1',
@@ -84,7 +75,7 @@ const initialCells: Cells<LayeredElementData> = [
 ];
 
 function BackgroundNode({ label, color }: Readonly<LayeredElementData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <g className="fade-in">
       <rect
@@ -126,7 +117,7 @@ function ElementNode({ label, color }: Readonly<LayeredElementData>) {
   );
 }
 
-function RenderElement(data: LayeredElementData) {
+function RenderElement(data: Readonly<LayeredElementData>) {
   if (data.isBackground) {
     return <BackgroundNode {...data} />;
   }

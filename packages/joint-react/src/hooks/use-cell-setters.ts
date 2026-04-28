@@ -2,120 +2,79 @@ import { useCallback } from 'react';
 import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { mapCellToAttributes } from '../state/data-mapping';
-import type { CellId, CellRecord, Cells } from '../types/cell.types';
+import type {
+  BaseElementRecord,
+  BaseLinkRecord,
+  CellId,
+} from '../types/cell.types';
 
 // Why no `{ isUpdateFromReact: true }` flag on these imperative setters:
 // the flag is used only by the controlled-mode `graphView.updateGraph` path
 // to break the `parent state ↔ graph` echo loop. Per-cell setters must NOT
 // suppress the listener — otherwise their mutations never reach the cells
-// container, and every hook that reads via `useCells` / `useCell` /
-// `useElement` / `useLink` returns stale data. A controlled
+// container, and every hook that reads via `useCells` / `useCell`
+// returns stale data. A controlled
 // `<input value={useCells(id).data.label}>` wired to `setCell` would reset
 // every keystroke (the bug this note guards).
 
-/**
- * Returns a function that adds one cell to the graph.
- * Throws if the id already exists.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
- * @returns memoized addCell setter
- */
-export function useAddCell<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
->() {
-  const store = useGraphStore<ElementData, LinkData>();
-  const { graph } = store;
-  return useCallback(
-    (cell: CellRecord<ElementData, LinkData>) => {
-      if (graph.getCell(cell.id)) {
-        throw new Error(`addCell: a cell with id "${String(cell.id)}" already exists`);
-      }
-      graph.addCell(mapCellToAttributes(cell, graph));
-    },
-    [graph]
-  );
-}
+/** Cell record union accepted by setters. */
+type SettableCell<
+  Element extends BaseElementRecord,
+  Link extends BaseLinkRecord,
+> = Element | Link;
+
+/** Read-only cell array used by reset/update setters. */
+type SettableCells<
+  Element extends BaseElementRecord,
+  Link extends BaseLinkRecord,
+> = ReadonlyArray<SettableCell<Element, Link>>;
 
 /**
- * Returns a function that adds many cells atomically.
- * Throws if any id already exists (pre-flight check, no partial write).
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
- * @returns memoized addCells setter
- */
-export function useAddCells<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
->() {
-  const store = useGraphStore<ElementData, LinkData>();
-  const { graph } = store;
-  return useCallback(
-    (cells: Cells<ElementData, LinkData>) => {
-      for (const cell of cells) {
-        if (graph.getCell(cell.id)) {
-          throw new Error(`addCells: a cell with id "${String(cell.id)}" already exists`);
-        }
-      }
-      graph.startBatch('react.addCells');
-      try {
-        for (const cell of cells) {
-          graph.addCell(mapCellToAttributes(cell, graph));
-        }
-      } finally {
-        graph.stopBatch('react.addCells');
-      }
-    },
-    [graph]
-  );
-}
-
-/**
- * Returns a function that updates an existing cell.
+ * Returns a function that adds-or-updates a cell.
  *
  * Accepts either:
- * - a full `CellRecord` — `cell.id` names the target and merges over the
- *   existing attributes; OR
- * - an updater `(prev: CellRecord) => CellRecord` — receives the current
- *   record (read from the cells container) and must return a record whose
- *   `id` matches. The returned record replaces-via-merge.
+ * - a full cell record — `cell.id` names the target. If a cell with that id
+ *   exists, attributes are merged over it; otherwise the cell is added.
+ * - an updater `(prev) => next` — implies the cell exists.
+ *   The updater receives the current record (read from the cells container)
+ *   and must return a record whose `id` matches the target.
  *
- * Throws when the id does not resolve to an existing cell.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
+ * Throws when the input has no `id`.
+ * @template Element - element record shape
+ * @template Link - link record shape
  * @returns memoized setCell setter
  */
 export function useSetCell<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends BaseElementRecord = BaseElementRecord,
+  Link extends BaseLinkRecord = BaseLinkRecord,
 >() {
-  const store = useGraphStore<ElementData, LinkData>();
+  const store = useGraphStore<Element, Link>();
   const { graph } = store;
   return useCallback(
     (
       input:
-        | CellRecord<ElementData, LinkData>
-        | ((
-            previous: CellRecord<ElementData, LinkData>
-          ) => CellRecord<ElementData, LinkData>)
+        | SettableCell<Element, Link>
+        | ((previous: SettableCell<Element, Link>) => SettableCell<Element, Link>)
     ) => {
       const next = resolveSetCellInput(input, store);
-      const previous = store.graphView.cells.get(next.id);
-      if (!previous) {
-        throw new Error(`setCell: no cell with id "${String(next.id)}"`);
+      if (next.id === undefined) {
+        throw new Error('setCell: input record must have an `id` to identify the target cell');
       }
+      const previous = store.graphView.cells.get(next.id);
+      const diaCell = graph.getCell(next.id);
+      // Add path: no existing cell — map the input directly and add it.
+      if (!previous || !diaCell) {
+        graph.addCell(mapCellToAttributes(next, graph));
+        return;
+      }
+      // Update path: merge over the existing record, preserving id/type.
       const merged = {
         ...previous,
         ...next,
         id: previous.id,
         type: previous.type,
-      } as CellRecord<ElementData, LinkData>;
+      } as SettableCell<Element, Link>;
       const attributes = mapCellToAttributes(merged, graph);
-      const diaCell = graph.getCell(next.id);
-      if (!diaCell) {
-        graph.addCell(attributes);
-        return;
-      }
       diaCell.set(attributes as dia.Cell.Attributes);
     },
     [graph, store]
@@ -123,7 +82,7 @@ export function useSetCell<
 }
 
 /**
- * Resolves a `setCell` input to a concrete `CellRecord`.
+ * Resolves a `setCell` input to a concrete cell record.
  *
  * Function form: runs the updater with the current record read from the cells
  * container. Throws if the updater is called for an id that doesn't resolve
@@ -138,31 +97,30 @@ export function useSetCell<
  * an id out of thin air, so the updater must return a cell whose `id`
  * identifies the target. We call the updater once with `previous` read by
  * the caller (below), so its return `id` must equal `previous.id`.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
- * @param input - direct CellRecord or `(prev) => CellRecord` updater
+ * @template Element - element record shape
+ * @template Link - link record shape
+ * @param input - direct cell record or `(prev) => next` updater
  * @param store - graph store used to read `prev` for the updater form
- * @returns resolved CellRecord
+ * @returns resolved cell record
  */
 function resolveSetCellInput<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends BaseElementRecord,
+  Link extends BaseLinkRecord,
 >(
   input:
-    | CellRecord<ElementData, LinkData>
-    | ((
-        previous: CellRecord<ElementData, LinkData>
-      ) => CellRecord<ElementData, LinkData>),
-  store: ReturnType<typeof useGraphStore<ElementData, LinkData>>
-): CellRecord<ElementData, LinkData> {
+    | SettableCell<Element, Link>
+    | ((previous: SettableCell<Element, Link>) => SettableCell<Element, Link>),
+  store: ReturnType<typeof useGraphStore<Element, Link>>
+): SettableCell<Element, Link> {
   if (typeof input !== 'function') return input;
   // Updater form: we need `previous` to call it. Without an explicit id the
   // only way to discover the target is to require that the updater's
   // returned record identifies itself — so we first call with an empty-id
   // placeholder, look up the real previous by the returned id, then invoke
   // the updater again with the actual previous.
-  const placeholder = { id: '', type: '' } as unknown as CellRecord<ElementData, LinkData>;
+  const placeholder = { id: '', type: '' } as unknown as SettableCell<Element, Link>;
   const firstPass = input(placeholder);
+  if (firstPass.id === undefined) return firstPass;
   const previous = store.graphView.cells.get(firstPass.id);
   if (!previous) return firstPass;
   return input(previous);
@@ -211,44 +169,48 @@ export function useRemoveCells() {
 /**
  * Returns a function that atomically replaces all cells.
  * Accepts either a new array or an updater receiving the current snapshot.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
+ * Maps the next cells through `mapCellToAttributes` and calls
+ * `graph.resetCells` directly — equivalent to JointJS' bulk-reset semantics.
+ * @template Element - element record shape
+ * @template Link - link record shape
  * @returns memoized resetCells setter
  */
 export function useResetCells<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends BaseElementRecord = BaseElementRecord,
+  Link extends BaseLinkRecord = BaseLinkRecord,
 >() {
-  const store = useGraphStore<ElementData, LinkData>();
+  const store = useGraphStore<Element, Link>();
+  const { graph } = store;
   return useCallback(
     (
       input:
-        | Cells<ElementData, LinkData>
-        | ((previous: Cells<ElementData, LinkData>) => Cells<ElementData, LinkData>)
+        | SettableCells<Element, Link>
+        | ((previous: SettableCells<Element, Link>) => SettableCells<Element, Link>)
     ) => {
-      const current = store.graphView.cells.getAll() as Cells<ElementData, LinkData>;
+      const current = store.graphView.cells.getAll() as SettableCells<Element, Link>;
       const next = typeof input === 'function' ? input(current) : input;
-      store.applyControlled(next);
+      const mapped: dia.Cell.JSON[] = next.map((cell) => mapCellToAttributes(cell, graph));
+      graph.resetCells(mapped);
     },
-    [store]
+    [graph, store]
   );
 }
 
 /**
  * Returns a function that applies an updater to the current cells array.
  * Shorthand for `resetCells(prev => updater(prev))` — removals happen via `filter`.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
+ * @template Element - element record shape
+ * @template Link - link record shape
  * @returns memoized updateCells setter
  */
 export function useUpdateCells<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends BaseElementRecord = BaseElementRecord,
+  Link extends BaseLinkRecord = BaseLinkRecord,
 >() {
-  const store = useGraphStore<ElementData, LinkData>();
+  const store = useGraphStore<Element, Link>();
   return useCallback(
-    (updater: (previous: Cells<ElementData, LinkData>) => Cells<ElementData, LinkData>) => {
-      const current = store.graphView.cells.getAll() as Cells<ElementData, LinkData>;
+    (updater: (previous: SettableCells<Element, Link>) => SettableCells<Element, Link>) => {
+      const current = store.graphView.cells.getAll() as SettableCells<Element, Link>;
       store.applyControlled(updater(current));
     },
     [store]

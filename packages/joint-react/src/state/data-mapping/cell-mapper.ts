@@ -1,6 +1,10 @@
 import type { dia } from '@joint/core';
-import type { CellRecord } from '../../types/cell.types';
-import type { ElementRecord, LinkRecord } from '../../types/data-types';
+import type {
+  BaseElementRecord,
+  BaseLinkRecord,
+  ElementRecord,
+  LinkRecord,
+} from '../../types/cell.types';
 import { isElementType, isLinkType } from '../../utils/cell-type';
 import { mapElementToAttributes } from './element-mapper';
 import { mapLinkToAttributes } from './link-mapper';
@@ -26,19 +30,27 @@ import { mapLinkToAttributes } from './link-mapper';
  * @returns JointJS cell attributes with `id` guaranteed
  */
 export function mapCellToAttributes<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
->(cell: CellRecord<ElementData, LinkData>, graph: dia.Graph): dia.Cell.JSON {
-  if (isElementType(cell.type, graph)) {
-    const attributes = mapElementToAttributes(cell as ElementRecord<ElementData>) as dia.Cell.JSON;
-    attributes.id = cell.id;
+  Element extends BaseElementRecord = BaseElementRecord,
+  Link extends BaseLinkRecord = BaseLinkRecord,
+>(cell: Element | Link, graph: dia.Graph): dia.Cell.JSON {
+  // `BaseElementRecord` / `BaseLinkRecord` only declare `id`; the discriminator
+  // `type` lives on `WithType` (which `ElementRecord` / `LinkRecord` extend).
+  // Read it through a narrow cast so the index signature
+  // (`[key: string]: unknown`) doesn't widen `cell.type` to `unknown`.
+  const cellType = (cell as { readonly type?: string }).type;
+  if (cellType !== undefined && isElementType(cellType, graph)) {
+    const attributes = mapElementToAttributes(
+      cell as ElementRecord<Element['data']>
+    ) as dia.Cell.JSON;
+    if (cell.id !== undefined) attributes.id = cell.id;
     return attributes;
   }
-  if (isLinkType(cell.type, graph)) {
-    const attributes = mapLinkToAttributes(cell as LinkRecord<LinkData>) as dia.Cell.JSON;
-    attributes.id = cell.id;
+  if (cellType !== undefined && isLinkType(cellType, graph)) {
+    const attributes = mapLinkToAttributes(cell as LinkRecord<Link['data']>) as dia.Cell.JSON;
+    if (cell.id !== undefined) attributes.id = cell.id;
     return attributes;
   }
-  // fallback for unrecognized types: pass through verbatim (but ensure `id` is present)
-  return { ...cell, id: cell.id };
+  // fallback for unrecognized types: pass through verbatim (id may be omitted —
+  // JointJS will assign one).
+  return { ...cell } as dia.Cell.JSON;
 }

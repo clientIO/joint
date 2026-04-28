@@ -6,9 +6,9 @@ import { useCell } from '../use-cell';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import type { Cells, CellRecord } from '../../types/cell.types';
+import type { CellRecord } from '../../types/cell.types';
 
-const initialCells: Cells = [
+const initialCells: readonly CellRecord[] = [
   {
     id: 'a',
     type: ELEMENT_MODEL_TYPE,
@@ -31,19 +31,23 @@ const initialCells: Cells = [
   } as CellRecord,
 ];
 
-function ReadCell({ onRead }: { readonly onRead: (cell: CellRecord) => void }) {
+function ReadCell({
+  onRead,
+}: {
+  readonly onRead: (cell: CellRecord | undefined) => void;
+}) {
   const cell = useCell();
   onRead(cell);
   return null;
 }
 
-const NOOP_READ: (cell: CellRecord) => void = () => {};
+const NOOP_READ: (cell: CellRecord | undefined) => void = () => {};
 
 interface CaptureState {
   cell: CellRecord | undefined;
 }
 const captureState: CaptureState = { cell: undefined };
-function captureCell(cell: CellRecord) {
+function captureCell(cell: CellRecord | undefined) {
   captureState.cell = cell;
 }
 function resetCapturedCell() {
@@ -101,7 +105,7 @@ describe('useCell (id argument form)', () => {
   it('returns the cell record for an explicit id without needing context', async () => {
     const { result } = renderHook(() => useCell('a'), { wrapper: plainWrapper });
     await act(async () => flush());
-    expect(result.current.id).toBe('a');
+    expect(result.current?.id).toBe('a');
   });
 
   it('selector form returns the selected slice', async () => {
@@ -127,7 +131,7 @@ describe('useCell (id argument form)', () => {
     }
     function Consumer() {
       const cell = useCell('a');
-      renderSpy(cell.id);
+      renderSpy(cell?.id);
       return null;
     }
     renderHook(() => null, {

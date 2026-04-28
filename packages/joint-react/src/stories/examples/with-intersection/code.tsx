@@ -1,15 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  GraphProvider,
-  useGraph,
-  Paper,
-  useCellId,
-  HTMLBox,
-  useCells,
-  type Cells,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, useGraph, Paper, useCellId, HTMLBox, useCells } from '@joint/react';
 import '../index.css';
-import type { dia } from '@joint/core';
+import { dia } from '@joint/core';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 interface NodeData {
@@ -17,7 +9,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 200, y: 100 } },

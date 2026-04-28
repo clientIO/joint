@@ -1,12 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import {
-  GraphProvider,
-  Paper,
-  useCells,
-  type Cells,
-  type ElementRecord,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, useCells, type ElementRecord, type ResolvedElementRecord } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
@@ -16,7 +10,10 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialCells: Cells<NodeData> = [
+type MyElement = ElementRecord<NodeData>;
+type MyResolvedElement = ResolvedElementRecord<NodeData>;
+
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -38,7 +35,7 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function LabelEditor({ id, label }: Readonly<{ id: string; label: string }>) {
-  const { setCell } = useGraph<NodeData>();
+  const { setCell } = useGraph<MyElement>();
   return (
     <input
       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -46,7 +43,7 @@ function LabelEditor({ id, label }: Readonly<{ id: string; label: string }>) {
       value={label}
       onChange={(event) =>
         setCell((previous) => {
-          const previousElement = previous as ElementRecord<NodeData>;
+          const previousElement = previous as MyElement;
           return {
             ...previousElement,
             id,
@@ -54,7 +51,7 @@ function LabelEditor({ id, label }: Readonly<{ id: string; label: string }>) {
               ...(previousElement.data ?? { label: '', color: '#4f46e5' }),
               label: event.target.value,
             },
-          } as ElementRecord<NodeData>;
+          } as MyElement;
         })
       }
     />
@@ -62,9 +59,9 @@ function LabelEditor({ id, label }: Readonly<{ id: string; label: string }>) {
 }
 
 function Main() {
-  const { isElement } = useGraph<NodeData>();
-  const elements = useCells<NodeData, unknown, ReadonlyArray<ElementRecord<NodeData>>>(
-    (cells) => cells.filter((cell) => isElement(cell)) as ReadonlyArray<ElementRecord<NodeData>>
+  const { isElement } = useGraph<MyElement>();
+  const elements = useCells<MyResolvedElement, ReadonlyArray<MyResolvedElement>>(
+    (cells) => cells.filter((cell) => isElement(cell))
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
@@ -74,7 +71,7 @@ function Main() {
           <LabelEditor
             key={String(element.id)}
             id={String(element.id)}
-            label={element.data?.label ?? ''}
+            label={element.data.label}
           />
         ))}
       </div>

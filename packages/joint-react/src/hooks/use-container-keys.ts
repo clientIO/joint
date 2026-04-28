@@ -37,7 +37,9 @@ export function useContainerKeys<T extends WithId>(container: ReadonlyContainer<
 
     const currentKeys: CellId[] = Array.from({ length: items.length });
     for (const [index, item] of items.entries()) {
-      currentKeys[index] = item.id;
+      // Items inside the container always have an id (the container is keyed
+      // by id) — the optionality on `WithId.id` exists only for input shapes.
+      currentKeys[index] = item.id as CellId;
     }
 
     previousKeysRef.current = currentKeys;

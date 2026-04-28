@@ -1,17 +1,13 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { useGraphStore } from './use-graph-store';
-import type {
-  CellId,
-  ResolvedCellRecord,
-  ResolvedCells,
-} from '../types/cell.types';
+import type { CellId, CellRecordBase, ResolvedCellRecord } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
 
 /** Union of all possible `useCells` return shapes (depends on argument form). */
-type UseCellsResult<ElementData, LinkData, Selected> =
-  | ResolvedCells<ElementData, LinkData>
-  | ResolvedCellRecord<ElementData, LinkData>
+type UseCellsResult<Cell extends CellRecordBase, Selected> =
+  | readonly Cell[]
+  | Cell
   | undefined
   | Selected;
 
@@ -63,6 +59,23 @@ function arrayResultEqual(a: unknown, b: unknown): boolean {
 }
 
 /**
+ * Shallow equality with an array-aware fallthrough: when both inputs are
+ * arrays, compare them shallowly by length and element identity; otherwise
+ * fall back to `Object.is`. Lets selectors that return arrays
+ * (e.g. `cells.map(c => c.id)`) keep a stable reference across renders when
+ * no element changed.
+ * @param a - previous result
+ * @param b - next result
+ * @returns true when both inputs are equal under shallow array or `Object.is`
+ */
+function arrayAwareEqual(a: unknown, b: unknown): boolean {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return areArraysShallowEqual(a, b);
+  }
+  return Object.is(a, b);
+}
+
+/**
  * Picks the cells named by `subscribedIds` out of the container in order.
  * Missing ids are skipped. Module-scoped so the closure does not nest inside
  * `useCells.select`.
@@ -70,11 +83,11 @@ function arrayResultEqual(a: unknown, b: unknown): boolean {
  * @param subscribedIds - cell ids to pick
  * @returns array of resolved cells in id order (missing ids omitted)
  */
-function pickCells<ElementData, LinkData>(
-  container: ReadonlyContainer<ResolvedCellRecord<ElementData, LinkData>>,
+function pickCells<Cell extends CellRecordBase>(
+  container: ReadonlyContainer<Cell>,
   subscribedIds: readonly CellId[]
-): ResolvedCells<ElementData, LinkData> {
-  const picked: Array<ResolvedCellRecord<ElementData, LinkData>> = [];
+): readonly Cell[] {
+  const picked: Cell[] = [];
   for (const id of subscribedIds) {
     const cell = container.get(id);
     if (cell !== undefined) picked.push(cell);
@@ -92,20 +105,18 @@ function pickCells<ElementData, LinkData>(
  * @param cellSelector - selector for the single-id form (optional)
  * @returns selected value or raw cell / cells
  */
-function computeNext<ElementData, LinkData, Selected>(
-  container: ReadonlyContainer<ResolvedCellRecord<ElementData, LinkData>>,
+function computeNext<Cell extends CellRecordBase, Selected>(
+  container: ReadonlyContainer<Cell>,
   targetId: CellId | undefined,
   subscribedIds: readonly CellId[] | undefined,
-  arraySelector: ((cells: ResolvedCells<ElementData, LinkData>) => Selected) | undefined,
-  cellSelector:
-    | ((cell: ResolvedCellRecord<ElementData, LinkData> | undefined) => Selected)
-    | undefined
-): UseCellsResult<ElementData, LinkData, Selected> {
+  arraySelector: ((cells: readonly Cell[]) => Selected) | undefined,
+  cellSelector: ((cell: Cell | undefined) => Selected) | undefined
+): UseCellsResult<Cell, Selected> {
   if (targetId !== undefined) {
     const cell = container.get(targetId);
     return cellSelector ? cellSelector(cell) : cell;
   }
-  const source: ResolvedCells<ElementData, LinkData> =
+  const source: readonly Cell[] =
     subscribedIds && subscribedIds.length > 0
       ? pickCells(container, subscribedIds)
       : container.getAll();
@@ -113,15 +124,11 @@ function computeNext<ElementData, LinkData, Selected>(
 }
 
 /** Normalised arguments after dispatching by the runtime call shape. */
-interface ParsedUseCellsArgs<ElementData, LinkData, Selected> {
+interface ParsedUseCellsArgs<Cell extends CellRecordBase, Selected> {
   readonly targetId: CellId | undefined;
   readonly ids: readonly CellId[] | undefined;
-  readonly arraySelector:
-    | ((cells: ResolvedCells<ElementData, LinkData>) => Selected)
-    | undefined;
-  readonly cellSelector:
-    | ((cell: ResolvedCellRecord<ElementData, LinkData> | undefined) => Selected)
-    | undefined;
+  readonly arraySelector: ((cells: readonly Cell[]) => Selected) | undefined;
+  readonly cellSelector: ((cell: Cell | undefined) => Selected) | undefined;
   readonly userIsEqual: ((a: Selected, b: Selected) => boolean) | undefined;
 }
 
@@ -133,17 +140,17 @@ interface ParsedUseCellsArgs<ElementData, LinkData, Selected> {
  * @param argument3 - third positional arg (isEqual when the form admits it)
  * @returns the normalised input
  */
-function parseUseCellsArgs<ElementData, LinkData, Selected>(
+function parseUseCellsArgs<Cell extends CellRecordBase, Selected>(
   argument1?:
     | CellId
     | readonly CellId[]
-    | ((cells: ResolvedCells<ElementData, LinkData>) => Selected),
+    | ((cells: readonly Cell[]) => Selected),
   argument2?:
-    | ((cells: ResolvedCells<ElementData, LinkData>) => Selected)
-    | ((cell: ResolvedCellRecord<ElementData, LinkData> | undefined) => Selected)
+    | ((cells: readonly Cell[]) => Selected)
+    | ((cell: Cell | undefined) => Selected)
     | ((a: Selected, b: Selected) => boolean),
   argument3?: (a: Selected, b: Selected) => boolean
-): ParsedUseCellsArgs<ElementData, LinkData, Selected> {
+): ParsedUseCellsArgs<Cell, Selected> {
   const isIdsArray = Array.isArray(argument1);
   const isSelectorFirst = typeof argument1 === 'function';
   const isSingleId = !isIdsArray && !isSelectorFirst && argument1 !== undefined;
@@ -156,7 +163,7 @@ function parseUseCellsArgs<ElementData, LinkData, Selected>(
     return {
       targetId,
       ids,
-      arraySelector: argument1 as (cells: ResolvedCells<ElementData, LinkData>) => Selected,
+      arraySelector: argument1 as (cells: readonly Cell[]) => Selected,
       cellSelector: undefined,
       userIsEqual:
         typeof argument2 === 'function'
@@ -170,7 +177,7 @@ function parseUseCellsArgs<ElementData, LinkData, Selected>(
       ids,
       arraySelector:
         typeof argument2 === 'function'
-          ? (argument2 as (cells: ResolvedCells<ElementData, LinkData>) => Selected)
+          ? (argument2 as (cells: readonly Cell[]) => Selected)
           : undefined,
       cellSelector: undefined,
       userIsEqual: typeof argument3 === 'function' ? argument3 : undefined,
@@ -181,9 +188,7 @@ function parseUseCellsArgs<ElementData, LinkData, Selected>(
       targetId,
       ids,
       arraySelector: undefined,
-      cellSelector: argument2 as (
-        cell: ResolvedCellRecord<ElementData, LinkData> | undefined
-      ) => Selected,
+      cellSelector: argument2 as (cell: Cell | undefined) => Selected,
       userIsEqual: typeof argument3 === 'function' ? argument3 : undefined,
     };
   }
@@ -196,44 +201,42 @@ function parseUseCellsArgs<ElementData, LinkData, Selected>(
   };
 }
 
-
 /**
  * Subscribe to the full cells array.
  *
  * Returned array reference is stable across data-only mutations (the internal
  * container mutates items in-place). Size changes produce a new snapshot token.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
+ * @template Cell - resolved cell record shape (defaults to ResolvedCellRecord)
  * @returns readonly resolved cells array
  */
 export function useCells<
-  ElementData = unknown,
-  LinkData = unknown,
->(): ResolvedCells<ElementData, LinkData>;
+  Cell extends CellRecordBase = ResolvedCellRecord,
+>(): readonly Cell[];
 /**
  * Subscribe to a single cell by id.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
+ * @template Cell - resolved cell record shape (defaults to ResolvedCellRecord)
  * @param id - cell id to track
  * @returns current resolved cell, or undefined when missing
  */
-export function useCells<ElementData = unknown, LinkData = unknown>(
+export function useCells<Cell extends CellRecordBase = ResolvedCellRecord>(
   id: CellId
-): ResolvedCellRecord<ElementData, LinkData> | undefined;
+): Cell | undefined;
 /**
  * Subscribe to a single cell by id and derive a value from it. Subscribes
  * only to that id so unrelated mutations don't trigger re-renders.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
- * @template Selected - selector return type
+ * @template Cell - resolved cell record shape (defaults to ResolvedCellRecord)
+ * @template Selected - selector return type (defaults to `Cell | undefined`)
  * @param id - cell id to track
  * @param selector - derive a value from the cell (or `undefined` when missing)
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<ElementData, LinkData, Selected>(
+export function useCells<
+  Cell extends CellRecordBase = ResolvedCellRecord,
+  Selected = Cell | undefined,
+>(
   id: CellId,
-  selector: (cell: ResolvedCellRecord<ElementData, LinkData> | undefined) => Selected,
+  selector: (cell: Cell | undefined) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 /**
@@ -245,71 +248,66 @@ export function useCells<ElementData, LinkData, Selected>(
  * Cannot be unified with the `(id)` overload because the argument shape
  * (`CellId` vs `readonly CellId[]`) drives the return shape (single record
  * vs array of records).
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
+ * @template Cell - resolved cell record shape (defaults to ResolvedCellRecord)
  * @param ids - cell ids to track
  * @returns array of resolved cells (only those that exist; missing ids are skipped)
  */
-export function useCells<ElementData = unknown, LinkData = unknown>(
+export function useCells<Cell extends CellRecordBase = ResolvedCellRecord>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   ids: readonly CellId[]
-): ResolvedCells<ElementData, LinkData>;
+): readonly Cell[];
 /**
  * Subscribe to a specific set of cells by id and derive a value from them.
  * Subscribes only to those ids; the selector receives the picked cells array.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
- * @template Selected - selector return type
+ * @template Cell - resolved cell record shape (defaults to ResolvedCellRecord)
+ * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param ids - cell ids to track
  * @param selector - derive a value from the picked resolved cells array
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<ElementData, LinkData, Selected>(
+export function useCells<
+  Cell extends CellRecordBase = ResolvedCellRecord,
+  Selected = readonly Cell[],
+>(
   ids: readonly CellId[],
-  selector: (cells: ResolvedCells<ElementData, LinkData>) => Selected,
+  selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 /**
  * Subscribe via a selector. Runs on every commit; return equal values to skip re-render.
- * @template ElementData - user data shape on elements
- * @template LinkData - user data shape on links
- * @template Selected - selector return type
+ * @template Cell - resolved cell record shape (defaults to ResolvedCellRecord)
+ * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param selector - derive a value from the resolved cells array
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<ElementData, LinkData, Selected>(
-  selector: (cells: ResolvedCells<ElementData, LinkData>) => Selected,
+export function useCells<
+  Cell extends CellRecordBase = ResolvedCellRecord,
+  Selected = readonly Cell[],
+>(
+  selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
-export function useCells<ElementData, LinkData, Selected>(
-  argument1?:
-    | CellId
-    | readonly CellId[]
-    | ((cells: ResolvedCells<ElementData, LinkData>) => Selected),
+export function useCells<
+  Cell extends CellRecordBase = ResolvedCellRecord,
+  Selected = readonly Cell[],
+>(
+  argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
   argument2?:
-    | ((cells: ResolvedCells<ElementData, LinkData>) => Selected)
-    | ((cell: ResolvedCellRecord<ElementData, LinkData> | undefined) => Selected)
+    | ((cells: readonly Cell[]) => Selected)
+    | ((cell: Cell | undefined) => Selected)
     | ((a: Selected, b: Selected) => boolean),
   argument3?: (a: Selected, b: Selected) => boolean
-): UseCellsResult<ElementData, LinkData, Selected> {
-  const store = useGraphStore<
-    ElementData extends object ? ElementData : Record<string, unknown>,
-    LinkData extends object ? LinkData : Record<string, unknown>
-  >();
-  // The container's element type uses the conditional fallback above, but its
-  // runtime shape is identical to ReadonlyContainer<ResolvedCellRecord<E, L>>
-  // — JointJS / `elementAttributes` / `linkAttributes` defaults guarantee
-  // every framework-populated field is set before a record reaches the
-  // container. We bridge the two with a single cast.
-  const container = store.graphView.cells as ReadonlyContainer<
-    ResolvedCellRecord<ElementData, LinkData>
-  >;
+): UseCellsResult<Cell, Selected> {
+  const store = useGraphStore();
+  // The runtime container holds resolved cell records; `Cell extends
+  // ResolvedCellRecord` is structurally compatible. Bridge the typed
+  // store value to the caller's `Cell` view with a single cast.
+  const container = store.graphView.cells as unknown as ReadonlyContainer<Cell>;
 
   const { targetId, ids, arraySelector, cellSelector, userIsEqual } = parseUseCellsArgs<
-    ElementData,
-    LinkData,
+    Cell,
     Selected
   >(argument1, argument2, argument3);
   const hasSelector = arraySelector !== undefined || cellSelector !== undefined;
@@ -319,7 +317,7 @@ export function useCells<ElementData, LinkData, Selected>(
   const cellSelectorRef = useRef(cellSelector);
   cellSelectorRef.current = cellSelector;
 
-  type Result = UseCellsResult<ElementData, LinkData, Selected>;
+  type Result = UseCellsResult<Cell, Selected>;
   const cachedRef = useRef<{ hasValue: boolean; value: Result }>({
     hasValue: false,
     value: undefined,
@@ -358,15 +356,19 @@ export function useCells<ElementData, LinkData, Selected>(
   }, [container, targetId]);
 
   // For ids-only (no selector), default to shallow array equality so the
-  // returned array reference stays stable when no picked cell changed.
+  // returned array reference stays stable when no picked cell changed. When
+  // a selector is provided, fall back to an array-aware equality so selectors
+  // that return arrays (e.g. `cells.map(c => c.id)`) also stay reference-
+  // stable when their elements didn't change.
   const isEqual = useMemo<UnknownEqual>(() => {
     if (userIsEqual) return wrapUserIsEqual(userIsEqual);
     if (ids && !hasSelector) return arrayResultEqual;
+    if (hasSelector) return arrayAwareEqual;
     return Object.is;
   }, [userIsEqual, ids, hasSelector]);
 
   const select = useCallback((): Result => {
-    const next = computeNext<ElementData, LinkData, Selected>(
+    const next = computeNext<Cell, Selected>(
       container,
       targetId,
       idsRef.current,

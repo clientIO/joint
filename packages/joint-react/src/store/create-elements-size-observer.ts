@@ -13,7 +13,7 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell.types';
 import type { ElementLayout } from '../types/cell-data';
-import type { ElementRecord } from '../types/data-types';
+import type { ElementRecord } from '../types/cell.types';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // Epsilon value to avoid jitter due to sub-pixel rendering

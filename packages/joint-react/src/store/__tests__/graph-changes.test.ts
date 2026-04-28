@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
 import { graphChanges } from '../graph-changes';
-import type { CellRecord, Cells } from '../../types/cell.types';
+import type { CellRecord } from '../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 
@@ -240,7 +240,7 @@ describe('graphChanges', () => {
   describe('updateGraph', () => {
     it('syncs a unified cells array to the graph', () => {
       const { graph, controller } = setup();
-      const cells: Cells = [
+      const cells: readonly CellRecord[] = [
         {
           id: 'el-1',
           type: ELEMENT_MODEL_TYPE,
@@ -266,7 +266,7 @@ describe('graphChanges', () => {
 
     it('routes links and elements through the unified cells input', () => {
       const { graph, controller } = setup();
-      const cells: Cells = [
+      const cells: readonly CellRecord[] = [
         {
           id: 'a',
           type: ELEMENT_MODEL_TYPE,
@@ -324,7 +324,7 @@ describe('graphChanges', () => {
 
     it('returns the ids of synced cells', () => {
       const { controller } = setup();
-      const cells: Cells = [
+      const cells: readonly CellRecord[] = [
         {
           id: 'el-1',
           type: ELEMENT_MODEL_TYPE,

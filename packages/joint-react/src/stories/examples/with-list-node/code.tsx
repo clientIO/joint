@@ -3,15 +3,7 @@
 
 import '../index.css';
 import { useCallback, useRef, type PropsWithChildren } from 'react';
-import {
-  GraphProvider,
-  Paper,
-  useCellId,
-  useMeasureNode,
-  type Cells,
-  type ElementRecord,
-  type OnTransformElement,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, useCellId, useMeasureNode, type ElementRecord, type OnTransformElement } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
@@ -20,7 +12,7 @@ interface ListNodeData {
   readonly inputs: string[];
 }
 
-const initialCells: Cells<ListNodeData> = [
+const initialCells: ReadonlyArray<CellRecord<ListNodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -62,7 +54,7 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
 
   const { width, height } = useMeasureNode(elementRef, { transform });
 
-  const { setCell } = useGraph<ListNodeData>();
+  const { setCell } = useGraph<ElementRecord<ListNodeData>>();
 
   const addInput = () => {
     setCell((previous) => {

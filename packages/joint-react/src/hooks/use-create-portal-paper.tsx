@@ -107,13 +107,15 @@ function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink'
       : defaultLink;
     const LinkModelCtor = getLinkModelConstructor(graph);
     if (!link) {
-      return new LinkModelCtor(mapLinkToAttributes({}));
+      return new LinkModelCtor(mapLinkToAttributes({ type: LINK_MODEL_TYPE }));
     }
     if (link instanceof dia.Link) {
       if (isFactory) return link;
       return link.clone();
     }
-    return new LinkModelCtor(mapLinkToAttributes(link));
+    return new LinkModelCtor(
+      mapLinkToAttributes({ type: LINK_MODEL_TYPE, ...link } as LinkRecord)
+    );
   };
 }
 
@@ -121,7 +123,7 @@ function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink'
  * Portals custom link content into the resolved link view container.
  * Subscribes only to the link's `data` slice — source / target / endpoint
  * updates don't re-invoke the user renderer. If a renderer needs the full
- * link record (source/target/id), use `useLink()` or `useCellId()` from
+ * link record (source/target/id), use `useCell()` or `useCellId()` from
  * inside it.
  * @param props - Link props.
  * @param props.portalElement - Link portal container element.

@@ -14,7 +14,7 @@
  * KEY IDEAS (new unified-cells API):
  *
  *   1. One slot, one array.
- *        A single `cells: Cells<NodeData>` array holds both elements AND
+ *        A single `cells: ReadonlyArray<CellRecord<NodeData>>` array holds both elements AND
  *        links. Each record carries its own `id` and `type` — either
  *        `'element'` or `'link'` — so TypeScript narrows the
  *        shape on the type discriminator.
@@ -32,10 +32,10 @@
  *   4. `renderElement` receives `data` only.
  *        Position, size, angle etc. are handled by JointJS's view layer and
  *        do NOT re-invoke the user renderer. If a renderer needs more than
- *        `data`, use `useCellId()` / `useElement()` / `useElement(selectElementSize)`.
+ *        `data`, use `useCellId()` / `useCell()` / `useCell(selectElementSize)`.
  * ============================================================================
  */
-import { GraphProvider, HTMLHost, Paper, type Cells, type RenderElement } from '@joint/react';
+import { type ElementRecord,  type CellRecord, GraphProvider, HTMLHost, Paper, type RenderElement } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback, useState } from 'react';
@@ -65,7 +65,7 @@ const LINK_STYLE = { color: PRIMARY, width: 2, targetMarker: 'arrow' } as const;
 // One unified array. Three elements (source / step / sink), two links
 // connecting them in order. Each record carries `id` and `type`.
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: 'ingest',
     type: 'element',
@@ -135,9 +135,9 @@ const renderWorkflowNode: RenderElement<NodeData> = WorkflowNode;
 // ── App — controlled mode + reset ──────────────────────────────────────────
 
 export default function App() {
-  // React state owns the single source of truth. Typed as `Cells<NodeData>`
+  // React state owns the single source of truth. Typed as `ReadonlyArray<CellRecord<NodeData>>`
   // so TypeScript narrows on `type === 'element' | 'link'`.
-  const [cells, setCells] = useState<Cells<NodeData>>(initialCells);
+  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeData>>>(initialCells);
 
   // Reset is literally "set state back to the initial snapshot". No imperative
   // `graph.resetCells` call, no ref chasing — the provider syncs the new
@@ -145,7 +145,7 @@ export default function App() {
   const reset = useCallback(() => setCells(initialCells), []);
 
   return (
-    <GraphProvider<NodeData> cells={cells} onCellsChange={setCells}>
+    <GraphProvider cells={cells} onCellsChange={setCells}>
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2 justify-start p-4 bg-gray-800 rounded-lg border border-gray-700">
           <button type="button" className={BUTTON_CLASSNAME} onClick={reset}>

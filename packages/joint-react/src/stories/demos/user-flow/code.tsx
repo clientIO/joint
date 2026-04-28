@@ -7,21 +7,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // We have pre-loaded tailwind css
-import {
-  GraphProvider,
-  Paper,
-  useCellId,
-  useElement,
-  useMarkup,
-  HTMLHost,
-  type Cells,
-  type CellId,
-  type CellRecord,
-  type ElementRecord,
-  type LinkRecord,
-  type RenderElement,
-  selectElementSize,
-} from '@joint/react';
+import { GraphProvider, Paper, useCell, useCellId, useMarkup, HTMLHost, type CellId, type CellRecord, type ElementRecord, type LinkRecord, type RenderElement, selectElementSize } from '@joint/react';
 
 import { createContext, memo, useCallback, useContext, useLayoutEffect, useState } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
@@ -153,7 +139,7 @@ function RenderElementBase({
 }: Readonly<RenderElementProps>) {
   const id = useCellId();
   const { magnetRef } = useMarkup();
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
 
   let icon: string;
   switch (nodeType) {
@@ -293,7 +279,7 @@ function RenderElementBase({
 }
 const RenderElement = memo(RenderElementBase);
 
-function buildInitialCells(isDark: boolean): Cells<NodeData> {
+function buildInitialCells(isDark: boolean): ReadonlyArray<CellRecord<NodeData>> {
   const linkColor = isDark ? 'rgba(255,255,255,0.35)' : '#000000';
   const cells: Array<CellRecord<NodeData>> = [];
   for (const node of Object.values(initialElements)) cells.push(node);
@@ -305,7 +291,7 @@ function buildInitialCells(isDark: boolean): Cells<NodeData> {
 
 function Main() {
   const isDark = useContext(ThemeContext);
-  const [cells, setCells] = useState<Cells<NodeData>>(() => buildInitialCells(isDark));
+  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeData>>>(() => buildInitialCells(isDark));
 
   useLayoutEffect(() => {
     const linkColor = isDark ? 'rgba(255,255,255,0.35)' : '#000000';
@@ -369,7 +355,7 @@ function Main() {
   );
 
   return (
-    <GraphProvider<NodeData> cells={cells} onCellsChange={setCells}>
+    <GraphProvider cells={cells} onCellsChange={setCells}>
       <Paper
         gridSize={5}
         drawGrid={false}

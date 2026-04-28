@@ -3,10 +3,10 @@ import { act, render, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../graph-provider';
 import { GraphStoreContext } from '../../../context';
 import type { GraphStore } from '../../../store';
-import type { Cells, CellRecord } from '../../../types/cell.types';
+import type { CellRecord } from '../../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../../models/element-model';
 
-const initialCells: Cells = [
+const initialCells: readonly CellRecord[] = [
   {
     id: 'e1',
     type: ELEMENT_MODEL_TYPE,
@@ -28,7 +28,7 @@ describe('GraphProvider uncontrolled notifications', () => {
 
     function App() {
       const snapshotsRef = useRef(snapshots);
-      const onCellsChange = React.useCallback((cells: Cells) => {
+      const onCellsChange = React.useCallback((cells: readonly CellRecord[]) => {
         snapshotsRef.current.push([...cells] as CellRecord[]);
       }, []);
 

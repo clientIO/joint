@@ -3,18 +3,7 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  GraphProvider,
-  Paper,
-  useCellId,
-  useGraph,
-  HTMLHost,
-  type Cells,
-  type CellRecord,
-  type ElementRecord,
-  type LinkRecord,
-  type IncrementalCellsChange,
-} from '@joint/react';
+import { GraphProvider, Paper, useCellId, useGraph, HTMLHost, type CellRecord, type CellRecordBase, type ElementRecord, type LinkRecord, type IncrementalCellsChange } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { usePaperEvents } from '../../../hooks';
 import Peer, { type DataConnection } from 'peerjs';
@@ -176,10 +165,10 @@ interface GraphState {
   readonly links: Record<string, LinkRecord>;
 }
 
-function isElementType(cell: CellRecord): cell is ElementRecord<AgentNodeData> {
+function isElementType(cell: CellRecordBase): cell is ElementRecord<AgentNodeData> {
   return cell.type === 'element';
 }
-function isLinkType(cell: CellRecord): cell is LinkRecord {
+function isLinkType(cell: CellRecordBase): cell is LinkRecord {
   return cell.type === 'link';
 }
 
@@ -229,7 +218,7 @@ const selectLinks = (state: CollabRootState) => state.graph.links;
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
-type CollabChanges = IncrementalCellsChange<AgentNodeData>;
+type CollabChanges = IncrementalCellsChange<ElementRecord<AgentNodeData>>;
 
 interface SyncMessage {
   readonly type: 'incremental' | 'presence' | 'drag';
@@ -365,8 +354,7 @@ function createPeerManager(callbacks: {
 
 // ── Node Component ──────────────────────────────────────────────────────────
 
-function RenderAgentNode(data: AgentNodeData) {
-  const { title, role, icon, status } = data;
+function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>) {
   const theme = useTheme();
   const isDark = theme === DARK;
   const remoteDrag = useContext(RemoteDragContext);
@@ -621,7 +609,7 @@ const SIMULATE_NODES = [
 function Toolbar() {
   const theme = useTheme();
   const isDark = theme === DARK;
-  const { setCell, addCell } = useGraph<AgentNodeData>();
+  const { setCell } = useGraph<ElementRecord<AgentNodeData>>();
   const reduxStore = useStore<CollabRootState>();
   const [simulating, setSimulating] = useState<Set<string>>(() => new Set());
   const intervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
@@ -696,7 +684,7 @@ function Toolbar() {
       { title: 'Debugger', role: 'Error analysis', icon: 'fas fa-bug', status: 'online' as const },
     ];
     const pick = agents[Math.floor(Math.random() * agents.length)];
-    addCell({
+    setCell({
       id,
       type: 'element',
       data: pick,
@@ -721,7 +709,7 @@ function Toolbar() {
         },
       },
     } satisfies AgentNode);
-  }, [addCell, theme]);
+  }, [setCell, theme]);
 
   return (
     <div
@@ -881,8 +869,8 @@ function GraphWithRedux() {
     [dispatch, manager]
   );
 
-  // Merge elements + links into a single Cells array (themed).
-  const themedCells = useMemo<Cells<AgentNodeData>>(() => {
+  // Merge elements + links into a single readonly CellRecord[] array (themed).
+  const themedCells = useMemo<ReadonlyArray<CellRecord<AgentNodeData>>>(() => {
     const cells: Array<CellRecord<AgentNodeData>> = [];
     for (const [id, element] of Object.entries(elements)) {
       cells.push({
@@ -930,7 +918,7 @@ function GraphWithRedux() {
           name: peerName ? peerName.slice(0, 6) : 'Peer',
         }}
       >
-        <GraphProvider<AgentNodeData>
+        <GraphProvider
           initialCells={themedCells}
           onIncrementalCellsChange={handleIncrementalChange}
         >

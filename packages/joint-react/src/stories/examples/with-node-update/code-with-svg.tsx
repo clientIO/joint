@@ -1,16 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import {
-  GraphProvider,
-  useElement,
-  Paper,
-    type Cells,
-    selectElementSize,
-} from '@joint/react';
+import { type CellRecordBase, GraphProvider, useCell, Paper, selectElementSize } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialCells: Cells = [
+const initialCells: readonly CellRecordBase[] = [
   {
     id: '1',
     type: 'element',
@@ -34,7 +28,7 @@ const initialCells: Cells = [
 ];
 
 function RenderElement() {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <rect
       rx={10}

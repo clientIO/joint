@@ -1,13 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import {
-  GraphProvider,
-  HTMLBox,
-  Paper,
-  useCellId,
-  type Cells,
-  type ElementRecord,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, HTMLBox, Paper, useCellId, type ElementRecord } from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
@@ -18,7 +11,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -42,9 +35,9 @@ const initialCells: Cells<NodeData> = [
   },
 ];
 
-function RenderElement({ color }: NodeData) {
+function RenderElement({ color }: Readonly<NodeData>) {
   const id = useCellId();
-  const { setCell } = useGraph<NodeData>();
+  const { setCell } = useGraph<ElementRecord<NodeData>>();
   return (
     <HTMLBox useModelGeometry
       style={{ backgroundColor: color }}

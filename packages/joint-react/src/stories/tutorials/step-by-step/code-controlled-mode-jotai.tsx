@@ -34,11 +34,12 @@
  */
 
 import {
+  type CellRecord,
   GraphProvider,
   HTMLHost,
   Paper,
-  type Cells,
   type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -54,7 +55,7 @@ import { atom, createStore, useAtomValue, useSetAtom, Provider as JotaiProvider 
  */
 type ElementData = { label: string };
 
-const defaultCells: Cells<ElementData> = [
+const defaultCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -82,7 +83,7 @@ const defaultCells: Cells<ElementData> = [
 
 const NODE_STYLE = { width: 100, height: 50 };
 
-function RenderItem({ label }: ElementData) {
+function RenderItem({ label }: Readonly<ElementData>) {
   return (
     <HTMLHost className="node" style={NODE_STYLE}>
       {label}
@@ -103,7 +104,7 @@ const jotaiStore = createStore();
 /**
  * Single Jotai atom holding the unified cells array.
  */
-const cellsAtom = atom<Cells<ElementData>>(defaultCells);
+const cellsAtom = atom<ReadonlyArray<CellRecord<ElementData>>>(defaultCells);
 
 // ============================================================================
 // STEP 4: Component Implementation
@@ -192,7 +193,7 @@ function Main() {
   // Bridge GraphProvider's cells setter into Jotai. The callback may be
   // a value or an updater function, so we mirror the React state API.
   const handleCellsChange = useCallback(
-    (updater: React.SetStateAction<Cells<ElementData>>) => {
+    (updater: React.SetStateAction<ReadonlyArray<CellRecord<ElementData>>>) => {
       const nextCells =
         typeof updater === 'function' ? updater(jotaiStore.get(cellsAtom)) : updater;
       jotaiSetCells(nextCells);
@@ -201,7 +202,10 @@ function Main() {
   );
 
   return (
-    <GraphProvider<ElementData> cells={cells} onCellsChange={handleCellsChange}>
+    <GraphProvider
+      cells={cells}
+      onCellsChange={handleCellsChange}
+    >
       <PaperApp />
     </GraphProvider>
   );

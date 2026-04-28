@@ -1,16 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type dia, g, highlighters, V } from '@joint/core';
-import {
-  GraphProvider,
-  useElement,
-  Paper,
-  SVGText,
-    useGraph,
-  useNodesMeasuredEffect,
-  type Cells,
-  selectElementSize,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useNodesMeasuredEffect, selectElementSize } from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 
@@ -28,7 +19,7 @@ interface ShapeData {
   readonly label: string;
 }
 
-const initialCells: Cells<ShapeData> = [
+const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   {
     id: 'rectangle',
     type: 'element',
@@ -64,7 +55,7 @@ const initialCells: Cells<ShapeData> = [
 // ----------------------------------------------------------------------------
 function RectangleShape({ label }: Readonly<ShapeData>) {
 
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} />
@@ -84,7 +75,7 @@ function RectangleShape({ label }: Readonly<ShapeData>) {
 }
 
 function CircleShape({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <circle
@@ -111,7 +102,7 @@ function CircleShape({ label }: Readonly<ShapeData>) {
 }
 
 function EllipseShape({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <ellipse
@@ -139,7 +130,7 @@ function EllipseShape({ label }: Readonly<ShapeData>) {
 }
 
 function PathShape({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <path
@@ -165,7 +156,7 @@ function PathShape({ label }: Readonly<ShapeData>) {
 // ----------------------------------------------------------------------------
 // Renderer
 // ----------------------------------------------------------------------------
-function RenderElement(data: ShapeData) {
+function RenderElement(data: Readonly<ShapeData>) {
   switch (data.type) {
     case ShapeTypes.rectangle: {
       return <RectangleShape {...data} />;

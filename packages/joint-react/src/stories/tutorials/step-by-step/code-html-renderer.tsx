@@ -1,11 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
 import {
+  type CellRecord,
   GraphProvider,
   Paper,
-  useElement,
-    useMeasureNode,
+  useCell,
+  useMeasureNode,
   usePaper,
-  type Cells,
   selectElementSize,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -15,7 +15,7 @@ import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 type ElementData = { label: string };
 
 // Unified cells (elements + links in one array; each requires id + type)
-const initialCells: Cells<ElementData> = [
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -86,7 +86,7 @@ function HTMLItem({ label }: ElementData) {
 }
 
 function SVGItem() {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return <rect rx={10} ry={10} width={width} height={height} fill="blue" />;
 }
 

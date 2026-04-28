@@ -1,9 +1,10 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 
 import { dia, shapes } from '@joint/core';
-import { ElementModel } from '../../models/element-model';
+import { ELEMENT_MODEL_TYPE, ElementModel } from '../../models/element-model';
 import { LinkModel, LINK_MODEL_TYPE } from '../../models/link-model';
-import type { ElementRecord, ElementPort, LinkRecord } from '../../types/data-types';
+import type { ElementRecord, LinkRecord } from '../../types/cell.types';
+import type { ElementPort } from '../../presets/element-ports';
 import {
   mapElementToAttributes,
   mapLinkToAttributes,
@@ -28,6 +29,7 @@ describe('dataMapper', () => {
     it('should convert ElementInput to JointJS and back', () => {
       const id = 'el-1';
       const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
         data: undefined,
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
@@ -54,6 +56,7 @@ describe('dataMapper', () => {
     it('should store user data in data field and extract on reverse', () => {
       const id = 'el-1';
       const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
         data: { label: 'Hello', color: 'red' },
         position: { x: 0, y: 0 },
         size: { width: 50, height: 50 },
@@ -90,6 +93,7 @@ describe('dataMapper', () => {
     it('should round-trip with ports', () => {
       const id = 'el-1';
       const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
         data: { label: 'Node 1' },
         position: { x: 100, y: 50 },
         size: { width: 150, height: 60 },
@@ -117,6 +121,8 @@ describe('dataMapper', () => {
         p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
       };
       const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
         portMap,
@@ -134,6 +140,8 @@ describe('dataMapper', () => {
         p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
       };
       const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
         portMap,
@@ -151,6 +159,8 @@ describe('dataMapper', () => {
         p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
       };
       const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
         portMap,
@@ -165,7 +175,7 @@ describe('dataMapper', () => {
   describe('link round-trip', () => {
     it('should convert link data to JointJS and back', () => {
       const id = 'link-1';
-      const link: LinkRecord = { source: { id: 'el-1' }, target: { id: 'el-2' } };
+      const link: LinkRecord = { type: LINK_MODEL_TYPE, source: { id: 'el-1' }, target: { id: 'el-2' } };
 
       const cellJson = mapLinkToAttributes(link);
       expect(cellJson.source).toEqual({ id: 'el-1' });
@@ -181,7 +191,7 @@ describe('dataMapper', () => {
     });
 
     it('should apply theme defaults', () => {
-      const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' }, style: {} };
+      const link: LinkRecord = { type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' }, style: {} };
 
       const cellJson = mapLinkToAttributes(link);
       expect(cellJson.attrs?.line?.style?.stroke).toBe('');
@@ -190,6 +200,7 @@ describe('dataMapper', () => {
 
     it('should apply custom theme props', () => {
       const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
         source: { id: 'a' },
         target: { id: 'b' },
         style: {
@@ -206,7 +217,7 @@ describe('dataMapper', () => {
     });
 
     it('should store user data in cell.data', () => {
-      const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
+      const link: LinkRecord = { type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
 
       const cellJson = mapLinkToAttributes(link);
       expect(cellJson.data?.weight).toBe(5);
@@ -234,6 +245,7 @@ describe('dataMapper', () => {
 
     it('should convert labels Record to JointJS labels array', () => {
       const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
         source: { id: 'a' },
         target: { id: 'b' },
         labelMap: {
@@ -254,6 +266,7 @@ describe('dataMapper', () => {
     it('should round-trip labels with position and offset changes', () => {
       const id = 'link-1';
       const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
         source: { id: 'a' },
         target: { id: 'b' },
         labelMap: {
@@ -277,6 +290,7 @@ describe('dataMapper', () => {
 
     it('should handle source/target with ports', () => {
       const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
         source: { id: 'el-1', port: 'p1' },
         target: { id: 'el-2', port: 'p2' },
       };
@@ -299,6 +313,7 @@ describe('dataMapper', () => {
   describe('element attrs handling', () => {
     it('should not include attrs when undefined (ElementModel default)', () => {
       const cellJson = mapElementToAttributes({
+        type: ELEMENT_MODEL_TYPE,
         data: undefined,
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
@@ -308,6 +323,8 @@ describe('dataMapper', () => {
 
     it('should pass attrs through when provided', () => {
       const cellJson = mapElementToAttributes({
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
         attrs: { body: { fill: 'red' }, label: { text: 'Hello', fill: 'white' } },
@@ -323,6 +340,7 @@ describe('dataMapper', () => {
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
         type: 'standard.Rectangle',
+        data: undefined,
       });
       expect(cellJson.type).toBe('standard.Rectangle');
     });
@@ -332,6 +350,7 @@ describe('dataMapper', () => {
         position: { x: 10, y: 20 },
         size: { width: 80, height: 40 },
         type: 'standard.Rectangle',
+        data: undefined,
         attrs: { body: { fill: 'blue' }, label: { text: 'Test', fill: 'white' } },
       });
 
@@ -350,6 +369,7 @@ describe('dataMapper', () => {
         position: { x: 20, y: 20 },
         size: { width: 100, height: 50 },
         type: 'standard.Rectangle',
+        data: undefined,
         attrs: { body: { fill: 'red' }, label: { fill: 'white', text: 'Rectangle' } },
       });
 
@@ -374,6 +394,7 @@ describe('dataMapper', () => {
         position: { x: 0, y: 0 },
         size: { width: 120, height: 60 },
         type: 'standard.Rectangle',
+        data: undefined,
         attrs: { body: { fill: 'green' }, label: { fill: 'white', text: 'Synced' } },
       });
 
@@ -396,6 +417,7 @@ describe('dataMapper', () => {
         position: { x: 0, y: 0 },
         size: { width: 60, height: 60 },
         type: 'standard.Circle',
+        data: undefined,
         attrs: {
           body: { fill: 'blue', stroke: '#333' },
           label: { fill: 'white', text: 'Circle' },

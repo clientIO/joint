@@ -15,10 +15,6 @@ import type { Feature } from '../types/feature.types';
 import { selectGraphFeaturesVersion } from '../selectors';
 import { OPTIONAL } from '../types';
 
-// Re-export so consumers can import from hooks
-export type { Feature } from '../types/feature.types';
-export type { FeaturesContext, DeferredFeatureCallback } from '../context';
-
 const EMPTY_DEPENDENCIES: unknown[] = [];
 
 /**

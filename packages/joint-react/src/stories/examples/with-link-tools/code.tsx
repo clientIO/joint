@@ -1,13 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, linkTools } from '@joint/core';
 import '../index.css';
-import {
-  GraphProvider,
-  jsx,
-  Paper,
-  usePaperEvents,
-  type Cells,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, jsx, Paper, usePaperEvents } from '@joint/react';
 import { useId } from 'react';
 import { PRIMARY, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -20,7 +14,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',

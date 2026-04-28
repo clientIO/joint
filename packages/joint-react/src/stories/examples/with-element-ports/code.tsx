@@ -3,16 +3,7 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 import { V } from '@joint/core';
-import {
-  GraphProvider,
-  Paper,
-  useGraph,
-  useCells,
-  HTMLBox,
-  type Cells,
-  type ElementPort,
-  type ElementRecord,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, useGraph, useCells, HTMLBox, type ElementPort, type ElementRecord, type ResolvedElementRecord } from '@joint/react';
 import { linkRoutingSmooth } from '@joint/react/presets';
 
 const SMOOTH_LINKS = linkRoutingSmooth();
@@ -76,7 +67,7 @@ function getShapeLabel(shape: string): string {
 
 const PORT_SIZE = 16;
 
-const initialCells: Cells<PortNodeData> = [
+const initialCells: ReadonlyArray<CellRecord<PortNodeData>> = [
   {
     id: 'node-1',
     type: 'element',
@@ -338,7 +329,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
 interface ElementPortControlsProps {
   readonly id: string;
-  readonly element: ElementRecord<PortNodeData>;
+  readonly element: ResolvedElementRecord<PortNodeData>;
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
@@ -369,16 +360,16 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
   );
 }
 
-function RenderElement(data: PortNodeData) {
-  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+function RenderElement({ label }: Readonly<PortNodeData>) {
+  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
 }
 
 // --- Main ---
 
 function Main() {
-  const cells = useCells<PortNodeData>();
+  const cells = useCells();
   const elements = cells.filter(
-    (cell): cell is ElementRecord<PortNodeData> => cell.type === 'element'
+    (cell): cell is ResolvedElementRecord<PortNodeData> => cell.type === 'element'
   );
 
   return (

@@ -1,18 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback, useEffect, useId } from 'react';
 import { dia, elementTools } from '@joint/core';
-import {
-  GraphProvider,
-  jsx,
-  Paper,
-  useCellId,
-  useElement,
-  useGraph,
-  usePaperEvents,
-  SVGText,
-  type Cells,
-  selectElementSize,
-} from '@joint/react';
+import { type ElementRecord,  type CellRecord, GraphProvider, jsx, Paper, useCell, useCellId, useGraph, usePaperEvents, SVGText, selectElementSize } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 
@@ -91,7 +80,7 @@ const CONTAINER_LINK_STYLE = {
   targetMarker: MARKER,
 };
 
-const initialCells: Cells<ContainerUserData> = [
+const initialCells: ReadonlyArray<CellRecord<ContainerUserData>> = [
   {
     id: 'container-a',
     type: 'element',
@@ -217,7 +206,7 @@ function ExpandButton({
 }
 
 function ContainerNode({ title, collapsed = false }: Readonly<ContainerData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const id = useCellId();
   const { graph } = useGraph();
 
@@ -280,7 +269,7 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerData>) {
 }
 
 function ChildNode({ label }: Readonly<{ label: string }>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       {/* Body */}
@@ -448,7 +437,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ContainerUserData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

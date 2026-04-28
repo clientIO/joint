@@ -4,7 +4,7 @@ import { graphView } from '../graph-view';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import { isElementType, isLinkType } from '../../utils/cell-type';
-import type { CellRecord, Cells, ElementRecord, LinkRecord } from '../../types/cell.types';
+import type { CellRecord, ElementRecord, LinkRecord } from '../../types/cell.types';
 
 function createGraph(): dia.Graph {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
@@ -43,7 +43,9 @@ function getElement(
   id: string
 ): ElementRecord | undefined {
   const cell = view.cells.get(id);
-  if (!cell || !isElementType(cell.type, graph)) return undefined;
+  if (!cell) return undefined;
+  const cellType = cell.type as string | undefined;
+  if (cellType === undefined || !isElementType(cellType, graph)) return undefined;
   return cell as ElementRecord;
 }
 
@@ -54,21 +56,29 @@ function getLink(
   id: string
 ): LinkRecord | undefined {
   const cell = view.cells.get(id);
-  if (!cell || !isLinkType(cell.type, graph)) return undefined;
+  if (!cell) return undefined;
+  const cellType = cell.type as string | undefined;
+  if (cellType === undefined || !isLinkType(cellType, graph)) return undefined;
   return cell as LinkRecord;
 }
 
 /** Number of cells classified as elements via the graph's type registry. */
 function countElements(graph: dia.Graph, view: ReturnType<typeof graphView>): number {
   let count = 0;
-  for (const cell of view.cells.getAll()) if (isElementType(cell.type, graph)) count++;
+  for (const cell of view.cells.getAll()) {
+    const cellType = cell.type as string | undefined;
+    if (cellType !== undefined && isElementType(cellType, graph)) count++;
+  }
   return count;
 }
 
 /** Number of cells classified as links via the graph's type registry. */
 function countLinks(graph: dia.Graph, view: ReturnType<typeof graphView>): number {
   let count = 0;
-  for (const cell of view.cells.getAll()) if (isLinkType(cell.type, graph)) count++;
+  for (const cell of view.cells.getAll()) {
+    const cellType = cell.type as string | undefined;
+    if (cellType !== undefined && isLinkType(cellType, graph)) count++;
+  }
   return count;
 }
 
@@ -425,7 +435,7 @@ describe('graphView — controlled-mode updateGraph round-trip', () => {
     const graph = createGraph();
     const view = graphView({ graph });
 
-    const initialCells: Cells = [
+    const initialCells: readonly CellRecord[] = [
       {
         id: 'a',
         type: ELEMENT_MODEL_TYPE,
@@ -455,7 +465,7 @@ describe('graphView — controlled-mode updateGraph round-trip', () => {
     await flush();
 
     // Read current container state (what notifyCellsChange would expose)
-    const nextCells = view.cells.getAll() as Cells;
+    const nextCells = view.cells.getAll() as readonly CellRecord[];
     view.updateGraph({ cells: nextCells, flag: 'updateFromReact' });
     await flush();
 
@@ -785,7 +795,7 @@ describe('graphView — syncFromGraph and partial updateGraph', () => {
     const { graph, view } = setup();
     addElement(graph, 'a');
     await flush();
-    const nextCells: Cells = [
+    const nextCells: readonly CellRecord[] = [
       {
         id: 'b',
         type: ELEMENT_MODEL_TYPE,

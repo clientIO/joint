@@ -1,14 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
+  type CellRecord,
   GraphProvider,
   HTMLHost,
   Paper,
+  useCell,
   useCellId,
   useCells,
-  useElement,
   useGraph,
   usePaper,
-  type Cells,
   type ElementRecord,
   type ResolvedElementRecord,
 } from '@joint/react';
@@ -21,7 +21,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 20, y: 100 } },
   { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 200, y: 100 } },
   {
@@ -34,7 +34,7 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function RotatableNode() {
-  const label = useElement((element: ResolvedElementRecord<NodeData>) => element.data.label);
+  const label = useCell((element: ResolvedElementRecord<NodeData>) => element.data.label);
   const id = useCellId();
   const { paper } = usePaper();
   const { setCell } = useGraph();
@@ -92,8 +92,8 @@ function RotatableNode() {
 }
 
 function Main() {
-  const { isElement } = useGraph<NodeData>();
-  const elementRotation = useCells<NodeData, unknown, readonly string[]>((cells) =>
+  const { isElement } = useGraph<ElementRecord<NodeData>>();
+  const elementRotation = useCells<ResolvedElementRecord<NodeData>, readonly string[]>((cells) =>
     cells
       .filter((cell) => isElement(cell))
       .map((cell) => {

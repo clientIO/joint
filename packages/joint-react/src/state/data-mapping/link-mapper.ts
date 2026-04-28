@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { LinkRecord } from '../../types/data-types';
+import type { BaseLinkRecord, WithType } from '../../types/cell.types';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
@@ -9,13 +9,24 @@ import type { CellAttributes } from '.';
  * Forward mapper using the React default link type.
  * @param link
  */
-export function mapLinkToAttributes<LinkData extends object = Record<string, unknown>>(
-  link: LinkRecord<LinkData>
+export function mapLinkToAttributes<LinkData = unknown>(
+  link: BaseLinkRecord & WithType & { readonly data?: LinkData }
 ): CellAttributes {
   const attributes = linkAttributes(link) as CellAttributes;
   if (!attributes.type) attributes.type = LINK_MODEL_TYPE;
   return attributes;
 }
+
+/**
+ * Link record produced by {@link mapAttributesToLink}.
+ *
+ * Wider than {@link import('../../types/cell.types').LinkRecord} — `type` is
+ * optional (only present when the cell is a custom subclass) and the user
+ * `data` field is opaque until the consumer narrows it. This shape is what the
+ * controlled-mode pipeline actually emits when reading from a `dia.Cell`.
+ */
+export type MappedLinkRecord<LinkData = unknown> = BaseLinkRecord &
+  Partial<WithType> & { readonly data?: LinkData };
 
 /**
  * Converts JointJS link attributes back to a LinkRecord.
@@ -27,9 +38,9 @@ export function mapLinkToAttributes<LinkData extends object = Record<string, unk
  * 1:1 mapping — no `presentation` wrapper.
  * @param attributes
  */
-export function mapAttributesToLink<LinkData extends object = Record<string, unknown>>(
+export function mapAttributesToLink<LinkData = unknown>(
   attributes: dia.Link.Attributes
-): LinkRecord<LinkData> {
+): MappedLinkRecord<LinkData> {
   const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     id,
@@ -63,11 +74,11 @@ export function mapAttributesToLink<LinkData extends object = Record<string, unk
     linkRecord.type = type;
   }
 
-  return { ...linkRecord };
+  return { ...linkRecord } as MappedLinkRecord<LinkData>;
 }
 
-export type MapAttributesToLink<LinkData extends object = Record<string, unknown>> =
+export type MapAttributesToLink<LinkData = unknown> =
   typeof mapAttributesToLink<LinkData>;
 
-export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> =
+export type MapLinkToAttributes<LinkData = unknown> =
   typeof mapLinkToAttributes<LinkData>;

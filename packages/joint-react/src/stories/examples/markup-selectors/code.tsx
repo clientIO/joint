@@ -2,15 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { forwardRef, useCallback, useRef } from 'react';
-import {
-  GraphProvider,
-  Paper,
-  useMeasureNode,
-  useMarkup,
-  type Cells,
-  type RenderElement,
-  type OnTransformElement,
-} from '@joint/react';
+import { type ElementRecord,  type CellRecord, GraphProvider, Paper, useMeasureNode, useMarkup, type RenderElement, type OnTransformElement } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
 import { linkRoutingSmooth } from '@joint/react/presets';
@@ -26,7 +18,7 @@ interface StackedData {
   readonly labels: readonly string[];
 }
 
-const initialCells: Cells<StackedData> = [
+const initialCells: ReadonlyArray<CellRecord<StackedData>> = [
   {
     id: '1',
     type: 'element',
@@ -194,7 +186,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<StackedData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

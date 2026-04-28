@@ -1,15 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useState, useCallback, useEffect } from 'react';
-import {
-  GraphProvider,
-  useElement,
-  Paper,
-    useGraph,
-  type Cells,
-  type ElementPort,
-  type RenderElement,
-  selectElementSize,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, useCell, Paper, useGraph, type ElementPort, type ElementRecord, type RenderElement, selectElementSize } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
 
 interface ElementData {
@@ -58,7 +49,7 @@ const getDefaultLink = (color: string) => {
   });
 };
 
-const initialCells: Cells<ElementData> = [
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   { id: 'a', type: 'element', kind: 'source', data: { label: 'Start' }, position: { x: 50, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.source },
   { id: 'b', type: 'element', kind: 'process', data: { label: 'Process' }, position: { x: 250, y: 50 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
   { id: 'c', type: 'element', kind: 'process', data: { label: 'Review' }, position: { x: 250, y: 230 }, size: ELEMENT_SIZE, portMap: portsByKind.process },
@@ -82,7 +73,7 @@ const initialCells: Cells<ElementData> = [
 ];
 
 function Element({ label, color }: Readonly<{ label: string; color: string }>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <rect width={width} height={height} rx="6" fill="#1e293b" stroke={color} strokeWidth="2" />
@@ -110,7 +101,7 @@ function ThemeUpdater({
   color,
   portShape,
 }: Readonly<{ color: string; portShape: 'ellipse' | 'rect' }>) {
-  const { updateCells, isElement, isLink } = useGraph<ElementData>();
+  const { updateCells, isElement, isLink } = useGraph<ElementRecord<ElementData>>();
 
   useEffect(() => {
     const portStyle = getPortStyle(color, portShape);
@@ -168,7 +159,7 @@ function Diagram() {
       >
         {alternate ? '■ Square ports' : '● Round ports'}
       </button>
-      <GraphProvider<ElementData> initialCells={initialCells}>
+      <GraphProvider initialCells={initialCells}>
         <ThemeUpdater color={color} portShape={portShape} />
         <Paper
           className={PAPER_CLASSNAME}

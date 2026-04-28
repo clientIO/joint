@@ -1,10 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
+  type CellRecord,
   GraphProvider,
   Paper,
-  useElement,
+  useCell,
   useMeasureNode,
-  type Cells,
   type ResolvedElementRecord,
 } from '@joint/react';
 import '../index.css';
@@ -16,7 +16,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   {
@@ -30,7 +30,7 @@ const initialCells: Cells<NodeData> = [
 
 function ResizableNode() {
   const nodeRef = useRef<HTMLDivElement>(null);
-  const label = useElement((element: ResolvedElementRecord<NodeData>) => element.data.label);
+  const label = useCell((element: ResolvedElementRecord<NodeData>) => element.data.label);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     const node = nodeRef.current;
     if (!node) return;

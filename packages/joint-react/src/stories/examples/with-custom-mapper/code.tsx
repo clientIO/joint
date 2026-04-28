@@ -1,12 +1,6 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import {
-  GraphProvider,
-  Paper,
-  useCells,
-  type Cells,
-  type ElementRecord,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, useCells, type ResolvedElementRecord } from '@joint/react';
 
 // ============================================================================
 // Types
@@ -29,7 +23,7 @@ interface CenterData {
  * Initial cells store standard top-left position. The DataPanel derives
  * center coordinates (cx, cy) from position + size for display.
  */
-const initialCells: Cells<CenterData> = [
+const initialCells: ReadonlyArray<CellRecord<CenterData>> = [
   {
     id: 'node-1',
     type: 'element',
@@ -72,21 +66,19 @@ const initialCells: Cells<CenterData> = [
 // ============================================================================
 
 function DataPanel() {
-  const cells = useCells<CenterData>();
+  const cells = useCells();
   const elements = cells.filter(
-    (cell): cell is ElementRecord<CenterData> => cell.type === 'element'
+    (cell): cell is ResolvedElementRecord<CenterData> => cell.type === 'element'
   );
   return (
     <div className="p-4 min-w-50 text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Element Data (cx, cy)</h3>
       {elements.map(({ id, data, position, size }) => {
-        const x = position?.x ?? 0;
-        const y = position?.y ?? 0;
-        const width = size?.width ?? 100;
-        const height = size?.height ?? 60;
+        const { x, y } = position;
+        const { width, height } = size;
         return (
           <div key={String(id)} className="mb-3 p-2 rounded bg-gray-800">
-            <div className="font-bold mb-1">{data?.label}</div>
+            <div className="font-bold mb-1">{data.label}</div>
             <div>cx: {Math.round(x + width / 2)}</div>
             <div>cy: {Math.round(y + height / 2)}</div>
             <div className="text-gray-400 text-xs mt-1">

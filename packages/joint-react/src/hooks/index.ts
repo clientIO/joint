@@ -2,8 +2,6 @@ export * from './use-cells';
 export * from './use-cell';
 export * from './use-graph';
 export * from './use-paper';
-export * from './use-element';
-export * from './use-link';
 export * from './use-measure-node';
 export * from './use-paper-events';
 export * from './use-graph-events';

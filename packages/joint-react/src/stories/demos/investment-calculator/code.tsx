@@ -1,18 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import type { dia } from '@joint/core';
-import {
-  GraphProvider,
-  Paper,
-  useCellId,
-  useCells,
-  useElement,
-  useGraph,
-  type Cells,
-  type ElementRecord,
-  type LinkRecord,
-  selectElementSize,
-} from '@joint/react';
+import { dia } from '@joint/core';
+import { type CellRecord, GraphProvider, Paper, useCell, useCellId, useCells, useGraph, type ElementRecord, type LinkRecord, type ResolvedElementRecord, selectElementSize } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { linkRoutingSmooth } from '@joint/react/presets';
 import { useCallback, useEffect, useRef } from 'react';
@@ -224,7 +213,7 @@ const initialLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: Cells<ShapeData> = [...initialElements, ...initialLinks];
+const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [...initialElements, ...initialLinks];
 
 // ----------------------------------------------------------------------------
 // Utility
@@ -253,8 +242,8 @@ function calculateROI(cost: number, value: number): number {
 // ----------------------------------------------------------------------------
 
 function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
-  const { setCell } = useGraph<ShapeData>();
-  const { width, height } = useElement(selectElementSize);
+  const { setCell } = useGraph<ElementRecord<ShapeData>>();
+  const { width, height } = useCell(selectElementSize);
 
   const handleFundsChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,8 +344,8 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
 // ----------------------------------------------------------------------------
 
 function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) {
-  const { setCell } = useGraph<ShapeData>();
-  const { width, height } = useElement(selectElementSize);
+  const { setCell } = useGraph<ElementRecord<ShapeData>>();
+  const { width, height } = useCell(selectElementSize);
 
   const handlePercentageChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -464,10 +453,10 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
 function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const cellId = useCellId();
   const { graph } = useGraph();
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
 
   // Use graph topology to find the connected product (inbound neighbor via link)
-  const { value, roi } = useCells<ShapeData, unknown, typeof DEFAULT_ROI_VALUE>((cells) => {
+  const { value, roi } = useCells<ResolvedElementRecord<ShapeData>, typeof DEFAULT_ROI_VALUE>((cells) => {
     const cell = graph.getCell(cellId);
     if (!cell?.isElement()) {
       return DEFAULT_ROI_VALUE;
@@ -552,10 +541,10 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
 function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const cellId = useCellId();
   const { graph } = useGraph();
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useCells<ShapeData, unknown, typeof DEFAULT_ROI_VALUE>((cells) => {
+  const { value, roi } = useCells<ResolvedElementRecord<ShapeData>, typeof DEFAULT_ROI_VALUE>((cells) => {
     const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
       | ElementRecord<ShapeData>
       | undefined;
@@ -648,7 +637,7 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
 // Render Dispatcher
 // ----------------------------------------------------------------------------
 
-function RenderElement(data: ShapeData) {
+function RenderElement(data: Readonly<ShapeData>) {
   switch (data.type) {
     case 'Investment': {
       return <InvestmentNode {...data} />;
@@ -715,7 +704,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ShapeData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

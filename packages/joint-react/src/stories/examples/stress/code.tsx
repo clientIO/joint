@@ -1,13 +1,5 @@
 /* eslint-disable sonarjs/pseudo-random */
-import {
-  HTMLBox,
-  GraphProvider,
-  Paper,
-  type Cells,
-  type CellRecord,
-  type ElementRecord,
-  type LinkRecord,
-} from '@joint/react';
+import { HTMLBox, GraphProvider, Paper, type CellRecord, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useState, startTransition } from 'react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -24,11 +16,11 @@ const RENDER_ELEMENT_STYLE: React.CSSProperties = {
   justifyContent: 'center',
 };
 
-function RenderElement(data: StressNodeData) {
-  return <HTMLBox useModelGeometry style={RENDER_ELEMENT_STYLE}>{data.label}</HTMLBox>;
+function RenderElement({ label }: Readonly<StressNodeData>) {
+  return <HTMLBox useModelGeometry style={RENDER_ELEMENT_STYLE}>{label}</HTMLBox>;
 }
 
-function buildInitialCells(xNodes = 15, yNodes = 30): Cells<StressNodeData> {
+function buildInitialCells(xNodes = 15, yNodes = 30): ReadonlyArray<CellRecord<StressNodeData>> {
   const cells: Array<CellRecord<StressNodeData>> = [];
   let nodeId = 1;
   let edgeId = 1;
@@ -70,7 +62,7 @@ const initialCells = buildInitialCells(15, 30);
 function Main({
   setCells,
 }: Readonly<{
-  setCells: React.Dispatch<React.SetStateAction<Cells<StressNodeData>>>;
+  setCells: React.Dispatch<React.SetStateAction<ReadonlyArray<CellRecord<StressNodeData>>>>;
 }>) {
   const randomizePosition = useCallback(
     (cell: CellRecord<StressNodeData>): CellRecord<StressNodeData> => {
@@ -105,10 +97,10 @@ function Main({
 }
 
 export default function App() {
-  const [cells, setCells] = useState<Cells<StressNodeData>>(initialCells);
+  const [cells, setCells] = useState<ReadonlyArray<CellRecord<StressNodeData>>>(initialCells);
 
   return (
-    <GraphProvider<StressNodeData> cells={cells} onCellsChange={setCells}>
+    <GraphProvider cells={cells} onCellsChange={setCells}>
       <Main setCells={setCells} />
     </GraphProvider>
   );

@@ -2,19 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/pseudo-random */
 // We have pre-loaded tailwind css
-import {
-  GraphProvider,
-  Paper,
-  HTMLHost,
-  useCellId,
-  useGraph,
-  useCells,
-  useNodesMeasuredEffect,
-  type Cells,
-  type CellRecord,
-  type ElementRecord,
-  type LinkRecord,
-} from '@joint/react';
+import { GraphProvider, Paper, HTMLHost, useCellId, useGraph, useCells, useNodesMeasuredEffect, type CellRecord, type ElementRecord, type LinkRecord } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -67,7 +55,7 @@ const SEED: Snapshot = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Memo selector: snapshot → unified Cells array the GraphProvider expects.
+// Memo selector: snapshot → unified readonly CellRecord[] array the GraphProvider expects.
 // Note that we never put position or size here — those come from measurement
 // and the layout pass at runtime.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,7 +69,7 @@ const LINK_ATTRS = {
   },
 };
 
-function toCells(snapshot: Snapshot): Cells<NodeData> {
+function toCells(snapshot: Snapshot): ReadonlyArray<CellRecord<NodeData>> {
   const cells: Array<ElementRecord<NodeData> | LinkRecord> = [];
   for (const [id, node] of Object.entries(snapshot.elements)) {
     cells.push({ id, type: 'element', data: node.data });
@@ -130,7 +118,7 @@ const PADDING = 40;
 const PAPER_ID = 'automatic-layout-storage-paper';
 
 function LayoutRunner() {
-  const { graph } = useGraph<NodeData>();
+  const { graph } = useGraph<ElementRecord<NodeData>>();
 
   const runLayout = useCallback(() => {
     const elements = graph.getElements();
@@ -202,7 +190,7 @@ function LayoutRunner() {
 
 function NodeCard({ title, owner }: NodeData) {
   const id = useCellId();
-  const { setCell } = useGraph<NodeData>();
+  const { setCell } = useGraph<ElementRecord<NodeData>>();
   const [isEditing, setIsEditing] = useState(false);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const editorRef = useRef<HTMLDivElement | null>(null);
@@ -350,8 +338,8 @@ function PencilGlyph() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function useLiveSnapshot(): Snapshot {
-  const cells = useCells<NodeData>();
-  const { isElement, isLink } = useGraph<NodeData>();
+  const cells = useCells();
+  const { isElement, isLink } = useGraph<ElementRecord<NodeData>>();
 
   return useMemo<Snapshot>(() => {
     const out: Snapshot = { elements: {}, links: {} };
@@ -426,7 +414,7 @@ interface InnerShellProps {
 }
 
 function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
-  const { graph, addCell, removeCell } = useGraph<NodeData>();
+  const { graph, setCell, removeCell } = useGraph<ElementRecord<NodeData>>();
   const liveSnapshot = useLiveSnapshot();
 
   const handleAdd = useCallback(() => {
@@ -435,13 +423,13 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
     const owner = SAMPLE_OWNERS[nextSampleIndex % SAMPLE_OWNERS.length];
     nextSampleIndex += 1;
 
-    addCell({ id, type: 'element', data: { title, owner } });
+    setCell({ id, type: 'element', data: { title, owner } });
 
     // Pick a random existing parent so the tree fans out.
     const others = graph.getElements().filter((cell) => String(cell.id) !== id);
     if (others.length > 0) {
       const parent = others[Math.floor(Math.random() * others.length)];
-      addCell({
+      setCell({
         id: `l${Date.now().toString(36)}`,
         type: 'link',
         source: { id: String(parent.id) },
@@ -449,7 +437,7 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
         attrs: LINK_ATTRS,
       } as CellRecord<NodeData>);
     }
-  }, [addCell, graph]);
+  }, [setCell, graph]);
 
   const handleRemoveLast = useCallback(() => {
     const elements = graph.getElements();
@@ -539,7 +527,7 @@ export default function App() {
         className="hidden"
         onChange={handleFileChosen}
       />
-      <GraphProvider<NodeData> key={reloadKey} initialCells={initialCells}>
+      <GraphProvider key={reloadKey} initialCells={initialCells}>
         <InnerShell onLoadFile={handleLoadClick} />
       </GraphProvider>
     </div>

@@ -61,7 +61,7 @@ function useElementDataSnapshot(id: CellId): Record<string, unknown> | undefined
  * portal wrappers can mount a 0×0 container synchronously rather than
  * crashing. Callers must tolerate optional `position` / `size`.
  *
- * Contrast with the public `useElement()` hook, which returns the
+ * Contrast with the public `useCell()` hook, which returns the
  * `ResolvedElementRecord` (position/size/angle/data required) and throws
  * when the cell is missing.
  * @param id - cell id to subscribe to
@@ -79,7 +79,7 @@ function useUnresolvedElement(id: CellId): ElementRecord {
   if (cell === undefined) {
     // Placeholder when the cell is not (yet) in the store — only the id is
     // truly known. The full ElementRecord shape is partially populated.
-    const placeholder: ElementRecord = { id, type: ELEMENT_MODEL_TYPE };
+    const placeholder: ElementRecord = { id, type: ELEMENT_MODEL_TYPE, data: undefined };
     return placeholder;
   }
   return cell as ElementRecord;

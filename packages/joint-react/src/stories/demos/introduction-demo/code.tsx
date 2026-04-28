@@ -6,24 +6,7 @@ import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
-import {
-  GraphProvider,
-  Paper,
-  useCellId,
-  useElement,
-  useGraph,
-  useMeasureNode,
-  useNodesMeasuredEffect,
-  useCells,
-  type Cells,
-  type CellId,
-  type CellRecord,
-  type ElementRecord,
-  type ElementPort,
-  type PaperProps,
-  usePaperEvents,
-  selectElementSize,
-} from '@joint/react';
+import { GraphProvider, Paper, useCell, useCellId, useCells, useGraph, useMeasureNode, useNodesMeasuredEffect, type CellId, type CellRecord, type CellRecordBase, type ElementRecord, type ElementPort, type PaperProps, usePaperEvents, selectElementSize } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
 
@@ -76,7 +59,7 @@ const PAPER_PROPS: PaperProps = {
 };
 
 // Create initial cells with typing support.
-const initialCells: Cells<ElementData> = [
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -168,7 +151,7 @@ function MessageComponent({
     }
   }
   const id = useCellId();
-  const { setCell } = useGraph<ElementData>();
+  const { setCell } = useGraph<ElementRecord<ElementData>>();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);
   return (
@@ -214,7 +197,7 @@ const ROW_HEIGHT = 45;
 const ROW_START = 65;
 // Define the table element
 function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const tableWidth = width;
   const tableHeight = height;
   return (
@@ -271,7 +254,7 @@ function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>
 }
 
 function MinimapRenderElement() {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return <rect width={width} height={height} fill={'white'} rx={10} ry={10} />;
 }
 // Minimap component
@@ -434,11 +417,12 @@ function ToolBar(props: Readonly<ToolbarProps>) {
 
 // Show elements and links info
 function ElementsInfo() {
-  const cells = useCells<ElementData>();
+  const cells = useCells();
   const { isElement, isLink } = useGraph();
-  const elements: Record<string, CellRecord<ElementData>> = {};
-  const links: Record<string, CellRecord<ElementData>> = {};
+  const elements: Record<string, CellRecordBase> = {};
+  const links: Record<string, CellRecordBase> = {};
   for (const cell of cells) {
+    if (cell.id === undefined) continue;
     if (isElement(cell)) elements[String(cell.id)] = cell;
     else if (isLink(cell)) links[String(cell.id)] = cell;
   }
@@ -564,7 +548,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ElementData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

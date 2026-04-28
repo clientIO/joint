@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { LinkRecord } from '../../types/data-types';
+import type { LinkRecord } from '../../types/cell.types';
 import type { PortalSelector } from '../../models/portal-paper.types';
 import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
@@ -170,14 +170,14 @@ export interface PortalPaperOptions {
  * for built-in JointJS shapes that ship without a `data` field.
  *
  * If the renderer needs the id, position, size, or other slices, use the
- * context hooks: `useCellId()`, `useElement()` (with optional selector), or
+ * context hooks: `useCellId()`, `useCell()` (with optional selector), or
  * `useCell(c => c.position / c.size / ...)`.
  */
 export type RenderElement<ElementData = unknown> = (data: ElementData) => ReactNode;
 
 /**
  * Render function for links. Receives the link's `data` slice only — same
- * performance rationale as `RenderElement`. Use `useLink()` (with an
+ * performance rationale as `RenderElement`. Use `useCell()` (with an
  * optional selector) inside the renderer when source / target / id are
  * needed.
  *

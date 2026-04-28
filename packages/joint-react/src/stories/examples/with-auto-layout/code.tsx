@@ -3,24 +3,16 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
-import {
-  GraphProvider,
-  Paper,
-  useGraph,
-  useCells,
-  HTMLBox,
-  useNodesMeasuredEffect,
-  type Cells,
-} from '@joint/react';
+import { GraphProvider, Paper, useGraph, useCells, HTMLBox, useNodesMeasuredEffect, type CellRecord, type ElementRecord, type ResolvedCellRecord } from '@joint/react';
 import { useCallback, useId, useRef, useState } from 'react';
-import type { dia } from '@joint/core';
+import { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 
 type ElementData = { label: string };
-const initialCells: Cells<ElementData> = [
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' } },
   { id: '2', type: 'element', data: { label: 'Node 2' } },
   { id: '3', type: 'element', data: { label: 'Node 3' } },
@@ -33,7 +25,7 @@ const initialCells: Cells<ElementData> = [
 ];
 
 function Main() {
-  const { graph, addCell } = useGraph<ElementData>();
+  const { graph, setCell } = useGraph<ElementRecord<ElementData>>();
   const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
@@ -68,7 +60,7 @@ function Main() {
     return <HTMLBox className="flex items-center justify-center">{data.label}</HTMLBox>;
   }, []);
 
-  const elementsLength = useCells<ElementData, unknown, number>((cells) => {
+  const elementsLength = useCells<ResolvedCellRecord, number>((cells) => {
     let count = 0;
     for (const cell of cells) if (cell.type === 'element') count += 1;
     return count;
@@ -95,7 +87,7 @@ function Main() {
         <button
           onClick={() => {
             const newId = `${Math.random()}`;
-            addCell({
+            setCell({
               id: newId,
               type: 'element',
               data: { label: `Node ${elementsLength + 1}` },
@@ -120,7 +112,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ElementData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

@@ -1,14 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { useCallback } from 'react';
-import {
-  GraphProvider,
-  Paper,
-  HTMLBox,
-  useMarkup,
-  type Cells,
-  type RenderElement,
-} from '@joint/react';
+import { type ElementRecord,  type CellRecord, GraphProvider, Paper, HTMLBox, useMarkup, type RenderElement } from '@joint/react';
 import '../index.css';
 import './styles.css';
 import { linkRoutingSmooth } from '@joint/react/presets';
@@ -20,7 +13,7 @@ interface TableData {
   readonly rows: ReadonlyArray<{ readonly field: string; readonly type: string }>;
 }
 
-const initialCells: Cells<TableData> = [
+const initialCells: ReadonlyArray<CellRecord<TableData>> = [
   {
     id: '1',
     type: 'element',
@@ -157,7 +150,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<TableData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

@@ -1,14 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import {
+  type CellRecord,
   GraphProvider,
-  useElement,
+  useCell,
   Paper,
   SVGText,
   useCells,
-    useGraph,
-  type Cells,
+  useGraph,
   type ElementRecord,
+  type ResolvedElementRecord,
   selectElementSize,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
@@ -80,7 +81,7 @@ const wireStyle = {
   linejoin: 'round' as const,
 };
 
-const initialCells: Cells<ShapeData> = [
+const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   {
     id: 'generator',
     type: 'element',
@@ -124,10 +125,10 @@ const initialCells: Cells<ShapeData> = [
 // Generator Component
 // ----------------------------------------------------------------------------
 function GeneratorNode({ power }: Readonly<GeneratorData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-  const { setCell } = useGraph<ShapeData>();
+  const { setCell } = useGraph<ElementRecord<ShapeData>>();
 
   // Turbine blade path
   const turbinePath = `
@@ -246,7 +247,7 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
  * Reads generator power reactively from the cells container.
  */
 function useGeneratorPower(): number {
-  return useCells<ShapeData, unknown, number>((cells) => {
+  return useCells<ResolvedElementRecord<ShapeData>, number>((cells) => {
     const generator = cells.find((cell) => cell.id === GENERATOR_ID) as
       | ElementRecord<ShapeData>
       | undefined;
@@ -260,7 +261,7 @@ function useGeneratorPower(): number {
 // Bulb Component
 // ----------------------------------------------------------------------------
 function BulbNode({ watts }: Readonly<BulbData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const glassRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
 
@@ -322,7 +323,7 @@ function BulbNode({ watts }: Readonly<BulbData>) {
 // ----------------------------------------------------------------------------
 // Render Dispatcher
 // ----------------------------------------------------------------------------
-function RenderShapeElement(data: ShapeData) {
+function RenderShapeElement(data: Readonly<ShapeData>) {
   switch (data.type) {
     case ShapeTypes.generator: {
       return <GeneratorNode {...data} />;
@@ -337,7 +338,7 @@ function RenderShapeElement(data: ShapeData) {
 // Power Control Component
 // ----------------------------------------------------------------------------
 function PowerControl() {
-  const { setCell } = useGraph<ShapeData>();
+  const { setCell } = useGraph<ElementRecord<ShapeData>>();
 
   // Read generator power from store (reactive)
   const power = useGeneratorPower();

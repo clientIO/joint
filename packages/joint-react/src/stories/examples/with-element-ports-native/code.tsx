@@ -1,15 +1,7 @@
-
 import { PAPER_CLASSNAME, PAPER_STYLE } from 'storybook-config/theme';
-import type { dia } from '@joint/core';
+import { dia } from '@joint/core';
 import '../index.css';
-import {
-  GraphProvider,
-  useElement,
-  Paper,
-    type Cells,
-  type RenderElement,
-  selectElementSize,
-} from '@joint/react';
+import { type ElementRecord,  type CellRecord, GraphProvider, useCell, Paper, type RenderElement, selectElementSize } from '@joint/react';
 import { useCallback } from 'react';
 
 // Element palette
@@ -90,7 +82,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
   return { groups, items };
 }
 
-const initialCells: Cells<NativeElementUserData> = [
+const initialCells: ReadonlyArray<CellRecord<NativeElementUserData>> = [
   {
     id: 'node-1',
     type: 'element',
@@ -168,7 +160,7 @@ const initialCells: Cells<NativeElementUserData> = [
 ];
 
 function Node({ color, label }: Readonly<{ color: string; label: string }>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const cx = width / 2;
   const cy = height / 2;
   return (
@@ -217,7 +209,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<NativeElementUserData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

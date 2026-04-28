@@ -1,8 +1,4 @@
-import {
-  GraphProvider,
-  Paper,
-  type Cells,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, Paper } from '@joint/react';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 
@@ -13,7 +9,7 @@ interface ShapeData {
 
 const INTERACTIVE_OPTIONS = { labelMove: true } as const;
 
-const initialCells: Cells<ShapeData> = [
+const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 50, y: 50 }, size: { width: 100, height: 40 } },
   { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 300, y: 50 }, size: { width: 100, height: 40 } },
   { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 50, y: 200 }, size: { width: 100, height: 40 } },

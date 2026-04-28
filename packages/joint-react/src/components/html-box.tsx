@@ -1,8 +1,6 @@
 import { type CSSProperties } from 'react';
 import { HTMLHost, type HTMLHostProps } from './html-host';
 
-export type HTMLBoxProps = HTMLHostProps;
-
 const BASE_STYLE: CSSProperties = {
   boxSizing: 'border-box',
   overflow: 'hidden',
@@ -34,7 +32,7 @@ const AUTO_SIZE_STYLE: CSSProperties = {
  * <Paper renderElement={({ label }) => <DefaultHTMLHost>{label}</DefaultHTMLHost>} />
  * ```
  */
-export function HTMLBox(props: Readonly<HTMLBoxProps> = {}) {
+export function HTMLBox(props: Readonly<HTMLHostProps> = {}) {
   const { className, style, useModelGeometry, ...rest } = props;
   const mergedClassName = className ? `jj-box ${className}` : 'jj-box';
   const baseStyle = useModelGeometry ? BASE_STYLE : { ...BASE_STYLE, ...AUTO_SIZE_STYLE };

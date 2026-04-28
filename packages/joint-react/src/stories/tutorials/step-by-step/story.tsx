@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import '../../examples/index.css';
 import CodeSVG from './code-svg';
 import CodeHTML from './code-html';

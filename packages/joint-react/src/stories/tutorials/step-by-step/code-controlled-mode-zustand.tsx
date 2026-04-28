@@ -20,7 +20,7 @@
  *    `onCellsChange` callback that writes back into the store.
  *
  * 3. **Single Unified Slot**: Elements and links live side by side in the
- *    same `cells: Cells` array, distinguished by the `type` field.
+ *    same `cells: readonly CellRecord[]` array, distinguished by the `type` field.
  *
  * HOW IT WORKS:
  *
@@ -33,10 +33,10 @@
  */
 
 import {
+  type CellRecord,
   GraphProvider,
   HTMLHost,
   Paper,
-  type Cells,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
@@ -53,7 +53,7 @@ import { create } from 'zustand';
  */
 type ElementData = { label: string };
 
-const defaultCells: Cells<ElementData> = [
+const defaultCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -81,7 +81,7 @@ const defaultCells: Cells<ElementData> = [
 
 const NODE_STYLE = { width: 100, height: 50 };
 
-function RenderItem({ label }: ElementData) {
+function RenderItem({ label }: Readonly<ElementData>) {
   return (
     <HTMLHost className="node" style={NODE_STYLE}>
       {label}
@@ -98,9 +98,9 @@ function RenderItem({ label }: ElementData) {
  */
 interface GraphStore {
   /** Unified cells array — elements and links together. */
-  cells: Cells<ElementData>;
+  cells: ReadonlyArray<CellRecord<ElementData>>;
   /** Setter that accepts a value or updater (mirrors React's setState). */
-  setCells: (updater: React.SetStateAction<Cells<ElementData>>) => void;
+  setCells: (updater: React.SetStateAction<ReadonlyArray<CellRecord<ElementData>>>) => void;
   /** Action to add a new element. */
   addElement: (element: ElementRecord<ElementData>) => void;
   /** Action to remove the last element (and its connected links). */
@@ -210,7 +210,7 @@ function Main() {
   const setCells = useGraphStore((state) => state.setCells);
 
   return (
-    <GraphProvider<ElementData> cells={cells} onCellsChange={setCells}>
+    <GraphProvider cells={cells} onCellsChange={setCells}>
       <PaperApp />
     </GraphProvider>
   );

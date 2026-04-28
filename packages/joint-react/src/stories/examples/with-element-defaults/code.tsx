@@ -1,12 +1,4 @@
-import {
-  GraphProvider,
-  Paper,
-  HTMLBox,
-  ElementModel,
-  LinkModel,
-  useGraph,
-  type Cells,
-} from '@joint/react';
+import { type CellRecordBase, GraphProvider, Paper, HTMLBox, ElementModel, LinkModel, useGraph } from '@joint/react';
 import { elementAttributes, elementPort, linkAttributes, linkLabel, linkStyle } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
@@ -39,6 +31,7 @@ class PortMapElement extends ElementModel {
     return elementAttributes({
       ...super.defaults(),
       type: 'PortMapElement',
+      data: undefined,
       portMap: {
         in: { cx: 0, cy: '50%', width: 10, height: 10, color: SECONDARY, passive: true },
         out: { cx: '100%', cy: '50%', width: 10, height: 10, color: PRIMARY },
@@ -86,7 +79,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecordBase> = [
   {
     id: 'a',
     type: 'PortsElement',
@@ -134,8 +127,8 @@ const initialCells: Cells<NodeData> = [
 const JSON_VIEWER_STYLE = { fontSize: 10 } as const;
 const CELL_NAMESPACE = { PortsElement, PortMapElement, LabelsLink, LabelMapLink };
 
-function renderElement(data: NodeData) {
-  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+function renderElement({ label }: Readonly<NodeData>) {
+  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
 }
 
 function JSONViewer() {

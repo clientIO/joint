@@ -1,15 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import {
-  GraphProvider,
-  HTMLHost,
-  Paper,
-  useCellId,
-  useCells,
-  useGraph,
-  type Cells,
-  type ElementRecord,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, HTMLHost, Paper, useCellId, useCells, useGraph, type ElementRecord, type ResolvedElementRecord } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -22,7 +13,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -51,7 +42,7 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function LabelInput({ id, label }: Readonly<{ id: string; label: string }>) {
-  const { setCell } = useGraph<NodeData>();
+  const { setCell } = useGraph<ElementRecord<NodeData>>();
   return (
     <input
       style={{ padding: 5, marginTop: 4 }}
@@ -71,7 +62,7 @@ function LabelInput({ id, label }: Readonly<{ id: string; label: string }>) {
   );
 }
 
-function RenderElement({ label }: NodeData) {
+function RenderElement({ label }: Readonly<NodeData>) {
   const id = useCellId();
   const { removeCell } = useGraph();
   return (
@@ -91,8 +82,8 @@ function RenderElement({ label }: NodeData) {
 }
 
 function Main() {
-  const { isElement } = useGraph<NodeData>();
-  const elements = useCells<NodeData, unknown, ReadonlyArray<ElementRecord<NodeData>>>(
+  const { isElement } = useGraph<ElementRecord<NodeData>>();
+  const elements = useCells<ResolvedElementRecord<NodeData>, ReadonlyArray<ElementRecord<NodeData>>>(
     (cells) => cells.filter((cell) => isElement(cell)) as ReadonlyArray<ElementRecord<NodeData>>
   );
   return (
@@ -110,7 +101,7 @@ function Main() {
           <LabelInput
             key={String(element.id)}
             id={String(element.id)}
-            label={element.data?.label ?? ''}
+            label={element.data.label}
           />
         ))}
       </div>
