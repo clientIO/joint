@@ -3,7 +3,6 @@ import {
     result,
     merge,
     forIn,
-    isObject,
     isEqual,
     isString,
     cloneDeep,
