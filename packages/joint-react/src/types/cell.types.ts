@@ -6,23 +6,8 @@ import type { ElementPort } from '../presets/element-ports';
 import type { LinkStyle } from '../presets/link-style';
 import type { LinkLabel } from '../presets/link-labels';
 
-/**
- * `string & Record<never, never>` (aka `string & {}`) preserves literal
- * autocomplete on a `Literal | string` union. Plain `string` swallows the
- * literals and kills IntelliSense.
- *
- * NB: `Exclude<string, 'foo'>` does NOT do what it looks like — `string`
- * isn't a distributable union of every string literal, so Exclude returns
- * `string` unchanged. That's why the previous `StringLiteral<Omit>` helper
- * wasn't doing anything.
- */
-type AnyString = string & Record<never, never>;
-
 /** Known cell type names. */
 export type KnownCellType = typeof ELEMENT_MODEL_TYPE | typeof LINK_MODEL_TYPE;
-
-/** Known names autocomplete; any other string is still accepted. */
-export type CellTypeName = KnownCellType | AnyString;
 
 /** Minimal shape any keyed record must satisfy to live in a container. */
 export interface WithId {
@@ -39,9 +24,13 @@ export interface WithId {
  * field change. Treat each cell as immutable — mutating is a bug.
  */
 /** Adds a discriminating `type` field on top of {@link WithId}. */
-export interface WithType extends WithId {
-  readonly type: CellTypeName;
+export interface WithType<Type = KnownCellType> extends WithId {
+  readonly type: Type;
 }
+
+type WithData<Data = unknown> = unknown extends Data
+  ? { readonly data?: unknown }
+  : { readonly data: Data };
 
 /**
  * Structural upper bound for any element-like cell.
@@ -62,13 +51,19 @@ export interface ElementAttributes
   readonly portMap?: Record<string, ElementPort>;
   readonly portStyle?: Partial<ElementPort>;
   readonly [key: string]: unknown;
-  readonly type?: CellTypeName;
+  readonly type?: string;
 }
+
 /** Element-flavored cell; narrowed when `type === ELEMENT_MODEL_TYPE`. */
-export interface ElementRecord<ElementData = unknown> extends ElementAttributes, WithType {
-  readonly type: typeof ELEMENT_MODEL_TYPE;
-  readonly data: ElementData;
-}
+// export interface ElementRecord<ElementData = unknown> extends ElementAttributes, WithType {
+//   readonly type: typeof ELEMENT_MODEL_TYPE;
+//   // readonly data: ElementData;
+//   readonly data: ElementData;
+// }
+
+export type ElementRecord<ElementData = unknown> = ElementAttributes &
+  WithType<typeof ELEMENT_MODEL_TYPE> &
+  WithData<ElementData>;
 
 /**
  * Internal element record shape — what the store holds after JointJS /
@@ -110,7 +105,7 @@ export interface LinkAttributes
   readonly labelMap?: Record<string, LinkLabel>;
   readonly labelStyle?: Partial<LinkLabel>;
   readonly [key: string]: unknown;
-  readonly type?: CellTypeName;
+  readonly type?: string;
 }
 
 /** Link-flavored cell; narrowed when `type === LINK_MODEL_TYPE`. */
@@ -168,6 +163,17 @@ export type CellRecord<ElementData = unknown, LinkData = unknown> =
   | LinkRecord<LinkData>;
 
 /**
+ * Union of the records this `useGraph` instance accepts as cell input —
+ * either a typed `Element` or `Link` record. To support custom cell types,
+ * extend the union at the call site (e.g. `useGraph<MyElement | MyCustom, MyLink>`).
+ * @template Element - element record shape
+ * @template Link - link record shape
+ */
+export type CellUnion<
+  Element extends ElementAttributes = ElementAttributes,
+  Link extends LinkAttributes = LinkAttributes,
+> = Element | Link;
+/**
  * Resolves any input cell shape to its internal store form — the variant with
  * framework-populated fields (`id`, `position`, `size`, `angle`, `data` for
  * elements; `id`, `source`, `target`, `data` for links) required.
@@ -196,15 +202,16 @@ export type CellRecord<ElementData = unknown, LinkData = unknown> =
  * useCell((el: Internal<ElementRecord<MyData>>) => el.data.label);
  * ```
  */
-export type Internal<T = CellRecord> = T extends ElementRecord<infer ElementData>
-  ? InternalElementRecord<ElementData>
-  : T extends LinkRecord<infer LinkData>
-    ? InternalLinkRecord<LinkData>
-    : T extends ElementAttributes
-      ? InternalElementRecord<T['data']>
-      : T extends LinkAttributes
-        ? InternalLinkRecord<T['data']>
-        : T;
+export type Internal<T = CellRecord> =
+  T extends ElementRecord<infer ElementData>
+    ? InternalElementRecord<ElementData>
+    : T extends LinkRecord<infer LinkData>
+      ? InternalLinkRecord<LinkData>
+      : T extends ElementAttributes
+        ? InternalElementRecord<T['data']>
+        : T extends LinkAttributes
+          ? InternalLinkRecord<T['data']>
+          : T;
 
 /** Short alias for cell ids; same as dia.Cell.ID. */
 // @todo - remove, and just use jointjs dia.Cell.ID everywhere. This type alias doesn't add anything and just creates an extra import to keep in sync.

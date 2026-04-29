@@ -226,10 +226,7 @@ export function useCells<Cell extends CellAttributes = Internal<CellRecord>>(
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<
-  Cell extends CellAttributes = Internal,
-  Selected = Cell | undefined,
->(
+export function useCells<Cell extends CellAttributes = Internal, Selected = Cell | undefined>(
   id: CellId,
   selector: (cell: Cell | undefined) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
@@ -261,10 +258,7 @@ export function useCells<Cell extends CellAttributes = Internal<CellRecord>>(
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<
-  Cell extends CellAttributes = Internal,
-  Selected = readonly Cell[],
->(
+export function useCells<Cell extends CellAttributes = Internal, Selected = readonly Cell[]>(
   ids: readonly CellId[],
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
@@ -277,17 +271,11 @@ export function useCells<
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<
-  Cell extends CellAttributes = Internal,
-  Selected = readonly Cell[],
->(
+export function useCells<Cell extends CellAttributes = Internal, Selected = readonly Cell[]>(
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
-export function useCells<
-  Cell extends CellAttributes = Internal,
-  Selected = readonly Cell[],
->(
+export function useCells<Cell extends CellAttributes = Internal, Selected = readonly Cell[]>(
   argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
   argument2?:
     | ((cells: readonly Cell[]) => Selected)

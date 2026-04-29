@@ -1,33 +1,21 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
-import type { ElementAttributes, LinkAttributes, CellId } from '../types/cell.types';
-import type { ElementPosition, ElementSize } from './../types/cell-data';
-import {
-  mapAttributesToElement,
-  mapAttributesToLink,
-  type MapAttributesToElement,
-  type MapAttributesToLink,
-} from '../state/data-mapping';
+import type { ElementAttributes, LinkAttributes, CellId, CellUnion } from '../types/cell.types';
+import { mapAttributesToElement, mapAttributesToLink } from '../state/data-mapping';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
 import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-utils';
 import { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import { LINK_MODEL_TYPE } from '../models/link-model';
 
-/** Cell record union accepted by the unified cells stream. */
-type GraphCellUnion<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
-> = Element | Link;
-
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalCellsChange<
   Element extends ElementAttributes = ElementAttributes,
   Link extends LinkAttributes = LinkAttributes,
 > {
-  readonly added: Map<CellId, GraphCellUnion<Element, Link>>;
-  readonly changed: Map<CellId, GraphCellUnion<Element, Link>>;
+  readonly added: Map<CellId, CellUnion<Element, Link>>;
+  readonly changed: Map<CellId, CellUnion<Element, Link>>;
   readonly removed: Set<CellId>;
 }
 
@@ -58,21 +46,18 @@ interface GraphViewState<
  * @param next - freshly mapped record from the graph
  * @returns merged record; may be `previous` itself when nothing changed
  */
-function mergeCellRecord<Element extends ElementAttributes, Link extends LinkAttributes>(
-  previous: GraphCellUnion<Element, Link> | undefined,
-  next: GraphCellUnion<Element, Link>
-): GraphCellUnion<Element, Link> {
+function mergeCellUnion<Element extends ElementAttributes, Link extends LinkAttributes>(
+  previous: CellUnion<Element, Link> | undefined,
+  next: CellUnion<Element, Link>
+): CellUnion<Element, Link> {
   if (!previous) return next;
 
-  const previousRecord = previous as unknown as Record<string, unknown>;
-  const nextRecord = next as unknown as Record<string, unknown>;
-
-  const previousData = previousRecord.data as object | undefined;
-  const nextData = nextRecord.data as object | undefined;
-  const previousPosition = previousRecord.position as ElementPosition | undefined;
-  const nextPosition = nextRecord.position as ElementPosition | undefined;
-  const previousSize = previousRecord.size as ElementSize | undefined;
-  const nextSize = nextRecord.size as ElementSize | undefined;
+  const previousData = previous.data as object | undefined;
+  const nextData = next.data as object | undefined;
+  const previousPosition = (previous as ElementAttributes).position;
+  const nextPosition = (next as ElementAttributes).position;
+  const previousSize = (previous as ElementAttributes).size;
+  const nextSize = (next as ElementAttributes).size;
 
   const mergedData = isShallowEqual(previousData, nextData) ? previousData : nextData;
   const mergedPosition = isPositionEqual(previousPosition, nextPosition)
@@ -90,13 +75,13 @@ function mergeCellRecord<Element extends ElementAttributes, Link extends LinkAtt
     mergedPosition === previousPosition &&
     mergedSize === previousSize
   ) {
-    const previousKeys = Object.keys(previousRecord);
-    const nextKeys = Object.keys(nextRecord);
+    const previousKeys = Object.keys(previous);
+    const nextKeys = Object.keys(next);
     if (previousKeys.length === nextKeys.length) {
       let allMatch = true;
       for (const key of nextKeys) {
         if (key === 'data' || key === 'position' || key === 'size') continue;
-        if (previousRecord[key] !== nextRecord[key]) {
+        if (previous[key] !== next[key]) {
           allMatch = false;
           break;
         }
@@ -106,11 +91,11 @@ function mergeCellRecord<Element extends ElementAttributes, Link extends LinkAtt
   }
 
   return {
-    ...nextRecord,
+    ...next,
     data: mergedData,
     position: mergedPosition,
     size: mergedSize,
-  } as unknown as GraphCellUnion<Element, Link>;
+  } as CellUnion<Element, Link>;
 }
 
 /**
@@ -123,12 +108,11 @@ function mergeCellRecord<Element extends ElementAttributes, Link extends LinkAtt
  * @param cell - graph cell
  * @returns CellRecord suitable for the cells container
  */
-function toCellRecord<Element extends ElementAttributes, Link extends LinkAttributes>(
+function toCellUnion<Element extends ElementAttributes, Link extends LinkAttributes>(
   cell: dia.Cell
-): GraphCellUnion<Element, Link> {
+): CellUnion<Element, Link> {
   if (cell.isElement()) {
-    type ElementData = Element['data'];
-    const record = (mapAttributesToElement as MapAttributesToElement<ElementData>)(cell.attributes);
+    const record = mapAttributesToElement(cell.attributes);
     const previousPosition = record.position;
     const previousSize = record.size;
     const withDefaults = {
@@ -144,24 +128,23 @@ function toCellRecord<Element extends ElementAttributes, Link extends LinkAttrib
         height: previousSize?.height ?? 0,
       },
       angle: record.angle ?? 0,
-      data: (record.data ?? {}) as ElementData,
+      data: record.data ?? {},
     };
-    return withDefaults as unknown as GraphCellUnion<Element, Link>;
+    return withDefaults as Element;
   }
   if (cell.isLink()) {
-    type LinkData = Link['data'];
-    const record = (mapAttributesToLink as MapAttributesToLink<LinkData>)(cell.attributes);
+    const record = mapAttributesToLink(cell.attributes);
     const withDefaults = {
       ...record,
       id: cell.id,
       type: record.type ?? LINK_MODEL_TYPE,
       source: record.source ?? {},
       target: record.target ?? {},
-      data: (record.data ?? {}) as LinkData,
+      data: record.data ?? {},
     };
-    return withDefaults as unknown as GraphCellUnion<Element, Link>;
+    return withDefaults as Link;
   }
-  return { ...cell.attributes, id: cell.id } as unknown as GraphCellUnion<Element, Link>;
+  return { ...cell.attributes, id: cell.id } as CellUnion<Element, Link>;
 }
 
 export function graphView<
@@ -170,11 +153,11 @@ export function graphView<
 >(options: GraphViewState<Element, Link>) {
   const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
-  const cells = createContainer<GraphCellUnion<Element, Link>>('Cells');
+  const cells = createContainer<CellUnion<Element, Link>>('Cells');
 
   const trackChanges = onIncrementalChange !== undefined;
-  const added = trackChanges ? new Map<CellId, GraphCellUnion<Element, Link>>() : undefined;
-  const changed = trackChanges ? new Map<CellId, GraphCellUnion<Element, Link>>() : undefined;
+  const added = trackChanges ? new Map<CellId, CellUnion<Element, Link>>() : undefined;
+  const changed = trackChanges ? new Map<CellId, CellUnion<Element, Link>>() : undefined;
   const removed = trackChanges ? new Set<CellId>() : undefined;
 
   /**
@@ -185,12 +168,12 @@ export function graphView<
    * @param cell - graph cell
    * @returns the merged record (may be the previous reference when unchanged)
    */
-  function writeCell(cell: dia.Cell): GraphCellUnion<Element, Link> {
+  function writeCell(cell: dia.Cell): CellUnion<Element, Link> {
     cells.set(cell.id, (previous) => {
-      const next = toCellRecord<Element, Link>(cell);
-      return mergeCellRecord<Element, Link>(previous, next);
+      const next = toCellUnion<Element, Link>(cell);
+      return mergeCellUnion<Element, Link>(previous, next);
     });
-    return cells.get(cell.id)!;
+    return cells.get(cell.id) as CellUnion<Element, Link>;
   }
 
   const graphChangesController = graphChanges({

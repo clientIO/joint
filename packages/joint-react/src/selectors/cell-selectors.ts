@@ -44,7 +44,7 @@ export function selectElementAngle(element: Internal<ElementRecord>) {
 export function selectElementData<ElementData = unknown>(
   element: Internal<ElementRecord<ElementData>>
 ): ElementData {
-  return element.data;
+  return element.data as ElementData;
 }
 
 // ── Cell-level selectors (work for both elements and links) ───────────────

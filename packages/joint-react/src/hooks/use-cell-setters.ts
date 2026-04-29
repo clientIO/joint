@@ -2,25 +2,12 @@ import { useCallback } from 'react';
 import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { mapCellToAttributes } from '../state/data-mapping';
-import type { ElementAttributes, LinkAttributes, CellId } from '../types/cell.types';
-
-// Why no `{ isUpdateFromReact: true }` flag on these imperative setters:
-// the flag is used only by the controlled-mode `graphView.updateGraph` path
-// to break the `parent state ↔ graph` echo loop. Per-cell setters must NOT
-// suppress the listener — otherwise their mutations never reach the cells
-// container, and every hook that reads via `useCells` / `useCell`
-// returns stale data. A controlled
-// `<input value={useCells(id).data.label}>` wired to `setCell` would reset
-// every keystroke (the bug this note guards).
-
-/** Cell record union accepted by setters. */
-type SettableCell<Element extends ElementAttributes, Link extends LinkAttributes> = Element | Link;
-
-/** Read-only cell array used by reset/update setters. */
-type SettableCells<Element extends ElementAttributes, Link extends LinkAttributes> = ReadonlyArray<
-  SettableCell<Element, Link>
->;
-
+import type {
+  ElementAttributes,
+  LinkAttributes,
+  CellId,
+  CellUnion,
+} from '../types/cell.types';
 /**
  * Returns a function that adds-or-updates a cell.
  *
@@ -45,8 +32,8 @@ export function useSetCell<
   return useCallback(
     (
       input:
-        | SettableCell<Element, Link>
-        | ((previous: SettableCell<Element, Link>) => SettableCell<Element, Link>)
+        | CellUnion<Element, Link>
+        | ((previous: CellUnion<Element, Link>) => CellUnion<Element, Link>)
     ) => {
       const next = resolveSetCellInput(input, store);
       if (next.id === undefined) {
@@ -65,9 +52,9 @@ export function useSetCell<
         ...next,
         id: previous.id,
         type: previous.type,
-      } as SettableCell<Element, Link>;
+      };
       const attributes = mapCellToAttributes(merged, graph);
-      diaCell.set(attributes as dia.Cell.Attributes);
+      diaCell.set(attributes);
     },
     [graph, store]
   );
@@ -97,17 +84,18 @@ export function useSetCell<
  */
 function resolveSetCellInput<Element extends ElementAttributes, Link extends LinkAttributes>(
   input:
-    | SettableCell<Element, Link>
-    | ((previous: SettableCell<Element, Link>) => SettableCell<Element, Link>),
+    | CellUnion<Element, Link>
+    | ((previous: CellUnion<Element, Link>) => CellUnion<Element, Link>),
   store: ReturnType<typeof useGraphStore<Element, Link>>
-): SettableCell<Element, Link> {
+): CellUnion<Element, Link> {
   if (typeof input !== 'function') return input;
   // Updater form: we need `previous` to call it. Without an explicit id the
   // only way to discover the target is to require that the updater's
   // returned record identifies itself — so we first call with an empty-id
   // placeholder, look up the real previous by the returned id, then invoke
   // the updater again with the actual previous.
-  const placeholder = { id: '', type: '' } as unknown as SettableCell<Element, Link>;
+  // @todo - this is a bit clunky. We could consider a separate `updateCell(id, updater)`
+  const placeholder = { id: '', type: '' } as CellUnion<Element, Link>;
   const firstPass = input(placeholder);
   if (firstPass.id === undefined) return firstPass;
   const previous = store.graphView.cells.get(firstPass.id);
@@ -173,10 +161,12 @@ export function useResetCells<
   return useCallback(
     (
       input:
-        | SettableCells<Element, Link>
-        | ((previous: SettableCells<Element, Link>) => SettableCells<Element, Link>)
+        | ReadonlyArray<CellUnion<Element, Link>>
+        | ((
+            previous: ReadonlyArray<CellUnion<Element, Link>>
+          ) => ReadonlyArray<CellUnion<Element, Link>>)
     ) => {
-      const current = store.graphView.cells.getAll() as SettableCells<Element, Link>;
+      const current = store.graphView.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
       const mapped: dia.Cell.JSON[] = next.map((cell) => mapCellToAttributes(cell, graph));
       graph.resetCells(mapped);
@@ -198,8 +188,12 @@ export function useUpdateCells<
 >() {
   const store = useGraphStore<Element, Link>();
   return useCallback(
-    (updater: (previous: SettableCells<Element, Link>) => SettableCells<Element, Link>) => {
-      const current = store.graphView.cells.getAll() as SettableCells<Element, Link>;
+    (
+      updater: (
+        previous: ReadonlyArray<CellUnion<Element, Link>>
+      ) => ReadonlyArray<CellUnion<Element, Link>>
+    ) => {
+      const current = store.graphView.cells.getAll();
       store.applyControlled(updater(current));
     },
     [store]

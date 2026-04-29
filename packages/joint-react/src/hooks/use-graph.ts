@@ -8,19 +8,7 @@ import {
   useResetCells,
   useUpdateCells,
 } from './use-cell-setters';
-import type { ElementAttributes, LinkAttributes, CellId } from '../types/cell.types';
-
-/**
- * Union of the records this `useGraph` instance accepts as cell input —
- * either a typed `Element` or `Link` record. To support custom cell types,
- * extend the union at the call site (e.g. `useGraph<MyElement | MyCustom, MyLink>`).
- * @template Element - element record shape
- * @template Link - link record shape
- */
-export type GraphCellInput<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
-> = Element | Link;
+import type { ElementAttributes, LinkAttributes, CellId, CellUnion } from '../types/cell.types';
 
 /**
  * Public imperative API returned by {@link useGraph}.
@@ -49,8 +37,8 @@ export interface UseGraphResult<
    */
   readonly setCell: (
     input:
-      | GraphCellInput<Element, Link>
-      | ((previous: GraphCellInput<Element, Link>) => GraphCellInput<Element, Link>)
+      | CellUnion<Element, Link>
+      | ((previous: CellUnion<Element, Link>) => CellUnion<Element, Link>)
   ) => void;
   /** Remove a cell by id. No-op when the id is missing. */
   readonly removeCell: (id: CellId) => void;
@@ -59,16 +47,16 @@ export interface UseGraphResult<
   /** Atomically replace the cell set. */
   readonly resetCells: (
     input:
-      | ReadonlyArray<GraphCellInput<Element, Link>>
+      | ReadonlyArray<CellUnion<Element, Link>>
       | ((
-          previous: ReadonlyArray<GraphCellInput<Element, Link>>
-        ) => ReadonlyArray<GraphCellInput<Element, Link>>)
+          previous: ReadonlyArray<CellUnion<Element, Link>>
+        ) => ReadonlyArray<CellUnion<Element, Link>>)
   ) => void;
   /** Apply an updater to the current cells array. */
   readonly updateCells: (
     updater: (
-      previous: ReadonlyArray<GraphCellInput<Element, Link>>
-    ) => ReadonlyArray<GraphCellInput<Element, Link>>
+      previous: ReadonlyArray<CellUnion<Element, Link>>
+    ) => ReadonlyArray<CellUnion<Element, Link>>
   ) => void;
   /**
    * Predicate / type guard: true when the input resolves to an element cell.
@@ -76,14 +64,14 @@ export interface UseGraphResult<
    * so any `dia.Element` subclass (including custom shapes) is recognised,
    * not just our default `ElementModel`.
    */
-  readonly isElement: (input: GraphCellInput<Element, Link>) => boolean;
+  readonly isElement: (input: CellUnion<Element, Link>) => boolean;
   /**
    * Predicate / type guard: true when the input resolves to a link cell.
    * Delegates to `GraphStore.isLink` — consults the graph's type registry so
    * any `dia.Link` subclass (including custom shapes) is recognised, not just
    * our default `LinkModel`.
    */
-  readonly isLink: (input: GraphCellInput<Element, Link>) => boolean;
+  readonly isLink: (input: CellUnion<Element, Link>) => boolean;
 }
 
 /**

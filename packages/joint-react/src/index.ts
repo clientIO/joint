@@ -70,7 +70,6 @@ export type {
   ElementRecord,
   LinkRecord,
   KnownCellType,
-  CellTypeName,
   Internal,
   ElementAttributes,
   LinkAttributes,

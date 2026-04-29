@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { ElementAttributes, WithType } from '../../types/cell.types';
+import type { ElementAttributes, ElementRecord } from '../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { elementAttributes } from '../../presets/element-attributes';
 
@@ -7,9 +7,7 @@ import { elementAttributes } from '../../presets/element-attributes';
  * Forward mapper using the React default element type.
  * @param element
  */
-export function mapElementToAttributes<ElementData = unknown>(
-  element: ElementAttributes & WithType & { readonly data?: ElementData }
-): dia.Cell.JSON {
+export function mapElementToAttributes(element: ElementAttributes): dia.Cell.JSON {
   const attributes = elementAttributes(element) as dia.Cell.JSON;
   if (!attributes.type) attributes.type = ELEMENT_MODEL_TYPE;
   return attributes;
@@ -24,9 +22,9 @@ export function mapElementToAttributes<ElementData = unknown>(
  * 1:1 mapping — no `presentation` wrapper.
  * @param attributes
  */
-export function mapAttributesToElement<ElementData = unknown>(
+export function mapAttributesToElement<ElementData extends ElementAttributes>(
   attributes: dia.Element.Attributes
-): ElementAttributes & { readonly data?: ElementData } {
+): ElementRecord<ElementData> {
   const {
     type,
     // Ports
@@ -49,11 +47,10 @@ export function mapAttributesToElement<ElementData = unknown>(
     elementRecord.type = type;
   }
 
-  return { ...elementRecord } as ElementAttributes & { readonly data?: ElementData };
+  return { ...elementRecord } as ElementRecord<ElementData>;
 }
 
-export type MapAttributesToElement<ElementData = unknown> =
+export type MapAttributesToElement<ElementData extends ElementAttributes> =
   typeof mapAttributesToElement<ElementData>;
 
-export type MapElementToAttributes<ElementData = unknown> =
-  typeof mapElementToAttributes<ElementData>;
+export type MapElementToAttributes = typeof mapElementToAttributes;

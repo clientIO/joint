@@ -727,7 +727,7 @@ function Toolbar() {
           passive: true,
         },
       },
-    } satisfies AgentNode);
+    });
   }, [setCell, theme]);
 
   return (

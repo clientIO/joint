@@ -1,10 +1,5 @@
 import type { dia } from '@joint/core';
-import type {
-  ElementAttributes,
-  LinkAttributes,
-  ElementRecord,
-  LinkRecord,
-} from '../../types/cell.types';
+import type { ElementAttributes, LinkAttributes } from '../../types/cell.types';
 import { isElementType, isLinkType } from '../../utils/cell-type';
 import { mapElementToAttributes } from './element-mapper';
 import { mapLinkToAttributes } from './link-mapper';
@@ -37,14 +32,14 @@ export function mapCellToAttributes<
   // `type` lives on `WithType` (which `ElementRecord` / `LinkRecord` extend).
   // Read it through a narrow cast so the index signature
   // (`[key: string]: unknown`) doesn't widen `cell.type` to `unknown`.
-  const cellType = (cell as { readonly type?: string }).type;
+  const cellType = cell.type;
   if (cellType !== undefined && isElementType(cellType, graph)) {
-    const attributes = mapElementToAttributes(cell as ElementRecord<Element['data']>);
+    const attributes = mapElementToAttributes(cell);
     if (cell.id !== undefined) attributes.id = cell.id;
     return attributes;
   }
   if (cellType !== undefined && isLinkType(cellType, graph)) {
-    const attributes = mapLinkToAttributes(cell as LinkRecord<Link['data']>);
+    const attributes = mapLinkToAttributes(cell);
     if (cell.id !== undefined) attributes.id = cell.id;
     return attributes;
   }

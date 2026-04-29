@@ -13,7 +13,7 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell.types';
 import type { ElementLayout } from '../types/cell-data';
-import type { ElementRecord } from '../types/cell.types';
+import type { ElementAttributes } from '../types/cell.types';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // Epsilon value to avoid jitter due to sub-pixel rendering
@@ -81,7 +81,7 @@ interface Options {
     id: CellId
   ) => ElementLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the elements from the container */
-  readonly getElements: () => Map<CellId, ElementRecord>;
+  readonly getElements: () => Map<CellId, ElementAttributes>;
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (data: Record<CellId, ElementLayoutOptionalXY>) => void;
 }
@@ -127,7 +127,7 @@ interface ProcessSizeChangeOptions {
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly elements: Map<CellId, ElementRecord>;
+  readonly elements: Map<CellId, ElementAttributes>;
   readonly mutableLayouts: Record<CellId, ElementLayoutOptionalXY>;
 }
 

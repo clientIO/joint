@@ -11,6 +11,7 @@ import {
   useCells,
   ElementModel,
   selectElementSize,
+  useGraph,
 } from '@joint/react';
 import { useCallback, useMemo } from 'react';
 
@@ -119,10 +120,11 @@ function ElementShape({ label, color }: Readonly<ElementData>) {
 // ============================================================================
 
 function DataPanel() {
+  const { isElement } = useGraph<ElementRecord<ElementData>>();
   const elements = useCells((cells): Array<[string, ElementRecord<ElementData>]> => {
     const result: Array<[string, ElementRecord<ElementData>]> = [];
     for (const cell of cells) {
-      if ((cell.type as string) === 'MyElementModel' || cell.type === 'element') {
+      if (isElement(cell)) {
         result.push([String(cell.id), cell as ElementRecord<ElementData>]);
       }
     }

@@ -71,8 +71,7 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
  * @param root0.style
  */
 function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
-  const size = useCell(selectElementSize);
-  const { width, height } = size ?? { width: 0, height: 0 };
+  const { height, width } = useCell(selectElementSize);
   const mergedStyle = useMemo<CSSProperties>(
     () => ({ width, height, ...style }),
     [width, height, style]

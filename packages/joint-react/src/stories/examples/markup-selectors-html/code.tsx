@@ -20,7 +20,7 @@ interface TableData {
   readonly rows: ReadonlyArray<{ readonly field: string; readonly type: string }>;
 }
 
-const initialCells: ReadonlyArray<CellRecord<TableData>> = [
+const initialCells: Array<CellRecord<TableData>> = [
   {
     id: '1',
     type: 'element',

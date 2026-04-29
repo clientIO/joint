@@ -1,5 +1,11 @@
 import { dia, shapes } from '@joint/core';
-import type { ElementAttributes, LinkAttributes, CellId } from '../types/cell.types';
+import type {
+  ElementAttributes,
+  LinkAttributes,
+  CellId,
+  CellRecord,
+  CellUnion,
+} from '../types/cell.types';
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
@@ -17,7 +23,6 @@ import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
 import { graphView, type GraphView, type IncrementalCellsChange } from './graph-view';
-import type { ElementRecord } from '../types/cell.types';
 import { mapCellToAttributes } from '../state/data-mapping';
 import { simpleScheduler } from '../utils/scheduler';
 
@@ -167,14 +172,14 @@ export class GraphStore<
         // The observer only cares about element-typed cells. Build a Map on
         // demand from the unified cells container — cold path, called only
         // when the ResizeObserver fires.
-        const map = new Map<CellId, ElementRecord>();
+        const map = new Map<CellId, ElementAttributes>();
         for (const cell of this.graphView.cells.getAll()) {
           if (cell.id === undefined) continue;
           if (this.isElement(cell)) {
-            map.set(cell.id, cell as unknown as ElementRecord);
+            map.set(cell.id, cell);
           }
         }
-        return map as unknown as Map<string, ElementRecord>;
+        return map;
       },
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('resize');
@@ -252,7 +257,7 @@ export class GraphStore<
    * with the react-origin flag set.
    * @param cells - new cells snapshot from the parent
    */
-  public applyControlled(cells: ReadonlyArray<Element | Link>) {
+  public applyControlled(cells: ReadonlyArray<CellUnion<Element, Link>>) {
     this.graphView.updateGraph({ cells, flag: 'updateFromReact' });
   }
 
@@ -282,7 +287,7 @@ export class GraphStore<
    * @param cell - cell record, cell id, or type name
    * @returns `true` when the resolved type extends `dia.Link`
    */
-  public isLink = (cell: Element | Link): boolean => {
+  public isLink = (cell: CellUnion<Element, Link>): boolean => {
     const cellType = (cell as { readonly type?: string }).type;
     return cellType !== undefined && isLinkType(cellType, this.graph);
   };

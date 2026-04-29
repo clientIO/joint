@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { LinkAttributes, WithType } from '../../types/cell.types';
+import type { LinkAttributes, LinkRecord } from '../../types/cell.types';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
@@ -8,9 +8,7 @@ import { mergeLabelsFromAttributes } from './convert-labels-reverse';
  * Forward mapper using the React default link type.
  * @param link
  */
-export function mapLinkToAttributes<LinkData = unknown>(
-  link: LinkAttributes & WithType & { readonly data?: LinkData }
-): dia.Cell.JSON {
+export function mapLinkToAttributes(link: LinkAttributes): dia.Cell.JSON {
   const attributes = linkAttributes(link) as dia.Cell.JSON;
   if (!attributes.type) attributes.type = LINK_MODEL_TYPE;
   return attributes;
@@ -28,7 +26,7 @@ export function mapLinkToAttributes<LinkData = unknown>(
  */
 export function mapAttributesToLink<LinkData = unknown>(
   attributes: dia.Link.Attributes
-): LinkAttributes & { readonly data?: LinkData } {
+): LinkRecord<LinkData> {
   const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     id,
@@ -56,9 +54,9 @@ export function mapAttributesToLink<LinkData = unknown>(
     linkRecord.labels = labels;
   }
 
-  return { ...linkRecord } as LinkAttributes & { readonly data?: LinkData };
+  return { ...linkRecord } as LinkRecord<LinkData>;
 }
 
 export type MapAttributesToLink<LinkData = unknown> = typeof mapAttributesToLink<LinkData>;
 
-export type MapLinkToAttributes<LinkData = unknown> = typeof mapLinkToAttributes<LinkData>;
+export type MapLinkToAttributes = typeof mapLinkToAttributes;
