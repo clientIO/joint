@@ -51,7 +51,6 @@ class PortMapElement extends ElementModel {
     return elementAttributes({
       ...super.defaults(),
       type: 'PortMapElement',
-      data: undefined,
       portMap: {
         in: { cx: 0, cy: '50%', width: 10, height: 10, color: SECONDARY, passive: true },
         out: { cx: '100%', cy: '50%', width: 10, height: 10, color: PRIMARY },
