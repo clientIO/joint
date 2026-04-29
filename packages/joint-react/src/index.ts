@@ -71,9 +71,9 @@ export type {
   LinkRecord,
   KnownCellType,
   Computed,
-  DiaElementAttributes as ElementAttributes,
-  DiaLinkAttributes as LinkAttributes,
-  DiaCellAttributes as CellAttributes,
+  DiaElementAttributes,
+  DiaLinkAttributes,
+  DiaCellAttributes,
 } from './types/cell.types';
 
 // Types — geometry / presets

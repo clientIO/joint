@@ -1,5 +1,5 @@
 import {
-  type CellAttributes,
+  type DiaCellAttributes,
   GraphProvider,
   Paper,
   HTMLBox,
@@ -99,7 +99,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: readonly CellAttributes[] = [
+const initialCells: readonly DiaCellAttributes[] = [
   {
     id: 'a',
     type: 'PortsElement',

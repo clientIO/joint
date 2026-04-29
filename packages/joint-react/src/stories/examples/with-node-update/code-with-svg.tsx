@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import {
-  type CellAttributes,
+  type DiaCellAttributes,
   GraphProvider,
   useCell,
   Paper,
@@ -10,7 +10,7 @@ import {
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialCells: readonly CellAttributes[] = [
+const initialCells: readonly DiaCellAttributes[] = [
   {
     id: '1',
     type: 'element',
