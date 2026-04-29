@@ -142,6 +142,9 @@
     fill: var(--jj-label-bg-color);
     stroke: var(--jj-label-border-color);
     stroke-width: var(--jj-label-border-width);
+  }
+
+  :where(.jj-link-label-body:rect) {
     rx: var(--jj-label-border-radius);
     ry: var(--jj-label-border-radius);
   }
