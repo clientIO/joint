@@ -172,10 +172,7 @@ export function useMeasureNode(
   if (id === undefined) {
     throw new Error('useMeasureNode() must be used inside renderElement');
   }
-  const layout = useCell(selectElementSize);
-  if (layout == undefined) {
-    throw new Error(`useMeasureNode(): no element with id "${String(id)}"`);
-  }
+  const size = useCell(selectElementSize);
 
   useLayoutEffect(() => {
     const element = nodeRef.current;
@@ -209,5 +206,5 @@ export function useMeasureNode(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeRef, graph, id, paper, setMeasuredNode]);
 
-  return layout;
+  return size;
 }
