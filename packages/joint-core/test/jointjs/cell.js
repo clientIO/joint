@@ -797,6 +797,51 @@ QUnit.module('cell', function(hooks) {
                 size: {}
             });
         });
+
+        QUnit.test('`opt.ignoreEmptyAttributes` accepts a predicate `(key, path) => boolean`', function(assert) {
+            const El = joint.dia.Element.extend({
+                defaults: {
+                    type: 'test.Element',
+                    attrs: {
+                        text: { fill: 'red' },
+                        body: { stroke: 'black' }
+                    },
+                    size: { width: 100, height: 50 },
+                    position: { x: 0, y: 0 },
+                    foo: {},
+                    bar: { baz: {}},
+                    extraDefault: { nested: 'value' }
+                }
+            });
+
+            const el = new El({
+                id: 'el1',
+                attrs: {
+                    text: {
+                        textWrap: {}, // new key not in defaults — empty `{}` survives the diff
+                        fill: 'blue'  // overrides default
+                    }
+                }
+            });
+
+            // Drop every empty `{}` EXCEPT those at depth 3 inside `attrs`
+            // (e.g. `attrs.text.textWrap` should survive).
+            const result = el.toJSON({
+                ignoreDefaults: true,
+                ignoreEmptyAttributes: (key, path) => !(path[0] === 'attrs' && path.length === 3)
+            });
+
+            assert.deepEqual(result, {
+                id: 'el1',
+                type: 'test.Element',
+                attrs: {
+                    text: {
+                        textWrap: {},
+                        fill: 'blue'
+                    }
+                }
+            });
+        });
     });
 
     QUnit.module('relative vs absolute points', function() {
