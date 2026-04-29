@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
-import { useContext, useReducer, useLayoutEffect, useRef } from 'react';
+import { useCallback, useContext, useReducer, useLayoutEffect, useRef } from 'react';
 import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
 import { useGraphStore } from './use-graph-store';
@@ -156,11 +156,31 @@ export function usePaperStore(idOrOptions?: string | Optional): PaperStore | nul
  * }
  * ```
  */
-export function usePaper(): { paper: dia.Paper };
-export function usePaper(options: Optional): { paper: dia.Paper | null };
-export function usePaper(id: string): { paper: dia.Paper | null };
-export function usePaper(idOrOptions?: string | Optional): { paper: dia.Paper | null };
-export function usePaper(idOrOptions?: string | Optional): { paper: dia.Paper | null } {
+/** Imperative actions returned alongside the paper instance from {@link usePaper}. */
+interface UsePaperActions {
+  /**
+   * Trigger a render pass on the paper. Forwards to `paper.wakeUp()` —
+   * useful after mutations that don't go through React state (e.g. toggling
+   * a `cellVisibility` predicate that closes over external state). No-op
+   * when the paper isn't resolved yet.
+   * @see https://docs.jointjs.com/api/dia/Paper#wakeUp
+   */
+  readonly wakeUp: () => void;
+}
+
+export function usePaper(): { paper: dia.Paper } & UsePaperActions;
+export function usePaper(options: Optional): { paper: dia.Paper | null } & UsePaperActions;
+export function usePaper(id: string): { paper: dia.Paper | null } & UsePaperActions;
+export function usePaper(
+  idOrOptions?: string | Optional
+): { paper: dia.Paper | null } & UsePaperActions;
+export function usePaper(
+  idOrOptions?: string | Optional
+): { paper: dia.Paper | null } & UsePaperActions {
   const paperStore = usePaperStore(idOrOptions);
-  return { paper: (paperStore?.paper as dia.Paper | undefined) ?? null };
+  const paper = (paperStore?.paper as dia.Paper | undefined) ?? null;
+  const wakeUp = useCallback(() => {
+    paper?.wakeUp();
+  }, [paper]);
+  return { paper, wakeUp };
 }
