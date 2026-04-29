@@ -13,17 +13,16 @@ import type { LinkLabel } from '../presets/link-labels';
 
 type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 /** Known cell type names. */
-export type KnownCellType = typeof ELEMENT_MODEL_TYPE | typeof LINK_MODEL_TYPE;
+type KnownCellType = typeof ELEMENT_MODEL_TYPE | typeof LINK_MODEL_TYPE;
 
-/** Minimal shape any keyed record must satisfy to live in a container. */
-export interface WithOptionalId {
+interface WithOptionalId {
   readonly id?: DiaCell.ID;
 }
-
-/** Adds a discriminating `type` field on top of {@link WithOptionalId}. */
-export interface WithType<Type = KnownCellType> extends WithOptionalId {
-  readonly type: Type;
+interface WithOptionalType<Type extends string = KnownCellType> {
+  readonly type?: Type;
 }
+
+type WithType<Type extends string = KnownCellType> = Required<WithOptionalType<Type>>;
 
 type WithData<Data = unknown> = unknown extends Data
   ? { readonly data?: unknown }
@@ -38,10 +37,14 @@ type WithData<Data = unknown> = unknown extends Data
  * - Allows arbitrary extra fields via the index signature so callers can
  *   attach custom data without losing type safety on known fields.
  */
-export interface DiaElementAttributes extends WithOptionalId, WithData, DiaElement.Attributes {
+export interface DiaElementAttributes
+  extends WithOptionalId,
+    WithData,
+    WithOptionalType<string>,
+    DiaElement.Attributes {
   readonly portMap?: Record<string, ElementPort>;
   readonly portStyle?: Partial<ElementPort>;
-  readonly type?: string;
+  // readonly type?: string;
 }
 
 /** Element-flavored cell; narrowed when `type === ELEMENT_MODEL_TYPE`. */
@@ -75,7 +78,11 @@ type InternalElementRecord<ElementData = unknown> = PickRequired<
  * - Allows arbitrary extra fields via the index signature so callers can
  *   attach custom data without losing type safety on known fields.
  */
-export interface DiaLinkAttributes extends WithOptionalId, WithData, DiaLink.Attributes {
+export interface DiaLinkAttributes
+  extends WithOptionalId,
+    WithOptionalId,
+    WithData,
+    DiaLink.Attributes {
   readonly style?: LinkStyle;
   readonly labelMap?: Record<string, LinkLabel>;
   readonly labelStyle?: Partial<LinkLabel>;

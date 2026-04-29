@@ -66,10 +66,8 @@ export * from './state/data-mapping/cell-mapper';
 export type {
   CellRecord,
   CellId,
-  WithType,
   ElementRecord,
   LinkRecord,
-  KnownCellType,
   Computed,
   DiaElementAttributes,
   DiaLinkAttributes,
