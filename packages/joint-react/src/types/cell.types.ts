@@ -18,11 +18,9 @@ type KnownCellType = typeof ELEMENT_MODEL_TYPE | typeof LINK_MODEL_TYPE;
 interface WithOptionalId {
   readonly id?: DiaCell.ID;
 }
-interface WithOptionalType<Type extends string = KnownCellType> {
-  readonly type?: Type;
+interface WithType<Type extends string = KnownCellType> {
+  readonly type: Type;
 }
-
-type WithType<Type extends string = KnownCellType> = Required<WithOptionalType<Type>>;
 
 type WithData<Data = unknown> = unknown extends Data
   ? { readonly data?: unknown }
@@ -40,10 +38,10 @@ type WithData<Data = unknown> = unknown extends Data
 export interface DiaElementAttributes
   extends WithOptionalId,
     WithData,
-    WithOptionalType<string>,
+    WithType<string>,
     DiaElement.Attributes {
-  readonly portMap?: Record<string, ElementPort>;
-  readonly portStyle?: Partial<ElementPort>;
+  portMap?: Record<string, ElementPort>;
+  portStyle?: Partial<ElementPort>;
 }
 
 /** Element-flavored cell; narrowed when `type === ELEMENT_MODEL_TYPE`. */
@@ -79,12 +77,12 @@ type InternalElementRecord<ElementData = unknown> = PickRequired<
  */
 export interface DiaLinkAttributes
   extends WithOptionalId,
-    WithOptionalType<string>,
+    WithType<string>,
     WithData,
     DiaLink.Attributes {
-  readonly style?: LinkStyle;
-  readonly labelMap?: Record<string, LinkLabel>;
-  readonly labelStyle?: Partial<LinkLabel>;
+  style?: LinkStyle;
+  labelMap?: Record<string, LinkLabel>;
+  labelStyle?: Partial<LinkLabel>;
 }
 
 /** Link-flavored cell; narrowed when `type === LINK_MODEL_TYPE`. */

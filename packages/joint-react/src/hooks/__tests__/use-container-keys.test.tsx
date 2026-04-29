@@ -5,6 +5,7 @@ import { useContainerKeys } from '../use-container-keys';
 interface TestItem {
   readonly id: string;
   readonly value: number;
+  readonly type: string;
 }
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
@@ -24,8 +25,8 @@ describe('useContainerKeys', () => {
     const { result } = renderHook(() => useContainerKeys(readOnly));
 
     await act(async () => {
-      container.set('a', { id: 'a', value: 1 });
-      container.set('b', { id: 'b', value: 2 });
+      container.set('a', { id: 'a', value: 1, type: 'item' });
+      container.set('b', { id: 'b', value: 2, type: 'item' });
       container.commitChanges();
       await flush();
     });
@@ -39,7 +40,7 @@ describe('useContainerKeys', () => {
   it('returns a stable reference when the key set does not change', async () => {
     const container = createContainer<TestItem>();
     const readOnly = asReadonlyContainer(container);
-    container.set('a', { id: 'a', value: 1 });
+    container.set('a', { id: 'a', value: 1, type: 'item' });
     container.commitChanges();
     await flush();
 
@@ -47,7 +48,7 @@ describe('useContainerKeys', () => {
     const first = result.current;
 
     await act(async () => {
-      container.set('a', { id: 'a', value: 99 });
+      container.set('a', { id: 'a', value: 99, type: 'item' });
       container.commitChanges();
       await flush();
     });
@@ -58,14 +59,14 @@ describe('useContainerKeys', () => {
   it('updates the array when a key is added or removed', async () => {
     const container = createContainer<TestItem>();
     const readOnly = asReadonlyContainer(container);
-    container.set('a', { id: 'a', value: 1 });
+    container.set('a', { id: 'a', value: 1, type: 'item' });
     container.commitChanges();
     await flush();
 
     const { result } = renderHook(() => useContainerKeys(readOnly));
 
     await act(async () => {
-      container.set('b', { id: 'b', value: 2 });
+      container.set('b', { id: 'b', value: 2, type: 'item' });
       container.commitChanges();
       await flush();
     });

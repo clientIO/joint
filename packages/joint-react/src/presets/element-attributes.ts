@@ -18,9 +18,9 @@ export function elementAttributes(element: DiaElementAttributes): DiaElementAttr
 
   const { data = {}, portMap, ports, type, ...rest } = element;
 
-  const attributes: Record<string, unknown> = {
+  const attributes: DiaElementAttributes = {
     ...rest,
-    ...(type && { type }),
+    type,
     data,
   };
 

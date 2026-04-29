@@ -19,9 +19,9 @@ export function linkAttributes(link: DiaLinkAttributes): DiaLinkAttributes {
   }
 
   const { data = {}, type, style, labelMap, labels, ...rest } = link;
-  const attributes: Record<string, unknown> = {
+  const attributes: DiaLinkAttributes = {
     ...rest,
-    ...(type && { type }),
+    type,
     data,
   };
 
