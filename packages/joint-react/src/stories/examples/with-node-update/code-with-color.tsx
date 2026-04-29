@@ -1,13 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import {
-  GraphProvider,
-  HTMLBox,
-  Paper,
-  useCellId,
-  type Cells,
-  type ElementRecord,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, HTMLBox, Paper, useCellId, type ElementRecord } from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
@@ -18,7 +11,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -42,9 +35,9 @@ const initialCells: Cells<NodeData> = [
   },
 ];
 
-function RenderElement({ color }: NodeData) {
+function RenderElement({ color }: Readonly<NodeData>) {
   const id = useCellId();
-  const { setCell } = useGraph<NodeData>();
+  const { setCell, isElement } = useGraph<ElementRecord<NodeData>>();
   return (
     <HTMLBox useModelGeometry
       style={{ backgroundColor: color }}
@@ -54,13 +47,12 @@ function RenderElement({ color }: NodeData) {
         className="nodrag"
         type="color"
         onChange={(event) => {
-          setCell((previous) => {
-            const previousElement = previous as ElementRecord<NodeData>;
+          setCell(id, (previous) => {
+            if (!isElement(previous)) return previous;
             return {
-              ...previousElement,
-              id,
-              data: { ...(previousElement.data ?? { label: '', color: '#ffffff' }), color: event.target.value },
-            } as ElementRecord<NodeData>;
+              ...previous,
+              data: { ...(previous.data ?? { label: '', color: '#ffffff' }), color: event.target.value },
+            };
           });
         }}
         defaultValue={color}

@@ -1,26 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useMemo, useState } from 'react';
-import {
-  GraphProvider,
-  useElement,
-  Paper,
-  HTMLBox,
-  useMarkup,
-    type Cells,
-  type ElementPort,
-  type LinkRecord,
-  usePaper,
-  selectElementSize,
-} from '@joint/react';
-import {
-  linkRoutingStraight,
-  linkRoutingOrthogonal,
-  linkRoutingSmooth,
-  type LinkRoutingStraightOptions,
-  type LinkRoutingOrthogonalOptions,
-  type LinkRoutingSmoothOptions,
-  type LinkMode,
-} from '@joint/react/presets';
+import { type CellRecord, GraphProvider, useCell, Paper, HTMLBox, useMarkup, type ElementPort, type LinkRecord, usePaper, selectElementSize } from '@joint/react';
+import { linkRoutingStraight, linkRoutingOrthogonal, linkRoutingSmooth, type LinkRoutingStraightOptions, type LinkRoutingOrthogonalOptions, type LinkRoutingSmoothOptions, type LinkMode } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 import type { dia } from '@joint/core';
@@ -38,7 +19,7 @@ const PORT_IN: ElementPort = { cx: 0, cy: 'calc(h/2)', passive: true, width: 16,
 const PORT_ERROR: ElementPort = { cx: 'calc(w/2)', cy: 'calc(h)', width: 16, height: 16 };
 const DEFAULT_LINK_STYLE: LinkRecord['style'] = { color: PRIMARY, targetMarker: 'arrow' };
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: 'a',
     type: 'element',
@@ -114,7 +95,7 @@ function RenderHTMLElement({ label }: Readonly<NodeData>) {
 
 function RenderSVGElement({ label }: Readonly<NodeData>) {
   const { magnetRef } = useMarkup();
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <rect
@@ -155,7 +136,7 @@ function RenderSVGElement({ label }: Readonly<NodeData>) {
   );
 }
 
-function RenderElement(data: NodeData) {
+function RenderElement(data: Readonly<NodeData>) {
   if (data.type === 'svg') return <RenderSVGElement {...data} />;
   return <RenderHTMLElement {...data} />;
 }

@@ -2,10 +2,10 @@
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 import {
+  type CellRecord,
   GraphProvider,
   Paper,
   useMeasureNode,
-  type Cells,
   type OnTransformElement,
   type RenderElement,
 } from '@joint/react';
@@ -16,7 +16,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   {

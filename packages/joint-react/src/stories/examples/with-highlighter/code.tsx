@@ -1,13 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  GraphProvider,
-  useElement,
-  Paper,
-  useMarkup,
-    type Cells,
-  usePaperEvents,
-  selectElementSize,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, useCell, Paper, useMarkup, usePaperEvents, selectElementSize } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
 import '../index.css';
 import { useId, useRef } from 'react';
@@ -18,7 +10,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -44,10 +36,10 @@ const initialCells: Cells<NodeData> = [
 
 type HighlighterVariant = 'mask' | 'opacity';
 
-function RenderElement(data: NodeData) {
+function RenderElement({ label }: Readonly<NodeData>) {
   const { selectorRef } = useMarkup();
-  const { width, height } = useElement(selectElementSize);
-  const label = data.label;
+  const { width, height } = useCell(selectElementSize);
+
   return (
     <g width={width} height={height} className="node">
       <rect

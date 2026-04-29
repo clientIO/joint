@@ -2,15 +2,16 @@
 
 import type { dia } from '@joint/core';
 import {
+  type CellRecord,
   GraphProvider,
   Paper,
+  useCell,
   useCellId,
   useCells,
-  useElement,
   useGraph,
-  type Cells,
   type ElementRecord,
   type LinkRecord,
+  type Computed,
   selectElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -224,7 +225,7 @@ const initialLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: Cells<ShapeData> = [...initialElements, ...initialLinks];
+const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [...initialElements, ...initialLinks];
 
 // ----------------------------------------------------------------------------
 // Utility
@@ -253,46 +254,38 @@ function calculateROI(cost: number, value: number): number {
 // ----------------------------------------------------------------------------
 
 function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
-  const { setCell } = useGraph<ShapeData>();
-  const { width, height } = useElement(selectElementSize);
+  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
+  const { width, height } = useCell(selectElementSize);
 
   const handleFundsChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!event.target.validity.valid) return;
       const newFunds = Number(event.target.value);
-      setCell((previous) => {
-        const previousElement = previous as ElementRecord<ShapeData>;
-        const data = previousElement.data as InvestmentData | undefined;
-        if (!data) {
-          return { ...previousElement, id: INVESTMENT_ID } as ElementRecord<ShapeData>;
-        }
+      setCell(INVESTMENT_ID, (previous) => {
+        if (!isElement(previous)) return previous;
+        if (previous.data?.type !== 'Investment') return previous;
         return {
-          ...previousElement,
-          id: INVESTMENT_ID,
-          data: { ...data, funds: newFunds },
-        } as ElementRecord<ShapeData>;
+          ...previous,
+          data: { ...previous.data, funds: newFunds },
+        };
       });
     },
-    [setCell]
+    [setCell, isElement]
   );
 
   const handleYearChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
       const newYear = Number(event.target.value);
-      setCell((previous) => {
-        const previousElement = previous as ElementRecord<ShapeData>;
-        const data = previousElement.data as InvestmentData | undefined;
-        if (!data) {
-          return { ...previousElement, id: INVESTMENT_ID } as ElementRecord<ShapeData>;
-        }
+      setCell(INVESTMENT_ID, (previous) => {
+        if (!isElement(previous)) return previous;
+        if (previous.data?.type !== 'Investment') return previous;
         return {
-          ...previousElement,
-          id: INVESTMENT_ID,
-          data: { ...data, year: newYear },
-        } as ElementRecord<ShapeData>;
+          ...previous,
+          data: { ...previous.data, year: newYear },
+        };
       });
     },
-    [setCell]
+    [setCell, isElement]
   );
 
   return (
@@ -355,8 +348,8 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
 // ----------------------------------------------------------------------------
 
 function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) {
-  const { setCell } = useGraph<ShapeData>();
-  const { width, height } = useElement(selectElementSize);
+  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
+  const { width, height } = useCell(selectElementSize);
 
   const handlePercentageChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -364,17 +357,13 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
       const newPercentage = Number(event.target.value);
 
       // Read all current product percentages for redistribution
-      setCell((previous) => {
-        const previousElement = previous as ElementRecord<ShapeData>;
-        const data = previousElement.data as ProductData | undefined;
-        if (!data) {
-          return { ...previousElement, id: name } as ElementRecord<ShapeData>;
-        }
+      setCell(name, (previous) => {
+        if (!isElement(previous)) return previous;
+        if (previous.data?.type !== 'Product') return previous;
         return {
-          ...previousElement,
-          id: name,
-          data: { ...data, percentage: newPercentage },
-        } as ElementRecord<ShapeData>;
+          ...previous,
+          data: { ...previous.data, percentage: newPercentage },
+        };
       });
 
       // Redistribute the difference among other products
@@ -390,24 +379,21 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
 
       for (const productId of sortedIds) {
         if (diff === 0) break;
-        setCell((previous) => {
-          const previousElement = previous as ElementRecord<ShapeData>;
-          const data = previousElement.data as ShapeData | undefined;
-          if (data?.type !== 'Product') {
-            return { ...previousElement, id: productId } as ElementRecord<ShapeData>;
-          }
+        setCell(productId, (previous) => {
+          if (!isElement(previous)) return previous;
+          const { data } = previous;
+          if (data?.type !== 'Product') return previous;
           const previousPercentage = data.percentage;
           const adjusted = Math.max(previousPercentage + diff, 0);
           diff = Math.min(previousPercentage + diff, 0);
           return {
-            ...previousElement,
-            id: productId,
+            ...previous,
             data: { ...data, percentage: adjusted },
-          } as ElementRecord<ShapeData>;
+          };
         });
       }
     },
-    [setCell, name, percentage]
+    [setCell, isElement, name, percentage]
   );
 
   return (
@@ -464,35 +450,37 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
 function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const cellId = useCellId();
   const { graph } = useGraph();
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
 
   // Use graph topology to find the connected product (inbound neighbor via link)
-  const { value, roi } = useCells<ShapeData, unknown, typeof DEFAULT_ROI_VALUE>((cells) => {
-    const cell = graph.getCell(cellId);
-    if (!cell?.isElement()) {
-      return DEFAULT_ROI_VALUE;
-    }
+  const { value, roi } = useCells<Computed<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>(
+    (cells) => {
+      const cell = graph.getCell(cellId);
+      if (!cell?.isElement()) {
+        return DEFAULT_ROI_VALUE;
+      }
 
-    const [productCell] = graph.getNeighbors(cell, { inbound: true });
-    if (!productCell) {
-      return DEFAULT_ROI_VALUE;
-    }
+      const [productCell] = graph.getNeighbors(cell, { inbound: true });
+      if (!productCell) {
+        return DEFAULT_ROI_VALUE;
+      }
 
-    const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
-      | ElementRecord<ShapeData>
-      | undefined;
-    const productItem = cells.find((c) => String(c.id) === String(productCell.id)) as
-      | ElementRecord<ShapeData>
-      | undefined;
-    const investmentData = investmentItem?.data;
-    const productData = productItem?.data;
-    if (investmentData?.type !== 'Investment' || productData?.type !== 'Product') {
-      return DEFAULT_ROI_VALUE;
+      const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
+        | ElementRecord<ShapeData>
+        | undefined;
+      const productItem = cells.find((c) => String(c.id) === String(productCell.id)) as
+        | ElementRecord<ShapeData>
+        | undefined;
+      const investmentData = investmentItem?.data;
+      const productData = productItem?.data;
+      if (investmentData?.type !== 'Investment' || productData?.type !== 'Product') {
+        return DEFAULT_ROI_VALUE;
+      }
+      const productValue = calculateProductValue(investmentData, productData);
+      const cost = (investmentData.funds * productData.percentage) / 100;
+      return { value: productValue, roi: calculateROI(cost, productValue) };
     }
-    const productValue = calculateProductValue(investmentData, productData);
-    const cost = (investmentData.funds * productData.percentage) / 100;
-    return { value: productValue, roi: calculateROI(cost, productValue) };
-  });
+  );
 
   return (
     <>
@@ -552,40 +540,42 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
 function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const cellId = useCellId();
   const { graph } = useGraph();
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useCells<ShapeData, unknown, typeof DEFAULT_ROI_VALUE>((cells) => {
-    const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
-      | ElementRecord<ShapeData>
-      | undefined;
-    const investmentData = investmentItem?.data;
-    if (investmentData?.type !== 'Investment') {
-      return DEFAULT_ROI_VALUE;
-    }
-
-    const cell = graph.getCell(cellId);
-    if (!cell?.isElement()) {
-      return DEFAULT_ROI_VALUE;
-    }
-
-    const embeddedCells = cell.getEmbeddedCells().filter((c): c is dia.Element => c.isElement());
-
-    let totalValue = 0;
-    for (const embeddedCell of embeddedCells) {
-      const [productCell] = graph.getNeighbors(embeddedCell, { inbound: true });
-      if (!productCell) continue;
-
-      const productItem = cells.find((c) => String(c.id) === String(productCell.id)) as
+  const { value, roi } = useCells<Computed<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>(
+    (cells) => {
+      const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
         | ElementRecord<ShapeData>
         | undefined;
-      const productData = productItem?.data;
-      if (productData?.type !== 'Product') continue;
-      totalValue += calculateProductValue(investmentData, productData);
-    }
+      const investmentData = investmentItem?.data;
+      if (investmentData?.type !== 'Investment') {
+        return DEFAULT_ROI_VALUE;
+      }
 
-    return { value: totalValue, roi: calculateROI(investmentData.funds, totalValue) };
-  });
+      const cell = graph.getCell(cellId);
+      if (!cell?.isElement()) {
+        return DEFAULT_ROI_VALUE;
+      }
+
+      const embeddedCells = cell.getEmbeddedCells().filter((c): c is dia.Element => c.isElement());
+
+      let totalValue = 0;
+      for (const embeddedCell of embeddedCells) {
+        const [productCell] = graph.getNeighbors(embeddedCell, { inbound: true });
+        if (!productCell) continue;
+
+        const productItem = cells.find((c) => String(c.id) === String(productCell.id)) as
+          | ElementRecord<ShapeData>
+          | undefined;
+        const productData = productItem?.data;
+        if (productData?.type !== 'Product') continue;
+        totalValue += calculateProductValue(investmentData, productData);
+      }
+
+      return { value: totalValue, roi: calculateROI(investmentData.funds, totalValue) };
+    }
+  );
 
   return (
     <>
@@ -648,7 +638,7 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
 // Render Dispatcher
 // ----------------------------------------------------------------------------
 
-function RenderElement(data: ShapeData) {
+function RenderElement(data: Readonly<ShapeData>) {
   switch (data.type) {
     case 'Investment': {
       return <InvestmentNode {...data} />;
@@ -715,7 +705,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ShapeData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

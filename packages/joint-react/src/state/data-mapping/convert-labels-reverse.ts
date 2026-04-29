@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { LinkLabel } from '../../types/data-types';
+import type { LinkLabel } from '../../presets/link-labels';
 import type { Mutable } from '../../types';
 
 /**

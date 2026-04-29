@@ -1,13 +1,19 @@
 import {
+  type DiaCellAttributes,
   GraphProvider,
   Paper,
   HTMLBox,
   ElementModel,
   LinkModel,
   useGraph,
-  type Cells,
 } from '@joint/react';
-import { elementAttributes, elementPort, linkAttributes, linkLabel, linkStyle } from '@joint/react/presets';
+import {
+  elementAttributes,
+  elementPort,
+  linkAttributes,
+  linkLabel,
+  linkStyle,
+} from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 
@@ -20,8 +26,14 @@ class PortsElement extends ElementModel {
       type: 'PortsElement',
       ports: {
         groups: {
-          in: { position: { name: 'left' }, ...elementPort({ width: 10, height: 10, color: SECONDARY, passive: true }) },
-          out: { position: { name: 'right' }, ...elementPort({ width: 10, height: 10, color: PRIMARY }) },
+          in: {
+            position: { name: 'left' },
+            ...elementPort({ width: 10, height: 10, color: SECONDARY, passive: true }),
+          },
+          out: {
+            position: { name: 'right' },
+            ...elementPort({ width: 10, height: 10, color: PRIMARY }),
+          },
         },
         items: [
           { id: 'in1', group: 'in' },
@@ -75,7 +87,7 @@ class LabelMapLink extends LinkModel {
       labelMap: {
         main: { text: 'labelMap', fontSize: 10, backgroundBorderRadius: 4 },
       },
-      style: { color: PRIMARY, targetMarker: 'arrow' }
+      style: { color: PRIMARY, targetMarker: 'arrow' },
     });
   }
 }
@@ -86,7 +98,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: readonly DiaCellAttributes[] = [
   {
     id: 'a',
     type: 'PortsElement',
@@ -134,8 +146,8 @@ const initialCells: Cells<NodeData> = [
 const JSON_VIEWER_STYLE = { fontSize: 10 } as const;
 const CELL_NAMESPACE = { PortsElement, PortMapElement, LabelsLink, LabelMapLink };
 
-function renderElement(data: NodeData) {
-  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+function renderElement({ label }: Readonly<NodeData>) {
+  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
 }
 
 function JSONViewer() {
@@ -144,26 +156,16 @@ function JSONViewer() {
     cellAttributes: {
       ignoreDefaults: true,
       ignoreEmptyAttributes: true,
-    }
+    },
   });
   return <pre style={JSON_VIEWER_STYLE}>{JSON.stringify(json, null, 2)}</pre>;
-
-
 }
 
 export default function App() {
-
   return (
-    <GraphProvider
-      initialCells={initialCells}
-      cellNamespace={CELL_NAMESPACE}
-    >
-      <Paper
-        className={PAPER_CLASSNAME}
-        height={300}
-        renderElement={renderElement}
-      />
-      <JSONViewer/>
+    <GraphProvider initialCells={initialCells} cellNamespace={CELL_NAMESPACE}>
+      <Paper className={PAPER_CLASSNAME} height={300} renderElement={renderElement} />
+      <JSONViewer />
     </GraphProvider>
   );
 }

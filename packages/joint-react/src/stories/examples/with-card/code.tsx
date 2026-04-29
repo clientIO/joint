@@ -1,12 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import type { OnTransformElement, Cells } from '@joint/react';
+import type { CellRecord, OnTransformElement } from '@joint/react';
 import { GraphProvider, Paper, useCellId, useMeasureNode, type RenderElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type Data = { label: string };
-const initialCells: Cells<Data> = [
+const initialCells: ReadonlyArray<CellRecord<Data>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 10 } },
   {
     id: '2',
@@ -71,7 +71,7 @@ function Card({ label }: Readonly<Partial<Data>>) {
   );
 }
 
-function CardRenderer(data: Data) {
+function CardRenderer(data: Readonly<Data>) {
   // Demonstrates calling `useCellId()` inside a component used by `renderElement`
   // to read the cell id without subscribing to store updates.
   const id = useCellId();
@@ -79,16 +79,13 @@ function CardRenderer(data: Data) {
 }
 
 function Main() {
-  const renderElement: RenderElement<Data> = useCallback(
-    (data) => <CardRenderer {...data} />,
-    []
-  );
+  const renderElement: RenderElement<Data> = useCallback((data) => <CardRenderer {...data} />, []);
   return <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />;
 }
 
 export default function App() {
   return (
-    <GraphProvider<Data> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

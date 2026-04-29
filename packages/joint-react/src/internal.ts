@@ -14,8 +14,6 @@ export { usePaperStore, useResolvePaperId } from './hooks/use-paper';
 // Feature System
 export type {
   FeatureTarget,
-  Feature,
-  FeaturesContext as FeaturesContextType,
   OnAddFeature,
   OnUpdateFeature,
   OnLoadFeature,
@@ -24,6 +22,8 @@ export type {
   OnLoadFeatureOptions,
   AddFeatureOptions,
 } from './hooks/use-create-features';
+export type { Feature } from './types/feature.types';
+export type { FeaturesContext as FeaturesContextType } from './context';
 export { FeaturesProvider } from './components';
 
 // Store Classes

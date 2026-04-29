@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
 import { graphChanges } from '../graph-changes';
-import type { CellRecord, Cells } from '../../types/cell.types';
+import type { CellRecord } from '../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 
@@ -94,6 +94,29 @@ describe('graphChanges', () => {
       expect(onChanges).toHaveBeenCalled();
       const [lastCall] = onChanges.mock.calls.at(-1) ?? [];
       expect(lastCall.changes.get('link-1')).toEqual(expect.objectContaining({ type: 'add' }));
+    });
+
+    it('calls onChanges synchronously on graph reset (bypasses scheduler)', () => {
+      const { graph, onChanges } = setup();
+      addElement(graph, 'el-1');
+
+      // Reset must invoke onChanges within the same tick — callers (e.g.
+      // GraphStore constructor) rely on the cells container being
+      // observable immediately after `graph.resetCells(...)` returns.
+      onChanges.mockClear();
+      graph.resetCells([
+        {
+          id: 'reset-el',
+          type: 'element',
+          position: { x: 0, y: 0 },
+          size: { width: 50, height: 50 },
+        },
+      ]);
+
+      expect(onChanges).toHaveBeenCalledTimes(1);
+      const [[{ changes }]] = onChanges.mock.calls;
+      expect(changes.has('reset-el')).toBe(true);
+      expect(changes.has('el-1')).toBe(false);
     });
 
     it('calls onChanges on graph reset', async () => {
@@ -240,7 +263,7 @@ describe('graphChanges', () => {
   describe('updateGraph', () => {
     it('syncs a unified cells array to the graph', () => {
       const { graph, controller } = setup();
-      const cells: Cells = [
+      const cells: readonly CellRecord[] = [
         {
           id: 'el-1',
           type: ELEMENT_MODEL_TYPE,
@@ -266,7 +289,7 @@ describe('graphChanges', () => {
 
     it('routes links and elements through the unified cells input', () => {
       const { graph, controller } = setup();
-      const cells: Cells = [
+      const cells: readonly CellRecord[] = [
         {
           id: 'a',
           type: ELEMENT_MODEL_TYPE,
@@ -324,7 +347,7 @@ describe('graphChanges', () => {
 
     it('returns the ids of synced cells', () => {
       const { controller } = setup();
-      const cells: Cells = [
+      const cells: readonly CellRecord[] = [
         {
           id: 'el-1',
           type: ELEMENT_MODEL_TYPE,

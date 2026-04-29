@@ -9,16 +9,17 @@ import { linkRoutingOrthogonal } from '@joint/react/presets';
 import {
   GraphProvider,
   Paper,
+  useCell,
   useCellId,
-  useElement,
+  useCells,
   useGraph,
   useMeasureNode,
   useNodesMeasuredEffect,
-  useCells,
-  type Cells,
   type CellId,
   type CellRecord,
+  type Computed,
   type ElementRecord,
+  type LinkRecord,
   type ElementPort,
   type PaperProps,
   usePaperEvents,
@@ -76,7 +77,7 @@ const PAPER_PROPS: PaperProps = {
 };
 
 // Create initial cells with typing support.
-const initialCells: Cells<ElementData> = [
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -168,7 +169,7 @@ function MessageComponent({
     }
   }
   const id = useCellId();
-  const { setCell } = useGraph<ElementData>();
+  const { setCell } = useGraph<ElementRecord<ElementData>, LinkRecord>();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);
   return (
@@ -190,17 +191,11 @@ function MessageComponent({
             className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
             placeholder="Type here..."
             onChange={({ target: { value } }) => {
-              setCell((previous) => {
-                const previousElement = previous as ElementRecord<ElementData>;
-                const data = previousElement.data as MessageElementData | undefined;
-                if (!data) {
-                  return { ...previousElement, id } as ElementRecord<ElementData>;
-                }
-                return {
-                  ...previousElement,
-                  id,
-                  data: { ...data, inputText: value },
-                } as ElementRecord<ElementData>;
+              setCell(id, (previous) => {
+                if (previous.type !== 'element') return previous;
+                const { data } = previous;
+                if (data.elementType === 'table') return previous;
+                return { ...previous, data: { ...data, inputText: value } };
               });
             }}
           />
@@ -214,7 +209,7 @@ const ROW_HEIGHT = 45;
 const ROW_START = 65;
 // Define the table element
 function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const tableWidth = width;
   const tableHeight = height;
   return (
@@ -271,7 +266,7 @@ function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>
 }
 
 function MinimapRenderElement() {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return <rect width={width} height={height} fill={'white'} rx={10} ry={10} />;
 }
 // Minimap component
@@ -432,26 +427,18 @@ function ToolBar(props: Readonly<ToolbarProps>) {
   );
 }
 
-// Show elements and links info
+// Show all cells (elements + links) as a single unified view.
 function ElementsInfo() {
-  const cells = useCells<ElementData>();
-  const { isElement, isLink } = useGraph();
-  const elements: Record<string, CellRecord<ElementData>> = {};
-  const links: Record<string, CellRecord<ElementData>> = {};
+  const cells = useCells<Computed<CellRecord>>();
+  const cellsById: Record<string, Computed<CellRecord>> = {};
   for (const cell of cells) {
-    if (isElement(cell)) elements[String(cell.id)] = cell;
-    else if (isLink(cell)) links[String(cell.id)] = cell;
+    if (cell.id == undefined) continue;
+    cellsById[String(cell.id)] = cell;
   }
   return (
     <div className="flex flex-col gap-2 mt-4">
-      <div className="flex flex-col gap-2">
-        <div className="text-white text-sm">Elements</div>
-        <ShowJson data={JSON.stringify(elements, null, 2)} />
-      </div>
-      <div className="flex flex-col gap-2">
-        <div className="text-white text-sm">Links</div>
-        <ShowJson data={JSON.stringify(links, null, 2)} />
-      </div>
+      <div className="text-white text-sm">Cells</div>
+      <ShowJson data={JSON.stringify(cellsById, null, 2)} />
     </div>
   );
 }
@@ -564,7 +551,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ElementData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

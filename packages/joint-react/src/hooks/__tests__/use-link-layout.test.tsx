@@ -3,8 +3,8 @@ import { paperRenderLinkWrapper } from '../../utils/test-wrappers';
 import { useLinkLayout } from '../use-link-layout';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import type { CellRecord, Cells } from '../../types/cell.types';
-import type { LinkLayout } from '../../types/cell-data';
+import type { CellRecord } from '../../types/cell.types';
+import type { LinkLayout } from '../../types/cell.types';
 
 type Reading = {
   value: LinkLayout | undefined;
@@ -26,7 +26,7 @@ function Probe() {
   return null;
 }
 
-const initialCells: Cells = [
+const initialCells: readonly CellRecord[] = [
   {
     id: 'a',
     type: ELEMENT_MODEL_TYPE,

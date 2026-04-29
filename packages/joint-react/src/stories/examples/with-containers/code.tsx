@@ -1,12 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { Cells, ValidateEmbeddingContext } from '@joint/react';
-import {
-  GraphProvider,
-  useElement,
-  Paper,
-  HTMLHost,
-  selectElementSize,
-} from '@joint/react';
+import type { CellRecord, ValidateEmbeddingContext } from '@joint/react';
+import { GraphProvider, useCell, Paper, HTMLHost, selectElementSize } from '@joint/react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 type ContainerData = {
@@ -15,7 +9,7 @@ type ContainerData = {
   readonly [key: string]: unknown;
 };
 
-const initialCells: Cells<ContainerData> = [
+const initialCells: ReadonlyArray<CellRecord<ContainerData>> = [
   {
     id: 'container',
     type: 'element',
@@ -52,7 +46,7 @@ const initialCells: Cells<ContainerData> = [
 ];
 
 function ContainerNode({ label }: Readonly<ContainerData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <g>
       <rect
@@ -93,16 +87,14 @@ function ChildElement({ label }: Readonly<ContainerData>) {
   );
 }
 
-function RenderElement(data: ContainerData) {
+function RenderElement(data: Readonly<ContainerData>) {
   if (data.isContainer) {
     return <ContainerNode {...data} />;
   }
   return <ChildElement {...data} />;
 }
 
-function validateParentChildRelationship(
-  { parent }: ValidateEmbeddingContext
-): boolean {
+function validateParentChildRelationship({ parent }: ValidateEmbeddingContext): boolean {
   // Only allow embedding into container elements
   return Boolean(parent.model.prop('data/isContainer'));
 }
@@ -136,7 +128,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ContainerData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

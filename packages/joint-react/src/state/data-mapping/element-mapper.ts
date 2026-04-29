@@ -1,23 +1,20 @@
 import { type dia } from '@joint/core';
-import type { ElementRecord } from '../../types/data-types';
+import type { DiaElementAttributes, ElementRecord } from '../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { elementAttributes } from '../../presets/element-attributes';
-import type { CellAttributes } from './index';
 
 /**
  * Forward mapper using the React default element type.
  * @param element
  */
-export function mapElementToAttributes<ElementData extends object = Record<string, unknown>>(
-  element: ElementRecord<ElementData>
-): CellAttributes {
-  const attributes = elementAttributes(element) as CellAttributes;
+export function mapElementToAttributes(element: DiaElementAttributes): dia.Cell.JSON {
+  const attributes = elementAttributes(element) as dia.Cell.JSON;
   if (!attributes.type) attributes.type = ELEMENT_MODEL_TYPE;
   return attributes;
 }
 
 /**
- * Converts JointJS element attributes back to an ElementRecord.
+ * Converts JointJS element attributes back to an element record.
  *
  * - `portMap` on model → return `portMap` (ignore native `ports`).
  * - No `portMap` → return `ports` as-is.
@@ -25,7 +22,7 @@ export function mapElementToAttributes<ElementData extends object = Record<strin
  * 1:1 mapping — no `presentation` wrapper.
  * @param attributes
  */
-export function mapAttributesToElement<ElementData extends object = Record<string, unknown>>(
+export function mapAttributesToElement<ElementData extends DiaElementAttributes>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
   const {
@@ -50,11 +47,10 @@ export function mapAttributesToElement<ElementData extends object = Record<strin
     elementRecord.type = type;
   }
 
-  return { ...elementRecord };
+  return { ...elementRecord } as ElementRecord<ElementData>;
 }
 
-export type MapAttributesToElement<ElementData extends object = Record<string, unknown>> =
+export type MapAttributesToElement<ElementData extends DiaElementAttributes> =
   typeof mapAttributesToElement<ElementData>;
 
-export type MapElementToAttributes<ElementData extends object = Record<string, unknown>> =
-  typeof mapElementToAttributes<ElementData>;
+export type MapElementToAttributes = typeof mapElementToAttributes;

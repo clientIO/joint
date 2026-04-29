@@ -2,14 +2,8 @@
 
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
-import type { ElementPort } from '@joint/react';
-import {
-  GraphProvider,
-  Paper,
-  HTMLBox,
-  type Cells,
-  type DefaultLinkContext,
-} from '@joint/react';
+import type { CellRecord, ElementPort } from '@joint/react';
+import { GraphProvider, Paper, HTMLBox, type DefaultLinkContext } from '@joint/react';
 
 const RED = '#ef4444';
 const GREEN = '#22c55e';
@@ -22,7 +16,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: 'node-1',
     type: 'element',
@@ -59,13 +53,13 @@ const PORT_COLORS: Record<string, string> = {
 function defaultLink({ source }: DefaultLinkContext) {
   const color = (source.port && PORT_COLORS[source.port]) || '#333';
   return {
-    style: { color, targetMarker: 'arrow-sunken' },
+    style: { color, targetMarker: 'arrow-sunken' as const },
     z: -1,
   };
 }
 
-function RenderElement(data: NodeData) {
-  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+function RenderElement({ label }: Readonly<NodeData>) {
+  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
 }
 
 export default function App() {

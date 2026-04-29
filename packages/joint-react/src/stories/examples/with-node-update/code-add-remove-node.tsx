@@ -1,20 +1,26 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import {
+  type CellRecord,
   GraphProvider,
   HTMLHost,
   Paper,
   useCellId,
   useCells,
   useGraph,
-  type Cells,
   type ElementRecord,
+  type Computed,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 
-const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ cornerType: 'line', margin: 40, sourceOffset: 10, targetOffset: 10 });
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
+  cornerType: 'line',
+  margin: 40,
+  sourceOffset: 10,
+  targetOffset: 10,
+});
 
 interface NodeData {
   readonly [key: string]: unknown;
@@ -22,7 +28,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -51,19 +57,21 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function LabelInput({ id, label }: Readonly<{ id: string; label: string }>) {
-  const { setCell } = useGraph<NodeData>();
+  const { setCell, isElement } = useGraph<ElementRecord<NodeData>>();
   return (
     <input
       style={{ padding: 5, marginTop: 4 }}
       value={label}
       onChange={(event) =>
-        setCell((previous) => {
-          const previousElement = previous as ElementRecord<NodeData>;
+        setCell(id, (previous) => {
+          if (!isElement(previous)) return previous;
           return {
-            ...previousElement,
-            id,
-            data: { ...(previousElement.data ?? { label: '', color: '#ffffff' }), label: event.target.value },
-          } as ElementRecord<NodeData>;
+            ...previous,
+            data: {
+              ...(previous.data ?? { label: '', color: '#ffffff' }),
+              label: event.target.value,
+            },
+          };
         })
       }
       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -71,7 +79,7 @@ function LabelInput({ id, label }: Readonly<{ id: string; label: string }>) {
   );
 }
 
-function RenderElement({ label }: NodeData) {
+function RenderElement({ label }: Readonly<NodeData>) {
   const id = useCellId();
   const { removeCell } = useGraph();
   return (
@@ -91,10 +99,11 @@ function RenderElement({ label }: NodeData) {
 }
 
 function Main() {
-  const { isElement } = useGraph<NodeData>();
-  const elements = useCells<NodeData, unknown, ReadonlyArray<ElementRecord<NodeData>>>(
-    (cells) => cells.filter((cell) => isElement(cell)) as ReadonlyArray<ElementRecord<NodeData>>
-  );
+  const { isElement } = useGraph<ElementRecord<NodeData>>();
+  const elements = useCells<
+    Computed<ElementRecord<NodeData>>,
+    ReadonlyArray<ElementRecord<NodeData>>
+  >((cells) => cells.filter((cell) => isElement(cell)) as ReadonlyArray<ElementRecord<NodeData>>);
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
@@ -106,11 +115,7 @@ function Main() {
       />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {elements.map((element) => (
-          <LabelInput
-            key={String(element.id)}
-            id={String(element.id)}
-            label={element.data?.label ?? ''}
-          />
+          <LabelInput key={String(element.id)} id={String(element.id)} label={element.data.label} />
         ))}
       </div>
     </div>

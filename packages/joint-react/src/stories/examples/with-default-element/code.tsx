@@ -1,11 +1,5 @@
 import { useState, useCallback, useMemo, useRef, memo } from 'react';
-import {
-  GraphProvider,
-  Paper,
-  HTMLBox,
-  type Cells,
-  type LinkMarkerName,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, HTMLBox, type LinkMarkerName } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jj-* CSS variable defaults (including element styles)
@@ -24,7 +18,7 @@ interface Data {
 const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
 const DEFAULT_LINK = { style: { targetMarker: 'arrow' as LinkMarkerName } };
 
-const initialCells: Cells<Data> = [
+const initialCells: ReadonlyArray<CellRecord<Data>> = [
   {
     id: 'a',
     type: 'element',

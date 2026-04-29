@@ -1,10 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  GraphProvider,
-  HTMLHost,
-  Paper,
-  type Cells,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, HTMLHost, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
@@ -12,7 +7,7 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 type ElementData = { label: string };
 
 // Unified cells (elements + links in one array; each requires id + type)
-const initialCells: Cells<ElementData> = [
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -34,7 +29,7 @@ const initialCells: Cells<ElementData> = [
   },
 ];
 
-function RenderItem({ label }: ElementData) {
+function RenderItem({ label }: Readonly<ElementData>) {
   return (
     <HTMLHost className="node" style={{ width: 100, height: 50 }}>
       {label}

@@ -1,10 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useState, useCallback, useRef } from 'react';
 import {
+  type CellRecord,
   GraphProvider,
-  useElement,
+  useCell,
   Paper,
-    type Cells,
   type RenderElement,
   selectElementSize,
 } from '@joint/react';
@@ -21,7 +21,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: 'a',
     type: 'element',
@@ -91,7 +91,7 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function Node({ label }: Readonly<{ label: string }>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <rect
@@ -117,7 +117,7 @@ function Node({ label }: Readonly<{ label: string }>) {
 }
 
 function Diagram() {
-  const [cells, setCells] = useState<Cells<NodeData>>(initialCells);
+  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeData>>>(initialCells);
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -162,7 +162,7 @@ function Diagram() {
           <code>color</code> prop.
         </span>
       </div>
-      <GraphProvider<NodeData> cells={cells} onCellsChange={setCells}>
+      <GraphProvider cells={cells} onCellsChange={setCells}>
         <Paper
           className={PAPER_CLASSNAME}
           style={{ background: 'var(--paper-bg)' }}

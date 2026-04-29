@@ -3,8 +3,9 @@ import { CellIdContext } from '../context';
 import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
 import { usePaper } from './use-paper';
-import type { ElementSize } from '../types/cell-data';
-import { useElement } from './use-element';
+import type { ElementSize } from '../types/cell.types';
+import { useCell } from './use-cell';
+import { selectElementSize } from '../selectors';
 
 /**
  * Controls element visibility until the first measurement completes.
@@ -67,6 +68,14 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  *   takes precedence. When it unmounts, the previous hook becomes active again (stack semantics).
  * - Must be used within a `renderElement` function or a component rendered from within it.
  * - The returned values are always defined (width and height default to 0 if not set).
+ *
+ * **Anti-pattern — do not combine with `useCell(selectElementSize)`:**
+ * Do not pair this hook with `useCell((cell) => cell.size)` (or the equivalent
+ * `selectElementSize` selector) in the same component. This hook already
+ * synchronizes the measured size to the graph element and returns the live
+ * `width` / `height`. Reading the value back through `useCell` adds a redundant
+ * subscription and an extra render. Prefer the returned `width`/`height` from
+ * this hook directly.
  * @param nodeRef - A reference to the HTML or SVG element to measure. The element must be rendered
  *                     in the DOM when the hook runs.
  * @param options - Optional configuration for measuring and transforming the node size.
@@ -77,6 +86,13 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  *   - `y`: The current y position of the graph element (defaults to 0)
  *   - `angle`: The current angle of the graph element (defaults to 0)
  * @throws {Error} If the cell is not a valid element.
+ *
+ * **Important:** Do not combine with `useCell((cell) => cell.size)` (or
+ * `selectElementSize` / similar selectors) in the same component. This hook
+ * already synchronizes the measured size to the graph element. Use the
+ * returned `width` / `height` from this hook directly rather than reading
+ * the value back from the model — combining both creates a redundant
+ * round-trip and can fight on the first measurement.
  * @group Hooks
  * @example
  * Basic usage with SVG element:
@@ -156,7 +172,7 @@ export function useMeasureNode(
   if (id === undefined) {
     throw new Error('useMeasureNode() must be used inside renderElement');
   }
-  const layout = useElement((element) => element.size);
+  const size = useCell(selectElementSize);
 
   useLayoutEffect(() => {
     const element = nodeRef.current;
@@ -190,5 +206,5 @@ export function useMeasureNode(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeRef, graph, id, paper, setMeasuredNode]);
 
-  return layout;
+  return size;
 }

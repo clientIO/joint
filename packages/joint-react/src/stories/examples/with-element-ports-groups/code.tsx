@@ -1,9 +1,4 @@
-import {
-  GraphProvider,
-  Paper,
-  HTMLBox,
-  type Cells,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, HTMLBox } from '@joint/react';
 import { elementPort } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
@@ -17,7 +12,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: 'a',
     type: 'element',
@@ -87,8 +82,8 @@ const initialCells: Cells<NodeData> = [
   },
 ];
 
-function RenderElement(data: NodeData) {
-  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+function RenderElement({ label }: Readonly<NodeData>) {
+  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
 }
 
 export default function App() {

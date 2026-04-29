@@ -1,7 +1,12 @@
 import { useCallback, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { ReadonlyContainer } from '../store/state-container';
-import type { CellId, WithId } from '../types/cell.types';
+import type {
+  CellId,
+  CellUnion,
+  DiaElementAttributes,
+  DiaLinkAttributes,
+} from '../types/cell.types';
 
 /**
  * Internal hook: subscribe to container size changes and return a stable array of IDs.
@@ -10,7 +15,9 @@ import type { CellId, WithId } from '../types/cell.types';
  * @returns A stable array of cell IDs. Same reference when IDs haven't changed.
  * @internal
  */
-export function useContainerKeys<T extends WithId>(container: ReadonlyContainer<T>): CellId[] {
+export function useContainerKeys<
+  Cell extends CellUnion<DiaElementAttributes, DiaLinkAttributes>,
+>(container: ReadonlyContainer<Cell>): CellId[] {
   const previousKeysRef = useRef<CellId[]>([]);
 
   const subscribe = useCallback(
@@ -37,7 +44,9 @@ export function useContainerKeys<T extends WithId>(container: ReadonlyContainer<
 
     const currentKeys: CellId[] = Array.from({ length: items.length });
     for (const [index, item] of items.entries()) {
-      currentKeys[index] = item.id;
+      // Items inside the container always have an id (the container is keyed
+      // by id) — the optionality on `WithId.id` exists only for input shapes.
+      currentKeys[index] = item.id as CellId;
     }
 
     previousKeysRef.current = currentKeys;

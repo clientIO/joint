@@ -1,11 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type Cells, type CellRecord } from '@joint/react';
+import { GraphProvider, Paper, type DiaCellAttributes } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-const initialCells: Cells = [
+const initialCells: readonly DiaCellAttributes[] = [
   // Row 1: Basic shapes
   {
     id: 'rectangle',
@@ -202,12 +202,12 @@ const initialCells: Cells = [
     attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
-] satisfies CellRecord[];
+] satisfies DiaCellAttributes[];
 
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper className={PAPER_CLASSNAME} height={500} interactive={true}/>
+      <Paper className={PAPER_CLASSNAME} height={500} interactive={true} />
     </div>
   );
 }

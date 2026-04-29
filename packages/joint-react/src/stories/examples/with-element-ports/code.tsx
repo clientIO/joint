@@ -4,14 +4,15 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 import { V } from '@joint/core';
 import {
+  type CellRecord,
   GraphProvider,
   Paper,
   useGraph,
   useCells,
   HTMLBox,
-  type Cells,
   type ElementPort,
   type ElementRecord,
+  type Computed,
 } from '@joint/react';
 import { linkRoutingSmooth } from '@joint/react/presets';
 
@@ -76,7 +77,7 @@ function getShapeLabel(shape: string): string {
 
 const PORT_SIZE = 16;
 
-const initialCells: Cells<PortNodeData> = [
+const initialCells: ReadonlyArray<CellRecord<PortNodeData>> = [
   {
     id: 'node-1',
     type: 'element',
@@ -175,18 +176,17 @@ interface PortControlProps {
 }
 
 function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
-  const { setCell } = useGraph();
+  const { setCell, isElement } = useGraph();
 
   const updatePort = (updates: Partial<ElementPort>) => {
-    setCell((previous) => {
-      const element = previous as ElementRecord;
+    setCell(elementId, (previous) => {
+      if (!isElement(previous)) return previous;
       return {
-        ...element,
-        id: elementId,
-        portMap: element.portMap
-          ? { ...element.portMap, [portId]: { ...element.portMap[portId], ...updates } }
-          : element.portMap,
-      } as ElementRecord;
+        ...previous,
+        portMap: previous.portMap
+          ? { ...previous.portMap, [portId]: { ...previous.portMap[portId], ...updates } }
+          : previous.portMap,
+      };
     });
   };
 
@@ -232,7 +232,11 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
         <select
           value={port.shape ?? 'ellipse'}
           onChange={(event) => {
-            const shape = resolveShape(event.target.value, port.width ?? PORT_SIZE, port.height ?? PORT_SIZE);
+            const shape = resolveShape(
+              event.target.value,
+              port.width ?? PORT_SIZE,
+              port.height ?? PORT_SIZE
+            );
             updatePort({ shape });
           }}
           style={{ ...inputStyle, flex: 1, cursor: 'pointer' }}
@@ -338,7 +342,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
 interface ElementPortControlsProps {
   readonly id: string;
-  readonly element: ElementRecord<PortNodeData>;
+  readonly element: Computed<ElementRecord<PortNodeData>>;
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
@@ -369,16 +373,16 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
   );
 }
 
-function RenderElement(data: PortNodeData) {
-  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+function RenderElement({ label }: Readonly<PortNodeData>) {
+  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
 }
 
 // --- Main ---
 
 function Main() {
-  const cells = useCells<PortNodeData>();
+  const cells = useCells();
   const elements = cells.filter(
-    (cell): cell is ElementRecord<PortNodeData> => cell.type === 'element'
+    (cell): cell is Computed<ElementRecord<PortNodeData>> => cell.type === 'element'
   );
 
   return (

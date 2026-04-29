@@ -8,8 +8,6 @@ import {
   type LinkMarkerRecord,
 } from '../presets/link-markers';
 
-export type { LinkMarkerRecord };
-
 /**
  * Built-in marker shapes for links.
  */

@@ -3,7 +3,7 @@ import { dia } from '@joint/core';
 import { GraphStore, DEFAULT_CELL_NAMESPACE } from '../graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import type { CellRecord, Cells } from '../../types/cell.types';
+import type { CellRecord } from '../../types/cell.types';
 
 const createGraph = () => new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
@@ -27,7 +27,7 @@ describe('GraphStore', () => {
     });
 
     it('seeds the graph from initialCells', () => {
-      const initialCells: Cells = [
+      const initialCells: readonly CellRecord[] = [
         {
           id: 'a',
           type: ELEMENT_MODEL_TYPE,
@@ -62,7 +62,7 @@ describe('GraphStore', () => {
     });
 
     it('accepts a controlled cells prop and mirrors it into the graph', () => {
-      const cells: Cells = [
+      const cells: readonly CellRecord[] = [
         {
           id: 'x',
           type: ELEMENT_MODEL_TYPE,
@@ -161,7 +161,7 @@ describe('GraphStore', () => {
 
   describe('applyControlled', () => {
     it('re-syncs the graph to the parent snapshot', () => {
-      const initial: Cells = [
+      const initial: readonly CellRecord[] = [
         {
           id: 'a',
           type: ELEMENT_MODEL_TYPE,

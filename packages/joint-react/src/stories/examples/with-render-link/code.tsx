@@ -4,11 +4,11 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 
 import {
+  type CellRecord,
   GraphProvider,
   Paper,
   useCellId,
   useLinkLayout,
-  type Cells,
   type RenderLink,
 } from '@joint/react';
 import { useCallback, useState } from 'react';
@@ -18,7 +18,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 300, y: 100 } },

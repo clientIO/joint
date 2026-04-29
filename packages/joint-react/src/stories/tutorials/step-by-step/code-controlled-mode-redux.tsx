@@ -8,7 +8,6 @@ import {
   Paper,
   type CellId,
   type CellRecord,
-  type Cells,
   type ElementRecord,
   type IncrementalCellsChange,
   type LinkRecord,
@@ -60,14 +59,14 @@ type ElementData = { label: string };
  * History is managed automatically by redux-undo.
  */
 interface GraphState {
-  readonly cells: Cells<ElementData>;
+  readonly cells: ReadonlyArray<CellRecord<ElementData>>;
 }
 
 // ============================================================================
 // STEP 2: Create Redux Slice with Actions
 // ============================================================================
 
-const defaultCells: Cells<ElementData> = [
+const defaultCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -139,12 +138,13 @@ const graphSlice = createSlice({
      */
     applyIncrementalCellsChange: (
       state,
-      action: PayloadAction<IncrementalCellsChange<ElementData>>
+      action: PayloadAction<IncrementalCellsChange<ElementRecord<ElementData>>>
     ) => {
       const { added, changed, removed } = action.payload;
 
       const byId = new Map<CellId, CellRecord<ElementData>>();
       for (const cell of state.cells) {
+        if (cell.id === undefined) continue;
         byId.set(cell.id, cell as CellRecord<ElementData>);
       }
 
@@ -211,7 +211,7 @@ const selectCells = (state: GraphRootState) => (state.graph as UndoableGraphStat
  */
 const NODE_STYLE = { width: 100, height: 50 };
 
-function RenderItem({ label }: ElementData) {
+function RenderItem({ label }: Readonly<ElementData>) {
   return (
     <HTMLHost className="node" style={NODE_STYLE}>
       {label}
@@ -232,14 +232,14 @@ function GraphWithRedux() {
   // onIncrementalCellsChange receives granular change info and dispatches a
   // single Redux action with the full incremental payload.
   const handleIncrementalCellsChange = useCallback(
-    (changes: IncrementalCellsChange<ElementData>) => {
+    (changes: IncrementalCellsChange<ElementRecord<ElementData>>) => {
       dispatch(applyIncrementalCellsChange(changes));
     },
     [dispatch]
   );
 
   return (
-    <GraphProvider<ElementData>
+    <GraphProvider
       cells={cells}
       onIncrementalCellsChange={handleIncrementalCellsChange}
     >

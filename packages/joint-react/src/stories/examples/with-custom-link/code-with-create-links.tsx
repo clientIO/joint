@@ -1,12 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import {
-  GraphProvider,
-  Paper,
-  type Cells,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, Paper } from '@joint/react';
 type ElementData = { label: string };
-const initialCells: Cells<ElementData> = [
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -38,7 +34,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ElementData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

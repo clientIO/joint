@@ -1,7 +1,12 @@
 import { isUpdater } from '../utils/is';
 import { simpleScheduler } from '../utils/scheduler';
 import { isStrictEqual } from '../utils/selector-utils';
-import type { CellId, WithId } from '../types/cell.types';
+import type {
+  CellId,
+  CellUnion,
+  DiaElementAttributes,
+  DiaLinkAttributes,
+} from '../types/cell.types';
 
 export type Update<T> = ((previous: T | undefined) => T | undefined) | T;
 
@@ -14,10 +19,12 @@ export function getValue<T>(previous: T | undefined, updater: Update<T>): T | un
   return isUpdater(updater) ? updater(previous) : updater;
 }
 
-export interface ReadonlyContainer<T extends WithId> {
+export interface ReadonlyContainer<
+  Cell extends CellUnion<DiaElementAttributes, DiaLinkAttributes>,
+> {
   getVersion: () => number;
-  getAll: () => readonly T[];
-  get: (id: CellId) => T | undefined;
+  getAll: () => readonly Cell[];
+  get: (id: CellId) => Cell | undefined;
   has: (id: CellId) => boolean;
   getSize: () => number;
   subscribe: (id: CellId, listener: () => void) => () => void;
@@ -25,10 +32,11 @@ export interface ReadonlyContainer<T extends WithId> {
   subscribeToAll: (listener: () => void) => () => void;
 }
 
-export interface Container<T extends WithId> extends ReadonlyContainer<T> {
-  set: (id: CellId, update: Update<T>) => void;
+export interface Container<Cell extends CellUnion<DiaElementAttributes, DiaLinkAttributes>>
+  extends ReadonlyContainer<Cell> {
+  set: (id: CellId, update: Update<Cell>) => void;
   delete: (id: CellId) => void;
-  reset: (next: readonly T[]) => void;
+  reset: (next: readonly Cell[]) => void;
   commitChanges: () => void;
 }
 
@@ -36,9 +44,9 @@ export interface Container<T extends WithId> extends ReadonlyContainer<T> {
  * Wraps a container to expose only read and subscribe operations.
  * @param container
  */
-export function asReadonlyContainer<T extends WithId>(
-  container: Container<T>
-): ReadonlyContainer<T> {
+export function asReadonlyContainer<
+  Cell extends CellUnion<DiaElementAttributes, DiaLinkAttributes>,
+>(container: Container<Cell>): ReadonlyContainer<Cell> {
   return {
     get: container.get,
     has: container.has,
@@ -60,8 +68,10 @@ export function asReadonlyContainer<T extends WithId>(
  * not rely on insertion order for identity.
  * @param _name - optional label for debugging
  */
-export function createContainer<T extends WithId>(_name?: string): Container<T> {
-  const items: T[] = [];
+export function createContainer<
+  Cell extends CellUnion<DiaElementAttributes, DiaLinkAttributes>,
+>(_name?: string): Container<Cell> {
+  const items: Cell[] = [];
   const indexById = new Map<CellId, number>();
   const listeners = new Map<CellId, Set<() => void>>();
   const sizeListeners = new Set<() => void>();
@@ -74,17 +84,17 @@ export function createContainer<T extends WithId>(_name?: string): Container<T> 
   let previousSize = 0;
   let version = 0;
   return {
-    get(id: CellId): T | undefined {
+    get(id: CellId): Cell | undefined {
       const index = indexById.get(id);
       return index === undefined ? undefined : items[index];
     },
     has(id: CellId): boolean {
       return indexById.has(id);
     },
-    getAll(): readonly T[] {
+    getAll(): readonly Cell[] {
       return items;
     },
-    set(id: CellId, update: Update<T>) {
+    set(id: CellId, update: Update<Cell>) {
       const index = indexById.get(id);
       const previous = index === undefined ? undefined : items[index];
       const value = getValue(previous, update);
@@ -112,22 +122,26 @@ export function createContainer<T extends WithId>(_name?: string): Container<T> 
       if (index !== lastIndex) {
         const last = items[lastIndex];
         items[index] = last;
-        indexById.set(last.id, index);
+        // Stored items are always keyed by id; the optional `id` is for
+        // input shapes only.
+        indexById.set(last.id as CellId, index);
       }
       items.pop();
       indexById.delete(id);
       changes.push(id);
       version++;
     },
-    reset(next: readonly T[]) {
-      for (const previous of items) changes.push(previous.id);
+    reset(next: readonly Cell[]) {
+      // Stored items are always keyed by id; the optional `id` is for input
+      // shapes only.
+      for (const previous of items) changes.push(previous.id as CellId);
       items.length = 0;
       indexById.clear();
       let index = 0;
       for (const item of next) {
         items.push(item);
-        indexById.set(item.id, index);
-        changes.push(item.id);
+        indexById.set(item.id as CellId, index);
+        changes.push(item.id as CellId);
         index++;
       }
       version++;

@@ -1,13 +1,12 @@
-
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { forwardRef, useCallback, useRef } from 'react';
 import {
+  type CellRecord,
   GraphProvider,
   Paper,
   useMeasureNode,
   useMarkup,
-  type Cells,
   type RenderElement,
   type OnTransformElement,
 } from '@joint/react';
@@ -26,7 +25,7 @@ interface StackedData {
   readonly labels: readonly string[];
 }
 
-const initialCells: Cells<StackedData> = [
+const initialCells: ReadonlyArray<CellRecord<StackedData>> = [
   {
     id: '1',
     type: 'element',
@@ -184,7 +183,7 @@ function Main() {
         style: { color: LIGHT },
       }}
       validateConnection={{
-        allowRootConnection: false
+        allowRootConnection: false,
       }}
       style={PAPER_STYLE}
       drawGrid={false}
@@ -194,7 +193,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<StackedData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

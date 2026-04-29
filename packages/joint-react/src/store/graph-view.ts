@@ -1,14 +1,13 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
-import type { CellId, CellRecord } from '../types/cell.types';
-import type { ElementPosition, ElementSize } from './../types/cell-data';
-import {
-  mapAttributesToElement,
-  mapAttributesToLink,
-  type MapAttributesToElement,
-  type MapAttributesToLink,
-} from '../state/data-mapping';
+import type {
+  DiaElementAttributes,
+  DiaLinkAttributes,
+  CellId,
+  CellUnion,
+} from '../types/cell.types';
+import { mapAttributesToElement, mapAttributesToLink } from '../state/data-mapping';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
 import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-utils';
@@ -17,20 +16,20 @@ import { LINK_MODEL_TYPE } from '../models/link-model';
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalCellsChange<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > {
-  readonly added: Map<CellId, CellRecord<ElementData, LinkData>>;
-  readonly changed: Map<CellId, CellRecord<ElementData, LinkData>>;
+  readonly added: Map<CellId, CellUnion<Element, Link>>;
+  readonly changed: Map<CellId, CellUnion<Element, Link>>;
   readonly removed: Set<CellId>;
 }
 
 interface GraphViewState<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > {
   readonly graph: dia.Graph;
-  readonly onIncrementalChange?: (changes: IncrementalCellsChange<ElementData, LinkData>) => void;
+  readonly onIncrementalChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
   readonly onElementsSizeChange?: (id: CellId, size: { width: number; height: number }) => void;
 }
 
@@ -52,21 +51,18 @@ interface GraphViewState<
  * @param next - freshly mapped record from the graph
  * @returns merged record; may be `previous` itself when nothing changed
  */
-function mergeCellRecord<ElementData extends object, LinkData extends object>(
-  previous: CellRecord<ElementData, LinkData> | undefined,
-  next: CellRecord<ElementData, LinkData>
-): CellRecord<ElementData, LinkData> {
+function mergeCellUnion<Element extends DiaElementAttributes, Link extends DiaLinkAttributes>(
+  previous: CellUnion<Element, Link> | undefined,
+  next: CellUnion<Element, Link>
+): CellUnion<Element, Link> {
   if (!previous) return next;
 
-  const previousRecord = previous as unknown as Record<string, unknown>;
-  const nextRecord = next as unknown as Record<string, unknown>;
-
-  const previousData = previousRecord.data as object | undefined;
-  const nextData = nextRecord.data as object | undefined;
-  const previousPosition = previousRecord.position as ElementPosition | undefined;
-  const nextPosition = nextRecord.position as ElementPosition | undefined;
-  const previousSize = previousRecord.size as ElementSize | undefined;
-  const nextSize = nextRecord.size as ElementSize | undefined;
+  const previousData = previous.data as object | undefined;
+  const nextData = next.data as object | undefined;
+  const previousPosition = (previous as DiaElementAttributes).position;
+  const nextPosition = (next as DiaElementAttributes).position;
+  const previousSize = (previous as DiaElementAttributes).size;
+  const nextSize = (next as DiaElementAttributes).size;
 
   const mergedData = isShallowEqual(previousData, nextData) ? previousData : nextData;
   const mergedPosition = isPositionEqual(previousPosition, nextPosition)
@@ -84,13 +80,13 @@ function mergeCellRecord<ElementData extends object, LinkData extends object>(
     mergedPosition === previousPosition &&
     mergedSize === previousSize
   ) {
-    const previousKeys = Object.keys(previousRecord);
-    const nextKeys = Object.keys(nextRecord);
+    const previousKeys = Object.keys(previous);
+    const nextKeys = Object.keys(next);
     if (previousKeys.length === nextKeys.length) {
       let allMatch = true;
       for (const key of nextKeys) {
         if (key === 'data' || key === 'position' || key === 'size') continue;
-        if (previousRecord[key] !== nextRecord[key]) {
+        if (previous[key] !== next[key]) {
           allMatch = false;
           break;
         }
@@ -100,26 +96,28 @@ function mergeCellRecord<ElementData extends object, LinkData extends object>(
   }
 
   return {
-    ...nextRecord,
+    ...next,
     data: mergedData,
     position: mergedPosition,
     size: mergedSize,
-  } as unknown as CellRecord<ElementData, LinkData>;
+  } as CellUnion<Element, Link>;
 }
 
 /**
  * Convert a JointJS cell to its CellRecord representation, routing by type:
  *  - Elements → element mapper, with id/type guaranteed AND
  *    `position`/`size`/`angle`/`data` normalised to non-undefined values so
- *    consumers can rely on `ResolvedElementRecord`'s required-field contract.
+ *    consumers can rely on `Computed<ElementRecord>`'s required-field contract.
  *  - Links → link mapper, with id/type/source/target/data normalised.
  *  - Anything else → pass-through of attributes
  * @param cell - graph cell
  * @returns CellRecord suitable for the cells container
  */
-function toCellRecord<E extends object, L extends object>(cell: dia.Cell): CellRecord<E, L> {
+function toCellUnion<Element extends DiaElementAttributes, Link extends DiaLinkAttributes>(
+  cell: dia.Cell
+): CellUnion<Element, Link> {
   if (cell.isElement()) {
-    const record = (mapAttributesToElement as MapAttributesToElement<E>)(cell.attributes);
+    const record = mapAttributesToElement(cell.attributes);
     const previousPosition = record.position;
     const previousSize = record.size;
     const withDefaults = {
@@ -135,36 +133,36 @@ function toCellRecord<E extends object, L extends object>(cell: dia.Cell): CellR
         height: previousSize?.height ?? 0,
       },
       angle: record.angle ?? 0,
-      data: (record.data ?? ({} as E)) as E,
+      data: record.data ?? {},
     };
-    return withDefaults as unknown as CellRecord<E, L>;
+    return withDefaults as Element;
   }
   if (cell.isLink()) {
-    const record = (mapAttributesToLink as MapAttributesToLink<L>)(cell.attributes);
+    const record = mapAttributesToLink(cell.attributes);
     const withDefaults = {
       ...record,
       id: cell.id,
       type: record.type ?? LINK_MODEL_TYPE,
       source: record.source ?? {},
       target: record.target ?? {},
-      data: (record.data ?? ({} as L)) as L,
+      data: record.data ?? {},
     };
-    return withDefaults as unknown as CellRecord<E, L>;
+    return withDefaults as Link;
   }
-  return { ...cell.attributes, id: cell.id } as unknown as CellRecord<E, L>;
+  return { ...cell.attributes, id: cell.id } as CellUnion<Element, Link>;
 }
 
 export function graphView<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
->(options: GraphViewState<ElementData, LinkData>) {
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
+>(options: GraphViewState<Element, Link>) {
   const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
-  const cells = createContainer<CellRecord<ElementData, LinkData>>('Cells');
+  const cells = createContainer<CellUnion<Element, Link>>('Cells');
 
   const trackChanges = onIncrementalChange !== undefined;
-  const added = trackChanges ? new Map<CellId, CellRecord<ElementData, LinkData>>() : undefined;
-  const changed = trackChanges ? new Map<CellId, CellRecord<ElementData, LinkData>>() : undefined;
+  const added = trackChanges ? new Map<CellId, CellUnion<Element, Link>>() : undefined;
+  const changed = trackChanges ? new Map<CellId, CellUnion<Element, Link>>() : undefined;
   const removed = trackChanges ? new Set<CellId>() : undefined;
 
   /**
@@ -175,12 +173,12 @@ export function graphView<
    * @param cell - graph cell
    * @returns the merged record (may be the previous reference when unchanged)
    */
-  function writeCell(cell: dia.Cell): CellRecord<ElementData, LinkData> {
+  function writeCell(cell: dia.Cell): CellUnion<Element, Link> {
     cells.set(cell.id, (previous) => {
-      const next = toCellRecord<ElementData, LinkData>(cell);
-      return mergeCellRecord<ElementData, LinkData>(previous, next);
+      const next = toCellUnion<Element, Link>(cell);
+      return mergeCellUnion<Element, Link>(previous, next);
     });
-    return cells.get(cell.id)!;
+    return cells.get(cell.id) as CellUnion<Element, Link>;
   }
 
   const graphChangesController = graphChanges({
@@ -201,8 +199,11 @@ export function graphView<
               else changed!.set(id, record);
             }
             hasChange = true;
-            if (data.isElement()) {
-              // An element move/resize affects connected links' routes.
+            // Connected-links sweep is only needed on `change` (an element
+            // moved or resized — its links' routes need re-snapshotting).
+            // On `add`, the link gets its own change-set entry from JointJS
+            // and will be written in this loop without re-ordering issues.
+            if (!isAdd && data.isElement()) {
               for (const link of graph.getConnectedLinks(data)) {
                 writeCell(link);
               }
@@ -260,7 +261,7 @@ export function graphView<
   return {
     cells: asReadonlyContainer(cells),
     syncFromGraph,
-    updateGraph(update: UpdateGraphOptions<ElementData, LinkData>) {
+    updateGraph(update: UpdateGraphOptions<Element, Link>) {
       const { cellIds } = graphChangesController.updateGraph(update);
       if (update.flag !== 'updateFromReact') return;
       if (!update.cells) return;
@@ -283,6 +284,9 @@ export function graphView<
       if (cells.getSize() > cellIds.length) {
         const userIds = new Set<CellId>(cellIds);
         for (const item of cells.getAll()) {
+          // Items inside the container always have an id; the optionality on
+          // `WithId.id` is only for input shapes.
+          if (item.id === undefined) continue;
           if (!userIds.has(item.id)) {
             cells.delete(item.id);
             hasChange = true;
@@ -299,6 +303,6 @@ export function graphView<
 }
 
 export type GraphView<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
-> = ReturnType<typeof graphView<ElementData, LinkData>>;
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
+> = ReturnType<typeof graphView<Element, Link>>;

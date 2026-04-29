@@ -3,15 +3,7 @@
 
 import '../index.css';
 import { useCallback, useRef, type PropsWithChildren } from 'react';
-import {
-  GraphProvider,
-  Paper,
-  useCellId,
-  useMeasureNode,
-  type Cells,
-  type ElementRecord,
-  type OnTransformElement,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, useCellId, useMeasureNode, type ElementRecord, type OnTransformElement } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
@@ -20,7 +12,7 @@ interface ListNodeData {
   readonly inputs: string[];
 }
 
-const initialCells: Cells<ListNodeData> = [
+const initialCells: ReadonlyArray<CellRecord<ListNodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -62,18 +54,17 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
 
   const { width, height } = useMeasureNode(elementRef, { transform });
 
-  const { setCell } = useGraph<ListNodeData>();
+  const { setCell, isElement } = useGraph<ElementRecord<ListNodeData>>();
 
   const addInput = () => {
-    setCell((previous) => {
-      const previousElement = previous as ElementRecord<ListNodeData>;
-      const previousData = previousElement.data;
+    setCell(id, (previous) => {
+      if (!isElement(previous)) return previous;
+      const previousData = previous.data;
       const previousInputs = Array.isArray(previousData?.inputs) ? previousData.inputs : [];
       return {
-        ...previousElement,
-        id,
+        ...previous,
         data: { ...(previousData ?? { label: '', inputs: [] }), inputs: [...previousInputs, ''] },
-      } as ElementRecord<ListNodeData>;
+      };
     });
   };
 
@@ -119,14 +110,13 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
                   onChange={(event) => {
                     const newInputs = [...inputs];
                     newInputs[index] = event.target.value;
-                    setCell((previous) => {
-                      const previousElement = previous as ElementRecord<ListNodeData>;
-                      const previousData = previousElement.data;
+                    setCell(id, (previous) => {
+                      if (!isElement(previous)) return previous;
+                      const previousData = previous.data;
                       return {
-                        ...previousElement,
-                        id,
+                        ...previous,
                         data: { ...(previousData ?? { label: '', inputs: [] }), inputs: newInputs },
-                      } as ElementRecord<ListNodeData>;
+                      };
                     });
                   }}
                 />

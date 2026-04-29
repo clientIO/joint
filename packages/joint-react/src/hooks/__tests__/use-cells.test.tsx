@@ -5,9 +5,9 @@ import { useCells } from '../use-cells';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import type { Cells, CellRecord } from '../../types/cell.types';
+import type { CellRecord } from '../../types/cell.types';
 
-const initialCells: Cells = [
+const initialCells: readonly CellRecord[] = [
   {
     id: 'a',
     type: ELEMENT_MODEL_TYPE,

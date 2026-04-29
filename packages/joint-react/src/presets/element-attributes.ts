@@ -1,9 +1,9 @@
 import { util } from '@joint/core';
-import type { ElementRecord } from '../types/data-types';
+import type { DiaElementAttributes } from '../types/cell.types';
 import { elementPorts } from './element-ports';
 
 /**
- * Converts an `ElementRecord` to JointJS cell attributes.
+ * Converts an `ElementAttributes` record to JointJS cell attributes.
  *
  * - `portMap` → converted to native `ports` via `elementPorts()`.
  * - `ports` → passed through as-is (native JointJS format).
@@ -11,24 +11,16 @@ import { elementPorts } from './element-ports';
  * @param element - The element record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function elementAttributes<ElementData extends object = Record<string, unknown>>(
-  element: ElementRecord<ElementData>,
-): Record<string, unknown> {
+export function elementAttributes(element: DiaElementAttributes): DiaElementAttributes {
   if (!util.isObject(element)) {
     throw new TypeError('Invalid element format: expected an object.');
   }
 
-  const {
-    data = {} as ElementData,
-    portMap,
-    ports,
-    type,
-    ...rest
-  } = element;
+  const { data = {}, portMap, ports, type, ...rest } = element;
 
-  const attributes: Record<string, unknown> = {
+  const attributes: DiaElementAttributes = {
     ...rest,
-    ...(type && { type }),
+    type,
     data,
   };
 

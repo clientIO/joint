@@ -7,9 +7,10 @@ import {
   useGraph,
   HTMLHost,
   useCells,
-  type Cells,
+  type CellRecord,
   type ElementRecord,
   type LinkRecord,
+  type Computed,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
@@ -23,7 +24,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -102,7 +103,7 @@ function ElementControls({
   size: layout,
   angle,
 }: Readonly<ElementControlsProps>) {
-  const { setCell, removeCell } = useGraph<NodeData>();
+  const { setCell, removeCell, isElement } = useGraph<ElementRecord<NodeData>>();
   const inputStyle = {
     padding: '6px 10px',
     border: '1px solid rgba(0, 0, 0, 0.15)',
@@ -141,17 +142,14 @@ function ElementControls({
           type="text"
           value={element.label}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
-              const data = previousElement.data as NodeData | undefined;
-              if (!data) {
-                return { ...previousElement, id } as ElementRecord<NodeData>;
-              }
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
+              const { data } = previous;
+              if (!data) return previous;
               return {
-                ...previousElement,
-                id,
+                ...previous,
                 data: { ...data, label: event.target.value },
-              } as ElementRecord<NodeData>;
+              };
             })
           }
           style={{ ...inputStyle, flex: 1 }}
@@ -165,17 +163,14 @@ function ElementControls({
           type="color"
           value={element.color}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
-              const data = previousElement.data as NodeData | undefined;
-              if (!data) {
-                return { ...previousElement, id } as ElementRecord<NodeData>;
-              }
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
+              const { data } = previous;
+              if (!data) return previous;
               return {
-                ...previousElement,
-                id,
+                ...previous,
                 data: { ...data, color: event.target.value },
-              } as ElementRecord<NodeData>;
+              };
             })
           }
           style={{
@@ -196,13 +191,12 @@ function ElementControls({
           type="number"
           value={position?.x ?? 0}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
               return {
-                ...previousElement,
-                id,
-                position: { x: Number(event.target.value), y: previousElement.position?.y ?? 0 },
-              } as ElementRecord<NodeData>;
+                ...previous,
+                position: { x: Number(event.target.value), y: previous.position?.y ?? 0 },
+              };
             })
           }
           style={{ ...inputStyle, width: 65 }}
@@ -212,13 +206,12 @@ function ElementControls({
           type="number"
           value={position?.y ?? 0}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
               return {
-                ...previousElement,
-                id,
-                position: { x: previousElement.position?.x ?? 0, y: Number(event.target.value) },
-              } as ElementRecord<NodeData>;
+                ...previous,
+                position: { x: previous.position?.x ?? 0, y: Number(event.target.value) },
+              };
             })
           }
           style={{ ...inputStyle, width: 65 }}
@@ -233,13 +226,15 @@ function ElementControls({
           type="number"
           value={layout?.width ?? 0}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
               return {
-                ...previousElement,
-                id,
-                size: { width: Number(event.target.value), height: previousElement.size?.height ?? 0 },
-              } as ElementRecord<NodeData>;
+                ...previous,
+                size: {
+                  width: Number(event.target.value),
+                  height: previous.size?.height ?? 0,
+                },
+              };
             })
           }
           style={{ ...inputStyle, width: 65 }}
@@ -249,13 +244,15 @@ function ElementControls({
           type="number"
           value={layout?.height ?? 0}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
               return {
-                ...previousElement,
-                id,
-                size: { width: previousElement.size?.width ?? 0, height: Number(event.target.value) },
-              } as ElementRecord<NodeData>;
+                ...previous,
+                size: {
+                  width: previous.size?.width ?? 0,
+                  height: Number(event.target.value),
+                },
+              };
             })
           }
           style={{ ...inputStyle, width: 65 }}
@@ -272,7 +269,11 @@ function ElementControls({
           max="360"
           value={angle ?? 0}
           onChange={(event) =>
-            setCell({ id, angle: Number(event.target.value) } as ElementRecord<NodeData>)
+            setCell(id, (previous) =>
+              previous.type === 'element'
+                ? { ...previous, angle: Number(event.target.value) }
+                : previous
+            )
           }
           style={{ flex: 1, accentColor: PRIMARY }}
         />
@@ -336,7 +337,9 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
           type="color"
           value={(link.color as string) ?? '#000000'}
           onChange={(event) =>
-            setCell({ id, type: 'link', color: event.target.value } as LinkRecord)
+            setCell(id, (previous) =>
+              previous.type === 'link' ? { ...previous, color: event.target.value } : previous
+            )
           }
           style={{
             width: 36,
@@ -372,8 +375,8 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 }
 
 function AddElementForm() {
-  const { addCell } = useGraph<NodeData>();
-  const elementIds = useCells<NodeData, unknown, string[]>((cells) =>
+  const { setCell } = useGraph<ElementRecord<NodeData>>();
+  const elementIds = useCells<Computed, string[]>((cells) =>
     cells.filter((c) => c.type === 'element').map((c) => String(c.id))
   );
   const [label, setLabel] = useState('');
@@ -381,9 +384,7 @@ function AddElementForm() {
   const handleAdd = () => {
     if (!label.trim()) return;
 
-    const existingIds = elementIds
-      .map(Number)
-      .filter((numberValue) => !Number.isNaN(numberValue));
+    const existingIds = elementIds.map(Number).filter((numberValue) => !Number.isNaN(numberValue));
     const newId = String(Math.max(0, ...existingIds) + 1);
 
     // eslint-disable-next-line sonarjs/pseudo-random -- Random position for demo purposes
@@ -391,7 +392,7 @@ function AddElementForm() {
     // eslint-disable-next-line sonarjs/pseudo-random -- Random position for demo purposes
     const randomY = 50 + Math.random() * 150;
 
-    addCell({
+    setCell({
       id: newId,
       type: 'element',
       data: { label: label.trim(), color: PRIMARY },
@@ -450,16 +451,18 @@ function AddElementForm() {
 }
 
 function AddLinkForm() {
-  const { addCell } = useGraph<NodeData>();
-  const elements = useCells<NodeData, unknown, Array<[string, ElementRecord<NodeData>]>>((cells) => {
-    const result: Array<[string, ElementRecord<NodeData>]> = [];
-    for (const cell of cells) {
-      if (cell.type === 'element') {
-        result.push([String(cell.id), cell as ElementRecord<NodeData>]);
+  const { setCell } = useGraph<ElementRecord<NodeData>>();
+  const elements = useCells<Computed, Array<[string, Computed<ElementRecord<NodeData>>]>>(
+    (cells) => {
+      const result: Array<[string, Computed<ElementRecord<NodeData>>]> = [];
+      for (const cell of cells) {
+        if (cell.type === 'element') {
+          result.push([String(cell.id), cell as Computed<ElementRecord<NodeData>>]);
+        }
       }
+      return result;
     }
-    return result;
-  });
+  );
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
 
@@ -479,7 +482,7 @@ function AddLinkForm() {
     if (!source || !target || source === target) return;
 
     const newId = `link-${source}-${target}-${Date.now()}`;
-    addCell({
+    setCell({
       id: newId,
       type: 'link',
       source: { id: source },
@@ -510,7 +513,7 @@ function AddLinkForm() {
           <option value="">From...</option>
           {elements.map(([id, element]) => (
             <option key={id} value={id}>
-              {element.data?.label}
+              {element.data.label}
             </option>
           ))}
         </select>
@@ -522,7 +525,7 @@ function AddLinkForm() {
           <option value="">To...</option>
           {elements.map(([id, element]) => (
             <option key={id} value={id}>
-              {element.data?.label}
+              {element.data.label}
             </option>
           ))}
         </select>
@@ -548,24 +551,20 @@ function AddLinkForm() {
 
 // --- Main Component ---
 function Main() {
-  const cells = useCells<NodeData>();
+  const cells = useCells<Computed<CellRecord<NodeData>>>();
   const elements: Array<[string, ElementRecord<NodeData>]> = [];
   const links: Array<[string, LinkRecord]> = [];
   for (const cell of cells) {
     if (cell.type === 'element') {
-      elements.push([String(cell.id), cell as ElementRecord<NodeData>]);
+      elements.push([String(cell.id), cell]);
     } else if (cell.type === 'link') {
-      links.push([String(cell.id), cell as LinkRecord]);
+      links.push([String(cell.id), cell]);
     }
   }
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
       {/* Canvas */}
-      <Paper
-        className={PAPER_CLASSNAME}
-        height={500}
-        renderElement={RenderElement}
-      />
+      <Paper className={PAPER_CLASSNAME} height={500} renderElement={RenderElement} />
 
       {/* Control Panel - Glassmorphism Style */}
       <div
@@ -651,7 +650,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<NodeData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

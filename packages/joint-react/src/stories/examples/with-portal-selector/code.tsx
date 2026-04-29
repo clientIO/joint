@@ -3,8 +3,9 @@
 import '../index.css';
 import { dia, highlighters } from '@joint/core';
 import {
+  type DiaCellAttributes,
   GraphProvider,
-  useElement,
+  useCell,
   Paper,
   useCells,
   useGraph,
@@ -13,7 +14,6 @@ import {
   usePaperEvents,
   ELEMENT_MODEL_TYPE,
   type CellId,
-  type Cells,
   type PaperProps,
   type RenderElement,
   selectCellType,
@@ -46,7 +46,7 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const initialCells: Cells<ElementUserData> = [
+const initialCells: readonly DiaCellAttributes[] = [
   {
     id: '1',
     type: 'element',
@@ -158,7 +158,7 @@ function Shape({
 }
 
 function MinimapShape({ color = 'lightgray' }: Readonly<ElementUserData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 
@@ -256,8 +256,8 @@ function RenderElementWithBadge({
   color = 'lightgray',
   title = 'No Title',
 }: Readonly<ElementUserData>) {
-  const { width } = useElement(selectElementSize);
-  const cellType = useElement(selectCellType);
+  const { width } = useCell(selectElementSize);
+  const cellType = useCell(selectCellType);
   // Only render the default Shape for our ElementModel type. Custom JointJS
   // shapes (e.g. standard.Cylinder) render themselves via their native markup.
   const isElementModel = cellType === ELEMENT_MODEL_TYPE;

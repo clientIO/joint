@@ -1,16 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import {
+  type DiaCellAttributes,
   GraphProvider,
-  useElement,
+  useCell,
   Paper,
-    type Cells,
-    selectElementSize,
+  selectElementSize,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialCells: Cells = [
+const initialCells: readonly DiaCellAttributes[] = [
   {
     id: '1',
     type: 'element',
@@ -34,7 +34,7 @@ const initialCells: Cells = [
 ];
 
 function RenderElement() {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <rect
       rx={10}

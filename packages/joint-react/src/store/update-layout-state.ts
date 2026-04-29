@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { ElementPosition, ElementSize, LinkLayout } from '../types/cell-data';
+import type { ElementPosition, ElementSize, LinkLayout } from '../types/cell.types';
 
 /**
  * Default point used as fallback when position is not available.

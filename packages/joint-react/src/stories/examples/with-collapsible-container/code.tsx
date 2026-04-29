@@ -2,15 +2,15 @@
 import { useCallback, useEffect, useId } from 'react';
 import { dia, elementTools } from '@joint/core';
 import {
+  type CellRecord,
   GraphProvider,
   jsx,
   Paper,
+  useCell,
   useCellId,
-  useElement,
   useGraph,
   usePaperEvents,
   SVGText,
-  type Cells,
   selectElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -82,7 +82,9 @@ type ContainerUserData = ContainerData | ChildData;
 // ============================================================================
 
 const MARKER = {
-  markup: jsx(<path d="M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4" fill="none" strokeWidth={1.5} />),
+  markup: jsx(
+    <path d="M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4" fill="none" strokeWidth={1.5} />
+  ),
 };
 
 const CONTAINER_LINK_STYLE = {
@@ -91,7 +93,7 @@ const CONTAINER_LINK_STYLE = {
   targetMarker: MARKER,
 };
 
-const initialCells: Cells<ContainerUserData> = [
+const initialCells: ReadonlyArray<CellRecord<ContainerUserData>> = [
   {
     id: 'container-a',
     type: 'element',
@@ -217,7 +219,7 @@ function ExpandButton({
 }
 
 function ContainerNode({ title, collapsed = false }: Readonly<ContainerData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const id = useCellId();
   const { graph } = useGraph();
 
@@ -280,7 +282,7 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerData>) {
 }
 
 function ChildNode({ label }: Readonly<{ label: string }>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       {/* Body */}
@@ -447,7 +449,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<ContainerUserData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

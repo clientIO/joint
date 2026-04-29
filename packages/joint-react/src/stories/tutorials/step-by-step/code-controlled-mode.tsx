@@ -41,10 +41,10 @@
  */
 
 import {
+  type CellRecord,
   GraphProvider,
   HTMLHost,
   Paper,
-  type Cells,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
@@ -68,7 +68,7 @@ type ElementData = { label: string };
  * - Element cells use `type: 'element'` plus `position`/`size`.
  * - Link cells use `type: 'link'` plus `source`/`target`.
  */
-const defaultCells: Cells<ElementData> = [
+const defaultCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -100,7 +100,7 @@ const defaultCells: Cells<ElementData> = [
  * Receives the element's `data` slice as props (framework spreads it via
  * JSX) and renders the label inside an HTMLHost (foreignObject wrapper).
  */
-function RenderItem({ label }: ElementData) {
+function RenderItem({ label }: Readonly<ElementData>) {
   return (
     <HTMLHost className="node" style={{ width: 100, height: 50 }}>
       {label}
@@ -118,7 +118,7 @@ function RenderItem({ label }: ElementData) {
  */
 interface PaperAppProps {
   /** Setter for the unified cells array. */
-  readonly onCellsChange: Dispatch<SetStateAction<Cells<ElementData>>>;
+  readonly onCellsChange: Dispatch<SetStateAction<ReadonlyArray<CellRecord<ElementData>>>>;
 }
 
 /**
@@ -247,10 +247,10 @@ function PaperApp({ onCellsChange }: Readonly<PaperAppProps>) {
  *   syncs to the JointJS graph.
  */
 function Main() {
-  const [cells, setCells] = useState<Cells<ElementData>>(defaultCells);
+  const [cells, setCells] = useState<ReadonlyArray<CellRecord<ElementData>>>(defaultCells);
 
   return (
-    <GraphProvider<ElementData> cells={cells} onCellsChange={setCells}>
+    <GraphProvider cells={cells} onCellsChange={setCells}>
       {/* Pass the setter to the child so it can mutate the graph via state */}
       <PaperApp onCellsChange={setCells} />
     </GraphProvider>

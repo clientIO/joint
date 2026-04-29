@@ -43,7 +43,7 @@ const graph = useMemo(() => {
 </GraphProvider>
 \`\`\`
 
-### Assigning Cells to Layers
+### Assigning readonly CellRecord[] to Layers
 
 Use the \`layer\` property on elements and links to assign them to a layer:
 

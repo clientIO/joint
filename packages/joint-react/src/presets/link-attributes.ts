@@ -1,10 +1,10 @@
 import { util } from '@joint/core';
-import type { LinkRecord } from '../types/data-types';
+import type { DiaLinkAttributes } from '../types/cell.types';
 import { linkLabels } from './link-labels';
 import { linkStyle } from './link-style';
 
 /**
- * Converts a `LinkRecord` to JointJS cell attributes.
+ * Converts a `LinkAttributes` record to JointJS cell attributes.
  *
  * - `style` → converted to SVG `attrs` via `linkStyle()`.
  * - `labelMap` → converted to native `labels` array via `linkLabels()`.
@@ -13,25 +13,15 @@ import { linkStyle } from './link-style';
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function linkAttributes<LinkData extends object = Record<string, unknown>>(
-  link: LinkRecord<LinkData>,
-): Record<string, unknown> {
+export function linkAttributes(link: DiaLinkAttributes): DiaLinkAttributes {
   if (!util.isObject(link)) {
     throw new TypeError('Invalid link data: expected an object with link properties.');
   }
 
-  const {
-    data = {} as LinkData,
-    type,
-    style,
-    labelMap,
-    labels,
-    ...rest
-  } = link;
-
-  const attributes: Record<string, unknown> = {
+  const { data = {}, type, style, labelMap, labels, ...rest } = link;
+  const attributes: DiaLinkAttributes = {
     ...rest,
-    ...(type && { type }),
+    type,
     data,
   };
 

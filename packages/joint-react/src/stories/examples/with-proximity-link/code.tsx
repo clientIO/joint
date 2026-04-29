@@ -3,14 +3,14 @@ import {
   GraphProvider,
   HTMLBox,
   Paper,
+  useCell,
   useCellId,
   useCells,
-  useElement,
   useGraph,
-  type Cells,
-  type ResolvedElementRecord,
+  type CellRecord,
+  type ElementRecord,
+  type Computed,
 } from '@joint/react';
-import { util } from '@joint/core';
 import '../index.css';
 import { useEffect } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -24,7 +24,9 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: Cells<NodeData> = [
+type ProximityElement = Computed<ElementRecord<NodeData>>;
+
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
@@ -44,26 +46,41 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
   };
 }
 
+function isProximityElement(cell: Computed<CellRecord>): cell is ProximityElement {
+  return cell.type === 'element';
+}
+
+function bboxesOverlap(a: ProximityElement, b: ProximityElement, padding: number): boolean {
+  const aRight = a.position.x + a.size.width + padding;
+  const aBottom = a.position.y + a.size.height + padding;
+  const bRight = b.position.x + b.size.width;
+  const bBottom = b.position.y + b.size.height;
+  return (
+    a.position.x - padding < bRight &&
+    aRight > b.position.x &&
+    a.position.y - padding < bBottom &&
+    aBottom > b.position.y
+  );
+}
+
 function ResizableNode() {
   const id = useCellId();
-  const label = useElement((element: ResolvedElementRecord<NodeData>) => element.data.label);
+  const label = useCell((element: ProximityElement) => element.data.label);
+  const { setCell, removeCell } = useGraph();
 
-  const { graph, addCell, removeCell } = useGraph();
-  const closeIds = useCells<NodeData, unknown, readonly dia.Cell.ID[]>(() => {
-    const currentElement = graph.getCell(id);
-    if (!currentElement) return [];
-    const area = currentElement.getBBox().inflate(PROXIMITY_THRESHOLD);
-    const proximityElements = graph
-      .findElementsInArea(area)
-      .filter((element_) => element_.id !== id);
-    return proximityElements.map((element_) => element_.id);
-  }, util.isEqual);
+  const closeIds = useCells((cells) => {
+    const me = cells.find((cell) => cell.id === id);
+    if (!me || !isProximityElement(me)) return [];
+    return cells
+      .filter(isProximityElement)
+      .filter((cell) => cell.id !== id && bboxesOverlap(me, cell, PROXIMITY_THRESHOLD))
+      .map((cell) => cell.id);
+  });
 
   useEffect(() => {
     for (const closeId of closeIds) {
       const { linkId, source, target } = getProximityLink(id, closeId);
-      if (graph.getCell(linkId)) continue;
-      addCell({
+      setCell({
         id: linkId,
         type: 'link',
         source,
@@ -77,7 +94,7 @@ function ResizableNode() {
         removeCell(linkId);
       }
     };
-  }, [addCell, closeIds, graph, id, removeCell]);
+  }, [setCell, closeIds, id, removeCell]);
 
   return <HTMLBox>{label}</HTMLBox>;
 }

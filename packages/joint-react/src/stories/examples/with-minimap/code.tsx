@@ -1,15 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback } from 'react';
-import {
-  GraphProvider,
-  useElement,
-  HTMLBox,
-  Paper,
-    type Cells,
-  type RenderElement,
-  selectElementSize,
-} from '@joint/react';
+import { type CellRecord, GraphProvider, useCell, HTMLBox, Paper, type RenderElement, selectElementSize } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 interface NodeData {
@@ -18,7 +10,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialCells: Cells<NodeData> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: '1',
     type: 'element',
@@ -43,7 +35,7 @@ const initialCells: Cells<NodeData> = [
 ];
 
 function MinimapElement({ color }: Readonly<NodeData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 

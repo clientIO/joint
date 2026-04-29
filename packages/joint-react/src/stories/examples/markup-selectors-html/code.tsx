@@ -2,11 +2,11 @@
 
 import { useCallback } from 'react';
 import {
+  type CellRecord,
   GraphProvider,
   Paper,
   HTMLBox,
   useMarkup,
-  type Cells,
   type RenderElement,
 } from '@joint/react';
 import '../index.css';
@@ -20,7 +20,7 @@ interface TableData {
   readonly rows: ReadonlyArray<{ readonly field: string; readonly type: string }>;
 }
 
-const initialCells: Cells<TableData> = [
+const initialCells: Array<CellRecord<TableData>> = [
   {
     id: '1',
     type: 'element',
@@ -157,7 +157,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<TableData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

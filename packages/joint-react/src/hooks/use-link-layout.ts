@@ -2,7 +2,7 @@ import { useCallback, useRef, useSyncExternalStore } from 'react';
 import { useCellId } from './use-cell-id';
 import { usePaperStore } from './use-paper';
 import { getLinkLayout } from '../store/update-layout-state';
-import type { LinkLayout } from '../types/cell-data';
+import type { LinkLayout } from '../types/cell.types';
 
 /**
  * Returns `true` when both layouts are structurally identical. Used to hold

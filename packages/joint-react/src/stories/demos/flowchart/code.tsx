@@ -2,15 +2,8 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { Cells, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
-import {
-  GraphProvider,
-  Paper,
-  useMarkup,
-  useMeasureNode,
-  useNodesMeasuredEffect,
-  usePaperEvents,
-} from '@joint/react';
+import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
+import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -249,7 +242,7 @@ const flowchartLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: Cells<NodeElementData> = [...flowchartNodes, ...flowchartLinks];
+const initialCells: ReadonlyArray<CellRecord<NodeElementData>> = [...flowchartNodes, ...flowchartLinks];
 
 interface PropsWithClick {
   readonly onMouseEnter?: () => void;
@@ -393,7 +386,7 @@ const DecisionNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(DecisionN
 const StartNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StartNodeRaw);
 const StepNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(StepNodeRaw);
 
-function RenderFlowchartNode(data: NodeElementData) {
+function RenderFlowchartNode(data: Readonly<NodeElementData>) {
   const { selectorRef } = useMarkup();
 
   const bodyRef = selectorRef('body');

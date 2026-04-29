@@ -3,10 +3,7 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
-import {
-  GraphProvider,
-  type Cells,
-} from '@joint/react';
+import { type CellRecord, GraphProvider } from '@joint/react';
 import { Paper } from '../../../components/paper/paper';
 
 type ElementData = { label: string; color: string };
@@ -44,7 +41,7 @@ class LinkModel extends shapes.standard.Link {
   }
 }
 
-const initialCells: Cells<ElementData> = [
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',

@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from 'react';
 import { dia, util } from '@joint/core';
-import type { LinkRecord, LinkMarker, Cells } from '@joint/react';
+import type { CellRecord, LinkRecord, LinkMarker } from '@joint/react';
 import { GraphProvider, Paper, usePaperEvents, usePaper, jsx } from '@joint/react';
 import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
 
@@ -405,7 +405,7 @@ function buildLinks(): LinkRecord[] {
   return links;
 }
 
-const initialCells: Cells = buildLinks();
+const initialCells: readonly CellRecord[] = buildLinks();
 
 // Custom highlighter that shows a text label next to the link
 const TextHighlighter = dia.HighlighterView.extend({

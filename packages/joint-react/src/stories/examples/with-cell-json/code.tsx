@@ -2,15 +2,16 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { shapes, dia } from '@joint/core';
 import '../index.css';
 import {
+  type DiaCellAttributes,
   GraphProvider,
-  useElement,
+  useCell,
   Paper,
-  type Cells,
   type ElementRecord,
   type RenderElement,
   useCells,
-    ElementModel,
-    selectElementSize,
+  ElementModel,
+  selectElementSize,
+  useGraph,
 } from '@joint/react';
 import { useCallback, useMemo } from 'react';
 
@@ -35,7 +36,7 @@ interface ElementData {
 // Data
 // ============================================================================
 
-const initialCells: Cells<ElementData> = [
+const initialCells: readonly DiaCellAttributes[] = [
   {
     id: 'node-1',
     position: { x: 70, y: 100 },
@@ -87,7 +88,7 @@ const initialCells: Cells<ElementData> = [
 // ============================================================================
 
 function ElementShape({ label, color }: Readonly<ElementData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   return (
     <>
       <rect
@@ -119,23 +120,22 @@ function ElementShape({ label, color }: Readonly<ElementData>) {
 // ============================================================================
 
 function DataPanel() {
-  const elements = useCells<ElementData, unknown, Array<[string, ElementRecord<ElementData>]>>(
-    (cells) => {
-      const result: Array<[string, ElementRecord<ElementData>]> = [];
-      for (const cell of cells) {
-        if (cell.type === 'MyElementModel' || cell.type === 'element') {
-          result.push([String(cell.id), cell as ElementRecord<ElementData>]);
-        }
+  const { isElement } = useGraph<ElementRecord<ElementData>>();
+  const elements = useCells((cells): Array<[string, ElementRecord<ElementData>]> => {
+    const result: Array<[string, ElementRecord<ElementData>]> = [];
+    for (const cell of cells) {
+      if (isElement(cell)) {
+        result.push([String(cell.id), cell as ElementRecord<ElementData>]);
       }
-      return result;
     }
-  );
+    return result;
+  });
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Cell JSON Data</h3>
       {elements.map(([id, element]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
-          <div className="font-bold mb-1">{element.data?.label}</div>
+          <div className="font-bold mb-1">{element.data.label}</div>
           <div>
             position: {'{'}x: {Math.round(element.position?.x ?? 0)}, y:{' '}
             {Math.round(element.position?.y ?? 0)}
@@ -181,15 +181,18 @@ function Main() {
 
 export default function App() {
   const graph = useMemo(() => {
-    return new dia.Graph({}, {
-      cellNamespace: {
-        ...shapes,
-        MyElementModel: ElementModel,
+    return new dia.Graph(
+      {},
+      {
+        cellNamespace: {
+          ...shapes,
+          MyElementModel: ElementModel,
+        },
       }
-    });
+    );
   }, []);
   return (
-    <GraphProvider<ElementData> graph={graph} initialCells={initialCells}>
+    <GraphProvider graph={graph} initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

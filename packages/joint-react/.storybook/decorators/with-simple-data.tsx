@@ -7,10 +7,10 @@ import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren }
 import {
   GraphProvider,
   selectElementSize,
+  useCell,
   useCellId,
-  useElement,
   useMeasureNode,
-  type Cells,
+  type CellRecord,
   type ElementRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
@@ -26,7 +26,7 @@ type TestElementData = {
   hoverColor: string;
 };
 
-export const testCells: Cells<TestElementData> = [
+export const testCells: ReadonlyArray<CellRecord<TestElementData>> = [
   {
     id: '1',
     type: 'element',
@@ -78,7 +78,7 @@ export function RenderItemDecorator(
   properties: Readonly<{
     renderElement: () => JSX.Element;
     renderLink?: () => JSX.Element;
-    cells?: Cells;
+    cells?: readonly CellRecord[];
   }>
 ) {
   return (
@@ -96,9 +96,9 @@ export function RenderItemDecorator(
   );
 }
 
-function RenderSimpleRectElement(data: { color: string }) {
-  const { width, height } = useElement(selectElementSize);
-  return <rect width={width} height={height} fill={data.color} />;
+function RenderSimpleRectElement(data: Readonly<{ color: string }>) {
+  const size = useCell(selectElementSize);
+  return <rect width={size.width} height={size.height} fill={data.color} />;
 }
 
 export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX.Element }>) {

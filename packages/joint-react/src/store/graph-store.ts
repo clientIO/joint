@@ -1,5 +1,10 @@
 import { dia, shapes } from '@joint/core';
-import type { CellId, CellRecord, Cells } from '../types/cell.types';
+import type {
+  DiaElementAttributes,
+  DiaLinkAttributes,
+  CellId,
+  CellUnion,
+} from '../types/cell.types';
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
@@ -17,7 +22,7 @@ import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
 import { graphView, type GraphView, type IncrementalCellsChange } from './graph-view';
-import type { ElementRecord } from '../types/data-types';
+import { mapCellToAttributes } from '../state/data-mapping';
 import { simpleScheduler } from '../utils/scheduler';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
@@ -51,44 +56,47 @@ export interface GraphStoreInternalSnapshot {
  * to rule out the nonsensical combination of `cells` and `initialCells`
  * being passed together.
  */
-interface GraphStoreOptionsBase {
+interface GraphStoreOptionsBase<
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
+> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
-  readonly onIncrementalCellsChange?: <E extends object, L extends object>(
-    changes: IncrementalCellsChange<E, L>
-  ) => void;
+  readonly onIncrementalCellsChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
 }
 
 /** Uncontrolled mode: parent provides only seed data. */
-interface GraphStoreOptionsUncontrolled<ElementData extends object, LinkData extends object>
-  extends GraphStoreOptionsBase {
-  readonly initialCells?: Cells<ElementData, LinkData>;
+interface GraphStoreOptionsUncontrolled<
+  Element extends DiaElementAttributes,
+  Link extends DiaLinkAttributes,
+> extends GraphStoreOptionsBase<Element, Link> {
+  readonly initialCells?: ReadonlyArray<Element | Link>;
   readonly cells?: never;
-  readonly onCellsChange?: (cells: Cells<ElementData, LinkData>) => void;
+  readonly onCellsChange?: (cells: ReadonlyArray<Element | Link>) => void;
 }
 
 /** Controlled mode: parent is the source of truth; store applies snapshots. */
-interface GraphStoreOptionsControlled<ElementData extends object, LinkData extends object>
-  extends GraphStoreOptionsBase {
-  readonly cells: Cells<ElementData, LinkData>;
+interface GraphStoreOptionsControlled<
+  Element extends DiaElementAttributes,
+  Link extends DiaLinkAttributes,
+> extends GraphStoreOptionsBase<Element, Link> {
+  readonly cells: ReadonlyArray<Element | Link>;
   readonly initialCells?: never;
-  readonly onCellsChange?: (cells: Cells<ElementData, LinkData>) => void;
+  readonly onCellsChange?: (cells: ReadonlyArray<Element | Link>) => void;
 }
 
 export type GraphStoreOptions<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
-> =
-  | GraphStoreOptionsUncontrolled<ElementData, LinkData>
-  | GraphStoreOptionsControlled<ElementData, LinkData>;
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
+> = GraphStoreOptionsUncontrolled<Element, Link> | GraphStoreOptionsControlled<Element, Link>;
 
 /**
  * Central store for managing graph state, synchronization, and paper instances.
  */
 export class GraphStore<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > {
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<number> = createAtom(0);
@@ -97,16 +105,16 @@ export class GraphStore<
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
   private observer: GraphStoreObserver;
-  public readonly graphView: GraphView<ElementData, LinkData>;
+  public readonly graphView: GraphView<Element, Link>;
 
   public getGraphView<
-    N extends object = Record<string, unknown>,
-    L extends object = Record<string, unknown>,
-  >(): GraphView<N, L> {
-    return this.graphView as unknown as GraphView<N, L>;
+    E extends DiaElementAttributes = DiaElementAttributes,
+    L extends DiaLinkAttributes = DiaLinkAttributes,
+  >(): GraphView<E, L> {
+    return this.graphView as unknown as GraphView<E, L>;
   }
 
-  constructor(public readonly config: GraphStoreOptions<ElementData, LinkData>) {
+  constructor(public readonly config: GraphStoreOptions<Element, Link>) {
     const {
       cellModel,
       cellNamespace = DEFAULT_CELL_NAMESPACE,
@@ -142,12 +150,10 @@ export class GraphStore<
         this.measureState.set((previous) => previous + 1);
       }
     };
-    this.graphView = graphView<ElementData, LinkData>({
+    this.graphView = graphView<Element, Link>({
       graph: this.graph,
       onIncrementalChange: this.buildIncrementalChangeHandler(
-        onIncrementalCellsChange as
-          | ((changes: IncrementalCellsChange<ElementData, LinkData>) => void)
-          | undefined,
+        onIncrementalCellsChange,
         onCellsChange
       ),
       onElementsSizeChange: (id, size) => {
@@ -165,13 +171,14 @@ export class GraphStore<
         // The observer only cares about element-typed cells. Build a Map on
         // demand from the unified cells container — cold path, called only
         // when the ResizeObserver fires.
-        const map = new Map<CellId, ElementRecord>();
+        const map = new Map<CellId, DiaElementAttributes>();
         for (const cell of this.graphView.cells.getAll()) {
+          if (cell.id === undefined) continue;
           if (this.isElement(cell)) {
-            map.set(cell.id, cell as unknown as ElementRecord);
+            map.set(cell.id, cell);
           }
         }
-        return map as unknown as Map<string, ElementRecord>;
+        return map;
       },
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('resize');
@@ -204,10 +211,11 @@ export class GraphStore<
     // Initial sync
     const seedCells = controlledCells ?? initialCells;
     if (seedCells && seedCells.length > 0) {
-      this.graphView.updateGraph({
-        cells: seedCells,
-        flag: 'updateFromReact',
-      });
+      // Replace existing graph state with the seed cells. The graph-changes
+      // listener handles `reset` synchronously and populates the cells
+      // container — no manual `syncFromGraph` needed.
+      const mapped = seedCells.map((cell) => mapCellToAttributes(cell, this.graph));
+      this.graph.resetCells(mapped);
     } else if (this.graph.getCells().length > 0) {
       // External graph already has cells — populate the cells container
       // directly without calling resetCells(). resetCells() would destroy
@@ -227,17 +235,17 @@ export class GraphStore<
    */
   private buildIncrementalChangeHandler(
     onIncrementalCellsChange:
-      | ((changes: IncrementalCellsChange<ElementData, LinkData>) => void)
+      | ((changes: IncrementalCellsChange<Element, Link>) => void)
       | undefined,
-    onCellsChange: ((cells: Cells<ElementData, LinkData>) => void) | undefined
-  ): ((changes: IncrementalCellsChange<ElementData, LinkData>) => void) | undefined {
+    onCellsChange: ((cells: ReadonlyArray<Element | Link>) => void) | undefined
+  ): ((changes: IncrementalCellsChange<Element, Link>) => void) | undefined {
     if (!onIncrementalCellsChange && !onCellsChange) {
       return undefined;
     }
     return (changes) => {
       onIncrementalCellsChange?.(changes);
       if (onCellsChange) {
-        onCellsChange(this.graphView.cells.getAll() as Cells<ElementData, LinkData>);
+        onCellsChange(this.graphView.cells.getAll() as ReadonlyArray<Element | Link>);
       }
     };
   }
@@ -248,7 +256,7 @@ export class GraphStore<
    * with the react-origin flag set.
    * @param cells - new cells snapshot from the parent
    */
-  public applyControlled(cells: Cells<ElementData, LinkData>) {
+  public applyControlled(cells: ReadonlyArray<CellUnion<Element, Link>>) {
     this.graphView.updateGraph({ cells, flag: 'updateFromReact' });
   }
 
@@ -263,8 +271,9 @@ export class GraphStore<
    * @param cell - cell record, cell id, or type name
    * @returns `true` when the resolved type extends `dia.Element`
    */
-  public isElement = (cell: CellRecord<ElementData, LinkData>): boolean => {
-    return isElementType(cell.type, this.graph);
+  public isElement = (cell: Element | Link): cell is Element => {
+    const cellType = (cell as { readonly type?: string }).type;
+    return cellType !== undefined && isElementType(cellType, this.graph);
   };
 
   /**
@@ -277,8 +286,9 @@ export class GraphStore<
    * @param cell - cell record, cell id, or type name
    * @returns `true` when the resolved type extends `dia.Link`
    */
-  public isLink = (cell: CellRecord<ElementData, LinkData>): boolean => {
-    return isLinkType(cell.type, this.graph);
+  public isLink = (cell: CellUnion<Element, Link>): cell is Link => {
+    const cellType = (cell as { readonly type?: string }).type;
+    return cellType !== undefined && isLinkType(cellType, this.graph);
   };
 
   // --- Public API ---
@@ -417,7 +427,7 @@ export class GraphStore<
     const linkChanges = clearConnectedLinkViews(paper, this.graph, String(cellId), onValidateLink);
     if (linkChanges?.size) {
       for (const [, store] of this.paperStores) {
-        if (store.paper === paper) {
+        if (store.paper == paper) {
           store.addPendingLinkChanges(linkChanges);
           break;
         }

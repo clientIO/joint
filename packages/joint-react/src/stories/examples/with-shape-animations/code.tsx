@@ -1,13 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import {
+  type CellRecord,
   GraphProvider,
-  useElement,
+  useCell,
   Paper,
   SVGText,
   useCells,
-    useGraph,
-  type Cells,
+  useGraph,
   type ElementRecord,
   selectElementSize,
 } from '@joint/react';
@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 const STRAIGHT_LINKS = linkRoutingStraight({ perpendicular: true });
 
 import '../index.css';
+import type { Computed } from '../../../types/cell.types';
 
 // ----------------------------------------------------------------------------
 // Types
@@ -80,7 +81,7 @@ const wireStyle = {
   linejoin: 'round' as const,
 };
 
-const initialCells: Cells<ShapeData> = [
+const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   {
     id: 'generator',
     type: 'element',
@@ -124,10 +125,10 @@ const initialCells: Cells<ShapeData> = [
 // Generator Component
 // ----------------------------------------------------------------------------
 function GeneratorNode({ power }: Readonly<GeneratorData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-  const { setCell } = useGraph<ShapeData>();
+  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
 
   // Turbine blade path
   const turbinePath = `
@@ -163,21 +164,20 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
 
   const handleTogglePower = useCallback(() => {
     const newPower = power === 0 ? 1 : 0;
-    setCell((previous) => {
-      const previousElement = previous as ElementRecord<ShapeData>;
-      const previousData = previousElement.data as GeneratorData | undefined;
+    setCell(GENERATOR_ID, (previous) => {
+      if (!isElement(previous)) return previous;
+      const previousData = previous.data?.type === ShapeTypes.generator ? previous.data : undefined;
       const nextData: GeneratorData = {
         ...(previousData ?? { type: ShapeTypes.generator, power: 0 }),
         type: ShapeTypes.generator,
         power: newPower,
       };
       return {
-        ...previousElement,
-        id: GENERATOR_ID,
+        ...previous,
         data: nextData,
-      } as ElementRecord<ShapeData>;
+      };
     });
-  }, [power, setCell]);
+  }, [power, setCell, isElement]);
 
   return (
     <>
@@ -246,7 +246,7 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
  * Reads generator power reactively from the cells container.
  */
 function useGeneratorPower(): number {
-  return useCells<ShapeData, unknown, number>((cells) => {
+  return useCells<Computed<ElementRecord<ShapeData>>, number>((cells) => {
     const generator = cells.find((cell) => cell.id === GENERATOR_ID) as
       | ElementRecord<ShapeData>
       | undefined;
@@ -260,7 +260,7 @@ function useGeneratorPower(): number {
 // Bulb Component
 // ----------------------------------------------------------------------------
 function BulbNode({ watts }: Readonly<BulbData>) {
-  const { width, height } = useElement(selectElementSize);
+  const { width, height } = useCell(selectElementSize);
   const glassRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
 
@@ -322,7 +322,7 @@ function BulbNode({ watts }: Readonly<BulbData>) {
 // ----------------------------------------------------------------------------
 // Render Dispatcher
 // ----------------------------------------------------------------------------
-function RenderShapeElement(data: ShapeData) {
+function RenderShapeElement(data: Readonly<ShapeData>) {
   switch (data.type) {
     case ShapeTypes.generator: {
       return <GeneratorNode {...data} />;
@@ -337,7 +337,7 @@ function RenderShapeElement(data: ShapeData) {
 // Power Control Component
 // ----------------------------------------------------------------------------
 function PowerControl() {
-  const { setCell } = useGraph<ShapeData>();
+  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
 
   // Read generator power from store (reactive)
   const power = useGeneratorPower();
@@ -345,22 +345,21 @@ function PowerControl() {
   const handlePowerChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newPower = event.target.valueAsNumber;
-      setCell((previous) => {
-        const previousElement = previous as ElementRecord<ShapeData>;
-        const previousData = previousElement.data as GeneratorData | undefined;
+      setCell(GENERATOR_ID, (previous) => {
+        if (!isElement(previous)) return previous;
+        const previousData = previous.data?.type === ShapeTypes.generator ? previous.data : undefined;
         const nextData: GeneratorData = {
           ...(previousData ?? { type: ShapeTypes.generator, power: 0 }),
           type: ShapeTypes.generator,
           power: newPower,
         };
         return {
-          ...previousElement,
-          id: GENERATOR_ID,
+          ...previous,
           data: nextData,
-        } as ElementRecord<ShapeData>;
+        };
       });
     },
-    [setCell]
+    [setCell, isElement]
   );
 
   return (

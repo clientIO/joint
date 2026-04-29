@@ -3,14 +3,15 @@ import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { type dia } from '@joint/core';
 import '../index.css';
 import {
+  type CellRecord,
+  type ElementRecord,
   HTMLBox,
   GraphProvider,
   Paper,
   useCells,
   useGraph,
   useGraphEvents,
-  type Cells,
-  type ElementRecord,
+  type Computed,
 } from '@joint/react';
 import { useState } from 'react';
 
@@ -18,7 +19,7 @@ import { useState } from 'react';
 // Data
 // ============================================================================
 type Data = { label: string };
-const initialCells: Cells<Data> = [
+const initialCells: ReadonlyArray<CellRecord<Data>> = [
   {
     id: 'container',
     type: 'element',
@@ -77,9 +78,9 @@ type Tab = 'data' | 'cell';
 
 function InspectorPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('data');
-  const cells = useCells<Data>();
+  const cells = useCells();
   const elements = cells.filter(
-    (cell): cell is ElementRecord<Data> => cell.type === 'element'
+    (cell): cell is Computed<ElementRecord<Data>> => cell.type === 'element'
   );
   const rawAttributes = useRawAttributes();
 
@@ -119,7 +120,9 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({ elements }: Readonly<{ elements: ReadonlyArray<ElementRecord<Data>> }>) {
+function ElementDataView({
+  elements,
+}: Readonly<{ elements: ReadonlyArray<Computed<ElementRecord<Data>>> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useCells() Elements</h3>
@@ -159,14 +162,17 @@ function CellAttributesView({
 
 const PAPER_STYLE = { flex: 1 };
 
-function RenderElement(data: Data) {
-  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+function RenderElement({ label }: Readonly<Data>) {
+  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
 }
 
 function Main() {
   return (
     <div className="flex w-full h-full">
-      <Paper className={PAPER_CLASSNAME} style={PAPER_STYLE} embeddingMode
+      <Paper
+        className={PAPER_CLASSNAME}
+        style={PAPER_STYLE}
+        embeddingMode
         renderElement={RenderElement}
       />
       <InspectorPanel />

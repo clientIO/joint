@@ -1,7 +1,7 @@
 import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
-import type { CellId, Cells } from '../types/cell.types';
+import type { DiaElementAttributes, DiaLinkAttributes, CellId } from '../types/cell.types';
 import { mapCellToAttributes } from '../state/data-mapping';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
@@ -17,11 +17,11 @@ export const LAYOUT_UPDATE_EVENT = 'layout:update';
  *  - anything else → passed through as raw attributes
  */
 export interface UpdateGraphOptions<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > {
   /** Cell records to sync. If omitted, the current graph cells are preserved untouched. */
-  readonly cells?: Cells<ElementData, LinkData>;
+  readonly cells?: ReadonlyArray<Element | Link>;
   readonly flag?: 'updateFromReact';
 }
 
@@ -132,15 +132,18 @@ export function graphChanges(options: Options) {
   controller.listenTo(
     graph,
     'reset',
-    (collection: mvc.Collection<dia.Cell>, { isUpdateFromReact }: JointJSEventOptions) => {
-      if (isUpdateFromReact) return;
+    (collection: mvc.Collection<dia.Cell>, eventOptions: JointJSEventOptions = {}) => {
+      if (eventOptions.isUpdateFromReact) return;
       isSyncedWithReact = true;
       changes.clear();
-      const cells = collection.models;
-      for (const cell of cells) {
+      for (const cell of collection.models) {
         changes.set(cell.id, { type: 'add', data: cell });
       }
-      onChanges({ changes, isInsideBatch: isInsideBatch() });
+      // Bypass the simpleScheduler wrapper used for normal cell events.
+      // `reset` is a one-shot bulk operation and callers (e.g. GraphStore
+      // constructor) expect the cells container to be observable
+      // synchronously after `graph.resetCells(...)` returns.
+      options.onChanges({ changes, isInsideBatch: isInsideBatch() });
     }
   );
 
@@ -175,9 +178,9 @@ export function graphChanges(options: Options) {
     },
 
     updateGraph<
-      ElementData extends object = Record<string, unknown>,
-      LinkData extends object = Record<string, unknown>,
-    >(update: UpdateGraphOptions<ElementData, LinkData>): UpdateGraphResult {
+      Element extends DiaElementAttributes = DiaElementAttributes,
+      Link extends DiaLinkAttributes = DiaLinkAttributes,
+    >(update: UpdateGraphOptions<Element, Link>): UpdateGraphResult {
       const { cells, flag } = update;
       if (!isSyncedWithReact) {
         isSyncedWithReact = true;
@@ -191,7 +194,9 @@ export function graphChanges(options: Options) {
       const cellsToSync: dia.Cell.JSON[] = [];
 
       for (const cell of cells) {
-        cellIds.push(cell.id);
+        // Cells without an id are valid input — JointJS will assign one — but
+        // they cannot be tracked in `cellIds` (which is used for diffing).
+        if (cell.id !== undefined) cellIds.push(cell.id);
         cellsToSync.push(mapCellToAttributes(cell, graph));
       }
 

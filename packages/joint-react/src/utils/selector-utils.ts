@@ -1,4 +1,4 @@
-import type { ElementPosition, ElementSize } from '../types/cell-data';
+import type { ElementPosition, ElementSize } from '../types/cell.types';
 
  
 export const isStrictEqual = Object.is;

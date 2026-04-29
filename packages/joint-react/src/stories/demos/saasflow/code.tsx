@@ -1,15 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  GraphProvider,
-  Paper,
-  useGraph,
-  HTMLHost,
-  type Cells,
-  type CellRecord,
-  type ElementRecord,
-  type LinkRecord,
-} from '@joint/react';
+import { GraphProvider, Paper, useGraph, HTMLHost, type CellRecord, type ElementRecord, type LinkRecord } from '@joint/react';
 
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 
@@ -80,7 +71,7 @@ type SaasNode = ElementRecord<SaasNodeData>;
 
 const PORT_R = 5;
 
-const initialCells: Cells<SaasNodeData> = [
+const initialCells: ReadonlyArray<CellRecord<SaasNodeData>> = [
   {
     id: 'client',
     type: 'element',
@@ -212,8 +203,7 @@ function ProgressBar({
   );
 }
 
-function RenderSaasNode(data: SaasNodeData) {
-  const { title, subtitle, icon, status, tags, progress } = data;
+function RenderSaasNode({ title, subtitle, icon, status, tags, progress }: Readonly<SaasNodeData>) {
   const theme = useTheme();
   const isDark = theme === DARK;
 
@@ -319,7 +309,7 @@ function ToolbarButton({
 
 function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | null> }>) {
   const theme = useTheme();
-  const { addCell } = useGraph<SaasNodeData>();
+  const { setCell } = useGraph<ElementRecord<SaasNodeData>>();
 
   const addNode = useCallback(() => {
     const id = `node-${Date.now()}`;
@@ -332,7 +322,7 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
       'fas fa-tasks',
     ];
     const pick = Math.floor(Math.random() * names.length); // eslint-disable-line sonarjs/pseudo-random
-    addCell({
+    setCell({
       id,
       type: 'element',
       data: {
@@ -349,7 +339,7 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
       },
       portStyle: { color: theme.port, outline: theme.canvas, outlineWidth: 2 },
     } satisfies SaasNode);
-  }, [addCell, theme]);
+  }, [setCell, theme]);
 
   const onFit = useCallback(() => {
     paperRef.current?.transformToFitContent({
@@ -464,11 +454,11 @@ const PAPER_ID = 'saasflow-paper';
 function ThemeUpdater() {
   const isDark = useContext(ThemeContext);
   const theme = isDark ? DARK : LIGHT;
-  const { updateCells, isElement, isLink } = useGraph<SaasNodeData>();
+  const { updateCells, isElement, isLink } = useGraph<ElementRecord<SaasNodeData>>();
 
   useEffect(() => {
     updateCells((previous) =>
-      previous.map((cell): CellRecord<SaasNodeData> => {
+      previous.map((cell) => {
         if (isElement(cell)) {
           return {
             ...(cell as ElementRecord<SaasNodeData>),
@@ -499,7 +489,7 @@ function Main() {
   const paperRef = useRef<dia.Paper | null>(null);
 
   return (
-    <GraphProvider<SaasNodeData> initialCells={initialCells}>
+    <GraphProvider initialCells={initialCells}>
       <Paper
         ref={paperRef}
         id={PAPER_ID}

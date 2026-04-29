@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useId } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
-import type { ElementPort, Cells } from '@joint/react';
+import type { CellRecord, ElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
   GraphProvider,
@@ -77,7 +77,7 @@ const NODE_PORTS: Record<string, ElementPort> = {
   },
 };
 
-const initialCells: Cells = [
+const initialCells: readonly CellRecord[] = [
   { id: '1', type: 'element', position: { x: 50, y: 50 }, portMap: NODE_PORTS },
   { id: '2', type: 'element', position: { x: 350, y: 50 }, portMap: NODE_PORTS },
   { id: '3', type: 'element', position: { x: 150, y: 250 }, portMap: NODE_PORTS },
