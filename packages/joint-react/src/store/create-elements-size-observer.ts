@@ -12,7 +12,7 @@
  */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell.types';
-import type { ElementLayout } from '../types/cell-data';
+import type { ElementLayout } from '../types/cell.types';
 import type { DiaElementAttributes } from '../types/cell.types';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };

@@ -3,7 +3,7 @@ import { CellIdContext } from '../context';
 import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
 import { usePaper } from './use-paper';
-import type { ElementSize } from '../types/cell-data';
+import type { ElementSize } from '../types/cell.types';
 import { useCell } from './use-cell';
 import { selectElementSize } from '../selectors';
 

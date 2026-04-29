@@ -77,7 +77,7 @@ export type {
 } from './types/cell.types';
 
 // Types — geometry / presets
-export type { ElementPosition, ElementSize, LinkLayout } from './types/cell-data';
+export type { ElementPosition, ElementSize, LinkLayout } from './types/cell.types';
 export type { ElementPort, PortShape } from './presets/element-ports';
 export type { LinkStyle } from './presets/link-style';
 export type { LinkLabel } from './presets/link-labels';

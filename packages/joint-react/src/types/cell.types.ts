@@ -1,4 +1,10 @@
-import type { Cell as DiaCell, Element as DiaElement, Link as DiaLink } from '@joint/core/dia';
+import type {
+  Cell as DiaCell,
+  Element as DiaElement,
+  Link as DiaLink,
+  Point as DiaPoint,
+  Size as DiaSize,
+} from '@joint/core/dia';
 import type { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import type { LINK_MODEL_TYPE } from '../models/link-model';
 import type { ElementPort } from '../presets/element-ports';
@@ -180,3 +186,40 @@ export type Computed<T = CellRecord> =
 /** Short alias for cell ids; same as dia.Cell.ID. */
 // @todo - remove, and just use jointjs dia.Cell.ID everywhere. This type alias doesn't add anything and just creates an extra import to keep in sync.
 export type CellId = DiaCell.ID;
+
+// ── Element Layout Aliases ──────────────────────────────────────────────────
+
+/** Position of an element — alias for `dia.Point`. */
+export type ElementPosition = DiaPoint;
+
+/** Size of an element — alias for `dia.Size`. */
+export type ElementSize = DiaSize;
+
+// ── Element Layout (internal — used by size observer) ───────────────────────
+
+/**
+ * Flat element layout used internally by the size observer and transform callbacks.
+ * @internal
+ */
+export interface ElementLayout {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+  readonly angle: number;
+}
+
+// ── Link Layout (internal) ──────────────────────────────────────────────────
+
+/**
+ * Layout data for a single link on a specific paper.
+ * Contains source/target endpoint coordinates and the SVG path data.
+ * @internal
+ */
+export interface LinkLayout {
+  readonly sourceX: number;
+  readonly sourceY: number;
+  readonly targetX: number;
+  readonly targetY: number;
+  readonly d: string;
+}

@@ -4,7 +4,7 @@ import { useLinkLayout } from '../use-link-layout';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type { CellRecord } from '../../types/cell.types';
-import type { LinkLayout } from '../../types/cell-data';
+import type { LinkLayout } from '../../types/cell.types';
 
 type Reading = {
   value: LinkLayout | undefined;

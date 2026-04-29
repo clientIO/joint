@@ -32,7 +32,7 @@ import type {
   LinkRecord,
   CellRecord,
 } from '../../types/cell.types';
-import type { ElementPosition } from '../../types/cell-data';
+import type { ElementPosition } from '../../types/cell.types';
 
 interface ElementUserData {
   readonly label: string;
