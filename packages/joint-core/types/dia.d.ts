@@ -612,9 +612,11 @@ export namespace Cell {
         mergeArrays?: boolean;
     }
 
+    type IgnoreEmptyAttributesCallback = (key: string, path: string[]) => boolean;
+
     interface ExportOptions {
         ignoreDefaults?: boolean | string[];
-        ignoreEmptyAttributes?: boolean | ((key: string, path: string[]) => boolean);
+        ignoreEmptyAttributes?: boolean | IgnoreEmptyAttributesCallback;
     }
 
     type UnsetCallback<V> = (
