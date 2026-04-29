@@ -287,7 +287,7 @@ export function useCells<Cell extends CellAttributes = Internal, Selected = read
   // The runtime container holds resolved cell records; `Cell extends
   // Internal<CellRecord>` is structurally compatible. Bridge the typed
   // store value to the caller's `Cell` view with a single cast.
-  const container = store.graphView.cells as unknown as ReadonlyContainer<Cell>;
+  const container = store.graphView.cells as ReadonlyContainer<Cell>;
 
   const { targetId, ids, arraySelector, cellSelector, userIsEqual } = parseUseCellsArgs<
     Cell,
