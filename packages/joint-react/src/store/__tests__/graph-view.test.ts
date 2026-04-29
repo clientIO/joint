@@ -44,8 +44,7 @@ function getElement(
 ): ElementRecord | undefined {
   const cell = view.cells.get(id);
   if (!cell) return undefined;
-  const cellType = cell.type as string | undefined;
-  if (cellType === undefined || !isElementType(cellType, graph)) return undefined;
+  if (!isElementType(cell.type, graph)) return undefined;
   return cell as ElementRecord;
 }
 
@@ -57,8 +56,7 @@ function getLink(
 ): LinkRecord | undefined {
   const cell = view.cells.get(id);
   if (!cell) return undefined;
-  const cellType = cell.type as string | undefined;
-  if (cellType === undefined || !isLinkType(cellType, graph)) return undefined;
+  if (!isLinkType(cell.type, graph)) return undefined;
   return cell as LinkRecord;
 }
 
