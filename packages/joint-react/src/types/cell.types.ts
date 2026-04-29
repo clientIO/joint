@@ -44,7 +44,6 @@ export interface DiaElementAttributes
     DiaElement.Attributes {
   readonly portMap?: Record<string, ElementPort>;
   readonly portStyle?: Partial<ElementPort>;
-  // readonly type?: string;
 }
 
 /** Element-flavored cell; narrowed when `type === ELEMENT_MODEL_TYPE`. */
@@ -80,13 +79,12 @@ type InternalElementRecord<ElementData = unknown> = PickRequired<
  */
 export interface DiaLinkAttributes
   extends WithOptionalId,
-    WithOptionalId,
+    WithOptionalType<string>,
     WithData,
     DiaLink.Attributes {
   readonly style?: LinkStyle;
   readonly labelMap?: Record<string, LinkLabel>;
   readonly labelStyle?: Partial<LinkLabel>;
-  readonly type?: string;
 }
 
 /** Link-flavored cell; narrowed when `type === LINK_MODEL_TYPE`. */
