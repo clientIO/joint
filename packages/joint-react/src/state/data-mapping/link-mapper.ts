@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { LinkAttributes, LinkRecord } from '../../types/cell.types';
+import type { DiaLinkAttributes, LinkRecord } from '../../types/cell.types';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
@@ -8,7 +8,7 @@ import { mergeLabelsFromAttributes } from './convert-labels-reverse';
  * Forward mapper using the React default link type.
  * @param link
  */
-export function mapLinkToAttributes(link: LinkAttributes): dia.Cell.JSON {
+export function mapLinkToAttributes(link: DiaLinkAttributes): dia.Cell.JSON {
   const attributes = linkAttributes(link) as dia.Cell.JSON;
   if (!attributes.type) attributes.type = LINK_MODEL_TYPE;
   return attributes;

@@ -9,26 +9,26 @@
  * test cases.
  *
  * Locked patterns (DX contract):
- * - `useCells()` → `ReadonlyArray<Internal<CellRecord>>`
+ * - `useCells()` → `ReadonlyArray<Computed<CellRecord>>`
  * - `useCells<MyElement>()` → `readonly MyElement[]`
  * - `useCells((cells: readonly MyElement[]) => ...)` — Cell inferred from selector
  * - `useCells((cells) => cells.length)` — untyped selector, default Cell
  * - `useCells<MyElement, Selected>(selector)` — both generics explicit
  * - `useCells<MyElement>(id)` → single resolved Cell
  * - `useCells<MyElement>(ids)` → array of resolved Cells
- * - Discriminant narrowing on default `Internal<CellRecord>` and on user unions
+ * - Discriminant narrowing on default `Computed<CellRecord>` and on user unions
  *
- * Anti-patterns NOT to lock — `Internal<CellRecord>` is a union, so accessing
+ * Anti-patterns NOT to lock — `Computed<CellRecord>` is a union, so accessing
  * record-specific fields like `.position` directly returns `unknown` due to
  * the index signatures on `LinkAttributes` / `CustomRecord`. Always annotate
- * the selector parameter as `Internal<ElementRecord<…>>` or
- * `Internal<LinkRecord<…>>` when reading record-specific fields.
+ * the selector parameter as `Computed<ElementRecord<…>>` or
+ * `Computed<LinkRecord<…>>` when reading record-specific fields.
  */
 import { useCells } from '../use-cells';
 import type {
-  ElementAttributes,
+  DiaElementAttributes,
   CellId,
-  Internal,
+  Computed,
   ElementRecord,
   LinkRecord,
   CellRecord,
@@ -40,8 +40,8 @@ interface ElementUserData {
 interface LinkUserData {
   readonly kind: string;
 }
-type MyElement = Internal<ElementRecord<ElementUserData>>;
-type MyLink = Internal<LinkRecord<LinkUserData>>;
+type MyElement = Computed<ElementRecord<ElementUserData>>;
+type MyLink = Computed<LinkRecord<LinkUserData>>;
 
 /** Compile-time assertion that `actual` is assignable to `Expected`. */
 const expectType = <Expected>(_actual: Expected): void => {
@@ -54,7 +54,7 @@ const expectType = <Expected>(_actual: Expected): void => {
 
 if (false as boolean) {
   // no args — readonly array of resolved cell records
-  expectType<ReadonlyArray<Internal<CellRecord>>>(useCells());
+  expectType<ReadonlyArray<Computed<CellRecord>>>(useCells());
 
   // explicit Cell generic — narrows array element type
   expectType<readonly MyElement[]>(useCells<MyElement>());
@@ -108,12 +108,12 @@ if (false as boolean) {
   );
 
   // User-defined custom cell with literal type — narrowing works
-  interface MyCustomNode extends ElementAttributes {
+  interface MyCustomNode extends DiaElementAttributes {
     readonly id: CellId;
     readonly type: 'my-custom';
     readonly data: { readonly foo: string };
   }
-  type AppCell = Internal<CellRecord> | MyCustomNode;
+  type AppCell = Computed<CellRecord> | MyCustomNode;
 
   expectType<readonly string[]>(
     useCells((cells: readonly AppCell[]) =>
@@ -122,12 +122,12 @@ if (false as boolean) {
   );
 
   // Custom link-flavoured record narrows from union
-  interface MyCustomEdge extends ElementAttributes {
+  interface MyCustomEdge extends DiaElementAttributes {
     readonly id: CellId;
     readonly type: 'my-edge';
     readonly data: { readonly weight: number };
   }
-  type AppCellWithEdge = Internal<CellRecord> | MyCustomNode | MyCustomEdge;
+  type AppCellWithEdge = Computed<CellRecord> | MyCustomNode | MyCustomEdge;
 
   expectType<readonly number[]>(
     useCells((cells: readonly AppCellWithEdge[]) =>

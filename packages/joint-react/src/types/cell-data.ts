@@ -1,5 +1,7 @@
 // ── Constraint ──────────────────────────────────────────────────────────────
 
+import type { dia } from '@joint/core';
+
 /**
  * Base constraint for user-provided data in elements and links.
  * Uses `Record<string, unknown>` as the default type for untyped data access,
@@ -10,17 +12,10 @@
 // ── Element Layout Aliases ──────────────────────────────────────────────────
 
 /** Position of an element — alias for `dia.Point`. */
-export type ElementPosition = {
-  readonly x?: number;
-  readonly y?: number;
-};
+export type ElementPosition = dia.Point;
 
 /** Size of an element — alias for `dia.Size`. */
-export type ElementSize = {
-  readonly width?: number;
-  readonly height?: number;
-};
-
+export type ElementSize = dia.Size;
 
 // ── Element Layout (internal — used by size observer) ───────────────────────
 

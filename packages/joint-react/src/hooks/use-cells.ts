@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { useGraphStore } from './use-graph-store';
-import type { CellId, CellAttributes, CellRecord, Internal } from '../types/cell.types';
+import type { CellId, DiaCellAttributes, CellRecord, Computed } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
 
 /** Union of all possible `useCells` return shapes (depends on argument form). */
-type UseCellsResult<Cell extends CellAttributes, Selected> =
+type UseCellsResult<Cell extends DiaCellAttributes, Selected> =
   | readonly Cell[]
   | Cell
   | undefined
@@ -83,7 +83,7 @@ function arrayAwareEqual(a: unknown, b: unknown): boolean {
  * @param subscribedIds - cell ids to pick
  * @returns array of resolved cells in id order (missing ids omitted)
  */
-function pickCells<Cell extends CellAttributes>(
+function pickCells<Cell extends DiaCellAttributes>(
   container: ReadonlyContainer<Cell>,
   subscribedIds: readonly CellId[]
 ): readonly Cell[] {
@@ -105,7 +105,7 @@ function pickCells<Cell extends CellAttributes>(
  * @param cellSelector - selector for the single-id form (optional)
  * @returns selected value or raw cell / cells
  */
-function computeNext<Cell extends CellAttributes, Selected>(
+function computeNext<Cell extends DiaCellAttributes, Selected>(
   container: ReadonlyContainer<Cell>,
   targetId: CellId | undefined,
   subscribedIds: readonly CellId[] | undefined,
@@ -124,7 +124,7 @@ function computeNext<Cell extends CellAttributes, Selected>(
 }
 
 /** Normalised arguments after dispatching by the runtime call shape. */
-interface ParsedUseCellsArgs<Cell extends CellAttributes, Selected> {
+interface ParsedUseCellsArgs<Cell extends DiaCellAttributes, Selected> {
   readonly targetId: CellId | undefined;
   readonly ids: readonly CellId[] | undefined;
   readonly arraySelector: ((cells: readonly Cell[]) => Selected) | undefined;
@@ -140,7 +140,7 @@ interface ParsedUseCellsArgs<Cell extends CellAttributes, Selected> {
  * @param argument3 - third positional arg (isEqual when the form admits it)
  * @returns the normalised input
  */
-function parseUseCellsArgs<Cell extends CellAttributes, Selected>(
+function parseUseCellsArgs<Cell extends DiaCellAttributes, Selected>(
   argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
   argument2?:
     | ((cells: readonly Cell[]) => Selected)
@@ -203,30 +203,30 @@ function parseUseCellsArgs<Cell extends CellAttributes, Selected>(
  *
  * Returned array reference is stable across data-only mutations (the internal
  * container mutates items in-place). Size changes produce a new snapshot token.
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @returns readonly resolved cells array
  */
-export function useCells<Cell extends CellAttributes = Internal<CellRecord>>(): readonly Cell[];
+export function useCells<Cell extends DiaCellAttributes = Computed<CellRecord>>(): readonly Cell[];
 /**
  * Subscribe to a single cell by id.
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param id - cell id to track
  * @returns current resolved cell, or undefined when missing
  */
-export function useCells<Cell extends CellAttributes = Internal<CellRecord>>(
+export function useCells<Cell extends DiaCellAttributes = Computed<CellRecord>>(
   id: CellId
 ): Cell | undefined;
 /**
  * Subscribe to a single cell by id and derive a value from it. Subscribes
  * only to that id so unrelated mutations don't trigger re-renders.
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell | undefined`)
  * @param id - cell id to track
  * @param selector - derive a value from the cell (or `undefined` when missing)
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends CellAttributes = Internal, Selected = Cell | undefined>(
+export function useCells<Cell extends DiaCellAttributes = Computed, Selected = Cell | undefined>(
   id: CellId,
   selector: (cell: Cell | undefined) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
@@ -240,42 +240,42 @@ export function useCells<Cell extends CellAttributes = Internal, Selected = Cell
  * Cannot be unified with the `(id)` overload because the argument shape
  * (`CellId` vs `readonly CellId[]`) drives the return shape (single record
  * vs array of records).
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param ids - cell ids to track
  * @returns array of resolved cells (only those that exist; missing ids are skipped)
  */
-export function useCells<Cell extends CellAttributes = Internal<CellRecord>>(
+export function useCells<Cell extends DiaCellAttributes = Computed<CellRecord>>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   ids: readonly CellId[]
 ): readonly Cell[];
 /**
  * Subscribe to a specific set of cells by id and derive a value from them.
  * Subscribes only to those ids; the selector receives the picked cells array.
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param ids - cell ids to track
  * @param selector - derive a value from the picked resolved cells array
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends CellAttributes = Internal, Selected = readonly Cell[]>(
+export function useCells<Cell extends DiaCellAttributes = Computed, Selected = readonly Cell[]>(
   ids: readonly CellId[],
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 /**
  * Subscribe via a selector. Runs on every commit; return equal values to skip re-render.
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param selector - derive a value from the resolved cells array
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends CellAttributes = Internal, Selected = readonly Cell[]>(
+export function useCells<Cell extends DiaCellAttributes = Computed, Selected = readonly Cell[]>(
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
-export function useCells<Cell extends CellAttributes = Internal, Selected = readonly Cell[]>(
+export function useCells<Cell extends DiaCellAttributes = Computed, Selected = readonly Cell[]>(
   argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
   argument2?:
     | ((cells: readonly Cell[]) => Selected)
@@ -285,7 +285,7 @@ export function useCells<Cell extends CellAttributes = Internal, Selected = read
 ): UseCellsResult<Cell, Selected> {
   const store = useGraphStore();
   // The runtime container holds resolved cell records; `Cell extends
-  // Internal<CellRecord>` is structurally compatible. Bridge the typed
+  // Computed<CellRecord>` is structurally compatible. Bridge the typed
   // store value to the caller's `Cell` view with a single cast.
   const container = store.graphView.cells as ReadonlyContainer<Cell>;
 

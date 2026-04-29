@@ -1,11 +1,26 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { type CellRecord, GraphProvider, HTMLHost, Paper, useCellId, useCells, useGraph, type ElementRecord, type Internal } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  HTMLHost,
+  Paper,
+  useCellId,
+  useCells,
+  useGraph,
+  type ElementRecord,
+  type Computed,
+} from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 
-const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ cornerType: 'line', margin: 40, sourceOffset: 10, targetOffset: 10 });
+const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
+  cornerType: 'line',
+  margin: 40,
+  sourceOffset: 10,
+  targetOffset: 10,
+});
 
 interface NodeData {
   readonly [key: string]: unknown;
@@ -53,7 +68,10 @@ function LabelInput({ id, label }: Readonly<{ id: string; label: string }>) {
           return {
             ...previousElement,
             id,
-            data: { ...(previousElement.data ?? { label: '', color: '#ffffff' }), label: event.target.value },
+            data: {
+              ...(previousElement.data ?? { label: '', color: '#ffffff' }),
+              label: event.target.value,
+            },
           } as ElementRecord<NodeData>;
         })
       }
@@ -83,9 +101,10 @@ function RenderElement({ label }: Readonly<NodeData>) {
 
 function Main() {
   const { isElement } = useGraph<ElementRecord<NodeData>>();
-  const elements = useCells<Internal<ElementRecord<NodeData>>, ReadonlyArray<ElementRecord<NodeData>>>(
-    (cells) => cells.filter((cell) => isElement(cell)) as ReadonlyArray<ElementRecord<NodeData>>
-  );
+  const elements = useCells<
+    Computed<ElementRecord<NodeData>>,
+    ReadonlyArray<ElementRecord<NodeData>>
+  >((cells) => cells.filter((cell) => isElement(cell)) as ReadonlyArray<ElementRecord<NodeData>>);
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
@@ -98,11 +117,7 @@ function Main() {
       />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {elements.map((element) => (
-          <LabelInput
-            key={String(element.id)}
-            id={String(element.id)}
-            label={element.data.label}
-          />
+          <LabelInput key={String(element.id)} id={String(element.id)} label={element.data.label} />
         ))}
       </div>
     </div>

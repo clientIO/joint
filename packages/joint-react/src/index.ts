@@ -70,10 +70,10 @@ export type {
   ElementRecord,
   LinkRecord,
   KnownCellType,
-  Internal,
-  ElementAttributes,
-  LinkAttributes,
-  CellAttributes,
+  Computed,
+  DiaElementAttributes as ElementAttributes,
+  DiaLinkAttributes as LinkAttributes,
+  DiaCellAttributes as CellAttributes,
 } from './types/cell.types';
 
 // Types — geometry / presets

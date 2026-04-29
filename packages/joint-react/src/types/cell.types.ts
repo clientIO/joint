@@ -1,11 +1,11 @@
 import type { Cell as DiaCell, Element as DiaElement, Link as DiaLink } from '@joint/core/dia';
 import type { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import type { LINK_MODEL_TYPE } from '../models/link-model';
-import type { ElementPosition, ElementSize } from './cell-data';
 import type { ElementPort } from '../presets/element-ports';
 import type { LinkStyle } from '../presets/link-style';
 import type { LinkLabel } from '../presets/link-labels';
 
+type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 /** Known cell type names. */
 export type KnownCellType = typeof ELEMENT_MODEL_TYPE | typeof LINK_MODEL_TYPE;
 
@@ -14,15 +14,6 @@ export interface WithId {
   readonly id?: DiaCell.ID;
 }
 
-/**
- * Base cell: every cell has a required id and type.
- *
- * Declaring `type: CellTypeName` here — once — is what makes autocomplete
- * work. Each derived interface then narrows `type` to its specific literal.
- *
- * Reference identity rule: a cell object is replaced (new reference) on any
- * field change. Treat each cell as immutable — mutating is a bug.
- */
 /** Adds a discriminating `type` field on top of {@link WithId}. */
 export interface WithType<Type = KnownCellType> extends WithId {
   readonly type: Type;
@@ -41,34 +32,21 @@ type WithData<Data = unknown> = unknown extends Data
  * - Allows arbitrary extra fields via the index signature so callers can
  *   attach custom data without losing type safety on known fields.
  */
-export interface ElementAttributes
-  extends WithId,
-    Omit<DiaElement.Attributes, 'id' | 'type' | 'position' | 'size' | 'angle'> {
-  readonly position?: ElementPosition;
-  readonly size?: ElementSize;
-  readonly angle?: number;
-  readonly data?: unknown;
+export interface DiaElementAttributes extends WithId, WithData, DiaElement.Attributes {
   readonly portMap?: Record<string, ElementPort>;
   readonly portStyle?: Partial<ElementPort>;
-  readonly [key: string]: unknown;
   readonly type?: string;
 }
 
 /** Element-flavored cell; narrowed when `type === ELEMENT_MODEL_TYPE`. */
-// export interface ElementRecord<ElementData = unknown> extends ElementAttributes, WithType {
-//   readonly type: typeof ELEMENT_MODEL_TYPE;
-//   // readonly data: ElementData;
-//   readonly data: ElementData;
-// }
-
-export type ElementRecord<ElementData = unknown> = ElementAttributes &
+export type ElementRecord<ElementData = unknown> = DiaElementAttributes &
   WithType<typeof ELEMENT_MODEL_TYPE> &
   WithData<ElementData>;
 
 /**
  * Internal element record shape — what the store holds after JointJS /
- * `elementAttributes` defaults are applied. Reach via {@link Internal}
- * (`Internal<ElementRecord<MyData>>`); kept private so the public surface is
+ * `elementAttributes` defaults are applied. Reach via {@link Computed}
+ * (`Computed<ElementRecord<MyData>>`); kept private so the public surface is
  * a single utility.
  *
  * Always populated by the framework:
@@ -77,14 +55,10 @@ export type ElementRecord<ElementData = unknown> = ElementAttributes &
  * - `angle` — `dia.Element` defaults to `0`.
  * - `data` — `elementAttributes` defaults to `{} as ElementData`.
  */
-interface InternalElementRecord<ElementData = unknown> extends ElementAttributes, WithType {
-  readonly id: DiaCell.ID;
-  readonly type: typeof ELEMENT_MODEL_TYPE;
-  readonly position: Required<ElementPosition>;
-  readonly size: Required<ElementSize>;
-  readonly angle: number;
-  readonly data: ElementData;
-}
+type InternalElementRecord<ElementData = unknown> = PickRequired<
+  ElementRecord<ElementData>,
+  'id' | 'type' | 'position' | 'size' | 'angle' | 'data'
+>;
 
 /**
  * Structural upper bound for any link-like cell.
@@ -95,29 +69,23 @@ interface InternalElementRecord<ElementData = unknown> extends ElementAttributes
  * - Allows arbitrary extra fields via the index signature so callers can
  *   attach custom data without losing type safety on known fields.
  */
-export interface LinkAttributes
-  extends WithId,
-    Omit<DiaLink.Attributes, 'id' | 'type' | 'source' | 'target'> {
-  readonly source?: DiaLink.EndJSON;
-  readonly target?: DiaLink.EndJSON;
-  readonly data?: unknown;
+export interface DiaLinkAttributes extends WithId, WithData, DiaLink.Attributes {
   readonly style?: LinkStyle;
   readonly labelMap?: Record<string, LinkLabel>;
   readonly labelStyle?: Partial<LinkLabel>;
-  readonly [key: string]: unknown;
   readonly type?: string;
 }
 
 /** Link-flavored cell; narrowed when `type === LINK_MODEL_TYPE`. */
-export interface LinkRecord<LinkData = unknown> extends LinkAttributes, WithType {
-  readonly type: typeof LINK_MODEL_TYPE;
-  readonly data?: LinkData;
-}
+
+export type LinkRecord<LinkData = unknown> = DiaLinkAttributes &
+  WithType<typeof LINK_MODEL_TYPE> &
+  WithData<LinkData>;
 
 /**
  * Internal link record shape — what the store holds after JointJS /
- * `linkAttributes` defaults are applied. Reach via {@link Internal}
- * (`Internal<LinkRecord<MyData>>`); kept private so the public surface is a
+ * `linkAttributes` defaults are applied. Reach via {@link Computed}
+ * (`Computed<LinkRecord<MyData>>`); kept private so the public surface is a
  * single utility.
  *
  * Always populated by the framework:
@@ -125,18 +93,14 @@ export interface LinkRecord<LinkData = unknown> extends LinkAttributes, WithType
  * - `target` — `dia.Link` defaults to `{}`.
  * - `data` — `linkAttributes` defaults to `{} as LinkData`.
  */
-interface InternalLinkRecord<LinkData = unknown> extends LinkAttributes, WithType {
-  readonly id: DiaCell.ID;
-  readonly type: typeof LINK_MODEL_TYPE;
-  readonly source: DiaLink.EndJSON;
-  readonly target: DiaLink.EndJSON;
-  readonly data: LinkData;
-}
-
+type InternalLinkRecord<LinkData = unknown> = PickRequired<
+  LinkRecord<LinkData>,
+  'id' | 'type' | 'source' | 'target' | 'data'
+>;
 /**
  * Structural upper bound for any cell record. Use as the constraint when
  * defining custom cell types with non-`'element'` / non-`'link'` `type`
- * literals — extend either {@link ElementAttributes} or {@link LinkAttributes}
+ * literals — extend either {@link DiaElementAttributes} or {@link DiaLinkAttributes}
  * (or this union) and pick your own `type` literal:
  * ```ts
  * interface MyCustomNode extends ElementAttributes {
@@ -146,7 +110,7 @@ interface InternalLinkRecord<LinkData = unknown> extends LinkAttributes, WithTyp
  * type AppCell = CellRecord | MyCustomNode;
  * ```
  */
-export type CellAttributes = ElementAttributes | LinkAttributes;
+export type DiaCellAttributes = DiaElementAttributes | DiaLinkAttributes;
 
 /**
  * Discriminated union over the `type` literal:
@@ -170,8 +134,8 @@ export type CellRecord<ElementData = unknown, LinkData = unknown> =
  * @template Link - link record shape
  */
 export type CellUnion<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > = Element | Link;
 /**
  * Resolves any input cell shape to its internal store form — the variant with
@@ -182,34 +146,34 @@ export type CellUnion<
  *
  * | Input                              | Result                            |
  * |------------------------------------|-----------------------------------|
- * | `Internal<ElementRecord<D>>`       | element with required fields      |
- * | `Internal<LinkRecord<D>>`          | link with required fields         |
- * | `Internal<ElementAttributes>`      | element with `data: unknown`      |
- * | `Internal<LinkAttributes>`         | link with `data: unknown`         |
- * | `Internal<CellRecord<E, L>>`       | resolved element or resolved link |
- * | `Internal<CellAttributes>`         | resolved element or resolved link |
- * | `Internal` (default)               | `Internal<CellRecord>`            |
+ * | `Computed<ElementRecord<D>>`       | element with required fields      |
+ * | `Computed<LinkRecord<D>>`          | link with required fields         |
+ * | `Computed<ElementAttributes>`      | element with `data: unknown`      |
+ * | `Computed<LinkAttributes>`         | link with `data: unknown`         |
+ * | `Computed<CellRecord<E, L>>`       | resolved element or resolved link |
+ * | `Computed<CellAttributes>`         | resolved element or resolved link |
+ * | `Internal` (default)               | `Computed<CellRecord>`            |
  *
  * Custom records (with their own `type` literal that doesn't match
  * `ElementRecord` / `LinkRecord`) pass through unchanged so the store shape
- * can be composed: `Internal<CellRecord> | MyCustomRecord`.
+ * can be composed: `Computed<CellRecord> | MyCustomRecord`.
  *
- * Reading hooks (`useCell`, `useCells`) yield the `Internal` variant so
+ * Reading hooks (`useCell`, `useCells`) yield the `Computed` variant so
  * consumers don't need `?? {}` / `?? 0` fallbacks for fields the store
  * always populates.
  * @example
  * ```ts
- * useCell((el: Internal<ElementRecord<MyData>>) => el.data.label);
+ * useCell((el: Computed<ElementRecord<MyData>>) => el.data.label);
  * ```
  */
-export type Internal<T = CellRecord> =
+export type Computed<T = CellRecord> =
   T extends ElementRecord<infer ElementData>
     ? InternalElementRecord<ElementData>
     : T extends LinkRecord<infer LinkData>
       ? InternalLinkRecord<LinkData>
-      : T extends ElementAttributes
+      : T extends DiaElementAttributes
         ? InternalElementRecord<T['data']>
-        : T extends LinkAttributes
+        : T extends DiaLinkAttributes
           ? InternalLinkRecord<T['data']>
           : T;
 

@@ -1,7 +1,19 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import type { dia } from '@joint/core';
-import { type CellRecord, GraphProvider, Paper, useCell, useCellId, useCells, useGraph, type ElementRecord, type LinkRecord, type Internal, selectElementSize } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  Paper,
+  useCell,
+  useCellId,
+  useCells,
+  useGraph,
+  type ElementRecord,
+  type LinkRecord,
+  type Computed,
+  selectElementSize,
+} from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { linkRoutingSmooth } from '@joint/react/presets';
 import { useCallback, useEffect, useRef } from 'react';
@@ -456,32 +468,34 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const { width, height } = useCell(selectElementSize);
 
   // Use graph topology to find the connected product (inbound neighbor via link)
-  const { value, roi } = useCells<Internal<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>((cells) => {
-    const cell = graph.getCell(cellId);
-    if (!cell?.isElement()) {
-      return DEFAULT_ROI_VALUE;
-    }
+  const { value, roi } = useCells<Computed<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>(
+    (cells) => {
+      const cell = graph.getCell(cellId);
+      if (!cell?.isElement()) {
+        return DEFAULT_ROI_VALUE;
+      }
 
-    const [productCell] = graph.getNeighbors(cell, { inbound: true });
-    if (!productCell) {
-      return DEFAULT_ROI_VALUE;
-    }
+      const [productCell] = graph.getNeighbors(cell, { inbound: true });
+      if (!productCell) {
+        return DEFAULT_ROI_VALUE;
+      }
 
-    const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
-      | ElementRecord<ShapeData>
-      | undefined;
-    const productItem = cells.find((c) => String(c.id) === String(productCell.id)) as
-      | ElementRecord<ShapeData>
-      | undefined;
-    const investmentData = investmentItem?.data;
-    const productData = productItem?.data;
-    if (investmentData?.type !== 'Investment' || productData?.type !== 'Product') {
-      return DEFAULT_ROI_VALUE;
+      const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
+        | ElementRecord<ShapeData>
+        | undefined;
+      const productItem = cells.find((c) => String(c.id) === String(productCell.id)) as
+        | ElementRecord<ShapeData>
+        | undefined;
+      const investmentData = investmentItem?.data;
+      const productData = productItem?.data;
+      if (investmentData?.type !== 'Investment' || productData?.type !== 'Product') {
+        return DEFAULT_ROI_VALUE;
+      }
+      const productValue = calculateProductValue(investmentData, productData);
+      const cost = (investmentData.funds * productData.percentage) / 100;
+      return { value: productValue, roi: calculateROI(cost, productValue) };
     }
-    const productValue = calculateProductValue(investmentData, productData);
-    const cost = (investmentData.funds * productData.percentage) / 100;
-    return { value: productValue, roi: calculateROI(cost, productValue) };
-  });
+  );
 
   return (
     <>
@@ -544,37 +558,39 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const { width, height } = useCell(selectElementSize);
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useCells<Internal<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>((cells) => {
-    const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
-      | ElementRecord<ShapeData>
-      | undefined;
-    const investmentData = investmentItem?.data;
-    if (investmentData?.type !== 'Investment') {
-      return DEFAULT_ROI_VALUE;
-    }
-
-    const cell = graph.getCell(cellId);
-    if (!cell?.isElement()) {
-      return DEFAULT_ROI_VALUE;
-    }
-
-    const embeddedCells = cell.getEmbeddedCells().filter((c): c is dia.Element => c.isElement());
-
-    let totalValue = 0;
-    for (const embeddedCell of embeddedCells) {
-      const [productCell] = graph.getNeighbors(embeddedCell, { inbound: true });
-      if (!productCell) continue;
-
-      const productItem = cells.find((c) => String(c.id) === String(productCell.id)) as
+  const { value, roi } = useCells<Computed<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>(
+    (cells) => {
+      const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
         | ElementRecord<ShapeData>
         | undefined;
-      const productData = productItem?.data;
-      if (productData?.type !== 'Product') continue;
-      totalValue += calculateProductValue(investmentData, productData);
-    }
+      const investmentData = investmentItem?.data;
+      if (investmentData?.type !== 'Investment') {
+        return DEFAULT_ROI_VALUE;
+      }
 
-    return { value: totalValue, roi: calculateROI(investmentData.funds, totalValue) };
-  });
+      const cell = graph.getCell(cellId);
+      if (!cell?.isElement()) {
+        return DEFAULT_ROI_VALUE;
+      }
+
+      const embeddedCells = cell.getEmbeddedCells().filter((c): c is dia.Element => c.isElement());
+
+      let totalValue = 0;
+      for (const embeddedCell of embeddedCells) {
+        const [productCell] = graph.getNeighbors(embeddedCell, { inbound: true });
+        if (!productCell) continue;
+
+        const productItem = cells.find((c) => String(c.id) === String(productCell.id)) as
+          | ElementRecord<ShapeData>
+          | undefined;
+        const productData = productItem?.data;
+        if (productData?.type !== 'Product') continue;
+        totalValue += calculateProductValue(investmentData, productData);
+      }
+
+      return { value: totalValue, roi: calculateROI(investmentData.funds, totalValue) };
+    }
+  );
 
   return (
     <>

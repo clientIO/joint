@@ -3,7 +3,17 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 import { V } from '@joint/core';
-import { type CellRecord, GraphProvider, Paper, useGraph, useCells, HTMLBox, type ElementPort, type ElementRecord, type Internal } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  Paper,
+  useGraph,
+  useCells,
+  HTMLBox,
+  type ElementPort,
+  type ElementRecord,
+  type Computed,
+} from '@joint/react';
 import { linkRoutingSmooth } from '@joint/react/presets';
 
 const SMOOTH_LINKS = linkRoutingSmooth();
@@ -223,7 +233,11 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
         <select
           value={port.shape ?? 'ellipse'}
           onChange={(event) => {
-            const shape = resolveShape(event.target.value, port.width ?? PORT_SIZE, port.height ?? PORT_SIZE);
+            const shape = resolveShape(
+              event.target.value,
+              port.width ?? PORT_SIZE,
+              port.height ?? PORT_SIZE
+            );
             updatePort({ shape });
           }}
           style={{ ...inputStyle, flex: 1, cursor: 'pointer' }}
@@ -329,7 +343,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
 interface ElementPortControlsProps {
   readonly id: string;
-  readonly element: Internal<ElementRecord<PortNodeData>>;
+  readonly element: Computed<ElementRecord<PortNodeData>>;
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
@@ -369,7 +383,7 @@ function RenderElement({ label }: Readonly<PortNodeData>) {
 function Main() {
   const cells = useCells();
   const elements = cells.filter(
-    (cell): cell is Internal<ElementRecord<PortNodeData>> => cell.type === 'element'
+    (cell): cell is Computed<ElementRecord<PortNodeData>> => cell.type === 'element'
   );
 
   return (

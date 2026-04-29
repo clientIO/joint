@@ -1,5 +1,5 @@
 import { util } from '@joint/core';
-import type { ElementAttributes } from '../types/cell.types';
+import type { DiaElementAttributes } from '../types/cell.types';
 import { elementPorts } from './element-ports';
 
 /**
@@ -11,7 +11,7 @@ import { elementPorts } from './element-ports';
  * @param element - The element record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function elementAttributes(element: ElementAttributes): Record<string, unknown> {
+export function elementAttributes(element: DiaElementAttributes): DiaElementAttributes {
   if (!util.isObject(element)) {
     throw new TypeError('Invalid element format: expected an object.');
   }

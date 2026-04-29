@@ -11,7 +11,7 @@ import {
   useCells,
   useGraph,
   useGraphEvents,
-  type Internal,
+  type Computed,
 } from '@joint/react';
 import { useState } from 'react';
 
@@ -80,7 +80,7 @@ function InspectorPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('data');
   const cells = useCells();
   const elements = cells.filter(
-    (cell): cell is Internal<ElementRecord<Data>> => cell.type === 'element'
+    (cell): cell is Computed<ElementRecord<Data>> => cell.type === 'element'
   );
   const rawAttributes = useRawAttributes();
 
@@ -122,7 +122,7 @@ function InspectorPanel() {
 
 function ElementDataView({
   elements,
-}: Readonly<{ elements: ReadonlyArray<Internal<ElementRecord<Data>>> }>) {
+}: Readonly<{ elements: ReadonlyArray<Computed<ElementRecord<Data>>> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useCells() Elements</h3>

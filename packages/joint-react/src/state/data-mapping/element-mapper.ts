@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { ElementAttributes, ElementRecord } from '../../types/cell.types';
+import type { DiaElementAttributes, ElementRecord } from '../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { elementAttributes } from '../../presets/element-attributes';
 
@@ -7,7 +7,7 @@ import { elementAttributes } from '../../presets/element-attributes';
  * Forward mapper using the React default element type.
  * @param element
  */
-export function mapElementToAttributes(element: ElementAttributes): dia.Cell.JSON {
+export function mapElementToAttributes(element: DiaElementAttributes): dia.Cell.JSON {
   const attributes = elementAttributes(element) as dia.Cell.JSON;
   if (!attributes.type) attributes.type = ELEMENT_MODEL_TYPE;
   return attributes;
@@ -22,7 +22,7 @@ export function mapElementToAttributes(element: ElementAttributes): dia.Cell.JSO
  * 1:1 mapping — no `presentation` wrapper.
  * @param attributes
  */
-export function mapAttributesToElement<ElementData extends ElementAttributes>(
+export function mapAttributesToElement<ElementData extends DiaElementAttributes>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
   const {
@@ -50,7 +50,7 @@ export function mapAttributesToElement<ElementData extends ElementAttributes>(
   return { ...elementRecord } as ElementRecord<ElementData>;
 }
 
-export type MapAttributesToElement<ElementData extends ElementAttributes> =
+export type MapAttributesToElement<ElementData extends DiaElementAttributes> =
   typeof mapAttributesToElement<ElementData>;
 
 export type MapElementToAttributes = typeof mapElementToAttributes;

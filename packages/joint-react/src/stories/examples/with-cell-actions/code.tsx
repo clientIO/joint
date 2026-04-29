@@ -1,7 +1,17 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useState } from 'react';
-import { GraphProvider, Paper, useGraph, HTMLHost, useCells, type CellRecord, type ElementRecord, type LinkRecord, type Internal,  } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useGraph,
+  HTMLHost,
+  useCells,
+  type CellRecord,
+  type ElementRecord,
+  type LinkRecord,
+  type Computed,
+} from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
 
@@ -229,7 +239,10 @@ function ElementControls({
               return {
                 ...previousElement,
                 id,
-                size: { width: Number(event.target.value), height: previousElement.size?.height ?? 0 },
+                size: {
+                  width: Number(event.target.value),
+                  height: previousElement.size?.height ?? 0,
+                },
               } as ElementRecord<NodeData>;
             })
           }
@@ -245,7 +258,10 @@ function ElementControls({
               return {
                 ...previousElement,
                 id,
-                size: { width: previousElement.size?.width ?? 0, height: Number(event.target.value) },
+                size: {
+                  width: previousElement.size?.width ?? 0,
+                  height: Number(event.target.value),
+                },
               } as ElementRecord<NodeData>;
             })
           }
@@ -364,7 +380,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 
 function AddElementForm() {
   const { setCell } = useGraph<ElementRecord<NodeData>>();
-  const elementIds = useCells<Internal, string[]>((cells) =>
+  const elementIds = useCells<Computed, string[]>((cells) =>
     cells.filter((c) => c.type === 'element').map((c) => String(c.id))
   );
   const [label, setLabel] = useState('');
@@ -372,9 +388,7 @@ function AddElementForm() {
   const handleAdd = () => {
     if (!label.trim()) return;
 
-    const existingIds = elementIds
-      .map(Number)
-      .filter((numberValue) => !Number.isNaN(numberValue));
+    const existingIds = elementIds.map(Number).filter((numberValue) => !Number.isNaN(numberValue));
     const newId = String(Math.max(0, ...existingIds) + 1);
 
     // eslint-disable-next-line sonarjs/pseudo-random -- Random position for demo purposes
@@ -442,15 +456,17 @@ function AddElementForm() {
 
 function AddLinkForm() {
   const { setCell } = useGraph<ElementRecord<NodeData>>();
-  const elements = useCells<Internal, Array<[string, Internal<ElementRecord<NodeData>>]>>((cells) => {
-    const result: Array<[string, Internal<ElementRecord<NodeData>>]> = [];
-    for (const cell of cells) {
-      if (cell.type === 'element') {
-        result.push([String(cell.id), cell as Internal<ElementRecord<NodeData>>]);
+  const elements = useCells<Computed, Array<[string, Computed<ElementRecord<NodeData>>]>>(
+    (cells) => {
+      const result: Array<[string, Computed<ElementRecord<NodeData>>]> = [];
+      for (const cell of cells) {
+        if (cell.type === 'element') {
+          result.push([String(cell.id), cell as Computed<ElementRecord<NodeData>>]);
+        }
       }
+      return result;
     }
-    return result;
-  });
+  );
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
 
@@ -552,11 +568,7 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
       {/* Canvas */}
-      <Paper
-        className={PAPER_CLASSNAME}
-        height={500}
-        renderElement={RenderElement}
-      />
+      <Paper className={PAPER_CLASSNAME} height={500} renderElement={RenderElement} />
 
       {/* Control Panel - Glassmorphism Style */}
       <div

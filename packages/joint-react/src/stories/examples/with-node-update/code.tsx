@@ -1,6 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { type CellRecord, GraphProvider, Paper, useCells, type ElementRecord, type Internal } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  Paper,
+  useCells,
+  type ElementRecord,
+  type Computed,
+} from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
@@ -11,7 +18,7 @@ interface NodeData {
 }
 
 type MyElement = ElementRecord<NodeData>;
-type MyResolvedElement = Internal<ElementRecord<NodeData>>;
+type MyResolvedElement = Computed<ElementRecord<NodeData>>;
 
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
@@ -60,8 +67,8 @@ function LabelEditor({ id, label }: Readonly<{ id: string; label: string }>) {
 
 function Main() {
   const { isElement } = useGraph<MyElement>();
-  const elements = useCells<MyResolvedElement, readonly MyResolvedElement[]>(
-    (cells) => cells.filter((cell) => isElement(cell))
+  const elements = useCells<MyResolvedElement, readonly MyResolvedElement[]>((cells) =>
+    cells.filter((cell) => isElement(cell))
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>

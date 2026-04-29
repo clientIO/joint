@@ -3,8 +3,8 @@ import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { mapCellToAttributes } from '../state/data-mapping';
 import type {
-  ElementAttributes,
-  LinkAttributes,
+  DiaElementAttributes,
+  DiaLinkAttributes,
   CellId,
   CellUnion,
 } from '../types/cell.types';
@@ -24,8 +24,8 @@ import type {
  * @returns memoized setCell setter
  */
 export function useSetCell<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 >() {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
@@ -82,7 +82,7 @@ export function useSetCell<
  * @param store - graph store used to read `prev` for the updater form
  * @returns resolved cell record
  */
-function resolveSetCellInput<Element extends ElementAttributes, Link extends LinkAttributes>(
+function resolveSetCellInput<Element extends DiaElementAttributes, Link extends DiaLinkAttributes>(
   input:
     | CellUnion<Element, Link>
     | ((previous: CellUnion<Element, Link>) => CellUnion<Element, Link>),
@@ -153,8 +153,8 @@ export function useRemoveCells() {
  * @returns memoized resetCells setter
  */
 export function useResetCells<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 >() {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
@@ -183,8 +183,8 @@ export function useResetCells<
  * @returns memoized updateCells setter
  */
 export function useUpdateCells<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 >() {
   const store = useGraphStore<Element, Link>();
   return useCallback(

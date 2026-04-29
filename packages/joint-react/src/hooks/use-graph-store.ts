@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { GraphStoreContext } from '../context';
 import type { GraphStore } from '../store';
-import type { ElementAttributes, LinkAttributes } from '../types/cell.types';
+import type { DiaElementAttributes, DiaLinkAttributes } from '../types/cell.types';
 
 /**
  * Hook for accessing the `GraphStore` from a `GraphProvider`.
@@ -13,8 +13,8 @@ import type { ElementAttributes, LinkAttributes } from '../types/cell.types';
  * @throws {Error} If used outside of a `GraphProvider`.
  */
 export function useGraphStore<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 >(): GraphStore<Element, Link> {
   const store = useContext(GraphStoreContext);
   if (!store) {

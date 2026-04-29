@@ -1,4 +1,4 @@
-import type { CellId, CellRecord, ElementRecord, Internal } from '../types/cell.types';
+import type { CellId, CellRecord, ElementRecord, Computed } from '../types/cell.types';
 
 /**
  * Selector helpers to pass into `useCell` / `useCells`.
@@ -15,7 +15,7 @@ import type { CellId, CellRecord, ElementRecord, Internal } from '../types/cell.
  * Reads `element.position`. Stable ref while the element doesn't move.
  * @param element
  */
-export function selectElementPosition(element: Internal<ElementRecord>) {
+export function selectElementPosition(element: Computed<ElementRecord>) {
   return element.position;
 }
 
@@ -23,7 +23,7 @@ export function selectElementPosition(element: Internal<ElementRecord>) {
  * Reads `element.size`. Stable ref while the element isn't resized.
  * @param element
  */
-export function selectElementSize(element: Internal<ElementRecord>) {
+export function selectElementSize(element: Computed<ElementRecord>) {
   return element.size;
 }
 
@@ -31,7 +31,7 @@ export function selectElementSize(element: Internal<ElementRecord>) {
  * Reads `element.angle`.
  * @param element
  */
-export function selectElementAngle(element: Internal<ElementRecord>) {
+export function selectElementAngle(element: Computed<ElementRecord>) {
   return element.angle;
 }
 
@@ -42,7 +42,7 @@ export function selectElementAngle(element: Internal<ElementRecord>) {
  * @param element
  */
 export function selectElementData<ElementData = unknown>(
-  element: Internal<ElementRecord<ElementData>>
+  element: Computed<ElementRecord<ElementData>>
 ): ElementData {
   return element.data as ElementData;
 }
@@ -53,13 +53,13 @@ export function selectElementData<ElementData = unknown>(
  * Reads `cell.id`. Note: `useCellId()` is cheaper when only the id is needed.
  * @param cell
  */
-export const selectCellId = (cell: Internal<CellRecord>) => cell.id;
+export const selectCellId = (cell: Computed<CellRecord>) => cell.id;
 
 /**
  * Reads `cell.type` (e.g. `'element'`, `'link'`, or a built-in JointJS type).
  * @param cell
  */
-export const selectCellType = (cell: Internal<CellRecord>) => cell.type;
+export const selectCellType = (cell: Computed<CellRecord>) => cell.type;
 
 /**
  * Reads the `parent` field (cell id of the embedding parent, or undefined
@@ -68,5 +68,5 @@ export const selectCellType = (cell: Internal<CellRecord>) => cell.type;
  * any cell can be embedded.
  * @param cell
  */
-export const selectCellParent = (cell: Internal<CellRecord>): CellId | undefined =>
+export const selectCellParent = (cell: Computed<CellRecord>): CellId | undefined =>
   cell.parent as CellId | undefined;

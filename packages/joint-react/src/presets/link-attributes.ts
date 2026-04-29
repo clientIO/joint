@@ -1,5 +1,5 @@
 import { util } from '@joint/core';
-import type { LinkAttributes } from '../types/cell.types';
+import type { DiaLinkAttributes } from '../types/cell.types';
 import { linkLabels } from './link-labels';
 import { linkStyle } from './link-style';
 
@@ -13,7 +13,7 @@ import { linkStyle } from './link-style';
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function linkAttributes(link: LinkAttributes): Record<string, unknown> {
+export function linkAttributes(link: DiaLinkAttributes): DiaLinkAttributes {
   if (!util.isObject(link)) {
     throw new TypeError('Invalid link data: expected an object with link properties.');
   }

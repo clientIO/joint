@@ -6,7 +6,7 @@ import {
   Paper,
   useCell,
   useMeasureNode,
-  type Internal,
+  type Computed,
 } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
@@ -31,7 +31,7 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 
 function ResizableNode() {
   const nodeRef = useRef<HTMLDivElement>(null);
-  const label = useCell((element: Internal<ElementRecord<NodeData>>) => element.data.label);
+  const label = useCell((element: Computed<ElementRecord<NodeData>>) => element.data.label);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     const node = nodeRef.current;
     if (!node) return;

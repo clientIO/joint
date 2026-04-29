@@ -1,9 +1,9 @@
 import type {
   ElementRecord,
   LinkRecord,
-  Internal,
-  ElementAttributes,
-  LinkAttributes,
+  Computed,
+  DiaElementAttributes,
+  DiaLinkAttributes,
 } from '../cell.types';
 
 describe('cell.types shape', () => {
@@ -32,8 +32,8 @@ describe('cell.types shape', () => {
     expect(link.id).toBe('b');
   });
 
-  it('Internal<ElementRecord> requires position/size/angle/data', () => {
-    const r: Internal<ElementRecord<{ x: number }>> = {
+  it('Computed<ElementRecord> requires position/size/angle/data', () => {
+    const r: Computed<ElementRecord<{ x: number }>> = {
       id: 'c',
       type: 'element',
       position: { x: 0, y: 0 },
@@ -44,8 +44,8 @@ describe('cell.types shape', () => {
     expect(r.position.x).toBe(0);
   });
 
-  it('Internal<LinkRecord> requires source/target/data', () => {
-    const r: Internal<LinkRecord<{ k: string }>> = {
+  it('Computed<LinkRecord> requires source/target/data', () => {
+    const r: Computed<LinkRecord<{ k: string }>> = {
       id: 'd',
       type: 'link',
       source: { id: 'a' },
@@ -56,9 +56,9 @@ describe('cell.types shape', () => {
   });
 
   it('Base records accept any extra fields (index signature)', () => {
-    const b: ElementAttributes = { type: 'custom', anything: 1 };
+    const b: DiaElementAttributes = { type: 'custom', anything: 1 };
     expect(b.anything).toBe(1);
-    const l: LinkAttributes = { type: 'custom', extra: 'x' };
+    const l: DiaLinkAttributes = { type: 'custom', extra: 'x' };
     expect(l.extra).toBe('x');
   });
 });

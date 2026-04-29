@@ -4,12 +4,7 @@ import { GraphProvider } from '../../components/graph/graph-provider';
 import { useCell } from '../use-cell';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import type {
-  CellRecord,
-  ElementRecord,
-  LinkRecord,
-  Internal,
-} from '../../types/cell.types';
+import type { CellRecord, ElementRecord, LinkRecord, Computed } from '../../types/cell.types';
 
 interface ElementUserData {
   readonly label: string;
@@ -18,8 +13,8 @@ interface LinkUserData {
   readonly kind: string;
 }
 
-type MyElement = Internal<ElementRecord<ElementUserData>>;
-type MyLink = Internal<LinkRecord<LinkUserData>>;
+type MyElement = Computed<ElementRecord<ElementUserData>>;
+type MyLink = Computed<LinkRecord<LinkUserData>>;
 
 const initialCells: readonly CellRecord[] = [
   {
@@ -53,19 +48,17 @@ function wrapper({ children }: { readonly children: React.ReactNode }) {
 
 describe('useCell — record-shaped generics', () => {
   it('selector annotation infers Cell type and returns selector return', async () => {
-    const { result } = renderHook(
-      () => useCell('a', (element: MyElement) => element.data.label),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useCell('a', (element: MyElement) => element.data.label), {
+      wrapper,
+    });
     await act(async () => flush());
     expect(result.current).toBe('hi');
   });
 
   it('link selector annotation works the same', async () => {
-    const { result } = renderHook(
-      () => useCell('l', (link: MyLink) => link.source.id),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useCell('l', (link: MyLink) => link.source.id), {
+      wrapper,
+    });
     await act(async () => flush());
     expect(result.current).toBe('a');
   });

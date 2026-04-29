@@ -4,12 +4,13 @@ import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { IncrementalCellsChange } from '../../store/graph-view';
-import type { ElementAttributes, LinkAttributes } from '../../types/cell.types';
+import type { DiaElementAttributes, DiaLinkAttributes } from '../../types/cell.types';
 
 /** Cells array accepted by GraphProvider. */
-type ProviderCells<Element extends ElementAttributes, Link extends LinkAttributes> = ReadonlyArray<
-  Element | Link
->;
+type ProviderCells<
+  Element extends DiaElementAttributes,
+  Link extends DiaLinkAttributes,
+> = ReadonlyArray<Element | Link>;
 
 /**
  * Props common to every `GraphProvider` mode.
@@ -17,8 +18,8 @@ type ProviderCells<Element extends ElementAttributes, Link extends LinkAttribute
  * @template LinkData - User data attached to each link record.
  */
 interface GraphProviderBaseProps<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > {
   /**
    * Pre-existing JointJS graph instance to use. If omitted, GraphProvider
@@ -50,8 +51,8 @@ interface GraphProviderBaseProps<
  * @template LinkData - user data on each link
  */
 interface GraphProviderUncontrolledProps<
-  Element extends ElementAttributes,
-  Link extends LinkAttributes,
+  Element extends DiaElementAttributes,
+  Link extends DiaLinkAttributes,
 > extends GraphProviderBaseProps<Element, Link> {
   readonly initialCells?: ProviderCells<Element, Link>;
   readonly cells?: never;
@@ -66,8 +67,8 @@ interface GraphProviderUncontrolledProps<
  * @template LinkData - user data on each link
  */
 interface GraphProviderControlledProps<
-  Element extends ElementAttributes,
-  Link extends LinkAttributes,
+  Element extends DiaElementAttributes,
+  Link extends DiaLinkAttributes,
 > extends GraphProviderBaseProps<Element, Link> {
   readonly cells: ProviderCells<Element, Link>;
   readonly initialCells?: never;
@@ -90,8 +91,8 @@ interface GraphProviderControlledProps<
  * @template LinkData - User data attached to each link record.
  */
 export type GraphProviderProps<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > = GraphProviderUncontrolledProps<Element, Link> | GraphProviderControlledProps<Element, Link>;
 
 /**
@@ -101,7 +102,10 @@ export type GraphProviderProps<
  * (`ElementAttributes` / `LinkAttributes`). Each `useGraphStore<E, L>()` call
  * re-binds the generics on read — the runtime instance is the same.
  */
-type GraphProviderBaseInternalProps = GraphProviderProps<ElementAttributes, LinkAttributes> & {
+type GraphProviderBaseInternalProps = GraphProviderProps<
+  DiaElementAttributes,
+  DiaLinkAttributes
+> & {
   ref?: React.Ref<dia.Graph | null>;
 };
 
@@ -132,7 +136,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
   const isControlled = cellsProperty !== undefined;
 
   const { isReady, ref } = useImperativeApi<
-    GraphStore<ElementAttributes, LinkAttributes>,
+    GraphStore<DiaElementAttributes, DiaLinkAttributes>,
     dia.Graph
   >(
     {
@@ -142,7 +146,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
         const graphStore =
           store ??
           (isControlled
-            ? new GraphStore<ElementAttributes, LinkAttributes>({
+            ? new GraphStore<DiaElementAttributes, DiaLinkAttributes>({
                 graph,
                 cellNamespace,
                 cellModel,
@@ -150,7 +154,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
                 onCellsChange,
                 onIncrementalCellsChange,
               })
-            : new GraphStore<ElementAttributes, LinkAttributes>({
+            : new GraphStore<DiaElementAttributes, DiaLinkAttributes>({
                 graph,
                 cellNamespace,
                 cellModel,
@@ -212,8 +216,8 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
  * @see GraphProviderProps for all available props
  */
 export const GraphProvider = GraphBase as <
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 >(
   props: GraphProviderProps<Element, Link> & {
     ref?: React.Ref<dia.Graph | null>;

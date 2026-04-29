@@ -8,7 +8,12 @@ import {
   useResetCells,
   useUpdateCells,
 } from './use-cell-setters';
-import type { ElementAttributes, LinkAttributes, CellId, CellUnion } from '../types/cell.types';
+import type {
+  DiaElementAttributes,
+  DiaLinkAttributes,
+  CellId,
+  CellUnion,
+} from '../types/cell.types';
 
 /**
  * Public imperative API returned by {@link useGraph}.
@@ -18,13 +23,13 @@ import type { ElementAttributes, LinkAttributes, CellId, CellUnion } from '../ty
  * with the internal `isUpdateFromReact` flag so React-driven changes do not
  * echo back into the subscription pipeline.
  * @template Element - element record shape (e.g. `ElementRecord<MyData>` for
- *                    write input, `Internal<ElementRecord<MyData>>` for reads)
+ *                    write input, `Computed<ElementRecord<MyData>>` for reads)
  * @template Link - link record shape (e.g. `LinkRecord<MyData>` /
- *                  `Internal<LinkRecord<MyData>>`)
+ *                  `Computed<LinkRecord<MyData>>`)
  */
 export interface UseGraphResult<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > {
   /** The JointJS graph instance. */
   readonly graph: dia.Graph;
@@ -82,14 +87,14 @@ export interface UseGraphResult<
  * `isElement` / `isLink` delegate to the `GraphStore` methods, which consult
  * the graph's type registry so custom cell types narrow correctly.
  * @template Element - element record shape (use `ElementRecord<MyData>` for input,
- *                    `Internal<ElementRecord<MyData>>` for read shapes)
+ *                    `Computed<ElementRecord<MyData>>` for read shapes)
  * @template Link - link record shape (use `LinkRecord<MyData>` /
- *                  `Internal<LinkRecord<MyData>>`)
+ *                  `Computed<LinkRecord<MyData>>`)
  * @returns the imperative API described by {@link UseGraphResult}
  */
 export function useGraph<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 >(): UseGraphResult<Element, Link> {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;

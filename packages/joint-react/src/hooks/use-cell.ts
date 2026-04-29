@@ -1,7 +1,7 @@
 import { useContext, useMemo } from 'react';
 import { CellIdContext } from '../context';
 import { useCells } from './use-cells';
-import type { CellId, CellAttributes, CellRecord, Internal } from '../types/cell.types';
+import type { CellId, DiaCellAttributes, CellRecord, Computed } from '../types/cell.types';
 
 /**
  * Read the current cell from the closest `CellIdContext` — the id is provided
@@ -11,22 +11,22 @@ import type { CellId, CellAttributes, CellRecord, Internal } from '../types/cell
  *
  * Throws when used outside of a Paper render context, or when the id no longer
  * resolves to a cell in the store (e.g. deleted mid-render).
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @returns the current resolved cell record
  */
-export function useCell<Cell extends CellAttributes = Internal<CellRecord>>(): Cell;
+export function useCell<Cell extends DiaCellAttributes = Computed<CellRecord>>(): Cell;
 /**
  * Read a selected slice from the current cell (context-scoped). Re-renders
  * only when `isEqual(prev, next)` returns false.
  *
  * Throws if no cell resolves — never returns `undefined`.
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell`)
  * @param selector - derive a value from the current resolved cell record
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCell<Cell extends CellAttributes = Internal, Selected = Cell>(
+export function useCell<Cell extends DiaCellAttributes = Computed, Selected = Cell>(
   selector: (cell: Cell) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
@@ -36,11 +36,11 @@ export function useCell<Cell extends CellAttributes = Internal, Selected = Cell>
  *
  * Cannot be unified with the `(selector)` overload because the argument type
  * (`CellId` vs function) drives the return shape (record vs selected value).
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param id - cell id to track
  * @returns the resolved cell record
  */
-export function useCell<Cell extends CellAttributes = Internal<CellRecord>>(
+export function useCell<Cell extends DiaCellAttributes = Computed<CellRecord>>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   id: CellId
 ): Cell;
@@ -48,19 +48,19 @@ export function useCell<Cell extends CellAttributes = Internal<CellRecord>>(
  * Subscribe to a specific cell by id and derive a value from it. Works
  * anywhere — does not require `CellIdContext`. Throws when the id does not
  * resolve to a cell.
- * @template Cell - resolved cell record shape (defaults to Internal<CellRecord>)
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell`)
  * @param id - cell id to track
  * @param selector - derive a value from the resolved cell record
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCell<Cell extends CellAttributes = Internal, Selected = Cell>(
+export function useCell<Cell extends DiaCellAttributes = Computed, Selected = Cell>(
   id: CellId,
   selector: (cell: Cell) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
-export function useCell<Cell extends CellAttributes = Internal, Selected = Cell>(
+export function useCell<Cell extends DiaCellAttributes = Computed, Selected = Cell>(
   argument1?: CellId | ((cell: Cell) => Selected),
   argument2?: ((cell: Cell) => Selected) | ((a: Selected, b: Selected) => boolean),
   argument3?: (a: Selected, b: Selected) => boolean

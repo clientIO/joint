@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { ElementAttributes, LinkAttributes } from '../../types/cell.types';
+import type { DiaElementAttributes, DiaLinkAttributes } from '../../types/cell.types';
 import { isElementType, isLinkType } from '../../utils/cell-type';
 import { mapElementToAttributes } from './element-mapper';
 import { mapLinkToAttributes } from './link-mapper';
@@ -25,8 +25,8 @@ import { mapLinkToAttributes } from './link-mapper';
  * @returns JointJS cell attributes with `id` guaranteed
  */
 export function mapCellToAttributes<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 >(cell: Element | Link, graph: dia.Graph): dia.Cell.JSON {
   // `ElementAttributes` / `LinkAttributes` only declare `id`; the discriminator
   // `type` lives on `WithType` (which `ElementRecord` / `LinkRecord` extend).

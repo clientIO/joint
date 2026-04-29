@@ -1,7 +1,12 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
-import type { ElementAttributes, LinkAttributes, CellId, CellUnion } from '../types/cell.types';
+import type {
+  DiaElementAttributes,
+  DiaLinkAttributes,
+  CellId,
+  CellUnion,
+} from '../types/cell.types';
 import { mapAttributesToElement, mapAttributesToLink } from '../state/data-mapping';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
@@ -11,8 +16,8 @@ import { LINK_MODEL_TYPE } from '../models/link-model';
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalCellsChange<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > {
   readonly added: Map<CellId, CellUnion<Element, Link>>;
   readonly changed: Map<CellId, CellUnion<Element, Link>>;
@@ -20,8 +25,8 @@ export interface IncrementalCellsChange<
 }
 
 interface GraphViewState<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > {
   readonly graph: dia.Graph;
   readonly onIncrementalChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
@@ -46,7 +51,7 @@ interface GraphViewState<
  * @param next - freshly mapped record from the graph
  * @returns merged record; may be `previous` itself when nothing changed
  */
-function mergeCellUnion<Element extends ElementAttributes, Link extends LinkAttributes>(
+function mergeCellUnion<Element extends DiaElementAttributes, Link extends DiaLinkAttributes>(
   previous: CellUnion<Element, Link> | undefined,
   next: CellUnion<Element, Link>
 ): CellUnion<Element, Link> {
@@ -54,10 +59,10 @@ function mergeCellUnion<Element extends ElementAttributes, Link extends LinkAttr
 
   const previousData = previous.data as object | undefined;
   const nextData = next.data as object | undefined;
-  const previousPosition = (previous as ElementAttributes).position;
-  const nextPosition = (next as ElementAttributes).position;
-  const previousSize = (previous as ElementAttributes).size;
-  const nextSize = (next as ElementAttributes).size;
+  const previousPosition = (previous as DiaElementAttributes).position;
+  const nextPosition = (next as DiaElementAttributes).position;
+  const previousSize = (previous as DiaElementAttributes).size;
+  const nextSize = (next as DiaElementAttributes).size;
 
   const mergedData = isShallowEqual(previousData, nextData) ? previousData : nextData;
   const mergedPosition = isPositionEqual(previousPosition, nextPosition)
@@ -102,13 +107,13 @@ function mergeCellUnion<Element extends ElementAttributes, Link extends LinkAttr
  * Convert a JointJS cell to its CellRecord representation, routing by type:
  *  - Elements → element mapper, with id/type guaranteed AND
  *    `position`/`size`/`angle`/`data` normalised to non-undefined values so
- *    consumers can rely on `Internal<ElementRecord>`'s required-field contract.
+ *    consumers can rely on `Computed<ElementRecord>`'s required-field contract.
  *  - Links → link mapper, with id/type/source/target/data normalised.
  *  - Anything else → pass-through of attributes
  * @param cell - graph cell
  * @returns CellRecord suitable for the cells container
  */
-function toCellUnion<Element extends ElementAttributes, Link extends LinkAttributes>(
+function toCellUnion<Element extends DiaElementAttributes, Link extends DiaLinkAttributes>(
   cell: dia.Cell
 ): CellUnion<Element, Link> {
   if (cell.isElement()) {
@@ -148,8 +153,8 @@ function toCellUnion<Element extends ElementAttributes, Link extends LinkAttribu
 }
 
 export function graphView<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 >(options: GraphViewState<Element, Link>) {
   const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
@@ -298,6 +303,6 @@ export function graphView<
 }
 
 export type GraphView<
-  Element extends ElementAttributes = ElementAttributes,
-  Link extends LinkAttributes = LinkAttributes,
+  Element extends DiaElementAttributes = DiaElementAttributes,
+  Link extends DiaLinkAttributes = DiaLinkAttributes,
 > = ReturnType<typeof graphView<Element, Link>>;
