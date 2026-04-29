@@ -217,8 +217,8 @@ export default function App() {
       {
         cellNamespace: {
           ...shapes,
-          ElementModel,
-          LinkModel,
+          element: ElementModel,
+          link: LinkModel,
           standard: {
             ...shapes.standard,
             Link: FadingLink,

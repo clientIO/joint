@@ -378,7 +378,7 @@ function Main() {
             return target.selector === 'in';
           },
         }}
-        {...ORTHOGONAL_LINKS}
+        linkRouting={ORTHOGONAL_LINKS}
       />
     </GraphProvider>
   );

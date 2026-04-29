@@ -8,6 +8,8 @@ import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { PaperStoreState } from './graph-store';
 import { simpleScheduler } from '../utils/scheduler';
+import { toSVGMatrix } from '../utils/transform';
+import type { PaperTransform } from '../components/paper/paper.types';
 
 /**
  * Options for adding a new paper instance to the graph store.
@@ -15,8 +17,8 @@ import { simpleScheduler } from '../utils/scheduler';
 export interface AddPaperOptions {
   /** JointJS Paper configuration options */
   readonly paperOptions: dia.Paper.Options;
-  /** Optional initial scale for the paper */
-  readonly scale?: number;
+  /** Optional initial transform for the paper (CSS string or `DOMMatrix`). */
+  readonly transform?: PaperTransform;
   /** Optional custom renderer for elements */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly renderElement?: RenderElement<any>;
@@ -84,7 +86,7 @@ export class PaperStore {
     const {
       graphStore,
       paperOptions = {},
-      scale,
+      transform,
       renderElement,
       renderLink,
       id,
@@ -147,8 +149,8 @@ export class PaperStore {
       this.paper = paper;
     }
 
-    if (scale !== undefined) {
-      this.paper.scale(scale);
+    if (transform !== undefined) {
+      this.paper.matrix(toSVGMatrix(transform));
     }
   }
 

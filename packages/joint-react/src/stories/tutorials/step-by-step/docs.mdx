@@ -171,13 +171,14 @@ const mapDataToElementAttributes = ({
 
 ### b. Customizing behavior
 
-Customize link behavior with props like `defaultRouter` and `defaultConnector`:
+Customize link behavior with the `linkRouting` prop. Use a preset
+(`linkRoutingStraight`, `linkRoutingOrthogonal`, `linkRoutingSmooth`) or
+pass a custom bundle of router / connector / anchor / connection point:
 
 ```tsx
-<Paper
-  defaultRouter={{ name: 'manhattan' }}
-  defaultConnector={{ name: 'smooth' }}
-/>
+import { linkRoutingOrthogonal } from '@joint/react/presets';
+
+<Paper linkRouting={linkRoutingOrthogonal()} />
 ```
 
 ---
@@ -523,7 +524,7 @@ export function MultiViews() {
         width={200}
         height={120}
         interactive={false}
-        scale={0.25}
+        transform={`scale(0.25)`}
         style={{ border: '1px solid #ddd' }}
       />
     </GraphProvider>
@@ -607,7 +608,7 @@ function GraphWithMinimap() {
     <GraphProvider initialElements={elements} initialLinks={links}>
       <Paper id="main"  height={400} />
       <div style={{ position: 'absolute', right: 16, bottom: 16 }}>
-        <Paper id="mini" width={180} height={120} interactive={false} scale={0.2} />
+        <Paper id="mini" width={180} height={120} interactive={false} transform={`scale(0.2)`} />
       </div>
     </GraphProvider>
   );

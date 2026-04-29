@@ -17,6 +17,26 @@ configure({ reactStrictMode: true });
 globalThis.SVGPathElement = jest.fn();
 
 /**
+ * @description Minimal DOMMatrix polyfill — JSDOM doesn't ship it.
+ * Always returns the identity matrix. Tests don't validate transform math;
+ * they only need the constructor to not throw and produce a/b/c/d/e/f
+ * fields readable by `V.createSVGMatrix`.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix
+ */
+class MockDOMMatrix {
+  a = 1;
+  b = 0;
+  c = 0;
+  d = 1;
+  e = 0;
+  f = 0;
+}
+Object.defineProperty(globalThis, 'DOMMatrix', {
+  writable: true,
+  value: MockDOMMatrix,
+});
+
+/**
  * @description Mock SVGAngle which is used for sanity checks in Vectorizer library
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGAngle
  */

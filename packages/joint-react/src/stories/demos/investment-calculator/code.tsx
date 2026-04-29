@@ -692,7 +692,7 @@ function Main() {
       height={800}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
-      {...SMOOTH_LINKS}
+      linkRouting={SMOOTH_LINKS}
       style={{ backgroundColor: '#0f172a' }}
       interactive={{ stopDelegation: false }}
     />

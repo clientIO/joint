@@ -29,7 +29,7 @@ export { useCell } from './hooks/use-cell';
 export { useCellId } from './hooks/use-cell-id';
 export { useLinkLayout } from './hooks/use-link-layout';
 export { useGraph } from './hooks/use-graph';
-export type { UseGraphResult } from './hooks/use-graph';
+export type { UseGraphResult, ExportToJSONOptions } from './hooks/use-graph';
 export { useGraphStore } from './hooks/use-graph-store';
 export { usePaper, usePaperStore } from './hooks/use-paper';
 
@@ -58,6 +58,8 @@ export {
 
 // Utilities
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
+export { toSVGMatrix } from './utils/transform';
+export type { PaperTransform } from './components/paper/paper.types';
 export * from './state/data-mapping/element-mapper';
 export * from './state/data-mapping/link-mapper';
 export * from './state/data-mapping/cell-mapper';

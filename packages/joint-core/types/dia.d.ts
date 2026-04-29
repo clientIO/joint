@@ -556,6 +556,7 @@ export namespace Cell {
         attrs?: T;
         z?: number;
         layer?: string;
+        parent?: string;
         [key: string]: any;
     }
 
@@ -612,9 +613,11 @@ export namespace Cell {
         mergeArrays?: boolean;
     }
 
+    type IgnoreEmptyAttributesCallback = (key: string, path: string[]) => boolean;
+
     interface ExportOptions {
         ignoreDefaults?: boolean | string[];
-        ignoreEmptyAttributes?: boolean;
+        ignoreEmptyAttributes?: boolean | IgnoreEmptyAttributesCallback;
     }
 
     type UnsetCallback<V> = (

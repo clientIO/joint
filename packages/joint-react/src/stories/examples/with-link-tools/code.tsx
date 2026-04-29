@@ -106,7 +106,7 @@ function Main() {
         id={paperId}
         className={PAPER_CLASSNAME}
         height={280}
-        {...ORTHOGONAL_LINKS}
+        linkRouting={ORTHOGONAL_LINKS}
       />
       <div
         style={{

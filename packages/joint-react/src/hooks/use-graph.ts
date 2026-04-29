@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import {
@@ -75,6 +75,33 @@ export interface UseGraphResult<
    * our default `LinkModel`.
    */
   readonly isLink: (input: CellUnion<Element, Link>) => input is Link;
+  /**
+   * Serialize the graph to a plain JSON object.
+   *
+   * By default the output is **minimal**: attributes that match each cell's
+   * `defaults` are dropped and empty `{}` placeholders are pruned everywhere
+   * except inside `attrs` at the third nesting level (e.g.
+   * `attrs.text.textWrap: {}` is a meaningful reset marker in JointJS shapes
+   * and must survive). Pass `{ includeDefaults: true }` to keep every
+   * attribute on every cell — no pruning is applied in that mode.
+   */
+  readonly exportToJSON: (options?: ExportToJSONOptions) => ReturnType<dia.Graph['toJSON']>;
+  /**
+   * Replace the graph contents from a previously exported JSON object
+   * (e.g. produced by {@link exportToJSON}). Triggers JointJS's `reset`
+   * event so all React subscriptions resync automatically.
+   */
+  readonly importFromJSON: (json: Parameters<dia.Graph['fromJSON']>[0]) => void;
+}
+
+/** Options accepted by {@link UseGraphResult.exportToJSON}. */
+export interface ExportToJSONOptions {
+  /**
+   * When `true`, every attribute is preserved (defaults included) and no
+   * empty-attribute pruning is applied. Defaults to `false` — minimal output:
+   * defaults stripped, empties pruned (except `attrs.*.*`).
+   */
+  readonly includeDefaults?: boolean;
 }
 
 /**
@@ -103,6 +130,34 @@ export function useGraph<
   const resetCells = useResetCells<Element, Link>();
   const updateCells = useUpdateCells<Element, Link>();
 
+  const exportToJSON = useCallback<UseGraphResult<Element, Link>['exportToJSON']>(
+    (options) => {
+      if (options?.includeDefaults) {
+        // Raw graph state — defaults kept, no pruning.
+        // `cell.toJSON()` with no opts still strips `attrs` defaults
+        // (built-in fallback `differentiateKeys = ['attrs']`), so we pass
+        // `ignoreDefaults: false` explicitly to keep them.
+        return graph.toJSON({ cellAttributes: { ignoreDefaults: false } });
+      }
+      return graph.toJSON({
+        cellAttributes: {
+          ignoreDefaults: true,
+          // Drop every empty `{}` EXCEPT inside `attrs` at depth 3
+          // (e.g. `attrs.text.textWrap: {}` is a meaningful reset marker).
+          ignoreEmptyAttributes: (_key, path) => !(path[0] === 'attrs' && path.length === 3),
+        },
+      });
+    },
+    [graph]
+  );
+
+  const importFromJSON = useCallback<UseGraphResult<Element, Link>['importFromJSON']>(
+    (json) => {
+      graph.fromJSON(json);
+    },
+    [graph]
+  );
+
   return useMemo(
     () => ({
       graph,
@@ -113,7 +168,19 @@ export function useGraph<
       updateCells,
       isElement: store.isElement,
       isLink: store.isLink,
+      exportToJSON,
+      importFromJSON,
     }),
-    [graph, store, setCell, removeCell, removeCells, resetCells, updateCells]
+    [
+      graph,
+      store,
+      setCell,
+      removeCell,
+      removeCells,
+      resetCells,
+      updateCells,
+      exportToJSON,
+      importFromJSON,
+    ]
   );
 }

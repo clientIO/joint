@@ -151,13 +151,8 @@ function renderElement({ label }: Readonly<NodeData>) {
 }
 
 function JSONViewer() {
-  const { graph } = useGraph();
-  const json = graph.toJSON({
-    cellAttributes: {
-      ignoreDefaults: true,
-      ignoreEmptyAttributes: true,
-    },
-  });
+  const { exportToJSON } = useGraph();
+  const json = exportToJSON();
   return <pre style={JSON_VIEWER_STYLE}>{JSON.stringify(json, null, 2)}</pre>;
 }
 

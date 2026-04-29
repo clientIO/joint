@@ -31,6 +31,7 @@ import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategy
 import { canEmbed, canUnembed } from '../presets/can-embed';
 import { toNativeCellVisibility } from '../presets/cell-visibility';
 import { toNativeInteractive } from '../presets/interactive';
+import { toSVGMatrix } from '../utils/transform';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
@@ -191,8 +192,9 @@ export function useCreatePortalPaper(
     cellVisibility,
     interactive,
     useHTMLOverlay,
-    scale,
+    transform,
     portalSelector,
+    linkRouting,
     options: escapeHatchOptions,
     // These are React host props and must not be forwarded to dia.Paper options.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -308,11 +310,12 @@ export function useCreatePortalPaper(
         validateUnembedding: validateUnembeddingCallback,
         cellVisibility: cellVisibilityCallback,
         interactive: interactiveValue,
+        ...linkRouting,
         ...escapeHatchOptions,
       },
       renderElement,
       renderLink,
-      scale,
+      transform,
       portalSelector,
       paper: externalPaper,
     });
@@ -362,6 +365,7 @@ export function useCreatePortalPaper(
       cellVisibility: cellVisibilityCallback,
       interactive: interactiveValue,
       ...paperOptions,
+      ...linkRouting,
       ...escapeHatchOptions,
     });
 
@@ -373,8 +377,8 @@ export function useCreatePortalPaper(
     if (gridSize !== undefined) {
       paper.setGridSize(gridSize);
     }
-    if (scale !== undefined) {
-      paper.scale(scale);
+    if (transform !== undefined) {
+      paper.matrix(toSVGMatrix(transform));
     }
   }, [
     defaultLinkCallback,
@@ -385,10 +389,11 @@ export function useCreatePortalPaper(
     cellVisibilityCallback,
     interactiveValue,
     escapeHatchOptions,
+    linkRouting,
     paper,
     paperOptions,
     paperStore,
-    scale,
+    transform,
   ]);
 
   const elements = useMemo(() => {

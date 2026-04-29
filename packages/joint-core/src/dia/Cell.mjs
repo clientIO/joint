@@ -3,7 +3,6 @@ import {
     result,
     merge,
     forIn,
-    isObject,
     isEqual,
     isString,
     cloneDeep,
@@ -29,6 +28,7 @@ import {
 } from '../util/util.mjs';
 import { Model } from '../mvc/Model.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
+import { removeEmptyAttributes, removeAtTopLevelOnly } from '../util/removeEmptyAttributes.mjs';
 import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';
 import { config } from '../config/index.mjs';
@@ -42,22 +42,6 @@ const attributesMerger = function(a, b) {
         return cloneDeep(b);
     }
 };
-
-function removeEmptyAttributes(obj) {
-
-    // Remove toplevel empty attributes
-    for (const key in obj) {
-
-        const objValue = obj[key];
-        const isRealObject = isObject(objValue) && !Array.isArray(objValue);
-
-        if (!isRealObject) continue;
-
-        if (isEmpty(objValue)) {
-            delete obj[key];
-        }
-    }
-}
 
 export const Cell = Model.extend({
 
@@ -88,13 +72,27 @@ export const Cell = Model.extend({
         const { ignoreDefaults, ignoreEmptyAttributes = false } = opt || {};
         const defaults = result(this.constructor.prototype, 'defaults');
 
+        // `ignoreEmptyAttributes`:
+        //  - `false` (default) — keep all empties.
+        //  - `true` — drops top-level empties only, for backwards compatibility.
+        //    TODO(next major): `true` should drop all empties (recursive). Pass
+        //    `removeAtTopLevelOnly` explicitly to preserve the legacy behavior.
+        //  - `(key, path) => boolean` — recursive predicate; truthy drops the key
+        //    bottom-up (so a parent emptied by child removal is itself a candidate).
+        let removeEmptyPredicate = null;
+        if (typeof ignoreEmptyAttributes === 'function') {
+            removeEmptyPredicate = ignoreEmptyAttributes;
+        } else if (ignoreEmptyAttributes) {
+            removeEmptyPredicate = removeAtTopLevelOnly;
+        }
+
         if (ignoreDefaults === false) {
             // Return all attributes without omitting the defaults
             const finalAttributes = cloneDeep(this.attributes);
 
-            if (!ignoreEmptyAttributes) return finalAttributes;
-
-            removeEmptyAttributes(finalAttributes);
+            if (removeEmptyPredicate) {
+                removeEmptyAttributes(finalAttributes, removeEmptyPredicate);
+            }
 
             return finalAttributes;
         }
@@ -117,8 +115,8 @@ export const Cell = Model.extend({
         // Omit `id` and `type` attribute from the defaults since it should be always present
         const finalAttributes = objectDifference(attributes, omit(defaultAttributes, 'id', 'type'), { maxDepth: 4 });
 
-        if (ignoreEmptyAttributes) {
-            removeEmptyAttributes(finalAttributes);
+        if (removeEmptyPredicate) {
+            removeEmptyAttributes(finalAttributes, removeEmptyPredicate);
         }
 
         return finalAttributes;

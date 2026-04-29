@@ -503,7 +503,7 @@ function Main() {
         snapLinks={{ radius: 30 }}
         magnetThreshold="onleave"
         clickThreshold={10}
-        {...ORTHOGONAL_LINKS}
+        linkRouting={ORTHOGONAL_LINKS}
         validateConnection={({ target }) => target.port === 'in'}
         renderElement={RenderSaasNode}
         defaultLink={DEFAULT_LINK}

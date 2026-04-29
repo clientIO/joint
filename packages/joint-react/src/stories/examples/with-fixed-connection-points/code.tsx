@@ -419,7 +419,7 @@ function Main() {
       drawGrid={{ name: 'mesh', args: { color: GRID_COLOR } }}
       style={PAPER_STYLE}
       linkPinning={false}
-      {...ORTHOGONAL_LINKS}
+      linkRouting={ORTHOGONAL_LINKS}
       // Connection strategy - find closest anchor point
       connectionStrategy={({ end, model, dropPoint, endType }) => {
         const element = model as dia.Element;

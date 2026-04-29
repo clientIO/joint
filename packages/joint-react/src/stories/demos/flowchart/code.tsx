@@ -516,7 +516,7 @@ function Main() {
       className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
       renderElement={RenderFlowchartNode}
       drawGrid={false}
-      {...ORTHOGONAL_LINKS}
+      linkRouting={ORTHOGONAL_LINKS}
     />
   );
 }

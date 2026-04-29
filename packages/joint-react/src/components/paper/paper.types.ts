@@ -8,6 +8,15 @@ import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../..
 import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
 import type { CellVisibility } from '../../presets/cell-visibility';
 import type { Interactive } from '../../presets/interactive';
+import type { LinkRouting } from '../../presets/link-routing';
+
+/**
+ * Value accepted by the Paper `transform` prop. Strings are parsed via the
+ * native `DOMMatrix` constructor (CSS transform syntax — `scale()`,
+ * `translate()`, `rotate()`, `matrix()` etc.). `DOMMatrix` instances pass
+ * through. `SVGMatrix === DOMMatrix` in modern `lib.dom.d.ts`.
+ */
+export type PaperTransform = string | DOMMatrix;
 
 /** Context passed to the `defaultLink` factory. */
 export interface DefaultLinkContext {
@@ -135,12 +144,23 @@ export interface PortalPaperOptions {
   readonly linkAnchorNamespace?: dia.Paper.Options['linkAnchorNamespace'];
   readonly connectionPointNamespace?: dia.Paper.Options['connectionPointNamespace'];
 
-  // ── Defaults (routing / connecting) ──────────────────────────────────────
-  readonly defaultRouter?: dia.Paper.Options['defaultRouter'];
-  readonly defaultConnector?: dia.Paper.Options['defaultConnector'];
-  readonly defaultAnchor?: dia.Paper.Options['defaultAnchor'];
-  readonly defaultLinkAnchor?: dia.Paper.Options['defaultLinkAnchor'];
-  readonly defaultConnectionPoint?: dia.Paper.Options['defaultConnectionPoint'];
+  // ── Link routing bundle ──────────────────────────────────────────────────
+  /**
+   * Bundle of link routing defaults (router, connector, anchor, connection
+   * point). Use a preset (`linkRoutingStraight`, `linkRoutingOrthogonal`,
+   * `linkRoutingSmooth`) or pass a custom object of the same shape.
+   *
+   * `defaultLinkAnchor` is reachable via the `options` escape hatch.
+   *
+   * Values inside `options` override matching keys here.
+   * @example
+   * ```tsx
+   * import { linkRoutingOrthogonal } from '@joint/react/presets';
+   *
+   * <Paper linkRouting={linkRoutingOrthogonal()} />
+   * ```
+   */
+  readonly linkRouting?: LinkRouting;
 
   // ── Escape hatch ─────────────────────────────────────────────────────────
 
@@ -286,10 +306,15 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    */
   readonly className?: string;
   /**
-   * The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
+   * Sets the paper's viewport transform via `paper.matrix(...)`. Accepts
+   * either a CSS transform string (e.g. `'scale(0.5)'`,
+   * `'translate(10px, 20px) rotate(15deg)'`) or a `DOMMatrix`. Useful for
+   * zoom, minimap, and arbitrary viewport transforms.
+   * @example
+   * transform="scale(0.4)"
+   * transform={new DOMMatrix().scale(2).translate(10, 20)}
    */
-
-  readonly scale?: number;
+  readonly transform?: PaperTransform;
 
   /**
    * The threshold for click events in pixels.

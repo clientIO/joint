@@ -70,7 +70,7 @@ function buildTablePorts(rows: string[][]): Record<string, ElementPort> {
 
 // Define static properties for the view's Paper - used by minimap and main view
 const PAPER_PROPS: PaperProps = {
-  ...linkRoutingOrthogonal({ cornerType: 'line', margin: 25 }),
+  linkRouting: linkRoutingOrthogonal({ cornerType: 'line', margin: 25 }),
   snapLinks: { radius: 25 },
   linkPinning: false,
   width: '100%',

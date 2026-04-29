@@ -1,6 +1,7 @@
 import { dia } from '@joint/core';
 import { PaperStore } from '../paper-store';
 import { GraphStore } from '../graph-store';
+import { PortalPaper } from '../../models/portal-paper';
 
 describe('PaperStore', () => {
   describe('constructor', () => {
@@ -36,20 +37,32 @@ describe('PaperStore', () => {
       expect(paperStore.paper.options.height).toBe(600);
     });
 
-    it('should apply scale when provided', () => {
+    it('should apply transform when provided', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
+      const matrixSpy = jest.spyOn(PortalPaper.prototype, 'matrix');
 
-      const paperStore = new PaperStore({
-        graphStore,
-        paperOptions: {},
-        id: 'test-paper',
-        scale: 2,
-      });
+      try {
+        new PaperStore({
+          graphStore,
+          paperOptions: {},
+          id: 'test-paper',
+          transform: 'scale(2)',
+        });
 
-      const currentScale = paperStore.paper.scale();
-      expect(currentScale.sx).toBe(2);
-      expect(currentScale.sy).toBe(2);
+        // PortalPaper calls matrix() internally during init (getter form,
+        // no arg). Find the setter call from our transform plumbing — the
+        // exact matrix values are not asserted (JSDOM has no DOMMatrix
+        // parser; the mock returns identity), only that the setter was
+        // invoked with an SVGMatrix-shaped argument.
+        const setterCall = matrixSpy.mock.calls.find((c) => c[0] !== undefined);
+        expect(setterCall).toBeDefined();
+        const argument = setterCall![0] as { a: number; d: number };
+        expect(typeof argument.a).toBe('number');
+        expect(typeof argument.d).toBe('number');
+      } finally {
+        matrixSpy.mockRestore();
+      }
     });
 
     it('should enable visible magnet highlighting while dragging links by default', () => {
