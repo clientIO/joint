@@ -280,7 +280,7 @@ function Main() {
     []
   );
 
-  const { graph } = useGraph();
+  const { exportToJSON } = useGraph();
   // Subscribe to cells so the story reflects graph size in devtools if needed.
   useCells();
 
@@ -334,7 +334,7 @@ function Main() {
         className="absolute top-2 left-2 z-10 bg-gray-900 rounded-lg p-2 shadow-md text-white text-sm"
         onClick={() => {
           // eslint-disable-next-line no-console
-          console.log('Graph log:', graph.toJSON());
+          console.log('Graph log:', exportToJSON());
         }}
       >
         Log
