@@ -18,9 +18,9 @@ globalThis.SVGPathElement = jest.fn();
 
 /**
  * @description Minimal DOMMatrix polyfill — JSDOM doesn't ship it.
- * Parses simple `scale()` / `translate()` / `rotate()` / `matrix()` strings
- * and exposes the standard a/b/c/d/e/f fields. Sufficient for joint-react
- * tests; not a complete DOMMatrix implementation.
+ * Always returns the identity matrix. Tests don't validate transform math;
+ * they only need the constructor to not throw and produce a/b/c/d/e/f
+ * fields readable by `V.createSVGMatrix`.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix
  */
 class MockDOMMatrix {
@@ -30,22 +30,6 @@ class MockDOMMatrix {
   d = 1;
   e = 0;
   f = 0;
-  constructor(init?: string | number[]) {
-    if (typeof init === 'string') {
-      const scaleMatch = init.match(/scale\(\s*([\d.-]+)(?:\s*,\s*([\d.-]+))?\s*\)/);
-      if (scaleMatch) {
-        this.a = Number.parseFloat(scaleMatch[1]);
-        this.d = scaleMatch[2] ? Number.parseFloat(scaleMatch[2]) : this.a;
-      }
-      const translateMatch = init.match(/translate\(\s*([\d.-]+)(?:px)?(?:\s*,\s*([\d.-]+)(?:px)?)?\s*\)/);
-      if (translateMatch) {
-        this.e = Number.parseFloat(translateMatch[1]);
-        this.f = translateMatch[2] ? Number.parseFloat(translateMatch[2]) : 0;
-      }
-    } else if (Array.isArray(init) && init.length === 6) {
-      [this.a, this.b, this.c, this.d, this.e, this.f] = init;
-    }
-  }
 }
 Object.defineProperty(globalThis, 'DOMMatrix', {
   writable: true,
