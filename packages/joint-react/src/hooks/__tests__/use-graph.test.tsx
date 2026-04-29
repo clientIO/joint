@@ -191,6 +191,98 @@ describe('useGraph', () => {
     });
   });
 
+  describe('exportToJSON / importFromJSON', () => {
+    it('returns the cells of the current graph', async () => {
+      const { result } = renderHook(() => useGraph(), { wrapper });
+      await waitFor(() => expect(result.current).toBeDefined());
+      const json = result.current.exportToJSON();
+      expect(json.cells).toHaveLength(3);
+      const ids = json.cells.map((c: { id: string }) => c.id).toSorted();
+      expect(ids).toEqual(['a', 'b', 'l1']);
+    });
+
+    it('strips attributes that match cell defaults', async () => {
+      const { result } = renderHook(() => useGraph(), { wrapper });
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.setCell({
+          id: 'd',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 0, height: 0 },
+          data: {},
+        } as CellRecord);
+        await flush();
+      });
+      const json = result.current.exportToJSON();
+      const cellD = json.cells.find((c: { id: string }) => c.id === 'd') as Record<string, unknown>;
+      expect(cellD).toBeDefined();
+      expect(cellD.size).toBeUndefined();
+      expect(cellD.data).toBeUndefined();
+    });
+
+    it('keeps empty `{}` placeholders inside `attrs` at depth 3', async () => {
+      const { result } = renderHook(() => useGraph(), { wrapper });
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.setCell({
+          id: 'e',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 1, y: 1 },
+          size: { width: 1, height: 1 },
+          attrs: { text: { textWrap: {} } },
+        } as CellRecord);
+        await flush();
+      });
+      const json = result.current.exportToJSON();
+      const cellE = json.cells.find((c: { id: string }) => c.id === 'e') as {
+        attrs?: { text?: { textWrap?: Record<string, unknown> } };
+      };
+      expect(cellE?.attrs?.text?.textWrap).toEqual({});
+    });
+
+    it('with `includeDefaults: true` keeps every attribute', async () => {
+      const { result } = renderHook(() => useGraph(), { wrapper });
+      await waitFor(() => expect(result.current).toBeDefined());
+      const json = result.current.exportToJSON({ includeDefaults: true });
+      const cellA = json.cells.find((c: { id: string }) => c.id === 'a') as Record<string, unknown>;
+      expect(cellA.size).toEqual({ width: 10, height: 10 });
+      expect(cellA.data).toEqual({});
+    });
+
+    it('importFromJSON replaces the graph contents', async () => {
+      const { result } = renderHook(() => useGraph(), { wrapper });
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.importFromJSON({
+          cells: [
+            {
+              id: 'imported',
+              type: ELEMENT_MODEL_TYPE,
+              position: { x: 5, y: 5 },
+              size: { width: 5, height: 5 },
+            },
+          ],
+        });
+        await flush();
+      });
+      expect(result.current.graph.getCell('imported')).toBeDefined();
+      expect(result.current.graph.getCell('a')).toBeUndefined();
+    });
+
+    it('round-trip export → import preserves state', async () => {
+      const { result } = renderHook(() => useGraph(), { wrapper });
+      await waitFor(() => expect(result.current).toBeDefined());
+      const before = result.current.exportToJSON();
+      await act(async () => {
+        result.current.importFromJSON(before);
+        await flush();
+      });
+      const after = result.current.exportToJSON();
+      expect(after).toEqual(before);
+    });
+  });
+
   describe('isElement / isLink', () => {
     it('narrows an element cell', async () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
