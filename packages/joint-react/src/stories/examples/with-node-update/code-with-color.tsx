@@ -37,7 +37,7 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 
 function RenderElement({ color }: Readonly<NodeData>) {
   const id = useCellId();
-  const { setCell } = useGraph<ElementRecord<NodeData>>();
+  const { setCell, isElement } = useGraph<ElementRecord<NodeData>>();
   return (
     <HTMLBox useModelGeometry
       style={{ backgroundColor: color }}
@@ -47,13 +47,12 @@ function RenderElement({ color }: Readonly<NodeData>) {
         className="nodrag"
         type="color"
         onChange={(event) => {
-          setCell((previous) => {
-            const previousElement = previous as ElementRecord<NodeData>;
+          setCell(id, (previous) => {
+            if (!isElement(previous)) return previous;
             return {
-              ...previousElement,
-              id,
-              data: { ...(previousElement.data ?? { label: '', color: '#ffffff' }), color: event.target.value },
-            } as ElementRecord<NodeData>;
+              ...previous,
+              data: { ...(previous.data ?? { label: '', color: '#ffffff' }), color: event.target.value },
+            };
           });
         }}
         defaultValue={color}

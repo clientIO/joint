@@ -3,7 +3,6 @@ import type {
   DiaElementAttributes,
   DiaLinkAttributes,
   CellId,
-  CellRecord,
   CellUnion,
 } from '../types/cell.types';
 import type { AddPaperOptions } from './paper-store';
@@ -272,7 +271,7 @@ export class GraphStore<
    * @param cell - cell record, cell id, or type name
    * @returns `true` when the resolved type extends `dia.Element`
    */
-  public isElement = (cell: Element | Link): boolean => {
+  public isElement = (cell: Element | Link): cell is Element => {
     const cellType = (cell as { readonly type?: string }).type;
     return cellType !== undefined && isElementType(cellType, this.graph);
   };
@@ -287,7 +286,7 @@ export class GraphStore<
    * @param cell - cell record, cell id, or type name
    * @returns `true` when the resolved type extends `dia.Link`
    */
-  public isLink = (cell: CellUnion<Element, Link>): boolean => {
+  public isLink = (cell: CellUnion<Element, Link>): cell is Link => {
     const cellType = (cell as { readonly type?: string }).type;
     return cellType !== undefined && isLinkType(cellType, this.graph);
   };

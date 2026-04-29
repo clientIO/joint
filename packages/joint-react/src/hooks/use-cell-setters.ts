@@ -9,16 +9,37 @@ import type {
   CellUnion,
 } from '../types/cell.types';
 /**
- * Returns a function that adds-or-updates a cell.
- *
- * Accepts either:
- * - a full cell record — `cell.id` names the target. If a cell with that id
- *   exists, attributes are merged over it; otherwise the cell is added.
- * - an updater `(prev) => next` — implies the cell exists.
- *   The updater receives the current record (read from the cells container)
- *   and must return a record whose `id` matches the target.
- *
- * Throws when the input has no `id`.
+ * Updater function form for {@link SetCell}. Receives the current cell record
+ * (read from the cells container) and returns the next record. Invoked
+ * exactly once with the real previous value.
+ * @template Element - element record shape
+ * @template Link - link record shape
+ */
+export type SetCellUpdater<
+  Element extends DiaElementAttributes,
+  Link extends DiaLinkAttributes,
+> = (previous: CellUnion<Element, Link>) => CellUnion<Element, Link>;
+
+/**
+ * Function returned by {@link useSetCell}. Two forms:
+ * - `setCell(record)` — direct form. `record.id` names the target. Cell
+ *   exists: attributes merge over it. Cell missing: cell is added.
+ * - `setCell(id, updater)` — updater form. Throws when no cell with `id`
+ *   exists. The updater is called once with the real previous record.
+ * @template Element - element record shape
+ * @template Link - link record shape
+ */
+export interface SetCell<
+  Element extends DiaElementAttributes,
+  Link extends DiaLinkAttributes,
+> {
+  (record: CellUnion<Element, Link>): void;
+  (id: CellId, updater: SetCellUpdater<Element, Link>): void;
+}
+
+/**
+ * Returns a function that adds-or-updates a cell. See {@link SetCell} for
+ * the supported call forms.
  * @template Element - element record shape
  * @template Link - link record shape
  * @returns memoized setCell setter
@@ -26,27 +47,24 @@ import type {
 export function useSetCell<
   Element extends DiaElementAttributes = DiaElementAttributes,
   Link extends DiaLinkAttributes = DiaLinkAttributes,
->() {
+>(): SetCell<Element, Link> {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
-  return useCallback(
+  const setCell = useCallback(
     (
-      input:
-        | CellUnion<Element, Link>
-        | ((previous: CellUnion<Element, Link>) => CellUnion<Element, Link>)
+      argument1: CellUnion<Element, Link> | CellId,
+      argument2?: SetCellUpdater<Element, Link>
     ) => {
-      const next = resolveSetCellInput(input, store);
+      const next = resolveSetCellInput(argument1, argument2, store);
       if (next.id === undefined) {
         throw new Error('setCell: input record must have an `id` to identify the target cell');
       }
       const previous = store.graphView.cells.get(next.id);
       const diaCell = graph.getCell(next.id);
-      // Add path: no existing cell — map the input directly and add it.
       if (!previous || !diaCell) {
         graph.addCell(mapCellToAttributes(next, graph));
         return;
       }
-      // Update path: merge over the existing record, preserving id/type.
       const merged = {
         ...previous,
         ...next,
@@ -58,49 +76,39 @@ export function useSetCell<
     },
     [graph, store]
   );
+  return setCell as SetCell<Element, Link>;
 }
 
 /**
- * Resolves a `setCell` input to a concrete cell record.
+ * Resolves a `setCell` invocation to a concrete cell record.
  *
- * Function form: runs the updater with the current record read from the cells
- * container. Throws if the updater is called for an id that doesn't resolve
- * — we can't call the updater without a prev, and an updater form implies
- * "update this existing cell".
- *
- * Direct form: returns the record as-is. For the direct form we don't need
- * prev — `setCell` will look it up and error if missing.
- *
- * The slightly-awkward "updater must know the id" constraint falls out of
- * `setCell` being stateless and not tied to `CellIdContext`: we can't resolve
- * an id out of thin air, so the updater must return a cell whose `id`
- * identifies the target. We call the updater once with `previous` read by
- * the caller (below), so its return `id` must equal `previous.id`.
+ * - Two-arg form `setCell(id, updater)`: looks up the previous cell by id
+ *   and invokes the updater once with the real previous record. Throws when
+ *   no cell with the given id exists — updater form implies the cell exists.
+ * - One-arg form `setCell(record)`: returns the record as-is. The caller
+ *   decides add vs update by checking the cells container.
  * @template Element - element record shape
  * @template Link - link record shape
- * @param input - direct cell record or `(prev) => next` updater
- * @param store - graph store used to read `prev` for the updater form
+ * @param argument1 - cell record (direct form) or cell id (updater form)
+ * @param argument2 - updater function (updater form only)
+ * @param store - graph store used to read the previous record for the updater form
  * @returns resolved cell record
  */
 function resolveSetCellInput<Element extends DiaElementAttributes, Link extends DiaLinkAttributes>(
-  input:
-    | CellUnion<Element, Link>
-    | ((previous: CellUnion<Element, Link>) => CellUnion<Element, Link>),
+  argument1: CellUnion<Element, Link> | CellId,
+  argument2: SetCellUpdater<Element, Link> | undefined,
   store: ReturnType<typeof useGraphStore<Element, Link>>
 ): CellUnion<Element, Link> {
-  if (typeof input !== 'function') return input;
-  // Updater form: we need `previous` to call it. Without an explicit id the
-  // only way to discover the target is to require that the updater's
-  // returned record identifies itself — so we first call with an empty-id
-  // placeholder, look up the real previous by the returned id, then invoke
-  // the updater again with the actual previous.
-  // @todo - this is a bit clunky. We could consider a separate `updateCell(id, updater)`
-  const placeholder = { id: '', type: '' } as CellUnion<Element, Link>;
-  const firstPass = input(placeholder);
-  if (firstPass.id === undefined) return firstPass;
-  const previous = store.graphView.cells.get(firstPass.id);
-  if (!previous) return firstPass;
-  return input(previous);
+  if (argument2 === undefined) return argument1 as CellUnion<Element, Link>;
+  const id = argument1 as CellId;
+  const previous = store.graphView.cells.get(id);
+  if (!previous) {
+    throw new Error(
+      `setCell: cannot update — no cell with id "${String(id)}" exists. ` +
+        'Use the direct form `setCell({ id, type, ... })` to add a new cell.'
+    );
+  }
+  return argument2(previous);
 }
 
 /**

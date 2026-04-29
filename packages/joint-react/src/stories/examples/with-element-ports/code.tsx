@@ -176,18 +176,17 @@ interface PortControlProps {
 }
 
 function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
-  const { setCell } = useGraph();
+  const { setCell, isElement } = useGraph();
 
   const updatePort = (updates: Partial<ElementPort>) => {
-    setCell((previous) => {
-      const element = previous as ElementRecord;
+    setCell(elementId, (previous) => {
+      if (!isElement(previous)) return previous;
       return {
-        ...element,
-        id: elementId,
-        portMap: element.portMap
-          ? { ...element.portMap, [portId]: { ...element.portMap[portId], ...updates } }
-          : element.portMap,
-      } as ElementRecord;
+        ...previous,
+        portMap: previous.portMap
+          ? { ...previous.portMap, [portId]: { ...previous.portMap[portId], ...updates } }
+          : previous.portMap,
+      };
     });
   };
 

@@ -103,7 +103,7 @@ function ElementControls({
   size: layout,
   angle,
 }: Readonly<ElementControlsProps>) {
-  const { setCell, removeCell } = useGraph<ElementRecord<NodeData>>();
+  const { setCell, removeCell, isElement } = useGraph<ElementRecord<NodeData>>();
   const inputStyle = {
     padding: '6px 10px',
     border: '1px solid rgba(0, 0, 0, 0.15)',
@@ -142,17 +142,14 @@ function ElementControls({
           type="text"
           value={element.label}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
-              const data = previousElement.data as NodeData | undefined;
-              if (!data) {
-                return { ...previousElement, id } as ElementRecord<NodeData>;
-              }
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
+              const { data } = previous;
+              if (!data) return previous;
               return {
-                ...previousElement,
-                id,
+                ...previous,
                 data: { ...data, label: event.target.value },
-              } as ElementRecord<NodeData>;
+              };
             })
           }
           style={{ ...inputStyle, flex: 1 }}
@@ -166,17 +163,14 @@ function ElementControls({
           type="color"
           value={element.color}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
-              const data = previousElement.data as NodeData | undefined;
-              if (!data) {
-                return { ...previousElement, id } as ElementRecord<NodeData>;
-              }
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
+              const { data } = previous;
+              if (!data) return previous;
               return {
-                ...previousElement,
-                id,
+                ...previous,
                 data: { ...data, color: event.target.value },
-              } as ElementRecord<NodeData>;
+              };
             })
           }
           style={{
@@ -197,13 +191,12 @@ function ElementControls({
           type="number"
           value={position?.x ?? 0}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
               return {
-                ...previousElement,
-                id,
-                position: { x: Number(event.target.value), y: previousElement.position?.y ?? 0 },
-              } as ElementRecord<NodeData>;
+                ...previous,
+                position: { x: Number(event.target.value), y: previous.position?.y ?? 0 },
+              };
             })
           }
           style={{ ...inputStyle, width: 65 }}
@@ -213,13 +206,12 @@ function ElementControls({
           type="number"
           value={position?.y ?? 0}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
               return {
-                ...previousElement,
-                id,
-                position: { x: previousElement.position?.x ?? 0, y: Number(event.target.value) },
-              } as ElementRecord<NodeData>;
+                ...previous,
+                position: { x: previous.position?.x ?? 0, y: Number(event.target.value) },
+              };
             })
           }
           style={{ ...inputStyle, width: 65 }}
@@ -234,16 +226,15 @@ function ElementControls({
           type="number"
           value={layout?.width ?? 0}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
               return {
-                ...previousElement,
-                id,
+                ...previous,
                 size: {
                   width: Number(event.target.value),
-                  height: previousElement.size?.height ?? 0,
+                  height: previous.size?.height ?? 0,
                 },
-              } as ElementRecord<NodeData>;
+              };
             })
           }
           style={{ ...inputStyle, width: 65 }}
@@ -253,16 +244,15 @@ function ElementControls({
           type="number"
           value={layout?.height ?? 0}
           onChange={(event) =>
-            setCell((previous) => {
-              const previousElement = previous as ElementRecord<NodeData>;
+            setCell(id, (previous) => {
+              if (!isElement(previous)) return previous;
               return {
-                ...previousElement,
-                id,
+                ...previous,
                 size: {
-                  width: previousElement.size?.width ?? 0,
+                  width: previous.size?.width ?? 0,
                   height: Number(event.target.value),
                 },
-              } as ElementRecord<NodeData>;
+              };
             })
           }
           style={{ ...inputStyle, width: 65 }}
@@ -279,7 +269,11 @@ function ElementControls({
           max="360"
           value={angle ?? 0}
           onChange={(event) =>
-            setCell({ id, angle: Number(event.target.value) } as ElementRecord<NodeData>)
+            setCell(id, (previous) =>
+              previous.type === 'element'
+                ? { ...previous, angle: Number(event.target.value) }
+                : previous
+            )
           }
           style={{ flex: 1, accentColor: PRIMARY }}
         />
@@ -343,7 +337,9 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
           type="color"
           value={(link.color as string) ?? '#000000'}
           onChange={(event) =>
-            setCell({ id, type: 'link', color: event.target.value } as LinkRecord)
+            setCell(id, (previous) =>
+              previous.type === 'link' ? { ...previous, color: event.target.value } : previous
+            )
           }
           style={{
             width: 36,
@@ -555,14 +551,14 @@ function AddLinkForm() {
 
 // --- Main Component ---
 function Main() {
-  const cells = useCells();
+  const cells = useCells<Computed<CellRecord<NodeData>>>();
   const elements: Array<[string, ElementRecord<NodeData>]> = [];
   const links: Array<[string, LinkRecord]> = [];
   for (const cell of cells) {
     if (cell.type === 'element') {
-      elements.push([String(cell.id), cell as ElementRecord<NodeData>]);
+      elements.push([String(cell.id), cell]);
     } else if (cell.type === 'link') {
-      links.push([String(cell.id), cell as LinkRecord]);
+      links.push([String(cell.id), cell]);
     }
   }
   return (

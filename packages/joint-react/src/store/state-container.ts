@@ -1,7 +1,7 @@
 import { isUpdater } from '../utils/is';
 import { simpleScheduler } from '../utils/scheduler';
 import { isStrictEqual } from '../utils/selector-utils';
-import type { CellId, WithId } from '../types/cell.types';
+import type { CellId, WithOptionalId } from '../types/cell.types';
 
 export type Update<T> = ((previous: T | undefined) => T | undefined) | T;
 
@@ -14,7 +14,7 @@ export function getValue<T>(previous: T | undefined, updater: Update<T>): T | un
   return isUpdater(updater) ? updater(previous) : updater;
 }
 
-export interface ReadonlyContainer<T extends WithId> {
+export interface ReadonlyContainer<T extends WithOptionalId> {
   getVersion: () => number;
   getAll: () => readonly T[];
   get: (id: CellId) => T | undefined;
@@ -25,7 +25,7 @@ export interface ReadonlyContainer<T extends WithId> {
   subscribeToAll: (listener: () => void) => () => void;
 }
 
-export interface Container<T extends WithId> extends ReadonlyContainer<T> {
+export interface Container<T extends WithOptionalId> extends ReadonlyContainer<T> {
   set: (id: CellId, update: Update<T>) => void;
   delete: (id: CellId) => void;
   reset: (next: readonly T[]) => void;
@@ -36,7 +36,7 @@ export interface Container<T extends WithId> extends ReadonlyContainer<T> {
  * Wraps a container to expose only read and subscribe operations.
  * @param container
  */
-export function asReadonlyContainer<T extends WithId>(
+export function asReadonlyContainer<T extends WithOptionalId>(
   container: Container<T>
 ): ReadonlyContainer<T> {
   return {
@@ -60,7 +60,7 @@ export function asReadonlyContainer<T extends WithId>(
  * not rely on insertion order for identity.
  * @param _name - optional label for debugging
  */
-export function createContainer<T extends WithId>(_name?: string): Container<T> {
+export function createContainer<T extends WithOptionalId>(_name?: string): Container<T> {
   const items: T[] = [];
   const indexById = new Map<CellId, number>();
   const listeners = new Map<CellId, Set<() => void>>();

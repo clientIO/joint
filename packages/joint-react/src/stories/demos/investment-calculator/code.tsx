@@ -254,46 +254,38 @@ function calculateROI(cost: number, value: number): number {
 // ----------------------------------------------------------------------------
 
 function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
-  const { setCell } = useGraph<ElementRecord<ShapeData>>();
+  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
   const { width, height } = useCell(selectElementSize);
 
   const handleFundsChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!event.target.validity.valid) return;
       const newFunds = Number(event.target.value);
-      setCell((previous) => {
-        const previousElement = previous as ElementRecord<ShapeData>;
-        const data = previousElement.data as InvestmentData | undefined;
-        if (!data) {
-          return { ...previousElement, id: INVESTMENT_ID } as ElementRecord<ShapeData>;
-        }
+      setCell(INVESTMENT_ID, (previous) => {
+        if (!isElement(previous)) return previous;
+        if (previous.data?.type !== 'Investment') return previous;
         return {
-          ...previousElement,
-          id: INVESTMENT_ID,
-          data: { ...data, funds: newFunds },
-        } as ElementRecord<ShapeData>;
+          ...previous,
+          data: { ...previous.data, funds: newFunds },
+        };
       });
     },
-    [setCell]
+    [setCell, isElement]
   );
 
   const handleYearChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
       const newYear = Number(event.target.value);
-      setCell((previous) => {
-        const previousElement = previous as ElementRecord<ShapeData>;
-        const data = previousElement.data as InvestmentData | undefined;
-        if (!data) {
-          return { ...previousElement, id: INVESTMENT_ID } as ElementRecord<ShapeData>;
-        }
+      setCell(INVESTMENT_ID, (previous) => {
+        if (!isElement(previous)) return previous;
+        if (previous.data?.type !== 'Investment') return previous;
         return {
-          ...previousElement,
-          id: INVESTMENT_ID,
-          data: { ...data, year: newYear },
-        } as ElementRecord<ShapeData>;
+          ...previous,
+          data: { ...previous.data, year: newYear },
+        };
       });
     },
-    [setCell]
+    [setCell, isElement]
   );
 
   return (
@@ -356,7 +348,7 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
 // ----------------------------------------------------------------------------
 
 function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) {
-  const { setCell } = useGraph<ElementRecord<ShapeData>>();
+  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
   const { width, height } = useCell(selectElementSize);
 
   const handlePercentageChange = useCallback(
@@ -365,17 +357,13 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
       const newPercentage = Number(event.target.value);
 
       // Read all current product percentages for redistribution
-      setCell((previous) => {
-        const previousElement = previous as ElementRecord<ShapeData>;
-        const data = previousElement.data as ProductData | undefined;
-        if (!data) {
-          return { ...previousElement, id: name } as ElementRecord<ShapeData>;
-        }
+      setCell(name, (previous) => {
+        if (!isElement(previous)) return previous;
+        if (previous.data?.type !== 'Product') return previous;
         return {
-          ...previousElement,
-          id: name,
-          data: { ...data, percentage: newPercentage },
-        } as ElementRecord<ShapeData>;
+          ...previous,
+          data: { ...previous.data, percentage: newPercentage },
+        };
       });
 
       // Redistribute the difference among other products
@@ -391,24 +379,21 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
 
       for (const productId of sortedIds) {
         if (diff === 0) break;
-        setCell((previous) => {
-          const previousElement = previous as ElementRecord<ShapeData>;
-          const data = previousElement.data as ShapeData | undefined;
-          if (data?.type !== 'Product') {
-            return { ...previousElement, id: productId } as ElementRecord<ShapeData>;
-          }
+        setCell(productId, (previous) => {
+          if (!isElement(previous)) return previous;
+          const { data } = previous;
+          if (data?.type !== 'Product') return previous;
           const previousPercentage = data.percentage;
           const adjusted = Math.max(previousPercentage + diff, 0);
           diff = Math.min(previousPercentage + diff, 0);
           return {
-            ...previousElement,
-            id: productId,
+            ...previous,
             data: { ...data, percentage: adjusted },
-          } as ElementRecord<ShapeData>;
+          };
         });
       }
     },
-    [setCell, name, percentage]
+    [setCell, isElement, name, percentage]
   );
 
   return (

@@ -7,6 +7,7 @@ import {
   useRemoveCells,
   useResetCells,
   useUpdateCells,
+  type SetCell,
 } from './use-cell-setters';
 import type {
   DiaElementAttributes,
@@ -34,17 +35,14 @@ export interface UseGraphResult<
   /** The JointJS graph instance. */
   readonly graph: dia.Graph;
   /**
-   * Add or update a cell. Takes either a full cell record (id via
-   * `cell.id`) or an updater `(prev) => next` that must return a record
-   * whose `id` matches the target. If a cell with the given `id` exists,
-   * attributes merge over it; otherwise the cell is added.
-   * Throws when the input has no `id`.
+   * Add or update a cell. Two forms:
+   * - `setCell(record)` — `record.id` names the target. Existing cell:
+   *   attributes merge over it. Missing cell: the cell is added.
+   * - `setCell(id, (prev) => next)` — updater form. The updater is invoked
+   *   once with the real previous record. Throws when no cell with `id`
+   *   exists (use the direct form to add).
    */
-  readonly setCell: (
-    input:
-      | CellUnion<Element, Link>
-      | ((previous: CellUnion<Element, Link>) => CellUnion<Element, Link>)
-  ) => void;
+  readonly setCell: SetCell<Element, Link>;
   /** Remove a cell by id. No-op when the id is missing. */
   readonly removeCell: (id: CellId) => void;
   /** Remove multiple cells by id. Missing ids are silently skipped. */
@@ -69,14 +67,14 @@ export interface UseGraphResult<
    * so any `dia.Element` subclass (including custom shapes) is recognised,
    * not just our default `ElementModel`.
    */
-  readonly isElement: (input: CellUnion<Element, Link>) => boolean;
+  readonly isElement: (input: CellUnion<Element, Link>) => input is Element;
   /**
    * Predicate / type guard: true when the input resolves to a link cell.
    * Delegates to `GraphStore.isLink` — consults the graph's type registry so
    * any `dia.Link` subclass (including custom shapes) is recognised, not just
    * our default `LinkModel`.
    */
-  readonly isLink: (input: CellUnion<Element, Link>) => boolean;
+  readonly isLink: (input: CellUnion<Element, Link>) => input is Link;
 }
 
 /**

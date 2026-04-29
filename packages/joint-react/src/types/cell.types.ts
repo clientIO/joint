@@ -10,12 +10,12 @@ type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 export type KnownCellType = typeof ELEMENT_MODEL_TYPE | typeof LINK_MODEL_TYPE;
 
 /** Minimal shape any keyed record must satisfy to live in a container. */
-export interface WithId {
+export interface WithOptionalId {
   readonly id?: DiaCell.ID;
 }
 
-/** Adds a discriminating `type` field on top of {@link WithId}. */
-export interface WithType<Type = KnownCellType> extends WithId {
+/** Adds a discriminating `type` field on top of {@link WithOptionalId}. */
+export interface WithType<Type = KnownCellType> extends WithOptionalId {
   readonly type: Type;
 }
 
@@ -26,13 +26,13 @@ type WithData<Data = unknown> = unknown extends Data
 /**
  * Structural upper bound for any element-like cell.
  *
- * - Extends {@link WithId} and passes through JointJS `dia.Element.Attributes`
+ * - Extends {@link WithOptionalId} and passes through JointJS `dia.Element.Attributes`
  *   (minus `id`, `type`, `position`, `size`, `angle` which we narrow below).
  * - Narrows `position` / `size` / `angle` to the React-side aliases.
  * - Allows arbitrary extra fields via the index signature so callers can
  *   attach custom data without losing type safety on known fields.
  */
-export interface DiaElementAttributes extends WithId, WithData, DiaElement.Attributes {
+export interface DiaElementAttributes extends WithOptionalId, WithData, DiaElement.Attributes {
   readonly portMap?: Record<string, ElementPort>;
   readonly portStyle?: Partial<ElementPort>;
   readonly type?: string;
@@ -63,13 +63,13 @@ type InternalElementRecord<ElementData = unknown> = PickRequired<
 /**
  * Structural upper bound for any link-like cell.
  *
- * - Extends {@link WithId} and passes through JointJS `dia.Link.Attributes`
+ * - Extends {@link WithOptionalId} and passes through JointJS `dia.Link.Attributes`
  *   (minus `id`, `type`, `source`, `target` which we narrow below).
  * - Narrows `source` / `target` to `dia.Link.EndJSON`.
  * - Allows arbitrary extra fields via the index signature so callers can
  *   attach custom data without losing type safety on known fields.
  */
-export interface DiaLinkAttributes extends WithId, WithData, DiaLink.Attributes {
+export interface DiaLinkAttributes extends WithOptionalId, WithData, DiaLink.Attributes {
   readonly style?: LinkStyle;
   readonly labelMap?: Record<string, LinkLabel>;
   readonly labelStyle?: Partial<LinkLabel>;

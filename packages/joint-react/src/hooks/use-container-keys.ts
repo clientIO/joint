@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { ReadonlyContainer } from '../store/state-container';
-import type { CellId, WithId } from '../types/cell.types';
+import type { CellId, WithOptionalId } from '../types/cell.types';
 
 /**
  * Internal hook: subscribe to container size changes and return a stable array of IDs.
@@ -10,7 +10,9 @@ import type { CellId, WithId } from '../types/cell.types';
  * @returns A stable array of cell IDs. Same reference when IDs haven't changed.
  * @internal
  */
-export function useContainerKeys<T extends WithId>(container: ReadonlyContainer<T>): CellId[] {
+export function useContainerKeys<T extends WithOptionalId>(
+  container: ReadonlyContainer<T>
+): CellId[] {
   const previousKeysRef = useRef<CellId[]>([]);
 
   const subscribe = useCallback(

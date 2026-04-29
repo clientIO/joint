@@ -128,7 +128,7 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
   const { width, height } = useCell(selectElementSize);
   const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-  const { setCell } = useGraph<ElementRecord<ShapeData>>();
+  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
 
   // Turbine blade path
   const turbinePath = `
@@ -164,21 +164,20 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
 
   const handleTogglePower = useCallback(() => {
     const newPower = power === 0 ? 1 : 0;
-    setCell((previous) => {
-      const previousElement = previous as ElementRecord<ShapeData>;
-      const previousData = previousElement.data as GeneratorData | undefined;
+    setCell(GENERATOR_ID, (previous) => {
+      if (!isElement(previous)) return previous;
+      const previousData = previous.data?.type === ShapeTypes.generator ? previous.data : undefined;
       const nextData: GeneratorData = {
         ...(previousData ?? { type: ShapeTypes.generator, power: 0 }),
         type: ShapeTypes.generator,
         power: newPower,
       };
       return {
-        ...previousElement,
-        id: GENERATOR_ID,
+        ...previous,
         data: nextData,
-      } as ElementRecord<ShapeData>;
+      };
     });
-  }, [power, setCell]);
+  }, [power, setCell, isElement]);
 
   return (
     <>
@@ -338,7 +337,7 @@ function RenderShapeElement(data: Readonly<ShapeData>) {
 // Power Control Component
 // ----------------------------------------------------------------------------
 function PowerControl() {
-  const { setCell } = useGraph<ElementRecord<ShapeData>>();
+  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
 
   // Read generator power from store (reactive)
   const power = useGeneratorPower();
@@ -346,22 +345,21 @@ function PowerControl() {
   const handlePowerChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newPower = event.target.valueAsNumber;
-      setCell((previous) => {
-        const previousElement = previous as ElementRecord<ShapeData>;
-        const previousData = previousElement.data as GeneratorData | undefined;
+      setCell(GENERATOR_ID, (previous) => {
+        if (!isElement(previous)) return previous;
+        const previousData = previous.data?.type === ShapeTypes.generator ? previous.data : undefined;
         const nextData: GeneratorData = {
           ...(previousData ?? { type: ShapeTypes.generator, power: 0 }),
           type: ShapeTypes.generator,
           power: newPower,
         };
         return {
-          ...previousElement,
-          id: GENERATOR_ID,
+          ...previous,
           data: nextData,
-        } as ElementRecord<ShapeData>;
+        };
       });
     },
-    [setCell]
+    [setCell, isElement]
   );
 
   return (

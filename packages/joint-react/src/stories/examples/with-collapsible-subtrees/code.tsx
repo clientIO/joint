@@ -302,7 +302,7 @@ function useGatePattern() {
 function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
   const { width, height } = useCell(selectElementSize);
   const id = useCellId();
-  const { setCell } = useGraph<ElementRecord<FTAData>>();
+  const { setCell, isElement } = useGraph<ElementRecord<FTAData>>();
   const gatePatternUrl = useGatePattern();
   const { magnetRef } = useMarkup();
 
@@ -344,19 +344,16 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
     const nextIndex = (currentIndex + 1) % GATE_TYPES.length;
     const nextGate = GATE_TYPES[nextIndex];
 
-    setCell((previous) => {
-      const previousElement = previous as ElementRecord<FTAData>;
-      const data = previousElement.data as IntermediateEvent | undefined;
-      if (!data) {
-        return { ...previousElement, id } as ElementRecord<FTAData>;
-      }
+    setCell(id, (previous) => {
+      if (!isElement(previous)) return previous;
+      const { data } = previous;
+      if (data?.type !== 'IntermediateEvent') return previous;
       return {
-        ...previousElement,
-        id,
+        ...previous,
         data: { ...data, gate: nextGate },
-      } as ElementRecord<FTAData>;
+      };
     });
-  }, [id, gate, setCell]);
+  }, [id, gate, setCell, isElement]);
 
   return (
     <>

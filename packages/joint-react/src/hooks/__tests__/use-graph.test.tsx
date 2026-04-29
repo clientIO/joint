@@ -91,15 +91,36 @@ describe('useGraph', () => {
       expect(cell?.get('position')).toEqual({ x: 999, y: 999 });
     });
 
-    it('supports an updater function (prev: CellRecord) => CellRecord', async () => {
+    it('supports an updater function setCell(id, prev => next)', async () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
       await flush();
       await act(async () => {
-        result.current.setCell(shiftAXBy10);
+        result.current.setCell('a', shiftAXBy10);
         await flush();
       });
       expect(result.current.graph.getCell('a')?.get('position')).toEqual({ x: 10, y: 0 });
+    });
+
+    it('invokes the updater exactly once with the real previous record', async () => {
+      const { result } = renderHook(() => useGraph(), { wrapper });
+      await waitFor(() => expect(result.current).toBeDefined());
+      await flush();
+      const updater = jest.fn((previous: DiaCellAttributes) => {
+        const element = previous as ElementRecord;
+        return {
+          ...element,
+          position: { x: (element.position?.x ?? 0) + 5, y: 0 },
+        } as CellRecord;
+      });
+      await act(async () => {
+        result.current.setCell('a', updater);
+        await flush();
+      });
+      expect(updater).toHaveBeenCalledTimes(1);
+      const [[previous]] = updater.mock.calls;
+      expect(previous.id).toBe('a');
+      expect(previous.type).toBe(ELEMENT_MODEL_TYPE);
     });
   });
 

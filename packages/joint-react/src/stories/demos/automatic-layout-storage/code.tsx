@@ -11,8 +11,8 @@ import {
   useCells,
   useNodesMeasuredEffect,
   type CellRecord,
+  type Computed,
   type ElementRecord,
-  type LinkRecord,
 } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -20,8 +20,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // ─────────────────────────────────────────────────────────────────────────────
 // Concept
 //
-// We persist ONLY the user `data` field of each element, plus link
-// source/target. Everything else is automatic:
+// We persist a flat array of minimal cells — element `data` plus link
+// source/target ids. Everything else is automatic:
 //
 //   - size      → measured by <HTMLHost> from the rendered DOM
 //   - position  → recomputed by a tree layout each time nodes are measured
@@ -36,34 +36,38 @@ interface NodeData {
   readonly owner: string;
 }
 
-// The persisted shape mirrors what GraphProvider accepts: keyed by id,
-// but stripped to the minimum — data on elements, source/target on links.
-interface Snapshot {
-  readonly elements: Record<string, { data: NodeData }>;
-  readonly links: Record<string, { source: string; target: string }>;
-}
-
-const SEED: Snapshot = {
-  elements: {
-    n1: { data: { title: 'Discovery', owner: 'Aki' } },
-    n2: { data: { title: 'Research', owner: 'Mira' } },
-    n3: { data: { title: 'Wireframes', owner: 'Theo' } },
-    n4: { data: { title: 'Tech spike', owner: 'June' } },
-    n5: { data: { title: 'Visual design', owner: 'Theo' } },
-    n6: { data: { title: 'Prototype', owner: 'Saya' } },
-    n7: { data: { title: 'Build', owner: 'June' } },
-    n8: { data: { title: 'QA', owner: 'Aki' } },
-  },
-  links: {
-    l1: { source: 'n1', target: 'n2' },
-    l2: { source: 'n1', target: 'n3' },
-    l3: { source: 'n1', target: 'n4' },
-    l4: { source: 'n3', target: 'n5' },
-    l5: { source: 'n3', target: 'n6' },
-    l6: { source: 'n4', target: 'n7' },
-    l7: { source: 'n7', target: 'n8' },
-  },
+// Minimal persisted cell: a unified array, discriminated by `type`.
+type SnapshotElement = {
+  readonly id: string;
+  readonly type: 'element';
+  readonly data: NodeData;
 };
+type SnapshotLink = {
+  readonly id: string;
+  readonly type: 'link';
+  readonly source: string;
+  readonly target: string;
+};
+type SnapshotCell = SnapshotElement | SnapshotLink;
+type Snapshot = readonly SnapshotCell[];
+
+const SEED: Snapshot = [
+  { id: 'n1', type: 'element', data: { title: 'Discovery', owner: 'Aki' } },
+  { id: 'n2', type: 'element', data: { title: 'Research', owner: 'Mira' } },
+  { id: 'n3', type: 'element', data: { title: 'Wireframes', owner: 'Theo' } },
+  { id: 'n4', type: 'element', data: { title: 'Tech spike', owner: 'June' } },
+  { id: 'n5', type: 'element', data: { title: 'Visual design', owner: 'Theo' } },
+  { id: 'n6', type: 'element', data: { title: 'Prototype', owner: 'Saya' } },
+  { id: 'n7', type: 'element', data: { title: 'Build', owner: 'June' } },
+  { id: 'n8', type: 'element', data: { title: 'QA', owner: 'Aki' } },
+  { id: 'l1', type: 'link', source: 'n1', target: 'n2' },
+  { id: 'l2', type: 'link', source: 'n1', target: 'n3' },
+  { id: 'l3', type: 'link', source: 'n1', target: 'n4' },
+  { id: 'l4', type: 'link', source: 'n3', target: 'n5' },
+  { id: 'l5', type: 'link', source: 'n3', target: 'n6' },
+  { id: 'l6', type: 'link', source: 'n4', target: 'n7' },
+  { id: 'l7', type: 'link', source: 'n7', target: 'n8' },
+];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Memo selector: snapshot → unified readonly CellRecord[] array the GraphProvider expects.
@@ -81,20 +85,17 @@ const LINK_ATTRS = {
 };
 
 function toCells(snapshot: Snapshot): ReadonlyArray<CellRecord<NodeData>> {
-  const cells: Array<ElementRecord<NodeData> | LinkRecord> = [];
-  for (const [id, node] of Object.entries(snapshot.elements)) {
-    cells.push({ id, type: 'element', data: node.data });
-  }
-  for (const [id, link] of Object.entries(snapshot.links)) {
-    cells.push({
-      id,
-      type: 'link',
-      source: { id: link.source },
-      target: { id: link.target },
-      attrs: LINK_ATTRS,
-    });
-  }
-  return cells;
+  return snapshot.map((cell) =>
+    cell.type === 'element'
+      ? { id: cell.id, type: 'element', data: cell.data }
+      : {
+          id: cell.id,
+          type: 'link',
+          source: { id: cell.source },
+          target: { id: cell.target },
+          attrs: LINK_ATTRS,
+        }
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,7 +115,7 @@ function saveSnapshotToFile(snapshot: Snapshot, filename: string): void {
 async function loadSnapshotFromFile(file: File): Promise<Snapshot> {
   const text = await file.text();
   const parsed = JSON.parse(text) as Snapshot;
-  if (!parsed?.elements || !parsed?.links) throw new Error('Invalid snapshot');
+  if (!Array.isArray(parsed)) throw new Error('Invalid snapshot');
   return parsed;
 }
 
@@ -233,11 +234,11 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
   }, []);
 
   const updateTitle = useCallback(
-    (next: string) => setCell({ id, data: { title: next, owner } } as CellRecord<NodeData>),
+    (next: string) => setCell({ id, type: 'element', data: { title: next, owner } }),
     [setCell, id, owner]
   );
   const updateOwner = useCallback(
-    (next: string) => setCell({ id, data: { title, owner: next } } as CellRecord<NodeData>),
+    (next: string) => setCell({ id, type: 'element', data: { title, owner: next } }),
     [setCell, id, title]
   );
 
@@ -349,35 +350,37 @@ function PencilGlyph() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function useLiveSnapshot(): Snapshot {
-  const cells = useCells();
-  const { isElement, isLink } = useGraph<ElementRecord<NodeData>>();
+  const cells = useCells<Computed<CellRecord<NodeData>>>();
 
   return useMemo<Snapshot>(() => {
-    const out: Snapshot = { elements: {}, links: {} };
+    const out: SnapshotCell[] = [];
     for (const cell of cells) {
-      if (isElement(cell)) {
-        const element = cell as ElementRecord<NodeData>;
-        if (!element.data) continue;
-        out.elements[String(element.id)] = { data: element.data };
+      if (cell.type === 'element') {
+        if (!cell.data) continue;
+        out.push({ id: String(cell.id), type: 'element', data: cell.data });
         continue;
       }
-      if (isLink(cell)) {
-        const link = cell as LinkRecord;
-        const source = link.source as { id?: string } | undefined;
-        const target = link.target as { id?: string } | undefined;
-        if (!source?.id || !target?.id) continue;
-        out.links[String(link.id)] = { source: String(source.id), target: String(target.id) };
+      if (cell.type === 'link') {
+        const sourceId = cell.source?.id;
+        const targetId = cell.target?.id;
+        if (sourceId == undefined || targetId == undefined) continue;
+        out.push({
+          id: String(cell.id),
+          type: 'link',
+          source: String(sourceId),
+          target: String(targetId),
+        });
       }
     }
     return out;
-  }, [cells, isElement, isLink]);
+  }, [cells]);
 }
 
 function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
   const json = useMemo(() => JSON.stringify(snapshot, null, 2), [snapshot]);
   const bytes = new Blob([json]).size;
-  const elementCount = Object.keys(snapshot.elements).length;
-  const linkCount = Object.keys(snapshot.links).length;
+  const elementCount = snapshot.filter((cell) => cell.type === 'element').length;
+  const linkCount = snapshot.filter((cell) => cell.type === 'link').length;
 
   return (
     <aside className="w-80 shrink-0 bg-[#f1ebda] border-l border-[rgba(28,36,52,0.12)] flex flex-col">
@@ -446,7 +449,7 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
         source: { id: String(parent.id) },
         target: { id },
         attrs: LINK_ATTRS,
-      } as CellRecord<NodeData>);
+      });
     }
   }, [setCell, graph]);
 

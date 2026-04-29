@@ -57,22 +57,21 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 ];
 
 function LabelInput({ id, label }: Readonly<{ id: string; label: string }>) {
-  const { setCell } = useGraph<ElementRecord<NodeData>>();
+  const { setCell, isElement } = useGraph<ElementRecord<NodeData>>();
   return (
     <input
       style={{ padding: 5, marginTop: 4 }}
       value={label}
       onChange={(event) =>
-        setCell((previous) => {
-          const previousElement = previous as ElementRecord<NodeData>;
+        setCell(id, (previous) => {
+          if (!isElement(previous)) return previous;
           return {
-            ...previousElement,
-            id,
+            ...previous,
             data: {
-              ...(previousElement.data ?? { label: '', color: '#ffffff' }),
+              ...(previous.data ?? { label: '', color: '#ffffff' }),
               label: event.target.value,
             },
-          } as ElementRecord<NodeData>;
+          };
         })
       }
       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
