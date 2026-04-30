@@ -61,6 +61,37 @@ describe('GraphStore', () => {
       store.destroy(true);
     });
 
+    it('bumps measureState after initialCells seed (so useNodesMeasuredEffect can fire isInitial)', async () => {
+      const initialCells: readonly CellRecord[] = [
+        {
+          id: 'a',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 100, height: 50 },
+        } as CellRecord,
+      ];
+      const store = new GraphStore({ initialCells });
+      // simpleScheduler defers the measureState bump to a microtask.
+      await flush();
+      expect(store.measureState.get()).toBeGreaterThan(0);
+      store.destroy(false);
+    });
+
+    it('does not bump measureState when initialCells contain only links or zero-sized elements', async () => {
+      const initialCells: readonly CellRecord[] = [
+        {
+          id: 'zero',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 0, height: 0 },
+        } as CellRecord,
+      ];
+      const store = new GraphStore({ initialCells });
+      await flush();
+      expect(store.measureState.get()).toBe(0);
+      store.destroy(false);
+    });
+
     it('accepts a controlled cells prop and mirrors it into the graph', () => {
       const cells: readonly CellRecord[] = [
         {

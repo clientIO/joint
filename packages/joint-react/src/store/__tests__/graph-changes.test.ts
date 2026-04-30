@@ -369,6 +369,83 @@ describe('graphChanges', () => {
     });
   });
 
+  describe('onElementsSizeChange', () => {
+    function setupWithSize() {
+      const graph = createGraph();
+      const onChanges = jest.fn();
+      const onElementsSizeChange = jest.fn();
+      const controller = graphChanges({
+        graph,
+        onChanges,
+        onElementsSizeChange,
+      });
+      return { graph, onChanges, onElementsSizeChange, controller };
+    }
+
+    it('fires for each element when resetCells seeds cells with sizes', () => {
+      const { graph, onElementsSizeChange } = setupWithSize();
+      graph.resetCells([
+        {
+          id: 'a',
+          type: 'element',
+          position: { x: 0, y: 0 },
+          size: { width: 100, height: 50 },
+        },
+        {
+          id: 'b',
+          type: 'element',
+          position: { x: 200, y: 0 },
+          size: { width: 80, height: 40 },
+        },
+        {
+          id: 'l1',
+          type: 'standard.Link',
+          source: { id: 'a' },
+          target: { id: 'b' },
+        },
+      ]);
+
+      const elementCalls = onElementsSizeChange.mock.calls.filter(
+        ([id]) => id === 'a' || id === 'b'
+      );
+      expect(elementCalls).toHaveLength(2);
+      expect(elementCalls).toEqual(
+        expect.arrayContaining([
+          ['a', { width: 100, height: 50 }],
+          ['b', { width: 80, height: 40 }],
+        ])
+      );
+    });
+
+    it('does not fire for links on reset', () => {
+      const { graph, onElementsSizeChange } = setupWithSize();
+      graph.resetCells([
+        {
+          id: 'a',
+          type: 'element',
+          position: { x: 0, y: 0 },
+          size: { width: 100, height: 50 },
+        },
+        {
+          id: 'b',
+          type: 'element',
+          position: { x: 200, y: 0 },
+          size: { width: 80, height: 40 },
+        },
+        {
+          id: 'l1',
+          type: 'standard.Link',
+          source: { id: 'a' },
+          target: { id: 'b' },
+        },
+      ]);
+
+      for (const [id] of onElementsSizeChange.mock.calls) {
+        expect(id).not.toBe('l1');
+      }
+    });
+  });
+
   describe('destroy', () => {
     it('stops listening to graph events', () => {
       const { graph, onChanges, controller } = setup();
