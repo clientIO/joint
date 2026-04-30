@@ -290,7 +290,7 @@ export namespace Graph {
 
     type Cells = CellCollection;
 
-    type CellInit = Cell | Cell.JSON;
+    type CellInit = Cell | Cell.JSONInit;
 
     type CellRef = Cell | Cell.ID;
 
@@ -308,7 +308,7 @@ export namespace Graph {
         cells: Array<Cell.JSON>;
         layers?: Array<GraphLayer.Attributes>;
         defaultLayer?: string;
-        [key: string]: any;
+        [key: string]: unknown;
     }
 
     interface InsertLayerOptions extends Options {
@@ -474,9 +474,9 @@ export class Graph<A extends ObjectHash = Graph.Attributes, S = ModelSetOptions>
 
     getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-    toJSON(opt?: { cellAttributes?: Cell.ExportOptions }): any;
+    toJSON(opt?: { cellAttributes?: Cell.ExportOptions }): Graph.JSON;
 
-    fromJSON(json: any, opt?: S): this;
+    fromJSON(json: Graph.JSON, opt?: S): this;
 
     clear(opt?: { [key: string]: any }): this;
 
@@ -552,22 +552,43 @@ export namespace Cell {
 
     type ID = string | number;
 
-    interface GenericAttributes<T> {
-        attrs?: T;
-        z?: number;
-        layer?: string;
-        parent?: string;
-        [key: string]: any;
-    }
-
     interface Selectors {
         [selector: string]: Nullable<attributes.SVGAttributes> | undefined;
     }
 
-    interface Attributes extends GenericAttributes<Selectors> {
+    /**
+     * An object that is passed to the constructor of a cell.
+     * It should not contain the `type` field
+     */
+    interface Attributes<S = Selectors> {
+        id?: ID;
+        attrs?: S;
+        z?: number;
+        layer?: string;
+        parent?: string;
+        /**
+         * @todo change to `unknown` (breaking change)
+         * See `/test/ts/toolsView.test.ts`
+         */
+        [key: string]: any;
     }
 
-    type JSON<K extends Selectors = Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = T & {
+    /** @deprecated use `Attributes` instead. */
+    interface GenericAttributes<T> extends Attributes<T> {}
+
+    /**
+     * When a cell is parsed from a JSON,
+     * only the `type` field is required to determine the constructor.
+     */
+    interface JSONInit<S = Selectors> extends Attributes<S> {
+        type: string;
+    }
+
+    /**
+     * The full JSON representation of a cell, as returned by `toJSON()`.
+     * The `id` and `type` attributes are always present.
+     */
+    type JSON<K extends Selectors = Selectors, T extends Attributes<K> = Attributes<K>> = T & {
         [attribute in keyof T]: T[attribute];
     } & {
         id: ID;
@@ -777,7 +798,7 @@ export class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSet
 
 export namespace Element {
 
-    interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
+    interface Attributes<T = Cell.Selectors> extends Cell.Attributes<T> {
         markup?: string | MarkupJSON;
         position?: Point;
         size?: Size;
@@ -788,7 +809,10 @@ export namespace Element {
         };
     }
 
-    interface Attributes extends GenericAttributes<Cell.Selectors> {
+    /** @deprecated use `Attributes` instead. */
+    interface GenericAttributes<T> extends Attributes<T> {}
+
+    interface JSONInit<S = Cell.Selectors> extends Cell.JSONInit<S>, Attributes<S> {
     }
 
     interface ConstructorOptions extends Cell.ConstructorOptions {
@@ -979,7 +1003,7 @@ export namespace Link {
         y?: number;
     }
 
-    interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
+    interface Attributes<S = Cell.Selectors> extends Cell.Attributes<S> {
         source?: EndJSON;
         target?: EndJSON;
         labels?: Label[];
@@ -988,7 +1012,10 @@ export namespace Link {
         connector?: connectors.Connector | connectors.ConnectorJSON;
     }
 
-    interface Attributes extends GenericAttributes<Cell.Selectors> {
+    /** @deprecated use `Attributes` instead. */
+    interface GenericAttributes<T> extends Attributes<T> {}
+
+    interface JSONInit<S = Cell.Selectors> extends Cell.JSONInit<S>, Attributes<S> {
     }
 
     interface LabelPosition {
