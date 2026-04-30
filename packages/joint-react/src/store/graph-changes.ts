@@ -138,6 +138,13 @@ export function graphChanges(options: Options) {
       changes.clear();
       for (const cell of collection.models) {
         changes.set(cell.id, { type: 'add', data: cell });
+        // `reset` suppresses per-cell `add` events, so size notifications
+        // for seed elements never reach `onElementsSizeChange` via the
+        // `add` listener. Mirror that path here so initial-measurement
+        // gating (e.g. `useNodesMeasuredEffect`) fires for seed cells.
+        if (onElementsSizeChange && cell.isElement()) {
+          onElementsSizeChange(cell.id, (cell as dia.Element).size());
+        }
       }
       // Bypass the simpleScheduler wrapper used for normal cell events.
       // `reset` is a one-shot bulk operation and callers (e.g. GraphStore
