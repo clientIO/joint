@@ -31,8 +31,8 @@ export function selectElementSize(element: Computed<ElementRecord>) {
  * Reads `element.angle`.
  * @param element
  */
-export function selectElementAngle(element: Computed<ElementRecord>) {
-  return element.angle;
+export function selectElementAngle(element: Computed<ElementRecord>): number {
+  return element.angle ?? 0;
 }
 
 /**
@@ -68,5 +68,21 @@ export const selectCellType = (cell: Computed<CellRecord>) => cell.type;
  * any cell can be embedded.
  * @param cell
  */
-export const selectCellParent = (cell: Computed<CellRecord>): CellId | undefined =>
-  cell.parent as CellId | undefined;
+export const selectCellParent = (cell: Computed<CellRecord>): CellId | null =>
+  cell.parent ?? null;
+
+/**
+ * Reads the `layer` field — name of the JointJS layer the cell renders into,
+ * or undefined when the cell uses the paper's default layer.
+ * @param cell
+ */
+export const selectCellLayer = (cell: Computed<CellRecord>): string | null =>
+  cell.layer ?? null;
+
+/**
+ * Reads the `z` field — JointJS z-index (paint order within a layer).
+ * Undefined when the cell hasn't been assigned an explicit z-index.
+ * @param cell
+ */
+export const selectCellZIndex = (cell: Computed<CellRecord>): number =>
+  cell.z ?? 0;

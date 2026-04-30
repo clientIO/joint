@@ -56,7 +56,7 @@ describe('cell-selectors', () => {
     expect(selectCellParent(child)).toBe('parent-1');
   });
 
-  it('selectCellParent returns undefined when no parent', () => {
-    expect(selectCellParent(element)).toBeUndefined();
+  it('selectCellParent returns null when no parent', () => {
+    expect(selectCellParent(element)).toBeNull();
   });
 });

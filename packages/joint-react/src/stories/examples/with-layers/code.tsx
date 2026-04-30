@@ -2,8 +2,8 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, shapes } from '@joint/core';
-import { type CellRecord, GraphProvider, useCell, Paper, ElementModel, LinkModel, HTMLHost, selectElementSize } from '@joint/react';
-import { useMemo, useRef, useState } from 'react';
+import { type CellRecord, GraphProvider, useCell, Paper, ElementModel, LinkModel, HTMLHost, selectElementSize, usePaper } from '@joint/react';
+import { useMemo, useState } from 'react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 interface LayeredElementData {
@@ -131,7 +131,7 @@ interface MainProps {
 
 function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
   const layers = ['background', 'main', 'foreground'];
-  const paperRef = useRef<dia.Paper | null>(null);
+  const { wakeUp } = usePaper('layers-paper');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -142,7 +142,7 @@ function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
             type="button"
             onClick={() => {
               toggleLayer(layerId);
-              paperRef.current?.wakeUp();
+              wakeUp();
             }}
             style={{
               padding: '8px 16px',
@@ -160,7 +160,7 @@ function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
         ))}
       </div>
       <Paper
-        ref={paperRef}
+        id="layers-paper"
         height={300}
         className={PAPER_CLASSNAME}
         renderElement={RenderElement}
