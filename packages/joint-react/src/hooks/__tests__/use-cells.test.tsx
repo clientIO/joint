@@ -265,4 +265,43 @@ describe('useCells (selector returning new reference)', () => {
     await act(async () => flush());
     expect(result.current).toEqual(['a', 'b', 'c', 'l1']);
   });
+
+  it('returns a new reference when the picked array length changes (line 24)', async () => {
+    storeRef = undefined;
+    const { result } = renderHook(() => useCells(['a', 'b']), {
+      wrapper: ProbeWrapper,
+    });
+    await act(async () => flush());
+    const before = result.current;
+    expect(before.map((cell) => cell.id)).toEqual(['a', 'b']);
+    // Removing 'a' shrinks the picked array — `areArraysShallowEqual` hits
+    // its `a.length !== b.length` early-out (line 24) and the result diverges.
+    await act(async () => {
+      storeRef!.graph.getCell('a')?.remove();
+      await flush();
+    });
+    expect(result.current).not.toBe(before);
+    expect(result.current.map((cell) => cell.id)).toEqual(['b']);
+  });
+
+  it('selector returning a non-array falls through to Object.is (line 75)', async () => {
+    // `arrayAwareEqual` is selected when a selector is supplied. Line 75 —
+    // `return Object.is(a, b)` — fires only when at least one side is not
+    // an array. A `cells.length` selector returns a number, so the array
+    // branch is skipped and the Object.is fallback runs on the next commit.
+    storeRef = undefined;
+    const { result } = renderHook(() => useCells((cells) => cells.length), {
+      wrapper: ProbeWrapper,
+    });
+    await act(async () => flush());
+    expect(result.current).toBe(4);
+
+    // Mutate a cell so the store version bumps and the equality check runs.
+    await act(async () => {
+      storeRef!.graph.getCell('a')?.set('position', { x: 42, y: 42 });
+      await flush();
+    });
+    // Length didn't change; Object.is(4, 4) === true → cached value held.
+    expect(result.current).toBe(4);
+  });
 });

@@ -207,4 +207,41 @@ describe('use-graph-events', () => {
 
     consoleError.mockRestore();
   });
+
+  it('skips entries whose handler is undefined (line 28)', () => {
+    const graph = getTestGraph();
+    const onAdd = jest.fn();
+    const listenerHandlers = new Map<
+      string,
+      Array<(...args: Parameters<mvc.EventHandler>) => void>
+    >();
+    const listenToSpy = jest
+      .spyOn(mvc.Listener.prototype, 'listenTo')
+      .mockImplementation((...args: unknown[]) => {
+        const [, eventNameOrHash, callback] = args;
+        if (typeof eventNameOrHash === 'string' && typeof callback === 'function') {
+          const callbacks = listenerHandlers.get(eventNameOrHash) ?? [];
+          callbacks.push(callback as (...args: Parameters<mvc.EventHandler>) => void);
+          listenerHandlers.set(eventNameOrHash, callbacks);
+        }
+      });
+    try {
+      // `remove: undefined` exercises the `if (!handler) continue;` guard
+      // (line 28). The hook must register `add` only and silently skip `remove`.
+      const handlers: Partial<dia.Graph.EventMap> = {
+        add: onAdd,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        remove: undefined as any,
+      };
+      renderHook(() => {
+        useGraphEvents(graph, handlers);
+      });
+      expect(listenerHandlers.get('add')?.length ?? 0).toBeGreaterThan(0);
+      // `remove` was undefined → no listener registered for it.
+      expect(listenerHandlers.get('remove')).toBeUndefined();
+    } finally {
+      listenToSpy.mockRestore();
+    }
+  });
+
 });

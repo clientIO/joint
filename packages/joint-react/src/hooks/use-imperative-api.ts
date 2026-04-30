@@ -71,6 +71,10 @@ interface ResultNotReady<Instance> extends ResultBase<Instance> {
   readonly isReady: false;
 }
 
+/**
+ * Result of {@link useImperativeApi} — a discriminated union narrowed by `isReady`.
+ * When `isReady` is `true`, `ref.current` is guaranteed non-null.
+ */
 export type ImperativeStateResult<Instance> = ResultReady<Instance> | ResultNotReady<Instance>;
 
 /**

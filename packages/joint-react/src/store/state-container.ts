@@ -8,6 +8,7 @@ import type {
   DiaLinkAttributes,
 } from '../types/cell.types';
 
+/** Update payload accepted by container setters: a new value or a previous-state updater. */
 export type Update<T> = ((previous: T | undefined) => T | undefined) | T;
 
 /**
@@ -19,6 +20,7 @@ export function getValue<T>(previous: T | undefined, updater: Update<T>): T | un
   return isUpdater(updater) ? updater(previous) : updater;
 }
 
+/** Read-only view of a cell container — supports reads, lookups, and subscriptions. */
 export interface ReadonlyContainer<
   Cell extends CellUnion<DiaElementAttributes, DiaLinkAttributes>,
 > {
@@ -32,6 +34,7 @@ export interface ReadonlyContainer<
   subscribeToAll: (listener: () => void) => () => void;
 }
 
+/** Mutable cell container — extends {@link ReadonlyContainer} with set/delete/reset operations. */
 export interface Container<Cell extends CellUnion<DiaElementAttributes, DiaLinkAttributes>>
   extends ReadonlyContainer<Cell> {
   set: (id: CellId, update: Update<Cell>) => void;

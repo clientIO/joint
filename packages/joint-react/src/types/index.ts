@@ -1,15 +1,21 @@
 import { dia } from '@joint/core';
 import { isString } from '../utils/is';
 
-// eslint-disable-next-line sonarjs/no-useless-intersection
-export type LiteralUnion<T extends string> = T | (string & {});
+/**
+ * Union of known string literals plus arbitrary strings while preserving
+ * intellisense for the known members.
+ */
+export type LiteralUnion<T extends string> = T | (string & Record<never, never>);
 
+/** Strips the index signature from `T`, leaving only explicitly declared keys. */
 export type RemoveIndexSignature<T> = {
   [K in keyof T as string extends K ? never : K]: T[K];
 };
 
+/** Like `Omit`, but first removes any index signature from `T`. */
 export type OmitWithoutIndexSignature<T, K extends keyof T> = Omit<RemoveIndexSignature<T>, K>;
 
+/** Removes `readonly` modifiers from every property of `T`. */
 export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**
@@ -32,6 +38,10 @@ export interface Optional {
   readonly optional: true;
 }
 
+/**
+ * Identifies a Paper instance — a registered id, a React ref, the Paper
+ * itself, or an `Optional` sentinel that opts out of throwing.
+ */
 export type PaperTarget = string | React.RefObject<dia.Paper | null> | dia.Paper | Optional;
 
 /**

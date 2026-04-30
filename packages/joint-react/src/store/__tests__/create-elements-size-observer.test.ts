@@ -104,8 +104,10 @@ describe('createElementsSizeObserver', () => {
     // Re-assign the mock after reset to ensure it's used
     globalThis.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 
-    createElementsSizeObserver =
-      require('../create-elements-size-observer').createElementsSizeObserver;
+    // jest.resetModules() requires synchronous re-import; using `require` is the only
+    // option here. ESM `import()` is async and does not bypass module cache the same way.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    createElementsSizeObserver = require('../create-elements-size-observer').createElementsSizeObserver;
 
     mockElements = new Map([
       ['element-1', { size: { width: 1, height: 1 }, position: { x: 0, y: 0 } }],
@@ -535,6 +537,91 @@ describe('createElementsSizeObserver', () => {
 
     it('should return false for unregistered elements', () => {
       expect(observer.has('non-existent')).toBe(false);
+    });
+  });
+
+  describe('processSizeChange branches', () => {
+    it('skips when elements map does not contain the cell id', () => {
+      const element = document.createElement('div');
+      mockElements.clear(); // ← getElements() returns an empty map
+      observer.add({ id: 'element-1', node: element });
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+      resizeObserver.triggerResize(element, 100, 50);
+      expect(mockOnBatchUpdate).not.toHaveBeenCalled();
+    });
+
+    it('skips when cell transform already matches the measured size (within epsilon)', () => {
+      const element = document.createElement('div');
+      mockGetCellTransform.mockImplementation((id: CellId) => ({
+        width: 100,
+        height: 50,
+        x: 0,
+        y: 0,
+        angle: 0,
+        element: { id } as dia.Element,
+      }));
+      observer.add({ id: 'element-1', node: element });
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+      resizeObserver.triggerResize(element, 100, 50);
+      expect(mockOnBatchUpdate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ResizeObserver entry edge cases', () => {
+    it('skips entries with no borderBoxSize', () => {
+      const element = document.createElement('div');
+      observer.add({ id: 'element-1', node: element });
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+
+      // Construct an entry with empty borderBoxSize manually
+      const callback = (resizeObserver as unknown as { callback: ResizeObserverCallback })
+        .callback;
+      callback(
+        [
+          {
+            target: element,
+            contentRect: {} as DOMRectReadOnly,
+            borderBoxSize: [],
+            contentBoxSize: [],
+            devicePixelContentBoxSize: [],
+          } as ResizeObserverEntry,
+        ],
+        resizeObserver as unknown as ResizeObserver
+      );
+
+      expect(mockOnBatchUpdate).not.toHaveBeenCalled();
+    });
+
+    it('skips entries with zero size (e.g. display:none)', () => {
+      const element = document.createElement('div');
+      observer.add({ id: 'element-1', node: element });
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+
+      resizeObserver.triggerResize(element, 0, 0);
+      expect(mockOnBatchUpdate).not.toHaveBeenCalled();
+    });
+
+    it('skips entries whose target is not currently observed', () => {
+      const element = document.createElement('div');
+      observer.add({ id: 'element-1', node: element });
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+      const otherNode = document.createElement('div');
+
+      const callback = (resizeObserver as unknown as { callback: ResizeObserverCallback })
+        .callback;
+      callback(
+        [
+          {
+            target: otherNode,
+            contentRect: {} as DOMRectReadOnly,
+            borderBoxSize: [{ inlineSize: 100, blockSize: 50 }],
+            contentBoxSize: [{ inlineSize: 100, blockSize: 50 }],
+            devicePixelContentBoxSize: [{ inlineSize: 100, blockSize: 50 }],
+          } as ResizeObserverEntry,
+        ],
+        resizeObserver as unknown as ResizeObserver
+      );
+      expect(mockOnBatchUpdate).not.toHaveBeenCalled();
     });
   });
 });

@@ -105,6 +105,10 @@ function getTextWrapStyles({
   return textWrapStyles;
 }
 
+/**
+ * Props for `SVGText` — combines native SVG `<text>` attributes with the
+ * JointJS Vectorizer text options used for word-wrap and annotation rendering.
+ */
 export interface SVGTextProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
@@ -114,7 +118,7 @@ export interface SVGTextProps
   readonly textWrap?: boolean | util.BreakTextOptions;
 }
 
-// eslint-disable-next-line jsdoc/require-jsdoc
+ 
 function Component(props: SVGTextProps, ref: React.ForwardedRef<SVGTextElement>) {
   const {
     children,

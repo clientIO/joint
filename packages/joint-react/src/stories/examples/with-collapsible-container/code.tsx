@@ -339,6 +339,7 @@ function useContainerAutoResize() {
       // Use the new parent id if it is defined,
       // otherwise use the previous parent id (for when the child is removed)
       const containerId = newParentId || child.previous('parent');
+      if (!containerId) return;
       const container = graph.getCell(containerId);
       updateContainerSize(container);
     };

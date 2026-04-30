@@ -181,4 +181,38 @@ describe('useCell (context form with selector)', () => {
     );
     expect(captured).toBe('a');
   });
+
+  it('context form forwards a custom isEqual into the underlying useCells (line 77)', async () => {
+    // (selector, isEqual?) overload — argument1 = function selector,
+    // argument2 = function equality. Picks up the `argument2 = isEqual`
+    // branch (line 77).
+    const isEqual = jest.fn((a: string, b: string) => a === b);
+    let captured: unknown;
+    function Probe() {
+      captured = useCell((cell) => String(cell.id), isEqual);
+      return null;
+    }
+    render(
+      <GraphProvider initialCells={initialCells}>
+        <CellIdContext.Provider value="a">
+          <Probe />
+        </CellIdContext.Provider>
+      </GraphProvider>
+    );
+    expect(captured).toBe('a');
+  });
+});
+
+describe('useCell (id + selector + isEqual form)', () => {
+  it('forwards a custom isEqual when called as useCell(id, selector, isEqual) (line 82)', async () => {
+    // (id, selector, isEqual?) overload — argument1 = id (string),
+    // argument2 = selector, argument3 = equality. Picks up the
+    // `argument3 = isEqual` branch (line 82).
+    const isEqual = jest.fn((a: string, b: string) => a === b);
+    const { result } = renderHook(
+      () => useCell('a', (cell) => String(cell.id), isEqual),
+      { wrapper: plainWrapper }
+    );
+    expect(result.current).toBe('a');
+  });
 });

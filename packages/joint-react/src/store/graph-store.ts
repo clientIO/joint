@@ -86,6 +86,10 @@ interface GraphStoreOptionsControlled<
   readonly onCellsChange?: (cells: ReadonlyArray<Element | Link>) => void;
 }
 
+/**
+ * Constructor options for {@link GraphStore} — either uncontrolled (`initialCells`)
+ * or controlled (`cells` + `onCellsChange`).
+ */
 export type GraphStoreOptions<
   Element extends DiaElementAttributes = DiaElementAttributes,
   Link extends DiaLinkAttributes = DiaLinkAttributes,

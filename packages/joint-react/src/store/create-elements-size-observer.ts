@@ -20,6 +20,7 @@ const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // especially on Safari
 const EPSILON = 0.5;
 
+/** Element layout where width/height are required but x/y may be omitted. */
 export type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
   Partial<Pick<ElementLayout, 'x' | 'y'>>;
 
@@ -65,7 +66,7 @@ interface ObservedElement {
   isMeasured: boolean;
 }
 
-// eslint-disable-next-line jsdoc/require-jsdoc
+ 
 function identityTransform(options: TransformOptions) {
   const { width, height, x, y } = options;
   return { width, height, x, y };
@@ -214,20 +215,20 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
   // Maps only the active DOM node to its ObservedElement for O(1) lookup in the ResizeObserver callback.
   const activeObservedElementByDomNode = new WeakMap<HTMLElement | SVGElement, ObservedElement>();
 
-  // eslint-disable-next-line jsdoc/require-param, jsdoc/require-returns
+   
   /** Returns the active (last) element from the stack, or `undefined` if empty. */
   function getActiveElement(stack: readonly ObservedElement[]): ObservedElement | undefined {
     return stack.at(-1);
   }
 
-  // eslint-disable-next-line jsdoc/require-param
+   
   /** Starts observing the given element and registers it in the active DOM node lookup. */
   function activateElement(observedElement: ObservedElement) {
     observer.observe(observedElement.node, resizeObserverOptions);
     activeObservedElementByDomNode.set(observedElement.node, observedElement);
   }
 
-  // eslint-disable-next-line jsdoc/require-param
+   
   /** Stops observing the given element and removes it from the active DOM node lookup. */
   function deactivateElement(observedElement: ObservedElement) {
     observer.unobserve(observedElement.node);

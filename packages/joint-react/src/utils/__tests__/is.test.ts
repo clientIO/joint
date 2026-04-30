@@ -45,6 +45,41 @@ describe('is.ts utility functions', () => {
     expect(is.isWithChildren({})).toBe(false);
   });
 
+  test('isRef', () => {
+    expect(is.isRef({ current: 1 })).toBe(true);
+    expect(is.isRef({})).toBe(false);
+    expect(is.isRef(null)).toBe(false);
+    expect(is.isRef('not a ref')).toBe(false);
+  });
+
+  test('isUpdater', () => {
+    const function_ = (n: number) => n + 1;
+    expect(is.isUpdater(function_)).toBe(true);
+    expect(is.isUpdater(42)).toBe(false);
+  });
+
+  describe('hasProperty', () => {
+    test('returns true when property exists on object', () => {
+      expect(is.hasProperty({ foo: 1 }, 'foo')).toBe(true);
+    });
+
+    test('returns false when object is undefined', () => {
+      expect(is.hasProperty(undefined, 'foo')).toBe(false);
+    });
+
+    test('returns false when property is undefined', () => {
+      expect(is.hasProperty({ foo: 1 }, undefined)).toBe(false);
+    });
+
+    test('returns false when both are undefined', () => {
+      expect(is.hasProperty()).toBe(false);
+    });
+
+    test('returns false when property is missing on object', () => {
+      expect(is.hasProperty({ foo: 1 }, 'bar')).toBe(false);
+    });
+  });
+
   describe('hasDefinedSize', () => {
     test('returns true when size has numeric width and height', () => {
       expect(is.hasDefinedSize({ size: { width: 100, height: 50 } })).toBe(true);

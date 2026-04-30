@@ -1,5 +1,5 @@
-/* eslint-disable jsdoc/require-param */
-/* eslint-disable jsdoc/require-returns */
+ 
+ 
 
 import type { dia } from '@joint/core';
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
@@ -13,6 +13,7 @@ export interface LinkMarkerRecord extends dia.SVGComplexMarkerJSON {
   readonly length?: number;
 }
 
+/** Common options shared by every built-in link-marker factory. */
 export interface LinkMarkerOptions {
   /** Unique ID for the marker. If not provided, a default ID will be generated based on the options. */
   /** Scale factor. Default: `1`. */

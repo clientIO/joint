@@ -35,32 +35,39 @@ interface GraphStoreOptions {
   readonly graphStore: GraphStore;
 }
 
+/** Context passed to feature `onAdd` — exposes the paper or graph store depending on `Target`. */
 export type OnAddFeatureOptions<Target extends FeatureTarget = 'paper'> = Target extends 'paper'
   ? PaperStoreOptions
   : GraphStoreOptions;
 
+/** Same as {@link OnAddFeatureOptions}, plus the live feature `instance` being updated. */
 export type OnUpdateFeatureOptions<
   T,
   Target extends FeatureTarget = 'paper',
 > = OnAddFeatureOptions<Target> & { readonly instance: T };
 
+/** Same as {@link OnAddFeatureOptions}, plus the freshly mounted feature `instance`. */
 export type OnLoadFeatureOptions<
   T,
   Target extends FeatureTarget = 'paper',
 > = OnAddFeatureOptions<Target> & { readonly instance: T };
 
+/** Factory that creates and registers a feature instance against the target store. */
 export type OnAddFeature<T, Target extends FeatureTarget = 'paper'> = (
   options: OnAddFeatureOptions<Target>
 ) => Feature<T>;
 
+/** Callback invoked when a previously created feature instance needs to react to updated props. */
 export type OnUpdateFeature<T, Target extends FeatureTarget = 'paper'> = (
   options: OnUpdateFeatureOptions<T, Target>
 ) => void;
 
+/** Callback invoked once a feature instance has been mounted and is ready to use. */
 export type OnLoadFeature<T, Target extends FeatureTarget = 'paper'> = (
   options: OnLoadFeatureOptions<T, Target>
 ) => void;
 
+/** Configuration accepted by {@link useCreateFeature} to wire a feature into a store. */
 export interface AddFeatureOptions<T, Target extends FeatureTarget = 'paper'> {
   readonly onAddFeature: OnAddFeature<T, Target>;
   readonly onLoad?: OnLoadFeature<T, Target>;

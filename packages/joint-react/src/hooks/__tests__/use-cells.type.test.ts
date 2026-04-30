@@ -1,5 +1,5 @@
-/* eslint-disable sonarjs/no-redundant-jump */
-/* eslint-disable unicorn/prevent-abbreviations */
+ 
+ 
 /* eslint-disable react-hooks/rules-of-hooks */
 /**
  * Type-only tests for `useCells`. The `expectType` helper forces TypeScript to

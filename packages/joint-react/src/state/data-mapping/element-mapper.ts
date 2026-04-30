@@ -50,7 +50,9 @@ export function mapAttributesToElement<ElementData extends DiaElementAttributes>
   return { ...elementRecord } as ElementRecord<ElementData>;
 }
 
+/** Function signature that maps raw JointJS element attributes to an `ElementRecord`. */
 export type MapAttributesToElement<ElementData extends DiaElementAttributes> =
   typeof mapAttributesToElement<ElementData>;
 
+/** Function signature that maps an `ElementRecord` back to JointJS element attributes. */
 export type MapElementToAttributes = typeof mapElementToAttributes;

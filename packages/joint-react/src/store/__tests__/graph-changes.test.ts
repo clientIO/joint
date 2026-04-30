@@ -19,6 +19,18 @@ function setup() {
   return { graph, onChanges, controller };
 }
 
+function setupWithSize() {
+  const graph = createGraph();
+  const onChanges = jest.fn();
+  const onElementsSizeChange = jest.fn();
+  const controller = graphChanges({
+    graph,
+    onChanges,
+    onElementsSizeChange,
+  });
+  return { graph, onChanges, onElementsSizeChange, controller };
+}
+
 function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50) {
   graph.addCell({
     id,
@@ -370,18 +382,6 @@ describe('graphChanges', () => {
   });
 
   describe('onElementsSizeChange', () => {
-    function setupWithSize() {
-      const graph = createGraph();
-      const onChanges = jest.fn();
-      const onElementsSizeChange = jest.fn();
-      const controller = graphChanges({
-        graph,
-        onChanges,
-        onElementsSizeChange,
-      });
-      return { graph, onChanges, onElementsSizeChange, controller };
-    }
-
     it('fires for each element when resetCells seeds cells with sizes', () => {
       const { graph, onElementsSizeChange } = setupWithSize();
       graph.resetCells([

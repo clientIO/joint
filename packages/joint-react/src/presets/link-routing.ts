@@ -23,6 +23,11 @@ import {
  * ```
  */
 
+/**
+ * Bundle of paper-level link defaults (router, connector, anchor, connection point)
+ * produced by a routing preset like {@link linkRoutingStraight} or
+ * {@link linkRoutingOrthogonal}.
+ */
 export interface LinkRouting {
   readonly defaultRouter?: dia.Paper.Options['defaultRouter'];
   readonly defaultConnector?: dia.Paper.Options['defaultConnector'];
@@ -43,6 +48,7 @@ interface BaseLinkOptions {
   readonly markerSelector?: string;
 }
 
+/** Options for {@link linkRoutingStraight}. */
 export interface LinkRoutingStraightOptions extends BaseLinkOptions {
   /** Corner style at vertices. Default: `'point'`. */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
@@ -70,6 +76,7 @@ export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): L
   };
 }
 
+/** Options for {@link linkRoutingOrthogonal}. */
 export interface LinkRoutingOrthogonalOptions extends BaseLinkOptions {
   /** Corner style. Default: `'cubic'`. */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
@@ -120,6 +127,7 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
   };
 }
 
+/** Options for {@link linkRoutingSmooth}. */
 export type LinkRoutingSmoothOptions = BaseLinkOptions;
 
 /**

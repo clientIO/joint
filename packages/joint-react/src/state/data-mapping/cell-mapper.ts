@@ -33,12 +33,12 @@ export function mapCellToAttributes<
   // Read it through a narrow cast so the index signature
   // (`[key: string]: unknown`) doesn't widen `cell.type` to `unknown`.
   const cellType = cell.type;
-  if (cellType !== undefined && isElementType(cellType, graph)) {
+  if (isElementType(cellType, graph)) {
     const attributes = mapElementToAttributes(cell);
     if (cell.id !== undefined) attributes.id = cell.id;
     return attributes;
   }
-  if (cellType !== undefined && isLinkType(cellType, graph)) {
+  if (isLinkType(cellType, graph)) {
     const attributes = mapLinkToAttributes(cell);
     if (cell.id !== undefined) attributes.id = cell.id;
     return attributes;
