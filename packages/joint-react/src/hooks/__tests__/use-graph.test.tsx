@@ -241,6 +241,7 @@ describe('useGraph', () => {
       expect(cellE?.attrs?.text?.textWrap).toEqual({});
     });
 
+
     it('with `includeDefaults: true` keeps every attribute', async () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());

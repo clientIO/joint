@@ -13,6 +13,7 @@ interface IncrementalChangeReset<Item> {
   readonly data: Item[];
 }
 
+/** Discriminated union describing a single incremental change to a collection. */
 export type IncrementalChange<Item> =
   | IncrementalChangeBase<Item>
   | IncrementalChangeRemove<Item>

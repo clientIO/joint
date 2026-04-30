@@ -291,4 +291,30 @@ describe('jsx-to-markup', () => {
       },
     ]);
   });
+
+  it('should convert className prop to class attribute', () => {
+    const markup = jsx(<div className="my-class" id="x" />);
+    expect(markup).toEqual([
+      {
+        tagName: 'div',
+        children: [],
+        attributes: { class: 'my-class', id: 'x' },
+      },
+    ]);
+  });
+
+  it('returns markups when a valid element has non-record props', () => {
+    // Simulate a valid React element whose props field is not an object.
+    // isValidElement only checks $$typeof, so we can fake one to drive the
+    // `!isRecord(props)` branch inside jsxToMarkupWithArray.
+    const REACT_ELEMENT_TYPE = Symbol.for('react.transitional.element');
+    const fakeElement = {
+      $$typeof: REACT_ELEMENT_TYPE,
+      type: 'div',
+      props: 'not-a-record',
+      key: null,
+      ref: null,
+    } as never;
+    expect(jsx(fakeElement)).toEqual([]);
+  });
 });

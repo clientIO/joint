@@ -9,7 +9,7 @@
 // We have pre-loaded tailwind css
 import { GraphProvider, Paper, useCell, useCellId, useMarkup, HTMLHost, type CellId, type CellRecord, type ElementRecord, type LinkRecord, type RenderElement, selectElementSize } from '@joint/react';
 
-import { createContext, memo, useCallback, useContext, useLayoutEffect, useState } from 'react';
+import { createContext, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 
@@ -291,18 +291,16 @@ function buildInitialCells(isDark: boolean): ReadonlyArray<CellRecord<NodeData>>
 
 function Main() {
   const isDark = useContext(ThemeContext);
-  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeData>>>(() => buildInitialCells(isDark));
+  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeData>>>(() => buildInitialCells(false));
 
-  useLayoutEffect(() => {
+  const themedCells = useMemo<ReadonlyArray<CellRecord<NodeData>>>(() => {
     const linkColor = isDark ? 'rgba(255,255,255,0.35)' : '#000000';
-    setCells((previous) =>
-      previous.map((cell): CellRecord<NodeData> => {
-        if (cell.type !== 'link') return cell;
-        const link = cell as LinkRecord;
-        return { ...link, style: { ...link.style, color: linkColor } };
-      })
-    );  
-  }, [isDark]);
+    return cells.map((cell): CellRecord<NodeData> => {
+      if (cell.type !== 'link') return cell;
+      const link = cell as LinkRecord;
+      return { ...link, style: { ...link.style, color: linkColor } };
+    });
+  }, [cells, isDark]);
 
   const onAddPort = useCallback((id: CellId) => {
     setCells((previous) =>
@@ -355,7 +353,7 @@ function Main() {
   );
 
   return (
-    <GraphProvider cells={cells} onCellsChange={setCells}>
+    <GraphProvider cells={themedCells} onCellsChange={setCells}>
       <Paper
         gridSize={5}
         drawGrid={false}

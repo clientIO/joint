@@ -49,6 +49,7 @@ type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
 const EMPTY_DATA: Readonly<Record<string, unknown>> = Object.freeze({});
 
+/** Options accepted by {@link useCreatePortalPaper}; extends all `PaperProps`. */
 export interface UseCreatePortalPaperOptions extends PaperProps {
   /**
    * Host element ref where the paper should be mounted automatically.
@@ -61,6 +62,7 @@ export interface UseCreatePortalPaperOptions extends PaperProps {
   readonly isExternalPaper?: boolean;
 }
 
+/** Return value of {@link useCreatePortalPaper}: the paper id, ref, and helper APIs. */
 export interface UseCreatePortalPaperResult {
   /** Effective paper id used in GraphStore. */
   readonly id: string;

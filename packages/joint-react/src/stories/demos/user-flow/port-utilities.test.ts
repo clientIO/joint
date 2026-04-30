@@ -11,6 +11,25 @@ describe('user-flow port utils', () => {
     expect(next.label).toBe('Port 4');
   });
 
+  it('uses highest existing id when later ports have lower ids', () => {
+    const next = createNextOutputPort([
+      { id: '5', label: 'Port 5' },
+      { id: '2', label: 'Port 2' },
+    ]);
+
+    expect(next.id).toBe('6');
+  });
+
+  it('skips non-numeric ids when computing next id', () => {
+    const next = createNextOutputPort([
+      { id: 'foo', label: 'Port foo' },
+      { id: '2', label: 'Port 2' },
+    ]);
+
+    expect(next.id).toBe('3');
+    expect(next.label).toBe('Port 3');
+  });
+
   it('appends output port to node', () => {
     const updated = appendOutputPort({
       outputPorts: [

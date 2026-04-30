@@ -13,6 +13,7 @@ interface PaperEventsBaseContext {
   readonly graph: dia.Graph;
   readonly paper: dia.Paper;
 }
+/** Context handed to the event-handlers factory: the paper, graph, and any user-provided extras. */
 export type PaperEventsContext<T = Record<string, unknown>> = PaperEventsBaseContext & T;
 
 type HandlersOrFactory<T> =

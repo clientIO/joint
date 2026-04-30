@@ -52,7 +52,7 @@ export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
       <Paper
-        transform={`scale(2)`}
+        transform={'scale(2)'}
         className={`${PAPER_CLASSNAME} h-[800px]`}
         width="100%"
         interactive={false}

@@ -20,6 +20,7 @@ export const namedLinkMarkers = {
   'diamond': linkMarkerDiamond(),
 } as const satisfies Record<string, LinkMarkerRecord | null>;
 
+/** Keys of the built-in `namedLinkMarkers` registry (e.g. `'arrow'`, `'circle'`). */
 export type LinkMarkerName = keyof typeof namedLinkMarkers;
 
 /**

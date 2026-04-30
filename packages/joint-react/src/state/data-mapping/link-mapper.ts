@@ -57,6 +57,8 @@ export function mapAttributesToLink<LinkData = unknown>(
   return { ...linkRecord } as LinkRecord<LinkData>;
 }
 
+/** Function signature that maps raw JointJS link attributes to a `LinkRecord`. */
 export type MapAttributesToLink<LinkData = unknown> = typeof mapAttributesToLink<LinkData>;
 
+/** Function signature that maps a `LinkRecord` back to JointJS link attributes. */
 export type MapLinkToAttributes = typeof mapLinkToAttributes;

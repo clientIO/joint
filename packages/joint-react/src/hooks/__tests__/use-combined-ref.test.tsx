@@ -2,7 +2,26 @@
 import { render, screen } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import { createRef } from 'react';
-import { useCombinedRef } from '../use-combined-ref';
+import { setForwardRef, useCombinedRef } from '../use-combined-ref';
+
+describe('setForwardRef', () => {
+  it('returns silently when ref is undefined', () => {
+    expect(() => setForwardRef(undefined, document.createElement('div'))).not.toThrow();
+  });
+  it('writes to a ref object', () => {
+    const ref = createRef<HTMLDivElement>();
+    const node = document.createElement('div');
+    setForwardRef(ref, node);
+    expect(ref.current).toBe(node);
+  });
+  it('calls a ref function', () => {
+    let captured: HTMLDivElement | null = null;
+    setForwardRef<HTMLDivElement>((value) => {
+      captured = value;
+    }, document.createElement('div'));
+    expect(captured).not.toBeNull();
+  });
+});
 
 describe('useCombinedRef', () => {
   it('should return a ref object', () => {

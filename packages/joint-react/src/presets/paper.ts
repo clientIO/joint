@@ -19,7 +19,7 @@ const DEFAULT_CLICK_THRESHOLD = 5;
 const DEFAULT_GRID_SIZE = 10;
 const DEFAULT_SNAP_RADIUS = 15;
 
-// @todo - this should sit on the dia.Paper prototype,
+// Future improvement: this should sit on the dia.Paper prototype,
 // so it can be overridden by inheriting classes (e.g. Paper)
 export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.DEFAULT]: {
@@ -48,8 +48,11 @@ export const DEFAULT_HIGHLIGHTING = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const linkView = (_: dia.Link, NSViewCtor: typeof dia.LinkView | null): typeof dia.LinkView<any> => {
+const linkView = (
+  _: dia.Link,
+  NSViewCtor: typeof dia.LinkView | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): typeof dia.LinkView<any> => {
   // Use the namespaced LinkView if provided,
   // otherwise fall back to the default LinkView.
   return NSViewCtor ?? LinkView;
@@ -85,6 +88,5 @@ export const Paper = dia.Paper.extend({
   _ensureElClassName() {
     // Note: the `className` property is ignored here.
     this.el.classList.add('jj-paper', 'joint-paper');
-  }
-
+  },
 }) as typeof dia.Paper;

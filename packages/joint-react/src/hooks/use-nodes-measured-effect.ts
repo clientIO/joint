@@ -4,6 +4,7 @@ import { type ElementsMeasuredEvent } from '../types/event.types';
 import type { PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 
+/** Options for {@link useNodesMeasuredEffect} controlling subscription behavior. */
 export interface UseOnElementsMeasuredOptions {
   /** When true, the callback fires only once and then unsubscribes. */
   readonly once?: boolean;
@@ -84,6 +85,8 @@ export function useNodesMeasuredEffect(
     if (!paperStore) return;
     const { paper } = paperStore;
 
+    const unsubscribeRef: { current: (() => void) | undefined } = { current: undefined };
+
     /**
      * Fires the once-per-mount measurement callback when element measurement completes.
      */
@@ -101,15 +104,23 @@ export function useNodesMeasuredEffect(
       // pre-layout position. Flush them synchronously so the next paint already
       // reflects the post-layout state.
       paper.updateViews();
+      // `once` semantics: stop listening after the first fire.
+      if (once) {
+        unsubscribeRef.current?.();
+      }
     }
     // Flush any measurement that happened before subscription (e.g. initial
     // data sync ran before this paperStore was available).
     if (measureState.get() > 0) {
       handleChanges();
     }
-    const unsubscribeMeasureState = measureState.subscribe(handleChanges);
+    unsubscribeRef.current = measureState.subscribe(handleChanges);
+    if (once && wasMeasuredRef.current) {
+      // Initial fire already happened above; skip the subscription entirely.
+      unsubscribeRef.current();
+    }
     return () => {
-      unsubscribeMeasureState();
+      unsubscribeRef.current?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paperStore, once, ...(dependencies ?? [])]);

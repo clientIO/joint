@@ -300,6 +300,7 @@ export function useCells<Cell extends DiaCellAttributes = Computed, Selected = r
   const cellSelectorRef = useRef(cellSelector);
   cellSelectorRef.current = cellSelector;
 
+  /** Local alias for the hook's return shape so the cache type stays readable. */
   type Result = UseCellsResult<Cell, Selected>;
   const cachedRef = useRef<{ hasValue: boolean; value: Result }>({
     hasValue: false,

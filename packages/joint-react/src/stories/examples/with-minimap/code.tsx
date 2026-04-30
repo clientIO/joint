@@ -50,7 +50,7 @@ function MiniMap() {
       <Paper
         id="minimap"
         interactive={false}
-        transform={`scale(0.4)`}
+        transform={'scale(0.4)'}
         className={PAPER_CLASSNAME}
         height="100%"
         renderElement={renderElement}

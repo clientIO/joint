@@ -86,7 +86,6 @@ export interface DiaLinkAttributes
 }
 
 /** Link-flavored cell; narrowed when `type === LINK_MODEL_TYPE`. */
-
 export type LinkRecord<LinkData = unknown> = DiaLinkAttributes &
   WithType<typeof LINK_MODEL_TYPE> &
   WithData<LinkData>;
@@ -187,7 +186,8 @@ export type Computed<T = CellRecord> =
           : T;
 
 /** Short alias for cell ids; same as dia.Cell.ID. */
-// @todo - remove, and just use jointjs dia.Cell.ID everywhere. This type alias doesn't add anything and just creates an extra import to keep in sync.
+// Future cleanup: drop this alias and use `dia.Cell.ID` directly everywhere.
+// It doesn't add anything and creates an extra import to keep in sync.
 export type CellId = DiaCell.ID;
 
 // ── Element Layout Aliases ──────────────────────────────────────────────────

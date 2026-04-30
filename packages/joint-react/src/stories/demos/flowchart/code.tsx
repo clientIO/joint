@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/consistent-function-scoping */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 import './index.css';
 import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
 import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect, usePaperEvents } from '@joint/react';

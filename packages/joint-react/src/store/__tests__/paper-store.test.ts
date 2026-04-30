@@ -55,7 +55,7 @@ describe('PaperStore', () => {
         // exact matrix values are not asserted (JSDOM has no DOMMatrix
         // parser; the mock returns identity), only that the setter was
         // invoked with an SVGMatrix-shaped argument.
-        const setterCall = matrixSpy.mock.calls.find((c) => c[0] !== undefined);
+        const setterCall = matrixSpy.mock.calls.find((call) => (call as readonly unknown[]).length > 0);
         expect(setterCall).toBeDefined();
         const argument = setterCall![0] as { a: number; d: number };
         expect(typeof argument.a).toBe('number');
