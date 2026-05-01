@@ -1,23 +1,17 @@
 import type {
   Cell as DiaCell,
-  Element as DiaElement,
-  Link as DiaLink,
   Point as DiaPoint,
   Size as DiaSize,
 } from '@joint/core/dia';
 import type { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import type { LINK_MODEL_TYPE } from '../models/link-model';
-import type { ElementPort } from '../presets/element-ports';
-import type { LinkStyle } from '../presets/link-style';
-import type { LinkLabel } from '../presets/link-labels';
+import { LinkJSONInit } from '../presets/link-attributes';
+import { ElementJSONInit } from '../presets/element-attributes';
 
 type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 /** Known cell type names. */
 type KnownCellType = typeof ELEMENT_MODEL_TYPE | typeof LINK_MODEL_TYPE;
 
-interface WithOptionalId {
-  readonly id?: DiaCell.ID;
-}
 interface WithType<Type extends string = KnownCellType> {
   readonly type: Type;
 }
@@ -26,26 +20,8 @@ type WithData<Data = unknown> = unknown extends Data
   ? { readonly data?: unknown }
   : { readonly data: Data };
 
-/**
- * Structural upper bound for any element-like cell.
- *
- * - Extends {@link WithOptionalId} and passes through JointJS `dia.Element.Attributes`
- *   (minus `id`, `type`, `position`, `size`, `angle` which we narrow below).
- * - Narrows `position` / `size` / `angle` to the React-side aliases.
- * - Allows arbitrary extra fields via the index signature so callers can
- *   attach custom data without losing type safety on known fields.
- */
-export interface DiaElementAttributes
-  extends WithOptionalId,
-    WithData,
-    WithType<string>,
-    DiaElement.Attributes {
-  portMap?: Record<string, ElementPort>;
-  portStyle?: Partial<ElementPort>;
-}
-
 /** Element-flavored cell; narrowed when `type === ELEMENT_MODEL_TYPE`. */
-export type ElementRecord<ElementData = unknown> = DiaElementAttributes &
+export type ElementRecord<ElementData = unknown> = ElementJSONInit &
   WithType<typeof ELEMENT_MODEL_TYPE> &
   WithData<ElementData>;
 
@@ -66,27 +42,8 @@ type InternalElementRecord<ElementData = unknown> = PickRequired<
   'id' | 'type' | 'position' | 'size' | 'angle' | 'data'
 >;
 
-/**
- * Structural upper bound for any link-like cell.
- *
- * - Extends {@link WithOptionalId} and passes through JointJS `dia.Link.Attributes`
- *   (minus `id`, `type`, `source`, `target` which we narrow below).
- * - Narrows `source` / `target` to `dia.Link.EndJSON`.
- * - Allows arbitrary extra fields via the index signature so callers can
- *   attach custom data without losing type safety on known fields.
- */
-export interface DiaLinkAttributes
-  extends WithOptionalId,
-    WithType<string>,
-    WithData,
-    DiaLink.Attributes {
-  style?: LinkStyle;
-  labelMap?: Record<string, LinkLabel>;
-  labelStyle?: Partial<LinkLabel>;
-}
-
 /** Link-flavored cell; narrowed when `type === LINK_MODEL_TYPE`. */
-export type LinkRecord<LinkData = unknown> = DiaLinkAttributes &
+export type LinkRecord<LinkData = unknown> = LinkJSONInit &
   WithType<typeof LINK_MODEL_TYPE> &
   WithData<LinkData>;
 
@@ -118,7 +75,11 @@ type InternalLinkRecord<LinkData = unknown> = PickRequired<
  * type AppCell = CellRecord | MyCustomNode;
  * ```
  */
-export type DiaCellAttributes = DiaElementAttributes | DiaLinkAttributes;
+
+export type DiaElementAttributes = ElementJSONInit;
+export type DiaLinkAttributes = LinkJSONInit;
+
+export type DiaCellAttributes = ElementJSONInit | LinkJSONInit;
 
 /**
  * Discriminated union over the `type` literal:
@@ -142,8 +103,8 @@ export type CellRecord<ElementData = unknown, LinkData = unknown> =
  * @template Link - link record shape
  */
 export type CellUnion<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > = Element | Link;
 /**
  * Resolves any input cell shape to its internal store form — the variant with
@@ -179,9 +140,9 @@ export type Computed<T = CellRecord> =
     ? InternalElementRecord<ElementData>
     : T extends LinkRecord<infer LinkData>
       ? InternalLinkRecord<LinkData>
-      : T extends DiaElementAttributes
+      : T extends ElementJSONInit
         ? InternalElementRecord<T['data']>
-        : T extends DiaLinkAttributes
+        : T extends LinkJSONInit
           ? InternalLinkRecord<T['data']>
           : T;
 

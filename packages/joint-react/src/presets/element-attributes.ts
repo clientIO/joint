@@ -1,6 +1,13 @@
 import { util } from '@joint/core';
-import type { DiaElementAttributes } from '../types/cell.types';
 import { elementPorts } from './element-ports';
+import type { dia } from '@joint/core';
+import type { ElementPort} from './element-ports';
+
+export interface ElementJSONInit extends dia.Element.JSONInit {
+  data?: unknown;
+  portMap?: Record<string, ElementPort>;
+  portStyle?: Partial<ElementPort>;
+}
 
 /**
  * Converts an `ElementAttributes` record to JointJS cell attributes.
@@ -11,14 +18,14 @@ import { elementPorts } from './element-ports';
  * @param element - The element record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function elementAttributes(element: DiaElementAttributes): DiaElementAttributes {
+export function elementAttributes(element: ElementJSONInit): ElementJSONInit {
   if (!util.isObject(element)) {
     throw new TypeError('Invalid element format: expected an object.');
   }
 
   const { data = {}, portMap, ports, type, ...rest } = element;
 
-  const attributes: DiaElementAttributes = {
+  const attributes: ElementJSONInit = {
     ...rest,
     type,
     data,

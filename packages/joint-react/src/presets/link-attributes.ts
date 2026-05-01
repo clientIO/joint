@@ -1,7 +1,17 @@
 import { util } from '@joint/core';
-import type { DiaLinkAttributes } from '../types/cell.types';
 import { linkLabels } from './link-labels';
 import { linkStyle } from './link-style';
+import type { dia } from '@joint/core';
+import type { LinkStyle } from './link-style';
+import type { LinkLabel} from './link-labels';
+
+
+export interface LinkJSONInit extends dia.Link.JSONInit {
+  data?: unknown;
+  style?: LinkStyle;
+  labelMap?: Record<string, LinkLabel>;
+  labelStyle?: Partial<LinkLabel>;
+}
 
 /**
  * Converts a `LinkAttributes` record to JointJS cell attributes.
@@ -13,13 +23,13 @@ import { linkStyle } from './link-style';
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function linkAttributes(link: DiaLinkAttributes): DiaLinkAttributes {
+export function linkAttributes(link: LinkJSONInit): LinkJSONInit {
   if (!util.isObject(link)) {
     throw new TypeError('Invalid link data: expected an object with link properties.');
   }
 
   const { data = {}, type, style, labelMap, labels, ...rest } = link;
-  const attributes: DiaLinkAttributes = {
+  const attributes: LinkJSONInit = {
     ...rest,
     type,
     data,

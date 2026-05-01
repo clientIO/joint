@@ -197,7 +197,7 @@ describe('useGraph', () => {
       await waitFor(() => expect(result.current).toBeDefined());
       const json = result.current.exportToJSON();
       expect(json.cells).toHaveLength(3);
-      const ids = json.cells.map((c: { id: string }) => c.id).toSorted();
+      const ids = json.cells.map((c) => String(c.id)).toSorted((a, b) => a.localeCompare(b));
       expect(ids).toEqual(['a', 'b', 'l1']);
     });
 
@@ -215,7 +215,7 @@ describe('useGraph', () => {
         await flush();
       });
       const json = result.current.exportToJSON();
-      const cellD = json.cells.find((c: { id: string }) => c.id === 'd') as Record<string, unknown>;
+      const cellD = json.cells.find((c) => c.id === 'd') as Record<string, unknown>;
       expect(cellD).toBeDefined();
       expect(cellD.size).toBeUndefined();
       expect(cellD.data).toBeUndefined();
@@ -235,7 +235,7 @@ describe('useGraph', () => {
         await flush();
       });
       const json = result.current.exportToJSON();
-      const cellE = json.cells.find((c: { id: string }) => c.id === 'e') as {
+      const cellE = json.cells.find((c) => c.id === 'e') as {
         attrs?: { text?: { textWrap?: Record<string, unknown> } };
       };
       expect(cellE?.attrs?.text?.textWrap).toEqual({});
@@ -246,7 +246,7 @@ describe('useGraph', () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
       const json = result.current.exportToJSON({ includeDefaults: true });
-      const cellA = json.cells.find((c: { id: string }) => c.id === 'a') as Record<string, unknown>;
+      const cellA = json.cells.find((c) => c.id === 'a') as Record<string, unknown>;
       expect(cellA.size).toEqual({ width: 10, height: 10 });
       expect(cellA.data).toEqual({});
     });
