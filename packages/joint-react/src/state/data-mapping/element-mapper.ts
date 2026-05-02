@@ -7,8 +7,8 @@ import { elementAttributes } from '../../presets/element-attributes';
  * Forward mapper using the React default element type.
  * @param element
  */
-export function mapElementToAttributes(element: DiaElementRecord): dia.Cell.JSON {
-  const attributes = elementAttributes(element) as dia.Cell.JSON;
+export function mapElementToAttributes(element: DiaElementRecord): dia.Element.JSONInit {
+  const attributes = elementAttributes(element) as dia.Element.JSONInit;
   // `data` is a @joint/react concept — defaulted here, not in framework-neutral presets.
   attributes.data ??= {};
   return attributes;

@@ -176,7 +176,7 @@ export function useResetCells<
     ) => {
       const current = store.graphView.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
-      const mapped: dia.Cell.JSON[] = next.map((cell) => mapCellToAttributes(cell, graph));
+      const mapped: dia.Cell.JSONInit[] = next.map((cell) => mapCellToAttributes(cell, graph));
       graph.resetCells(mapped);
     },
     [graph, store]

@@ -4,14 +4,6 @@ import { LINK_MODEL_TYPE } from '../../../models/link-model';
 import type { DiaLinkRecord } from '../../../types/cell.types';
 
 describe('mapLinkToAttributes', () => {
-  it('defaults the type to LINK_MODEL_TYPE when missing', () => {
-    const result = mapLinkToAttributes({
-      source: { id: 'a' },
-      target: { id: 'b' },
-    } as DiaLinkRecord);
-    expect(result.type).toBe(LINK_MODEL_TYPE);
-  });
-
   it('preserves a custom type', () => {
     const result = mapLinkToAttributes({
       type: 'custom.Link',
@@ -30,7 +22,7 @@ describe('mapAttributesToLink', () => {
       attrs: attributes,
       source: { id: 'a' },
       target: { id: 'b' },
-    } as unknown as dia.Link.Attributes);
+    } as dia.Link.Attributes);
 
     expect(result.attrs).toEqual(attributes);
     expect(result).not.toHaveProperty('style');
@@ -44,7 +36,7 @@ describe('mapAttributesToLink', () => {
       attrs: { line: { stroke: 'blue' } },
       source: { id: 'a' },
       target: { id: 'b' },
-    } as unknown as dia.Link.Attributes);
+    } as dia.Link.Attributes);
 
     expect(result.style).toEqual(style);
     expect(result).not.toHaveProperty('attrs');
@@ -59,7 +51,7 @@ describe('mapAttributesToLink', () => {
       labels,
       source: { id: 'a' },
       target: { id: 'b' },
-    } as unknown as dia.Link.Attributes);
+    } as dia.Link.Attributes);
 
     expect(result.labels).toEqual(labels);
     expect(result).not.toHaveProperty('labelMap');
@@ -79,7 +71,7 @@ describe('mapAttributesToLink', () => {
       labels,
       source: { id: 'a' },
       target: { id: 'b' },
-    } as unknown as dia.Link.Attributes);
+    } as dia.Link.Attributes);
 
     expect(result.labelMap?.a.position).toBe(0.7);
     expect(result.labelMap?.a.offset).toBe(9);

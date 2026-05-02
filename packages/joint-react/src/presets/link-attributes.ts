@@ -3,13 +3,24 @@ import { linkLabels } from './link-labels';
 import { linkStyle } from './link-style';
 import type { dia } from '@joint/core';
 import type { LinkStyle } from './link-style';
-import type { LinkLabel} from './link-labels';
+import type { LinkLabel } from './link-labels';
 
-
-export interface LinkJSONInit extends dia.Link.JSONInit {
+/**
+ * Loose preset input — no `type` required. The preset transforms declarative
+ * fields (`style`, `labelMap`) into native JointJS shapes; it does not depend
+ * on the cell discriminator.
+ */
+export interface LinkPresetAttributes extends dia.Link.Attributes {
   style?: LinkStyle;
   labelMap?: Record<string, LinkLabel>;
   labelStyle?: Partial<LinkLabel>;
+}
+
+/**
+ * Type-required variant used at the record / mapper boundary.
+ */
+export interface LinkJSONInit extends LinkPresetAttributes {
+  type: string;
 }
 
 /**
@@ -22,16 +33,12 @@ export interface LinkJSONInit extends dia.Link.JSONInit {
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function linkAttributes(link: LinkJSONInit): LinkJSONInit {
+export function linkAttributes(link: LinkPresetAttributes): dia.Link.Attributes {
   if (!util.isObject(link)) {
     throw new TypeError('Invalid link data: expected an object with link properties.');
   }
 
-  const { type, style, labelMap, labels, ...rest } = link;
-  const attributes: LinkJSONInit = {
-    ...rest,
-    type,
-  };
+  const { style, labelMap, labels, ...attributes } = link;
 
   if (style) {
     attributes.attrs = linkStyle(style);

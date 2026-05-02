@@ -7,8 +7,8 @@ import { mergeLabelsFromAttributes } from './convert-labels-reverse';
  * Forward mapper using the React default link type.
  * @param link
  */
-export function mapLinkToAttributes(link: DiaLinkRecord): dia.Cell.JSON {
-  const attributes = linkAttributes(link) as dia.Cell.JSON;
+export function mapLinkToAttributes(link: DiaLinkRecord): dia.Link.JSONInit {
+  const attributes = linkAttributes(link) as dia.Link.JSONInit;
   // `data` is a @joint/react concept — defaulted here, not in framework-neutral presets.
   attributes.data ??= {};
   return attributes;

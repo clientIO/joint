@@ -27,7 +27,7 @@ import { mapLinkToAttributes } from './link-mapper';
 export function mapCellToAttributes<
   Element extends DiaElementRecord = DiaElementRecord,
   Link extends DiaLinkRecord = DiaLinkRecord,
->(cell: Element | Link, graph: dia.Graph): dia.Cell.JSON {
+>(cell: Element | Link, graph: dia.Graph): dia.Cell.JSONInit {
   // `ElementAttributes` / `LinkAttributes` only declare `id`; the discriminator
   // `type` lives on `WithType` (which `ElementRecord` / `LinkRecord` extend).
   // Read it through a narrow cast so the index signature
@@ -45,5 +45,5 @@ export function mapCellToAttributes<
   }
   // fallback for unrecognized types: pass through verbatim (id may be omitted —
   // JointJS will assign one).
-  return { ...cell } as dia.Cell.JSON;
+  return { ...cell } as dia.Cell.JSONInit;
 }

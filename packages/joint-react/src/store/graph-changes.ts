@@ -198,7 +198,7 @@ export function graphChanges(options: Options) {
       }
 
       const cellIds: CellId[] = [];
-      const cellsToSync: dia.Cell.JSON[] = [];
+      const cellsToSync: dia.Cell.JSONInit[] = [];
 
       for (const cell of cells) {
         // Cells without an id are valid input — JointJS will assign one — but
