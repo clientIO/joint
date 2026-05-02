@@ -9,11 +9,10 @@ import { elementAttributes } from '../../presets/element-attributes';
  */
 export function mapElementToAttributes(element: DiaElementRecord): dia.Cell.JSON {
   const attributes = elementAttributes(element) as dia.Cell.JSON;
-  // Ensure `data` is always present to avoid JointJS warnings about missing connection data. See `ElementModel.defaults()`.
-  if (!attributes.data) attributes.data = {};
-
-  // @todo: no longer required or change elementAttributes
-  if (!attributes.type) attributes.type = ELEMENT_MODEL_TYPE;
+  // `data` is a @joint/react concept — defaulted here, not in framework-neutral presets.
+  attributes.data ??= {};
+  // Default to React element model when caller omitted `type`.
+  attributes.type ??= ELEMENT_MODEL_TYPE;
   return attributes;
 }
 
@@ -26,7 +25,7 @@ export function mapElementToAttributes(element: DiaElementRecord): dia.Cell.JSON
  * 1:1 mapping — no `presentation` wrapper.
  * @param attributes
  */
-export function mapAttributesToElement<ElementData extends DiaElementRecord>(
+export function mapAttributesToElement<ElementData = unknown>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
   const {
@@ -55,7 +54,7 @@ export function mapAttributesToElement<ElementData extends DiaElementRecord>(
 }
 
 /** Function signature that maps raw JointJS element attributes to an `ElementRecord`. */
-export type MapAttributesToElement<ElementData extends DiaElementRecord> =
+export type MapAttributesToElement<ElementData = unknown> =
   typeof mapAttributesToElement<ElementData>;
 
 /** Function signature that maps an `ElementRecord` back to JointJS element attributes. */

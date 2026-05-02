@@ -68,7 +68,7 @@ type InternalLinkRecord<LinkData = unknown> = PickRequired<
  * literals — extend either {@link DiaElementRecord} or {@link DiaLinkRecord}
  * (or this union) and pick your own `type` literal:
  * ```ts
- * interface MyCustomNode extends ElementAttributes {
+ * interface MyCustomNode extends DiaElementRecord {
  *   readonly type: 'my-node';
  *   readonly data: MyData;
  * }

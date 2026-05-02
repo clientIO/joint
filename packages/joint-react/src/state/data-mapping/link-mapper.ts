@@ -10,11 +10,10 @@ import { mergeLabelsFromAttributes } from './convert-labels-reverse';
  */
 export function mapLinkToAttributes(link: DiaLinkRecord): dia.Cell.JSON {
   const attributes = linkAttributes(link) as dia.Cell.JSON;
-  if (!attributes.data) attributes.data = {};
-  // Ensure `data` is always present to avoid JointJS warnings about missing connection data. See `LinkModel.defaults()`.
-
-  // @todo: no longer required or change linkAttributes
-  if (!attributes.type) attributes.type = LINK_MODEL_TYPE;
+  // `data` is a @joint/react concept — defaulted here, not in framework-neutral presets.
+  attributes.data ??= {};
+  // Default to React link model when caller omitted `type`.
+  attributes.type ??= LINK_MODEL_TYPE;
   return attributes;
 }
 

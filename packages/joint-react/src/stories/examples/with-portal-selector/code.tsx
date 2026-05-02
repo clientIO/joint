@@ -3,7 +3,7 @@
 import '../index.css';
 import { dia, highlighters } from '@joint/core';
 import {
-  type DiaCellAttributes,
+  type DiaCellRecord,
   GraphProvider,
   useCell,
   Paper,
@@ -46,7 +46,7 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const initialCells: readonly DiaCellAttributes[] = [
+const initialCells: readonly DiaCellRecord[] = [
   {
     id: '1',
     type: 'element',
