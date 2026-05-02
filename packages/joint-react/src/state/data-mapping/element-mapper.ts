@@ -11,8 +11,6 @@ export function mapElementToAttributes(element: DiaElementRecord): dia.Cell.JSON
   const attributes = elementAttributes(element) as dia.Cell.JSON;
   // `data` is a @joint/react concept — defaulted here, not in framework-neutral presets.
   attributes.data ??= {};
-  // Default to React element model when caller omitted `type`.
-  attributes.type ??= ELEMENT_MODEL_TYPE;
   return attributes;
 }
 
