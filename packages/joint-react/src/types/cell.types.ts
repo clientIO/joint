@@ -5,8 +5,8 @@ import type {
 } from '@joint/core/dia';
 import type { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import type { LINK_MODEL_TYPE } from '../models/link-model';
-import { LinkJSONInit } from '../presets/link-attributes';
-import { ElementJSONInit } from '../presets/element-attributes';
+import type { LinkJSONInit } from '../presets/link-attributes';
+import type { ElementJSONInit } from '../presets/element-attributes';
 
 type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 /** Known cell type names. */
@@ -65,7 +65,7 @@ type InternalLinkRecord<LinkData = unknown> = PickRequired<
 /**
  * Structural upper bound for any cell record. Use as the constraint when
  * defining custom cell types with non-`'element'` / non-`'link'` `type`
- * literals — extend either {@link DiaElementAttributes} or {@link DiaLinkAttributes}
+ * literals — extend either {@link DiaElementRecord} or {@link DiaLinkRecord}
  * (or this union) and pick your own `type` literal:
  * ```ts
  * interface MyCustomNode extends ElementAttributes {
@@ -76,10 +76,14 @@ type InternalLinkRecord<LinkData = unknown> = PickRequired<
  * ```
  */
 
-export type DiaElementAttributes = ElementJSONInit;
-export type DiaLinkAttributes = LinkJSONInit;
+export interface DiaElementRecord extends ElementJSONInit {
+  data?: unknown;
+}
+export interface DiaLinkRecord extends LinkJSONInit {
+  data?: unknown;
+}
 
-export type DiaCellAttributes = ElementJSONInit | LinkJSONInit;
+export type DiaCellRecord = DiaElementRecord | DiaLinkRecord;
 
 /**
  * Discriminated union over the `type` literal:

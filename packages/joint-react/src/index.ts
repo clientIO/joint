@@ -71,9 +71,9 @@ export type {
   ElementRecord,
   LinkRecord,
   Computed,
-  DiaElementAttributes,
-  DiaLinkAttributes,
-  DiaCellAttributes,
+  DiaElementRecord as DiaElementAttributes,
+  DiaLinkRecord as DiaLinkAttributes,
+  DiaCellRecord as DiaCellAttributes,
 } from './types/cell.types';
 
 // Types — geometry / presets

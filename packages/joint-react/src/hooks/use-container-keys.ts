@@ -4,8 +4,8 @@ import type { ReadonlyContainer } from '../store/state-container';
 import type {
   CellId,
   CellUnion,
-  DiaElementAttributes,
-  DiaLinkAttributes,
+  DiaElementRecord,
+  DiaLinkRecord,
 } from '../types/cell.types';
 
 /**
@@ -16,7 +16,7 @@ import type {
  * @internal
  */
 export function useContainerKeys<
-  Cell extends CellUnion<DiaElementAttributes, DiaLinkAttributes>,
+  Cell extends CellUnion<DiaElementRecord, DiaLinkRecord>,
 >(container: ReadonlyContainer<Cell>): CellId[] {
   const previousKeysRef = useRef<CellId[]>([]);
 

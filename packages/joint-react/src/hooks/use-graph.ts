@@ -10,8 +10,8 @@ import {
   type SetCell,
 } from './use-cell-setters';
 import type {
-  DiaElementAttributes,
-  DiaLinkAttributes,
+  DiaElementRecord,
+  DiaLinkRecord,
   CellId,
   CellUnion,
 } from '../types/cell.types';
@@ -29,8 +29,8 @@ import type {
  *                  `Computed<LinkRecord<MyData>>`)
  */
 export interface UseGraphResult<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends DiaElementRecord = DiaElementRecord,
+  Link extends DiaLinkRecord = DiaLinkRecord,
 > {
   /** The JointJS graph instance. */
   readonly graph: dia.Graph;
@@ -118,8 +118,8 @@ export interface ExportToJSONOptions {
  * @returns the imperative API described by {@link UseGraphResult}
  */
 export function useGraph<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends DiaElementRecord = DiaElementRecord,
+  Link extends DiaLinkRecord = DiaLinkRecord,
 >(): UseGraphResult<Element, Link> {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;

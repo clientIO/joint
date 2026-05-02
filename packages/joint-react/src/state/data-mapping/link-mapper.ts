@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { DiaLinkAttributes, LinkRecord } from '../../types/cell.types';
+import type { DiaLinkRecord, LinkRecord } from '../../types/cell.types';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
@@ -8,8 +8,12 @@ import { mergeLabelsFromAttributes } from './convert-labels-reverse';
  * Forward mapper using the React default link type.
  * @param link
  */
-export function mapLinkToAttributes(link: DiaLinkAttributes): dia.Cell.JSON {
+export function mapLinkToAttributes(link: DiaLinkRecord): dia.Cell.JSON {
   const attributes = linkAttributes(link) as dia.Cell.JSON;
+  if (!attributes.data) attributes.data = {};
+  // Ensure `data` is always present to avoid JointJS warnings about missing connection data. See `LinkModel.defaults()`.
+
+  // @todo: no longer required or change linkAttributes
   if (!attributes.type) attributes.type = LINK_MODEL_TYPE;
   return attributes;
 }
@@ -28,8 +32,6 @@ export function mapAttributesToLink<LinkData = unknown>(
   attributes: dia.Link.Attributes
 ): LinkRecord<LinkData> {
   const {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    id,
     // Labels
     labelMap,
     labels,

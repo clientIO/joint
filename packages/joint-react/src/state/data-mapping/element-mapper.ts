@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { DiaElementAttributes, ElementRecord } from '../../types/cell.types';
+import type { DiaElementRecord, ElementRecord } from '../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { elementAttributes } from '../../presets/element-attributes';
 
@@ -7,8 +7,12 @@ import { elementAttributes } from '../../presets/element-attributes';
  * Forward mapper using the React default element type.
  * @param element
  */
-export function mapElementToAttributes(element: DiaElementAttributes): dia.Cell.JSON {
+export function mapElementToAttributes(element: DiaElementRecord): dia.Cell.JSON {
   const attributes = elementAttributes(element) as dia.Cell.JSON;
+  // Ensure `data` is always present to avoid JointJS warnings about missing connection data. See `ElementModel.defaults()`.
+  if (!attributes.data) attributes.data = {};
+
+  // @todo: no longer required or change elementAttributes
   if (!attributes.type) attributes.type = ELEMENT_MODEL_TYPE;
   return attributes;
 }
@@ -22,7 +26,7 @@ export function mapElementToAttributes(element: DiaElementAttributes): dia.Cell.
  * 1:1 mapping — no `presentation` wrapper.
  * @param attributes
  */
-export function mapAttributesToElement<ElementData extends DiaElementAttributes>(
+export function mapAttributesToElement<ElementData extends DiaElementRecord>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
   const {
@@ -51,7 +55,7 @@ export function mapAttributesToElement<ElementData extends DiaElementAttributes>
 }
 
 /** Function signature that maps raw JointJS element attributes to an `ElementRecord`. */
-export type MapAttributesToElement<ElementData extends DiaElementAttributes> =
+export type MapAttributesToElement<ElementData extends DiaElementRecord> =
   typeof mapAttributesToElement<ElementData>;
 
 /** Function signature that maps an `ElementRecord` back to JointJS element attributes. */

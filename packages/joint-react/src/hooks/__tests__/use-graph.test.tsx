@@ -5,7 +5,7 @@ import { useGraph } from '../use-graph';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import type { CellRecord, ElementRecord, DiaCellAttributes } from '../../types/cell.types';
+import type { CellRecord, ElementRecord, DiaCellRecord } from '../../types/cell.types';
 
 const INITIAL: readonly CellRecord[] = [
   {
@@ -36,7 +36,7 @@ const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
 // Hoisted so the nested-function-depth lint rule doesn't fire inside the
 // `await act(async () => { ... })` + `setCell(fn)` call stack.
-function shiftAXBy10(previous: DiaCellAttributes): DiaCellAttributes {
+function shiftAXBy10(previous: DiaCellRecord): DiaCellRecord {
   if (previous.id !== 'a') return { id: 'a', type: ELEMENT_MODEL_TYPE } as CellRecord;
   const element = previous as ElementRecord;
   return {
@@ -106,7 +106,7 @@ describe('useGraph', () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
       await flush();
-      const updater = jest.fn((previous: DiaCellAttributes) => {
+      const updater = jest.fn((previous: DiaCellRecord) => {
         const element = previous as ElementRecord;
         return {
           ...element,

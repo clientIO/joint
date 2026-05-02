@@ -4,7 +4,6 @@ import type { dia } from '@joint/core';
 import type { ElementPort} from './element-ports';
 
 export interface ElementJSONInit extends dia.Element.JSONInit {
-  data?: unknown;
   portMap?: Record<string, ElementPort>;
   portStyle?: Partial<ElementPort>;
 }
@@ -23,12 +22,11 @@ export function elementAttributes(element: ElementJSONInit): ElementJSONInit {
     throw new TypeError('Invalid element format: expected an object.');
   }
 
-  const { data = {}, portMap, ports, type, ...rest } = element;
+  const { portMap, ports, type, ...rest } = element;
 
   const attributes: ElementJSONInit = {
     ...rest,
     type,
-    data,
   };
 
   if (portMap) {

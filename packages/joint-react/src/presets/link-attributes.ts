@@ -7,7 +7,6 @@ import type { LinkLabel} from './link-labels';
 
 
 export interface LinkJSONInit extends dia.Link.JSONInit {
-  data?: unknown;
   style?: LinkStyle;
   labelMap?: Record<string, LinkLabel>;
   labelStyle?: Partial<LinkLabel>;
@@ -28,11 +27,10 @@ export function linkAttributes(link: LinkJSONInit): LinkJSONInit {
     throw new TypeError('Invalid link data: expected an object with link properties.');
   }
 
-  const { data = {}, type, style, labelMap, labels, ...rest } = link;
+  const { type, style, labelMap, labels, ...rest } = link;
   const attributes: LinkJSONInit = {
     ...rest,
     type,
-    data,
   };
 
   if (style) {

@@ -39,7 +39,6 @@ describe('graph-state-selectors link mapping', () => {
       // User data is in the data field
       expect(link.data).toMatchObject({ key: 'value' });
       // Internal JointJS properties are not mapped back
-      expect(link).not.toHaveProperty('id');
       expect(link).not.toHaveProperty('markup');
       expect(link).not.toHaveProperty('defaultLabel');
     });

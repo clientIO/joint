@@ -1,7 +1,7 @@
 import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
-import type { DiaElementAttributes, DiaLinkAttributes, CellId } from '../types/cell.types';
+import type { DiaElementRecord, DiaLinkRecord, CellId } from '../types/cell.types';
 import { mapCellToAttributes } from '../state/data-mapping';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
@@ -17,8 +17,8 @@ export const LAYOUT_UPDATE_EVENT = 'layout:update';
  *  - anything else → passed through as raw attributes
  */
 export interface UpdateGraphOptions<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends DiaElementRecord = DiaElementRecord,
+  Link extends DiaLinkRecord = DiaLinkRecord,
 > {
   /** Cell records to sync. If omitted, the current graph cells are preserved untouched. */
   readonly cells?: ReadonlyArray<Element | Link>;
@@ -185,8 +185,8 @@ export function graphChanges(options: Options) {
     },
 
     updateGraph<
-      Element extends DiaElementAttributes = DiaElementAttributes,
-      Link extends DiaLinkAttributes = DiaLinkAttributes,
+      Element extends DiaElementRecord = DiaElementRecord,
+      Link extends DiaLinkRecord = DiaLinkRecord,
     >(update: UpdateGraphOptions<Element, Link>): UpdateGraphResult {
       const { cells, flag } = update;
       if (!isSyncedWithReact) {
