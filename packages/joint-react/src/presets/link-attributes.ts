@@ -6,22 +6,21 @@ import type { LinkStyle } from './link-style';
 import type { LinkLabel } from './link-labels';
 
 /**
- * Loose preset input — no `type` required. The preset transforms declarative
- * fields (`style`, `labelMap`) into native JointJS shapes; it does not depend
- * on the cell discriminator.
+ * React-side declarative fields the preset adds on top of `dia.Link.Attributes`.
+ * Composed orthogonally into both `LinkAttributes` (preset input) and
+ * `LinkJSONInit` (record/mapper boundary).
  */
-export interface LinkPresetAttributes extends dia.Link.Attributes {
+export interface LinkPresetAttributes {
   style?: LinkStyle;
   labelMap?: Record<string, LinkLabel>;
   labelStyle?: Partial<LinkLabel>;
 }
 
 /**
- * Type-required variant used at the record / mapper boundary.
+ * Loose preset input — no `type` required. `dia.Link.Attributes` plus the
+ * React preset extras (`style`, `labelMap`, `labelStyle`).
  */
-export interface LinkJSONInit extends LinkPresetAttributes {
-  type: string;
-}
+export interface LinkAttributes extends dia.Link.Attributes, LinkPresetAttributes {}
 
 /**
  * Converts a `LinkAttributes` record to JointJS cell attributes.
@@ -33,7 +32,7 @@ export interface LinkJSONInit extends LinkPresetAttributes {
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function linkAttributes(link: LinkPresetAttributes): dia.Link.Attributes {
+export function linkAttributes(link: LinkAttributes): dia.Link.Attributes {
   if (!util.isObject(link)) {
     throw new TypeError('Invalid link data: expected an object with link properties.');
   }

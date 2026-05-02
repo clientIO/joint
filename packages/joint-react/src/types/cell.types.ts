@@ -1,12 +1,20 @@
 import type {
   Cell as DiaCell,
+  Element as DiaElement,
+  Link as DiaLink,
   Point as DiaPoint,
   Size as DiaSize,
 } from '@joint/core/dia';
 import type { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import type { LINK_MODEL_TYPE } from '../models/link-model';
-import type { LinkJSONInit } from '../presets/link-attributes';
-import type { ElementJSONInit } from '../presets/element-attributes';
+import type { LinkPresetAttributes } from '../presets/link-attributes';
+import type { ElementPresetAttributes } from '../presets/element-attributes';
+
+/** `dia.Element.JSONInit` (id?, type, visual attrs) + React preset extras. */
+export interface ElementJSONInit extends DiaElement.JSONInit, ElementPresetAttributes {}
+
+/** `dia.Link.JSONInit` (id?, type, visual attrs) + React preset extras. */
+export interface LinkJSONInit extends DiaLink.JSONInit, LinkPresetAttributes {}
 
 type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 /** Known cell type names. */

@@ -4,21 +4,20 @@ import type { dia } from '@joint/core';
 import type { ElementPort } from './element-ports';
 
 /**
- * Loose preset input — no `type` required. The preset transforms declarative
- * fields (`portMap`) into native JointJS shapes; it does not depend on the
- * cell discriminator.
+ * React-side declarative fields the preset adds on top of `dia.Element.Attributes`.
+ * Composed orthogonally into both `ElementAttributes` (preset input) and
+ * `ElementJSONInit` (record/mapper boundary).
  */
-export interface ElementPresetAttributes extends dia.Element.Attributes {
+export interface ElementPresetAttributes {
   portMap?: Record<string, ElementPort>;
   portStyle?: Partial<ElementPort>;
 }
 
 /**
- * Type-required variant used at the record / mapper boundary.
+ * Loose preset input — no `type` required. `dia.Element.Attributes` plus the
+ * React preset extras (`portMap`, `portStyle`).
  */
-export interface ElementJSONInit extends ElementPresetAttributes {
-  type: string;
-}
+export interface ElementAttributes extends dia.Element.Attributes, ElementPresetAttributes {}
 
 /**
  * Converts an `ElementAttributes` record to JointJS cell attributes.
@@ -29,7 +28,7 @@ export interface ElementJSONInit extends ElementPresetAttributes {
  * @param element - The element record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function elementAttributes(element: ElementPresetAttributes): dia.Element.Attributes {
+export function elementAttributes(element: ElementAttributes): dia.Element.Attributes {
   if (!util.isObject(element)) {
     throw new TypeError('Invalid element format: expected an object.');
   }
