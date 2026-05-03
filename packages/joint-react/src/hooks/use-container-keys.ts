@@ -3,9 +3,7 @@ import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-s
 import type { ReadonlyContainer } from '../store/state-container';
 import type {
   CellId,
-  CellUnion,
-  ElementJSONInit,
-  LinkJSONInit,
+  AnyCellRecord,
 } from '../types/cell.types';
 
 /**
@@ -16,7 +14,7 @@ import type {
  * @internal
  */
 export function useContainerKeys<
-  Cell extends CellUnion<ElementJSONInit, LinkJSONInit>,
+  Cell extends AnyCellRecord,
 >(container: ReadonlyContainer<Cell>): CellId[] {
   const previousKeysRef = useRef<CellId[]>([]);
 

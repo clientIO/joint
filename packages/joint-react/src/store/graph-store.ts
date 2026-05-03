@@ -3,7 +3,6 @@ import type {
   ElementJSONInit,
   LinkJSONInit,
   CellId,
-  CellUnion,
 } from '../types/cell.types';
 import type { AddPaperOptions } from './paper-store';
 
@@ -260,7 +259,7 @@ export class GraphStore<
    * with the react-origin flag set.
    * @param cells - new cells snapshot from the parent
    */
-  public applyControlled(cells: ReadonlyArray<CellUnion<Element, Link>>) {
+  public applyControlled(cells: ReadonlyArray<Element | Link>) {
     this.graphView.updateGraph({ cells, flag: 'updateFromReact' });
   }
 
@@ -290,7 +289,7 @@ export class GraphStore<
    * @param cell - cell record, cell id, or type name
    * @returns `true` when the resolved type extends `dia.Link`
    */
-  public isLink = (cell: CellUnion<Element, Link>): cell is Link => {
+  public isLink = (cell: Element | Link): cell is Link => {
     const cellType = (cell as { readonly type?: string }).type;
     return cellType !== undefined && isLinkType(cellType, this.graph);
   };

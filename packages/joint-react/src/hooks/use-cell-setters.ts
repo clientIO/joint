@@ -6,7 +6,6 @@ import type {
   ElementJSONInit,
   LinkJSONInit,
   CellId,
-  CellUnion,
 } from '../types/cell.types';
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record
@@ -18,7 +17,7 @@ import type {
 export type SetCellUpdater<
   Element extends ElementJSONInit,
   Link extends LinkJSONInit,
-> = (previous: CellUnion<Element, Link>) => CellUnion<Element, Link>;
+> = (previous: Element | Link) => Element | Link;
 
 /**
  * Function returned by {@link useSetCell}. Two forms:
@@ -33,7 +32,7 @@ export interface SetCell<
   Element extends ElementJSONInit,
   Link extends LinkJSONInit,
 > {
-  (record: CellUnion<Element, Link>): void;
+  (record: Element | Link): void;
   (id: CellId, updater: SetCellUpdater<Element, Link>): void;
 }
 
@@ -52,7 +51,7 @@ export function useSetCell<
   const { graph } = store;
   const setCell = useCallback(
     (
-      argument1: CellUnion<Element, Link> | CellId,
+      argument1: Element | Link | CellId,
       argument2?: SetCellUpdater<Element, Link>
     ) => {
       const next = resolveSetCellInput(argument1, argument2, store);
@@ -95,11 +94,11 @@ export function useSetCell<
  * @returns resolved cell record
  */
 function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJSONInit>(
-  argument1: CellUnion<Element, Link> | CellId,
+  argument1: Element | Link | CellId,
   argument2: SetCellUpdater<Element, Link> | undefined,
   store: ReturnType<typeof useGraphStore<Element, Link>>
-): CellUnion<Element, Link> {
-  if (argument2 === undefined) return argument1 as CellUnion<Element, Link>;
+): Element | Link {
+  if (argument2 === undefined) return argument1 as Element | Link;
   const id = argument1 as CellId;
   const previous = store.graphView.cells.get(id);
   if (!previous) {
@@ -169,10 +168,10 @@ export function useResetCells<
   return useCallback(
     (
       input:
-        | ReadonlyArray<CellUnion<Element, Link>>
+        | ReadonlyArray<Element | Link>
         | ((
-            previous: ReadonlyArray<CellUnion<Element, Link>>
-          ) => ReadonlyArray<CellUnion<Element, Link>>)
+            previous: ReadonlyArray<Element | Link>
+          ) => ReadonlyArray<Element | Link>)
     ) => {
       const current = store.graphView.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
@@ -198,8 +197,8 @@ export function useUpdateCells<
   return useCallback(
     (
       updater: (
-        previous: ReadonlyArray<CellUnion<Element, Link>>
-      ) => ReadonlyArray<CellUnion<Element, Link>>
+        previous: ReadonlyArray<Element | Link>
+      ) => ReadonlyArray<Element | Link>
     ) => {
       const current = store.graphView.cells.getAll();
       store.applyControlled(updater(current));

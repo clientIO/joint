@@ -121,17 +121,6 @@ export type CellRecord<
 export type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
 
 /**
- * Union of the records this `useGraph` instance accepts as cell input —
- * either a typed `Element` or `Link` record. To support custom cell types,
- * extend the union at the call site (e.g. `useGraph<MyElement | MyCustom, MyLink>`).
- * @template Element - element record shape
- * @template Link - link record shape
- */
-export type CellUnion<
-  Element extends ElementJSONInit = ElementJSONInit,
-  Link extends LinkJSONInit = LinkJSONInit,
-> = Element | Link;
-/**
  * Resolves any input cell shape to its internal store form — the variant with
  * framework-populated fields (`id`, `position`, `size`, `angle`, `data` for
  * elements; `id`, `source`, `target`, `data` for links) required.

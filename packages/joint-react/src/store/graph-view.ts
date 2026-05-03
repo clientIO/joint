@@ -5,7 +5,6 @@ import type {
   ElementJSONInit,
   LinkJSONInit,
   CellId,
-  CellUnion,
 } from '../types/cell.types';
 import { mapAttributesToElement, mapAttributesToLink } from '../state/data-mapping';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
@@ -19,8 +18,8 @@ export interface IncrementalCellsChange<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 > {
-  readonly added: Map<CellId, CellUnion<Element, Link>>;
-  readonly changed: Map<CellId, CellUnion<Element, Link>>;
+  readonly added: Map<CellId, Element | Link>;
+  readonly changed: Map<CellId, Element | Link>;
   readonly removed: Set<CellId>;
 }
 
@@ -51,10 +50,10 @@ interface GraphViewState<
  * @param next - freshly mapped record from the graph
  * @returns merged record; may be `previous` itself when nothing changed
  */
-function mergeCellUnion<Element extends ElementJSONInit, Link extends LinkJSONInit>(
-  previous: CellUnion<Element, Link> | undefined,
-  next: CellUnion<Element, Link>
-): CellUnion<Element, Link> {
+function mergeCellRecord<Element extends ElementJSONInit, Link extends LinkJSONInit>(
+  previous: Element | Link | undefined,
+  next: Element | Link
+): Element | Link {
   if (!previous) return next;
 
   const previousData = previous.data as object | undefined;
@@ -100,7 +99,7 @@ function mergeCellUnion<Element extends ElementJSONInit, Link extends LinkJSONIn
     data: mergedData,
     position: mergedPosition,
     size: mergedSize,
-  } as CellUnion<Element, Link>;
+  } as Element | Link;
 }
 
 /**
@@ -113,9 +112,9 @@ function mergeCellUnion<Element extends ElementJSONInit, Link extends LinkJSONIn
  * @param cell - graph cell
  * @returns CellRecord suitable for the cells container
  */
-function toCellUnion<Element extends ElementJSONInit, Link extends LinkJSONInit>(
+function toCellRecord<Element extends ElementJSONInit, Link extends LinkJSONInit>(
   cell: dia.Cell
-): CellUnion<Element, Link> {
+): Element | Link {
   if (cell.isElement()) {
     const record = mapAttributesToElement(cell.attributes);
     const previousPosition = record.position;
@@ -149,7 +148,7 @@ function toCellUnion<Element extends ElementJSONInit, Link extends LinkJSONInit>
     };
     return withDefaults as Link;
   }
-  return { ...cell.attributes, id: cell.id } as CellUnion<Element, Link>;
+  return { ...cell.attributes, id: cell.id } as Element | Link;
 }
 
 export function graphView<
@@ -158,11 +157,11 @@ export function graphView<
 >(options: GraphViewState<Element, Link>) {
   const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
-  const cells = createContainer<CellUnion<Element, Link>>('Cells');
+  const cells = createContainer<Element | Link>('Cells');
 
   const trackChanges = onIncrementalChange !== undefined;
-  const added = trackChanges ? new Map<CellId, CellUnion<Element, Link>>() : undefined;
-  const changed = trackChanges ? new Map<CellId, CellUnion<Element, Link>>() : undefined;
+  const added = trackChanges ? new Map<CellId, Element | Link>() : undefined;
+  const changed = trackChanges ? new Map<CellId, Element | Link>() : undefined;
   const removed = trackChanges ? new Set<CellId>() : undefined;
 
   /**
@@ -173,12 +172,12 @@ export function graphView<
    * @param cell - graph cell
    * @returns the merged record (may be the previous reference when unchanged)
    */
-  function writeCell(cell: dia.Cell): CellUnion<Element, Link> {
+  function writeCell(cell: dia.Cell): Element | Link {
     cells.set(cell.id, (previous) => {
-      const next = toCellUnion<Element, Link>(cell);
-      return mergeCellUnion<Element, Link>(previous, next);
+      const next = toCellRecord<Element, Link>(cell);
+      return mergeCellRecord<Element, Link>(previous, next);
     });
-    return cells.get(cell.id) as CellUnion<Element, Link>;
+    return cells.get(cell.id) as Element | Link;
   }
 
   const graphChangesController = graphChanges({
