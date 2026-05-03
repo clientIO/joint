@@ -95,18 +95,6 @@ type InternalLinkRecord<LinkData = unknown> = PickRequired<
   'id' | 'type' | 'source' | 'target' | 'data'
 >;
 /**
- * Structural upper bound for any cell record from joint-react's perspective —
- * `ElementJSONInit | LinkJSONInit`. Useful where you need a heterogeneous
- * loose union (e.g. `initialCells` arrays mixing built-in shape types).
- *
- * For custom `type` literals, parametrize the record at the call site:
- *   `LinkRecord<MyData, 'custom.MyLink'>`
- *   `ElementRecord<MyData, 'standard.Rectangle'>`
- * Then build the union: `MyElementRecord | MyLinkRecord`.
- */
-export type CellJSONInit = ElementJSONInit | LinkJSONInit;
-
-/**
  * Discriminated union over the React default `type` literals:
  * - `type === 'element'` → {@link ElementRecord}
  * - `type === 'link'`    → {@link LinkRecord}
@@ -115,9 +103,14 @@ export type CellJSONInit = ElementJSONInit | LinkJSONInit;
  * mixed built-in shape arrays with typed data, build the union manually:
  * `ElementRecord<MyData, 'standard.Rectangle'> | LinkRecord<MyData, 'standard.Link'>`.
  */
-export type CellRecord<ElementData = unknown, LinkData = unknown> =
-  | ElementRecord<ElementData, typeof ELEMENT_MODEL_TYPE>
-  | LinkRecord<LinkData, typeof LINK_MODEL_TYPE>;
+export type CellRecord<
+  ElementData = unknown,
+  LinkData = unknown,
+  ElementType extends string = typeof ELEMENT_MODEL_TYPE,
+  LinkType extends string = typeof LINK_MODEL_TYPE,
+> =
+  | ElementRecord<ElementData, ElementType>
+  | LinkRecord<LinkData, LinkType>;
 
 /**
  * Union of the records this `useGraph` instance accepts as cell input —

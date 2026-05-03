@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import {
-  type CellJSONInit,
+  type CellRecord,
   GraphProvider,
   useCell,
   Paper,
@@ -10,7 +10,7 @@ import {
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialCells: readonly CellJSONInit[] = [
+const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> = [
   {
     id: '1',
     type: 'element',

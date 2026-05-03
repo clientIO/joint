@@ -1,11 +1,18 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { useGraphStore } from './use-graph-store';
-import type { CellId, CellJSONInit, CellRecord, Computed } from '../types/cell.types';
+import type { CellId, CellRecord, Computed } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
 
+/**
+ * Internal upper bound for any cell record this hook accepts as a constraint.
+ * Equivalent to `CellRecord<unknown, unknown, string, string>` — the loose
+ * variant where `type` is any string.
+ */
+type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
+
 /** Union of all possible `useCells` return shapes (depends on argument form). */
-type UseCellsResult<Cell extends CellJSONInit, Selected> =
+type UseCellsResult<Cell extends AnyCellRecord, Selected> =
   | readonly Cell[]
   | Cell
   | undefined
@@ -83,7 +90,7 @@ function arrayAwareEqual(a: unknown, b: unknown): boolean {
  * @param subscribedIds - cell ids to pick
  * @returns array of resolved cells in id order (missing ids omitted)
  */
-function pickCells<Cell extends CellJSONInit>(
+function pickCells<Cell extends AnyCellRecord>(
   container: ReadonlyContainer<Cell>,
   subscribedIds: readonly CellId[]
 ): readonly Cell[] {
@@ -105,7 +112,7 @@ function pickCells<Cell extends CellJSONInit>(
  * @param cellSelector - selector for the single-id form (optional)
  * @returns selected value or raw cell / cells
  */
-function computeNext<Cell extends CellJSONInit, Selected>(
+function computeNext<Cell extends AnyCellRecord, Selected>(
   container: ReadonlyContainer<Cell>,
   targetId: CellId | undefined,
   subscribedIds: readonly CellId[] | undefined,
@@ -124,7 +131,7 @@ function computeNext<Cell extends CellJSONInit, Selected>(
 }
 
 /** Normalised arguments after dispatching by the runtime call shape. */
-interface ParsedUseCellsArgs<Cell extends CellJSONInit, Selected> {
+interface ParsedUseCellsArgs<Cell extends AnyCellRecord, Selected> {
   readonly targetId: CellId | undefined;
   readonly ids: readonly CellId[] | undefined;
   readonly arraySelector: ((cells: readonly Cell[]) => Selected) | undefined;
@@ -140,7 +147,7 @@ interface ParsedUseCellsArgs<Cell extends CellJSONInit, Selected> {
  * @param argument3 - third positional arg (isEqual when the form admits it)
  * @returns the normalised input
  */
-function parseUseCellsArgs<Cell extends CellJSONInit, Selected>(
+function parseUseCellsArgs<Cell extends AnyCellRecord, Selected>(
   argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
   argument2?:
     | ((cells: readonly Cell[]) => Selected)
@@ -206,14 +213,14 @@ function parseUseCellsArgs<Cell extends CellJSONInit, Selected>(
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @returns readonly resolved cells array
  */
-export function useCells<Cell extends CellJSONInit = Computed<CellRecord>>(): readonly Cell[];
+export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(): readonly Cell[];
 /**
  * Subscribe to a single cell by id.
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param id - cell id to track
  * @returns current resolved cell, or undefined when missing
  */
-export function useCells<Cell extends CellJSONInit = Computed<CellRecord>>(
+export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
   id: CellId
 ): Cell | undefined;
 /**
@@ -226,7 +233,7 @@ export function useCells<Cell extends CellJSONInit = Computed<CellRecord>>(
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends CellJSONInit = Computed, Selected = Cell | undefined>(
+export function useCells<Cell extends AnyCellRecord = Computed, Selected = Cell | undefined>(
   id: CellId,
   selector: (cell: Cell | undefined) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
@@ -244,7 +251,7 @@ export function useCells<Cell extends CellJSONInit = Computed, Selected = Cell |
  * @param ids - cell ids to track
  * @returns array of resolved cells (only those that exist; missing ids are skipped)
  */
-export function useCells<Cell extends CellJSONInit = Computed<CellRecord>>(
+export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   ids: readonly CellId[]
 ): readonly Cell[];
@@ -258,7 +265,7 @@ export function useCells<Cell extends CellJSONInit = Computed<CellRecord>>(
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends CellJSONInit = Computed, Selected = readonly Cell[]>(
+export function useCells<Cell extends AnyCellRecord = Computed, Selected = readonly Cell[]>(
   ids: readonly CellId[],
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
@@ -271,11 +278,11 @@ export function useCells<Cell extends CellJSONInit = Computed, Selected = readon
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends CellJSONInit = Computed, Selected = readonly Cell[]>(
+export function useCells<Cell extends AnyCellRecord = Computed, Selected = readonly Cell[]>(
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
-export function useCells<Cell extends CellJSONInit = Computed, Selected = readonly Cell[]>(
+export function useCells<Cell extends AnyCellRecord = Computed, Selected = readonly Cell[]>(
   argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
   argument2?:
     | ((cells: readonly Cell[]) => Selected)

@@ -12,7 +12,6 @@ import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type {
   CellRecord,
-  CellJSONInit,
   ElementRecord,
 } from '../../types/cell.types';
 
@@ -41,7 +40,7 @@ const baseCells: readonly CellRecord[] = [
 
 const wrapper = graphProviderWrapper({ initialCells: baseCells });
 
-const setCellAUpdater = (previous: CellJSONInit): CellRecord => {
+const setCellAUpdater = (previous: CellRecord<unknown, unknown, string, string>): CellRecord => {
   const element = previous as ElementRecord;
   return {
     ...element,
@@ -49,22 +48,22 @@ const setCellAUpdater = (previous: CellJSONInit): CellRecord => {
   } as CellRecord;
 };
 
-const passthroughUpdater = (previous: CellJSONInit) => previous as CellRecord;
+const passthroughUpdater = (previous: CellRecord<unknown, unknown, string, string>) => previous as CellRecord;
 
-const filterOutCellA = (previous: readonly CellJSONInit[]): readonly CellJSONInit[] =>
+const filterOutCellA = (previous: ReadonlyArray<CellRecord<unknown, unknown, string, string>>): ReadonlyArray<CellRecord<unknown, unknown, string, string>> =>
   previous.filter((cell) => cell.id !== 'a');
 
-const filterOutCellB = (previous: readonly CellJSONInit[]): readonly CellJSONInit[] =>
+const filterOutCellB = (previous: ReadonlyArray<CellRecord<unknown, unknown, string, string>>): ReadonlyArray<CellRecord<unknown, unknown, string, string>> =>
   previous.filter((cell) => cell.id !== 'b');
 
-const moveCellAFar = (previous: readonly CellJSONInit[]): readonly CellJSONInit[] =>
+const moveCellAFar = (previous: ReadonlyArray<CellRecord<unknown, unknown, string, string>>): ReadonlyArray<CellRecord<unknown, unknown, string, string>> =>
   previous.map((cell) => {
     if (cell.id !== 'a') return cell;
     const element = cell as ElementRecord;
     return {
       ...element,
       position: { x: 999, y: 999 },
-    } as CellJSONInit;
+    } as CellRecord<unknown, unknown, string, string>;
   });
 
 describe('use-cell-setters', () => {

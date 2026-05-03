@@ -2,7 +2,7 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { shapes, dia } from '@joint/core';
 import '../index.css';
 import {
-  type CellJSONInit,
+  type CellRecord,
   GraphProvider,
   useCell,
   Paper,
@@ -36,7 +36,7 @@ interface ElementData {
 // Data
 // ============================================================================
 
-const initialCells: readonly CellJSONInit[] = [
+const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> = [
   {
     id: 'node-1',
     position: { x: 70, y: 100 },

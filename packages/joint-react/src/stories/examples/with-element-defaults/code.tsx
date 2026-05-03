@@ -1,5 +1,5 @@
 import {
-  type CellJSONInit,
+  type CellRecord,
   GraphProvider,
   Paper,
   HTMLBox,
@@ -98,7 +98,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: readonly CellJSONInit[] = [
+const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> = [
   {
     id: 'a',
     type: 'PortsElement',

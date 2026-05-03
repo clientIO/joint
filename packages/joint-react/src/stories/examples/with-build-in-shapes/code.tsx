@@ -1,11 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type CellJSONInit } from '@joint/react';
+import { GraphProvider, Paper, type CellRecord } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-const initialCells: readonly CellJSONInit[] = [
+const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> = [
   // Row 1: Basic shapes
   {
     id: 'rectangle',
@@ -202,7 +202,7 @@ const initialCells: readonly CellJSONInit[] = [
     attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
-] satisfies CellJSONInit[];
+] satisfies Array<CellRecord<unknown, unknown, string, string>>;
 
 function Main() {
   return (
