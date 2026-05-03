@@ -12,7 +12,7 @@ import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type {
   CellRecord,
-  DiaCellRecord,
+  CellJSONInit,
   ElementRecord,
 } from '../../types/cell.types';
 
@@ -41,7 +41,7 @@ const baseCells: readonly CellRecord[] = [
 
 const wrapper = graphProviderWrapper({ initialCells: baseCells });
 
-const setCellAUpdater = (previous: DiaCellRecord): CellRecord => {
+const setCellAUpdater = (previous: CellJSONInit): CellRecord => {
   const element = previous as ElementRecord;
   return {
     ...element,
@@ -49,22 +49,22 @@ const setCellAUpdater = (previous: DiaCellRecord): CellRecord => {
   } as CellRecord;
 };
 
-const passthroughUpdater = (previous: DiaCellRecord) => previous as CellRecord;
+const passthroughUpdater = (previous: CellJSONInit) => previous as CellRecord;
 
-const filterOutCellA = (previous: readonly DiaCellRecord[]): readonly DiaCellRecord[] =>
+const filterOutCellA = (previous: readonly CellJSONInit[]): readonly CellJSONInit[] =>
   previous.filter((cell) => cell.id !== 'a');
 
-const filterOutCellB = (previous: readonly DiaCellRecord[]): readonly DiaCellRecord[] =>
+const filterOutCellB = (previous: readonly CellJSONInit[]): readonly CellJSONInit[] =>
   previous.filter((cell) => cell.id !== 'b');
 
-const moveCellAFar = (previous: readonly DiaCellRecord[]): readonly DiaCellRecord[] =>
+const moveCellAFar = (previous: readonly CellJSONInit[]): readonly CellJSONInit[] =>
   previous.map((cell) => {
     if (cell.id !== 'a') return cell;
     const element = cell as ElementRecord;
     return {
       ...element,
       position: { x: 999, y: 999 },
-    } as DiaCellRecord;
+    } as CellJSONInit;
   });
 
 describe('use-cell-setters', () => {

@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { DiaElementRecord, ElementRecord } from '../../types/cell.types';
+import type { ElementJSONInit, ElementRecord } from '../../types/cell.types';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { elementAttributes } from '../../presets/element-attributes';
 
@@ -7,7 +7,7 @@ import { elementAttributes } from '../../presets/element-attributes';
  * Forward mapper using the React default element type.
  * @param element
  */
-export function mapElementToAttributes(element: DiaElementRecord): dia.Element.JSONInit {
+export function mapElementToAttributes(element: ElementJSONInit): dia.Element.JSONInit {
   const attributes = elementAttributes(element) as dia.Element.JSONInit;
   // `data` is a @joint/react concept — defaulted here, not in framework-neutral presets.
   attributes.data ??= {};

@@ -1,11 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type DiaCellRecord } from '@joint/react';
+import { GraphProvider, Paper, type CellJSONInit } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-const initialCells: readonly DiaCellRecord[] = [
+const initialCells: readonly CellJSONInit[] = [
   // Row 1: Basic shapes
   {
     id: 'rectangle',
@@ -202,7 +202,7 @@ const initialCells: readonly DiaCellRecord[] = [
     attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
-] satisfies DiaCellRecord[];
+] satisfies CellJSONInit[];
 
 function Main() {
   return (

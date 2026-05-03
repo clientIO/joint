@@ -4,12 +4,12 @@ import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { IncrementalCellsChange } from '../../store/graph-view';
-import type { DiaElementRecord, DiaLinkRecord } from '../../types/cell.types';
+import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
 
 /** Cells array accepted by GraphProvider. */
 type ProviderCells<
-  Element extends DiaElementRecord,
-  Link extends DiaLinkRecord,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > = ReadonlyArray<Element | Link>;
 
 /**
@@ -18,8 +18,8 @@ type ProviderCells<
  * @template LinkData - User data attached to each link record.
  */
 interface GraphProviderBaseProps<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > {
   /**
    * Pre-existing JointJS graph instance to use. If omitted, GraphProvider
@@ -51,8 +51,8 @@ interface GraphProviderBaseProps<
  * @template LinkData - user data on each link
  */
 interface GraphProviderUncontrolledProps<
-  Element extends DiaElementRecord,
-  Link extends DiaLinkRecord,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > extends GraphProviderBaseProps<Element, Link> {
   readonly initialCells?: ProviderCells<Element, Link>;
   readonly cells?: never;
@@ -67,8 +67,8 @@ interface GraphProviderUncontrolledProps<
  * @template LinkData - user data on each link
  */
 interface GraphProviderControlledProps<
-  Element extends DiaElementRecord,
-  Link extends DiaLinkRecord,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > extends GraphProviderBaseProps<Element, Link> {
   readonly cells: ProviderCells<Element, Link>;
   readonly initialCells?: never;
@@ -91,8 +91,8 @@ interface GraphProviderControlledProps<
  * @template LinkData - User data attached to each link record.
  */
 export type GraphProviderProps<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > = GraphProviderUncontrolledProps<Element, Link> | GraphProviderControlledProps<Element, Link>;
 
 /**
@@ -103,8 +103,8 @@ export type GraphProviderProps<
  * re-binds the generics on read — the runtime instance is the same.
  */
 type GraphProviderBaseInternalProps = GraphProviderProps<
-  DiaElementRecord,
-  DiaLinkRecord
+  ElementJSONInit,
+  LinkJSONInit
 > & {
   ref?: React.Ref<dia.Graph | null>;
 };
@@ -136,7 +136,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
   const isControlled = cellsProperty !== undefined;
 
   const { isReady, ref } = useImperativeApi<
-    GraphStore<DiaElementRecord, DiaLinkRecord>,
+    GraphStore<ElementJSONInit, LinkJSONInit>,
     dia.Graph
   >(
     {
@@ -146,7 +146,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
         const graphStore =
           store ??
           (isControlled
-            ? new GraphStore<DiaElementRecord, DiaLinkRecord>({
+            ? new GraphStore<ElementJSONInit, LinkJSONInit>({
                 graph,
                 cellNamespace,
                 cellModel,
@@ -154,7 +154,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
                 onCellsChange,
                 onIncrementalCellsChange,
               })
-            : new GraphStore<DiaElementRecord, DiaLinkRecord>({
+            : new GraphStore<ElementJSONInit, LinkJSONInit>({
                 graph,
                 cellNamespace,
                 cellModel,
@@ -216,8 +216,8 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
  * @see GraphProviderProps for all available props
  */
 export const GraphProvider = GraphBase as <
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >(
   props: GraphProviderProps<Element, Link> & {
     ref?: React.Ref<dia.Graph | null>;

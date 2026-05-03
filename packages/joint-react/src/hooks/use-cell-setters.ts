@@ -3,8 +3,8 @@ import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { mapCellToAttributes } from '../state/data-mapping';
 import type {
-  DiaElementRecord,
-  DiaLinkRecord,
+  ElementJSONInit,
+  LinkJSONInit,
   CellId,
   CellUnion,
 } from '../types/cell.types';
@@ -16,8 +16,8 @@ import type {
  * @template Link - link record shape
  */
 export type SetCellUpdater<
-  Element extends DiaElementRecord,
-  Link extends DiaLinkRecord,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > = (previous: CellUnion<Element, Link>) => CellUnion<Element, Link>;
 
 /**
@@ -30,8 +30,8 @@ export type SetCellUpdater<
  * @template Link - link record shape
  */
 export interface SetCell<
-  Element extends DiaElementRecord,
-  Link extends DiaLinkRecord,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > {
   (record: CellUnion<Element, Link>): void;
   (id: CellId, updater: SetCellUpdater<Element, Link>): void;
@@ -45,8 +45,8 @@ export interface SetCell<
  * @returns memoized setCell setter
  */
 export function useSetCell<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >(): SetCell<Element, Link> {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
@@ -94,7 +94,7 @@ export function useSetCell<
  * @param store - graph store used to read the previous record for the updater form
  * @returns resolved cell record
  */
-function resolveSetCellInput<Element extends DiaElementRecord, Link extends DiaLinkRecord>(
+function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJSONInit>(
   argument1: CellUnion<Element, Link> | CellId,
   argument2: SetCellUpdater<Element, Link> | undefined,
   store: ReturnType<typeof useGraphStore<Element, Link>>
@@ -161,8 +161,8 @@ export function useRemoveCells() {
  * @returns memoized resetCells setter
  */
 export function useResetCells<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >() {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
@@ -191,8 +191,8 @@ export function useResetCells<
  * @returns memoized updateCells setter
  */
 export function useUpdateCells<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >() {
   const store = useGraphStore<Element, Link>();
   return useCallback(

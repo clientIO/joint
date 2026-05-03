@@ -1,7 +1,7 @@
 import { dia, shapes } from '@joint/core';
 import type {
-  DiaElementRecord,
-  DiaLinkRecord,
+  ElementJSONInit,
+  LinkJSONInit,
   CellId,
   CellUnion,
 } from '../types/cell.types';
@@ -57,8 +57,8 @@ export interface GraphStoreInternalSnapshot {
  * being passed together.
  */
 interface GraphStoreOptionsBase<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
@@ -68,8 +68,8 @@ interface GraphStoreOptionsBase<
 
 /** Uncontrolled mode: parent provides only seed data. */
 interface GraphStoreOptionsUncontrolled<
-  Element extends DiaElementRecord,
-  Link extends DiaLinkRecord,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > extends GraphStoreOptionsBase<Element, Link> {
   readonly initialCells?: ReadonlyArray<Element | Link>;
   readonly cells?: never;
@@ -78,8 +78,8 @@ interface GraphStoreOptionsUncontrolled<
 
 /** Controlled mode: parent is the source of truth; store applies snapshots. */
 interface GraphStoreOptionsControlled<
-  Element extends DiaElementRecord,
-  Link extends DiaLinkRecord,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > extends GraphStoreOptionsBase<Element, Link> {
   readonly cells: ReadonlyArray<Element | Link>;
   readonly initialCells?: never;
@@ -91,16 +91,16 @@ interface GraphStoreOptionsControlled<
  * or controlled (`cells` + `onCellsChange`).
  */
 export type GraphStoreOptions<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > = GraphStoreOptionsUncontrolled<Element, Link> | GraphStoreOptionsControlled<Element, Link>;
 
 /**
  * Central store for managing graph state, synchronization, and paper instances.
  */
 export class GraphStore<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > {
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<number> = createAtom(0);
@@ -112,8 +112,8 @@ export class GraphStore<
   public readonly graphView: GraphView<Element, Link>;
 
   public getGraphView<
-    E extends DiaElementRecord = DiaElementRecord,
-    L extends DiaLinkRecord = DiaLinkRecord,
+    E extends ElementJSONInit = ElementJSONInit,
+    L extends LinkJSONInit = LinkJSONInit,
   >(): GraphView<E, L> {
     return this.graphView as unknown as GraphView<E, L>;
   }
@@ -175,7 +175,7 @@ export class GraphStore<
         // The observer only cares about element-typed cells. Build a Map on
         // demand from the unified cells container — cold path, called only
         // when the ResizeObserver fires.
-        const map = new Map<CellId, DiaElementRecord>();
+        const map = new Map<CellId, ElementJSONInit>();
         for (const cell of this.graphView.cells.getAll()) {
           if (cell.id === undefined) continue;
           if (this.isElement(cell)) {

@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import {
-  type DiaCellRecord,
+  type CellJSONInit,
   GraphProvider,
   useCell,
   Paper,
@@ -10,7 +10,7 @@ import {
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialCells: readonly DiaCellRecord[] = [
+const initialCells: readonly CellJSONInit[] = [
   {
     id: '1',
     type: 'element',

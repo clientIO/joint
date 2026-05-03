@@ -1,5 +1,5 @@
 import {
-  type DiaCellRecord,
+  type CellJSONInit,
   GraphProvider,
   Paper,
   HTMLBox,
@@ -98,7 +98,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: readonly DiaCellRecord[] = [
+const initialCells: readonly CellJSONInit[] = [
   {
     id: 'a',
     type: 'PortsElement',

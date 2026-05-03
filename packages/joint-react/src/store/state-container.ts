@@ -4,8 +4,8 @@ import { isStrictEqual } from '../utils/selector-utils';
 import type {
   CellId,
   CellUnion,
-  DiaElementRecord,
-  DiaLinkRecord,
+  ElementJSONInit,
+  LinkJSONInit,
 } from '../types/cell.types';
 
 /** Update payload accepted by container setters: a new value or a previous-state updater. */
@@ -22,7 +22,7 @@ export function getValue<T>(previous: T | undefined, updater: Update<T>): T | un
 
 /** Read-only view of a cell container — supports reads, lookups, and subscriptions. */
 export interface ReadonlyContainer<
-  Cell extends CellUnion<DiaElementRecord, DiaLinkRecord>,
+  Cell extends CellUnion<ElementJSONInit, LinkJSONInit>,
 > {
   getVersion: () => number;
   getAll: () => readonly Cell[];
@@ -35,7 +35,7 @@ export interface ReadonlyContainer<
 }
 
 /** Mutable cell container — extends {@link ReadonlyContainer} with set/delete/reset operations. */
-export interface Container<Cell extends CellUnion<DiaElementRecord, DiaLinkRecord>>
+export interface Container<Cell extends CellUnion<ElementJSONInit, LinkJSONInit>>
   extends ReadonlyContainer<Cell> {
   set: (id: CellId, update: Update<Cell>) => void;
   delete: (id: CellId) => void;
@@ -48,7 +48,7 @@ export interface Container<Cell extends CellUnion<DiaElementRecord, DiaLinkRecor
  * @param container
  */
 export function asReadonlyContainer<
-  Cell extends CellUnion<DiaElementRecord, DiaLinkRecord>,
+  Cell extends CellUnion<ElementJSONInit, LinkJSONInit>,
 >(container: Container<Cell>): ReadonlyContainer<Cell> {
   return {
     get: container.get,
@@ -72,7 +72,7 @@ export function asReadonlyContainer<
  * @param _name - optional label for debugging
  */
 export function createContainer<
-  Cell extends CellUnion<DiaElementRecord, DiaLinkRecord>,
+  Cell extends CellUnion<ElementJSONInit, LinkJSONInit>,
 >(_name?: string): Container<Cell> {
   const items: Cell[] = [];
   const indexById = new Map<CellId, number>();

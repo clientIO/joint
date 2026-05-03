@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { mapAttributesToLink, mapLinkToAttributes } from '../link-mapper';
 import { LINK_MODEL_TYPE } from '../../../models/link-model';
-import type { DiaLinkRecord } from '../../../types/cell.types';
+import type { LinkJSONInit } from '../../../types/cell.types';
 
 describe('mapLinkToAttributes', () => {
   it('preserves a custom type', () => {
@@ -9,7 +9,7 @@ describe('mapLinkToAttributes', () => {
       type: 'custom.Link',
       source: { id: 'a' },
       target: { id: 'b' },
-    } as unknown as DiaLinkRecord);
+    } as unknown as LinkJSONInit);
     expect(result.type).toBe('custom.Link');
   });
 });

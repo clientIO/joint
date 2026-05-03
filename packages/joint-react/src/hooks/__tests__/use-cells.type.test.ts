@@ -26,7 +26,7 @@
  */
 import { useCells } from '../use-cells';
 import type {
-  DiaElementRecord,
+  ElementJSONInit,
   CellId,
   Computed,
   ElementRecord,
@@ -108,7 +108,7 @@ if (false as boolean) {
   );
 
   // User-defined custom cell with literal type — narrowing works
-  interface MyCustomNode extends DiaElementRecord {
+  interface MyCustomNode extends ElementJSONInit {
     readonly id: CellId;
     readonly type: 'my-custom';
     readonly data: { readonly foo: string };
@@ -122,7 +122,7 @@ if (false as boolean) {
   );
 
   // Custom link-flavoured record narrows from union
-  interface MyCustomEdge extends DiaElementRecord {
+  interface MyCustomEdge extends ElementJSONInit {
     readonly id: CellId;
     readonly type: 'my-edge';
     readonly data: { readonly weight: number };

@@ -2,8 +2,8 @@ import type {
   ElementRecord,
   LinkRecord,
   Computed,
-  DiaElementRecord,
-  DiaLinkRecord,
+  ElementJSONInit,
+  LinkJSONInit,
 } from '../cell.types';
 
 describe('cell.types shape', () => {
@@ -56,9 +56,9 @@ describe('cell.types shape', () => {
   });
 
   it('Base records accept any extra fields (index signature)', () => {
-    const b: DiaElementRecord = { type: 'custom', anything: 1 };
+    const b: ElementJSONInit = { type: 'custom', anything: 1 };
     expect(b.anything).toBe(1);
-    const l: DiaLinkRecord = { type: 'custom', extra: 'x' };
+    const l: LinkJSONInit = { type: 'custom', extra: 'x' };
     expect(l.extra).toBe('x');
   });
 });

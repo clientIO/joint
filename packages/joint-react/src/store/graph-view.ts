@@ -2,8 +2,8 @@
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
 import type {
-  DiaElementRecord,
-  DiaLinkRecord,
+  ElementJSONInit,
+  LinkJSONInit,
   CellId,
   CellUnion,
 } from '../types/cell.types';
@@ -16,8 +16,8 @@ import { LINK_MODEL_TYPE } from '../models/link-model';
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalCellsChange<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > {
   readonly added: Map<CellId, CellUnion<Element, Link>>;
   readonly changed: Map<CellId, CellUnion<Element, Link>>;
@@ -25,8 +25,8 @@ export interface IncrementalCellsChange<
 }
 
 interface GraphViewState<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > {
   readonly graph: dia.Graph;
   readonly onIncrementalChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
@@ -51,7 +51,7 @@ interface GraphViewState<
  * @param next - freshly mapped record from the graph
  * @returns merged record; may be `previous` itself when nothing changed
  */
-function mergeCellUnion<Element extends DiaElementRecord, Link extends DiaLinkRecord>(
+function mergeCellUnion<Element extends ElementJSONInit, Link extends LinkJSONInit>(
   previous: CellUnion<Element, Link> | undefined,
   next: CellUnion<Element, Link>
 ): CellUnion<Element, Link> {
@@ -59,10 +59,10 @@ function mergeCellUnion<Element extends DiaElementRecord, Link extends DiaLinkRe
 
   const previousData = previous.data as object | undefined;
   const nextData = next.data as object | undefined;
-  const previousPosition = (previous as DiaElementRecord).position;
-  const nextPosition = (next as DiaElementRecord).position;
-  const previousSize = (previous as DiaElementRecord).size;
-  const nextSize = (next as DiaElementRecord).size;
+  const previousPosition = (previous as ElementJSONInit).position;
+  const nextPosition = (next as ElementJSONInit).position;
+  const previousSize = (previous as ElementJSONInit).size;
+  const nextSize = (next as ElementJSONInit).size;
 
   const mergedData = isShallowEqual(previousData, nextData) ? previousData : nextData;
   const mergedPosition = isPositionEqual(previousPosition, nextPosition)
@@ -113,7 +113,7 @@ function mergeCellUnion<Element extends DiaElementRecord, Link extends DiaLinkRe
  * @param cell - graph cell
  * @returns CellRecord suitable for the cells container
  */
-function toCellUnion<Element extends DiaElementRecord, Link extends DiaLinkRecord>(
+function toCellUnion<Element extends ElementJSONInit, Link extends LinkJSONInit>(
   cell: dia.Cell
 ): CellUnion<Element, Link> {
   if (cell.isElement()) {
@@ -153,8 +153,8 @@ function toCellUnion<Element extends DiaElementRecord, Link extends DiaLinkRecor
 }
 
 export function graphView<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >(options: GraphViewState<Element, Link>) {
   const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
@@ -303,6 +303,6 @@ export function graphView<
 }
 
 export type GraphView<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > = ReturnType<typeof graphView<Element, Link>>;

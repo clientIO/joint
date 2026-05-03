@@ -10,11 +10,25 @@ import type { LINK_MODEL_TYPE } from '../models/link-model';
 import type { LinkPresetAttributes } from '../presets/link-attributes';
 import type { ElementPresetAttributes } from '../presets/element-attributes';
 
-/** `dia.Element.JSONInit` (id?, type, visual attrs) + React preset extras. */
-export interface ElementJSONInit extends DiaElement.JSONInit, ElementPresetAttributes {}
+/**
+ * `dia.Element.JSONInit` (id?, type, visual attrs) + React preset extras
+ * + an explicit `data?: unknown` declaration that narrows the
+ * `Cell.Attributes` index signature (`[customAttribute: string]: any`) at
+ * the upper-bound layer.
+ */
+export interface ElementJSONInit extends DiaElement.JSONInit, ElementPresetAttributes {
+  data?: unknown;
+}
 
-/** `dia.Link.JSONInit` (id?, type, visual attrs) + React preset extras. */
-export interface LinkJSONInit extends DiaLink.JSONInit, LinkPresetAttributes {}
+/**
+ * `dia.Link.JSONInit` (id?, type, visual attrs) + React preset extras
+ * + an explicit `data?: unknown` declaration that narrows the
+ * `Cell.Attributes` index signature (`[customAttribute: string]: any`) at
+ * the upper-bound layer.
+ */
+export interface LinkJSONInit extends DiaLink.JSONInit, LinkPresetAttributes {
+  data?: unknown;
+}
 
 type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 /** Known cell type names. */
@@ -28,10 +42,15 @@ type WithData<Data = unknown> = unknown extends Data
   ? { readonly data?: unknown }
   : { readonly data: Data };
 
-/** Element-flavored cell; narrowed when `type === ELEMENT_MODEL_TYPE`. */
-export type ElementRecord<ElementData = unknown> = ElementJSONInit &
-  WithType<typeof ELEMENT_MODEL_TYPE> &
-  WithData<ElementData>;
+/**
+ * Element-flavored cell; default `Type = typeof ELEMENT_MODEL_TYPE` so
+ * `cell.type === 'element'` narrows. Override `Type` (e.g.
+ * `'standard.Rectangle'`) for built-in or custom shapes.
+ */
+export type ElementRecord<
+  ElementData = unknown,
+  Type extends string = typeof ELEMENT_MODEL_TYPE,
+> = ElementJSONInit & WithType<Type> & WithData<ElementData>;
 
 /**
  * Internal element record shape — what the store holds after JointJS /
@@ -50,10 +69,15 @@ type InternalElementRecord<ElementData = unknown> = PickRequired<
   'id' | 'type' | 'position' | 'size' | 'angle' | 'data'
 >;
 
-/** Link-flavored cell; narrowed when `type === LINK_MODEL_TYPE`. */
-export type LinkRecord<LinkData = unknown> = LinkJSONInit &
-  WithType<typeof LINK_MODEL_TYPE> &
-  WithData<LinkData>;
+/**
+ * Link-flavored cell; default `Type = typeof LINK_MODEL_TYPE` so
+ * `cell.type === 'link'` narrows. Override `Type` (e.g. `'standard.Link'`)
+ * for built-in or custom shapes.
+ */
+export type LinkRecord<
+  LinkData = unknown,
+  Type extends string = typeof LINK_MODEL_TYPE,
+> = LinkJSONInit & WithType<Type> & WithData<LinkData>;
 
 /**
  * Internal link record shape — what the store holds after JointJS /
@@ -71,41 +95,29 @@ type InternalLinkRecord<LinkData = unknown> = PickRequired<
   'id' | 'type' | 'source' | 'target' | 'data'
 >;
 /**
- * Structural upper bound for any cell record. Use as the constraint when
- * defining custom cell types with non-`'element'` / non-`'link'` `type`
- * literals — extend either {@link DiaElementRecord} or {@link DiaLinkRecord}
- * (or this union) and pick your own `type` literal:
- * ```ts
- * interface MyCustomNode extends DiaElementRecord {
- *   readonly type: 'my-node';
- *   readonly data: MyData;
- * }
- * type AppCell = CellRecord | MyCustomNode;
- * ```
+ * Structural upper bound for any cell record from joint-react's perspective —
+ * `ElementJSONInit | LinkJSONInit`. Useful where you need a heterogeneous
+ * loose union (e.g. `initialCells` arrays mixing built-in shape types).
+ *
+ * For custom `type` literals, parametrize the record at the call site:
+ *   `LinkRecord<MyData, 'custom.MyLink'>`
+ *   `ElementRecord<MyData, 'standard.Rectangle'>`
+ * Then build the union: `MyElementRecord | MyLinkRecord`.
  */
-
-export interface DiaElementRecord extends ElementJSONInit {
-  data?: unknown;
-}
-export interface DiaLinkRecord extends LinkJSONInit {
-  data?: unknown;
-}
-
-export type DiaCellRecord = DiaElementRecord | DiaLinkRecord;
+export type CellJSONInit = ElementJSONInit | LinkJSONInit;
 
 /**
- * Discriminated union over the `type` literal:
+ * Discriminated union over the React default `type` literals:
  * - `type === 'element'` → {@link ElementRecord}
  * - `type === 'link'`    → {@link LinkRecord}
  *
- * For custom `type` literals, extend the union explicitly:
- * `CellRecord | MyCustomRecord`. The default union excludes a catch-all
- * "any string" branch on purpose so `if (cell.type === 'element')` narrows
- * correctly.
+ * `cell.type === 'element'` narrows correctly inside arrays / hooks. For
+ * mixed built-in shape arrays with typed data, build the union manually:
+ * `ElementRecord<MyData, 'standard.Rectangle'> | LinkRecord<MyData, 'standard.Link'>`.
  */
 export type CellRecord<ElementData = unknown, LinkData = unknown> =
-  | ElementRecord<ElementData>
-  | LinkRecord<LinkData>;
+  | ElementRecord<ElementData, typeof ELEMENT_MODEL_TYPE>
+  | LinkRecord<LinkData, typeof LINK_MODEL_TYPE>;
 
 /**
  * Union of the records this `useGraph` instance accepts as cell input —

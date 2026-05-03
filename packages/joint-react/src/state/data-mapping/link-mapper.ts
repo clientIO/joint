@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { DiaLinkRecord, LinkRecord } from '../../types/cell.types';
+import type { LinkJSONInit, LinkRecord } from '../../types/cell.types';
 import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 
@@ -7,7 +7,7 @@ import { mergeLabelsFromAttributes } from './convert-labels-reverse';
  * Forward mapper using the React default link type.
  * @param link
  */
-export function mapLinkToAttributes(link: DiaLinkRecord): dia.Link.JSONInit {
+export function mapLinkToAttributes(link: LinkJSONInit): dia.Link.JSONInit {
   const attributes = linkAttributes(link) as dia.Link.JSONInit;
   // `data` is a @joint/react concept — defaulted here, not in framework-neutral presets.
   attributes.data ??= {};

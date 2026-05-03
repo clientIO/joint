@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { DiaElementRecord, DiaLinkRecord } from '../../types/cell.types';
+import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
 import { isElementType, isLinkType } from '../../utils/cell-type';
 import { mapElementToAttributes } from './element-mapper';
 import { mapLinkToAttributes } from './link-mapper';
@@ -25,8 +25,8 @@ import { mapLinkToAttributes } from './link-mapper';
  * @returns JointJS cell attributes with `id` guaranteed
  */
 export function mapCellToAttributes<
-  Element extends DiaElementRecord = DiaElementRecord,
-  Link extends DiaLinkRecord = DiaLinkRecord,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >(cell: Element | Link, graph: dia.Graph): dia.Cell.JSONInit {
   // `ElementAttributes` / `LinkAttributes` only declare `id`; the discriminator
   // `type` lives on `WithType` (which `ElementRecord` / `LinkRecord` extend).
