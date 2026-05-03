@@ -561,7 +561,6 @@ export namespace Cell {
      * It should not contain the `type` field
      */
     interface Attributes<S = Selectors> {
-        id?: ID;
         attrs?: S;
         z?: number;
         layer?: string;
@@ -570,7 +569,7 @@ export namespace Cell {
          * @todo change to `unknown` (breaking change)
          * See `/test/ts/toolsView.test.ts`
          */
-        [key: string]: any;
+        [customAttribute: string]: any;
     }
 
     /** @deprecated use `Attributes` instead. */
@@ -581,6 +580,7 @@ export namespace Cell {
      * only the `type` field is required to determine the constructor.
      */
     interface JSONInit<S = Selectors> extends Attributes<S> {
+        id?: ID;
         type: string;
     }
 
