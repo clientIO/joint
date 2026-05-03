@@ -46,7 +46,13 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> = [
+const initialCells: ReadonlyArray<
+  CellRecord<
+    ElementUserData,
+    unknown,
+    'element' | 'standard.Cylinder',
+    'link' | 'standard.ShadowLink'>
+> = [
   {
     id: '1',
     type: 'element',

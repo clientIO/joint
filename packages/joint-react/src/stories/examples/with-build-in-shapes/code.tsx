@@ -5,7 +5,10 @@ import { GraphProvider, Paper, type CellRecord } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> = [
+type ElementType = 'standard.Rectangle' | 'standard.Circle' | 'standard.Ellipse' | 'standard.Cylinder' | 'standard.Path' | 'standard.Polygon' | 'standard.Polyline' | 'standard.TextBlock' | 'standard.HeaderedRectangle' | 'standard.Image' | 'standard.BorderedImage' | 'standard.EmbeddedImage' | 'standard.InscribedImage';
+type LinkType = 'standard.Link' | 'standard.DoubleLink' | 'standard.ShadowLink';
+
+const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, LinkType>> = [
   // Row 1: Basic shapes
   {
     id: 'rectangle',
@@ -202,7 +205,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> 
     attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
-] satisfies Array<CellRecord<unknown, unknown, string, string>>;
+];
 
 function Main() {
   return (

@@ -36,7 +36,7 @@ interface ElementData {
 // Data
 // ============================================================================
 
-const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> = [
+const initialCells: ReadonlyArray<CellRecord<ElementData, unknown, 'MyElementModel', 'standard.Link'>> = [
   {
     id: 'node-1',
     position: { x: 70, y: 100 },

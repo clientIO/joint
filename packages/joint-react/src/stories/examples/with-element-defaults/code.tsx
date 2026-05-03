@@ -6,6 +6,8 @@ import {
   ElementModel,
   LinkModel,
   useGraph,
+  ElementRecord,
+  LinkRecord,
 } from '@joint/react';
 import {
   elementAttributes,
@@ -98,7 +100,11 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> = [
+type CustomCellRecord =
+  ElementRecord<unknown, 'PortsElement' | 'PortMapElement'> |
+  LinkRecord<unknown, 'LabelsLink' | 'LabelMapLink'>;
+
+const initialCells: ReadonlyArray<CustomCellRecord> = [
   {
     id: 'a',
     type: 'PortsElement',

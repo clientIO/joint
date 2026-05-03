@@ -10,7 +10,7 @@ import {
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialCells: ReadonlyArray<CellRecord<unknown, unknown, string, string>> = [
+const initialCells: CellRecord[] = [
   {
     id: '1',
     type: 'element',
