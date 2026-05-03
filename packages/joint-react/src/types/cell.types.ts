@@ -113,6 +113,14 @@ export type CellRecord<
   | LinkRecord<LinkData, LinkType>;
 
 /**
+ * Loose alias of `CellRecord` — `data` is `unknown`, `type` is any string.
+ * Use when you don't care about React-default `'element'` / `'link'`
+ * discrimination (e.g. `initialCells` arrays mixing built-in shape types,
+ * generic upper bounds in custom hooks).
+ */
+export type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
+
+/**
  * Union of the records this `useGraph` instance accepts as cell input —
  * either a typed `Element` or `Link` record. To support custom cell types,
  * extend the union at the call site (e.g. `useGraph<MyElement | MyCustom, MyLink>`).

@@ -71,6 +71,7 @@ export type {
   ElementRecord,
   LinkRecord,
   Computed,
+  AnyCellRecord,
 } from './types/cell.types';
 
 // Types — geometry / presets

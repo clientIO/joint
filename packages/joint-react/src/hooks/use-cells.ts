@@ -1,15 +1,8 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { useGraphStore } from './use-graph-store';
-import type { CellId, CellRecord, Computed } from '../types/cell.types';
+import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
-
-/**
- * Internal upper bound for any cell record this hook accepts as a constraint.
- * Equivalent to `CellRecord<unknown, unknown, string, string>` — the loose
- * variant where `type` is any string.
- */
-type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
 
 /** Union of all possible `useCells` return shapes (depends on argument form). */
 type UseCellsResult<Cell extends AnyCellRecord, Selected> =
