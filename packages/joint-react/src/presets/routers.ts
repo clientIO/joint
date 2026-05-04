@@ -17,7 +17,7 @@ export function rightAngleRouter(margin: number, minPathMargin: number): routers
       useVertices: true,
       sourceMargin: effectiveSourceMargin,
       targetMargin: effectiveTargetMargin,
-      minMargin: minPathMargin,
+      minPathMargin,
     }, linkView);
   };
 }
