@@ -308,7 +308,7 @@ export namespace Graph {
         cells: Array<Cell.JSON>;
         layers?: Array<GraphLayer.Attributes>;
         defaultLayer?: string;
-        [key: string]: unknown;
+        [key: string]: any;
     }
 
     interface InsertLayerOptions extends Options {
