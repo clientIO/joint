@@ -80,31 +80,31 @@ function resolveForTopSourceSide(source, target, nextInLine) {
     const { x0: sx0, y0: sy0, width, height, point: anchor, margin } = source;
     const sx1 = sx0 + width;
     const sy1 = sy0 + height;
-    const smx0 = sx0 - margin;
-    const smx1 = sx1 + margin;
-    const smy0 = sy0 - margin;
+    const sMarginX0 = sx0 - margin;
+    const sMarginX1 = sx1 + margin;
+    const sMarginY0 = sy0 - margin;
 
     const { x: ax } = anchor;
     const { x0: tx, y0: ty } = target;
 
     if (tx === ax && ty < sy0) return Directions.BOTTOM;
-    if (tx < ax && ty < smy0) {
+    if (tx < ax && ty < sMarginY0) {
         if (nextInLine.point.x === ax) return Directions.BOTTOM;
         return Directions.RIGHT;
     }
-    if (tx > ax && ty < smy0) {
+    if (tx > ax && ty < sMarginY0) {
         if (nextInLine.point.x === ax) return Directions.BOTTOM;
         return Directions.LEFT;
     }
-    if (tx < smx0 && ty > smy0) return Directions.TOP;
-    if (tx > smx1 && ty > smy0) return Directions.TOP;
-    if (tx >= smx0 && tx <= ax && ty > sy1) {
+    if (tx < sMarginX0 && ty > sMarginY0) return Directions.TOP;
+    if (tx > sMarginX1 && ty > sMarginY0) return Directions.TOP;
+    if (tx >= sMarginX0 && tx <= ax && ty > sy1) {
         if (nextInLine.point.x < tx) {
             return Directions.RIGHT;
         }
         return Directions.LEFT;
     }
-    if (tx <= smx1 && tx >= ax && ty > sy1) {
+    if (tx <= sMarginX1 && tx >= ax && ty > sy1) {
         if (nextInLine.point.x < tx) {
             return Directions.RIGHT;
         }
@@ -118,31 +118,31 @@ function resolveForBottomSourceSide(source, target, nextInLine) {
     const { x0: sx0, y0: sy0, width, height, point: anchor, margin } = source;
     const sx1 = sx0 + width;
     const sy1 = sy0 + height;
-    const smx0 = sx0 - margin;
-    const smx1 = sx1 + margin;
-    const smy1 = sy1 + margin;
+    const sMarginX0 = sx0 - margin;
+    const sMarginX1 = sx1 + margin;
+    const sMarginY1 = sy1 + margin;
 
     const { x: ax } = anchor;
     const { x0: tx, y0: ty } = target;
 
     if (tx === ax && ty > sy1) return Directions.TOP;
-    if (tx < ax && ty > smy1) {
+    if (tx < ax && ty > sMarginY1) {
         if (nextInLine.point.x === ax) return Directions.TOP;
         return Directions.RIGHT;
     }
-    if (tx > ax && ty > smy1) {
+    if (tx > ax && ty > sMarginY1) {
         if (nextInLine.point.x === ax) return Directions.TOP;
         return Directions.LEFT;
     }
-    if (tx < smx0 && ty < smy1) return Directions.BOTTOM;
-    if (tx > smx1 && ty < smy1) return Directions.BOTTOM;
-    if (tx >= smx0 && tx <= ax && ty < sy0) {
+    if (tx < sMarginX0 && ty < sMarginY1) return Directions.BOTTOM;
+    if (tx > sMarginX1 && ty < sMarginY1) return Directions.BOTTOM;
+    if (tx >= sMarginX0 && tx <= ax && ty < sy0) {
         if (nextInLine.point.x < tx) {
             return Directions.RIGHT;
         }
         return Directions.LEFT;
     }
-    if (tx <= smx1 && tx >= ax && ty < sy0) {
+    if (tx <= sMarginX1 && tx >= ax && ty < sy0) {
         if (nextInLine.point.x < tx) {
             return Directions.RIGHT;
         }
@@ -156,26 +156,26 @@ function resolveForLeftSourceSide(source, target, nextInLine) {
     const { y0: sy0, x0: sx0, width, height, point: anchor, margin } = source;
     const sx1 = sx0 + width;
     const sy1 = sy0 + height;
-    const smx0 = sx0 - margin;
-    const smy0 = sy0 - margin;
-    const smy1 = sy1 + margin;
+    const sMarginX0 = sx0 - margin;
+    const sMarginY0 = sy0 - margin;
+    const sMarginY1 = sy1 + margin;
 
     const { x: ax, y: ay } = anchor;
     const { x0: tx, y0: ty } = target;
 
     if (tx < ax && ty === ay) return Directions.RIGHT;
-    if (tx <= smx0 && ty < ay) return Directions.BOTTOM;
-    if (tx <= smx0 && ty > ay) return Directions.TOP;
-    if (tx >= smx0 && ty < smy0) return Directions.LEFT;
-    if (tx >= smx0 && ty > smy1) return Directions.LEFT;
-    if (tx > sx1 && ty >= smy0 && ty <= ay) {
+    if (tx <= sMarginX0 && ty < ay) return Directions.BOTTOM;
+    if (tx <= sMarginX0 && ty > ay) return Directions.TOP;
+    if (tx >= sMarginX0 && ty < sMarginY0) return Directions.LEFT;
+    if (tx >= sMarginX0 && ty > sMarginY1) return Directions.LEFT;
+    if (tx > sx1 && ty >= sMarginY0 && ty <= ay) {
         if (nextInLine.point.y < ty) {
             return Directions.BOTTOM;
         }
 
         return Directions.TOP;
     }
-    if (tx > sx1 && ty <= smy1 && ty >= ay) {
+    if (tx > sx1 && ty <= sMarginY1 && ty >= ay) {
         if (nextInLine.point.y < ty) {
             return Directions.BOTTOM;
         }
@@ -190,26 +190,26 @@ function resolveForRightSourceSide(source, target, nextInLine) {
     const { y0: sy0, x0: sx0, width, height, point: anchor, margin } = source;
     const sx1 = sx0 + width;
     const sy1 = sy0 + height;
-    const smx1 = sx1 + margin;
-    const smy0 = sy0 - margin;
-    const smy1 = sy1 + margin;
+    const sMarginX1 = sx1 + margin;
+    const sMarginY0 = sy0 - margin;
+    const sMarginY1 = sy1 + margin;
 
     const { x: ax, y: ay } = anchor;
     const { x0: tx, y0: ty } = target;
 
     if (tx > ax && ty === ay) return Directions.LEFT;
-    if (tx >= smx1 && ty < ay) return Directions.BOTTOM;
-    if (tx >= smx1 && ty > ay) return Directions.TOP;
-    if (tx <= smx1 && ty < smy0) return Directions.RIGHT;
-    if (tx <= smx1 && ty > smy1) return Directions.RIGHT;
-    if (tx < sx0 && ty >= smy0 && ty <= ay) {
+    if (tx >= sMarginX1 && ty < ay) return Directions.BOTTOM;
+    if (tx >= sMarginX1 && ty > ay) return Directions.TOP;
+    if (tx <= sMarginX1 && ty < sMarginY0) return Directions.RIGHT;
+    if (tx <= sMarginX1 && ty > sMarginY1) return Directions.RIGHT;
+    if (tx < sx0 && ty >= sMarginY0 && ty <= ay) {
         if (nextInLine.point.y < ty) {
             return Directions.BOTTOM;
         }
 
         return Directions.TOP;
     }
-    if (tx < sx0 && ty <= smy1 && ty >= ay) {
+    if (tx < sx0 && ty <= sMarginY1 && ty >= ay) {
         if (nextInLine.point.y < ty) {
             return Directions.BOTTOM;
         }
@@ -469,1024 +469,1375 @@ function moveAndExpandBBox(bbox, direction, margin) {
 }
 
 function routeBetweenPoints(source, target, opt = {}) {
-    const { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
-    const { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight, margin: targetMargin } = target;
+    const {
+        point: sourcePoint,
+        x0: sBoxX0,
+        y0: sBoxY0,
+        width: sourceWidth,
+        height: sourceHeight,
+        margin: sourceMargin
+    } = source;
+    const {
+        point: targetPoint,
+        x0: tBoxX0,
+        y0: tBoxY0,
+        width: targetWidth,
+        height: targetHeight,
+        margin: targetMargin
+    } = target;
+
     const { targetInSourceBBox = false } = opt;
 
-    const tx1 = tx0 + targetWidth;
-    const ty1 = ty0 + targetHeight;
-    const sx1 = sx0 + sourceWidth;
-    const sy1 = sy0 + sourceHeight;
+    const minSourceMargin = opt.minPathMargin != null ? Math.min(opt.minPathMargin, sourceMargin) : sourceMargin;
+    const minTargetMargin = opt.minPathMargin != null ? Math.min(opt.minPathMargin, targetMargin) : targetMargin;
 
-    // Key coordinates including the margin
-    const smx0 = sx0 - sourceMargin;
-    const smx1 = sx1 + sourceMargin;
-    const smy0 = sy0 - sourceMargin;
-    const smy1 = sy1 + sourceMargin;
+    const tBoxX1 = tBoxX0 + targetWidth;
+    const tBoxY1 = tBoxY0 + targetHeight;
+    const sBoxX1 = sBoxX0 + sourceWidth;
+    const sBoxY1 = sBoxY0 + sourceHeight;
 
-    const tmx0 = tx0 - targetMargin;
-    const tmx1 = tx1 + targetMargin;
-    const tmy0 = ty0 - targetMargin;
-    const tmy1 = ty1 + targetMargin;
+    const sMarginX0 = sBoxX0 - sourceMargin;
+    const sMarginX1 = sBoxX1 + sourceMargin;
+    const sMarginY0 = sBoxY0 - sourceMargin;
+    const sMarginY1 = sBoxY1 + sourceMargin;
+
+    const tMarginX0 = tBoxX0 - targetMargin;
+    const tMarginX1 = tBoxX1 + targetMargin;
+    const tMarginY0 = tBoxY0 - targetMargin;
+    const tMarginY1 = tBoxY1 + targetMargin;
+
+    const sMinMarginX0 = sBoxX0 - minSourceMargin;
+    const sMinMarginX1 = sBoxX1 + minSourceMargin;
+    const tMinMarginX0 = tBoxX0 - minTargetMargin;
+    const tMinMarginX1 = tBoxX1 + minTargetMargin;
+
+    const sMinMarginY0 = sBoxY0 - minSourceMargin;
+    const sMinMarginY1 = sBoxY1 + minSourceMargin;
+    const tMinMarginY0 = tBoxY0 - minTargetMargin;
+    const tMinMarginY1 = tBoxY1 + minTargetMargin;
 
     const [sourceSide, targetSide] = resolveSides(source, target);
 
-    const sourceOutsidePoint = getOutsidePoint(sourceSide, { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight }, sourceMargin);
-    const targetOutsidePoint = getOutsidePoint(targetSide, { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight }, targetMargin);
+    const sourceOffsetPoint = getOutsidePoint(sourceSide, { point: sourcePoint, x0: sBoxX0, y0: sBoxY0, width: sourceWidth, height: sourceHeight }, sourceMargin);
+    const targetOffsetPoint = getOutsidePoint(targetSide, { point: targetPoint, x0: tBoxX0, y0: tBoxY0, width: targetWidth, height: targetHeight }, targetMargin);
 
-    const { x: sox, y: soy } = sourceOutsidePoint;
-    const { x: tox, y: toy } = targetOutsidePoint;
-    const tcx = (tx0 + tx1) / 2;
-    const tcy = (ty0 + ty1) / 2;
-    const scx = (sx0 + sx1) / 2;
-    const scy = (sy0 + sy1) / 2;
-    const middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
-    const middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
+    const { x: sOffsetX, y: sOffsetY } = sourceOffsetPoint;
+    const { x: tOffsetX, y: tOffsetY } = targetOffsetPoint;
+    const tCenterX = (tBoxX0 + tBoxX1) / 2;
+    const tCenterY = (tBoxY0 + tBoxY1) / 2;
+    const sCenterX = (sBoxX0 + sBoxX1) / 2;
+    const sCenterY = (sBoxY0 + sBoxY1) / 2;
+    const middleOfVerticalSides = (sCenterX < tCenterX ? (sBoxX1 + tBoxX0) : (tBoxX1 + sBoxX0)) / 2;
+    const middleOfHorizontalSides = (sCenterY < tCenterY ? (sBoxY1 + tBoxY0) : (tBoxY1 + sBoxY0)) / 2;
 
-    const sourceBBox = new g.Rect(sx0, sy0, sourceWidth, sourceHeight);
-    const targetBBox = new g.Rect(tx0, ty0, targetWidth, targetHeight);
+    const sourceBBox = new g.Rect(sBoxX0, sBoxY0, sourceWidth, sourceHeight);
+    const targetBBox = new g.Rect(tBoxX0, tBoxY0, targetWidth, targetHeight);
     const inflatedSourceBBox = sourceBBox.clone().inflate(sourceMargin);
     const inflatedTargetBBox = targetBBox.clone().inflate(targetMargin);
 
-    const sourceForDistance = Object.assign({}, source, { x1: sx1, y1: sy1, outsidePoint: sourceOutsidePoint, direction: sourceSide });
-    const targetForDistance = Object.assign({}, target, { x1: tx1, y1: ty1, outsidePoint: targetOutsidePoint, direction: targetSide });
+    const sourceForDistance = Object.assign({}, source, { x1: sBoxX1, y1: sBoxY1, outsidePoint: sourceOffsetPoint, direction: sourceSide });
+    const targetForDistance = Object.assign({}, target, { x1: tBoxX1, y1: tBoxY1, outsidePoint: targetOffsetPoint, direction: targetSide });
 
     // Distances used to determine the shortest route along the connections on horizontal sides for
     // bottom => bottom
     // top => bottom
     // bottom => top
     // top => top
-    const [leftD, rightD] = getHorizontalDistance(sourceForDistance, targetForDistance);
+    const [leftDistance, rightDistance] = getHorizontalDistance(sourceForDistance, targetForDistance);
 
     // Distances used to determine the shortest route along the connection on vertical sides for
     // left => left
     // left => right
     // right => right
     // right => left
-    const [topD, bottomD] = getVerticalDistance(sourceForDistance, targetForDistance);
+    const [topDistance, bottomDistance] = getVerticalDistance(sourceForDistance, targetForDistance);
 
     // All possible combinations of source and target sides
     if (sourceSide === 'left' && targetSide === 'right') {
-        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
-        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOffsetPoint);
+        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOffsetPoint);
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleOfAnchors = (soy + toy) / 2;
+            const middleY = (sOffsetY + tOffsetY) / 2;
 
-            return [
-                { x: sox, y: soy },
-                { x: sox, y: middleOfAnchors },
-                { x: tox, y: middleOfAnchors },
-                { x: tox, y: toy }
-            ];
+            if (sOffsetX < tMinMarginX1) {
+                return [
+                    { x: sOffsetX, y: sOffsetY },
+                    { x: sOffsetX, y: middleY },
+                    { x: tOffsetX, y: middleY },
+                    { x: tOffsetX, y: tOffsetY }
+                ];
+            } else {
+                const middleX = (sOffsetX + tOffsetX) / 2;
+                return [
+                    { x: middleX, y: sOffsetY },
+                    { x: middleX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: middleX, y: tOffsetY }
+                ];
+            }
         }
 
-        if (smx0 < tox) {
+        if (sOffsetX < tOffsetX) {
             let y = middleOfHorizontalSides;
-            let x1 = sox;
-            let x2 = tox;
+            let x1 = sOffsetX;
+            let x2 = tOffsetX;
 
-            const isUpwardsShorter = topD < bottomD;
+            const isUpwardsShorter = topDistance < bottomDistance;
 
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
-            if ((y >= smy0 && y <= smy1) || (y >= tmy0 && y <= tmy1)) {
-                if (smy1 >= tmy0 && isUpwardsShorter) {
-                    y = Math.min(tmy0, smy0);
-                } else if (smy0 <= tmy1 && !isUpwardsShorter) {
-                    y = Math.max(tmy1, smy1);
+            if (((y >= sMinMarginY0 && y <= sMinMarginY1) || (y >= tMinMarginY0 && y <= tMinMarginY1))) {
+
+                if (sMinMarginX0 > tMinMarginX1) {
+                    const middleY = (sOffsetY + tOffsetY) / 2;
+                    return [
+                        { x: sOffsetX, y: sOffsetY },
+                        { x: sOffsetX, y: middleY },
+                        { x: tOffsetX, y: middleY },
+                        { x: tOffsetX, y: tOffsetY }
+                    ];
+                }
+
+                if (sMinMarginY1 >= tMinMarginY0 && isUpwardsShorter) {
+                    y = Math.min(tMarginY0, sMarginY0);
+                } else if (sMinMarginY0 <= tMinMarginY1 && !isUpwardsShorter) {
+                    y = Math.max(tMarginY1, sMarginY1);
                 }
 
                 // This handles the case when the source and target elements overlap as well as
                 // the case when the source is to the left of the target element.
-                x1 = Math.min(sox, tmx0);
-                x2 = Math.max(tox, smx1);
+                x1 = Math.min(sOffsetX, tBoxX0 - targetMargin);
+                x2 = Math.max(tOffsetX, sBoxX1 + sourceMargin);
 
                 // This is an edge case when the source and target intersect and
-                if ((isUpwardsShorter && soy < ty0) || (!isUpwardsShorter && soy > ty1)) {
+                if ((isUpwardsShorter && sOffsetY < tBoxY0) || (!isUpwardsShorter && sOffsetY > tBoxY1)) {
                     // the path should no longer rely on minimal x boundary in `x1`
-                    x1 = sox;
-                } else if ((isUpwardsShorter && toy < sy0) || (!isUpwardsShorter && toy > sy1)) {
+                    x1 = sOffsetX;
+                } else if ((isUpwardsShorter && tOffsetY < sBoxY0) || (!isUpwardsShorter && tOffsetY > sBoxY1)) {
                     // the path should no longer rely on maximal x boundary in `x2`
-                    x2 = tox;
+                    x2 = tOffsetX;
                 }
             }
 
             return [
-                { x: x1, y: soy },
+                { x: x1, y: sOffsetY },
                 { x: x1, y },
                 { x: x2, y },
-                { x: x2, y: toy }
+                { x: x2, y: tOffsetY }
             ];
         }
 
-        const x = (sox + tox) / 2;
+        const x = (sOffsetX + tOffsetX) / 2;
         return [
-            { x, y: soy },
-            { x, y: toy },
+            { x, y: sOffsetY },
+            { x, y: tOffsetY },
         ];
     } else if (sourceSide === 'right' && targetSide === 'left') {
-        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
-        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOffsetPoint);
+        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOffsetPoint);
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleOfAnchors = (soy + toy) / 2;
+            const middleY = (sOffsetY + tOffsetY) / 2;
 
-            return [
-                { x: sox, y: soy },
-                { x: sox, y: middleOfAnchors },
-                { x: tox, y: middleOfAnchors },
-                { x: tox, y: toy }
-            ];
+            if (sOffsetX > tMinMarginX0) {
+                return [
+                    { x: sOffsetX, y: sOffsetY },
+                    { x: sOffsetX, y: middleY },
+                    { x: tOffsetX, y: middleY },
+                    { x: tOffsetX, y: tOffsetY }
+                ];
+            } else {
+                const middleX = (sOffsetX + tOffsetX) / 2;
+                return [
+                    { x: middleX, y: sOffsetY },
+                    { x: middleX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: middleX, y: tOffsetY }
+                ];
+            }
         }
 
-        if (smx1 > tox) {
+        if (sOffsetX > tOffsetX) {
             let y = middleOfHorizontalSides;
-            let x1 = sox;
-            let x2 = tox;
+            let x1 = sOffsetX;
+            let x2 = tOffsetX;
 
-            const isUpwardsShorter = topD < bottomD;
+            const isUpwardsShorter = topDistance < bottomDistance;
 
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
-            if ((y >= smy0 && y <= smy1) || (y >= tmy0 && y <= tmy1)) {
-                if (smy1 >= tmy0 && isUpwardsShorter) {
-                    y = Math.min(tmy0, smy0);
-                } else if (smy0 <= tmy1 && !isUpwardsShorter) {
-                    y = Math.max(tmy1, smy1);
+            if ((y >= sMinMarginY0 && y <= sMinMarginY1) || (y >= tMinMarginY0 && y <= tMinMarginY1)) {
+                if (sMinMarginX1 < tMinMarginX0) {
+                    const middleY = (sOffsetY + tOffsetY) / 2;
+                    return [
+                        { x: sOffsetX, y: sOffsetY },
+                        { x: sOffsetX, y: middleY },
+                        { x: tOffsetX, y: middleY },
+                        { x: tOffsetX, y: tOffsetY }
+                    ];
+                }
+
+                if (sMinMarginY1 >= tMinMarginY0 && isUpwardsShorter) {
+                    y = Math.min(tMarginY0, sMarginY0);
+                } else if (sMinMarginY0 <= tMinMarginY1 && !isUpwardsShorter) {
+                    y = Math.max(tMarginY1, sMarginY1);
                 }
 
                 // This handles the case when the source and target elements overlap as well as
                 // the case when the source is to the left of the target element.
-                x1 = Math.max(sox, tmx1);
-                x2 = Math.min(tox, smx0);
+                x1 = Math.max(sOffsetX, tBoxX1 + targetMargin);
+                x2 = Math.min(tOffsetX, sBoxX0 - sourceMargin);
 
                 // This is an edge case when the source and target intersect and
-                if ((isUpwardsShorter && soy < ty0) || (!isUpwardsShorter && soy > ty1)) {
+                if ((isUpwardsShorter && sOffsetY < tBoxY0) || (!isUpwardsShorter && sOffsetY > tBoxY1)) {
                     // the path should no longer rely on maximal x boundary in `x1`
-                    x1 = sox;
-                } else if ((isUpwardsShorter && toy < sy0) || (!isUpwardsShorter && toy > sy1)) {
+                    x1 = sOffsetX;
+                } else if ((isUpwardsShorter && tOffsetY < sBoxY0) || (!isUpwardsShorter && tOffsetY > sBoxY1)) {
                     // the path should no longer rely on minimal x boundary in `x2`
-                    x2 = tox;
+                    x2 = tOffsetX;
                 }
             }
 
             return [
-                { x: x1, y: soy },
+                { x: x1, y: sOffsetY },
                 { x: x1, y },
                 { x: x2, y },
-                { x: x2, y: toy }
+                { x: x2, y: tOffsetY }
             ];
         }
 
-        const x = (sox + tox) / 2;
+        const x = (sOffsetX + tOffsetX) / 2;
         return [
-            { x, y: soy },
-            { x, y: toy }
+            { x, y: sOffsetY },
+            { x, y: tOffsetY }
         ];
     } else if (sourceSide === 'top' && targetSide === 'bottom') {
-        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
-        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOffsetPoint);
+        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOffsetPoint);
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleOfAnchors = (sox + tox) / 2;
+            const middleX = (sOffsetX + tOffsetX) / 2;
 
-            return [
-                { x: sox, y: soy },
-                { x: middleOfAnchors, y: soy },
-                { x: middleOfAnchors, y: toy },
-                { x: tox, y: toy }
-            ];
+            if (sOffsetY < tMinMarginY1) {
+                return [
+                    { x: sOffsetX, y: sOffsetY },
+                    { x: middleX, y: sOffsetY },
+                    { x: middleX, y: tOffsetY },
+                    { x: tOffsetX, y: tOffsetY }
+                ];
+            } else {
+                const middleY = (sOffsetY + tOffsetY) / 2;
+                return [
+                    { x: sOffsetX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: tOffsetX, y: middleY }
+                ];
+            }
         }
 
-        if (smy0 < toy) {
+        if (sMarginY0 < tOffsetY) {
             let x = middleOfVerticalSides;
-            let y1 = soy;
-            let y2 = toy;
+            let y1 = sOffsetY;
+            let y2 = tOffsetY;
 
-            const isLeftShorter = leftD < rightD;
+            const isLeftShorter = leftDistance < rightDistance;
 
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
-            if ((x >= smx0 && x <= smx1) || (x >= tmx0 && x <= tmx1)) {
-                if (smx1 >= tmx0 && isLeftShorter) {
-                    x = Math.min(tmx0, smx0);
-                } else if (smx0 <= tmx1 && !isLeftShorter) {
-                    x = Math.max(tmx1, smx1);
+            if ((x >= sMinMarginX0 && x <= sMinMarginX1) || (x >= tMinMarginX0 && x <= tMinMarginX1)) {
+                if (sMinMarginY0 > tMinMarginY1) {
+                    const middleX = (sOffsetX + tOffsetX) / 2;
+                    return [
+                        { x: sOffsetX, y: sOffsetY },
+                        { x: middleX, y: sOffsetY },
+                        { x: middleX, y: tOffsetY },
+                        { x: tOffsetX, y: tOffsetY }
+                    ];
+                }
+
+                if (sMinMarginX1 >= tMinMarginX0 && isLeftShorter) {
+                    x = Math.min(tMarginX0, sMarginX0);
+                } else if (sMinMarginX0 <= tMinMarginX1 && !isLeftShorter) {
+                    x = Math.max(tMarginX1, sMarginX1);
                 }
 
                 // This handles the case when the source and target elements overlap as well as
                 // the case when the source is to the left of the target element.
-                y1 = Math.min(soy, tmy0);
-                y2 = Math.max(toy, smy1);
+                y1 = Math.min(sOffsetY, tBoxY0 - targetMargin);
+                y2 = Math.max(tOffsetY, sBoxY1 + sourceMargin);
 
                 // This is an edge case when the source and target intersect and
-                if ((isLeftShorter && sox < tx0) || (!isLeftShorter && sox > tx1)) {
+                if ((isLeftShorter && sOffsetX < tBoxX0) || (!isLeftShorter && sOffsetX > tBoxX1)) {
                     // the path should no longer rely on minimal y boundary in `y1`
-                    y1 = soy;
-                } else if ((isLeftShorter && tox < sx0) || (!isLeftShorter && tox > sx1)) {
+                    y1 = sOffsetY;
+                } else if ((isLeftShorter && tOffsetX < sBoxX0) || (!isLeftShorter && tOffsetX > sBoxX1)) {
                     // the path should no longer rely on maximal y boundary in `y2`
-                    y2 = toy;
+                    y2 = tOffsetY;
                 }
             }
 
             return [
-                { x: sox, y: y1 },
+                { x: sOffsetX, y: y1 },
                 { x, y: y1 },
                 { x, y: y2 },
-                { x: tox, y: y2 }
+                { x: tOffsetX, y: y2 }
             ];
         }
 
-        const y = (soy + toy) / 2;
+        const y = (sOffsetY + tOffsetY) / 2;
         return [
-            { x: sox, y },
-            { x: tox, y }
+            { x: sOffsetX, y },
+            { x: tOffsetX, y }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'top') {
-        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
-        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOffsetPoint);
+        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOffsetPoint);
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleOfAnchors = (sox + tox) / 2;
+            const middleX = (sOffsetX + tOffsetX) / 2;
 
-            return [
-                { x: sox, y: soy },
-                { x: middleOfAnchors, y: soy },
-                { x: middleOfAnchors, y: toy },
-                { x: tox, y: toy }
-            ];
+            if (sOffsetY > tMinMarginY0) {
+                return [
+                    { x: sOffsetX, y: sOffsetY },
+                    { x: middleX, y: sOffsetY },
+                    { x: middleX, y: tOffsetY },
+                    { x: tOffsetX, y: tOffsetY }
+                ];
+            } else {
+                const middleY = (sOffsetY + tOffsetY) / 2;
+                return [
+                    { x: sOffsetX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: middleX, y: middleY },
+                    { x: tOffsetX, y: middleY }
+                ];
+            }
         }
 
-        if (smy1 > toy) {
+        if (sMarginY1 > tOffsetY) {
             let x = middleOfVerticalSides;
-            let y1 = soy;
-            let y2 = toy;
+            let y1 = sOffsetY;
+            let y2 = tOffsetY;
 
-            const isLeftShorter = leftD < rightD;
+            const isLeftShorter = leftDistance < rightDistance;
 
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
-            if ((x >= smx0 && x <= smx1) || (x >= tmx0 && x <= tmx1)) {
-                if (smx1 >= tmx0 && isLeftShorter) {
-                    x = Math.min(tmx0, smx0);
-                } else if (smx0 <= tmx1 && !isLeftShorter) {
-                    x = Math.max(tmx1, smx1);
+            if ((x >= sMinMarginX0 && x <= sMinMarginX1) || (x >= tMinMarginX0 && x <= tMinMarginX1)) {
+                if (sMinMarginY1 < tMinMarginY0) {
+                    const middleX = (sOffsetX + tOffsetX) / 2;
+                    return [
+                        { x: sOffsetX, y: sOffsetY },
+                        { x: middleX, y: sOffsetY },
+                        { x: middleX, y: tOffsetY },
+                        { x: tOffsetX, y: tOffsetY }
+                    ];
+                }
+
+                if (sMinMarginX1 >= tMinMarginX0 && isLeftShorter) {
+                    x = Math.min(tMarginX0, sMarginX0);
+                } else if (sMinMarginX0 <= tMinMarginX1 && !isLeftShorter) {
+                    x = Math.max(tMarginX1, sMarginX1);
                 }
 
                 // This handles the case when the source and target elements overlap as well as
                 // the case when the source is to the left of the target element.
-                y1 = Math.max(soy, tmy1);
-                y2 = Math.min(toy, smy0);
+                y1 = Math.max(sOffsetY, tBoxY1 + targetMargin);
+                y2 = Math.min(tOffsetY, sBoxY0 - sourceMargin);
 
                 // This is an edge case when the source and target intersect and
-                if ((isLeftShorter && sox < tx0) || (!isLeftShorter && sox > tx1)) {
+                if ((isLeftShorter && sOffsetX < tBoxX0) || (!isLeftShorter && sOffsetX > tBoxX1)) {
                     // the path should no longer rely on maximal y boundary in `y1`
-                    y1 = soy;
-                } else if ((isLeftShorter && tox < sx0) || (!isLeftShorter && tox > sx1)) {
+                    y1 = sOffsetY;
+                } else if ((isLeftShorter && tOffsetX < sBoxX0) || (!isLeftShorter && tOffsetX > sBoxX1)) {
                     // the path should no longer rely on minimal y boundary in `y2`
-                    y2 = toy;
+                    y2 = tOffsetY;
                 }
             }
 
             return [
-                { x: sox, y: y1 },
+                { x: sOffsetX, y: y1 },
                 { x, y: y1 },
                 { x, y: y2 },
-                { x: tox, y: y2 }
+                { x: tOffsetX, y: y2 }
             ];
         }
 
-        const y = (soy + toy) / 2;
+        const y = (sOffsetY + tOffsetY) / 2;
         return [
-            { x: sox, y },
-            { x: tox, y }
+            { x: sOffsetX, y },
+            { x: tOffsetX, y }
         ];
     } else if (sourceSide === 'top' && targetSide === 'top') {
         const useUShapeConnection =
             targetInSourceBBox ||
             g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
-            (soy <= ty0 && (inflatedSourceBBox.bottomRight().x <= tox || inflatedSourceBBox.bottomLeft().x >= tox)) ||
-            (soy >= ty0 && (inflatedTargetBBox.bottomRight().x <= sox || inflatedTargetBBox.bottomLeft().x >= sox));
+            (sOffsetY <= tBoxY0 && (inflatedSourceBBox.bottomRight().x <= tOffsetX || inflatedSourceBBox.bottomLeft().x >= tOffsetX)) ||
+            (sOffsetY >= tBoxY0 && (inflatedTargetBBox.bottomRight().x <= sOffsetX || inflatedTargetBBox.bottomLeft().x >= sOffsetX));
 
         // U-shape connection is a straight line if `sox` and `tox` are the same
-        if (useUShapeConnection && sox !== tox) {
+        if (useUShapeConnection && sOffsetX !== tOffsetX) {
             return [
-                { x: sox, y: Math.min(soy, toy) },
-                { x: tox, y: Math.min(soy, toy) }
+                { x: sOffsetX, y: Math.min(sOffsetY, tOffsetY) },
+                { x: tOffsetX, y: Math.min(sOffsetY, tOffsetY) }
             ];
         }
 
         let x;
-        const y1 = Math.min((sy1 + ty0) / 2, toy);
-        const y2 = Math.min((sy0 + ty1) / 2, soy);
+        const y1 = Math.min((sBoxY1 + tBoxY0) / 2, tOffsetY);
+        const y2 = Math.min((sBoxY0 + tBoxY1) / 2, sOffsetY);
 
-        if (toy < soy) {
+        if (tOffsetY < sOffsetY) {
             // Use the shortest path along the connections on horizontal sides
-            if (rightD > leftD) {
-                x = Math.min(sox, tmx0);
+            if (rightDistance > leftDistance) {
+                x = Math.min(sOffsetX, tMarginX0);
             } else {
-                x = Math.max(sox, tmx1);
+                x = Math.max(sOffsetX, tMarginX1);
             }
         } else {
-            if (rightD > leftD) {
-                x = Math.min(tox, smx0);
+            if (rightDistance > leftDistance) {
+                x = Math.min(tOffsetX, sMarginX0);
             } else {
-                x = Math.max(tox, smx1);
+                x = Math.max(tOffsetX, sMarginX1);
             }
         }
 
         return [
-            { x: sox, y: y2 },
+            { x: sOffsetX, y: y2 },
             { x, y: y2 },
             { x, y: y1 },
-            { x: tox, y: y1 }
+            { x: tOffsetX, y: y1 }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
         const useUShapeConnection =
             targetInSourceBBox ||
             g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
-            (soy >= toy && (inflatedSourceBBox.topRight().x <= tox || inflatedSourceBBox.topLeft().x >= tox)) ||
-            (soy <= toy && (inflatedTargetBBox.topRight().x <= sox || inflatedTargetBBox.topLeft().x >= sox));
+            (sOffsetY >= tOffsetY && (inflatedSourceBBox.topRight().x <= tOffsetX || inflatedSourceBBox.topLeft().x >= tOffsetX)) ||
+            (sOffsetY <= tOffsetY && (inflatedTargetBBox.topRight().x <= sOffsetX || inflatedTargetBBox.topLeft().x >= sOffsetX));
 
         // U-shape connection is a straight line if `sox` and `tox` are the same
-        if (useUShapeConnection && sox !== tox) {
+        if (useUShapeConnection && sOffsetX !== tOffsetX) {
             return [
-                { x: sox, y: Math.max(soy, toy) },
-                { x: tox, y: Math.max(soy, toy) }
+                { x: sOffsetX, y: Math.max(sOffsetY, tOffsetY) },
+                { x: tOffsetX, y: Math.max(sOffsetY, tOffsetY) }
             ];
         }
 
         let x;
-        const y1 = Math.max((sy0 + ty1) / 2, toy);
-        const y2 = Math.max((sy1 + ty0) / 2, soy);
+        const y1 = Math.max((sBoxY0 + tBoxY1) / 2, tOffsetY);
+        const y2 = Math.max((sBoxY1 + tBoxY0) / 2, sOffsetY);
 
-        if (toy > soy) {
+        if (tOffsetY > sOffsetY) {
             // Use the shortest path along the connections on horizontal sides
-            if (rightD > leftD) {
-                x = Math.min(sox, tmx0);
+            if (rightDistance > leftDistance) {
+                x = Math.min(sOffsetX, tMarginX0);
             } else {
-                x = Math.max(sox, tmx1);
+                x = Math.max(sOffsetX, tMarginX1);
             }
         } else {
-            if (rightD > leftD) {
-                x = Math.min(tox, smx0);
+            if (rightDistance > leftDistance) {
+                x = Math.min(tOffsetX, sMarginX0);
             } else {
-                x = Math.max(tox, smx1);
+                x = Math.max(tOffsetX, sMarginX1);
             }
         }
 
         return [
-            { x: sox, y: y2 },
+            { x: sOffsetX, y: y2 },
             { x, y: y2 },
             { x, y: y1 },
-            { x: tox, y: y1 }
+            { x: tOffsetX, y: y1 }
         ];
     } else if (sourceSide === 'left' && targetSide === 'left') {
         const useUShapeConnection =
             targetInSourceBBox ||
             g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
-            (sox <= tox && (inflatedSourceBBox.bottomRight().y <= toy || inflatedSourceBBox.topRight().y >= toy)) ||
-            (sox >= tox && (inflatedTargetBBox.bottomRight().y <= soy || inflatedTargetBBox.topRight().y >= soy));
+            (sOffsetX <= tOffsetX && (inflatedSourceBBox.bottomRight().y <= tOffsetY || inflatedSourceBBox.topRight().y >= tOffsetY)) ||
+            (sOffsetX >= tOffsetX && (inflatedTargetBBox.bottomRight().y <= sOffsetY || inflatedTargetBBox.topRight().y >= sOffsetY));
 
         // U-shape connection is a straight line if `soy` and `toy` are the same
-        if (useUShapeConnection && soy !== toy) {
+        if (useUShapeConnection && sOffsetY !== tOffsetY) {
             return [
-                { x: Math.min(sox, tox), y: soy },
-                { x: Math.min(sox, tox), y: toy }
+                { x: Math.min(sOffsetX, tOffsetX), y: sOffsetY },
+                { x: Math.min(sOffsetX, tOffsetX), y: tOffsetY }
             ];
         }
 
         let y;
-        const x1 = Math.min((sx1 + tx0) / 2, tox);
-        const x2 = Math.min((sx0 + tx1) / 2, sox);
+        const x1 = Math.min((sBoxX1 + tBoxX0) / 2, tOffsetX);
+        const x2 = Math.min((sBoxX0 + tBoxX1) / 2, sOffsetX);
 
-        if (tox > sox) {
-            if (topD <= bottomD) {
-                y = Math.min(smy0, toy);
+        if (tOffsetX > sOffsetX) {
+            if (topDistance <= bottomDistance) {
+                y = Math.min(sMarginY0, tOffsetY);
             } else {
-                y = Math.max(smy1, toy);
+                y = Math.max(sMarginY1, tOffsetY);
             }
         } else {
-            if (topD <= bottomD) {
-                y = Math.min(tmy0, soy);
+            if (topDistance <= bottomDistance) {
+                y = Math.min(tMarginY0, sOffsetY);
             } else {
-                y = Math.max(tmy1, soy);
+                y = Math.max(tMarginY1, sOffsetY);
             }
         }
 
         return [
-            { x: x2, y: soy },
+            { x: x2, y: sOffsetY },
             { x: x2, y },
             { x: x1, y },
-            { x: x1, y: toy }
+            { x: x1, y: tOffsetY }
         ];
     } else if (sourceSide === 'right' && targetSide === 'right') {
         const useUShapeConnection =
             targetInSourceBBox ||
             g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
-            (sox >= tox && (inflatedSourceBBox.bottomLeft().y <= toy || inflatedSourceBBox.topLeft().y >= toy)) ||
-            (sox <= tox && (inflatedTargetBBox.bottomLeft().y <= soy || inflatedTargetBBox.topLeft().y >= soy));
+            (sOffsetX >= tOffsetX && (inflatedSourceBBox.bottomLeft().y <= tOffsetY || inflatedSourceBBox.topLeft().y >= tOffsetY)) ||
+            (sOffsetX <= tOffsetX && (inflatedTargetBBox.bottomLeft().y <= sOffsetY || inflatedTargetBBox.topLeft().y >= sOffsetY));
 
         // U-shape connection is a straight line if `soy` and `toy` are the same
-        if (useUShapeConnection && soy !== toy) {
+        if (useUShapeConnection && sOffsetY !== tOffsetY) {
             return [
-                { x: Math.max(sox, tox), y: soy },
-                { x: Math.max(sox, tox), y: toy }
+                { x: Math.max(sOffsetX, tOffsetX), y: sOffsetY },
+                { x: Math.max(sOffsetX, tOffsetX), y: tOffsetY }
             ];
         }
 
         let y;
-        const x1 = Math.max((sx0 + tx1) / 2, tox);
-        const x2 = Math.max((sx1 + tx0) / 2, sox);
+        const x1 = Math.max((sBoxX0 + tBoxX1) / 2, tOffsetX);
+        const x2 = Math.max((sBoxX1 + tBoxX0) / 2, sOffsetX);
 
-        if (tox <= sox) {
-            if (topD <= bottomD) {
-                y = Math.min(smy0, toy);
+        if (tOffsetX <= sOffsetX) {
+            if (topDistance <= bottomDistance) {
+                y = Math.min(sMarginY0, tOffsetY);
             } else {
-                y = Math.max(smy1, toy);
+                y = Math.max(sMarginY1, tOffsetY);
             }
         } else {
-            if (topD <= bottomD) {
-                y = Math.min(tmy0, soy);
+            if (topDistance <= bottomDistance) {
+                y = Math.min(tMarginY0, sOffsetY);
             } else {
-                y = Math.max(tmy1, soy);
+                y = Math.max(tMarginY1, sOffsetY);
             }
         }
 
         return [
-            { x: x2, y: soy },
+            { x: x2, y: sOffsetY },
             { x: x2, y },
             { x: x1, y },
-            { x: x1, y: toy }
+            { x: x1, y: tOffsetY }
         ];
     } else if (sourceSide === 'top' && targetSide === 'right') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
-            if (sox <= tmx1) {
-                const x = Math.max(sox + sourceMargin, tox);
-                const y = Math.min(smy0, tmy0);
+            if (sOffsetX <= tOffsetX - sourceMargin) {
+                const x = Math.max(sMarginX1, tOffsetX);
+                const y = Math.min(sMarginY0, tMarginY0);
 
                 // Target anchor is on the right side of the source anchor
                 return [
-                    { x: sox, y },
+                    { x: sOffsetX, y },
                     { x: x, y },
-                    { x: x, y: toy }
+                    { x: x, y: tOffsetY }
                 ];
             }
 
             // Target anchor is on the left side of the source anchor
             // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
-            const anchorMiddleX = (sox - sourceMargin + tox) / 2;
+            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
 
             return [
-                { x: sox, y: soy },
-                { x: anchorMiddleX, y: soy },
-                { x: anchorMiddleX, y: toy }
+                { x: sOffsetX, y: sOffsetY },
+                { x: anchorMiddleX, y: sOffsetY },
+                { x: anchorMiddleX, y: tOffsetY }
             ];
         }
 
-        if (smy0 > toy) {
-            if (sox < tox) {
-                let y = tmy0;
+        if (sMarginY0 > tOffsetY) {
+            if (sOffsetX < tOffsetX) {
+                let y = tMarginY0;
 
-                if (tmy1 <= smy0 && tmx1 >= sox) {
+                if (tMinMarginY1 <= sMinMarginY0 && tMarginX1 >= sOffsetX) {
                     y = middleOfHorizontalSides;
+
+                    if (sOffsetY < tMinMarginY1) {
+
+                        if (sOffsetX + sourceMargin > tBoxX1) {
+
+                            return [
+                                { x: sOffsetX, y: sOffsetY },
+                                { x: tOffsetX, y: sOffsetY },
+                                { x: tOffsetX, y: tOffsetY }
+                            ];
+                        }
+
+                        return [
+                            { x: sOffsetX, y: sOffsetY },
+                            { x: sOffsetX + sourceMargin, y: sOffsetY },
+                            { x: sOffsetX + sourceMargin, y },
+                            { x: tOffsetX, y },
+                            { x: tOffsetX, y: tOffsetY }
+                        ];
+                    }
                 }
 
                 return [
-                    { x: sox, y },
-                    { x: tox, y },
-                    { x: tox, y: toy }
+                    { x: sOffsetX, y },
+                    { x: tOffsetX, y },
+                    { x: tOffsetX, y: tOffsetY }
                 ];
             }
 
-            return [{ x: sox, y: toy }];
+            return [{ x: sOffsetX, y: tOffsetY }];
         }
 
-        const x = Math.max(middleOfVerticalSides, tmx1);
+        const x = Math.max(middleOfVerticalSides, tMinMarginX1);
 
-        if (sox > tox && sy1 >= toy) {
+        if (sOffsetX > tOffsetX && sBoxY1 >= tOffsetY) {
             return [
-                { x: sox, y: soy },
-                { x, y: soy },
-                { x, y: toy }
+                { x: sOffsetX, y: sOffsetY },
+                { x, y: sOffsetY },
+                { x, y: tOffsetY }
             ];
         }
 
-        if (x > smx0 && soy < ty1) {
-            const y = Math.min(smy0, tmy0);
-            const x = Math.max(smx1, tmx1);
+        if (x > sMinMarginX0 && sOffsetY < tBoxY1) {
+            const y = Math.min(sMarginY0, tMarginY0);
+            const x = Math.max(sMarginX1, tMarginX1);
             return [
-                { x: sox, y },
+                { x: sOffsetX, y },
                 { x, y },
-                { x, y: toy }
+                { x, y: tOffsetY }
+            ];
+        }
+
+        if (tOffsetX > sMinMarginX0) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x, y: sOffsetY },
+                { x, y: tOffsetY - targetMargin },
+                { x: tOffsetX, y: tOffsetY - targetMargin },
+                { x: tOffsetX, y: tOffsetY }
             ];
         }
 
         return [
-            { x: sox, y: soy },
-            { x, y: soy },
-            { x, y: toy }
+            { x: sOffsetX, y: sOffsetY },
+            { x, y: sOffsetY },
+            { x, y: tOffsetY }
         ];
     } else if (sourceSide === 'top' && targetSide === 'left') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
-            if (sox >= tmx0) {
-                const x = Math.min(sox - sourceMargin, tox);
-                const y = Math.min(smy0, tmy0);
+            if (sOffsetX >= tOffsetX + sourceMargin) {
+                const x = Math.min(sMarginX0, tOffsetX);
+                const y = Math.min(sMarginY0, tMarginY0);
 
                 // Target anchor is on the left side of the source anchor
                 return [
-                    { x: sox, y },
+                    { x: sOffsetX, y },
                     { x: x, y },
-                    { x: x, y: toy }
+                    { x: x, y: tOffsetY }
                 ];
             }
 
             // Target anchor is on the right side of the source anchor
             // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
-            const anchorMiddleX = (sox + sourceMargin + tox) / 2;
+            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
 
             return [
-                { x: sox, y: soy },
-                { x: anchorMiddleX, y: soy },
-                { x: anchorMiddleX, y: toy }
+                { x: sOffsetX, y: sOffsetY },
+                { x: anchorMiddleX, y: sOffsetY },
+                { x: anchorMiddleX, y: tOffsetY }
             ];
         }
 
-        if (smy0 > toy) {
-            if (sox > tox) {
-                let y = tmy0;
+        if (sMarginY0 > tOffsetY) {
+            if (sOffsetX > tOffsetX) {
+                let y = tMarginY0;
 
-                if (tmy1 <= smy0 && tmx0 <= sox) {
+                if (tMinMarginY1 <= sMinMarginY0 && tMarginX0 <= sOffsetX) {
                     y = middleOfHorizontalSides;
+
+                    if (sOffsetY < tMinMarginY1) {
+
+                        if (sOffsetX - sourceMargin < tBoxX0) {
+
+                            return [
+                                { x: sOffsetX, y: sOffsetY },
+                                { x: tOffsetX, y: sOffsetY },
+                                { x: tOffsetX, y: tOffsetY }
+                            ];
+                        }
+
+                        return [
+                            { x: sOffsetX, y: sOffsetY },
+                            { x: sOffsetX - sourceMargin, y: sOffsetY },
+                            { x: sOffsetX - sourceMargin, y },
+                            { x: tOffsetX, y },
+                            { x: tOffsetX, y: tOffsetY }
+                        ];
+                    }
                 }
 
                 return [
-                    { x: sox, y },
-                    { x: tox, y },
-                    { x: tox, y: toy }
+                    { x: sOffsetX, y },
+                    { x: tOffsetX, y },
+                    { x: tOffsetX, y: tOffsetY }
                 ];
             }
 
-            return [{ x: sox, y: toy }];
+            return [{ x: sOffsetX, y: tOffsetY }];
         }
 
-        const x = Math.min(tmx0, middleOfVerticalSides);
+        const x = Math.min(tMinMarginX0, middleOfVerticalSides);
 
-        if (sox < tox && sy1 >= toy) {
+        if (sOffsetX < tOffsetX && sBoxY1 >= tOffsetY) {
             return [
-                { x: sox, y: soy },
-                { x, y: soy },
-                { x, y: toy }];
+                { x: sOffsetX, y: sOffsetY },
+                { x, y: sOffsetY },
+                { x, y: tOffsetY }];
         }
 
-        if (x < smx1 && soy < ty1) {
-            const y = Math.min(smy0, tmy0);
-            const x = Math.min(smx0, tmx0);
+        if (x < sMinMarginX1 && sOffsetY < tBoxY1) {
+            const y = Math.min(sMarginY0, tMarginY0);
+            const x = Math.min(sMarginX0, tMarginX0);
             return [
-                { x: sox, y },
+                { x: sOffsetX, y },
                 { x, y },
-                { x, y: toy }
+                { x, y: tOffsetY }
+            ];
+        }
+
+        if (tOffsetX < sMinMarginX1) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x, y: sOffsetY },
+                { x, y: tOffsetY - targetMargin },
+                { x: tOffsetX, y: tOffsetY - targetMargin },
+                { x: tOffsetX, y: tOffsetY }
             ];
         }
 
         return [
-            { x: sox, y: soy },
-            { x, y: soy },
-            { x, y: toy }
+            { x: sOffsetX, y: sOffsetY },
+            { x, y: sOffsetY },
+            { x, y: tOffsetY }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'right') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
-            if (sox <= tmx1) {
-                const x = Math.max(sox + sourceMargin, tox);
-                const y = Math.max(smy1, tmy1);
+            if (sOffsetX <= tOffsetX - sourceMargin) {
+                const x = Math.max(sMarginX1, tOffsetX);
+                const y = Math.max(sMarginY1, tMarginY1);
 
                 // Target anchor is on the right side of the source anchor
                 return [
-                    { x: sox, y },
+                    { x: sOffsetX, y },
                     { x, y },
-                    { x, y: toy }
+                    { x, y: tOffsetY }
                 ];
             }
 
             // Target anchor is on the left side of the source anchor
             // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
-            const anchorMiddleX = (sox - sourceMargin + tox) / 2;
+            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
 
             return [
-                { x: sox, y: soy },
-                { x: anchorMiddleX, y: soy },
-                { x: anchorMiddleX, y: toy }
+                { x: sOffsetX, y: sOffsetY },
+                { x: anchorMiddleX, y: sOffsetY },
+                { x: anchorMiddleX, y: tOffsetY }
             ];
         }
 
-        if (smy1 < toy) {
-            if (sox < tox) {
-                let y = tmy1;
+        if (sMarginY1 < tOffsetY) {
+            if (sOffsetX < tOffsetX) {
+                let y = tMarginY1;
 
-                if (tmy0 >= smy1 && tmx1 >= sox) {
+                if (tMinMarginY0 >= sMinMarginY1 && tMarginX1 >= sOffsetX) {
                     y = middleOfHorizontalSides;
+
+                    if (sOffsetY > tMinMarginY0) {
+
+                        if (sOffsetX + sourceMargin > tBoxX1) {
+
+                            return [
+                                { x: sOffsetX, y: sOffsetY },
+                                { x: tOffsetX, y: sOffsetY },
+                                { x: tOffsetX, y: tOffsetY }
+                            ];
+                        }
+
+                        return [
+                            { x: sOffsetX, y: sOffsetY },
+                            { x: sOffsetX + sourceMargin, y: sOffsetY },
+                            { x: sOffsetX + sourceMargin, y },
+                            { x: tOffsetX, y },
+                            { x: tOffsetX, y: tOffsetY }
+                        ];
+                    }
+
                 }
 
                 return [
-                    { x: sox, y },
-                    { x: tox, y },
-                    { x: tox, y: toy }
+                    { x: sOffsetX, y },
+                    { x: tOffsetX, y },
+                    { x: tOffsetX, y: tOffsetY }
                 ];
             }
 
-            return [{ x: sox, y: toy }];
+            return [{ x: sOffsetX, y: tOffsetY }];
         }
 
-        const x = Math.max(middleOfVerticalSides, tmx1);
+        const x = Math.max(middleOfVerticalSides, tMinMarginX1);
 
-        if (sox > tox && sy0 <= toy) {
+        if (sOffsetX > tOffsetX && sBoxY0 <= tOffsetY) {
             return [
-                { x: sox, y: soy },
-                { x, y: soy },
-                { x, y: toy }
+                { x: sOffsetX, y: sOffsetY },
+                { x, y: sOffsetY },
+                { x, y: tOffsetY }
             ];
         }
 
-        if (x > smx0 && soy > ty0) {
-            const y = Math.max(smy1, tmy1);
-            const x = Math.max(smx1, tmx1);
+        if (x > sMinMarginX0 && sOffsetY > tBoxY0) {
+            const y = Math.max(sMarginY1, tMarginY1);
+            const x = Math.max(sMarginX1, tMarginX1);
             return [
-                { x: sox, y },
+                { x: sOffsetX, y },
                 { x, y },
-                { x, y: toy }
+                { x, y: tOffsetY }
+            ];
+        }
+
+        if (tOffsetX > sMinMarginX0) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x, y: sOffsetY },
+                { x, y: tOffsetY + targetMargin },
+                { x: tOffsetX, y: tOffsetY + targetMargin },
+                { x: tOffsetX, y: tOffsetY }
             ];
         }
 
         return [
-            { x: sox, y: soy },
-            { x, y: soy },
-            { x, y: toy }
+            { x: sOffsetX, y: sOffsetY },
+            { x, y: sOffsetY },
+            { x, y: tOffsetY }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'left') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
-            if (sox >= tmx0) {
-                const x = Math.min(sox - sourceMargin, tox);
-                const y = Math.max(smy1, tmy1);
+            if (sOffsetX >= tOffsetX + sourceMargin) {
+                const x = Math.min(sOffsetX - sourceMargin, tOffsetX);
+                const y = Math.max(sMarginY1, tMarginY1);
 
                 // Target anchor is on the left side of the source anchor
                 return [
-                    { x: sox, y },
+                    { x: sOffsetX, y },
                     { x, y },
-                    { x, y: toy }
+                    { x, y: tOffsetY }
                 ];
             }
 
             // Target anchor is on the right side of the source anchor
             // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
-            const anchorMiddleX = (sox + sourceMargin + tox) / 2;
+            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
 
             return [
-                { x: sox, y: soy },
-                { x: anchorMiddleX, y: soy },
-                { x: anchorMiddleX, y: toy }
+                { x: sOffsetX, y: sOffsetY },
+                { x: anchorMiddleX, y: sOffsetY },
+                { x: anchorMiddleX, y: tOffsetY }
             ];
         }
 
-        if (smy1 < toy) {
-            if (sox > tox) {
-                let y = tmy1;
+        if (sMarginY1 < tOffsetY) {
+            if (sOffsetX > tOffsetX) {
+                let y = tMarginY1;
 
-                if (tmy0 >= smy1 && tmx0 <= sox) {
+                if (tMinMarginY0 >= sMinMarginY1 && tMarginX0 <= sOffsetX) {
                     y = middleOfHorizontalSides;
+
+                    if (sOffsetY > tMinMarginY0) {
+
+                        if (sOffsetX - sourceMargin < tBoxX0) {
+
+                            return [
+                                { x: sOffsetX, y: sOffsetY },
+                                { x: tOffsetX, y: sOffsetY },
+                                { x: tOffsetX, y: tOffsetY }
+                            ];
+                        }
+
+                        return [
+                            { x: sOffsetX, y: sOffsetY },
+                            { x: sOffsetX - sourceMargin, y: sOffsetY },
+                            { x: sOffsetX - sourceMargin, y },
+                            { x: tOffsetX, y },
+                            { x: tOffsetX, y: tOffsetY }
+                        ];
+                    }
                 }
 
                 return [
-                    { x: sox, y },
-                    { x: tox, y },
-                    { x: tox, y: toy }
+                    { x: sOffsetX, y },
+                    { x: tOffsetX, y },
+                    { x: tOffsetX, y: tOffsetY }
                 ];
             }
 
-            return [{ x: sox, y: toy }];
+            return [{ x: sOffsetX, y: tOffsetY }];
         }
 
-        const x = Math.min(tmx0, middleOfVerticalSides);
+        const x = Math.min(tMinMarginX0, middleOfVerticalSides);
 
-        if (sox < tox && sy0 <= toy) {
+        if (sOffsetX < tOffsetX && sBoxY0 <= tOffsetY) {
             return [
-                { x: sox, y: soy },
-                { x, y: soy },
-                { x, y: toy }
+                { x: sOffsetX, y: sOffsetY },
+                { x, y: sOffsetY },
+                { x, y: tOffsetY }
             ];
         }
 
-        if (x < smx1 && soy > ty0) {
-            const y = Math.max(smy1, tmy1);
-            const x = Math.min(smx0, tmx0);
+        if (x < sMinMarginX1 && sOffsetY > tBoxY0) {
+            const y = Math.max(sMarginY1, tMarginY1);
+            const x = Math.min(sMarginX0, tMarginX0);
             return [
-                { x: sox, y },
+                { x: sOffsetX, y },
                 { x, y },
-                { x, y: toy }
+                { x, y: tOffsetY }
+            ];
+        }
+
+        if (tOffsetX < sMinMarginX1) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x, y: sOffsetY },
+                { x, y: tOffsetY + targetMargin },
+                { x: tOffsetX, y: tOffsetY + targetMargin },
+                { x: tOffsetX, y: tOffsetY }
             ];
         }
 
         return [
-            { x: sox, y: soy },
-            { x, y: soy },
-            { x, y: toy }
+            { x: sOffsetX, y: sOffsetY },
+            { x, y: sOffsetY },
+            { x, y: tOffsetY }
         ];
     } else if (sourceSide === 'left' && targetSide === 'bottom') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
-            if (soy <= tmy1) {
-                const x = Math.min(smx0, tmx0);
-                const y = Math.max(soy + sourceMargin, toy);
+            if (sOffsetY <= tMinMarginY1) {
+                const x = Math.min(sMarginX0, tMarginX0);
+                const y = Math.max(sOffsetY, tOffsetY);
 
                 return [
-                    { x, y: soy },
+                    { x, y: sOffsetY },
                     { x, y },
-                    { x: tox, y }
+                    { x: tOffsetX, y }
                 ];
             }
 
             // Target anchor is above the source anchor
-            const anchorMiddleY = (soy - sourceMargin + toy) / 2;
+            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
 
             return [
-                { x: sox, y: soy },
-                { x: sox, y: anchorMiddleY },
-                { x: tox, y: anchorMiddleY }
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y: anchorMiddleY },
+                { x: tOffsetX, y: anchorMiddleY }
             ];
         }
 
-        if (smx0 > tox) {
-            if (soy < toy) {
-                let x = tmx0;
+        if (sMarginX0 > tOffsetX) {
+            if (sOffsetY < tOffsetY) {
+                let x = tMarginX0;
 
-                if (tmx1 <= smx0 && tmy1 >= soy) {
+                if (tMinMarginX1 <= sMinMarginX0 && tMarginY1 >= sOffsetY) {
                     x = middleOfVerticalSides;
+
+                    if (sOffsetX < tMinMarginX1) {
+
+                        if (sOffsetY + sourceMargin > tBoxY1) {
+
+                            return [
+                                { x: sOffsetX, y: sOffsetY },
+                                { x: sOffsetX, y: tOffsetY },
+                                { x: tOffsetX, y: tOffsetY }
+                            ];
+                        }
+
+                        return [
+                            { x: sOffsetX, y: sOffsetY },
+                            { x: sOffsetX, y: sOffsetY + sourceMargin },
+                            { x, y: sOffsetY + sourceMargin },
+                            { x, y: tOffsetY },
+                            { x: tOffsetX, y: tOffsetY }
+                        ];
+                    }
+
                 }
 
                 return [
-                    { x, y: soy },
-                    { x, y: toy },
-                    { x: tox, y: toy }
+                    { x, y: sOffsetY },
+                    { x, y: tOffsetY },
+                    { x: tOffsetX, y: tOffsetY }
                 ];
             }
 
-            return [{ x: tox, y: soy }];
+            return [{ x: tOffsetX, y: sOffsetY }];
         }
 
-        const y = Math.max(tmy1, middleOfHorizontalSides);
+        const y = Math.max(tMinMarginY1, middleOfHorizontalSides);
 
-        if (soy > toy && sx1 >= tox) {
+        if (sOffsetY > tOffsetY && sBoxX1 >= tOffsetX) {
             return [
-                { x: sox, y: soy },
-                { x: sox, y },
-                { x: tox, y }
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y },
+                { x: tOffsetX, y }
             ];
         }
 
-        if (y > smy0 && sox < tx1) {
-            const x = Math.min(smx0, tmx0);
-            const y = Math.max(smy1, tmy1);
+        if (y > sMinMarginY0 && sOffsetX < tBoxX1) {
+            const x = Math.min(sMarginX0, tMarginX0);
+            const y = Math.max(sMarginY1, tMarginY1);
 
             return [
-                { x, y: soy },
+                { x, y: sOffsetY },
                 { x, y },
-                { x: tox, y }
+                { x: tOffsetX, y }
+            ];
+        }
+
+        if (tOffsetY > sMinMarginY0) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y },
+                { x: tOffsetX - sourceMargin, y },
+                { x: tOffsetX - sourceMargin, y: tOffsetY },
+                { x: tOffsetX, y: tOffsetY }
             ];
         }
 
         return [
-            { x: sox, y: soy },
-            { x: sox, y },
-            { x: tox, y }
+            { x: sOffsetX, y: sOffsetY },
+            { x: sOffsetX, y },
+            { x: tOffsetX, y }
         ];
     } else if (sourceSide === 'left' && targetSide === 'top') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
-            if (soy >= tmy0) {
-                const y = Math.min(soy - sourceMargin, toy);
-                const x = Math.min(smx0, tmx0);
+            if (sOffsetY >= tMarginY0) {
+                const y = Math.min(sMarginY0, tOffsetY);
+                const x = Math.min(sMarginX0, tMarginX0);
 
                 // Target anchor is on the top side of the source anchor
                 return [
-                    { x, y: soy },
+                    { x, y: sOffsetY },
                     { x, y },
-                    { x: tox, y }
+                    { x: tOffsetX, y }
                 ];
             }
 
             // Target anchor is below the source anchor
             // Add the `sourceMargin` since the source anchor is above the target anchor
-            const anchorMiddleY = (soy + sourceMargin + toy) / 2;
+            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
 
             return [
-                { x: sox, y: soy },
-                { x: sox, y: anchorMiddleY },
-                { x: tox, y: anchorMiddleY }
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y: anchorMiddleY },
+                { x: tOffsetX, y: anchorMiddleY }
             ];
         }
 
-        if (smx0 > tox) {
-            if (soy > toy) {
-                let x = tmx0;
+        if (sMarginX0 > tOffsetX) {
+            if (sOffsetY > tOffsetY) {
+                let x = tMarginX0;
 
-                if (tmx1 <= smx0 && tmy0 <= soy) {
+                if (tMinMarginX1 <= sMinMarginX0 && tMarginY0 <= sOffsetY) {
                     x = middleOfVerticalSides;
+
+                    if (sOffsetX < tMinMarginX1) {
+
+                        if (sOffsetY - sourceMargin < tBoxY0) {
+
+                            return [
+                                { x: sOffsetX, y: sOffsetY },
+                                { x: sOffsetX, y: tOffsetY },
+                                { x: tOffsetX, y: tOffsetY }
+                            ];
+                        }
+
+                        return [
+                            { x: sOffsetX, y: sOffsetY },
+                            { x: sOffsetX, y: sOffsetY - sourceMargin },
+                            { x, y: sOffsetY - sourceMargin },
+                            { x, y: tOffsetY },
+                            { x: tOffsetX, y: tOffsetY }
+                        ];
+                    }
                 }
 
                 return [
-                    { x, y: soy },
-                    { x, y: toy },
-                    { x: tox, y: toy }
+                    { x, y: sOffsetY },
+                    { x, y: tOffsetY },
+                    { x: tOffsetX, y: tOffsetY }
                 ];
             }
 
-            return [{ x: tox, y: soy }];
+            return [{ x: tOffsetX, y: sOffsetY }];
         }
 
-        const y = Math.min(tmy0, middleOfHorizontalSides);
+        const y = Math.min(tMinMarginY0, middleOfHorizontalSides);
 
-        if (soy < toy && sx1 >= tox) {
+        if (sOffsetY < tOffsetY && sBoxX1 >= tOffsetX) {
             return [
-                { x: sox, y: soy },
-                { x: sox, y },
-                { x: tox, y }];
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y },
+                { x: tOffsetX, y }];
         }
 
-        if (y < smy1 && sox < tx1) {
-            const x = Math.min(smx0, tmx0);
-            const y = Math.min(smy0, tmy0);
+        if (y < sMinMarginY1 && sOffsetX < tBoxX1) {
+            const x = Math.min(sMarginX0, tMarginX0);
+            const y = Math.min(sMarginY0, tMarginY0);
             return [
-                { x, y: soy },
+                { x, y: sOffsetY },
                 { x, y },
-                { x: tox, y }
+                { x: tOffsetX, y }
+            ];
+        }
+
+        if (tOffsetY < sMinMarginY1) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y },
+                { x: tOffsetX - sourceMargin, y },
+                { x: tOffsetX - sourceMargin, y: tOffsetY },
+                { x: tOffsetX, y: tOffsetY }
             ];
         }
 
         return [
-            { x: sox, y: soy },
-            { x: sox, y },
-            { x: tox, y }
+            { x: sOffsetX, y: sOffsetY },
+            { x: sOffsetX, y },
+            { x: tOffsetX, y }
         ];
     } else if (sourceSide === 'right' && targetSide === 'top') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
-            if (soy >= tmy0) {
-                const x = Math.max(smx1, tmx1);
-                const y = Math.min(soy - sourceMargin, toy);
+            if (sOffsetY >= tMarginY0) {
+                const x = Math.max(sMarginX1, tMarginX1);
+                const y = Math.min(sOffsetY - sourceMargin, tOffsetY);
 
                 // Target anchor is on the top side of the source anchor
                 return [
-                    { x, y: soy },
+                    { x, y: sOffsetY },
                     { x, y }, // Path adjustment for right side start
-                    { x: tox, y }
+                    { x: tOffsetX, y }
                 ];
             }
 
             // Target anchor is below the source anchor
             // Adjust sourceMargin calculation since the source anchor is now on the right
-            const anchorMiddleY = (soy + sourceMargin + toy) / 2;
+            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
 
             return [
-                { x: sox, y: soy },
-                { x: sox, y: anchorMiddleY },
-                { x: tox, y: anchorMiddleY }
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y: anchorMiddleY },
+                { x: tOffsetX, y: anchorMiddleY }
             ];
         }
 
-        if (smx1 < tox) {
-            if (soy > toy) {
-                let x = tmx1;
+        if (sMarginX1 < tOffsetX) {
+            if (sOffsetY > tOffsetY) {
+                let x = tMarginX1;
 
-                if (tmx0 >= smx1 && tmy0 <= soy) {
+                if (tMinMarginX0 >= sMinMarginX1 && tMarginY0 <= sOffsetY) {
                     x = middleOfVerticalSides;
+
+                    if (sOffsetX > tMinMarginX0) {
+
+                        if (sOffsetY - sourceMargin < tBoxY0) {
+
+                            return [
+                                { x: sOffsetX, y: sOffsetY },
+                                { x: sOffsetX, y: tOffsetY },
+                                { x: tOffsetX, y: tOffsetY }
+                            ];
+                        }
+
+                        return [
+                            { x: sOffsetX, y: sOffsetY },
+                            { x: sOffsetX, y: sOffsetY - sourceMargin },
+                            { x, y: sOffsetY - sourceMargin },
+                            { x, y: tOffsetY },
+                            { x: tOffsetX, y: tOffsetY }
+                        ];
+                    }
                 }
 
                 return [
-                    { x, y: soy },
-                    { x, y: toy },
-                    { x: tox, y: toy }
+                    { x, y: sOffsetY },
+                    { x, y: tOffsetY },
+                    { x: tOffsetX, y: tOffsetY }
                 ];
             }
 
-            return [{ x: tox, y: soy }];
+            return [{ x: tOffsetX, y: sOffsetY }];
         }
 
-        const y = Math.min(tmy0, middleOfHorizontalSides);
+        const y = Math.min(tMinMarginY0, middleOfHorizontalSides);
 
-        if (soy < toy && sx0 <= tox) {
+        if (sOffsetY < tOffsetY && sBoxX0 <= tOffsetX) {
             return [
-                { x: sox, y: soy },
-                { x: sox, y },
-                { x: tox, y }];
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y },
+                { x: tOffsetX, y }];
         }
 
-        if (y < smy1 && sox > tx0) {
-            const x = Math.max(smx1, tmx1);
-            const y = Math.min(smy0, tmy0);
+        if (y < sMinMarginY1 && sOffsetX > tBoxX0) {
+            const x = Math.max(sMarginX1, tMarginX1);
+            const y = Math.min(sMarginY0, tMarginY0);
 
             return [
-                { x, y: soy },
+                { x, y: sOffsetY },
                 { x, y },
-                { x: tox, y }
+                { x: tOffsetX, y }
+            ];
+        }
+
+        if (tOffsetY < sMinMarginY1) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y },
+                { x: tOffsetX + sourceMargin, y },
+                { x: tOffsetX + sourceMargin, y: tOffsetY },
+                { x: tOffsetX, y: tOffsetY }
             ];
         }
 
         return [
-            { x: sox, y: soy },
-            { x: sox, y },
-            { x: tox, y }
+            { x: sOffsetX, y: sOffsetY },
+            { x: sOffsetX, y },
+            { x: tOffsetX, y }
         ];
     } else if (sourceSide === 'right' && targetSide === 'bottom') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
-            if (soy <= tmy1) {
-                const x = Math.max(smx1, tmx1);
-                const y = Math.max(soy + sourceMargin, toy);
+            if (sOffsetY <= tMinMarginY1) {
+                const x = Math.max(sMarginX1, tMarginX1);
+                const y = Math.max(sOffsetY, tOffsetY);
 
                 return [
-                    { x, y: soy },
+                    { x, y: sOffsetY },
                     { x, y },
-                    { x: tox, y }
+                    { x: tOffsetX, y }
                 ];
             }
 
             // Target anchor is above the source anchor
-            const anchorMiddleY = (soy - sourceMargin + toy) / 2;
+            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
 
             return [
-                { x: sox, y: soy },
-                { x: sox, y: anchorMiddleY },
-                { x: tox, y: anchorMiddleY }
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y: anchorMiddleY },
+                { x: tOffsetX, y: anchorMiddleY }
             ];
         }
 
-        if (smx1 < tox) {
-            if (soy < toy) {
-                let x = tmx1;
+        if (sMarginX1 < tOffsetX) {
+            if (sOffsetY < tOffsetY) {
+                let x = tMarginX1;
 
-                if (tmx0 >= smx1 && tmy1 >= soy) {
+                if (tMinMarginX0 >= sMinMarginX1 && tMarginY1 >= sOffsetY) {
                     x = middleOfVerticalSides;
+
+                    if (sOffsetX > tMinMarginX0) {
+
+                        if (sOffsetY + sourceMargin > tBoxY1) {
+
+                            return [
+                                { x: sOffsetX, y: sOffsetY },
+                                { x: sOffsetX, y: tOffsetY },
+                                { x: tOffsetX, y: tOffsetY }
+                            ];
+                        }
+
+                        return [
+                            { x: sOffsetX, y: sOffsetY },
+                            { x: sOffsetX, y: sOffsetY + sourceMargin },
+                            { x, y: sOffsetY + sourceMargin },
+                            { x, y: tOffsetY },
+                            { x: tOffsetX, y: tOffsetY }
+                        ];
+                    }
+
                 }
 
                 return [
-                    { x, y: soy },
-                    { x, y: toy },
-                    { x: tox, y: toy }
+                    { x, y: sOffsetY },
+                    { x, y: tOffsetY },
+                    { x: tOffsetX, y: tOffsetY }
                 ];
             }
 
-            return [{ x: tox, y: soy }];
+            return [{ x: tOffsetX, y: sOffsetY }];
         }
 
-        const y = Math.max(tmy1, middleOfHorizontalSides);
+        const y = Math.max(tMinMarginY1, middleOfHorizontalSides);
 
-        if (soy > toy && sx0 <= tox) {
+        if (sOffsetY > tOffsetY && sBoxX0 <= tOffsetX) {
             return [
-                { x: sox, y: soy },
-                { x: sox, y },
-                { x: tox, y }
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y },
+                { x: tOffsetX, y }
             ];
         }
 
-        if (y > smy0 && sox > tx0) {
-            const x = Math.max(smx1, tmx1);
-            const y = Math.max(smy1, tmy1);
+        if (y > sMinMarginY0 && sOffsetX > tBoxX0) {
+            const x = Math.max(sMarginX1, tMarginX1);
+            const y = Math.max(sMarginY1, tMarginY1);
 
             return [
-                { x, y: soy },
+                { x, y: sOffsetY },
                 { x, y },
-                { x: tox, y }
+                { x: tOffsetX, y }
+            ];
+        }
+
+        if (tOffsetY > sMinMarginY0) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y },
+                { x: tOffsetX + sourceMargin, y },
+                { x: tOffsetX + sourceMargin, y: tOffsetY },
+                { x: tOffsetX, y: tOffsetY }
             ];
         }
 
         return [
-            { x: sox, y: soy },
-            { x: sox, y },
-            { x: tox, y }
+            { x: sOffsetX, y: sOffsetY },
+            { x: sOffsetX, y },
+            { x: tOffsetX, y }
         ];
     }
 }
@@ -1514,20 +1865,24 @@ function getLoopCoordinates(direction, angle, margin) {
 }
 
 function rightAngleRouter(vertices, opt, linkView) {
-    const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
+    const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, minPathMargin = null } = opt;
     const margin = opt.margin || 20;
+
+    const sourceMargin = opt.sourceMargin || margin;
+    const targetMargin = opt.targetMargin || margin;
+
     const useVertices = opt.useVertices || false;
 
     const isSourcePort = !!linkView.model.source().port;
-    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, margin);
+    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, sourceMargin);
 
     const isTargetPort = !!linkView.model.target().port;
-    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, margin);
+    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, targetMargin);
 
     const resultVertices = [];
 
     if (!useVertices || vertices.length === 0) {
-        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint));
+        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint, { minPathMargin }));
     }
 
     const verticesData = vertices.map((v) => pointDataFromVertex(v));
@@ -1535,11 +1890,11 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     const [resolvedSourceDirection] = resolveSides(sourcePoint, firstVertex);
     const isElement = sourcePoint.view && sourcePoint.view.model.isElement();
-    const sourceBBox = isElement ? moveAndExpandBBox(sourcePoint.view.model.getBBox(), resolvedSourceDirection, margin) : null;
+    const sourceBBox = isElement ? moveAndExpandBBox(sourcePoint.view.model.getBBox(), resolvedSourceDirection, sourceMargin) : null;
     const isVertexInside = isElement ? sourceBBox.containsPoint(firstVertex.point) : false;
 
     if (isVertexInside) {
-        const outsidePoint = getOutsidePoint(resolvedSourceDirection, sourcePoint, margin);
+        const outsidePoint = getOutsidePoint(resolvedSourceDirection, sourcePoint, sourceMargin);
         const firstPointOverlap = outsidePoint.equals(firstVertex.point);
 
         const alignsVertically = sourcePoint.point.x === firstVertex.point.x;
@@ -1552,8 +1907,6 @@ function rightAngleRouter(vertices, opt, linkView) {
         const isVertexOnSegment = firstSegment.containsPoint(firstVertex.point);
 
         const isVertexAlignedAndInside = isVertexInside && (isHorizontalAndAligns || isVerticalAndAligns);
-
-
 
         if (firstPointOverlap) {
             resultVertices.push(sourcePoint.point, firstVertex.point);
@@ -1575,7 +1928,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             // No need to create a route, use the `routeBetweenPoints` to construct a route
             firstVertex.direction = resolvedSourceDirection;
             firstVertex.margin = margin;
-            resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { targetInSourceBBox: true }), firstVertex.point);
+            resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { targetInSourceBBox: true, minPathMargin }), firstVertex.point);
         }
     } else {
         // The first point responsible for the initial direction of the route
@@ -1583,7 +1936,7 @@ function rightAngleRouter(vertices, opt, linkView) {
         const direction = resolveInitialDirection(sourcePoint, firstVertex, next);
         firstVertex.direction = direction;
 
-        resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex), firstVertex.point);
+        resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { minPathMargin }), firstVertex.point);
     }
 
     for (let i = 0; i < verticesData.length - 1; i++) {
@@ -1634,7 +1987,7 @@ function rightAngleRouter(vertices, opt, linkView) {
         from.direction = fromDirection;
         to.direction = toDirection;
 
-        resultVertices.push(...routeBetweenPoints(from, to), to.point);
+        resultVertices.push(...routeBetweenPoints(from, to, { minPathMargin }), to.point);
     }
 
     const lastVertex = verticesData[verticesData.length - 1];
@@ -1656,7 +2009,7 @@ function rightAngleRouter(vertices, opt, linkView) {
 
             lastVertex.direction = definedDirection;
 
-            let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
+            let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minPathMargin });
             const [p1, p2] = simplifyPoints([...lastSegmentRoute, targetPoint.point]);
 
             const lastSegment = new g.Line(p1, p2);
@@ -1681,10 +2034,10 @@ function rightAngleRouter(vertices, opt, linkView) {
             } else if (isVertexInside && resolvedTargetDirection !== OPPOSITE_DIRECTIONS[definedDirection]) {
                 lastVertex.margin = margin;
                 lastVertex.direction = resolvedTargetDirection;
-                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
+                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minPathMargin });
             } else if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
                 lastVertex.margin = margin;
-                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
+                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minPathMargin });
             }
 
             resultVertices.push(...lastSegmentRoute);
@@ -1725,7 +2078,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             from.direction = fromDirection;
             to.direction = toDirection;
 
-            resultVertices.push(...routeBetweenPoints(from, to));
+            resultVertices.push(...routeBetweenPoints(from, to, { minPathMargin }));
         }
     }
 
