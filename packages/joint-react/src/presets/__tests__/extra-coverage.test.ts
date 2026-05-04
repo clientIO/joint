@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { dia, shapes, g } from '@joint/core';
 import { linkStyle, linkStyleLine, linkStyleWrapper } from '../link-style';
-import { outwardsCurveConnector, rightAngleRouter } from '../connectors';
+import { outwardsCurveConnector } from '../connectors';
+import { rightAngleRouter } from '../routers';
 import { elementPort } from '../element-ports';
 import { boundaryPoint, anchorPoint } from '../connection-points';
 import { LinkView } from '../link-view';

@@ -2,7 +2,8 @@ import { connectionPoints, type dia } from '@joint/core';
 import type { LinkMode } from './anchors';
 import { centerAnchor, perpendicularAnchor, midSideAnchor } from './anchors';
 import { boundaryPoint, anchorPoint, withOffsets } from './connection-points';
-import { rightAngleRouter, outwardsCurveConnector } from './connectors';
+import { outwardsCurveConnector } from './connectors';
+import { rightAngleRouter } from './routers';
 import {
   straightRouterUntilConnected,
   straightConnectorUntilConnected,
@@ -99,10 +100,12 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
     sourceOffset = 0,
     targetOffset = 0,
     straightWhenDisconnected = true,
-    margin,
+    margin = 20,
+    minPathMargin = margin / 4,
     markerSelector,
   } = options;
-  const router = rightAngleRouter(margin);
+
+  const router = rightAngleRouter(margin, minPathMargin);
 
   if (straightWhenDisconnected) {
     return {

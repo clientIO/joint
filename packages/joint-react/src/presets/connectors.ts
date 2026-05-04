@@ -1,13 +1,5 @@
-import type { routers, connectors as connectorTypes } from '@joint/core';
-import { connectors as connectorFns, routers as routerFns } from '@joint/core';
-
-/**
- * Creates a right-angle router with `useVertices: true`.
- * @param margin
- */
-export function rightAngleRouter(margin = 20): routers.Router {
-  return (vertices, _args, linkView) => routerFns.rightAngle(vertices, { useVertices: true, margin }, linkView);
-}
+import type { connectors as connectorTypes } from '@joint/core';
+import { connectors as connectorFns } from '@joint/core';
 
 /**
  * Curve connector with outwards tangent direction.
