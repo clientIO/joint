@@ -31,9 +31,9 @@ const paper = new dia.Paper({
     defaultRouter: { name: 'rightAngle', args: {
         useVertices: true,
         margin: 40,
-        minMargin: 10,
-        sourceMargin: 40,
-        targetMargin: 30
+        minPathMargin: 10,
+        //sourceMargin: 40,
+        //targetMargin: 30
     }},
     defaultConnector: { name: 'rounded' },
     background: {

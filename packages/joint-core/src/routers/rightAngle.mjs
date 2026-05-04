@@ -488,8 +488,8 @@ function routeBetweenPoints(source, target, opt = {}) {
 
     const { targetInSourceBBox = false } = opt;
 
-    const minSourceMargin = opt.minMargin != null ? Math.min(opt.minMargin, sourceMargin) : sourceMargin;
-    const minTargetMargin = opt.minMargin != null ? Math.min(opt.minMargin, targetMargin) : targetMargin;
+    const minSourceMargin = opt.minPathMargin != null ? Math.min(opt.minPathMargin, sourceMargin) : sourceMargin;
+    const minTargetMargin = opt.minPathMargin != null ? Math.min(opt.minPathMargin, targetMargin) : targetMargin;
 
     const tBoxX1 = tBoxX0 + targetWidth;
     const tBoxY1 = tBoxY0 + targetHeight;
@@ -1865,7 +1865,7 @@ function getLoopCoordinates(direction, angle, margin) {
 }
 
 function rightAngleRouter(vertices, opt, linkView) {
-    const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, minMargin = null } = opt;
+    const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, minPathMargin = null } = opt;
     const margin = opt.margin || 20;
 
     const sourceMargin = opt.sourceMargin || margin;
@@ -1882,7 +1882,7 @@ function rightAngleRouter(vertices, opt, linkView) {
     const resultVertices = [];
 
     if (!useVertices || vertices.length === 0) {
-        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint, { minMargin }));
+        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint, { minPathMargin }));
     }
 
     const verticesData = vertices.map((v) => pointDataFromVertex(v));
@@ -1928,7 +1928,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             // No need to create a route, use the `routeBetweenPoints` to construct a route
             firstVertex.direction = resolvedSourceDirection;
             firstVertex.margin = margin;
-            resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { targetInSourceBBox: true, minMargin }), firstVertex.point);
+            resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { targetInSourceBBox: true, minPathMargin }), firstVertex.point);
         }
     } else {
         // The first point responsible for the initial direction of the route
@@ -1936,7 +1936,7 @@ function rightAngleRouter(vertices, opt, linkView) {
         const direction = resolveInitialDirection(sourcePoint, firstVertex, next);
         firstVertex.direction = direction;
 
-        resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { minMargin }), firstVertex.point);
+        resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { minPathMargin }), firstVertex.point);
     }
 
     for (let i = 0; i < verticesData.length - 1; i++) {
@@ -1987,7 +1987,7 @@ function rightAngleRouter(vertices, opt, linkView) {
         from.direction = fromDirection;
         to.direction = toDirection;
 
-        resultVertices.push(...routeBetweenPoints(from, to, { minMargin }), to.point);
+        resultVertices.push(...routeBetweenPoints(from, to, { minPathMargin }), to.point);
     }
 
     const lastVertex = verticesData[verticesData.length - 1];
@@ -2009,7 +2009,7 @@ function rightAngleRouter(vertices, opt, linkView) {
 
             lastVertex.direction = definedDirection;
 
-            let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minMargin });
+            let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minPathMargin });
             const [p1, p2] = simplifyPoints([...lastSegmentRoute, targetPoint.point]);
 
             const lastSegment = new g.Line(p1, p2);
@@ -2034,10 +2034,10 @@ function rightAngleRouter(vertices, opt, linkView) {
             } else if (isVertexInside && resolvedTargetDirection !== OPPOSITE_DIRECTIONS[definedDirection]) {
                 lastVertex.margin = margin;
                 lastVertex.direction = resolvedTargetDirection;
-                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minMargin });
+                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minPathMargin });
             } else if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
                 lastVertex.margin = margin;
-                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minMargin });
+                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minPathMargin });
             }
 
             resultVertices.push(...lastSegmentRoute);
@@ -2078,7 +2078,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             from.direction = fromDirection;
             to.direction = toDirection;
 
-            resultVertices.push(...routeBetweenPoints(from, to, { minMargin }));
+            resultVertices.push(...routeBetweenPoints(from, to, { minPathMargin }));
         }
     }
 
