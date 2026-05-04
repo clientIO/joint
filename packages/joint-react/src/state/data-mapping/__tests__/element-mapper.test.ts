@@ -27,8 +27,7 @@ describe('mapAttributesToElement', () => {
 
     expect(result.ports).toEqual(ports);
     expect(result).not.toHaveProperty('portMap');
-    // default type stripped
-    expect(result).not.toHaveProperty('type');
+    expect(result.type).toBe(ELEMENT_MODEL_TYPE);
   });
 
   it('returns portMap when present and ignores native ports', () => {

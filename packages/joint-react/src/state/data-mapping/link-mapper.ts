@@ -4,14 +4,22 @@ import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 
 /**
- * Forward mapper using the React default link type.
+ * Fill missing `data` with `{}` so reading hooks can rely on
+ * `Computed<LinkRecord>`'s required `data` field.
+ */
+function ensureDefaults(attributes: dia.Link.JSONInit): dia.Link.JSONInit {
+  attributes.data ??= {};
+  return attributes;
+}
+
+/**
+ * Convert a React link record to JointJS-ready cell attributes —
+ * applies preset transforms (`style` → native `attrs`, `labelMap` → native
+ * `labels`) and fills framework default for `data`.
  * @param link
  */
 export function mapLinkToAttributes(link: LinkJSONInit): dia.Link.JSONInit {
-  const attributes = linkAttributes(link) as dia.Link.JSONInit;
-  // `data` is a @joint/react concept — defaulted here, not in framework-neutral presets.
-  attributes.data ??= {};
-  return attributes;
+  return ensureDefaults(linkAttributes(link) as dia.Link.JSONInit);
 }
 
 /**
@@ -52,7 +60,7 @@ export function mapAttributesToLink<LinkData = unknown>(
     linkRecord.labels = labels;
   }
 
-  return { ...linkRecord } as LinkRecord<LinkData>;
+  return linkRecord as LinkRecord<LinkData>;
 }
 
 /** Function signature that maps raw JointJS link attributes to a `LinkRecord`. */

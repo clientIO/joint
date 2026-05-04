@@ -10,8 +10,6 @@ import { mapAttributesToElement, mapAttributesToLink } from '../state/data-mappi
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
 import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-utils';
-import { ELEMENT_MODEL_TYPE } from '../models/element-model';
-import { LINK_MODEL_TYPE } from '../models/link-model';
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalCellsChange<
@@ -115,40 +113,9 @@ function mergeCellRecord<Element extends ElementJSONInit, Link extends LinkJSONI
 function toCellRecord<Element extends ElementJSONInit, Link extends LinkJSONInit>(
   cell: dia.Cell
 ): Element | Link {
-  if (cell.isElement()) {
-    const record = mapAttributesToElement(cell.attributes);
-    const previousPosition = record.position;
-    const previousSize = record.size;
-    const withDefaults = {
-      ...record,
-      id: cell.id,
-      type: record.type ?? ELEMENT_MODEL_TYPE,
-      position: {
-        x: previousPosition?.x ?? 0,
-        y: previousPosition?.y ?? 0,
-      },
-      size: {
-        width: previousSize?.width ?? 0,
-        height: previousSize?.height ?? 0,
-      },
-      angle: record.angle ?? 0,
-      data: record.data ?? {},
-    };
-    return withDefaults as Element;
-  }
-  if (cell.isLink()) {
-    const record = mapAttributesToLink(cell.attributes);
-    const withDefaults = {
-      ...record,
-      id: cell.id,
-      type: record.type ?? LINK_MODEL_TYPE,
-      source: record.source ?? {},
-      target: record.target ?? {},
-      data: record.data ?? {},
-    };
-    return withDefaults as Link;
-  }
-  return { ...cell.attributes, id: cell.id } as Element | Link;
+  return cell.isElement()
+    ? mapAttributesToElement(cell.attributes) as Element
+    : mapAttributesToLink(cell.attributes) as Link;
 }
 
 export function graphView<

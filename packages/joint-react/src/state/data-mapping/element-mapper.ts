@@ -1,17 +1,29 @@
 import { type dia } from '@joint/core';
 import type { ElementJSONInit, ElementRecord } from '../../types/cell.types';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { elementAttributes } from '../../presets/element-attributes';
 
 /**
- * Forward mapper using the React default element type.
+ * Fill missing position/size/angle/data with framework defaults so the
+ * record satisfies `Computed<ElementRecord>`'s required-field contract.
+ * @param attributes
+ */
+function ensureDefaults(attributes: dia.Element.JSONInit): dia.Element.JSONInit {
+  const { position, size } = attributes;
+  attributes.position = { x: position?.x ?? 0, y: position?.y ?? 0 };
+  attributes.size = { width: size?.width ?? 0, height: size?.height ?? 0 };
+  attributes.angle ??= 0;
+  attributes.data ??= {};
+  return attributes;
+}
+
+/**
+ * Convert a React element record to JointJS-ready cell attributes —
+ * applies preset transforms (`portMap` → native `ports`) and fills
+ * framework defaults for `position` / `size` / `angle` / `data`.
  * @param element
  */
 export function mapElementToAttributes(element: ElementJSONInit): dia.Element.JSONInit {
-  const attributes = elementAttributes(element) as dia.Element.JSONInit;
-  // `data` is a @joint/react concept — defaulted here, not in framework-neutral presets.
-  attributes.data ??= {};
-  return attributes;
+  return ensureDefaults(elementAttributes(element) as dia.Element.JSONInit);
 }
 
 /**
@@ -27,7 +39,6 @@ export function mapAttributesToElement<ElementData = unknown>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
   const {
-    type,
     // Ports
     portMap,
     ports,
@@ -43,12 +54,7 @@ export function mapAttributesToElement<ElementData = unknown>(
     elementRecord.ports = ports;
   }
 
-  // Only a custom type should be included in the element record.
-  if (type && type !== ELEMENT_MODEL_TYPE) {
-    elementRecord.type = type;
-  }
-
-  return { ...elementRecord } as ElementRecord<ElementData>;
+  return elementRecord as ElementRecord<ElementData>;
 }
 
 /** Function signature that maps raw JointJS element attributes to an `ElementRecord`. */
