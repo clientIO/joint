@@ -2625,6 +2625,100 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 150 L -28 150 L -28 175 L 0 175', 'Source above target with vertex inside the target element bbox');
     });
 
+    // minMargin tests
+    // r1 at (0,0), r2 repositioned so their margin zones overlap.
+    // margin=28, minMargin=5 → minSourceMargin=minTargetMargin=5, used as tighter routing boundaries.
+
+    QUnit.test('rightAngle routing - minMargin - source: bottom, target: top', function(assert) {
+        // r1 at (0,0), r2 at (60,20) — elements offset horizontally so their x-margin zones barely touch.
+        // source outside point: (25, 78);  target outside point: (85, -8)
+        const [, r2, l] = this.addTestSubjects('bottom', 'top', { name: 'rightAngle', args: { margin, minMargin: 5 }});
+        r2.position(60, 20);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 50 L 25 98 L 138 98 L 138 -8 L 85 -8 L 85 20', 'minMargin - source: bottom, target: top');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 50 L 25 98 L 138 98 L 138 -8 L 85 -8 L 85 20', 'Without minMargin, route detours around margin zones');
+    });
+
+    QUnit.test('rightAngle routing - minMargin - source: top, target: bottom', function(assert) {
+        // r1 at (0,0), r2 at (60,20) — elements offset horizontally so their x-margin zones barely touch.
+        // source outside point: (25, -28);  target outside point: (85, 98)
+        const [, r2, l] = this.addTestSubjects('top', 'bottom', { name: 'rightAngle', args: { margin, minMargin: 5 }});
+        r2.position(60, 20);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 138 -28 L 138 98 L 85 98 L 85 70', 'minMargin - source: top, target: bottom');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 138 -28 L 138 98 L 85 98 L 85 70', 'Without minMargin, route detours around margin zones');
+    });
+
+    QUnit.test('rightAngle routing - minMargin - source: right, target: left', function(assert) {
+        // r1 at (0,0), r2 at (20,60) — elements offset vertically so their y-margin zones barely touch.
+        // source outside point: (78, 25);  target outside point: (-8, 85)
+        const [, r2, l] = this.addTestSubjects('right', 'left', { name: 'rightAngle', args: { margin, minMargin: 5 }});
+        r2.position(20, 60);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 25 L 98 25 L 98 138 L -8 138 L -8 85 L 20 85', 'minMargin - source: right, target: left');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 25 L 98 25 L 98 138 L -8 138 L -8 85 L 20 85', 'Without minMargin, route detours around margin zones');
+    });
+
+    QUnit.test('rightAngle routing - minMargin - source: left, target: right', function(assert) {
+        // r1 at (60,0), r2 at (0,60) — elements offset vertically so their y-margin zones barely touch.
+        // source outside point: (32, 25);  target outside point: (78, 85)
+        const [r1, r2, l] = this.addTestSubjects('left', 'right', { name: 'rightAngle', args: { margin, minMargin: 5 }});
+        r1.position(60, 0);
+        r2.position(0, 60);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 60 25 L -28 25 L -28 138 L 78 138 L 78 85 L 50 85', 'minMargin - source: left, target: right');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 60 25 L -28 25 L -28 138 L 78 138 L 78 85 L 50 85', 'Without minMargin, route detours around margin zones');
+    });
+
+    // The facing-elements condition: source left anchor facing a target right anchor (and the reverse).
+    // Positions are chosen so the anchors' outside points land outside the inflated bboxes (no S-shape).
+    // r1 at (100,0), r2 at (0,60), minMargin=25: minSourceMargin=minTargetMargin=25.
+
+    QUnit.test('rightAngle routing - minMargin facing - source: left, target: right', function(assert) {
+        // r1 at (100,0), r2 at (0,60) — anchors face each other with a 50px gap (tox−smx0=6=ignoreOverlappingMargin).
+        // source outside point: (72, 25);  target outside point: (78, 85)
+        const [r1, r2, l] = this.addTestSubjects('left', 'right', { name: 'rightAngle', args: { margin, minMargin: 25 }});
+        r1.position(100, 0);
+        r2.position(0, 60);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 100 25 L -28 25 L -28 138 L 78 138 L 78 85 L 50 85', 'minMargin facing - source: left, target: right');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 100 25 L -28 25 L -28 138 L 78 138 L 78 85 L 50 85', 'Without minMargin, route detours around margin zones');
+    });
+
+    QUnit.test('rightAngle routing - minMargin facing - source: right, target: left', function(assert) {
+        // r1 at (0,0), r2 at (100,60) — anchors face each other with a 50px gap (smx1−tox=6=ignoreOverlappingMargin).
+        // source outside point: (78, 25);  target outside point: (72, 85)
+        const [, r2, l] = this.addTestSubjects('right', 'left', { name: 'rightAngle', args: { margin, minMargin: 25 }});
+        r2.position(100, 60);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 25 L 178 25 L 178 138 L 72 138 L 72 85 L 100 85', 'minMargin facing - source: right, target: left');
+
+        l.router({ name: 'rightAngle', args: { margin }});
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 25 L 178 25 L 178 138 L 72 138 L 72 85 L 100 85', 'Without minMargin, route detours around margin zones');
+    });
+
     QUnit.test('rightAngle routing with source anchor outside the element bbox', function(assert) {
         // Source `top` anchor offset above the element — outside the element bbox.
         // The router must include the anchor in its source bbox union so the routing
