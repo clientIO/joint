@@ -13,7 +13,7 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell.types';
 import type { ElementLayout } from '../types/cell.types';
-import type { DiaElementAttributes } from '../types/cell.types';
+import type { ElementJSONInit } from '../types/cell.types';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // Epsilon value to avoid jitter due to sub-pixel rendering
@@ -66,7 +66,7 @@ interface ObservedElement {
   isMeasured: boolean;
 }
 
- 
+
 function identityTransform(options: TransformOptions) {
   const { width, height, x, y } = options;
   return { width, height, x, y };
@@ -82,7 +82,7 @@ interface Options {
     id: CellId
   ) => ElementLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the elements from the container */
-  readonly getElements: () => Map<CellId, DiaElementAttributes>;
+  readonly getElements: () => Map<CellId, ElementJSONInit>;
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (data: Record<CellId, ElementLayoutOptionalXY>) => void;
 }
@@ -128,7 +128,7 @@ interface ProcessSizeChangeOptions {
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly elements: Map<CellId, DiaElementAttributes>;
+  readonly elements: Map<CellId, ElementJSONInit>;
   readonly mutableLayouts: Record<CellId, ElementLayoutOptionalXY>;
 }
 
@@ -215,20 +215,20 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
   // Maps only the active DOM node to its ObservedElement for O(1) lookup in the ResizeObserver callback.
   const activeObservedElementByDomNode = new WeakMap<HTMLElement | SVGElement, ObservedElement>();
 
-   
+
   /** Returns the active (last) element from the stack, or `undefined` if empty. */
   function getActiveElement(stack: readonly ObservedElement[]): ObservedElement | undefined {
     return stack.at(-1);
   }
 
-   
+
   /** Starts observing the given element and registers it in the active DOM node lookup. */
   function activateElement(observedElement: ObservedElement) {
     observer.observe(observedElement.node, resizeObserverOptions);
     activeObservedElementByDomNode.set(observedElement.node, observedElement);
   }
 
-   
+
   /** Stops observing the given element and removes it from the active DOM node lookup. */
   function deactivateElement(observedElement: ObservedElement) {
     observer.unobserve(observedElement.node);

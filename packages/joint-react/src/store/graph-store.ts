@@ -1,9 +1,8 @@
 import { dia, shapes } from '@joint/core';
 import type {
-  DiaElementAttributes,
-  DiaLinkAttributes,
+  ElementJSONInit,
+  LinkJSONInit,
   CellId,
-  CellUnion,
 } from '../types/cell.types';
 import type { AddPaperOptions } from './paper-store';
 
@@ -57,8 +56,8 @@ export interface GraphStoreInternalSnapshot {
  * being passed together.
  */
 interface GraphStoreOptionsBase<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
@@ -68,8 +67,8 @@ interface GraphStoreOptionsBase<
 
 /** Uncontrolled mode: parent provides only seed data. */
 interface GraphStoreOptionsUncontrolled<
-  Element extends DiaElementAttributes,
-  Link extends DiaLinkAttributes,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > extends GraphStoreOptionsBase<Element, Link> {
   readonly initialCells?: ReadonlyArray<Element | Link>;
   readonly cells?: never;
@@ -78,8 +77,8 @@ interface GraphStoreOptionsUncontrolled<
 
 /** Controlled mode: parent is the source of truth; store applies snapshots. */
 interface GraphStoreOptionsControlled<
-  Element extends DiaElementAttributes,
-  Link extends DiaLinkAttributes,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > extends GraphStoreOptionsBase<Element, Link> {
   readonly cells: ReadonlyArray<Element | Link>;
   readonly initialCells?: never;
@@ -91,16 +90,16 @@ interface GraphStoreOptionsControlled<
  * or controlled (`cells` + `onCellsChange`).
  */
 export type GraphStoreOptions<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > = GraphStoreOptionsUncontrolled<Element, Link> | GraphStoreOptionsControlled<Element, Link>;
 
 /**
  * Central store for managing graph state, synchronization, and paper instances.
  */
 export class GraphStore<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > {
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<number> = createAtom(0);
@@ -112,8 +111,8 @@ export class GraphStore<
   public readonly graphView: GraphView<Element, Link>;
 
   public getGraphView<
-    E extends DiaElementAttributes = DiaElementAttributes,
-    L extends DiaLinkAttributes = DiaLinkAttributes,
+    E extends ElementJSONInit = ElementJSONInit,
+    L extends LinkJSONInit = LinkJSONInit,
   >(): GraphView<E, L> {
     return this.graphView as unknown as GraphView<E, L>;
   }
@@ -175,7 +174,7 @@ export class GraphStore<
         // The observer only cares about element-typed cells. Build a Map on
         // demand from the unified cells container — cold path, called only
         // when the ResizeObserver fires.
-        const map = new Map<CellId, DiaElementAttributes>();
+        const map = new Map<CellId, ElementJSONInit>();
         for (const cell of this.graphView.cells.getAll()) {
           if (cell.id === undefined) continue;
           if (this.isElement(cell)) {
@@ -260,7 +259,7 @@ export class GraphStore<
    * with the react-origin flag set.
    * @param cells - new cells snapshot from the parent
    */
-  public applyControlled(cells: ReadonlyArray<CellUnion<Element, Link>>) {
+  public applyControlled(cells: ReadonlyArray<Element | Link>) {
     this.graphView.updateGraph({ cells, flag: 'updateFromReact' });
   }
 
@@ -290,7 +289,7 @@ export class GraphStore<
    * @param cell - cell record, cell id, or type name
    * @returns `true` when the resolved type extends `dia.Link`
    */
-  public isLink = (cell: CellUnion<Element, Link>): cell is Link => {
+  public isLink = (cell: Element | Link): cell is Link => {
     const cellType = (cell as { readonly type?: string }).type;
     return cellType !== undefined && isLinkType(cellType, this.graph);
   };

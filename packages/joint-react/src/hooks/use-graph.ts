@@ -10,10 +10,9 @@ import {
   type SetCell,
 } from './use-cell-setters';
 import type {
-  DiaElementAttributes,
-  DiaLinkAttributes,
+  ElementJSONInit,
+  LinkJSONInit,
   CellId,
-  CellUnion,
 } from '../types/cell.types';
 
 /**
@@ -29,8 +28,8 @@ import type {
  *                  `Computed<LinkRecord<MyData>>`)
  */
 export interface UseGraphResult<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 > {
   /** The JointJS graph instance. */
   readonly graph: dia.Graph;
@@ -50,16 +49,16 @@ export interface UseGraphResult<
   /** Atomically replace the cell set. */
   readonly resetCells: (
     input:
-      | ReadonlyArray<CellUnion<Element, Link>>
+      | ReadonlyArray<Element | Link>
       | ((
-          previous: ReadonlyArray<CellUnion<Element, Link>>
-        ) => ReadonlyArray<CellUnion<Element, Link>>)
+          previous: ReadonlyArray<Element | Link>
+        ) => ReadonlyArray<Element | Link>)
   ) => void;
   /** Apply an updater to the current cells array. */
   readonly updateCells: (
     updater: (
-      previous: ReadonlyArray<CellUnion<Element, Link>>
-    ) => ReadonlyArray<CellUnion<Element, Link>>
+      previous: ReadonlyArray<Element | Link>
+    ) => ReadonlyArray<Element | Link>
   ) => void;
   /**
    * Predicate / type guard: true when the input resolves to an element cell.
@@ -67,14 +66,14 @@ export interface UseGraphResult<
    * so any `dia.Element` subclass (including custom shapes) is recognised,
    * not just our default `ElementModel`.
    */
-  readonly isElement: (input: CellUnion<Element, Link>) => input is Element;
+  readonly isElement: (input: Element | Link) => input is Element;
   /**
    * Predicate / type guard: true when the input resolves to a link cell.
    * Delegates to `GraphStore.isLink` — consults the graph's type registry so
    * any `dia.Link` subclass (including custom shapes) is recognised, not just
    * our default `LinkModel`.
    */
-  readonly isLink: (input: CellUnion<Element, Link>) => input is Link;
+  readonly isLink: (input: Element | Link) => input is Link;
   /**
    * Serialize the graph to a plain JSON object.
    *
@@ -118,8 +117,8 @@ export interface ExportToJSONOptions {
  * @returns the imperative API described by {@link UseGraphResult}
  */
 export function useGraph<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >(): UseGraphResult<Element, Link> {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;

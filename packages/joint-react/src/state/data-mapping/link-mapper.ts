@@ -1,17 +1,25 @@
 import { type dia } from '@joint/core';
-import type { DiaLinkAttributes, LinkRecord } from '../../types/cell.types';
-import { LINK_MODEL_TYPE } from '../../models/link-model';
+import type { LinkJSONInit, LinkRecord } from '../../types/cell.types';
 import { linkAttributes } from '../../presets/link-attributes';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 
 /**
- * Forward mapper using the React default link type.
+ * Fill missing `data` with `{}` so reading hooks can rely on
+ * `Computed<LinkRecord>`'s required `data` field.
+ */
+function ensureDefaults(attributes: dia.Link.JSONInit): dia.Link.JSONInit {
+  attributes.data ??= {};
+  return attributes;
+}
+
+/**
+ * Convert a React link record to JointJS-ready cell attributes —
+ * applies preset transforms (`style` → native `attrs`, `labelMap` → native
+ * `labels`) and fills framework default for `data`.
  * @param link
  */
-export function mapLinkToAttributes(link: DiaLinkAttributes): dia.Cell.JSON {
-  const attributes = linkAttributes(link) as dia.Cell.JSON;
-  if (!attributes.type) attributes.type = LINK_MODEL_TYPE;
-  return attributes;
+export function mapLinkToAttributes(link: LinkJSONInit): dia.Link.JSONInit {
+  return ensureDefaults(linkAttributes(link) as dia.Link.JSONInit);
 }
 
 /**
@@ -28,8 +36,6 @@ export function mapAttributesToLink<LinkData = unknown>(
   attributes: dia.Link.Attributes
 ): LinkRecord<LinkData> {
   const {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    id,
     // Labels
     labelMap,
     labels,
@@ -54,7 +60,7 @@ export function mapAttributesToLink<LinkData = unknown>(
     linkRecord.labels = labels;
   }
 
-  return { ...linkRecord } as LinkRecord<LinkData>;
+  return linkRecord as LinkRecord<LinkData>;
 }
 
 /** Function signature that maps raw JointJS link attributes to a `LinkRecord`. */

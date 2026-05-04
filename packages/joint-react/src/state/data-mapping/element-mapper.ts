@@ -1,16 +1,29 @@
 import { type dia } from '@joint/core';
-import type { DiaElementAttributes, ElementRecord } from '../../types/cell.types';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import type { ElementJSONInit, ElementRecord } from '../../types/cell.types';
 import { elementAttributes } from '../../presets/element-attributes';
 
 /**
- * Forward mapper using the React default element type.
+ * Fill missing position/size/angle/data with framework defaults so the
+ * record satisfies `Computed<ElementRecord>`'s required-field contract.
+ * @param attributes
+ */
+function ensureDefaults(attributes: dia.Element.JSONInit): dia.Element.JSONInit {
+  const { position, size } = attributes;
+  attributes.position = { x: position?.x ?? 0, y: position?.y ?? 0 };
+  attributes.size = { width: size?.width ?? 0, height: size?.height ?? 0 };
+  attributes.angle ??= 0;
+  attributes.data ??= {};
+  return attributes;
+}
+
+/**
+ * Convert a React element record to JointJS-ready cell attributes —
+ * applies preset transforms (`portMap` → native `ports`) and fills
+ * framework defaults for `position` / `size` / `angle` / `data`.
  * @param element
  */
-export function mapElementToAttributes(element: DiaElementAttributes): dia.Cell.JSON {
-  const attributes = elementAttributes(element) as dia.Cell.JSON;
-  if (!attributes.type) attributes.type = ELEMENT_MODEL_TYPE;
-  return attributes;
+export function mapElementToAttributes(element: ElementJSONInit): dia.Element.JSONInit {
+  return ensureDefaults(elementAttributes(element) as dia.Element.JSONInit);
 }
 
 /**
@@ -22,11 +35,10 @@ export function mapElementToAttributes(element: DiaElementAttributes): dia.Cell.
  * 1:1 mapping — no `presentation` wrapper.
  * @param attributes
  */
-export function mapAttributesToElement<ElementData extends DiaElementAttributes>(
+export function mapAttributesToElement<ElementData = unknown>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
   const {
-    type,
     // Ports
     portMap,
     ports,
@@ -42,16 +54,11 @@ export function mapAttributesToElement<ElementData extends DiaElementAttributes>
     elementRecord.ports = ports;
   }
 
-  // Only a custom type should be included in the element record.
-  if (type && type !== ELEMENT_MODEL_TYPE) {
-    elementRecord.type = type;
-  }
-
-  return { ...elementRecord } as ElementRecord<ElementData>;
+  return elementRecord as ElementRecord<ElementData>;
 }
 
 /** Function signature that maps raw JointJS element attributes to an `ElementRecord`. */
-export type MapAttributesToElement<ElementData extends DiaElementAttributes> =
+export type MapAttributesToElement<ElementData = unknown> =
   typeof mapAttributesToElement<ElementData>;
 
 /** Function signature that maps an `ElementRecord` back to JointJS element attributes. */

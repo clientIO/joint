@@ -3,10 +3,9 @@ import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { mapCellToAttributes } from '../state/data-mapping';
 import type {
-  DiaElementAttributes,
-  DiaLinkAttributes,
+  ElementJSONInit,
+  LinkJSONInit,
   CellId,
-  CellUnion,
 } from '../types/cell.types';
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record
@@ -16,9 +15,9 @@ import type {
  * @template Link - link record shape
  */
 export type SetCellUpdater<
-  Element extends DiaElementAttributes,
-  Link extends DiaLinkAttributes,
-> = (previous: CellUnion<Element, Link>) => CellUnion<Element, Link>;
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
+> = (previous: Element | Link) => Element | Link;
 
 /**
  * Function returned by {@link useSetCell}. Two forms:
@@ -30,10 +29,10 @@ export type SetCellUpdater<
  * @template Link - link record shape
  */
 export interface SetCell<
-  Element extends DiaElementAttributes,
-  Link extends DiaLinkAttributes,
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
 > {
-  (record: CellUnion<Element, Link>): void;
+  (record: Element | Link): void;
   (id: CellId, updater: SetCellUpdater<Element, Link>): void;
 }
 
@@ -45,14 +44,14 @@ export interface SetCell<
  * @returns memoized setCell setter
  */
 export function useSetCell<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >(): SetCell<Element, Link> {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
   const setCell = useCallback(
     (
-      argument1: CellUnion<Element, Link> | CellId,
+      argument1: Element | Link | CellId,
       argument2?: SetCellUpdater<Element, Link>
     ) => {
       const next = resolveSetCellInput(argument1, argument2, store);
@@ -94,12 +93,12 @@ export function useSetCell<
  * @param store - graph store used to read the previous record for the updater form
  * @returns resolved cell record
  */
-function resolveSetCellInput<Element extends DiaElementAttributes, Link extends DiaLinkAttributes>(
-  argument1: CellUnion<Element, Link> | CellId,
+function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJSONInit>(
+  argument1: Element | Link | CellId,
   argument2: SetCellUpdater<Element, Link> | undefined,
   store: ReturnType<typeof useGraphStore<Element, Link>>
-): CellUnion<Element, Link> {
-  if (argument2 === undefined) return argument1 as CellUnion<Element, Link>;
+): Element | Link {
+  if (argument2 === undefined) return argument1 as Element | Link;
   const id = argument1 as CellId;
   const previous = store.graphView.cells.get(id);
   if (!previous) {
@@ -161,22 +160,22 @@ export function useRemoveCells() {
  * @returns memoized resetCells setter
  */
 export function useResetCells<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >() {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
   return useCallback(
     (
       input:
-        | ReadonlyArray<CellUnion<Element, Link>>
+        | ReadonlyArray<Element | Link>
         | ((
-            previous: ReadonlyArray<CellUnion<Element, Link>>
-          ) => ReadonlyArray<CellUnion<Element, Link>>)
+            previous: ReadonlyArray<Element | Link>
+          ) => ReadonlyArray<Element | Link>)
     ) => {
       const current = store.graphView.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
-      const mapped: dia.Cell.JSON[] = next.map((cell) => mapCellToAttributes(cell, graph));
+      const mapped: dia.Cell.JSONInit[] = next.map((cell) => mapCellToAttributes(cell, graph));
       graph.resetCells(mapped);
     },
     [graph, store]
@@ -191,15 +190,15 @@ export function useResetCells<
  * @returns memoized updateCells setter
  */
 export function useUpdateCells<
-  Element extends DiaElementAttributes = DiaElementAttributes,
-  Link extends DiaLinkAttributes = DiaLinkAttributes,
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
 >() {
   const store = useGraphStore<Element, Link>();
   return useCallback(
     (
       updater: (
-        previous: ReadonlyArray<CellUnion<Element, Link>>
-      ) => ReadonlyArray<CellUnion<Element, Link>>
+        previous: ReadonlyArray<Element | Link>
+      ) => ReadonlyArray<Element | Link>
     ) => {
       const current = store.graphView.cells.getAll();
       store.applyControlled(updater(current));

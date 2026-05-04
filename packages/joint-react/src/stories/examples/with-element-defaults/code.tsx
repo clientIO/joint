@@ -1,11 +1,13 @@
+import type {
+  ElementRecord,
+  LinkRecord} from '@joint/react';
 import {
-  type DiaCellAttributes,
   GraphProvider,
   Paper,
   HTMLBox,
   ElementModel,
   LinkModel,
-  useGraph,
+  useGraph
 } from '@joint/react';
 import {
   elementAttributes,
@@ -98,7 +100,11 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialCells: readonly DiaCellAttributes[] = [
+type CustomCellRecord =
+  ElementRecord<unknown, 'PortsElement' | 'PortMapElement'> |
+  LinkRecord<unknown, 'LabelsLink' | 'LabelMapLink'>;
+
+const initialCells: readonly CustomCellRecord[] = [
   {
     id: 'a',
     type: 'PortsElement',

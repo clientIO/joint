@@ -1,11 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type DiaCellAttributes } from '@joint/react';
+import { GraphProvider, Paper, type CellRecord } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-const initialCells: readonly DiaCellAttributes[] = [
+type ElementType = 'standard.Rectangle' | 'standard.Circle' | 'standard.Ellipse' | 'standard.Cylinder' | 'standard.Path' | 'standard.Polygon' | 'standard.Polyline' | 'standard.TextBlock' | 'standard.HeaderedRectangle' | 'standard.Image' | 'standard.BorderedImage' | 'standard.EmbeddedImage' | 'standard.InscribedImage';
+type LinkType = 'standard.Link' | 'standard.DoubleLink' | 'standard.ShadowLink';
+
+const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, LinkType>> = [
   // Row 1: Basic shapes
   {
     id: 'rectangle',
@@ -202,7 +205,7 @@ const initialCells: readonly DiaCellAttributes[] = [
     attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
-] satisfies DiaCellAttributes[];
+];
 
 function Main() {
   return (

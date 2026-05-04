@@ -130,9 +130,9 @@ describe('dataMapper', () => {
 
       const cellJson = mapElementToAttributes(element);
       expect(cellJson.ports).toBeDefined();
-      expect(cellJson.ports.groups.main).toBeDefined();
-      expect(cellJson.ports.items).toHaveLength(1);
-      expect(cellJson.ports.items[0].id).toBe('p1');
+      expect(cellJson.ports?.groups?.main).toBeDefined();
+      expect(cellJson.ports?.items).toHaveLength(1);
+      expect(cellJson.ports?.items?.[0].id).toBe('p1');
     });
 
     it('should convert port with label', () => {
@@ -148,9 +148,9 @@ describe('dataMapper', () => {
       };
 
       const cellJson = mapElementToAttributes(element);
-      const [port] = cellJson.ports.items;
+      const [port] = cellJson.ports!.items!;
       expect(port.label).toBeDefined();
-      expect(port.label.position.name).toBe('outside');
+      expect(port.label!.position!.name).toBe('outside');
       expect(port.attrs?.text?.text).toBe('Port A');
     });
 
@@ -167,7 +167,7 @@ describe('dataMapper', () => {
       };
 
       const cellJson = mapElementToAttributes(element);
-      const portMarkup = cellJson.ports.items[0].markup;
+      const portMarkup = cellJson.ports!.items![0].markup as dia.MarkupNodeJSON[];
       expect(portMarkup[0].tagName).toBe('rect');
     });
   });
@@ -256,8 +256,8 @@ describe('dataMapper', () => {
 
       const cellJson = mapLinkToAttributes(link);
       expect(cellJson.labels).toHaveLength(2);
-      expect(cellJson.labels[0]).toMatchObject({ id: 'lbl1', position: { distance: 0.3 } });
-      expect(cellJson.labels[1]).toMatchObject({
+      expect(cellJson.labels![0]).toMatchObject({ id: 'lbl1', position: { distance: 0.3 } });
+      expect(cellJson.labels![1]).toMatchObject({
         id: 'lbl2',
         position: { distance: 0.7, offset: 20 },
       });

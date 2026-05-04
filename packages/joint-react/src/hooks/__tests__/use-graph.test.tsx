@@ -5,7 +5,7 @@ import { useGraph } from '../use-graph';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
-import type { CellRecord, ElementRecord, DiaCellAttributes } from '../../types/cell.types';
+import type { AnyCellRecord, CellRecord, ElementRecord } from '../../types/cell.types';
 
 const INITIAL: readonly CellRecord[] = [
   {
@@ -36,7 +36,7 @@ const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
 // Hoisted so the nested-function-depth lint rule doesn't fire inside the
 // `await act(async () => { ... })` + `setCell(fn)` call stack.
-function shiftAXBy10(previous: DiaCellAttributes): DiaCellAttributes {
+function shiftAXBy10(previous: AnyCellRecord): AnyCellRecord {
   if (previous.id !== 'a') return { id: 'a', type: ELEMENT_MODEL_TYPE } as CellRecord;
   const element = previous as ElementRecord;
   return {
@@ -106,7 +106,7 @@ describe('useGraph', () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
       await flush();
-      const updater = jest.fn((previous: DiaCellAttributes) => {
+      const updater = jest.fn((previous: AnyCellRecord) => {
         const element = previous as ElementRecord;
         return {
           ...element,
@@ -197,7 +197,7 @@ describe('useGraph', () => {
       await waitFor(() => expect(result.current).toBeDefined());
       const json = result.current.exportToJSON();
       expect(json.cells).toHaveLength(3);
-      const ids = json.cells.map((c: { id: string }) => c.id).toSorted();
+      const ids = json.cells.map((c) => String(c.id)).toSorted((a, b) => a.localeCompare(b));
       expect(ids).toEqual(['a', 'b', 'l1']);
     });
 
@@ -215,7 +215,7 @@ describe('useGraph', () => {
         await flush();
       });
       const json = result.current.exportToJSON();
-      const cellD = json.cells.find((c: { id: string }) => c.id === 'd') as Record<string, unknown>;
+      const cellD = json.cells.find((c) => c.id === 'd') as Record<string, unknown>;
       expect(cellD).toBeDefined();
       expect(cellD.size).toBeUndefined();
       expect(cellD.data).toBeUndefined();
@@ -235,7 +235,7 @@ describe('useGraph', () => {
         await flush();
       });
       const json = result.current.exportToJSON();
-      const cellE = json.cells.find((c: { id: string }) => c.id === 'e') as {
+      const cellE = json.cells.find((c) => c.id === 'e') as {
         attrs?: { text?: { textWrap?: Record<string, unknown> } };
       };
       expect(cellE?.attrs?.text?.textWrap).toEqual({});
@@ -246,7 +246,7 @@ describe('useGraph', () => {
       const { result } = renderHook(() => useGraph(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
       const json = result.current.exportToJSON({ includeDefaults: true });
-      const cellA = json.cells.find((c: { id: string }) => c.id === 'a') as Record<string, unknown>;
+      const cellA = json.cells.find((c) => c.id === 'a') as Record<string, unknown>;
       expect(cellA.size).toEqual({ width: 10, height: 10 });
       expect(cellA.data).toEqual({});
     });

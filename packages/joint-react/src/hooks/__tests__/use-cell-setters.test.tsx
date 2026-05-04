@@ -11,8 +11,8 @@ import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type {
+  AnyCellRecord,
   CellRecord,
-  DiaCellAttributes,
   ElementRecord,
 } from '../../types/cell.types';
 
@@ -41,7 +41,7 @@ const baseCells: readonly CellRecord[] = [
 
 const wrapper = graphProviderWrapper({ initialCells: baseCells });
 
-const setCellAUpdater = (previous: DiaCellAttributes): CellRecord => {
+const setCellAUpdater = (previous: AnyCellRecord): CellRecord => {
   const element = previous as ElementRecord;
   return {
     ...element,
@@ -49,22 +49,22 @@ const setCellAUpdater = (previous: DiaCellAttributes): CellRecord => {
   } as CellRecord;
 };
 
-const passthroughUpdater = (previous: DiaCellAttributes) => previous as CellRecord;
+const passthroughUpdater = (previous: AnyCellRecord) => previous as CellRecord;
 
-const filterOutCellA = (previous: readonly DiaCellAttributes[]): readonly DiaCellAttributes[] =>
+const filterOutCellA = (previous: readonly AnyCellRecord[]): readonly AnyCellRecord[] =>
   previous.filter((cell) => cell.id !== 'a');
 
-const filterOutCellB = (previous: readonly DiaCellAttributes[]): readonly DiaCellAttributes[] =>
+const filterOutCellB = (previous: readonly AnyCellRecord[]): readonly AnyCellRecord[] =>
   previous.filter((cell) => cell.id !== 'b');
 
-const moveCellAFar = (previous: readonly DiaCellAttributes[]): readonly DiaCellAttributes[] =>
+const moveCellAFar = (previous: readonly AnyCellRecord[]): readonly AnyCellRecord[] =>
   previous.map((cell) => {
     if (cell.id !== 'a') return cell;
     const element = cell as ElementRecord;
     return {
       ...element,
       position: { x: 999, y: 999 },
-    } as DiaCellAttributes;
+    } as AnyCellRecord;
   });
 
 describe('use-cell-setters', () => {

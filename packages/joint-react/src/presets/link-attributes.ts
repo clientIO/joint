@@ -1,7 +1,26 @@
 import { util } from '@joint/core';
-import type { DiaLinkAttributes } from '../types/cell.types';
 import { linkLabels } from './link-labels';
 import { linkStyle } from './link-style';
+import type { dia } from '@joint/core';
+import type { LinkStyle } from './link-style';
+import type { LinkLabel } from './link-labels';
+
+/**
+ * React-side declarative fields the preset adds on top of `dia.Link.Attributes`.
+ * Composed orthogonally into both `LinkAttributes` (preset input) and
+ * `LinkJSONInit` (record/mapper boundary).
+ */
+export interface LinkPresetAttributes {
+  style?: LinkStyle;
+  labelMap?: Record<string, LinkLabel>;
+  labelStyle?: Partial<LinkLabel>;
+}
+
+/**
+ * Loose preset input — no `type` required. `dia.Link.Attributes` plus the
+ * React preset extras (`style`, `labelMap`, `labelStyle`).
+ */
+export interface LinkAttributes extends dia.Link.Attributes, LinkPresetAttributes {}
 
 /**
  * Converts a `LinkAttributes` record to JointJS cell attributes.
@@ -13,17 +32,12 @@ import { linkStyle } from './link-style';
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
  */
-export function linkAttributes(link: DiaLinkAttributes): DiaLinkAttributes {
+export function linkAttributes(link: LinkAttributes): dia.Link.Attributes {
   if (!util.isObject(link)) {
     throw new TypeError('Invalid link data: expected an object with link properties.');
   }
 
-  const { data = {}, type, style, labelMap, labels, ...rest } = link;
-  const attributes: DiaLinkAttributes = {
-    ...rest,
-    type,
-    data,
-  };
+  const { style, labelMap, labels, ...attributes } = link;
 
   if (style) {
     attributes.attrs = linkStyle(style);

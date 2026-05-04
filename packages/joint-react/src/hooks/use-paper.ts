@@ -174,6 +174,9 @@ export function usePaper(id: string): { paper: dia.Paper | null } & UsePaperActi
 export function usePaper(
   idOrOptions?: string | Optional
 ): { paper: dia.Paper | null } & UsePaperActions;
+/**
+ *
+ */
 export function usePaper(
   idOrOptions?: string | Optional
 ): { paper: dia.Paper | null } & UsePaperActions {
