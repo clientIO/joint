@@ -5058,6 +5058,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-right-angle-playground-js@workspace:examples/right-angle-playground-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-right-angle-playground-js@workspace:examples/right-angle-playground-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-roi-calculator-js@workspace:examples/roi-calculator-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-roi-calculator-js@workspace:examples/roi-calculator-js"
