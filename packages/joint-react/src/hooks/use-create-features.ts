@@ -277,11 +277,6 @@ export function useCreateFeature<T>(
   const graphCtx = useContext(GraphFeaturesContext);
   const featureContext = (isPaperTarget ? paperCtx : graphCtx) ?? featuresRef.current;
 
-  // Paper-specific: deferred registration when paper is not yet mounted
-  if (isPaperTarget && !featureContext.features.has(id) && !paperStore) {
-    featureContext.features.set(id, onAddFeature);
-  }
-
   const asChildren = !!paperStore;
 
   // Guard: skip onUpdateFeature on initial mount — it must only fire on dependency changes
@@ -289,11 +284,38 @@ export function useCreateFeature<T>(
   // Holds the created feature to survive strict-mode cleanup/re-mount without re-calling onAddFeature
   const featureRef = useRef<Feature | null>(null);
 
+  // Paper-specific registration paths:
+  //  - Paper not yet mounted: defer via `featureContext` so Paper's mount
+  //    effect picks up the feature before it sets `isReady=true`.
+  //  - Paper already mounted (this hook is being called from inside
+  //    `<Paper>`'s subtree): register synchronously during render so the
+  //    feature is visible to sibling consumers reading `paperStore.features`
+  //    in the same commit. Without this, a `<Stencil>` sibling that creates
+  //    its underlying instance in `useImperativeApi`'s onLoad sees an empty
+  //    feature snapshot and never picks up the inside-Paper-registered
+  //    feature.
+  if (isPaperTarget && !featureContext.features.has(id) && !featureRef.current) {
+    if (paperStore) {
+      const feature = createAndRegisterFeature(
+        target,
+        onAddFeature,
+        graphStore,
+        paperStore,
+        true
+      );
+      featureRef.current = feature;
+      registerFeature(target, graphStore, paperStore, feature);
+    } else {
+      featureContext.features.set(id, onAddFeature);
+    }
+  }
+
   // Create and register the feature (fires onAddFeature exactly once)
   useLayoutEffect(() => {
     if (isPaperTarget && !paperStore) return;
 
     // Re-register cached feature if it was removed by strict-mode cleanup
+    // OR if it was already created during render (inside-Paper case).
     if (featureRef.current) {
       registerFeature(target, graphStore, paperStore, featureRef.current);
       setForwardRef(forwardedRef, featureRef.current.instance);
