@@ -257,8 +257,25 @@ export function useCreateFeature<T>(
   const isPaperTarget = target === 'paper';
   const graphStore = useGraphStore();
   // Always called — returns null when no PaperStoreContext is above
-  const paperStore = usePaperStore(OPTIONAL);
+  const contextPaperStore = usePaperStore(OPTIONAL);
   const featuresRef = useRef<FeaturesContext>({ features: new Map() });
+
+  // When the hook is called OUTSIDE a Paper subtree (e.g. PaperScroller wraps
+  // Paper, so PaperScroller sits above PaperStoreContext), the deferred-queue
+  // path creates the feature inside some paperStore but `useCreateFeature`
+  // can't see that paperStore via context. Scan the graphStore's papers map
+  // for the one whose features bag contains our id, so update/load paths
+  // still have a paperStore to operate on.
+  const fallbackPaperStore = useInternalData((snapshot) => {
+    if (!isPaperTarget) return null;
+    if (contextPaperStore) return null;
+    for (const paperId of Object.keys(snapshot.papers)) {
+      const ps = graphStore.getPaperStore(paperId);
+      if (ps?.features[id]) return ps;
+    }
+    return null;
+  });
+  const paperStore = contextPaperStore ?? fallbackPaperStore;
 
   // Subscribe to paper feature changes (resolves paper feature instances)
   const paperFeatureInstance = useInternalData(() => {
@@ -320,6 +337,19 @@ export function useCreateFeature<T>(
       registerFeature(target, graphStore, paperStore, featureRef.current);
       setForwardRef(forwardedRef, featureRef.current.instance);
       return () => unregisterFeature(target, graphStore, paperStore, featureRef.current!.id);
+    }
+
+    // Adopt a feature that was already registered by the deferred-queue path
+    // (e.g. PaperScroller wraps Paper — Paper's mount picks up the deferred
+    // onAddFeature and registers the feature in its paperStore). Without
+    // adoption, the create-effect would call onAddFeature again here once
+    // the fallback paperStore lookup resolves, creating a duplicate
+    // instance.
+    const existing = resolveExistingFeature(target, graphStore, paperStore, id);
+    if (existing) {
+      featureRef.current = existing;
+      setForwardRef(forwardedRef, existing.instance);
+      return;
     }
 
     const feature = createAndRegisterFeature(target, onAddFeature, graphStore, paperStore, asChildren);
