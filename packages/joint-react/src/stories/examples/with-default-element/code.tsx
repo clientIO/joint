@@ -3,7 +3,7 @@ import { type CellRecord, GraphProvider, Paper, HTMLBox, type LinkMarkerName } f
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jj-* CSS variable defaults (including element styles)
-import '../../../css/theme.css';
+import '../../../css/styles.css';
 
 // Dark theme overrides
 import './dark-theme.css';

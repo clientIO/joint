@@ -40,7 +40,7 @@ function defaults(options: LinkMarkerOptions = {}) {
     fill = FILL,
     stroke = STROKE,
     strokeWidth = SW,
-    className = '',
+    className
   } = options;
   return { scale, fill, stroke, strokeWidth, className };
 }
