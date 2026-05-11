@@ -2,11 +2,8 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { type CellRecord, GraphProvider, Paper, selectElementSize, useCell } from '@joint/react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
-
-// Base theme + Tailwind preset (maps --jj-* → Tailwind v4 variables)
-import '../../../css/theme.css';
-import './tailwind-theme.css';
+import { PAPER_CLASSNAME as DEFAULT_PAPER_CLASSNAME } from 'storybook-config/theme';
+import { linkMarkerArrow } from '@joint/react/presets';
 
 interface NodeUserData {
   readonly [key: string]: unknown;
@@ -17,17 +14,75 @@ const PORT_STYLE = {
   width: 15,
   height: 15,
   className: `
-      cursor-crosshair hover:fill-blue-500
-      forest:hover:fill-lime-300
-      ocean:hover:fill-cyan-200
-      sunset:hover:fill-orange-400
+    stroke-2
+
+    hover:fill-blue-500
+    forest:hover:fill-lime-300
+    ocean:hover:fill-cyan-200
+    sunset:hover:fill-orange-400
+
+    stroke-white
+    forest:stroke-emerald-950
+    ocean:stroke-sky-950
+    sunset:stroke-amber-50
+
+    fill-slate-400
+    forest:fill-emerald-400
+    ocean:fill-sky-400
+    sunset:fill-amber-600
   `,
+  labelClassName: `
+    fill-slate-500
+    forest:fill-emerald-400
+    ocean:fill-sky-400
+    sunset:fill-amber-600
+  `
 } as const;
 
 const ELEMENT_SIZE = { width: 120, height: 50 };
 
 const DEFAULT_LINK = {
-  style: { targetMarker: 'arrow' },
+  style: {
+    targetMarker: linkMarkerArrow({
+      className: `
+        stroke-slate-400
+        forest:stroke-emerald-600
+        ocean:stroke-sky-400
+        sunset:stroke-amber-500
+        fill-slate-400
+        forest:fill-emerald-600
+        ocean:fill-sky-400
+        sunset:fill-amber-500
+      `
+    }),
+    className: `
+      stroke-slate-400
+      forest:stroke-emerald-600
+      ocean:stroke-sky-400
+      sunset:stroke-amber-500
+    `
+  },
+  labelStyle: {
+    backgroundPadding: { horizontal: 6, vertical: 4 },
+    className: `
+      fill-slate-700
+      forest:fill-emerald-50
+      ocean:fill-sky-100
+      sunset:fill-amber-900
+      font-sans
+    `,
+    backgroundClassName: `
+      fill-white
+      forest:fill-emerald-900
+      ocean:fill-sky-900
+      sunset:fill-amber-50
+
+      stroke-slate-300
+      forest:stroke-emerald-700
+      ocean:stroke-sky-600
+      sunset:stroke-amber-400
+    `
+  }
 } as const;
 
 const initialCells: ReadonlyArray<CellRecord<NodeUserData>> = [
@@ -98,7 +153,6 @@ const initialCells: ReadonlyArray<CellRecord<NodeUserData>> = [
     target: { id: 'd', port: 'in' },
     labelMap: { info: { text: 'approved' } },
     ...DEFAULT_LINK,
-    labelStyle: { backgroundPadding: { horizontal: 6, vertical: 4 } },
   },
   {
     id: 'c→d',
@@ -155,6 +209,13 @@ const themeLabels: Record<Theme, string> = {
   sunset: 'Sunset',
 };
 
+const PAPER_CLASSNAME = DEFAULT_PAPER_CLASSNAME + `
+  bg-white
+  forest:bg-emerald-950
+  ocean:bg-sky-950
+  sunset:bg-amber-100
+`;
+
 function Diagram() {
   const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeUserData>>>(initialCells);
   const [theme, setTheme] = useState<Theme>('default');
@@ -171,7 +232,7 @@ function Diagram() {
   }, []);
 
   return (
-    <div ref={wrapperRef} className="tw-theme">
+    <div ref={wrapperRef}>
       <fieldset className="mb-3 flex gap-1 rounded-lg border border-slate-200 p-1 w-fit">
         {themes.map((t) => (
           <label

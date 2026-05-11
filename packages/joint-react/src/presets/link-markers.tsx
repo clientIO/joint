@@ -1,6 +1,3 @@
- 
- 
-
 import type { dia } from '@joint/core';
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 
@@ -24,6 +21,8 @@ export interface LinkMarkerOptions {
   readonly stroke?: string;
   /** Stroke width. Default: `2`. */
   readonly strokeWidth?: number;
+  /** CSS class name(s) to apply to the marker. */
+  readonly className?: string;
 }
 /** Default fill color for markers. */
 const FILL = 'inherit';
@@ -41,20 +40,21 @@ function defaults(options: LinkMarkerOptions = {}) {
     fill = FILL,
     stroke = STROKE,
     strokeWidth = SW,
+    className = '',
   } = options;
-  return { scale, fill, stroke, strokeWidth };
+  return { scale, fill, stroke, strokeWidth, className };
 }
 
 /**
  * Filled triangle arrow. Tip at 0, body extends into positive X.
  */
 export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(options);
+  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
     markup: jsx(
-      <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
     ),
     // the mitered join can extend beyond the path, so add 1px of padding
     length: w + strokeWidth + 1,
@@ -65,12 +65,12 @@ export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
  * Open chevron arrow (no back edge). Tip at 0.
  */
 export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(options);
+  const { scale, stroke, strokeWidth, className } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
     markup: jsx(
-      <path d={`M ${w} ${-h} L 0 0 L ${w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M ${w} ${-h} L 0 0 L ${w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
     ),
     // the mitered join can extend beyond the path, so add 1px of padding
     length: strokeWidth + 1,
@@ -81,13 +81,13 @@ export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerReco
  * Arrow with a concave (sunken) back edge.
  */
 export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(options);
+  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
   const w = 10 * scale;
   const h = 5 * scale;
   const indent = 3 * scale;
   return {
     markup: jsx(
-      <path d={`M ${indent} ${-h} L ${indent - w} 0 L ${indent} ${h} L 0 0 z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M ${indent} ${-h} L ${indent - w} 0 L ${indent} ${h} L 0 0 z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
     ),
     length: w - indent + strokeWidth + 1,
   };
@@ -97,7 +97,7 @@ export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRe
  * Arrow with a split/quill back — back edges form an open V (don't meet).
  */
 export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(options);
+  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
   const w = 10 * scale;
   const h = 5 * scale;
   const indent = 3 * scale;
@@ -110,7 +110,7 @@ export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRec
         L ${2 * indent - w} ${h}
         H ${indent}
         L 0 0 z`
-      } fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      } fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
     ),
     length: w - indent + strokeWidth,
   };
@@ -120,15 +120,15 @@ export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRec
  * Double arrow (two nested triangles).
  */
 export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(options);
+  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
   const w = 7 * scale;
   const h = 4 * scale;
   const gap = 8 * scale;
   return {
     markup: jsx(
       <>
-        <path d={`M ${-gap} ${-h} L ${-(w + gap)} 0 L ${-gap} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
-        <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${-gap} ${-h} L ${-(w + gap)} 0 L ${-gap} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
+        <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
       </>
     ),
     length: w + gap + strokeWidth + 1,
@@ -139,11 +139,11 @@ export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRe
  * Circle marker. Use `fill: 'none'` for outline.
  */
 export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(options);
+  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
   const r = 4 * scale;
   return {
     markup: jsx(
-      <circle cx={-r} r={r} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <circle cx={-r} r={r} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
     ),
     length: r * 2 + strokeWidth,
   };
@@ -153,12 +153,12 @@ export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord 
  * Diamond (losangle) marker. Use `fill: 'none'` for outline.
  */
 export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(options);
+  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
   const w = 5 * scale;
   const h = 5 * scale;
   return {
     markup: jsx(
-      <path d={`M 0 0 L ${-w} ${-h} L ${-w * 2} 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M 0 0 L ${-w} ${-h} L ${-w * 2} 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
     ),
     length: w * 2 + strokeWidth,
   };
@@ -168,11 +168,11 @@ export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord
  * Vertical bar at the link end.
  */
 export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(options);
+  const { scale, stroke, strokeWidth, className } = defaults(options);
   const h = 5 * scale;
   return {
     markup: jsx(
-      <path d={`M 0 ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M 0 ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
     ),
     length: strokeWidth,
   };
@@ -182,11 +182,11 @@ export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
  * Cross (X) centered at the link end.
  */
 export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(options);
+  const { scale, stroke, strokeWidth, className } = defaults(options);
   const d = 5 * scale;
   return {
     markup: jsx(
-      <path d={`M ${-d} ${-d} L ${d} ${d} M ${-d} ${d} L ${d} ${-d}`} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M ${-d} ${-d} L ${d} ${d} M ${-d} ${d} L ${d} ${-d}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
     ),
     length: d + strokeWidth,
   };
@@ -196,12 +196,12 @@ export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
  * Fork — same shape as arrow but pointing the opposite direction.
  */
 export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(options);
+  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
     markup: jsx(
-      <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
+      <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
     ),
     length: w + strokeWidth,
   };
@@ -211,14 +211,14 @@ export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
  * Fork with a closing vertical bar at the tip.
  */
 export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth } = defaults(options);
+  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
     markup: jsx(
       <>
-        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} />
-        <path d={`M 0 ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
+        <path d={`M 0 ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
       </>
     ),
     length: w + strokeWidth,
@@ -229,14 +229,14 @@ export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerReco
  * Crow's foot — three lines spreading from a point (ER "many").
  */
 export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(options);
+  const { scale, stroke, strokeWidth, className } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
     markup: jsx(
       <>
-        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
-        <path d={`M ${-w} 0 L 0 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
+        <path d={`M ${-w} 0 L 0 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
       </>
     ),
     length: w + strokeWidth - 1,
@@ -247,7 +247,7 @@ export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
  * Crow's foot with circle — ER "many optional".
  */
 export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(options);
+  const { scale, stroke, strokeWidth, className } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   const r = 4 * scale;
@@ -255,8 +255,8 @@ export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerR
   return {
     markup: jsx(
       <>
-        <circle cx={-r} r={r} fill="none" stroke={stroke} stroke-width={strokeWidth} />
-        <path d={`M ${crowX - w} ${-h} L ${crowX} 0 L ${crowX - w} ${h} M ${crowX - w} 0 L ${crowX} 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} stroke-linejoin="bevel"/>
+        <circle cx={-r} r={r} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
+        <path d={`M ${crowX - w} ${-h} L ${crowX} 0 L ${crowX - w} ${h} M ${crowX - w} 0 L ${crowX} 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} stroke-linejoin="bevel" className={className} />
       </>
     ),
     length: w - crowX + strokeWidth - 1,
@@ -267,12 +267,12 @@ export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerR
  * Two parallel vertical bars — ER "one".
  */
 export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(options);
+  const { scale, stroke, strokeWidth, className } = defaults(options);
   const h = 5 * scale;
   return {
     markup: jsx(
       <>
-        <path d={`M ${h} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${h} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
       </>
     ),
     length: 0
@@ -283,15 +283,15 @@ export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
  * Vertical bar with circle — ER "one optional".
  */
 export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(options);
+  const { scale, stroke, strokeWidth, className } = defaults(options);
   const h = 5 * scale;
   const r = 4 * scale;
   const circleX = -r;
   return {
     markup: jsx(
       <>
-        <path d={`M ${h} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
-        <circle cx={circleX} r={r} fill="none" stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${h} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
+        <circle cx={circleX} r={r} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
       </>
     ),
     length: r - circleX + strokeWidth,
@@ -302,14 +302,14 @@ export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRe
  * Crow's foot with vertical bar — ER "one or many".
  */
 export function linkMarkerOneOrMany(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth } = defaults(options);
+  const { scale, stroke, strokeWidth, className } = defaults(options);
   const w = 8 * scale;
   const h = 4 * scale;
   return {
     markup: jsx(
       <>
-        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} M ${-w} 0 L 0 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} />
-        <path d={`M ${0} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} />
+        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} M ${-w} 0 L 0 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
+        <path d={`M ${0} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
       </>
     ),
     length: w + strokeWidth - 1,

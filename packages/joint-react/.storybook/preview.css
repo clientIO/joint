@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '../src/css/styles.css' layer(components);
 
 /* Custom variants for the Tailwind theme demo */
 @custom-variant forest (&:where(.forest, .forest *));
