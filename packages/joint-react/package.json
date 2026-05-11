@@ -38,7 +38,7 @@
     },
     "./src/*": "./src/*",
     "./scripts/*": "./scripts/*.ts",
-    "./css/*": "./src/css/*"
+    "./styles.css": "./src/css/styles.css"
   },
   "sideEffects": false,
   "files": [
