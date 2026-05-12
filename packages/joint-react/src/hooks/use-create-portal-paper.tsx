@@ -358,6 +358,13 @@ export function useCreatePortalPaper(
     if (!paperStore) return;
     if (!paper) return;
 
+    // `width` and `height` are managed by `paper.setDimensions()` only —
+    // see the dedicated useEffect below. They must NOT go through
+    // `assignOptions` (that would write `paper.options.width` directly,
+    // bypassing the DOM update and tripping `setDimensions`'s early-exit
+    // guard the next time it's called).
+    const { width: _w, height: _h, ...paperOptionsWithoutDimensions } = paperOptions;
+
     assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
@@ -366,7 +373,7 @@ export function useCreatePortalPaper(
       validateUnembedding: validateUnembeddingCallback,
       cellVisibility: cellVisibilityCallback,
       interactive: interactiveValue,
-      ...paperOptions,
+      ...paperOptionsWithoutDimensions,
       ...linkRouting,
       ...escapeHatchOptions,
     });
@@ -397,6 +404,20 @@ export function useCreatePortalPaper(
     paperStore,
     transform,
   ]);
+
+  // Sync paper dimensions when the `width` / `height` props on `<Paper>`
+  // change. Going through `setDimensions` (rather than mutating
+  // `paper.options.width/height` directly via assignOptions) keeps DOM CSS
+  // in lockstep with `paper.options` — features like `<PaperScroller>`
+  // that mutate `paper.options.width` via `setDimensions(...)` later won't
+  // hit the early-exit guard because of a stale options value.
+  const paperWidthProp = paperOptions.width;
+  const paperHeightProp = paperOptions.height;
+  useEffect(() => {
+    if (!paper) return;
+    if (paperWidthProp === undefined && paperHeightProp === undefined) return;
+    paper.setDimensions(paperWidthProp, paperHeightProp);
+  }, [paper, paperWidthProp, paperHeightProp]);
 
   const elements = useMemo(() => {
     if (!hasRenderElement) {
