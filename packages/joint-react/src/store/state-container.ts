@@ -9,6 +9,11 @@ import type {
 /** Update payload accepted by container setters: a new value or a previous-state updater. */
 export type Update<T> = ((previous: T | undefined) => T | undefined) | T;
 
+/** Update payload for array-shaped state — replace or transform-from-previous. */
+export type ArrayUpdate<T> =
+  | readonly T[]
+  | ((previous: readonly T[]) => readonly T[]);
+
 /**
  * Resolves an update value by applying it if it is a function, or returning it directly.
  * @param previous

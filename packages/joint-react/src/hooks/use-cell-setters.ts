@@ -7,6 +7,7 @@ import type {
   LinkJSONInit,
   CellId,
 } from '../types/cell.types';
+import { type ArrayUpdate } from '../store/state-container';
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record
  * (read from the cells container) and returns the next record. Invoked
@@ -166,13 +167,7 @@ export function useResetCells<
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
   return useCallback(
-    (
-      input:
-        | ReadonlyArray<Element | Link>
-        | ((
-            previous: ReadonlyArray<Element | Link>
-          ) => ReadonlyArray<Element | Link>)
-    ) => {
+    (input: ArrayUpdate<Element | Link>) => {
       const current = store.graphView.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
       const mapped: dia.Cell.JSONInit[] = next.map((cell) => mapCellToAttributes(cell, graph));
