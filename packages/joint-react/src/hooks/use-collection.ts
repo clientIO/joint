@@ -1,0 +1,166 @@
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+import { type mvc, type dia } from '@joint/core';
+import type {
+  CellRecord,
+  Computed,
+} from '../types/cell.types';
+import { useGraphStore } from './use-graph-store';
+import { useSetCollection, type CollectionSetter } from './use-set-collection';
+import type { CollectionView } from '../store/collection-view';
+import { arrayAwareEqual } from '../utils/selector-utils';
+
+const EMPTY_CELLS: readonly never[] = Object.freeze([]);
+
+/** Options accepted by every form of {@link useCollection}. */
+export interface UseCollectionOptions<Cell, Selected> {
+  /** Fired after every observable mutation. Not invoked on mount. */
+  readonly onChange?: (cells: readonly Cell[]) => void;
+  /**
+   * Equality used to short-circuit re-renders. Defaults to an array-aware
+   * `Object.is` so identity-preserving array returns stay reference-stable.
+   */
+  readonly isEqual?: (a: Selected, b: Selected) => boolean;
+}
+
+/**
+ * Subscribe to a JointJS collection's cells as `CellRecord` instances.
+ *
+ * Two forms:
+ * - `useCollection(collection, options?)` — returns `[cells, set]`.
+ * - `useCollection(collection, selector, options?)` — returns `[selected, set]`.
+ *
+ * The setter is the same one returned by {@link useSetCollection}.
+ *
+ * Must be used inside `<GraphProvider>`.
+ * @template Cell - resolved record shape (defaults to `Computed<CellRecord>`)
+ * @param collection - target JointJS collection, or `undefined` while the source feature is still mounting
+ * @param options - hook options
+ * @returns tuple of records and setter
+ */
+export function useCollection<Cell extends CellRecord = Computed<CellRecord>>(
+  collection?: mvc.Collection<dia.Cell>,
+  options?: UseCollectionOptions<Cell, readonly Cell[]>
+): readonly [readonly Cell[], CollectionSetter<Cell>];
+/**
+ * Subscribe to a JointJS collection's cells with a selector.
+ * @template Cell - resolved record shape
+ * @template Selected - selector return type
+ * @param collection - target collection
+ * @param selector - derive a value from the records array
+ * @param options - hook options (isEqual, onChange)
+ * @returns tuple of selected value and setter
+ */
+export function useCollection<
+  Cell extends CellRecord = Computed<CellRecord>,
+  Selected = readonly Cell[],
+>(
+  collection?: mvc.Collection<dia.Cell>,
+  selector?: (cells: readonly Cell[]) => Selected,
+  options?: UseCollectionOptions<Cell, Selected>
+): readonly [Selected, CollectionSetter<Cell>];
+export function useCollection<
+  Cell extends CellRecord = Computed<CellRecord>,
+  Selected = readonly Cell[],
+>(
+  collection?: mvc.Collection<dia.Cell>,
+  argument2?: ((cells: readonly Cell[]) => Selected) | UseCollectionOptions<Cell, Selected>,
+  argument3?: UseCollectionOptions<Cell, Selected>
+): readonly [Selected, CollectionSetter<Cell>] {
+  const store = useGraphStore();
+  const setter = useSetCollection<Cell>(collection);
+
+  const isSelector = typeof argument2 === 'function';
+  const selector = isSelector ? (argument2 as (cells: readonly Cell[]) => Selected) : undefined;
+  const options =
+    (isSelector ? argument3 : (argument2 as UseCollectionOptions<Cell, Selected> | undefined)) ??
+    undefined;
+  const onChange = options?.onChange;
+  const userIsEqual = options?.isEqual;
+
+  const selectorRef = useRef(selector);
+  selectorRef.current = selector;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  const viewRef = useRef<CollectionView<Cell> | null>(null);
+  useEffect(() => {
+    if (!collection) {
+      viewRef.current = null;
+      return;
+    }
+    viewRef.current = store.acquireCollectionView<Cell>(collection);
+    return () => {
+      store.releaseCollectionView(collection);
+      viewRef.current = null;
+    };
+  }, [collection, store]);
+
+  // `onChange` listener — its own subscription. `subscribeToAll` does not
+  // auto-fire on subscribe, but the initial `commitChanges()` microtask from
+  // view creation may still fire before mount is fully settled. We skip
+  // notifications until the initial microtask queue has drained so `onChange`
+  // is only called on actual mutations after mount.
+  useEffect(() => {
+    if (!collection) return;
+    const view = store.acquireCollectionView<Cell>(collection);
+    let mounted = false;
+    // Defer the mounted flag past the current microtask queue so the initial
+    // `commitChanges` flush (queued during view construction) is ignored.
+    queueMicrotask(() => { mounted = true; });
+    const unsubscribe = view.cells.subscribeToAll(() => {
+      if (!mounted) return;
+      onChangeRef.current?.(view.cells.getAll() as readonly Cell[]);
+    });
+    return () => {
+      mounted = false;
+      unsubscribe();
+      store.releaseCollectionView(collection);
+    };
+  }, [collection, store]);
+
+  const subscribe = useCallback(
+    (listener: () => void) => {
+      const view = viewRef.current;
+      if (!view) return () => {};
+      return view.cells.subscribeToAll(listener);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [collection]
+  );
+
+  const getSnapshot = useCallback(() => {
+    const view = viewRef.current;
+    return view ? view.cells.getVersion() : 0;
+  }, // eslint-disable-next-line react-hooks/exhaustive-deps
+  [collection]);
+
+  const isEqual = useMemo<(a: Selected, b: Selected) => boolean>(() => {
+    if (userIsEqual) return userIsEqual;
+    return arrayAwareEqual as unknown as (a: Selected, b: Selected) => boolean;
+  }, [userIsEqual]);
+
+  const select = useCallback((): Selected => {
+    const view = viewRef.current;
+    const cells = (view ? view.cells.getAll() : EMPTY_CELLS) as readonly Cell[];
+    const userSelector = selectorRef.current;
+    if (userSelector) return userSelector(cells);
+    return cells as unknown as Selected;
+  }, // eslint-disable-next-line react-hooks/exhaustive-deps
+  [collection]);
+
+  const value = useSyncExternalStoreWithSelector(
+    subscribe,
+    getSnapshot,
+    getSnapshot,
+    select,
+    isEqual
+  );
+
+  const stableValue =
+    !collection && !selector
+      ? (EMPTY_CELLS as unknown as Selected)
+      : value;
+
+  return [stableValue, setter];
+}

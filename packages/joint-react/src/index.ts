@@ -32,6 +32,8 @@ export { useGraph } from './hooks/use-graph';
 export type { UseGraphResult, ExportToJSONOptions } from './hooks/use-graph';
 export { useGraphStore } from './hooks/use-graph-store';
 export { usePaper, usePaperStore } from './hooks/use-paper';
+export { useCollection } from './hooks/use-collection';
+export { useSetCollection, type CollectionSetter } from './hooks/use-set-collection';
 
 // Hooks — Measurement
 export { useMeasureNode } from './hooks/use-measure-node';

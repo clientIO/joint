@@ -6,10 +6,9 @@ import type {
   LinkJSONInit,
   CellId,
 } from '../types/cell.types';
-import { mapAttributesToElement, mapAttributesToLink } from '../state/data-mapping';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
-import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-utils';
+import { writeCellToContainer } from '../state/data-mapping/cell-record-merge';
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalCellsChange<
@@ -30,94 +29,6 @@ interface GraphViewState<
   readonly onElementsSizeChange?: (id: CellId, size: { width: number; height: number }) => void;
 }
 
-/**
- * Merge a newly-mapped cell record with the previous one, preserving reference
- * identity wherever possible.
- *
- * - `data` / `position` / `size` sub-refs are reused when structurally equal.
- * - **Fast path:** when every top-level key also strict-equals the previous
- *   record, returns `previous` itself. The container then sees
- *   `isStrictEqual(previous, value) === true` and skips the subscriber fire
- *   altogether — no hook re-renders for "change" events that produced no
- *   actual change (e.g. a connected-link re-sync after an element moved, a
- *   JointJS attribute tick that didn't touch any user-visible field).
- *
- * Works for both element and link records — link records have no `position`
- * or `size`, so those equality checks collapse to `undefined === undefined`.
- * @param previous - previous record (may be undefined for the first write)
- * @param next - freshly mapped record from the graph
- * @returns merged record; may be `previous` itself when nothing changed
- */
-function mergeCellRecord<Element extends ElementJSONInit, Link extends LinkJSONInit>(
-  previous: Element | Link | undefined,
-  next: Element | Link
-): Element | Link {
-  if (!previous) return next;
-
-  const previousData = previous.data as object | undefined;
-  const nextData = next.data as object | undefined;
-  const previousPosition = (previous as ElementJSONInit).position;
-  const nextPosition = (next as ElementJSONInit).position;
-  const previousSize = (previous as ElementJSONInit).size;
-  const nextSize = (next as ElementJSONInit).size;
-
-  const mergedData = isShallowEqual(previousData, nextData) ? previousData : nextData;
-  const mergedPosition = isPositionEqual(previousPosition, nextPosition)
-    ? previousPosition
-    : nextPosition;
-  const mergedSize = isSizeEqual(previousSize, nextSize) ? previousSize : nextSize;
-
-  // Fast path: preserved sub-refs + every other top-level field strict-equal
-  // → return `previous`. The container's `isStrictEqual` check short-circuits
-  // without pushing to `changes` or notifying subscribers. This kills
-  // spurious re-renders when JointJS re-syncs connected links after an
-  // element move (the link record hasn't actually changed).
-  if (
-    mergedData === previousData &&
-    mergedPosition === previousPosition &&
-    mergedSize === previousSize
-  ) {
-    const previousKeys = Object.keys(previous);
-    const nextKeys = Object.keys(next);
-    if (previousKeys.length === nextKeys.length) {
-      let allMatch = true;
-      for (const key of nextKeys) {
-        if (key === 'data' || key === 'position' || key === 'size') continue;
-        if (previous[key] !== next[key]) {
-          allMatch = false;
-          break;
-        }
-      }
-      if (allMatch) return previous;
-    }
-  }
-
-  return {
-    ...next,
-    data: mergedData,
-    position: mergedPosition,
-    size: mergedSize,
-  } as Element | Link;
-}
-
-/**
- * Convert a JointJS cell to its CellRecord representation, routing by type:
- *  - Elements → element mapper, with id/type guaranteed AND
- *    `position`/`size`/`angle`/`data` normalised to non-undefined values so
- *    consumers can rely on `Computed<ElementRecord>`'s required-field contract.
- *  - Links → link mapper, with id/type/source/target/data normalised.
- *  - Anything else → pass-through of attributes
- * @param cell - graph cell
- * @returns CellRecord suitable for the cells container
- */
-function toCellRecord<Element extends ElementJSONInit, Link extends LinkJSONInit>(
-  cell: dia.Cell
-): Element | Link {
-  return cell.isElement()
-    ? mapAttributesToElement(cell.attributes) as Element
-    : mapAttributesToLink(cell.attributes) as Link;
-}
-
 export function graphView<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
@@ -131,22 +42,6 @@ export function graphView<
   const changed = trackChanges ? new Map<CellId, Element | Link>() : undefined;
   const removed = trackChanges ? new Set<CellId>() : undefined;
 
-  /**
-   * Write a cell into the container via `mergeCellRecord`, preserving sub-ref
-   * identity and short-circuiting the subscriber fire when nothing actually
-   * changed (the merge's fast path returns `previous` itself, which the
-   * container's `isStrictEqual` check then skips).
-   * @param cell - graph cell
-   * @returns the merged record (may be the previous reference when unchanged)
-   */
-  function writeCell(cell: dia.Cell): Element | Link {
-    cells.set(cell.id, (previous) => {
-      const next = toCellRecord<Element, Link>(cell);
-      return mergeCellRecord<Element, Link>(previous, next);
-    });
-    return cells.get(cell.id) as Element | Link;
-  }
-
   const graphChangesController = graphChanges({
     graph,
     onElementsSizeChange,
@@ -159,7 +54,7 @@ export function graphView<
           case 'add':
           case 'change': {
             const isAdd = type === 'add';
-            const record = writeCell(data);
+            const record = writeCellToContainer(cells, data);
             if (trackChanges) {
               if (isAdd) added!.set(id, record);
               else changed!.set(id, record);
@@ -171,7 +66,7 @@ export function graphView<
             // and will be written in this loop without re-ordering issues.
             if (!isAdd && data.isElement()) {
               for (const link of graph.getConnectedLinks(data)) {
-                writeCell(link);
+                writeCellToContainer(cells, link);
               }
             }
             break;
@@ -219,7 +114,7 @@ export function graphView<
    */
   function syncFromGraph() {
     for (const cell of graph.getCells()) {
-      writeCell(cell);
+      writeCellToContainer(cells, cell);
     }
     if (cells.getSize() > 0) cells.commitChanges();
   }
@@ -237,7 +132,7 @@ export function graphView<
       for (const id of cellIds) {
         const cell = graph.getCell(id);
         if (!cell) continue;
-        writeCell(cell);
+        writeCellToContainer(cells, cell);
         hasChange = true;
       }
 

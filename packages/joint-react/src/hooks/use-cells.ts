@@ -3,6 +3,7 @@ import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-s
 import { useGraphStore } from './use-graph-store';
 import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
+import { areArraysShallowEqual, arrayAwareEqual } from '../utils/selector-utils';
 
 /** Union of all possible `useCells` return shapes (depends on argument form). */
 type UseCellsResult<Cell extends AnyCellRecord, Selected> =
@@ -10,23 +11,6 @@ type UseCellsResult<Cell extends AnyCellRecord, Selected> =
   | Cell
   | undefined
   | Selected;
-
-/**
- * Shallow-compare two readonly arrays by length and element identity (`===`).
- * Used to keep the `useCells(ids)` array reference stable when no underlying
- * cell reference changed.
- * @param a - first array
- * @param b - second array
- * @returns true when both arrays have the same length and the same element refs
- */
-function areArraysShallowEqual<T>(a: readonly T[], b: readonly T[]): boolean {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  for (const [index, value] of a.entries()) {
-    if (value !== b[index]) return false;
-  }
-  return true;
-}
 
 /**
  * Equality function on raw `unknown` values. Used internally so we don't have
@@ -56,23 +40,6 @@ function wrapUserIsEqual<T>(userIsEqual: (a: T, b: T) => boolean): UnknownEqual 
  */
 function arrayResultEqual(a: unknown, b: unknown): boolean {
   return areArraysShallowEqual(a as readonly unknown[], b as readonly unknown[]);
-}
-
-/**
- * Shallow equality with an array-aware fallthrough: when both inputs are
- * arrays, compare them shallowly by length and element identity; otherwise
- * fall back to `Object.is`. Lets selectors that return arrays
- * (e.g. `cells.map(c => c.id)`) keep a stable reference across renders when
- * no element changed.
- * @param a - previous result
- * @param b - next result
- * @returns true when both inputs are equal under shallow array or `Object.is`
- */
-function arrayAwareEqual(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) && Array.isArray(b)) {
-    return areArraysShallowEqual(a, b);
-  }
-  return Object.is(a, b);
 }
 
 /**
