@@ -208,6 +208,97 @@ QUnit.module('joint.mvc.View', function(hooks) {
         assert.equal(view.$el.attr('class'), joint.util.addClassNamePrefix(className) + ' ' + themeClassName);
     });
 
+    QUnit.module('classNamePrefix override', function() {
+
+        QUnit.test('default prefix unchanged', function(assert) {
+
+            var SomeView = joint.mvc.View.extend({
+                className: 'foo',
+                defaultTheme: null
+            });
+            var view = new SomeView();
+            assert.equal(view.el.className, 'joint-foo');
+            view.remove();
+        });
+
+        QUnit.test('custom prefix on prototype', function(assert) {
+
+            var SomeView = joint.mvc.View.extend({
+                className: 'foo',
+                classNamePrefix: 'custom-',
+                defaultTheme: null
+            });
+            var view = new SomeView();
+            assert.equal(view.el.className, 'custom-foo');
+            view.remove();
+        });
+
+        QUnit.test('empty prefix opts out of prefixing', function(assert) {
+
+            var SomeView = joint.mvc.View.extend({
+                className: 'foo',
+                classNamePrefix: '',
+                defaultTheme: null
+            });
+            var view = new SomeView();
+            assert.equal(view.el.className, 'foo');
+            view.remove();
+        });
+
+        QUnit.test('multiple class names with custom prefix', function(assert) {
+
+            var SomeView = joint.mvc.View.extend({
+                className: 'foo bar',
+                classNamePrefix: 'x-',
+                defaultTheme: null
+            });
+            var view = new SomeView();
+            assert.equal(view.el.className, 'x-foo x-bar');
+            view.remove();
+        });
+
+        QUnit.test('idempotent — already-prefixed class names are not double-prefixed', function(assert) {
+
+            var SomeView = joint.mvc.View.extend({
+                className: 'x-foo',
+                classNamePrefix: 'x-',
+                defaultTheme: null
+            });
+            var view = new SomeView();
+            assert.equal(view.el.className, 'x-foo');
+            view.remove();
+        });
+
+        QUnit.test('SVG element with custom prefix', function(assert) {
+
+            var SomeView = joint.mvc.View.extend({
+                svgElement: true,
+                tagName: 'g',
+                className: 'foo',
+                classNamePrefix: 'custom-',
+                defaultTheme: null
+            });
+            var view = new SomeView();
+            assert.equal(view.el.className.baseVal, 'custom-foo');
+            view.remove();
+        });
+
+        QUnit.test('theme class still uses joint- prefix', function(assert) {
+
+            var SomeView = joint.mvc.View.extend({
+                className: 'foo',
+                classNamePrefix: 'custom-'
+            });
+            var view = new SomeView();
+            var defaultTheme = joint.mvc.View.prototype.defaultTheme;
+            var themeClassName = SomeView.prototype.themeClassNamePrefix + defaultTheme;
+            assert.ok(view.$el.hasClass('custom-foo'), 'custom prefix applied to className');
+            assert.ok(view.$el.hasClass(themeClassName), 'theme class still uses joint- prefix');
+            assert.equal(view.$el.attr('class'), 'custom-foo ' + themeClassName);
+            view.remove();
+        });
+    });
+
     QUnit.test('mvc.View.extend does not modify prototype or static properties objects', function(assert) {
 
         var protoProps = {};
