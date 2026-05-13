@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { type mvc, type dia } from '@joint/core';
-import type {
-  CellRecord,
-  Computed,
-} from '../types/cell.types';
-import { useGraphStore } from './use-graph-store';
+import type { CellRecord, Computed } from '../types/cell.types';
 import { useSetCollection, type CollectionSetter } from './use-set-collection';
-import type { CollectionView } from '../store/collection-view';
+import { createCollectionView, type CollectionView } from '../store/collection-view';
 import { arrayAwareEqual } from '../utils/selector-utils';
 
 const EMPTY_CELLS: readonly never[] = Object.freeze([]);
@@ -32,7 +28,12 @@ export interface UseCollectionOptions<Cell, Selected> {
  *
  * The setter is the same one returned by {@link useSetCollection}.
  *
- * Must be used inside `<GraphProvider>`.
+ * The view that mirrors the collection is local to this hook instance —
+ * destroyed on unmount and rebuilt on collection changes. Each call sets up
+ * its own `mvc.Listener` chain. No cross-hook sharing happens here so the
+ * hook stays self-contained.
+ *
+ * Must be used inside `<GraphProvider>` (the setter needs the graph).
  * @template Cell - resolved record shape (defaults to `Computed<CellRecord>`)
  * @param collection - target JointJS collection, or `undefined` while the source feature is still mounting
  * @param options - hook options
@@ -67,7 +68,6 @@ export function useCollection<
   argument2?: ((cells: readonly Cell[]) => Selected) | UseCollectionOptions<Cell, Selected>,
   argument3?: UseCollectionOptions<Cell, Selected>
 ): readonly [Selected, CollectionSetter<Cell>] {
-  const store = useGraphStore();
   const setter = useSetCollection<Cell>(collection);
 
   const isSelector = typeof argument2 === 'function';
@@ -83,41 +83,34 @@ export function useCollection<
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
+  // Local view per hook. No registry, no refcount — lifecycle is bound to
+  // this hook's effect.
   const viewRef = useRef<CollectionView<Cell> | null>(null);
   useEffect(() => {
     if (!collection) {
       viewRef.current = null;
       return;
     }
-    viewRef.current = store.acquireCollectionView<Cell>(collection);
-    return () => {
-      store.releaseCollectionView(collection);
-      viewRef.current = null;
-    };
-  }, [collection, store]);
+    const view = createCollectionView<Cell>(collection);
+    viewRef.current = view;
 
-  // `onChange` listener — its own subscription. `subscribeToAll` does not
-  // auto-fire on subscribe, but the initial `commitChanges()` microtask from
-  // view creation may still fire before mount is fully settled. We skip
-  // notifications until the initial microtask queue has drained so `onChange`
-  // is only called on actual mutations after mount.
-  useEffect(() => {
-    if (!collection) return;
-    const view = store.acquireCollectionView<Cell>(collection);
+    // onChange shares the same view. Microtask gate skips the seed commit so
+    // onChange only fires on post-mount mutations.
     let mounted = false;
-    // Defer the mounted flag past the current microtask queue so the initial
-    // `commitChanges` flush (queued during view construction) is ignored.
-    queueMicrotask(() => { mounted = true; });
+    queueMicrotask(() => {
+      mounted = true;
+    });
     const unsubscribe = view.cells.subscribeToAll(() => {
       if (!mounted) return;
       onChangeRef.current?.(view.cells.getAll() as readonly Cell[]);
     });
+
     return () => {
-      mounted = false;
       unsubscribe();
-      store.releaseCollectionView(collection);
+      view.destroy();
+      viewRef.current = null;
     };
-  }, [collection, store]);
+  }, [collection]);
 
   const subscribe = useCallback(
     (listener: () => void) => {
@@ -129,25 +122,31 @@ export function useCollection<
     [collection]
   );
 
-  const getSnapshot = useCallback(() => {
-    const view = viewRef.current;
-    return view ? view.cells.getVersion() : 0;
-  }, // eslint-disable-next-line react-hooks/exhaustive-deps
-  [collection]);
+  const getSnapshot = useCallback(
+    () => {
+      const view = viewRef.current;
+      return view ? view.cells.getVersion() : 0;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [collection]
+  );
 
   const isEqual = useMemo<(a: Selected, b: Selected) => boolean>(() => {
     if (userIsEqual) return userIsEqual;
     return arrayAwareEqual as unknown as (a: Selected, b: Selected) => boolean;
   }, [userIsEqual]);
 
-  const select = useCallback((): Selected => {
-    const view = viewRef.current;
-    const cells = (view ? view.cells.getAll() : EMPTY_CELLS) as readonly Cell[];
-    const userSelector = selectorRef.current;
-    if (userSelector) return userSelector(cells);
-    return cells as unknown as Selected;
-  }, // eslint-disable-next-line react-hooks/exhaustive-deps
-  [collection]);
+  const select = useCallback(
+    (): Selected => {
+      const view = viewRef.current;
+      const cells = (view ? view.cells.getAll() : EMPTY_CELLS) as readonly Cell[];
+      const userSelector = selectorRef.current;
+      if (userSelector) return userSelector(cells);
+      return cells as unknown as Selected;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [collection]
+  );
 
   const value = useSyncExternalStoreWithSelector(
     subscribe,
@@ -158,9 +157,7 @@ export function useCollection<
   );
 
   const stableValue =
-    !collection && !selector
-      ? (EMPTY_CELLS as unknown as Selected)
-      : value;
+    !collection && !selector ? (EMPTY_CELLS as unknown as Selected) : value;
 
   return [stableValue, setter];
 }

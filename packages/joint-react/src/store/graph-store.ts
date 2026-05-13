@@ -1,14 +1,9 @@
 import { dia, shapes } from '@joint/core';
-import type { mvc } from '@joint/core';
 import type {
   ElementJSONInit,
   LinkJSONInit,
   CellId,
-  AnyCellRecord,
-  CellRecord,
-  Computed,
 } from '../types/cell.types';
-import { createCollectionView, type CollectionView } from './collection-view';
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
@@ -112,10 +107,6 @@ export class GraphStore<
 
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
-  private readonly collectionViews = new Map<
-    mvc.Collection<dia.Cell>,
-    { view: CollectionView<AnyCellRecord>; refs: number }
-  >();
   private observer: GraphStoreObserver;
   public readonly graphView: GraphView<Element, Link>;
 
@@ -315,8 +306,6 @@ export class GraphStore<
       paperStore.destroy();
     }
     this.paperStores.clear();
-    for (const { view } of this.collectionViews.values()) view.destroy();
-    this.collectionViews.clear();
     this.graphView.destroy();
     this.internalState.clean();
     this.observer.clean();
@@ -417,43 +406,6 @@ export class GraphStore<
   public getPaperStore = (id: string) => {
     return this.paperStores.get(id);
   };
-
-  /**
-   * Acquire (or reuse) a {@link CollectionView} for the given JointJS collection.
-   * Each call increments an internal ref-count. Call {@link releaseCollectionView}
-   * once for every `acquireCollectionView` to ensure the view is cleaned up.
-   * @param collection - JointJS collection to mirror
-   * @returns shared `CollectionView` for the collection
-   */
-  public acquireCollectionView<Cell extends AnyCellRecord = Computed<CellRecord>>(
-    collection: mvc.Collection<dia.Cell>
-  ): CollectionView<Cell> {
-    let entry = this.collectionViews.get(collection);
-    if (!entry) {
-      entry = {
-        view: createCollectionView<AnyCellRecord>(collection),
-        refs: 0,
-      };
-      this.collectionViews.set(collection, entry);
-    }
-    entry.refs += 1;
-    return entry.view as CollectionView<Cell>;
-  }
-
-  /**
-   * Release a previously acquired {@link CollectionView}. When the ref-count
-   * reaches zero the view is destroyed and evicted from the registry.
-   * @param collection - JointJS collection whose view to release
-   */
-  public releaseCollectionView(collection: mvc.Collection<dia.Cell>): void {
-    const entry = this.collectionViews.get(collection);
-    if (!entry) return;
-    entry.refs -= 1;
-    if (entry.refs <= 0) {
-      entry.view.destroy();
-      this.collectionViews.delete(collection);
-    }
-  }
 
   /**
    * Clear the cached view for an element and its connected links on a paper.
