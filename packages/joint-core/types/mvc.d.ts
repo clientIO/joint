@@ -494,6 +494,8 @@ export class View<T extends (Model | undefined), E extends DOMElement = HTMLElem
 
     options: ViewOptions<T, E>;
 
+    classNamePrefix: string;
+
     theme: string;
 
     themeClassNamePrefix: string;
