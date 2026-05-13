@@ -43,14 +43,14 @@ import {
     merge
 } from './utilHelpers.mjs';
 
-export const addClassNamePrefix = function(className) {
+export const addClassNamePrefix = function(className, prefix = config.classNamePrefix) {
 
-    if (!className) return className;
+    if (!className || !prefix) return className;
 
     return className.toString().split(' ').map(function(_className) {
 
-        if (_className.substr(0, config.classNamePrefix.length) !== config.classNamePrefix) {
-            _className = config.classNamePrefix + _className;
+        if (_className.substr(0, prefix.length) !== prefix) {
+            _className = prefix + _className;
         }
 
         return _className;
@@ -58,14 +58,14 @@ export const addClassNamePrefix = function(className) {
     }).join(' ');
 };
 
-export const removeClassNamePrefix = function(className) {
+export const removeClassNamePrefix = function(className, prefix = config.classNamePrefix) {
 
-    if (!className) return className;
+    if (!className || !prefix) return className;
 
     return className.toString().split(' ').map(function(_className) {
 
-        if (_className.substr(0, config.classNamePrefix.length) === config.classNamePrefix) {
-            _className = _className.substr(config.classNamePrefix.length);
+        if (_className.substr(0, prefix.length) === prefix) {
+            _className = _className.substr(prefix.length);
         }
 
         return _className;
