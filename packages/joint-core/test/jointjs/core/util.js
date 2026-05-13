@@ -882,6 +882,31 @@ QUnit.module('util', function(hooks) {
 
             assert.equal(joint.util.addClassNamePrefix('some-class some-other-class'), joint.config.classNamePrefix + 'some-class ' + joint.config.classNamePrefix + 'some-other-class');
         });
+
+        QUnit.test('custom prefix provided', function(assert) {
+
+            assert.equal(joint.util.addClassNamePrefix('some-class', 'custom-'), 'custom-some-class');
+        });
+
+        QUnit.test('multiple class names with custom prefix', function(assert) {
+
+            assert.equal(joint.util.addClassNamePrefix('a b', 'x-'), 'x-a x-b');
+        });
+
+        QUnit.test('empty string prefix is a no-op', function(assert) {
+
+            assert.equal(joint.util.addClassNamePrefix('some-class', ''), 'some-class');
+        });
+
+        QUnit.test('null prefix is a no-op', function(assert) {
+
+            assert.equal(joint.util.addClassNamePrefix('some-class', null), 'some-class');
+        });
+
+        QUnit.test('idempotent with custom prefix', function(assert) {
+
+            assert.equal(joint.util.addClassNamePrefix('custom-some-class', 'custom-'), 'custom-some-class');
+        });
     });
 
     QUnit.module('removeClassNamePrefix', function(hooks) {
@@ -918,6 +943,33 @@ QUnit.module('util', function(hooks) {
         QUnit.test('mix of prefixed and non-prefixed class names', function(assert) {
 
             assert.equal(joint.util.removeClassNamePrefix(joint.config.classNamePrefix + 'some-class without-prefix'), 'some-class without-prefix');
+        });
+
+        QUnit.test('custom prefix provided', function(assert) {
+
+            assert.equal(joint.util.removeClassNamePrefix('custom-some-class', 'custom-'), 'some-class');
+        });
+
+        QUnit.test('multiple prefixed class names with custom prefix', function(assert) {
+
+            assert.equal(joint.util.removeClassNamePrefix('x-a x-b', 'x-'), 'a b');
+        });
+
+        QUnit.test('empty string prefix is a no-op', function(assert) {
+
+            var input = joint.config.classNamePrefix + 'some-class';
+            assert.equal(joint.util.removeClassNamePrefix(input, ''), input);
+        });
+
+        QUnit.test('null prefix is a no-op', function(assert) {
+
+            var input = joint.config.classNamePrefix + 'some-class';
+            assert.equal(joint.util.removeClassNamePrefix(input, null), input);
+        });
+
+        QUnit.test('custom prefix ignores joint- prefixed names', function(assert) {
+
+            assert.equal(joint.util.removeClassNamePrefix(joint.config.classNamePrefix + 'some-class', 'custom-'), joint.config.classNamePrefix + 'some-class');
         });
     });
 
