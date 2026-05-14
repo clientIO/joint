@@ -113,7 +113,7 @@ function WorkflowNode(data: Readonly<NodeData>) {
   const { background, color } = KIND_STYLES[data.kind];
   return (
     <HTMLHost
-      className="min-w-[120px] bg-white rounded-lg border border-gray-300 shadow-md"
+      className="min-w-35 bg-white rounded-lg border border-gray-300 shadow-md"
       style={{ padding: 8 }}
     >
       <div className="flex flex-col gap-1 items-center">

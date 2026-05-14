@@ -4,8 +4,8 @@ import { getMarkerLength } from './utils';
 
 /**
  * Creates a right-angle router with `useVertices: true`.
- * @param margin
- * @param minPathMargin
+ * @param margin - distance kept from elements.
+ * @param minPathMargin - minimum path margin used by the underlying router.
  */
 export function rightAngleRouter(margin: number, minPathMargin: number): routers.Router {
   return (vertices, _args, linkView) => {

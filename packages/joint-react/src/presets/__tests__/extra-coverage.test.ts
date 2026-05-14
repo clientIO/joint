@@ -81,7 +81,7 @@ describe('presets / connectors / rightAngleRouter', () => {
       graph.addCells([source, target, link]);
       const linkView = paper.findViewByModel(link) as dia.LinkView;
 
-      const router = rightAngleRouter(15);
+      const router = rightAngleRouter(15, 5);
       const result = router([], { args: 1 } as any, linkView);
       expect(Array.isArray(result)).toBe(true);
     } finally {

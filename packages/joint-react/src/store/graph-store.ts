@@ -1,9 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import type {
-  ElementJSONInit,
-  LinkJSONInit,
-  CellId,
-} from '../types/cell.types';
+import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
@@ -66,20 +62,16 @@ interface GraphStoreOptionsBase<
 }
 
 /** Uncontrolled mode: parent provides only seed data. */
-interface GraphStoreOptionsUncontrolled<
-  Element extends ElementJSONInit,
-  Link extends LinkJSONInit,
-> extends GraphStoreOptionsBase<Element, Link> {
+interface GraphStoreOptionsUncontrolled<Element extends ElementJSONInit, Link extends LinkJSONInit>
+  extends GraphStoreOptionsBase<Element, Link> {
   readonly initialCells?: ReadonlyArray<Element | Link>;
   readonly cells?: never;
   readonly onCellsChange?: (cells: ReadonlyArray<Element | Link>) => void;
 }
 
 /** Controlled mode: parent is the source of truth; store applies snapshots. */
-interface GraphStoreOptionsControlled<
-  Element extends ElementJSONInit,
-  Link extends LinkJSONInit,
-> extends GraphStoreOptionsBase<Element, Link> {
+interface GraphStoreOptionsControlled<Element extends ElementJSONInit, Link extends LinkJSONInit>
+  extends GraphStoreOptionsBase<Element, Link> {
   readonly cells: ReadonlyArray<Element | Link>;
   readonly initialCells?: never;
   readonly onCellsChange?: (cells: ReadonlyArray<Element | Link>) => void;
@@ -188,9 +180,17 @@ export class GraphStore<
         for (const [id, data] of Object.entries(updatedElements)) {
           const cell = this.graph.getCell(id);
           if (cell?.isElement()) {
-            cell.set('size', { width: data.width, height: data.height });
+            // `fromMeasure: true` marks writes that originate from the
+            // ResizeObserver pipeline so `change:size` listeners can tell our
+            // own writes apart from external ones (controlled-mode sync,
+            // direct `cell.resize`, etc.) and avoid feedback loops.
+            cell.set('size', { width: data.width, height: data.height }, {
+              fromMeasure: true,
+            } as object);
             if (data.x !== undefined && data.y !== undefined) {
-              cell.set('position', { x: data.x, y: data.y });
+              cell.set('position', { x: data.x, y: data.y }, {
+                fromMeasure: true,
+              } as object);
             }
           }
         }

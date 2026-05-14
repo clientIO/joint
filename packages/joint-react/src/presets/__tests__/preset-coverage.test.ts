@@ -109,7 +109,7 @@ describe('presets / connection-strategy', () => {
 
 describe('presets / connectors', () => {
   it('rightAngleRouter returns a function', () => {
-    const router = rightAngleRouter();
+    const router = rightAngleRouter(20, 5);
     expect(typeof router).toBe('function');
   });
   it('outwardsCurveConnector callable', () => {
