@@ -10,6 +10,7 @@ export const View = ViewBase.extend({
 
     options: {},
     theme: null,
+    classNamePrefix: config.classNamePrefix,
     themeClassNamePrefix: util.addClassNamePrefix('theme-'),
     requireSetThemeOverride: false,
     defaultTheme: config.defaultTheme,
@@ -134,7 +135,7 @@ export const View = ViewBase.extend({
     _ensureElClassName: function() {
         var className = util.result(this, 'className');
         if (!className) return;
-        var prefixedClassName = util.addClassNamePrefix(className);
+        var prefixedClassName = util.addClassNamePrefix(className, this.classNamePrefix);
         // Note: className removal here kept for backwards compatibility only
         if (this.svgElement) {
             this.vel.removeClass(className).addClass(prefixedClassName);

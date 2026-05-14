@@ -2,7 +2,6 @@ import type { Preview } from '@storybook/react-vite';
 import { theme } from './theme';
 import { withStrictMode } from './decorators/with-strict-mode';
 import './preview.css';
-import '../src/css/theme.css';
 
 export const decorators = [withStrictMode];
 
