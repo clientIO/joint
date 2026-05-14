@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { mvc } from '@joint/core';
 import type { dia } from '@joint/core';
@@ -11,15 +11,9 @@ import { usePaperEvents } from './use-paper-events';
 import { ELEMENT_MODEL_TYPE } from '../models/element-model';
 import type { Computed, ElementRecord } from '../types/cell.types';
 
-// ── JointJS+ palette ────────────────────────────────────────────────────────
 const JJS = {
   bg: '#131E29',
-  panel: '#192531',
-  panelHi: '#1F2C39',
-  hairline: '#2A3845',
   ink: '#DDE6ED',
-  inkDim: '#7B8A98',
-  inkMute: '#566373',
   primary: '#ED2637',
   primaryGlow: '#F2545F',
   secondary: '#FF9505',
@@ -65,7 +59,6 @@ const SEED_CELLS: readonly ShapeRecord[] = CELL_HUES.map((color, index) => ({
 
 const PAPER_ID = 'use-collection-watchlist-demo';
 
-// ── Rendered element ────────────────────────────────────────────────────────
 function selectShapeData(cell: ComputedShapeRecord): ShapeData {
   return cell.data;
 }
@@ -76,14 +69,12 @@ function selectShapeSize(cell: ComputedShapeRecord): {
   return cell.size;
 }
 
-const SHAPE_G_STYLE: React.CSSProperties = { cursor: 'pointer' };
-
 function RenderShape() {
   const { selectorRef } = useMarkup();
   const data = useCell<ComputedShapeRecord, ShapeData>(selectShapeData);
   const size = useCell<ComputedShapeRecord, { width: number; height: number }>(selectShapeSize);
   return (
-    <g ref={selectorRef('body')} style={SHAPE_G_STYLE}>
+    <g ref={selectorRef('body')} className="cursor-pointer">
       <rect
         x={0}
         y={0}
@@ -114,18 +105,10 @@ function RenderShape() {
   );
 }
 
-// ── Right-panel: live watchlist ─────────────────────────────────────────────
 interface WatchRowProps {
   readonly cell: ComputedShapeRecord;
   readonly onRemove: (id: dia.Cell.ID) => void;
 }
-
-const ROW_ACCENT_STYLE_BASE: React.CSSProperties = { width: 4, alignSelf: 'stretch' };
-const ROW_CONTENT_STYLE: React.CSSProperties = {
-  flex: 1,
-  padding: '12px 4px 12px 14px',
-  minWidth: 0,
-};
 
 function WatchRow({ cell, onRemove }: Readonly<WatchRowProps>) {
   const { color, label } = cell.data;
@@ -134,19 +117,18 @@ function WatchRow({ cell, onRemove }: Readonly<WatchRowProps>) {
   const handleRemove = useCallback(() => {
     onRemove(cell.id);
   }, [cell.id, onRemove]);
-  const accentStyle: React.CSSProperties = useMemo(
-    () => ({ ...ROW_ACCENT_STYLE_BASE, background: color.fill }),
-    [color.fill]
-  );
+  const accentStyle = useMemo(() => ({ background: color.fill }), [color.fill]);
   return (
-    <li style={ROW_STYLE}>
-      <div style={accentStyle} />
-      <div style={ROW_CONTENT_STYLE}>
-        <div style={ROW_HEAD_STYLE}>
-          <span style={ROW_LABEL_STYLE}>{label}</span>
-          <span style={ROW_ID_STYLE}>#{String(cell.id)}</span>
+    <li className="flex items-stretch border-b border-[#2A3845] bg-transparent">
+      <div className="w-1 self-stretch" style={accentStyle} />
+      <div className="min-w-0 flex-1 py-3 pr-1 pl-3.5">
+        <div className="mb-2 flex items-baseline justify-between">
+          <span className="font-sans text-sm font-semibold text-[#DDE6ED]">{label}</span>
+          <span className="font-mono text-[10px] tracking-[0.08em] text-[#566373]">
+            #{String(cell.id)}
+          </span>
         </div>
-        <div style={ROW_METRIC_GRID}>
+        <div className="grid grid-cols-4 gap-0">
           <Metric label="x" value={x} />
           <Metric label="y" value={y} />
           <Metric label="w" value={width} />
@@ -156,7 +138,7 @@ function WatchRow({ cell, onRemove }: Readonly<WatchRowProps>) {
       <button
         type="button"
         onClick={handleRemove}
-        style={ROW_REMOVE_BTN_STYLE}
+        className="w-9.5 cursor-pointer border-0 border-l border-[#2A3845] bg-transparent font-sans text-lg text-[#566373]"
         aria-label="Remove from watchlist"
       >
         ×
@@ -172,14 +154,17 @@ interface MetricProps {
 
 function Metric({ label, value }: Readonly<MetricProps>) {
   return (
-    <div style={METRIC_STYLE}>
-      <span style={METRIC_LABEL_STYLE}>{label}</span>
-      <span style={METRIC_VALUE_STYLE}>{Math.round(value)}</span>
+    <div className="flex flex-col items-start pr-1.5">
+      <span className="font-mono text-[9px] tracking-[0.14em] text-[#566373] uppercase">
+        {label}
+      </span>
+      <span className="mt-0.5 font-mono text-xs text-[#DDE6ED] tabular-nums">
+        {Math.round(value)}
+      </span>
     </div>
   );
 }
 
-// ── Top-level demo ──────────────────────────────────────────────────────────
 function totalArea(cells: readonly ComputedShapeRecord[]): number {
   let sum = 0;
   for (const cell of cells) {
@@ -189,33 +174,33 @@ function totalArea(cells: readonly ComputedShapeRecord[]): number {
 }
 
 function Watchlist() {
-  const watchlist = useMemo<mvc.Collection<dia.Cell>>(() => new mvc.Collection<dia.Cell>([]), []);
+  const collection = useMemo<mvc.Collection<dia.Cell>>(() => new mvc.Collection<dia.Cell>([]), []);
 
-  const [cells, setCells] = useCollection<ComputedShapeRecord>(watchlist);
-  const [area] = useCollection<ComputedShapeRecord, number>(watchlist, totalArea);
+  const [cells, setCells] = useCollection<ComputedShapeRecord>(collection);
+  const [area] = useCollection<ComputedShapeRecord, number>(collection, totalArea);
 
   const paperEventHandlers = useMemo(
     () => ({
       'element:pointerclick': (view: dia.ElementView) => {
         const cell = view.model;
-        if (watchlist.get(cell.id)) {
-          watchlist.remove(cell);
+        if (collection.get(cell.id)) {
+          collection.remove(cell);
         } else {
-          watchlist.add(cell);
+          collection.add(cell);
         }
       },
     }),
-    [watchlist]
+    [collection]
   );
 
-  usePaperEvents(PAPER_ID, paperEventHandlers, [watchlist]);
+  usePaperEvents(PAPER_ID, paperEventHandlers, [collection]);
 
   const onRemove = useCallback(
     (id: dia.Cell.ID) => {
-      const cell = watchlist.get(id);
-      if (cell) watchlist.remove(cell);
+      const cell = collection.get(id);
+      if (cell) collection.remove(cell);
     },
-    [watchlist]
+    [collection]
   );
 
   const shuffle = useCallback(() => {
@@ -253,71 +238,111 @@ function Watchlist() {
   const disabled = cells.length === 0;
 
   return (
-    <section style={STAGE_STYLE}>
-      <header style={HEADER_STYLE}>
-        <div style={EYEBROW_TAG_STYLE}>
-          <span style={EYEBROW_DOT_STYLE} />
+    <section className="min-h-135 bg-[#131E29] px-11 pt-10 pb-11 font-sans tracking-[0.005em] text-[#DDE6ED]">
+      <header className="mb-7 max-w-180">
+        <div className="mb-3.5 inline-flex items-center gap-2 border border-[#2A3845] bg-[#192531] px-2.5 py-1 font-mono text-[11px] tracking-[0.06em] text-[#7B8A98] uppercase">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#ED2637]" />
           <span>@joint/react · useCollection</span>
         </div>
-        <h1 style={HEADING_STYLE}>
-          Subscribe to any <span style={HEADING_PRIMARY_STYLE}>mvc.Collection</span> of cells —{' '}
-          <em style={HEADING_EM_STYLE}>reactively</em>.
+        <h1 className="m-0 font-sans text-[clamp(24px,3vw,36px)] leading-[1.15] font-semibold tracking-[-0.01em] text-[#DDE6ED]">
+          Subscribe to any <span className="text-[#ED2637]">mvc.Collection</span> of cells —{' '}
+          <em className="font-medium text-[#FF9505] italic">reactively</em>.
         </h1>
-        <p style={SUBHEAD_STYLE}>
+        <p className="mt-2.5 mb-0 max-w-160 font-sans text-[14.5px] leading-[1.6] text-[#7B8A98]">
           Click a shape to toggle it on the watchlist. Drag a watched shape — coordinates update
           live in the panel. The setter accepts full records, so
-          <span style={INLINE_CODE}> Shuffle</span> and <span style={INLINE_CODE}>Resize</span> also
-          flow through <span style={INLINE_CODE}>useCollection</span>.
+          <span className="rounded-[3px] bg-[#1F2C39] px-1.5 py-px font-mono text-[12.5px] text-[#DDE6ED]">
+            {' '}
+            Shuffle
+          </span>{' '}
+          and{' '}
+          <span className="rounded-[3px] bg-[#1F2C39] px-1.5 py-px font-mono text-[12.5px] text-[#DDE6ED]">
+            Resize
+          </span>{' '}
+          also flow through{' '}
+          <span className="rounded-[3px] bg-[#1F2C39] px-1.5 py-px font-mono text-[12.5px] text-[#DDE6ED]">
+            useCollection
+          </span>
+          .
         </p>
       </header>
 
-      <div style={CANVAS_PANEL_GRID}>
-        <div style={PAPER_FRAME_STYLE}>
-          <div style={PAPER_TOOLBAR_STYLE}>
-            <span style={TOOLBAR_LABEL_STYLE}>Canvas</span>
-            <span style={TOOLBAR_HINT_STYLE}>click to watch · drag to move</span>
+      <div className="grid items-stretch gap-6 grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
+        <div className="relative flex flex-col border border-[#2A3845] bg-[#192531]">
+          <div className="flex items-center justify-between border-b border-[#2A3845] bg-[#1F2C39] px-3.5 py-2.5">
+            <span className="font-mono text-[10.5px] tracking-[0.18em] text-[#7B8A98] uppercase">
+              Canvas
+            </span>
+            <span className="font-mono text-[10.5px] tracking-[0.04em] text-[#566373]">
+              click to watch · drag to move
+            </span>
           </div>
           <Paper id={PAPER_ID} width="100%" height={360} renderElement={RenderShape} />
         </div>
 
-        <aside style={SIDE_PANEL_STYLE}>
-          <div style={SIDE_HEAD_STYLE}>
-            <span style={EYEBROW_STYLE}>Watchlist</span>
-            <span style={COUNT_BADGE_STYLE}>
-              <span style={COUNT_NUM_STYLE}>{String(cells.length).padStart(2, '0')}</span>
-              <span style={COUNT_MAX_STYLE}> / 05</span>
+        <aside className="flex min-h-90 flex-col border border-[#2A3845] bg-[#192531]">
+          <div className="flex items-baseline justify-between border-b border-[#2A3845] bg-[#1F2C39] px-4.5 py-4">
+            <span className="font-mono text-[10.5px] tracking-[0.18em] text-[#7B8A98] uppercase">
+              Watchlist
+            </span>
+            <span className="font-mono text-[17px] font-semibold tabular-nums">
+              <span className="text-[#ED2637] tabular-nums">
+                {String(cells.length).padStart(2, '0')}
+              </span>
+              <span className="text-[#566373]"> / 05</span>
             </span>
           </div>
 
           {cells.length === 0 ? (
-            <div style={EMPTY_STYLE}>
-              <span style={EMPTY_HEAD_STYLE}>Nothing watched yet.</span>
-              <span style={EMPTY_HINT_STYLE}>← click any shape on the canvas</span>
+            <div className="flex flex-1 flex-col items-start px-5.5 py-9 text-[#DDE6ED]">
+              <span className="font-sans text-base font-semibold text-[#DDE6ED]">
+                Nothing watched yet.
+              </span>
+              <span className="mt-1.5 font-mono text-[13px] text-[#7B8A98]">
+                ← click any shape on the canvas
+              </span>
             </div>
           ) : (
-            <ul style={ROW_LIST_STYLE}>
+            <ul className="m-0 flex-1 list-none overflow-y-auto p-0">
               {cells.map((cell) => (
                 <WatchRow key={String(cell.id)} cell={cell} onRemove={onRemove} />
               ))}
             </ul>
           )}
 
-          <div style={SIDE_FOOTER_STYLE}>
-            <div style={STAT_STYLE}>
-              <span style={EYEBROW_STYLE}>Σ area</span>
-              <span style={STAT_VALUE_STYLE}>
+          <div className="flex flex-col gap-3 border-t border-[#2A3845] bg-[#1F2C39] px-4.5 pt-3.5 pb-4">
+            <div className="flex items-baseline justify-between">
+              <span className="font-mono text-[10.5px] tracking-[0.18em] text-[#7B8A98] uppercase">
+                Σ area
+              </span>
+              <span className="font-mono text-lg tracking-[0.01em] text-[#FF9505] tabular-nums">
                 {area.toLocaleString('en-US')}
-                <span style={STAT_UNIT_STYLE}>px²</span>
+                <span className="ml-1 text-[11px] text-[#566373]">px²</span>
               </span>
             </div>
-            <div style={BUTTON_ROW_STYLE}>
-              <button type="button" onClick={shuffle} style={BTN_PRIMARY_STYLE} disabled={disabled}>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={shuffle}
+                disabled={disabled}
+                className="cursor-pointer rounded border border-[#ED2637] bg-[#ED2637] px-3.5 py-2 font-sans text-xs font-semibold tracking-[0.04em] text-[#DDE6ED] disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 Shuffle
               </button>
-              <button type="button" onClick={resizeRandom} style={BTN_STYLE} disabled={disabled}>
+              <button
+                type="button"
+                onClick={resizeRandom}
+                disabled={disabled}
+                className="cursor-pointer rounded border border-[#2A3845] bg-transparent px-3.5 py-2 font-sans text-xs font-semibold tracking-[0.04em] text-[#DDE6ED] disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 Resize
               </button>
-              <button type="button" onClick={clear} style={BTN_GHOST_STYLE} disabled={disabled}>
+              <button
+                type="button"
+                onClick={clear}
+                disabled={disabled}
+                className="cursor-pointer rounded border border-transparent bg-transparent px-3.5 py-2 font-sans text-xs font-semibold tracking-[0.04em] text-[#7B8A98] disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 Clear
               </button>
             </div>
@@ -335,323 +360,6 @@ function Demo() {
     </GraphProvider>
   );
 }
-
-// ── Styles ──────────────────────────────────────────────────────────────────
-const STAGE_STYLE: React.CSSProperties = {
-  background: JJS.bg,
-  color: JJS.ink,
-  padding: '40px 44px 44px',
-  minHeight: 540,
-  fontFamily: SANS_FONT,
-  letterSpacing: '0.005em',
-};
-
-const HEADER_STYLE: React.CSSProperties = {
-  marginBottom: 28,
-  maxWidth: 720,
-};
-
-const EYEBROW_TAG_STYLE: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 8,
-  padding: '4px 10px',
-  border: `1px solid ${JJS.hairline}`,
-  background: JJS.panel,
-  color: JJS.inkDim,
-  fontFamily: MONO_FONT,
-  fontSize: 11,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  marginBottom: 14,
-};
-
-const EYEBROW_DOT_STYLE: React.CSSProperties = {
-  width: 6,
-  height: 6,
-  borderRadius: '50%',
-  background: JJS.primary,
-};
-
-const HEADING_STYLE: React.CSSProperties = {
-  margin: 0,
-  fontFamily: SANS_FONT,
-  fontWeight: 600,
-  fontSize: 'clamp(24px, 3vw, 36px)',
-  lineHeight: 1.15,
-  letterSpacing: '-0.01em',
-  color: JJS.ink,
-};
-
-const HEADING_PRIMARY_STYLE: React.CSSProperties = { color: JJS.primary };
-
-const HEADING_EM_STYLE: React.CSSProperties = {
-  fontStyle: 'italic',
-  color: JJS.secondary,
-  fontWeight: 500,
-};
-
-const SUBHEAD_STYLE: React.CSSProperties = {
-  marginTop: 10,
-  marginBottom: 0,
-  fontFamily: SANS_FONT,
-  fontSize: 14.5,
-  lineHeight: 1.6,
-  color: JJS.inkDim,
-  maxWidth: 640,
-};
-
-const INLINE_CODE: React.CSSProperties = {
-  fontFamily: MONO_FONT,
-  fontSize: 12.5,
-  color: JJS.ink,
-  background: JJS.panelHi,
-  padding: '1px 6px',
-  borderRadius: 3,
-};
-
-const CANVAS_PANEL_GRID: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1.5fr) minmax(280px, 1fr)',
-  gap: 24,
-  alignItems: 'stretch',
-};
-
-const PAPER_FRAME_STYLE: React.CSSProperties = {
-  position: 'relative',
-  border: `1px solid ${JJS.hairline}`,
-  background: JJS.panel,
-  display: 'flex',
-  flexDirection: 'column',
-};
-
-const PAPER_TOOLBAR_STYLE: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  padding: '10px 14px',
-  borderBottom: `1px solid ${JJS.hairline}`,
-  background: JJS.panelHi,
-};
-
-const TOOLBAR_LABEL_STYLE: React.CSSProperties = {
-  fontFamily: MONO_FONT,
-  fontSize: 10.5,
-  letterSpacing: '0.18em',
-  color: JJS.inkDim,
-  textTransform: 'uppercase',
-};
-
-const TOOLBAR_HINT_STYLE: React.CSSProperties = {
-  fontFamily: MONO_FONT,
-  fontSize: 10.5,
-  color: JJS.inkMute,
-  letterSpacing: '0.04em',
-};
-
-const SIDE_PANEL_STYLE: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  background: JJS.panel,
-  border: `1px solid ${JJS.hairline}`,
-  minHeight: 360,
-};
-
-const SIDE_HEAD_STYLE: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'baseline',
-  padding: '16px 18px',
-  borderBottom: `1px solid ${JJS.hairline}`,
-  background: JJS.panelHi,
-};
-
-const EYEBROW_STYLE: React.CSSProperties = {
-  fontFamily: MONO_FONT,
-  fontSize: 10.5,
-  letterSpacing: '0.18em',
-  color: JJS.inkDim,
-  textTransform: 'uppercase',
-};
-
-const COUNT_BADGE_STYLE: React.CSSProperties = {
-  fontFamily: MONO_FONT,
-  fontSize: 17,
-  fontWeight: 600,
-  fontVariantNumeric: 'tabular-nums',
-};
-
-const COUNT_NUM_STYLE: React.CSSProperties = {
-  color: JJS.primary,
-  fontVariantNumeric: 'tabular-nums',
-};
-
-const COUNT_MAX_STYLE: React.CSSProperties = { color: JJS.inkMute };
-
-const EMPTY_STYLE: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  padding: '36px 22px',
-  color: JJS.ink,
-  flex: 1,
-};
-
-const EMPTY_HEAD_STYLE: React.CSSProperties = {
-  fontFamily: SANS_FONT,
-  fontWeight: 600,
-  fontSize: 16,
-  color: JJS.ink,
-};
-
-const EMPTY_HINT_STYLE: React.CSSProperties = {
-  color: JJS.inkDim,
-  fontSize: 13,
-  marginTop: 6,
-  fontFamily: MONO_FONT,
-};
-
-const ROW_LIST_STYLE: React.CSSProperties = {
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-  flex: 1,
-  overflowY: 'auto',
-};
-
-const ROW_STYLE: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'stretch',
-  borderBottom: `1px solid ${JJS.hairline}`,
-  background: 'transparent',
-};
-
-const ROW_HEAD_STYLE: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'baseline',
-  marginBottom: 8,
-};
-
-const ROW_LABEL_STYLE: React.CSSProperties = {
-  fontFamily: SANS_FONT,
-  fontWeight: 600,
-  fontSize: 14,
-  color: JJS.ink,
-};
-
-const ROW_ID_STYLE: React.CSSProperties = {
-  fontFamily: MONO_FONT,
-  fontSize: 10,
-  color: JJS.inkMute,
-  letterSpacing: '0.08em',
-};
-
-const ROW_METRIC_GRID: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-  gap: 0,
-};
-
-const METRIC_STYLE: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  paddingRight: 6,
-};
-
-const METRIC_LABEL_STYLE: React.CSSProperties = {
-  fontFamily: MONO_FONT,
-  fontSize: 9,
-  letterSpacing: '0.14em',
-  color: JJS.inkMute,
-  textTransform: 'uppercase',
-};
-
-const METRIC_VALUE_STYLE: React.CSSProperties = {
-  fontFamily: MONO_FONT,
-  fontSize: 12.5,
-  color: JJS.ink,
-  fontVariantNumeric: 'tabular-nums',
-  marginTop: 2,
-};
-
-const ROW_REMOVE_BTN_STYLE: React.CSSProperties = {
-  background: 'transparent',
-  color: JJS.inkMute,
-  border: 0,
-  borderLeft: `1px solid ${JJS.hairline}`,
-  width: 38,
-  cursor: 'pointer',
-  fontSize: 18,
-  fontFamily: SANS_FONT,
-};
-
-const SIDE_FOOTER_STYLE: React.CSSProperties = {
-  borderTop: `1px solid ${JJS.hairline}`,
-  padding: '14px 18px 16px',
-  background: JJS.panelHi,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 12,
-};
-
-const STAT_STYLE: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'baseline',
-};
-
-const STAT_VALUE_STYLE: React.CSSProperties = {
-  fontFamily: MONO_FONT,
-  fontSize: 18,
-  color: JJS.secondary,
-  fontVariantNumeric: 'tabular-nums',
-  letterSpacing: '0.01em',
-};
-
-const STAT_UNIT_STYLE: React.CSSProperties = {
-  fontSize: 11,
-  color: JJS.inkMute,
-  marginLeft: 4,
-};
-
-const BUTTON_ROW_STYLE: React.CSSProperties = {
-  display: 'flex',
-  gap: 8,
-  flexWrap: 'wrap',
-};
-
-const BTN_BASE: React.CSSProperties = {
-  padding: '8px 14px',
-  fontFamily: SANS_FONT,
-  fontSize: 12,
-  fontWeight: 600,
-  letterSpacing: '0.04em',
-  cursor: 'pointer',
-  borderRadius: 4,
-  border: '1px solid transparent',
-};
-
-const BTN_PRIMARY_STYLE: React.CSSProperties = {
-  ...BTN_BASE,
-  background: JJS.primary,
-  color: JJS.ink,
-  border: `1px solid ${JJS.primary}`,
-};
-
-const BTN_STYLE: React.CSSProperties = {
-  ...BTN_BASE,
-  background: 'transparent',
-  color: JJS.ink,
-  border: `1px solid ${JJS.hairline}`,
-};
-
-const BTN_GHOST_STYLE: React.CSSProperties = {
-  ...BTN_BASE,
-  background: 'transparent',
-  color: JJS.inkDim,
-};
 
 const meta: Meta<typeof Demo> = {
   title: 'Hooks/useCollection',
