@@ -85,6 +85,8 @@ export interface LinkRoutingOrthogonalOptions extends BaseLinkOptions {
   readonly cornerRadius?: number;
   /** Minimum distance (in px) the link keeps from elements when routing. */
   readonly margin?: number;
+  /** Minimum path margin (in px) used by the underlying right-angle router. Default: `margin / 4`. */
+  readonly minPathMargin?: number;
 }
 
 /**

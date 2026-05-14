@@ -249,12 +249,16 @@ export function graphView<
       // React render.
       if (cells.getSize() > cellIds.length) {
         const userIds = new Set<CellId>(cellIds);
+        // Snapshot ids first — `cells.delete` swap-pops the live array, so
+        // iterating `cells.getAll()` while deleting would skip the entry
+        // that lands in the freed slot.
+        const containerIds: CellId[] = [];
         for (const item of cells.getAll()) {
-          // Items inside the container always have an id; the optionality on
-          // `WithId.id` is only for input shapes.
-          if (item.id === undefined) continue;
-          if (!userIds.has(item.id)) {
-            cells.delete(item.id);
+          if (item.id !== undefined) containerIds.push(item.id);
+        }
+        for (const id of containerIds) {
+          if (!userIds.has(id)) {
+            cells.delete(id);
             hasChange = true;
           }
         }

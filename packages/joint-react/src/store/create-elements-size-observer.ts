@@ -66,7 +66,6 @@ interface ObservedElement {
   isMeasured: boolean;
 }
 
-
 function identityTransform(options: TransformOptions) {
   const { width, height, x, y } = options;
   return { width, height, x, y };
@@ -215,19 +214,16 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
   // Maps only the active DOM node to its ObservedElement for O(1) lookup in the ResizeObserver callback.
   const activeObservedElementByDomNode = new WeakMap<HTMLElement | SVGElement, ObservedElement>();
 
-
   /** Returns the active (last) element from the stack, or `undefined` if empty. */
   function getActiveElement(stack: readonly ObservedElement[]): ObservedElement | undefined {
     return stack.at(-1);
   }
-
 
   /** Starts observing the given element and registers it in the active DOM node lookup. */
   function activateElement(observedElement: ObservedElement) {
     observer.observe(observedElement.node, resizeObserverOptions);
     activeObservedElementByDomNode.set(observedElement.node, observedElement);
   }
-
 
   /** Stops observing the given element and removes it from the active DOM node lookup. */
   function deactivateElement(observedElement: ObservedElement) {
