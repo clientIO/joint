@@ -15,6 +15,44 @@ describe('mapElementToAttributes', () => {
     } as unknown as ElementJSONInit);
     expect(result.type).toBe('custom.Element');
   });
+
+  it('omits size when the user record has no size', () => {
+    const result = mapElementToAttributes({
+      id: 'a',
+      type: ELEMENT_MODEL_TYPE,
+      position: { x: 60, y: 60 },
+      data: { label: 'A' },
+    } as ElementJSONInit);
+    expect(result).not.toHaveProperty('size');
+  });
+
+  it('omits position when the user record has no position', () => {
+    const result = mapElementToAttributes({
+      id: 'a',
+      type: ELEMENT_MODEL_TYPE,
+      data: { label: 'A' },
+    } as ElementJSONInit);
+    expect(result).not.toHaveProperty('position');
+  });
+
+  it('fills missing height with 0 when only width is supplied', () => {
+    const result = mapElementToAttributes({
+      id: 'a',
+      type: ELEMENT_MODEL_TYPE,
+      size: { width: 80 },
+    } as unknown as ElementJSONInit);
+    expect(result.size).toEqual({ width: 80, height: 0 });
+  });
+
+  it('defaults angle to 0 and data to {} when omitted', () => {
+    const result = mapElementToAttributes({
+      id: 'a',
+      type: ELEMENT_MODEL_TYPE,
+      position: { x: 5, y: 5 },
+    } as ElementJSONInit);
+    expect(result.angle).toBe(0);
+    expect(result.data).toEqual({});
+  });
 });
 
 describe('mapAttributesToElement', () => {

@@ -161,8 +161,15 @@ export function graphChanges(options: Options) {
   controller.listenTo(
     graph,
     'change:size',
-    (cell: dia.Cell, newSize: { width: number; height: number }) => {
+    (
+      cell: dia.Cell,
+      newSize: { width: number; height: number },
+      opt: { fromMeasure?: boolean } = {}
+    ) => {
       if (!onElementsSizeChange) return;
+      // Writes from the ResizeObserver pipeline are marked `fromMeasure` —
+      // skip them so the observer never reacts to its own output.
+      if (opt.fromMeasure) return;
       onElementsSizeChange(cell.id, newSize);
     }
   );

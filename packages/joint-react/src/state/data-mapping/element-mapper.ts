@@ -9,8 +9,12 @@ import { elementAttributes } from '../../presets/element-attributes';
  */
 function ensureDefaults(attributes: dia.Element.JSONInit): dia.Element.JSONInit {
   const { position, size } = attributes;
-  attributes.position = { x: position?.x ?? 0, y: position?.y ?? 0 };
-  attributes.size = { width: size?.width ?? 0, height: size?.height ?? 0 };
+  if (position !== undefined) {
+    attributes.position = { x: position.x ?? 0, y: position.y ?? 0 };
+  }
+  if (size !== undefined) {
+    attributes.size = { width: size.width ?? 0, height: size.height ?? 0 };
+  }
   attributes.angle ??= 0;
   attributes.data ??= {};
   return attributes;
