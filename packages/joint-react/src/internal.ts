@@ -63,6 +63,7 @@ export { resolvePaper, resolvePaperId } from './types';
 // Constants
 export { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from './models/element-model';
 export { LINK_MODEL_TYPE } from './models/link-model';
+export { OPTIONAL } from './types';
 
 // Internal Selectors
 export {

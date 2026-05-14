@@ -59,6 +59,8 @@ const linkView = (
 };
 
 export const Paper = dia.Paper.extend({
+  className: 'jj-paper joint-paper',
+  classNamePrefix: '',
   options: {
     ...dia.Paper.prototype.options,
     // Required for React integration features:
@@ -83,10 +85,5 @@ export const Paper = dia.Paper.extend({
     ...linkRoutingStraight(),
     measureNode,
     linkView,
-  },
-
-  _ensureElClassName() {
-    // Note: the `className` property is ignored here.
-    this.el.classList.add('jj-paper', 'joint-paper');
   },
 }) as typeof dia.Paper;
