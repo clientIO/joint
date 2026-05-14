@@ -53,7 +53,7 @@ export function paperRenderElementWrapper(options: Options): React.JSXElementCon
     }, [children]);
     return (
       <GraphProvider {...graphProviderProps}>
-        <Paper {...paperProps} width={100} height={100} renderElement={renderElement}></Paper>
+        <Paper style={{ width: 100, height: 100 }} {...paperProps} renderElement={renderElement}></Paper>
       </GraphProvider>
     );
   };
@@ -101,13 +101,11 @@ export function paperRenderLinkWrapper(options: Options): React.JSXElementConstr
     }, [children]);
     return (
       <GraphProvider {...graphProviderProps}>
-        <Paper
+        <Paper style={{ width: 100, height: 100 }}
           {...paperProps}
-          width={100}
-          height={100}
           renderLink={renderLink}
           // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
-          renderElement={() => <rect width={100} height={100} />}
+          renderElement={() => <rect />}
         ></Paper>
       </GraphProvider>
     );

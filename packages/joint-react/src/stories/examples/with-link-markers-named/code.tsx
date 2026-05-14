@@ -51,10 +51,9 @@ const initialCells = buildCells();
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper
+      <Paper style={{ width: "100%" }}
         transform={'scale(2)'}
         className={`${PAPER_CLASSNAME} h-[800px]`}
-        width="100%"
         interactive={false}
         drawGrid={false}
       />

@@ -914,10 +914,8 @@ function GraphWithRedux() {
           initialCells={themedCells}
           onIncrementalCellsChange={handleIncrementalChange}
         >
-          <Paper
+          <Paper style={{ backgroundColor: theme.canvas, width: "100%", height: "100%" }}
             id={PAPER_ID}
-            height="100%"
-            width="100%"
             gridSize={1}
             overflow
             linkPinning={false}
@@ -928,7 +926,6 @@ function GraphWithRedux() {
             defaultLink={{ style: { color: theme.link, width: 1.5, targetMarker: 'none' } }}
             validateConnection={({ target }) => target.port === 'in'}
             renderElement={RenderAgentNode}
-            style={{ backgroundColor: theme.canvas }}
           />
           <ConnectionPanel
             peerId={peerId}

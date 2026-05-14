@@ -241,15 +241,13 @@ function Main() {
   });
 
   return (
-    <Paper
+    <Paper style={{ ...PAPER_STYLE, height: 500 }}
       ref={paperRef}
       id={paperId}
-      height={500}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
       gridSize={20}
       drawGrid={{ name: 'mesh' }}
-      style={PAPER_STYLE}
     />
   );
 }

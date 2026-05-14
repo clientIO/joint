@@ -151,7 +151,7 @@ export default function App() {
             Reset
           </button>
         </div>
-        <Paper className={PAPER_CLASSNAME} height={400} renderElement={renderWorkflowNode} />
+        <Paper style={{ height: 400 }} className={PAPER_CLASSNAME} renderElement={renderWorkflowNode} />
       </div>
     </GraphProvider>
   );

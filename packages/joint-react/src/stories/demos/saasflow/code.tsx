@@ -490,12 +490,9 @@ function Main() {
 
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper
+      <Paper style={{ backgroundColor: 'transparent', width: "100%", height: "100%" }}
         ref={paperRef}
         id={PAPER_ID}
-        height="100%"
-        width="100%"
-        style={{ backgroundColor: 'transparent' }}
         gridSize={5}
         drawGrid={false}
         overflow

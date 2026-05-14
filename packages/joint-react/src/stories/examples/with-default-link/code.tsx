@@ -65,10 +65,9 @@ function RenderElement({ label }: Readonly<NodeData>) {
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper
+      <Paper style={{ height: 300 }}
         renderElement={RenderElement}
         className={PAPER_CLASSNAME}
-        height={300}
         defaultLink={defaultLink}
         snapLinks
         linkPinning={false}

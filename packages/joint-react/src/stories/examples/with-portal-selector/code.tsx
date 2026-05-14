@@ -191,13 +191,11 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
       className="absolute bg-black bottom-6 right-6 border border-[#dde6ed] rounded-lg overflow-hidden"
       style={{ width: MINIMAP_WIDTH, height: MINIMAP_HEIGHT }}
     >
-      <Paper
+      <Paper style={{ backgroundColor: LIGHT, height: "100%" }}
         {...PAPER_PROPS}
         interactive={false}
-        height="100%"
         transform={`scale(${scale})`}
         renderElement={renderElement}
-        style={{ backgroundColor: LIGHT }}
         drawGrid={false}
       />
     </div>
@@ -306,12 +304,11 @@ function Main() {
 
   return (
     <div className="flex flex-col relative w-full h-full">
-      <Paper
+      <Paper style={{ ...PAPER_STYLE, height: "calc(100vh - 100px)" }}
         id={paperId}
         {...PAPER_PROPS}
         ref={setPaper}
         className={PAPER_CLASSNAME}
-        height="calc(100vh - 100px)"
         snapLinks={{ radius: 25 }}
         renderElement={renderElement}
         linkPinning={false}
@@ -319,7 +316,6 @@ function Main() {
           if (model.get('type') !== ELEMENT_MODEL_TYPE) return 'root';
           // implicit: use the default selector for ElementModel cells
         }}
-        style={PAPER_STYLE}
         drawGrid={false}
       >
         <Selection selectedId={selectedElement} />

@@ -686,14 +686,11 @@ function Main() {
   }, [graph]);
 
   return (
-    <Paper
+    <Paper style={{ backgroundColor: '#0f172a', width: "100%", height: 800 }}
       ref={paperRef}
-      width="100%"
-      height={800}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
       linkRouting={SMOOTH_LINKS}
-      style={{ backgroundColor: '#0f172a' }}
       interactive={{ stopDelegation: false }}
     />
   );

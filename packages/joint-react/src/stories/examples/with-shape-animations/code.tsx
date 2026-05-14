@@ -420,9 +420,7 @@ function PowerControl() {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <Paper
-        width="100%"
-        height={500}
+      <Paper style={{ width: "100%", height: 500 }}
         className={PAPER_CLASSNAME}
         renderElement={RenderShapeElement}
         transform={'scale(3)'}

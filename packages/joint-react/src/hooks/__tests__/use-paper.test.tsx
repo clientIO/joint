@@ -70,7 +70,7 @@ describe('useResolvePaperId', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper ref={paperRef} id="late-ref-paper" width={10} height={10} />
+          <Paper style={{ width: 10, height: 10 }} ref={paperRef} id="late-ref-paper" />
           <Probe paperRef={paperRef} />
         </>
       );

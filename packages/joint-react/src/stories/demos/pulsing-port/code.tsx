@@ -125,12 +125,11 @@ function Main() {
   });
 
   return (
-    <Paper
+    <Paper style={{ width: "100%" }}
       id={paperId}
       defaultLink={{
         style: { color: PRIMARY, targetMarker: 'arrow' },
       }}
-      width="100%"
       renderElement={NodeElement}
       className={`${PAPER_CLASSNAME} h-[400px]`}
       linkPinning={false}

@@ -89,9 +89,8 @@ function RenderElement({ label }: Readonly<NodeData>) {
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper
+      <Paper style={{ height: 380 }}
         className={PAPER_CLASSNAME}
-        height={380}
         renderElement={RenderElement}
       />
     </GraphProvider>

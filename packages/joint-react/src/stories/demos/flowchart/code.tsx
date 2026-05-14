@@ -506,11 +506,10 @@ function Main() {
   });
 
   return (
-    <Paper
+    <Paper style={{ height: 600 }}
       ref={paperRef}
       id={paperId}
       gridSize={5}
-      height={600}
       overflow
       snapLabels
       className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}

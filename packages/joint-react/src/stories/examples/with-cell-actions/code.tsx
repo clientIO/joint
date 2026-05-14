@@ -564,7 +564,7 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
       {/* Canvas */}
-      <Paper className={PAPER_CLASSNAME} height={500} renderElement={RenderElement} />
+      <Paper style={{ height: 500 }} className={PAPER_CLASSNAME} renderElement={RenderElement} />
 
       {/* Control Panel - Glassmorphism Style */}
       <div

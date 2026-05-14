@@ -129,7 +129,7 @@ describe('usePaperEvents (hook integration)', () => {
     }
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper id="events-paper" width={100} height={100} renderElement={renderRectElement}>
+        <Paper style={{ width: 100, height: 100 }} id="events-paper" renderElement={renderRectElement}>
           <Probe />
         </Paper>
       </GraphProvider>

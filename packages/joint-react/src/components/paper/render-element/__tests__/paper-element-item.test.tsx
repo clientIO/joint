@@ -39,7 +39,7 @@ describe('paper-element-item exports', () => {
     let capturedPaper: unknown = null;
     const { rerender, container } = render(
       <GraphProvider initialCells={CELLS}>
-        <Paper width={100} height={100} renderElement={() => <rect />}>
+        <Paper style={{ width: 100, height: 100 }} renderElement={() => <rect />}>
           <StoreCapture
             onCapture={(graph, paper) => {
               capturedGraph = graph;
@@ -79,7 +79,7 @@ describe('paper-element-item exports', () => {
     let capturedPaper: unknown = null;
     const { rerender, container } = render(
       <GraphProvider initialCells={CELLS}>
-        <Paper width={100} height={100} useHTMLOverlay renderElement={() => <rect />}>
+        <Paper style={{ width: 100, height: 100 }} useHTMLOverlay renderElement={() => <rect />}>
           <StoreCapture
             onCapture={(graph, paper) => {
               capturedGraph = graph;
@@ -117,7 +117,7 @@ describe('paper-element-item exports', () => {
     let capturedPaper: unknown = null;
     const { rerender, container } = render(
       <GraphProvider initialCells={CELLS}>
-        <Paper width={100} height={100} useHTMLOverlay renderElement={() => <rect />}>
+        <Paper style={{ width: 100, height: 100 }} useHTMLOverlay renderElement={() => <rect />}>
           <StoreCapture
             onCapture={(graph, paper) => {
               capturedGraph = graph;
@@ -167,7 +167,7 @@ describe('paper-element-item exports', () => {
     let capturedPaper: unknown = null;
     const { rerender, container } = render(
       <GraphProvider initialCells={CELLS}>
-        <Paper width={100} height={100} renderElement={() => <rect />}>
+        <Paper style={{ width: 100, height: 100 }} renderElement={() => <rect />}>
           <StoreCapture
             onCapture={(graph, paper) => {
               capturedGraph = graph;

@@ -79,9 +79,7 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
 
 function Main() {
   return (
-    <Paper
-      width="100%"
-      height={350}
+    <Paper style={{ width: "100%", height: 350 }}
       className={PAPER_CLASSNAME}
       interactive={INTERACTIVE_OPTIONS}
     />

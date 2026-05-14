@@ -79,7 +79,7 @@ function renderProbe(visibility?: Visibility) {
   const function_ = pickRenderProbe(visibility);
   return render(
     <GraphProvider initialCells={initialCells}>
-      <Paper id="measure-paper" width={200} height={200} renderElement={function_} />
+      <Paper style={{ width: 200, height: 200 }} id="measure-paper" renderElement={function_} />
     </GraphProvider>
   );
 }
@@ -136,10 +136,8 @@ describe('useMeasureNode', () => {
     expect(() =>
       render(
         <GraphProvider initialCells={initialCells}>
-          <Paper
+          <Paper style={{ width: 100, height: 100 }}
             id="measure-throw-paper"
-            width={100}
-            height={100}
             renderElement={renderNullElement}
           >
             <NoCellProbe />
@@ -175,7 +173,7 @@ describe('useMeasureNode', () => {
     }
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper id="measure-link-paper" width={100} height={100} renderElement={renderLinkProbe} />
+        <Paper style={{ width: 100, height: 100 }} id="measure-link-paper" renderElement={renderLinkProbe} />
       </GraphProvider>
     );
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -187,7 +185,7 @@ describe('useMeasureNode', () => {
   it('returns size record without registering when ref.current is null at mount', async () => {
     const { container } = render(
       <GraphProvider initialCells={initialCells}>
-        <Paper id="measure-null-paper" width={100} height={100} renderElement={renderNoNodeProbe} />
+        <Paper style={{ width: 100, height: 100 }} id="measure-null-paper" renderElement={renderNoNodeProbe} />
       </GraphProvider>
     );
     await waitFor(() => {

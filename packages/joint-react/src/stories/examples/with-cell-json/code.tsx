@@ -164,11 +164,9 @@ function Main() {
   );
   return (
     <div className="flex w-full h-full">
-      <Paper
+      <Paper style={{ ...PAPER_STYLE, height: 400 }}
         className={PAPER_CLASSNAME}
-        height={400}
         renderElement={renderElement}
-        style={PAPER_STYLE}
       />
       <DataPanel />
     </div>

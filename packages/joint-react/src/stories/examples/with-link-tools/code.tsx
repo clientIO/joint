@@ -102,10 +102,9 @@ function Main() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper
+      <Paper style={{ height: 280 }}
         id={paperId}
         className={PAPER_CLASSNAME}
-        height={280}
         linkRouting={ORTHOGONAL_LINKS}
       />
       <div

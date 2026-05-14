@@ -152,7 +152,7 @@ function Main() {
   const renderElement = (data: ElementData) => <Node label={data.label} color={data.color} />;
 
   return (
-    <Paper id="my-paper" className={PAPER_CLASSNAME} height={380} renderElement={renderElement} />
+    <Paper style={{ height: 380 }} id="my-paper" className={PAPER_CLASSNAME} renderElement={renderElement} />
   );
 }
 

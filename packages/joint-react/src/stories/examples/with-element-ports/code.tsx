@@ -387,10 +387,9 @@ function Main() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 400, position: 'relative' }}>
-      <Paper
+      <Paper style={{ height: 400 }}
         renderElement={RenderElement}
         className={PAPER_CLASSNAME}
-        height={400}
         snapLinks={true}
         linkPinning={false}
         linkRouting={SMOOTH_LINKS}

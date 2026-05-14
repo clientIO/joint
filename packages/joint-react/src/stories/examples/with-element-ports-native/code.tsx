@@ -203,12 +203,10 @@ function Main() {
   );
 
   return (
-    <Paper
+    <Paper style={{ ...PAPER_STYLE, height: 420 }}
       className={PAPER_CLASSNAME}
-      height={420}
       renderElement={renderElement}
       linkPinning={false}
-      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

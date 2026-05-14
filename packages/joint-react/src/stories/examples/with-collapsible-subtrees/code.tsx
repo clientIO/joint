@@ -754,16 +754,14 @@ function Main() {
   const renderElement = useCallback((data: FTAData) => RenderFTAElement(data), []);
 
   return (
-    <Paper
+    <Paper style={{ ...PAPER_STYLE, height: 600 }}
       ref={paperRef}
       id={paperId}
-      height={600}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibilityCallback}
       linkRouting={ORTHOGONAL_LINKS}
       interactive={false}
-      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

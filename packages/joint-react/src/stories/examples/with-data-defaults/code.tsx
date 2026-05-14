@@ -161,11 +161,9 @@ function Diagram() {
       </button>
       <GraphProvider initialCells={initialCells}>
         <ThemeUpdater color={color} portShape={portShape} />
-        <Paper
+        <Paper style={{ ...PAPER_STYLE, height: 340 }}
           className={PAPER_CLASSNAME}
-          height={340}
           renderElement={renderElement}
-          style={PAPER_STYLE}
           defaultLink={getDefaultLink(color)}
         />
       </GraphProvider>

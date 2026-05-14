@@ -252,10 +252,9 @@ function PresetPicker() {
 
   return (
     <>
-      <Paper
+      <Paper style={{ height: 500 }}
         id="main-paper"
         className={PAPER_CLASSNAME}
-        height={500}
         renderElement={RenderElement}
         gridSize={1}
         drawGridSize={20}
