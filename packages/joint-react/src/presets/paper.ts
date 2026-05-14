@@ -26,7 +26,7 @@ export const DEFAULT_HIGHLIGHTING = {
     name: 'stroke',
     options: {
       attrs: {
-        strokeWidth: 2,
+        strokeWidth: 1,
         stroke: 'var(--jj-paper-highlight-color)',
       },
       rx: 4,

@@ -416,6 +416,7 @@ export function useCreatePortalPaper(
   useEffect(() => {
     if (!paper) return;
     if (paperWidthProp === undefined && paperHeightProp === undefined) return;
+    // @ts-expect-error JointJS types are wrong, setDimensions accepts partial dimensions
     paper.setDimensions(paperWidthProp, paperHeightProp);
   }, [paper, paperWidthProp, paperHeightProp]);
 
