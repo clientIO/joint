@@ -9,10 +9,14 @@ import type {
 /** Update payload accepted by container setters: a new value or a previous-state updater. */
 export type Update<T> = ((previous: T | undefined) => T | undefined) | T;
 
-/** Update payload for array-shaped state — replace or transform-from-previous. */
-export type ArrayUpdate<T> =
-  | readonly T[]
-  | ((previous: readonly T[]) => readonly T[]);
+/**
+ * Update payload for array-shaped state — replace or transform-from-previous.
+ * `Input` defaults to `T` (same type for read and write). Override it to
+ * widen the write side, e.g. `ArrayUpdate<Record, Record | dia.Cell>`.
+ */
+export type ArrayUpdate<T, Input = T> =
+  | readonly Input[]
+  | ((previous: readonly T[]) => readonly Input[]);
 
 /**
  * Resolves an update value by applying it if it is a function, or returning it directly.

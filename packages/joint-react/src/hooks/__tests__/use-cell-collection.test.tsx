@@ -3,8 +3,8 @@ import { mvc } from '@joint/core';
 import type { dia } from '@joint/core';
 import { renderHook, act } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
-import { useCollection } from '../use-collection';
-import type { useSetCollection } from '../use-set-collection';
+import { useCellCollection } from '../use-cell-collection';
+import type { useSetCellCollection } from '../use-set-cell-collection';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import type { CellRecord } from '../../types/cell.types';
@@ -51,9 +51,9 @@ function selectDataLabels(cells: readonly CellRecord[]): Array<string | null> {
   return cells.map((cell) => (cell as { data?: { label?: string } }).data?.label ?? null);
 }
 
-describe('useCollection', () => {
+describe('useCellCollection', () => {
   it('returns empty array + no-op setter when collection is undefined', async () => {
-    const { result } = renderHook(() => useCollection(), {
+    const { result } = renderHook(() => useCellCollection(), {
       wrapper: ({ children }) => (
         <GraphProvider initialCells={initialCells}>{children}</GraphProvider>
       ),
@@ -68,7 +68,7 @@ describe('useCollection', () => {
     // eslint-disable-next-line prefer-const
     let collection: mvc.Collection<dia.Cell> | undefined;
     const { result, rerender } = renderHook(
-      () => useCollection(collection),
+      () => useCellCollection(collection),
       {
         wrapper: ({ children }) => (
           <GraphProvider initialCells={initialCells}>
@@ -109,7 +109,7 @@ describe('useCollection', () => {
     let collection: mvc.Collection<dia.Cell> | undefined;
     const { result } = withGraph((graph) => {
       if (!collection) collection = new mvc.Collection<dia.Cell>([graph.getCell('a')!, graph.getCell('b')!]);
-      return useCollection(collection);
+      return useCellCollection(collection);
     });
     await flush();
     const [cells] = result.current;
@@ -120,7 +120,7 @@ describe('useCollection', () => {
     let collection: mvc.Collection<dia.Cell> | undefined;
     const { result, graph } = withGraph((g) => {
       if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-      return useCollection(collection);
+      return useCellCollection(collection);
     });
     await flush();
 
@@ -141,7 +141,7 @@ describe('useCollection', () => {
     let collection: mvc.Collection<dia.Cell> | undefined;
     const { result, graph } = withGraph((g) => {
       if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-      return useCollection(collection);
+      return useCellCollection(collection);
     });
     await flush();
     const [beforeCells] = result.current;
@@ -160,7 +160,7 @@ describe('useCollection', () => {
     let collection: mvc.Collection<dia.Cell> | undefined;
     const { result, graph } = withGraph((g) => {
       if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!, g.getCell('b')!]);
-      return useCollection(
+      return useCellCollection(
         collection,
         selectCellIds,
         { isEqual: idArraysEqual }
@@ -181,7 +181,7 @@ describe('useCollection', () => {
     const onChange = jest.fn();
     const { graph } = withGraph((g) => {
       if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-      return useCollection(collection, { onChange });
+      return useCellCollection(collection, { onChange });
     });
     await flush();
     expect(onChange).not.toHaveBeenCalled();
@@ -196,11 +196,11 @@ describe('useCollection', () => {
     let collection: mvc.Collection<dia.Cell> | undefined;
     const { result, graph } = withGraph((g) => {
       if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-      return useCollection(collection);
+      return useCellCollection(collection);
     });
     await flush();
 
-    const setter = result.current[1] as ReturnType<typeof useSetCollection>;
+    const setter = result.current[1] as ReturnType<typeof useSetCellCollection>;
     act(() => {
       setter([
         { id: 'b', type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } } as CellRecord,
@@ -223,7 +223,7 @@ describe('useCollection', () => {
     const { result, graph } = withGraph((g) => {
       if (!collectionA) collectionA = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
       if (!collectionB) collectionB = new mvc.Collection<dia.Cell>([g.getCell('b')!]);
-      return useCollection(collectionA);
+      return useCellCollection(collectionA);
     });
     await flush();
     expect(result.current[0].map((c) => c.id)).toEqual(['a']);
@@ -238,7 +238,7 @@ describe('useCollection', () => {
       let collection: mvc.Collection<dia.Cell> | undefined;
       const { result, graph } = withGraph((g) => {
         if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-        return useCollection(collection);
+        return useCellCollection(collection);
       });
       await flush();
       const [[before]] = result.current;
@@ -257,7 +257,7 @@ describe('useCollection', () => {
       let collection: mvc.Collection<dia.Cell> | undefined;
       const { result, graph } = withGraph((g) => {
         if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-        return useCollection(collection);
+        return useCellCollection(collection);
       });
       await flush();
       const [[before]] = result.current;
@@ -276,7 +276,7 @@ describe('useCollection', () => {
       let collection: mvc.Collection<dia.Cell> | undefined;
       const { result, graph } = withGraph((g) => {
         if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-        return useCollection(collection);
+        return useCellCollection(collection);
       });
       await flush();
       const [[before]] = result.current;
@@ -295,7 +295,7 @@ describe('useCollection', () => {
       let collection: mvc.Collection<dia.Cell> | undefined;
       const { result, graph } = withGraph((g) => {
         if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-        return useCollection(collection, selectDataLabels);
+        return useCellCollection(collection, selectDataLabels);
       });
       await flush();
       expect(result.current[0]).toEqual([null]);
@@ -318,7 +318,7 @@ describe('useCollection', () => {
       const { result, graph } = withGraph((g) => {
         if (!collection)
           collection = new mvc.Collection<dia.Cell>([g.getCell('a')!, g.getCell('b')!]);
-        return useCollection(collection);
+        return useCellCollection(collection);
       });
       await flush();
       const [[beforeA, beforeB]] = result.current;
@@ -341,7 +341,7 @@ describe('useCollection', () => {
       let collection: mvc.Collection<dia.Cell> | undefined;
       const { result, graph } = withGraph((g) => {
         if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-        return useCollection(collection, selectCellIds, { isEqual: idArraysEqual });
+        return useCellCollection(collection, selectCellIds, { isEqual: idArraysEqual });
       });
       await flush();
       expect(result.current[0]).toEqual(['a']);
@@ -359,7 +359,7 @@ describe('useCollection', () => {
       let collection: mvc.Collection<dia.Cell> | undefined;
       const { result, graph } = withGraph((g) => {
         if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-        return useCollection(collection, selectCellIds);
+        return useCellCollection(collection, selectCellIds);
       });
       await flush();
       expect(result.current[0]).toEqual(['a']);
@@ -398,7 +398,7 @@ describe('useCollection', () => {
       const onChange = jest.fn();
       const { graph } = withGraph((g) => {
         if (!collection) collection = new mvc.Collection<dia.Cell>([g.getCell('a')!]);
-        return useCollection(collection, { onChange });
+        return useCellCollection(collection, { onChange });
       });
       await flush();
       expect(onChange).not.toHaveBeenCalled();

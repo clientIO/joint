@@ -7,7 +7,7 @@ import { getMarkerLength } from './utils';
  * @param margin
  * @param minPathMargin
  */
-export function rightAngleRouter(margin: number, minPathMargin: number): routers.Router {
+export function rightAngleRouter(margin: number = 0, minPathMargin: number = 0): routers.Router {
   return (vertices, _args, linkView) => {
     const sourceMarkerLength = getMarkerLength(linkView!, 'source');
     const targetMarkerLength = getMarkerLength(linkView!, 'target');

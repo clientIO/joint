@@ -363,7 +363,8 @@ export function useCreatePortalPaper(
     // `assignOptions` (that would write `paper.options.width` directly,
     // bypassing the DOM update and tripping `setDimensions`'s early-exit
     // guard the next time it's called).
-    const { width: _w, height: _h, ...paperOptionsWithoutDimensions } = paperOptions;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { width, height, ...paperOptionsWithoutDimensions } = paperOptions;
 
     assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
@@ -411,13 +412,13 @@ export function useCreatePortalPaper(
   // in lockstep with `paper.options` — features like `<PaperScroller>`
   // that mutate `paper.options.width` via `setDimensions(...)` later won't
   // hit the early-exit guard because of a stale options value.
-  const paperWidthProp = paperOptions.width;
-  const paperHeightProp = paperOptions.height;
+  const paperWidthProperty = paperOptions.width;
+  const paperHeightProperty = paperOptions.height;
   useEffect(() => {
     if (!paper) return;
-    if (paperWidthProp === undefined && paperHeightProp === undefined) return;
-    paper.setDimensions(paperWidthProp, paperHeightProp);
-  }, [paper, paperWidthProp, paperHeightProp]);
+    if (paperWidthProperty === undefined && paperHeightProperty === undefined) return;
+    paper.setDimensions(paperWidthProperty ?? paper.options.width ?? 0, paperHeightProperty ?? paper.options.height ?? 0);
+  }, [paper, paperWidthProperty, paperHeightProperty]);
 
   const elements = useMemo(() => {
     if (!hasRenderElement) {

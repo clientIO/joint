@@ -30,10 +30,11 @@ export { useCellId } from './hooks/use-cell-id';
 export { useLinkLayout } from './hooks/use-link-layout';
 export { useGraph } from './hooks/use-graph';
 export type { UseGraphResult, ExportToJSONOptions } from './hooks/use-graph';
+export type { CellInput } from './utils/normalize-cell-input';
 export { useGraphStore } from './hooks/use-graph-store';
 export { usePaper, usePaperStore } from './hooks/use-paper';
-export { useCollection } from './hooks/use-collection';
-export { useSetCollection, type CollectionSetter } from './hooks/use-set-collection';
+export { useCellCollection } from './hooks/use-cell-collection';
+export { useSetCellCollection, type CellCollectionSetter } from './hooks/use-set-cell-collection';
 
 // Hooks — Measurement
 export { useMeasureNode } from './hooks/use-measure-node';

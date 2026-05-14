@@ -8,6 +8,10 @@ import type {
   CellId,
 } from '../types/cell.types';
 import { type ArrayUpdate } from '../store/state-container';
+import { normalizeCellInput, type CellInput } from '../utils/normalize-cell-input';
+
+export type { CellInput } from '../utils/normalize-cell-input';
+
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record
  * (read from the cells container) and returns the next record. Invoked
@@ -21,9 +25,11 @@ export type SetCellUpdater<
 > = (previous: Element | Link) => Element | Link;
 
 /**
- * Function returned by {@link useSetCell}. Two forms:
+ * Function returned by {@link useSetCell}. Three forms:
  * - `setCell(record)` — direct form. `record.id` names the target. Cell
  *   exists: attributes merge over it. Cell missing: cell is added.
+ * - `setCell(diaCell)` — dia.Cell form. The cell is converted to a record
+ *   and handled like the direct form.
  * - `setCell(id, updater)` — updater form. Throws when no cell with `id`
  *   exists. The updater is called once with the real previous record.
  * @template Element - element record shape
@@ -33,7 +39,7 @@ export interface SetCell<
   Element extends ElementJSONInit,
   Link extends LinkJSONInit,
 > {
-  (record: Element | Link): void;
+  (record: CellInput<Element, Link>): void;
   (id: CellId, updater: SetCellUpdater<Element, Link>): void;
 }
 
@@ -52,7 +58,7 @@ export function useSetCell<
   const { graph } = store;
   const setCell = useCallback(
     (
-      argument1: Element | Link | CellId,
+      argument1: CellInput<Element, Link> | CellId,
       argument2?: SetCellUpdater<Element, Link>
     ) => {
       const next = resolveSetCellInput(argument1, argument2, store);
@@ -95,11 +101,11 @@ export function useSetCell<
  * @returns resolved cell record
  */
 function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJSONInit>(
-  argument1: Element | Link | CellId,
+  argument1: CellInput<Element, Link> | CellId,
   argument2: SetCellUpdater<Element, Link> | undefined,
   store: ReturnType<typeof useGraphStore<Element, Link>>
 ): Element | Link {
-  if (argument2 === undefined) return argument1 as Element | Link;
+  if (argument2 === undefined) return normalizeCellInput<Element, Link>(argument1 as CellInput<Element, Link>);
   const id = argument1 as CellId;
   const previous = store.graphView.cells.get(id);
   if (!previous) {
@@ -154,6 +160,8 @@ export function useRemoveCells() {
 /**
  * Returns a function that atomically replaces all cells.
  * Accepts either a new array or an updater receiving the current snapshot.
+ * Both records and dia.Cell instances are accepted — dia.Cell instances
+ * are normalized to records before mapping.
  * Maps the next cells through `mapCellToAttributes` and calls
  * `graph.resetCells` directly — equivalent to JointJS' bulk-reset semantics.
  * @template Element - element record shape
@@ -167,10 +175,12 @@ export function useResetCells<
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
   return useCallback(
-    (input: ArrayUpdate<Element | Link>) => {
+    (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => {
       const current = store.graphView.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
-      const mapped: dia.Cell.JSONInit[] = next.map((cell) => mapCellToAttributes(cell, graph));
+      const mapped: dia.Cell.JSONInit[] = next.map((cell) =>
+        mapCellToAttributes(normalizeCellInput<Element, Link>(cell), graph)
+      );
       graph.resetCells(mapped);
     },
     [graph, store]
@@ -180,6 +190,8 @@ export function useResetCells<
 /**
  * Returns a function that applies an updater to the current cells array.
  * Shorthand for `resetCells(prev => updater(prev))` — removals happen via `filter`.
+ * The updater may return dia.Cell instances alongside records; they are
+ * normalized before applying.
  * @template Element - element record shape
  * @template Link - link record shape
  * @returns memoized updateCells setter
@@ -193,10 +205,12 @@ export function useUpdateCells<
     (
       updater: (
         previous: ReadonlyArray<Element | Link>
-      ) => ReadonlyArray<Element | Link>
+      ) => ReadonlyArray<CellInput<Element, Link>>
     ) => {
       const current = store.graphView.cells.getAll();
-      store.applyControlled(updater(current));
+      const next = updater(current);
+      const normalized = next.map((cell) => normalizeCellInput<Element, Link>(cell));
+      store.applyControlled(normalized);
     },
     [store]
   );

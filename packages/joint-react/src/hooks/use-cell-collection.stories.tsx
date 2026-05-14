@@ -4,7 +4,7 @@ import { mvc } from '@joint/core';
 import type { dia } from '@joint/core';
 import { GraphProvider } from '../components/graph/graph-provider';
 import { Paper } from '../components/paper/paper';
-import { useCollection } from './use-collection';
+import { useCellCollection } from './use-cell-collection';
 import { useCell } from './use-cell';
 import { useMarkup } from './use-markup';
 import { usePaperEvents } from './use-paper-events';
@@ -57,7 +57,7 @@ const SEED_CELLS: readonly ShapeRecord[] = CELL_HUES.map((color, index) => ({
   data: { color, label: LABELS[index] ?? 'Node' },
 }));
 
-const PAPER_ID = 'use-collection-watchlist-demo';
+const PAPER_ID = 'use-cell-collection-watchlist-demo';
 
 function selectShapeData(cell: ComputedShapeRecord): ShapeData {
   return cell.data;
@@ -176,8 +176,8 @@ function totalArea(cells: readonly ComputedShapeRecord[]): number {
 function Watchlist() {
   const collection = useMemo<mvc.Collection<dia.Cell>>(() => new mvc.Collection<dia.Cell>([]), []);
 
-  const [cells, setCells] = useCollection<ComputedShapeRecord>(collection);
-  const [area] = useCollection<ComputedShapeRecord, number>(collection, totalArea);
+  const [cells, setCells] = useCellCollection<ComputedShapeRecord>(collection);
+  const [area] = useCellCollection<ComputedShapeRecord, number>(collection, totalArea);
 
   const paperEventHandlers = useMemo(
     () => ({
@@ -242,7 +242,7 @@ function Watchlist() {
       <header className="mb-7 max-w-180">
         <div className="mb-3.5 inline-flex items-center gap-2 border border-[#2A3845] bg-[#192531] px-2.5 py-1 font-mono text-[11px] tracking-[0.06em] text-[#7B8A98] uppercase">
           <span className="h-1.5 w-1.5 rounded-full bg-[#ED2637]" />
-          <span>@joint/react · useCollection</span>
+          <span>@joint/react · useCellCollection</span>
         </div>
         <h1 className="m-0 font-sans text-[clamp(24px,3vw,36px)] leading-[1.15] font-semibold tracking-[-0.01em] text-[#DDE6ED]">
           Subscribe to any <span className="text-[#ED2637]">mvc.Collection</span> of cells —{' '}
@@ -261,7 +261,7 @@ function Watchlist() {
           </span>{' '}
           also flow through{' '}
           <span className="rounded-[3px] bg-[#1F2C39] px-1.5 py-px font-mono text-[12.5px] text-[#DDE6ED]">
-            useCollection
+            useCellCollection
           </span>
           .
         </p>
@@ -362,7 +362,7 @@ function Demo() {
 }
 
 const meta: Meta<typeof Demo> = {
-  title: 'Hooks/useCollection',
+  title: 'Hooks/useCellCollection',
   component: Demo,
   parameters: { layout: 'fullscreen' },
 };

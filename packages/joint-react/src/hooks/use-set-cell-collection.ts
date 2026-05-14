@@ -5,18 +5,18 @@ import type {
   CellRecord,
   Computed,
 } from '../types/cell.types';
-import type { ArrayUpdate } from '../store/state-container';
+import { type ArrayUpdate } from '../store/state-container';
 import { useGraphStore } from './use-graph-store';
 import { mapCellToAttributes } from '../state/data-mapping';
 import { toCellRecord } from '../state/data-mapping/cell-record-merge';
 
 /**
- * Function returned by {@link useSetCollection}. Replaces the contents of a
- * JointJS collection with the supplied records.
+ * Function returned by {@link useSetCellCollection}. Replaces the contents of a
+ * JointJS collection with the supplied records or dia.Cell instances.
  *
  * Two forms:
- * - `set(records)` — direct form. Records map to `dia.Cell` instances and
- *   the collection is reset.
+ * - `set(records)` — direct form. Records (or dia.Cell instances) map to
+ *   `dia.Cell` instances and the collection is reset.
  * - `set(previous => next)` — updater form. The updater receives the
  *   current records derived from `collection.models`.
  *
@@ -24,8 +24,8 @@ import { toCellRecord } from '../state/data-mapping/cell-record-merge';
  * when the source collection (selection, clipboard, …) is not yet mounted.
  * @template Cell - resolved record shape (defaults to `Computed<CellRecord>`)
  */
-export type CollectionSetter<Cell extends CellRecord = Computed<CellRecord>> = (
-  input: ArrayUpdate<Cell>
+export type CellCollectionSetter<Cell extends CellRecord = Computed<CellRecord>> = (
+  input: ArrayUpdate<Cell, Cell | dia.Cell>
 ) => void;
 
 /**
@@ -56,7 +56,7 @@ function resolveRecordToCell(record: AnyCellRecord, graph: dia.Graph): dia.Cell 
 
 /**
  * Read the current records from a `mvc.Collection<dia.Cell>` without setting
- * up a subscription. Used by {@link useSetCollection}'s updater form so the
+ * up a subscription. Used by {@link useSetCellCollection}'s updater form so the
  * hook does not need a long-lived `CollectionView`.
  * @template Cell - resolved record shape
  * @param collection - the JointJS collection to snapshot
@@ -88,25 +88,29 @@ function snapshotRecords<Cell extends CellRecord>(
  *   source feature is still mounting
  * @returns memoized setter; stable no-op while `collection` is `undefined`
  */
-export function useSetCollection<Cell extends CellRecord = Computed<CellRecord>>(
+export function useSetCellCollection<Cell extends CellRecord = Computed<CellRecord>>(
   collection?: mvc.Collection<dia.Cell>
-): CollectionSetter<Cell> {
+): CellCollectionSetter<Cell> {
   const { graph } = useGraphStore();
 
-  return useCallback<CollectionSetter<Cell>>(
+  return useCallback<CellCollectionSetter<Cell>>(
     (input) => {
       if (!collection) return;
 
       const nextRecords =
         typeof input === 'function' ? input(snapshotRecords<Cell>(collection)) : input;
 
-      graph.startBatch('useSetCollection');
+      graph.startBatch('useSetCellCollection');
       const models: dia.Cell[] = [];
-      for (const record of nextRecords) {
-        models.push(resolveRecordToCell(record as AnyCellRecord, graph));
+      for (const item of nextRecords) {
+        if (item instanceof dia.Cell) {
+          models.push(item);
+        } else {
+          models.push(resolveRecordToCell(item as AnyCellRecord, graph));
+        }
       }
       collection.reset(models);
-      graph.stopBatch('useSetCollection');
+      graph.stopBatch('useSetCellCollection');
     },
     [collection, graph]
   );

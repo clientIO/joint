@@ -23,6 +23,7 @@ import type { Feature } from '../types/feature.types';
 import { graphView, type GraphView, type IncrementalCellsChange } from './graph-view';
 import { mapCellToAttributes } from '../state/data-mapping';
 import { simpleScheduler } from '../utils/scheduler';
+import { normalizeCellInput, type CellInput } from '../utils/normalize-cell-input';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -70,7 +71,7 @@ interface GraphStoreOptionsUncontrolled<
   Element extends ElementJSONInit,
   Link extends LinkJSONInit,
 > extends GraphStoreOptionsBase<Element, Link> {
-  readonly initialCells?: ReadonlyArray<Element | Link>;
+  readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
   readonly cells?: never;
   readonly onCellsChange?: (cells: ReadonlyArray<Element | Link>) => void;
 }
@@ -217,7 +218,7 @@ export class GraphStore<
       // Replace existing graph state with the seed cells. The graph-changes
       // listener handles `reset` synchronously and populates the cells
       // container — no manual `syncFromGraph` needed.
-      const mapped = seedCells.map((cell) => mapCellToAttributes(cell, this.graph));
+      const mapped = seedCells.map((cell) => mapCellToAttributes(normalizeCellInput(cell), this.graph));
       this.graph.resetCells(mapped);
     } else if (this.graph.getCells().length > 0) {
       // External graph already has cells — populate the cells container

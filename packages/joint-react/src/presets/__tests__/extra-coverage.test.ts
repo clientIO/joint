@@ -368,11 +368,8 @@ describe('presets / link-view / LinkView', () => {
 
 describe('presets / paper module / Paper', () => {
   it('can be instantiated and applies preset options', () => {
-    const container = document.createElement('div');
-    document.body.append(container);
     const graph = new dia.Graph({}, { cellNamespace: shapes });
     const paper = new Paper({
-      el: container,
       model: graph,
       cellViewNamespace: shapes,
       width: 100,
@@ -381,11 +378,10 @@ describe('presets / paper module / Paper', () => {
 
     try {
       expect(paper).toBeInstanceOf(dia.Paper);
-      expect(paper.el.classList.contains('jj-paper')).toBe(true);
+      expect(paper.el.classList.contains('joint-jj-paper')).toBe(true);
       expect(paper.el.classList.contains('joint-paper')).toBe(true);
     } finally {
       paper.remove();
-      container.remove();
     }
   });
 });

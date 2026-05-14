@@ -8,7 +8,9 @@ import {
   useResetCells,
   useUpdateCells,
   type SetCell,
+  type CellInput,
 } from './use-cell-setters';
+import type { ArrayUpdate } from '../store/state-container';
 import type {
   ElementJSONInit,
   LinkJSONInit,
@@ -46,19 +48,13 @@ export interface UseGraphResult<
   readonly removeCell: (id: CellId) => void;
   /** Remove multiple cells by id. Missing ids are silently skipped. */
   readonly removeCells: (ids: readonly CellId[]) => void;
-  /** Atomically replace the cell set. */
-  readonly resetCells: (
-    input:
-      | ReadonlyArray<Element | Link>
-      | ((
-          previous: ReadonlyArray<Element | Link>
-        ) => ReadonlyArray<Element | Link>)
-  ) => void;
-  /** Apply an updater to the current cells array. */
+  /** Atomically replace the cell set. Accepts dia.Cell instances alongside records. */
+  readonly resetCells: (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => void;
+  /** Apply an updater to the current cells array. Updater may return dia.Cell instances. */
   readonly updateCells: (
     updater: (
       previous: ReadonlyArray<Element | Link>
-    ) => ReadonlyArray<Element | Link>
+    ) => ReadonlyArray<CellInput<Element, Link>>
   ) => void;
   /**
    * Predicate / type guard: true when the input resolves to an element cell.

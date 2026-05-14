@@ -174,9 +174,7 @@ export function usePaper(id: string): { paper: dia.Paper | null } & UsePaperActi
 export function usePaper(
   idOrOptions?: string | Optional
 ): { paper: dia.Paper | null } & UsePaperActions;
-/**
- *
- */
+/** Hook that returns the paper instance and actions for the given paper id or options. */
 export function usePaper(
   idOrOptions?: string | Optional
 ): { paper: dia.Paper | null } & UsePaperActions {

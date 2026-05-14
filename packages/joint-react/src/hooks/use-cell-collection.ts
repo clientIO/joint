@@ -2,14 +2,14 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { type mvc, type dia } from '@joint/core';
 import type { CellRecord, Computed } from '../types/cell.types';
-import { useSetCollection, type CollectionSetter } from './use-set-collection';
+import { useSetCellCollection, type CellCollectionSetter } from './use-set-cell-collection';
 import { createCollectionView, type CollectionView } from '../store/collection-view';
 import { arrayAwareEqual } from '../utils/selector-utils';
 
 const EMPTY_CELLS: readonly never[] = Object.freeze([]);
 
-/** Options accepted by every form of {@link useCollection}. */
-export interface UseCollectionOptions<Cell, Selected> {
+/** Options accepted by every form of {@link useCellCollection}. */
+export interface UseCellCollectionOptions<Cell, Selected> {
   /** Fired after every observable mutation. Not invoked on mount. */
   readonly onChange?: (cells: readonly Cell[]) => void;
   /**
@@ -23,10 +23,10 @@ export interface UseCollectionOptions<Cell, Selected> {
  * Subscribe to a JointJS collection's cells as `CellRecord` instances.
  *
  * Two forms:
- * - `useCollection(collection, options?)` — returns `[cells, set]`.
- * - `useCollection(collection, selector, options?)` — returns `[selected, set]`.
+ * - `useCellCollection(collection, options?)` — returns `[cells, set]`.
+ * - `useCellCollection(collection, selector, options?)` — returns `[selected, set]`.
  *
- * The setter is the same one returned by {@link useSetCollection}.
+ * The setter is the same one returned by {@link useSetCellCollection}.
  *
  * The view that mirrors the collection is local to this hook instance —
  * destroyed on unmount and rebuilt on collection changes. Each call sets up
@@ -39,10 +39,10 @@ export interface UseCollectionOptions<Cell, Selected> {
  * @param options - hook options
  * @returns tuple of records and setter
  */
-export function useCollection<Cell extends CellRecord = Computed<CellRecord>>(
+export function useCellCollection<Cell extends CellRecord = Computed<CellRecord>>(
   collection?: mvc.Collection<dia.Cell>,
-  options?: UseCollectionOptions<Cell, readonly Cell[]>
-): readonly [readonly Cell[], CollectionSetter<Cell>];
+  options?: UseCellCollectionOptions<Cell, readonly Cell[]>
+): readonly [readonly Cell[], CellCollectionSetter<Cell>];
 /**
  * Subscribe to a JointJS collection's cells with a selector.
  * @template Cell - resolved record shape
@@ -52,28 +52,28 @@ export function useCollection<Cell extends CellRecord = Computed<CellRecord>>(
  * @param options - hook options (isEqual, onChange)
  * @returns tuple of selected value and setter
  */
-export function useCollection<
+export function useCellCollection<
   Cell extends CellRecord = Computed<CellRecord>,
   Selected = readonly Cell[],
 >(
   collection?: mvc.Collection<dia.Cell>,
   selector?: (cells: readonly Cell[]) => Selected,
-  options?: UseCollectionOptions<Cell, Selected>
-): readonly [Selected, CollectionSetter<Cell>];
-export function useCollection<
+  options?: UseCellCollectionOptions<Cell, Selected>
+): readonly [Selected, CellCollectionSetter<Cell>];
+export function useCellCollection<
   Cell extends CellRecord = Computed<CellRecord>,
   Selected = readonly Cell[],
 >(
   collection?: mvc.Collection<dia.Cell>,
-  argument2?: ((cells: readonly Cell[]) => Selected) | UseCollectionOptions<Cell, Selected>,
-  argument3?: UseCollectionOptions<Cell, Selected>
-): readonly [Selected, CollectionSetter<Cell>] {
-  const setter = useSetCollection<Cell>(collection);
+  argument2?: ((cells: readonly Cell[]) => Selected) | UseCellCollectionOptions<Cell, Selected>,
+  argument3?: UseCellCollectionOptions<Cell, Selected>
+): readonly [Selected, CellCollectionSetter<Cell>] {
+  const setter = useSetCellCollection<Cell>(collection);
 
   const isSelector = typeof argument2 === 'function';
   const selector = isSelector ? (argument2 as (cells: readonly Cell[]) => Selected) : undefined;
   const options =
-    (isSelector ? argument3 : (argument2 as UseCollectionOptions<Cell, Selected> | undefined)) ??
+    (isSelector ? argument3 : (argument2 as UseCellCollectionOptions<Cell, Selected> | undefined)) ??
     undefined;
   const onChange = options?.onChange;
   const userIsEqual = options?.isEqual;

@@ -5,6 +5,7 @@ import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { IncrementalCellsChange } from '../../store/graph-view';
 import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
+import type { CellInput } from '../../utils/normalize-cell-input';
 
 /** Cells array accepted by GraphProvider. */
 type ProviderCells<
@@ -47,6 +48,7 @@ interface GraphProviderBaseProps<
 
 /**
  * Uncontrolled — parent provides seed cells only, JointJS drives the graph.
+ * `initialCells` accepts both plain records and dia.Cell instances.
  * @template ElementData - user data on each element
  * @template LinkData - user data on each link
  */
@@ -54,7 +56,7 @@ interface GraphProviderUncontrolledProps<
   Element extends ElementJSONInit,
   Link extends LinkJSONInit,
 > extends GraphProviderBaseProps<Element, Link> {
-  readonly initialCells?: ProviderCells<Element, Link>;
+  readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
   readonly cells?: never;
   /** Notification-only callback — React state is NOT pushed back into the graph. */
   readonly onCellsChange?: (cells: ProviderCells<Element, Link>) => void;

@@ -13,5 +13,5 @@ export * from './use-markup';
 export * from './use-nodes-measured-effect';
 export * from './use-create-portal-paper';
 export * from './use-create-features';
-export * from './use-collection';
-export * from './use-set-collection';
+export * from './use-cell-collection';
+export * from './use-set-cell-collection';
