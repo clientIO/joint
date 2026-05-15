@@ -323,6 +323,11 @@ export const Paper = View.extend({
 
         width: 800,
         height: 600,
+        // Track host-element CSS size changes via ResizeObserver and re-emit
+        // 'resize' so downstream listeners (grid, scroller, rulers) follow
+        // CSS-relative sizing (`null`/`'100%'`/etc.). No-op when both `width`
+        // and `height` are numeric — `setDimensions()` is the size authority then.
+        autoResizePaper: true,
         gridSize: 1,
         // Whether or not to draw the grid lines on the paper's DOM element.
         // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
@@ -668,6 +673,7 @@ export const Paper = View.extend({
         this.cloneOptions();
         this.render();
         this._setDimensions();
+        this._startObservingElementSize();
         this.startListening();
 
         // Mouse wheel events buffer
@@ -2253,6 +2259,7 @@ export const Paper = View.extend({
 
     onRemove: function() {
 
+        this._stopObservingElementSize();
         this.freeze();
         this._updates.disabled = true;
         //clean up all DOM elements/views to prevent memory leaks
@@ -2281,6 +2288,15 @@ export const Paper = View.extend({
         this._setDimensions();
         const computedSize = this.getComputedSize();
         this.trigger('resize', computedSize.width, computedSize.height, data);
+        // Prime the observer dedup state so the next ResizeObserver callback
+        // (triggered by the CSS write inside `_setDimensions`) doesn't re-emit.
+        if (this._elementResizeObserver) {
+            this._lastObservedSize = { width: computedSize.width, height: computedSize.height };
+        }
+        // Re-evaluate observer attachment in case the user toggled between
+        // explicit-size and CSS-relative modes.
+        this._stopObservingElementSize();
+        this._startObservingElementSize();
     },
 
     _setDimensions: function() {
@@ -2293,6 +2309,41 @@ export const Paper = View.extend({
             width: (w === null) ? '' : w,
             height: (h === null) ? '' : h
         });
+    },
+
+    _elementResizeObserver: null,
+    _lastObservedSize: null,
+
+    _startObservingElementSize: function() {
+        if (this._elementResizeObserver) return;
+        if (!this.options.autoResizePaper) return;
+        if (typeof ResizeObserver === 'undefined') return;
+        const { width, height } = this.options;
+        // Explicit-size mode: `setDimensions()` is the sole source of 'resize'.
+        if (isNumber(width) && isNumber(height)) return;
+
+        const size = this.getComputedSize();
+        this._lastObservedSize = { width: size.width, height: size.height };
+
+        this._elementResizeObserver = new ResizeObserver(() => {
+            if (!this.el || !this._elementResizeObserver) return;
+            const next = this.getComputedSize();
+            const prev = this._lastObservedSize;
+            if (prev && prev.width === next.width && prev.height === next.height) return;
+            this._lastObservedSize = { width: next.width, height: next.height };
+            // The host already has its CSS-driven size; do not call
+            // `_setDimensions()` here — writing px values back would clobber CSS.
+            this.trigger('resize', next.width, next.height, { source: 'observer' });
+        });
+        this._elementResizeObserver.observe(this.el);
+    },
+
+    _stopObservingElementSize: function() {
+        if (this._elementResizeObserver) {
+            this._elementResizeObserver.disconnect();
+            this._elementResizeObserver = null;
+        }
+        this._lastObservedSize = null;
     },
 
     // Expand/shrink the paper to fit the content.
