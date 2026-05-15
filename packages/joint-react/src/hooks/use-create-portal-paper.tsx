@@ -372,13 +372,14 @@ export function useCreatePortalPaper(
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
       cellVisibility: cellVisibilityCallback,
-      interactive: interactiveValue,
       ...paperOptions,
       ...linkRouting,
       ...escapeHatchOptions,
     });
 
     const { drawGrid, gridSize } = paperOptions;
+
+    paper.setInteractivity(interactiveValue);
 
     if (drawGrid !== undefined) {
       paper.setGrid(drawGrid);
