@@ -2321,6 +2321,13 @@ export const Paper = View.extend({
 
         this._elementResizeObserver = new ResizeObserver(() => {
             if (!this.el || !this._elementResizeObserver) return;
+            // Re-read via getComputedSize() rather than the ResizeObserverEntry
+            // payload. `clientWidth/clientHeight` (the non-numeric branch of
+            // getComputedSize) is the padding box minus scrollbar — none of
+            // `contentBoxSize` / `borderBoxSize` / `contentRect` match exactly
+            // once the host has padding or border. Re-reading keeps the size
+            // we emit identical to every other `getComputedSize()` caller; the
+            // cost is one DOM read in a post-layout callback.
             const next = this.getComputedSize();
             const prev = this._lastObservedSize;
             if (prev && prev.width === next.width && prev.height === next.height) return;
