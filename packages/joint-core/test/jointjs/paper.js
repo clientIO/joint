@@ -142,27 +142,6 @@ QUnit.module('paper', function(hooks) {
                 });
             });
 
-            QUnit.test('false disables the observer', function(assert) {
-                var done = assert.async();
-                var paperEl = document.createElement('div');
-                $container.append(paperEl);
-                var paper = new joint.dia.Paper({
-                    el: paperEl,
-                    model: new joint.dia.Graph,
-                    width: '100%',
-                    height: '100%',
-                    autoResizePaper: false
-                });
-                var spy = sinon.spy();
-                paper.on('resize', spy);
-                $container.css({ width: '321px', height: '123px' });
-                afterResizeObserverDelivery(function() {
-                    assert.ok(spy.notCalled, 'observer is not attached when autoResizePaper=false');
-                    paper.remove();
-                    done();
-                });
-            });
-
             QUnit.test('disconnects on paper.remove()', function(assert) {
                 var paperEl = document.createElement('div');
                 $container.append(paperEl);

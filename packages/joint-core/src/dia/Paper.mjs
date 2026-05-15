@@ -2283,11 +2283,6 @@ export const Paper = View.extend({
         this._setDimensions();
         const computedSize = this.getComputedSize();
         this.trigger('resize', computedSize.width, computedSize.height, data);
-        // Prime the observer dedup state so the next ResizeObserver callback
-        // (triggered by the CSS write inside `_setDimensions`) doesn't re-emit.
-        if (this._elementResizeObserver) {
-            this._lastObservedSize = { width: computedSize.width, height: computedSize.height };
-        }
         // Re-evaluate observer attachment in case the user toggled between
         // explicit-size and CSS-relative modes.
         this._stopObservingElementSize();
