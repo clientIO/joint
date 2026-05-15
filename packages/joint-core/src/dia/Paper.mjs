@@ -323,11 +323,6 @@ export const Paper = View.extend({
 
         width: 800,
         height: 600,
-        // Track host-element CSS size changes via ResizeObserver and re-emit
-        // 'resize' so downstream listeners (grid, scroller, rulers) follow
-        // CSS-relative sizing (`null`/`'100%'`/etc.). No-op when both `width`
-        // and `height` are numeric — `setDimensions()` is the size authority then.
-        autoResizePaper: true,
         gridSize: 1,
         // Whether or not to draw the grid lines on the paper's DOM element.
         // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
@@ -2316,7 +2311,6 @@ export const Paper = View.extend({
 
     _startObservingElementSize: function() {
         if (this._elementResizeObserver) return;
-        if (!this.options.autoResizePaper) return;
         if (typeof ResizeObserver === 'undefined') return;
         const { width, height } = this.options;
         // Explicit-size mode: `setDimensions()` is the sole source of 'resize'.

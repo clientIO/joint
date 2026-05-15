@@ -1736,7 +1736,6 @@ export namespace Paper {
         // appearance
         width?: Dimension;
         height?: Dimension;
-        autoResizePaper?: boolean;
         drawGrid?: boolean | GridOptions | GridOptions[];
         drawGridSize?: number | null;
         background?: BackgroundOptions;
