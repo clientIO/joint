@@ -106,11 +106,10 @@ function Main() {
   >((cells) => cells.filter((cell) => isElement(cell)) as ReadonlyArray<ElementRecord<NodeData>>);
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper
+      <Paper style={{ height: 380 }}
         className={PAPER_CLASSNAME}
         clickThreshold={10}
         linkRouting={ORTHOGONAL_LINKS}
-        height={380}
         renderElement={RenderElement}
       />
       <div style={{ display: 'flex', flexDirection: 'column' }}>

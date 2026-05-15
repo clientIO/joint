@@ -497,12 +497,10 @@ function Main() {
   });
 
   return (
-    <Paper
+    <Paper style={{ background: BG_COLOR, width: "100%" }}
       id={paperId}
       className={`${PAPER_CLASSNAME} h-150`}
-      width="100%"
       interactive={false}
-      style={{ background: BG_COLOR }}
       drawGrid={false}
     />
   );

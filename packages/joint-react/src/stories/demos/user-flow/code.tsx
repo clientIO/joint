@@ -354,15 +354,12 @@ function Main() {
 
   return (
     <GraphProvider cells={themedCells} onCellsChange={setCells}>
-      <Paper
+      <Paper style={{ backgroundColor: 'transparent', width: '100%', height: '100%' }}
         gridSize={5}
         drawGrid={false}
-        style={{ backgroundColor: 'transparent' }}
-        height={'100%'}
         defaultLink={{
           style: { color: isDark ? 'rgba(255,255,255,0.35)' : '#000000' },
         }}
-        width={'100%'}
         renderElement={renderElement}
         clickThreshold={10}
         magnetThreshold={'onleave'}

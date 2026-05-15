@@ -745,13 +745,10 @@ function Main() {
   useNodesMeasuredEffect(paperId, handleElementsMeasured);
 
   return (
-    <Paper
+    <Paper style={{ ...PAPER_STYLE, width: "100%", height: 600 }}
       id={paperId}
-      width="100%"
-      height={600}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
-      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

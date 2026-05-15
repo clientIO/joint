@@ -102,12 +102,12 @@ function DataPanel() {
 // Main
 // ============================================================================
 
-const PAPER_STYLE = { flex: 1 };
+const PAPER_STYLE = { flex: 1, height: 400 };
 
 function Main() {
   return (
     <div className="flex w-full h-full">
-      <Paper className={PAPER_CLASSNAME} height={400} style={PAPER_STYLE} />
+      <Paper className={PAPER_CLASSNAME} style={PAPER_STYLE} />
       <DataPanel />
     </div>
   );

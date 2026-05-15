@@ -73,7 +73,6 @@ const PAPER_PROPS: PaperProps = {
   linkRouting: linkRoutingOrthogonal({ cornerType: 'line', margin: 25 }),
   snapLinks: { radius: 25 },
   linkPinning: false,
-  width: '100%',
 };
 
 // Create initial cells with typing support.
@@ -286,13 +285,11 @@ function MiniMap() {
 
   return (
     <div className="absolute bottom-6 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
-      <Paper
+      <Paper style={{ width: '100%', height: '100%' }}
         id={minimapId}
         {...PAPER_PROPS}
         interactive={false}
-        width={'100%'}
         className={`${PAPER_CLASSNAME} h-full bg-gray-900 shadow-md`}
-        height={'100%'}
         renderElement={MinimapRenderElement}
         drawGrid={false}
       />

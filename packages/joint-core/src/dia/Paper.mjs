@@ -2329,6 +2329,10 @@ export const Paper = View.extend({
         const maxWidth = opt.maxWidth || Number.MAX_VALUE;
         const maxHeight = opt.maxHeight || Number.MAX_VALUE;
         const newOrigin = opt.allowNewOrigin;
+        // Shift the grid anchor so the first cell starts at (originX, originY)
+        // in paper-local coords. Default 0 reproduces the prior behavior.
+        const originX = opt.originX || 0;
+        const originY = opt.originY || 0;
 
         const area = ('contentArea' in opt) ? new Rect(opt.contentArea) : this.getContentArea(opt);
         const { sx, sy } = this.scale();
@@ -2336,6 +2340,10 @@ export const Paper = View.extend({
         area.y *= sy;
         area.width *= sx;
         area.height *= sy;
+        // Move the area into the origin-relative coordinate system.
+        // All grid math below then operates relative to (originX, originY).
+        area.x -= originX * sx;
+        area.y -= originY * sy;
 
         let calcWidth = Math.ceil((area.width + area.x) / gridWidth);
         let calcHeight = Math.ceil((area.height + area.y) / gridHeight);
@@ -2371,7 +2379,9 @@ export const Paper = View.extend({
         calcWidth = Math.min(calcWidth, maxWidth);
         calcHeight = Math.min(calcHeight, maxHeight);
 
-        return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
+        // Translate the returned rect back into the absolute coordinate
+        // system (undo the origin-relative shift applied to area.x/y).
+        return new Rect(-tx / sx + originX, -ty / sy + originY, calcWidth / sx, calcHeight / sy);
     },
 
     transformToFitContent: function(opt) {

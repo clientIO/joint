@@ -56,7 +56,7 @@ describe('Paper', () => {
       });
       return (
         <GraphProvider initialCells={CELLS}>
-          <Paper ref={ref} width={100} height={100} renderElement={renderRectElement} />
+          <Paper style={{ width: 100, height: 100 }} ref={ref} renderElement={renderRectElement} />
         </GraphProvider>
       );
     }

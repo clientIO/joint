@@ -144,9 +144,8 @@ export default function App() {
         </button>
       </div>
       <GraphProvider initialCells={initialCells}>
-        <Paper
+        <Paper style={{ height: 240 }}
           className={PAPER_CLASSNAME}
-          height={240}
           renderElement={renderElement}
           defaultLink={DEFAULT_LINK}
         />

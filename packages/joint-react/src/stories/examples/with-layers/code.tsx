@@ -159,16 +159,14 @@ function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
           </button>
         ))}
       </div>
-      <Paper
+      <Paper style={{ ...PAPER_STYLE, height: 300 }}
         id="layers-paper"
-        height={300}
         className={PAPER_CLASSNAME}
         renderElement={RenderElement}
         cellVisibility={({ model }) => {
           const cellLayer = model.layer();
           return !cellLayer || !hiddenLayers.has(cellLayer);
         }}
-        style={PAPER_STYLE}
         drawGrid={false}
       />
     </div>

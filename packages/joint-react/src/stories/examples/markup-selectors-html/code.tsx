@@ -142,9 +142,7 @@ function Main() {
   }, []);
 
   return (
-    <Paper
-      width="100%"
-      height={280}
+    <Paper style={{ width: "100%", height: 280 }}
       renderElement={renderElement}
       magnetThreshold="onleave"
       linkPinning={false}
