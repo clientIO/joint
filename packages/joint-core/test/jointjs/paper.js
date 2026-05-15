@@ -95,6 +95,100 @@ QUnit.module('paper', function(hooks) {
             resizeCbSpy.resetHistory();
         });
 
+        QUnit.module('autoResizePaper', function() {
+
+            // Waits for the ResizeObserver to deliver its async callback.
+            // Two rAFs cover the spec's "delivered before the next paint" plus
+            // browser implementation slack.
+            function afterResizeObserverDelivery(callback) {
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(callback);
+                });
+            }
+
+            QUnit.test('fires resize when host CSS size changes', function(assert) {
+                var done = assert.async();
+                var paper = this.paper;
+                // '100%' / '100%' makes the paper fill the container while
+                // keeping options non-numeric (i.e. observer-eligible).
+                $container.css({ width: '200px', height: '100px' });
+                paper.setDimensions('100%', '100%');
+                var spy = sinon.spy();
+                paper.on('resize', spy);
+                afterResizeObserverDelivery(function() {
+                    spy.resetHistory();
+                    $container.css({ width: '300px', height: '150px' });
+                    afterResizeObserverDelivery(function() {
+                        assert.ok(spy.called, 'resize fires for host size change');
+                        var args = spy.lastCall.args;
+                        assert.equal(args[0], 300, 'width reports host clientWidth');
+                        assert.equal(args[1], 150, 'height reports host clientHeight');
+                        assert.deepEqual(args[2], { source: 'observer' }, 'data carries observer source');
+                        done();
+                    });
+                });
+            });
+
+            QUnit.test('numeric dimensions skip the observer', function(assert) {
+                var done = assert.async();
+                var paper = this.paper;
+                paper.setDimensions(200, 100);
+                var spy = sinon.spy();
+                paper.on('resize', spy);
+                $container.css({ width: '500px', height: '500px' });
+                afterResizeObserverDelivery(function() {
+                    assert.ok(spy.notCalled, 'host CSS resize ignored in explicit-size mode');
+                    done();
+                });
+            });
+
+            QUnit.test('false disables the observer', function(assert) {
+                var done = assert.async();
+                var paperEl = document.createElement('div');
+                $container.append(paperEl);
+                var paper = new joint.dia.Paper({
+                    el: paperEl,
+                    model: new joint.dia.Graph,
+                    width: '100%',
+                    height: '100%',
+                    autoResizePaper: false
+                });
+                var spy = sinon.spy();
+                paper.on('resize', spy);
+                $container.css({ width: '321px', height: '123px' });
+                afterResizeObserverDelivery(function() {
+                    assert.ok(spy.notCalled, 'observer is not attached when autoResizePaper=false');
+                    paper.remove();
+                    done();
+                });
+            });
+
+            QUnit.test('disconnects on paper.remove()', function(assert) {
+                var paperEl = document.createElement('div');
+                $container.append(paperEl);
+                var paper = new joint.dia.Paper({
+                    el: paperEl,
+                    model: new joint.dia.Graph,
+                    width: '100%',
+                    height: '100%'
+                });
+                assert.ok(paper._elementResizeObserver, 'observer attached on init');
+                var disconnectSpy = sinon.spy(paper._elementResizeObserver, 'disconnect');
+                paper.remove();
+                assert.ok(disconnectSpy.calledOnce, 'disconnect called exactly once on remove');
+                assert.notOk(paper._elementResizeObserver, 'observer reference cleared');
+            });
+
+            QUnit.test('toggling between fixed and CSS-relative dimensions attaches/detaches observer', function(assert) {
+                var paper = this.paper;
+                assert.notOk(paper._elementResizeObserver, 'no observer with default numeric dims');
+                paper.setDimensions('100%', '100%');
+                assert.ok(paper._elementResizeObserver, 'observer attached after switching to CSS-relative');
+                paper.setDimensions(100, 100);
+                assert.notOk(paper._elementResizeObserver, 'observer detached when both dims numeric again');
+            });
+        });
+
     });
 
     QUnit.test('paper.addCell() number of sort()', function(assert) {
