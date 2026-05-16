@@ -791,12 +791,12 @@ function DragTracker({ manager }: Readonly<{ manager: ReturnType<typeof createPe
   usePaperEvents(PAPER_ID, () => {
     const dragging = new Set<string>();
     return {
-      'element:pointerdown': (elementView) => {
-        dragging.add(String(elementView.model.id));
+      onElementPointerDown: ({ id }) => {
+        dragging.add(String(id));
         manager.sendDrag([...dragging]);
       },
-      'element:pointerup': (elementView) => {
-        dragging.delete(String(elementView.model.id));
+      onElementPointerUp: ({ id }) => {
+        dragging.delete(String(id));
         manager.sendDrag([...dragging]);
       },
     };

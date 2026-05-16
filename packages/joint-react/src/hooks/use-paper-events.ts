@@ -1,11 +1,10 @@
 import type { dia } from '@joint/core';
-import { mvc } from '@joint/core';
 import { useLayoutEffect, type DependencyList } from 'react';
-import type { PaperEventMap } from '../types/event.types';
 import { usePaperStore, useResolvePaperId } from './use-paper';
 import type { PaperStore } from '../store';
 import { type PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
+import { attachPaperHandlers, type PaperHandlers } from '../presets/paper-events';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
 
@@ -16,9 +15,7 @@ interface PaperEventsBaseContext {
 /** Context handed to the event-handlers factory: the paper, graph, and any user-provided extras. */
 export type PaperEventsContext<T = Record<string, unknown>> = PaperEventsBaseContext & T;
 
-type HandlersOrFactory<T> =
-  | Partial<PaperEventMap>
-  | ((ctx: PaperEventsContext<T>) => Partial<PaperEventMap>);
+type HandlersOrFactory<T> = PaperHandlers | ((ctx: PaperEventsContext<T>) => PaperHandlers);
 
 /**
  * Builds the EventContext from paperStore and graph.
@@ -45,7 +42,9 @@ export function buildEventContext<T>(
 }
 
 /**
- * Subscribes all handlers to a paper using mvc.Listener.
+ * Subscribes all handlers to a paper, resolving the factory form against the
+ * React paperStore + graph and delegating runtime wiring to
+ * {@link attachPaperHandlers}.
  * @param paperStore - Paper store to subscribe on.
  * @param graph - JointJS graph instance.
  * @param handlersOrFactory - Event handlers map or factory function returning handlers.
@@ -56,42 +55,46 @@ export function subscribeToPaperEvents<T>(
   graph: dia.Graph,
   handlersOrFactory: HandlersOrFactory<T>
 ): () => void {
-  const controller = new mvc.Listener();
-  const ctx = buildEventContext<T>(paperStore, graph);
-
   const handlers =
-    typeof handlersOrFactory === 'function' ? handlersOrFactory(ctx) : handlersOrFactory;
-
-  for (const eventName in handlers) {
-    const handler = handlers[eventName];
-    if (!handler) continue;
-    controller.listenTo(paperStore.paper, eventName, (...args: Parameters<mvc.EventHandler>) => {
-      handler(...args);
-    });
-  }
-
-  return () => controller.stopListening();
+    typeof handlersOrFactory === 'function'
+      ? handlersOrFactory(buildEventContext<T>(paperStore, graph))
+      : handlersOrFactory;
+  return attachPaperHandlers(paperStore.paper, handlers);
 }
 
 /**
- * Subscribes to paper events using original JointJS event names.
+ * Subscribes to paper events. Two key forms can be mixed in the same handlers
+ * map:
  *
- * **Context form** (must be inside a `Paper`):
+ * **Normalized form**: `on<Category><Event>` keys deliver a single context
+ * object with named properties.
  * ```tsx
- * usePaperEvents({ 'element:pointerclick': (view, event, x, y) => {} });
+ * usePaperEvents(paperId, {
+ *   onElementPointerClick: ({ id, model, paper, graph, event, x, y }) => {},
+ *   onBlankPointerClick: ({ paper, graph, event, x, y }) => {},
+ * });
  * ```
  *
- * **Callback form** (access to graph, paper, and features via context):
+ * **Raw form**: native JointJS event names with positional arguments. Use
+ * for events without a normalized counterpart (`'resize'`, `'transform'`,
+ * `'render:done'`, `'cell:highlight'`, …).
  * ```tsx
- * usePaperEvents(({ graph, paper }) => ({
- *   'element:pointerclick': (view, event, x, y) => {}
+ * usePaperEvents(paperId, {
+ *   'element:pointerclick': (view, evt, x, y) => {},
+ *   resize: (width, height, data) => {},
+ * });
+ * ```
+ *
+ * **Callback form** — pass a factory receiving the paper / graph context:
+ * ```tsx
+ * usePaperEvents(paperId, ({ graph, paper }) => ({
+ *   onElementPointerClick: ({ model }) => model.attr('body/fill', 'red'),
  * }));
  * ```
  *
- * **ID form** (outside Paper, by paper id):
- * ```tsx
- * usePaperEvents(paperId, { 'element:pointerclick': (view, event, x, y) => {} });
- * ```
+ * The normalized context omits the React-store `record` — to read the
+ * normalised record shape, call `useCell(id, selector)` from your own
+ * component (the handler closure has access to the `id` it emits).
  * @param paper - Paper reference (string ID, dia.Paper instance, ref, or Optional).
  * @param handlers - Event handlers map or factory function receiving context.
  * @param dependencies - Optional dependency array controlling re-subscription.
