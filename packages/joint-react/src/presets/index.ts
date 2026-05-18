@@ -64,7 +64,6 @@ export {
   type CellEventContext,
   type ElementEventContext,
   type LinkEventContext,
-  type BlankEventContext,
   type PointerCellEventContext,
   type PointerElementEventContext,
   type PointerLinkEventContext,

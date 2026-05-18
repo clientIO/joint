@@ -42,9 +42,6 @@ export type ElementEventContext = BaseContext & ElementContext;
 /** Composed link-level event context (link cell + base). */
 export type LinkEventContext = BaseContext & LinkContext;
 
-/** Blank-area event payload — no cell, no view. */
-export type BlankEventContext = BaseContext;
-
 type WithPointer<Ctx> = Ctx & {
   readonly event: Event;
   readonly x: number;
@@ -64,7 +61,7 @@ export type PointerElementEventContext = WithPointer<ElementEventContext>;
 /** Pointer-style link-level payload. */
 export type PointerLinkEventContext = WithPointer<LinkEventContext>;
 /** Pointer-style blank-area payload — event + coords on empty paper area. */
-export type PointerBlankEventContext = WithPointer<BlankEventContext>;
+export type PointerBlankEventContext = WithPointer<BaseContext>;
 
 /** Hover-style cell-level payload (mouseenter/leave/over/out). */
 export type HoverCellEventContext = WithHover<CellEventContext>;
@@ -73,7 +70,7 @@ export type HoverElementEventContext = WithHover<ElementEventContext>;
 /** Hover-style link-level payload. */
 export type HoverLinkEventContext = WithHover<LinkEventContext>;
 /** Hover-style blank-area payload — event only on empty paper area. */
-export type HoverBlankEventContext = WithHover<BlankEventContext>;
+export type HoverBlankEventContext = WithHover<BaseContext>;
 
 /** Wheel cell-level payload (mousewheel) — pointer + delta. */
 export type WheelCellEventContext = WithWheel<CellEventContext>;
@@ -82,7 +79,7 @@ export type WheelElementEventContext = WithWheel<ElementEventContext>;
 /** Wheel link-level payload. */
 export type WheelLinkEventContext = WithWheel<LinkEventContext>;
 /** Wheel blank-area payload — pointer + delta on empty paper area. */
-export type WheelBlankEventContext = WithWheel<BlankEventContext>;
+export type WheelBlankEventContext = WithWheel<BaseContext>;
 
 /** Magnet payload — element-only, pointer + magnet SVG node + port/selector. */
 export type MagnetEventContext = WithPointer<ElementEventContext> & {
@@ -98,17 +95,17 @@ export type MagnetEventContext = WithPointer<ElementEventContext> & {
 // ============================================================================
 
 /** Paper-edge hover payload (`paper:mouseenter` / `paper:mouseleave`). */
-export type PaperHoverEventContext = BlankEventContext & { readonly event: Event };
+export type PaperHoverEventContext = BaseContext & { readonly event: Event };
 
 /** Paper-level pan payload — `paper:pan` from touchpad / wheel pan. */
-export type PaperPanEventContext = BlankEventContext & {
+export type PaperPanEventContext = BaseContext & {
   readonly event: Event;
   readonly deltaX: number;
   readonly deltaY: number;
 };
 
 /** Paper-level pinch payload — `paper:pinch` from touchpad pinch gesture. */
-export type PaperPinchEventContext = BlankEventContext & {
+export type PaperPinchEventContext = BaseContext & {
   readonly event: Event;
   readonly x: number;
   readonly y: number;
