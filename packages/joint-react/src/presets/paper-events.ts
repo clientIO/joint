@@ -34,12 +34,10 @@ interface LinkContext {
   readonly view: dia.LinkView;
 }
 
-/** Composed cell-level event context (cell + base). Internal building block. */
-export type CellEventContext = BaseContext & CellContext;
-/** Composed element-level event context (element cell + base). */
-export type ElementEventContext = BaseContext & ElementContext;
-/** Composed link-level event context (link cell + base). */
-export type LinkEventContext = BaseContext & LinkContext;
+// Composed building blocks — pointer/hover/wheel variants below add event + coords.
+type CellEventContext = BaseContext & CellContext;
+type ElementEventContext = BaseContext & ElementContext;
+type LinkEventContext = BaseContext & LinkContext;
 
 type WithPointer<Ctx> = Ctx & {
   readonly event: Event;

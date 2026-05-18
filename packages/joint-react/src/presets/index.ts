@@ -56,9 +56,6 @@ export { linkAttributes } from './link-attributes';
 export {
   addPaperEventListeners,
   type PaperEventMap,
-  type CellEventContext,
-  type ElementEventContext,
-  type LinkEventContext,
   type PointerCellEventContext,
   type PointerElementEventContext,
   type PointerLinkEventContext,
