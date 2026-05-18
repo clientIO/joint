@@ -2046,7 +2046,7 @@ export class Paper extends mvc.View<Graph> {
 
     isDefined(defId: string): boolean;
 
-    setDragging(evt: dia.Event, value?: boolean): void;
+    setDragging(evt: dia.Event): void;
 
     isDragging(evt: dia.Event): boolean;
 

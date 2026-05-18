@@ -3820,8 +3820,8 @@ export const Paper = View.extend({
     // Mark `evt` as belonging to an active drag. Called from each
     // action-confirmed drag-start branch (element, link, label, arrowhead,
     // magnet→link). External consumers read via `isDragging(evt)`.
-    setDragging: function(evt, value = true) {
-        this.eventData(evt, { isDragging: !!value });
+    setDragging: function(evt) {
+        this.eventData(evt, { isDragging: true });
     },
 
     // Returns true when a drag has been confirmed for `evt` (see `setDragging`).
