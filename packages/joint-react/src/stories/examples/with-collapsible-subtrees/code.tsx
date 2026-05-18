@@ -741,11 +741,13 @@ function Main() {
 
   usePaperEvents(
     paperId,
-    ({ paper }) => ({
+    {
       'element:expand': (elementView) => {
-        handleExpand(paper, elementView as dia.ElementView);
+        const view = elementView as dia.ElementView;
+        if (!view.paper) return;
+        handleExpand(view.paper, view);
       },
-    }),
+    },
     [handleExpand]
   );
 
