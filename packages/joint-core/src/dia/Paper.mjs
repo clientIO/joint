@@ -3807,6 +3807,18 @@ export const Paper = View.extend({
         this.delegateDocumentEvents(null, data);
     },
 
+    // Mark `evt` as belonging to an active drag. Called from each
+    // action-confirmed drag-start branch (element, link, label, arrowhead,
+    // magnet→link). External consumers read via `isDragging(evt)`.
+    setDragging: function(evt, value = true) {
+        this.eventData(evt, { isDragging: !!value });
+    },
+
+    // Returns true when a drag has been confirmed for `evt` (see `setDragging`).
+    isDragging: function(evt) {
+        return !!this.eventData(evt).isDragging;
+    },
+
     // Guard the specified event. If the event should be ignored, guard returns `true`.
     // Otherwise, it returns `false`.
     guard: function(evt, view) {

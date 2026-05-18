@@ -1597,6 +1597,8 @@ export const LinkView = CellView.extend({
 
             if (this.isDefaultInteractionPrevented(evt)) return;
 
+            this.paper.setDragging(evt);
+
             var labelNode = evt.currentTarget;
             var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
@@ -1637,6 +1639,8 @@ export const LinkView = CellView.extend({
 
         if (!this.can('arrowheadMove')) return;
 
+        this.paper.setDragging(evt);
+
         var arrowheadNode = evt.target;
         var arrowheadType = arrowheadNode.getAttribute('end');
         var data = this.startArrowheadMove(arrowheadType, { ignoreBackwardsCompatibility: true });
@@ -1649,6 +1653,8 @@ export const LinkView = CellView.extend({
         if (this.isDefaultInteractionPrevented(evt)) return;
 
         if (!this.can('linkMove')) return;
+
+        this.paper.setDragging(evt);
 
         this.eventData(evt, {
             action: 'move',
