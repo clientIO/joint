@@ -2046,9 +2046,9 @@ export class Paper extends mvc.View<Graph> {
 
     isDefined(defId: string): boolean;
 
-    setDragging(evt: dia.Event): void;
+    setDragging(evt: Event): void;
 
-    isDragging(evt: dia.Event): boolean;
+    isDragging(evt: Event): boolean;
 
     getComputedSize(): Size;
 
