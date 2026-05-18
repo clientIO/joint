@@ -9,36 +9,41 @@ import { type ConnectionEnd, toConnectionEnd } from './can-connect';
 // ============================================================================
 
 /** Paper + graph references shared by every event context. */
-export interface PaperEventBaseContext {
+export interface BaseContext {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
 }
 
-/** Common identifying payload for cell-level events. */
-export interface BaseCellEventContext extends PaperEventBaseContext {
+/** Cell-level identifying payload (fires for any cell — element or link). */
+export interface CellContext {
   readonly id: dia.Cell.ID;
-}
-
-/** Cell-level event payload (fires for any cell — element or link). */
-export interface CellEventContext extends BaseCellEventContext {
   readonly model: dia.Cell;
   readonly view: dia.CellView;
 }
 
-/** Element-level event payload — `model` / `view` narrowed to element types. */
-export interface ElementEventContext extends BaseCellEventContext {
+/** Element-level cell payload — `model` / `view` narrowed to element types. */
+export interface ElementContext {
+  readonly id: dia.Cell.ID;
   readonly model: dia.Element;
   readonly view: dia.ElementView;
 }
 
-/** Link-level event payload — `model` / `view` narrowed to link types. */
-export interface LinkEventContext extends BaseCellEventContext {
+/** Link-level cell payload — `model` / `view` narrowed to link types. */
+export interface LinkContext {
+  readonly id: dia.Cell.ID;
   readonly model: dia.Link;
   readonly view: dia.LinkView;
 }
 
+/** Composed cell-level event context (cell + base). Internal building block. */
+export type CellEventContext = BaseContext & CellContext;
+/** Composed element-level event context (element cell + base). */
+export type ElementEventContext = BaseContext & ElementContext;
+/** Composed link-level event context (link cell + base). */
+export type LinkEventContext = BaseContext & LinkContext;
+
 /** Blank-area event payload — no cell, no view. */
-export type BlankEventContext = PaperEventBaseContext;
+export type BlankEventContext = BaseContext;
 
 type WithPointer<Ctx> = Ctx & {
   readonly event: Event;
@@ -79,9 +84,13 @@ export type WheelLinkEventContext = WithWheel<LinkEventContext>;
 /** Wheel blank-area payload — pointer + delta on empty paper area. */
 export type WheelBlankEventContext = WithWheel<BlankEventContext>;
 
-/** Magnet payload — element-only, pointer + magnet SVG node. */
+/** Magnet payload — element-only, pointer + magnet SVG node + port/selector. */
 export type MagnetEventContext = WithPointer<ElementEventContext> & {
   readonly magnet: DOMElement;
+  /** The port ID, or `null` if the magnet is not on a port. */
+  readonly port: string | null;
+  /** The `joint-selector` attribute of the magnet, or `null`. */
+  readonly selector: string | null;
 };
 
 // ============================================================================
@@ -120,7 +129,7 @@ export interface LinkConnectEventContext extends LinkEventContext {
   /** Which end of the link was (dis)connected. */
   readonly end: 'source' | 'target';
   /** Cell at the (dis)connected end. Always present — these events fire only on actual cells. */
-  readonly connectedCell: ConnectionEnd;
+  readonly endCell: ConnectionEnd;
 }
 
 // ============================================================================
@@ -318,24 +327,12 @@ export type PaperHandlers = Partial<PaperEventMap> & NormalizedPaperHandlers;
 type EventHandlerMap = Record<string, ((...args: unknown[]) => void) | undefined>;
 
 /**
- *
+ * Build the cell-only portion of an event context (id, model, view).
+ * Compose with a `BaseContext` (paper, graph) at call sites.
  * @param view
- * @param paper
- * @param graph
  */
-function makeCellContext(
-  view: dia.CellView,
-  paper: dia.Paper,
-  graph: dia.Graph
-): CellEventContext {
-  const { model } = view;
-  return {
-    id: model.id,
-    model,
-    view,
-    paper,
-    graph,
-  };
+function makeCellContext(view: dia.CellView): CellContext {
+  return { id: view.model.id, model: view.model, view };
 }
 
 /**
@@ -404,24 +401,25 @@ export function attachPaperHandlers(
   const graph = paper.model;
   const controller = new mvc.Listener();
   const eventMap = handlers as EventHandlerMap;
-  const cellCtx = (view: dia.CellView) => makeCellContext(view, paper, graph);
-  const blankBase = { paper, graph } as const;
+  const baseContext: BaseContext = { paper, graph };
 
   subscribeGroup(controller, paper, eventMap, POINTER_CELL_MAP,
     (view: dia.CellView, event: Event, x: number, y: number) =>
-      ({ ...cellCtx(view), event, x, y }));
+      ({ ...baseContext, ...makeCellContext(view), event, x, y }));
 
   subscribeGroup(controller, paper, eventMap, HOVER_CELL_MAP,
-    (view: dia.CellView, event: Event) => ({ ...cellCtx(view), event }));
+    (view: dia.CellView, event: Event) => ({ ...baseContext, ...makeCellContext(view), event }));
 
   subscribeGroup(controller, paper, eventMap, WHEEL_CELL_MAP,
     (view: dia.CellView, event: Event, x: number, y: number, delta: number) =>
-      ({ ...cellCtx(view), event, x, y, delta }));
+      ({ ...baseContext, ...makeCellContext(view), event, x, y, delta }));
 
   // Native magnet arg order is (view, evt, magnet, x, y) — not (view, evt, x, y, magnet).
   subscribeGroup(controller, paper, eventMap, MAGNET_MAP,
-    (view: dia.ElementView, event: Event, magnet: DOMElement, x: number, y: number) =>
-      ({ ...cellCtx(view), event, x, y, magnet }));
+    (view: dia.ElementView, event: Event, magnet: DOMElement, x: number, y: number) => {
+      const end = toConnectionEnd(view, magnet);
+      return { ...baseContext, ...makeCellContext(view), event, x, y, magnet, port: end.port, selector: end.selector };
+    });
 
   subscribeGroup(controller, paper, eventMap, LINK_CONNECT_MAP,
     (
@@ -431,35 +429,36 @@ export function attachPaperHandlers(
       endMagnet: DOMElement | undefined,
       end: 'source' | 'target'
     ) => ({
-      ...cellCtx(linkView),
+      ...baseContext,
+      ...makeCellContext(linkView),
       event,
       end,
-      connectedCell: toConnectionEnd(endView, endMagnet),
+      endCell: toConnectionEnd(endView, endMagnet),
     }));
 
   subscribeGroup(controller, paper, eventMap, POINTER_BLANK_MAP,
-    (event: Event, x: number, y: number) => ({ ...blankBase, event, x, y }));
+    (event: Event, x: number, y: number) => ({ ...baseContext, event, x, y }));
 
   subscribeGroup(controller, paper, eventMap, HOVER_BLANK_MAP,
-    (event: Event) => ({ ...blankBase, event }));
+    (event: Event) => ({ ...baseContext, event }));
 
   subscribeGroup(controller, paper, eventMap, WHEEL_BLANK_MAP,
     (event: Event, x: number, y: number, delta: number) =>
-      ({ ...blankBase, event, x, y, delta }));
+      ({ ...baseContext, event, x, y, delta }));
 
   // Paper-level hover (`paper:mouseenter` / `paper:mouseleave`) — native (evt).
   subscribeGroup(controller, paper, eventMap, PAPER_HOVER_MAP,
-    (event: Event) => ({ ...blankBase, event }));
+    (event: Event) => ({ ...baseContext, event }));
 
   // Paper-level pan (`paper:pan`) — native (evt, deltaX, deltaY).
   subscribeGroup(controller, paper, eventMap, PAPER_PAN_MAP,
     (event: Event, deltaX: number, deltaY: number) =>
-      ({ ...blankBase, event, deltaX, deltaY }));
+      ({ ...baseContext, event, deltaX, deltaY }));
 
   // Paper-level pinch (`paper:pinch`) — native (evt, x, y, scale).
   subscribeGroup(controller, paper, eventMap, PAPER_PINCH_MAP,
     (event: Event, x: number, y: number, scale: number) =>
-      ({ ...blankBase, event, x, y, scale }));
+      ({ ...baseContext, event, x, y, scale }));
 
   subscribeRaw(controller, paper, eventMap);
 
