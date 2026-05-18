@@ -256,6 +256,67 @@ QUnit.module('paper', function(hooks) {
             'Paper area returns correct results for scaled and translated viewport.');
     });
 
+    QUnit.module('paper.setDragging() / paper.isDragging()', function() {
+
+        QUnit.test('round-trip via the public API', function(assert) {
+            const data = {};
+            const evt = { target: this.paper.el, type: 'mousedown', data: data };
+            assert.notOk(this.paper.isDragging(evt), 'false on a fresh event');
+            this.paper.setDragging(evt);
+            assert.ok(this.paper.isDragging(evt), 'true after setDragging');
+        });
+
+        QUnit.test('isDragging is false until the drag-start gate passes', function(assert) {
+            const data = {};
+            const evt = { target: this.paper.el, type: 'mousedown', data: data };
+            // No drag-start has been called; data bag exists but lacks the flag.
+            assert.notOk(this.paper.isDragging(evt));
+            // A different event keeps a clean bag.
+            const data2 = {};
+            const evt2 = { target: this.paper.el, type: 'mousedown', data: data2 };
+            assert.notOk(this.paper.isDragging(evt2));
+        });
+
+        QUnit.test('ElementView.dragStart flips isDragging after can(\'elementMove\')', function(assert) {
+            const el = new joint.shapes.standard.Rectangle();
+            el.resize(100, 100);
+            el.addTo(this.graph);
+            const view = el.findView(this.paper);
+            const data = {};
+            const evt = { target: view.el, type: 'mousedown', data: data };
+            assert.notOk(this.paper.isDragging(evt));
+            view.pointerdown(evt, 50, 50);
+            assert.ok(this.paper.isDragging(evt), 'set after element pointerdown');
+        });
+
+        QUnit.test('isDragging stays false when elementMove is denied', function(assert) {
+            this.paper.options.interactive = { elementMove: false };
+            const el = new joint.shapes.standard.Rectangle();
+            el.resize(100, 100);
+            el.addTo(this.graph);
+            const view = el.findView(this.paper);
+            const data = {};
+            const evt = { target: view.el, type: 'mousedown', data: data };
+            view.pointerdown(evt, 50, 50);
+            assert.notOk(this.paper.isDragging(evt), 'not set when can(elementMove) returns false');
+        });
+
+        QUnit.test('LinkView.dragStart flips isDragging after can(\'linkMove\')', function(assert) {
+            const source = new joint.shapes.standard.Rectangle().resize(40, 40).position(0, 0).addTo(this.graph);
+            const target = new joint.shapes.standard.Rectangle().resize(40, 40).position(200, 200).addTo(this.graph);
+            const link = new joint.shapes.standard.Link({
+                source: { id: source.id },
+                target: { id: target.id }
+            }).addTo(this.graph);
+            const linkView = link.findView(this.paper);
+            const data = {};
+            const evt = { target: linkView.el, type: 'mousedown', data: data };
+            assert.notOk(this.paper.isDragging(evt));
+            linkView.pointerdown(evt, 100, 100);
+            assert.ok(this.paper.isDragging(evt), 'set after link pointerdown');
+        });
+    });
+
     QUnit.module('paper.getRestrictedArea()', function() {
 
         QUnit.test('function', function(assert) {
