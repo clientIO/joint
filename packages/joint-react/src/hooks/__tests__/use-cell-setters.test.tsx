@@ -220,6 +220,53 @@ describe('use-cell-setters', () => {
       });
       expect(result.current.store.graph.getCell('a')).toBeUndefined();
     });
+
+    it('removes a cell by dia.Cell reference', async () => {
+      const { result } = renderHook(
+        () => ({ removeCell: useRemoveCell(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      const diaCell = result.current.store.graph.getCell('a')!;
+      await act(async () => {
+        result.current.removeCell(diaCell);
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('a')).toBeUndefined();
+    });
+  });
+
+  describe('useRemoveCells — CellRef acceptance', () => {
+    it('removes cells by dia.Cell references', async () => {
+      const { result } = renderHook(
+        () => ({ removeCells: useRemoveCells(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      const cellA = result.current.store.graph.getCell('a')!;
+      const cellB = result.current.store.graph.getCell('b')!;
+      await act(async () => {
+        result.current.removeCells([cellA, cellB]);
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('a')).toBeUndefined();
+      expect(result.current.store.graph.getCell('b')).toBeUndefined();
+    });
+
+    it('removes cells with a mix of ids and dia.Cell references', async () => {
+      const { result } = renderHook(
+        () => ({ removeCells: useRemoveCells(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      const cellB = result.current.store.graph.getCell('b')!;
+      await act(async () => {
+        result.current.removeCells(['a', cellB]);
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('a')).toBeUndefined();
+      expect(result.current.store.graph.getCell('b')).toBeUndefined();
+    });
   });
 
   describe('useResetCells', () => {

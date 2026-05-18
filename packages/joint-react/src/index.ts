@@ -30,7 +30,7 @@ export { useCellId } from './hooks/use-cell-id';
 export { useLinkLayout } from './hooks/use-link-layout';
 export { useGraph } from './hooks/use-graph';
 export type { UseGraphResult, ExportToJSONOptions } from './hooks/use-graph';
-export type { CellInput } from './utils/normalize-cell-input';
+export type { CellInput, CellRef } from './utils/normalize-cell-input';
 export { useGraphStore } from './hooks/use-graph-store';
 export { usePaper, usePaperStore } from './hooks/use-paper';
 export { useCellCollection } from './hooks/use-cell-collection';

@@ -1,5 +1,5 @@
 import { shapes } from '@joint/core';
-import { normalizeCellInput } from '../normalize-cell-input';
+import { normalizeCellInput, resolveCellRef } from '../normalize-cell-input';
 import { ELEMENT_MODEL_TYPE, ElementModel } from '../../models/element-model';
 import { LINK_MODEL_TYPE, LinkModel } from '../../models/link-model';
 import type { CellRecord, ElementRecord, LinkRecord } from '../../types/cell.types';
@@ -85,5 +85,21 @@ describe('normalizeCellInput', () => {
       expect(record.id).toBe('sl1');
       expect(record.type).toBe('standard.Link');
     });
+  });
+});
+
+describe('resolveCellRef', () => {
+  it('returns a string id as-is', () => {
+    expect(resolveCellRef('my-id')).toBe('my-id');
+  });
+
+  it('extracts id from a dia.Cell instance', () => {
+    const element = new ElementModel({ id: 'el-ref' });
+    expect(resolveCellRef(element)).toBe('el-ref');
+  });
+
+  it('extracts id from shapes.standard.Rectangle', () => {
+    const rect = new shapes.standard.Rectangle({ id: 'rect-ref' });
+    expect(resolveCellRef(rect)).toBe('rect-ref');
   });
 });

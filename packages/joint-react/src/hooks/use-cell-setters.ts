@@ -8,9 +8,7 @@ import type {
   CellId,
 } from '../types/cell.types';
 import { type ArrayUpdate } from '../store/state-container';
-import { normalizeCellInput, type CellInput } from '../utils/normalize-cell-input';
-
-export type { CellInput } from '../utils/normalize-cell-input';
+import { normalizeCellInput, resolveCellRef, type CellInput, type CellRef } from '../utils/normalize-cell-input';
 
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record
@@ -118,15 +116,16 @@ function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJ
 }
 
 /**
- * Returns a function that removes one cell by id.
- * No-op if the id does not exist.
+ * Returns a function that removes one cell by id or dia.Cell reference.
+ * No-op if the cell does not exist.
  * @returns memoized removeCell setter
  */
 export function useRemoveCell() {
   const store = useGraphStore();
   const { graph } = store;
   return useCallback(
-    (id: CellId) => {
+    (cellRef: CellRef) => {
+      const id = resolveCellRef(cellRef);
       const diaCell = graph.getCell(id);
       if (!diaCell) return;
       graph.removeCells([diaCell]);
@@ -136,7 +135,7 @@ export function useRemoveCell() {
 }
 
 /**
- * Returns a function that removes multiple cells by id.
+ * Returns a function that removes multiple cells by id or dia.Cell reference.
  * Ignores missing ids.
  * @returns memoized removeCells setter
  */
@@ -144,10 +143,10 @@ export function useRemoveCells() {
   const store = useGraphStore();
   const { graph } = store;
   return useCallback(
-    (ids: readonly CellId[]) => {
+    (cellRefs: readonly CellRef[]) => {
       const toRemove: dia.Cell[] = [];
-      for (const id of ids) {
-        const cell = graph.getCell(id);
+      for (const cellRef of cellRefs) {
+        const cell = graph.getCell(resolveCellRef(cellRef));
         if (cell) toRemove.push(cell);
       }
       if (toRemove.length === 0) return;

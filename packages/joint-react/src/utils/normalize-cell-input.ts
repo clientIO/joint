@@ -1,5 +1,5 @@
 import { dia } from '@joint/core';
-import type { ElementJSONInit, LinkJSONInit } from '../types/cell.types';
+import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
 import { toCellRecord } from '../state/data-mapping/cell-record-merge';
 
 /**
@@ -13,6 +13,21 @@ export type CellInput<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 > = Element | Link | dia.Cell;
+
+/** Re-export of JointJS core's `dia.Graph.CellRef` — cell id or dia.Cell instance. */
+export type CellRef = dia.Graph.CellRef;
+
+/**
+ * Resolve a cell reference to its id.
+ * @param cellRef - cell id or dia.Cell instance
+ * @returns the cell id
+ */
+export function resolveCellRef(cellRef: CellRef): CellId {
+  if (cellRef instanceof dia.Cell) {
+    return cellRef.id as CellId;
+  }
+  return cellRef as CellId;
+}
 
 /**
  * Normalize cell input that may be a plain record or a dia.Cell instance.
