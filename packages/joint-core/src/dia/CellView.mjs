@@ -498,6 +498,7 @@ export const CellView = View.extend({
         linkView.notifyPointerdown(evt, x, y);
         linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
         this.eventData(evt, { linkView });
+        this.paper.setDragging(evt);
     },
 
     dragLink: function(evt, x, y) {
