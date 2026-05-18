@@ -187,7 +187,35 @@ const MAGNET_MAP = {
 const LINK_CONNECT_MAP = {
   onLinkConnect: 'link:connect',
   onLinkDisconnect: 'link:disconnect',
+  onLinkSnapConnect: 'link:snap:connect',
+  onLinkSnapDisconnect: 'link:snap:disconnect',
 } as const;
+
+// Highlight events — different signature: `(cellView, node, options)` and
+// `(cellView, highlighterId, highlighter)` for `cell:highlight:invalid`.
+// Needs its own context type. Stay raw until use cases demand it.
+// const HIGHLIGHT_MAP = {
+//   onCellHighlight: 'cell:highlight',
+//   onCellUnhighlight: 'cell:unhighlight',
+//   onCellHighlightInvalid: 'cell:highlight:invalid',
+// } as const;
+
+// Render lifecycle — `(stats, opt)` / `(opt)` signatures. Paper-level, no
+// cell/blank context. Stay raw for now.
+// const RENDER_MAP = {
+//   onRenderDone: 'render:done',
+//   onRenderIdle: 'render:idle',
+// } as const;
+
+// Paper transforms — `(tx, ty, data)` / `(sx, sy, data)` / `(w, h, data)` /
+// `(matrix, data)` signatures. Numeric pairs vary per event; bespoke context
+// per name. Use raw form: `paper.on('resize', (w, h, data) => …)`.
+// const PAPER_TRANSFORM_MAP = {
+//   onTranslate: 'translate',
+//   onScale: 'scale',
+//   onResize: 'resize',
+//   onTransform: 'transform',
+// } as const;
 
 const POINTER_BLANK_MAP = {
   onBlankPointerDown: 'blank:pointerdown',
@@ -295,6 +323,8 @@ export interface NormalizedPaperHandlers {
   // link connect
   readonly onLinkConnect?: (ctx: LinkConnectEventContext) => void;
   readonly onLinkDisconnect?: (ctx: LinkConnectEventContext) => void;
+  readonly onLinkSnapConnect?: (ctx: LinkConnectEventContext) => void;
+  readonly onLinkSnapDisconnect?: (ctx: LinkConnectEventContext) => void;
   // blank pointer
   readonly onBlankPointerDown?: (ctx: PointerBlankEventContext) => void;
   readonly onBlankPointerMove?: (ctx: PointerBlankEventContext) => void;
