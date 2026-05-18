@@ -101,8 +101,7 @@ function validateParentChildRelationship({ parent }: ValidateEmbeddingContext): 
 
 function Main() {
   return (
-    <Paper
-      height={350}
+    <Paper style={{ ...PAPER_STYLE, height: 350 }}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
       embeddingMode
@@ -120,7 +119,6 @@ function Main() {
           },
         },
       }}
-      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

@@ -165,7 +165,7 @@ function JSONViewer() {
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells} cellNamespace={CELL_NAMESPACE}>
-      <Paper className={PAPER_CLASSNAME} height={300} renderElement={renderElement} />
+      <Paper style={{ height: 300 }} className={PAPER_CLASSNAME} renderElement={renderElement} />
       <JSONViewer />
     </GraphProvider>
   );

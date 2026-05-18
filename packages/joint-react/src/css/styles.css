@@ -215,6 +215,7 @@
 
   .jj-paper {
     background-color: var(--jj-paper-color);
+    height: stretch;
   }
 
   /* ── Elements ────────────────────────────────────────────────────────── */

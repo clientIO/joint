@@ -140,11 +140,9 @@ function Main() {
     );
   }, []);
   return (
-    <Paper
+    <Paper style={{ ...PAPER_STYLE, height: 500 }}
       className={PAPER_CLASSNAME}
-      height={500}
       renderElement={renderElement}
-      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

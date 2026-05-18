@@ -82,7 +82,7 @@ function Main({
 
   return (
     <div className="flex flex-row relative">
-      <Paper id="main-view" className={PAPER_CLASSNAME} height={600} renderElement={RenderElement}/>
+      <Paper style={{ height: 600 }} id="main-view" className={PAPER_CLASSNAME} renderElement={RenderElement}/>
       <div className="absolute top-4 right-4">
         <button
           type="button"

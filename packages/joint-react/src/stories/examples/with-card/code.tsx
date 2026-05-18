@@ -80,7 +80,7 @@ function CardRenderer(data: Readonly<Data>) {
 
 function Main() {
   const renderElement: RenderElement<Data> = useCallback((data) => <CardRenderer {...data} />, []);
-  return <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />;
+  return <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} renderElement={renderElement} />;
 }
 
 export default function App() {

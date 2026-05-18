@@ -409,15 +409,12 @@ function Main() {
   });
 
   return (
-    <Paper
+    <Paper style={{ ...PAPER_STYLE, width: "100%", height: 650 }}
       id={paperId}
-      width="100%"
-      height={650}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
       gridSize={20}
       drawGrid={{ name: 'mesh', args: { color: GRID_COLOR } }}
-      style={PAPER_STYLE}
       linkPinning={false}
       linkRouting={ORTHOGONAL_LINKS}
       // Connection strategy - find closest anchor point

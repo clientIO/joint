@@ -85,8 +85,6 @@ describe('useCreatePortalPaper — error and edge cases', () => {
       () =>
         useCreatePortalPaper({
           id: 'on-ready-paper',
-          width: 100,
-          height: 100,
           renderElement: () => <rect />,
           onReady,
           isExternalPaper: false,
@@ -110,11 +108,9 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper
+          <Paper style={{ width: 100, height: 100 }}
             ref={paperRef}
             id="default-link-static"
-            width={100}
-            height={100}
             renderElement={() => <rect />}
             defaultLink={
               {
@@ -150,11 +146,9 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper
+          <Paper style={{ width: 100, height: 100 }}
             ref={paperRef}
             id="default-link-factory"
-            width={100}
-            height={100}
             renderElement={() => <rect />}
             defaultLink={factory as never}
           />
@@ -186,11 +180,9 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper
+          <Paper style={{ width: 100, height: 100 }}
             ref={paperRef}
             id="default-link-instance-factory"
-            width={100}
-            height={100}
             renderElement={() => <rect />}
             defaultLink={factory as never}
           />
@@ -216,11 +208,9 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper
+          <Paper style={{ width: 100, height: 100 }}
             ref={paperRef}
             id="default-link-instance-static"
-            width={100}
-            height={100}
             renderElement={() => <rect />}
             defaultLink={staticLink as unknown as Parameters<typeof Paper>[0]['defaultLink']}
           />
@@ -247,11 +237,9 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper
+          <Paper style={{ width: 100, height: 100 }}
             ref={paperRef}
             id="default-link-null-factory"
-            width={100}
-            height={100}
             renderElement={() => <rect />}
             defaultLink={factory as never}
           />
@@ -280,10 +268,8 @@ interface GridAppProps {
 function GridApp({ drawGrid, gridSize, transform }: Readonly<GridAppProps>) {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper
+      <Paper style={{ width: 100, height: 100 }}
         id="grid-paper"
-        width={100}
-        height={100}
         renderElement={() => <rect />}
         drawGrid={drawGrid}
         gridSize={gridSize}
@@ -317,7 +303,7 @@ describe('Paper — defaultRenderElement fallback (line 174)', () => {
   it('renders cell.data.label inside a default HTML host when renderElement is omitted', async () => {
     const { container } = render(
       <GraphProvider initialCells={DEFAULT_RENDER_CELLS}>
-        <Paper id="default-render-paper" width={120} height={120} />
+        <Paper style={{ width: 120, height: 120 }} id="default-render-paper" />
       </GraphProvider>
     );
     await waitFor(() => {
@@ -345,10 +331,8 @@ describe('Paper — renderLink integration (LinkItem render, line 161)', () => {
     ));
     render(
       <GraphProvider initialCells={RENDER_LINK_CELLS}>
-        <Paper
+        <Paper style={{ width: 100, height: 100 }}
           id="link-paper"
-          width={100}
-          height={100}
           renderElement={() => <rect />}
           renderLink={renderLink}
         />

@@ -102,9 +102,8 @@ function ResizableNode() {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper
+      <Paper style={{ height: 280 }}
         className={PAPER_CLASSNAME}
-        height={280}
         renderElement={ResizableNode}
         linkRouting={STRAIGHT_LINKS}
       />

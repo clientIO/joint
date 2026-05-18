@@ -111,11 +111,10 @@ function Main({ variant }: Readonly<MainProps>) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper
+      <Paper style={{ height: 280 }}
         id={paperId}
         ref={paperRef}
         className={PAPER_CLASSNAME}
-        height={280}
         renderElement={RenderElement}
       />
     </div>

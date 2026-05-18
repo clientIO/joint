@@ -54,7 +54,7 @@ function App() {
   const graph = useMemo(() => createGraph(), []);
   return (
     <GraphProvider graph={graph}>
-      <Paper width={320} height={220} className={PAPER_CLASSNAME} />
+      <Paper style={{ width: 320, height: 220 }} className={PAPER_CLASSNAME} />
     </GraphProvider>
   );
 }

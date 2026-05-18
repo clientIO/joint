@@ -77,9 +77,8 @@ function Main({ useLinkModels }: Readonly<{ useLinkModels: boolean }>) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper
+      <Paper style={{ height: 280 }}
         className={PAPER_CLASSNAME}
-        height={280}
         renderLink={useLinkModels ? renderLink : undefined}
       />
     </div>

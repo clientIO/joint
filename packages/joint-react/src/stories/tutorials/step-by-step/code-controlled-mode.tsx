@@ -137,7 +137,7 @@ function PaperApp({ onCellsChange }: Readonly<PaperAppProps>) {
         - renderElement: custom renderer for elements (defined above)
         - Paper automatically reads cells from GraphProvider's context
       */}
-      <Paper className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
+      <Paper style={{ height: 400 }} className={PAPER_CLASSNAME} renderElement={RenderItem} />
 
       {/*
         ======================================================================

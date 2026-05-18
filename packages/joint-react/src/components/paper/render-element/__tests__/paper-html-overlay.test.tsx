@@ -27,9 +27,7 @@ describe('Paper with useHTMLOverlay', () => {
   it('renders elements through the HTML overlay container with positioned wrappers', async () => {
     const { container } = render(
       <GraphProvider initialCells={HTML_CELLS}>
-        <Paper
-          width={300}
-          height={300}
+        <Paper style={{ width: 300, height: 300 }}
           useHTMLOverlay
           renderElement={({ label }: { label: string }) => (
             <div data-testid={`label-${label}`}>{label}</div>
@@ -63,9 +61,7 @@ describe('Paper with useHTMLOverlay', () => {
   it('keeps the HTML overlay positioned correctly while paper is mounted', async () => {
     const { container } = render(
       <GraphProvider initialCells={HTML_CELLS}>
-        <Paper
-          width={200}
-          height={200}
+        <Paper style={{ width: 200, height: 200 }}
           useHTMLOverlay
           renderElement={() => <span>x</span>}
         />

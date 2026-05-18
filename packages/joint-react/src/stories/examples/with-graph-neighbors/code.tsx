@@ -217,14 +217,11 @@ function Main() {
   );
 
   return (
-    <Paper
+    <Paper style={{ ...PAPER_STYLE, width: "100%", height: 500 }}
       ref={paperRef}
       id={paperId}
-      width="100%"
       className={PAPER_CLASSNAME}
-      height={500}
       renderElement={renderElement}
-      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

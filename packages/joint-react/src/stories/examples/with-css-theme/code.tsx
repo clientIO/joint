@@ -160,10 +160,8 @@ function Diagram() {
         </span>
       </div>
       <GraphProvider cells={cells} onCellsChange={setCells}>
-        <Paper
+        <Paper style={{ background: 'var(--paper-bg)', height: 240 }}
           className={PAPER_CLASSNAME}
-          style={{ background: 'var(--paper-bg)' }}
-          height={240}
           renderElement={renderElement}
         />
       </GraphProvider>

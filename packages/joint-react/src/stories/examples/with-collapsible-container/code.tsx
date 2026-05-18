@@ -437,13 +437,11 @@ function Main() {
   );
 
   return (
-    <Paper
+    <Paper style={{ backgroundColor: '#F3F7F6', height: 500 }}
       id={paperId}
-      height={500}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibility}
-      style={{ backgroundColor: '#F3F7F6' }}
     />
   );
 }

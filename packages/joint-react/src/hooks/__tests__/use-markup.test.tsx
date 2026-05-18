@@ -67,7 +67,7 @@ function renderInPaper(options?: Readonly<RenderInPaperOptions>) {
     ));
   return render(
     <GraphProvider initialCells={initialCells}>
-      <Paper id="markup-paper" width={100} height={100} renderElement={renderElement} />
+      <Paper style={{ width: 100, height: 100 }} id="markup-paper" renderElement={renderElement} />
     </GraphProvider>
   );
 }
@@ -160,10 +160,8 @@ describe('useMarkup', () => {
     cleanupUtilities = undefined;
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper
+        <Paper style={{ width: 100, height: 100 }}
           id="markup-cleanup-paper"
-          width={100}
-          height={100}
           renderElement={renderCleanupProbe}
         />
       </GraphProvider>
@@ -178,10 +176,8 @@ describe('useMarkup', () => {
     reservedUtilities = undefined;
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper
+        <Paper style={{ width: 100, height: 100 }}
           id="markup-reserved-paper"
-          width={100}
-          height={100}
           renderElement={renderReservedProbe}
         />
       </GraphProvider>
@@ -202,10 +198,8 @@ describe('useMarkup', () => {
     emptyCaptured = undefined;
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper
+        <Paper style={{ width: 100, height: 100 }}
           id="markup-empty-paper"
-          width={100}
-          height={100}
           renderElement={renderEmptyMarkupProbe}
         />
       </GraphProvider>

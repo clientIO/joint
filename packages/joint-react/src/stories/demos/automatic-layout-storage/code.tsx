@@ -487,11 +487,8 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
 
       <div className="flex-1 flex min-h-0">
         <div className="flex-1 relative bg-[radial-gradient(rgba(28,36,52,0.12)_1px,transparent_1px)] bg-[length:20px_20px] [background-position:12px_12px]">
-          <Paper
+          <Paper style={{ backgroundColor: 'transparent', width: "100%", height: "100%" }}
             id={PAPER_ID}
-            width="100%"
-            height="100%"
-            style={{ backgroundColor: 'transparent' }}
             linkRouting={linkRoutingOrthogonal({
               sourceOffset: 6,
               targetOffset: 6,

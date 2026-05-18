@@ -253,9 +253,8 @@ function Diagram() {
         ))}
       </fieldset>
       <GraphProvider cells={cells} onCellsChange={setCells}>
-        <Paper
+        <Paper style={{ height: 240 }}
           className={PAPER_CLASSNAME}
-          height={240}
           renderElement={Node}
           defaultLink={() => DEFAULT_LINK}
         />
