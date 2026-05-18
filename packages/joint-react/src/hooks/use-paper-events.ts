@@ -4,7 +4,7 @@ import { usePaperStore, useResolvePaperId } from './use-paper';
 import type { PaperStore } from '../store';
 import { type PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
-import { attachPaperHandlers, type PaperHandlers } from '../presets/paper-events';
+import { addPaperEventListeners, type PaperEventMap } from '../presets/paper-events';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
 
@@ -15,7 +15,7 @@ interface PaperEventsBaseContext {
 /** Context handed to the event-handlers factory: the paper, graph, and any user-provided extras. */
 export type PaperEventsContext<T = Record<string, unknown>> = PaperEventsBaseContext & T;
 
-type HandlersOrFactory<T> = PaperHandlers | ((ctx: PaperEventsContext<T>) => PaperHandlers);
+type HandlersOrFactory<T> = PaperEventMap | ((ctx: PaperEventsContext<T>) => PaperEventMap);
 
 /**
  * Builds the EventContext from paperStore and graph.
@@ -44,7 +44,7 @@ export function buildEventContext<T>(
 /**
  * Subscribes all handlers to a paper, resolving the factory form against the
  * React paperStore + graph and delegating runtime wiring to
- * {@link attachPaperHandlers}.
+ * {@link addPaperEventListeners}.
  * @param paperStore - Paper store to subscribe on.
  * @param graph - JointJS graph instance.
  * @param handlersOrFactory - Event handlers map or factory function returning handlers.
@@ -59,7 +59,7 @@ export function subscribeToPaperEvents<T>(
     typeof handlersOrFactory === 'function'
       ? handlersOrFactory(buildEventContext<T>(paperStore, graph))
       : handlersOrFactory;
-  return attachPaperHandlers(paperStore.paper, handlers);
+  return addPaperEventListeners(paperStore.paper, handlers);
 }
 
 /**

@@ -1,35 +1,34 @@
 import type { dia } from '@joint/core';
 import { mvc } from '@joint/core';
 import type { DOMElement } from '@joint/core/types/internal.js';
-import type { PaperEventMap } from '../types/event.types';
 import { type ConnectionEnd, toConnectionEnd } from './can-connect';
 
 // ============================================================================
 // Base / shared context shapes
 // ============================================================================
 
-/** Paper + graph references shared by every event context. */
-export interface BaseContext {
+// Paper + graph references shared by every event context.
+interface BaseContext {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
 }
 
-/** Cell-level identifying payload (fires for any cell — element or link). */
-export interface CellContext {
+// Cell-level identifying payload (fires for any cell — element or link).
+interface CellContext {
   readonly id: dia.Cell.ID;
   readonly model: dia.Cell;
   readonly view: dia.CellView;
 }
 
-/** Element-level cell payload — `model` / `view` narrowed to element types. */
-export interface ElementContext {
+// Element-level cell payload — `model` / `view` narrowed to element types.
+interface ElementContext {
   readonly id: dia.Cell.ID;
   readonly model: dia.Element;
   readonly view: dia.ElementView;
 }
 
-/** Link-level cell payload — `model` / `view` narrowed to link types. */
-export interface LinkContext {
+// Link-level cell payload — `model` / `view` narrowed to link types.
+interface LinkContext {
   readonly id: dia.Cell.ID;
   readonly model: dia.Link;
   readonly view: dia.LinkView;
@@ -311,7 +310,7 @@ const NORMALIZED_KEYS = new Set<string>([
  * `'cell:unhighlight'`, `'cell:highlight:invalid'`, `'link:snap:connect'`,
  * `'link:snap:disconnect'`.
  */
-export interface NormalizedPaperHandlers {
+interface NormalizedPaperHandlers {
   // pointer (cell — fires for any cell, element OR link)
   readonly onCellPointerDown?: (ctx: PointerCellEventContext) => void;
   readonly onCellPointerMove?: (ctx: PointerCellEventContext) => void;
@@ -387,8 +386,8 @@ export interface NormalizedPaperHandlers {
   readonly onTransform?: (ctx: TransformEventContext) => void;
 }
 
-/** Combined handlers — normalized + raw native — accepted by `attachPaperHandlers`. */
-export type PaperHandlers = Partial<PaperEventMap> & NormalizedPaperHandlers;
+/** Combined handlers — normalized + raw native — accepted by `addPaperEventListeners`. */
+export type PaperEventMap = Partial<dia.Paper.EventMap> & NormalizedPaperHandlers;
 
 // ============================================================================
 // Subscription helpers
@@ -457,16 +456,16 @@ function subscribeRaw(
  * Attaches a normalized handlers map to a paper and returns a cleanup
  * function that detaches everything. Pure JointJS adapter — no React.
  *
- * `attachPaperHandlers` is the runtime that powers the React `usePaperEvents`
+ * `addPaperEventListeners` is the runtime that powers the React `usePaperEvents`
  * hook; it can also be used directly when wiring events outside React (e.g.
  * inside other presets, plugins, or non-React stencils).
  * @param paper - Target paper. The associated graph is read from `paper.model`.
  * @param handlers - Normalized + raw event handlers.
  * @returns Cleanup callback that calls `listener.stopListening()`.
  */
-export function attachPaperHandlers(
+export function addPaperEventListeners(
   paper: dia.Paper,
-  handlers: PaperHandlers
+  handlers: PaperEventMap
 ): () => void {
   const graph = paper.model;
   const controller = new mvc.Listener();

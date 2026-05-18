@@ -54,13 +54,8 @@ export {
 export { elementAttributes } from './element-attributes';
 export { linkAttributes } from './link-attributes';
 export {
-  attachPaperHandlers,
-  type PaperHandlers,
-  type NormalizedPaperHandlers,
-  type BaseContext,
-  type CellContext,
-  type ElementContext,
-  type LinkContext,
+  addPaperEventListeners,
+  type PaperEventMap,
   type CellEventContext,
   type ElementEventContext,
   type LinkEventContext,
