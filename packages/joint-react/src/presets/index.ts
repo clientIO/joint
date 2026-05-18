@@ -82,4 +82,8 @@ export {
   type PaperHoverEventContext,
   type PaperPanEventContext,
   type PaperPinchEventContext,
+  type TranslateEventContext,
+  type ScaleEventContext,
+  type ResizeEventContext,
+  type TransformEventContext,
 } from './paper-events';

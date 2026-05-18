@@ -115,6 +115,33 @@ export type PaperPinchEventContext = BlankEventContext & {
   readonly scale: number;
 };
 
+/** `translate` payload — paper translation. */
+export type TranslateEventContext = BaseContext & {
+  readonly translateX: number;
+  readonly translateY: number;
+  readonly options: unknown;
+};
+
+/** `scale` payload — paper scale. */
+export type ScaleEventContext = BaseContext & {
+  readonly scaleX: number;
+  readonly scaleY: number;
+  readonly options: unknown;
+};
+
+/** `resize` payload — paper dimensions. */
+export type ResizeEventContext = BaseContext & {
+  readonly width: number;
+  readonly height: number;
+  readonly options: unknown;
+};
+
+/** `transform` payload — paper SVG transform matrix. */
+export type TransformEventContext = BaseContext & {
+  readonly matrix: SVGMatrix;
+  readonly options: unknown;
+};
+
 // ============================================================================
 // Link connect/disconnect
 // ============================================================================
@@ -207,15 +234,6 @@ const LINK_CONNECT_MAP = {
 //   onRenderIdle: 'render:idle',
 // } as const;
 
-// Paper transforms — `(tx, ty, data)` / `(sx, sy, data)` / `(w, h, data)` /
-// `(matrix, data)` signatures. Numeric pairs vary per event; bespoke context
-// per name. Use raw form: `paper.on('resize', (w, h, data) => …)`.
-// const PAPER_TRANSFORM_MAP = {
-//   onTranslate: 'translate',
-//   onScale: 'scale',
-//   onResize: 'resize',
-//   onTransform: 'transform',
-// } as const;
 
 const POINTER_BLANK_MAP = {
   onBlankPointerDown: 'blank:pointerdown',
@@ -250,6 +268,22 @@ const PAPER_PINCH_MAP = {
   onPaperPinch: 'paper:pinch',
 } as const;
 
+const TRANSLATE_MAP = {
+  onTranslate: 'translate',
+} as const;
+
+const SCALE_MAP = {
+  onScale: 'scale',
+} as const;
+
+const RESIZE_MAP = {
+  onResize: 'resize',
+} as const;
+
+const TRANSFORM_MAP = {
+  onTransform: 'transform',
+} as const;
+
 const NORMALIZED_KEYS = new Set<string>([
   ...Object.keys(POINTER_CELL_MAP),
   ...Object.keys(HOVER_CELL_MAP),
@@ -262,6 +296,10 @@ const NORMALIZED_KEYS = new Set<string>([
   ...Object.keys(PAPER_HOVER_MAP),
   ...Object.keys(PAPER_PAN_MAP),
   ...Object.keys(PAPER_PINCH_MAP),
+  ...Object.keys(TRANSLATE_MAP),
+  ...Object.keys(SCALE_MAP),
+  ...Object.keys(RESIZE_MAP),
+  ...Object.keys(TRANSFORM_MAP),
 ]);
 
 // ============================================================================
@@ -345,6 +383,11 @@ export interface NormalizedPaperHandlers {
   // paper-level touchpad
   readonly onPaperPan?: (ctx: PaperPanEventContext) => void;
   readonly onPaperPinch?: (ctx: PaperPinchEventContext) => void;
+  // paper transforms
+  readonly onTranslate?: (ctx: TranslateEventContext) => void;
+  readonly onScale?: (ctx: ScaleEventContext) => void;
+  readonly onResize?: (ctx: ResizeEventContext) => void;
+  readonly onTransform?: (ctx: TransformEventContext) => void;
 }
 
 /** Combined handlers — normalized + raw native — accepted by `attachPaperHandlers`. */
@@ -489,6 +532,25 @@ export function attachPaperHandlers(
   subscribeGroup(controller, paper, eventMap, PAPER_PINCH_MAP,
     (event: Event, x: number, y: number, scale: number) =>
       ({ ...baseContext, event, x, y, scale }));
+
+  // `translate` — native (tx, ty, data).
+  subscribeGroup(controller, paper, eventMap, TRANSLATE_MAP,
+    (translateX: number, translateY: number, options: unknown) =>
+      ({ ...baseContext, translateX, translateY, options }));
+
+  // `scale` — native (sx, sy, data).
+  subscribeGroup(controller, paper, eventMap, SCALE_MAP,
+    (scaleX: number, scaleY: number, options: unknown) =>
+      ({ ...baseContext, scaleX, scaleY, options }));
+
+  // `resize` — native (width, height, data).
+  subscribeGroup(controller, paper, eventMap, RESIZE_MAP,
+    (width: number, height: number, options: unknown) =>
+      ({ ...baseContext, width, height, options }));
+
+  // `transform` — native (matrix, data).
+  subscribeGroup(controller, paper, eventMap, TRANSFORM_MAP,
+    (matrix: SVGMatrix, options: unknown) => ({ ...baseContext, matrix, options }));
 
   subscribeRaw(controller, paper, eventMap);
 
