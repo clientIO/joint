@@ -99,9 +99,8 @@ function Main() {
   );
 
   return (
-    <Paper
+    <Paper style={{ height: 400 }}
       useHTMLOverlay={isHTMLEnabled}
-      height={400}
       renderElement={renderItem}
       className={PAPER_CLASSNAME}
     >

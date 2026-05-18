@@ -1840,6 +1840,12 @@ export namespace Paper {
         maxHeight?: number;
         useModelGeometry?: boolean;
         contentArea?: BBox;
+        /**
+         * Shifts the grid anchor so the first cell starts at
+         * (`originX`, `originY`) in paper-local coordinates. Default `0`.
+         */
+        originX?: number;
+        originY?: number;
     }
 
     interface EventMap {

@@ -109,11 +109,10 @@ function Main() {
           Add Node
         </button>
       </div>
-      <Paper
+      <Paper style={{ height: 450 }}
         ref={paperRef}
         id={paperId}
         className={PAPER_CLASSNAME}
-        height={450}
         renderElement={renderElement}
       />
     </div>

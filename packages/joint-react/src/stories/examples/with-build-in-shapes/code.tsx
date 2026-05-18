@@ -210,7 +210,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper className={PAPER_CLASSNAME} height={500} interactive={true} />
+      <Paper style={{ height: 500 }} className={PAPER_CLASSNAME} interactive={true} />
     </div>
   );
 }

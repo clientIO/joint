@@ -63,7 +63,7 @@ function RenderElement({ color }: Readonly<NodeData>) {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
+      <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} renderElement={RenderElement} />
     </div>
   );
 }

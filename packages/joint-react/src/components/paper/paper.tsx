@@ -6,20 +6,6 @@ import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
 import type { PaperProps } from './paper.types';
 
 /**
- * Resolves a CSS dimension value to a JointJS Paper dimension.
- * @param dimension - The CSS width or height value.
- * @returns The resolved dimension or undefined.
- */
-function resolveStyleDimension(
-  dimension: React.CSSProperties['width'] | React.CSSProperties['height']
-): dia.Paper.Dimension | undefined {
-  if (dimension === undefined) {
-    return undefined;
-  }
-  return dimension;
-}
-
-/**
  * Internal Paper implementation used by forwarded `Paper` component.
  * @param props - Paper component props.
  * @param forwardedRef - Ref receiving the created JointJS paper instance.
@@ -29,17 +15,13 @@ function PaperBase(
   props: Readonly<PaperProps>,
   forwardedRef: React.ForwardedRef<dia.Paper | null>
 ) {
-  const { className, style, children, width, height, paper: externalPaper } = props;
-  const resolvedWidth = width ?? resolveStyleDimension(style?.width);
-  const resolvedHeight = height ?? resolveStyleDimension(style?.height);
+  const { className, style, children, paper: externalPaper } = props;
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
   const reactId = useId();
   const id = props.id ?? `paper-${reactId}`;
   const isExternalPaper = !!externalPaper;
   const { paperRef, paperStore, isReady, content } = useCreatePortalPaper({
     ...props,
-    width: resolvedWidth,
-    height: resolvedHeight,
     elementRef: isExternalPaper ? undefined : paperHTMLElementRef,
     id,
     style,

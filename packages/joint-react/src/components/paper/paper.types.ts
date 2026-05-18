@@ -88,9 +88,11 @@ export interface PortalPaperOptions {
   /** Unique identifier used by joint-react to track the paper instance. */
   readonly id?: string;
 
-  // ── Sizing & appearance ──────────────────────────────────────────────────
-  readonly width?: dia.Paper.Options['width'];
-  readonly height?: dia.Paper.Options['height'];
+  // ── Appearance ───────────────────────────────────────────────────────────
+  // Note: sizing is intentionally NOT exposed. Paper is sized exclusively
+  // by host CSS (`className` / `style`); `paper.getComputedSize()` falls
+  // back to `el.clientWidth/clientHeight` when `options.width/height` are
+  // not numeric (see `dia.Paper.getComputedSize`).
   readonly drawGrid?: dia.Paper.Options['drawGrid'];
   readonly drawGridSize?: dia.Paper.Options['drawGridSize'];
   readonly gridSize?: dia.Paper.Options['gridSize'];
@@ -214,30 +216,6 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  */
 export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
   /**
-   * Width of the paper host element.
-   *
-   * Precedence for width is:
-   * 1. `width` prop
-   * 2. `style.width`
-   * 3. CSS width from `className`
-   *
-   * When this prop is omitted, the Paper component falls back to `style.width`.
-   * If both are omitted, width is left unset so host CSS can size the paper.
-   */
-  readonly width?: dia.Paper.Dimension;
-  /**
-   * Height of the paper host element.
-   *
-   * Precedence for height is:
-   * 1. `height` prop
-   * 2. `style.height`
-   * 3. CSS height from `className`
-   *
-   * When this prop is omitted, the Paper component falls back to `style.height`.
-   * If both are omitted, height is left unset so host CSS can size the paper.
-   */
-  readonly height?: dia.Paper.Dimension;
-  /**
    * A function that renders the element.
    *
    * Note: JointJS works with SVG by default, so `renderElement` is appended inside an SVG node.
@@ -292,17 +270,14 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly renderLink?: RenderLink<any>;
   /**
-   * Inline styles applied to the paper host element.
-   *
-   * For sizing, `style.width` and `style.height` are used only when the matching
-   * `width` / `height` props are not provided.
+   * Inline styles applied to the paper host element. Use `style.width` and
+   * `style.height` (or CSS via `className`) to size the paper — Paper does
+   * not expose dedicated width/height props.
    */
   readonly style?: CSSProperties;
   /**
-   * CSS classes applied to the paper host element.
-   *
-   * Class-based sizing is lowest priority and is used only when the matching
-   * `width` / `height` prop and `style.width` / `style.height` are omitted.
+   * CSS classes applied to the paper host element. Combine with width /
+   * height rules to size the paper.
    */
   readonly className?: string;
   /**

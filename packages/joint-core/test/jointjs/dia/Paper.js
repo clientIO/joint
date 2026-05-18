@@ -885,6 +885,55 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
         });
 
+        QUnit.module('fitToContent() > options > originX / originY', function() {
+
+            QUnit.test('default origin (0, 0) — backward compatible', function(assert) {
+                addCells(graph);
+                var area = paper.fitToContent({
+                    useModelGeometry: true,
+                    gridWidth: 100,
+                    gridHeight: 100,
+                    allowNewOrigin: 'any'
+                });
+                // Content spans (-100, -100) → (200, 300). Grid at 0:
+                //   Right edge rounds to 200, Bottom to 300.
+                //   New origin shifts negative content into view.
+                assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 400 });
+            });
+
+            QUnit.test('non-zero origin shifts the grid anchor', function(assert) {
+                addCells(graph);
+                var area = paper.fitToContent({
+                    useModelGeometry: true,
+                    gridWidth: 100,
+                    gridHeight: 100,
+                    allowNewOrigin: 'any',
+                    originX: 50,
+                    originY: 25
+                });
+                // Origin shifted by (50, 25): the returned rect's
+                // top-left moves by the same amount; dimensions are
+                // unchanged because content/grid relationship hasn't
+                // changed in origin-relative space.
+                assert.deepEqual(area.toJSON(), { x: -50, y: -75, width: 300, height: 400 });
+            });
+
+            QUnit.test('origin without allowNewOrigin still offsets the rect', function(assert) {
+                addCells(graph);
+                var area = paper.fitToContent({
+                    useModelGeometry: true,
+                    gridWidth: 100,
+                    gridHeight: 100,
+                    originX: 50,
+                    originY: 25
+                });
+                // Without allowNewOrigin the negative content is
+                // ignored; rect origin = (originX, originY).
+                assert.deepEqual(area.x, 50);
+                assert.deepEqual(area.y, 25);
+            });
+        });
+
         QUnit.module('fitToContent() > options > useModelGeometry', function() {
 
             [0.5, 1, 2].forEach(function(scale) {

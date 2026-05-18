@@ -21,7 +21,7 @@ const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper className={PAPER_CLASSNAME} height={280} />
+      <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} />
     </div>
   );
 }

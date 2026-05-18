@@ -84,8 +84,7 @@ export function RenderItemDecorator(
   return (
     <div style={{ width: '100%', height: 450 }}>
       <GraphProvider initialCells={properties.cells ?? testCells}>
-        <Paper
-          height={450}
+        <Paper style={{ height: 450 }}
           className={PAPER_CLASSNAME}
           renderElement={properties.renderElement}
           renderLink={properties.renderLink}
@@ -105,7 +104,7 @@ export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX
   return (
     <div style={{ width: '100%', height: 350 }}>
       <SimpleGraphProviderDecorator>
-        <Paper height={350} className={PAPER_CLASSNAME} renderElement={RenderSimpleRectElement}>
+        <Paper style={{ height: 350 }} className={PAPER_CLASSNAME} renderElement={RenderSimpleRectElement}>
           {properties.children}
         </Paper>
       </SimpleGraphProviderDecorator>

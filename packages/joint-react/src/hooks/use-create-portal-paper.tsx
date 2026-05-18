@@ -27,7 +27,10 @@ import { HTMLBox } from '../components/html-box';
 import { mapLinkToAttributes } from '../state/data-mapping';
 import type { CanConnectOptions } from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
-import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
+import {
+  connectionStrategy as connectionStrategyPreset,
+  type ConnectionStrategyOptions,
+} from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
 import { toNativeCellVisibility } from '../presets/cell-visibility';
 import { toNativeInteractive } from '../presets/interactive';
@@ -117,9 +120,7 @@ function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink'
       if (isFactory) return link;
       return link.clone();
     }
-    return new LinkModelCtor(
-      mapLinkToAttributes({ type: LINK_MODEL_TYPE, ...link } as LinkRecord)
-    );
+    return new LinkModelCtor(mapLinkToAttributes({ type: LINK_MODEL_TYPE, ...link } as LinkRecord));
   };
 }
 
@@ -148,14 +149,11 @@ function LinkItem({
     (listener: () => void) => (id === undefined ? () => {} : cells.subscribe(id, listener)),
     [cells, id]
   );
-  const getSnapshot = useCallback(
-    () => {
-      if (id === undefined) return EMPTY_DATA;
-      const record = cells.get(id) as LinkRecord | undefined;
-      return record?.data ?? EMPTY_DATA;
-    },
-    [cells, id]
-  );
+  const getSnapshot = useCallback(() => {
+    if (id === undefined) return EMPTY_DATA;
+    const record = cells.get(id) as LinkRecord | undefined;
+    return record?.data ?? EMPTY_DATA;
+  }, [cells, id]);
   const data = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   if (!portalElement || id === undefined) {
     return null;
@@ -269,16 +267,14 @@ export function useCreatePortalPaper(
   }, [validateConnection]);
 
   const connectionStrategyCallback = useMemo(() => {
-    const resolvedOptions: ConnectionStrategyOptions | undefined = typeof connectionStrategy === 'function'
-      ? { customize: connectionStrategy }
-      : connectionStrategy;
+    const resolvedOptions: ConnectionStrategyOptions | undefined =
+      typeof connectionStrategy === 'function'
+        ? { customize: connectionStrategy }
+        : connectionStrategy;
     return resolvedOptions ? connectionStrategyPreset(resolvedOptions) : undefined;
   }, [connectionStrategy]);
 
-  const validateEmbeddingCallback = useMemo(
-    () => canEmbed(validateEmbedding),
-    [validateEmbedding]
-  );
+  const validateEmbeddingCallback = useMemo(() => canEmbed(validateEmbedding), [validateEmbedding]);
 
   const validateUnembeddingCallback = useMemo(
     () => canUnembed(validateUnembedding),
@@ -290,10 +286,7 @@ export function useCreatePortalPaper(
     [cellVisibility]
   );
 
-  const interactiveValue = useMemo(
-    () => toNativeInteractive(interactive),
-    [interactive]
-  );
+  const interactiveValue = useMemo(() => toNativeInteractive(interactive), [interactive]);
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
 
@@ -305,6 +298,13 @@ export function useCreatePortalPaper(
         ...paperOptions,
         id,
         el: hostElementForCreation,
+        // Force undefined so the prototype `width`/`height` (800/600) get
+        // clobbered — `paper.getComputedSize()` then falls back to
+        // `el.clientWidth/clientHeight`, i.e. the host CSS size. Features
+        // that need a finite sheet size (e.g. <PaperScroller>) must set
+        // `paper.options.width/height` explicitly themselves.
+        width: undefined,
+        height: undefined,
         defaultLink: defaultLinkCallback,
         validateConnection: validateConnectionCallback,
         connectionStrategy: connectionStrategyCallback,
@@ -358,14 +358,6 @@ export function useCreatePortalPaper(
     if (!paperStore) return;
     if (!paper) return;
 
-    // `width` and `height` are managed by `paper.setDimensions()` only —
-    // see the dedicated useEffect below. They must NOT go through
-    // `assignOptions` (that would write `paper.options.width` directly,
-    // bypassing the DOM update and tripping `setDimensions`'s early-exit
-    // guard the next time it's called).
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { width, height, ...paperOptionsWithoutDimensions } = paperOptions;
-
     assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
@@ -373,13 +365,14 @@ export function useCreatePortalPaper(
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
       cellVisibility: cellVisibilityCallback,
-      interactive: interactiveValue,
-      ...paperOptionsWithoutDimensions,
+      ...paperOptions,
       ...linkRouting,
       ...escapeHatchOptions,
     });
 
     const { drawGrid, gridSize } = paperOptions;
+
+    paper.setInteractivity(interactiveValue);
 
     if (drawGrid !== undefined) {
       paper.setGrid(drawGrid);
@@ -405,20 +398,6 @@ export function useCreatePortalPaper(
     paperStore,
     transform,
   ]);
-
-  // Sync paper dimensions when the `width` / `height` props on `<Paper>`
-  // change. Going through `setDimensions` (rather than mutating
-  // `paper.options.width/height` directly via assignOptions) keeps DOM CSS
-  // in lockstep with `paper.options` — features like `<PaperScroller>`
-  // that mutate `paper.options.width` via `setDimensions(...)` later won't
-  // hit the early-exit guard because of a stale options value.
-  const paperWidthProperty = paperOptions.width;
-  const paperHeightProperty = paperOptions.height;
-  useEffect(() => {
-    if (!paper) return;
-    if (paperWidthProperty === undefined && paperHeightProperty === undefined) return;
-    paper.setDimensions(paperWidthProperty ?? paper.options.width ?? 0, paperHeightProperty ?? paper.options.height ?? 0);
-  }, [paper, paperWidthProperty, paperHeightProperty]);
 
   const elements = useMemo(() => {
     if (!hasRenderElement) {
