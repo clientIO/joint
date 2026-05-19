@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
-import { graphView } from '../graph-view';
+import { graphProjection } from '../graph-projection';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import { isElementType, isLinkType } from '../../utils/cell-type';
@@ -12,7 +12,7 @@ function createGraph(): dia.Graph {
 
 function setup() {
   const graph = createGraph();
-  const view = graphView({ graph });
+  const view = graphProjection({ graph });
   return { graph, view };
 }
 
@@ -39,7 +39,7 @@ function addLink(graph: dia.Graph, id: string, source: string, target: string): 
 /** Returns the element record under `id`, narrowed via the graph's type registry. */
 function getElement(
   graph: dia.Graph,
-  view: ReturnType<typeof graphView>,
+  view: ReturnType<typeof graphProjection>,
   id: string
 ): ElementRecord | undefined {
   const cell = view.cells.get(id);
@@ -51,7 +51,7 @@ function getElement(
 /** Returns the link record under `id`, narrowed via the graph's type registry. */
 function getLink(
   graph: dia.Graph,
-  view: ReturnType<typeof graphView>,
+  view: ReturnType<typeof graphProjection>,
   id: string
 ): LinkRecord | undefined {
   const cell = view.cells.get(id);
@@ -61,7 +61,7 @@ function getLink(
 }
 
 /** Number of cells classified as elements via the graph's type registry. */
-function countElements(graph: dia.Graph, view: ReturnType<typeof graphView>): number {
+function countElements(graph: dia.Graph, view: ReturnType<typeof graphProjection>): number {
   let count = 0;
   for (const cell of view.cells.getAll()) {
     const cellType = cell.type as string | undefined;
@@ -71,7 +71,7 @@ function countElements(graph: dia.Graph, view: ReturnType<typeof graphView>): nu
 }
 
 /** Number of cells classified as links via the graph's type registry. */
-function countLinks(graph: dia.Graph, view: ReturnType<typeof graphView>): number {
+function countLinks(graph: dia.Graph, view: ReturnType<typeof graphProjection>): number {
   let count = 0;
   for (const cell of view.cells.getAll()) {
     const cellType = cell.type as string | undefined;
@@ -83,7 +83,7 @@ function countLinks(graph: dia.Graph, view: ReturnType<typeof graphView>): numbe
 /** Flush pending microtasks so commitChanges callbacks execute. */
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
-describe('graphView — single cells container', () => {
+describe('graphProjection — single cells container', () => {
   it('exposes only the unified `cells` container', () => {
     const { view } = setup();
     expect(view.cells).toBeDefined();
@@ -93,7 +93,7 @@ describe('graphView — single cells container', () => {
   });
 });
 
-describe('graphView — elements data reflects graph state', () => {
+describe('graphProjection — elements data reflects graph state', () => {
   it('has correct data after add', async () => {
     const { graph, view } = setup();
     addElement(graph, 'el-1', 10, 20, 100, 50);
@@ -217,7 +217,7 @@ describe('graphView — elements data reflects graph state', () => {
   });
 });
 
-describe('graphView — links data reflects graph state', () => {
+describe('graphProjection — links data reflects graph state', () => {
   it('has data after add', async () => {
     const { graph, view } = setup();
     addElement(graph, 'el-1');
@@ -262,7 +262,7 @@ describe('graphView — links data reflects graph state', () => {
   });
 });
 
-describe('graphView — per-id subscriptions', () => {
+describe('graphProjection — per-id subscriptions', () => {
   it('notifies the subscriber for the moved cell only', async () => {
     const { graph, view } = setup();
     addElement(graph, 'el-1');
@@ -303,7 +303,7 @@ describe('graphView — per-id subscriptions', () => {
   });
 });
 
-describe('graphView — multiple cells isolation', () => {
+describe('graphProjection — multiple cells isolation', () => {
   it('changing one element does not replace another cell reference', async () => {
     const { graph, view } = setup();
     addElement(graph, 'el-1', 10, 20, 100, 50);
@@ -334,7 +334,7 @@ describe('graphView — multiple cells isolation', () => {
   });
 });
 
-describe('graphView — reset', () => {
+describe('graphProjection — reset', () => {
   it('repopulates with new cells', async () => {
     const { graph, view } = setup();
     addElement(graph, 'el-1');
@@ -358,7 +358,7 @@ describe('graphView — reset', () => {
   });
 });
 
-describe('graphView — destroy', () => {
+describe('graphProjection — destroy', () => {
   it('stops tracking graph changes', async () => {
     const { graph, view } = setup();
     addElement(graph, 'el-1');
@@ -389,7 +389,7 @@ describe('graphView — destroy', () => {
   });
 });
 
-describe('graphView — link propagation', () => {
+describe('graphProjection — link propagation', () => {
   it('link data is populated when link is added', async () => {
     const { graph, view } = setup();
     addElement(graph, 'el-1', 10, 20);
@@ -405,7 +405,7 @@ describe('graphView — link propagation', () => {
   });
 
   it('preserves the link record reference when a connected element moves', async () => {
-    // When an element moves, the graph-view pipeline re-syncs connected
+    // When an element moves, the graph-projection pipeline re-syncs connected
     // links, but their structural content (source/target/data/style/…) is
     // unchanged — the element move only affects the link's rendered
     // geometry, which `LinkView` computes at paint time, not stored on the
@@ -428,10 +428,10 @@ describe('graphView — link propagation', () => {
   });
 });
 
-describe('graphView — controlled-mode updateGraph round-trip', () => {
+describe('graphProjection — controlled-mode updateGraph round-trip', () => {
   it('all cells persist after position change and updateGraph round-trip', async () => {
     const graph = createGraph();
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
 
     const initialCells: readonly CellRecord[] = [
       {
@@ -476,7 +476,7 @@ describe('graphView — controlled-mode updateGraph round-trip', () => {
   });
 });
 
-describe('graphView — selective reference stability', () => {
+describe('graphProjection — selective reference stability', () => {
   it('preserves data reference when only position changes', async () => {
     const { graph, view } = setup();
     addElement(graph, 'el-1', 10, 20, 100, 50);
@@ -567,7 +567,7 @@ describe('graphView — selective reference stability', () => {
   });
 });
 
-describe('graphView — LAYOUT_UPDATE_EVENT path', () => {
+describe('graphProjection — LAYOUT_UPDATE_EVENT path', () => {
   it('element retains correct size after layout update with stale model.changed', async () => {
     const { graph, view } = setup();
     graph.addCell({
@@ -650,7 +650,7 @@ describe('graphView — LAYOUT_UPDATE_EVENT path', () => {
 
   it('fresh layout update has correct values after updateGraph seeding', async () => {
     const graph = createGraph();
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
 
     view.updateGraph({
       cells: [
@@ -682,7 +682,7 @@ describe('graphView — LAYOUT_UPDATE_EVENT path', () => {
   });
 });
 
-describe('graphView — embedding', () => {
+describe('graphProjection — embedding', () => {
   it('reflects parent after embed', async () => {
     const { graph, view } = setup();
     addElement(graph, 'parent-1', 0, 0, 400, 300);
@@ -742,7 +742,7 @@ describe('graphView — embedding', () => {
   });
 });
 
-describe('graphView — isUpdateFromReact filtering', () => {
+describe('graphProjection — isUpdateFromReact filtering', () => {
   it('ignores changes with the isUpdateFromReact flag', async () => {
     const { graph, view } = setup();
     addElement(graph, 'el-1');
@@ -758,12 +758,12 @@ describe('graphView — isUpdateFromReact filtering', () => {
   });
 });
 
-describe('graphView — syncFromGraph and partial updateGraph', () => {
+describe('graphProjection — syncFromGraph and partial updateGraph', () => {
   it('syncFromGraph seeds the cells container from current graph state', () => {
     const graph = createGraph();
     addElement(graph, 'a');
     addElement(graph, 'b', 50, 0);
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
     view.syncFromGraph();
     expect(view.cells.has('a')).toBe(true);
     expect(view.cells.has('b')).toBe(true);
@@ -781,7 +781,7 @@ describe('graphView — syncFromGraph and partial updateGraph', () => {
         size: { width: 10, height: 10 },
       },
     ]);
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
     view.syncFromGraph();
     view.updateGraph({ flag: 'updateFromReact' });
 
@@ -808,12 +808,12 @@ describe('graphView — syncFromGraph and partial updateGraph', () => {
   });
 });
 
-describe('graphView — custom cell types', () => {
+describe('graphProjection — custom cell types', () => {
   it('passes through custom cell types without running them through element/link mappers', async () => {
     class CustomCell extends dia.Cell {}
     const namespace = { ...DEFAULT_CELL_NAMESPACE, custom: { Foo: CustomCell } };
     const graph = new dia.Graph({}, { cellNamespace: namespace });
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
     graph.addCell({ id: 'custom-1', type: 'custom.Foo' } as unknown as dia.Cell.JSON);
     await flush();
     const record = view.cells.get('custom-1');

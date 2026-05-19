@@ -48,3 +48,33 @@ export function isPositionEqual(a?: ElementPosition, b?: ElementPosition): boole
   if (!a || !b) return false;
   return a.x === b.x && a.y === b.y;
 }
+
+/**
+ * Shallow-compare two readonly arrays by length and element identity (`===`).
+ * @param a - first array
+ * @param b - second array
+ * @returns true when both arrays have the same length and the same element refs
+ */
+export function areArraysShallowEqual<T>(a: readonly T[], b: readonly T[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (const [index, value] of a.entries()) {
+    if (value !== b[index]) return false;
+  }
+  return true;
+}
+
+/**
+ * Shallow equality with an array-aware fallthrough: when both inputs are
+ * arrays, compare them shallowly by length and element identity; otherwise
+ * fall back to `Object.is`.
+ * @param a - previous result
+ * @param b - next result
+ * @returns true when both inputs are equal under shallow array or `Object.is`
+ */
+export function arrayAwareEqual(a: unknown, b: unknown): boolean {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return areArraysShallowEqual(a, b);
+  }
+  return Object.is(a, b);
+}

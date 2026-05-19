@@ -42,7 +42,7 @@ export interface ElementItemProps {
  */
 function useElementDataSnapshot(id: CellId): Record<string, unknown> | undefined {
   const store = useGraphStore();
-  const { cells } = store.graphView;
+  const { cells } = store.graphProjection;
   const subscribe = useCallback(
     (listener: () => void) => cells.subscribe(id, listener),
     [cells, id]
@@ -69,7 +69,7 @@ function useElementDataSnapshot(id: CellId): Record<string, unknown> | undefined
  */
 function useUnresolvedElement(id: CellId): ElementRecord {
   const store = useGraphStore();
-  const { cells } = store.graphView;
+  const { cells } = store.graphProjection;
   const subscribe = useCallback(
     (listener: () => void) => cells.subscribe(id, listener),
     [cells, id]

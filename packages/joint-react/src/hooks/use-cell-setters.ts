@@ -7,6 +7,9 @@ import type {
   LinkJSONInit,
   CellId,
 } from '../types/cell.types';
+import { type ArrayUpdate } from '../store/state-container';
+import { cellInputToRecord, cellInputToModel, type CellInput, type CellRef } from '../utils/normalize-cell-input';
+
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record
  * (read from the cells container) and returns the next record. Invoked
@@ -20,9 +23,11 @@ export type SetCellUpdater<
 > = (previous: Element | Link) => Element | Link;
 
 /**
- * Function returned by {@link useSetCell}. Two forms:
+ * Function returned by {@link useSetCell}. Three forms:
  * - `setCell(record)` — direct form. `record.id` names the target. Cell
  *   exists: attributes merge over it. Cell missing: cell is added.
+ * - `setCell(diaCell)` — dia.Cell form. The cell is converted to a record
+ *   and handled like the direct form.
  * - `setCell(id, updater)` — updater form. Throws when no cell with `id`
  *   exists. The updater is called once with the real previous record.
  * @template Element - element record shape
@@ -32,7 +37,7 @@ export interface SetCell<
   Element extends ElementJSONInit,
   Link extends LinkJSONInit,
 > {
-  (record: Element | Link): void;
+  (record: CellInput<Element, Link>): void;
   (id: CellId, updater: SetCellUpdater<Element, Link>): void;
 }
 
@@ -51,14 +56,14 @@ export function useSetCell<
   const { graph } = store;
   const setCell = useCallback(
     (
-      argument1: Element | Link | CellId,
+      argument1: CellInput<Element, Link> | CellId,
       argument2?: SetCellUpdater<Element, Link>
     ) => {
       const next = resolveSetCellInput(argument1, argument2, store);
       if (next.id === undefined) {
         throw new Error('setCell: input record must have an `id` to identify the target cell');
       }
-      const previous = store.graphView.cells.get(next.id);
+      const previous = store.graphProjection.cells.get(next.id);
       const diaCell = graph.getCell(next.id);
       if (!previous || !diaCell) {
         graph.addCell(mapCellToAttributes(next, graph));
@@ -94,13 +99,13 @@ export function useSetCell<
  * @returns resolved cell record
  */
 function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJSONInit>(
-  argument1: Element | Link | CellId,
+  argument1: CellInput<Element, Link> | CellId,
   argument2: SetCellUpdater<Element, Link> | undefined,
   store: ReturnType<typeof useGraphStore<Element, Link>>
 ): Element | Link {
-  if (argument2 === undefined) return argument1 as Element | Link;
+  if (argument2 === undefined) return cellInputToRecord<Element, Link>(argument1 as CellInput<Element, Link>);
   const id = argument1 as CellId;
-  const previous = store.graphView.cells.get(id);
+  const previous = store.graphProjection.cells.get(id);
   if (!previous) {
     throw new Error(
       `setCell: cannot update — no cell with id "${String(id)}" exists. ` +
@@ -111,16 +116,16 @@ function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJ
 }
 
 /**
- * Returns a function that removes one cell by id.
- * No-op if the id does not exist.
+ * Returns a function that removes one cell by id or dia.Cell reference.
+ * No-op if the cell does not exist.
  * @returns memoized removeCell setter
  */
 export function useRemoveCell() {
   const store = useGraphStore();
   const { graph } = store;
   return useCallback(
-    (id: CellId) => {
-      const diaCell = graph.getCell(id);
+    (cellRef: CellRef) => {
+      const diaCell = graph.getCell(cellRef);
       if (!diaCell) return;
       graph.removeCells([diaCell]);
     },
@@ -129,7 +134,7 @@ export function useRemoveCell() {
 }
 
 /**
- * Returns a function that removes multiple cells by id.
+ * Returns a function that removes multiple cells by id or dia.Cell reference.
  * Ignores missing ids.
  * @returns memoized removeCells setter
  */
@@ -137,10 +142,10 @@ export function useRemoveCells() {
   const store = useGraphStore();
   const { graph } = store;
   return useCallback(
-    (ids: readonly CellId[]) => {
+    (cellRefs: readonly CellRef[]) => {
       const toRemove: dia.Cell[] = [];
-      for (const id of ids) {
-        const cell = graph.getCell(id);
+      for (const cellRef of cellRefs) {
+        const cell = graph.getCell(cellRef);
         if (cell) toRemove.push(cell);
       }
       if (toRemove.length === 0) return;
@@ -153,6 +158,8 @@ export function useRemoveCells() {
 /**
  * Returns a function that atomically replaces all cells.
  * Accepts either a new array or an updater receiving the current snapshot.
+ * Both records and dia.Cell instances are accepted — dia.Cell instances
+ * are normalized to records before mapping.
  * Maps the next cells through `mapCellToAttributes` and calls
  * `graph.resetCells` directly — equivalent to JointJS' bulk-reset semantics.
  * @template Element - element record shape
@@ -166,17 +173,11 @@ export function useResetCells<
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
   return useCallback(
-    (
-      input:
-        | ReadonlyArray<Element | Link>
-        | ((
-            previous: ReadonlyArray<Element | Link>
-          ) => ReadonlyArray<Element | Link>)
-    ) => {
-      const current = store.graphView.cells.getAll();
+    (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => {
+      const current = store.graphProjection.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
-      const mapped: dia.Cell.JSONInit[] = next.map((cell) => mapCellToAttributes(cell, graph));
-      graph.resetCells(mapped);
+      const models = next.map((cell) => cellInputToModel<Element, Link>(cell, graph));
+      graph.resetCells(models);
     },
     [graph, store]
   );
@@ -185,6 +186,8 @@ export function useResetCells<
 /**
  * Returns a function that applies an updater to the current cells array.
  * Shorthand for `resetCells(prev => updater(prev))` — removals happen via `filter`.
+ * The updater may return dia.Cell instances alongside records; they are
+ * normalized before applying.
  * @template Element - element record shape
  * @template Link - link record shape
  * @returns memoized updateCells setter
@@ -198,10 +201,12 @@ export function useUpdateCells<
     (
       updater: (
         previous: ReadonlyArray<Element | Link>
-      ) => ReadonlyArray<Element | Link>
+      ) => ReadonlyArray<CellInput<Element, Link>>
     ) => {
-      const current = store.graphView.cells.getAll();
-      store.applyControlled(updater(current));
+      const current = store.graphProjection.cells.getAll();
+      const next = updater(current);
+      const cellRecords = next.map((cell) => cellInputToRecord<Element, Link>(cell));
+      store.applyControlled(cellRecords);
     },
     [store]
   );

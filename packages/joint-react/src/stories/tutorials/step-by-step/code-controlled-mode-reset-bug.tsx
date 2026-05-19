@@ -77,7 +77,7 @@ export default function App() {
         </button>
       </div>
       <GraphProvider cells={cells} onCellsChange={setCells}>
-        <Paper className={PAPER_CLASSNAME} height={300} />
+        <Paper className={PAPER_CLASSNAME} />
       </GraphProvider>
     </div>
   );

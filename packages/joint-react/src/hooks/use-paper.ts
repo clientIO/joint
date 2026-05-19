@@ -174,14 +174,7 @@ export function usePaper(id: string): { paper: dia.Paper | null } & UsePaperActi
 export function usePaper(
   idOrOptions?: string | Optional
 ): { paper: dia.Paper | null } & UsePaperActions;
-/**
- * Read the `dia.Paper` instance and its imperative actions from the nearest
- * `PaperProvider`. With no argument it resolves the closest paper and the
- * return type is non-nullable. Pass `{ optional: true }` or a paper id to
- * widen the return type to nullable for cases where the paper may be missing.
- * @param idOrOptions - paper id, options object, or omitted for the nearest paper
- * @returns paper instance plus imperative actions
- */
+/** Hook that returns the paper instance and actions for the given paper id or options. */
 export function usePaper(
   idOrOptions?: string | Optional
 ): { paper: dia.Paper | null } & UsePaperActions {

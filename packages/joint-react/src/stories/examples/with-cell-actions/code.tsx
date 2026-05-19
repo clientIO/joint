@@ -376,7 +376,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 
 function AddElementForm() {
   const { setCell } = useGraph<ElementRecord<NodeData>>();
-  const elementIds = useCells<Computed, string[]>((cells) =>
+  const elementIds = useCells<Computed<CellRecord>, string[]>((cells) =>
     cells.filter((c) => c.type === 'element').map((c) => String(c.id))
   );
   const [label, setLabel] = useState('');
@@ -452,7 +452,7 @@ function AddElementForm() {
 
 function AddLinkForm() {
   const { setCell } = useGraph<ElementRecord<NodeData>>();
-  const elements = useCells<Computed, Array<[string, Computed<ElementRecord<NodeData>>]>>(
+  const elements = useCells<Computed<CellRecord>, Array<[string, Computed<ElementRecord<NodeData>>]>>(
     (cells) => {
       const result: Array<[string, Computed<ElementRecord<NodeData>>]> = [];
       for (const cell of cells) {

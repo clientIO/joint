@@ -417,6 +417,24 @@ describe('graphChanges', () => {
       );
     });
 
+    it('fires when ResizeObserver sets size via fromMeasure flag', () => {
+      const { graph, onElementsSizeChange } = setupWithSize();
+      graph.resetCells([
+        {
+          id: 'a',
+          type: 'element',
+          position: { x: 0, y: 0 },
+          size: { width: 0, height: 0 },
+        },
+      ]);
+      onElementsSizeChange.mockClear();
+
+      const cell = graph.getCell('a') as dia.Element;
+      cell.set('size', { width: 120, height: 60 }, { fromMeasure: true } as object);
+
+      expect(onElementsSizeChange).toHaveBeenCalledWith('a', { width: 120, height: 60 });
+    });
+
     it('does not fire for links on reset', () => {
       const { graph, onElementsSizeChange } = setupWithSize();
       graph.resetCells([

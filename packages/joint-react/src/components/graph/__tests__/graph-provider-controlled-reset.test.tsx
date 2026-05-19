@@ -56,7 +56,7 @@ describe('controlled GraphProvider: reset preserves measured size', () => {
 
     render(<App />);
     await waitFor(() => expect(storeRef).toBeDefined());
-    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(3));
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSize()).toBe(3));
 
     const elementA = storeRef.graph.getCell('a');
     expect(elementA?.isElement()).toBe(true);
@@ -83,12 +83,12 @@ describe('controlled GraphProvider: reset preserves measured size', () => {
         } as CellRecord<Record<string, unknown>, Record<string, unknown>>,
       ]);
     });
-    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(4));
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSize()).toBe(4));
 
     act(() => {
       externalSetCells(INITIAL_CELLS);
     });
-    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(3));
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSize()).toBe(3));
     expect(storeRef.graph.getCell('task-1')).toBeUndefined();
 
     const sizeAfterReset = (
@@ -129,15 +129,15 @@ describe('controlled GraphProvider: reset preserves measured size', () => {
 
     render(<App />);
     await waitFor(() => expect(storeRef).toBeDefined());
-    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(5));
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSize()).toBe(5));
 
     act(() => {
       externalSetCells(INITIAL_CELLS);
     });
     await waitFor(() => expect(storeRef.graph.getCell('task-1')).toBeUndefined());
     await waitFor(() => expect(storeRef.graph.getCell('task-2')).toBeUndefined());
-    expect(storeRef.graphView.cells.getSize()).toBe(3);
-    expect(storeRef.graphView.cells.has('task-1')).toBe(false);
-    expect(storeRef.graphView.cells.has('task-2')).toBe(false);
+    expect(storeRef.graphProjection.cells.getSize()).toBe(3);
+    expect(storeRef.graphProjection.cells.has('task-1')).toBe(false);
+    expect(storeRef.graphProjection.cells.has('task-2')).toBe(false);
   });
 });

@@ -3,7 +3,7 @@
  * Controlled-mode benchmark — measures the sync round-trip cost of `GraphStore`
  * wired as a fully controlled component: external state holds a unified `cells`
  * array, `onIncrementalCellsChange` fires on every graph mutation, and the
- * external holder pushes updated snapshots back via `graphView.updateGraph({
+ * external holder pushes updated snapshots back via `graphProjection.updateGraph({
  * cells, flag: 'updateFromReact' })`.
  *
  * This file was migrated from the pre-refactor `initialElements`/`initialLinks`
@@ -123,7 +123,7 @@ describe('controlled-mode benchmark: round-trip via GraphStore + onIncrementalCe
       expect(scenario.counter.count).toBeGreaterThan(0);
     }, 60_000);
 
-    it(`controlled n=${size} — React→graph direction (graphView.updateGraph pushes new cells)`, async () => {
+    it(`controlled n=${size} — React→graph direction (graphProjection.updateGraph pushes new cells)`, async () => {
       const scenario = createControlledScenario(size);
 
       // Pre-build two pre-computed snapshots outside the hot loop so the
@@ -142,7 +142,7 @@ describe('controlled-mode benchmark: round-trip via GraphStore + onIncrementalCe
       const bench = new Bench({ time: 1000 });
 
       bench.add(`controlled/updateGraph/n=${size}`, () => {
-        scenario.store.graphView.updateGraph({
+        scenario.store.graphProjection.updateGraph({
           cells: useA ? snapshotA : snapshotB,
           flag: 'updateFromReact',
         });

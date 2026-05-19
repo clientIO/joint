@@ -9,10 +9,11 @@ import {
   useUpdateCells,
   type SetCell,
 } from './use-cell-setters';
+import type { CellInput, CellRef } from '../utils/normalize-cell-input';
+import type { ArrayUpdate } from '../store/state-container';
 import type {
   ElementJSONInit,
   LinkJSONInit,
-  CellId,
 } from '../types/cell.types';
 
 /**
@@ -42,23 +43,17 @@ export interface UseGraphResult<
    *   exists (use the direct form to add).
    */
   readonly setCell: SetCell<Element, Link>;
-  /** Remove a cell by id. No-op when the id is missing. */
-  readonly removeCell: (id: CellId) => void;
-  /** Remove multiple cells by id. Missing ids are silently skipped. */
-  readonly removeCells: (ids: readonly CellId[]) => void;
-  /** Atomically replace the cell set. */
-  readonly resetCells: (
-    input:
-      | ReadonlyArray<Element | Link>
-      | ((
-          previous: ReadonlyArray<Element | Link>
-        ) => ReadonlyArray<Element | Link>)
-  ) => void;
-  /** Apply an updater to the current cells array. */
+  /** Remove a cell by id or dia.Cell reference. No-op when the cell is missing. */
+  readonly removeCell: (cellRef: CellRef) => void;
+  /** Remove multiple cells by id or dia.Cell reference. Missing refs are silently skipped. */
+  readonly removeCells: (cellRefs: readonly CellRef[]) => void;
+  /** Atomically replace the cell set. Accepts dia.Cell instances alongside records. */
+  readonly resetCells: (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => void;
+  /** Apply an updater to the current cells array. Updater may return dia.Cell instances. */
   readonly updateCells: (
     updater: (
       previous: ReadonlyArray<Element | Link>
-    ) => ReadonlyArray<Element | Link>
+    ) => ReadonlyArray<CellInput<Element, Link>>
   ) => void;
   /**
    * Predicate / type guard: true when the input resolves to an element cell.

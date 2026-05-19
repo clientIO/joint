@@ -1,5 +1,5 @@
 /* eslint-disable jsdoc/require-jsdoc */
-import { util } from '@joint/core';
+import { util, mvc, type dia } from '@joint/core';
 import type { FunctionComponent, JSX } from 'react';
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -39,6 +39,11 @@ export function isUpdater<T>(updater: ((previous: T) => T) | T): updater is (pre
 export function isRef<T>(value: unknown): value is React.RefObject<T> {
   return isRecord(value) && 'current' in value;
 }
+
+export function isCollection(value: unknown): value is mvc.Collection<dia.Cell> {
+  return value instanceof mvc.Collection;
+}
+
 
 /**
  * Returns `true` when the element has a defined `size` with numeric `width` and `height`.

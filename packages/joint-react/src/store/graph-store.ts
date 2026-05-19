@@ -16,9 +16,9 @@ import { LAYOUT_UPDATE_EVENT } from './graph-changes';
 import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
-import { graphView, type GraphView, type IncrementalCellsChange } from './graph-view';
-import { mapCellToAttributes } from '../state/data-mapping';
+import { graphProjection, type GraphProjection, type IncrementalCellsChange } from './graph-projection';
 import { simpleScheduler } from '../utils/scheduler';
+import { cellInputToModel, type CellInput } from '../utils/normalize-cell-input';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -82,7 +82,7 @@ interface GraphStoreOptionsBase<
 /** Uncontrolled mode: parent provides only seed data. */
 interface GraphStoreOptionsUncontrolled<Element extends ElementJSONInit, Link extends LinkJSONInit>
   extends GraphStoreOptionsBase<Element, Link> {
-  readonly initialCells?: ReadonlyArray<Element | Link>;
+  readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
   readonly cells?: never;
   readonly onCellsChange?: (cells: ReadonlyArray<Element | Link>) => void;
 }
@@ -118,13 +118,13 @@ export class GraphStore<
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
   private observer: GraphStoreObserver;
-  public readonly graphView: GraphView<Element, Link>;
+  public readonly graphProjection: GraphProjection<Element, Link>;
 
-  public getGraphView<
+  public getGraphProjection<
     E extends ElementJSONInit = ElementJSONInit,
     L extends LinkJSONInit = LinkJSONInit,
-  >(): GraphView<E, L> {
-    return this.graphView as unknown as GraphView<E, L>;
+  >(): GraphProjection<E, L> {
+    return this.graphProjection as unknown as GraphProjection<E, L>;
   }
 
   public readonly autoSizeOrigin: AutoSizeOrigin;
@@ -167,7 +167,7 @@ export class GraphStore<
         this.measureState.set((previous) => previous + 1);
       }
     };
-    this.graphView = graphView<Element, Link>({
+    this.graphProjection = graphProjection<Element, Link>({
       graph: this.graph,
       onIncrementalChange: this.buildIncrementalChangeHandler(
         onIncrementalCellsChange,
@@ -189,7 +189,7 @@ export class GraphStore<
         // demand from the unified cells container — cold path, called only
         // when the ResizeObserver fires.
         const map = new Map<CellId, ElementJSONInit>();
-        for (const cell of this.graphView.cells.getAll()) {
+        for (const cell of this.graphProjection.cells.getAll()) {
           if (cell.id === undefined) continue;
           if (this.isElement(cell)) {
             map.set(cell.id, cell);
@@ -244,14 +244,14 @@ export class GraphStore<
       // Replace existing graph state with the seed cells. The graph-changes
       // listener handles `reset` synchronously and populates the cells
       // container — no manual `syncFromGraph` needed.
-      const mapped = seedCells.map((cell) => mapCellToAttributes(cell, this.graph));
-      this.graph.resetCells(mapped);
+      const models = seedCells.map((cell) => cellInputToModel(cell, this.graph));
+      this.graph.resetCells(models);
     } else if (this.graph.getCells().length > 0) {
       // External graph already has cells — populate the cells container
       // directly without calling resetCells(). resetCells() would destroy
       // and recreate all paper element views, breaking external references
       // (e.g. stencil drag's cloneView).
-      this.graphView.syncFromGraph();
+      this.graphProjection.syncFromGraph();
     }
   }
 
@@ -275,19 +275,19 @@ export class GraphStore<
     return (changes) => {
       onIncrementalCellsChange?.(changes);
       if (onCellsChange) {
-        onCellsChange(this.graphView.cells.getAll() as ReadonlyArray<Element | Link>);
+        onCellsChange(this.graphProjection.cells.getAll() as ReadonlyArray<Element | Link>);
       }
     };
   }
 
   /**
    * Apply a controlled cells snapshot (called by GraphProvider when the
-   * parent-owned `cells` prop changes). Equivalent to `graphView.updateGraph`
+   * parent-owned `cells` prop changes). Equivalent to `graphProjection.updateGraph`
    * with the react-origin flag set.
    * @param cells - new cells snapshot from the parent
    */
   public applyControlled(cells: ReadonlyArray<Element | Link>) {
-    this.graphView.updateGraph({ cells, flag: 'updateFromReact' });
+    this.graphProjection.updateGraph({ cells, flag: 'updateFromReact' });
   }
 
   /**
@@ -333,7 +333,7 @@ export class GraphStore<
       paperStore.destroy();
     }
     this.paperStores.clear();
-    this.graphView.destroy();
+    this.graphProjection.destroy();
     this.internalState.clean();
     this.observer.clean();
     if (!isGraphExternal) {

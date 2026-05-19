@@ -158,21 +158,10 @@ export function graphChanges(options: Options) {
     onChanges({ changes: layoutChanges, isInsideBatch: true });
   });
 
-  controller.listenTo(
-    graph,
-    'change:size',
-    (
-      cell: dia.Cell,
-      newSize: { width: number; height: number },
-      opt: { autoSize?: boolean } = {}
-    ) => {
-      if (!onElementsSizeChange) return;
-      // Writes from the ResizeObserver pipeline are marked `autoSize` —
-      // skip them so the observer never reacts to its own output.
-      if (opt.autoSize) return;
-      onElementsSizeChange(cell.id, newSize);
-    }
-  );
+  controller.listenTo(graph, 'change:size', (cell: dia.Cell, newSize: dia.Size) => {
+    if (!onElementsSizeChange) return;
+    onElementsSizeChange(cell.id, newSize);
+  });
 
   // Always-on batch tracking
   controller.listenTo(graph, 'batch:start', () => {

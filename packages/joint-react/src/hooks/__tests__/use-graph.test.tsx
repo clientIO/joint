@@ -176,7 +176,7 @@ describe('useGraph', () => {
       await flush();
 
       await act(async () => {
-        const existing = result.current.store.graphView.cells.get('a')!;
+        const existing = result.current.store.graphProjection.cells.get('a')!;
         result.current.api.setCell({
           ...(existing as CellRecord),
           data: { label: 'typed-once' },
@@ -184,7 +184,7 @@ describe('useGraph', () => {
         await flush();
       });
 
-      const afterFirst = result.current.store.graphView.cells.get('a') as
+      const afterFirst = result.current.store.graphProjection.cells.get('a') as
         | (CellRecord & { data?: { label?: string } })
         | undefined;
       expect(afterFirst?.data?.label).toBe('typed-once');
@@ -311,8 +311,8 @@ describe('useGraph', () => {
       });
       await waitFor(() => expect(result.current).toBeDefined());
       await flush();
-      const elementCell = result.current.store.graphView.cells.get('a')!;
-      const linkCell = result.current.store.graphView.cells.get('l1')!;
+      const elementCell = result.current.store.graphProjection.cells.get('a')!;
+      const linkCell = result.current.store.graphProjection.cells.get('l1')!;
       expect(result.current.api.isElement(elementCell)).toBe(true);
       expect(result.current.api.isLink(linkCell)).toBe(true);
     });
