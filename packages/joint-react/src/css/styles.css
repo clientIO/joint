@@ -34,6 +34,14 @@
     --jj-shape-border-color: #8A98AD;
     --jj-shape-surface-color: #EFF3F6;
     --jj-paper-color: #eaf0f4;
+    /* Cursor for hover state on draggable elements */
+    --jj-drag-cursor: move;
+    /* Cursor for elements and link labels while dragging */
+    --jj-dragging-cursor: move;
+    /* Cursor for ports when they are active (ready to be dragged) */
+    --jj-port-drag-cursor: crosshair;
+    /* Cursor for ports while dragging */
+    --jj-port-dragging-cursor: crosshair;
 
     /* ── Paper ───────────────────────────────────────────────────────────── */
     --jj-paper-border-color: var(--jj-color-border-subtle);
@@ -146,7 +154,11 @@
   }
 
   .jj-port-body[magnet="active"] {
-    cursor: crosshair;
+    cursor: var(--jj-port-drag-cursor);
+   }
+
+  .jj-is-dragging .jj-port-body[magnet="active"] {
+    cursor: var(--jj-port-dragging-cursor);
    }
 
   .jj-port-body[magnet="active"]:hover {
@@ -187,6 +199,11 @@
     padding: var(--jj-box-padding);
     font-size: var(--jj-box-font-size);
     font-family: var(--jj-box-font-family);
+    cursor: var(--jj-drag-cursor);
+  }
+
+  .jj-is-dragging .jj-box {
+    cursor: var(--jj-dragging-cursor);
   }
 
   .jj-is-available .jj-box {
