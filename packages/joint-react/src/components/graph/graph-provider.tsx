@@ -3,6 +3,7 @@ import React, { useLayoutEffect, type Dispatch, type SetStateAction } from 'reac
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
+import type { AutoSizeOrigin } from '../../store/graph-store';
 import type { IncrementalCellsChange } from '../../store/graph-view';
 import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
 
@@ -36,6 +37,17 @@ interface GraphProviderBaseProps<
   readonly cellNamespace?: unknown;
   /** Custom cell model used as the base class for all cells in the graph. */
   readonly cellModel?: typeof dia.Cell;
+  /**
+   * Reference point that stays fixed when an auto-sized element's measured
+   * size changes (via `useMeasureNode`). Mirrors CSS `transform-origin` semantics.
+   * - `'top-left'` (default): element grows right/down.
+   * - `'center'`: element grows symmetrically — its geometric center stays put.
+   *
+   * Only affects measurement-driven writes. Manual `cell.resize()`, interactive
+   * resize tools, and direct `cell.set('size', ...)` calls are unaffected.
+   * @default 'top-left'
+   */
+  readonly autoSizeOrigin?: AutoSizeOrigin;
   /** Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle. */
   readonly store?: GraphStore<Element, Link>;
   /**
@@ -129,6 +141,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
     graph,
     cellNamespace,
     cellModel,
+    autoSizeOrigin,
   } = props;
 
   const cellsProperty = 'cells' in props ? props.cells : undefined;
@@ -153,6 +166,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
                 cells: cellsProperty,
                 onCellsChange,
                 onIncrementalCellsChange,
+                autoSizeOrigin,
               })
             : new GraphStore<ElementJSONInit, LinkJSONInit>({
                 graph,
@@ -161,6 +175,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
                 initialCells,
                 onCellsChange,
                 onIncrementalCellsChange,
+                autoSizeOrigin,
               }));
 
         return {

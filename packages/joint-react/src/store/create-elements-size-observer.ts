@@ -66,9 +66,9 @@ interface ObservedElement {
   isMeasured: boolean;
 }
 
-function identityTransform(options: TransformOptions) {
-  const { width, height, x, y } = options;
-  return { width, height, x, y };
+function identityTransform(options: TransformOptions): ElementLayoutOptionalXY {
+  const { width, height } = options;
+  return { width, height };
 }
 /**
  * Options for creating an elements size observer.
