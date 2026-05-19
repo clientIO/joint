@@ -17,58 +17,54 @@
 @layer joint {
   :root {
     /* ── Palette ─────────────────────────────────────────────────────────── */
-    --color-dark-900: #6f859b;
-    --color-dark-800: #566c81;
-    --color-dark-700: #425567;
-    --color-dark-600: #344351;
-    --color-dark-500: #293a49;
-    --color-dark-400: #253544;
-    --color-dark-300: #202f3e;
-    --color-dark-200: #1a2733;
-    --color-dark-100: #131e29;
+    --jj-color-dark-900: #6f859b;
+    --jj-color-dark-800: #566c81;
+    --jj-color-dark-700: #425567;
+    --jj-color-dark-600: #344351;
+    --jj-color-dark-500: #293a49;
+    --jj-color-dark-400: #253544;
+    --jj-color-dark-300: #202f3e;
+    --jj-color-dark-200: #1a2733;
+    --jj-color-dark-100: #131e29;
 
-    --color-light-100: #f5f6f8;
-    --color-light-125: #f3f6f8;
-    --color-light-150: #f0f4f7;
-    --color-light-200: #eaf0f4;
-    --color-light-300: #e4ebf1;
-    --color-light-400: #dde6ed;
-    --color-light-500: #cfdbe4;
-    --color-light-600: #c1cfda;
-    --color-light-700: #a6b6c5;
-    --color-light-800: #8a9eb0;
-    --color-light-900: #6f859b;
+    --jj-color-light-100: #f5f6f8;
+    --jj-color-light-125: #f3f6f8;
+    --jj-color-light-150: #f0f4f7;
+    --jj-color-light-200: #eaf0f4;
+    --jj-color-light-300: #e4ebf1;
+    --jj-color-light-400: #dde6ed;
+    --jj-color-light-500: #cfdbe4;
+    --jj-color-light-600: #c1cfda;
+    --jj-color-light-700: #a6b6c5;
+    --jj-color-light-800: #8a9eb0;
+    --jj-color-light-900: #6f859b;
 
-    --color-destructive: #e03131;
-    --color-success: #36a18b;
-    --color-invalid: #868e96;
+    --jj-color-success: #36a18b;
+    --jj-color-destructive: #e03131;
+    --jj-color-valid: var(--jj-color-dark-800);
+    --jj-color-invalid: #868e96;
 
-    --radius-sm: 2px;
-    --radius-md: 3px;
-    --radius-lg: 4px;
+    --jj-radius-sm: 2px;
+    --jj-radius-md: 3px;
+    --jj-radius-lg: 4px;
 
-    --space-xs: 2px;
-    --space-sm: 4px;
-    --space-md: 6px;
-    --space-lg: 10px;
+    --jj-space-xs: 2px;
+    --jj-space-sm: 4px;
+    --jj-space-md: 6px;
+    --jj-space-lg: 10px;
 
-    --jj-color-primary: var(--color-dark-500);
-    --jj-color-primary-contrast: var(--color-light-100);
-    --jj-color-surface: var(--color-light-100);
-    --jj-color-canvas: var(--color-light-300);
-    --jj-color-grid: var(--color-light-500);
-    --jj-color-shape-surface: var(--color-light-150);
-    --jj-color-shape-border: var(--color-light-800);
-    --jj-color-link: var(--color-light-800);
-    --jj-color-tool: var(--color-light-100);
-    --jj-color-tool-border: var(--color-light-900);
-    --jj-color-text: var(--color-dark-200);
-    --jj-color-border: var(--color-light-500);
-    --jj-color-border-subtle: var(--color-light-200);
-    --jj-color-success: var(--color-success);
-    --jj-color-destructive: var(--color-destructive);
-    --jj-color-valid: var(--color-dark-800);
-    --jj-color-invalid: var(--color-invalid);
+    --jj-color-primary: var(--jj-color-dark-500);
+    --jj-color-primary-contrast: var(--jj-color-light-100);
+    --jj-color-surface: var(--jj-color-light-100);
+    --jj-color-shape-surface: var(--jj-color-light-150);
+    --jj-color-shape-border: var(--jj-color-light-800);
+    --jj-color-link: var(--jj-color-light-800);
+    --jj-color-tool: var(--jj-color-light-100);
+    --jj-color-tool-border: var(--jj-color-light-900);
+    --jj-color-text: var(--jj-color-dark-200);
+    --jj-color-border: var(--jj-color-light-500);
+    --jj-color-border-subtle: var(--jj-color-light-200);
+
     /* Cursor for hover state on draggable elements */
     --jj-drag-cursor: move;
     /* Cursor for elements and link labels while dragging */
@@ -79,12 +75,12 @@
     --jj-port-dragging-cursor: crosshair;
 
     /* ── Paper ───────────────────────────────────────────────────────────── */
-    --jj-paper-color: var(--jj-color-canvas);
+    --jj-paper-color: var(--jj-color-light-300);
     --jj-paper-border-color: var(--jj-color-border);
     --jj-paper-border-style: solid;
     --jj-paper-border-width: 1px;
     --jj-paper-box-shadow: 0 3px 11px rgba(0, 0, 0, 0.11), 0 1px 4px rgba(0, 0, 0, 0.05);
-    --jj-paper-grid-color: var(--jj-color-grid);
+    --jj-paper-grid-color: var(--jj-color-light-700);
     --jj-paper-grid-size: 10;
     --jj-paper-grid-thickness: 2;
     --jj-paper-highlight-color: var(--jj-color-primary);
@@ -109,7 +105,7 @@
     --jj-label-font-family: Arial, sans-serif;
     --jj-label-border-color: var(--jj-color-text);
     --jj-label-border-width: 1px;
-    --jj-label-border-radius: var(--radius-sm);
+    --jj-label-border-radius: var(--jj-radius-sm);
 
     /* ── Ports ───────────────────────────────────────────────────────────── */
     --jj-port-color: var(--jj-color-surface);
@@ -131,7 +127,7 @@
     --jj-box-text-color: var(--jj-color-text);
     --jj-box-border-color: var(--jj-color-shape-border);
     --jj-box-border-width: 1px;
-    --jj-box-border-radius: var(--radius-lg);
+    --jj-box-border-radius: var(--jj-radius-lg);
     --jj-box-padding: 8px 12px;
     --jj-box-font-size: 14px;
     --jj-box-font-family: sans-serif;
