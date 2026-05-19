@@ -164,12 +164,12 @@ export function graphChanges(options: Options) {
     (
       cell: dia.Cell,
       newSize: { width: number; height: number },
-      opt: { fromMeasure?: boolean } = {}
+      opt: { autoSize?: boolean } = {}
     ) => {
       if (!onElementsSizeChange) return;
-      // Writes from the ResizeObserver pipeline are marked `fromMeasure` —
+      // Writes from the ResizeObserver pipeline are marked `autoSize` —
       // skip them so the observer never reacts to its own output.
-      if (opt.fromMeasure) return;
+      if (opt.autoSize) return;
       onElementsSizeChange(cell.id, newSize);
     }
   );
