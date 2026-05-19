@@ -227,16 +227,13 @@ export class GraphStore<
         this.graph.stopBatch('auto-size');
       },
       getCellTransform: (id) => {
-        const cell = this.graph.getCell(id);
-        if (!cell?.isElement()) throw new Error('Cell not valid');
-        const size = cell.size();
-        const position = cell.get('position');
+        const model = this.graph.getCell(id);
+        if (!model?.isElement()) throw new Error('Cell not found or not an element: ' + id);
         return {
-          width: size.width,
-          height: size.height,
-          element: cell,
-          angle: cell.get('angle') ?? 0,
-          ...position,
+          model,
+          ...model.size(),
+          ...model.position().toJSON(),
+          angle: model.angle(),
         };
       },
     });
