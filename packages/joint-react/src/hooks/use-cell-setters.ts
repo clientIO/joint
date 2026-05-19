@@ -205,8 +205,8 @@ export function useUpdateCells<
     ) => {
       const current = store.graphProjection.cells.getAll();
       const next = updater(current);
-      const normalized = next.map((cell) => cellInputToRecord<Element, Link>(cell));
-      store.applyControlled(normalized);
+      const cellRecords = next.map((cell) => cellInputToRecord<Element, Link>(cell));
+      store.applyControlled(cellRecords);
     },
     [store]
   );

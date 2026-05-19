@@ -26,7 +26,7 @@ interface GraphProjectionState<
 > {
   readonly graph: dia.Graph;
   readonly onIncrementalChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
-  readonly onElementsSizeChange?: (id: CellId, size: { width: number; height: number }) => void;
+  readonly onElementsSizeChange?: (id: CellId, size: dia.Size) => void;
 }
 
 export function graphProjection<

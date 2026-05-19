@@ -161,7 +161,7 @@ export function graphChanges(options: Options) {
   controller.listenTo(
     graph,
     'change:size',
-    (cell: dia.Cell, newSize: { width: number; height: number }) => {
+    (cell: dia.Cell, newSize: dia.Size) => {
       if (!onElementsSizeChange) return;
       onElementsSizeChange(cell.id, newSize);
     }
