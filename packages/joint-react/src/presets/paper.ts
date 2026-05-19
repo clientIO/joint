@@ -2,6 +2,7 @@ import { dia } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
+import { AVAILABLE_CLASS_NAME, DRAGGING_CLASS_NAME } from '../utils/class-names';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -72,13 +73,13 @@ export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: 'jj-is-available',
+      className: AVAILABLE_CLASS_NAME,
     },
   },
   [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: 'jj-is-available',
+      className: AVAILABLE_CLASS_NAME,
     },
   },
 };
@@ -141,7 +142,7 @@ export const Paper = dia.Paper.extend({
     const pointerId = getPointerId(event);
     if (pointerId === null) return;
     const target = data.pointerTarget instanceof Element ? data.pointerTarget : this.el;
-    this.el.classList.add('jj-is-dragging');
+    this.el.classList.add(DRAGGING_CLASS_NAME);
     try {
       target.setPointerCapture(pointerId);
       this.eventData(event, { captureTarget: target });
@@ -162,7 +163,7 @@ export const Paper = dia.Paper.extend({
     const captureTarget = this.eventData(event).captureTarget as Element | undefined;
     protectedProto.pointerup.call(this, event);
     if (!captureTarget || pointerId === null) return;
-    this.el.classList.remove('jj-is-dragging');
+    this.el.classList.remove(DRAGGING_CLASS_NAME);
     if (captureTarget.hasPointerCapture?.(pointerId)) {
       try {
         captureTarget.releasePointerCapture(pointerId);

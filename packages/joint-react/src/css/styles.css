@@ -191,6 +191,14 @@
 
   /* ── Elements ────────────────────────────────────────────────────────── */
 
+  /* Applied to a cell view's root while its DOM is being measured by
+     useMeasureNode. Removed on the view's first updateView so the element
+     only becomes visible after its transform is applied — avoids a jump
+     when measurement is paired with a position change. */
+  .jj-is-measuring {
+    visibility: hidden;
+  }
+
   .jj-box {
     background: var(--jj-box-color);
     color: var(--jj-box-text-color);
