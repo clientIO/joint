@@ -103,8 +103,8 @@ function Main({ variant }: Readonly<MainProps>) {
   usePaperEvents(
     paperId,
     {
-      'element:mouseenter': (elementView) => addHighlighter(variant, elementView),
-      'element:mouseleave': (elementView) => removeHighlighter(variant, elementView),
+      onElementMouseEnter: ({ view }) => addHighlighter(variant, view),
+      onElementMouseLeave: ({ view }) => removeHighlighter(variant, view),
     },
     [variant]
   );

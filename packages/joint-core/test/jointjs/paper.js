@@ -95,6 +95,79 @@ QUnit.module('paper', function(hooks) {
             resizeCbSpy.resetHistory();
         });
 
+        QUnit.module('autoResizePaper', function() {
+
+            // Waits for the ResizeObserver to deliver its async callback.
+            // Two rAFs cover the spec's "delivered before the next paint" plus
+            // browser implementation slack.
+            function afterResizeObserverDelivery(callback) {
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(callback);
+                });
+            }
+
+            QUnit.test('fires resize when host CSS size changes', function(assert) {
+                var done = assert.async();
+                var paper = this.paper;
+                // '100%' / '100%' makes the paper fill the container while
+                // keeping options non-numeric (i.e. observer-eligible).
+                $container.css({ width: '200px', height: '100px' });
+                paper.setDimensions('100%', '100%');
+                var spy = sinon.spy();
+                paper.on('resize', spy);
+                afterResizeObserverDelivery(function() {
+                    spy.resetHistory();
+                    $container.css({ width: '300px', height: '150px' });
+                    afterResizeObserverDelivery(function() {
+                        assert.ok(spy.called, 'resize fires for host size change');
+                        var args = spy.lastCall.args;
+                        assert.equal(args[0], 300, 'width reports host clientWidth');
+                        assert.equal(args[1], 150, 'height reports host clientHeight');
+                        assert.deepEqual(args[2], { source: 'observer' }, 'data carries observer source');
+                        done();
+                    });
+                });
+            });
+
+            QUnit.test('numeric dimensions skip the observer', function(assert) {
+                var done = assert.async();
+                var paper = this.paper;
+                paper.setDimensions(200, 100);
+                var spy = sinon.spy();
+                paper.on('resize', spy);
+                $container.css({ width: '500px', height: '500px' });
+                afterResizeObserverDelivery(function() {
+                    assert.ok(spy.notCalled, 'host CSS resize ignored in explicit-size mode');
+                    done();
+                });
+            });
+
+            QUnit.test('disconnects on paper.remove()', function(assert) {
+                var paperEl = document.createElement('div');
+                $container.append(paperEl);
+                var paper = new joint.dia.Paper({
+                    el: paperEl,
+                    model: new joint.dia.Graph,
+                    width: '100%',
+                    height: '100%'
+                });
+                assert.ok(paper._elementResizeObserver, 'observer attached on init');
+                var disconnectSpy = sinon.spy(paper._elementResizeObserver, 'disconnect');
+                paper.remove();
+                assert.ok(disconnectSpy.calledOnce, 'disconnect called exactly once on remove');
+                assert.notOk(paper._elementResizeObserver, 'observer reference cleared');
+            });
+
+            QUnit.test('toggling between fixed and CSS-relative dimensions attaches/detaches observer', function(assert) {
+                var paper = this.paper;
+                assert.notOk(paper._elementResizeObserver, 'no observer with default numeric dims');
+                paper.setDimensions('100%', '100%');
+                assert.ok(paper._elementResizeObserver, 'observer attached after switching to CSS-relative');
+                paper.setDimensions(100, 100);
+                assert.notOk(paper._elementResizeObserver, 'observer detached when both dims numeric again');
+            });
+        });
+
     });
 
     QUnit.test('paper.addCell() number of sort()', function(assert) {
@@ -254,6 +327,67 @@ QUnit.module('paper', function(hooks) {
             _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
             { x: -50, y: -50, width: 500, height: 400 },
             'Paper area returns correct results for scaled and translated viewport.');
+    });
+
+    QUnit.module('paper.setDragging() / paper.isDragging()', function() {
+
+        QUnit.test('round-trip via the public API', function(assert) {
+            const data = {};
+            const evt = { target: this.paper.el, type: 'mousedown', data: data };
+            assert.notOk(this.paper.isDragging(evt), 'false on a fresh event');
+            this.paper.setDragging(evt);
+            assert.ok(this.paper.isDragging(evt), 'true after setDragging');
+        });
+
+        QUnit.test('isDragging is false until the drag-start gate passes', function(assert) {
+            const data = {};
+            const evt = { target: this.paper.el, type: 'mousedown', data: data };
+            // No drag-start has been called; data bag exists but lacks the flag.
+            assert.notOk(this.paper.isDragging(evt));
+            // A different event keeps a clean bag.
+            const data2 = {};
+            const evt2 = { target: this.paper.el, type: 'mousedown', data: data2 };
+            assert.notOk(this.paper.isDragging(evt2));
+        });
+
+        QUnit.test('ElementView.dragStart flips isDragging after can(\'elementMove\')', function(assert) {
+            const el = new joint.shapes.standard.Rectangle();
+            el.resize(100, 100);
+            el.addTo(this.graph);
+            const view = el.findView(this.paper);
+            const data = {};
+            const evt = { target: view.el, type: 'mousedown', data: data };
+            assert.notOk(this.paper.isDragging(evt));
+            view.pointerdown(evt, 50, 50);
+            assert.ok(this.paper.isDragging(evt), 'set after element pointerdown');
+        });
+
+        QUnit.test('isDragging stays false when elementMove is denied', function(assert) {
+            this.paper.options.interactive = { elementMove: false };
+            const el = new joint.shapes.standard.Rectangle();
+            el.resize(100, 100);
+            el.addTo(this.graph);
+            const view = el.findView(this.paper);
+            const data = {};
+            const evt = { target: view.el, type: 'mousedown', data: data };
+            view.pointerdown(evt, 50, 50);
+            assert.notOk(this.paper.isDragging(evt), 'not set when can(elementMove) returns false');
+        });
+
+        QUnit.test('LinkView.dragStart flips isDragging after can(\'linkMove\')', function(assert) {
+            const source = new joint.shapes.standard.Rectangle().resize(40, 40).position(0, 0).addTo(this.graph);
+            const target = new joint.shapes.standard.Rectangle().resize(40, 40).position(200, 200).addTo(this.graph);
+            const link = new joint.shapes.standard.Link({
+                source: { id: source.id },
+                target: { id: target.id }
+            }).addTo(this.graph);
+            const linkView = link.findView(this.paper);
+            const data = {};
+            const evt = { target: linkView.el, type: 'mousedown', data: data };
+            assert.notOk(this.paper.isDragging(evt));
+            linkView.pointerdown(evt, 100, 100);
+            assert.ok(this.paper.isDragging(evt), 'set after link pointerdown');
+        });
     });
 
     QUnit.module('paper.getRestrictedArea()', function() {

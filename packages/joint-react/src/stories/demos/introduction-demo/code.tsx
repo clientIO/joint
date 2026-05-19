@@ -484,17 +484,11 @@ function Main() {
   usePaperEvents(
     paperId,
     {
-      'link:mouseenter': (linkView) => linkView.addTools(toolsView),
-      'link:mouseleave': (linkView) => linkView.removeTools(),
-      'element:pointerclick': (elementView) => {
-        setSelectedElementId(elementView.model.id as CellId);
-      },
-      'link:pointerclick': () => {
-        setSelectedElementId(null);
-      },
-      'blank:pointerclick': () => {
-        setSelectedElementId(null);
-      },
+      onLinkMouseEnter: ({ view }) => view.addTools(toolsView),
+      onLinkMouseLeave: ({ view }) => view.removeTools(),
+      onElementPointerClick: ({ id }) => setSelectedElementId(id as CellId),
+      onLinkPointerClick: () => setSelectedElementId(null),
+      onBlankPointerClick: () => setSelectedElementId(null),
     },
     [setSelectedElementId]
   );

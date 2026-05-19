@@ -1,11 +1,7 @@
 import { mvc } from '@joint/core';
 import { renderHook, render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
-import {
-  usePaperEvents,
-  buildEventContext,
-  subscribeToPaperEvents,
-} from '../use-paper-events';
+import { usePaperEvents, subscribeToPaperEvents } from '../use-paper-events';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import type { CellRecord } from '../../types/cell.types';
 import type { PaperStore } from '../../store';
@@ -22,28 +18,6 @@ const initialCells: readonly CellRecord[] = [
 
 const renderRectElement = () => <rect />;
 
-describe('buildEventContext', () => {
-  it('exposes graph + paper and merges feature instances', () => {
-    const fakePaper = { __fake: 'paper' } as unknown as dia.Paper;
-    const fakeGraph = { __fake: 'graph' } as unknown as dia.Graph;
-    const paperStore: PaperStore = {
-      paper: fakePaper,
-      features: {
-        feat1: { id: 'feat1', instance: { value: 1 } },
-        // Feature without an instance — exercised by the `if (instance)` guard.
-        feat2: { id: 'feat2', instance: undefined } as unknown as PaperStore['features'][string],
-      },
-    } as unknown as PaperStore;
-    const ctx = buildEventContext(paperStore, fakeGraph);
-    expect(ctx.paper).toBe(fakePaper);
-    expect(ctx.graph).toBe(fakeGraph);
-    // Feature with an instance is included.
-    expect((ctx as unknown as { feat1: unknown }).feat1).toEqual({ value: 1 });
-    // Feature without an instance is skipped.
-    expect((ctx as unknown as { feat2?: unknown }).feat2).toBeUndefined();
-  });
-});
-
 describe('subscribeToPaperEvents', () => {
   it('binds handlers from a static map and stops them on cleanup', () => {
     const stopListening = jest.fn();
@@ -56,14 +30,12 @@ describe('subscribeToPaperEvents', () => {
       .mockImplementation(stopListening);
     try {
       const fakePaper = { __fake: 'paper' } as unknown as dia.Paper;
-      const fakeGraph = { __fake: 'graph' } as unknown as dia.Graph;
       const handler = jest.fn();
       const cleanup = subscribeToPaperEvents(
         {
           paper: fakePaper,
           features: {},
         } as unknown as PaperStore,
-        fakeGraph,
         {
           'element:pointerclick': handler,
           // undefined handler triggers the `if (!handler) continue;` guard
@@ -79,38 +51,6 @@ describe('subscribeToPaperEvents', () => {
       (callback as (...args: unknown[]) => void)('arg1', 'arg2');
       expect(handler).toHaveBeenCalledWith('arg1', 'arg2');
 
-      cleanup();
-      expect(stopListening).toHaveBeenCalled();
-    } finally {
-      listenerSpy.mockRestore();
-      stopSpy.mockRestore();
-    }
-  });
-
-  it('accepts a factory that derives handlers from context', () => {
-    const listenTo = jest.fn();
-    const stopListening = jest.fn();
-    const listenerSpy = jest
-      .spyOn(mvc.Listener.prototype, 'listenTo')
-      .mockImplementation(listenTo);
-    const stopSpy = jest
-      .spyOn(mvc.Listener.prototype, 'stopListening')
-      .mockImplementation(stopListening);
-    try {
-      const fakePaper = {} as unknown as dia.Paper;
-      const fakeGraph = {} as unknown as dia.Graph;
-      const factory = jest.fn(() => ({
-        'cell:pointermove': jest.fn(),
-      }));
-      const cleanup = subscribeToPaperEvents(
-        { paper: fakePaper, features: {} } as unknown as PaperStore,
-        fakeGraph,
-        factory
-      );
-      expect(factory).toHaveBeenCalledWith(
-        expect.objectContaining({ paper: fakePaper, graph: fakeGraph })
-      );
-      expect(listenTo).toHaveBeenCalled();
       cleanup();
       expect(stopListening).toHaveBeenCalled();
     } finally {

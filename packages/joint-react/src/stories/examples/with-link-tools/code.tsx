@@ -96,8 +96,8 @@ function Main() {
   const paperId = useId();
 
   usePaperEvents(paperId, {
-    'link:mouseenter': (linkView) => linkView.addTools(toolsView),
-    'link:mouseleave': (linkView) => linkView.removeTools(),
+    onLinkMouseEnter: ({ view }) => view.addTools(toolsView),
+    onLinkMouseLeave: ({ view }) => view.removeTools(),
   });
 
   return (

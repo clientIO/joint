@@ -80,7 +80,6 @@ export type { ElementPosition, ElementSize, LinkLayout } from './types/cell.type
 export type { ElementPort, PortShape } from './presets/element-ports';
 export type { LinkStyle } from './presets/link-style';
 export type { LinkLabel } from './presets/link-labels';
-export type { PaperEventMap } from './types/event.types';
 
 // Theme
 export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';

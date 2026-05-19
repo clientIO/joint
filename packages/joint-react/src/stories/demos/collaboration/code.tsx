@@ -788,18 +788,16 @@ function Toolbar() {
 // ── Drag Tracker (broadcasts local drags to peers) ─────────────────────────
 
 function DragTracker({ manager }: Readonly<{ manager: ReturnType<typeof createPeerManager> }>) {
-  usePaperEvents(PAPER_ID, () => {
-    const dragging = new Set<string>();
-    return {
-      'element:pointerdown': (elementView) => {
-        dragging.add(String(elementView.model.id));
-        manager.sendDrag([...dragging]);
-      },
-      'element:pointerup': (elementView) => {
-        dragging.delete(String(elementView.model.id));
-        manager.sendDrag([...dragging]);
-      },
-    };
+  const draggingRef = useRef<Set<string>>(new Set());
+  usePaperEvents(PAPER_ID, {
+    onElementPointerDown: ({ id }) => {
+      draggingRef.current.add(String(id));
+      manager.sendDrag([...draggingRef.current]);
+    },
+    onElementPointerUp: ({ id }) => {
+      draggingRef.current.delete(String(id));
+      manager.sendDrag([...draggingRef.current]);
+    },
   }, [manager]);
   return null;
 }

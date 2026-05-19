@@ -424,10 +424,8 @@ function Main() {
 
   usePaperEvents(
     paperId,
-    ({ paper }) => ({
-      'link:pointerclick': (linkView) => {
-        if (!paper) return;
-
+    {
+      onLinkPointerClick: ({ view: linkView, paper }) => {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
         const snapAnchor: linkTools.AnchorCallback<dia.Point> = (
@@ -468,8 +466,8 @@ function Main() {
         });
         strokeHighlighter.el.classList.add('jj-flow-selection');
       },
-      'element:mouseenter': (elementView) => {
-        const hl = highlighters.mask.add(elementView, 'body', 'frame', {
+      onElementMouseEnter: ({ view }) => {
+        const hl = highlighters.mask.add(view, 'body', 'frame', {
           padding: unit * 1.5,
           attrs: {
             strokeWidth: 1.5,
@@ -478,10 +476,10 @@ function Main() {
         });
         hl.el.classList.add('jj-frame');
       },
-      'element:mouseleave': (elementView) => {
-        highlighters.mask.remove(elementView, 'frame');
+      onElementMouseLeave: ({ view }) => {
+        highlighters.mask.remove(view, 'frame');
       },
-      'link:mouseenter': (linkView) => {
+      onLinkMouseEnter: ({ view: linkView }) => {
         if (highlighters.stroke.get(linkView, 'selection')) return;
         const frame = highlighters.mask.add(
           linkView,
@@ -498,16 +496,14 @@ function Main() {
         );
         frame.el.classList.add('jj-frame');
       },
-      'link:mouseleave': () => {
-        if (!paper) return;
-
+      onLinkMouseLeave: ({ paper }) => {
         highlighters.mask.removeAll(paper, 'frame');
       },
-      'blank:pointerdown': () => {
+      onBlankPointerDown: ({ paper }) => {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
       },
-    }),
+    },
     []
   );
 

@@ -366,28 +366,23 @@ function Main() {
   }, []);
 
   usePaperEvents(paperId, {
-    'cell:mouseenter': (cellView) => {
-      const jointPaper = cellView.paper;
-      if (!jointPaper) {
-        return;
-      }
-
-      jointPaper.removeTools();
+    onCellMouseEnter: ({ model, view, paper }) => {
+      paper.removeTools();
 
       if (timeoutIdRef.current) {
         clearTimeout(timeoutIdRef.current);
         timeoutIdRef.current = null;
       }
 
-      const tools = cellView.model.isLink()
-        ? getLinkTools(cellView as dia.LinkView)
-        : getElementTools(cellView as dia.ElementView);
+      const tools = model.isLink()
+        ? getLinkTools(view as dia.LinkView)
+        : getElementTools(view as dia.ElementView);
 
       const toolsView = new dia.ToolsView({ tools });
-      cellView.addTools(toolsView);
+      view.addTools(toolsView);
       currentToolsViewRef.current = toolsView;
     },
-    'cell:mouseleave': () => {
+    onCellMouseLeave: () => {
       timeoutIdRef.current = setTimeout(() => {
         currentToolsViewRef.current?.remove();
         currentToolsViewRef.current = null;
@@ -401,11 +396,7 @@ function Main() {
         'delay-300'
       );
     },
-    'element:pointermove': (elementView) => {
-      if (elementView.hasTools()) {
-        elementView.removeTools();
-      }
-    },
+    onElementPointerMove: ({ view }) => view.removeTools(),
   });
 
   return (

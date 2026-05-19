@@ -484,8 +484,7 @@ function Main() {
   }, [zoom, paper]);
 
   usePaperEvents(paperId, {
-    'link:pointerdown': (linkView: dia.LinkView) => {
-      const link = linkView.model;
+    onLinkPointerDown: ({ model: link }) => {
       setZoom((previous) => {
         if (previous.type === 'link' && previous.link === link) {
           return { type: 'arrow', link };
@@ -493,7 +492,7 @@ function Main() {
         return { type: 'link', link };
       });
     },
-    'blank:pointerdown': () => setZoom({ type: 'overview' }),
+    onBlankPointerDown: () => setZoom({ type: 'overview' }),
   });
 
   return (
