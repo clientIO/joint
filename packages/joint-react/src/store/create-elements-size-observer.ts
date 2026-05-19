@@ -29,7 +29,7 @@ export type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
  */
 export interface TransformOptions extends Required<ElementLayout> {
   /** The JointJS element instance */
-  readonly element: dia.Element;
+  readonly model: dia.Element;
   readonly id: CellId;
 }
 
@@ -66,10 +66,6 @@ interface ObservedElement {
   isMeasured: boolean;
 }
 
-function identityTransform(options: TransformOptions) {
-  const { width, height, x, y } = options;
-  return { width, height, x, y };
-}
 /**
  * Options for creating an elements size observer.
  */
@@ -79,7 +75,7 @@ interface Options {
   /** Function to get the current size of a cell from the graph */
   readonly getCellTransform: (
     id: CellId
-  ) => ElementLayoutOptionalXY & { element: dia.Element; angle: number };
+  ) => ElementLayoutOptionalXY & { model: dia.Element; angle: number };
   /** Function to get the elements from the container */
   readonly getElements: () => Map<CellId, ElementJSONInit>;
   /** Callback function called when a batch of elements needs to be updated */
@@ -146,12 +142,12 @@ function processSizeChange(options: ProcessSizeChangeOptions): boolean {
     elements,
     mutableLayouts,
   } = options;
-  const currentCellTransform = getCellTransform(observedElement.id);
 
   if (!elements.has(observedElement.id)) {
     return false;
   }
 
+  const currentCellTransform = getCellTransform(observedElement.id);
   if (
     Math.abs(currentCellTransform.width - measuredWidth) <= EPSILON &&
     Math.abs(currentCellTransform.height - measuredHeight) <= EPSILON
@@ -169,18 +165,26 @@ function processSizeChange(options: ProcessSizeChangeOptions): boolean {
   observedElement.lastWidth = measuredWidth;
   observedElement.lastHeight = measuredHeight;
 
-  const { x, y, angle, element: cell } = currentCellTransform;
-  const transform = observedElement.transform ?? identityTransform;
-
-  mutableLayouts[observedElement.id] = transform({
-    x: x ?? 0,
-    y: y ?? 0,
-    angle: angle ?? 0,
-    element: cell,
-    width: measuredWidth,
-    height: measuredHeight,
-    id: observedElement.id,
-  });
+  const { transform } = observedElement;
+  if (transform) {
+    // Provide the full current transform to the callback
+    const { x = 0, y = 0, angle = 0, model } = currentCellTransform;
+    mutableLayouts[observedElement.id] = transform({
+      x,
+      y,
+      angle,
+      model,
+      width: measuredWidth,
+      height: measuredHeight,
+      id: observedElement.id,
+    });
+  } else {
+    // No transform provided, use measured size directly. Position is left unchanged.
+    mutableLayouts[observedElement.id] = {
+      width: measuredWidth,
+      height: measuredHeight,
+    };
+  }
 
   return true;
 }

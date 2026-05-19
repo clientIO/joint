@@ -51,6 +51,18 @@ export interface GraphStoreInternalSnapshot {
  * to rule out the nonsensical combination of `cells` and `initialCells`
  * being passed together.
  */
+/**
+ * Reference point that stays fixed when an auto-sized element's measured size
+ * changes. Mirrors CSS `transform-origin` semantics.
+ *
+ * - `'top-left'` (default): element grows right/down — top-left stays put.
+ * - `'center'`: element grows symmetrically — geometric center stays put.
+ *
+ * Only affects writes from the `useMeasureNode` pipeline. Manual `cell.resize()`,
+ * interactive resize tools, and direct `cell.set('size', ...)` calls are unaffected.
+ */
+export type AutoSizeOrigin = 'top-left' | 'center';
+
 interface GraphStoreOptionsBase<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
@@ -59,6 +71,12 @@ interface GraphStoreOptionsBase<
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
   readonly onIncrementalCellsChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
+  /**
+   * Reference point that stays fixed when an auto-sized element's measured size
+   * changes. See {@link AutoSizeOrigin}.
+   * @default 'top-left'
+   */
+  readonly autoSizeOrigin?: AutoSizeOrigin;
 }
 
 /** Uncontrolled mode: parent provides only seed data. */
@@ -109,6 +127,8 @@ export class GraphStore<
     return this.graphProjection as unknown as GraphProjection<E, L>;
   }
 
+  public readonly autoSizeOrigin: AutoSizeOrigin;
+
   constructor(public readonly config: GraphStoreOptions<Element, Link>) {
     const {
       cellModel,
@@ -116,7 +136,9 @@ export class GraphStore<
       graph,
       onCellsChange,
       onIncrementalCellsChange,
+      autoSizeOrigin = 'top-left',
     } = config;
+    this.autoSizeOrigin = autoSizeOrigin;
     const controlledCells = 'cells' in config ? config.cells : undefined;
     const initialCells = 'initialCells' in config ? config.initialCells : undefined;
 
@@ -176,37 +198,42 @@ export class GraphStore<
         return map;
       },
       onBatchUpdate: (updatedElements) => {
-        this.graph.startBatch('resize');
+        this.graph.startBatch('auto-size');
         for (const [id, data] of Object.entries(updatedElements)) {
           const cell = this.graph.getCell(id);
-          if (cell?.isElement()) {
-            // `fromMeasure: true` marks writes that originate from the
-            // ResizeObserver pipeline so `change:size` listeners can tell our
-            // own writes apart from external ones (controlled-mode sync,
-            // direct `cell.resize`, etc.) and avoid feedback loops.
-            cell.set('size', { width: data.width, height: data.height }, {
-              fromMeasure: true,
-            } as object);
-            if (data.x !== undefined && data.y !== undefined) {
-              cell.set('position', { x: data.x, y: data.y }, {
-                fromMeasure: true,
-              } as object);
-            }
+          if (!cell?.isElement()) continue;
+          // Capture center BEFORE size write so the center-anchor path can
+          // re-derive position from the pre-resize center.
+          const center = this.autoSizeOrigin === 'center' ? cell.getCenter() : null;
+          const setOptions = { autoSize: true };
+          // `autoSize: true` marks writes that originate from the
+          // ResizeObserver pipeline so `change:size` listeners can tell our
+          // own writes apart from external ones (controlled-mode sync,
+          // direct `cell.resize`, etc.) and avoid feedback loops.
+          cell.set('size', { width: data.width, height: data.height }, setOptions);
+
+          if (data.x !== undefined && data.y !== undefined) {
+            cell.set('position', { x: data.x, y: data.y }, setOptions);
+          } else if (center) {
+            // Center-anchored auto-size: keep the geometric center fixed.
+            cell.set('position', {
+              x: center.x - data.width / 2,
+              y: center.y - data.height / 2,
+            }, setOptions);
           }
+          // Top-left auto-size (default): don't write position — the cell's
+          // top-left stays put implicitly and it grows right/down.
         }
-        this.graph.stopBatch('resize');
+        this.graph.stopBatch('auto-size');
       },
       getCellTransform: (id) => {
-        const cell = this.graph.getCell(id);
-        if (!cell?.isElement()) throw new Error('Cell not valid');
-        const size = cell.size();
-        const position = cell.get('position');
+        const model = this.graph.getCell(id);
+        if (!model?.isElement()) throw new Error('Cell not found or not an element: ' + id);
         return {
-          width: size.width,
-          height: size.height,
-          element: cell,
-          angle: cell.get('angle') ?? 0,
-          ...position,
+          model,
+          ...model.size(),
+          ...model.position().toJSON(),
+          angle: model.angle(),
         };
       },
     });

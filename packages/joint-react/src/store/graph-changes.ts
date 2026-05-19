@@ -158,14 +158,10 @@ export function graphChanges(options: Options) {
     onChanges({ changes: layoutChanges, isInsideBatch: true });
   });
 
-  controller.listenTo(
-    graph,
-    'change:size',
-    (cell: dia.Cell, newSize: dia.Size) => {
-      if (!onElementsSizeChange) return;
-      onElementsSizeChange(cell.id, newSize);
-    }
-  );
+  controller.listenTo(graph, 'change:size', (cell: dia.Cell, newSize: dia.Size) => {
+    if (!onElementsSizeChange) return;
+    onElementsSizeChange(cell.id, newSize);
+  });
 
   // Always-on batch tracking
   controller.listenTo(graph, 'batch:start', () => {

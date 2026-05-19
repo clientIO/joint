@@ -3,15 +3,15 @@ import React, { useLayoutEffect, type Dispatch, type SetStateAction } from 'reac
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
+import type { AutoSizeOrigin } from '../../store/graph-store';
 import type { IncrementalCellsChange } from '../../store/graph-projection';
 import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
 import type { CellInput } from '../../utils/normalize-cell-input';
 
 /** Cells array accepted by GraphProvider. */
-type ProviderCells<
-  Element extends ElementJSONInit,
-  Link extends LinkJSONInit,
-> = ReadonlyArray<Element | Link>;
+type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> = ReadonlyArray<
+  Element | Link
+>;
 
 /**
  * Props common to every `GraphProvider` mode.
@@ -37,6 +37,17 @@ interface GraphProviderBaseProps<
   readonly cellNamespace?: unknown;
   /** Custom cell model used as the base class for all cells in the graph. */
   readonly cellModel?: typeof dia.Cell;
+  /**
+   * Reference point that stays fixed when an auto-sized element's measured
+   * size changes (via `useMeasureNode`). Mirrors CSS `transform-origin` semantics.
+   * - `'top-left'` (default): element grows right/down.
+   * - `'center'`: element grows symmetrically — its geometric center stays put.
+   *
+   * Only affects measurement-driven writes. Manual `cell.resize()`, interactive
+   * resize tools, and direct `cell.set('size', ...)` calls are unaffected.
+   * @default 'top-left'
+   */
+  readonly autoSizeOrigin?: AutoSizeOrigin;
   /** Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle. */
   readonly store?: GraphStore<Element, Link>;
   /**
@@ -52,10 +63,8 @@ interface GraphProviderBaseProps<
  * @template ElementData - user data on each element
  * @template LinkData - user data on each link
  */
-interface GraphProviderUncontrolledProps<
-  Element extends ElementJSONInit,
-  Link extends LinkJSONInit,
-> extends GraphProviderBaseProps<Element, Link> {
+interface GraphProviderUncontrolledProps<Element extends ElementJSONInit, Link extends LinkJSONInit>
+  extends GraphProviderBaseProps<Element, Link> {
   readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
   readonly cells?: never;
   /** Notification-only callback — React state is NOT pushed back into the graph. */
@@ -68,10 +77,8 @@ interface GraphProviderUncontrolledProps<
  * @template ElementData - user data on each element
  * @template LinkData - user data on each link
  */
-interface GraphProviderControlledProps<
-  Element extends ElementJSONInit,
-  Link extends LinkJSONInit,
-> extends GraphProviderBaseProps<Element, Link> {
+interface GraphProviderControlledProps<Element extends ElementJSONInit, Link extends LinkJSONInit>
+  extends GraphProviderBaseProps<Element, Link> {
   readonly cells: ProviderCells<Element, Link>;
   readonly initialCells?: never;
   /**
@@ -104,10 +111,7 @@ export type GraphProviderProps<
  * (`ElementAttributes` / `LinkAttributes`). Each `useGraphStore<E, L>()` call
  * re-binds the generics on read — the runtime instance is the same.
  */
-type GraphProviderBaseInternalProps = GraphProviderProps<
-  ElementJSONInit,
-  LinkJSONInit
-> & {
+type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJSONInit> & {
   ref?: React.Ref<dia.Graph | null>;
 };
 
@@ -131,16 +135,14 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
     graph,
     cellNamespace,
     cellModel,
+    autoSizeOrigin,
   } = props;
 
   const cellsProperty = 'cells' in props ? props.cells : undefined;
   const initialCells = 'initialCells' in props ? props.initialCells : undefined;
   const isControlled = cellsProperty !== undefined;
 
-  const { isReady, ref } = useImperativeApi<
-    GraphStore<ElementJSONInit, LinkJSONInit>,
-    dia.Graph
-  >(
+  const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>, dia.Graph>(
     {
       instanceSelector: (instance) => instance.graph,
       forwardedRef,
@@ -155,6 +157,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
                 cells: cellsProperty,
                 onCellsChange,
                 onIncrementalCellsChange,
+                autoSizeOrigin,
               })
             : new GraphStore<ElementJSONInit, LinkJSONInit>({
                 graph,
@@ -163,6 +166,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
                 initialCells,
                 onCellsChange,
                 onIncrementalCellsChange,
+                autoSizeOrigin,
               }));
 
         return {

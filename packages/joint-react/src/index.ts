@@ -4,6 +4,7 @@
 // Components
 export { GraphProvider } from './components/graph/graph-provider';
 export type { GraphProviderProps as GraphProps } from './components/graph/graph-provider';
+export type { AutoSizeOrigin } from './store/graph-store';
 export { Paper } from './components/paper/paper';
 export type {
   PaperProps,
