@@ -103,7 +103,7 @@
     --jj-label-color: var(--jj-color-text);
     --jj-label-font-size: 11px;
     --jj-label-font-family: Arial, sans-serif;
-    --jj-label-border-color: var(--jj-color-text);
+    --jj-label-border-color: var(--jj-color-link);
     --jj-label-border-width: 1px;
     --jj-label-border-radius: var(--jj-radius-sm);
 

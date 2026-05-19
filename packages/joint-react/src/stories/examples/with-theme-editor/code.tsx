@@ -2,7 +2,6 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useState, useCallback, useEffect, useMemo, useRef, memo, useId } from 'react';
 import type { CSSProperties } from 'react';
-import { dia, linkTools, elementTools } from '@joint/core';
 import {
   type CellRecord,
   GraphProvider,
@@ -10,6 +9,7 @@ import {
   HTMLBox,
   type LinkMarkerName,
   usePaperEvents,
+  useGraph,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -124,7 +124,7 @@ const LIGHT_THEME: CSSVars = {
   '--jj-link-width':         '1',
   '--jj-label-bg-color':     pv('color-surface'),
   '--jj-label-color':        pv('color-text'),
-  '--jj-label-border-color': pv('color-text'),
+  '--jj-label-border-color': pv('color-link'),
   '--jj-port-color':         pv('color-surface'),
   '--jj-port-border-color':  pv('color-link'),
   '--jj-box-color':          pv('color-shape-surface'),
@@ -159,8 +159,11 @@ const DARK_THEME: CSSVars = {
   '--jj-label-bg-color':     pv('color-surface'),
   '--jj-label-color':        pv('color-text'),
   '--jj-label-border-color': p('dark-600'),
-  '--jj-port-color':         p('light-100'),
-  '--jj-port-border-color':  p('dark-900'),
+  '--jj-port-color':                    p('light-100'),
+  '--jj-port-border-color':             p('dark-900'),
+  '--jj-port-connecting-color':         pv('color-primary'),
+  '--jj-port-connecting-border-color':  pv('color-primary'),
+  '--jj-port-label-color':              pv('color-text'),
   '--jj-box-color':          pv('color-shape-surface'),
   '--jj-box-text-color':     pv('color-text'),
   '--jj-box-border-color':   pv('color-shape-border'),
@@ -386,7 +389,7 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
     data: { label: 'Node A' },
     position: { x: 60, y: 130 },
     portMap: {
-      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
+      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out', labelOffsetX: 10 },
     },
   },
   {
@@ -395,8 +398,8 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
     data: { label: 'Node B' },
     position: { x: 270, y: 130 },
     portMap: {
-      in: { cx: 0, cy: 'calc(0.5 * h)', passive: true },
-      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
+      in:  { cx: 0,         cy: 'calc(0.5 * h)', passive: true, label: 'in',  labelOffsetX: -10 },
+      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)',                label: 'out', labelOffsetX: 10 },
     },
   },
   {
@@ -405,7 +408,7 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
     data: { label: 'Node C' },
     position: { x: 475, y: 130 },
     portMap: {
-      in: { cx: 0, cy: 'calc(0.5 * h)', passive: true },
+      in: { cx: 0, cy: 'calc(0.5 * h)', passive: true, label: 'in', labelOffsetX: -10 },
     },
   },
   {
@@ -430,21 +433,6 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
   },
 ];
 
-// ── Tools ─────────────────────────────────────────────────────────────────────
-
-const elementToolsView = new dia.ToolsView({
-  tools: [
-    new elementTools.Boundary(),
-    new elementTools.Remove(),
-  ],
-});
-
-const lnkTools = new dia.ToolsView({
-  tools: [
-    new linkTools.Vertices(),
-    new linkTools.Remove({ distance: '50%' }),
-  ],
-});
 
 // ── Element renderer ──────────────────────────────────────────────────────────
 
@@ -458,14 +446,56 @@ function renderElement(data: Data) {
 
 // ── Diagram ───────────────────────────────────────────────────────────────────
 
+const INTERACTIVE_OPTIONS = { labelMove: true } as const;
+
 function Diagram() {
   const paperId = useId();
+  const { setCell } = useGraph<CellRecord<Data>>();
 
   usePaperEvents(paperId, {
-    'element:mouseenter': (view) => view.addTools(elementToolsView),
-    'element:mouseleave': (view) => view.removeTools(),
-    'link:mouseenter': (view) => view.addTools(lnkTools),
-    'link:mouseleave': (view) => view.removeTools(),
+    'blank:pointerdblclick': (_event, x, y) => {
+      setCell({
+        id: `node-${Date.now()}`,
+        type: 'element',
+        data: { label: 'New Node' },
+        position: { x, y },
+        portMap: {
+          in:  { cx: 0,         cy: 'calc(0.5 * h)', passive: true, label: 'in',  labelOffsetX: -10 },
+          out: { cx: 'calc(w)', cy: 'calc(0.5 * h)',                label: 'out', labelOffsetX: 10 },
+        },
+      });
+    },
+    'link:contextmenu': (linkView, event_, _x, _y) => {
+      const labelNode = (event_.target as Element | null)?.closest('[label-idx]');
+      if (!labelNode) return;
+      const labelIndex = Number.parseInt(labelNode.getAttribute('label-idx') ?? '', 10);
+      if (Number.isNaN(labelIndex)) return;
+      event_.preventDefault();
+      setCell(String(linkView.model.id), (previous) => {
+        const rawLabelMap = (previous as { labelMap?: Record<string, unknown> }).labelMap;
+        if (!rawLabelMap) return previous;
+        const keys = Object.keys(rawLabelMap);
+        if (labelIndex >= keys.length) return previous;
+        const labelKey = keys[labelIndex];
+        const labelMap = Object.fromEntries(
+          Object.entries(rawLabelMap).filter(([key]) => key !== labelKey)
+        );
+        return { ...previous, labelMap } as CellRecord<Data>;
+      });
+    },
+    'link:pointerdblclick': (linkView, _event, x, y) => {
+      const totalLength = linkView.getConnectionLength();
+      const closestLength = linkView.getClosestPointLength({ x, y });
+      const position = totalLength > 0 ? closestLength / totalLength : 0.5;
+      const labelKey = `label-${Date.now()}`;
+      setCell(String(linkView.model.id), (previous) => {
+        const linkRecord = previous as CellRecord<Data> & { labelMap?: Record<string, unknown> };
+        return {
+          ...linkRecord,
+          labelMap: { ...linkRecord.labelMap, [labelKey]: { position, text: 'New Label' } },
+        };
+      });
+    },
   });
 
   return (
@@ -474,6 +504,7 @@ function Diagram() {
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       defaultLink={DEFAULT_LINK}
+      interactive={INTERACTIVE_OPTIONS}
     />
   );
 }
