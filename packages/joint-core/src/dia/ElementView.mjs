@@ -747,6 +747,7 @@ export const ElementView = CellView.extend({
         var view = this.getDelegatedView();
         if (!view || !view.can('elementMove')) return;
 
+        this.paper.setDragging(evt);
         this.eventData(evt, {
             action: DragActions.MOVE,
             delegatedView: view
