@@ -17,9 +17,8 @@ import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
 import { graphView, type GraphView, type IncrementalCellsChange } from './graph-view';
-import { mapCellToAttributes } from '../state/data-mapping';
 import { simpleScheduler } from '../utils/scheduler';
-import { normalizeCellInput, type CellInput } from '../utils/normalize-cell-input';
+import { cellInputToModel, type CellInput } from '../utils/normalize-cell-input';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -218,10 +217,8 @@ export class GraphStore<
       // Replace existing graph state with the seed cells. The graph-changes
       // listener handles `reset` synchronously and populates the cells
       // container — no manual `syncFromGraph` needed.
-      const mapped = seedCells.map((cell) =>
-        mapCellToAttributes(normalizeCellInput(cell), this.graph)
-      );
-      this.graph.resetCells(mapped);
+      const models = seedCells.map((cell) => cellInputToModel(cell, this.graph));
+      this.graph.resetCells(models);
     } else if (this.graph.getCells().length > 0) {
       // External graph already has cells — populate the cells container
       // directly without calling resetCells(). resetCells() would destroy

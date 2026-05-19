@@ -1,6 +1,7 @@
 import { dia } from '@joint/core';
 import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
 import { toCellRecord } from '../state/data-mapping/cell-record-merge';
+import { mapCellToAttributes } from '../state/data-mapping/cell-mapper';
 
 /**
  * Cell setter input: a plain record or a dia.Cell instance.
@@ -30,12 +31,12 @@ export function resolveCellRef(cellRef: CellRef): CellId {
 }
 
 /**
- * Normalize cell input that may be a plain record or a dia.Cell instance.
- * dia.Cell instances are converted to their record form via toCellRecord.
+ * Convert a cell input to its record form. `dia.Cell` instances are
+ * converted via `toCellRecord`; plain records pass through unchanged.
  * @param input - plain record or dia.Cell instance
  * @returns normalized record
  */
-export function normalizeCellInput<
+export function cellInputToRecord<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 >(input: CellInput<Element, Link>): Element | Link {
@@ -43,4 +44,22 @@ export function normalizeCellInput<
     return toCellRecord<Element, Link>(input);
   }
   return input;
+}
+
+/**
+ * Convert a cell input to what `graph.resetCells` / `graph.addCells` accepts.
+ * `dia.Cell` instances pass through directly; plain records are mapped to
+ * JointJS attributes via `mapCellToAttributes`.
+ * @param input - plain record or dia.Cell instance
+ * @param graph - graph used for type-constructor resolution on records
+ * @returns dia.Cell instance or attributes object ready for the graph
+ */
+export function cellInputToModel<
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
+>(input: CellInput<Element, Link>, graph: dia.Graph): dia.Cell | dia.Cell.JSONInit {
+  if (input instanceof dia.Cell) {
+    return input;
+  }
+  return mapCellToAttributes(input, graph);
 }

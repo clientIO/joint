@@ -1,10 +1,10 @@
 import { shapes } from '@joint/core';
-import { normalizeCellInput, resolveCellRef } from '../normalize-cell-input';
+import { cellInputToRecord, resolveCellRef } from '../normalize-cell-input';
 import { ELEMENT_MODEL_TYPE, ElementModel } from '../../models/element-model';
 import { LINK_MODEL_TYPE, LinkModel } from '../../models/link-model';
 import type { CellRecord, ElementRecord, LinkRecord } from '../../types/cell.types';
 
-describe('normalizeCellInput', () => {
+describe('cellInputToRecord', () => {
   describe('plain records pass through unchanged', () => {
     it('returns an element record as-is', () => {
       const record: ElementRecord = {
@@ -14,7 +14,7 @@ describe('normalizeCellInput', () => {
         size: { width: 100, height: 50 },
         data: {},
       };
-      expect(normalizeCellInput(record)).toBe(record);
+      expect(cellInputToRecord(record)).toBe(record);
     });
 
     it('returns a link record as-is', () => {
@@ -25,7 +25,7 @@ describe('normalizeCellInput', () => {
         target: { id: 'b' },
         data: {},
       };
-      expect(normalizeCellInput(record)).toBe(record);
+      expect(cellInputToRecord(record)).toBe(record);
     });
   });
 
@@ -37,7 +37,7 @@ describe('normalizeCellInput', () => {
         size: { width: 100, height: 50 },
         data: { label: 'hello' },
       });
-      const record = normalizeCellInput(element);
+      const record = cellInputToRecord(element);
       expect(record).not.toBe(element);
       expect(record.id).toBe('e1');
       expect(record.type).toBe(ELEMENT_MODEL_TYPE);
@@ -53,7 +53,7 @@ describe('normalizeCellInput', () => {
         target: { id: 'b' },
         data: { weight: 5 },
       });
-      const record = normalizeCellInput(link);
+      const record = cellInputToRecord(link);
       expect(record).not.toBe(link);
       expect(record.id).toBe('l1');
       expect(record.type).toBe(LINK_MODEL_TYPE);
@@ -68,7 +68,7 @@ describe('normalizeCellInput', () => {
         position: { x: 5, y: 10 },
         size: { width: 200, height: 100 },
       });
-      const record = normalizeCellInput(rect);
+      const record = cellInputToRecord(rect);
       expect(record.id).toBe('r1');
       expect(record.type).toBe('standard.Rectangle');
       expect((record as CellRecord).position).toEqual({ x: 5, y: 10 });
@@ -81,7 +81,7 @@ describe('normalizeCellInput', () => {
         source: { id: 'a' },
         target: { id: 'b' },
       });
-      const record = normalizeCellInput(link);
+      const record = cellInputToRecord(link);
       expect(record.id).toBe('sl1');
       expect(record.type).toBe('standard.Link');
     });

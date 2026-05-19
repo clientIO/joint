@@ -8,7 +8,7 @@ import type {
   CellId,
 } from '../types/cell.types';
 import { type ArrayUpdate } from '../store/state-container';
-import { normalizeCellInput, resolveCellRef, type CellInput, type CellRef } from '../utils/normalize-cell-input';
+import { cellInputToRecord, cellInputToModel, resolveCellRef, type CellInput, type CellRef } from '../utils/normalize-cell-input';
 
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record
@@ -103,7 +103,7 @@ function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJ
   argument2: SetCellUpdater<Element, Link> | undefined,
   store: ReturnType<typeof useGraphStore<Element, Link>>
 ): Element | Link {
-  if (argument2 === undefined) return normalizeCellInput<Element, Link>(argument1 as CellInput<Element, Link>);
+  if (argument2 === undefined) return cellInputToRecord<Element, Link>(argument1 as CellInput<Element, Link>);
   const id = argument1 as CellId;
   const previous = store.graphView.cells.get(id);
   if (!previous) {
@@ -177,10 +177,8 @@ export function useResetCells<
     (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => {
       const current = store.graphView.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
-      const mapped: dia.Cell.JSONInit[] = next.map((cell) =>
-        mapCellToAttributes(normalizeCellInput<Element, Link>(cell), graph)
-      );
-      graph.resetCells(mapped);
+      const models = next.map((cell) => cellInputToModel<Element, Link>(cell, graph));
+      graph.resetCells(models);
     },
     [graph, store]
   );
@@ -208,7 +206,7 @@ export function useUpdateCells<
     ) => {
       const current = store.graphView.cells.getAll();
       const next = updater(current);
-      const normalized = next.map((cell) => normalizeCellInput<Element, Link>(cell));
+      const normalized = next.map((cell) => cellInputToRecord<Element, Link>(cell));
       store.applyControlled(normalized);
     },
     [store]
