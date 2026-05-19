@@ -78,7 +78,7 @@
     --jj-paper-box-shadow: 0 3px 11px rgba(0, 0, 0, 0.11), 0 1px 4px rgba(0, 0, 0, 0.05);
     --jj-paper-grid-color: var(--jj-color-grid);
     --jj-paper-grid-size: 10;
-    --jj-paper-grid-thickness: 1;
+    --jj-paper-grid-thickness: 2;
     --jj-paper-highlight-color: var(--jj-color-primary);
 
     /* ── Links ───────────────────────────────────────────────────────────── */

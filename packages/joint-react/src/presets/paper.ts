@@ -80,7 +80,13 @@ export const Paper = dia.Paper.extend({
     clickThreshold: DEFAULT_CLICK_THRESHOLD,
     snapLinks: { radius: DEFAULT_SNAP_RADIUS },
     highlighting: DEFAULT_HIGHLIGHTING,
-    drawGrid: true,
+    drawGrid: {
+      name: 'dot',
+      args: {
+        color: 'var(--jj-paper-grid-color)',
+        thickness: 2
+      }
+    },
     magnetThreshold: 'onleave',
     ...linkRoutingStraight(),
     measureNode,
