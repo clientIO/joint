@@ -1,9 +1,22 @@
 /* eslint-disable unicorn/consistent-function-scoping */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
- 
+
 import './index.css';
-import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
-import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect, usePaperEvents } from '@joint/react';
+import type {
+  CellRecord,
+  ElementRecord,
+  LinkRecord,
+  LinkLabel,
+  TransformOptions,
+} from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useMarkup,
+  useMeasureNode,
+  useNodesMeasuredEffect,
+  usePaperEvents,
+} from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -242,7 +255,10 @@ const flowchartLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: ReadonlyArray<CellRecord<NodeElementData>> = [...flowchartNodes, ...flowchartLinks];
+const initialCells: ReadonlyArray<CellRecord<NodeElementData>> = [
+  ...flowchartNodes,
+  ...flowchartLinks,
+];
 
 interface PropsWithClick {
   readonly onMouseEnter?: () => void;
@@ -496,6 +512,7 @@ function Main() {
   );
 
   useNodesMeasuredEffect(paperId, ({ isInitial, paper }) => {
+    console.log('Nodes measured', { isInitial });
     if (!isInitial) return;
     paper.transformToFitContent({
       padding: 40,
@@ -506,7 +523,8 @@ function Main() {
   });
 
   return (
-    <Paper style={{ height: 600 }}
+    <Paper
+      style={{ height: 600 }}
       ref={paperRef}
       id={paperId}
       gridSize={5}

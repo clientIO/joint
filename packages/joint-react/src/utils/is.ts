@@ -1,5 +1,5 @@
 /* eslint-disable jsdoc/require-jsdoc */
-import { util } from '@joint/core';
+import { util, mvc, type dia } from '@joint/core';
 import type { FunctionComponent, JSX } from 'react';
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -38,6 +38,18 @@ export function isUpdater<T>(updater: ((previous: T) => T) | T): updater is (pre
 
 export function isRef<T>(value: unknown): value is React.RefObject<T> {
   return isRecord(value) && 'current' in value;
+}
+
+export function isCollection(value: unknown): value is mvc.Collection<dia.Cell> {
+  return value instanceof mvc.Collection;
+}
+
+/**
+ * Wraps a typed equality function into an untyped `(a: unknown, b: unknown) => boolean`
+ * so it can be stored without threading generic types through helper closures.
+ */
+export function wrapUserIsEqual<T>(userIsEqual: (a: T, b: T) => boolean): (a: unknown, b: unknown) => boolean {
+  return (a, b) => userIsEqual(a as T, b as T);
 }
 
 /**

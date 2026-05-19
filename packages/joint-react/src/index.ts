@@ -33,8 +33,6 @@ export type { UseGraphResult, ExportToJSONOptions } from './hooks/use-graph';
 export type { CellInput, CellRef } from './utils/normalize-cell-input';
 export { useGraphStore } from './hooks/use-graph-store';
 export { usePaper, usePaperStore } from './hooks/use-paper';
-export { useCellCollection } from './hooks/use-cell-collection';
-export { useSetCellCollection, type CellCollectionSetter } from './hooks/use-set-cell-collection';
 
 // Hooks — Measurement
 export { useMeasureNode } from './hooks/use-measure-node';

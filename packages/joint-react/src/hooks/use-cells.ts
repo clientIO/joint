@@ -1,9 +1,15 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+import { type mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
 import { areArraysShallowEqual, arrayAwareEqual } from '../utils/selector-utils';
+import { isCollection, wrapUserIsEqual } from '../utils/is';
+import { subscribeToCollection } from '../utils/collection-subscription';
+import { parseUseCellsArgs } from './use-cells.utils';
+
+// ── Types ───────────────────────────────────────────────────────────────────
 
 /** Union of all possible `useCells` return shapes (depends on argument form). */
 type UseCellsResult<Cell extends AnyCellRecord, Selected> =
@@ -12,43 +18,14 @@ type UseCellsResult<Cell extends AnyCellRecord, Selected> =
   | undefined
   | Selected;
 
-/**
- * Equality function on raw `unknown` values. Used internally so we don't have
- * to weave generic types through helper closures (the runtime check is the
- * same regardless of the static type).
- */
+/** Equality function on raw `unknown` values. */
 type UnknownEqual = (a: unknown, b: unknown) => boolean;
 
-/**
- * Wraps a user-provided isEqual that operates on a typed value so it can be
- * stored as an `UnknownEqual`. Module-scoped so the closure does not nest
- * inside `useCells`.
- * @param userIsEqual - user equality on a typed value
- * @returns equality on raw `unknown` values
- */
-function wrapUserIsEqual<T>(userIsEqual: (a: T, b: T) => boolean): UnknownEqual {
-  return (a, b) => userIsEqual(a as T, b as T);
-}
+// ── Module-scoped helpers ───────────────────────────────────────────────────
 
 /**
- * Shallow array equality on raw values. Module-scoped so it stays
- * referentially stable across renders and avoids deep nesting inside
- * `useCells`.
- * @param a - previous result (expected to be a readonly array)
- * @param b - next result (expected to be a readonly array)
- * @returns true when both arrays match by length and element identity
- */
-function arrayResultEqual(a: unknown, b: unknown): boolean {
-  return areArraysShallowEqual(a as readonly unknown[], b as readonly unknown[]);
-}
-
-/**
- * Picks the cells named by `subscribedIds` out of the container in order.
- * Missing ids are skipped. Module-scoped so the closure does not nest inside
- * `useCells.select`.
- * @param container - container to read from
- * @param subscribedIds - cell ids to pick
- * @returns array of resolved cells in id order (missing ids omitted)
+ * Picks cells named by `subscribedIds` from the container in order.
+ * Missing ids are skipped.
  */
 function pickCells<Cell extends AnyCellRecord>(
   container: ReadonlyContainer<Cell>,
@@ -65,12 +42,6 @@ function pickCells<Cell extends AnyCellRecord>(
 /**
  * Builds the next selector result for `useCells`. Module-scoped so the
  * closure does not nest deeply inside `useCells.select`.
- * @param container - container to read from
- * @param targetId - single cell id when the (id) form is in use
- * @param subscribedIds - id list when the (ids) form is in use
- * @param arraySelector - selector for array forms (optional)
- * @param cellSelector - selector for the single-id form (optional)
- * @returns selected value or raw cell / cells
  */
 function computeNext<Cell extends AnyCellRecord, Selected>(
   container: ReadonlyContainer<Cell>,
@@ -84,87 +55,40 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
     return cellSelector ? cellSelector(cell) : cell;
   }
   const source: readonly Cell[] =
-    subscribedIds && subscribedIds.length > 0
-      ? pickCells(container, subscribedIds)
-      : container.getAll();
+    subscribedIds === undefined
+      ? container.getAll()
+      : pickCells(container, subscribedIds);
   return arraySelector ? arraySelector(source) : source;
 }
 
-/** Normalised arguments after dispatching by the runtime call shape. */
-interface ParsedUseCellsArgs<Cell extends AnyCellRecord, Selected> {
-  readonly targetId: CellId | undefined;
-  readonly ids: readonly CellId[] | undefined;
-  readonly arraySelector: ((cells: readonly Cell[]) => Selected) | undefined;
-  readonly cellSelector: ((cell: Cell | undefined) => Selected) | undefined;
-  readonly userIsEqual: ((a: Selected, b: Selected) => boolean) | undefined;
-}
+// ── Overloads ───────────────────────────────────────────────────────────────
 
 /**
- * Classifies the runtime arguments of `useCells` into a normalised shape so
- * the hook body can stay flat and cheap to read.
- * @param argument1 - first positional arg (id, ids, or selector)
- * @param argument2 - second positional arg (selector or isEqual depending on form)
- * @param argument3 - third positional arg (isEqual when the form admits it)
- * @returns the normalised input
+ * Subscribe to a collection's cells. Tracks collection membership
+ * (`add`/`remove`/`reset`) and reads cell records from the GraphProvider's
+ * container. Collection cells not present in the graph are skipped.
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @param collection - JointJS collection whose member IDs drive the subscription
+ * @returns readonly resolved cells array filtered by collection membership
  */
-function parseUseCellsArgs<Cell extends AnyCellRecord, Selected>(
-  argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
-  argument2?:
-    | ((cells: readonly Cell[]) => Selected)
-    | ((cell: Cell | undefined) => Selected)
-    | ((a: Selected, b: Selected) => boolean),
-  argument3?: (a: Selected, b: Selected) => boolean
-): ParsedUseCellsArgs<Cell, Selected> {
-  const isIdsArray = Array.isArray(argument1);
-  const isSelectorFirst = typeof argument1 === 'function';
-  const isSingleId = !isIdsArray && !isSelectorFirst && argument1 !== undefined;
-  const targetId: CellId | undefined = isSingleId ? (argument1 as CellId) : undefined;
-  const ids: readonly CellId[] | undefined = isIdsArray
-    ? (argument1 as readonly CellId[])
-    : undefined;
-
-  if (isSelectorFirst) {
-    return {
-      targetId,
-      ids,
-      arraySelector: argument1 as (cells: readonly Cell[]) => Selected,
-      cellSelector: undefined,
-      userIsEqual:
-        typeof argument2 === 'function'
-          ? (argument2 as (a: Selected, b: Selected) => boolean)
-          : undefined,
-    };
-  }
-  if (isIdsArray) {
-    return {
-      targetId,
-      ids,
-      arraySelector:
-        typeof argument2 === 'function'
-          ? (argument2 as (cells: readonly Cell[]) => Selected)
-          : undefined,
-      cellSelector: undefined,
-      userIsEqual: typeof argument3 === 'function' ? argument3 : undefined,
-    };
-  }
-  if (isSingleId && typeof argument2 === 'function') {
-    return {
-      targetId,
-      ids,
-      arraySelector: undefined,
-      cellSelector: argument2 as (cell: Cell | undefined) => Selected,
-      userIsEqual: typeof argument3 === 'function' ? argument3 : undefined,
-    };
-  }
-  return {
-    targetId,
-    ids,
-    arraySelector: undefined,
-    cellSelector: undefined,
-    userIsEqual: undefined,
-  };
-}
-
+export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
+  collection: mvc.Collection<dia.Cell>
+): readonly Cell[];
+/**
+ * Subscribe to a collection's cells with a selector.
+ * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @template Selected - selector return type
+ * @param collection - JointJS collection whose member IDs drive the subscription
+ * @param selector - derive a value from the picked resolved cells array
+ * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
+ * @returns selected value
+ */
+export function useCells<Cell extends AnyCellRecord = Computed, Selected = readonly Cell[]>(
+  collection: mvc.Collection<dia.Cell>,
+  selector: (cells: readonly Cell[]) => Selected,
+  isEqual?: (a: Selected, b: Selected) => boolean
+): Selected;
 /**
  * Subscribe to the full cells array.
  *
@@ -203,10 +127,6 @@ export function useCells<Cell extends AnyCellRecord = Computed, Selected = Cell 
  * (not the full container) so unrelated mutations don't trigger re-renders.
  * Returns the picked cells in the order they appear in `ids`; missing ids
  * are skipped. The array reference is stable when no picked cell changed.
- *
- * Cannot be unified with the `(id)` overload because the argument shape
- * (`CellId` vs `readonly CellId[]`) drives the return shape (single record
- * vs array of records).
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param ids - cell ids to track
  * @returns array of resolved cells (only those that exist; missing ids are skipped)
@@ -226,6 +146,7 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @returns selected value
  */
 export function useCells<Cell extends AnyCellRecord = Computed, Selected = readonly Cell[]>(
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
   ids: readonly CellId[],
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
@@ -242,8 +163,15 @@ export function useCells<Cell extends AnyCellRecord = Computed, Selected = reado
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
+
+// ── Implementation ──────────────────────────────────────────────────────────
+
 export function useCells<Cell extends AnyCellRecord = Computed, Selected = readonly Cell[]>(
-  argument1?: CellId | readonly CellId[] | ((cells: readonly Cell[]) => Selected),
+  argument1?:
+    | CellId
+    | readonly CellId[]
+    | ((cells: readonly Cell[]) => Selected)
+    | mvc.Collection<dia.Cell>,
   argument2?:
     | ((cells: readonly Cell[]) => Selected)
     | ((cell: Cell | undefined) => Selected)
@@ -251,15 +179,12 @@ export function useCells<Cell extends AnyCellRecord = Computed, Selected = reado
   argument3?: (a: Selected, b: Selected) => boolean
 ): UseCellsResult<Cell, Selected> {
   const store = useGraphStore();
-  // The runtime container holds resolved cell records; `Cell extends
-  // Computed<CellRecord>` is structurally compatible. Bridge the typed
-  // store value to the caller's `Cell` view with a single cast.
   const container = store.graphView.cells as ReadonlyContainer<Cell>;
 
-  const { targetId, ids, arraySelector, cellSelector, userIsEqual } = parseUseCellsArgs<
-    Cell,
-    Selected
-  >(argument1, argument2, argument3);
+  const collectionArgument = isCollection(argument1) ? argument1 : undefined;
+
+  const { targetId, ids, isCollectionForm, arraySelector, cellSelector, userIsEqual } =
+    parseUseCellsArgs<Cell, Selected>(argument1, argument2, argument3);
   const hasSelector = arraySelector !== undefined || cellSelector !== undefined;
 
   const arraySelectorRef = useRef(arraySelector);
@@ -274,15 +199,37 @@ export function useCells<Cell extends AnyCellRecord = Computed, Selected = reado
     value: undefined,
   });
 
-  // Stable key for the ids array so subscribe/select callbacks update only
-  // when the actual id set changes — not on every render with a new array
-  // reference (common when caller inlines the array literal).
   const idsKey = useMemo(() => (ids ? ids.join('|') : ''), [ids]);
   const idsRef = useRef<readonly CellId[] | undefined>(ids);
   idsRef.current = ids;
 
+  // ── Collection refs (no-op when not in collection form) ──
+
+  const collectionIdsRef = useRef<readonly CellId[]>([]);
+  const collectionVersionRef = useRef(0);
+
+  const previousCollectionRef = useRef(collectionArgument);
+  if (previousCollectionRef.current !== collectionArgument) {
+    previousCollectionRef.current = collectionArgument;
+    collectionIdsRef.current = collectionArgument
+      ? collectionArgument.models.map((m) => m.id as CellId)
+      : [];
+    collectionVersionRef.current++;
+  }
+
+  // ── Subscribe ──
+
   const subscribe = useCallback(
     (listener: () => void) => {
+      if (collectionArgument) {
+        return subscribeToCollection(
+          collectionArgument,
+          container,
+          listener,
+          collectionIdsRef,
+          collectionVersionRef
+        );
+      }
       if (targetId !== undefined) return container.subscribe(targetId, listener);
       const subscribedIds = idsRef.current;
       if (subscribedIds && subscribedIds.length > 0) {
@@ -293,37 +240,40 @@ export function useCells<Cell extends AnyCellRecord = Computed, Selected = reado
       }
       return container.subscribeToAll(listener);
     },
-    // idsKey stands in for the ids array reference so we resubscribe only on
-    // an actual id change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [container, targetId, idsKey]
+    [container, collectionArgument, targetId, idsKey]
   );
+
+  // ── Snapshot ──
 
   const getSnapshot = useCallback(() => {
     if (targetId !== undefined && !cellSelectorRef.current) {
       return container.get(targetId);
     }
+    if (collectionArgument) return collectionVersionRef.current;
     return container.getVersion();
-  }, [container, targetId]);
+  }, [container, collectionArgument, targetId]);
 
-  // For ids-only (no selector), default to shallow array equality so the
-  // returned array reference stays stable when no picked cell changed. When
-  // a selector is provided, fall back to an array-aware equality so selectors
-  // that return arrays (e.g. `cells.map(c => c.id)`) also stay reference-
-  // stable when their elements didn't change.
+  // ── Equality ──
+
   const isEqual = useMemo<UnknownEqual>(() => {
     if (userIsEqual) return wrapUserIsEqual(userIsEqual);
-    if (ids && !hasSelector) return arrayResultEqual;
+    if ((ids || isCollectionForm) && !hasSelector) {
+      return (a, b) => areArraysShallowEqual(a as readonly unknown[], b as readonly unknown[]);
+    }
     if (hasSelector) return arrayAwareEqual;
     return Object.is;
-  }, [userIsEqual, ids, hasSelector]);
+  }, [userIsEqual, ids, isCollectionForm, hasSelector]);
+
+  // ── Selector ──
 
   const select = useCallback(
     (): Result => {
+      const subscribedIds = collectionArgument ? collectionIdsRef.current : idsRef.current;
       const next = computeNext<Cell, Selected>(
         container,
         targetId,
-        idsRef.current,
+        subscribedIds,
         arraySelectorRef.current,
         cellSelectorRef.current
       );
@@ -333,10 +283,8 @@ export function useCells<Cell extends AnyCellRecord = Computed, Selected = reado
       cachedRef.current = { hasValue: true, value: next };
       return next;
     },
-    // idsKey stands in for the ids array reference; selectors are read via
-    // refs so `select` stays stable across renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [container, targetId, idsKey, isEqual]
+    [container, collectionArgument, targetId, idsKey, isEqual]
   );
 
   return useSyncExternalStoreWithSelector(subscribe, getSnapshot, getSnapshot, select, isEqual);
