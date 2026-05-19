@@ -149,7 +149,7 @@ export type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
  * useCell((el: Computed<ElementRecord<MyData>>) => el.data.label);
  * ```
  */
-export type Computed<T = CellRecord> =
+export type Computed<T> =
   T extends ElementRecord<infer ElementData>
     ? InternalElementRecord<ElementData>
     : T extends LinkRecord<infer LinkData>

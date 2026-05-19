@@ -14,8 +14,8 @@ describe('GraphStore', () => {
     it('creates with a default graph and an empty cells container', () => {
       const store = new GraphStore({});
       expect(store.graph).toBeInstanceOf(dia.Graph);
-      expect(store.graphView).toBeDefined();
-      expect(store.graphView.cells.getSize()).toBe(0);
+      expect(store.graphProjection).toBeDefined();
+      expect(store.graphProjection.cells.getSize()).toBe(0);
       store.destroy(false);
     });
 
@@ -44,7 +44,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells });
       expect(store.graph.getCell('a')).toBeDefined();
       expect(store.graph.getCell('b')).toBeDefined();
-      expect(store.graphView.cells.getSize()).toBe(2);
+      expect(store.graphProjection.cells.getSize()).toBe(2);
       store.destroy(false);
     });
 
@@ -57,7 +57,7 @@ describe('GraphStore', () => {
         size: { width: 10, height: 10 },
       });
       const store = new GraphStore({ graph });
-      expect(store.graphView.cells.has('a')).toBe(true);
+      expect(store.graphProjection.cells.has('a')).toBe(true);
       store.destroy(true);
     });
 
@@ -106,7 +106,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells: [element, link] });
       expect(store.graph.getCell('dia-el')).toBeDefined();
       expect(store.graph.getCell('dia-lk')).toBeDefined();
-      expect(store.graphView.cells.getSize()).toBe(2);
+      expect(store.graphProjection.cells.getSize()).toBe(2);
       store.destroy(false);
     });
 
@@ -119,7 +119,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells: [rect] });
       expect(store.graph.getCell('rect-1')).toBeDefined();
       expect(store.graph.getCell('rect-1')!.get('type')).toBe('standard.Rectangle');
-      expect(store.graphView.cells.getSize()).toBe(1);
+      expect(store.graphProjection.cells.getSize()).toBe(1);
       store.destroy(false);
     });
 
@@ -138,7 +138,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells: [record, diaElement] });
       expect(store.graph.getCell('rec-a')).toBeDefined();
       expect(store.graph.getCell('dia-b')).toBeDefined();
-      expect(store.graphView.cells.getSize()).toBe(2);
+      expect(store.graphProjection.cells.getSize()).toBe(2);
       store.destroy(false);
     });
 
@@ -152,7 +152,7 @@ describe('GraphStore', () => {
         } as CellRecord,
       ];
       const store = new GraphStore({ cells });
-      expect(store.graphView.cells.has('x')).toBe(true);
+      expect(store.graphProjection.cells.has('x')).toBe(true);
       expect(store.graph.getCell('x')).toBeDefined();
       store.destroy(false);
     });
@@ -251,7 +251,7 @@ describe('GraphStore', () => {
         } as CellRecord,
       ];
       const store = new GraphStore({ cells: initial });
-      expect(store.graphView.cells.has('a')).toBe(true);
+      expect(store.graphProjection.cells.has('a')).toBe(true);
 
       store.applyControlled([
         {
@@ -261,8 +261,8 @@ describe('GraphStore', () => {
           size: { width: 10, height: 10 },
         } as CellRecord,
       ]);
-      expect(store.graphView.cells.has('a')).toBe(false);
-      expect(store.graphView.cells.has('b')).toBe(true);
+      expect(store.graphProjection.cells.has('a')).toBe(false);
+      expect(store.graphProjection.cells.has('b')).toBe(true);
       store.destroy(false);
     });
   });

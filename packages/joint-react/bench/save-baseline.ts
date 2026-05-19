@@ -60,7 +60,7 @@ function safeExec(cmd: string): string {
  * Appends benchmark results for a named label to a shared baseline JSON file.
  * If the file already exists, existing results for other labels are preserved.
  * @param bench - The tinybench Bench instance after `bench.run()` completes.
- * @param label - Unique label identifying this benchmark scenario (e.g. 'graph-view/position-change/n=10').
+ * @param label - Unique label identifying this benchmark scenario (e.g. 'graph-projection/position-change/n=10').
  * @param outPath - Absolute path to the baseline JSON output file.
  */
 export function saveBenchResults(bench: Bench, label: string, outPath: string): void {

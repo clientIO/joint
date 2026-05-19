@@ -144,7 +144,7 @@ function LinkItem({
 }) {
   const id = useContext(CellIdContext);
   const store = useGraphStore();
-  const { cells } = store.graphView;
+  const { cells } = store.graphProjection;
   const subscribe = useCallback(
     (listener: () => void) => (id === undefined ? () => {} : cells.subscribe(id, listener)),
     [cells, id]
@@ -215,11 +215,11 @@ export function useCreatePortalPaper(
 
   // Subscribe to cells-container size — only re-renders when cells are added or removed.
   // Partition the id list by type so element / link portals can be rendered separately.
-  const allCellIds = useContainerKeys(graphStore.graphView.cells);
+  const allCellIds = useContainerKeys(graphStore.graphProjection.cells);
   const { elementIds, linkIds } = useMemo(() => {
     const elements: CellId[] = [];
     const links: CellId[] = [];
-    const container = graphStore.graphView.cells;
+    const container = graphStore.graphProjection.cells;
     for (const cellId of allCellIds) {
       const cell = container.get(cellId);
       if (!cell) continue;

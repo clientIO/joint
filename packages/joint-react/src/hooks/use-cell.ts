@@ -26,7 +26,7 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(): Ce
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCell<Cell extends AnyCellRecord = Computed, Selected = Cell>(
+export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = Cell>(
   selector: (cell: Cell) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
@@ -55,12 +55,12 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCell<Cell extends AnyCellRecord = Computed, Selected = Cell>(
+export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = Cell>(
   id: CellId,
   selector: (cell: Cell) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
-export function useCell<Cell extends AnyCellRecord = Computed, Selected = Cell>(
+export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = Cell>(
   argument1?: CellId | ((cell: Cell) => Selected),
   argument2?: ((cell: Cell) => Selected) | ((a: Selected, b: Selected) => boolean),
   argument3?: (a: Selected, b: Selected) => boolean

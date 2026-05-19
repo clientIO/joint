@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
-import { graphView } from '../graph-view';
+import { graphProjection } from '../graph-projection';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type { CellRecord, ElementRecord, LinkRecord } from '../../types/cell.types';
@@ -11,11 +11,11 @@ function createGraph(): dia.Graph {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 }
 
-describe('graphView — incremental remove of element with connected links', () => {
+describe('graphProjection — incremental remove of element with connected links', () => {
   it('removes connected links from the container when element is removed', async () => {
     const graph = createGraph();
     const incrementalCallback = jest.fn();
-    const view = graphView<ElementRecord, LinkRecord>({
+    const view = graphProjection<ElementRecord, LinkRecord>({
       graph,
       onIncrementalChange: incrementalCallback,
     });
@@ -55,10 +55,10 @@ describe('graphView — incremental remove of element with connected links', () 
   it('mirrors connected-link removal via the cells-delete sweep on element remove', async () => {
     // Drive the reset path so the remove arrives via `change-set` with the
     // element + its connected link both present in the same batch. The
-    // graph-view's remove branch then walks `getConnectedLinks` to mirror
+    // graph-projection's remove branch then walks `getConnectedLinks` to mirror
     // JointJS's connected-link removal explicitly.
     const graph = createGraph();
-    const view = graphView<ElementRecord, LinkRecord>({
+    const view = graphProjection<ElementRecord, LinkRecord>({
       graph,
       onIncrementalChange: () => {
         // tracking enabled to exercise the trackChanges branch
@@ -102,10 +102,10 @@ describe('graphView — incremental remove of element with connected links', () 
   });
 });
 
-describe('graphView — updateGraph branch coverage', () => {
+describe('graphProjection — updateGraph branch coverage', () => {
   it('returns early when flag is not "updateFromReact"', () => {
     const graph = createGraph();
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
     const cells: readonly CellRecord[] = [
       {
         id: 'a',
@@ -125,7 +125,7 @@ describe('graphView — updateGraph branch coverage', () => {
 
   it('handles a missing cell after syncCells (defensive continue)', () => {
     const graph = createGraph();
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
 
     // Inject a stub `getCell` that returns undefined for 'phantom-id'.
     const realGetCell = graph.getCell.bind(graph);

@@ -10,7 +10,7 @@ import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
 import { writeCellToContainer } from '../state/data-mapping/cell-record-merge';
 
-/** Incremental change set emitted by graphView after container commits. */
+/** Incremental change set emitted by graphProjection after container commits. */
 export interface IncrementalCellsChange<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
@@ -20,7 +20,7 @@ export interface IncrementalCellsChange<
   readonly removed: Set<CellId>;
 }
 
-interface GraphViewState<
+interface GraphProjectionState<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 > {
@@ -29,10 +29,10 @@ interface GraphViewState<
   readonly onElementsSizeChange?: (id: CellId, size: { width: number; height: number }) => void;
 }
 
-export function graphView<
+export function graphProjection<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
->(options: GraphViewState<Element, Link>) {
+>(options: GraphProjectionState<Element, Link>) {
   const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
   const cells = createContainer<Element | Link>('Cells');
@@ -167,7 +167,7 @@ export function graphView<
   };
 }
 
-export type GraphView<
+export type GraphProjection<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
-> = ReturnType<typeof graphView<Element, Link>>;
+> = ReturnType<typeof graphProjection<Element, Link>>;

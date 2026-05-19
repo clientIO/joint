@@ -8,7 +8,7 @@ import type {
   CellId,
 } from '../types/cell.types';
 import { type ArrayUpdate } from '../store/state-container';
-import { cellInputToRecord, cellInputToModel, resolveCellRef, type CellInput, type CellRef } from '../utils/normalize-cell-input';
+import { cellInputToRecord, cellInputToModel, type CellInput, type CellRef } from '../utils/normalize-cell-input';
 
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record
@@ -63,7 +63,7 @@ export function useSetCell<
       if (next.id === undefined) {
         throw new Error('setCell: input record must have an `id` to identify the target cell');
       }
-      const previous = store.graphView.cells.get(next.id);
+      const previous = store.graphProjection.cells.get(next.id);
       const diaCell = graph.getCell(next.id);
       if (!previous || !diaCell) {
         graph.addCell(mapCellToAttributes(next, graph));
@@ -105,7 +105,7 @@ function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJ
 ): Element | Link {
   if (argument2 === undefined) return cellInputToRecord<Element, Link>(argument1 as CellInput<Element, Link>);
   const id = argument1 as CellId;
-  const previous = store.graphView.cells.get(id);
+  const previous = store.graphProjection.cells.get(id);
   if (!previous) {
     throw new Error(
       `setCell: cannot update — no cell with id "${String(id)}" exists. ` +
@@ -125,8 +125,7 @@ export function useRemoveCell() {
   const { graph } = store;
   return useCallback(
     (cellRef: CellRef) => {
-      const id = resolveCellRef(cellRef);
-      const diaCell = graph.getCell(id);
+      const diaCell = graph.getCell(cellRef);
       if (!diaCell) return;
       graph.removeCells([diaCell]);
     },
@@ -146,7 +145,7 @@ export function useRemoveCells() {
     (cellRefs: readonly CellRef[]) => {
       const toRemove: dia.Cell[] = [];
       for (const cellRef of cellRefs) {
-        const cell = graph.getCell(resolveCellRef(cellRef));
+        const cell = graph.getCell(cellRef);
         if (cell) toRemove.push(cell);
       }
       if (toRemove.length === 0) return;
@@ -175,7 +174,7 @@ export function useResetCells<
   const { graph } = store;
   return useCallback(
     (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => {
-      const current = store.graphView.cells.getAll();
+      const current = store.graphProjection.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
       const models = next.map((cell) => cellInputToModel<Element, Link>(cell, graph));
       graph.resetCells(models);
@@ -204,7 +203,7 @@ export function useUpdateCells<
         previous: ReadonlyArray<Element | Link>
       ) => ReadonlyArray<CellInput<Element, Link>>
     ) => {
-      const current = store.graphView.cells.getAll();
+      const current = store.graphProjection.cells.getAll();
       const next = updater(current);
       const normalized = next.map((cell) => cellInputToRecord<Element, Link>(cell));
       store.applyControlled(normalized);

@@ -3,7 +3,7 @@ import React, { useLayoutEffect, type Dispatch, type SetStateAction } from 'reac
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
-import type { IncrementalCellsChange } from '../../store/graph-view';
+import type { IncrementalCellsChange } from '../../store/graph-projection';
 import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
 import type { CellInput } from '../../utils/normalize-cell-input';
 

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE, GraphStore } from '../src/store/graph-store';
-import { graphView } from '../src/store/graph-view';
+import { graphProjection } from '../src/store/graph-projection';
 import type { Cells, CellRecord } from '../src/types/cell.types';
 import { saveBenchResults } from './save-baseline';
 
@@ -64,11 +64,11 @@ function createBaseline(count: number) {
   return { graph };
 }
 
-/** graphView layer with per-id container subscriptions simulating React components. */
-function createWithGraphView(count: number) {
+/** graphProjection layer with per-id container subscriptions simulating React components. */
+function createWithGraphProjection(count: number) {
   const graph = createGraph();
   populateGraph(graph, count);
-  const view = graphView({ graph });
+  const view = graphProjection({ graph });
 
   for (let index = 0; index < count; index++) {
     view.cells.subscribe(`el-${index}`, () => {});
@@ -87,10 +87,10 @@ function createWithGraphStore(count: number) {
   });
 
   for (let index = 0; index < count; index++) {
-    store.graphView.cells.subscribe(`el-${index}`, () => {});
+    store.graphProjection.cells.subscribe(`el-${index}`, () => {});
   }
   for (let index = 0; index < count - 1; index++) {
-    store.graphView.cells.subscribe(`link-${index}`, () => {});
+    store.graphProjection.cells.subscribe(`link-${index}`, () => {});
   }
 
   return { graph: store.graph, store };
@@ -107,13 +107,13 @@ function logResults(bench: Bench): void {
   }
 }
 
-describe('graph-view benchmark: baseline vs graphView vs GraphStore', () => {
+describe('graph-projection benchmark: baseline vs graphProjection vs GraphStore', () => {
   const sizes = [10, 100, 1000] as const;
 
   for (const size of sizes) {
     it(`${size} elements — position change`, async () => {
       const baseline = createBaseline(size);
-      const withView = createWithGraphView(size);
+      const withView = createWithGraphProjection(size);
       const withStore = createWithGraphStore(size);
 
       let tickBaseline = 0;
@@ -130,7 +130,7 @@ describe('graph-view benchmark: baseline vs graphView vs GraphStore', () => {
             tickBaseline
           );
         })
-        .add(`graphView (${size})`, () => {
+        .add(`graphProjection (${size})`, () => {
           const index = tickView % size;
           tickView++;
           (withView.graph.getCell(`el-${index}`) as dia.Element).position(tickView, tickView);
@@ -144,7 +144,7 @@ describe('graph-view benchmark: baseline vs graphView vs GraphStore', () => {
       await bench.run();
       console.log(`\n--- ${size} elements — position change ---`);
       logResults(bench);
-      saveBenchResults(bench, `graph-view/position-change/n=${size}`, baselinePath);
+      saveBenchResults(bench, `graph-projection/position-change/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(3);
     }, 60_000);
   }

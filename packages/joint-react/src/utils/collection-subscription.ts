@@ -40,9 +40,7 @@ export function subscribeToCollection<Cell extends AnyCellRecord>(
     resubscribeCells();
     bumpAndNotify();
   };
-  controller.listenTo(collection, 'add', onMembershipChange);
-  controller.listenTo(collection, 'remove', onMembershipChange);
-  controller.listenTo(collection, 'reset', onMembershipChange);
+  controller.listenTo(collection, 'add remove reset', onMembershipChange);
 
   return () => {
     for (const unsub of cellUnsubs) unsub();

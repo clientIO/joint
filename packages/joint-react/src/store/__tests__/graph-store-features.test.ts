@@ -169,19 +169,19 @@ describe('GraphStore feature lifecycle', () => {
   });
 });
 
-describe('GraphStore.getGraphView typed accessor', () => {
-  it('returns the same graphView reference', () => {
+describe('GraphStore.getGraphProjection typed accessor', () => {
+  it('returns the same graphProjection reference', () => {
     const store = new GraphStore({});
-    const view = store.getGraphView();
-    expect(view).toBe(store.graphView);
+    const view = store.getGraphProjection();
+    expect(view).toBe(store.graphProjection);
     store.destroy(false);
   });
 });
 
 describe('GraphStore.applyControlled', () => {
-  it('routes through graphView.updateGraph with the react-origin flag', () => {
+  it('routes through graphProjection.updateGraph with the react-origin flag', () => {
     const store = new GraphStore({});
-    const spy = jest.spyOn(store.graphView, 'updateGraph');
+    const spy = jest.spyOn(store.graphProjection, 'updateGraph');
     const cells: readonly CellRecord[] = [
       {
         id: 'a',

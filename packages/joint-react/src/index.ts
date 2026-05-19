@@ -98,4 +98,4 @@ export type {
 } from './models/portal-paper.types';
 
 // Store types
-export type { IncrementalCellsChange } from './store/graph-view';
+export type { IncrementalCellsChange } from './store/graph-projection';

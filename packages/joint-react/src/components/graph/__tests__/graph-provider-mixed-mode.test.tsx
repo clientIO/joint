@@ -62,7 +62,7 @@ describe('GraphProvider controlled / uncontrolled', () => {
 
     render(<App />);
     await waitFor(() => expect(storeRef).toBeDefined());
-    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(1));
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSize()).toBe(1));
 
     act(() => {
       externalSetCells([
@@ -87,8 +87,8 @@ describe('GraphProvider controlled / uncontrolled', () => {
       ]);
     });
 
-    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(3));
-    expect(storeRef.graphView.cells.has('l1')).toBe(true);
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSize()).toBe(3));
+    expect(storeRef.graphProjection.cells.has('l1')).toBe(true);
   });
 
   it('uncontrolled: initialCells seed the graph but subsequent state does not re-sync from React', async () => {
@@ -99,6 +99,6 @@ describe('GraphProvider controlled / uncontrolled', () => {
     );
 
     await waitFor(() => expect(storeRef).toBeDefined());
-    await waitFor(() => expect(storeRef.graphView.cells.getSize()).toBe(2));
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSize()).toBe(2));
   });
 });
