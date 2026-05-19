@@ -5,7 +5,7 @@ import { useGraphStore } from './use-graph-store';
 import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
 import { areArraysShallowEqual, arrayAwareEqual } from '../utils/selector-utils';
-import { isCollection, wrapUserIsEqual } from '../utils/is';
+import { isCollection } from '../utils/is';
 import { subscribeToCollection } from '../utils/collection-subscription';
 import { parseUseCellsArgs } from './use-cells.utils';
 
@@ -257,7 +257,7 @@ export function useCells<Cell extends AnyCellRecord = Computed, Selected = reado
   // ── Equality ──
 
   const isEqual = useMemo<UnknownEqual>(() => {
-    if (userIsEqual) return wrapUserIsEqual(userIsEqual);
+    if (userIsEqual) return userIsEqual as unknown as UnknownEqual;
     if ((ids || isCollectionForm) && !hasSelector) {
       return (a, b) => areArraysShallowEqual(a as readonly unknown[], b as readonly unknown[]);
     }

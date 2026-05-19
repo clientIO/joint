@@ -44,13 +44,6 @@ export function isCollection(value: unknown): value is mvc.Collection<dia.Cell> 
   return value instanceof mvc.Collection;
 }
 
-/**
- * Wraps a typed equality function into an untyped `(a: unknown, b: unknown) => boolean`
- * so it can be stored without threading generic types through helper closures.
- */
-export function wrapUserIsEqual<T>(userIsEqual: (a: T, b: T) => boolean): (a: unknown, b: unknown) => boolean {
-  return (a, b) => userIsEqual(a as T, b as T);
-}
 
 /**
  * Returns `true` when the element has a defined `size` with numeric `width` and `height`.
