@@ -668,6 +668,7 @@ export const Paper = View.extend({
         this.cloneOptions();
         this.render();
         this._setDimensions();
+        this._startObservingElementSize();
         this.startListening();
 
         // Mouse wheel events buffer
@@ -2253,6 +2254,7 @@ export const Paper = View.extend({
 
     onRemove: function() {
 
+        this._stopObservingElementSize();
         this.freeze();
         this._updates.disabled = true;
         //clean up all DOM elements/views to prevent memory leaks
@@ -2281,6 +2283,10 @@ export const Paper = View.extend({
         this._setDimensions();
         const computedSize = this.getComputedSize();
         this.trigger('resize', computedSize.width, computedSize.height, data);
+        // Re-evaluate observer attachment in case the user toggled between
+        // explicit-size and CSS-relative modes.
+        this._stopObservingElementSize();
+        this._startObservingElementSize();
     },
 
     _setDimensions: function() {
@@ -2293,6 +2299,47 @@ export const Paper = View.extend({
             width: (w === null) ? '' : w,
             height: (h === null) ? '' : h
         });
+    },
+
+    _elementResizeObserver: null,
+    _lastObservedSize: null,
+
+    _startObservingElementSize: function() {
+        if (this._elementResizeObserver) return;
+        if (typeof ResizeObserver === 'undefined') return;
+        const { width, height } = this.options;
+        // Explicit-size mode: `setDimensions()` is the sole source of 'resize'.
+        if (isNumber(width) && isNumber(height)) return;
+
+        const size = this.getComputedSize();
+        this._lastObservedSize = { width: size.width, height: size.height };
+
+        this._elementResizeObserver = new ResizeObserver(() => {
+            if (!this.el || !this._elementResizeObserver) return;
+            // Re-read via getComputedSize() rather than the ResizeObserverEntry
+            // payload. `clientWidth/clientHeight` (the non-numeric branch of
+            // getComputedSize) is the padding box minus scrollbar — none of
+            // `contentBoxSize` / `borderBoxSize` / `contentRect` match exactly
+            // once the host has padding or border. Re-reading keeps the size
+            // we emit identical to every other `getComputedSize()` caller; the
+            // cost is one DOM read in a post-layout callback.
+            const next = this.getComputedSize();
+            const prev = this._lastObservedSize;
+            if (prev && prev.width === next.width && prev.height === next.height) return;
+            this._lastObservedSize = { width: next.width, height: next.height };
+            // The host already has its CSS-driven size; do not call
+            // `_setDimensions()` here — writing px values back would clobber CSS.
+            this.trigger('resize', next.width, next.height, { source: 'observer' });
+        });
+        this._elementResizeObserver.observe(this.el);
+    },
+
+    _stopObservingElementSize: function() {
+        if (this._elementResizeObserver) {
+            this._elementResizeObserver.disconnect();
+            this._elementResizeObserver = null;
+        }
+        this._lastObservedSize = null;
     },
 
     // Expand/shrink the paper to fit the content.
