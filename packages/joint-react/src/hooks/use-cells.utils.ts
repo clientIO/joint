@@ -9,7 +9,7 @@ export interface ParsedUseCellsArgs<Cell extends AnyCellRecord, Selected> {
   readonly isCollectionForm: boolean;
   readonly arraySelector: ((cells: readonly Cell[]) => Selected) | undefined;
   readonly cellSelector: ((cell: Cell | undefined) => Selected) | undefined;
-  readonly userIsEqual: ((a: Selected, b: Selected) => boolean) | undefined;
+  readonly isEqual: ((a: Selected, b: Selected) => boolean) | undefined;
 }
 
 /** Builds default parsed result with no selectors. */
@@ -23,7 +23,7 @@ function defaultParsedArgs<Cell extends AnyCellRecord, Selected>(
     isCollectionForm: false,
     arraySelector: undefined,
     cellSelector: undefined,
-    userIsEqual: undefined,
+    isEqual: undefined,
   };
 }
 
@@ -43,9 +43,10 @@ function parseCollectionArgs<Cell extends AnyCellRecord, Selected>(
         ? (argument2 as (cells: readonly Cell[]) => Selected)
         : undefined,
     cellSelector: undefined,
-    userIsEqual: typeof argument3 === 'function'
-      ? (argument3 as (a: Selected, b: Selected) => boolean)
-      : undefined,
+    isEqual:
+      typeof argument3 === 'function'
+        ? (argument3 as (a: Selected, b: Selected) => boolean)
+        : undefined,
   };
 }
 
@@ -60,7 +61,7 @@ function parseSelectorFirstArgs<Cell extends AnyCellRecord, Selected>(
     isCollectionForm: false,
     arraySelector: selectorArgument,
     cellSelector: undefined,
-    userIsEqual:
+    isEqual:
       typeof isEqualArgument === 'function'
         ? (isEqualArgument as (a: Selected, b: Selected) => boolean)
         : undefined,
@@ -111,7 +112,7 @@ export function parseUseCellsArgs<Cell extends AnyCellRecord, Selected>(
           ? (argument2 as (cells: readonly Cell[]) => Selected)
           : undefined,
       cellSelector: undefined,
-      userIsEqual: typeof argument3 === 'function' ? argument3 : undefined,
+      isEqual: typeof argument3 === 'function' ? argument3 : undefined,
     };
   }
   if (isSingleId && typeof argument2 === 'function') {
@@ -121,7 +122,7 @@ export function parseUseCellsArgs<Cell extends AnyCellRecord, Selected>(
       isCollectionForm: false,
       arraySelector: undefined,
       cellSelector: argument2 as (cell: Cell | undefined) => Selected,
-      userIsEqual: typeof argument3 === 'function' ? argument3 : undefined,
+      isEqual: typeof argument3 === 'function' ? argument3 : undefined,
     };
   }
   return defaultParsedArgs<Cell, Selected>(targetId, ids);

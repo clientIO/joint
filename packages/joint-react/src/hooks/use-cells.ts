@@ -55,9 +55,7 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
     return cellSelector ? cellSelector(cell) : cell;
   }
   const source: readonly Cell[] =
-    subscribedIds === undefined
-      ? container.getAll()
-      : pickCells(container, subscribedIds);
+    subscribedIds === undefined ? container.getAll() : pickCells(container, subscribedIds);
   return arraySelector ? arraySelector(source) : source;
 }
 
@@ -84,7 +82,10 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = readonly Cell[]>(
+export function useCells<
+  Cell extends AnyCellRecord = Computed<CellRecord>,
+  Selected = readonly Cell[],
+>(
   collection: mvc.Collection<dia.Cell>,
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
@@ -117,7 +118,10 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = Cell | undefined>(
+export function useCells<
+  Cell extends AnyCellRecord = Computed<CellRecord>,
+  Selected = Cell | undefined,
+>(
   id: CellId,
   selector: (cell: Cell | undefined) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
@@ -145,7 +149,10 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = readonly Cell[]>(
+export function useCells<
+  Cell extends AnyCellRecord = Computed<CellRecord>,
+  Selected = readonly Cell[],
+>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   ids: readonly CellId[],
   selector: (cells: readonly Cell[]) => Selected,
@@ -159,14 +166,20 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>, Sele
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
  */
-export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = readonly Cell[]>(
+export function useCells<
+  Cell extends AnyCellRecord = Computed<CellRecord>,
+  Selected = readonly Cell[],
+>(
   selector: (cells: readonly Cell[]) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 
 // ── Implementation ──────────────────────────────────────────────────────────
 
-export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = readonly Cell[]>(
+export function useCells<
+  Cell extends AnyCellRecord = Computed<CellRecord>,
+  Selected = readonly Cell[],
+>(
   argument1?:
     | CellId
     | readonly CellId[]
@@ -183,7 +196,7 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>, Sele
 
   const collectionArgument = isCollection(argument1) ? argument1 : undefined;
 
-  const { targetId, ids, isCollectionForm, arraySelector, cellSelector, userIsEqual } =
+  const { targetId, ids, isCollectionForm, arraySelector, cellSelector, isEqual } =
     parseUseCellsArgs<Cell, Selected>(argument1, argument2, argument3);
   const hasSelector = arraySelector !== undefined || cellSelector !== undefined;
 
@@ -256,14 +269,14 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>, Sele
 
   // ── Equality ──
 
-  const isEqual = useMemo<UnknownEqual>(() => {
-    if (userIsEqual) return userIsEqual as unknown as UnknownEqual;
+  const isEqualCallback = useMemo<UnknownEqual>(() => {
+    if (isEqual) return isEqual as unknown as UnknownEqual;
     if ((ids || isCollectionForm) && !hasSelector) {
       return (a, b) => areArraysShallowEqual(a as readonly unknown[], b as readonly unknown[]);
     }
     if (hasSelector) return arrayAwareEqual;
     return Object.is;
-  }, [userIsEqual, ids, isCollectionForm, hasSelector]);
+  }, [isEqual, ids, isCollectionForm, hasSelector]);
 
   // ── Selector ──
 
@@ -277,15 +290,21 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>, Sele
         arraySelectorRef.current,
         cellSelectorRef.current
       );
-      if (cachedRef.current.hasValue && isEqual(cachedRef.current.value, next)) {
+      if (cachedRef.current.hasValue && isEqualCallback(cachedRef.current.value, next)) {
         return cachedRef.current.value;
       }
       cachedRef.current = { hasValue: true, value: next };
       return next;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [container, collectionArgument, targetId, idsKey, isEqual]
+    [container, collectionArgument, targetId, idsKey, isEqualCallback]
   );
 
-  return useSyncExternalStoreWithSelector(subscribe, getSnapshot, getSnapshot, select, isEqual);
+  return useSyncExternalStoreWithSelector(
+    subscribe,
+    getSnapshot,
+    getSnapshot,
+    select,
+    isEqualCallback
+  );
 }
