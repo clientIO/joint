@@ -9,6 +9,3 @@ export interface ElementsMeasuredEvent {
   /** The graph model associated with the paper. */
   readonly graph: dia.Graph;
 }
-
-/** Map of all event names emitted by `dia.Paper` to their handler signatures. */
-export type PaperEventMap = dia.Paper.EventMap;

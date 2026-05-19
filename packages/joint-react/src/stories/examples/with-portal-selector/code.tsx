@@ -291,13 +291,11 @@ function Main() {
   usePaperEvents(
     paperId,
     {
-      'element:pointerclick': (elementView) =>
-        setSelectedElement((elementView.model.id as CellId) ?? null),
-      'element:pointerdblclick': (elementView) => {
-        const cell = elementView.model;
-        cell.clone().translate(10, 10).addTo(cell.graph);
+      onElementPointerClick: ({ id }) => setSelectedElement(id),
+      onElementPointerDblClick: ({ model, graph }) => {
+        model.clone().translate(10, 10).addTo(graph);
       },
-      'blank:pointerclick': () => setSelectedElement(null),
+      onBlankPointerClick: () => setSelectedElement(null),
     },
     [setSelectedElement]
   );
