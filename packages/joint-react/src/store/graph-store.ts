@@ -198,15 +198,15 @@ export class GraphStore<
         return map;
       },
       onBatchUpdate: (updatedElements) => {
-        this.graph.startBatch('resize');
+        this.graph.startBatch('auto-size');
         for (const [id, data] of Object.entries(updatedElements)) {
           const cell = this.graph.getCell(id);
           if (!cell?.isElement()) continue;
           // Capture center BEFORE size write so the center-anchor path can
           // re-derive position from the pre-resize center.
           const center = this.autoSizeOrigin === 'center' ? cell.getCenter() : null;
-          const setOptions = { fromMeasure: true };
-          // `fromMeasure: true` marks writes that originate from the
+          const setOptions = { autoSize: true };
+          // `autoSize: true` marks writes that originate from the
           // ResizeObserver pipeline so `change:size` listeners can tell our
           // own writes apart from external ones (controlled-mode sync,
           // direct `cell.resize`, etc.) and avoid feedback loops.
@@ -224,7 +224,7 @@ export class GraphStore<
           // Top-left auto-size (default): don't write position — the cell's
           // top-left stays put implicitly and it grows right/down.
         }
-        this.graph.stopBatch('resize');
+        this.graph.stopBatch('auto-size');
       },
       getCellTransform: (id) => {
         const cell = this.graph.getCell(id);
