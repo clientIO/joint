@@ -200,27 +200,28 @@ export class GraphStore<
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('auto-size');
         for (const [id, data] of Object.entries(updatedElements)) {
-          const cell = this.graph.getCell(id);
-          if (!cell?.isElement()) continue;
-          // Capture center BEFORE size write so the center-anchor path can
-          // re-derive position from the pre-resize center.
-          const center = this.autoSizeOrigin === 'center' ? cell.getCenter() : null;
-          const setOptions = { autoSize: true };
+          const model = this.graph.getCell(id);
+          if (!model?.isElement()) continue;
           // `autoSize: true` marks writes that originate from the
           // ResizeObserver pipeline so `change:size` listeners can tell our
           // own writes apart from external ones (controlled-mode sync,
           // direct `cell.resize`, etc.) and avoid feedback loops.
-          cell.set('size', { width: data.width, height: data.height }, setOptions);
+          const attributes: dia.Cell.Attributes = {
+            size: { width: data.width, height: data.height },
+          };
 
           if (data.x !== undefined && data.y !== undefined) {
-            cell.set('position', { x: data.x, y: data.y }, setOptions);
-          } else if (center) {
+            attributes.position = { x: data.x, y: data.y };
+          } else if (this.autoSizeOrigin === 'center') {
             // Center-anchored auto-size: keep the geometric center fixed.
-            cell.set('position', {
+            const center = model.getCenter();
+            attributes.position = {
               x: center.x - data.width / 2,
               y: center.y - data.height / 2,
-            }, setOptions);
+            };
           }
+
+          model.set(attributes, { autoSize: true });
           // Top-left auto-size (default): don't write position — the cell's
           // top-left stays put implicitly and it grows right/down.
         }
