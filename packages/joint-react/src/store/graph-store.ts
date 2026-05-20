@@ -369,6 +369,7 @@ export class GraphStore<
   }
 
   public setGraphFeature(feature: Feature) {
+    if (this.features[feature.id] === feature) return;
     this.features[feature.id] = feature;
     this.bumpGraphFeaturesVersion();
   }
@@ -386,6 +387,7 @@ export class GraphStore<
     if (!paperStore) {
       throw new Error(`Paper with id ${paperId} not found`);
     }
+    if (paperStore.features[feature.id] === feature) return;
     paperStore.features[feature.id] = feature;
     this.bumpPaperVersion(paperId);
   }
