@@ -84,5 +84,4 @@ export type { PortalSelector } from './models/portal-paper.types';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
 
 // Event internals
-export { buildEventContext, subscribeToPaperEvents } from './hooks/use-paper-events';
-export type { PaperEventsContext } from './hooks/use-paper-events';
+export { subscribeToPaperEvents } from './hooks/use-paper-events';

@@ -408,32 +408,26 @@ function Main() {
     }
   }, [graph]);
 
-  const handleElementMouseEnter = useCallback((elementView: dia.ElementView) => {
-    elementView.removeTools();
-    elementView.addTools(
-      new dia.ToolsView({
-        tools: [
-          new elementTools.Remove({
-            useModelGeometry: true,
-            y: 0,
-            x: 0,
-          }),
-        ],
-      })
-    );
-  }, []);
-
-  const handleElementMouseLeave = useCallback((elementView: dia.ElementView) => {
-    elementView.removeTools();
-  }, []);
-
   usePaperEvents(
     paperId,
     {
-      'element:mouseenter': handleElementMouseEnter,
-      'element:mouseleave': handleElementMouseLeave,
+      onElementMouseEnter: ({ view }) => {
+        view.removeTools();
+        view.addTools(
+          new dia.ToolsView({
+            tools: [
+              new elementTools.Remove({
+                useModelGeometry: true,
+                y: 0,
+                x: 0,
+              }),
+            ],
+          })
+        );
+      },
+      onElementMouseLeave: ({ view }) => view.removeTools(),
     },
-    [handleElementMouseEnter, handleElementMouseLeave]
+    []
   );
 
   return (

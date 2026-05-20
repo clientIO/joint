@@ -6,14 +6,7 @@ import { usePaper } from './use-paper';
 import type { ElementSize } from '../types/cell.types';
 import { useCell } from './use-cell';
 import { selectElementSize } from '../selectors';
-
-/**
- * Controls element visibility until the first measurement completes.
- * - `'show-all'` — hides nothing; the element is visible immediately
- * - `'hide-node'` — hides the observed DOM element (default)
- * - `'hide-all'` — hides the entire element view (`cellView.el`)
- */
-export type VisibilityStrategy = 'show-all' | 'hide-node' | 'hide-all';
+import { MEASURING_CLASS_NAME } from '../utils/class-names';
 
 /**
  * Options for configuring how the node size is measured and applied.
@@ -37,15 +30,6 @@ export interface MeasureNodeOptions {
    * ```
    */
   readonly transform?: OnTransformElement;
-
-  /**
-   * Controls element visibility until the first measurement completes.
-   * - `'show-all'` — hides nothing; the element is visible immediately
-   * - `'hide-node'` — hides the observed DOM element
-   * - `'hide-all'` — hides the entire element view (`cellView.el`)
-   * @default 'hide-all'
-   */
-  readonly visibility?: VisibilityStrategy;
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
@@ -163,9 +147,9 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  */
 export function useMeasureNode(
   nodeRef: RefObject<HTMLElement | SVGElement | null>,
-  options?: MeasureNodeOptions
+  options: MeasureNodeOptions = EMPTY_OBJECT
 ): Required<ElementSize> {
-  const { transform, visibility } = options ?? EMPTY_OBJECT;
+  const { transform } = options;
   const { graph, setMeasuredNode } = useGraphStore();
   const { paper } = usePaper();
   const id = useContext(CellIdContext);
@@ -189,20 +173,21 @@ export function useMeasureNode(
       return;
     }
 
-    // DOM node to hide (visibility: hidden) until the first measurement completes.
-    let visibilityNode: HTMLElement | SVGElement | undefined;
-    if (visibility === 'hide-node') {
-      visibilityNode = nodeRef.current;
-    } else if (visibility !== 'show-all') {
-      // 'hide-all' (default)
-      visibilityNode = paper.findViewByModel(id)?.el;
-    }
+    // Hide the element view's root until PortalPaper.updateView has applied
+    // its first transform — see PortalPaper.updateView for the why. The
+    // matching `visibility: hidden` rule lives in styles.css and is opt-in,
+    // so users who don't import the stylesheet won't get the hide-flash
+    // protection.
+    const view = paper.findViewByModel(id);
+    view?.el.classList.add(MEASURING_CLASS_NAME);
 
-    const clean = setMeasuredNode({ id, node: nodeRef.current, transform, visibilityNode });
+    const clean = setMeasuredNode({ id, node: nodeRef.current, transform });
     return () => {
+      // No class cleanup here: views aren't recycled today, so the view
+      // is gone with the cell.
       clean();
     };
-    // transform and visibility are not dependencies because they don't change
+    // transform is not a dependency because it doesn't change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeRef, graph, id, paper, setMeasuredNode]);
 

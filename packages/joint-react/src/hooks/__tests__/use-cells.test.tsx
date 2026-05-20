@@ -1,5 +1,6 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
+import { mvc, type dia } from '@joint/core';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { useCells } from '../use-cells';
 import { useGraphStore } from '../use-graph-store';
@@ -303,5 +304,209 @@ describe('useCells (selector returning new reference)', () => {
     });
     // Length didn't change; Object.is(4, 4) === true → cached value held.
     expect(result.current).toBe(4);
+  });
+});
+
+describe('useCells (collection form)', () => {
+  it('returns records for cells in the collection', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([
+            store.graph.getCell('a')!,
+            store.graph.getCell('b')!,
+          ]);
+        }
+        return useCells(collection);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current.map((c) => c.id)).toEqual(['a', 'b']);
+  });
+
+  it('updates when a cell is added to the collection', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([store.graph.getCell('a')!]);
+        }
+        return useCells(collection);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current.map((c) => c.id)).toEqual(['a']);
+
+    await act(async () => {
+      collection!.add(storeRef!.graph.getCell('b')!);
+      await flush();
+    });
+    expect(result.current.map((c) => c.id)).toEqual(['a', 'b']);
+  });
+
+  it('updates when a cell is removed from the collection', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([
+            store.graph.getCell('a')!,
+            store.graph.getCell('b')!,
+          ]);
+        }
+        return useCells(collection);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current.map((c) => c.id)).toEqual(['a', 'b']);
+
+    await act(async () => {
+      collection!.remove(storeRef!.graph.getCell('a')!);
+      await flush();
+    });
+    expect(result.current.map((c) => c.id)).toEqual(['b']);
+  });
+
+  it('updates when the collection is reset', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([store.graph.getCell('a')!]);
+        }
+        return useCells(collection);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current.map((c) => c.id)).toEqual(['a']);
+
+    await act(async () => {
+      collection!.reset([storeRef!.graph.getCell('b')!, storeRef!.graph.getCell('c')!]);
+      await flush();
+    });
+    expect(result.current.map((c) => c.id)).toEqual(['b', 'c']);
+  });
+
+  it('re-renders when a subscribed cell changes', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([store.graph.getCell('a')!]);
+        }
+        return useCells(collection);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    const before = result.current;
+
+    await act(async () => {
+      storeRef!.graph.getCell('a')?.set('position', { x: 999, y: 999 });
+      await flush();
+    });
+    expect(result.current).not.toBe(before);
+    expect(result.current.find((c) => c.id === 'a')?.position).toEqual({ x: 999, y: 999 });
+  });
+
+  it('does not re-render when an unrelated cell changes', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const renderSpy = jest.fn();
+    renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([store.graph.getCell('a')!]);
+        }
+        const cells = useCells(collection);
+        renderSpy(cells);
+        return cells;
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    const countBefore = renderSpy.mock.calls.length;
+
+    await act(async () => {
+      storeRef!.graph.getCell('c')?.set('position', { x: 1, y: 2 });
+      await flush();
+    });
+    expect(renderSpy.mock.calls.length).toBe(countBefore);
+  });
+
+  it('selector form derives a value from collection cells', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([
+            store.graph.getCell('a')!,
+            store.graph.getCell('b')!,
+          ]);
+        }
+        return useCells(collection, (cells) => cells.length);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current).toBe(2);
+  });
+
+  it('selector prevents re-render when result unchanged', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([store.graph.getCell('a')!]);
+        }
+        return useCells(collection, (cells) => cells.length > 0);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current).toBe(true);
+    const before = result.current;
+
+    // Cell position change does not affect length > 0
+    await act(async () => {
+      storeRef!.graph.getCell('a')?.set('position', { x: 50, y: 50 });
+      await flush();
+    });
+    expect(result.current).toBe(before);
+  });
+
+  it('empty collection returns empty array', async () => {
+    const collection = new mvc.Collection<dia.Cell>([]);
+    const { result } = renderHook(() => useCells(collection), { wrapper });
+    await act(async () => flush());
+    expect(result.current).toEqual([]);
   });
 });

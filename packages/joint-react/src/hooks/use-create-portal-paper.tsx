@@ -27,7 +27,10 @@ import { HTMLBox } from '../components/html-box';
 import { mapLinkToAttributes } from '../state/data-mapping';
 import type { CanConnectOptions } from '../presets/can-connect';
 import { canConnect, toConnectionEnd } from '../presets/can-connect';
-import { connectionStrategy as connectionStrategyPreset, type ConnectionStrategyOptions } from '../presets/connection-strategy';
+import {
+  connectionStrategy as connectionStrategyPreset,
+  type ConnectionStrategyOptions,
+} from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
 import { toNativeCellVisibility } from '../presets/cell-visibility';
 import { toNativeInteractive } from '../presets/interactive';
@@ -117,9 +120,7 @@ function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink'
       if (isFactory) return link;
       return link.clone();
     }
-    return new LinkModelCtor(
-      mapLinkToAttributes({ type: LINK_MODEL_TYPE, ...link } as LinkRecord)
-    );
+    return new LinkModelCtor(mapLinkToAttributes({ type: LINK_MODEL_TYPE, ...link } as LinkRecord));
   };
 }
 
@@ -143,19 +144,16 @@ function LinkItem({
 }) {
   const id = useContext(CellIdContext);
   const store = useGraphStore();
-  const { cells } = store.graphView;
+  const { cells } = store.graphProjection;
   const subscribe = useCallback(
     (listener: () => void) => (id === undefined ? () => {} : cells.subscribe(id, listener)),
     [cells, id]
   );
-  const getSnapshot = useCallback(
-    () => {
-      if (id === undefined) return EMPTY_DATA;
-      const record = cells.get(id) as LinkRecord | undefined;
-      return record?.data ?? EMPTY_DATA;
-    },
-    [cells, id]
-  );
+  const getSnapshot = useCallback(() => {
+    if (id === undefined) return EMPTY_DATA;
+    const record = cells.get(id) as LinkRecord | undefined;
+    return record?.data ?? EMPTY_DATA;
+  }, [cells, id]);
   const data = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   if (!portalElement || id === undefined) {
     return null;
@@ -217,11 +215,11 @@ export function useCreatePortalPaper(
 
   // Subscribe to cells-container size — only re-renders when cells are added or removed.
   // Partition the id list by type so element / link portals can be rendered separately.
-  const allCellIds = useContainerKeys(graphStore.graphView.cells);
+  const allCellIds = useContainerKeys(graphStore.graphProjection.cells);
   const { elementIds, linkIds } = useMemo(() => {
     const elements: CellId[] = [];
     const links: CellId[] = [];
-    const container = graphStore.graphView.cells;
+    const container = graphStore.graphProjection.cells;
     for (const cellId of allCellIds) {
       const cell = container.get(cellId);
       if (!cell) continue;
@@ -269,16 +267,14 @@ export function useCreatePortalPaper(
   }, [validateConnection]);
 
   const connectionStrategyCallback = useMemo(() => {
-    const resolvedOptions: ConnectionStrategyOptions | undefined = typeof connectionStrategy === 'function'
-      ? { customize: connectionStrategy }
-      : connectionStrategy;
+    const resolvedOptions: ConnectionStrategyOptions | undefined =
+      typeof connectionStrategy === 'function'
+        ? { customize: connectionStrategy }
+        : connectionStrategy;
     return resolvedOptions ? connectionStrategyPreset(resolvedOptions) : undefined;
   }, [connectionStrategy]);
 
-  const validateEmbeddingCallback = useMemo(
-    () => canEmbed(validateEmbedding),
-    [validateEmbedding]
-  );
+  const validateEmbeddingCallback = useMemo(() => canEmbed(validateEmbedding), [validateEmbedding]);
 
   const validateUnembeddingCallback = useMemo(
     () => canUnembed(validateUnembedding),
@@ -290,10 +286,7 @@ export function useCreatePortalPaper(
     [cellVisibility]
   );
 
-  const interactiveValue = useMemo(
-    () => toNativeInteractive(interactive),
-    [interactive]
-  );
+  const interactiveValue = useMemo(() => toNativeInteractive(interactive), [interactive]);
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
 

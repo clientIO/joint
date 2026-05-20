@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/consistent-function-scoping */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
- 
+
 import './index.css';
 import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
 import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect, usePaperEvents } from '@joint/react';
@@ -11,7 +11,7 @@ import { forwardRef, useId, useRef, useState } from 'react';
 
 const unit = 4;
 const bevel = 2 * unit;
-const nodeFontSize = 13;
+const elementFontSize = 13;
 const labelFontSize = 15;
 const linkOffset = unit * 1.5;
 
@@ -21,64 +21,75 @@ const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   margin: unit * 7,
 });
 
-type NodeElementData = {
+type ElementData = {
   readonly label: string;
   readonly type: 'start' | 'step' | 'decision';
-  readonly cx: number;
-  readonly cy: number;
 };
 
-const flowchartNodes: Array<ElementRecord<NodeElementData>> = [
-  { id: 'start', type: 'element', data: { label: 'Start', type: 'start', cx: 60, cy: 40 } },
+// `position` doubles as the desired final center: default size is 0×0, so
+// top-left coincides with center, and `autoSizeOrigin="center"` preserves
+// that center through the first DOM measurement.
+const flowchartElements: Array<ElementRecord<ElementData>> = [
+  { id: 'start', type: 'element', data: { label: 'Start', type: 'start' }, position: { x: 60, y: 40 } },
   {
     id: 'addToCart',
     type: 'element',
-    data: { label: 'Add to Cart', type: 'step', cx: 195, cy: 40 },
+    data: { label: 'Add to Cart', type: 'step' },
+    position: { x: 195, y: 40 },
   },
   {
     id: 'checkoutItems',
     type: 'element',
-    data: { label: 'Checkout Items', type: 'step', cx: 365, cy: 40 },
+    data: { label: 'Checkout Items', type: 'step' },
+    position: { x: 365, y: 40 },
   },
   {
     id: 'addShippingInfo',
     type: 'element',
-    data: { label: 'Add Shipping Info', type: 'step', cx: 550, cy: 40 },
+    data: { label: 'Add Shipping Info', type: 'step' },
+    position: { x: 550, y: 40 },
   },
   {
     id: 'addPaymentInfo',
     type: 'element',
-    data: { label: 'Add Payment Info', type: 'step', cx: 550, cy: 150 },
+    data: { label: 'Add Payment Info', type: 'step' },
+    position: { x: 550, y: 150 },
   },
   {
     id: 'validPayment',
     type: 'element',
-    data: { label: 'Valid Payment?', type: 'decision', cx: 550, cy: 270 },
+    data: { label: 'Valid Payment?', type: 'decision' },
+    position: { x: 550, y: 270 },
   },
   {
     id: 'presentErrorMessage',
     type: 'element',
-    data: { label: 'Present Error Message', type: 'step', cx: 810, cy: 380 },
+    data: { label: 'Present Error Message', type: 'step' },
+    position: { x: 810, y: 380 },
   },
   {
     id: 'sendOrder',
     type: 'element',
-    data: { label: 'Send Order to Warehouse', type: 'step', cx: 230, cy: 270 },
+    data: { label: 'Send Order to Warehouse', type: 'step' },
+    position: { x: 230, y: 270 },
   },
   {
     id: 'packOrder',
     type: 'element',
-    data: { label: 'Pack Order', type: 'step', cx: 40, cy: 380 },
+    data: { label: 'Pack Order', type: 'step' },
+    position: { x: 40, y: 380 },
   },
   {
     id: 'qualityCheck',
     type: 'element',
-    data: { label: 'Quality Check?', type: 'decision', cx: 230, cy: 500 },
+    data: { label: 'Quality Check?', type: 'decision' },
+    position: { x: 230, y: 500 },
   },
   {
     id: 'shipItems',
     type: 'element',
-    data: { label: 'Ship Items to Customer', type: 'step', cx: 550, cy: 500 },
+    data: { label: 'Ship Items to Customer', type: 'step' },
+    position: { x: 550, y: 500 },
   },
 ];
 const TOP = { name: 'top', args: { useModelGeometry: true, dy: -linkOffset } } as const;
@@ -242,36 +253,30 @@ const flowchartLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: ReadonlyArray<CellRecord<NodeElementData>> = [...flowchartNodes, ...flowchartLinks];
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [...flowchartElements, ...flowchartLinks];
 
 interface PropsWithClick {
   readonly onMouseEnter?: () => void;
   readonly onMouseLeave?: () => void;
   readonly isToolActive?: boolean;
 }
-type FlowchartNodeProps = NodeElementData & PropsWithClick;
+type FlowchartElementProps = ElementData & PropsWithClick;
 
-function computeNodeBBox(options: TransformOptions & { padding: number; cx: number; cy: number }) {
-  const { width: nodeWidth, height: nodeHeight, padding, cx, cy } = options;
-  const modelWidth = nodeWidth + 2 * padding;
-  const modelHeight = nodeHeight + 2 * padding;
+// Inflate measured text by symmetric padding. No x/y here — autoSizeOrigin="center"
+// (set on GraphProvider) keeps the cell's geometric center fixed as it resizes.
+function applyElementPadding(options: TransformOptions, padding: number = 30) {
   return {
-    width: modelWidth,
-    height: modelHeight,
-    x: cx - modelWidth / 2,
-    y: cy - modelHeight / 2,
+    width: options.width + 2 * padding,
+    height: options.height + 2 * padding,
   };
 }
-function DecisionNodeRaw(
-  { label, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+function DecisionElementRaw(
+  { label, onMouseEnter, onMouseLeave }: FlowchartElementProps,
   ref: React.ForwardedRef<SVGPolygonElement>
 ) {
-  // If we define custom size, not defined in initial nodes, we have to use measure node
-  const padding = 30;
-
   const textRef = useRef<SVGTextElement>(null);
   const { width, height } = useMeasureNode(textRef, {
-    transform: (options) => computeNodeBBox({ ...options, padding, cx, cy }),
+    transform: (options) => applyElementPadding(options),
   });
 
   return (
@@ -295,7 +300,7 @@ function DecisionNodeRaw(
         y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={nodeFontSize}
+        fontSize={elementFontSize}
       >
         {label}
       </text>
@@ -303,15 +308,15 @@ function DecisionNodeRaw(
   );
 }
 
-function StartNodeRaw(
-  { label, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+function StartElementRaw(
+  { label, onMouseEnter, onMouseLeave }: FlowchartElementProps,
   ref: React.ForwardedRef<SVGRectElement>
 ) {
   const padding = 20;
 
   const textRef = useRef<SVGTextElement>(null);
   const { width, height } = useMeasureNode(textRef, {
-    transform: (options) => computeNodeBBox({ ...options, padding, cx, cy }),
+    transform: (options) => applyElementPadding(options, padding),
   });
 
   return (
@@ -336,7 +341,7 @@ function StartNodeRaw(
         y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={nodeFontSize}
+        fontSize={elementFontSize}
       >
         {label}
       </text>
@@ -344,15 +349,15 @@ function StartNodeRaw(
   );
 }
 
-function StepNodeRaw(
-  { label, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+function StepElementRaw(
+  { label, onMouseEnter, onMouseLeave }: FlowchartElementProps,
   ref: React.ForwardedRef<SVGPolygonElement>
 ) {
   const padding = 20;
 
   const textRef = useRef<SVGTextElement>(null);
   const { width, height } = useMeasureNode(textRef, {
-    transform: (options) => computeNodeBBox({ ...options, padding, cx, cy }),
+    transform: (options) => applyElementPadding(options, padding),
   });
 
   return (
@@ -375,29 +380,29 @@ function StepNodeRaw(
         y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={nodeFontSize}
+        fontSize={elementFontSize}
       >
         {label}
       </text>
     </>
   );
 }
-const DecisionNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(DecisionNodeRaw);
-const StartNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StartNodeRaw);
-const StepNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(StepNodeRaw);
+const DecisionElement = forwardRef<SVGPolygonElement, FlowchartElementProps>(DecisionElementRaw);
+const StartElement = forwardRef<SVGRectElement, FlowchartElementProps>(StartElementRaw);
+const StepElement = forwardRef<SVGPolygonElement, FlowchartElementProps>(StepElementRaw);
 
-function RenderFlowchartNode(data: Readonly<NodeElementData>) {
+function RenderFlowchartElement(data: Readonly<ElementData>) {
   const { selectorRef } = useMarkup();
 
   const bodyRef = selectorRef('body');
 
   if (data.type === 'decision') {
-    return <DecisionNode ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...data} />;
+    return <DecisionElement ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...data} />;
   }
   if (data.type === 'start') {
-    return <StartNode ref={bodyRef as React.ForwardedRef<SVGRectElement>} {...data} />;
+    return <StartElement ref={bodyRef as React.ForwardedRef<SVGRectElement>} {...data} />;
   }
-  return <StepNode ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...data} />;
+  return <StepElement ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...data} />;
 }
 
 // Create link tools
@@ -408,10 +413,8 @@ function Main() {
 
   usePaperEvents(
     paperId,
-    ({ paper }) => ({
-      'link:pointerclick': (linkView) => {
-        if (!paper) return;
-
+    {
+      onLinkPointerClick: ({ view: linkView, paper }) => {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
         const snapAnchor: linkTools.AnchorCallback<dia.Point> = (
@@ -452,8 +455,8 @@ function Main() {
         });
         strokeHighlighter.el.classList.add('jj-flow-selection');
       },
-      'element:mouseenter': (elementView) => {
-        const hl = highlighters.mask.add(elementView, 'body', 'frame', {
+      onElementMouseEnter: ({ view }) => {
+        const hl = highlighters.mask.add(view, 'body', 'frame', {
           padding: unit * 1.5,
           attrs: {
             strokeWidth: 1.5,
@@ -462,10 +465,10 @@ function Main() {
         });
         hl.el.classList.add('jj-frame');
       },
-      'element:mouseleave': (elementView) => {
-        highlighters.mask.remove(elementView, 'frame');
+      onElementMouseLeave: ({ view }) => {
+        highlighters.mask.remove(view, 'frame');
       },
-      'link:mouseenter': (linkView) => {
+      onLinkMouseEnter: ({ view: linkView }) => {
         if (highlighters.stroke.get(linkView, 'selection')) return;
         const frame = highlighters.mask.add(
           linkView,
@@ -482,16 +485,14 @@ function Main() {
         );
         frame.el.classList.add('jj-frame');
       },
-      'link:mouseleave': () => {
-        if (!paper) return;
-
+      onLinkMouseLeave: ({ paper }) => {
         highlighters.mask.removeAll(paper, 'frame');
       },
-      'blank:pointerdown': () => {
+      onBlankPointerDown: ({ paper }) => {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
       },
-    }),
+    },
     []
   );
 
@@ -513,7 +514,7 @@ function Main() {
       overflow
       snapLabels
       className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
-      renderElement={RenderFlowchartNode}
+      renderElement={RenderFlowchartElement}
       drawGrid={false}
       linkRouting={ORTHOGONAL_LINKS}
     />
@@ -562,7 +563,7 @@ export default function App() {
   const [isLight, setIsLight] = useState(false);
   return (
     <div className={`flowchart-wrapper${isLight ? ' light-theme' : ''}`}>
-      <GraphProvider initialCells={initialCells}>
+      <GraphProvider initialCells={initialCells} autoSizeOrigin="center">
         <Main />
       </GraphProvider>
       <ThemeSwitch onClick={() => setIsLight((v) => !v)} />

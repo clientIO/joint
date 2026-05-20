@@ -4,6 +4,7 @@
 // Components
 export { GraphProvider } from './components/graph/graph-provider';
 export type { GraphProviderProps as GraphProps } from './components/graph/graph-provider';
+export type { AutoSizeOrigin } from './store/graph-store';
 export { Paper } from './components/paper/paper';
 export type {
   PaperProps,
@@ -30,6 +31,7 @@ export { useCellId } from './hooks/use-cell-id';
 export { useLinkLayout } from './hooks/use-link-layout';
 export { useGraph } from './hooks/use-graph';
 export type { UseGraphResult, ExportToJSONOptions } from './hooks/use-graph';
+export type { CellInput, CellRef } from './utils/normalize-cell-input';
 export { useGraphStore } from './hooks/use-graph-store';
 export { usePaper, usePaperStore } from './hooks/use-paper';
 
@@ -79,7 +81,6 @@ export type { ElementPosition, ElementSize, LinkLayout } from './types/cell.type
 export type { ElementPort, PortShape } from './presets/element-ports';
 export type { LinkStyle } from './presets/link-style';
 export type { LinkLabel } from './presets/link-labels';
-export type { PaperEventMap } from './types/event.types';
 
 // Theme
 export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
@@ -98,4 +99,4 @@ export type {
 } from './models/portal-paper.types';
 
 // Store types
-export type { IncrementalCellsChange } from './store/graph-view';
+export type { IncrementalCellsChange } from './store/graph-projection';

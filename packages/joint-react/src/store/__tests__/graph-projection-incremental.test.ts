@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
-import { graphView, type IncrementalCellsChange } from '../graph-view';
+import { graphProjection, type IncrementalCellsChange } from '../graph-projection';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type { ElementRecord } from '../../types/cell.types';
@@ -41,12 +41,12 @@ function cloneChanges(c: IncrementalCellsChange): IncrementalCellsChange {
   };
 }
 
-describe('graphView onIncrementalChange', () => {
+describe('graphProjection onIncrementalChange', () => {
   it('fires with added cell when an element is added to the graph', async () => {
     const graph = createGraph();
     const allChanges: IncrementalCellsChange[] = [];
 
-    const view = graphView({
+    const view = graphProjection({
       graph,
       onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
     });
@@ -65,7 +65,7 @@ describe('graphView onIncrementalChange', () => {
     const graph = createGraph();
     const allChanges: IncrementalCellsChange[] = [];
 
-    const view = graphView({
+    const view = graphProjection({
       graph,
       onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
     });
@@ -88,7 +88,7 @@ describe('graphView onIncrementalChange', () => {
     const graph = createGraph();
     const allChanges: IncrementalCellsChange[] = [];
 
-    const view = graphView({
+    const view = graphProjection({
       graph,
       onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
     });
@@ -112,7 +112,7 @@ describe('graphView onIncrementalChange', () => {
 
   it('does not throw when no onIncrementalChange is provided', async () => {
     const graph = createGraph();
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
 
     addElement(graph, 'el-1');
     await flush();
@@ -125,7 +125,7 @@ describe('graphView onIncrementalChange', () => {
     const graph = createGraph();
     let containerValueDuringCallback: unknown;
 
-    const view = graphView({
+    const view = graphProjection({
       graph,
       onIncrementalChange: () => {
         containerValueDuringCallback = view.cells.get('el-1');
@@ -143,7 +143,7 @@ describe('graphView onIncrementalChange', () => {
 
   it('updates the cells container on position change', async () => {
     const graph = createGraph();
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
 
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
@@ -159,7 +159,7 @@ describe('graphView onIncrementalChange', () => {
 
   it('updates the cells container on size change', async () => {
     const graph = createGraph();
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
 
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
@@ -175,7 +175,7 @@ describe('graphView onIncrementalChange', () => {
 
   it('updates the cells container on attribute change (new reference)', async () => {
     const graph = createGraph();
-    const view = graphView({ graph });
+    const view = graphProjection({ graph });
 
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
@@ -192,7 +192,7 @@ describe('graphView onIncrementalChange', () => {
   it('emits added entries for both elements and links in the unified summary', async () => {
     const graph = createGraph();
     const allChanges: IncrementalCellsChange[] = [];
-    const view = graphView({
+    const view = graphProjection({
       graph,
       onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
     });
@@ -212,7 +212,7 @@ describe('graphView onIncrementalChange', () => {
   it('element removal also removes connected links in the same incremental summary', async () => {
     const graph = createGraph();
     const allChanges: IncrementalCellsChange[] = [];
-    const view = graphView({
+    const view = graphProjection({
       graph,
       onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
     });

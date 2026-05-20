@@ -53,3 +53,28 @@ export {
 } from './interactive';
 export { elementAttributes } from './element-attributes';
 export { linkAttributes } from './link-attributes';
+export {
+  addPaperEventListeners,
+  type PaperEventMap,
+  type PointerCellEventContext,
+  type PointerElementEventContext,
+  type PointerLinkEventContext,
+  type PointerBlankEventContext,
+  type HoverCellEventContext,
+  type HoverElementEventContext,
+  type HoverLinkEventContext,
+  type HoverBlankEventContext,
+  type WheelCellEventContext,
+  type WheelElementEventContext,
+  type WheelLinkEventContext,
+  type WheelBlankEventContext,
+  type MagnetEventContext,
+  type LinkConnectEventContext,
+  type PaperHoverEventContext,
+  type PaperPanEventContext,
+  type PaperPinchEventContext,
+  type TranslateEventContext,
+  type ScaleEventContext,
+  type ResizeEventContext,
+  type TransformEventContext,
+} from './paper-events';

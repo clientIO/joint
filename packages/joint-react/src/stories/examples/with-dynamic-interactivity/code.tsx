@@ -43,8 +43,8 @@ function EditController({ paperId, onSelect }: Readonly<EditControllerProps>) {
   usePaperEvents(
     paperId,
     {
-      'element:pointerclick': (view: dia.ElementView) => onSelect(String(view.model.id)),
-      'blank:pointerclick': () => onSelect(null),
+      onElementPointerClick: ({ id }) => onSelect(String(id)),
+      onBlankPointerClick: () => onSelect(null),
     },
     [onSelect]
   );
@@ -60,11 +60,11 @@ function ViewController({ paperId }: Readonly<ViewControllerProps>) {
   usePaperEvents(
     paperId,
     {
-      'element:mouseenter': (view: dia.ElementView) => {
-        const data = view.model.attributes.data as NodeData | undefined;
-        setHovered(data?.label ?? String(view.model.id));
+      onElementMouseEnter: ({ id, model }) => {
+        const data = model.attributes.data as NodeData | undefined;
+        setHovered(data?.label ?? String(id));
       },
-      'element:mouseleave': () => setHovered(null),
+      onElementMouseLeave: () => setHovered(null),
     },
     []
   );
@@ -157,7 +157,7 @@ function Main() {
 
       <div className="flex">
         <div className="flex-1 relative">
-          <Paper id={paperId} className={PAPER_CLASSNAME} interactive={editMode} />
+          <Paper id={paperId} className={PAPER_CLASSNAME + ' h-[300px]'} interactive={editMode} />
           {editMode ? (
             <EditController paperId={paperId} onSelect={setSelectedId} />
           ) : (

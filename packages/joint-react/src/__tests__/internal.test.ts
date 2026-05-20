@@ -64,7 +64,6 @@ describe('internal entrypoint', () => {
   });
 
   it('re-exports paper event helpers', () => {
-    expect(typeof internal.buildEventContext).toBe('function');
     expect(typeof internal.subscribeToPaperEvents).toBe('function');
   });
 });

@@ -1,7 +1,5 @@
 import { dia } from '@joint/core';
-
-const LINK_CONNECTING_CLASS = 'jj-is-connecting';
-const LINK_SNAPPED_CN = 'jj-is-snapped';
+import { CONNECTING_CLASS_NAME, SNAPPED_CLASS_NAME } from '../utils/class-names';
 
 /**
  * Custom LinkView that adds CSS class hooks for link interaction states.
@@ -14,20 +12,20 @@ export class LinkView extends dia.LinkView {
   _beforeArrowheadMove(data: unknown) {
     // @ts-expect-error Protected method override
     super._beforeArrowheadMove(data);
-    this.el.classList.add(LINK_CONNECTING_CLASS);
+    this.el.classList.add(CONNECTING_CLASS_NAME);
   }
 
   _afterArrowheadMove(data: unknown) {
     // @ts-expect-error Protected method override
     super._afterArrowheadMove(data);
-    this.el.classList.remove(LINK_CONNECTING_CLASS, LINK_SNAPPED_CN);
+    this.el.classList.remove(CONNECTING_CLASS_NAME, SNAPPED_CLASS_NAME);
   }
 
   _snapArrowhead(event_: dia.Event, x: number, y: number) {
     // @ts-expect-error Protected method override
     const isSnapped = super._snapArrowhead(event_, x, y);
-    this.el.classList.toggle(LINK_CONNECTING_CLASS, !isSnapped);
-    this.el.classList.toggle(LINK_SNAPPED_CN, !!isSnapped);
+    this.el.classList.toggle(CONNECTING_CLASS_NAME, !isSnapped);
+    this.el.classList.toggle(SNAPPED_CLASS_NAME, !!isSnapped);
     return isSnapped;
   }
 }

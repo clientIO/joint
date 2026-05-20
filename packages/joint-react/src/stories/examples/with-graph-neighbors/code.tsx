@@ -183,16 +183,15 @@ function Main() {
   usePaperEvents(
     paperId,
     {
-      'element:pointerclick': (elementView: dia.ElementView) => {
-        const clickedId = String(elementView.model.id);
-
+      onElementPointerClick: ({ id }) => {
+        const clickedId = String(id);
         setHighlightState((previous) => {
           if (previous.selectedId === clickedId) {
             // Deselect if the same element is clicked again
             return INITIAL_STATE;
           }
 
-          const element = graph.getCell(clickedId) as dia.Element;
+          const element = graph.getCell(id) as dia.Element;
           const neighbors = graph.getNeighbors(element);
           const nextNeighborIds = new Set(neighbors.map((n) => String(n.id)));
 
@@ -206,7 +205,7 @@ function Main() {
           };
         });
       },
-      'blank:pointerclick': () => setHighlightState(INITIAL_STATE),
+      onBlankPointerClick: () => setHighlightState(INITIAL_STATE),
     },
     [graph]
   );
