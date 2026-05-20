@@ -236,23 +236,30 @@ export class PortalPaper extends Paper {
   }
 
   /**
+   * Bit flag for marking views that have been measured by `useMeasureNode`
+   * and are awaiting size/position updates.
+   */
+  FLAG_MEASURE = 1 << 27;
+
+  /**
    * Removes the `MEASURING_CLASS_NAME` class from element views once
    * `updateView` has applied the latest size and position written to the
    * model. Removing the class here (rather than when the ResizeObserver
    * fires) avoids the flash at the pre-update position that happens when
    * size lands on the model before position.
    * @param view - The view being updated.
-   * @param flag - Bitmask of pending update flags.
+   * @param flagIn - Bitmask of pending update flags.
    * @param opt - Update options forwarded to `view.confirmUpdate`.
    * @returns Leftover flag count, as returned by the base `updateView`.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateView(view: mvc.View<any, any>, flag: number, opt?: dia.Paper.UpdateViewOptions): number {
-    const result = super.updateView(view, flag, opt);
-    if (view.model?.isElement?.()) {
+  updateView(view: mvc.View<any, any>, flagIn: number, opt?: dia.Paper.UpdateViewOptions): number {
+    const flagOut = super.updateView(view, flagIn, opt);
+    if (flagIn & this.FLAG_MEASURE) {
       view.el.classList.remove(MEASURING_CLASS_NAME);
+      return flagOut ^ (flagOut & this.FLAG_MEASURE);
     }
-    return result;
+    return flagOut;
   }
 
   /**

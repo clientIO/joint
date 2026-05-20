@@ -7,6 +7,7 @@ import type { ElementSize } from '../types/cell.types';
 import { useCell } from './use-cell';
 import { selectElementSize } from '../selectors';
 import { MEASURING_CLASS_NAME } from '../utils/class-names';
+import type { PortalPaper } from '../models/portal-paper';
 
 /**
  * Options for configuring how the node size is measured and applied.
@@ -173,13 +174,19 @@ export function useMeasureNode(
       return;
     }
 
-    // Hide the element view's root until PortalPaper.updateView has applied
-    // its first transform — see PortalPaper.updateView for the why. The
-    // matching `visibility: hidden` rule lives in styles.css and is opt-in,
-    // so users who don't import the stylesheet won't get the hide-flash
-    // protection.
+    // Hide the element view's until the element view is updated by the paper's
+    // update cycle. This prevents flashes of incorrect position when the element
+    // is measured, but waits for the paper to apply the new position.
     const view = paper.findViewByModel(id);
-    view?.el.classList.add(MEASURING_CLASS_NAME);
+    if (view) {
+      view.el.classList.add(MEASURING_CLASS_NAME);
+      // Request a view update to remove the measuring class as part of its
+      // next update cycle.
+      // Note: the class will be removed even if the size will not change
+      // after the measurement (e.g. if the transform returns the same size
+      // or if the measured size is the same as the current model size).
+      paper.requestViewUpdate(view, (paper as PortalPaper).FLAG_MEASURE, view.UPDATE_PRIORITY);
+    }
 
     const clean = setMeasuredNode({ id, node: nodeRef.current, transform });
     return () => {

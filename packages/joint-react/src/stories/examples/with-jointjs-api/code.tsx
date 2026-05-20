@@ -31,14 +31,14 @@ function createGraph(): dia.Graph {
   const element1 = new ElementModel({
     id: 'el1',
     position: { x: 50, y: 50 },
-    size: { width: 180, height: 70 },
+    // size: { width: 180, height: 70 },
     data: { label: 'Element A', color: PRIMARY },
   });
 
   const element2 = new ElementModel({
     id: 'el2',
     position: { x: 350, y: 200 },
-    size: { width: 180, height: 70 },
+    // size: { width: 180, height: 70 },
     data: { label: 'Element B', color: '#3498db' },
   });
 
