@@ -378,34 +378,30 @@ interface Data {
 
 const DEFAULT_LINK = { style: { targetMarker: 'arrow' as LinkMarkerName } };
 
+const PORT_IN  = { cx: 0,         cy: 'calc(0.5 * h)', passive: true, label: 'in',  labelOffsetX: -5, labelOffsetY: 10 } as const;
+const PORT_OUT = { cx: 'calc(w)', cy: 'calc(0.5 * h)',                label: 'out', labelOffsetX: 5, labelOffsetY: 10 } as const;
+
 const initialCells: ReadonlyArray<CellRecord<Data>> = [
   {
     id: 'a',
     type: 'element',
     data: { label: 'Node A' },
     position: { x: 60, y: 130 },
-    portMap: {
-      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out', labelOffsetX: 10 },
-    },
+    portMap: { out: PORT_OUT },
   },
   {
     id: 'b',
     type: 'element',
     data: { label: 'Node B' },
     position: { x: 270, y: 130 },
-    portMap: {
-      in:  { cx: 0,         cy: 'calc(0.5 * h)', passive: true, label: 'in',  labelOffsetX: -10 },
-      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)',                label: 'out', labelOffsetX: 10 },
-    },
+    portMap: { in: PORT_IN, out: PORT_OUT },
   },
   {
     id: 'c',
     type: 'element',
     data: { label: 'Node C' },
     position: { x: 475, y: 130 },
-    portMap: {
-      in: { cx: 0, cy: 'calc(0.5 * h)', passive: true, label: 'in', labelOffsetX: -10 },
-    },
+    portMap: { in: PORT_IN },
   },
   {
     id: 'a-b',
@@ -455,10 +451,7 @@ function Diagram() {
         type: 'element',
         data: { label: 'New Node' },
         position: { x, y },
-        portMap: {
-          in:  { cx: 0,         cy: 'calc(0.5 * h)', passive: true, label: 'in',  labelOffsetX: -10 },
-          out: { cx: 'calc(w)', cy: 'calc(0.5 * h)',                label: 'out', labelOffsetX: 10 },
-        },
+        portMap: { in: PORT_IN, out: PORT_OUT },
       });
     },
     'link:contextmenu': (linkView, event_, _x, _y) => {
