@@ -1,9 +1,10 @@
-import type { dia } from '@joint/core';
+import type { dia, mvc } from '@joint/core';
 import type { CellId } from '../types/cell.types';
 import type { PortalHostCell, PortalSelector, PortalPaperOptions } from './portal-paper.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import { Paper } from '../presets/paper';
+import { MEASURING_CLASS_NAME } from '../utils/class-names';
 
 const noopViewMountChange = (): void => {
   // No-op default for onViewMountChange callback
@@ -232,6 +233,26 @@ export class PortalPaper extends Paper {
   removeView(cell: dia.Cell): dia.CellView {
     this.notifyViewUnmount(cell);
     return super.removeView(cell);
+  }
+
+  /**
+   * Removes the `MEASURING_CLASS_NAME` class from element views once
+   * `updateView` has applied the latest size and position written to the
+   * model. Removing the class here (rather than when the ResizeObserver
+   * fires) avoids the flash at the pre-update position that happens when
+   * size lands on the model before position.
+   * @param view - The view being updated.
+   * @param flag - Bitmask of pending update flags.
+   * @param opt - Update options forwarded to `view.confirmUpdate`.
+   * @returns Leftover flag count, as returned by the base `updateView`.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateView(view: mvc.View<any, any>, flag: number, opt?: dia.Paper.UpdateViewOptions): number {
+    const result = super.updateView(view, flag, opt);
+    if (view.model?.isElement?.()) {
+      view.el.classList.remove(MEASURING_CLASS_NAME);
+    }
+    return result;
   }
 
   /**

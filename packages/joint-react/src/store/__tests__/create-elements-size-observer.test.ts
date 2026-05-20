@@ -438,25 +438,6 @@ describe('createElementsSizeObserver', () => {
       expect(updateCall['element-1'].height).toBe(60); // 50 + 10
     });
 
-    it('should handle visibility node on the active element', () => {
-      const nodeA = document.createElement('div');
-      const nodeB = document.createElement('div');
-      const visibilityNodeA = document.createElement('div');
-      const visibilityNodeB = document.createElement('div');
-
-      observer.add({ id: 'element-1', node: nodeA, visibilityNode: visibilityNodeA });
-      expect(visibilityNodeA.style.getPropertyValue('visibility')).toBe('hidden');
-
-      observer.add({ id: 'element-1', node: nodeB, visibilityNode: visibilityNodeB });
-      expect(visibilityNodeB.style.getPropertyValue('visibility')).toBe('hidden');
-
-      // Trigger resize on nodeB — its visibility node should be unhidden
-      const resizeObserver = MockResizeObserver.getLastInstance()!;
-      resizeObserver.triggerResize(nodeB, 100, 50);
-
-      expect(visibilityNodeB.style.getPropertyValue('visibility')).toBe('');
-    });
-
     it('cleanup should be idempotent', () => {
       const nodeA = document.createElement('div');
 

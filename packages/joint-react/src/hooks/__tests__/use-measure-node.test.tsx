@@ -15,13 +15,19 @@ class CatchErrorBoundary extends Component<
     return this.state.hasError ? null : this.props.children;
   }
 }
-import { render, waitFor } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
+import type { dia } from '@joint/core';
 import { GraphProvider, Paper } from '../../components';
 import { CellIdContext } from '../../context';
 import { useMeasureNode } from '../use-measure-node';
+import { useGraphStore } from '../use-graph-store';
+import { usePaper } from '../use-paper';
 import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type { CellRecord } from '../../types/cell.types';
+
+let capturedGraph: dia.Graph | null = null;
+let capturedPaper: dia.Paper | null = null;
 
 const initialCells: readonly CellRecord[] = [
   {
@@ -44,11 +50,13 @@ const initialCells: readonly CellRecord[] = [
   } as CellRecord,
 ];
 
-type Visibility = 'show-all' | 'hide-node' | 'hide-all';
-
-function ProbeWithVisibility({ visibility }: Readonly<{ visibility?: Visibility }>) {
+function Probe() {
   const nodeRef = useRef<SVGRectElement | null>(null);
-  const size = useMeasureNode(nodeRef, { visibility });
+  const { graph } = useGraphStore();
+  const { paper } = usePaper();
+  capturedGraph = graph;
+  capturedPaper = paper;
+  const size = useMeasureNode(nodeRef);
   return (
     <>
       <rect ref={nodeRef} width={80} height={120} />
@@ -59,27 +67,18 @@ function ProbeWithVisibility({ visibility }: Readonly<{ visibility?: Visibility 
   );
 }
 
-function renderHideAll() {
-  return <ProbeWithVisibility />;
-}
-function renderHideNode() {
-  return <ProbeWithVisibility visibility="hide-node" />;
-}
-function renderShowAll() {
-  return <ProbeWithVisibility visibility="show-all" />;
+function renderProbeElement() {
+  return <Probe />;
 }
 
-function pickRenderProbe(visibility?: Visibility) {
-  if (visibility === 'hide-node') return renderHideNode;
-  if (visibility === 'show-all') return renderShowAll;
-  return renderHideAll;
-}
-
-function renderProbe(visibility?: Visibility) {
-  const function_ = pickRenderProbe(visibility);
+function renderProbe() {
   return render(
     <GraphProvider initialCells={initialCells}>
-      <Paper style={{ width: 200, height: 200 }} id="measure-paper" renderElement={function_} />
+      <Paper
+        style={{ width: 200, height: 200 }}
+        id="measure-paper"
+        renderElement={renderProbeElement}
+      />
     </GraphProvider>
   );
 }
@@ -103,32 +102,31 @@ function NoNodeProbe() {
 const renderNoNodeProbe = () => <NoNodeProbe />;
 
 describe('useMeasureNode', () => {
-  it('returns the live width/height (default visibility = hide-all)', async () => {
+  it('adds .jj-is-measuring on mount and removes it on the next paper render:done', async () => {
+    capturedGraph = null;
+    capturedPaper = null;
     const { container } = renderProbe();
+    // Class is applied by useMeasureNode in a layout effect; wait until it lands.
     await waitFor(() => {
-      const rect = container.querySelector('rect');
-      expect(rect).not.toBeNull();
+      const elementView = container.querySelector('.joint-cell.joint-element');
+      expect(elementView).not.toBeNull();
+      expect(elementView?.classList.contains('jj-is-measuring')).toBe(true);
     });
-    // Settle layout effects.
-    await new Promise((resolve) => setTimeout(resolve, 30));
-  });
-
-  it('honors visibility="hide-node"', async () => {
-    const { container } = renderProbe('hide-node');
-    await waitFor(() => {
-      const rect = container.querySelector('rect');
-      expect(rect).not.toBeNull();
+    // Listen for the next render:done before triggering it. In production
+    // this fires after the ResizeObserver-driven size write; here we
+    // simulate that with a direct model mutation since the jsdom
+    // ResizeObserver mock doesn't deliver entries.
+    const rendered = new Promise<void>((resolve) => {
+      capturedPaper?.once('render:done', () => resolve());
     });
-    await new Promise((resolve) => setTimeout(resolve, 30));
-  });
-
-  it('honors visibility="show-all"', async () => {
-    const { container } = renderProbe('show-all');
-    await waitFor(() => {
-      const rect = container.querySelector('rect');
-      expect(rect).not.toBeNull();
+    act(() => {
+      capturedGraph?.getCell('el').set('position', { x: 1, y: 1 });
     });
-    await new Promise((resolve) => setTimeout(resolve, 30));
+    await act(async () => {
+      await rendered;
+    });
+    const elementView = container.querySelector('.joint-cell.joint-element');
+    expect(elementView?.classList.contains('jj-is-measuring')).toBe(false);
   });
 
   it('throws when used outside CellIdContext', () => {

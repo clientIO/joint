@@ -49,17 +49,11 @@ export interface SetMeasuredNodeOptions {
   readonly transform?: OnTransformElement;
   /** The ID of the cell in the graph that corresponds to this DOM node */
   readonly id: CellId;
-  /**
-   * DOM node to hide until measurement is complete.
-   * When `undefined`, nothing is hidden.
-   */
-  readonly visibilityNode?: HTMLElement | SVGElement;
 }
 
 interface ObservedElement {
   readonly id: CellId;
   readonly node: HTMLElement | SVGElement;
-  readonly visibilityNode?: HTMLElement | SVGElement;
   readonly transform?: OnTransformElement;
   lastWidth?: number;
   lastHeight?: number;
@@ -248,8 +242,6 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       );
       if (!observedElement) continue;
 
-      observedElement.visibilityNode?.style.removeProperty('visibility');
-
       if (!borderBoxSize || borderBoxSize.length === 0) {
         continue;
       }
@@ -288,13 +280,10 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
   });
 
   return {
-    add({ id, node, transform, visibilityNode }: SetMeasuredNodeOptions) {
-      visibilityNode?.style.setProperty('visibility', 'hidden');
-
+    add({ id, node, transform }: SetMeasuredNodeOptions) {
       const observedElement: ObservedElement = {
         id,
         node,
-        visibilityNode,
         transform,
         isMeasured: false,
       };
