@@ -143,9 +143,9 @@ export default function App() {
         </label>
       </div>
       <GraphProvider cells={cells}>
-        <Paper style={{ width: "100%" }}
+        <Paper style={{ width: '100%', height: 1400 }}
           transform={'scale(1.7)'}
-          className={`${PAPER_CLASSNAME} h-[1400px]`}
+          className={PAPER_CLASSNAME}
           drawGrid={false}
           renderElement={RenderElement}
           linkRouting={SMOOTH_LINKS}

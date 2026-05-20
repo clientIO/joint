@@ -7,7 +7,6 @@ import type { ElementSize } from '../types/cell.types';
 import { useCell } from './use-cell';
 import { selectElementSize } from '../selectors';
 import { MEASURING_CLASS_NAME } from '../utils/class-names';
-import type { PortalPaper } from '../models/portal-paper';
 
 /**
  * Options for configuring how the node size is measured and applied.
@@ -185,7 +184,7 @@ export function useMeasureNode(
       // Note: the class will be removed even if the size will not change
       // after the measurement (e.g. if the transform returns the same size
       // or if the measured size is the same as the current model size).
-      paper.requestViewUpdate(view, (paper as PortalPaper).FLAG_MEASURE, view.UPDATE_PRIORITY);
+      paper.requestViewUpdate(view, paper.FLAG_MEASURE, view.UPDATE_PRIORITY);
     }
 
     const clean = setMeasuredNode({ id, node: nodeRef.current, transform });

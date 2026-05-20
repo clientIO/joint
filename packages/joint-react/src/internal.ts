@@ -80,7 +80,7 @@ export type {
   OmitWithoutIndexSignature,
   PaperTarget,
 } from './types';
-export type { PortalSelector } from './models/portal-paper.types';
+export type { PortalSelector } from './models/react-paper.types';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
 
 // Event internals

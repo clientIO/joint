@@ -1,5 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import { PortalPaper } from '../portal-paper';
+import { ReactPaper } from '../react-paper';
 import { ElementModel } from '../element-model';
 import { GraphStore } from '../../store/graph-store';
 import type { IncrementalChange } from '../../state/incremental.types';
@@ -10,15 +10,15 @@ const TEST_PAPER_ID = 'test-paper';
 const toCellId = (id: dia.Cell.ID): string => id as string;
 
 /**
- * Flush the microtask-based scheduler used by PortalPaper.
+ * Flush the microtask-based scheduler used by ReactPaper.
  */
 async function flushMicrotasks(): Promise<void> {
   await Promise.resolve();
 }
 
-describe('PortalPaper', () => {
+describe('ReactPaper', () => {
   let graphStore: GraphStore;
-  let paper: PortalPaper;
+  let paper: ReactPaper;
   let container: HTMLElement;
 
   beforeEach(() => {
@@ -34,9 +34,9 @@ describe('PortalPaper', () => {
   });
 
   /**
-   * Helper to create a PortalPaper with GraphStore callbacks wired.
+   * Helper to create a ReactPaper with GraphStore callbacks wired.
    */
-  function createPaper(options: Partial<dia.Paper.Options> = {}): PortalPaper {
+  function createPaper(options: Partial<dia.Paper.Options> = {}): ReactPaper {
     // Ensure the paper snapshot exists in internalState before creating the paper
     graphStore.internalState.setState((previous) => {
       if (previous.papers[TEST_PAPER_ID]) return previous;
@@ -49,7 +49,7 @@ describe('PortalPaper', () => {
       };
     });
 
-    return new PortalPaper({
+    return new ReactPaper({
       el: container,
       model: graphStore.graph,
       onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => {
@@ -65,7 +65,7 @@ describe('PortalPaper', () => {
   /**
    * Helper to access private pendingLinks for testing
    */
-  function getPendingLinks(p: PortalPaper): Set<string> {
+  function getPendingLinks(p: ReactPaper): Set<string> {
     return (p as unknown as { pendingLinks: Set<string> }).pendingLinks;
   }
 

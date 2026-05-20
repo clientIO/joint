@@ -26,7 +26,7 @@ export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Eleme
 > {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
-   * Read by `PortalPaper` to locate where `renderElement` mounts.
+   * Read by `ReactPaper` to locate where `renderElement` mounts.
    */
   portalSelector = PORTAL_SELECTOR;
 
