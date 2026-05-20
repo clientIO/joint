@@ -1,16 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { dia, linkTools, mvc, shapes } from '@joint/core';
 import {
   GraphProvider,
+  HTMLHost,
   Paper,
   ElementModel,
   LinkModel,
   useCellId,
   useGraph,
-  useMeasureNode,
   usePaper,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -31,14 +31,12 @@ function createGraph(): dia.Graph {
   const element1 = new ElementModel({
     id: 'el1',
     position: { x: 50, y: 50 },
-    // size: { width: 180, height: 70 },
     data: { label: 'Element A', color: PRIMARY },
   });
 
   const element2 = new ElementModel({
     id: 'el2',
     position: { x: 350, y: 200 },
-    // size: { width: 180, height: 70 },
     data: { label: 'Element B', color: '#3498db' },
   });
 
@@ -60,8 +58,6 @@ function createGraph(): dia.Graph {
 }
 
 function Node({ label, color }: Readonly<ElementData>) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(ref);
   const id = useCellId();
   const { graph } = useGraph();
 
@@ -75,40 +71,35 @@ function Node({ label, color }: Readonly<ElementData>) {
   };
 
   return (
-    <foreignObject width={width} height={height}>
-      <div
-        ref={ref}
+    <HTMLHost
+      style={{
+        backgroundColor: color ?? PRIMARY,
+        borderRadius: 8,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        color: '#fff',
+        fontFamily: 'sans-serif',
+        border: 'none',
+        padding: '10px 20px'
+      }}
+    >
+      <span style={{ fontSize: 14, fontWeight: 600 }}>{label}</span>
+      <button
+        onClick={handleClick}
         style={{
-          width: 180,
-          height: 70,
-          backgroundColor: color ?? PRIMARY,
-          borderRadius: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 6,
+          padding: '4px 12px',
+          fontSize: 12,
+          cursor: 'pointer',
+          borderRadius: 4,
+          border: '1px solid rgba(255,255,255,0.5)',
+          backgroundColor: 'rgba(255,255,255,0.2)',
           color: '#fff',
-          fontFamily: 'sans-serif',
         }}
       >
-        <span style={{ fontSize: 14, fontWeight: 600 }}>{label}</span>
-        <button
-          onClick={handleClick}
-          style={{
-            padding: '4px 12px',
-            fontSize: 12,
-            cursor: 'pointer',
-            borderRadius: 4,
-            border: '1px solid rgba(255,255,255,0.5)',
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            color: '#fff',
-          }}
-        >
-          Change Color
-        </button>
-      </div>
-    </foreignObject>
+        Change Color
+      </button>
+    </HTMLHost>
   );
 }
 
