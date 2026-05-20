@@ -76,10 +76,6 @@
 
     /* ── Paper ───────────────────────────────────────────────────────────── */
     --jj-paper-color: var(--jj-color-light-300);
-    --jj-paper-border-color: var(--jj-color-border);
-    --jj-paper-border-style: solid;
-    --jj-paper-border-width: 1px;
-    --jj-paper-box-shadow: 0 3px 11px rgba(0, 0, 0, 0.11), 0 1px 4px rgba(0, 0, 0, 0.05);
     --jj-paper-grid-color: var(--jj-color-light-700);
     --jj-paper-highlight-color: var(--jj-color-primary);
 
@@ -88,10 +84,6 @@
     --jj-link-width: 1;
     --jj-link-dash: none;
     --jj-link-line-cap: butt;
-    --jj-link-hover-color: var(--jj-color-primary);
-    --jj-link-hover-width: 1.5;
-    --jj-link-selected-color: var(--jj-color-primary);
-    --jj-link-selected-width: 1.5;
     --jj-link-connecting-color: var(--jj-color-primary);
     --jj-link-connecting-width: 1.5;
     --jj-link-connecting-dash: 8 4;
@@ -112,9 +104,9 @@
     --jj-port-hover-color: var(--jj-color-shape-surface);
     --jj-port-border-hover-color: var(--jj-color-link);
     --jj-port-hover-border-width: 4px;
-    --jj-port-connecting-color: var(--jj-color-primary);
-    --jj-port-connecting-border-color: var(--jj-color-primary);
-    --jj-port-connecting-border-width: var(--jj-port-border-width);
+    --jj-port-available-color: var(--jj-color-primary);
+    --jj-port-available-border-color: var(--jj-color-primary);
+    --jj-port-available-border-width: var(--jj-port-border-width);
     --jj-port-label-color: var(--jj-color-text);
     --jj-port-label-font-size: 10px;
     --jj-port-label-font-family: Arial, sans-serif;
@@ -206,9 +198,9 @@
   }
 
   .jj-port-body.jj-is-available {
-    fill: var(--jj-port-connecting-color);
-    stroke: var(--jj-port-connecting-border-color);
-    stroke-width: var(--jj-port-connecting-border-width);
+    fill: var(--jj-port-available-color);
+    stroke: var(--jj-port-available-border-color);
+    stroke-width: var(--jj-port-available-border-width);
   }
 
   .jj-port-label {
