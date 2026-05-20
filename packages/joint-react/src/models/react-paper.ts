@@ -238,6 +238,15 @@ export class ReactPaper extends Paper {
   /**
    * Bit flag for marking views that have been measured by `useMeasureNode`
    * and are awaiting size/position updates.
+   *
+   * Bit 27 is chosen to sit immediately below joint-core's reserved view
+   * flags without colliding with them:
+   *   - `FLAG_INSERT = 1 << 30`
+   *   - `FLAG_REMOVE = 1 << 29`
+   *   - `FLAG_INIT   = 1 << 28`
+   * (see `mvc/View.mjs` in @joint/core). Cell-view subclasses use the
+   * low bits (0..N) for their own dirty flags, so 1 << 27 keeps us clear
+   * of both ends of the bitfield.
    */
   FLAG_MEASURE = 1 << 27;
 
