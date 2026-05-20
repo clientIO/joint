@@ -136,6 +136,31 @@ describe('GraphStore feature lifecycle', () => {
     store.destroy(false);
   });
 
+  it('setPaperFeature skips version bump when re-registering the same instance', () => {
+    const store = new GraphStore({});
+    store.addPaper('p1', { paperOptions: {} });
+    const feature = makeFeature('feat-1');
+    store.setPaperFeature('p1', feature);
+    const versionAfterFirst = store.internalState.get().papers.p1.version;
+
+    store.setPaperFeature('p1', feature);
+
+    expect(store.internalState.get().papers.p1.version).toBe(versionAfterFirst);
+    store.destroy(false);
+  });
+
+  it('setGraphFeature skips version bump when re-registering the same instance', () => {
+    const store = new GraphStore({});
+    const feature = makeFeature('a');
+    store.setGraphFeature(feature);
+    const versionAfterFirst = store.internalState.get().graphFeaturesVersion;
+
+    store.setGraphFeature(feature);
+
+    expect(store.internalState.get().graphFeaturesVersion).toBe(versionAfterFirst);
+    store.destroy(false);
+  });
+
   it('removePaperFeature calls clean, removes the entry, and bumps the paper version', () => {
     const store = new GraphStore({});
     store.addPaper('p1', { paperOptions: {} });
