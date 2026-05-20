@@ -8,7 +8,7 @@ import { makeStory } from '../../utils/make-story';
 export type Story = StoryObj<typeof NativePorts>;
 
 export default {
-  title: 'Examples/Element Ports (Native)',
+  title: 'Examples/Native ports',
   component: NativePorts,
   tags: ['example'],
   parameters: {
