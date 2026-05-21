@@ -94,7 +94,7 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
     pointerEvents: 'none',
   };
 
-  const labelBodyAttributes: Record<string, unknown> = {
+  const labelBackgroundAttributes: Record<string, unknown> = {
     style: {
       fill: backgroundColor,
       stroke: backgroundOutline,
@@ -105,30 +105,30 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
   let bodyTagName: string;
   if (backgroundShape === 'rect') {
     bodyTagName = 'rect';
-    labelBodyAttributes.ref = 'labelText';
-    labelBodyAttributes.rx = backgroundBorderRadius;
-    labelBodyAttributes.ry = backgroundBorderRadius;
-    labelBodyAttributes.x = `calc(x - ${ph})`;
-    labelBodyAttributes.y = `calc(y - ${pv})`;
-    labelBodyAttributes.width = `calc(w + ${ph * 2})`;
-    labelBodyAttributes.height = `calc(h + ${pv * 2})`;
+    labelBackgroundAttributes.ref = 'label';
+    labelBackgroundAttributes.rx = backgroundBorderRadius;
+    labelBackgroundAttributes.ry = backgroundBorderRadius;
+    labelBackgroundAttributes.x = `calc(x - ${ph})`;
+    labelBackgroundAttributes.y = `calc(y - ${pv})`;
+    labelBackgroundAttributes.width = `calc(w + ${ph * 2})`;
+    labelBackgroundAttributes.height = `calc(h + ${pv * 2})`;
   } else if (backgroundShape === 'ellipse') {
     bodyTagName = 'ellipse';
-    labelBodyAttributes.ref = 'labelText';
-    labelBodyAttributes.cx = '0';
-    labelBodyAttributes.cy = '0';
-    labelBodyAttributes.rx = `calc(0.5 * w + ${ph})`;
-    labelBodyAttributes.ry = `calc(0.5 * h + ${pv})`;
+    labelBackgroundAttributes.ref = 'label';
+    labelBackgroundAttributes.cx = '0';
+    labelBackgroundAttributes.cy = '0';
+    labelBackgroundAttributes.rx = `calc(0.5 * w + ${ph})`;
+    labelBackgroundAttributes.ry = `calc(0.5 * h + ${pv})`;
   } else {
     bodyTagName = 'path';
-    labelBodyAttributes.d = backgroundShape;
+    labelBackgroundAttributes.d = backgroundShape;
     if (util.isCalcExpression(backgroundShape)) {
-      labelBodyAttributes.ref = 'labelText';
+      labelBackgroundAttributes.ref = 'label';
     }
   }
 
   if (backgroundOpacity !== undefined) {
-    labelBodyAttributes.opacity = backgroundOpacity;
+    labelBackgroundAttributes.opacity = backgroundOpacity;
   }
 
   const labelPosition: Record<string, unknown> = { distance: position };
@@ -138,18 +138,18 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
     markup: [
       {
         tagName: bodyTagName,
-        selector: 'labelBody',
-        className: `jj-link-label ${backgroundClassName}`.trim(),
+        selector: 'labelBackground',
+        className: `jj-link-label-bg ${backgroundClassName}`.trim(),
       },
       {
         tagName: 'text',
-        selector: 'labelText',
-        className: `jj-link-label-text ${className}`.trim(),
+        selector: 'label',
+        className: `jj-link-label ${className}`.trim(),
       },
     ],
     attrs: {
-      labelText: labelTextAttributes,
-      labelBody: labelBodyAttributes,
+      label: labelTextAttributes,
+      labelBackground: labelBackgroundAttributes,
     },
     position: labelPosition,
   };

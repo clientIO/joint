@@ -124,7 +124,7 @@ export function elementPort(port: ElementPort): dia.Element.Port {
     result.position = { args: { x: cx, y: cy } };
   }
 
-  const portBodyAttributes: Record<string, unknown> = {
+  const portAttributes: Record<string, unknown> = {
     style: { fill: color, stroke: outline, strokeWidth: outlineWidth },
     magnet: passive ? 'passive' : 'active',
   };
@@ -132,37 +132,37 @@ export function elementPort(port: ElementPort): dia.Element.Port {
   let bodyTagName: string;
   if (shape === 'ellipse') {
     bodyTagName = 'ellipse';
-    portBodyAttributes.rx = width / 2;
-    portBodyAttributes.ry = height / 2;
+    portAttributes.rx = width / 2;
+    portAttributes.ry = height / 2;
   } else if (shape === 'rect') {
     bodyTagName = 'rect';
-    portBodyAttributes.width = width;
-    portBodyAttributes.height = height;
-    portBodyAttributes.x = -width / 2;
-    portBodyAttributes.y = -height / 2;
+    portAttributes.width = width;
+    portAttributes.height = height;
+    portAttributes.x = -width / 2;
+    portAttributes.y = -height / 2;
     // default border radius for rect ports
-    portBodyAttributes.rx = 1;
-    portBodyAttributes.ry = 1;
+    portAttributes.rx = 1;
+    portAttributes.ry = 1;
   } else {
     bodyTagName = 'path';
-    portBodyAttributes.d = shape;
+    portAttributes.d = shape;
   }
 
   result.markup = [
     {
       tagName: bodyTagName,
-      selector: 'portBody',
+      selector: 'port',
       className: `jj-port ${className}`.trim(),
     },
   ];
-  result.attrs = { portBody: portBodyAttributes };
+  result.attrs = { port: portAttributes };
 
   if (label) {
     result.label = {
       position: { name: labelPosition, args: { x: labelOffsetX, y: labelOffsetY } },
       markup: [{
         tagName: 'text',
-        selector: 'text',
+        selector: 'label',
         className: `jj-port-label ${labelClassName}`.trim(),
       }],
     };
@@ -170,7 +170,7 @@ export function elementPort(port: ElementPort): dia.Element.Port {
       text: label,
       style: { fill: labelColor, fontSize: labelFontSize, fontFamily: labelFontFamily },
     };
-    result.attrs.text = labelAttributes;
+    result.attrs.label = labelAttributes;
   } else {
     result.label = { markup: [] };
   }

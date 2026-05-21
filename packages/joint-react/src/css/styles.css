@@ -153,19 +153,19 @@
 
   /* ── Link Labels ───────────────────────────────────────────────────────── */
 
-  .jj-link-label-text {
+  .jj-link-label {
     fill: var(--jj-link-label-color);
     font-size: var(--jj-link-label-font-size);
     font-family: var(--jj-link-label-font-family);
   }
 
-  .jj-link-label {
+  .jj-link-label-bg {
     fill: var(--jj-link-label-bg-color);
     stroke: var(--jj-link-label-border-color);
     stroke-width: var(--jj-link-label-border-width);
   }
 
-  rect.jj-link-label {
+  rect.jj-link-label-bg {
     rx: var(--jj-link-label-border-radius);
     ry: var(--jj-link-label-border-radius);
   }
