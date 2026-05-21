@@ -1,6 +1,6 @@
 import type { dia, mvc } from '@joint/core';
 import type { CellId } from '../types/cell.types';
-import type { PortalHostCell, PortalSelector, PortalPaperOptions } from './portal-paper.types';
+import type { PortalHostCell, PortalSelector, ReactPaperOptions } from './react-paper.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import { Paper } from '../presets/paper';
@@ -13,18 +13,18 @@ const noopViewMountChange = (): void => {
 /**
  * Extended Paper class that manages React view lifecycle.
  *
- * PortalPaper centralizes view management by:
+ * ReactPaper centralizes view management by:
  * - Emitting view mount/unmount callbacks for graph-store snapshot sync
  * - Hiding links until their source/target elements have rendered
  */
-export class PortalPaper extends Paper {
+export class ReactPaper extends Paper {
   public viewChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
   public onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();
 
-  constructor(options: PortalPaperOptions) {
+  constructor(options: ReactPaperOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;
     super(paperOptions);
     this.id = id;
@@ -64,7 +64,7 @@ export class PortalPaper extends Paper {
    * This is used by React wrappers (`Paper`, `PaperScroller`) to control where
    * JointJS paper DOM is attached.
    * @param element - The host element where paper should be rendered.
-   * @returns The same PortalPaper instance for chaining.
+   * @returns The same ReactPaper instance for chaining.
    */
   public render(element?: HTMLElement | SVGElement): this {
     if (!element) {
@@ -79,7 +79,7 @@ export class PortalPaper extends Paper {
    * Resolves the portal target node from a cell view.
    *
    * Resolution order:
-   * 1. Paper-level {@link PortalPaperOptions.portalSelector | portalSelector} if set.
+   * 1. Paper-level {@link ReactPaperOptions.portalSelector | portalSelector} if set.
    * 2. The cell's own `portalSelector` field (`ElementModel` → `'__portal__'`,
    *    `LinkModel` → `'root'`). Cells without the field are skipped.
    * @param cellView - The cell view to resolve the portal node for.
@@ -236,23 +236,39 @@ export class PortalPaper extends Paper {
   }
 
   /**
+   * Bit flag for marking views that have been measured by `useMeasureNode`
+   * and are awaiting size/position updates.
+   *
+   * Bit 27 is chosen to sit immediately below joint-core's reserved view
+   * flags without colliding with them:
+   *   - `FLAG_INSERT = 1 << 30`
+   *   - `FLAG_REMOVE = 1 << 29`
+   *   - `FLAG_INIT   = 1 << 28`
+   * (see `mvc/View.mjs` in @joint/core). Cell-view subclasses use the
+   * low bits (0..N) for their own dirty flags, so 1 << 27 keeps us clear
+   * of both ends of the bitfield.
+   */
+  FLAG_MEASURE = 1 << 27;
+
+  /**
    * Removes the `MEASURING_CLASS_NAME` class from element views once
    * `updateView` has applied the latest size and position written to the
    * model. Removing the class here (rather than when the ResizeObserver
    * fires) avoids the flash at the pre-update position that happens when
    * size lands on the model before position.
    * @param view - The view being updated.
-   * @param flag - Bitmask of pending update flags.
+   * @param flagIn - Bitmask of pending update flags.
    * @param opt - Update options forwarded to `view.confirmUpdate`.
    * @returns Leftover flag count, as returned by the base `updateView`.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateView(view: mvc.View<any, any>, flag: number, opt?: dia.Paper.UpdateViewOptions): number {
-    const result = super.updateView(view, flag, opt);
-    if (view.model?.isElement?.()) {
+  updateView(view: mvc.View<any, any>, flagIn: number, opt?: dia.Paper.UpdateViewOptions): number {
+    const flagOut = super.updateView(view, flagIn, opt);
+    if (flagIn & this.FLAG_MEASURE) {
       view.el.classList.remove(MEASURING_CLASS_NAME);
+      return flagOut ^ (flagOut & this.FLAG_MEASURE);
     }
-    return result;
+    return flagOut;
   }
 
   /**

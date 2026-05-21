@@ -51,9 +51,9 @@ export type PortalSelector =
   | ((context: PortalSelectorContext) => string | Element | null | undefined);
 
 /**
- * Options for creating a PortalPaper instance with lifecycle callbacks.
+ * Options for creating a ReactPaper instance with lifecycle callbacks.
  */
-export interface PortalPaperOptions extends dia.Paper.Options {
+export interface ReactPaperOptions extends dia.Paper.Options {
   readonly onViewMountChange?: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;
   /**
    * Selector used to locate the React portal target node inside a cell view.

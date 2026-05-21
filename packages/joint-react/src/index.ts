@@ -91,12 +91,12 @@ export type { LinkMarkerRecord } from './presets/link-markers';
 export { ElementModel, ELEMENT_MODEL_TYPE } from './models/element-model';
 export { LinkModel, LINK_MODEL_TYPE } from './models/link-model';
 export { LinkView } from './presets/link-view';
-export { PortalPaper } from './models/portal-paper';
+export { ReactPaper } from './models/react-paper';
 export type {
   PortalHostCell,
   PortalSelector,
   PortalSelectorContext,
-} from './models/portal-paper.types';
+} from './models/react-paper.types';
 
 // Store types
 export type { IncrementalCellsChange } from './store/graph-projection';

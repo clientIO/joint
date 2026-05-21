@@ -20,7 +20,7 @@ import { useContainerKeys } from './use-container-keys';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { LinkRecord } from '../types/cell.types';
 import type { PaperStore } from '../store';
-import { PortalPaper } from '../models/portal-paper';
+import { ReactPaper } from '../models/react-paper';
 import type { PaperProps, PortalPaperOptions, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 
@@ -60,7 +60,7 @@ export interface UseCreatePortalPaperOptions extends PaperProps {
    */
   readonly elementRef?: RefObject<HTMLElement | SVGElement | null>;
   /** Callback fired once when paper instance is created and ready. */
-  readonly onReady?: (paper: PortalPaper) => void;
+  readonly onReady?: (paper: ReactPaper) => void;
   /** Whether the paper is externally managed (skip div mounting). */
   readonly isExternalPaper?: boolean;
 }
@@ -70,7 +70,7 @@ export interface UseCreatePortalPaperResult {
   /** Effective paper id used in GraphStore. */
   readonly id: string;
   /** Current paper instance, available synchronously after mount and kept in sync afterwards. */
-  readonly paperRef: RefObject<PortalPaper | null>;
+  readonly paperRef: RefObject<ReactPaper | null>;
   /** PaperStore for this paper id, available after registration. */
   readonly paperStore?: PaperStore;
   /** True when paper exists and is ready for content rendering. */
@@ -248,7 +248,7 @@ export function useCreatePortalPaper(
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
-  const paperRef = useRef<PortalPaper | null>(null);
+  const paperRef = useRef<ReactPaper | null>(null);
   const isReadyNotifiedRef = useRef(false);
 
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
@@ -408,7 +408,7 @@ export function useCreatePortalPaper(
       if (!elementView?.paper) {
         return null;
       }
-      if (!(elementView.paper instanceof PortalPaper)) {
+      if (!(elementView.paper instanceof ReactPaper)) {
         return null;
       }
 
@@ -466,7 +466,7 @@ export function useCreatePortalPaper(
         return null;
       }
 
-      if (!(linkView.paper instanceof PortalPaper)) {
+      if (!(linkView.paper instanceof ReactPaper)) {
         return;
       }
 

@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import { PaperStore } from '../paper-store';
 import { GraphStore } from '../graph-store';
-import { PortalPaper } from '../../models/portal-paper';
+import { ReactPaper } from '../../models/react-paper';
 
 describe('PaperStore', () => {
   describe('constructor', () => {
@@ -40,7 +40,7 @@ describe('PaperStore', () => {
     it('should apply transform when provided', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const matrixSpy = jest.spyOn(PortalPaper.prototype, 'matrix');
+      const matrixSpy = jest.spyOn(ReactPaper.prototype, 'matrix');
 
       try {
         new PaperStore({
@@ -50,7 +50,7 @@ describe('PaperStore', () => {
           transform: 'scale(2)',
         });
 
-        // PortalPaper calls matrix() internally during init (getter form,
+        // ReactPaper calls matrix() internally during init (getter form,
         // no arg). Find the setter call from our transform plumbing — the
         // exact matrix values are not asserted (JSDOM has no DOMMatrix
         // parser; the mock returns identity), only that the setter was

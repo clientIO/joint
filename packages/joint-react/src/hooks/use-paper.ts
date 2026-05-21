@@ -4,7 +4,7 @@ import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
 import { useGraphStore } from './use-graph-store';
 import { useInternalData } from './use-stores';
-import type { dia } from '@joint/core';
+import type { ReactPaper } from '../models/react-paper';
 import type { PaperTarget } from '../types';
 import { OPTIONAL, resolvePaperId } from '../types';
 
@@ -113,12 +113,12 @@ export function usePaperStore(idOrOptions?: string | Optional): PaperStore | nul
 }
 
 /**
- * Returns a JointJS `dia.Paper` instance wrapped in an object, from context or by paper id.
+ * Returns the active `ReactPaper` instance (a `dia.Paper` subclass) wrapped in an object, from context or by paper id.
  *
  * All overloads must be used inside a `GraphProvider`.
  * Use this hook in one of three modes:
- * - with no arguments, read the current `dia.Paper` from `Paper` context
- * - with `{ optional: true }`, still read the current `dia.Paper` from `Paper` context, but return `null` paper instead of throwing when the context is missing
+ * - with no arguments, read the current `ReactPaper` from `Paper` context
+ * - with `{ optional: true }`, still read the current `ReactPaper` from `Paper` context, but return `null` paper instead of throwing when the context is missing
  * - with a paper id, read a specific paper from the graph store
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
@@ -168,18 +168,18 @@ interface UsePaperActions {
   readonly wakeUp: () => void;
 }
 
-export function usePaper(): { paper: dia.Paper } & UsePaperActions;
-export function usePaper(options: Optional): { paper: dia.Paper | null } & UsePaperActions;
-export function usePaper(id: string): { paper: dia.Paper | null } & UsePaperActions;
+export function usePaper(): { paper: ReactPaper } & UsePaperActions;
+export function usePaper(options: Optional): { paper: ReactPaper | null } & UsePaperActions;
+export function usePaper(id: string): { paper: ReactPaper | null } & UsePaperActions;
 export function usePaper(
   idOrOptions?: string | Optional
-): { paper: dia.Paper | null } & UsePaperActions;
+): { paper: ReactPaper | null } & UsePaperActions;
 /** Hook that returns the paper instance and actions for the given paper id or options. */
 export function usePaper(
   idOrOptions?: string | Optional
-): { paper: dia.Paper | null } & UsePaperActions {
+): { paper: ReactPaper | null } & UsePaperActions {
   const paperStore = usePaperStore(idOrOptions);
-  const paper = (paperStore?.paper as dia.Paper | undefined) ?? null;
+  const paper = paperStore?.paper ?? null;
   const wakeUp = useCallback(() => {
     paper?.wakeUp();
   }, [paper]);

@@ -191,4 +191,99 @@ describe('useMeasureNode', () => {
       expect(text).not.toBeNull();
     });
   });
+
+  describe('with a real ResizeObserver mock', () => {
+    // Local ResizeObserver mock so we can deliver entries — the package-level
+    // setup in `__mocks__/jest-setup.ts` installs a stub that never fires.
+    const mockObserverInstances: TestResizeObserver[] = [];
+
+    class TestResizeObserver {
+      private callback: ResizeObserverCallback;
+      private observed = new Set<Element>();
+      constructor(callback: ResizeObserverCallback) {
+        this.callback = callback;
+        mockObserverInstances.push(this);
+      }
+      observe(target: Element) {
+        this.observed.add(target);
+      }
+      unobserve(target: Element) {
+        this.observed.delete(target);
+      }
+      disconnect() {
+        this.observed.clear();
+      }
+      triggerResize(target: Element, width: number, height: number) {
+        const entry = {
+          target,
+          contentRect: {
+            width,
+            height,
+            top: 0,
+            left: 0,
+            bottom: height,
+            right: width,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
+          },
+          borderBoxSize: [{ inlineSize: width, blockSize: height }],
+          contentBoxSize: [{ inlineSize: width, blockSize: height }],
+          devicePixelContentBoxSize: [{ inlineSize: width, blockSize: height }],
+        } as ResizeObserverEntry;
+        this.callback([entry], this as unknown as ResizeObserver);
+      }
+    }
+
+    beforeEach(() => {
+      mockObserverInstances.length = 0;
+      globalThis.ResizeObserver = TestResizeObserver as unknown as typeof ResizeObserver;
+    });
+
+    const sameSizeCells: readonly CellRecord[] = [
+      {
+        id: 'el-same',
+        type: ELEMENT_MODEL_TYPE,
+        position: { x: 0, y: 0 },
+        size: { width: 80, height: 120 },
+      } as CellRecord,
+    ];
+
+    function SameSizeProbe() {
+      const nodeRef = useRef<SVGRectElement | null>(null);
+      useMeasureNode(nodeRef);
+      return <rect ref={nodeRef} width={80} height={120} />;
+    }
+
+    const renderSameSize = () => <SameSizeProbe />;
+
+    it('removes .jj-is-measuring even when measured size matches the model', async () => {
+      const { container } = render(
+        <GraphProvider initialCells={sameSizeCells}>
+          <Paper
+            style={{ width: 200, height: 200 }}
+            id="measure-same-size-paper"
+            renderElement={renderSameSize}
+          />
+        </GraphProvider>
+      );
+
+      await waitFor(() => {
+        const elementView = container.querySelector('.joint-cell.joint-element');
+        expect(elementView?.classList.contains('jj-is-measuring')).toBe(true);
+      });
+
+      const rect = container.querySelector('rect');
+      expect(rect).not.toBeNull();
+
+      act(() => {
+        mockObserverInstances.at(-1)!.triggerResize(rect!, 80, 120);
+      });
+
+      await waitFor(() => {
+        const elementView = container.querySelector('.joint-cell.joint-element');
+        expect(elementView?.classList.contains('jj-is-measuring')).toBe(false);
+      });
+    });
+  });
 });

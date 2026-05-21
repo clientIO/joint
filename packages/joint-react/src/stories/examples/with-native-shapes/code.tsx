@@ -1,9 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 import { GraphProvider, Paper, type CellRecord } from '@joint/react';
 
+const PRIMARY = '#4f46e5';
 const SECONDARY = '#6366f1';
+const TEXT = '#0f172a';
 
 type ElementType = 'standard.Rectangle' | 'standard.Circle' | 'standard.Ellipse' | 'standard.Cylinder' | 'standard.Path' | 'standard.Polygon' | 'standard.Polyline' | 'standard.TextBlock' | 'standard.HeaderedRectangle' | 'standard.Image' | 'standard.BorderedImage' | 'standard.EmbeddedImage' | 'standard.InscribedImage';
 type LinkType = 'standard.Link' | 'standard.DoubleLink' | 'standard.ShadowLink';
@@ -15,7 +17,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     position: { x: 20, y: 20 },
     size: { width: 100, height: 50 },
     type: 'standard.Rectangle',
-    attrs: { body: { fill: PRIMARY }, label: { fill: 'white', text: 'Rectangle' } },
+    attrs: { body: { fill: PRIMARY }, label: { fill: TEXT, text: 'Rectangle' } },
   },
   {
     id: 'circle',
@@ -23,8 +25,8 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     size: { width: 60, height: 60 },
     type: 'standard.Circle',
     attrs: {
-      body: { fill: SECONDARY, stroke: '#333333' },
-      label: { fill: 'white', text: 'Circle' },
+      body: { fill: SECONDARY },
+      label: { fill: TEXT, text: 'Circle' },
     },
   },
   {
@@ -33,8 +35,8 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     size: { width: 100, height: 50 },
     type: 'standard.Ellipse',
     attrs: {
-      body: { fill: PRIMARY, stroke: '#333333' },
-      label: { fill: 'white', text: 'Ellipse' },
+      body: { fill: PRIMARY },
+      label: { fill: TEXT, text: 'Ellipse' },
     },
   },
   {
@@ -42,7 +44,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     position: { x: 370, y: 10 },
     size: { width: 60, height: 70 },
     type: 'standard.Cylinder',
-    attrs: { body: { fill: SECONDARY }, top: { fill: '#4f46e5' } },
+    attrs: { body: { fill: SECONDARY }, top: { fill: PRIMARY } },
   },
   // Row 2: Path shapes
   {
@@ -54,9 +56,8 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
       body: {
         d: 'M 0 20 L 40 0 L 80 20 L 80 60 L 40 80 L 0 60 Z',
         fill: PRIMARY,
-        stroke: '#333333',
       },
-      label: { fill: 'white', text: 'Path' },
+      label: { fill: TEXT, text: 'Path' },
     },
   },
   {
@@ -65,8 +66,8 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     size: { width: 80, height: 80 },
     type: 'standard.Polygon',
     attrs: {
-      body: { points: '40,0 80,30 65,80 15,80 0,30', fill: SECONDARY, stroke: '#333333' },
-      label: { fill: 'white', text: 'Polygon' },
+      body: { points: '40,0 80,30 65,80 15,80 0,30', fill: SECONDARY },
+      label: { fill: TEXT, text: 'Polygon' },
     },
   },
   {
@@ -82,7 +83,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
         fill: 'none',
         pointerEvents: 'all',
       },
-      label: { y: 70, fill: 'white', text: 'Polyline' },
+      label: { y: 70, fill: TEXT, text: 'Polyline' },
     },
   },
   {
@@ -91,7 +92,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     size: { width: 100, height: 60 },
     type: 'standard.TextBlock',
     attrs: {
-      body: { stroke: PRIMARY, fill: '#f3f4f6' },
+      body: { stroke: PRIMARY },
       label: { text: 'TextBlock\nwith wrap', style: { fontSize: 14, color: PRIMARY } },
     },
   },
@@ -102,10 +103,9 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     size: { width: 120, height: 80 },
     type: 'standard.HeaderedRectangle',
     attrs: {
-      body: { fill: '#e5e7eb' },
       header: { fill: PRIMARY },
-      headerText: { fill: 'white', text: 'Header' },
-      bodyText: { fill: '#374151', text: 'Body' },
+      headerText: { fill: TEXT, text: 'Header' },
+      bodyText: { text: 'Body' },
     },
   },
   {
@@ -115,7 +115,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     type: 'standard.Image',
     attrs: {
       image: { xlinkHref: 'https://picsum.photos/60/60?random=1' },
-      label: { fill: 'white', text: 'Image' },
+      label: { fill: TEXT, text: 'Image' },
     },
   },
   {
@@ -126,7 +126,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     attrs: {
       border: { stroke: PRIMARY, strokeWidth: 3 },
       image: { xlinkHref: 'https://picsum.photos/70/70?random=2' },
-      label: { fill: 'white', text: 'Bordered' },
+      label: { fill: TEXT, text: 'Bordered' },
     },
   },
   {
@@ -135,9 +135,9 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     size: { width: 150, height: 70 },
     type: 'standard.EmbeddedImage',
     attrs: {
-      body: { stroke: SECONDARY, fill: '#f3f4f6' },
+      body: { stroke: SECONDARY },
       image: { xlinkHref: 'https://picsum.photos/30/30?random=3' },
-      label: { fill: '#374151', text: 'Embedded' },
+      label: { text: 'Embedded' },
     },
   },
   // Row 4: More shapes and link targets
@@ -148,9 +148,8 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     type: 'standard.InscribedImage',
     attrs: {
       border: { stroke: PRIMARY },
-      background: { fill: '#e5e7eb' },
       image: { xlinkHref: 'https://picsum.photos/50/50?random=4' },
-      label: { fill: 'white', text: 'Inscribed' },
+      label: { fill: TEXT, text: 'Inscribed' },
     },
   },
   {
@@ -158,28 +157,28 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     position: { x: 150, y: 350 },
     size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
-    attrs: { body: { fill: PRIMARY }, label: { fill: 'white', text: 'Source' } },
+    attrs: { body: { fill: PRIMARY }, label: { fill: TEXT, text: 'Source' } },
   },
   {
     id: 'link-target-1',
     position: { x: 350, y: 320 },
     size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
-    attrs: { body: { fill: SECONDARY }, label: { fill: 'white', text: 'Target 1' } },
+    attrs: { label: { fill: TEXT, text: 'Target 1' } },
   },
   {
     id: 'link-target-2',
     position: { x: 350, y: 420 },
     size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
-    attrs: { body: { fill: PRIMARY }, label: { fill: 'white', text: 'Target 2' } },
+    attrs: { body: { fill: PRIMARY }, label: { fill: TEXT, text: 'Target 2' } },
   },
   {
     id: 'link-target-3',
     position: { x: 520, y: 320 },
     size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
-    attrs: { body: { fill: SECONDARY }, label: { fill: 'white', text: 'Target 3' } },
+    attrs: { label: { fill: TEXT, text: 'Target 3' } },
   },
   {
     id: 'link-standard',
@@ -194,7 +193,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     source: { id: 'link-source' },
     target: { id: 'link-target-2' },
     type: 'standard.DoubleLink',
-    attrs: { line: { stroke: SECONDARY }, outline: { stroke: '#c7d2fe' } },
+    attrs: { line: { stroke: SECONDARY } },
     labels: [{ attrs: { text: { text: 'DoubleLink' } } }],
   },
   {
@@ -202,7 +201,7 @@ const initialCells: ReadonlyArray<CellRecord<unknown, unknown, ElementType, Link
     source: { id: 'link-target-1' },
     target: { id: 'link-target-3' },
     type: 'standard.ShadowLink',
-    attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
+    attrs: { line: { stroke: PRIMARY } },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
 ];
