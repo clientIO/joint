@@ -62,8 +62,8 @@ export interface ElementPort {
 }
 
 const defaultPortStyle = {
-  width: 10,
-  height: 10,
+  width: 8,
+  height: 8,
   color: '' as string,
   shape: 'ellipse' as PortShape,
   outline: '' as string,

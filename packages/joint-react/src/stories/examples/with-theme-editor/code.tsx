@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo, useRef, memo, useId } from '
 import type { CSSProperties } from 'react';
 import {
   type CellRecord,
+  type ValidateEmbeddingContext,
   GraphProvider,
   Paper,
   HTMLBox,
@@ -121,13 +122,13 @@ const LIGHT_THEME: CSSVars = {
   '--jj-paper-grid-color':   p('light-700'),
   '--jj-link-color':         pv('color-link'),
   '--jj-link-width':         '1',
-  '--jj-label-bg-color':     pv('color-surface'),
-  '--jj-label-color':        pv('color-text'),
-  '--jj-label-border-color': pv('color-link'),
+  '--jj-link-label-bg-color':     pv('color-surface'),
+  '--jj-link-label-color':        pv('color-text'),
+  '--jj-link-label-border-color': pv('color-link'),
   '--jj-port-color':         pv('color-surface'),
   '--jj-port-border-color':  pv('color-link'),
   '--jj-box-color':          pv('color-shape-surface'),
-  '--jj-box-text-color':     pv('color-text'),
+  '--jj-box-fg-color':     pv('color-text'),
   '--jj-box-border-color':   pv('color-shape-border'),
   '--jj-box-border-radius':  'var(--jj-radius-lg)',
 };
@@ -154,16 +155,16 @@ const DARK_THEME: CSSVars = {
   '--jj-paper-grid-color':   p('dark-400'),
   '--jj-link-color':         pv('color-link'),
   '--jj-link-width':         '1',
-  '--jj-label-bg-color':     pv('color-surface'),
-  '--jj-label-color':        pv('color-text'),
-  '--jj-label-border-color': p('dark-600'),
+  '--jj-link-label-bg-color':     pv('color-surface'),
+  '--jj-link-label-color':        pv('color-text'),
+  '--jj-link-label-border-color': p('dark-600'),
   '--jj-port-color':                    p('light-100'),
   '--jj-port-border-color':             p('dark-900'),
   '--jj-port-available-color':         pv('color-primary'),
   '--jj-port-available-border-color':  pv('color-primary'),
   '--jj-port-label-color':             pv('color-text'),
   '--jj-box-color':          pv('color-shape-surface'),
-  '--jj-box-text-color':     pv('color-text'),
+  '--jj-box-fg-color':     pv('color-text'),
   '--jj-box-border-color':   pv('color-shape-border'),
   '--jj-box-border-radius':  'var(--jj-radius-lg)',
 };
@@ -189,7 +190,8 @@ const CSS_DEFAULTS: CSSVars = {
   // ── Component ──
   '--jj-paper-color':           p('light-300'),
   '--jj-paper-grid-color':      p('light-700'),
-  '--jj-paper-highlight-color': pv('color-primary'),
+  '--jj-paper-connecting-highlight-color': pv('color-primary'),
+  '--jj-paper-embedding-highlight-color':  pv('color-primary'),
   '--jj-link-color':            pv('color-link'),
   '--jj-link-width':            '1',
   '--jj-link-dash':             'none',
@@ -197,18 +199,18 @@ const CSS_DEFAULTS: CSSVars = {
   '--jj-link-connecting-color': pv('color-primary'),
   '--jj-link-connecting-width':  '1.5',
   '--jj-link-connecting-dash':   '8 4',
-  '--jj-label-bg-color':         pv('color-surface'),
-  '--jj-label-color':            pv('color-text'),
-  '--jj-label-font-size':        '11px',
-  '--jj-label-font-family':      'Arial, sans-serif',
-  '--jj-label-border-color':     pv('color-link'),
-  '--jj-label-border-width':     '1px',
-  '--jj-label-border-radius':    'var(--jj-radius-sm)',
+  '--jj-link-label-bg-color':         pv('color-surface'),
+  '--jj-link-label-color':            pv('color-text'),
+  '--jj-link-label-font-size':        '11px',
+  '--jj-link-label-font-family':      'Arial, sans-serif',
+  '--jj-link-label-border-color':     pv('color-link'),
+  '--jj-link-label-border-width':     '1px',
+  '--jj-link-label-border-radius':    'var(--jj-radius-sm)',
   '--jj-port-color':             pv('color-surface'),
   '--jj-port-border-color':      pv('color-link'),
   '--jj-port-border-width':      '1.5px',
   '--jj-port-hover-color':       pv('color-shape-surface'),
-  '--jj-port-border-hover-color': pv('color-link'),
+  '--jj-port-hover-border-color': pv('color-link'),
   '--jj-port-hover-border-width': '4px',
   '--jj-port-available-color':        pv('color-primary'),
   '--jj-port-available-border-color': pv('color-primary'),
@@ -216,9 +218,10 @@ const CSS_DEFAULTS: CSSVars = {
   '--jj-port-label-color':       pv('color-text'),
   '--jj-port-label-font-size':   '10px',
   '--jj-port-label-font-family': 'Arial, sans-serif',
-  '--jj-box-color':              pv('color-shape-surface'),
-  '--jj-box-hover-color':        pv('color-primary'),
-  '--jj-box-text-color':         pv('color-text'),
+  '--jj-box-color':                  pv('color-shape-surface'),
+  '--jj-box-hover-border-color':     pv('color-primary'),
+  '--jj-box-available-border-color': p('dark-800'),
+  '--jj-box-fg-color':         pv('color-text'),
   '--jj-box-border-color':       pv('color-shape-border'),
   '--jj-box-border-width':       '1px',
   '--jj-box-border-radius':      'var(--jj-radius-lg)',
@@ -283,9 +286,10 @@ const SECTIONS: readonly SectionDefinition[] = [
   {
     title: 'Paper',
     vars: [
-      { name: '--jj-paper-color',           type: 'color' },
-      { name: '--jj-paper-grid-color',      type: 'color' },
-      { name: '--jj-paper-highlight-color', type: 'color' },
+      { name: '--jj-paper-color',                      type: 'color' },
+      { name: '--jj-paper-grid-color',                 type: 'color' },
+      { name: '--jj-paper-connecting-highlight-color', type: 'color' },
+      { name: '--jj-paper-embedding-highlight-color',  type: 'color' },
     ],
   },
   {
@@ -303,13 +307,13 @@ const SECTIONS: readonly SectionDefinition[] = [
   {
     title: 'Labels',
     vars: [
-      { name: '--jj-label-bg-color',      type: 'color' },
-      { name: '--jj-label-color',         type: 'color' },
-      { name: '--jj-label-font-size',     type: 'dimension' },
-      { name: '--jj-label-font-family',   type: 'dimension' },
-      { name: '--jj-label-border-color',  type: 'color' },
-      { name: '--jj-label-border-width',  type: 'dimension' },
-      { name: '--jj-label-border-radius', type: 'cssvar', options: RADIUS_OPTIONS },
+      { name: '--jj-link-label-bg-color',      type: 'color' },
+      { name: '--jj-link-label-color',         type: 'color' },
+      { name: '--jj-link-label-font-size',     type: 'dimension' },
+      { name: '--jj-link-label-font-family',   type: 'dimension' },
+      { name: '--jj-link-label-border-color',  type: 'color' },
+      { name: '--jj-link-label-border-width',  type: 'dimension' },
+      { name: '--jj-link-label-border-radius', type: 'cssvar', options: RADIUS_OPTIONS },
     ],
   },
   {
@@ -319,7 +323,7 @@ const SECTIONS: readonly SectionDefinition[] = [
       { name: '--jj-port-border-color',             type: 'color' },
       { name: '--jj-port-border-width',             type: 'dimension' },
       { name: '--jj-port-hover-color',              type: 'color' },
-      { name: '--jj-port-border-hover-color',       type: 'color' },
+      { name: '--jj-port-hover-border-color',       type: 'color' },
       { name: '--jj-port-hover-border-width',       type: 'dimension' },
       { name: '--jj-port-available-color',         type: 'color' },
       { name: '--jj-port-available-border-color',  type: 'color' },
@@ -332,9 +336,10 @@ const SECTIONS: readonly SectionDefinition[] = [
   {
     title: 'Elements',
     vars: [
-      { name: '--jj-box-color',         type: 'color' },
-      { name: '--jj-box-hover-color',   type: 'color' },
-      { name: '--jj-box-text-color',    type: 'color' },
+      { name: '--jj-box-color',                  type: 'color' },
+      { name: '--jj-box-hover-border-color',     type: 'color' },
+      { name: '--jj-box-fg-color',               type: 'color' },
+      { name: '--jj-box-available-border-color', type: 'color' },
       { name: '--jj-box-border-color',  type: 'color' },
       { name: '--jj-box-border-width',  type: 'dimension' },
       { name: '--jj-box-border-radius', type: 'cssvar', options: RADIUS_OPTIONS },
@@ -349,34 +354,50 @@ const SECTIONS: readonly SectionDefinition[] = [
 
 interface Data {
   readonly label: string;
+  readonly isContainer?: boolean;
 }
 
-const DEFAULT_LINK = { style: { targetMarker: 'arrow' as LinkMarkerName } };
+const DEFAULT_LINK = { style: { targetMarker: 'arrow' as LinkMarkerName }, z: 1 };
 
 const PORT_IN  = { cx: 0,         cy: 'calc(0.5 * h)', passive: true, label: 'in',  labelOffsetX: -5, labelOffsetY: 10 } as const;
 const PORT_OUT = { cx: 'calc(w)', cy: 'calc(0.5 * h)',                label: 'out', labelOffsetX: 5, labelOffsetY: 10 } as const;
 
 const initialCells: ReadonlyArray<CellRecord<Data>> = [
   {
+    id: 'container',
+    type: 'element',
+    data: { label: 'Container', isContainer: true },
+    attrs: {
+      root: { magnet: false },
+    },
+    position: { x: 20, y: 80 },
+    size: { width: 240, height: 180 },
+    z: 0,
+  },
+  {
     id: 'a',
     type: 'element',
     data: { label: 'Node A' },
     position: { x: 60, y: 130 },
     portMap: { out: PORT_OUT },
+    parent: 'container',
+    z: 2,
   },
   {
     id: 'b',
     type: 'element',
     data: { label: 'Node B' },
-    position: { x: 270, y: 130 },
+    position: { x: 330, y: 130 },
     portMap: { in: PORT_IN, out: PORT_OUT },
+    z: 2,
   },
   {
     id: 'c',
     type: 'element',
     data: { label: 'Node C' },
-    position: { x: 475, y: 130 },
+    position: { x: 530, y: 130 },
     portMap: { in: PORT_IN },
+    z: 2,
   },
   {
     id: 'a-b',
@@ -387,6 +408,7 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
     labelMap: {
       main: { position: 0.5, text: 'A → B' },
     },
+    z: 1,
   },
   {
     id: 'b-c',
@@ -397,25 +419,49 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
     labelMap: {
       main: { position: 0.5, text: 'B → C' },
     },
+    z: 1,
   },
 ];
 
 
 // ── Element renderer ──────────────────────────────────────────────────────────
 
+function validateEmbedding({ parent }: ValidateEmbeddingContext): boolean {
+  return Boolean((parent.model.prop('data') as Data | undefined)?.isContainer);
+}
+
+const CONTAINER_STYLE: CSSProperties = {
+  borderStyle: 'dashed',
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+};
+
+const RenderContainer = memo(function RenderContainer({ data }: Readonly<{ data: Data }>) {
+  return <HTMLBox useModelGeometry style={CONTAINER_STYLE}>{data.label}</HTMLBox>;
+});
+
 const RenderElement = memo(function RenderElement({ data }: Readonly<{ data: Data }>) {
   return <HTMLBox>{data.label}</HTMLBox>;
 });
 
 function renderElement(data: Data) {
+  if (data.isContainer) return <RenderContainer data={data} />;
   return <RenderElement data={data} />;
 }
 
 // ── Diagram ───────────────────────────────────────────────────────────────────
 
 const INTERACTIVE_OPTIONS = { labelMove: true } as const;
+const PAPER_HEIGHT = 560;
+const MIN_ZOOM = 0.2;
+const MAX_ZOOM = 2;
+const ZOOM_STEP = 0.1;
 
-function Diagram() {
+interface DiagramProps {
+  readonly zoom: number;
+}
+
+function Diagram({ zoom }: Readonly<DiagramProps>) {
   const paperId = useId();
   const { setCell } = useGraph<CellRecord<Data>>();
 
@@ -427,6 +473,7 @@ function Diagram() {
         data: { label: 'New Node' },
         position: { x, y },
         portMap: { in: PORT_IN, out: PORT_OUT },
+        z: 2,
       });
     },
     'link:contextmenu': (linkView, event_, _x, _y) => {
@@ -466,9 +513,13 @@ function Diagram() {
     <Paper
       id={paperId}
       className={PAPER_CLASSNAME}
+      style={{ height: PAPER_HEIGHT }}
       renderElement={renderElement}
       defaultLink={DEFAULT_LINK}
       interactive={INTERACTIVE_OPTIONS}
+      embeddingMode
+      validateEmbedding={validateEmbedding}
+      transform={`scale(${zoom})`}
     />
   );
 }
@@ -779,6 +830,7 @@ function FormPanel({ themeVars, overrides, isDark, onSet, onReset, onResetAll }:
 export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [overrides, setOverrides] = useState<CSSVars>({});
+  const [zoom, setZoom] = useState(1);
 
   const themeVars = isDark ? DARK_THEME : LIGHT_THEME;
 
@@ -788,6 +840,9 @@ export default function App() {
   );
 
   const toggleTheme = useCallback(() => setIsDark((previous) => !previous), []);
+  const zoomIn    = useCallback(() => setZoom((z) => Math.min(MAX_ZOOM, Math.round((z + ZOOM_STEP) * 10) / 10)), []);
+  const zoomOut   = useCallback(() => setZoom((z) => Math.max(MIN_ZOOM, Math.round((z - ZOOM_STEP) * 10) / 10)), []);
+  const resetZoom = useCallback(() => setZoom(1), []);
 
   const setVariable = useCallback((name: string, value: string) => {
     setOverrides((previous) => ({ ...previous, [name]: value }));
@@ -816,15 +871,46 @@ export default function App() {
     transition: 'background 0.2s, color 0.2s',
   }), [isDark]);
 
+  const zoomButtonStyle = useMemo(() => ({
+    display: 'inline-flex' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    width: 26, height: 26,
+    cursor: 'pointer' as const,
+    borderRadius: 6,
+    border: `1px solid ${isDark ? '#585b70' : 'rgba(0,0,0,0.18)'}`,
+    background: isDark ? '#313244' : '#e0e7ff',
+    color: isDark ? '#cdd6f4' : '#4338ca',
+    fontSize: 15, fontWeight: 700,
+  }), [isDark]);
+
+  const zoomLabelStyle = useMemo(() => ({
+    minWidth: 40, textAlign: 'center' as const,
+    fontSize: 12, cursor: 'pointer' as const,
+    color: isDark ? '#a6adc8' : '#6b7280',
+    fontVariantNumeric: 'tabular-nums' as const,
+  }), [isDark]);
+
+  const dividerStyle = useMemo(() => ({
+    width: 1, height: 20,
+    background: isDark ? '#45475a' : '#dde6ed',
+  }), [isDark]);
+
   return (
     <div style={effectiveVars as CSSProperties}>
       <div style={{ marginBottom: 10, display: 'flex', gap: 8, alignItems: 'center' }}>
         <button type="button" onClick={toggleTheme} style={toggleButtonStyle}>
           {isDark ? '☀️ Light' : '🌙 Dark'}
         </button>
+        <div style={dividerStyle} />
+        <button type="button" onClick={zoomOut} style={zoomButtonStyle} title="Zoom out">−</button>
+        <button type="button" onClick={resetZoom} style={zoomLabelStyle} title="Reset zoom">
+          {Math.round(zoom * 100)}%
+        </button>
+        <button type="button" onClick={zoomIn} style={zoomButtonStyle} title="Zoom in">+</button>
       </div>
       <GraphProvider initialCells={initialCells}>
-        <Diagram />
+        <Diagram zoom={zoom} />
       </GraphProvider>
       <FormPanel
         themeVars={themeVars}

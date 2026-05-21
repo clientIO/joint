@@ -77,7 +77,8 @@
     /* ── Paper ───────────────────────────────────────────────────────────── */
     --jj-paper-color: var(--jj-color-light-300);
     --jj-paper-grid-color: var(--jj-color-light-700);
-    --jj-paper-highlight-color: var(--jj-color-primary);
+    --jj-paper-connecting-highlight-color: var(--jj-color-primary);
+    --jj-paper-embedding-highlight-color: var(--jj-color-primary);
 
     /* ── Links ───────────────────────────────────────────────────────────── */
     --jj-link-color: var(--jj-color-link);
@@ -89,20 +90,22 @@
     --jj-link-connecting-dash: 8 4;
 
     /* ── Link Labels ─────────────────────────────────────────────────────── */
-    --jj-label-bg-color: var(--jj-color-surface);
-    --jj-label-color: var(--jj-color-text);
-    --jj-label-font-size: 11px;
-    --jj-label-font-family: Arial, sans-serif;
-    --jj-label-border-color: var(--jj-color-link);
-    --jj-label-border-width: 1px;
-    --jj-label-border-radius: var(--jj-radius-sm);
+    --jj-link-label-bg-color: var(--jj-color-surface);
+    --jj-link-label-color: var(--jj-color-text);
+    --jj-link-label-font-size: 11px;
+    --jj-link-label-font-family: Arial, sans-serif;
+    --jj-link-label-border-color: var(--jj-color-link);
+    --jj-link-label-border-width: 1px;
+    --jj-link-label-border-radius: var(--jj-radius-sm);
 
     /* ── Ports ───────────────────────────────────────────────────────────── */
     --jj-port-color: var(--jj-color-surface);
     --jj-port-border-color: var(--jj-color-link);
-    --jj-port-border-width: 1.5px;
+    /* Effective 1px because of paint-order: stroke */
+    --jj-port-border-width: 2px;
     --jj-port-hover-color: var(--jj-color-shape-surface);
-    --jj-port-border-hover-color: var(--jj-color-link);
+    --jj-port-hover-border-color: var(--jj-color-link);
+    /* Effective 2px because of paint-order: stroke */
     --jj-port-hover-border-width: 4px;
     --jj-port-available-color: var(--jj-color-primary);
     --jj-port-available-border-color: var(--jj-color-primary);
@@ -113,15 +116,15 @@
 
     /* ── Box (HTML elements) ─────────────────────────────────────────────── */
     --jj-box-color: var(--jj-color-shape-surface);
-    --jj-box-hover-color: var(--jj-color-primary);
-    --jj-box-text-color: var(--jj-color-text);
+    --jj-box-hover-border-color: var(--jj-color-primary);
+    --jj-box-fg-color: var(--jj-color-text);
     --jj-box-border-color: var(--jj-color-shape-border);
     --jj-box-border-width: 1px;
     --jj-box-border-radius: var(--jj-radius-lg);
     --jj-box-padding: 8px 12px;
     --jj-box-font-size: 14px;
     --jj-box-font-family: sans-serif;
-    --jj-box-available-border: var(--jj-color-viable);
+    --jj-box-available-border-color: var(--jj-color-valid);
   }
 
     /* ── Links ─────────────────────────────────────────────────────────────── */
@@ -156,20 +159,20 @@
   /* ── Link Labels ───────────────────────────────────────────────────────── */
 
   .jj-link-label-text {
-    fill: var(--jj-label-color);
-    font-size: var(--jj-label-font-size);
-    font-family: var(--jj-label-font-family);
+    fill: var(--jj-link-label-color);
+    font-size: var(--jj-link-label-font-size);
+    font-family: var(--jj-link-label-font-family);
   }
 
   .jj-link-label-body {
-    fill: var(--jj-label-bg-color);
-    stroke: var(--jj-label-border-color);
-    stroke-width: var(--jj-label-border-width);
+    fill: var(--jj-link-label-bg-color);
+    stroke: var(--jj-link-label-border-color);
+    stroke-width: var(--jj-link-label-border-width);
   }
 
   rect.jj-link-label-body {
-    rx: var(--jj-label-border-radius);
-    ry: var(--jj-label-border-radius);
+    rx: var(--jj-link-label-border-radius);
+    ry: var(--jj-link-label-border-radius);
   }
 
   /* ── Ports ──────────────────────────────────────────────────────────────── */
@@ -191,13 +194,13 @@
     cursor: var(--jj-port-dragging-cursor);
    }
 
-  .jj-port-body[magnet="active"]:not(.jj-is-available):hover {
+  .jj-port-body[magnet="active"]:not(.jj-is-magnet-available):hover {
     fill: var(--jj-port-hover-color);
-    stroke: var(--jj-port-border-hover-color);
+    stroke: var(--jj-port-hover-border-color);
     stroke-width: var(--jj-port-hover-border-width);
   }
 
-  .jj-port-body.jj-is-available {
+  .jj-port-body.jj-is-magnet-available {
     fill: var(--jj-port-available-color);
     stroke: var(--jj-port-available-border-color);
     stroke-width: var(--jj-port-available-border-width);
@@ -228,7 +231,7 @@
 
   .jj-box {
     background: var(--jj-box-color);
-    color: var(--jj-box-text-color);
+    color: var(--jj-box-fg-color);
     border: var(--jj-box-border-width) solid var(--jj-box-border-color);
     border-radius: var(--jj-box-border-radius);
     padding: var(--jj-box-padding);
@@ -238,7 +241,7 @@
   }
 
   .jj-box:hover {
-    border-color: var(--jj-box-hover-color);
+    border-color: var(--jj-box-hover-border-color);
     cursor: var(--jj-drag-cursor);
   }
 
@@ -246,7 +249,7 @@
     cursor: var(--jj-dragging-cursor);
   }
 
-  .jj-is-available .jj-box {
-    border-color: var(--jj-box-available-border);
+  .jj-is-element-available .jj-box {
+    border-color: var(--jj-box-available-border-color);
   }
 }
