@@ -196,7 +196,7 @@ export function useCells<
 
   const collectionArgument = isCollection(argument1) ? argument1 : undefined;
 
-  const { targetId, ids, isCollectionForm, arraySelector, cellSelector, isEqual } =
+  const { targetId, ids, arraySelector, cellSelector, isEqual } =
     parseUseCellsArgs<Cell, Selected>(argument1, argument2, argument3);
   const hasSelector = arraySelector !== undefined || cellSelector !== undefined;
 
@@ -271,14 +271,20 @@ export function useCells<
 
   const isEqualCallback = useMemo<UnknownEqual>(() => {
     if (isEqual) return isEqual as unknown as UnknownEqual;
-    if ((ids || isCollectionForm) && !hasSelector) {
+    if (targetId === undefined && !hasSelector) {
       return (a, b) => areArraysShallowEqual(a as readonly unknown[], b as readonly unknown[]);
     }
     if (hasSelector) return arrayAwareEqual;
     return Object.is;
-  }, [isEqual, ids, isCollectionForm, hasSelector]);
+  }, [isEqual, targetId, hasSelector]);
 
   // ── Selector ──
+
+  const isRawAllCells =
+    targetId === undefined &&
+    !ids &&
+    !collectionArgument &&
+    !hasSelector;
 
   const select = useCallback(
     (): Result => {
@@ -293,11 +299,15 @@ export function useCells<
       if (cachedRef.current.hasValue && isEqualCallback(cachedRef.current.value, next)) {
         return cachedRef.current.value;
       }
-      cachedRef.current = { hasValue: true, value: next };
-      return next;
+      // The all-cells form receives the container's mutable array. Shallow-copy
+      // so the cached value is a distinct reference, enabling
+      // areArraysShallowEqual to compare element-by-element on subsequent calls.
+      const value = isRawAllCells ? ([...next as readonly Cell[]] as unknown as Result) : next;
+      cachedRef.current = { hasValue: true, value };
+      return value;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [container, collectionArgument, targetId, idsKey, isEqualCallback]
+    [container, collectionArgument, targetId, idsKey, isEqualCallback, isRawAllCells]
   );
 
   return useSyncExternalStoreWithSelector(

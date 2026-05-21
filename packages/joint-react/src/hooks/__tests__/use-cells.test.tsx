@@ -119,6 +119,41 @@ describe('useCells', () => {
     });
     expect(result.current).not.toBe(before);
   });
+
+  it('no-arg form re-renders when a cell data changes', async () => {
+    storeRef = undefined;
+    const { result } = renderHook(() => useCells(), { wrapper: ProbeWrapper });
+    await act(async () => flush());
+    const before = result.current;
+    const cellA = before.find((c) => c.id === 'a');
+
+    await act(async () => {
+      storeRef!.graph.getCell('a')?.set('position', { x: 777, y: 777 });
+      await flush();
+    });
+
+    expect(result.current).not.toBe(before);
+    const cellAAfter = result.current.find((c) => c.id === 'a');
+    expect(cellAAfter).not.toBe(cellA);
+  });
+
+  it('no-arg form handles large cell counts without stack overflow', async () => {
+    const largeCells: CellRecord[] = [];
+    for (let i = 0; i < 5000; i++) {
+      largeCells.push({
+        id: `el-${i}`,
+        type: ELEMENT_MODEL_TYPE,
+        position: { x: i, y: 0 },
+        size: { width: 10, height: 10 },
+      } as CellRecord);
+    }
+    function LargeWrapper({ children }: { readonly children: React.ReactNode }) {
+      return <GraphProvider initialCells={largeCells}>{children}</GraphProvider>;
+    }
+    const { result } = renderHook(() => useCells(), { wrapper: LargeWrapper });
+    await act(async () => flush());
+    expect(result.current.length).toBe(5000);
+  });
 });
 
 interface ConsumerForIdsProps {

@@ -1,11 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
-import type {
-  ElementJSONInit,
-  LinkJSONInit,
-  CellId,
-} from '../types/cell.types';
+import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
 import { writeCellToContainer } from '../state/data-mapping/cell-record-merge';
@@ -35,7 +31,7 @@ export function graphProjection<
 >(options: GraphProjectionState<Element, Link>) {
   const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
-  const cells = createContainer<Element | Link>('Cells');
+  const cells = createContainer<Element | Link>();
 
   const trackChanges = onIncrementalChange !== undefined;
   const added = trackChanges ? new Map<CellId, Element | Link>() : undefined;
