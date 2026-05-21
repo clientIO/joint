@@ -196,7 +196,7 @@ export function useCells<
 
   const collectionArgument = isCollection(argument1) ? argument1 : undefined;
 
-  const { targetId, ids, isCollectionForm, arraySelector, cellSelector, isEqual } =
+  const { targetId, ids, arraySelector, cellSelector, isEqual } =
     parseUseCellsArgs<Cell, Selected>(argument1, argument2, argument3);
   const hasSelector = arraySelector !== undefined || cellSelector !== undefined;
 
