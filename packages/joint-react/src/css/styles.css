@@ -136,11 +136,6 @@
     stroke-linecap: var(--jj-link-line-cap);
   }
 
-  /*.jj-link-line:hover {
-    stroke: var(--jj-link-hover-color);
-    stroke-width: var(--jj-link-hover-width);
-  }*/
-
   .jj-is-connecting {
     --jj-link-color: var(--jj-link-connecting-color);
     --jj-link-width: var(--jj-link-connecting-width);
