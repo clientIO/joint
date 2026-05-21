@@ -152,7 +152,7 @@ export function elementPort(port: ElementPort): dia.Element.Port {
     {
       tagName: bodyTagName,
       selector: 'portBody',
-      className: `jj-port-body ${className}`.trim(),
+      className: `jj-port ${className}`.trim(),
     },
   ];
   result.attrs = { portBody: portBodyAttributes };

@@ -208,7 +208,7 @@ const CSS_DEFAULTS: CSSVars = {
   '--jj-link-label-border-radius':    'var(--jj-radius-sm)',
   '--jj-port-color':             pv('color-surface'),
   '--jj-port-border-color':      pv('color-link'),
-  '--jj-port-border-width':      '1.5px',
+  '--jj-port-border-width':      '2px',
   '--jj-port-hover-color':       pv('color-shape-surface'),
   '--jj-port-hover-border-color': pv('color-link'),
   '--jj-port-hover-border-width': '4px',

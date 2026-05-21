@@ -139,7 +139,7 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
       {
         tagName: bodyTagName,
         selector: 'labelBody',
-        className: `jj-link-label-body ${backgroundClassName}`.trim(),
+        className: `jj-link-label ${backgroundClassName}`.trim(),
       },
       {
         tagName: 'text',
