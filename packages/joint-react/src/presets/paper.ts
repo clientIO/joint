@@ -2,7 +2,7 @@ import { dia } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
-import { AVAILABLE_CLASS_NAME, DRAGGING_CLASS_NAME } from '../utils/class-names';
+import { DRAGGING_CLASS_NAME, ELEMENT_AVAILABLE_CLASS_NAME, MAGNET_AVAILABLE_CLASS_NAME } from '../utils/class-names';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -58,12 +58,24 @@ const DEFAULT_SNAP_RADIUS = 15;
 // Future improvement: this should sit on the dia.Paper prototype,
 // so it can be overridden by inheriting classes (e.g. Paper)
 export const DEFAULT_HIGHLIGHTING = {
-  [dia.CellView.Highlighting.DEFAULT]: {
+  [dia.CellView.Highlighting.CONNECTING]: {
     name: 'stroke',
     options: {
       attrs: {
-        strokeWidth: 2,
-        stroke: 'var(--jj-paper-highlight-color)',
+        strokeWidth: 1,
+        stroke: 'var(--jj-paper-connecting-highlight-color)'
+      },
+      rx: 4,
+      ry: 4,
+      padding: 6,
+    },
+  },
+  [dia.CellView.Highlighting.EMBEDDING]: {
+    name: 'stroke',
+    options: {
+      attrs: {
+        strokeWidth: 1.5,
+        stroke: 'var(--jj-paper-embedding-highlight-color)'
       },
       rx: 4,
       ry: 4,
@@ -73,13 +85,13 @@ export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: AVAILABLE_CLASS_NAME,
+      className: MAGNET_AVAILABLE_CLASS_NAME,
     },
   },
   [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: AVAILABLE_CLASS_NAME,
+      className: ELEMENT_AVAILABLE_CLASS_NAME,
     },
   },
 };

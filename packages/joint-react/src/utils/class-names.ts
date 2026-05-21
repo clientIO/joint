@@ -16,5 +16,8 @@ export const CONNECTING_CLASS_NAME = 'jj-is-connecting';
 /** Applied to a link view while its arrowhead is snapped to a valid target. */
 export const SNAPPED_CLASS_NAME = 'jj-is-snapped';
 
-/** Applied to magnet/link elements highlighted as available drop targets. */
-export const AVAILABLE_CLASS_NAME = 'jj-is-available';
+/** Applied to magnets highlighted as available link targets. */
+export const MAGNET_AVAILABLE_CLASS_NAME = 'jj-is-magnet-available';
+
+/** Applied to elements highlighted as available link targets. */
+export const ELEMENT_AVAILABLE_CLASS_NAME = 'jj-is-element-available';

@@ -1,4 +1,4 @@
- 
+
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useMarkup, usePaperEvents, selectElementSize } from '@joint/react';
@@ -6,7 +6,6 @@ import { highlighters, type dia } from '@joint/core';
 import { LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 import '../index.css';
-import './styles.css';
 
 // ============================================================================
 // Data

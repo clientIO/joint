@@ -10,9 +10,6 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-// Base theme — provides --jj-* CSS variable defaults
-import '../../../css/styles.css';
-
 // Plain CSS overrides for light/dark (no Tailwind)
 import './theme-overrides.css';
 

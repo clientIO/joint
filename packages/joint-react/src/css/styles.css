@@ -4,7 +4,7 @@
  * Provides CSS custom properties for styling links, labels, and ports.
  * Import this file to enable CSS-driven theming:
  *
- * Styles are defined in the `jointjs` layer, which you can import into your Tailwind setup
+ * Styles are defined in the `joint` layer, which you can import into your Tailwind setup
  * or use without any libraries.
 
  * Here is the example of a possible import when using with Tailwind:
@@ -14,26 +14,57 @@
  */
 
 
-@layer jointjs {
+@layer joint {
   :root {
     /* ── Palette ─────────────────────────────────────────────────────────── */
-    --jj-color-primary: #314b64;
-    --jj-color-primary-contrast: #ffffff;
-    --jj-color-success: #2f9e44;
+    --jj-color-dark-900: #6f859b;
+    --jj-color-dark-800: #566c81;
+    --jj-color-dark-700: #425567;
+    --jj-color-dark-600: #344351;
+    --jj-color-dark-500: #293a49;
+    --jj-color-dark-400: #253544;
+    --jj-color-dark-300: #202f3e;
+    --jj-color-dark-200: #1a2733;
+    --jj-color-dark-100: #131e29;
+
+    --jj-color-light-100: #f5f6f8;
+    --jj-color-light-125: #f3f6f8;
+    --jj-color-light-150: #f0f4f7;
+    --jj-color-light-200: #eaf0f4;
+    --jj-color-light-300: #e4ebf1;
+    --jj-color-light-400: #dde6ed;
+    --jj-color-light-500: #cfdbe4;
+    --jj-color-light-600: #c1cfda;
+    --jj-color-light-700: #a6b6c5;
+    --jj-color-light-800: #8a9eb0;
+    --jj-color-light-900: #6f859b;
+
+    --jj-color-success: #36a18b;
     --jj-color-destructive: #e03131;
-    --jj-color-viable: #314b64;
-    --jj-color-nonviable: #868e96;
-    --jj-color-text: #495057;
-    --jj-color-surface: #EFF3F6;
-    --jj-color-border: #ced4da;
-    --jj-color-border-subtle: #e9ecef;
-    --jj-color-grid: #c5cdd5;
-    --jj-color-scroller: #dde6ed;
-    --jj-color-tool: #314b64;
-    --jj-color-tool-contrast: #ffffff;
-    --jj-shape-border-color: #8A98AD;
-    --jj-shape-surface-color: #EFF3F6;
-    --jj-paper-color: #eaf0f4;
+    --jj-color-valid: var(--jj-color-dark-800);
+    --jj-color-invalid: #868e96;
+
+    --jj-radius-sm: 2px;
+    --jj-radius-md: 3px;
+    --jj-radius-lg: 4px;
+
+    --jj-space-xs: 2px;
+    --jj-space-sm: 4px;
+    --jj-space-md: 6px;
+    --jj-space-lg: 10px;
+
+    --jj-color-primary: var(--jj-color-dark-500);
+    --jj-color-primary-contrast: var(--jj-color-light-100);
+    --jj-color-surface: var(--jj-color-light-100);
+    --jj-color-shape-surface: var(--jj-color-light-150);
+    --jj-color-shape-border: var(--jj-color-light-800);
+    --jj-color-link: var(--jj-color-light-800);
+    --jj-color-tool: var(--jj-color-light-100);
+    --jj-color-tool-border: var(--jj-color-light-900);
+    --jj-color-text: var(--jj-color-dark-200);
+    --jj-color-border: var(--jj-color-light-500);
+    --jj-color-border-subtle: var(--jj-color-light-200);
+
     /* Cursor for hover state on draggable elements */
     --jj-drag-cursor: move;
     /* Cursor for elements and link labels while dragging */
@@ -44,61 +75,56 @@
     --jj-port-dragging-cursor: crosshair;
 
     /* ── Paper ───────────────────────────────────────────────────────────── */
-    --jj-paper-border-color: var(--jj-color-border-subtle);
-    --jj-paper-border-style: solid;
-    --jj-paper-border-width: 1px;
-    --jj-paper-box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
-    --jj-paper-grid-color: var(--jj-color-grid);
-    --jj-paper-grid-size: 10;
-    --jj-paper-grid-thickness: 1;
-    --jj-paper-highlight-color: var(--jj-color-primary);
+    --jj-paper-color: var(--jj-color-light-300);
+    --jj-paper-grid-color: var(--jj-color-light-700);
+    --jj-paper-connecting-highlight-color: var(--jj-color-primary);
+    --jj-paper-embedding-highlight-color: var(--jj-color-primary);
 
     /* ── Links ───────────────────────────────────────────────────────────── */
-    --jj-link-color: var(--jj-color-text);
-    --jj-link-width: 2;
+    --jj-link-color: var(--jj-color-link);
+    --jj-link-width: 1;
     --jj-link-dash: none;
     --jj-link-line-cap: butt;
-    --jj-link-hover-color: var(--jj-color-primary);
-    --jj-link-hover-width: 3;
-    --jj-link-selected-color: var(--jj-color-primary);
-    --jj-link-selected-width: 3;
-    --jj-link-connecting-color: var(--jj-color-tool);
-    --jj-link-connecting-width: 2;
+    --jj-link-connecting-color: var(--jj-color-primary);
+    --jj-link-connecting-width: 1.5;
     --jj-link-connecting-dash: 8 4;
 
     /* ── Link Labels ─────────────────────────────────────────────────────── */
-    --jj-label-bg-color: var(--jj-color-surface);
-    --jj-label-color: var(--jj-color-text);
-    --jj-label-font-size: 14px;
-    --jj-label-font-family: Arial, sans-serif;
-    --jj-label-border-color: var(--jj-color-text);
-    --jj-label-border-width: 1px;
-    --jj-label-border-radius: 4px;
+    --jj-link-label-bg-color: var(--jj-color-surface);
+    --jj-link-label-color: var(--jj-color-text);
+    --jj-link-label-font-size: 11px;
+    --jj-link-label-font-family: Arial, sans-serif;
+    --jj-link-label-border-color: var(--jj-color-link);
+    --jj-link-label-border-width: 1px;
+    --jj-link-label-border-radius: var(--jj-radius-sm);
 
     /* ── Ports ───────────────────────────────────────────────────────────── */
     --jj-port-color: var(--jj-color-surface);
-    --jj-port-border-color: var(--jj-color-text);
-    --jj-port-border-width: 1px;
-    --jj-port-hover-color: var(--jj-color-text);
-    --jj-port-border-hover-color: var(--jj-port-border-color);
-    --jj-port-hover-border-width: 5;
-    --jj-port-connecting-color: var(--jj-color-text);
-    --jj-port-connecting-border-color: var(--jj-port-border-color);
-    --jj-port-connecting-border-width: var(--jj-port-border-width);
+    --jj-port-border-color: var(--jj-color-link);
+    /* Effective 1px because of paint-order: stroke */
+    --jj-port-border-width: 2px;
+    --jj-port-hover-color: var(--jj-color-shape-surface);
+    --jj-port-hover-border-color: var(--jj-color-link);
+    /* Effective 2px because of paint-order: stroke */
+    --jj-port-hover-border-width: 4px;
+    --jj-port-available-color: var(--jj-color-primary);
+    --jj-port-available-border-color: var(--jj-color-primary);
+    --jj-port-available-border-width: var(--jj-port-border-width);
     --jj-port-label-color: var(--jj-color-text);
     --jj-port-label-font-size: 10px;
     --jj-port-label-font-family: Arial, sans-serif;
 
     /* ── Box (HTML elements) ─────────────────────────────────────────────── */
-    --jj-box-color: var(--jj-shape-surface-color);
-    --jj-box-text-color: var(--jj-color-text);
-    --jj-box-border-color: var(--jj-shape-border-color);
+    --jj-box-color: var(--jj-color-shape-surface);
+    --jj-box-hover-border-color: var(--jj-color-primary);
+    --jj-box-fg-color: var(--jj-color-text);
+    --jj-box-border-color: var(--jj-color-shape-border);
     --jj-box-border-width: 1px;
-    --jj-box-border-radius: 4px;
+    --jj-box-border-radius: var(--jj-radius-lg);
     --jj-box-padding: 8px 12px;
     --jj-box-font-size: 14px;
     --jj-box-font-family: sans-serif;
-    --jj-box-available-border: var(--jj-color-viable);
+    --jj-box-available-border-color: var(--jj-color-valid);
   }
 
     /* ── Links ─────────────────────────────────────────────────────────────── */
@@ -127,53 +153,51 @@
 
   /* ── Link Labels ───────────────────────────────────────────────────────── */
 
-  .jj-link-label-text {
-    fill: var(--jj-label-color);
-    font-size: var(--jj-label-font-size);
-    font-family: var(--jj-label-font-family);
+  .jj-link-label {
+    fill: var(--jj-link-label-color);
+    font-size: var(--jj-link-label-font-size);
+    font-family: var(--jj-link-label-font-family);
   }
 
-  .jj-link-label-body {
-    fill: var(--jj-label-bg-color);
-    stroke: var(--jj-label-border-color);
-    stroke-width: var(--jj-label-border-width);
+  .jj-link-label-bg {
+    fill: var(--jj-link-label-bg-color);
+    stroke: var(--jj-link-label-border-color);
+    stroke-width: var(--jj-link-label-border-width);
   }
 
-  .jj-link-label-body:rect {
-    rx: var(--jj-label-border-radius);
-    ry: var(--jj-label-border-radius);
+  rect.jj-link-label-bg {
+    rx: var(--jj-link-label-border-radius);
+    ry: var(--jj-link-label-border-radius);
   }
 
   /* ── Ports ──────────────────────────────────────────────────────────────── */
 
-  /* @todo rename .jj-port */
-  .jj-port-body {
+  .jj-port {
     fill: var(--jj-port-color);
     stroke: var(--jj-port-border-color);
     stroke-width: var(--jj-port-border-width);
+    paint-order: stroke;
+    transition: fill 0.2s, stroke 0.2s, stroke-width 0.2s;
   }
 
-  .jj-port-body[magnet="active"] {
+  .jj-port[magnet="active"] {
     cursor: var(--jj-port-drag-cursor);
    }
 
-  .jj-is-dragging .jj-port-body[magnet="active"] {
+  .jj-is-dragging .jj-port[magnet="active"] {
     cursor: var(--jj-port-dragging-cursor);
    }
 
-  .jj-port-body[magnet="active"]:hover {
+  .jj-port[magnet="active"]:not(.jj-is-magnet-available):hover {
     fill: var(--jj-port-hover-color);
-    stroke: var(--jj-port-border-hover-color);
+    stroke: var(--jj-port-hover-border-color);
     stroke-width: var(--jj-port-hover-border-width);
-    transition: fill 0.2s, stroke 0.2s, stroke-width 0.2s;
-    paint-order: stroke fill;
   }
 
-  .jj-port-body.jj-is-available {
-    fill: var(--jj-port-connecting-color);
-    stroke: var(--jj-port-connecting-border-color);
-    stroke-width: var(--jj-port-connecting-border-width);
-    transition: fill 0.2s, stroke 0.2s, stroke-width 0.2s;
+  .jj-port.jj-is-magnet-available {
+    fill: var(--jj-port-available-color);
+    stroke: var(--jj-port-available-border-color);
+    stroke-width: var(--jj-port-available-border-width);
   }
 
   .jj-port-label {
@@ -201,12 +225,17 @@
 
   .jj-box {
     background: var(--jj-box-color);
-    color: var(--jj-box-text-color);
+    color: var(--jj-box-fg-color);
     border: var(--jj-box-border-width) solid var(--jj-box-border-color);
     border-radius: var(--jj-box-border-radius);
     padding: var(--jj-box-padding);
     font-size: var(--jj-box-font-size);
     font-family: var(--jj-box-font-family);
+    transition: border-color 0.2s;
+  }
+
+  .jj-box:hover {
+    border-color: var(--jj-box-hover-border-color);
     cursor: var(--jj-drag-cursor);
   }
 
@@ -214,8 +243,7 @@
     cursor: var(--jj-dragging-cursor);
   }
 
-  .jj-is-available .jj-box {
-    border-color: var(--jj-box-available-border);
-    transition: border-color 0.2s;
+  .jj-is-element-available .jj-box {
+    border-color: var(--jj-box-available-border-color);
   }
 }

@@ -4,17 +4,17 @@
   --jj-color-primary: #3ff7c7;
 
   --jj-box-color: #313244;
-  --jj-box-text-color: #cdd6f4;
+  --jj-box-fg-color: #cdd6f4;
   --jj-box-border-color: #585b70;
-  --jj-box-available-border: #25f7ff;
+  --jj-box-available-border-color: #25f7ff;
 
   --jj-link-color: #89b4fa;
 
-  --jj-label-color: #cdd6f4;
-  --jj-label-bg-color: #313244;
-  --jj-label-border-color: #585b70;
+  --jj-link-label-color: #cdd6f4;
+  --jj-link-label-bg-color: #313244;
+  --jj-link-label-border-color: #585b70;
 
   --jj-port-color: #cdd6f4;
   --jj-port-border-color: #1e1e2e;
-  --jj-port-connecting-color: #25f7ff;
+  --jj-port-available-color: #25f7ff;
 }
