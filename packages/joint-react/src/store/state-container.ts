@@ -1,10 +1,7 @@
 import { isUpdater } from '../utils/is';
 import { simpleScheduler } from '../utils/scheduler';
 import { isStrictEqual } from '../utils/selector-utils';
-import type {
-  CellId,
-  AnyCellRecord,
-} from '../types/cell.types';
+import type { CellId, AnyCellRecord } from '../types/cell.types';
 
 /** Update payload accepted by container setters: a new value or a previous-state updater. */
 export type Update<T> = ((previous: T | undefined) => T | undefined) | T;
@@ -28,9 +25,7 @@ export function getValue<T>(previous: T | undefined, updater: Update<T>): T | un
 }
 
 /** Read-only view of a cell container — supports reads, lookups, and subscriptions. */
-export interface ReadonlyContainer<
-  Cell extends AnyCellRecord,
-> {
+export interface ReadonlyContainer<Cell extends AnyCellRecord> {
   getVersion: () => number;
   getAll: () => readonly Cell[];
   get: (id: CellId) => Cell | undefined;
@@ -42,8 +37,7 @@ export interface ReadonlyContainer<
 }
 
 /** Mutable cell container — extends {@link ReadonlyContainer} with set/delete/reset operations. */
-export interface Container<Cell extends AnyCellRecord>
-  extends ReadonlyContainer<Cell> {
+export interface Container<Cell extends AnyCellRecord> extends ReadonlyContainer<Cell> {
   set: (id: CellId, update: Update<Cell>) => void;
   delete: (id: CellId) => void;
   reset: (next: readonly Cell[]) => void;
@@ -54,9 +48,9 @@ export interface Container<Cell extends AnyCellRecord>
  * Wraps a container to expose only read and subscribe operations.
  * @param container
  */
-export function asReadonlyContainer<
-  Cell extends AnyCellRecord,
->(container: Container<Cell>): ReadonlyContainer<Cell> {
+export function asReadonlyContainer<Cell extends AnyCellRecord>(
+  container: Container<Cell>
+): ReadonlyContainer<Cell> {
   return {
     get: container.get,
     has: container.has,
@@ -78,9 +72,7 @@ export function asReadonlyContainer<
  * not rely on insertion order for identity.
  * @param _name - optional label for debugging
  */
-export function createContainer<
-  Cell extends AnyCellRecord,
->(_name?: string): Container<Cell> {
+export function createContainer<Cell extends AnyCellRecord>(_name?: string): Container<Cell> {
   const items: Cell[] = [];
   const indexById = new Map<CellId, number>();
   const listeners = new Map<CellId, Set<() => void>>();
