@@ -544,4 +544,76 @@ describe('useCells (collection form)', () => {
     await act(async () => flush());
     expect(result.current).toEqual([]);
   });
+
+  it('array-returning selector without isEqual skips re-render when result is structurally equal', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    let renderCount = 0;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([
+            store.graph.getCell('a')!,
+            store.graph.getCell('b')!,
+          ]);
+        }
+        renderCount++;
+        return useCells(
+          collection,
+          (cells) => cells.filter((c) => c.type === ELEMENT_MODEL_TYPE).map((c) => String(c.id))
+        );
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current).toEqual(['a', 'b']);
+    const before = result.current;
+    const rendersBefore = renderCount;
+
+    // Change position on 'a' — ids list unchanged, should NOT re-render
+    await act(async () => {
+      storeRef!.graph.getCell('a')?.set('position', { x: 999, y: 999 });
+      await flush();
+    });
+    expect(result.current).toBe(before);
+    expect(renderCount).toBe(rendersBefore);
+  });
+
+  it('warns in dev when selector returns unstable object array without isEqual', async () => {
+    storeRef = undefined;
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          collection = new mvc.Collection<dia.Cell>([
+            store.graph.getCell('a')!,
+            store.graph.getCell('b')!,
+          ]);
+        }
+        return useCells(
+          collection,
+          (cells) => cells.map((c) => ({ id: String(c.id) }))
+        );
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current).toEqual([{ id: 'a' }, { id: 'b' }]);
+
+    // Trigger a cell change — selector re-runs, produces new object refs
+    await act(async () => {
+      storeRef!.graph.getCell('a')?.set('position', { x: 50, y: 50 });
+      await flush();
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[useCells] Selector returns a new array of objects')
+    );
+    warnSpy.mockRestore();
+  });
 });
