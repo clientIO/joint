@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { LinkRecord } from '../../types/cell.types';
-import type { PortalSelector } from '../../models/portal-paper.types';
-import type { PortalPaper } from '../../models/portal-paper';
+import type { PortalSelector } from '../../models/react-paper.types';
+import type { ReactPaper } from '../../models/react-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
@@ -336,9 +336,9 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
   readonly portalSelector?: PortalSelector;
 
   /**
-   * Pre-created PortalPaper instance to adopt.
+   * Pre-created ReactPaper instance to adopt.
    * When provided, the Paper component wraps this paper instead of creating a new one.
    * The paper's DOM is assumed to be managed externally (e.g. by a stencil).
    */
-  readonly paper?: PortalPaper;
+  readonly paper?: ReactPaper;
 }

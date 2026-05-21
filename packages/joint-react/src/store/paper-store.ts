@@ -1,9 +1,9 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell.types';
 import type { RenderElement, RenderLink } from '../components';
-import type { PortalSelector } from '../models/portal-paper.types';
+import type { PortalSelector } from '../models/react-paper.types';
 import type { GraphStore } from './graph-store';
-import { PortalPaper } from '../models/portal-paper';
+import { ReactPaper } from '../models/react-paper';
 import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { PaperStoreState } from './graph-store';
@@ -30,10 +30,10 @@ export interface AddPaperOptions {
   readonly portalSelector?: PortalSelector;
 
   /**
-   * Pre-created PortalPaper instance to adopt.
+   * Pre-created ReactPaper instance to adopt.
    * When provided, PaperStore wraps this paper instead of creating a new one.
    */
-  readonly paper?: PortalPaper;
+  readonly paper?: ReactPaper;
 }
 
 /**
@@ -67,7 +67,7 @@ export function getDefaultPaperState(): PaperStoreState {
  */
 export class PaperStore {
   /** The underlying JointJS Paper instance with React-specific properties */
-  public paper: PortalPaper;
+  public paper: ReactPaper;
   /** Unique identifier for this paper instance */
   public paperId: string;
   /** Optional custom element renderer */
@@ -99,7 +99,7 @@ export class PaperStore {
     this.renderLink = renderLink;
 
     if (externalPaper) {
-      // Adopt an externally created PortalPaper (e.g. from PortalStencil).
+      // Adopt an externally created ReactPaper (e.g. from PortalStencil).
       // Hook into view mount changes so the GraphStore stays in sync.
       externalPaper.onViewMountChange = (changes: Map<CellId, IncrementalChange<dia.Cell>>) => {
         graphStore.setPaperViews(this.paperId, changes);
@@ -107,24 +107,24 @@ export class PaperStore {
       this.paper = externalPaper;
     } else {
       const { graph } = graphStore;
-      // Create a new PortalPaper instance
-      // PortalPaper handles view lifecycle internally via insertView/removeView
+      // Create a new ReactPaper instance
+      // ReactPaper handles view lifecycle internally via insertView/removeView
       // NOTE: We don't use cellVisibility to hide links because JointJS's
       // unmountedList.rotate() causes O(n) checks per frame when returning false.
       // Link visibility should be handled in React layer instead.
-      const paper = new PortalPaper({
+      const paper = new ReactPaper({
         model: graph,
         id,
         portalSelector,
         afterRender: (() => {
           // Re-entrance guard to prevent infinite loops
           let isProcessing = false;
-          // `afterRender` is invoked by JointJS with the `PortalPaper` as its
+          // `afterRender` is invoked by JointJS with the `ReactPaper` as its
           // `this`, so we cannot use an arrow function; we must capture the
           // outer `PaperStore` instance to call `flushPendingLinkChanges`.
           // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
           const store = this;
-          return function (this: PortalPaper) {
+          return function (this: ReactPaper) {
             if (isProcessing) {
               return;
             }

@@ -1,12 +1,12 @@
 import { dia } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { PaperStore } from '../paper-store';
-import { PortalPaper } from '../../models/portal-paper';
+import { ReactPaper } from '../../models/react-paper';
 
 describe('PaperStore — externalPaper adoption', () => {
   it('overrides onViewMountChange on the adopted paper to relay into the graph store', () => {
     const graphStore = new GraphStore({});
-    const externalPaper = new PortalPaper({
+    const externalPaper = new ReactPaper({
       model: graphStore.graph,
       id: 'external-paper',
     });
@@ -42,7 +42,7 @@ describe('PaperStore — afterRender re-entrance guard', () => {
     });
 
     const afterRender = paperStore.paper.options.afterRender as
-      | ((this: PortalPaper) => void)
+      | ((this: ReactPaper) => void)
       | undefined;
     expect(typeof afterRender).toBe('function');
 
@@ -58,7 +58,7 @@ describe('PaperStore — afterRender re-entrance guard', () => {
 
     const fakeContext = {
       checkPendingLinks,
-    } as unknown as PortalPaper;
+    } as unknown as ReactPaper;
 
     afterRender!.call(fakeContext);
 
@@ -95,7 +95,7 @@ describe('PaperStore.addPendingLinkChanges + flush', () => {
 
     // Trigger the afterRender hook attached to the paper to drive the flush.
     const afterRender = paperStore.paper.options.afterRender as
-      | ((this: PortalPaper) => void)
+      | ((this: ReactPaper) => void)
       | undefined;
     expect(typeof afterRender).toBe('function');
 
