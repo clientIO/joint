@@ -72,7 +72,7 @@ export function asReadonlyContainer<Cell extends AnyCellRecord>(
  * not rely on insertion order for identity.
  * @param _name - optional label for debugging
  */
-export function createContainer<Cell extends AnyCellRecord>(_name?: string): Container<Cell> {
+export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
   const items: Cell[] = [];
   const indexById = new Map<CellId, number>();
   const listeners = new Map<CellId, Set<() => void>>();
