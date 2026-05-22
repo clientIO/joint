@@ -20,12 +20,12 @@ export const GridLayerView = LayerView.extend({
 
     init() {
         LayerView.prototype.init.apply(this, arguments);
-        this.paper = this.options.paper;
         this._gridCache = null;
         this._gridSettings = [];
     },
 
     afterPaperReferenceSet(paper) {
+        this.patterns = paper.constructor.gridPatterns;
         this.listenTo(paper, 'transform resize', this.updateGrid);
     },
 
@@ -150,7 +150,7 @@ export const GridLayerView = LayerView.extend({
 
     _resolveDrawGridOption(opt) {
 
-        const namespace = this.options.patterns;
+        const namespace = this.patterns;
         if (isString(opt) && Array.isArray(namespace[opt])) {
             return namespace[opt].map(function(item) {
                 return assign({}, item);

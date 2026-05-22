@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import { dia, util } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
@@ -38,18 +38,6 @@ function getPointerId(event: dia.Event): number | null {
   const fromOriginal = original?.pointerId;
   return typeof fromOriginal === 'number' ? fromOriginal : null;
 }
-
-// Inject CSS custom property into all built-in grid pattern colors
-// so they respond to --jj-paper-grid-color.
-// @ts-expect-error Accessing protected member to set default grid pattern colors
-// eslint-disable-next-line unicorn/no-array-for-each
-Object.values(dia.Paper.gridPatterns).forEach((pattern) => {
-  const patterns = Array.isArray(pattern) ? pattern : [pattern];
-  for (const subPattern of patterns) {
-    if (!subPattern.color) continue;
-    subPattern.color = 'var(--jj-paper-grid-color)';
-  }
-});
 
 const DEFAULT_CLICK_THRESHOLD = 5;
 const DEFAULT_GRID_SIZE = 10;
@@ -112,6 +100,18 @@ const linkView = (
   // otherwise fall back to the default LinkView.
   return NSViewCtor ?? LinkView;
 };
+
+function getGridPatterns(): Record<string, dia.Paper.PatternOptions[]> {
+  // @ts-expect-error Accessing protected member to set default grid pattern colors
+  const patterns = util.cloneDeep(dia.Paper.gridPatterns as Record<string, dia.Paper.PatternOptions[]>);
+  for (const pattern of Object.values(patterns)) {
+    for (const subPattern of pattern) {
+      if (!subPattern.color) continue;
+      subPattern.color = 'var(--jj-paper-grid-color)';
+    }
+  }
+  return patterns;
+}
 
 export const Paper = dia.Paper.extend({
   className: 'jj-paper joint-paper',
@@ -210,4 +210,6 @@ export const Paper = dia.Paper.extend({
     measureNode,
     linkView,
   },
+}, {
+  gridPatterns: getGridPatterns(),
 }) as typeof dia.Paper;

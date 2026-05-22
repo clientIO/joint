@@ -300,20 +300,6 @@ const backgroundPatterns = {
     }
 };
 
-const implicitLayers = [{
-    id: paperLayers.GRID,
-    type: 'GridLayerView',
-    patterns: gridPatterns
-}, {
-    id: paperLayers.BACK,
-}, {
-    id: paperLayers.LABELS,
-}, {
-    id: paperLayers.FRONT
-}, {
-    id: paperLayers.TOOLS
-}];
-
 const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 
 export const Paper = View.extend({
@@ -627,7 +613,18 @@ export const Paper = View.extend({
     FLAG_INIT: 1<<28,
 
     // Layers that are always present on the paper (e.g. grid, back, front, tools)
-    implicitLayers,
+    implicitLayers: [{
+        id: paperLayers.GRID,
+        type: 'GridLayerView'
+    }, {
+        id: paperLayers.BACK,
+    }, {
+        id: paperLayers.LABELS,
+    }, {
+        id: paperLayers.FRONT
+    }, {
+        id: paperLayers.TOOLS
+    }],
 
     // Reference layer for inserting new graph layers.
     graphLayerRefId: paperLayers.LABELS,
