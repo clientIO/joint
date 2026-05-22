@@ -118,18 +118,6 @@ export const Paper = dia.Paper.extend({
   classNamePrefix: '',
   documentEvents: POINTER_DOCUMENT_EVENTS,
 
-  /*getGridPatterns() {
-    const patterns = dia.Paper.prototype.getGridPatterns.call(this);
-    // Change default color to CSS variable
-    for (const pattern of Object.values(patterns)) {
-      for (const subPattern of pattern) {
-        if (!subPattern.color) continue;
-        subPattern.color = 'var(--jj-paper-grid-color)';
-      }
-    }
-    return patterns;
-  },*/
-
   /**
    * Add listeners that record the original pointerdown target into the
    * drag's `evt.data`, so `pointermove` can use it as a `setPointerCapture`
