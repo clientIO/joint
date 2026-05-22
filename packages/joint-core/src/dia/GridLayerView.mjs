@@ -25,7 +25,7 @@ export const GridLayerView = LayerView.extend({
     },
 
     afterPaperReferenceSet(paper) {
-        this.patterns = paper.getGridPatterns();
+        this.patterns = paper.constructor.gridPatterns;
         this.listenTo(paper, 'transform resize', this.updateGrid);
     },
 

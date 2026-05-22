@@ -842,14 +842,6 @@ export const Paper = View.extend({
 
     /**
      * @protected
-     * @description Returns grid patterns for the paper grid layer.
-     */
-    getGridPatterns: function() {
-        return cloneDeep(this.constructor.gridPatterns);
-    },
-
-    /**
-     * @protected
      * @description Renders all implicit layer views.
      */
     renderImplicitLayerViews: function() {

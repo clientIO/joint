@@ -2149,8 +2149,6 @@ export class Paper extends mvc.View<Graph> {
 
     setGridSize(gridSize: number): this;
 
-    getGridPatterns(): Record<string, Paper.GridOptions[]>;
-
     // tools
 
     removeTools(): this;

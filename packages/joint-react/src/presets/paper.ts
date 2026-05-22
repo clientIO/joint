@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import { dia, util } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
@@ -101,12 +101,24 @@ const linkView = (
   return NSViewCtor ?? LinkView;
 };
 
+function getGridPatterns(): Record<string, dia.Paper.PatternOptions[]> {
+  // @ts-expect-error Accessing protected member to set default grid pattern colors
+  const patterns = util.cloneDeep(dia.Paper.gridPatterns as Record<string, dia.Paper.PatternOptions[]>);
+  for (const pattern of Object.values(patterns)) {
+    for (const subPattern of pattern) {
+      if (!subPattern.color) continue;
+      subPattern.color = 'var(--jj-paper-grid-color)';
+    }
+  }
+  return patterns;
+}
+
 export const Paper = dia.Paper.extend({
   className: 'jj-paper joint-paper',
   classNamePrefix: '',
   documentEvents: POINTER_DOCUMENT_EVENTS,
 
-  getGridPatterns() {
+  /*getGridPatterns() {
     const patterns = dia.Paper.prototype.getGridPatterns.call(this);
     // Change default color to CSS variable
     for (const pattern of Object.values(patterns)) {
@@ -116,7 +128,7 @@ export const Paper = dia.Paper.extend({
       }
     }
     return patterns;
-  },
+  },*/
 
   /**
    * Add listeners that record the original pointerdown target into the
@@ -210,4 +222,6 @@ export const Paper = dia.Paper.extend({
     measureNode,
     linkView,
   },
+}, {
+  gridPatterns: getGridPatterns(),
 }) as typeof dia.Paper;
