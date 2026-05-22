@@ -194,15 +194,6 @@ describe('GraphStore feature lifecycle', () => {
   });
 });
 
-describe('GraphStore.getGraphProjection typed accessor', () => {
-  it('returns the same graphProjection reference', () => {
-    const store = new GraphStore({});
-    const view = store.getGraphProjection();
-    expect(view).toBe(store.graphProjection);
-    store.destroy(false);
-  });
-});
-
 describe('GraphStore.applyControlled', () => {
   it('routes through graphProjection.updateGraph with the react-origin flag', () => {
     const store = new GraphStore({});
@@ -487,11 +478,8 @@ describe('GraphStore size observer integration', () => {
     store.destroy(false);
   });
 
-  it('throws via getCellTransform when the targeted cell is not an element', () => {
+  it('silently ignores resize when the targeted cell has been removed from the graph', () => {
     const store = new GraphStore<CellRecord, CellRecord>({});
-    // Prepare an element on the graph then add the measured node, but
-    // remove the element afterwards before triggering resize so that
-    // `getCell()` either returns a non-element or undefined.
     store.graph.addCell({
       id: 'ghost',
       type: 'element',
@@ -501,11 +489,12 @@ describe('GraphStore size observer integration', () => {
     const node = document.createElement('div');
     store.setMeasuredNode({ id: 'ghost', node });
 
-    // Replace the cell with a non-element under the same id by removing it.
+    // Remove the cell — the projection no longer contains it, so
+    // processSizeChange bails out before reaching getCellTransform.
     store.graph.removeCells([store.graph.getCell('ghost')]);
 
     const observer = MockResizeObserver.instances.at(-1)!;
-    expect(() => observer.triggerResize(node, 100, 50)).toThrow(/Cell not valid/);
+    expect(() => observer.triggerResize(node, 100, 50)).not.toThrow();
     store.destroy(false);
   });
 });

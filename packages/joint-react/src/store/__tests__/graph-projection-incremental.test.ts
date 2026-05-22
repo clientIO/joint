@@ -9,14 +9,7 @@ function createGraph(): dia.Graph {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 }
 
-function addElement(
-  graph: dia.Graph,
-  id: string,
-  x = 10,
-  y = 20,
-  width = 100,
-  height = 50
-): void {
+function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50): void {
   graph.addCell({ id, type: ELEMENT_MODEL_TYPE, position: { x, y }, size: { width, height } });
 }
 
@@ -41,14 +34,14 @@ function cloneChanges(c: IncrementalCellsChange): IncrementalCellsChange {
   };
 }
 
-describe('graphProjection onIncrementalChange', () => {
+describe('graphProjection onIncrementalCellsChange', () => {
   it('fires with added cell when an element is added to the graph', async () => {
     const graph = createGraph();
     const allChanges: IncrementalCellsChange[] = [];
 
     const view = graphProjection({
       graph,
-      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
+      onIncrementalCellsChange: (c) => allChanges.push(cloneChanges(c)),
     });
 
     addElement(graph, 'el-1');
@@ -67,7 +60,7 @@ describe('graphProjection onIncrementalChange', () => {
 
     const view = graphProjection({
       graph,
-      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
+      onIncrementalCellsChange: (c) => allChanges.push(cloneChanges(c)),
     });
 
     addElement(graph, 'el-1');
@@ -90,7 +83,7 @@ describe('graphProjection onIncrementalChange', () => {
 
     const view = graphProjection({
       graph,
-      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
+      onIncrementalCellsChange: (c) => allChanges.push(cloneChanges(c)),
     });
 
     addElement(graph, 'el-1');
@@ -110,7 +103,7 @@ describe('graphProjection onIncrementalChange', () => {
     view.destroy();
   });
 
-  it('does not throw when no onIncrementalChange is provided', async () => {
+  it('does not throw when no onIncrementalCellsChange is provided', async () => {
     const graph = createGraph();
     const view = graphProjection({ graph });
 
@@ -121,13 +114,13 @@ describe('graphProjection onIncrementalChange', () => {
     view.destroy();
   });
 
-  it('commits container state before firing onIncrementalChange', async () => {
+  it('commits container state before firing onIncrementalCellsChange', async () => {
     const graph = createGraph();
     let containerValueDuringCallback: unknown;
 
     const view = graphProjection({
       graph,
-      onIncrementalChange: () => {
+      onIncrementalCellsChange: () => {
         containerValueDuringCallback = view.cells.get('el-1');
       },
     });
@@ -194,7 +187,7 @@ describe('graphProjection onIncrementalChange', () => {
     const allChanges: IncrementalCellsChange[] = [];
     const view = graphProjection({
       graph,
-      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
+      onIncrementalCellsChange: (c) => allChanges.push(cloneChanges(c)),
     });
 
     addElement(graph, 'a');
@@ -214,7 +207,7 @@ describe('graphProjection onIncrementalChange', () => {
     const allChanges: IncrementalCellsChange[] = [];
     const view = graphProjection({
       graph,
-      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
+      onIncrementalCellsChange: (c) => allChanges.push(cloneChanges(c)),
     });
 
     addElement(graph, 'a');

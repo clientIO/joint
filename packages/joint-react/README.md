@@ -289,7 +289,7 @@ export function Controlled() {
 
 ### 5) Incremental change mode (Redux, Zustand, etc.)
 
-`onIncrementalChange` is orthogonal to controlled/uncontrolled — it fires in any mode with granular `added` / `changed` / `removed` sets.
+`onIncrementalCellsChange` is orthogonal to controlled/uncontrolled — it fires in any mode with granular `added` / `changed` / `removed` sets.
 
 ```tsx
 import React from 'react'
@@ -314,7 +314,7 @@ export function IncrementalExample() {
   return (
     <GraphProvider
       initialElements={initialElements}
-      onIncrementalChange={handleChange}
+      onIncrementalCellsChange={handleChange}
     >
       <Paper height={320} />
     </GraphProvider>
@@ -397,7 +397,7 @@ export function FitOnMount() {
 - **Give each view a stable `id`** when rendering multiple `Paper` instances.
 - **Prefer declarative first**: reach for hooks/props; use imperative APIs (refs/graph methods) for targeted operations only.
 - **Accessing component instances via refs**: `Paper` forwards a ref to the underlying JointJS `dia.Paper` instance. `GraphProvider` forwards a ref to the underlying `dia.Graph`.
-- **Choose the right mode**: default to uncontrolled (`initialElements` / `initialLinks`). Switch to controlled (`elements` + `onElementsChange`) only when React must own the source of truth — e.g. for undo/redo, persistence, or multi-store integration. Mix per stream as needed. Use `onIncrementalChange` for granular external-store sync (Redux, Zustand).
+- **Choose the right mode**: default to uncontrolled (`initialElements` / `initialLinks`). Switch to controlled (`elements` + `onElementsChange`) only when React must own the source of truth — e.g. for undo/redo, persistence, or multi-store integration. Mix per stream as needed. Use `onIncrementalCellsChange` for granular external-store sync (Redux, Zustand).
 - **Use selectors efficiently**: when using `useElements` or `useLinks`, provide custom selectors and equality functions to minimize re-renders.
 - **Batch updates**: the library automatically batches updates, but be mindful of rapid state changes in controlled mode.
 - **Test in Safari early** when using `<foreignObject>`; fall back to `useHTMLOverlay` if needed.
