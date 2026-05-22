@@ -300,20 +300,6 @@ const backgroundPatterns = {
     }
 };
 
-const implicitLayers = [{
-    id: paperLayers.GRID,
-    type: 'GridLayerView',
-    patterns: gridPatterns
-}, {
-    id: paperLayers.BACK,
-}, {
-    id: paperLayers.LABELS,
-}, {
-    id: paperLayers.FRONT
-}, {
-    id: paperLayers.TOOLS
-}];
-
 const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 
 export const Paper = View.extend({
@@ -627,7 +613,21 @@ export const Paper = View.extend({
     FLAG_INIT: 1<<28,
 
     // Layers that are always present on the paper (e.g. grid, back, front, tools)
-    implicitLayers,
+    implicitLayers: [{
+        id: paperLayers.GRID,
+        type: 'GridLayerView',
+        // @deprecated, `getGridPatterns` method overrides this property when creating the GridLayerView instance,
+        // so this is kept for backward compatibility only.
+        patterns: gridPatterns
+    }, {
+        id: paperLayers.BACK,
+    }, {
+        id: paperLayers.LABELS,
+    }, {
+        id: paperLayers.FRONT
+    }, {
+        id: paperLayers.TOOLS
+    }],
 
     // Reference layer for inserting new graph layers.
     graphLayerRefId: paperLayers.LABELS,
@@ -845,10 +845,22 @@ export const Paper = View.extend({
 
     /**
      * @protected
+     * @description Returns grid patterns for the paper grid layer.
+     */
+    getGridPatterns: function() {
+        return cloneDeep(this.constructor.gridPatterns);
+    },
+
+    /**
+     * @protected
      * @description Renders all implicit layer views.
      */
     renderImplicitLayerViews: function() {
         this.implicitLayers.forEach(layerInit => {
+            if (layerInit.type === 'GridLayerView') {
+                layerInit.patterns = this.getGridPatterns();
+            }
+
             const layerView = this.createLayerView(layerInit);
             this.addLayerView(layerView);
         });

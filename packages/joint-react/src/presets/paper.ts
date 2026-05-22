@@ -18,6 +18,7 @@ const POINTER_DOCUMENT_EVENTS: Record<string, string> = {
 };
 
 type ProtectedPaperPrototype = {
+  readonly getGridPatterns: () => Record<string, dia.Paper.PatternOptions[]>;
   readonly pointermove: (event: dia.Event) => void;
   readonly pointerup: (event: dia.Event) => void;
   readonly startListening: () => void;
@@ -38,18 +39,6 @@ function getPointerId(event: dia.Event): number | null {
   const fromOriginal = original?.pointerId;
   return typeof fromOriginal === 'number' ? fromOriginal : null;
 }
-
-// Inject CSS custom property into all built-in grid pattern colors
-// so they respond to --jj-paper-grid-color.
-// @ts-expect-error Accessing protected member to set default grid pattern colors
-// eslint-disable-next-line unicorn/no-array-for-each
-Object.values(dia.Paper.gridPatterns).forEach((pattern) => {
-  const patterns = Array.isArray(pattern) ? pattern : [pattern];
-  for (const subPattern of patterns) {
-    if (!subPattern.color) continue;
-    subPattern.color = 'var(--jj-paper-grid-color)';
-  }
-});
 
 const DEFAULT_CLICK_THRESHOLD = 5;
 const DEFAULT_GRID_SIZE = 10;
@@ -117,6 +106,18 @@ export const Paper = dia.Paper.extend({
   className: 'jj-paper joint-paper',
   classNamePrefix: '',
   documentEvents: POINTER_DOCUMENT_EVENTS,
+
+  getGridPatterns() {
+    const patterns = protectedProto.getGridPatterns.call(this);
+    // Change default color to CSS variable
+    for (const pattern of Object.values(patterns)) {
+      for (const subPattern of pattern) {
+        if (!subPattern.color) continue;
+        subPattern.color = 'var(--jj-paper-grid-color)';
+      }
+    }
+    return patterns;
+  },
 
   /**
    * Add listeners that record the original pointerdown target into the

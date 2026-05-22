@@ -2384,6 +2384,8 @@ export class Paper extends mvc.View<Graph> {
 
     protected addStylesheet(stylesheet: string): void;
 
+    protected getGridPatterns(): Record<string, Paper.GridOptions[]>;
+
     /**
      * @deprecated use `getLayerView(id).el` instead
      * **/
