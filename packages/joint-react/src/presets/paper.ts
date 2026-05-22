@@ -18,7 +18,6 @@ const POINTER_DOCUMENT_EVENTS: Record<string, string> = {
 };
 
 type ProtectedPaperPrototype = {
-  readonly getGridPatterns: () => Record<string, dia.Paper.PatternOptions[]>;
   readonly pointermove: (event: dia.Event) => void;
   readonly pointerup: (event: dia.Event) => void;
   readonly startListening: () => void;
@@ -108,7 +107,7 @@ export const Paper = dia.Paper.extend({
   documentEvents: POINTER_DOCUMENT_EVENTS,
 
   getGridPatterns() {
-    const patterns = protectedProto.getGridPatterns.call(this);
+    const patterns = dia.Paper.prototype.getGridPatterns.call(this);
     // Change default color to CSS variable
     for (const pattern of Object.values(patterns)) {
       for (const subPattern of pattern) {

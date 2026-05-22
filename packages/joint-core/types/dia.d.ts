@@ -2149,6 +2149,8 @@ export class Paper extends mvc.View<Graph> {
 
     setGridSize(gridSize: number): this;
 
+    getGridPatterns(): Record<string, Paper.GridOptions[]>;
+
     // tools
 
     removeTools(): this;
@@ -2383,8 +2385,6 @@ export class Paper extends mvc.View<Graph> {
     protected customEventTrigger(event: Event, view: CellView, rootNode?: SVGElement): Event | null;
 
     protected addStylesheet(stylesheet: string): void;
-
-    protected getGridPatterns(): Record<string, Paper.GridOptions[]>;
 
     /**
      * @deprecated use `getLayerView(id).el` instead

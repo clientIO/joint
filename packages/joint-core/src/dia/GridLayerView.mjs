@@ -26,7 +26,6 @@ export const GridLayerView = LayerView.extend({
     },
 
     afterPaperReferenceSet(paper) {
-        // override deprecated property with method call to get grid patterns
         this.options.patterns = paper.getGridPatterns();
         this.listenTo(paper, 'transform resize', this.updateGrid);
     },

@@ -615,10 +615,7 @@ export const Paper = View.extend({
     // Layers that are always present on the paper (e.g. grid, back, front, tools)
     implicitLayers: [{
         id: paperLayers.GRID,
-        type: 'GridLayerView',
-        // @deprecated, `getGridPatterns` method overrides this property when creating the GridLayerView instance,
-        // so this is kept for backward compatibility only.
-        patterns: gridPatterns
+        type: 'GridLayerView'
     }, {
         id: paperLayers.BACK,
     }, {
