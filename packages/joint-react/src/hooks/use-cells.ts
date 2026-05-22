@@ -222,7 +222,9 @@ export function useCells<
   const collectionIdsRef = useRef<readonly CellId[]>([]);
   const collectionVersionRef = useRef(0);
 
-  const previousCollectionRef = useRef(collectionArgument);
+  // Use `null` sentinel so the init-block runs on first render too, picking up
+  // any models that already exist in the collection at subscribe time.
+  const previousCollectionRef = useRef<mvc.Collection<dia.Cell> | undefined | null>(null);
   if (previousCollectionRef.current !== collectionArgument) {
     previousCollectionRef.current = collectionArgument;
     collectionIdsRef.current = collectionArgument
