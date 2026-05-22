@@ -16,7 +16,11 @@ import { LAYOUT_UPDATE_EVENT } from './graph-changes';
 import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
-import { graphProjection, type GraphProjection, type IncrementalCellsChange } from './graph-projection';
+import {
+  graphProjection,
+  type GraphProjection,
+  type OnIncrementalCellsChange,
+} from './graph-projection';
 import { simpleScheduler } from '../utils/scheduler';
 import { cellInputToModel, type CellInput } from '../utils/normalize-cell-input';
 
@@ -63,46 +67,24 @@ export interface GraphStoreInternalSnapshot {
  */
 export type AutoSizeOrigin = 'top-left' | 'center';
 
-interface GraphStoreOptionsBase<
+/**
+ * Options for creating a `GraphStore` in controlled mode. Requires the full cells
+ */
+export interface GraphStoreOptions<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 > {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
-  readonly onIncrementalCellsChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
   /**
    * Reference point that stays fixed when an auto-sized element's measured size
    * changes. See {@link AutoSizeOrigin}.
    * @default 'top-left'
    */
   readonly autoSizeOrigin?: AutoSizeOrigin;
-}
-
-/** Uncontrolled mode: parent provides only seed data. */
-interface GraphStoreOptionsUncontrolled<Element extends ElementJSONInit, Link extends LinkJSONInit>
-  extends GraphStoreOptionsBase<Element, Link> {
   readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
-  readonly cells?: never;
-  readonly onCellsChange?: (cells: ReadonlyArray<Element | Link>) => void;
 }
-
-/** Controlled mode: parent is the source of truth; store applies snapshots. */
-interface GraphStoreOptionsControlled<Element extends ElementJSONInit, Link extends LinkJSONInit>
-  extends GraphStoreOptionsBase<Element, Link> {
-  readonly cells: ReadonlyArray<Element | Link>;
-  readonly initialCells?: never;
-  readonly onCellsChange?: (cells: ReadonlyArray<Element | Link>) => void;
-}
-
-/**
- * Constructor options for {@link GraphStore} — either uncontrolled (`initialCells`)
- * or controlled (`cells` + `onCellsChange`).
- */
-export type GraphStoreOptions<
-  Element extends ElementJSONInit = ElementJSONInit,
-  Link extends LinkJSONInit = LinkJSONInit,
-> = GraphStoreOptionsUncontrolled<Element, Link> | GraphStoreOptionsControlled<Element, Link>;
 
 /**
  * Central store for managing graph state, synchronization, and paper instances.
@@ -111,36 +93,26 @@ export class GraphStore<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 > {
+  public readonly graphProjection: GraphProjection<Element, Link>;
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<number> = createAtom(0);
   public readonly graph: dia.Graph;
-
+  public readonly autoSizeOrigin: AutoSizeOrigin;
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
+
   private observer: GraphStoreObserver;
-  public readonly graphProjection: GraphProjection<Element, Link>;
-
-  public getGraphProjection<
-    E extends ElementJSONInit = ElementJSONInit,
-    L extends LinkJSONInit = LinkJSONInit,
-  >(): GraphProjection<E, L> {
-    return this.graphProjection as unknown as GraphProjection<E, L>;
-  }
-
-  public readonly autoSizeOrigin: AutoSizeOrigin;
+  private onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
 
   constructor(public readonly config: GraphStoreOptions<Element, Link>) {
     const {
       cellModel,
       cellNamespace = DEFAULT_CELL_NAMESPACE,
       graph,
-      onCellsChange,
-      onIncrementalCellsChange,
       autoSizeOrigin = 'top-left',
+      initialCells,
     } = config;
     this.autoSizeOrigin = autoSizeOrigin;
-    const controlledCells = 'cells' in config ? config.cells : undefined;
-    const initialCells = 'initialCells' in config ? config.initialCells : undefined;
 
     this.graph =
       graph ??
@@ -167,12 +139,12 @@ export class GraphStore<
         this.measureState.set((previous) => previous + 1);
       }
     };
+
     this.graphProjection = graphProjection<Element, Link>({
       graph: this.graph,
-      onIncrementalChange: this.buildIncrementalChangeHandler(
-        onIncrementalCellsChange,
-        onCellsChange
-      ),
+      onIncrementalCellsChange: (changes) => {
+        this.onIncrementalCellsChange?.(changes);
+      },
       onElementsSizeChange: (id, size) => {
         if (size.width > 0 && size.height > 0) {
           elementsMeasured.add(id);
@@ -239,13 +211,11 @@ export class GraphStore<
       },
     });
 
-    // Initial sync
-    const seedCells = controlledCells ?? initialCells;
-    if (seedCells && seedCells.length > 0) {
+    if (initialCells && initialCells.length > 0) {
       // Replace existing graph state with the seed cells. The graph-changes
       // listener handles `reset` synchronously and populates the cells
       // container — no manual `syncFromGraph` needed.
-      const models = seedCells.map((cell) => cellInputToModel(cell, this.graph));
+      const models = initialCells.map((cell) => cellInputToModel(cell, this.graph));
       this.graph.resetCells(models);
     } else if (this.graph.getCells().length > 0) {
       // External graph already has cells — populate the cells container
@@ -256,30 +226,9 @@ export class GraphStore<
     }
   }
 
-  /**
-   * Build the incremental-change relay that fans out store-level callbacks.
-   * Calling `onIncrementalCellsChange` with the raw `{added, changed, removed}`
-   * summary, and `onCellsChange` with the full cells-array snapshot.
-   * @param onIncrementalCellsChange - user callback for the summary
-   * @param onCellsChange - user callback for the full-array snapshot
-   * @returns combined handler, or undefined when both are absent (avoids allocation)
-   */
-  private buildIncrementalChangeHandler(
-    onIncrementalCellsChange:
-      | ((changes: IncrementalCellsChange<Element, Link>) => void)
-      | undefined,
-    onCellsChange: ((cells: ReadonlyArray<Element | Link>) => void) | undefined
-  ): ((changes: IncrementalCellsChange<Element, Link>) => void) | undefined {
-    if (!onIncrementalCellsChange && !onCellsChange) {
-      return undefined;
-    }
-    return (changes) => {
-      onIncrementalCellsChange?.(changes);
-      if (onCellsChange) {
-        onCellsChange(this.graphProjection.cells.getAll() as ReadonlyArray<Element | Link>);
-      }
-    };
-  }
+  public setOnIncrementalCellsChange = (callback: OnIncrementalCellsChange<Element, Link>) => {
+    this.onIncrementalCellsChange = callback;
+  };
 
   /**
    * Apply a controlled cells snapshot (called by GraphProvider when the

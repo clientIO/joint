@@ -15,13 +15,19 @@ export interface IncrementalCellsChange<
   readonly changed: Map<CellId, Element | Link>;
   readonly removed: Set<CellId>;
 }
+/**
+ * Callback type for incremental cell changes. Emitted after each graph change batch
+ */
+export type OnIncrementalCellsChange<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
+  changes: IncrementalCellsChange<Element, Link>
+) => void;
 
 interface GraphProjectionState<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 > {
   readonly graph: dia.Graph;
-  readonly onIncrementalChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
+  readonly onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
   readonly onElementsSizeChange?: (id: CellId, size: dia.Size) => void;
 }
 
@@ -29,11 +35,11 @@ export function graphProjection<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 >(options: GraphProjectionState<Element, Link>) {
-  const { graph, onIncrementalChange, onElementsSizeChange } = options;
+  const { graph, onIncrementalCellsChange, onElementsSizeChange } = options;
 
   const cells = createContainer<Element | Link>();
 
-  const trackChanges = onIncrementalChange !== undefined;
+  const trackChanges = onIncrementalCellsChange !== undefined;
   const added = trackChanges ? new Map<CellId, Element | Link>() : undefined;
   const changed = trackChanges ? new Map<CellId, Element | Link>() : undefined;
   const removed = trackChanges ? new Set<CellId>() : undefined;
@@ -93,7 +99,7 @@ export function graphProjection<
         (added!.size > 0 || changed!.size > 0 || removed!.size > 0);
 
       if (hasTrackedChanges) {
-        onIncrementalChange!({ added: added!, changed: changed!, removed: removed! });
+        onIncrementalCellsChange!({ added: added!, changed: changed!, removed: removed! });
         added!.clear();
         changed!.clear();
         removed!.clear();

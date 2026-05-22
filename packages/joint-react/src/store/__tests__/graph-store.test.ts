@@ -151,7 +151,7 @@ describe('GraphStore', () => {
           size: { width: 10, height: 10 },
         } as CellRecord,
       ];
-      const store = new GraphStore({ cells });
+      const store = new GraphStore({ initialCells: cells });
       expect(store.graphProjection.cells.has('x')).toBe(true);
       expect(store.graph.getCell('x')).toBeDefined();
       store.destroy(false);
@@ -161,7 +161,10 @@ describe('GraphStore', () => {
   describe('onCellsChange', () => {
     it('fires with the full cells array after a graph mutation', async () => {
       const onCellsChange = jest.fn();
-      const store = new GraphStore({ onCellsChange });
+      const store = new GraphStore({});
+      store.setOnIncrementalCellsChange(() => {
+        onCellsChange(store.graphProjection.cells.getAll());
+      });
       store.graph.addCell({
         id: 'a',
         type: ELEMENT_MODEL_TYPE,
@@ -191,9 +194,8 @@ describe('GraphStore', () => {
 
     it('fires with added/changed/removed summary', async () => {
       const snaps: Array<ReturnType<typeof snapshot>> = [];
-      const store = new GraphStore({
-        onIncrementalCellsChange: (c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])),
-      });
+      const store = new GraphStore({});
+      store.setOnIncrementalCellsChange((c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])));
       store.graph.addCell({
         id: 'a',
         type: ELEMENT_MODEL_TYPE,
@@ -210,9 +212,8 @@ describe('GraphStore', () => {
 
     it('reports links alongside elements in the unified pipeline', async () => {
       const snaps: Array<ReturnType<typeof snapshot>> = [];
-      const store = new GraphStore({
-        onIncrementalCellsChange: (c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])),
-      });
+      const store = new GraphStore({});
+      store.setOnIncrementalCellsChange((c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])));
       store.graph.addCells([
         {
           id: 'a',
@@ -250,7 +251,7 @@ describe('GraphStore', () => {
           size: { width: 10, height: 10 },
         } as CellRecord,
       ];
-      const store = new GraphStore({ cells: initial });
+      const store = new GraphStore({ initialCells: initial });
       expect(store.graphProjection.cells.has('a')).toBe(true);
 
       store.applyControlled([

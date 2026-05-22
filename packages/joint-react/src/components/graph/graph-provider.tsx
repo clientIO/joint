@@ -1,10 +1,10 @@
 import type { dia } from '@joint/core';
-import React, { useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { AutoSizeOrigin } from '../../store/graph-store';
-import type { IncrementalCellsChange } from '../../store/graph-projection';
+import type { OnIncrementalCellsChange } from '../../store/graph-projection';
 import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
 import type { CellInput } from '../../utils/normalize-cell-input';
 
@@ -18,7 +18,7 @@ type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> =
  * @template ElementData - User data attached to each element record.
  * @template LinkData - User data attached to each link record.
  */
-interface GraphProviderBaseProps<
+export interface GraphProviderProps<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 > {
@@ -50,59 +50,20 @@ interface GraphProviderBaseProps<
   readonly autoSizeOrigin?: AutoSizeOrigin;
   /** Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle. */
   readonly store?: GraphStore<Element, Link>;
+
+  /**
+   * Initial cells for uncontrolled mode. Ignored if `cells` is provided. Should not
+   */
+  readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
+  readonly cells?: ProviderCells<Element, Link>;
+  /** Notification-only callback — React state is NOT pushed back into the graph. */
+  readonly onCellsChange?: (newCells: ProviderCells<Element, Link>) => void;
   /**
    * Notification fired with granular `added` / `changed` / `removed` sets
    * after each commit. Independent of controlled/uncontrolled mode.
    */
-  readonly onIncrementalCellsChange?: (changes: IncrementalCellsChange<Element, Link>) => void;
+  readonly onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
 }
-
-/**
- * Uncontrolled — parent provides seed cells only, JointJS drives the graph.
- * `initialCells` accepts both plain records and dia.Cell instances.
- * @template ElementData - user data on each element
- * @template LinkData - user data on each link
- */
-interface GraphProviderUncontrolledProps<Element extends ElementJSONInit, Link extends LinkJSONInit>
-  extends GraphProviderBaseProps<Element, Link> {
-  readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
-  readonly cells?: never;
-  /** Notification-only callback — React state is NOT pushed back into the graph. */
-  readonly onCellsChange?: (cells: ProviderCells<Element, Link>) => void;
-}
-
-/**
- * Controlled — parent is the source of truth; GraphProvider keeps the graph
- * synced to the `cells` prop.
- * @template ElementData - user data on each element
- * @template LinkData - user data on each link
- */
-interface GraphProviderControlledProps<Element extends ElementJSONInit, Link extends LinkJSONInit>
-  extends GraphProviderBaseProps<Element, Link> {
-  readonly cells: ProviderCells<Element, Link>;
-  readonly initialCells?: never;
-  /**
-   * Fires whenever cells change. Consumers MUST update their React state
-   * from this callback for the graph to reflect new data.
-   */
-  readonly onCellsChange?: Dispatch<SetStateAction<ProviderCells<Element, Link>>>;
-}
-
-/**
- * Props for `GraphProvider`. Cells are a single unified stream — either
- * `initialCells` (uncontrolled) or `cells` (controlled).
- *
- * **Modes:**
- * - **Uncontrolled:** Pass `initialCells`. JointJS owns the graph after mount.
- *   `onCellsChange` may still be passed as a notification-only callback.
- * - **Controlled:** Pass `cells` and `onCellsChange`. React owns the data.
- * @template ElementData - User data attached to each element record.
- * @template LinkData - User data attached to each link record.
- */
-export type GraphProviderProps<
-  Element extends ElementJSONInit = ElementJSONInit,
-  Link extends LinkJSONInit = LinkJSONInit,
-> = GraphProviderUncontrolledProps<Element, Link> | GraphProviderControlledProps<Element, Link>;
 
 /**
  * Provider props normalised to the unparameterised base shape.
@@ -136,11 +97,11 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
     cellNamespace,
     cellModel,
     autoSizeOrigin,
+    initialCells,
+    cells,
   } = props;
 
-  const cellsProperty = 'cells' in props ? props.cells : undefined;
-  const initialCells = 'initialCells' in props ? props.initialCells : undefined;
-  const isControlled = cellsProperty !== undefined;
+  const isControlled = !!cells;
 
   const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>, dia.Graph>(
     {
@@ -149,26 +110,13 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
       onLoad() {
         const graphStore =
           store ??
-          (isControlled
-            ? new GraphStore<ElementJSONInit, LinkJSONInit>({
-                graph,
-                cellNamespace,
-                cellModel,
-                cells: cellsProperty,
-                onCellsChange,
-                onIncrementalCellsChange,
-                autoSizeOrigin,
-              })
-            : new GraphStore<ElementJSONInit, LinkJSONInit>({
-                graph,
-                cellNamespace,
-                cellModel,
-                initialCells,
-                onCellsChange,
-                onIncrementalCellsChange,
-                autoSizeOrigin,
-              }));
-
+          new GraphStore<ElementJSONInit, LinkJSONInit>({
+            graph,
+            cellNamespace,
+            cellModel,
+            initialCells: cells ?? initialCells ?? [],
+            autoSizeOrigin,
+          });
         return {
           cleanup() {
             if (store) return;
@@ -182,9 +130,21 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
   );
 
   useLayoutEffect(() => {
-    if (!isControlled || !isReady || !ref.current) return;
-    ref.current.applyControlled(cellsProperty ?? []);
-  }, [cellsProperty, isControlled, isReady, ref]);
+    if (!isReady) return;
+    ref.current.setOnIncrementalCellsChange((changeSet) => {
+      onIncrementalCellsChange?.(changeSet);
+      if (onCellsChange) {
+        onCellsChange([...ref.current.graphProjection.cells.getAll()]);
+        return;
+      }
+      if (isControlled) {
+        ref.current.applyControlled(cells);
+      }
+    });
+    if (isControlled) {
+      ref.current.applyControlled(cells ?? []);
+    }
+  }, [isReady, onIncrementalCellsChange, onCellsChange, ref, isControlled, cells]);
 
   if (!isReady) {
     return null;

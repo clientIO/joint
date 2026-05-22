@@ -17,7 +17,7 @@ describe('graphProjection — incremental remove of element with connected links
     const incrementalCallback = jest.fn();
     const view = graphProjection<ElementRecord, LinkRecord>({
       graph,
-      onIncrementalChange: incrementalCallback,
+      onIncrementalCellsChange: incrementalCallback,
     });
 
     graph.addCells([
@@ -60,7 +60,7 @@ describe('graphProjection — incremental remove of element with connected links
     const graph = createGraph();
     const view = graphProjection<ElementRecord, LinkRecord>({
       graph,
-      onIncrementalChange: () => {
+      onIncrementalCellsChange: () => {
         // tracking enabled to exercise the trackChanges branch
       },
     });
@@ -129,12 +129,10 @@ describe('graphProjection — updateGraph branch coverage', () => {
 
     // Inject a stub `getCell` that returns undefined for 'phantom-id'.
     const realGetCell = graph.getCell.bind(graph);
-    jest
-      .spyOn(graph, 'getCell')
-      .mockImplementation(((id: unknown) => {
-        if (id === 'phantom-id') return undefined as unknown as dia.Cell;
-        return realGetCell(id as Parameters<typeof realGetCell>[0]);
-      }) as typeof graph.getCell);
+    jest.spyOn(graph, 'getCell').mockImplementation(((id: unknown) => {
+      if (id === 'phantom-id') return undefined as unknown as dia.Cell;
+      return realGetCell(id as Parameters<typeof realGetCell>[0]);
+    }) as typeof graph.getCell);
 
     // Pass a cell whose id will resolve to undefined post-sync. The internal
     // updateGraph result will include the id from cellIds and writeCell will
