@@ -857,10 +857,6 @@ export const Paper = View.extend({
      */
     renderImplicitLayerViews: function() {
         this.implicitLayers.forEach(layerInit => {
-            if (layerInit.type === 'GridLayerView') {
-                layerInit.patterns = this.getGridPatterns();
-            }
-
             const layerView = this.createLayerView(layerInit);
             this.addLayerView(layerView);
         });
