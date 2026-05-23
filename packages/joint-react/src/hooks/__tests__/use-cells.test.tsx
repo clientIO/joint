@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, render, act } from '@testing-library/react';
 import { mvc, type dia } from '@joint/core';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { useCells } from '../use-cells';
@@ -615,5 +615,52 @@ describe('useCells (collection form)', () => {
       expect.stringContaining('[useCells] Selector returns a new array of objects')
     );
     warnSpy.mockRestore();
+  });
+
+  it('returns pre-existing collection items on first render after graph is fully synced', async () => {
+    // Reproduces the case where a consumer mounts *after* the graph store has
+    // already settled (its commit microtask fired) and the collection was
+    // populated before the consumer subscribed. Without picking up the items
+    // synchronously in the render phase, no container listener would fire to
+    // notify React, and `useCells` would stay stuck at `[]`.
+    let collection: mvc.Collection<dia.Cell> | null = null;
+    let renderedIds: readonly string[] = [];
+
+    function Setup() {
+      const store = useGraphStore();
+      if (!collection) {
+        collection = new mvc.Collection<dia.Cell>([
+          store.graph.getCell('a')!,
+          store.graph.getCell('b')!,
+        ]);
+      }
+      return null;
+    }
+
+    function Consumer() {
+      const cells = useCells(collection!);
+      renderedIds = cells.map((c) => String(c.id));
+      return null;
+    }
+
+    const { rerender } = render(
+      <GraphProvider initialCells={initialCells}>
+        <Setup />
+      </GraphProvider>
+    );
+
+    // Allow the graph store's initial sync + commit to settle. The Consumer is
+    // NOT mounted yet, so no useCells listener is registered for these cells.
+    await act(async () => flush());
+
+    rerender(
+      <GraphProvider initialCells={initialCells}>
+        <Setup />
+        <Consumer />
+      </GraphProvider>
+    );
+    await act(async () => flush());
+
+    expect(renderedIds).toEqual(['a', 'b']);
   });
 });
