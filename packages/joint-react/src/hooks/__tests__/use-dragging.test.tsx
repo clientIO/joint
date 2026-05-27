@@ -1,4 +1,4 @@
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import type { dia } from '@joint/core';
 import { CellIdContext, PaperStoreContext } from '../../context';

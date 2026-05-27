@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-nested-functions */
 import React from 'react';
 import { renderHook, render, act } from '@testing-library/react';
 import { mvc, type dia } from '@joint/core';
@@ -48,8 +49,7 @@ const selectCount = (cells: readonly CellRecord[]) => cells.length;
 
 const selectHasAny = (cells: readonly CellRecord[]) => cells.length > 0;
 
-const selectCellIds = (cells: readonly CellRecord[]) =>
-  cells.map((c) => String(c.id));
+const selectCellIds = (cells: readonly CellRecord[]) => cells.map((c) => String(c.id));
 
 const selectElementCount = (cells: readonly CellRecord[]) =>
   cells.filter((c) => c.type === ELEMENT_MODEL_TYPE).length;
@@ -174,7 +174,7 @@ describe('useCells', () => {
         size: { width: 10, height: 10 },
       } as CellRecord);
     }
-    function LargeWrapper({ children }: { readonly children: React.ReactNode }) {
+    function LargeWrapper({ children }: Readonly<{ readonly children: React.ReactNode }>) {
       return <GraphProvider initialCells={largeCells}>{children}</GraphProvider>;
     }
     const { result } = renderHook(() => useCells(), { wrapper: LargeWrapper });
@@ -587,9 +587,8 @@ describe('useCells (collection form)', () => {
           ]);
         }
         renderCount++;
-        return useCells(
-          collection,
-          (cells) => cells.filter((c) => c.type === ELEMENT_MODEL_TYPE).map((c) => String(c.id))
+        return useCells(collection, (cells) =>
+          cells.filter((c) => c.type === ELEMENT_MODEL_TYPE).map((c) => String(c.id))
         );
       },
       { wrapper }
@@ -610,7 +609,7 @@ describe('useCells (collection form)', () => {
 
   it('warns in dev when selector returns unstable object array without isEqual', async () => {
     storeRef = undefined;
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
     let collection: mvc.Collection<dia.Cell> | undefined;
     const { result } = renderHook(
       () => {
@@ -935,10 +934,7 @@ describe('useCells (collection + selector reactivity)', () => {
     expect(result.current).toBe(0);
 
     await act(async () => {
-      collection.reset([
-        storeRef!.graph.getCell('a')!,
-        storeRef!.graph.getCell('l1')!,
-      ]);
+      collection.reset([storeRef!.graph.getCell('a')!, storeRef!.graph.getCell('l1')!]);
       await flush();
     });
     expect(result.current).toBe(1);
@@ -988,10 +984,7 @@ describe('useCells (collection + selector reactivity)', () => {
     expect(result.current).toBe(0);
 
     await act(async () => {
-      collection.reset([
-        storeRef!.graph.getCell('a')!,
-        storeRef!.graph.getCell('l1')!,
-      ]);
+      collection.reset([storeRef!.graph.getCell('a')!, storeRef!.graph.getCell('l1')!]);
       await flush();
     });
     expect(result.current).toBe(1);
@@ -1013,11 +1006,7 @@ describe('useCells (collection + selector reactivity)', () => {
         if (!collection) {
           collection = new mvc.Collection<dia.Cell>([store.graph.getCell('a')!]);
         }
-        return useCells(
-          collection,
-          selectCellIds,
-          stringArrayShallowEqual
-        );
+        return useCells(collection, selectCellIds, stringArrayShallowEqual);
       },
       { wrapper }
     );
@@ -1038,19 +1027,13 @@ describe('useCells (collection + selector reactivity)', () => {
 
 describe('useCells (selector reactivity — no collection)', () => {
   it('selector returning ids from all cells', async () => {
-    const { result } = renderHook(
-      () => useCells(selectCellIds),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useCells(selectCellIds), { wrapper });
     await act(async () => flush());
     expect(result.current).toEqual(['a', 'b', 'c', 'l1']);
   });
 
   it('selector returning boolean from all cells', async () => {
-    const { result } = renderHook(
-      () => useCells(selectHasAny),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useCells(selectHasAny), { wrapper });
     await act(async () => flush());
     expect(result.current).toBe(true);
   });
@@ -1068,7 +1051,12 @@ describe('useCells (selector reactivity — no collection)', () => {
     expect(result.current).toBe(4);
 
     await act(async () => {
-      storeRef!.graph.addCell({ id: 'new-el', type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } });
+      storeRef!.graph.addCell({
+        id: 'new-el',
+        type: ELEMENT_MODEL_TYPE,
+        position: { x: 0, y: 0 },
+        size: { width: 10, height: 10 },
+      });
       await flush();
     });
     expect(result.current).toBe(5);
@@ -1115,10 +1103,9 @@ describe('useCells (selector reactivity — no collection)', () => {
 
   it('ids array with selector returning ids updates on cell data change', async () => {
     storeRef = undefined;
-    const { result } = renderHook(
-      () => useCells(['a', 'b'], selectCellIds),
-      { wrapper: ProbeWrapper }
-    );
+    const { result } = renderHook(() => useCells(['a', 'b'], selectCellIds), {
+      wrapper: ProbeWrapper,
+    });
     await act(async () => flush());
     expect(result.current).toEqual(['a', 'b']);
 
@@ -1131,28 +1118,19 @@ describe('useCells (selector reactivity — no collection)', () => {
   });
 
   it('ids array with selector returning count', async () => {
-    const { result } = renderHook(
-      () => useCells(['a', 'b'], selectCount),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useCells(['a', 'b'], selectCount), { wrapper });
     await act(async () => flush());
     expect(result.current).toBe(2);
   });
 
   it('single id with selector returning boolean', async () => {
-    const { result } = renderHook(
-      () => useCells('a', selectIsDefined),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useCells('a', selectIsDefined), { wrapper });
     await act(async () => flush());
     expect(result.current).toBe(true);
   });
 
   it('single id with selector returning id', async () => {
-    const { result } = renderHook(
-      () => useCells('a', selectId),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useCells('a', selectId), { wrapper });
     await act(async () => flush());
     expect(result.current).toBe('a');
   });
