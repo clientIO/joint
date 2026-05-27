@@ -1017,9 +1017,6 @@ describe('useCells (collection + selector reactivity)', () => {
           collection,
           selectCellIds,
           stringArrayShallowEqual
-        return useCells(
-          collection,
-          (cells) => cells.map((c) => ({ id: String(c.id) }))
         );
       },
       { wrapper }
@@ -1197,18 +1194,6 @@ describe('useCells (selector reactivity — no collection)', () => {
       await flush();
     });
     expect(result.current).toBe(true);
-    expect(result.current).toEqual([{ id: 'a' }, { id: 'b' }]);
-
-    // Trigger a cell change — selector re-runs, produces new object refs
-    await act(async () => {
-      storeRef!.graph.getCell('a')?.set('position', { x: 50, y: 50 });
-      await flush();
-    });
-
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[useCells] Selector returns a new array of objects')
-    );
-    warnSpy.mockRestore();
   });
 
   it('returns pre-existing collection items on first render after graph is fully synced', async () => {
