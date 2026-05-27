@@ -2127,7 +2127,7 @@ export class Paper extends mvc.View<Graph> {
 
     getModelById(id: Graph.CellRef): Cell;
 
-    setDimensions(width: Paper.Dimension, height: Paper.Dimension, data?: any): void;
+    setDimensions(width?: Paper.Dimension, height?: Paper.Dimension, data?: any): void;
 
     setInteractivity(value: any): void;
 

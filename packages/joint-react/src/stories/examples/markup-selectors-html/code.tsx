@@ -10,7 +10,6 @@ import {
   type RenderElement,
 } from '@joint/react';
 import '../index.css';
-import './styles.css';
 import { linkRoutingSmooth } from '@joint/react/presets';
 
 const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconnected: false });

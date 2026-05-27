@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, render, act } from '@testing-library/react';
 import { mvc, type dia } from '@joint/core';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { useCells } from '../use-cells';
@@ -572,32 +572,45 @@ describe('useCells (collection form)', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('selector returning ids updates when cell added to collection', async () => {
+  it('array-returning selector without isEqual skips re-render when result is structurally equal', async () => {
     storeRef = undefined;
     let collection: mvc.Collection<dia.Cell> | undefined;
+    let renderCount = 0;
     const { result } = renderHook(
       () => {
         const store = useGraphStore();
         storeRef = store;
         if (!collection) {
-          collection = new mvc.Collection<dia.Cell>([store.graph.getCell('a')!]);
+          collection = new mvc.Collection<dia.Cell>([
+            store.graph.getCell('a')!,
+            store.graph.getCell('b')!,
+          ]);
         }
-        return useCells(collection, selectCellIds);
+        renderCount++;
+        return useCells(
+          collection,
+          (cells) => cells.filter((c) => c.type === ELEMENT_MODEL_TYPE).map((c) => String(c.id))
+        );
       },
       { wrapper }
     );
     await act(async () => flush());
-    expect(result.current).toEqual(['a']);
+    expect(result.current).toEqual(['a', 'b']);
+    const before = result.current;
+    const rendersBefore = renderCount;
 
+    // Change position on 'a' — ids list unchanged, should NOT re-render
     await act(async () => {
-      collection!.add(storeRef!.graph.getCell('b')!);
+      storeRef!.graph.getCell('a')?.set('position', { x: 999, y: 999 });
       await flush();
     });
-    expect(result.current).toEqual(['a', 'b']);
+    expect(result.current).toBe(before);
+    expect(renderCount).toBe(rendersBefore);
   });
 
-  it('selector returning ids updates when cell removed from collection', async () => {
+  it('warns in dev when selector returns unstable object array without isEqual', async () => {
     storeRef = undefined;
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     let collection: mvc.Collection<dia.Cell> | undefined;
     const { result } = renderHook(
       () => {
@@ -1004,6 +1017,9 @@ describe('useCells (collection + selector reactivity)', () => {
           collection,
           selectCellIds,
           stringArrayShallowEqual
+        return useCells(
+          collection,
+          (cells) => cells.map((c) => ({ id: String(c.id) }))
         );
       },
       { wrapper }
@@ -1181,5 +1197,64 @@ describe('useCells (selector reactivity — no collection)', () => {
       await flush();
     });
     expect(result.current).toBe(true);
+    expect(result.current).toEqual([{ id: 'a' }, { id: 'b' }]);
+
+    // Trigger a cell change — selector re-runs, produces new object refs
+    await act(async () => {
+      storeRef!.graph.getCell('a')?.set('position', { x: 50, y: 50 });
+      await flush();
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[useCells] Selector returns a new array of objects')
+    );
+    warnSpy.mockRestore();
+  });
+
+  it('returns pre-existing collection items on first render after graph is fully synced', async () => {
+    // Reproduces the case where a consumer mounts *after* the graph store has
+    // already settled (its commit microtask fired) and the collection was
+    // populated before the consumer subscribed. Without picking up the items
+    // synchronously in the render phase, no container listener would fire to
+    // notify React, and `useCells` would stay stuck at `[]`.
+    let collection: mvc.Collection<dia.Cell> | null = null;
+    let renderedIds: readonly string[] = [];
+
+    function Setup() {
+      const store = useGraphStore();
+      if (!collection) {
+        collection = new mvc.Collection<dia.Cell>([
+          store.graph.getCell('a')!,
+          store.graph.getCell('b')!,
+        ]);
+      }
+      return null;
+    }
+
+    function Consumer() {
+      const cells = useCells(collection!);
+      renderedIds = cells.map((c) => String(c.id));
+      return null;
+    }
+
+    const { rerender } = render(
+      <GraphProvider initialCells={initialCells}>
+        <Setup />
+      </GraphProvider>
+    );
+
+    // Allow the graph store's initial sync + commit to settle. The Consumer is
+    // NOT mounted yet, so no useCells listener is registered for these cells.
+    await act(async () => flush());
+
+    rerender(
+      <GraphProvider initialCells={initialCells}>
+        <Setup />
+        <Consumer />
+      </GraphProvider>
+    );
+    await act(async () => flush());
+
+    expect(renderedIds).toEqual(['a', 'b']);
   });
 });

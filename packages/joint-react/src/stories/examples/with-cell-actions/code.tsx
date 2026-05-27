@@ -64,8 +64,7 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 
 // --- Node Component ---
 
-function RenderElement(element: Readonly<ElementRecord<NodeData>>) {
-  const { label = '', color = PRIMARY } = element.data ?? {};
+function RenderElement({ label = '', color = PRIMARY }: Readonly<NodeData>) {
   return (
     <HTMLHost
       useModelGeometry
@@ -397,6 +396,7 @@ function AddElementForm() {
       type: 'element',
       data: { label: label.trim(), color: PRIMARY },
       position: { x: randomX, y: randomY },
+      size: { width: 120, height: 60 },
     });
     setLabel('');
   };

@@ -8,6 +8,7 @@ import { areArraysShallowEqual, arrayAwareEqual } from '../utils/selector-utils'
 import { isCollection } from '../utils/is';
 import { subscribeToCollection } from '../utils/collection-subscription';
 import { parseUseCellsArgs } from './use-cells.utils';
+import { warnUnstableSelector } from '../utils/dev-warnings';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -221,7 +222,9 @@ export function useCells<
   const collectionIdsRef = useRef<readonly CellId[]>([]);
   const collectionVersionRef = useRef(0);
 
-  const previousCollectionRef = useRef(collectionArgument);
+  // Use `null` sentinel so the init-block runs on first render too, picking up
+  // any models that already exist in the collection at subscribe time.
+  const previousCollectionRef = useRef<mvc.Collection<dia.Cell> | undefined | null>(null);
   if (previousCollectionRef.current !== collectionArgument) {
     previousCollectionRef.current = collectionArgument;
     collectionIdsRef.current = collectionArgument
@@ -298,6 +301,9 @@ export function useCells<
       );
       if (cachedRef.current.hasValue && isEqualCallback(cachedRef.current.value, next)) {
         return cachedRef.current.value;
+      }
+      if (hasSelector && cachedRef.current.hasValue) {
+        warnUnstableSelector('useCells', cachedRef.current.value, next, !!isEqual);
       }
       // The all-cells form receives the container's mutable array. Shallow-copy
       // so the cached value is a distinct reference, enabling

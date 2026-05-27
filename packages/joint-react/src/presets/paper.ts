@@ -1,8 +1,8 @@
-import { dia } from '@joint/core';
+import { dia, util } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
-import { AVAILABLE_CLASS_NAME, DRAGGING_CLASS_NAME } from '../utils/class-names';
+import { DRAGGING_CLASS_NAME, ELEMENT_AVAILABLE_CLASS_NAME, MAGNET_AVAILABLE_CLASS_NAME } from '../utils/class-names';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -39,18 +39,6 @@ function getPointerId(event: dia.Event): number | null {
   return typeof fromOriginal === 'number' ? fromOriginal : null;
 }
 
-// Inject CSS custom property into all built-in grid pattern colors
-// so they respond to --jj-paper-grid-color.
-// @ts-expect-error Accessing protected member to set default grid pattern colors
-// eslint-disable-next-line unicorn/no-array-for-each
-Object.values(dia.Paper.gridPatterns).forEach((pattern) => {
-  const patterns = Array.isArray(pattern) ? pattern : [pattern];
-  for (const subPattern of patterns) {
-    if (!subPattern.color) continue;
-    subPattern.color = 'var(--jj-paper-grid-color)';
-  }
-});
-
 const DEFAULT_CLICK_THRESHOLD = 5;
 const DEFAULT_GRID_SIZE = 10;
 const DEFAULT_SNAP_RADIUS = 15;
@@ -58,12 +46,24 @@ const DEFAULT_SNAP_RADIUS = 15;
 // Future improvement: this should sit on the dia.Paper prototype,
 // so it can be overridden by inheriting classes (e.g. Paper)
 export const DEFAULT_HIGHLIGHTING = {
-  [dia.CellView.Highlighting.DEFAULT]: {
+  [dia.CellView.Highlighting.CONNECTING]: {
     name: 'stroke',
     options: {
       attrs: {
-        strokeWidth: 2,
-        stroke: 'var(--jj-paper-highlight-color)',
+        strokeWidth: 1,
+        stroke: 'var(--jj-paper-connecting-highlight-color)'
+      },
+      rx: 4,
+      ry: 4,
+      padding: 6,
+    },
+  },
+  [dia.CellView.Highlighting.EMBEDDING]: {
+    name: 'stroke',
+    options: {
+      attrs: {
+        strokeWidth: 1.5,
+        stroke: 'var(--jj-paper-embedding-highlight-color)'
       },
       rx: 4,
       ry: 4,
@@ -73,13 +73,13 @@ export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: AVAILABLE_CLASS_NAME,
+      className: MAGNET_AVAILABLE_CLASS_NAME,
     },
   },
   [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
     name: 'addClass',
     options: {
-      className: AVAILABLE_CLASS_NAME,
+      className: ELEMENT_AVAILABLE_CLASS_NAME,
     },
   },
 };
@@ -100,6 +100,18 @@ const linkView = (
   // otherwise fall back to the default LinkView.
   return NSViewCtor ?? LinkView;
 };
+
+function getGridPatterns(): Record<string, dia.Paper.PatternOptions[]> {
+  // @ts-expect-error Accessing protected member to set default grid pattern colors
+  const patterns = util.cloneDeep(dia.Paper.gridPatterns as Record<string, dia.Paper.PatternOptions[]>);
+  for (const pattern of Object.values(patterns)) {
+    for (const subPattern of pattern) {
+      if (!subPattern.color) continue;
+      subPattern.color = 'var(--jj-paper-grid-color)';
+    }
+  }
+  return patterns;
+}
 
 export const Paper = dia.Paper.extend({
   className: 'jj-paper joint-paper',
@@ -198,4 +210,6 @@ export const Paper = dia.Paper.extend({
     measureNode,
     linkView,
   },
+}, {
+  gridPatterns: getGridPatterns(),
 }) as typeof dia.Paper;
