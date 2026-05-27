@@ -4,7 +4,7 @@ import type { dia } from '@joint/core';
 import type { g } from '@joint/core';
 import { useCellId } from './use-cell-id';
 import {
-  getDraggingAtomState,
+  getCellDragState,
   ensureDragListeners,
   EMPTY_CELL_DRAG_STATE,
   EMPTY_CELL_DRAG_PREVIEW_STATE,
@@ -78,7 +78,7 @@ export function useCellDrag(): CellDragState {
   const cellId = useCellId();
   const { paper } = usePaper();
   const atomState = useMemo(() => {
-    return getDraggingAtomState(paper);
+    return getCellDragState(paper);
   }, [paper]);
 
   useLayoutEffect(() => {

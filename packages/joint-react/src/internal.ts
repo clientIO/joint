@@ -46,10 +46,7 @@ export {
 export { createAtom, type Atom } from './store/state-container';
 
 // Dragging Internals
-export {
-  getDraggingAtomState as getDraggingAtom,
-  ensureDragListeners,
-} from './hooks/use-cell-drag.utils';
+export { getCellDragState, ensureDragListeners } from './hooks/use-cell-drag.utils';
 
 // Data-Mapping Defaults
 export * from './state/data-mapping/element-mapper';

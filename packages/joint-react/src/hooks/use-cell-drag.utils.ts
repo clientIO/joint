@@ -18,9 +18,6 @@
  *   `isDragging = snap.draggingCellId === myCellId`. Only the dragged
  *   element re-renders — non-dragged elements return a frozen IDLE ref.
  *
- * Stencil integration (`@joint/react-plus`):
- *   Stencil calls `getDraggingAtom(dragPaper).set(...)` directly from
- *   its own event listeners. Same atom, same hook, no extra wiring.
  */
 import { mvc } from '@joint/core';
 import type { dia } from '@joint/core';
@@ -50,7 +47,7 @@ const listenersAttached = new WeakSet<dia.Paper>();
  * Keyed by `dia.Paper` in a `WeakMap` — garbage-collected with the paper.
  * @param paper - The paper instance.
  */
-export function getDraggingAtomState(paper: dia.Paper): Atom<CellDragState> {
+export function getCellDragState(paper: dia.Paper): Atom<CellDragState> {
   let atom = draggingAtoms.get(paper);
   if (!atom) {
     atom = createAtom<CellDragState>(EMPTY_CELL_DRAG_STATE);
@@ -68,12 +65,10 @@ export function ensureDragListeners(paper: dia.Paper): void {
   if (listenersAttached.has(paper)) return;
   listenersAttached.add(paper);
 
-  const atom = getDraggingAtomState(paper);
+  const atom = getCellDragState(paper);
   const listener = new mvc.Listener();
 
   listener.listenTo(paper, 'element:pointermove', (view: dia.ElementView, event: dia.Event) => {
-    // When isPreview is true the stencil owns this atom — don't overwrite.
-    if (atom.get().isPreview) return;
     const { model } = view;
     const dropArea: g.Rect = model.getBBox();
     atom.set({
@@ -89,7 +84,6 @@ export function ensureDragListeners(paper: dia.Paper): void {
   });
 
   listener.listenTo(paper, 'element:pointerup', () => {
-    if (atom.get().isPreview) return;
     atom.set(EMPTY_CELL_DRAG_STATE);
   });
 

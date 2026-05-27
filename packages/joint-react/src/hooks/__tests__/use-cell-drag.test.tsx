@@ -6,7 +6,7 @@ import type { PaperStore } from '../../store';
 import { GraphStore } from '../../store/graph-store';
 import { useCellDrag, type CellDragState } from '../use-cell-drag';
 import {
-  getDraggingAtomState,
+  getCellDragState,
   ensureDragListeners,
   EMPTY_CELL_DRAG_STATE,
 } from '../use-cell-drag.utils';
@@ -98,10 +98,12 @@ describe('useCellDrag', () => {
       wrapper: createWrapper({ cellId: 'cell-1', paper }),
     });
 
-    const atom = getDraggingAtomState(paper);
-    atom.set(makeDragState(paper, 'cell-1', {
-      dropArea: new g.Rect(10, 10, 50, 50),
-    }));
+    const atom = getCellDragState(paper);
+    atom.set(
+      makeDragState(paper, 'cell-1', {
+        dropArea: new g.Rect(10, 10, 50, 50),
+      })
+    );
 
     await waitFor(() => {
       expect(result.current.isDragging).toBe(true);
@@ -117,7 +119,7 @@ describe('useCellDrag', () => {
       wrapper: createWrapper({ cellId: 'cell-2', paper }),
     });
 
-    const atom = getDraggingAtomState(paper);
+    const atom = getCellDragState(paper);
     atom.set(makeDragState(paper, 'cell-1'));
 
     await waitFor(() => {
@@ -127,7 +129,7 @@ describe('useCellDrag', () => {
 
   it('clears state on drag end', async () => {
     const paper = createMockPaper();
-    const atom = getDraggingAtomState(paper);
+    const atom = getCellDragState(paper);
     atom.set(makeDragState(paper, 'cell-1'));
 
     const { result } = renderHook(() => useCellDrag(), {
@@ -145,7 +147,7 @@ describe('useCellDrag', () => {
 
   it('reports isPreview for stencil drags', async () => {
     const paper = createMockPaper();
-    const atom = getDraggingAtomState(paper);
+    const atom = getCellDragState(paper);
     atom.set(makeDragState(paper, 'clone-1', { isPreview: true }));
 
     const { result } = renderHook(() => useCellDrag(), {
@@ -168,11 +170,13 @@ describe('useCellDrag', () => {
 
   it('reports canDrop true when snapshot canDrop is true', async () => {
     const paper = createMockPaper();
-    const atom = getDraggingAtomState(paper);
-    atom.set(makeDragState(paper, 'cell-1', {
-      canDrop: true,
-      dropArea: new g.Rect(10, 10, 50, 50),
-    }));
+    const atom = getCellDragState(paper);
+    atom.set(
+      makeDragState(paper, 'cell-1', {
+        canDrop: true,
+        dropArea: new g.Rect(10, 10, 50, 50),
+      })
+    );
 
     const { result } = renderHook(() => useCellDrag(), {
       wrapper: createWrapper({ cellId: 'cell-1', paper }),
@@ -183,11 +187,13 @@ describe('useCellDrag', () => {
 
   it('reports canDrop false when snapshot says canDrop is false', async () => {
     const paper = createMockPaper();
-    const atom = getDraggingAtomState(paper);
-    atom.set(makeDragState(paper, 'cell-1', {
-      canDrop: false,
-      dropArea: new g.Rect(-100, -100, 50, 50),
-    }));
+    const atom = getCellDragState(paper);
+    atom.set(
+      makeDragState(paper, 'cell-1', {
+        canDrop: false,
+        dropArea: new g.Rect(-100, -100, 50, 50),
+      })
+    );
 
     const { result } = renderHook(() => useCellDrag(), {
       wrapper: createWrapper({ cellId: 'cell-1', paper }),
@@ -198,12 +204,14 @@ describe('useCellDrag', () => {
 
   it('does not overwrite stencil preview state on element:pointermove', () => {
     const paper = createMockPaper();
-    const atom = getDraggingAtomState(paper);
+    const atom = getCellDragState(paper);
 
-    atom.set(makeDragState(paper, 'clone-1', {
-      isPreview: true,
-      dropArea: new g.Rect(100, 100, 50, 50),
-    }));
+    atom.set(
+      makeDragState(paper, 'clone-1', {
+        isPreview: true,
+        dropArea: new g.Rect(100, 100, 50, 50),
+      })
+    );
 
     ensureDragListeners(paper);
     const mockView = {
@@ -219,7 +227,7 @@ describe('useCellDrag', () => {
 
   it('does not reset stencil preview state on element:pointerup', () => {
     const paper = createMockPaper();
-    const atom = getDraggingAtomState(paper);
+    const atom = getCellDragState(paper);
 
     atom.set(makeDragState(paper, 'clone-1', { isPreview: true }));
 
