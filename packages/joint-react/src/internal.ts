@@ -60,6 +60,9 @@ export {
   HTMLElementItem,
 } from './components/paper/render-element/paper-element-item';
 
+// Cell Type Internals
+export type { ElementJSONInit, LinkJSONInit } from './types/cell.types';
+
 // Utility Functions
 export { assignOptions, pickValues } from './utils/object-utilities';
 export { resolvePaper, resolvePaperId } from './types';
