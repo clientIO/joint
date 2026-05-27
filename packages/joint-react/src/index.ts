@@ -44,6 +44,10 @@ export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 export { usePaperEvents } from './hooks/use-paper-events';
 export { useGraphEvents } from './hooks/use-graph-events';
 
+// Hooks — Drag
+export { useDragging } from './hooks/use-dragging';
+export type { DraggingState } from './hooks/use-dragging';
+
 // Hooks — Misc
 export { useMarkup } from './hooks/use-markup';
 
