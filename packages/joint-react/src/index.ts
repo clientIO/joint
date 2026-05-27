@@ -45,8 +45,8 @@ export { usePaperEvents } from './hooks/use-paper-events';
 export { useGraphEvents } from './hooks/use-graph-events';
 
 // Hooks — Drag
-export { useDragging } from './hooks/use-dragging';
-export type { DraggingState } from './hooks/use-dragging';
+export { useCellDrag } from './hooks/use-cell-drag';
+export type { CellDragState } from './hooks/use-cell-drag';
 
 // Hooks — Misc
 export { useMarkup } from './hooks/use-markup';

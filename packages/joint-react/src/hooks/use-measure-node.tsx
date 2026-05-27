@@ -164,10 +164,7 @@ export function useMeasureNode(
 
     const cell = graph.getCell(id);
     if (!cell?.isElement()) {
-      throw new Error(
-        '`useMeasureNode` can only be used with elements, not links. ' +
-          `The cell with id "${id}" is not an element.`
-      );
+      return;
     }
     if (!nodeRef.current) {
       return;
