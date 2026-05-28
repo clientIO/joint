@@ -21,7 +21,6 @@
  */
 import { mvc } from '@joint/core';
 import type { dia } from '@joint/core';
-import { g } from '@joint/core';
 import { createAtom, type Atom } from '../store/state-container';
 import type { CellDragState } from './use-cell-drag';
 import { CLEANUP_EVENT_NAME, type ReactPaper } from '../models/react-paper';
@@ -31,10 +30,6 @@ export const EMPTY_CELL_DRAG_STATE: CellDragState = {
   isDragging: false,
   canDrop: false,
   isPreview: false,
-  dropArea: new g.Rect(),
-  dragEvent: null,
-  paper: undefined,
-  graph: undefined!,
 };
 export const EMPTY_CELL_DRAG_PREVIEW_STATE: CellDragState = {
   ...EMPTY_CELL_DRAG_STATE,
@@ -71,7 +66,7 @@ export function ensureCellDragListeners(paper: ReactPaper): void {
 
   listener.listenTo(paper, 'element:pointermove', (view: dia.ElementView, event: dia.Event) => {
     const { model } = view;
-    const dropArea: g.Rect = model.getBBox();
+    const dropArea = model.getBBox();
     atom.set({
       cellId: model.id,
       canDrop: true,

@@ -11,27 +11,38 @@ import {
 } from './use-cell-drag.utils';
 import { usePaper } from './use-paper';
 
-/**
- * Per-cell drag state returned by {@link useCellDrag}.
- * @group Types
- */
-export interface CellDragState {
-  /** True when THIS cell is being dragged. */
+interface CellDragStateBase {
+  /** True when cell is being dragged. */
   readonly isDragging: boolean;
   /** True when the drop area is within the paper area. */
   readonly canDrop: boolean;
-  /** True when cell is a clone preview. */
+  /** True when cell is a preview. */
   readonly isPreview: boolean;
-  /** Bounding rect of dragged cell in paper coords. */
-  readonly dropArea: g.Rect;
-  /** Latest pointer event during drag. */
-  readonly dragEvent: dia.Event | null;
-  /** Paper instance this cell belongs to (`null` when idle or context missing). */
+  /** Bounding rect of dragged cell in coords. */
+  readonly dropArea?: g.Rect;
+  /** Latest event during drag. */
+  readonly dragEvent?: dia.Event;
+  /** Paper instance for dragging cell */
   readonly paper?: dia.Paper;
-  /** Graph model of the paper (`null` when idle or context missing). */
-  readonly graph: dia.Graph;
+  /** Graph model for dragging cell */
+  readonly graph?: dia.Graph;
+  /** ID of the dragged cell */
   readonly cellId?: dia.Cell.ID;
 }
+
+interface CellDragStateDragging extends Required<CellDragStateBase> {
+  isDragging: true;
+}
+interface CellDragStateNotDragging extends CellDragStateBase {
+  isDragging: false;
+}
+/**
+ * Union of active drag state and idle state. Always has the same shape,
+ * with all fields defined, but some are only meaningful when `isDragging` is true.
+ * `isDragging` false equal to idle state, not dragging.
+ * @group Types
+ */
+export type CellDragState = CellDragStateDragging | CellDragStateNotDragging;
 
 function select(snap: CellDragState, cellId: dia.Cell.ID): CellDragState {
   if (snap.cellId === cellId) {
@@ -59,7 +70,8 @@ const NOOP_SNAPSHOT = () => EMPTY_CELL_DRAG_STATE;
  * attaches paper event listeners on first subscription per paper.
  *
  * Only the dragged element re-renders — all other elements receive a frozen
- * idle reference. O(1) re-renders per drag event.
+ * idle reference.
+ * Used inside `renderElement`.
  * @group Hooks
  * @returns Drag state scoped to the current cell.
  * @example
