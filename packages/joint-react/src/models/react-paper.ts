@@ -5,7 +5,7 @@ import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import { Paper } from '../presets/paper';
 import { MEASURING_CLASS_NAME } from '../utils/class-names';
-
+export const CLEANUP_EVENT_NAME = 'cleanup';
 const noopViewMountChange = (): void => {
   // No-op default for onViewMountChange callback
 };
@@ -233,6 +233,13 @@ export class ReactPaper extends Paper {
   removeView(cell: dia.Cell): dia.CellView {
     this.notifyViewUnmount(cell);
     return super.removeView(cell);
+  }
+
+  public remove() {
+    // call CLEANUP_EVENT_NAME for any listeners that need to clean up before the paper is removed
+    this.trigger(CLEANUP_EVENT_NAME);
+    super.remove();
+    return this;
   }
 
   /**

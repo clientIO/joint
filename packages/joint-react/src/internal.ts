@@ -45,6 +45,9 @@ export {
 // State Primitives
 export { createAtom, type Atom } from './store/state-container';
 
+// Dragging Internals
+export { getCellDragState } from './hooks/use-cell-drag.utils';
+
 // Data-Mapping Defaults
 export * from './state/data-mapping/element-mapper';
 export * from './state/data-mapping/link-mapper';
@@ -55,6 +58,9 @@ export {
   SVGElementItem,
   HTMLElementItem,
 } from './components/paper/render-element/paper-element-item';
+
+// Cell Type Internals
+export type { ElementJSONInit, LinkJSONInit } from './types/cell.types';
 
 // Utility Functions
 export { assignOptions, pickValues } from './utils/object-utilities';
