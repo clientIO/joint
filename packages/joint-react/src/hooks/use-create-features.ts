@@ -331,12 +331,21 @@ export function useCreateFeature<T>(
   useLayoutEffect(() => {
     if (isPaperTarget && !paperStore) return;
 
-    // Re-register cached feature if it was removed by strict-mode cleanup
-    // OR if it was already created during render (inside-Paper case).
+    // Re-register cached feature if it was already created during render
+    // (inside-Paper case). In StrictMode, the cleanup runs feature.clean()
+    // which destroys JointJS views. If the cached feature is no longer in the
+    // store, discard it so a fresh instance is created below instead of
+    // re-registering dead views.
     if (featureRef.current) {
-      registerFeature(target, graphStore, paperStore, featureRef.current);
-      setForwardRef(forwardedRef, featureRef.current.instance);
-      return () => unregisterFeature(target, graphStore, paperStore, featureRef.current!.id);
+      const existingInStore = resolveExistingFeature(target, graphStore, paperStore, id);
+      if (existingInStore === featureRef.current) {
+        registerFeature(target, graphStore, paperStore, featureRef.current);
+        setForwardRef(forwardedRef, featureRef.current.instance);
+        return () => unregisterFeature(target, graphStore, paperStore, featureRef.current!.id);
+      }
+      // Feature was cleaned up (e.g. by StrictMode cleanup) — discard the dead
+      // reference so the creation path below creates a fresh instance.
+      featureRef.current = null;
     }
 
     // Adopt a feature that was already registered by the deferred-queue path
