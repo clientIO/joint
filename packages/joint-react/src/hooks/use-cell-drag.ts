@@ -21,7 +21,7 @@ interface CellDragStateBase {
   /** Bounding rect of dragged cell in coords. */
   readonly dropArea?: g.Rect;
   /** Latest event during drag. */
-  readonly dragEvent?: dia.Event;
+  readonly event?: dia.Event;
   /** Paper instance for dragging cell */
   readonly paper?: dia.Paper;
   /** Graph model for dragging cell */
@@ -33,7 +33,7 @@ interface CellDragStateBase {
 interface CellDragStateDragging extends Required<CellDragStateBase> {
   isDragging: true;
 }
-interface CellDragStateNotDragging extends CellDragStateBase {
+interface CellDragStateIdle extends CellDragStateBase {
   isDragging: false;
 }
 /**
@@ -42,7 +42,7 @@ interface CellDragStateNotDragging extends CellDragStateBase {
  * `isDragging` false equal to idle state, not dragging.
  * @group Types
  */
-export type CellDragState = CellDragStateDragging | CellDragStateNotDragging;
+export type CellDragState = CellDragStateDragging | CellDragStateIdle;
 
 function select(snap: CellDragState, cellId: dia.Cell.ID): CellDragState {
   if (snap.cellId === cellId) {
@@ -57,7 +57,7 @@ function equal(a: CellDragState, b: CellDragState): boolean {
     a.canDrop === b.canDrop &&
     a.isPreview === b.isPreview &&
     a.dropArea === b.dropArea &&
-    a.dragEvent === b.dragEvent &&
+    a.event === b.event &&
     a.paper === b.paper &&
     a.graph === b.graph;
   return is;

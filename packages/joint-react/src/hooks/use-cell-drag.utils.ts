@@ -28,7 +28,7 @@ import { CLEANUP_EVENT_NAME, type ReactPaper } from '../models/react-paper';
 /** Snapshot returned when no drag is active. */
 export const EMPTY_CELL_DRAG_STATE: CellDragState = {
   isDragging: false,
-  canDrop: false,
+  canDrop: true,
   isPreview: false,
 };
 export const EMPTY_CELL_DRAG_PREVIEW_STATE: CellDragState = {
@@ -72,7 +72,7 @@ export function ensureCellDragListeners(paper: ReactPaper): void {
       canDrop: true,
       isPreview: false,
       dropArea,
-      dragEvent: event,
+      event,
       graph: paper.model,
       paper,
       isDragging: true,

@@ -67,7 +67,7 @@ function makeDragState(
     canDrop: true,
     isPreview: false,
     dropArea: new g.Rect(),
-    dragEvent: null,
+    event: null!,
     paper,
     graph: paper.model,
     cellId,
@@ -202,7 +202,7 @@ describe('useCellDrag', () => {
     expect(result.current.canDrop).toBe(true);
   });
 
-  it('does not overwrite stencil preview state on element:pointermove', () => {
+  it('overwrites stencil preview state on element:pointermove', () => {
     const paper = createMockPaper();
     const atom = getCellDragState(paper);
 
@@ -222,10 +222,10 @@ describe('useCellDrag', () => {
 
     const snap = atom.get();
     expect(snap.canDrop).toBe(true);
-    expect(snap.isPreview).toBe(true);
+    expect(snap.isPreview).toBe(false);
   });
 
-  it('does not reset stencil preview state on element:pointerup', () => {
+  it('resets state on element:pointerup', () => {
     const paper = createMockPaper();
     const atom = getCellDragState(paper);
 
@@ -235,7 +235,7 @@ describe('useCellDrag', () => {
     paper.trigger('element:pointerup');
 
     const snap = atom.get();
-    expect(snap.cellId).toBe('clone-1');
-    expect(snap.isPreview).toBe(true);
+    expect(snap.isDragging).toBe(false);
+    expect(snap.cellId).toBeUndefined();
   });
 });
