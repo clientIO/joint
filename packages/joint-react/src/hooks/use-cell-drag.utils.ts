@@ -85,8 +85,6 @@ export function ensureCellDragListeners(paper: ReactPaper): void {
   });
 
   listener.listenTo(paper, 'element:pointerup', () => {
-    const currentState = atom.get();
-    if (currentState.isPreview) return;
     atom.set(EMPTY_CELL_DRAG_STATE);
   });
 
