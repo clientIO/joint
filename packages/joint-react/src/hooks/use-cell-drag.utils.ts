@@ -71,13 +71,11 @@ export function ensureCellDragListeners(paper: ReactPaper): void {
 
   listener.listenTo(paper, 'element:pointermove', (view: dia.ElementView, event: dia.Event) => {
     const { model } = view;
-    const currentState = atom.get();
-    const isPreview = currentState.cellId === model.id && currentState.isPreview;
     const dropArea: g.Rect = model.getBBox();
     atom.set({
       cellId: model.id,
       canDrop: true,
-      isPreview,
+      isPreview: false,
       dropArea,
       dragEvent: event,
       graph: paper.model,
