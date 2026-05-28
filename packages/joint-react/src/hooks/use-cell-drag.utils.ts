@@ -8,7 +8,7 @@
  *
  *   WeakSet<dia.Paper>
  *     — tracks which papers have drag listeners attached.
- *     — `ensureDragListeners(paper)` is idempotent: first call attaches
+ *     — `ensureCellDragListeners(paper)` is idempotent: first call attaches
  *       `element:pointermove` / `element:pointerup` listeners that write
  *       to the atom. Subsequent calls are no-ops.
  *     — Listeners are cleaned up when `paper.remove()` is called.
@@ -24,6 +24,7 @@ import type { dia } from '@joint/core';
 import { g } from '@joint/core';
 import { createAtom, type Atom } from '../store/state-container';
 import type { CellDragState } from './use-cell-drag';
+import { CLEANUP_EVENT_NAME, type ReactPaper } from '../models/react-paper';
 
 /** Snapshot returned when no drag is active. */
 export const EMPTY_CELL_DRAG_STATE: CellDragState = {
@@ -39,7 +40,7 @@ export const EMPTY_CELL_DRAG_PREVIEW_STATE: CellDragState = {
   ...EMPTY_CELL_DRAG_STATE,
   isPreview: true,
 };
-const draggingAtoms = new WeakMap<dia.Paper, Atom<CellDragState>>();
+const cellDragAtoms = new WeakMap<dia.Paper, Atom<CellDragState>>();
 const listenersAttached = new WeakSet<dia.Paper>();
 
 /**
@@ -48,10 +49,10 @@ const listenersAttached = new WeakSet<dia.Paper>();
  * @param paper - The paper instance.
  */
 export function getCellDragState(paper: dia.Paper): Atom<CellDragState> {
-  let atom = draggingAtoms.get(paper);
+  let atom = cellDragAtoms.get(paper);
   if (!atom) {
     atom = createAtom<CellDragState>(EMPTY_CELL_DRAG_STATE);
-    draggingAtoms.set(paper, atom);
+    cellDragAtoms.set(paper, atom);
   }
   return atom;
 }
@@ -61,7 +62,7 @@ export function getCellDragState(paper: dia.Paper): Atom<CellDragState> {
  * call per paper sets up listeners. Cleanup happens when paper is disposed.
  * @param paper - The paper instance.
  */
-export function ensureDragListeners(paper: dia.Paper): void {
+export function ensureCellDragListeners(paper: ReactPaper): void {
   if (listenersAttached.has(paper)) return;
   listenersAttached.add(paper);
 
@@ -70,11 +71,13 @@ export function ensureDragListeners(paper: dia.Paper): void {
 
   listener.listenTo(paper, 'element:pointermove', (view: dia.ElementView, event: dia.Event) => {
     const { model } = view;
+    const currentState = atom.get();
+    const isPreview = currentState.cellId === model.id && currentState.isPreview;
     const dropArea: g.Rect = model.getBBox();
     atom.set({
       cellId: model.id,
-      canDrop: paper.getArea().containsRect(dropArea),
-      isPreview: false,
+      canDrop: true,
+      isPreview,
       dropArea,
       dragEvent: event,
       graph: paper.model,
@@ -84,12 +87,14 @@ export function ensureDragListeners(paper: dia.Paper): void {
   });
 
   listener.listenTo(paper, 'element:pointerup', () => {
+    const currentState = atom.get();
+    if (currentState.isPreview) return;
     atom.set(EMPTY_CELL_DRAG_STATE);
   });
 
-  listener.listenTo(paper, 'remove', () => {
+  listener.listenTo(paper, CLEANUP_EVENT_NAME, () => {
     listener.stopListening();
     listenersAttached.delete(paper);
-    draggingAtoms.delete(paper);
+    cellDragAtoms.delete(paper);
   });
 }

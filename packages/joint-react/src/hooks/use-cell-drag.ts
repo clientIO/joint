@@ -5,7 +5,7 @@ import type { g } from '@joint/core';
 import { useCellId } from './use-cell-id';
 import {
   getCellDragState,
-  ensureDragListeners,
+  ensureCellDragListeners,
   EMPTY_CELL_DRAG_STATE,
   EMPTY_CELL_DRAG_PREVIEW_STATE,
 } from './use-cell-drag.utils';
@@ -83,7 +83,7 @@ export function useCellDrag(): CellDragState {
 
   useLayoutEffect(() => {
     if (!paper) return;
-    return ensureDragListeners(paper);
+    return ensureCellDragListeners(paper);
   }, [paper]);
 
   const getSnapshot = useMemo(() => {

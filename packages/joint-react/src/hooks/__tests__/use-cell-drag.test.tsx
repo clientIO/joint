@@ -7,15 +7,16 @@ import { GraphStore } from '../../store/graph-store';
 import { useCellDrag, type CellDragState } from '../use-cell-drag';
 import {
   getCellDragState,
-  ensureDragListeners,
+  ensureCellDragListeners,
   EMPTY_CELL_DRAG_STATE,
 } from '../use-cell-drag.utils';
+import type { ReactPaper } from '../../models/react-paper';
 
 function createMockGraph(): dia.Graph {
   return new dia.Graph();
 }
 
-function createMockPaper(graph?: dia.Graph): dia.Paper {
+function createMockPaper(graph?: dia.Graph): ReactPaper {
   const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
   const model = graph ?? createMockGraph();
   return {
@@ -34,7 +35,7 @@ function createMockPaper(graph?: dia.Graph): dia.Paper {
       containsRect: jest.fn().mockReturnValue(true),
     }),
     model,
-  } as unknown as dia.Paper;
+  } as unknown as ReactPaper;
 }
 
 function createWrapper(options: { readonly cellId: string; readonly paper?: dia.Paper }) {
@@ -185,12 +186,11 @@ describe('useCellDrag', () => {
     expect(result.current.canDrop).toBe(true);
   });
 
-  it('reports canDrop false when snapshot says canDrop is false', async () => {
+  it('reports canDrop true during any drag', async () => {
     const paper = createMockPaper();
     const atom = getCellDragState(paper);
     atom.set(
       makeDragState(paper, 'cell-1', {
-        canDrop: false,
         dropArea: new g.Rect(-100, -100, 50, 50),
       })
     );
@@ -199,7 +199,7 @@ describe('useCellDrag', () => {
       wrapper: createWrapper({ cellId: 'cell-1', paper }),
     });
 
-    expect(result.current.canDrop).toBe(false);
+    expect(result.current.canDrop).toBe(true);
   });
 
   it('does not overwrite stencil preview state on element:pointermove', () => {
@@ -213,7 +213,7 @@ describe('useCellDrag', () => {
       })
     );
 
-    ensureDragListeners(paper);
+    ensureCellDragListeners(paper);
     const mockView = {
       model: { id: 'clone-1', getBBox: () => new g.Rect(-50, -50, 50, 50) },
     } as unknown as dia.ElementView;
@@ -231,7 +231,7 @@ describe('useCellDrag', () => {
 
     atom.set(makeDragState(paper, 'clone-1', { isPreview: true }));
 
-    ensureDragListeners(paper);
+    ensureCellDragListeners(paper);
     paper.trigger('element:pointerup');
 
     const snap = atom.get();
