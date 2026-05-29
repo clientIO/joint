@@ -13,12 +13,11 @@ import type { CellRecord } from '../../types/cell.types';
 const EMPTY_CELLS: readonly CellRecord[] = [];
 
 describe('useResolvePaperId', () => {
-  it('returns null sentinel when target is undefined', () => {
+  it('returns undefined when target is undefined', () => {
     const wrapper = graphProviderWrapper({ initialCells: [] });
     const undefinedTarget: undefined = undefined;
     const { result } = renderHook(() => useResolvePaperId(undefinedTarget), { wrapper });
-    // OPTIONAL sentinel `{ optional: true }` is returned for unresolved targets.
-    expect(typeof result.current).toBe('object');
+    expect(result.current).toBeUndefined();
   });
 
   it('returns the id directly when target is a string', () => {
@@ -53,15 +52,15 @@ describe('useResolvePaperId', () => {
     await waitFor(() => expect(result.current).toBe('instance-paper'));
   });
 
-  it('resolves a ref-based target via the layout effect when ref attaches mid-mount (lines 33–35)', async () => {
+  it('resolves a ref-based target via the layout effect when ref attaches mid-mount', async () => {
     // Render <Paper ref={paperRef} /> together with a Probe that calls
     // `useResolvePaperId(paperRef)`. On the first render, `paperRef.current`
     // is still null (Paper's `useImperativeHandle` populates it AFTER child
     // effects run). The Probe's `useResolvePaperId` therefore returns the
     // null sentinel during render, but its layout effect runs *after* Paper
     // has attached to the ref — the layout effect re-resolves successfully
-    // and forces a re-render via `forceRender()`, hitting lines 33–35.
-    let resolvedId: string | { optional: true } | null = null;
+    // and forces a re-render via `forceRender()`.
+    let resolvedId: string | undefined;
     function Probe({ paperRef }: { readonly paperRef: React.RefObject<dia.Paper | null> }) {
       resolvedId = useResolvePaperId(paperRef);
       return null;
@@ -99,13 +98,13 @@ describe('usePaper', () => {
       paperProps: { id: 'context-paper' },
     });
     const { result } = renderHook(() => usePaper(), { wrapper });
-    await waitFor(() => expect(result.current.paper).not.toBeNull());
+    await waitFor(() => expect(result.current.paper).toBeDefined());
   });
 
-  it('returns { paper: null } with optional: true outside Paper context', () => {
+  it('returns { paper: undefined } outside Paper context', () => {
     const wrapper = graphProviderWrapper({ initialCells: [] });
-    const { result } = renderHook(() => usePaper({ optional: true }), { wrapper });
-    expect(result.current.paper).toBeNull();
+    const { result } = renderHook(() => usePaper(), { wrapper });
+    expect(result.current.paper).toBeUndefined();
   });
 
   it('looks up paper by id', async () => {
@@ -122,6 +121,6 @@ describe('usePaper', () => {
       paperProps: { id: 'by-id-paper' },
     });
     const { result } = renderHook(() => usePaper('by-id-paper'), { wrapper });
-    await waitFor(() => expect(result.current.paper).not.toBeNull());
+    await waitFor(() => expect(result.current.paper).toBeDefined());
   });
 });

@@ -10,6 +10,9 @@ const noopViewMountChange = (): void => {
   // No-op default for onViewMountChange callback
 };
 
+/** Well-known paper ID used when no explicit `id` is provided to `<Paper>`. */
+export const DEFAULT_PAPER_ID = 'default-paper';
+
 /**
  * Extended Paper class that manages React view lifecycle.
  *

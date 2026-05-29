@@ -1,6 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useId } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import type { CellRecord, ElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -118,15 +117,13 @@ const toolsView = new dia.ToolsView({
 });
 
 function Main() {
-  const paperId = useId();
-  usePaperEvents(paperId, {
+  usePaperEvents({
     onLinkMouseEnter: ({ view }) => view.addTools(toolsView),
     onLinkMouseLeave: ({ view }) => view.removeTools(),
   });
 
   return (
     <Paper style={{ width: "100%" }}
-      id={paperId}
       defaultLink={{
         style: { color: PRIMARY, targetMarker: 'arrow' },
       }}

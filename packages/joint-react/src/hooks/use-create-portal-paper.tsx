@@ -53,7 +53,7 @@ type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 const EMPTY_DATA: Readonly<Record<string, unknown>> = Object.freeze({});
 
 /** Options accepted by {@link useCreatePortalPaper}; extends all `PaperProps`. */
-export interface UseCreatePortalPaperOptions extends PaperProps {
+export interface CreatePortalPaperOptions extends PaperProps {
   /**
    * Host element ref where the paper should be mounted automatically.
    * When omitted, paper rendering is manual (e.g. via `onReady` callback).
@@ -66,7 +66,7 @@ export interface UseCreatePortalPaperOptions extends PaperProps {
 }
 
 /** Return value of {@link useCreatePortalPaper}: the paper id, ref, and helper APIs. */
-export interface UseCreatePortalPaperResult {
+export interface CreatePortalPaperHandle {
   /** Effective paper id used in GraphStore. */
   readonly id: string;
   /** Current paper instance, available synchronously after mount and kept in sync afterwards. */
@@ -179,8 +179,8 @@ const defaultRenderElement = (data: unknown) => {
  * @returns Hook state with paper instance and rendered portal content.
  */
 export function useCreatePortalPaper(
-  options: Readonly<UseCreatePortalPaperOptions>
-): UseCreatePortalPaperResult {
+  options: Readonly<CreatePortalPaperOptions>
+): CreatePortalPaperHandle {
   const {
     renderElement = defaultRenderElement,
     renderLink,

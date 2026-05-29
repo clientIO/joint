@@ -100,6 +100,7 @@ function SVGElementItemComponent(props: ElementItemProps) {
   const graphStore = useGraphStore();
   const { paper } = usePaper();
   useLayoutEffect(() => {
+    if (!paper) return;
     graphStore.clearViewForElementAndLinks({
       cellId: id,
       paper,

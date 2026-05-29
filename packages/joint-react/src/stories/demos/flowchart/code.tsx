@@ -7,7 +7,7 @@ import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
-import { forwardRef, useId, useRef, useState } from 'react';
+import { forwardRef, useRef, useState } from 'react';
 
 const unit = 4;
 const bevel = 2 * unit;
@@ -408,11 +408,9 @@ function RenderFlowchartElement(data: Readonly<ElementData>) {
 // Create link tools
 
 function Main() {
-  const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
   usePaperEvents(
-    paperId,
     {
       onLinkPointerClick: ({ view: linkView, paper }) => {
         paper.removeTools();
@@ -496,7 +494,7 @@ function Main() {
     []
   );
 
-  useNodesMeasuredEffect(paperId, ({ isInitial, paper }) => {
+  useNodesMeasuredEffect(({ isInitial, paper }) => {
     if (!isInitial) return;
     paper.transformToFitContent({
       padding: 40,
@@ -509,7 +507,6 @@ function Main() {
   return (
     <Paper style={{ height: 600 }}
       ref={paperRef}
-      id={paperId}
       gridSize={5}
       overflow
       snapLabels

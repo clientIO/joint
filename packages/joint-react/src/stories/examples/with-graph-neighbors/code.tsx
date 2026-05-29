@@ -1,6 +1,6 @@
 
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useMarkup, usePaperEvents, selectElementSize } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -163,7 +163,6 @@ function clearHighlighters(paper: dia.Paper) {
 
 function Main() {
   const { graph } = useGraph();
-  const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
   const [highlightState, setHighlightState] = useState<HighlightState>(INITIAL_STATE);
@@ -181,7 +180,6 @@ function Main() {
   }, [highlightState]);
 
   usePaperEvents(
-    paperId,
     {
       onElementPointerClick: ({ id }) => {
         const clickedId = String(id);
@@ -218,7 +216,6 @@ function Main() {
   return (
     <Paper style={{ ...PAPER_STYLE, width: "100%", height: 500 }}
       ref={paperRef}
-      id={paperId}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       drawGrid={false}

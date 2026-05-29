@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { dia, util } from '@joint/core';
 import type { CellRecord, LinkRecord, LinkMarker } from '@joint/react';
 import { GraphProvider, Paper, usePaperEvents, usePaper, jsx } from '@joint/react';
@@ -445,8 +445,7 @@ function zoomToFit(paper: dia.Paper, contentArea: dia.BBox | null = paper.model.
 }
 
 function Main() {
-  const paperId = useId();
-  const { paper } = usePaper(paperId);
+  const { paper } = usePaper();
   const [zoom, setZoom] = useState<ZoomState>({ type: 'overview' });
 
   // Enable smooth zoom transitions once paper is ready
@@ -483,7 +482,7 @@ function Main() {
     }
   }, [zoom, paper]);
 
-  usePaperEvents(paperId, {
+  usePaperEvents({
     onLinkPointerDown: ({ model: link }) => {
       setZoom((previous) => {
         if (previous.type === 'link' && previous.link === link) {
@@ -497,7 +496,6 @@ function Main() {
 
   return (
     <Paper style={{ background: BG_COLOR, width: "100%" }}
-      id={paperId}
       className={`${PAPER_CLASSNAME} h-150`}
       interactive={false}
       drawGrid={false}

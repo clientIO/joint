@@ -23,6 +23,7 @@ import {
 } from './graph-projection';
 import { simpleScheduler } from '../utils/scheduler';
 import { cellInputToModel, type CellInput } from '../utils/normalize-cell-input';
+import { warnDuplicatePapers } from '../utils/dev-warnings';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -375,6 +376,9 @@ export class GraphStore<
   };
 
   public addPaper = (id: string, paperOptions: AddPaperOptions) => {
+    if (process.env.NODE_ENV !== 'production') {
+      warnDuplicatePapers(id, this.paperStores.keys());
+    }
     const paperStore = new PaperStore({ ...paperOptions, graphStore: this, id });
     this.paperStores.set(id, paperStore);
     this.updatePaperSnapshot(id, () => getDefaultPaperState());

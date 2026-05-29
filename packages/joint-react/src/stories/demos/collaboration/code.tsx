@@ -789,7 +789,7 @@ function Toolbar() {
 
 function DragTracker({ manager }: Readonly<{ manager: ReturnType<typeof createPeerManager> }>) {
   const draggingRef = useRef<Set<string>>(new Set());
-  usePaperEvents(PAPER_ID, {
+  usePaperEvents({
     onElementPointerDown: ({ id }) => {
       draggingRef.current.add(String(id));
       manager.sendDrag([...draggingRef.current]);
@@ -803,8 +803,6 @@ function DragTracker({ manager }: Readonly<{ manager: ReturnType<typeof createPe
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
-
-const PAPER_ID = 'collab-paper';
 
 function GraphWithRedux() {
   const isDark = useContext(ThemeContext);
@@ -913,7 +911,6 @@ function GraphWithRedux() {
           onIncrementalCellsChange={handleIncrementalChange}
         >
           <Paper style={{ backgroundColor: theme.canvas, width: "100%", height: "100%" }}
-            id={PAPER_ID}
             gridSize={1}
             overflow
             linkPinning={false}

@@ -44,22 +44,12 @@ describe('use-paper-context', () => {
     expect(capturedContext).toHaveProperty('paperId');
   });
 
-  it('should throw error when used outside Paper and optional is false', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => {
-      renderHook(() => usePaperStore(), {
-        wrapper: graphWrapper,
-      });
-    }).toThrow('usePaperStore must be used within a Paper or RenderElement');
-    consoleError.mockRestore();
-  });
-
-  it('should return null when used outside Paper and optional is true', () => {
-    const { result } = renderHook(() => usePaperStore({ optional: true }), {
+  it('should return undefined when used outside Paper (no default paper mounted)', () => {
+    const { result } = renderHook(() => usePaperStore(), {
       wrapper: graphWrapper,
     });
 
-    expect(result.current).toBeNull();
+    expect(result.current).toBeUndefined();
   });
 
   it('should return paper store by id from GraphProvider', async () => {

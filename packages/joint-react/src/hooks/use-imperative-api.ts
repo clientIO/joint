@@ -22,7 +22,7 @@ interface OnLoadReturn<Instance> {
  * Options for the useImperativeApi hook.
  * @template Instance - The type of the instance being managed
  */
-export interface UseImperativeApiOptions<Instance, InstanceSelector = Instance> {
+export interface ImperativeApiOptions<Instance, InstanceSelector = Instance> {
   /**
    * Function called to create the instance.
    * Should return the instance and a cleanup function.
@@ -96,7 +96,7 @@ export type ImperativeStateResult<Instance> = ResultReady<Instance> | ResultNotR
  * @group Hooks
  */
 export function useImperativeApi<Instance, InstanceSelector = Instance>(
-  options: UseImperativeApiOptions<Instance, InstanceSelector>,
+  options: ImperativeApiOptions<Instance, InstanceSelector>,
   dependencies: DependencyList
 ): ImperativeStateResult<Instance> {
   const { onLoad, onUpdate, onReadyChange, instanceSelector, isDisabled, forwardedRef } = options;

@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   type CellRecord,
   GraphProvider,
@@ -35,13 +35,11 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 // ============================================================================
 
 interface EditControllerProps {
-  readonly paperId: string;
   readonly onSelect: (id: string | null) => void;
 }
 
-function EditController({ paperId, onSelect }: Readonly<EditControllerProps>) {
+function EditController({ onSelect }: Readonly<EditControllerProps>) {
   usePaperEvents(
-    paperId,
     {
       onElementPointerClick: ({ id }) => onSelect(String(id)),
       onBlankPointerClick: () => onSelect(null),
@@ -51,14 +49,9 @@ function EditController({ paperId, onSelect }: Readonly<EditControllerProps>) {
   return null;
 }
 
-interface ViewControllerProps {
-  readonly paperId: string;
-}
-
-function ViewController({ paperId }: Readonly<ViewControllerProps>) {
+function ViewController() {
   const [hovered, setHovered] = useState<string | null>(null);
   usePaperEvents(
-    paperId,
     {
       onElementMouseEnter: ({ id, model }) => {
         const data = model.attributes.data as NodeData | undefined;
@@ -132,7 +125,6 @@ function PropertyEditor({ selectedId }: Readonly<PropertyEditorProps>) {
 // ============================================================================
 
 function Main() {
-  const paperId = useId();
   const [editMode, setEditMode] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -157,11 +149,11 @@ function Main() {
 
       <div className="flex">
         <div className="flex-1 relative">
-          <Paper id={paperId} className={PAPER_CLASSNAME + ' h-[300px]'} interactive={editMode} />
+          <Paper className={PAPER_CLASSNAME + ' h-[300px]'} interactive={editMode} />
           {editMode ? (
-            <EditController paperId={paperId} onSelect={setSelectedId} />
+            <EditController onSelect={setSelectedId} />
           ) : (
-            <ViewController paperId={paperId} />
+            <ViewController />
           )}
         </div>
         {editMode && (

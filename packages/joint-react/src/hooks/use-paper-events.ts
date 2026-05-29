@@ -1,26 +1,53 @@
 import { useLayoutEffect, type DependencyList } from 'react';
-import { dia } from '@joint/core';
 import { usePaperStore, useResolvePaperId } from './use-paper';
 import type { PaperStore } from '../store';
-import { OPTIONAL, type PaperTarget } from '../types';
-import { isRecord, isRef, isString } from '../utils/is';
+import type { PaperTarget } from '../types';
+import { isPaperTarget } from '../utils/resolve-paper-target';
 import { addPaperEventListeners, type PaperEventMap } from '../presets/paper-events';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
+const EMPTY_HANDLERS: PaperEventMap = {};
 
 /**
- * Discriminates the first argument of `usePaperEvents` between a paper target
- * and a handlers map.
- * @param value - Candidate first argument.
- * @returns True when the value identifies a paper (id, instance, ref, or
- * `Optional` sentinel).
+ * Distinguishes a `PaperEventMap` (a plain object) from a `DependencyList`
+ * (an array) — used to resolve the overloaded second argument without casts.
+ * @param value - The handlers-or-dependencies argument.
+ * @returns True when `value` is a handlers map rather than a dependency list.
  */
-function isPaperTarget(value: unknown): value is PaperTarget {
-  if (isString(value)) return true;
-  if (value instanceof dia.Paper) return true;
-  if (isRef(value)) return true;
-  if (isRecord(value) && value.optional === true) return true;
-  return false;
+function isPaperEventMap(value: PaperEventMap | DependencyList): value is PaperEventMap {
+  return !Array.isArray(value);
+}
+
+/** Normalized {@link usePaperEvents} arguments. */
+interface ResolvedPaperEventsArgs {
+  readonly target: PaperTarget | undefined;
+  readonly handlers: PaperEventMap;
+  readonly dependencies: DependencyList;
+}
+
+/**
+ * Resolves the overloaded `usePaperEvents` arguments into a paper target, a
+ * handlers map, and a dependency list — using runtime type guards, no casts.
+ * @param paperOrHandlers - First arg: a paper target, or the handlers map.
+ * @param handlersOrDependencies - Second arg: handlers (target form) or dependencies (context form).
+ * @param dependenciesArgument - Third arg: dependencies (target form only).
+ * @returns The resolved target, handlers, and dependencies.
+ */
+function resolvePaperEventsArgs(
+  paperOrHandlers: PaperTarget | PaperEventMap,
+  handlersOrDependencies: PaperEventMap | DependencyList,
+  dependenciesArgument: DependencyList
+): ResolvedPaperEventsArgs {
+  if (!isPaperTarget(paperOrHandlers)) {
+    // usePaperEvents(handlers, dependencies?)
+    const dependencies = isPaperEventMap(handlersOrDependencies)
+      ? EMPTY_DEPENDENCIES
+      : handlersOrDependencies;
+    return { target: undefined, handlers: paperOrHandlers, dependencies };
+  }
+  // usePaperEvents(target, handlers, dependencies?)
+  const handlers = isPaperEventMap(handlersOrDependencies) ? handlersOrDependencies : EMPTY_HANDLERS;
+  return { target: paperOrHandlers, handlers, dependencies: dependenciesArgument };
 }
 
 /**
@@ -72,7 +99,7 @@ export function subscribeToPaperEvents(
 export function usePaperEvents(handlers: PaperEventMap, dependencies?: DependencyList): void;
 /**
  * Subscribes to paper events on the given paper target.
- * @param paper - Paper reference (string ID, dia.Paper instance, ref, or Optional).
+ * @param paper - Paper reference (string ID, dia.Paper instance, or ref).
  * @param handlers - Event handlers map.
  * @param dependencies - Optional dependency array controlling re-subscription.
  * @group Hooks
@@ -87,27 +114,17 @@ export function usePaperEvents(
   handlersOrDependencies: PaperEventMap | DependencyList = EMPTY_DEPENDENCIES,
   dependenciesArgument: DependencyList = EMPTY_DEPENDENCIES
 ): void {
-  const shouldUseContextPaper = !isPaperTarget(paperOrHandlers);
-  const target: PaperTarget = shouldUseContextPaper
-    ? OPTIONAL
-    : (paperOrHandlers as PaperTarget);
-  const handlers = shouldUseContextPaper
-    ? (paperOrHandlers as PaperEventMap)
-    : (handlersOrDependencies as PaperEventMap);
-  const dependencies = shouldUseContextPaper
-    ? (handlersOrDependencies as DependencyList)
-    : dependenciesArgument;
+  const { target, handlers, dependencies } = resolvePaperEventsArgs(
+    paperOrHandlers,
+    handlersOrDependencies,
+    dependenciesArgument
+  );
 
   const paperId = useResolvePaperId(target);
   const paperStore = usePaperStore(paperId);
 
-  if (shouldUseContextPaper && !paperStore) {
-    throw new Error('usePaperEvents without a paper target must be used within a Paper.');
-  }
-
   useLayoutEffect(() => {
     if (!paperStore) return;
-
     return subscribeToPaperEvents(paperStore, handlers);
     // Dependencies are explicit API contract for this hook.
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -14,7 +14,7 @@ import {
   type ElementRecord,
   type Computed,
 } from '@joint/react';
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -36,7 +36,6 @@ const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
 
 function Main() {
   const { graph, setCell } = useGraph<ElementRecord<ElementData>>();
-  const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
   // Number of elements per row
@@ -62,7 +61,7 @@ function Main() {
     []
   );
 
-  useNodesMeasuredEffect(paperId, () => {
+  useNodesMeasuredEffect(() => {
     makeLayoutWithGrid({ graph, gridXSize });
   }, []);
 
@@ -111,7 +110,6 @@ function Main() {
       </div>
       <Paper style={{ height: 450 }}
         ref={paperRef}
-        id={paperId}
         className={PAPER_CLASSNAME}
         renderElement={renderElement}
       />

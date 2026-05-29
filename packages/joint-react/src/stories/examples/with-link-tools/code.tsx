@@ -2,7 +2,6 @@
 import { dia, linkTools } from '@joint/core';
 import '../index.css';
 import { type CellRecord, GraphProvider, jsx, Paper, usePaperEvents } from '@joint/react';
-import { useId } from 'react';
 import { PRIMARY, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 
@@ -93,9 +92,7 @@ const toolsView = new dia.ToolsView({
 });
 
 function Main() {
-  const paperId = useId();
-
-  usePaperEvents(paperId, {
+  usePaperEvents({
     onLinkMouseEnter: ({ view }) => view.addTools(toolsView),
     onLinkMouseLeave: ({ view }) => view.removeTools(),
   });
@@ -103,7 +100,6 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper style={{ height: 280 }}
-        id={paperId}
         className={PAPER_CLASSNAME}
         linkRouting={ORTHOGONAL_LINKS}
       />

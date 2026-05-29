@@ -20,7 +20,7 @@ import {
   selectElementSize,
 } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { LIGHT, PAPER_STYLE } from 'storybook-config/theme';
 
 // ============================================================================
@@ -211,6 +211,7 @@ function Selection({ selectedId }: { selectedId: CellId | null }) {
   const { graph } = useGraph();
 
   useEffect(() => {
+    if (!paper) return;
     highlighters.mask.removeAll(paper);
 
     if (!selectedId) return;
@@ -274,7 +275,6 @@ function RenderElementWithBadge({
 }
 
 function Main() {
-  const paperId = useId();
   const [paper, setPaper] = useState<dia.Paper | null>(null);
   const [showMinimap, setShowMinimap] = useState(false);
   const [selectedElement, setSelectedElement] = useState<CellId | null>(null);
@@ -289,7 +289,6 @@ function Main() {
   useCells();
 
   usePaperEvents(
-    paperId,
     {
       onElementPointerClick: ({ id }) => setSelectedElement(id),
       onElementPointerDblClick: ({ model, graph }) => {
@@ -303,7 +302,6 @@ function Main() {
   return (
     <div className="flex flex-col relative w-full h-full">
       <Paper style={{ ...PAPER_STYLE, height: "calc(100vh - 100px)" }}
-        id={paperId}
         {...PAPER_PROPS}
         ref={setPaper}
         className={PAPER_CLASSNAME}

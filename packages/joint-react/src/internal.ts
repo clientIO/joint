@@ -63,13 +63,13 @@ export {
 export type { ElementJSONInit, LinkJSONInit } from './types/cell.types';
 
 // Utility Functions
-export { assignOptions, pickValues } from './utils/object-utilities';
-export { resolvePaper, resolvePaperId } from './types';
+export { assignOptions, pickValues, makeOptions } from './utils/object-utilities';
+export { resolvePaper, resolvePaperId, isPaperTarget } from './utils/resolve-paper-target';
+export { isRecord } from './utils/is';
 
 // Constants
 export { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from './models/element-model';
 export { LINK_MODEL_TYPE } from './models/link-model';
-export { OPTIONAL } from './types';
 
 // Internal Selectors
 export {
@@ -79,13 +79,7 @@ export {
 } from './selectors';
 
 // Internal Types (used by react-plus)
-export type {
-  Optional,
-  Mutable,
-  RemoveIndexSignature,
-  OmitWithoutIndexSignature,
-  PaperTarget,
-} from './types';
+export type { OmitWithoutIndexSignature, PaperTarget } from './types';
 export type { PortalSelector } from './models/react-paper.types';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
 
