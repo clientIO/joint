@@ -1,3 +1,5 @@
+import { DEFAULT_PAPER_ID } from '../models/react-paper';
+
 const WARNED = new Set<string>();
 
 /**
@@ -53,4 +55,32 @@ export function warnUnstableSelector(
       '  2. Return cell records directly: (cells) => cells.filter(predicate)\n' +
       '  3. Provide a custom isEqual: useCells(input, selector, shallowEqual)\n'
   );
+}
+
+/**
+ * Warns when multiple `<Paper>` components register with the same default ID.
+ * This typically means two Papers were rendered without explicit `id` props.
+ * @param paperId - The paper ID being registered.
+ * @param existingPaperIds - Set of already-registered paper IDs.
+ */
+export function warnDuplicatePapers(paperId: string, existingPaperIds: Iterable<string>): void {
+  if (process.env.NODE_ENV === 'production') return;
+  if (paperId !== DEFAULT_PAPER_ID) return;
+
+  for (const existingId of existingPaperIds) {
+    if (existingId === DEFAULT_PAPER_ID) {
+      const key = 'duplicate-default-paper';
+      if (WARNED.has(key)) return;
+      WARNED.add(key);
+
+      console.warn(
+        '[Paper] Multiple <Paper> components rendered without an explicit `id` prop. ' +
+          `They share the default ID "${DEFAULT_PAPER_ID}", which causes conflicts.\n\n` +
+          'Fix: give each Paper a unique `id` prop:\n' +
+          '  <Paper id="primary" ... />\n' +
+          '  <Paper id="secondary" ... />\n'
+      );
+      return;
+    }
+  }
 }

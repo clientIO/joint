@@ -2,7 +2,7 @@ import { type CellRecord, GraphProvider, useCell, Paper, useNodesMeasuredEffect,
 import '../index.css';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
-import { useCallback, useId } from 'react';
+import { useCallback } from 'react';
 
 // ----------------------------------------------------------------------------
 // Type Definitions
@@ -732,8 +732,6 @@ function addElementControls(paper: dia.Paper) {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
-  const paperId = useId();
-
   const handleElementsMeasured = useCallback(
     ({ isInitial, paper }: { isInitial: boolean; paper: dia.Paper }) => {
       if (!isInitial) return;
@@ -742,11 +740,10 @@ function Main() {
     []
   );
 
-  useNodesMeasuredEffect(paperId, handleElementsMeasured);
+  useNodesMeasuredEffect(handleElementsMeasured);
 
   return (
     <Paper style={{ ...PAPER_STYLE, width: "100%", height: 600 }}
-      id={paperId}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       drawGrid={false}

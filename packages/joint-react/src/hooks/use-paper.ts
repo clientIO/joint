@@ -1,25 +1,24 @@
-/* eslint-disable @typescript-eslint/unified-signatures */
-import { useCallback, useContext, useReducer, useLayoutEffect, useRef } from 'react';
+import { useCallback, useContext, useMemo, useReducer, useLayoutEffect, useRef } from 'react';
 import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
 import { useGraphStore } from './use-graph-store';
 import { useInternalData } from './use-stores';
 import type { ReactPaper } from '../models/react-paper';
+import { DEFAULT_PAPER_ID } from '../models/react-paper';
 import type { PaperTarget } from '../types';
-import { OPTIONAL, resolvePaperId } from '../types';
+import { resolvePaperId } from '../utils/resolve-paper-target';
+import { isRef } from '../utils/is';
 
 /**
  * Resolves a paper ID from any `PaperTarget`, handling the ref-timing problem.
- * For string IDs, `dia.Paper` instances, and `Nullable` targets, resolution is
- * synchronous — no effects are scheduled. For `RefObject<dia.Paper>` targets,
- * `resolvePaperId` returns `null` during render (ref not yet populated).
- * A layout effect re-resolves the ID once `useImperativeHandle` has set the ref
- * and triggers a single re-render.
+ * For string IDs and `dia.Paper` instances resolution is synchronous. For
+ * `RefObject<dia.Paper>` targets, a layout effect re-resolves the ID once
+ * `useImperativeHandle` has set the ref.
  * @param target - The paper target to resolve.
- * @returns The paper ID string, or `NULLABLE` sentinel when not yet available.
+ * @returns The paper ID string, or `undefined` when not yet available.
  * @internal
  */
-export function useResolvePaperId(target: PaperTarget | undefined): string | Optional {
+export function useResolvePaperId(target: PaperTarget | undefined): string | undefined {
   const isRefTarget = isRef(target);
   const paperId = resolvePaperId(target);
   const [, forceRender] = useReducer((c: number) => c + 1, 0);
@@ -28,7 +27,6 @@ export function useResolvePaperId(target: PaperTarget | undefined): string | Opt
 
   useLayoutEffect(() => {
     if (!isRefTarget || resolvedIdRef.current) return;
-    // Re-resolve inside the layout effect where the ref is already populated.
     const id = resolvePaperId(target);
     if (id) {
       resolvedIdRef.current = id;
@@ -36,152 +34,69 @@ export function useResolvePaperId(target: PaperTarget | undefined): string | Opt
     }
   });
 
-  return resolvedIdRef.current ?? OPTIONAL;
+  return resolvedIdRef.current ?? undefined;
 }
-import type { Optional } from '../types';
-import { isString, isRecord, isRef } from '../utils/is';
 
 /**
- * Returns the active paper store.
- * All overloads must be used inside a `GraphProvider`.
- * Use this hook in one of three modes:
- * - with no arguments, read the current `PaperStore` from `Paper` context
- * - with `{ optional: true }`, still read the current `PaperStore` from `Paper` context but return `null` instead of throwing when the context is missing
- * - with a paper id, read a specific paper store from the graph store
+ * Returns the active paper store from context, by ID, or via the default paper.
+ *
+ * A paper store is view-access: it exists only once a `<Paper>` has mounted, so
+ * the result is `PaperStore | undefined` and this hook never throws.
+ *
+ * Resolution order (no explicit id):
+ * 1. `PaperStoreContext` (when called inside a `<Paper>` subtree)
+ * 2. `DEFAULT_PAPER_ID` lookup (when a single `<Paper>` exists without an explicit `id`)
+ * @param id - An explicit paper id, or omitted for the context/default paper.
+ * @returns The resolved paper store, or `undefined` when no paper is mounted yet.
  * @group Hooks
- * @returns The resolved paper store for the current context or requested id.
- * @example
- * ```tsx
- * import { usePaperStore } from '@joint/react';
- *
- * function PaperToolbar() {
- *   const paperStore = usePaperStore();
- *
- *   return <span>{paperStore.paperId}</span>;
- * }
- * ```
- * @example
- * ```tsx
- * import { usePaperStore } from '@joint/react';
- *
- * function OptionalOverlay() {
- *   const paperStore = usePaperStore({ optional: true });
- *
- *   if (!paperStore) return null;
- *
- *   return <span>{paperStore.paper.svg.tagName}</span>;
- * }
- * ```
- * @example
- * ```tsx
- * import { usePaperStore } from '@joint/react';
- *
- * function Inspector() {
- *   const paperStore = usePaperStore('main-paper');
- *
- *   return paperStore ? <span>{paperStore.paperId}</span> : null;
- * }
- * ```
  */
-export function usePaperStore(): PaperStore;
-export function usePaperStore(options: Optional): PaperStore | null;
-export function usePaperStore(id: string): PaperStore | null;
-export function usePaperStore(idOrOptions?: string | Optional): PaperStore | null;
-export function usePaperStore(idOrOptions?: string | Optional): PaperStore | null {
+export function usePaperStore(id?: string): PaperStore | undefined {
   const contextStore = useContext(PaperStoreContext);
   const { getPaperStore } = useGraphStore();
-  const nullable = isRecord(idOrOptions) && idOrOptions.optional;
+
   const paperStoreById = useInternalData((snapshot) => {
-    if (!isString(idOrOptions)) {
-      return null;
+    if (id) {
+      return snapshot.papers[id] ? (getPaperStore(id) ?? null) : null;
     }
-    if (!snapshot.papers[idOrOptions]) {
-      return null;
+    if (!contextStore && snapshot.papers[DEFAULT_PAPER_ID]) {
+      return getPaperStore(DEFAULT_PAPER_ID) ?? null;
     }
-    return getPaperStore(idOrOptions) ?? null;
+    return null;
   });
 
-  if (isString(idOrOptions)) {
-    return paperStoreById;
-  }
-
-  if (!contextStore && !nullable) {
-    throw new Error('usePaperStore must be used within a Paper or RenderElement');
-  }
-
-  return contextStore ?? null;
+  if (id) return paperStoreById ?? undefined;
+  if (contextStore) return contextStore;
+  return paperStoreById ?? undefined;
 }
 
-/**
- * Returns the active `ReactPaper` instance (a `dia.Paper` subclass) wrapped in an object, from context or by paper id.
- *
- * All overloads must be used inside a `GraphProvider`.
- * Use this hook in one of three modes:
- * - with no arguments, read the current `ReactPaper` from `Paper` context
- * - with `{ optional: true }`, still read the current `ReactPaper` from `Paper` context, but return `null` paper instead of throwing when the context is missing
- * - with a paper id, read a specific paper from the graph store
- * @see https://docs.jointjs.com/learn/quickstart/paper
- * @group Hooks
- * @returns An object containing the resolved JointJS paper instance.
- * @example
- * ```tsx
- * import { usePaper } from '@joint/react';
- *
- * function PaperCanvasInfo() {
- *   const { paper } = usePaper();
- *
- *   return <span>{paper.svg.tagName}</span>;
- * }
- * ```
- * @example
- * ```tsx
- * import { usePaper } from '@joint/react';
- *
- * function OptionalPaperInfo() {
- *   const { paper } = usePaper({ optional: true });
- *
- *   if (!paper) return null;
- *
- *   return <span>{paper.svg.tagName}</span>;
- * }
- * ```
- * @example
- * ```tsx
- * import { usePaper } from '@joint/react';
- *
- * function SecondaryPaperInfo() {
- *   const { paper } = usePaper('secondary-paper');
- *
- *   return paper ? <span>{paper.svg.tagName}</span> : null;
- * }
- * ```
- */
-/** Imperative actions returned alongside the paper instance from {@link usePaper}. */
-interface UsePaperActions {
+/** Result of {@link usePaper} — the paper instance and imperative actions. */
+export interface PaperHandle {
+  /** Resolved JointJS paper instance, or `undefined` until a `<Paper>` has mounted. */
+  readonly paper?: ReactPaper;
   /**
-   * Trigger a render pass on the paper. Forwards to `paper.wakeUp()` —
-   * useful after mutations that don't go through React state (e.g. toggling
-   * a `cellVisibility` predicate that closes over external state). No-op
-   * when the paper isn't resolved yet.
+   * Trigger a render pass on the paper. Forwards to `paper.wakeUp()`.
+   * No-op when the paper isn't resolved yet.
    * @see https://docs.jointjs.com/api/dia/Paper#wakeUp
    */
   readonly wakeUp: () => void;
 }
 
-export function usePaper(): { paper: ReactPaper } & UsePaperActions;
-export function usePaper(options: Optional): { paper: ReactPaper | null } & UsePaperActions;
-export function usePaper(id: string): { paper: ReactPaper | null } & UsePaperActions;
-export function usePaper(
-  idOrOptions?: string | Optional
-): { paper: ReactPaper | null } & UsePaperActions;
-/** Hook that returns the paper instance and actions for the given paper id or options. */
-export function usePaper(
-  idOrOptions?: string | Optional
-): { paper: ReactPaper | null } & UsePaperActions {
-  const paperStore = usePaperStore(idOrOptions);
-  const paper = paperStore?.paper ?? null;
+/**
+ * Returns the active `ReactPaper` instance from context, by ID, or via the
+ * default paper. Wraps {@link usePaperStore} and exposes `wakeUp()`.
+ *
+ * The returned object is always stable; only `paper` is `undefined` until the
+ * `<Paper>` view has mounted.
+ * @param id - An explicit paper id, or omitted for the context/default paper.
+ * @returns A stable object with the resolved `paper` (or `undefined`) and a `wakeUp` action.
+ * @see https://docs.jointjs.com/learn/quickstart/paper
+ * @group Hooks
+ */
+export function usePaper(id?: string): PaperHandle {
+  const paperStore = usePaperStore(id);
+  const paper = paperStore?.paper ?? undefined;
   const wakeUp = useCallback(() => {
     paper?.wakeUp();
   }, [paper]);
-  return { paper, wakeUp };
+  return useMemo(() => ({ paper, wakeUp }), [paper, wakeUp]);
 }

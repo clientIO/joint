@@ -51,7 +51,7 @@ function isSameLayout(a: LinkLayout | undefined, b: LinkLayout | undefined): boo
 export function useLinkLayout(): LinkLayout | undefined {
   const id = useCellId();
   const paperStore = usePaperStore();
-  const { paper } = paperStore;
+  const paper = paperStore?.paper;
   const cachedRef = useRef<LinkLayout | undefined>(undefined);
 
   const subscribe = useCallback(
@@ -70,6 +70,7 @@ export function useLinkLayout(): LinkLayout | undefined {
   );
 
   const getSnapshot = useCallback((): LinkLayout | undefined => {
+    if (!paperStore) return undefined;
     const linkView = paperStore.getLinkView(id);
     const next = linkView ? getLinkLayout(linkView) : undefined;
     if (isSameLayout(cachedRef.current, next)) return cachedRef.current;

@@ -64,6 +64,8 @@ function equal(a: CellDragState, b: CellDragState): boolean {
 }
 
 const NOOP_SNAPSHOT = () => EMPTY_CELL_DRAG_STATE;
+const NOOP_CLEANUP = () => {};
+const NOOP_SUBSCRIBE = () => NOOP_CLEANUP;
 
 /**
  * Returns reactive drag state for the current cell. Self-contained — lazily
@@ -90,6 +92,7 @@ export function useCellDrag(): CellDragState {
   const cellId = useCellId();
   const { paper } = usePaper();
   const atomState = useMemo(() => {
+    if (!paper) return;
     return getCellDragState(paper);
   }, [paper]);
 
@@ -98,13 +101,11 @@ export function useCellDrag(): CellDragState {
     return ensureCellDragListeners(paper);
   }, [paper]);
 
-  const getSnapshot = useMemo(() => {
-    if (!paper) return NOOP_SNAPSHOT;
-    return atomState!.getSnapshot;
-  }, [atomState, paper]);
+  const subscribe = useMemo(() => atomState?.subscribe ?? NOOP_SUBSCRIBE, [atomState]);
+  const getSnapshot = useMemo(() => atomState?.getSnapshot ?? NOOP_SNAPSHOT, [atomState]);
 
   const data = useSyncExternalStoreWithSelector(
-    atomState.subscribe,
+    subscribe,
     getSnapshot,
     getSnapshot,
     (snap) => select(snap, cellId),

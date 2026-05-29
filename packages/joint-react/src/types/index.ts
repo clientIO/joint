@@ -1,5 +1,4 @@
-import { dia } from '@joint/core';
-import { isString } from '../utils/is';
+import type { dia } from '@joint/core';
 
 /**
  * Union of known string literals plus arbitrary strings while preserving
@@ -24,59 +23,10 @@ export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 export type Nullable<T> = { [K in keyof T]: T[K] | null };
 
 /**
- * Shared sentinel for nullable hooks so a new object isn't created each render.
+ * Identifies a Paper instance — a registered id, a React ref, or the Paper
+ * itself. Paper-targeting hooks never throw; an unresolved target simply means
+ * "use the current Paper context or the default paper".
  */
-export const OPTIONAL: Optional = { optional: true } as const;
-
-/**
- * A string type that preserves intellisense for known literal unions.
- * Use instead of `| string` or `[key: string]` to keep autocomplete working.
- * Pass `{ optional: true }` to hooks like `usePaper` or `usePaperStore`
- * so they return `null` instead of throwing when context is missing.
- */
-export interface Optional {
-  readonly optional: true;
-}
-
-/**
- * Identifies a Paper instance — a registered id, a React ref, the Paper
- * itself, or an `Optional` sentinel that opts out of throwing.
- */
-export type PaperTarget = string | React.RefObject<dia.Paper | null> | dia.Paper | Optional;
-
-/**
- * Resolves a Paper instance from a PaperTarget.
- * @param target - The paper target to resolve.
- * @returns The resolved Paper instance, or null.
- */
-export function resolvePaper(target: PaperTarget): dia.Paper | null {
-  if (isString(target)) {
-    // ID form is not supported here since we don't have access to the paper store.
-    return null;
-  }
-  if (target instanceof dia.Paper) {
-    return target;
-  }
-  if ('current' in target) {
-    return target.current;
-  }
-  return null;
-}
-
-/**
- * Extracts the paper ID from a PaperTarget.
- * @param target - The paper target to extract the ID from.
- * @returns The paper ID string, or null.
- */
-export function resolvePaperId(target?: PaperTarget): string | null {
-  if (!target) {
-    return null;
-  }
-  if (isString(target)) {
-    // Is already an ID.
-    return target;
-  }
-  return resolvePaper(target)?.id ?? null;
-}
+export type PaperTarget = string | React.RefObject<dia.Paper | null> | dia.Paper;
 
 export * from './event.types';

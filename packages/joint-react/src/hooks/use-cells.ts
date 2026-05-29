@@ -13,7 +13,7 @@ import { warnUnstableSelector } from '../utils/dev-warnings';
 // ── Types ───────────────────────────────────────────────────────────────────
 
 /** Union of all possible `useCells` return shapes (depends on argument form). */
-type UseCellsResult<Cell extends AnyCellRecord, Selected> =
+type CellsResult<Cell extends AnyCellRecord, Selected> =
   | readonly Cell[]
   | Cell
   | undefined
@@ -50,7 +50,7 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
   subscribedIds: readonly CellId[] | undefined,
   arraySelector: ((cells: readonly Cell[]) => Selected) | undefined,
   cellSelector: ((cell: Cell | undefined) => Selected) | undefined
-): UseCellsResult<Cell, Selected> {
+): CellsResult<Cell, Selected> {
   if (targetId !== undefined) {
     const cell = container.get(targetId);
     return cellSelector ? cellSelector(cell) : cell;
@@ -191,14 +191,17 @@ export function useCells<
     | ((cell: Cell | undefined) => Selected)
     | ((a: Selected, b: Selected) => boolean),
   argument3?: (a: Selected, b: Selected) => boolean
-): UseCellsResult<Cell, Selected> {
+): CellsResult<Cell, Selected> {
   const store = useGraphStore();
   const container = store.graphProjection.cells as ReadonlyContainer<Cell>;
 
   const collectionArgument = isCollection(argument1) ? argument1 : undefined;
 
-  const { targetId, ids, arraySelector, cellSelector, isEqual } =
-    parseUseCellsArgs<Cell, Selected>(argument1, argument2, argument3);
+  const { targetId, ids, arraySelector, cellSelector, isEqual } = parseUseCellsArgs<Cell, Selected>(
+    argument1,
+    argument2,
+    argument3
+  );
   const hasSelector = arraySelector !== undefined || cellSelector !== undefined;
 
   const arraySelectorRef = useRef(arraySelector);
@@ -207,7 +210,7 @@ export function useCells<
   cellSelectorRef.current = cellSelector;
 
   /** Local alias for the hook's return shape so the cache type stays readable. */
-  type Result = UseCellsResult<Cell, Selected>;
+  type Result = CellsResult<Cell, Selected>;
   const cachedRef = useRef<{ hasValue: boolean; value: Result }>({
     hasValue: false,
     value: undefined,
@@ -283,11 +286,7 @@ export function useCells<
 
   // ── Selector ──
 
-  const isRawAllCells =
-    targetId === undefined &&
-    !ids &&
-    !collectionArgument &&
-    !hasSelector;
+  const isRawAllCells = targetId === undefined && !ids && !collectionArgument && !hasSelector;
 
   const select = useCallback(
     (): Result => {
@@ -308,7 +307,7 @@ export function useCells<
       // The all-cells form receives the container's mutable array. Shallow-copy
       // so the cached value is a distinct reference, enabling
       // areArraysShallowEqual to compare element-by-element on subsequent calls.
-      const value = isRawAllCells ? ([...next as readonly Cell[]] as unknown as Result) : next;
+      const value = isRawAllCells ? ([...(next as readonly Cell[])] as unknown as Result) : next;
       cachedRef.current = { hasValue: true, value };
       return value;
     },

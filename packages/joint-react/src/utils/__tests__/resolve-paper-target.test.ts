@@ -1,11 +1,24 @@
 import { dia } from '@joint/core';
-import { OPTIONAL, resolvePaper, resolvePaperId } from '../index';
-import type { PaperTarget } from '../index';
+import { isPaperTarget, resolvePaper, resolvePaperId } from '../resolve-paper-target';
 
-describe('types/index runtime exports', () => {
-  describe('OPTIONAL sentinel', () => {
-    it('is a frozen-style readonly object with optional: true', () => {
-      expect(OPTIONAL).toEqual({ optional: true });
+describe('resolve-paper-target', () => {
+  describe('isPaperTarget', () => {
+    it('is true for a string id', () => {
+      expect(isPaperTarget('paper-id')).toBe(true);
+    });
+
+    it('is true for a dia.Paper instance', () => {
+      expect(isPaperTarget(new dia.Paper({ width: 1, height: 1 }))).toBe(true);
+    });
+
+    it('is true for a RefObject', () => {
+      expect(isPaperTarget({ current: null })).toBe(true);
+    });
+
+    it('is false for a handlers/options object or nullish value', () => {
+      const nothing: unknown = undefined;
+      expect(isPaperTarget({ onElementPointerClick: () => {} })).toBe(false);
+      expect(isPaperTarget(nothing)).toBe(false);
     });
   });
 
@@ -29,15 +42,10 @@ describe('types/index runtime exports', () => {
       const ref: React.RefObject<dia.Paper | null> = { current: null };
       expect(resolvePaper(ref)).toBeNull();
     });
-
-    it('returns null for the OPTIONAL sentinel', () => {
-      expect(resolvePaper(OPTIONAL as PaperTarget)).toBeNull();
-    });
   });
 
   describe('resolvePaperId', () => {
     it('returns null for nullish target', () => {
-      expect(resolvePaperId()).toBeNull();
       expect(resolvePaperId()).toBeNull();
     });
 
@@ -49,10 +57,6 @@ describe('types/index runtime exports', () => {
       const paper = new dia.Paper({ width: 1, height: 1 });
       (paper as unknown as { id: string }).id = 'paper-1';
       expect(resolvePaperId(paper)).toBe('paper-1');
-    });
-
-    it('returns null when target cannot be resolved (e.g. OPTIONAL)', () => {
-      expect(resolvePaperId(OPTIONAL as PaperTarget)).toBeNull();
     });
 
     it('returns the paper id when target is a RefObject with paper', () => {

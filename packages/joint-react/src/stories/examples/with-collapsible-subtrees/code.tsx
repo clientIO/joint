@@ -3,7 +3,7 @@
 import type { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
 import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useNodesMeasuredEffect, usePaper, usePaperEvents, selectElementSize } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
-import { useCallback, useId, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
@@ -248,7 +248,7 @@ function useElementPattern() {
   const { paper } = usePaper();
 
   return useMemo(() => {
-    const patternId = paper.definePattern({
+    const patternId = paper?.definePattern({
       id: 'body-pattern',
       attrs: {
         width: 12,
@@ -274,7 +274,7 @@ function useGatePattern() {
   const { paper } = usePaper();
 
   return useMemo(() => {
-    const patternId = paper.definePattern({
+    const patternId = paper?.definePattern({
       id: 'gate-pattern',
       attrs: {
         width: 6,
@@ -688,7 +688,6 @@ function addExpandTools(paper: dia.Paper) {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
-  const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
   const cellVisibilityCallback = useCallback(({ model }: { model: dia.Cell }) => {
     return !model.prop('hidden');
@@ -740,7 +739,6 @@ function Main() {
   }, []);
 
   usePaperEvents(
-    paperId,
     {
       'element:expand': (elementView) => {
         const view = elementView as dia.ElementView;
@@ -751,14 +749,13 @@ function Main() {
     [handleExpand]
   );
 
-  useNodesMeasuredEffect(paperId, handleElementsMeasured);
+  useNodesMeasuredEffect(handleElementsMeasured);
 
   const renderElement = useCallback((data: FTAData) => RenderFTAElement(data), []);
 
   return (
     <Paper style={{ ...PAPER_STYLE, height: 600 }}
       ref={paperRef}
-      id={paperId}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibilityCallback}

@@ -5,7 +5,7 @@ import type { PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 
 /** Options for {@link useNodesMeasuredEffect} controlling subscription behavior. */
-export interface UseOnElementsMeasuredOptions {
+export interface OnElementsMeasuredOptions {
   /** When true, the callback fires only once and then unsubscribes. */
   readonly once?: boolean;
 }
@@ -45,19 +45,19 @@ type Callback = (event: ElementsMeasuredEvent) => void;
 export function useNodesMeasuredEffect(
   callback: Callback,
   dependencies?: DependencyList,
-  options?: UseOnElementsMeasuredOptions
+  options?: OnElementsMeasuredOptions
 ): void;
 export function useNodesMeasuredEffect(
   target: PaperTarget,
   callback: Callback,
   dependencies?: DependencyList,
-  options?: UseOnElementsMeasuredOptions
+  options?: OnElementsMeasuredOptions
 ): void;
 export function useNodesMeasuredEffect(
   targetOrCallback: PaperTarget | Callback,
   callbackOrDependencies?: Callback | DependencyList,
-  dependenciesOrOptions?: DependencyList | UseOnElementsMeasuredOptions,
-  optionsArgument?: UseOnElementsMeasuredOptions
+  dependenciesOrOptions?: DependencyList | OnElementsMeasuredOptions,
+  optionsArgument?: OnElementsMeasuredOptions
 ): void {
   const isContextForm = typeof targetOrCallback === 'function';
 
@@ -69,7 +69,7 @@ export function useNodesMeasuredEffect(
     ? (callbackOrDependencies as DependencyList | undefined)
     : (dependenciesOrOptions as DependencyList | undefined);
   const options = isContextForm
-    ? (dependenciesOrOptions as UseOnElementsMeasuredOptions | undefined)
+    ? (dependenciesOrOptions as OnElementsMeasuredOptions | undefined)
     : optionsArgument;
 
   const paperId = useResolvePaperId(target);

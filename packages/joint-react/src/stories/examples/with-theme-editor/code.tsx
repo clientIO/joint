@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { useState, useCallback, useEffect, useMemo, useRef, memo, useId } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, memo } from 'react';
 import type { CSSProperties } from 'react';
 import {
   type CellRecord,
@@ -462,10 +462,9 @@ interface DiagramProps {
 }
 
 function Diagram({ zoom }: Readonly<DiagramProps>) {
-  const paperId = useId();
   const { setCell } = useGraph<CellRecord<Data>>();
 
-  usePaperEvents(paperId, {
+  usePaperEvents({
     'blank:pointerdblclick': (_event, x, y) => {
       setCell({
         id: `node-${Date.now()}`,
@@ -511,7 +510,6 @@ function Diagram({ zoom }: Readonly<DiagramProps>) {
 
   return (
     <Paper
-      id={paperId}
       className={PAPER_CLASSNAME}
       style={{ height: PAPER_HEIGHT }}
       renderElement={renderElement}

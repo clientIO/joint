@@ -1,9 +1,10 @@
 import type { dia } from '@joint/core';
-import { forwardRef, useId, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { PaperStoreContext } from '../../context';
 import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
 import type { PaperProps } from './paper.types';
+import { DEFAULT_PAPER_ID } from '../../models/react-paper';
 
 /**
  * Internal Paper implementation used by forwarded `Paper` component.
@@ -17,8 +18,7 @@ function PaperBase(
 ) {
   const { className, style, children, paper: externalPaper } = props;
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
-  const reactId = useId();
-  const id = props.id ?? `paper-${reactId}`;
+  const id = props.id ?? DEFAULT_PAPER_ID;
   const isExternalPaper = !!externalPaper;
   const { paperRef, paperStore, isReady, content } = useCreatePortalPaper({
     ...props,

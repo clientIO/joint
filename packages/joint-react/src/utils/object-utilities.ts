@@ -3,6 +3,31 @@
 import { util } from '@joint/core';
 
 /**
+ * Creates a shallow copy of options without `undefined` values.
+ *
+ * JointJS treats an explicitly-set `undefined` as a concrete value, so these
+ * keys must be omitted entirely when building an options object.
+ * @param options - The source options (may contain `undefined` values).
+ * @returns A new object with the `undefined`-valued keys removed.
+ * @example
+ * ```ts
+ * makeOptions<{ width?: number; color?: string }>({ width: 100, color: undefined });
+ * // Result: { width: 100 }
+ * ```
+ */
+export function makeOptions<T extends object>(options: Readonly<Partial<T>>): T {
+  const result: Partial<T> = {};
+  for (const key in options) {
+    const value = options[key];
+    if (value === undefined) {
+      continue;
+    }
+    result[key] = value;
+  }
+  return result as T;
+}
+
+/**
  * Assign new properties to an instance, ignoring undefined values.
  * @param props - The instance to which new properties will be assigned.
  * @param newProps - An object containing new properties to assign to the instance.

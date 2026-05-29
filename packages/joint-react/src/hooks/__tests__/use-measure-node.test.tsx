@@ -27,7 +27,7 @@ import { LINK_MODEL_TYPE } from '../../models/link-model';
 import type { CellRecord } from '../../types/cell.types';
 
 let capturedGraph: dia.Graph | null = null;
-let capturedPaper: dia.Paper | null = null;
+let capturedPaper: dia.Paper | undefined;
 
 const initialCells: readonly CellRecord[] = [
   {
@@ -104,7 +104,7 @@ const renderNoNodeProbe = () => <NoNodeProbe />;
 describe('useMeasureNode', () => {
   it('adds .jj-is-measuring on mount and removes it on the next paper render:done', async () => {
     capturedGraph = null;
-    capturedPaper = null;
+    capturedPaper = undefined;
     const { container } = renderProbe();
     // Class is applied by useMeasureNode in a layout effect; wait until it lands.
     await waitFor(() => {

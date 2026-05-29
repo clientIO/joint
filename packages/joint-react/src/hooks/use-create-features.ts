@@ -13,7 +13,6 @@ import {
 import type { FeaturesContext } from '../context';
 import type { Feature } from '../types/feature.types';
 import { selectGraphFeaturesVersion } from '../selectors';
-import { OPTIONAL } from '../types';
 
 const EMPTY_DEPENDENCIES: unknown[] = [];
 
@@ -257,7 +256,7 @@ export function useCreateFeature<T>(
   const isPaperTarget = target === 'paper';
   const graphStore = useGraphStore();
   // Always called — returns null when no PaperStoreContext is above
-  const contextPaperStore = usePaperStore(OPTIONAL);
+  const contextPaperStore = usePaperStore();
   const featuresRef = useRef<FeaturesContext>({ features: new Map() });
 
   // When the hook is called OUTSIDE a Paper subtree (e.g. PaperScroller wraps

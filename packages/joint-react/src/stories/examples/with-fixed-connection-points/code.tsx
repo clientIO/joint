@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { CellRecord, LinkStyle } from '@joint/react';
 import { GraphProvider, useCell, jsx, Paper, resolveLinkMarker, usePaperEvents, selectElementSize } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
@@ -352,7 +352,6 @@ function getLinkTools(_linkView: dia.LinkView) {
 // Main Component
 // ----------------------------------------------------------------------------
 function Main() {
-  const paperId = useId();
   const currentToolsViewRef = useRef<dia.ToolsView | null>(null);
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -365,7 +364,7 @@ function Main() {
     };
   }, []);
 
-  usePaperEvents(paperId, {
+  usePaperEvents({
     onCellMouseEnter: ({ model, view, paper }) => {
       paper.removeTools();
 
@@ -401,7 +400,6 @@ function Main() {
 
   return (
     <Paper style={{ ...PAPER_STYLE, width: "100%", height: 650 }}
-      id={paperId}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
       gridSize={20}

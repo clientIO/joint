@@ -176,8 +176,8 @@ export function useMeasureNode(
     // Hide the element view's until the element view is updated by the paper's
     // update cycle. This prevents flashes of incorrect position when the element
     // is measured, but waits for the paper to apply the new position.
-    const view = paper.findViewByModel(id);
-    if (view) {
+    const view = paper?.findViewByModel(id);
+    if (view && paper) {
       view.el.classList.add(MEASURING_CLASS_NAME);
       // Request a view update to remove the measuring class as part of its
       // next update cycle.

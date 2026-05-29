@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useCallback, useEffect, useId } from 'react';
+import { useCallback, useEffect } from 'react';
 import { dia, elementTools } from '@joint/core';
 import {
   type CellRecord,
@@ -362,7 +362,6 @@ function useContainerAutoResize() {
 
 function Main() {
   useContainerAutoResize();
-  const paperId = useId();
 
   const { graph } = useGraph();
 
@@ -409,7 +408,6 @@ function Main() {
   }, [graph]);
 
   usePaperEvents(
-    paperId,
     {
       onElementMouseEnter: ({ view }) => {
         view.removeTools();
@@ -432,7 +430,6 @@ function Main() {
 
   return (
     <Paper style={{ backgroundColor: '#F3F7F6', height: 500 }}
-      id={paperId}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibility}

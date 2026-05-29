@@ -2,7 +2,7 @@
 
 import { type dia, g, highlighters, V } from '@joint/core';
 import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useNodesMeasuredEffect, selectElementSize } from '@joint/react';
-import { useCallback, useEffect, useId, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 
 const ShapeTypes = {
@@ -214,7 +214,6 @@ function useInterval(action: () => void, interval: number = 1000) {
 // ----------------------------------------------------------------------------
 function Main() {
   const { graph } = useGraph();
-  const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
   const setRandomStatuses = useCallback(() => {
@@ -226,7 +225,7 @@ function Main() {
 
   useInterval(setRandomStatuses);
 
-  useNodesMeasuredEffect(paperId, ({ isInitial, paper }) => {
+  useNodesMeasuredEffect(({ isInitial, paper }) => {
     if (!isInitial) return;
     for (const element of graph.getElements()) {
       StatusList.add(element.findView(paper), 'root', 'status', {
@@ -243,7 +242,6 @@ function Main() {
   return (
     <Paper style={{ ...PAPER_STYLE, height: 500 }}
       ref={paperRef}
-      id={paperId}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
       gridSize={20}

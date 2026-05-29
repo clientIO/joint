@@ -449,8 +449,6 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
-const PAPER_ID = 'saasflow-paper';
-
 function ThemeUpdater() {
   const isDark = useContext(ThemeContext);
   const theme = isDark ? DARK : LIGHT;
@@ -492,7 +490,6 @@ function Main() {
     <GraphProvider initialCells={initialCells}>
       <Paper style={{ backgroundColor: 'transparent', width: "100%", height: "100%" }}
         ref={paperRef}
-        id={PAPER_ID}
         gridSize={5}
         drawGrid={false}
         overflow

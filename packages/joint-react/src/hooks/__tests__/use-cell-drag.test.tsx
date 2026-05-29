@@ -76,12 +76,12 @@ function makeDragState(
 }
 
 describe('useCellDrag', () => {
-  it('throws without PaperStoreContext', () => {
-    expect(() => {
-      renderHook(() => useCellDrag(), {
-        wrapper: createWrapper({ cellId: 'cell-1' }),
-      });
-    }).toThrow('usePaperStore must be used within a Paper or RenderElement');
+  it('returns idle state without PaperStoreContext', () => {
+    const { result } = renderHook(() => useCellDrag(), {
+      wrapper: createWrapper({ cellId: 'cell-1' }),
+    });
+
+    expect(result.current.isDragging).toBe(false);
   });
 
   it('returns idle state with paper but no drag', () => {
