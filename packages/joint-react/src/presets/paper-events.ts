@@ -40,11 +40,11 @@ type ElementEventContext = BaseContext & ElementContext;
 type LinkEventContext = BaseContext & LinkContext;
 
 type WithPointer<Ctx> = Ctx & {
-  readonly event: Event;
+  readonly event: dia.Event;
   readonly x: number;
   readonly y: number;
 };
-type WithHover<Ctx> = Ctx & { readonly event: Event };
+type WithHover<Ctx> = Ctx & { readonly event: dia.Event };
 type WithWheel<Ctx> = WithPointer<Ctx> & { readonly delta: number };
 
 // ============================================================================
@@ -92,18 +92,18 @@ export type MagnetEventContext = WithPointer<ElementEventContext> & {
 // ============================================================================
 
 /** Paper-edge hover payload (`paper:mouseenter` / `paper:mouseleave`). */
-export type PaperHoverEventContext = BaseContext & { readonly event: Event };
+export type PaperHoverEventContext = BaseContext & { readonly event: dia.Event };
 
 /** Paper-level pan payload — `paper:pan` from touchpad / wheel pan. */
 export type PaperPanEventContext = BaseContext & {
-  readonly event: Event;
+  readonly event: dia.Event;
   readonly deltaX: number;
   readonly deltaY: number;
 };
 
 /** Paper-level pinch payload — `paper:pinch` from touchpad pinch gesture. */
 export type PaperPinchEventContext = BaseContext & {
-  readonly event: Event;
+  readonly event: dia.Event;
   readonly x: number;
   readonly y: number;
   readonly scale: number;
@@ -146,7 +146,7 @@ export type TransformEventContext = BaseContext & {
  * `validateConnection`, so the two stay symmetric).
  */
 export interface LinkConnectEventContext extends LinkEventContext {
-  readonly event: Event;
+  readonly event: dia.Event;
   /** Which end of the link was (dis)connected. */
   readonly end: 'source' | 'target';
   /** Cell at the (dis)connected end. Always present — these events fire only on actual cells. */
@@ -471,19 +471,19 @@ export function addPaperEventListeners(
   const baseContext: BaseContext = { paper, graph };
 
   subscribeGroup(controller, paper, eventMap, POINTER_CELL_MAP,
-    (view: dia.CellView, event: Event, x: number, y: number) =>
+    (view: dia.CellView, event: dia.Event, x: number, y: number) =>
       ({ ...baseContext, ...makeCellContext(view), event, x, y }));
 
   subscribeGroup(controller, paper, eventMap, HOVER_CELL_MAP,
-    (view: dia.CellView, event: Event) => ({ ...baseContext, ...makeCellContext(view), event }));
+    (view: dia.CellView, event: dia.Event) => ({ ...baseContext, ...makeCellContext(view), event }));
 
   subscribeGroup(controller, paper, eventMap, WHEEL_CELL_MAP,
-    (view: dia.CellView, event: Event, x: number, y: number, delta: number) =>
+    (view: dia.CellView, event: dia.Event, x: number, y: number, delta: number) =>
       ({ ...baseContext, ...makeCellContext(view), event, x, y, delta }));
 
   // Native magnet arg order is (view, evt, magnet, x, y) — not (view, evt, x, y, magnet).
   subscribeGroup(controller, paper, eventMap, MAGNET_MAP,
-    (view: dia.ElementView, event: Event, magnet: DOMElement, x: number, y: number) => {
+    (view: dia.ElementView, event: dia.Event, magnet: DOMElement, x: number, y: number) => {
       const end = toConnectionEnd(view, magnet);
       return { ...baseContext, ...makeCellContext(view), event, x, y, magnet, port: end.port, selector: end.selector };
     });
@@ -491,7 +491,7 @@ export function addPaperEventListeners(
   subscribeGroup(controller, paper, eventMap, LINK_CONNECT_MAP,
     (
       linkView: dia.LinkView,
-      event: Event,
+      event: dia.Event,
       endView: dia.CellView,
       endMagnet: DOMElement | undefined,
       end: 'source' | 'target'
@@ -504,27 +504,27 @@ export function addPaperEventListeners(
     }));
 
   subscribeGroup(controller, paper, eventMap, POINTER_BLANK_MAP,
-    (event: Event, x: number, y: number) => ({ ...baseContext, event, x, y }));
+    (event: dia.Event, x: number, y: number) => ({ ...baseContext, event, x, y }));
 
   subscribeGroup(controller, paper, eventMap, HOVER_BLANK_MAP,
-    (event: Event) => ({ ...baseContext, event }));
+    (event: dia.Event) => ({ ...baseContext, event }));
 
   subscribeGroup(controller, paper, eventMap, WHEEL_BLANK_MAP,
-    (event: Event, x: number, y: number, delta: number) =>
+    (event: dia.Event, x: number, y: number, delta: number) =>
       ({ ...baseContext, event, x, y, delta }));
 
   // Paper-level hover (`paper:mouseenter` / `paper:mouseleave`) — native (evt).
   subscribeGroup(controller, paper, eventMap, PAPER_HOVER_MAP,
-    (event: Event) => ({ ...baseContext, event }));
+    (event: dia.Event) => ({ ...baseContext, event }));
 
   // Paper-level pan (`paper:pan`) — native (evt, deltaX, deltaY).
   subscribeGroup(controller, paper, eventMap, PAPER_PAN_MAP,
-    (event: Event, deltaX: number, deltaY: number) =>
+    (event: dia.Event, deltaX: number, deltaY: number) =>
       ({ ...baseContext, event, deltaX, deltaY }));
 
   // Paper-level pinch (`paper:pinch`) — native (evt, x, y, scale).
   subscribeGroup(controller, paper, eventMap, PAPER_PINCH_MAP,
-    (event: Event, x: number, y: number, scale: number) =>
+    (event: dia.Event, x: number, y: number, scale: number) =>
       ({ ...baseContext, event, x, y, scale }));
 
   // `translate` — native (tx, ty, data).
