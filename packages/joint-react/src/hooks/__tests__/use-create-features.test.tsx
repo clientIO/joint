@@ -1,5 +1,4 @@
- 
- 
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
 import { FeaturesProvider } from '../../components/features-provider/features-provider';

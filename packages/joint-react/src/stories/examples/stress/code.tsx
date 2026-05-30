@@ -1,4 +1,5 @@
 /* eslint-disable sonarjs/pseudo-random */
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { HTMLBox, GraphProvider, Paper, type CellRecord, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useState, startTransition } from 'react';

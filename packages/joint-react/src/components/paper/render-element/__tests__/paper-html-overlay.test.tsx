@@ -1,5 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
- 
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+
 import { render, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../../../graph/graph-provider';
 import { Paper } from '../../paper';

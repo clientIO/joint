@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { type CellRecord, GraphProvider, useCell, Paper, useNodesMeasuredEffect, type ElementRecord, selectElementSize } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
@@ -743,7 +744,7 @@ function Main() {
   useNodesMeasuredEffect(handleElementsMeasured);
 
   return (
-    <Paper style={{ ...PAPER_STYLE, width: "100%", height: 600 }}
+    <Paper style={{ ...PAPER_STYLE, width: '100%', height: 600 }}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       drawGrid={false}

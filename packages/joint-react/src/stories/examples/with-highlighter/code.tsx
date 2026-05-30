@@ -1,5 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { type CellRecord, GraphProvider, useCell, Paper, useMarkup, usePaperEvents, selectElementSize } from '@joint/react';
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+import { type CellRecord, GraphProvider, useCell, Paper, useMarkup, selectElementSize } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
 import '../index.css';
 import { useRef } from 'react';
@@ -99,20 +100,14 @@ function removeHighlighter(variant: HighlighterVariant, elementView: dia.Element
 function Main({ variant }: Readonly<MainProps>) {
   const paperRef = useRef<dia.Paper | null>(null);
 
-  usePaperEvents(
-    {
-      onElementMouseEnter: ({ view }) => addHighlighter(variant, view),
-      onElementMouseLeave: ({ view }) => removeHighlighter(variant, view),
-    },
-    [variant]
-  );
-
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper style={{ height: 280 }}
         ref={paperRef}
         className={PAPER_CLASSNAME}
         renderElement={RenderElement}
+        onElementMouseEnter={({ view }) => addHighlighter(variant, view)}
+        onElementMouseLeave={({ view }) => removeHighlighter(variant, view)}
       />
     </div>
   );

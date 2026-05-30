@@ -81,7 +81,7 @@ describe('PaperStore', () => {
       expect((highlighting as Record<string, unknown>)?.magnetAvailability).toMatchObject({
         name: 'addClass',
         options: {
-          className: 'jj-is-available',
+          className: 'jj-is-magnet-available',
         },
       });
     });

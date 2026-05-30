@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { mvc } from '@joint/core';
 import { renderHook, render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';

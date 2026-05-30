@@ -15,7 +15,6 @@ import {
   type IncrementalCellsChange,
 } from '@joint/react';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
-import { usePaperEvents } from '../../../hooks';
 import Peer, { type DataConnection } from 'peerjs';
 import {
   createContext,
@@ -785,23 +784,6 @@ function Toolbar() {
   );
 }
 
-// ── Drag Tracker (broadcasts local drags to peers) ─────────────────────────
-
-function DragTracker({ manager }: Readonly<{ manager: ReturnType<typeof createPeerManager> }>) {
-  const draggingRef = useRef<Set<string>>(new Set());
-  usePaperEvents({
-    onElementPointerDown: ({ id }) => {
-      draggingRef.current.add(String(id));
-      manager.sendDrag([...draggingRef.current]);
-    },
-    onElementPointerUp: ({ id }) => {
-      draggingRef.current.delete(String(id));
-      manager.sendDrag([...draggingRef.current]);
-    },
-  }, [manager]);
-  return null;
-}
-
 // ── Main ────────────────────────────────────────────────────────────────────
 
 function GraphWithRedux() {
@@ -821,6 +803,7 @@ function GraphWithRedux() {
     () => USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]
   );
   const [remoteDragging, setRemoteDragging] = useState<Set<string>>(() => new Set());
+  const draggingRef = useRef<Set<string>>(new Set());
 
   const [manager] = useState(() =>
     createPeerManager({
@@ -910,7 +893,7 @@ function GraphWithRedux() {
           initialCells={themedCells}
           onIncrementalCellsChange={handleIncrementalChange}
         >
-          <Paper style={{ backgroundColor: theme.canvas, width: "100%", height: "100%" }}
+          <Paper style={{ backgroundColor: theme.canvas, width: '100%', height: '100%' }}
             gridSize={1}
             overflow
             linkPinning={false}
@@ -921,6 +904,14 @@ function GraphWithRedux() {
             defaultLink={{ style: { color: theme.link, width: 1.5, targetMarker: 'none' } }}
             validateConnection={({ target }) => target.port === 'in'}
             renderElement={RenderAgentNode}
+            onElementPointerDown={({ id }) => {
+              draggingRef.current.add(String(id));
+              manager.sendDrag([...draggingRef.current]);
+            }}
+            onElementPointerUp={({ id }) => {
+              draggingRef.current.delete(String(id));
+              manager.sendDrag([...draggingRef.current]);
+            }}
           />
           <ConnectionPanel
             peerId={peerId}
@@ -929,7 +920,6 @@ function GraphWithRedux() {
             peerName={peerName}
             onConnect={handleConnect}
           />
-          <DragTracker manager={manager} />
           <Toolbar />
         </GraphProvider>
       </RemoteDragContext.Provider>

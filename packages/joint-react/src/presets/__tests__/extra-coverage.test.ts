@@ -26,8 +26,8 @@ describe('presets / element-ports / elementPort — group-positioned', () => {
 
   it('marks port magnet as passive when configured', () => {
     const port = elementPort({ passive: true });
-    const attributes = port.attrs as { portBody: { magnet: string } };
-    expect(attributes.portBody.magnet).toBe('passive');
+    const attributes = port.attrs as { port: { magnet: string } };
+    expect(attributes.port.magnet).toBe('passive');
   });
 });
 

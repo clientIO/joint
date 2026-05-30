@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { Component, useRef, type ReactNode } from 'react';
 
 class CatchErrorBoundary extends Component<

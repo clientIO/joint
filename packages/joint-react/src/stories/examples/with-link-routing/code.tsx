@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useEffect, useMemo, useState } from 'react';
 import { type CellRecord, GraphProvider, useCell, Paper, HTMLBox, useMarkup, type ElementPort, type LinkRecord, usePaper, selectElementSize } from '@joint/react';
 import { linkRoutingStraight, linkRoutingOrthogonal, linkRoutingSmooth, type LinkRoutingStraightOptions, type LinkRoutingOrthogonalOptions, type LinkRoutingSmoothOptions, type LinkMode } from '@joint/react/presets';

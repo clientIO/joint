@@ -6,7 +6,7 @@ import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
 import { useGraphStore } from '../use-graph-store';
 import type { CellRecord } from '../../types/cell.types';
 import type { ElementsMeasuredEvent } from '../../types/event.types';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 

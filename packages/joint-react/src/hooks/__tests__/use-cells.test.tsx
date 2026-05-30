@@ -166,11 +166,11 @@ describe('useCells', () => {
 
   it('no-arg form handles large cell counts without stack overflow', async () => {
     const largeCells: CellRecord[] = [];
-    for (let i = 0; i < 5000; i++) {
+    for (let index = 0; index < 5000; index++) {
       largeCells.push({
-        id: `el-${i}`,
+        id: `el-${index}`,
         type: ELEMENT_MODEL_TYPE,
-        position: { x: i, y: 0 },
+        position: { x: index, y: 0 },
         size: { width: 10, height: 10 },
       } as CellRecord);
     }

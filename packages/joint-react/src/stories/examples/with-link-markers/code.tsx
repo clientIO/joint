@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback, useMemo, useState, type ChangeEvent } from 'react';
 import type { CellRecord, ElementPort, ElementRecord, LinkRecord } from '@joint/react';
 import { GraphProvider, Paper, HTMLBox } from '@joint/react';

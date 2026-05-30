@@ -686,7 +686,7 @@ function Main() {
   }, [graph]);
 
   return (
-    <Paper style={{ backgroundColor: '#0f172a', width: "100%", height: 800 }}
+    <Paper style={{ backgroundColor: '#0f172a', width: '100%', height: 800 }}
       ref={paperRef}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}

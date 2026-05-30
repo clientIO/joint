@@ -1,7 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { dia, linkTools } from '@joint/core';
 import '../index.css';
-import { type CellRecord, GraphProvider, jsx, Paper, usePaperEvents } from '@joint/react';
+import { type CellRecord, GraphProvider, jsx, Paper } from '@joint/react';
 import { PRIMARY, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
 
@@ -92,16 +93,13 @@ const toolsView = new dia.ToolsView({
 });
 
 function Main() {
-  usePaperEvents({
-    onLinkMouseEnter: ({ view }) => view.addTools(toolsView),
-    onLinkMouseLeave: ({ view }) => view.removeTools(),
-  });
-
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper style={{ height: 280 }}
         className={PAPER_CLASSNAME}
         linkRouting={ORTHOGONAL_LINKS}
+        onLinkMouseEnter={({ view }) => view.addTools(toolsView)}
+        onLinkMouseLeave={({ view }) => view.removeTools()}
       />
       <div
         style={{

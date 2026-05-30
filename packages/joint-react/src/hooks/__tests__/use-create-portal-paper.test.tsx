@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { dia } from '@joint/core';
 import { useEffect, useRef } from 'react';

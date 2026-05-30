@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback, useRef, useState } from 'react';
 import {
   type CellRecord,

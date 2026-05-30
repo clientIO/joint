@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { render, renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import type { dia } from '@joint/core';
