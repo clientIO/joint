@@ -138,7 +138,7 @@ function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink'
  */
 function LinkItem({
   portalElement,
-  renderLink,
+  renderLink: RenderLink,
 }: {
   readonly portalElement: SVGElement | HTMLElement;
   readonly renderLink: RenderLink;
@@ -159,7 +159,7 @@ function LinkItem({
   if (!portalElement || id === undefined) {
     return null;
   }
-  const linkContent = renderLink(data);
+  const linkContent = <RenderLink {...data} />;
   return createPortal(linkContent, portalElement);
 }
 

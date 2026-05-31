@@ -247,7 +247,7 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren, Norma
    * @example
    * Example with `global component`:
    * ```tsx
-   * type BaseElementWithData = InferElement<typeof initialElements>
+   * type BaseElementWithData = { label: string }
    * function RenderElement({ label }: BaseElementWithData) {
    *  return <HTMLElement className="node">{label}</HTMLElement>
    * }
@@ -256,7 +256,7 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren, Norma
    * Example with `local component`:
    * ```tsx
    *
-  type BaseElementWithData = InferElement<typeof initialElements>
+  type BaseElementWithData = { label: string }
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
       (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
       []

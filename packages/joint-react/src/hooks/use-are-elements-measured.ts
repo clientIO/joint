@@ -16,6 +16,8 @@ export function useAreElementsMeasured() {
     },
     () => {
       return measureState.get() > 0;
-    }
+    },
+    // Server snapshot: nothing is measured without a DOM, so report unmeasured.
+    () => false
   );
 }
