@@ -228,7 +228,6 @@ const LINK_CONNECT_MAP = {
 //   onRenderIdle: 'render:idle',
 // } as const;
 
-
 const POINTER_BLANK_MAP = {
   onBlankPointerDown: 'blank:pointerdown',
   onBlankPointerMove: 'blank:pointermove',
@@ -278,7 +277,7 @@ const TRANSFORM_MAP = {
   onTransform: 'transform',
 } as const;
 
-const NORMALIZED_KEYS = new Set<string>([
+export const NORMALIZED_KEYS = new Set<string>([
   ...Object.keys(POINTER_CELL_MAP),
   ...Object.keys(HOVER_CELL_MAP),
   ...Object.keys(WHEEL_CELL_MAP),
@@ -308,7 +307,7 @@ const NORMALIZED_KEYS = new Set<string>([
  * `'cell:unhighlight'`, `'cell:highlight:invalid'`, `'link:snap:connect'`,
  * `'link:snap:disconnect'`.
  */
-interface NormalizedPaperHandlers {
+export interface NormalizedPaperHandlers {
   // pointer (cell — fires for any cell, element OR link)
   readonly onCellPointerDown?: (ctx: PointerCellEventContext) => void;
   readonly onCellPointerMove?: (ctx: PointerCellEventContext) => void;
@@ -461,34 +460,75 @@ function subscribeRaw(
  * @param handlers - Normalized + raw event handlers.
  * @returns Cleanup callback that calls `listener.stopListening()`.
  */
-export function addPaperEventListeners(
-  paper: dia.Paper,
-  handlers: PaperEventMap
-): () => void {
+export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap): () => void {
   const graph = paper.model;
   const controller = new mvc.Listener();
   const eventMap = handlers as EventHandlerMap;
   const baseContext: BaseContext = { paper, graph };
 
-  subscribeGroup(controller, paper, eventMap, POINTER_CELL_MAP,
-    (view: dia.CellView, event: dia.Event, x: number, y: number) =>
-      ({ ...baseContext, ...makeCellContext(view), event, x, y }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    POINTER_CELL_MAP,
+    (view: dia.CellView, event: dia.Event, x: number, y: number) => ({
+      ...baseContext,
+      ...makeCellContext(view),
+      event,
+      x,
+      y,
+    })
+  );
 
-  subscribeGroup(controller, paper, eventMap, HOVER_CELL_MAP,
-    (view: dia.CellView, event: dia.Event) => ({ ...baseContext, ...makeCellContext(view), event }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    HOVER_CELL_MAP,
+    (view: dia.CellView, event: dia.Event) => ({ ...baseContext, ...makeCellContext(view), event })
+  );
 
-  subscribeGroup(controller, paper, eventMap, WHEEL_CELL_MAP,
-    (view: dia.CellView, event: dia.Event, x: number, y: number, delta: number) =>
-      ({ ...baseContext, ...makeCellContext(view), event, x, y, delta }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    WHEEL_CELL_MAP,
+    (view: dia.CellView, event: dia.Event, x: number, y: number, delta: number) => ({
+      ...baseContext,
+      ...makeCellContext(view),
+      event,
+      x,
+      y,
+      delta,
+    })
+  );
 
   // Native magnet arg order is (view, evt, magnet, x, y) — not (view, evt, x, y, magnet).
-  subscribeGroup(controller, paper, eventMap, MAGNET_MAP,
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    MAGNET_MAP,
     (view: dia.ElementView, event: dia.Event, magnet: DOMElement, x: number, y: number) => {
       const end = toConnectionEnd(view, magnet);
-      return { ...baseContext, ...makeCellContext(view), event, x, y, magnet, port: end.port, selector: end.selector };
-    });
+      return {
+        ...baseContext,
+        ...makeCellContext(view),
+        event,
+        x,
+        y,
+        magnet,
+        port: end.port,
+        selector: end.selector,
+      };
+    }
+  );
 
-  subscribeGroup(controller, paper, eventMap, LINK_CONNECT_MAP,
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    LINK_CONNECT_MAP,
     (
       linkView: dia.LinkView,
       event: dia.Event,
@@ -501,52 +541,150 @@ export function addPaperEventListeners(
       event,
       end,
       endCell: toConnectionEnd(endView, endMagnet),
-    }));
+    })
+  );
 
-  subscribeGroup(controller, paper, eventMap, POINTER_BLANK_MAP,
-    (event: dia.Event, x: number, y: number) => ({ ...baseContext, event, x, y }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    POINTER_BLANK_MAP,
+    (event: dia.Event, x: number, y: number) => ({ ...baseContext, event, x, y })
+  );
 
-  subscribeGroup(controller, paper, eventMap, HOVER_BLANK_MAP,
-    (event: dia.Event) => ({ ...baseContext, event }));
+  subscribeGroup(controller, paper, eventMap, HOVER_BLANK_MAP, (event: dia.Event) => ({
+    ...baseContext,
+    event,
+  }));
 
-  subscribeGroup(controller, paper, eventMap, WHEEL_BLANK_MAP,
-    (event: dia.Event, x: number, y: number, delta: number) =>
-      ({ ...baseContext, event, x, y, delta }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    WHEEL_BLANK_MAP,
+    (event: dia.Event, x: number, y: number, delta: number) => ({
+      ...baseContext,
+      event,
+      x,
+      y,
+      delta,
+    })
+  );
 
   // Paper-level hover (`paper:mouseenter` / `paper:mouseleave`) — native (evt).
-  subscribeGroup(controller, paper, eventMap, PAPER_HOVER_MAP,
-    (event: dia.Event) => ({ ...baseContext, event }));
+  subscribeGroup(controller, paper, eventMap, PAPER_HOVER_MAP, (event: dia.Event) => ({
+    ...baseContext,
+    event,
+  }));
 
   // Paper-level pan (`paper:pan`) — native (evt, deltaX, deltaY).
-  subscribeGroup(controller, paper, eventMap, PAPER_PAN_MAP,
-    (event: dia.Event, deltaX: number, deltaY: number) =>
-      ({ ...baseContext, event, deltaX, deltaY }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    PAPER_PAN_MAP,
+    (event: dia.Event, deltaX: number, deltaY: number) => ({
+      ...baseContext,
+      event,
+      deltaX,
+      deltaY,
+    })
+  );
 
   // Paper-level pinch (`paper:pinch`) — native (evt, x, y, scale).
-  subscribeGroup(controller, paper, eventMap, PAPER_PINCH_MAP,
-    (event: dia.Event, x: number, y: number, scale: number) =>
-      ({ ...baseContext, event, x, y, scale }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    PAPER_PINCH_MAP,
+    (event: dia.Event, x: number, y: number, scale: number) => ({
+      ...baseContext,
+      event,
+      x,
+      y,
+      scale,
+    })
+  );
 
   // `translate` — native (tx, ty, data).
-  subscribeGroup(controller, paper, eventMap, TRANSLATE_MAP,
-    (translateX: number, translateY: number, options: unknown) =>
-      ({ ...baseContext, translateX, translateY, options }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    TRANSLATE_MAP,
+    (translateX: number, translateY: number, options: unknown) => ({
+      ...baseContext,
+      translateX,
+      translateY,
+      options,
+    })
+  );
 
   // `scale` — native (sx, sy, data).
-  subscribeGroup(controller, paper, eventMap, SCALE_MAP,
-    (scaleX: number, scaleY: number, options: unknown) =>
-      ({ ...baseContext, scaleX, scaleY, options }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    SCALE_MAP,
+    (scaleX: number, scaleY: number, options: unknown) => ({
+      ...baseContext,
+      scaleX,
+      scaleY,
+      options,
+    })
+  );
 
   // `resize` — native (width, height, data).
-  subscribeGroup(controller, paper, eventMap, RESIZE_MAP,
-    (width: number, height: number, options: unknown) =>
-      ({ ...baseContext, width, height, options }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    RESIZE_MAP,
+    (width: number, height: number, options: unknown) => ({
+      ...baseContext,
+      width,
+      height,
+      options,
+    })
+  );
 
   // `transform` — native (matrix, data).
-  subscribeGroup(controller, paper, eventMap, TRANSFORM_MAP,
-    (matrix: SVGMatrix, options: unknown) => ({ ...baseContext, matrix, options }));
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    TRANSFORM_MAP,
+    (matrix: SVGMatrix, options: unknown) => ({ ...baseContext, matrix, options })
+  );
 
   subscribeRaw(controller, paper, eventMap);
 
   return () => controller.stopListening();
+}
+
+/**
+ * Picks the normalized paper-event handlers (`onBlankContextMenu`, …) out of a
+ * props object. Returns the handlers map (to subscribe) plus a parallel
+ * `eventDependencies` array of the handler values, in key order — spread it
+ * into a `useLayoutEffect` dependency list so the subscription re-runs only
+ * when a handler reference changes. Non-event props are ignored, so changing
+ * them never re-subscribes.
+ * @param props - Any object that may contain normalized handler keys.
+ * @returns `eventHandlers` (the matched `on*` entries) and `eventDependencies` (their values, in key order).
+ */
+export function extractEventsFromPaperProps(props: Partial<NormalizedPaperHandlers>) {
+  const eventHandlers: Partial<NormalizedPaperHandlers> = {};
+  const eventDependencies: unknown[] = [];
+  for (const property in props) {
+    const key = property as keyof NormalizedPaperHandlers;
+    if (NORMALIZED_KEYS.has(key)) {
+      // Variable-key write: cast past the readonly/union index to assign.
+      (eventHandlers as Record<string, unknown>)[key] = props[key];
+      eventDependencies.push(props[key]);
+    }
+  }
+  return {
+    eventHandlers,
+    eventDependencies,
+  };
 }

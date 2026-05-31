@@ -488,7 +488,7 @@ function Main() {
 
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper style={{ backgroundColor: 'transparent', width: "100%", height: "100%" }}
+      <Paper style={{ backgroundColor: 'transparent', width: '100%', height: '100%' }}
         ref={paperRef}
         gridSize={5}
         drawGrid={false}

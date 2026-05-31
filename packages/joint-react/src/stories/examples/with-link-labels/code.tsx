@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { type CellRecord, GraphProvider, Paper } from '@joint/react';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
@@ -79,7 +80,7 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
 
 function Main() {
   return (
-    <Paper style={{ width: "100%", height: 350 }}
+    <Paper style={{ width: '100%', height: 350 }}
       className={PAPER_CLASSNAME}
       interactive={INTERACTIVE_OPTIONS}
     />

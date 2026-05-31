@@ -151,7 +151,7 @@ describe('dataMapper', () => {
       const [port] = cellJson.ports!.items!;
       expect(port.label).toBeDefined();
       expect(port.label!.position!.name).toBe('outside');
-      expect(port.attrs?.text?.text).toBe('Port A');
+      expect(port.attrs?.label?.text).toBe('Port A');
     });
 
     it('should handle rect shape ports', () => {

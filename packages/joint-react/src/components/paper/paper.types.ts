@@ -3,12 +3,20 @@ import type { LinkRecord } from '../../types/cell.types';
 import type { PortalSelector } from '../../models/react-paper.types';
 import type { ReactPaper } from '../../models/react-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
-import type { ConnectionEnd, CanConnectOptions, ValidateConnectionContext } from '../../presets/can-connect';
+import type {
+  ConnectionEnd,
+  CanConnectOptions,
+  ValidateConnectionContext,
+} from '../../presets/can-connect';
 import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
-import type { ConnectionStrategyOptions, ConnectionStrategyContext } from '../../presets/connection-strategy';
+import type {
+  ConnectionStrategyOptions,
+  ConnectionStrategyContext,
+} from '../../presets/connection-strategy';
 import type { CellVisibility } from '../../presets/cell-visibility';
 import type { Interactive } from '../../presets/interactive';
 import type { LinkRouting } from '../../presets/link-routing';
+import type { NormalizedPaperHandlers } from '../../presets/paper-events';
 
 /**
  * Value accepted by the Paper `transform` prop. Strings are parsed via the
@@ -212,9 +220,23 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
+ *
+ * Normalized paper events are exposed directly as props
+ * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …) via
+ * {@link NormalizedPaperHandlers}. Each handler receives a single context
+ * object — e.g. `onBlankContextMenu={({ paper, event, x, y }) => …}`.
+ *
+ * Handlers participate in the event subscription's dependency list, exactly
+ * like a `useEffect` dependency: the subscription re-binds whenever a handler's
+ * **reference** changes. Pass **stable references** — `useCallback` or a
+ * module-level function — so the paper subscribes once. A new inline arrow on
+ * every render (`onBlankContextMenu={() => …}`) re-subscribes that paper's
+ * events on every render; correct, but wasteful. For raw native event names or
+ * events without a normalized form (`resize`, `transform`, `render:done`, …),
+ * use the `usePaperEvents` hook.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
+export interface PaperProps extends PortalPaperOptions, PropsWithChildren, NormalizedPaperHandlers {
   /**
    * A function that renders the element.
    *
@@ -225,7 +247,7 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    * @example
    * Example with `global component`:
    * ```tsx
-   * type BaseElementWithData = InferElement<typeof initialElements>
+   * type BaseElementWithData = { label: string }
    * function RenderElement({ label }: BaseElementWithData) {
    *  return <HTMLElement className="node">{label}</HTMLElement>
    * }
@@ -234,7 +256,7 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    * Example with `local component`:
    * ```tsx
    *
-  type BaseElementWithData = InferElement<typeof initialElements>
+  type BaseElementWithData = { label: string }
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
       (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
       []

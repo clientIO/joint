@@ -45,12 +45,15 @@
     "./scripts/*": "./scripts/*.ts",
     "./styles.css": "./src/css/styles.css"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE",
-    "src"
+    "src/css"
   ],
   "homepage": "https://jointjs.com",
   "author": {
@@ -62,7 +65,6 @@
     "Samuel <samuel@jointjs.com> (https://github.com/samuelgja)"
   ],
   "scripts": {
-    "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn test && yarn build",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild && tsc --project tsconfig.types.json",
     "build-storybook": "storybook build",
@@ -144,8 +146,8 @@
     "use-sync-external-store": "^1.6.0"
   },
   "peerDependencies": {
-    "react": ">=18",
-    "react-dom": ">=18"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "volta": {
     "node": "22.14.0",

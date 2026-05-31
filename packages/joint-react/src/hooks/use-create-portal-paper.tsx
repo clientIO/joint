@@ -45,8 +45,9 @@ import {
 } from '../components/paper/render-element/paper-element-item';
 import { createSelectPaperVersion } from '../selectors';
 import { useAreElementsMeasured } from './use-are-elements-measured';
-import { LINK_MODEL_TYPE } from '../internal';
+import { LINK_MODEL_TYPE, subscribeToPaperEvents } from '../internal';
 import type { CellId } from '../types/cell.types';
+import { extractEventsFromPaperProps } from '../presets/paper-events';
 
 type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
@@ -137,7 +138,7 @@ function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink'
  */
 function LinkItem({
   portalElement,
-  renderLink,
+  renderLink: RenderLink,
 }: {
   readonly portalElement: SVGElement | HTMLElement;
   readonly renderLink: RenderLink;
@@ -158,7 +159,7 @@ function LinkItem({
   if (!portalElement || id === undefined) {
     return null;
   }
-  const linkContent = renderLink(data);
+  const linkContent = <RenderLink {...data} />;
   return createPortal(linkContent, portalElement);
 }
 
@@ -289,6 +290,16 @@ export function useCreatePortalPaper(
   const interactiveValue = useMemo(() => toNativeInteractive(interactive), [interactive]);
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
+
+  const { eventDependencies, eventHandlers } = useMemo(
+    () => extractEventsFromPaperProps(paperOptions),
+    [paperOptions]
+  );
+  useLayoutEffect(() => {
+    if (!paperStore) return;
+    return subscribeToPaperEvents(paperStore, eventHandlers);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paperStore, ...eventDependencies]);
 
   useLayoutEffect(() => {
     const hostElementForCreation = elementRef?.current;

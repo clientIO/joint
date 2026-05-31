@@ -1,7 +1,8 @@
-
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useMarkup, usePaperEvents, selectElementSize } from '@joint/react';
+import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useMarkup, selectElementSize } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
@@ -179,9 +180,18 @@ function Main() {
     }
   }, [highlightState]);
 
-  usePaperEvents(
-    {
-      onElementPointerClick: ({ id }) => {
+  const renderElement = useCallback(
+    (data: NodeData) => <RenderNode {...data} />,
+    []
+  );
+
+  return (
+    <Paper style={{ ...PAPER_STYLE, width: '100%', height: 500 }}
+      ref={paperRef}
+      className={PAPER_CLASSNAME}
+      renderElement={renderElement}
+      drawGrid={false}
+      onElementPointerClick={({ id }) => {
         const clickedId = String(id);
         setHighlightState((previous) => {
           if (previous.selectedId === clickedId) {
@@ -202,23 +212,8 @@ function Main() {
             connectedLinkIds: nextConnectedLinkIds,
           };
         });
-      },
-      onBlankPointerClick: () => setHighlightState(INITIAL_STATE),
-    },
-    [graph]
-  );
-
-  const renderElement = useCallback(
-    (data: NodeData) => <RenderNode {...data} />,
-    []
-  );
-
-  return (
-    <Paper style={{ ...PAPER_STYLE, width: "100%", height: 500 }}
-      ref={paperRef}
-      className={PAPER_CLASSNAME}
-      renderElement={renderElement}
-      drawGrid={false}
+      }}
+      onBlankPointerClick={() => setHighlightState(INITIAL_STATE)}
     />
   );
 }

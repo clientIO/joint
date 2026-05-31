@@ -1,5 +1,6 @@
 /* eslint-disable @eslint-react/no-array-index-key */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import '../index.css';
 import { useCallback, useRef, type PropsWithChildren } from 'react';

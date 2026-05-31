@@ -7,7 +7,6 @@ import {
   GraphProvider,
   jsx,
   Paper,
-  usePaperEvents,
   useCells,
   useCellId,
   HTMLBox,
@@ -117,13 +116,10 @@ const toolsView = new dia.ToolsView({
 });
 
 function Main() {
-  usePaperEvents({
-    onLinkMouseEnter: ({ view }) => view.addTools(toolsView),
-    onLinkMouseLeave: ({ view }) => view.removeTools(),
-  });
-
   return (
-    <Paper style={{ width: "100%" }}
+    <Paper style={{ width: '100%' }}
+      onLinkMouseEnter={({ view }) => view.addTools(toolsView)}
+      onLinkMouseLeave={({ view }) => view.removeTools()}
       defaultLink={{
         style: { color: PRIMARY, targetMarker: 'arrow' },
       }}

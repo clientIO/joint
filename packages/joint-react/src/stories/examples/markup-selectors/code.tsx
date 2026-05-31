@@ -159,7 +159,7 @@ function Main() {
   }, []);
 
   return (
-    <Paper style={{ ...PAPER_STYLE, width: "100%", height: 250 }}
+    <Paper style={{ ...PAPER_STYLE, width: '100%', height: 250 }}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       magnetThreshold={'onleave'}

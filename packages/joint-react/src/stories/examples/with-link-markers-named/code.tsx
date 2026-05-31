@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { CellRecord, LinkRecord } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -51,7 +52,7 @@ const initialCells = buildCells();
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper style={{ width: "100%" }}
+      <Paper style={{ width: '100%' }}
         transform={'scale(2)'}
         className={`${PAPER_CLASSNAME} h-[800px]`}
         interactive={false}

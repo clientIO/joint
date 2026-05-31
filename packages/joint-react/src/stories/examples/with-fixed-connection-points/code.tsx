@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useRef } from 'react';
 import type { CellRecord, LinkStyle } from '@joint/react';
-import { GraphProvider, useCell, jsx, Paper, resolveLinkMarker, usePaperEvents, selectElementSize } from '@joint/react';
+import { GraphProvider, useCell, jsx, Paper, resolveLinkMarker, selectElementSize } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, g } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -364,42 +364,39 @@ function Main() {
     };
   }, []);
 
-  usePaperEvents({
-    onCellMouseEnter: ({ model, view, paper }) => {
-      paper.removeTools();
-
-      if (timeoutIdRef.current) {
-        clearTimeout(timeoutIdRef.current);
-        timeoutIdRef.current = null;
-      }
-
-      const tools = model.isLink()
-        ? getLinkTools(view as dia.LinkView)
-        : getElementTools(view as dia.ElementView);
-
-      const toolsView = new dia.ToolsView({ tools });
-      view.addTools(toolsView);
-      currentToolsViewRef.current = toolsView;
-    },
-    onCellMouseLeave: () => {
-      timeoutIdRef.current = setTimeout(() => {
-        currentToolsViewRef.current?.remove();
-        currentToolsViewRef.current = null;
-        timeoutIdRef.current = null;
-      }, 1000);
-
-      currentToolsViewRef.current?.el.classList.add(
-        'opacity-0',
-        'transition-opacity',
-        'duration-300',
-        'delay-300'
-      );
-    },
-    onElementPointerMove: ({ view }) => view.removeTools(),
-  });
-
   return (
-    <Paper style={{ ...PAPER_STYLE, width: "100%", height: 650 }}
+    <Paper style={{ ...PAPER_STYLE, width: '100%', height: 650 }}
+      onCellMouseEnter={({ model, view, paper }) => {
+        paper.removeTools();
+
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+          timeoutIdRef.current = null;
+        }
+
+        const tools = model.isLink()
+          ? getLinkTools(view as dia.LinkView)
+          : getElementTools(view as dia.ElementView);
+
+        const toolsView = new dia.ToolsView({ tools });
+        view.addTools(toolsView);
+        currentToolsViewRef.current = toolsView;
+      }}
+      onCellMouseLeave={() => {
+        timeoutIdRef.current = setTimeout(() => {
+          currentToolsViewRef.current?.remove();
+          currentToolsViewRef.current = null;
+          timeoutIdRef.current = null;
+        }, 1000);
+
+        currentToolsViewRef.current?.el.classList.add(
+          'opacity-0',
+          'transition-opacity',
+          'duration-300',
+          'delay-300'
+        );
+      }}
+      onElementPointerMove={({ view }) => view.removeTools()}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
       gridSize={20}

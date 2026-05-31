@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback } from 'react';
 import { GraphProvider, Paper, type GraphProviderProps, type PaperProps } from '../components';
 import { dia } from '@joint/core';

@@ -11,7 +11,6 @@ import {
   useGraph,
   useMeasureNode,
   usePaper,
-  usePaperEvents,
   ELEMENT_MODEL_TYPE,
   type CellId,
   type PaperProps,
@@ -191,7 +190,7 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
       className="absolute bg-black bottom-6 right-6 border border-[#dde6ed] rounded-lg overflow-hidden"
       style={{ width: MINIMAP_WIDTH, height: MINIMAP_HEIGHT }}
     >
-      <Paper style={{ backgroundColor: LIGHT, height: "100%" }}
+      <Paper style={{ backgroundColor: LIGHT, height: '100%' }}
         {...PAPER_PROPS}
         interactive={false}
         transform={`scale(${scale})`}
@@ -288,20 +287,9 @@ function Main() {
   // Subscribe to cells so the story reflects graph size in devtools if needed.
   useCells();
 
-  usePaperEvents(
-    {
-      onElementPointerClick: ({ id }) => setSelectedElement(id),
-      onElementPointerDblClick: ({ model, graph }) => {
-        model.clone().translate(10, 10).addTo(graph);
-      },
-      onBlankPointerClick: () => setSelectedElement(null),
-    },
-    [setSelectedElement]
-  );
-
   return (
     <div className="flex flex-col relative w-full h-full">
-      <Paper style={{ ...PAPER_STYLE, height: "calc(100vh - 100px)" }}
+      <Paper style={{ ...PAPER_STYLE, height: 'calc(100vh - 100px)' }}
         {...PAPER_PROPS}
         ref={setPaper}
         className={PAPER_CLASSNAME}
@@ -313,6 +301,11 @@ function Main() {
           // implicit: use the default selector for ElementModel cells
         }}
         drawGrid={false}
+        onElementPointerClick={({ id }) => setSelectedElement(id)}
+        onElementPointerDblClick={({ model, graph }) => {
+          model.clone().translate(10, 10).addTo(graph);
+        }}
+        onBlankPointerClick={() => setSelectedElement(null)}
       >
         <Selection selectedId={selectedElement} />
       </Paper>

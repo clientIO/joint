@@ -1,9 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import { useEffect, useState } from 'react';
 import { dia, util } from '@joint/core';
 import type { CellRecord, LinkRecord, LinkMarker } from '@joint/react';
-import { GraphProvider, Paper, usePaperEvents, usePaper, jsx } from '@joint/react';
+import { GraphProvider, Paper, usePaper, jsx } from '@joint/react';
 import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
 
 const BG_COLOR = BG;
@@ -482,23 +483,20 @@ function Main() {
     }
   }, [zoom, paper]);
 
-  usePaperEvents({
-    onLinkPointerDown: ({ model: link }) => {
-      setZoom((previous) => {
-        if (previous.type === 'link' && previous.link === link) {
-          return { type: 'arrow', link };
-        }
-        return { type: 'link', link };
-      });
-    },
-    onBlankPointerDown: () => setZoom({ type: 'overview' }),
-  });
-
   return (
-    <Paper style={{ background: BG_COLOR, width: "100%" }}
+    <Paper style={{ background: BG_COLOR, width: '100%' }}
       className={`${PAPER_CLASSNAME} h-150`}
       interactive={false}
       drawGrid={false}
+      onLinkPointerDown={({ model: link }) => {
+        setZoom((previous) => {
+          if (previous.type === 'link' && previous.link === link) {
+            return { type: 'arrow', link };
+          }
+          return { type: 'link', link };
+        });
+      }}
+      onBlankPointerDown={() => setZoom({ type: 'overview' })}
     />
   );
 }

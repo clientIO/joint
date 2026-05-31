@@ -22,7 +22,6 @@ import {
   type LinkRecord,
   type ElementPort,
   type PaperProps,
-  usePaperEvents,
   selectElementSize,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -481,18 +480,6 @@ function Main() {
 
   const paperId = useId();
 
-  usePaperEvents(
-    paperId,
-    {
-      onLinkMouseEnter: ({ view }) => view.addTools(toolsView),
-      onLinkMouseLeave: ({ view }) => view.removeTools(),
-      onElementPointerClick: ({ id }) => setSelectedElementId(id as CellId),
-      onLinkPointerClick: () => setSelectedElementId(null),
-      onBlankPointerClick: () => setSelectedElementId(null),
-    },
-    [setSelectedElementId]
-  );
-
   return (
     <div className="flex flex-col relative">
       <div className="flex flex-col relative">
@@ -531,6 +518,11 @@ function Main() {
           }}
           renderElement={renderElement}
           className={`${PAPER_CLASSNAME} h-[600px] bg-gray-900 shadow-md`}
+          onLinkMouseEnter={({ view }) => view.addTools(toolsView)}
+          onLinkMouseLeave={({ view }) => view.removeTools()}
+          onElementPointerClick={({ id }) => setSelectedElementId(id as CellId)}
+          onLinkPointerClick={() => setSelectedElementId(null)}
+          onBlankPointerClick={() => setSelectedElementId(null)}
         />
 
         {isMinimapVisible && <MiniMap />}
