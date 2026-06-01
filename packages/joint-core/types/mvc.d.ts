@@ -496,11 +496,11 @@ export class View<T extends (Model | undefined), E extends DOMElement = HTMLElem
 
     classNamePrefix: string;
 
-    theme: string | null;
+    theme: string;
 
     themeClassNamePrefix: string;
 
-    defaultTheme: string | null;
+    defaultTheme: string;
 
     requireSetThemeOverride: boolean;
 
