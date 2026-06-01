@@ -47,7 +47,7 @@ function MiniMap() {
 
   return (
     <div className="absolute bottom-4 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
-      <Paper style={{ height: "100%" }}
+      <Paper style={{ height: '100%' }}
         id="minimap"
         interactive={false}
         transform={'scale(0.4)'}

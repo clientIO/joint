@@ -9,7 +9,6 @@ import {
   Paper,
   HTMLBox,
   type LinkMarkerName,
-  usePaperEvents,
   useGraph,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -464,50 +463,6 @@ interface DiagramProps {
 function Diagram({ zoom }: Readonly<DiagramProps>) {
   const { setCell } = useGraph<CellRecord<Data>>();
 
-  usePaperEvents({
-    'blank:pointerdblclick': (_event, x, y) => {
-      setCell({
-        id: `node-${Date.now()}`,
-        type: 'element',
-        data: { label: 'New Node' },
-        position: { x, y },
-        portMap: { in: PORT_IN, out: PORT_OUT },
-        z: 2,
-      });
-    },
-    'link:contextmenu': (linkView, event_, _x, _y) => {
-      const labelNode = (event_.target as Element | null)?.closest('[label-idx]');
-      if (!labelNode) return;
-      const labelIndex = Number.parseInt(labelNode.getAttribute('label-idx') ?? '', 10);
-      if (Number.isNaN(labelIndex)) return;
-      event_.preventDefault();
-      setCell(String(linkView.model.id), (previous) => {
-        const rawLabelMap = (previous as { labelMap?: Record<string, unknown> }).labelMap;
-        if (!rawLabelMap) return previous;
-        const keys = Object.keys(rawLabelMap);
-        if (labelIndex >= keys.length) return previous;
-        const labelKey = keys[labelIndex];
-        const labelMap = Object.fromEntries(
-          Object.entries(rawLabelMap).filter(([key]) => key !== labelKey)
-        );
-        return { ...previous, labelMap } as CellRecord<Data>;
-      });
-    },
-    'link:pointerdblclick': (linkView, _event, x, y) => {
-      const totalLength = linkView.getConnectionLength();
-      const closestLength = linkView.getClosestPointLength({ x, y });
-      const position = totalLength > 0 ? closestLength / totalLength : 0.5;
-      const labelKey = `label-${Date.now()}`;
-      setCell(String(linkView.model.id), (previous) => {
-        const linkRecord = previous as CellRecord<Data> & { labelMap?: Record<string, unknown> };
-        return {
-          ...linkRecord,
-          labelMap: { ...linkRecord.labelMap, [labelKey]: { position, text: 'New Label' } },
-        };
-      });
-    },
-  });
-
   return (
     <Paper
       className={PAPER_CLASSNAME}
@@ -518,6 +473,47 @@ function Diagram({ zoom }: Readonly<DiagramProps>) {
       embeddingMode
       validateEmbedding={validateEmbedding}
       transform={`scale(${zoom})`}
+      onBlankPointerDblClick={({ x, y }) => {
+        setCell({
+          id: `node-${Date.now()}`,
+          type: 'element',
+          data: { label: 'New Node' },
+          position: { x, y },
+          portMap: { in: PORT_IN, out: PORT_OUT },
+          z: 2,
+        });
+      }}
+      onLinkContextMenu={({ view, event }) => {
+        const labelNode = (event.target as Element | null)?.closest('[label-idx]');
+        if (!labelNode) return;
+        const labelIndex = Number.parseInt(labelNode.getAttribute('label-idx') ?? '', 10);
+        if (Number.isNaN(labelIndex)) return;
+        event.preventDefault();
+        setCell(String(view.model.id), (previous) => {
+          const rawLabelMap = (previous as { labelMap?: Record<string, unknown> }).labelMap;
+          if (!rawLabelMap) return previous;
+          const keys = Object.keys(rawLabelMap);
+          if (labelIndex >= keys.length) return previous;
+          const labelKey = keys[labelIndex];
+          const labelMap = Object.fromEntries(
+            Object.entries(rawLabelMap).filter(([key]) => key !== labelKey)
+          );
+          return { ...previous, labelMap } as CellRecord<Data>;
+        });
+      }}
+      onLinkPointerDblClick={({ view, x, y }) => {
+        const totalLength = view.getConnectionLength();
+        const closestLength = view.getClosestPointLength({ x, y });
+        const position = totalLength > 0 ? closestLength / totalLength : 0.5;
+        const labelKey = `label-${Date.now()}`;
+        setCell(String(view.model.id), (previous) => {
+          const linkRecord = previous as CellRecord<Data> & { labelMap?: Record<string, unknown> };
+          return {
+            ...linkRecord,
+            labelMap: { ...linkRecord.labelMap, [labelKey]: { position, text: 'New Label' } },
+          };
+        });
+      }}
     />
   );
 }

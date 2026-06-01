@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useCallback, useEffect } from 'react';
 import { dia, elementTools } from '@joint/core';
 import {
@@ -9,7 +10,6 @@ import {
   useCell,
   useCellId,
   useGraph,
-  usePaperEvents,
   SVGText,
   selectElementSize,
 } from '@joint/react';
@@ -407,9 +407,12 @@ function Main() {
     }
   }, [graph]);
 
-  usePaperEvents(
-    {
-      onElementMouseEnter: ({ view }) => {
+  return (
+    <Paper style={{ backgroundColor: '#F3F7F6', height: 500 }}
+      className={PAPER_CLASSNAME}
+      renderElement={renderElement}
+      cellVisibility={cellVisibility}
+      onElementMouseEnter={({ view }) => {
         view.removeTools();
         view.addTools(
           new dia.ToolsView({
@@ -422,17 +425,8 @@ function Main() {
             ],
           })
         );
-      },
-      onElementMouseLeave: ({ view }) => view.removeTools(),
-    },
-    []
-  );
-
-  return (
-    <Paper style={{ backgroundColor: '#F3F7F6', height: 500 }}
-      className={PAPER_CLASSNAME}
-      renderElement={renderElement}
-      cellVisibility={cellVisibility}
+      }}
+      onElementMouseLeave={({ view }) => view.removeTools()}
     />
   );
 }

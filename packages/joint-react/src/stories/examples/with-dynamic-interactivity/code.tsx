@@ -1,13 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   type CellRecord,
   GraphProvider,
   Paper,
   useCells,
   useGraph,
-  usePaperEvents,
 } from '@joint/react';
-import { type dia } from '@joint/core';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 import '../index.css';
@@ -22,6 +20,11 @@ interface NodeData {
 
 const SIZE = { width: 140, height: 50 };
 
+type PaperInteraction = Pick<
+  React.ComponentProps<typeof Paper>,
+  'onElementPointerClick' | 'onBlankPointerClick' | 'onElementMouseEnter' | 'onElementMouseLeave'
+>;
+
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: 'a', type: 'element', data: { label: 'Source' }, position: { x: 60, y: 60 }, size: SIZE },
   { id: 'b', type: 'element', data: { label: 'Process' }, position: { x: 300, y: 60 }, size: SIZE },
@@ -29,45 +32,6 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: 'a→b', type: 'link', source: { id: 'a' }, target: { id: 'b' }, style: { targetMarker: 'arrow' } },
   { id: 'b→c', type: 'link', source: { id: 'b' }, target: { id: 'c' }, style: { targetMarker: 'arrow' } },
 ];
-
-// ============================================================================
-// Controllers — different event wiring per mode
-// ============================================================================
-
-interface EditControllerProps {
-  readonly onSelect: (id: string | null) => void;
-}
-
-function EditController({ onSelect }: Readonly<EditControllerProps>) {
-  usePaperEvents(
-    {
-      onElementPointerClick: ({ id }) => onSelect(String(id)),
-      onBlankPointerClick: () => onSelect(null),
-    },
-    [onSelect]
-  );
-  return null;
-}
-
-function ViewController() {
-  const [hovered, setHovered] = useState<string | null>(null);
-  usePaperEvents(
-    {
-      onElementMouseEnter: ({ id, model }) => {
-        const data = model.attributes.data as NodeData | undefined;
-        setHovered(data?.label ?? String(id));
-      },
-      onElementMouseLeave: () => setHovered(null),
-    },
-    []
-  );
-  if (!hovered) return null;
-  return (
-    <div className="absolute top-2 right-2 px-3 py-1 rounded-md bg-white border border-gray-200 shadow-md text-xs font-medium text-gray-700 pointer-events-none">
-      Hovering: {hovered}
-    </div>
-  );
-}
 
 // ============================================================================
 // Property Editor — visible only in edit mode
@@ -127,6 +91,7 @@ function PropertyEditor({ selectedId }: Readonly<PropertyEditorProps>) {
 function Main() {
   const [editMode, setEditMode] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   const toggleMode = useCallback(() => {
     setEditMode((previous) => {
@@ -135,6 +100,23 @@ function Main() {
       return next;
     });
   }, []);
+
+  // Edit mode: select & edit elements. View mode: read-only, hover for info.
+  const interactivity = useMemo<PaperInteraction>(() => {
+    if (editMode) {
+      return {
+        onElementPointerClick: ({ id }) => setSelectedId(String(id)),
+        onBlankPointerClick: () => setSelectedId(null),
+      };
+    }
+    return {
+      onElementMouseEnter: ({ id, model }) => {
+        const data = model.attributes.data as NodeData | undefined;
+        setHovered(data?.label ?? String(id));
+      },
+      onElementMouseLeave: () => setHovered(null),
+    };
+  }, [editMode]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -149,11 +131,15 @@ function Main() {
 
       <div className="flex">
         <div className="flex-1 relative">
-          <Paper className={PAPER_CLASSNAME + ' h-[300px]'} interactive={editMode} />
-          {editMode ? (
-            <EditController onSelect={setSelectedId} />
-          ) : (
-            <ViewController />
+          <Paper
+            className={PAPER_CLASSNAME + ' h-[300px]'}
+            interactive={editMode}
+            {...interactivity}
+          />
+          {!editMode && hovered && (
+            <div className="absolute top-2 right-2 px-3 py-1 rounded-md bg-white border border-gray-200 shadow-md text-xs font-medium text-gray-700 pointer-events-none">
+              Hovering: {hovered}
+            </div>
           )}
         </div>
         {editMode && (

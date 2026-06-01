@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import {
   type AutoSizeOrigin,
   type CellRecord,
@@ -108,7 +109,7 @@ export default function App() {
         <select
           id="autoSizeOriginToggle"
           value={origin}
-          onChange={(e) => setOrigin(e.target.value as AutoSizeOrigin)}
+          onChange={(event) => setOrigin(event.target.value as AutoSizeOrigin)}
         >
           <option value="top-left">top-left</option>
           <option value="center">center</option>

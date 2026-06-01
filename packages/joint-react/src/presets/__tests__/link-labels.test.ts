@@ -13,31 +13,35 @@ describe('presets / link-labels / linkLabel', () => {
     const label = linkLabel({ text: 'x', backgroundShape: 'ellipse' });
     const [body] = label.markup as Array<{ tagName: string }>;
     expect(body.tagName).toBe('ellipse');
-    const labelBodyAttributes = (label.attrs as { labelBody: Record<string, unknown> }).labelBody;
-    expect(labelBodyAttributes.cx).toBe('0');
-    expect(labelBodyAttributes.rx).toBeDefined();
+    const labelBackgroundAttributes = (label.attrs as { labelBackground: Record<string, unknown> })
+      .labelBackground;
+    expect(labelBackgroundAttributes.cx).toBe('0');
+    expect(labelBackgroundAttributes.rx).toBeDefined();
   });
 
   it('builds a path-shaped label using SVG path d', () => {
     const label = linkLabel({ text: 'x', backgroundShape: 'M 0 0 L 10 10' });
     const [body] = label.markup as Array<{ tagName: string }>;
     expect(body.tagName).toBe('path');
-    const labelBodyAttributes = (label.attrs as { labelBody: Record<string, unknown> }).labelBody;
-    expect(labelBodyAttributes.d).toBe('M 0 0 L 10 10');
+    const labelBackgroundAttributes = (label.attrs as { labelBackground: Record<string, unknown> })
+      .labelBackground;
+    expect(labelBackgroundAttributes.d).toBe('M 0 0 L 10 10');
   });
 
   it('uses calc-expression path with ref', () => {
     const label = linkLabel({ text: 'x', backgroundShape: 'M calc(w) 0 L 10 10' });
     const [body] = label.markup as Array<{ tagName: string }>;
     expect(body.tagName).toBe('path');
-    const labelBodyAttributes = (label.attrs as { labelBody: Record<string, unknown> }).labelBody;
-    expect(labelBodyAttributes.ref).toBe('labelText');
+    const labelBackgroundAttributes = (label.attrs as { labelBackground: Record<string, unknown> })
+      .labelBackground;
+    expect(labelBackgroundAttributes.ref).toBe('label');
   });
 
   it('applies opacity when provided', () => {
     const label = linkLabel({ text: 'x', backgroundOpacity: 0.5 });
-    const labelBodyAttributes = (label.attrs as { labelBody: Record<string, unknown> }).labelBody;
-    expect(labelBodyAttributes.opacity).toBe(0.5);
+    const labelBackgroundAttributes = (label.attrs as { labelBackground: Record<string, unknown> })
+      .labelBackground;
+    expect(labelBackgroundAttributes.opacity).toBe(0.5);
   });
 
   it('applies offset when provided', () => {
@@ -48,8 +52,9 @@ describe('presets / link-labels / linkLabel', () => {
 
   it('handles numeric backgroundPadding', () => {
     const label = linkLabel({ text: 'x', backgroundPadding: 5 });
-    const labelBodyAttributes = (label.attrs as { labelBody: Record<string, unknown> }).labelBody;
-    expect(labelBodyAttributes.x).toContain('5');
+    const labelBackgroundAttributes = (label.attrs as { labelBackground: Record<string, unknown> })
+      .labelBackground;
+    expect(labelBackgroundAttributes.x).toContain('5');
   });
 
   it('handles partial backgroundPadding object', () => {
@@ -85,8 +90,8 @@ describe('presets / link-labels / linkLabels', () => {
       { a: { text: 'A' } },
       { color: '#fff' }
     );
-    const attributes = out[0].attrs as { labelText: { style: { fill: string } } };
-    expect(attributes.labelText.style.fill).toBe('#fff');
+    const attributes = out[0].attrs as { label: { style: { fill: string } } };
+    expect(attributes.label.style.fill).toBe('#fff');
   });
 
   it('per-label fields override label style', () => {
@@ -94,7 +99,7 @@ describe('presets / link-labels / linkLabels', () => {
       { a: { text: 'A', color: '#000' } },
       { color: '#fff' }
     );
-    const attributes = out[0].attrs as { labelText: { style: { fill: string } } };
-    expect(attributes.labelText.style.fill).toBe('#000');
+    const attributes = out[0].attrs as { label: { style: { fill: string } } };
+    expect(attributes.label.style.fill).toBe('#000');
   });
 });

@@ -1,4 +1,4 @@
-
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';

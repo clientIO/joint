@@ -1,9 +1,10 @@
 /* eslint-disable unicorn/consistent-function-scoping */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import './index.css';
 import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
-import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect, usePaperEvents } from '@joint/react';
+import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -410,9 +411,27 @@ function RenderFlowchartElement(data: Readonly<ElementData>) {
 function Main() {
   const paperRef = useRef<dia.Paper | null>(null);
 
-  usePaperEvents(
-    {
-      onLinkPointerClick: ({ view: linkView, paper }) => {
+  useNodesMeasuredEffect(({ isInitial, paper }) => {
+    if (!isInitial) return;
+    paper.transformToFitContent({
+      padding: 40,
+      useModelGeometry: true,
+      verticalAlign: 'middle',
+      horizontalAlign: 'middle',
+    });
+  });
+
+  return (
+    <Paper style={{ height: 600 }}
+      ref={paperRef}
+      gridSize={5}
+      overflow
+      snapLabels
+      className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
+      renderElement={RenderFlowchartElement}
+      drawGrid={false}
+      linkRouting={ORTHOGONAL_LINKS}
+      onLinkPointerClick={({ view: linkView, paper }) => {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
         const snapAnchor: linkTools.AnchorCallback<dia.Point> = (
@@ -452,8 +471,8 @@ function Main() {
           nonScalingStroke: true,
         });
         strokeHighlighter.el.classList.add('jj-flow-selection');
-      },
-      onElementMouseEnter: ({ view }) => {
+      }}
+      onElementMouseEnter={({ view }) => {
         const hl = highlighters.mask.add(view, 'body', 'frame', {
           padding: unit * 1.5,
           attrs: {
@@ -462,11 +481,11 @@ function Main() {
           },
         });
         hl.el.classList.add('jj-frame');
-      },
-      onElementMouseLeave: ({ view }) => {
+      }}
+      onElementMouseLeave={({ view }) => {
         highlighters.mask.remove(view, 'frame');
-      },
-      onLinkMouseEnter: ({ view: linkView }) => {
+      }}
+      onLinkMouseEnter={({ view: linkView }) => {
         if (highlighters.stroke.get(linkView, 'selection')) return;
         const frame = highlighters.mask.add(
           linkView,
@@ -482,38 +501,14 @@ function Main() {
           }
         );
         frame.el.classList.add('jj-frame');
-      },
-      onLinkMouseLeave: ({ paper }) => {
+      }}
+      onLinkMouseLeave={({ paper }) => {
         highlighters.mask.removeAll(paper, 'frame');
-      },
-      onBlankPointerDown: ({ paper }) => {
+      }}
+      onBlankPointerDown={({ paper }) => {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
-      },
-    },
-    []
-  );
-
-  useNodesMeasuredEffect(({ isInitial, paper }) => {
-    if (!isInitial) return;
-    paper.transformToFitContent({
-      padding: 40,
-      useModelGeometry: true,
-      verticalAlign: 'middle',
-      horizontalAlign: 'middle',
-    });
-  });
-
-  return (
-    <Paper style={{ height: 600 }}
-      ref={paperRef}
-      gridSize={5}
-      overflow
-      snapLabels
-      className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
-      renderElement={RenderFlowchartElement}
-      drawGrid={false}
-      linkRouting={ORTHOGONAL_LINKS}
+      }}
     />
   );
 }

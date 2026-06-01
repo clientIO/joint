@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useState, useCallback, useMemo, useRef, memo } from 'react';
 import { type CellRecord, GraphProvider, Paper, HTMLBox, type LinkMarkerName } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';

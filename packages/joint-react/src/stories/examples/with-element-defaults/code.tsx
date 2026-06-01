@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type {
   ElementRecord,
   LinkRecord} from '@joint/react';
