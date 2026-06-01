@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 interface Props {
   readonly onSetElement: (element: HTMLElement) => void;
 }
- 
+
 function Component({ onSetElement }: Readonly<Props>) {
   const { paper } = usePaper();
   const divRef = useRef<HTMLDivElement>(null);
@@ -15,7 +15,7 @@ function Component({ onSetElement }: Readonly<Props>) {
     if (!paper || !divRef.current) {
       return;
     }
-     
+
     function transformElement() {
       if (!divRef.current) {
         return;

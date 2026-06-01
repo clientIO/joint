@@ -22,7 +22,9 @@ const SIZE = { width: 140, height: 50 };
 
 type PaperInteraction = Pick<
   React.ComponentProps<typeof Paper>,
-  'onElementPointerClick' | 'onBlankPointerClick' | 'onElementMouseEnter' | 'onElementMouseLeave'
+  'interactive' |
+  'onElementPointerClick' | 'onBlankPointerClick' |
+  'onElementMouseEnter' | 'onElementMouseLeave'
 >;
 
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
@@ -105,13 +107,15 @@ function Main() {
   const interactivity = useMemo<PaperInteraction>(() => {
     if (editMode) {
       return {
+        interactive: true,
         onElementPointerClick: ({ id }) => setSelectedId(String(id)),
         onBlankPointerClick: () => setSelectedId(null),
       };
     }
     return {
+      interactive: false,
       onElementMouseEnter: ({ id, model }) => {
-        const data = model.attributes.data as NodeData | undefined;
+        const data = model.get('data') as NodeData | undefined;
         setHovered(data?.label ?? String(id));
       },
       onElementMouseLeave: () => setHovered(null),
@@ -133,7 +137,6 @@ function Main() {
         <div className="flex-1 relative">
           <Paper
             className={PAPER_CLASSNAME + ' h-[300px]'}
-            interactive={editMode}
             {...interactivity}
           />
           {!editMode && hovered && (
