@@ -7,6 +7,7 @@ import {
   GraphProvider,
   Paper,
   useCellId,
+  useCellDrag,
   useGraph,
   HTMLHost,
   type CellRecord,
@@ -350,8 +351,10 @@ function createPeerManager(callbacks: {
 function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>) {
   const theme = useTheme();
   const isDark = theme === DARK;
+  const localUser = useContext(UserContext);
   const remoteDrag = useContext(RemoteDragContext);
   const elementId = String(useCellId());
+  const { isDragging: isLocalDragging } = useCellDrag();
   const isRemoteDragging = remoteDrag.dragging.has(elementId);
 
   const statusColors: Record<string, string> = {
@@ -361,12 +364,12 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>)
   };
   const statusColor = statusColors[status] ?? theme.muted;
 
-  const isActive = isRemoteDragging;
-  const activeName = remoteDrag.name;
-  const activeColor = remoteDrag.color;
+  // Local drag shows your own color/name; remote drag shows the peer's.
+  const isActive = isLocalDragging || isRemoteDragging;
+  const activeName = isLocalDragging ? localUser.name : remoteDrag.name;
+  const activeColor = isLocalDragging ? localUser.color : remoteDrag.color;
 
-  let borderColor: string = theme.cardBorder;
-  if (isActive) borderColor = activeColor;
+  const borderColor = isActive ? activeColor : theme.cardBorder;
 
   const defaultShadow = `0 2px 12px rgba(0,0,0,${isDark ? 0.3 : 0.06})`;
   const activeShadow = isDark
