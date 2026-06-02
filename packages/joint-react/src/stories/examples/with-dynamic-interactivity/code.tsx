@@ -1,5 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   type CellRecord,
   GraphProvider,
@@ -20,6 +19,13 @@ interface NodeData {
 }
 
 const SIZE = { width: 140, height: 50 };
+
+type PaperInteraction = Pick<
+  React.ComponentProps<typeof Paper>,
+  'interactive' |
+  'onElementPointerClick' | 'onBlankPointerClick' |
+  'onElementMouseEnter' | 'onElementMouseLeave'
+>;
 
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: 'a', type: 'element', data: { label: 'Source' }, position: { x: 60, y: 60 }, size: SIZE },
@@ -97,6 +103,25 @@ function Main() {
     });
   }, []);
 
+  // Edit mode: select & edit elements. View mode: read-only, hover for info.
+  const interactivity = useMemo<PaperInteraction>(() => {
+    if (editMode) {
+      return {
+        interactive: true,
+        onElementPointerClick: ({ id }) => setSelectedId(String(id)),
+        onBlankPointerClick: () => setSelectedId(null),
+      };
+    }
+    return {
+      interactive: false,
+      onElementMouseEnter: ({ id, model }) => {
+        const data = model.get('data') as NodeData | undefined;
+        setHovered(data?.label ?? String(id));
+      },
+      onElementMouseLeave: () => setHovered(null),
+    };
+  }, [editMode]);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
@@ -112,18 +137,7 @@ function Main() {
         <div className="flex-1 relative">
           <Paper
             className={PAPER_CLASSNAME + ' h-[300px]'}
-            interactive={editMode}
-            onElementPointerClick={editMode ? ({ id }) => setSelectedId(String(id)) : undefined}
-            onBlankPointerClick={editMode ? () => setSelectedId(null) : undefined}
-            onElementMouseEnter={
-              editMode
-                ? undefined
-                : ({ id, model }) => {
-                    const data = model.attributes.data as NodeData | undefined;
-                    setHovered(data?.label ?? String(id));
-                  }
-            }
-            onElementMouseLeave={editMode ? undefined : () => setHovered(null)}
+            {...interactivity}
           />
           {!editMode && hovered && (
             <div className="absolute top-2 right-2 px-3 py-1 rounded-md bg-white border border-gray-200 shadow-md text-xs font-medium text-gray-700 pointer-events-none">
