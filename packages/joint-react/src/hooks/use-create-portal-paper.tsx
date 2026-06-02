@@ -22,7 +22,7 @@ import type { LinkRecord } from '../types/cell.types';
 import type { PaperStore } from '../store';
 import { ReactPaper } from '../models/react-paper';
 import type { PaperProps, PortalPaperOptions, RenderLink } from '../components/paper/paper.types';
-import { HTMLBox } from '../components/html-box';
+import { defaultRenderElement } from '../components/paper/default-render-element';
 
 import { mapLinkToAttributes } from '../state/data-mapping';
 import type { CanConnectOptions } from '../presets/can-connect';
@@ -138,7 +138,7 @@ function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink'
  */
 function LinkItem({
   portalElement,
-  renderLink,
+  renderLink: RenderLink,
 }: {
   readonly portalElement: SVGElement | HTMLElement;
   readonly renderLink: RenderLink;
@@ -159,20 +159,9 @@ function LinkItem({
   if (!portalElement || id === undefined) {
     return null;
   }
-  const linkContent = renderLink(data);
+  const linkContent = <RenderLink {...data} />;
   return createPortal(linkContent, portalElement);
 }
-
-/**
- * The default element if the user doesn't provide a renderElement function.
- * Renders `data.label` inside a DefaultHTMLHost.
- * @param data - the element's user data slice
- * @returns A JSX element rendering the label inside a DefaultHTMLHost with default styling.
- */
-const defaultRenderElement = (data: unknown) => {
-  const label = (data as { label?: string } | undefined)?.label;
-  return <HTMLBox>{label}</HTMLBox>;
-};
 
 /**
  * Creates and manages a React-backed JointJS paper instance lifecycle.
@@ -303,6 +292,14 @@ export function useCreatePortalPaper(
 
   useLayoutEffect(() => {
     const hostElementForCreation = elementRef?.current;
+
+    // Clear any server-rendered SSR markup from the host before the live paper
+    // mounts, so the JointJS-built SVG replaces it rather than stacking on top.
+    // React keeps the host's `dangerouslySetInnerHTML` value stable, so it does
+    // not re-insert the markup after this.
+    if (hostElementForCreation) {
+      hostElementForCreation.replaceChildren();
+    }
 
     const { paperStore, remove } = addPaper(id, {
       paperOptions: {

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@joint/react — Server-Side Rendering</title>
+    <!-- Real stylesheet link (not a JS import) so Tailwind + the JointJS theme
+         load even with JavaScript disabled — the server-rendered SVG is styled
+         on first paint. Vite serves it in dev and emits a hashed asset in build. -->
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="root"><!--app-html--></div>
+    <script type="module" src="/src/entry-client.tsx"></script>
+  </body>
+</html>

@@ -28,6 +28,9 @@ export default {
   ],
   moduleNameMapper: {
     '^.+\\.css$': '<rootDir>/__mocks__/style-mock.ts', // Mock CSS files
+    '^@joint/svg-shim/install$': '<rootDir>/../joint-svg-shim/src/install.ts',
+    '^@joint/svg-shim/flag$': '<rootDir>/../joint-svg-shim/src/dom-shim-flag.ts',
+    '^@joint/svg-shim$': '<rootDir>/../joint-svg-shim/src/index.ts',
     '^@joint/react$': '<rootDir>/src/index.ts',
     '^src/(.*)$': '<rootDir>/src/$1',
     '^storybook-config/(.*)$': '<rootDir>/.storybook/$1',

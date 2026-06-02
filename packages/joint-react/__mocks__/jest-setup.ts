@@ -46,6 +46,11 @@ Object.defineProperty(globalThis, 'SVGAngle', {
 });
 
 beforeEach(() => {
+  // Node (SSR) test environments have no DOM — skip the browser API mocks so
+  // server-rendering tests (`@jest-environment node`) can run with this setup.
+  if (globalThis.SVGSVGElement === undefined) {
+    return;
+  }
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
    */

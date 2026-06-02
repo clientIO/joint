@@ -1,12 +1,21 @@
 import { createRollupConfig } from './scripts/create-rollup-config';
 
 export default createRollupConfig({
-  entries: ['src/index.ts', 'src/internal.ts', 'src/presets/index.ts', 'src/stories.ts'],
+  entries: [
+    'src/index.ts',
+    'src/internal.ts',
+    'src/presets/index.ts',
+    'src/stories.ts',
+    'src/server/index.ts',
+  ],
   external: [
     'react',
     'react-dom',
     'use-sync-external-store',
     '@joint/core',
     '@joint/layout-directed-graph',
+    'node:module',
+    'node:path',
+    'jsdom',
   ],
 });

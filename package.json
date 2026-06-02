@@ -28,12 +28,17 @@
   },
   "workspaces": [
     "./packages/*",
+    "./packages/joint-svg-shim/examples/*",
     "./examples/*"
   ],
   "volta": {
     "node": "22.14.0",
     "npm": "11.2.0",
     "yarn": "4.7.0"
+  },
+  "resolutions": {
+    "react": "19.2.5",
+    "react-dom": "19.2.5"
   },
   "packageManager": "yarn@4.7.0"
 }

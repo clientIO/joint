@@ -1,8 +1,9 @@
 import type { dia } from '@joint/core';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useRef, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { PaperStoreContext } from '../../context';
 import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
+import { useServerPaperTree } from '../../hooks/use-server-paper-tree';
 import type { PaperProps } from './paper.types';
 import { DEFAULT_PAPER_ID } from '../../models/react-paper';
 
@@ -20,6 +21,18 @@ function PaperBase(
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
   const id = props.id ?? DEFAULT_PAPER_ID;
   const isExternalPaper = !!externalPaper;
+  // On the server (when `@joint/react/server` is loaded) build the full diagram
+  // as a React tree from the GraphProvider graph — so a plain
+  // `<GraphProvider><Paper renderElement={…} /></GraphProvider>` renders a
+  // complete diagram. `undefined` on the client (the live paper mounts there).
+  const serverTree = useServerPaperTree({ paperId: id, isExternalPaper, props });
+  // The server SVG is `position: absolute; inset: 0`, so the host needs
+  // `position: relative` to contain it — without JS the live paper isn't there
+  // to set it. (The live paper sets it itself on the client.)
+  const hostStyle = useMemo<CSSProperties | undefined>(
+    () => (serverTree == null ? style : { ...style, position: 'relative' }),
+    [serverTree, style]
+  );
   const { paperRef, paperStore, isReady, content } = useCreatePortalPaper({
     ...props,
     elementRef: isExternalPaper ? undefined : paperHTMLElementRef,
@@ -40,16 +53,20 @@ function PaperBase(
   if (isExternalPaper) {
     return (
       <PaperStoreContext.Provider value={paperStore ?? null}>
-        {isReady && content}
+        {isReady ? content : null}
         {portaledChildren}
       </PaperStoreContext.Provider>
     );
   }
 
+  // On the server the host renders the diagram tree (so `renderToString` emits
+  // the full SVG). On the client `serverTree` is `undefined`, so React reconciles
+  // it away and `useCreatePortalPaper` mounts the live paper into the host;
+  // portal content renders there.
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
-      <div className={className} ref={paperHTMLElementRef} style={style}>
-        {isReady && content}
+      <div className={className} ref={paperHTMLElementRef} style={hostStyle}>
+        {serverTree ?? (isReady ? content : null)}
       </div>
       {portaledChildren}
     </PaperStoreContext.Provider>

@@ -3,8 +3,20 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import './index.css';
-import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
-import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect } from '@joint/react';
+import type {
+  CellRecord,
+  ElementRecord,
+  LinkRecord,
+  LinkLabel,
+  TransformOptions,
+} from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useMarkup,
+  useMeasureNode,
+  useNodesMeasuredEffect,
+} from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { linkRoutingOrthogonal } from '@joint/react/presets';
@@ -31,7 +43,12 @@ type ElementData = {
 // top-left coincides with center, and `autoSizeOrigin="center"` preserves
 // that center through the first DOM measurement.
 const flowchartElements: Array<ElementRecord<ElementData>> = [
-  { id: 'start', type: 'element', data: { label: 'Start', type: 'start' }, position: { x: 60, y: 40 } },
+  {
+    id: 'start',
+    type: 'element',
+    data: { label: 'Start', type: 'start' },
+    position: { x: 60, y: 40 },
+  },
   {
     id: 'addToCart',
     type: 'element',
@@ -254,7 +271,10 @@ const flowchartLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: ReadonlyArray<CellRecord<ElementData>> = [...flowchartElements, ...flowchartLinks];
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
+  ...flowchartElements,
+  ...flowchartLinks,
+];
 
 interface PropsWithClick {
   readonly onMouseEnter?: () => void;
@@ -422,7 +442,8 @@ function Main() {
   });
 
   return (
-    <Paper style={{ height: 600 }}
+    <Paper
+      style={{ height: 600 }}
       ref={paperRef}
       gridSize={5}
       overflow
