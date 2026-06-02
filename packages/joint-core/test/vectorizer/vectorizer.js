@@ -1648,6 +1648,57 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(V.matrixToTransformString(V(svgPath2).getTransformToElement(svgGroup1, { safe: true })), 'matrix(2,0,0,2,20,20)');
         });
 
+        QUnit.test('non-invertible target screen CTM returns identity (no throw)', function(assert) {
+
+            // A scale(0) ancestor produces a singular screen CTM (det = 0)
+            // for descendants. Without the invertibility guard, inverting it
+            // yields a zero/NaN matrix or throws. With the guard,
+            // getRelativeTransformation returns null and getTransformToElement
+            // falls back to identity.
+            var hostGroup = V('g', { transform: 'translate(100, 200)' });
+            var innerPath = V('path', { d: 'M 0 0 L 10 10', transform: 'translate(20, 30)' });
+            hostGroup.append(innerPath);
+            V(svgContainer).append(hostGroup);
+
+            // Baseline: with an invertible ancestor, the source/target
+            // transforms produce a real, non-identity matrix. This proves
+            // the identity result below is the guard's fallback, not a
+            // coincidence of trivial CTMs.
+            var baseline = V(svgCircle).getTransformToElement(innerPath.node);
+            assert.notEqual(
+                V.matrixToTransformString(baseline),
+                'matrix(1,0,0,1,0,0)',
+                'Baseline (invertible ancestor) is not identity'
+            );
+
+            // Collapse the ancestor → target's screen CTM becomes singular.
+            hostGroup.node.setAttribute('transform', 'scale(0)');
+
+            var ctm = innerPath.node.getScreenCTM();
+            assert.ok(ctm, 'Target getScreenCTM returns a matrix');
+            assert.equal(ctm.a, 0, 'Target CTM.a is 0');
+            assert.equal(ctm.b, 0, 'Target CTM.b is 0');
+            assert.equal(ctm.c, 0, 'Target CTM.c is 0');
+            assert.equal(ctm.d, 0, 'Target CTM.d is 0');
+            assert.equal(ctm.a * ctm.d - ctm.b * ctm.c, 0, 'Target CTM determinant is 0');
+
+            var matrix;
+            var threw = false;
+            try {
+                matrix = V(svgCircle).getTransformToElement(innerPath.node);
+            } catch (e) {
+                threw = true;
+            }
+            assert.notOk(threw, 'Does not throw on non-invertible target screen CTM');
+            assert.equal(
+                V.matrixToTransformString(matrix),
+                'matrix(1,0,0,1,0,0)',
+                'Falls back to identity matrix'
+            );
+
+            hostGroup.remove();
+        });
+
         QUnit.test('native getTransformToElement vs VElement getTransformToElement - translate', function(assert) {
 
             var container = V(svgContainer);
