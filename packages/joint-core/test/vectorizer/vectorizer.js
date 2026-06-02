@@ -1682,18 +1682,12 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(ctm.d, 0, 'Target CTM.d is 0');
             assert.equal(ctm.a * ctm.d - ctm.b * ctm.c, 0, 'Target CTM determinant is 0');
 
-            var matrix;
-            var threw = false;
-            try {
-                matrix = V(svgCircle).getTransformToElement(innerPath.node);
-            } catch (e) {
-                threw = true;
-            }
-            assert.notOk(threw, 'Does not throw on non-invertible target screen CTM');
+            // If the call throws, QUnit reports the test as failed.
+            var matrix = V(svgCircle).getTransformToElement(innerPath.node);
             assert.equal(
                 V.matrixToTransformString(matrix),
                 'matrix(1,0,0,1,0,0)',
-                'Falls back to identity matrix'
+                'Falls back to identity matrix (no throw)'
             );
 
             hostGroup.remove();
