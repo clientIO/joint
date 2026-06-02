@@ -129,6 +129,16 @@ function getRootSVG(node) {
 }
 
 /**
+ * @param {SVGMatrix} matrix
+ * @returns {boolean}
+ * @description Checks if the given matrix is invertible.
+ */
+function isMatrixInvertible(matrix) {
+    const det = matrix.a * matrix.d - matrix.b * matrix.c;
+    return Number.isFinite(det) && det !== 0;
+}
+
+/**
  *
  * @param {SVGElement} a
  * @param {SVGElement} b
@@ -146,7 +156,7 @@ export function getRelativeTransformation(a, b) {
     if (rootA !== rootB) return null;
     // Get the transformation matrix from `a` to `b`.
     const am = b.getScreenCTM();
-    if (!am) return null;
+    if (!am || !isMatrixInvertible(am)) return null;
     const bm = a.getScreenCTM();
     if (!bm) return null;
     return am.inverse().multiply(bm);
