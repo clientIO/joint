@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { usePaper } from './use-paper';
 import { useCellId } from './use-cell-id';
 import type { dia } from '@joint/core';
-import { PORTAL_SELECTOR } from '../models/element-model';
+import { PORTAL_SELECTOR } from '../mvc/element-model';
 
 /** Options for `magnetRef`. */
 export interface MagnetRefOptions {

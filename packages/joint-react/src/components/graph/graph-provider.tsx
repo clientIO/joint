@@ -5,8 +5,7 @@ import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { AutoSizeOrigin } from '../../store/graph-store';
 import type { OnIncrementalCellsChange } from '../../store/graph-projection';
-import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
-import type { CellInput } from '../../utils/normalize-cell-input';
+import type { ElementJSONInit, LinkJSONInit, CellInput } from '../../types/cell.types';
 
 /** Cells array accepted by GraphProvider. */
 type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> = ReadonlyArray<

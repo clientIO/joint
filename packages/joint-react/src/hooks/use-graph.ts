@@ -9,11 +9,12 @@ import {
   useUpdateCells,
   type SetCell,
 } from './use-cell-setters';
-import type { CellInput, CellRef } from '../utils/normalize-cell-input';
 import type { ArrayUpdate } from '../store/state-container';
 import type {
   ElementJSONInit,
   LinkJSONInit,
+  CellInput,
+  CellRef,
 } from '../types/cell.types';
 
 /**

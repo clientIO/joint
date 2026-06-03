@@ -5,8 +5,8 @@ import { mvc, type dia } from '@joint/core';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { useCells } from '../use-cells';
 import { useGraphStore } from '../use-graph-store';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import { LINK_MODEL_TYPE } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../mvc/link-model';
 import type { CellRecord } from '../../types/cell.types';
 
 const initialCells: readonly CellRecord[] = [

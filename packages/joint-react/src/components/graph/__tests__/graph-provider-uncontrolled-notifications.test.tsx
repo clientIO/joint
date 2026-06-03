@@ -4,7 +4,7 @@ import { GraphProvider } from '../graph-provider';
 import { GraphStoreContext } from '../../../context';
 import type { GraphStore } from '../../../store';
 import type { CellRecord } from '../../../types/cell.types';
-import { ELEMENT_MODEL_TYPE } from '../../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
 
 const initialCells: readonly CellRecord[] = [
   {

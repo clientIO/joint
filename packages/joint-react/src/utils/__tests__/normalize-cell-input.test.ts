@@ -1,7 +1,7 @@
 import { shapes } from '@joint/core';
 import { cellInputToRecord, resolveCellRef } from '../normalize-cell-input';
-import { ELEMENT_MODEL_TYPE, ElementModel } from '../../models/element-model';
-import { LINK_MODEL_TYPE, LinkModel } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE, ElementModel } from '../../mvc/element-model';
+import { LINK_MODEL_TYPE, LinkModel } from '../../mvc/link-model';
 import type { CellRecord, ElementRecord, LinkRecord } from '../../types/cell.types';
 
 describe('cellInputToRecord', () => {

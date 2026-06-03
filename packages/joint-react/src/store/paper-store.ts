@@ -1,9 +1,9 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell.types';
 import type { RenderElement, RenderLink } from '../components';
-import type { PortalSelector } from '../models/react-paper.types';
+import type { PortalSelector } from '../mvc/react-paper.types';
 import type { GraphStore } from './graph-store';
-import { ReactPaper } from '../models/react-paper';
+import { ReactPaper } from '../mvc/react-paper';
 import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { PaperStoreState } from './graph-store';

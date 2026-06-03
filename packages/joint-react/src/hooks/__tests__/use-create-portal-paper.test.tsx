@@ -6,8 +6,8 @@ import { useEffect, useRef } from 'react';
 import { renderHook, render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
 import { useCreatePortalPaper } from '../use-create-portal-paper';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import { LINK_MODEL_TYPE } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../mvc/link-model';
 import type { CellRecord, LinkRecord } from '../../types/cell.types';
 
 const EMPTY_CELLS: readonly CellRecord[] = [];

@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { PaperStore } from '../paper-store';
-import { ReactPaper } from '../../models/react-paper';
+import { ReactPaper } from '../../mvc/react-paper';
 
 describe('PaperStore — externalPaper adoption', () => {
   it('overrides onViewMountChange on the adopted paper to relay into the graph store', () => {

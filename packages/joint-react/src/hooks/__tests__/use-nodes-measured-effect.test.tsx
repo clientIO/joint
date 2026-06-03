@@ -2,7 +2,7 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
 import { useNodesMeasuredEffect } from '../use-nodes-measured-effect';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { useGraphStore } from '../use-graph-store';
 import type { CellRecord } from '../../types/cell.types';
 import type { ElementsMeasuredEvent } from '../../types/event.types';

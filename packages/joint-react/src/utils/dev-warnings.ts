@@ -1,4 +1,4 @@
-import { DEFAULT_PAPER_ID } from '../models/react-paper';
+import { DEFAULT_PAPER_ID } from '../mvc/react-paper';
 
 const WARNED = new Set<string>();
 

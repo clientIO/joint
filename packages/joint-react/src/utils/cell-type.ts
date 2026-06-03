@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
-import { ELEMENT_MODEL_TYPE } from '../models/element-model';
-import { LINK_MODEL_TYPE } from '../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../mvc/link-model';
 
 /**
  * Check whether a type string denotes an element via the graph's type

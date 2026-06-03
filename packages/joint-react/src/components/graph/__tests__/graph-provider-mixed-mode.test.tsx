@@ -6,8 +6,8 @@ import type { GraphStore } from '../../../store';
 import type { CellRecord } from '../../../types/cell.types';
 
 type Cells = ReadonlyArray<CellRecord<Record<string, unknown>, Record<string, unknown>>>;
-import { ELEMENT_MODEL_TYPE } from '../../../models/element-model';
-import { LINK_MODEL_TYPE } from '../../../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../../mvc/link-model';
 
 const INITIAL_CONTROLLED_CELLS: Cells = [
   {

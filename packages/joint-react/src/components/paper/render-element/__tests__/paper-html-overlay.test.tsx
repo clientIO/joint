@@ -4,7 +4,7 @@
 import { render, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../../../graph/graph-provider';
 import { Paper } from '../../paper';
-import { ELEMENT_MODEL_TYPE } from '../../../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../../../mvc/element-model';
 import type { CellRecord } from '../../../../types/cell.types';
 
 const HTML_CELLS: readonly CellRecord[] = [

@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { LinkRecord } from '../../types/cell.types';
-import type { PortalSelector } from '../../models/react-paper.types';
-import type { ReactPaper } from '../../models/react-paper';
+import type { PortalSelector } from '../../mvc/react-paper.types';
+import type { ReactPaper } from '../../mvc/react-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type {
   ConnectionEnd,

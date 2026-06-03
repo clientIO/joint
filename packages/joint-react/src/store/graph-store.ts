@@ -8,8 +8,8 @@ import {
   type GraphStoreObserver,
   type SetMeasuredNodeOptions,
 } from './create-elements-size-observer';
-import { ELEMENT_MODEL_TYPE, ElementModel } from '../models/element-model';
-import { LINK_MODEL_TYPE, LinkModel } from '../models/link-model';
+import { ELEMENT_MODEL_TYPE, ElementModel } from '../mvc/element-model';
+import { LINK_MODEL_TYPE, LinkModel } from '../mvc/link-model';
 import { isElementType, isLinkType } from '../utils/cell-type';
 import { clearConnectedLinkViews } from './clear-view';
 import { LAYOUT_UPDATE_EVENT } from './graph-changes';
@@ -22,7 +22,8 @@ import {
   type OnIncrementalCellsChange,
 } from './graph-projection';
 import { simpleScheduler } from '../utils/scheduler';
-import { cellInputToModel, type CellInput } from '../utils/normalize-cell-input';
+import { cellInputToModel } from '../utils/normalize-cell-input';
+import type { CellInput } from '../types/cell.types';
 import { warnDuplicatePapers } from '../utils/dev-warnings';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {

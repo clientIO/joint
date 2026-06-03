@@ -1,8 +1,8 @@
 import { render, waitFor } from '@testing-library/react';
 import { paperRenderLinkWrapper } from '../../utils/test-wrappers';
 import { useLinkLayout } from '../use-link-layout';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import { LINK_MODEL_TYPE } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../mvc/link-model';
 import type { CellRecord } from '../../types/cell.types';
 import type { LinkLayout } from '../../types/cell.types';
 

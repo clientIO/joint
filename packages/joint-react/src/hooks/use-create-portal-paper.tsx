@@ -20,7 +20,7 @@ import { useContainerKeys } from './use-container-keys';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { LinkRecord } from '../types/cell.types';
 import type { PaperStore } from '../store';
-import { ReactPaper } from '../models/react-paper';
+import { ReactPaper } from '../mvc/react-paper';
 import type { PaperProps, PortalPaperOptions, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 

@@ -1,8 +1,8 @@
 /* eslint-disable unicorn/consistent-function-scoping */
 import { dia, shapes } from '@joint/core';
 import { GraphStore, DEFAULT_CELL_NAMESPACE } from '../graph-store';
-import { ELEMENT_MODEL_TYPE, ElementModel } from '../../models/element-model';
-import { LINK_MODEL_TYPE, LinkModel } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE, ElementModel } from '../../mvc/element-model';
+import { LINK_MODEL_TYPE, LinkModel } from '../../mvc/link-model';
 import type { CellRecord } from '../../types/cell.types';
 
 const createGraph = () => new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });

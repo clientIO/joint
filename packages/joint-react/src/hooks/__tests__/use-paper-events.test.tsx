@@ -3,7 +3,7 @@ import { mvc } from '@joint/core';
 import { renderHook, render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
 import { usePaperEvents, subscribeToPaperEvents } from '../use-paper-events';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import type { CellRecord } from '../../types/cell.types';
 import type { PaperStore } from '../../store';
 import type { dia } from '@joint/core';

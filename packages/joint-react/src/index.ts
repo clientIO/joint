@@ -28,7 +28,7 @@ export type {
   PortalHostCell,
   PortalSelector,
   PortalSelectorContext,
-} from './models/react-paper.types';
+} from './mvc/react-paper.types';
 export type {
   ValidateConnectionContext,
   ValidateEmbeddingContext,
@@ -87,6 +87,7 @@ export { useCellId } from './hooks/use-cell-id';
  * @experimental
  */
 export { useLinkLayout } from './hooks/use-link-layout';
+export type { LinkLayout } from './types/cell.types';
 
 /**
  * useMeasureNode()
@@ -152,32 +153,39 @@ export {
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
 
 
-// Data types
-// ----------
-
-export type { CellInput, CellRef } from './utils/normalize-cell-input';
+// Cells
+// -----
 
 export type {
+  CellId,
+  CellInput,
+  CellRef,
   CellRecord,
   ElementRecord,
   LinkRecord,
   AnyCellRecord,
-  CellId,
   Computed,
+  ElementPosition,
+  ElementSize
 } from './types/cell.types';
+export type {
+  ElementPort,
+  PortShape,
+  LinkStyle,
+  LinkLabel,
+  LinkMarkerRecord,
+} from './presets';
 
-// Types — geometry / presets
-export type { ElementPosition, ElementSize, LinkLayout } from './types/cell.types';
-export type { ElementPort, PortShape, LinkStyle, LinkLabel } from './presets';
 
 // Theme
 export { resolveLinkMarker } from './theme/named-link-markers';
 export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
-export type { LinkMarkerRecord } from './presets';
 
 // MVC
-export { ElementModel, ELEMENT_MODEL_TYPE } from './models/element-model';
-export { LinkModel, LINK_MODEL_TYPE } from './models/link-model';
+// ---
+
+export { ElementModel, ELEMENT_MODEL_TYPE } from './mvc/element-model';
+export { LinkModel, LINK_MODEL_TYPE } from './mvc/link-model';
 export { LinkView } from './presets';
-export { ReactPaper } from './models/react-paper';
+export { ReactPaper } from './mvc/react-paper';
 

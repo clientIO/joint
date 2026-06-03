@@ -7,7 +7,7 @@ import { GraphProvider } from '../../../graph/graph-provider';
 import { Paper } from '../../paper';
 import { SVGElementItem, HTMLElementItem, ElementHitArea } from '../paper-element-item';
 import { CellIdContext, GraphStoreContext, PaperStoreContext } from '../../../../context';
-import { ELEMENT_MODEL_TYPE } from '../../../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../../../mvc/element-model';
 import type { CellRecord, CellId } from '../../../../types/cell.types';
 
 const RenderEmpty: ComponentType<Record<string, unknown>> = () => <span data-testid="render-empty" />;

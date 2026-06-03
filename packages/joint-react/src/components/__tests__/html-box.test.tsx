@@ -2,7 +2,7 @@
 import { render, waitFor } from '@testing-library/react';
 import { HTMLBox } from '../html-box';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import type { CellRecord } from '../../types/cell.types';
 
 const CELLS: readonly CellRecord[] = [

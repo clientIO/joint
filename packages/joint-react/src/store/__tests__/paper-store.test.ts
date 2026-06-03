@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import { PaperStore } from '../paper-store';
 import { GraphStore } from '../graph-store';
-import { ReactPaper } from '../../models/react-paper';
+import { ReactPaper } from '../../mvc/react-paper';
 
 describe('PaperStore', () => {
   describe('constructor', () => {
