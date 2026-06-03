@@ -102,25 +102,31 @@ function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
  * @param defaultLink
  */
 function createDefaultLinkCallback(defaultLink: PortalPaperOptions['defaultLink']) {
+  // Guard for JS callers (TS already forbids it): a raw `dia.Link` instance
+  // would force defensive `.clone()` on every connection and silently couple
+  // every created link to one mutable model. Require a factory instead.
+  if (defaultLink instanceof dia.Link) {
+    throw new TypeError(
+      'defaultLink must be a function or Partial<LinkRecord>.'
+    );
+  }
   return (cellView: dia.CellView, magnet: SVGElement = cellView.el) => {
     const paper = cellView.paper!;
     const graph = paper.model;
-    const isFactory = typeof defaultLink === 'function';
-    const link = isFactory
-      ? defaultLink({
-          source: toConnectionEnd(cellView, magnet),
-          paper,
-          graph,
-        })
-      : defaultLink;
+    const link =
+      typeof defaultLink === 'function'
+        ? defaultLink({
+            source: toConnectionEnd(cellView, magnet),
+            paper,
+            graph,
+          })
+        : defaultLink;
     const LinkModelCtor = getLinkModelConstructor(graph);
     if (!link) {
       return new LinkModelCtor(mapLinkToAttributes({ type: LINK_MODEL_TYPE }));
     }
-    if (link instanceof dia.Link) {
-      if (isFactory) return link;
-      return link.clone();
-    }
+    // Factory returning a fresh `dia.Link` is legitimate — pass through.
+    if (link instanceof dia.Link) return link;
     return new LinkModelCtor(mapLinkToAttributes({ type: LINK_MODEL_TYPE, ...link } as LinkRecord));
   };
 }

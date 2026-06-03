@@ -202,35 +202,6 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
     expect(link).toBe(factoryRanWith);
   });
 
-  it('clones a static `dia.Link` instance via `.clone()` (line 118)', async () => {
-    const staticLink = new dia.Link({});
-    const onReady = jest.fn();
-    function Host() {
-      const paperRef = useRef<dia.Paper | null>(null);
-      return (
-        <>
-          <Paper style={{ width: 100, height: 100 }}
-            ref={paperRef}
-            id="default-link-instance-static"
-            renderElement={() => <rect />}
-            defaultLink={staticLink as unknown as Parameters<typeof Paper>[0]['defaultLink']}
-          />
-          <PaperReadyProbe paperRef={paperRef} onReady={onReady} />
-        </>
-      );
-    }
-    render(
-      <GraphProvider initialCells={initialCells}>
-        <Host />
-      </GraphProvider>
-    );
-    await waitFor(() => expect(onReady).toHaveBeenCalled());
-    const [[paper]] = onReady.mock.calls;
-    const cloned = callDefaultLink(paper);
-    expect(cloned).toBeInstanceOf(dia.Link);
-    expect(cloned).not.toBe(staticLink);
-  });
-
   it('returns the default LinkModel when factory returns null/undefined (line 114)', async () => {
     const factory = jest.fn(() => null);
     const onReady = jest.fn();

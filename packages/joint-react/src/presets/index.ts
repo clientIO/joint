@@ -78,3 +78,4 @@ export {
   type ResizeEventContext,
   type TransformEventContext,
 } from './paper-events';
+export { LinkView } from './link-view';

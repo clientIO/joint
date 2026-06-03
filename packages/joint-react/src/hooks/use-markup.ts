@@ -14,7 +14,7 @@ export interface MagnetRefOptions {
 }
 
 /** Markup utilities returned by `useMarkup`. */
-export interface MarkupUtils {
+export interface MarkupHandle {
   /**
    * Returns a React ref callback that registers the node under the given selector name.
    * Sets the `joint-selector` attribute on the node and adds it to `elementView.selectors`
@@ -64,7 +64,7 @@ export interface MarkupUtils {
  * }
  * ```
  */
-export function useMarkup(): MarkupUtils {
+export function useMarkup(): MarkupHandle {
   const { paper } = usePaper();
   const id = useCellId();
   const applySelector = useCallback(

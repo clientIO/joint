@@ -37,6 +37,14 @@ export interface DefaultLinkContext {
 }
 
 /**
+ * Value accepted by the Paper `defaultLink` prop — factory receiving
+ * `DefaultLinkContext`, or a static `Partial<LinkRecord>`.
+ */
+export type DefaultLink =
+  | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>)
+  | Partial<LinkRecord>;
+
+/**
  * Officially supported Paper options. Pass-through props inherit their exact
  * native types via indexed access (`dia.Paper.Options['name']`), so any
  * type-level change in JointJS propagates automatically. Anything not listed
@@ -51,10 +59,7 @@ export interface PortalPaperOptions {
    * Can be a factory function receiving connection context, a static `LinkRecord`,
    * or a `dia.Link` instance.
    */
-  readonly defaultLink?:
-    | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>)
-    | dia.Link
-    | Partial<LinkRecord>;
+  readonly defaultLink?: DefaultLink;
 
   /**
    * Validates whether a connection between two elements/ports is allowed.
