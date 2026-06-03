@@ -6,12 +6,12 @@ import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type {
   ConnectionEnd,
   CanConnectOptions,
-  ValidateConnectionContext,
+  ValidateConnection,
 } from '../../presets/can-connect';
-import type { ValidateEmbeddingContext, ValidateUnembeddingContext } from '../../presets/can-embed';
+import type { ValidateEmbedding, ValidateUnembedding } from '../../presets/can-embed';
 import type {
+  ConnectionStrategy,
   ConnectionStrategyOptions,
-  ConnectionStrategyContext,
 } from '../../presets/connection-strategy';
 import type { CellVisibility } from '../../presets/cell-visibility';
 import type { Interactive } from '../../presets/interactive';
@@ -70,9 +70,7 @@ export interface PortalPaperOptions {
    *
    * When omitted, defaults to `canConnect()` (no self-loops, no link-to-link, no multi-links).
    */
-  readonly validateConnection?:
-    | CanConnectOptions
-    | ((context: ValidateConnectionContext) => boolean);
+  readonly validateConnection?: CanConnectOptions | ValidateConnection;
 
   /**
    * Decides how the end JSON is stored when the user drops a link end.
@@ -81,21 +79,19 @@ export interface PortalPaperOptions {
    *   and returns the modified `EndJSON`.
    * - **Object**: `ConnectionStrategyOptions` with `pin` preset and/or `customize` callback.
    */
-  readonly connectionStrategy?:
-    | ConnectionStrategyOptions
-    | ((context: ConnectionStrategyContext) => dia.Link.EndJSON);
+  readonly connectionStrategy?: ConnectionStrategyOptions | ConnectionStrategy;
 
   /**
    * Validates whether an element can be embedded into another element.
    * Receives `{ child, parent, paper, graph }`.
    */
-  readonly validateEmbedding?: (context: ValidateEmbeddingContext) => boolean;
+  readonly validateEmbedding?: ValidateEmbedding;
 
   /**
    * Validates whether an element can be unembedded from its parent.
    * Receives `{ child, paper, graph }`.
    */
-  readonly validateUnembedding?: (context: ValidateUnembeddingContext) => boolean;
+  readonly validateUnembedding?: ValidateUnembedding;
 
   // ── Identification ───────────────────────────────────────────────────────
   /** Unique identifier used by joint-react to track the paper instance. */

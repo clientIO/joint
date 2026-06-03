@@ -28,6 +28,9 @@ export interface ValidateConnectionContext {
   readonly graph: dia.Graph;
 }
 
+/** Callback that decides whether a connection is allowed. */
+export type ValidateConnection = (context: ValidateConnectionContext) => boolean;
+
 /**
  * Builds a `ConnectionEnd` from a cell view and its magnet element.
  * @param cellView

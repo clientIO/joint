@@ -30,9 +30,16 @@ export type {
   PortalSelectorContext,
 } from './mvc/react-paper.types';
 export type {
+  ValidateConnection,
   ValidateConnectionContext,
+  ValidateEmbedding,
   ValidateEmbeddingContext,
+  ValidateUnembedding,
   ValidateUnembeddingContext,
+  ConnectionStrategy,
+  ConnectionStrategyContext,
+  ConnectionStrategyOptions,
+  ConnectionStrategyPin,
   CanConnectOptions,
   ConnectionEnd,
 } from './presets';
