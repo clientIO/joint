@@ -41,19 +41,25 @@ export type {
  * <SVGText/>
  */
 export { SVGText } from './components/svg-text/svg-text';
-export type { SVGTextProps } from './components/svg-text/svg-text';
+export type {
+  SVGTextProps
+} from './components/svg-text/svg-text';
 
 /**
  * <HTMLHost/>
  */
 export { HTMLHost } from './components/html-host';
-export type { HTMLHostProps } from './components/html-host';
+export type {
+  HTMLHostProps
+} from './components/html-host';
 
 /**
  * <HTMLBox/>
  */
 export { HTMLBox } from './components/html-box';
-export type { HTMLHostProps as HTMLBoxProps } from './components/html-host';
+export type {
+  HTMLHostProps as HTMLBoxProps
+} from './components/html-host';
 
 // Hooks
 // -----
@@ -62,13 +68,19 @@ export type { HTMLHostProps as HTMLBoxProps } from './components/html-host';
  * useGraph()
  */
 export { useGraph } from './hooks/use-graph';
-export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
+export type {
+  GraphHandle,
+  GraphJSON,
+  ExportToJSONOptions
+} from './hooks/use-graph';
 
 /**
  * usePaper()
  */
 export { usePaper } from './hooks/use-paper';
-export type { PaperHandle } from './hooks/use-paper';
+export type {
+  PaperHandle
+} from './hooks/use-paper';
 
 /**
  * useCells()
@@ -86,18 +98,16 @@ export { useCell } from './hooks/use-cell';
 export { useCellId } from './hooks/use-cell-id';
 
 /**
- * useLinkLayout()
- * @experimental
- */
-export { useLinkLayout } from './hooks/use-link-layout';
-export type { LinkLayout } from './types/cell.types';
-
-/**
  * useMeasureNode()
  */
 export { useMeasureNode } from './hooks/use-measure-node';
-export type { MeasureNodeOptions } from './hooks/use-measure-node';
-export type { TransformMeasurement, MeasurementContext } from './store/create-elements-size-observer';
+export type {
+  MeasureNodeOptions
+} from './hooks/use-measure-node';
+export type {
+  TransformMeasurement,
+  MeasurementContext
+} from './store/create-elements-size-observer';
 
 /**
  * useNodesMeasuredEffect()
@@ -108,25 +118,34 @@ export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
  * usePaperEvents()
  */
 export { usePaperEvents } from './hooks/use-paper-events';
-export type { PaperEventMap } from './presets';
+export type {
+  PaperEventMap
+} from './presets';
 
 /**
  * useGraphEvents()
  */
 export { useGraphEvents } from './hooks/use-graph-events';
-export type { GraphEventMap } from './hooks/use-graph-events';
+export type {
+  GraphEventMap
+} from './hooks/use-graph-events';
 
 /**
  * useCellDrag()
  */
 export { useCellDrag } from './hooks/use-cell-drag';
-export type { CellDragState } from './hooks/use-cell-drag';
+export type {
+  CellDragState
+} from './hooks/use-cell-drag';
 
 /**
  * useMarkup()
  */
 export { useMarkup } from './hooks/use-markup';
-export type { MarkupHandle, MagnetRefOptions } from './hooks/use-markup';
+export type {
+  MarkupHandle,
+  MagnetRefOptions
+} from './hooks/use-markup';
 
 // Selectors
 // ---------
@@ -146,6 +165,60 @@ export {
   selectCellZIndex,
 } from './selectors/cell-selectors';
 
+// Data
+// ----
+
+/**
+ * Cell types and utilities
+ */
+export type {
+  CellId,
+  CellInput,
+  CellRef,
+  CellRecord,
+  AnyCellRecord,
+  Computed,
+} from './types/cell.types';
+
+/**
+ * Element types and utilities
+ */
+export type {
+  ElementRecord,
+  ElementPosition,
+  ElementSize
+} from './types/cell.types';
+export type {
+  ElementPort,
+  PortShape,
+} from './presets';
+
+/**
+ * Link types and utilities
+ */
+export { resolveLinkMarker } from './theme/named-link-markers';
+export type {
+  LinkRecord,
+} from './types/cell.types';
+export type {
+  LinkStyle,
+  LinkLabel,
+  LinkMarkerRecord,
+} from './presets';
+export type {
+  LinkMarkerName,
+  LinkMarker
+} from './theme/named-link-markers';
+
+// MVC
+// ---
+
+/**
+ * Cell models
+ */
+export { ElementModel, ELEMENT_MODEL_TYPE } from './mvc/element-model';
+export { LinkModel, LINK_MODEL_TYPE } from './mvc/link-model';
+
 // Utilities
 // ---------
 
@@ -154,37 +227,13 @@ export {
  */
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
 
-// Cells
-// -----
+// Experimental
+// ------------
 
+/**
+ * useLinkLayout()
+ */
+export { useLinkLayout } from './hooks/use-link-layout';
 export type {
-  CellId,
-  CellInput,
-  CellRef,
-  CellRecord,
-  ElementRecord,
-  LinkRecord,
-  AnyCellRecord,
-  Computed,
-  ElementPosition,
-  ElementSize
+  LinkLayout
 } from './types/cell.types';
-export type {
-  ElementPort,
-  PortShape,
-  LinkStyle,
-  LinkLabel,
-  LinkMarkerRecord,
-} from './presets';
-
-
-// Theme
-export { resolveLinkMarker } from './theme/named-link-markers';
-export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
-
-// MVC
-// ---
-
-export { ElementModel, ELEMENT_MODEL_TYPE } from './mvc/element-model';
-export { LinkModel, LINK_MODEL_TYPE } from './mvc/link-model';
-
