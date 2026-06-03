@@ -70,7 +70,6 @@ export function asReadonlyContainer<Cell extends AnyCellRecord>(
  * monotonic `version` counter. Every mutation is O(1); `reset` is O(n) and is
  * a cold path. Delete uses swap-pop (unstable array order) — callers must
  * not rely on insertion order for identity.
- * @param _name - optional label for debugging
  */
 export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
   const items: Cell[] = [];

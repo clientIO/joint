@@ -8,7 +8,7 @@ import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
 import '../index.css';
-import { linkRoutingOrthogonal } from '../../../presets';
+import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   cornerType: 'line',

@@ -4,7 +4,7 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
 import { type CellRecord, GraphProvider } from '@joint/react';
-import { Paper } from '../../../components/paper/paper';
+import { Paper } from '@joint/react';
 
 type ElementData = { label: string; color: string };
 

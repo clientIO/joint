@@ -32,8 +32,7 @@ export { useLinkLayout } from './hooks/use-link-layout';
 export { useGraph } from './hooks/use-graph';
 export type { GraphHandle, ExportToJSONOptions } from './hooks/use-graph';
 export type { CellInput, CellRef } from './utils/normalize-cell-input';
-export { useGraphStore } from './hooks/use-graph-store';
-export { usePaper, usePaperStore } from './hooks/use-paper';
+export { usePaper } from './hooks/use-paper';
 
 // Hooks — Measurement
 export { useMeasureNode } from './hooks/use-measure-node';

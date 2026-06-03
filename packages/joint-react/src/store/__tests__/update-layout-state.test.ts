@@ -14,6 +14,7 @@ describe('getElementLayoutFields', () => {
   it('returns null when the element has no size attribute', () => {
     const element = new dia.Element() as LooseElement;
     // dia.Element has a default size; force it to undefined to exercise the early return
+    // eslint-disable-next-line sonarjs/no-undefined-argument -- undefined is the value under test
     element.set('size', undefined);
     expect(getElementLayoutFields(element)).toBeNull();
   });
@@ -35,6 +36,7 @@ describe('getElementLayoutFields', () => {
     const element = new dia.Element({
       size: { width: 100, height: 50 },
     }) as LooseElement;
+    // eslint-disable-next-line sonarjs/no-undefined-argument -- undefined is the value under test
     element.set('position', undefined);
     const result = getElementLayoutFields(element);
     expect(result?.position).toEqual({ x: 0, y: 0 });

@@ -1,11 +1,10 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
-import { SVGText } from './svg-text';
+import { SimpleRenderItemDecorator } from 'storybook-config/decorators/with-simple-data';
+import { SVGText, useMeasureNode } from '@joint/react';
 import { PRIMARY } from 'storybook-config/theme';
-import { useMeasureNode } from '../../hooks/use-measure-node';
-import { getAPILink } from '../../stories/utils/get-api-documentation-link';
-import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
+import { getAPILink } from '../utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../utils/make-story';
 
 const API_URL = getAPILink('SVGText', 'variables');
 export type Story = StoryObj<typeof SVGText>;

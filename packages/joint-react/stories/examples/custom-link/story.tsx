@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import '../index.css';
-import CodeWithCreateLinks from './code-with-create-links';
-import CodeWithDiaLinksClassName from './code-with-create-links-classname';
-import CodeWithDiaLinks from './code-with-dia-links';
+import CodeWithCreateLinks from './code-create-links';
+import CodeWithDiaLinksClassName from './code-create-links-classname';
+import CodeWithDiaLinks from './code-dia-links';
 
-import CodeWithCreateLinksCode from './code-with-create-links?raw';
-import CodeWithDiaLinksCode from './code-with-dia-links?raw';
+import CodeWithCreateLinksCode from './code-create-links?raw';
+import CodeWithDiaLinksCode from './code-dia-links?raw';
 
-import CodeWithCreateLinksClassName from './code-with-create-links-classname?raw';
+import CodeWithCreateLinksClassName from './code-create-links-classname?raw';
 import { makeRootDocumentation, makeStory } from '../../utils/make-story';
 
 export type Story = StoryObj<typeof CodeWithCreateLinks>;

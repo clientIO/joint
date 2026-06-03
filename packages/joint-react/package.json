@@ -36,11 +36,6 @@
       "import": "./dist/esm/presets/index.js",
       "require": "./dist/cjs/presets/index.js"
     },
-    "./stories": {
-      "types": "./dist/types/stories.d.ts",
-      "import": "./dist/esm/stories.js",
-      "require": "./dist/cjs/stories.js"
-    },
     "./src/*": "./src/*",
     "./scripts/*": "./scripts/*.ts",
     "./styles.css": "./src/css/styles.css"
