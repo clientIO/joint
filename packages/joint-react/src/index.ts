@@ -58,12 +58,15 @@ export type { HTMLHostProps as HTMLBoxProps } from './components/html-host';
 // Hooks
 // -----
 
-// useGraph()
+/**
+ * useGraph()
+ */
 export { useGraph } from './hooks/use-graph';
 export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
 
-
-// usePaper()
+/**
+ * usePaper()
+ */
 export { usePaper } from './hooks/use-paper';
 export type { PaperHandle } from './hooks/use-paper';
 
@@ -94,13 +97,12 @@ export type { LinkLayout } from './types/cell.types';
  */
 export { useMeasureNode } from './hooks/use-measure-node';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
-export type { OnTransformElement, TransformOptions } from './store/create-elements-size-observer';
+export type { TransformMeasurement, MeasurementContext } from './store/create-elements-size-observer';
 
 /**
  * useNodesMeasuredEffect()
  */
 export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
-export type { OnElementsMeasuredOptions } from './hooks/use-nodes-measured-effect';
 
 /**
  * usePaperEvents()
@@ -152,7 +154,6 @@ export {
  */
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
 
-
 // Cells
 // -----
 
@@ -186,6 +187,4 @@ export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
 
 export { ElementModel, ELEMENT_MODEL_TYPE } from './mvc/element-model';
 export { LinkModel, LINK_MODEL_TYPE } from './mvc/link-model';
-export { LinkView } from './presets';
-export { ReactPaper } from './mvc/react-paper';
 

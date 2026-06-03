@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import type { CellRecord, OnTransformElement } from '@joint/react';
+import type { CellRecord, TransformMeasurement } from '@joint/react';
 import { GraphProvider, Paper, useCellId, useMeasureNode, type RenderElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
@@ -27,7 +27,7 @@ function Card({ label }: Readonly<Partial<Data>>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const gap = 10;
   const imageWidth = 50;
-  const transformSize: OnTransformElement = useCallback(
+  const transformSize: TransformMeasurement = useCallback(
     ({ x, y, width: measuredWidth, height: measuredHeight }) => {
       return {
         width: gap + imageWidth + gap + measuredWidth + gap,

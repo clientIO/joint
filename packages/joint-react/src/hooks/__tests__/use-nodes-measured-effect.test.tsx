@@ -90,32 +90,6 @@ describe('useNodesMeasuredEffect', () => {
     }
   });
 
-  it('with { once: true }, only fires once and unsubscribes', async () => {
-    const callback = jest.fn();
-    let bumpMeasure: () => void = () => {};
-    const onceOptions = { once: true } as const;
-    const noDeps: readonly unknown[] = [];
-    function Probe() {
-      const { measureState } = useGraphStore();
-      bumpMeasure = bumpMeasureFor(measureState);
-      useNodesMeasuredEffect('measured-effect-paper', callback, noDeps, onceOptions);
-      return null;
-    }
-    renderHook(() => Probe(), { wrapper });
-
-    await waitFor(() => expect(callback).toHaveBeenCalled());
-    const callsAfterMount = callback.mock.calls.length;
-
-    act(() => {
-      bumpMeasure();
-      bumpMeasure();
-      bumpMeasure();
-    });
-    await flush();
-    // With { once: true } no further fires after the initial measurement.
-    expect(callback).toHaveBeenCalledTimes(callsAfterMount);
-  });
-
   // Regression: ElementModel defaults to size {0,0}. The ResizeObserver
   // pipeline sets the real size via `cell.set('size', ..., {fromMeasure: true})`.
   // Previously, the `change:size` listener in graph-changes.ts skipped
