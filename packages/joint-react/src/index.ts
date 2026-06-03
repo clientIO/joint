@@ -8,16 +8,17 @@
  * <GraphProvider/>
  */
 export { GraphProvider } from './components/graph/graph-provider';
-export type { GraphProviderProps as GraphProps } from './components/graph/graph-provider';
+export type { GraphProviderProps } from './components/graph/graph-provider';
 export type { AutoSizeOrigin } from './store/graph-store';
+export type { IncrementalCellsChange } from './store/graph-projection';
 
 /**
  * <Paper/>
  */
 export { Paper } from './components/paper/paper';
 export type {
-  PaperTransform,
   PaperProps,
+  PaperTransform,
   RenderElement,
   RenderLink,
   DefaultLink,
@@ -29,13 +30,12 @@ export type {
   PortalSelectorContext,
 } from './models/react-paper.types';
 export type {
-  ConnectionEnd,
   ValidateConnectionContext,
   ValidateEmbeddingContext,
   ValidateUnembeddingContext,
   CanConnectOptions,
+  ConnectionEnd,
 } from './presets';
-
 
 /**
  * <SVGText/>
@@ -53,17 +53,19 @@ export type { HTMLHostProps } from './components/html-host';
  * <HTMLBox/>
  */
 export { HTMLBox } from './components/html-box';
+export type { HTMLHostProps as HTMLBoxProps } from './components/html-host';
 
 // Hooks
 // -----
 
 // useGraph()
 export { useGraph } from './hooks/use-graph';
-export type { GraphHandle, ExportToJSONOptions } from './hooks/use-graph';
+export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
 
 
 // usePaper()
 export { usePaper } from './hooks/use-paper';
+export type { PaperHandle } from './hooks/use-paper';
 
 /**
  * useCells()
@@ -109,7 +111,7 @@ export type { PaperEventMap } from './presets';
  * useGraphEvents()
  */
 export { useGraphEvents } from './hooks/use-graph-events';
-// @todo add GraphEventMap
+export type { GraphEventMap } from './hooks/use-graph-events';
 
 /**
  * useCellDrag()
@@ -122,7 +124,6 @@ export type { CellDragState } from './hooks/use-cell-drag';
  */
 export { useMarkup } from './hooks/use-markup';
 export type { MarkupHandle, MagnetRefOptions } from './hooks/use-markup';
-
 
 // Selectors
 // ---------
@@ -142,10 +143,6 @@ export {
   selectCellZIndex,
 } from './selectors/cell-selectors';
 
-
-export type { CellInput, CellRef } from './utils/normalize-cell-input';
-
-
 // Utilities
 // ---------
 
@@ -155,16 +152,18 @@ export type { CellInput, CellRef } from './utils/normalize-cell-input';
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
 
 
+// Data types
+// ----------
 
+export type { CellInput, CellRef } from './utils/normalize-cell-input';
 
-// Types — unified cells
 export type {
   CellRecord,
-  CellId,
   ElementRecord,
   LinkRecord,
-  Computed,
   AnyCellRecord,
+  CellId,
+  Computed,
 } from './types/cell.types';
 
 // Types — geometry / presets
@@ -182,5 +181,3 @@ export { LinkModel, LINK_MODEL_TYPE } from './models/link-model';
 export { LinkView } from './presets';
 export { ReactPaper } from './models/react-paper';
 
-// Store types
-export type { IncrementalCellsChange } from './store/graph-projection';

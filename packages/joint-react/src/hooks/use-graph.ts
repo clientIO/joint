@@ -17,6 +17,11 @@ import type {
 } from '../types/cell.types';
 
 /**
+ * The shape of the graph's JSON export, as produced by `graph.toJSON()`.
+ */
+export type GraphJSON = dia.Graph.JSON;
+
+/**
  * Public imperative API returned by {@link useGraph}.
  *
  * Setters mirror JointJS `syncCells` / `removeCells` / `resetCells` semantics and
@@ -79,13 +84,13 @@ export interface GraphHandle<
    * and must survive). Pass `{ includeDefaults: true }` to keep every
    * attribute on every cell — no pruning is applied in that mode.
    */
-  readonly exportToJSON: (options?: ExportToJSONOptions) => ReturnType<dia.Graph['toJSON']>;
+  readonly exportToJSON: (options?: ExportToJSONOptions) => GraphJSON;
   /**
    * Replace the graph contents from a previously exported JSON object
    * (e.g. produced by {@link exportToJSON}). Triggers JointJS's `reset`
    * event so all React subscriptions resync automatically.
    */
-  readonly importFromJSON: (json: Parameters<dia.Graph['fromJSON']>[0]) => void;
+  readonly importFromJSON: (json: GraphJSON) => void;
 }
 
 /** Options accepted by {@link GraphHandle.exportToJSON}. */
