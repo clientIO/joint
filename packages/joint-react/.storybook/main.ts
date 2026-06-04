@@ -23,11 +23,15 @@ function getAbsolutePath(value: string): string {
 }
 
 const config: StorybookConfig = {
-  // accept .stories and also story.tsx
+  // Scope discovery to the top-level `stories/` dir only. A `../**` glob makes
+  // Storybook's globber walk the whole package — including `node_modules`
+  // (whose symlinks point at other workspace packages, so it recurses into
+  // their trees) and `dist/` — which made indexing take minutes and pulled in
+  // stray `.stories` files shipped by dependencies. Accepts .stories, story.tsx, and .mdx.
   stories: [
-    '../**/*.mdx',
-    '../**/*.stories.@(js|jsx|mjs|ts|tsx)',
-    '../**/story.@(js|jsx|mjs|ts|tsx)',
+    '../stories/**/*.mdx',
+    '../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+    '../stories/**/story.@(js|jsx|mjs|ts|tsx)',
   ],
 
   addons: [
