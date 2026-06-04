@@ -22,22 +22,22 @@ export type {
   RenderElement,
   RenderLink,
   DefaultLink,
-  DefaultLinkContext,
+  DefaultLinkParams,
 } from './components/paper/paper.types';
 export type {
   PortalHostCell,
   PortalSelector,
-  PortalSelectorContext,
+  PortalSelectorParams,
 } from './mvc/react-paper.types';
 export type {
   ValidateConnection,
-  ValidateConnectionContext,
+  ValidateConnectionParams,
   ValidateEmbedding,
-  ValidateEmbeddingContext,
+  ValidateEmbeddingParams,
   ValidateUnembedding,
-  ValidateUnembeddingContext,
+  ValidateUnembeddingParams,
   ConnectionStrategy,
-  ConnectionStrategyContext,
+  ConnectionStrategyParams,
   ConnectionStrategyOptions,
   ConnectionStrategyPin,
   CanConnectOptions,

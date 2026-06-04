@@ -3,7 +3,7 @@
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 import type { CellRecord, ElementPort } from '@joint/react';
-import { GraphProvider, Paper, HTMLBox, type DefaultLinkContext } from '@joint/react';
+import { GraphProvider, Paper, HTMLBox, type DefaultLinkParams } from '@joint/react';
 
 const RED = '#ef4444';
 const GREEN = '#22c55e';
@@ -50,7 +50,7 @@ const PORT_COLORS: Record<string, string> = {
   blue: BLUE,
 };
 
-function defaultLink({ source }: DefaultLinkContext) {
+function defaultLink({ source }: DefaultLinkParams) {
   const color = (source.port && PORT_COLORS[source.port]) || '#333';
   return {
     style: { color, targetMarker: 'arrow-sunken' as const },

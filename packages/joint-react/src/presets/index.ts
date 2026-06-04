@@ -37,33 +37,33 @@ export {
   type CanConnectOptions,
   type ConnectionEnd,
   type ValidateConnection,
-  type ValidateConnectionContext,
+  type ValidateConnectionParams,
 } from './can-connect';
 export {
   connectionStrategy,
   type ConnectionStrategy,
   type ConnectionStrategyOptions,
-  type ConnectionStrategyContext,
+  type ConnectionStrategyParams,
   type ConnectionStrategyPin,
 } from './connection-strategy';
 export {
   canEmbed,
   canUnembed,
   type ValidateEmbedding,
-  type ValidateEmbeddingContext,
+  type ValidateEmbeddingParams,
   type ValidateUnembedding,
-  type ValidateUnembeddingContext,
+  type ValidateUnembeddingParams,
 } from './can-embed';
 export {
   toNativeCellVisibility,
   type CellVisibility,
-  type CellVisibilityContext,
+  type CellVisibilityParams,
 } from './cell-visibility';
 export {
   toNativeInteractive,
   type Interactive,
   type InteractiveCallback,
-  type InteractiveContext,
+  type InteractiveParams,
   type Interaction,
 } from './interactive';
 export { elementAttributes } from './element-attributes';

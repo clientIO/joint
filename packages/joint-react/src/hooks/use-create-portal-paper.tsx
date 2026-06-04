@@ -97,7 +97,7 @@ function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
 
 /**
  * Creates a JointJS-compatible `defaultLink` callback from the React prop.
- * Wraps the user-facing `DefaultLinkContext` API and converts `LinkRecord` results
+ * Wraps the user-facing `DefaultLinkParams` API and converts `LinkRecord` results
  * into JointJS link model instances.
  * @param defaultLink
  */

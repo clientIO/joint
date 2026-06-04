@@ -27,7 +27,7 @@ import type { NormalizedPaperHandlers } from '../../presets/paper-events';
 export type PaperTransform = string | DOMMatrix;
 
 /** Context passed to the `defaultLink` factory. */
-export interface DefaultLinkContext {
+export interface DefaultLinkParams {
   /** The source end of the connection being created. */
   readonly source: ConnectionEnd;
   /** The paper instance. */
@@ -38,10 +38,10 @@ export interface DefaultLinkContext {
 
 /**
  * Value accepted by the Paper `defaultLink` prop — factory receiving
- * `DefaultLinkContext`, or a static `Partial<LinkRecord>`.
+ * `DefaultLinkParams`, or a static `Partial<LinkRecord>`.
  */
 export type DefaultLink =
-  | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>)
+  | ((context: DefaultLinkParams) => dia.Link | Partial<LinkRecord>)
   | Partial<LinkRecord>;
 
 /**

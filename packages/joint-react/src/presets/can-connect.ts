@@ -15,7 +15,7 @@ export interface ConnectionEnd {
 }
 
 /** Structured context for connection validation. */
-export interface ValidateConnectionContext {
+export interface ValidateConnectionParams {
   /** The source end of the connection. */
   readonly source: ConnectionEnd;
   /** The target end of the connection. */
@@ -29,7 +29,7 @@ export interface ValidateConnectionContext {
 }
 
 /** Callback that decides whether a connection is allowed. */
-export type ValidateConnection = (context: ValidateConnectionContext) => boolean;
+export type ValidateConnection = (context: ValidateConnectionParams) => boolean;
 
 /**
  * Builds a `ConnectionEnd` from a cell view and its magnet element.
@@ -148,7 +148,7 @@ export interface CanConnectOptions {
    */
   readonly allowRootConnection?: boolean | 'auto';
   /** Custom validation on top of the built-in rules. Runs only if built-in checks pass. */
-  readonly validate?: (context: ValidateConnectionContext) => boolean;
+  readonly validate?: (context: ValidateConnectionParams) => boolean;
 }
 
 /**

@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { CellRecord, ValidateEmbeddingContext } from '@joint/react';
+import type { CellRecord, ValidateEmbeddingParams } from '@joint/react';
 import { GraphProvider, useCell, Paper, HTMLHost, selectElementSize } from '@joint/react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
@@ -94,7 +94,7 @@ function RenderElement(data: Readonly<ContainerData>) {
   return <ChildElement {...data} />;
 }
 
-function validateParentChildRelationship({ parent }: ValidateEmbeddingContext): boolean {
+function validateParentChildRelationship({ parent }: ValidateEmbeddingParams): boolean {
   // Only allow embedding into container elements
   return Boolean(parent.model.prop('data/isContainer'));
 }
