@@ -3,8 +3,8 @@ import { useCallback } from 'react';
 import { GraphProvider, Paper, type GraphProviderProps, type PaperProps } from '../components';
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../store/graph-store';
-import { ELEMENT_MODEL_TYPE } from '../models/element-model';
-import { LINK_MODEL_TYPE } from '../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../mvc/link-model';
 import type { CellRecord } from '../types/cell.types';
 
 /**

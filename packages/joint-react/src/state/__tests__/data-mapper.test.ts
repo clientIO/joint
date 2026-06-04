@@ -1,8 +1,8 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 
 import { dia, shapes } from '@joint/core';
-import { ELEMENT_MODEL_TYPE, ElementModel } from '../../models/element-model';
-import { LinkModel, LINK_MODEL_TYPE } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE, ElementModel } from '../../mvc/element-model';
+import { LinkModel, LINK_MODEL_TYPE } from '../../mvc/link-model';
 import type { ElementRecord, LinkRecord } from '../../types/cell.types';
 import type { ElementPort } from '../../presets/element-ports';
 import {

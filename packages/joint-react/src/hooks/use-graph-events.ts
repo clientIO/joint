@@ -20,7 +20,7 @@ function isGraphInstance(value: unknown): value is dia.Graph {
  * @param handlers - Event handlers keyed by JointJS graph event names.
  * @returns Cleanup callback that stops all listeners.
  */
-function subscribeToGraphEvents(graph: dia.Graph, handlers: Partial<dia.Graph.EventMap>): () => void {
+function subscribeToGraphEvents(graph: dia.Graph, handlers: GraphEventMap): () => void {
   const controller = new mvc.Listener();
 
   for (const eventName in handlers) {
@@ -35,6 +35,12 @@ function subscribeToGraphEvents(graph: dia.Graph, handlers: Partial<dia.Graph.Ev
   return () => controller.stopListening();
 }
 
+
+/**
+ * The map of graph events to handlers accepted by {@link useGraphEvents}.
+ */
+export type GraphEventMap = Partial<dia.Graph.EventMap>;
+
 /**
  * Subscribes to graph events using original JointJS event names.
  * @param handlers - Event handlers map keyed by JointJS graph event names.
@@ -42,17 +48,17 @@ function subscribeToGraphEvents(graph: dia.Graph, handlers: Partial<dia.Graph.Ev
  * @group Hooks
  */
 export function useGraphEvents(
-  handlers: Partial<dia.Graph.EventMap>,
+  handlers: GraphEventMap,
   dependencies?: DependencyList
 ): void;
 export function useGraphEvents(
   graph: dia.Graph,
-  handlers: Partial<dia.Graph.EventMap>,
+  handlers: GraphEventMap,
   dependencies?: DependencyList
 ): void;
 export function useGraphEvents(
-  graphOrHandlers: dia.Graph | Partial<dia.Graph.EventMap>,
-  handlersOrDependencies: Partial<dia.Graph.EventMap> | DependencyList = EMPTY_DEPENDENCIES,
+  graphOrHandlers: dia.Graph | GraphEventMap,
+  handlersOrDependencies: GraphEventMap | DependencyList = EMPTY_DEPENDENCIES,
   dependenciesArgument: DependencyList = EMPTY_DEPENDENCIES
 ): void {
   const graphStore = useContext(GraphStoreContext);
@@ -64,8 +70,8 @@ export function useGraphEvents(
 
   const graph = shouldUseContextGraph ? graphStore?.graph ?? null : graphOrHandlers;
   const handlers = shouldUseContextGraph
-    ? (graphOrHandlers as Partial<dia.Graph.EventMap>)
-    : (handlersOrDependencies as Partial<dia.Graph.EventMap>);
+    ? (graphOrHandlers as GraphEventMap)
+    : (handlersOrDependencies as GraphEventMap);
   const dependencies = shouldUseContextGraph
     ? (handlersOrDependencies as DependencyList)
     : dependenciesArgument;

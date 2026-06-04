@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { PaperStoreContext } from '../../context';
 import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
 import type { PaperProps } from './paper.types';
-import { DEFAULT_PAPER_ID } from '../../models/react-paper';
+import { DEFAULT_PAPER_ID } from '../../mvc/react-paper';
 
 /**
  * Internal Paper implementation used by forwarded `Paper` component.

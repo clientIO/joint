@@ -1,7 +1,7 @@
 import { useContext, useLayoutEffect, type RefObject } from 'react';
 import { CellIdContext } from '../context';
 import { useGraphStore } from './use-graph-store';
-import type { OnTransformElement } from '../store/create-elements-size-observer';
+import type { TransformMeasurement } from '../store/create-elements-size-observer';
 import { usePaper } from './use-paper';
 import type { ElementSize } from '../types/cell.types';
 import { useCell } from './use-cell';
@@ -29,7 +29,7 @@ export interface MeasureNodeOptions {
    * useMeasureNode(nodeRef, { transform });
    * ```
    */
-  readonly transform?: OnTransformElement;
+  readonly transform?: TransformMeasurement;
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
@@ -114,7 +114,7 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * @example
  * With custom transform to add padding:
  * ```tsx
- * import { useMeasureNode, type OnTransformElement } from '@joint/react';
+ * import { useMeasureNode, type TransformMeasurement } from '@joint/react';
  * import { useRef, useCallback } from 'react';
  *
  * function ListElement() {
@@ -122,7 +122,7 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  *   const padding = 10;
  *   const headerHeight = 50;
  *
- *   const transform: OnTransformElement = useCallback(
+ *   const transform: TransformMeasurement = useCallback(
  *     ({ width: measuredWidth, height: measuredHeight }) => {
  *       return {
  *         width: padding + measuredWidth + padding,

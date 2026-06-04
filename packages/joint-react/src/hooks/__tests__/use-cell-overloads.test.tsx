@@ -5,7 +5,7 @@ import { CellIdContext } from '../../context';
 import { useCell } from '../use-cell';
 import { useCells } from '../use-cells';
 import { useGraphStore } from '../use-graph-store';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import type { CellRecord } from '../../types/cell.types';
 
 const initialCells: readonly CellRecord[] = [

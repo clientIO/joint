@@ -1,12 +1,13 @@
 import type {
   Cell as DiaCell,
   Element as DiaElement,
+  Graph as DiaGraph,
   Link as DiaLink,
   Point as DiaPoint,
   Size as DiaSize,
 } from '@joint/core/dia';
-import type { ELEMENT_MODEL_TYPE } from '../models/element-model';
-import type { LINK_MODEL_TYPE } from '../models/link-model';
+import type { ELEMENT_MODEL_TYPE } from '../mvc/element-model';
+import type { LINK_MODEL_TYPE } from '../mvc/link-model';
 import type { LinkPresetAttributes } from '../presets/link-attributes';
 import type { ElementPresetAttributes } from '../presets/element-attributes';
 
@@ -201,3 +202,18 @@ export interface LinkLayout {
   readonly targetY: number;
   readonly d: string;
 }
+
+/**
+ * Cell setter input: a plain record or a dia.Cell instance.
+ * Shared across all cell-mutation entry points (setCell, resetCells,
+ * initialCells, collection setter, etc.).
+ * @template Element - element record shape
+ * @template Link - link record shape
+ */
+export type CellInput<
+  Element extends ElementJSONInit = ElementJSONInit,
+  Link extends LinkJSONInit = LinkJSONInit,
+> = Element | Link | DiaCell;
+
+/** Re-export of JointJS core's `dia.Graph.CellRef` — cell id or dia.Cell instance. */
+export type CellRef = DiaGraph.CellRef;

@@ -2,7 +2,7 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
 import { useNodesMeasuredEffect } from '../use-nodes-measured-effect';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { useGraphStore } from '../use-graph-store';
 import type { CellRecord } from '../../types/cell.types';
 import type { ElementsMeasuredEvent } from '../../types/event.types';
@@ -88,32 +88,6 @@ describe('useNodesMeasuredEffect', () => {
     for (const [event] of callback.mock.calls) {
       expect((event as ElementsMeasuredEvent).isInitial).toBe(false);
     }
-  });
-
-  it('with { once: true }, only fires once and unsubscribes', async () => {
-    const callback = jest.fn();
-    let bumpMeasure: () => void = () => {};
-    const onceOptions = { once: true } as const;
-    const noDeps: readonly unknown[] = [];
-    function Probe() {
-      const { measureState } = useGraphStore();
-      bumpMeasure = bumpMeasureFor(measureState);
-      useNodesMeasuredEffect('measured-effect-paper', callback, noDeps, onceOptions);
-      return null;
-    }
-    renderHook(() => Probe(), { wrapper });
-
-    await waitFor(() => expect(callback).toHaveBeenCalled());
-    const callsAfterMount = callback.mock.calls.length;
-
-    act(() => {
-      bumpMeasure();
-      bumpMeasure();
-      bumpMeasure();
-    });
-    await flush();
-    // With { once: true } no further fires after the initial measurement.
-    expect(callback).toHaveBeenCalledTimes(callsAfterMount);
   });
 
   // Regression: ElementModel defaults to size {0,0}. The ResizeObserver

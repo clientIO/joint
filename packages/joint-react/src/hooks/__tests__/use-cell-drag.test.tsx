@@ -10,7 +10,7 @@ import {
   ensureCellDragListeners,
   EMPTY_CELL_DRAG_STATE,
 } from '../use-cell-drag.utils';
-import type { ReactPaper } from '../../models/react-paper';
+import type { ReactPaper } from '../../mvc/react-paper';
 
 function createMockGraph(): dia.Graph {
   return new dia.Graph();

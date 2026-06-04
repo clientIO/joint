@@ -3,8 +3,8 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { useGraph } from '../use-graph';
 import { useGraphStore } from '../use-graph-store';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import { LINK_MODEL_TYPE } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../mvc/link-model';
 import type { AnyCellRecord, CellRecord, ElementRecord } from '../../types/cell.types';
 
 const INITIAL: readonly CellRecord[] = [

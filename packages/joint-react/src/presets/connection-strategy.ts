@@ -35,8 +35,11 @@ export interface ConnectionStrategyOptions {
    */
   readonly pin?: ConnectionStrategyPin;
   /** Runs after `pin`. Receives `end` already pinned (or original when `pin` is `'none'`). */
-  readonly customize?: (context: ConnectionStrategyContext) => dia.Link.EndJSON;
+  readonly customize?: ConnectionStrategy;
 }
+
+/** Callback that decides how a dropped link end's JSON is stored. */
+export type ConnectionStrategy = (context: ConnectionStrategyContext) => dia.Link.EndJSON;
 
 const PIN_STRATEGIES: Record<ConnectionStrategyPin, connectionStrategies.ConnectionStrategy> = {
   none: strategies.useDefaults,

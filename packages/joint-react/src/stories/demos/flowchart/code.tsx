@@ -3,7 +3,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import './index.css';
-import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformOptions } from '@joint/react';
+import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, MeasurementContext } from '@joint/react';
 import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
@@ -265,7 +265,7 @@ type FlowchartElementProps = ElementData & PropsWithClick;
 
 // Inflate measured text by symmetric padding. No x/y here — autoSizeOrigin="center"
 // (set on GraphProvider) keeps the cell's geometric center fixed as it resizes.
-function applyElementPadding(options: TransformOptions, padding: number = 30) {
+function applyElementPadding(options: MeasurementContext, padding: number = 30) {
   return {
     width: options.width + 2 * padding,
     height: options.height + 2 * padding,

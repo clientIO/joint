@@ -23,7 +23,7 @@ import { mvc } from '@joint/core';
 import type { dia } from '@joint/core';
 import { createAtom, type Atom } from '../store/state-container';
 import type { CellDragState } from './use-cell-drag';
-import { CLEANUP_EVENT_NAME, type ReactPaper } from '../models/react-paper';
+import { CLEANUP_EVENT_NAME, type ReactPaper } from '../mvc/react-paper';
 
 /** Snapshot returned when no drag is active. */
 export const EMPTY_CELL_DRAG_STATE: CellDragState = {

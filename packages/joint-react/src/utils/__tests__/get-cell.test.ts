@@ -1,7 +1,7 @@
 import { dia, shapes } from '@joint/core';
 import { mapAttributesToLink } from '../../state/data-mapping';
-import { ElementModel } from '../../models/element-model';
-import { LinkModel, LINK_MODEL_TYPE } from '../../models/link-model';
+import { ElementModel } from '../../mvc/element-model';
+import { LinkModel, LINK_MODEL_TYPE } from '../../mvc/link-model';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, element: ElementModel, link: LinkModel };
 

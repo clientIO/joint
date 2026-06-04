@@ -5,7 +5,7 @@ import { render, waitFor, act } from '@testing-library/react';
 import { mvc, type dia } from '@joint/core';
 import { Paper } from '../paper';
 import { GraphProvider } from '../../graph/graph-provider';
-import { ELEMENT_MODEL_TYPE } from '../../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
 import type { CellRecord } from '../../../types/cell.types';
 
 const CELLS: readonly CellRecord[] = [
