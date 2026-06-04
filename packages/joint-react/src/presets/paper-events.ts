@@ -154,7 +154,7 @@ export interface LinkConnectEventParams extends LinkEventParams {
 }
 
 // ============================================================================
-// Normalized event maps (camelCase → native)
+// CamelCase → native event-name maps
 // ============================================================================
 
 const POINTER_CELL_MAP = {
@@ -277,7 +277,7 @@ const TRANSFORM_MAP = {
   onTransform: 'transform',
 } as const;
 
-export const NORMALIZED_KEYS = new Set<string>([
+export const PAPER_EVENT_KEYS = new Set<string>([
   ...Object.keys(POINTER_CELL_MAP),
   ...Object.keys(HOVER_CELL_MAP),
   ...Object.keys(WHEEL_CELL_MAP),
@@ -296,11 +296,11 @@ export const NORMALIZED_KEYS = new Set<string>([
 ]);
 
 // ============================================================================
-// Normalized handlers map (typed)
+// Paper event handlers (typed)
 // ============================================================================
 
 /**
- * Camel-cased, context-object handlers for the most common `dia.Paper` events.
+ * Camel-cased, params-object handlers for the most common `dia.Paper` events.
  * Mixable with raw `'element:pointerclick'` keys in the same handlers map.
  * Paper-level events that stay raw: `'resize'`, `'transform'`, `'scale'`,
  * `'translate'`, `'render:done'`, `'render:idle'`, `'cell:highlight'`,
@@ -391,7 +391,7 @@ export interface PaperEventHandlers {
 export type PaperEventHandler<T extends keyof PaperEventHandlers> = NonNullable<PaperEventHandlers[T]>;
 
 /**
- * Combined handlers — normalized + raw native — accepted by `addPaperEventListeners`.
+ * Combined handlers — camelCase `on*` + raw native — accepted by `addPaperEventListeners`.
  */
 export type PaperEventMap = Partial<dia.Paper.EventMap> & PaperEventHandlers;
 
@@ -411,9 +411,9 @@ function makeCellContext(view: dia.CellView): CellContext {
 }
 
 /**
- * Subscribes a single normalized event group: walks `map`, looks up each
+ * Subscribes a single camelCase event group: walks `map`, looks up each
  * user handler in `eventMap`, and registers a native-args wrapper that
- * builds the context object via `wrap`.
+ * builds the params object via `wrap`.
  * @param controller
  * @param paper
  * @param eventMap
@@ -438,7 +438,7 @@ function subscribeGroup<Args extends unknown[], Params>(
 
 /**
  * Registers raw (native-signature) handlers — any key in `eventMap` that
- * isn't a known normalized `on*` key.
+ * isn't a known `on*` key.
  * @param controller
  * @param paper
  * @param eventMap
@@ -449,7 +449,7 @@ function subscribeRaw(
   eventMap: EventHandlerMap
 ): void {
   for (const eventName in eventMap) {
-    if (NORMALIZED_KEYS.has(eventName)) continue;
+    if (PAPER_EVENT_KEYS.has(eventName)) continue;
     const handler = eventMap[eventName];
     if (!handler) continue;
     controller.listenTo(paper, eventName, (...args: Parameters<mvc.EventHandler>) => {
@@ -459,14 +459,15 @@ function subscribeRaw(
 }
 
 /**
- * Attaches a normalized handlers map to a paper and returns a cleanup
- * function that detaches everything. Pure JointJS adapter — no React.
+ * Attaches a handlers map (camelCase `on*` + raw native) to a paper and
+ * returns a cleanup function that detaches everything. Pure JointJS adapter —
+ * no React.
  *
  * `addPaperEventListeners` is the runtime that powers the React `usePaperEvents`
  * hook; it can also be used directly when wiring events outside React (e.g.
  * inside other presets, plugins, or non-React stencils).
  * @param paper - Target paper. The associated graph is read from `paper.model`.
- * @param handlers - Normalized + raw event handlers.
+ * @param handlers - CamelCase `on*` + raw event handlers.
  * @returns Cleanup callback that calls `listener.stopListening()`.
  */
 export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap): () => void {
@@ -672,13 +673,13 @@ export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap
 }
 
 /**
- * Picks the normalized paper-event handlers (`onBlankContextMenu`, …) out of a
+ * Picks the `on*` paper-event handlers (`onBlankContextMenu`, …) out of a
  * props object. Returns the handlers map (to subscribe) plus a parallel
  * `eventDependencies` array of the handler values, in key order — spread it
  * into a `useLayoutEffect` dependency list so the subscription re-runs only
  * when a handler reference changes. Non-event props are ignored, so changing
  * them never re-subscribes.
- * @param props - Any object that may contain normalized handler keys.
+ * @param props - Any object that may contain `on*` handler keys.
  * @returns `eventHandlers` (the matched `on*` entries) and `eventDependencies` (their values, in key order).
  */
 export function extractEventsFromPaperProps(props: Partial<PaperEventHandlers>) {
@@ -686,7 +687,7 @@ export function extractEventsFromPaperProps(props: Partial<PaperEventHandlers>) 
   const eventDependencies: unknown[] = [];
   for (const property in props) {
     const key = property as keyof PaperEventHandlers;
-    if (NORMALIZED_KEYS.has(key)) {
+    if (PAPER_EVENT_KEYS.has(key)) {
       // Variable-key write: cast past the readonly/union index to assign.
       (eventHandlers as Record<string, unknown>)[key] = props[key];
       eventDependencies.push(props[key]);

@@ -222,9 +222,9 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  *
- * Normalized paper events are exposed directly as props
+ * Paper events are exposed directly as props
  * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …) via
- * {@link PaperEventHandlers}. Each handler receives a single context
+ * {@link PaperEventHandlers}. Each handler receives a single params
  * object — e.g. `onBlankContextMenu={({ paper, event, x, y }) => …}`.
  *
  * Handlers participate in the event subscription's dependency list, exactly
@@ -233,7 +233,7 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * module-level function — so the paper subscribes once. A new inline arrow on
  * every render (`onBlankContextMenu={() => …}`) re-subscribes that paper's
  * events on every render; correct, but wasteful. For raw native event names or
- * events without a normalized form (`resize`, `transform`, `render:done`, …),
+ * events without an `on*` form (`resize`, `transform`, `render:done`, …),
  * use the `usePaperEvents` hook.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
