@@ -6,7 +6,7 @@ import {
   GraphProvider,
   Paper,
   useMeasureNode,
-  type OnTransformElement,
+  type TransformMeasurement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
@@ -32,7 +32,7 @@ function RenderedRect({ label }: Readonly<NodeData>) {
   const cornerRadius = 5;
   const textRef = useRef<SVGTextElement>(null);
 
-  const transform: OnTransformElement = useCallback(
+  const transform: TransformMeasurement = useCallback(
     ({ width: measuredWidth, height: measuredHeight }) => {
       return {
         width: measuredWidth + textMargin,

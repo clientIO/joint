@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
 import { useGraphStore, usePaper } from '../../../hooks';
 import { useCellId } from '../../../hooks/use-cell-id';
-import { ELEMENT_MODEL_TYPE } from '../../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
 import type { CellId, ElementRecord } from '../../../types/cell.types';
 
 /**

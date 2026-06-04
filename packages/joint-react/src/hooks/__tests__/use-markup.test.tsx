@@ -4,7 +4,7 @@ import { render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
 import { useMarkup } from '../use-markup';
 import { CellIdContext } from '../../context';
-import { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from '../../models/element-model';
+import { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from '../../mvc/element-model';
 import type { CellRecord } from '../../types/cell.types';
 
 const initialCells: readonly CellRecord[] = [

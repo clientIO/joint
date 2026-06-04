@@ -23,8 +23,8 @@ import { CellIdContext } from '../../context';
 import { useMeasureNode } from '../use-measure-node';
 import { useGraphStore } from '../use-graph-store';
 import { usePaper } from '../use-paper';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import { LINK_MODEL_TYPE } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../mvc/link-model';
 import type { CellRecord } from '../../types/cell.types';
 
 let capturedGraph: dia.Graph | null = null;

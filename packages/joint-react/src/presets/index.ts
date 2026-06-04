@@ -31,14 +31,29 @@ export {
 export { elementPort, elementPorts, type ElementPort, type PortShape } from './element-ports';
 export { linkLabel, linkLabels, type LinkLabel } from './link-labels';
 export { linkStyle, linkStyleLine, linkStyleWrapper, type LinkStyle } from './link-style';
-export { canConnect, toConnectionEnd, type CanConnectOptions, type ConnectionEnd, type ValidateConnectionContext } from './can-connect';
+export {
+  canConnect,
+  toConnectionEnd,
+  type CanConnectOptions,
+  type ConnectionEnd,
+  type ValidateConnection,
+  type ValidateConnectionContext,
+} from './can-connect';
 export {
   connectionStrategy,
+  type ConnectionStrategy,
   type ConnectionStrategyOptions,
   type ConnectionStrategyContext,
   type ConnectionStrategyPin,
 } from './connection-strategy';
-export { canEmbed, canUnembed, type ValidateEmbeddingContext, type ValidateUnembeddingContext } from './can-embed';
+export {
+  canEmbed,
+  canUnembed,
+  type ValidateEmbedding,
+  type ValidateEmbeddingContext,
+  type ValidateUnembedding,
+  type ValidateUnembeddingContext,
+} from './can-embed';
 export {
   toNativeCellVisibility,
   type CellVisibility,
@@ -78,3 +93,4 @@ export {
   type ResizeEventContext,
   type TransformEventContext,
 } from './paper-events';
+export { LinkView } from './link-view';

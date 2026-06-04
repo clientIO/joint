@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { useCells } from '../use-cells';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import type { CellRecord, ElementRecord, Computed } from '../../types/cell.types';
 
 interface ElementUserData {

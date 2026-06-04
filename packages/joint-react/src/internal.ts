@@ -68,8 +68,8 @@ export { resolvePaper, resolvePaperId, isPaperTarget } from './utils/resolve-pap
 export { isRecord } from './utils/is';
 
 // Constants
-export { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from './models/element-model';
-export { LINK_MODEL_TYPE } from './models/link-model';
+export { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from './mvc/element-model';
+export { LINK_MODEL_TYPE } from './mvc/link-model';
 
 // Internal Selectors
 export {
@@ -80,7 +80,7 @@ export {
 
 // Internal Types (used by react-plus)
 export type { OmitWithoutIndexSignature, PaperTarget } from './types';
-export type { PortalSelector } from './models/react-paper.types';
+export type { PortalSelector } from './mvc/react-paper.types';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
 
 // Event internals

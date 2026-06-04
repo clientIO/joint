@@ -27,7 +27,7 @@ export type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
 /**
  * Options passed to the setSize callback when an element's size changes.
  */
-export interface TransformOptions extends Required<ElementLayout> {
+export interface MeasurementContext extends Required<ElementLayout> {
   /** The JointJS element instance */
   readonly model: dia.Element;
   readonly id: CellId;
@@ -37,7 +37,7 @@ export interface TransformOptions extends Required<ElementLayout> {
  * Callback function called when an element's size is measured.
  * Allows custom handling of size updates before they're applied to the graph.
  */
-export type OnTransformElement = (options: TransformOptions) => ElementLayoutOptionalXY;
+export type TransformMeasurement = (options: MeasurementContext) => ElementLayoutOptionalXY;
 
 /**
  * Options for registering an element to be measured for size changes.
@@ -46,7 +46,7 @@ export interface SetMeasuredNodeOptions {
   /** The DOM node (HTML or SVG) to observe for size changes */
   readonly node: HTMLElement | SVGElement;
   /** Optional callback to handle size updates before they're applied */
-  readonly transform?: OnTransformElement;
+  readonly transform?: TransformMeasurement;
   /** The ID of the cell in the graph that corresponds to this DOM node */
   readonly id: CellId;
 }
@@ -54,7 +54,7 @@ export interface SetMeasuredNodeOptions {
 interface ObservedElement {
   readonly id: CellId;
   readonly node: HTMLElement | SVGElement;
-  readonly transform?: OnTransformElement;
+  readonly transform?: TransformMeasurement;
   lastWidth?: number;
   lastHeight?: number;
   isMeasured: boolean;

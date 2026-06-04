@@ -8,7 +8,7 @@ import {
   useMeasureNode,
   useMarkup,
   type RenderElement,
-  type OnTransformElement,
+  type TransformMeasurement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
@@ -86,7 +86,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
   const contentRef = useRef(null);
   const { magnetRef } = useMarkup();
 
-  const transform: OnTransformElement = useCallback(({ height }) => {
+  const transform: TransformMeasurement = useCallback(({ height }) => {
     return {
       width: ELEMENT_WIDTH,
       height: HEADER_HEIGHT + height,

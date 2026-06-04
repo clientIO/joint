@@ -6,9 +6,11 @@ import type {
   ElementJSONInit,
   LinkJSONInit,
   CellId,
+  CellInput,
+  CellRef,
 } from '../types/cell.types';
 import { type ArrayUpdate } from '../store/state-container';
-import { cellInputToRecord, cellInputToModel, type CellInput, type CellRef } from '../utils/normalize-cell-input';
+import { cellInputToRecord, cellInputToModel } from '../utils/normalize-cell-input';
 
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record

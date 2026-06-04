@@ -1,8 +1,8 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
 import { graphProjection } from '../graph-projection';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import { LINK_MODEL_TYPE } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../mvc/link-model';
 import type { CellRecord, ElementRecord, LinkRecord } from '../../types/cell.types';
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));

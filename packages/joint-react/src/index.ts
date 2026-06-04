@@ -2,55 +2,141 @@
 // For internal/extension API, use '@joint/react/internal'.
 
 // Components
+// ----------
+
+/**
+ * <GraphProvider/>
+ */
 export { GraphProvider } from './components/graph/graph-provider';
-export type { GraphProviderProps as GraphProps } from './components/graph/graph-provider';
+export type { GraphProviderProps } from './components/graph/graph-provider';
 export type { AutoSizeOrigin } from './store/graph-store';
+export type { IncrementalCellsChange } from './store/graph-projection';
+
+/**
+ * <Paper/>
+ */
 export { Paper } from './components/paper/paper';
 export type {
   PaperProps,
+  PaperTransform,
   RenderElement,
   RenderLink,
+  DefaultLink,
   DefaultLinkContext,
 } from './components/paper/paper.types';
-export type { ValidateEmbeddingContext, ValidateUnembeddingContext } from './presets/can-embed';
 export type {
-  ConnectionEnd,
+  PortalHostCell,
+  PortalSelector,
+  PortalSelectorContext,
+} from './mvc/react-paper.types';
+export type {
+  ValidateConnection,
   ValidateConnectionContext,
+  ValidateEmbedding,
+  ValidateEmbeddingContext,
+  ValidateUnembedding,
+  ValidateUnembeddingContext,
+  ConnectionStrategy,
+  ConnectionStrategyContext,
+  ConnectionStrategyOptions,
+  ConnectionStrategyPin,
   CanConnectOptions,
-} from './presets/can-connect';
+  ConnectionEnd,
+} from './presets';
+
+/**
+ * <SVGText/>
+ */
 export { SVGText } from './components/svg-text/svg-text';
 export type { SVGTextProps } from './components/svg-text/svg-text';
+
+/**
+ * <HTMLHost/>
+ */
 export { HTMLHost } from './components/html-host';
 export type { HTMLHostProps } from './components/html-host';
+
+/**
+ * <HTMLBox/>
+ */
 export { HTMLBox } from './components/html-box';
+export type { HTMLHostProps as HTMLBoxProps } from './components/html-host';
 
-// Hooks — cells API (primary)
-export { useCells } from './hooks/use-cells';
-export { useCell } from './hooks/use-cell';
-export { useCellId } from './hooks/use-cell-id';
-export { useLinkLayout } from './hooks/use-link-layout';
+// Hooks
+// -----
+
+/**
+ * useGraph()
+ */
 export { useGraph } from './hooks/use-graph';
-export type { GraphHandle, ExportToJSONOptions } from './hooks/use-graph';
-export type { CellInput, CellRef } from './utils/normalize-cell-input';
-export { usePaper } from './hooks/use-paper';
+export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
 
-// Hooks — Measurement
+/**
+ * usePaper()
+ */
+export { usePaper } from './hooks/use-paper';
+export type { PaperHandle } from './hooks/use-paper';
+
+/**
+ * useCells()
+ */
+export { useCells } from './hooks/use-cells';
+
+/**
+ * useCell()
+ */
+export { useCell } from './hooks/use-cell';
+
+/**
+ * useCellId()
+ */
+export { useCellId } from './hooks/use-cell-id';
+
+/**
+ * useMeasureNode()
+ */
 export { useMeasureNode } from './hooks/use-measure-node';
-export type { OnTransformElement, TransformOptions } from './store/create-elements-size-observer';
+export type { MeasureNodeOptions } from './hooks/use-measure-node';
+export type {
+  TransformMeasurement,
+  MeasurementContext,
+} from './store/create-elements-size-observer';
+
+/**
+ * useNodesMeasuredEffect()
+ */
 export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
-// Hooks — Events
+/**
+ * usePaperEvents()
+ */
 export { usePaperEvents } from './hooks/use-paper-events';
-export { useGraphEvents } from './hooks/use-graph-events';
+export type { PaperEventMap } from './presets';
 
-// Hooks — Drag
+/**
+ * useGraphEvents()
+ */
+export { useGraphEvents } from './hooks/use-graph-events';
+export type { GraphEventMap } from './hooks/use-graph-events';
+
+/**
+ * useCellDrag()
+ */
 export { useCellDrag } from './hooks/use-cell-drag';
 export type { CellDragState } from './hooks/use-cell-drag';
 
-// Hooks — Misc
+/**
+ * useMarkup()
+ */
 export { useMarkup } from './hooks/use-markup';
+export type { MarkupHandle, MagnetRefOptions } from './hooks/use-markup';
 
-// Cell selectors — pass to `useCell` / `useCells`
+// Selectors
+// ---------
+
+/**
+ * Cell selectors — pass to `useCell` / `useCells`
+ */
 export {
   selectElementPosition,
   selectElementSize,
@@ -59,47 +145,61 @@ export {
   selectCellId,
   selectCellType,
   selectCellParent,
+  selectCellLayer,
+  selectCellZIndex,
 } from './selectors/cell-selectors';
 
-// Utilities
-export { jsx } from './utils/joint-jsx/jsx-to-markup';
-export { toSVGMatrix } from './utils/transform';
-export type { PaperTransform } from './components/paper/paper.types';
-export * from './state/data-mapping/element-mapper';
-export * from './state/data-mapping/link-mapper';
-export * from './state/data-mapping/cell-mapper';
+// Data
+// ----
 
-// Types — unified cells
+/**
+ * Cell types and utilities
+ */
 export type {
-  CellRecord,
   CellId,
-  ElementRecord,
-  LinkRecord,
-  Computed,
+  CellInput,
+  CellRef,
+  CellRecord,
   AnyCellRecord,
+  Computed,
 } from './types/cell.types';
 
-// Types — geometry / presets
-export type { ElementPosition, ElementSize, LinkLayout } from './types/cell.types';
-export type { ElementPort, PortShape } from './presets/element-ports';
-export type { LinkStyle } from './presets/link-style';
-export type { LinkLabel } from './presets/link-labels';
+/**
+ * Element types and utilities
+ */
+export type { ElementRecord, ElementPosition, ElementSize } from './types/cell.types';
+export type { ElementPort, PortShape } from './presets';
 
-// Theme
-export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
+/**
+ * Link types and utilities
+ */
 export { resolveLinkMarker } from './theme/named-link-markers';
-export type { LinkMarkerRecord } from './presets/link-markers';
+export type { LinkRecord } from './types/cell.types';
+export type { LinkStyle, LinkLabel, LinkMarkerRecord } from './presets';
+export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
 
-// Models
-export { ElementModel, ELEMENT_MODEL_TYPE } from './models/element-model';
-export { LinkModel, LINK_MODEL_TYPE } from './models/link-model';
-export { LinkView } from './presets/link-view';
-export { ReactPaper } from './models/react-paper';
-export type {
-  PortalHostCell,
-  PortalSelector,
-  PortalSelectorContext,
-} from './models/react-paper.types';
+// MVC
+// ---
 
-// Store types
-export type { IncrementalCellsChange } from './store/graph-projection';
+/**
+ * Cell models
+ */
+export { ElementModel, ELEMENT_MODEL_TYPE } from './mvc/element-model';
+export { LinkModel, LINK_MODEL_TYPE } from './mvc/link-model';
+
+// Utilities
+// ---------
+
+/**
+ * jsx() - Utility to create JointJS markup from JSX syntax
+ */
+export { jsx } from './utils/joint-jsx/jsx-to-markup';
+
+// Experimental
+// ------------
+
+/**
+ * useLinkLayout()
+ */
+export { useLinkLayout } from './hooks/use-link-layout';
+export type { LinkLayout } from './types/cell.types';

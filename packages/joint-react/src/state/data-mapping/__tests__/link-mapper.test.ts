@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { mapAttributesToLink, mapLinkToAttributes } from '../link-mapper';
-import { LINK_MODEL_TYPE } from '../../../models/link-model';
+import { LINK_MODEL_TYPE } from '../../../mvc/link-model';
 import type { LinkJSONInit } from '../../../types/cell.types';
 
 describe('mapLinkToAttributes', () => {

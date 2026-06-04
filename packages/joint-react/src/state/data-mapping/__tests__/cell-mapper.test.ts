@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import { mapCellToAttributes } from '../cell-mapper';
-import { ELEMENT_MODEL_TYPE } from '../../../models/element-model';
-import { LINK_MODEL_TYPE } from '../../../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../../mvc/link-model';
 import { DEFAULT_CELL_NAMESPACE } from '../../../store/graph-store';
 import type { ElementJSONInit, LinkJSONInit } from '../../../types/cell.types';
 

@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { usePaper } from './use-paper';
 import { useCellId } from './use-cell-id';
 import type { dia } from '@joint/core';
-import { PORTAL_SELECTOR } from '../models/element-model';
+import { PORTAL_SELECTOR } from '../mvc/element-model';
 
 /** Options for `magnetRef`. */
 export interface MagnetRefOptions {
@@ -14,7 +14,7 @@ export interface MagnetRefOptions {
 }
 
 /** Markup utilities returned by `useMarkup`. */
-export interface MarkupUtils {
+export interface MarkupHandle {
   /**
    * Returns a React ref callback that registers the node under the given selector name.
    * Sets the `joint-selector` attribute on the node and adds it to `elementView.selectors`
@@ -64,7 +64,7 @@ export interface MarkupUtils {
  * }
  * ```
  */
-export function useMarkup(): MarkupUtils {
+export function useMarkup(): MarkupHandle {
   const { paper } = usePaper();
   const id = useCellId();
   const applySelector = useCallback(

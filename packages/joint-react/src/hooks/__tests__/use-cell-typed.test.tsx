@@ -2,8 +2,8 @@ import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { useCell } from '../use-cell';
-import { ELEMENT_MODEL_TYPE } from '../../models/element-model';
-import { LINK_MODEL_TYPE } from '../../models/link-model';
+import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../mvc/link-model';
 import type { CellRecord, ElementRecord, LinkRecord, Computed } from '../../types/cell.types';
 
 interface ElementUserData {

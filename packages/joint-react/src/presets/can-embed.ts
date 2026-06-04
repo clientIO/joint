@@ -22,6 +22,12 @@ export interface ValidateUnembeddingContext {
   readonly graph: dia.Graph;
 }
 
+/** Callback that decides whether an element can be embedded into a parent. */
+export type ValidateEmbedding = (context: ValidateEmbeddingContext) => boolean;
+
+/** Callback that decides whether an element can be unembedded from its parent. */
+export type ValidateUnembedding = (context: ValidateUnembeddingContext) => boolean;
+
 /**
  * Converts a `dia.ElementView` into a structured `{ id, model }` info record.
  * @param view
