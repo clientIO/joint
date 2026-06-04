@@ -4,7 +4,7 @@ import type { dia } from '@joint/core';
 export type Interaction = keyof dia.CellView.InteractivityOptions;
 
 /** Context passed to an `interactive` callback. */
-export interface InteractiveContext {
+export interface InteractiveParams {
   /** The cell being interacted with. */
   readonly model: dia.Cell;
   /** The interaction being queried. */
@@ -21,7 +21,7 @@ export interface InteractiveContext {
  * returns either a boolean or the native `InteractivityOptions` object.
  */
 export type InteractiveCallback = (
-  context: InteractiveContext
+  context: InteractiveParams
 ) => boolean | dia.CellView.InteractivityOptions;
 
 /** Value accepted by the `interactive` Paper prop. */
@@ -47,7 +47,7 @@ const DEFAULT_INTERACTIVE: dia.CellView.InteractivityOptions = {
  * - `undefined` → defaults (`labelMove`/`linkMove` disabled).
  * - boolean → pass through.
  * - object → defaults applied first, user keys win.
- * - function → wrapped so the user callback receives an `InteractiveContext`
+ * - function → wrapped so the user callback receives an `InteractiveParams`
  *   instead of the native positional `(cellView, interaction)` args.
  *   Defaults are NOT merged into the function return — function form is an
  *   explicit takeover.

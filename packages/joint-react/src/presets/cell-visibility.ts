@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 
 /** Context passed to a `cellVisibility` callback. */
-export interface CellVisibilityContext {
+export interface CellVisibilityParams {
   /** The cell whose visibility is being queried. */
   readonly model: dia.Cell;
   /** Whether the cell currently has a mounted view in the paper. */
@@ -17,7 +17,7 @@ export interface CellVisibilityContext {
  * structured context object (instead of the native positional form).
  * Return `false` to hide the cell.
  */
-export type CellVisibility = (context: CellVisibilityContext) => boolean;
+export type CellVisibility = (context: CellVisibilityParams) => boolean;
 
 /**
  * Adapt a context-form `CellVisibility` callback to the native
