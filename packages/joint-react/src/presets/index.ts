@@ -28,7 +28,7 @@ export {
   type LinkMarkerRecord,
   type LinkMarkerOptions,
 } from './link-markers';
-export { elementPort, elementPorts, type ElementPort, type PortShape } from './element-ports';
+export { elementPort, elementPorts, type ElementPort, type ElementPortShape } from './element-ports';
 export { linkLabel, linkLabels, type LinkLabel } from './link-labels';
 export { linkStyle, linkStyleLine, linkStyleWrapper, type LinkStyle } from './link-style';
 export {

@@ -168,7 +168,7 @@ export type {
  * Element types and utilities
  */
 export type { ElementRecord, ElementPosition, ElementSize } from './types/cell.types';
-export type { ElementPort, PortShape } from './presets';
+export type { ElementPort, ElementPortShape } from './presets';
 
 /**
  * Link types and utilities
