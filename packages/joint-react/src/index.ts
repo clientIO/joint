@@ -167,8 +167,12 @@ export type {
 /**
  * Element types and utilities
  */
+export { elementPort, elementPorts, elementAttributes } from './presets';
 export type { ElementRecord, ElementPosition, ElementSize } from './types/cell.types';
-export type { ElementPort, ElementPortShape } from './presets';
+export type {
+  ElementPort,
+  ElementPortShape
+} from './presets';
 
 /**
  * Link types and utilities
@@ -178,10 +182,40 @@ export {
   linkRoutingStraight,
   linkRoutingOrthogonal,
   linkRoutingSmooth,
+  linkLabel,
+  linkLabels,
+  linkStyle,
+  linkStyleLine,
+  linkStyleWrapper,
+  linkAttributes,
+  linkMarkerArrow,
+  linkMarkerArrowOpen,
+  linkMarkerArrowSunken,
+  linkMarkerArrowQuill,
+  linkMarkerArrowDouble,
+  linkMarkerCircle,
+  linkMarkerDiamond,
+  linkMarkerLine,
+  linkMarkerCross,
+  linkMarkerFork,
+  linkMarkerForkClose,
+  linkMarkerMany,
+  linkMarkerManyOptional,
+  linkMarkerOne,
+  linkMarkerOneOptional,
+  linkMarkerOneOrMany,
 } from './presets';
-
 export type { LinkRecord } from './types/cell.types';
-export type { LinkStyle, LinkLabel, LinkMarkerRecord } from './presets';
+export type {
+  LinkStyle,
+  LinkLabel,
+  LinkMarkerRecord,
+  LinkMarkerOptions,
+  LinkMode,
+  LinkRoutingStraightOptions,
+  LinkRoutingOrthogonalOptions,
+  LinkRoutingSmoothOptions,
+} from './presets';
 export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
 
 
