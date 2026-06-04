@@ -1,0 +1,33 @@
+{
+  "name": "@joint/svg-shim-example-react-ssr",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "vite build --outDir dist/client && vite build --ssr src/entry-server.tsx --outDir dist/server",
+    "preview": "cross-env NODE_ENV=production tsx server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@joint/core": "workspace:*",
+    "@joint/react": "workspace:*",
+    "@joint/svg-shim": "workspace:*",
+    "express": "^5.0.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.0.2",
+    "cross-env": "^7.0.3",
+    "tailwindcss": "^4.2.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.0.0"
+  }
+}

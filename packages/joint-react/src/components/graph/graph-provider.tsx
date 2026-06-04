@@ -1,8 +1,10 @@
 import type { dia } from '@joint/core';
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
+import { isServerEnvironment } from '../../utils/ssr';
 import type { AutoSizeOrigin } from '../../store/graph-store';
 import type { OnIncrementalCellsChange } from '../../store/graph-projection';
 import type { ElementJSONInit, LinkJSONInit, CellInput } from '../../types/cell.types';
@@ -102,20 +104,25 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
 
   const isControlled = !!cells;
 
+  const buildStore = (): GraphStore<ElementJSONInit, LinkJSONInit> =>
+    store ??
+    new GraphStore<ElementJSONInit, LinkJSONInit>({
+      graph,
+      cellNamespace,
+      cellModel,
+      initialCells: cells ?? initialCells ?? [],
+      autoSizeOrigin,
+    });
+
+  // Client: the store is owned by a layout-effect lifecycle (StrictMode-safe
+  // create/cleanup). `isReady` stays false on the server because layout effects
+  // never run there — that is handled by the SSR branch below.
   const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>, dia.Graph>(
     {
       instanceSelector: (instance) => instance.graph,
       forwardedRef,
       onLoad() {
-        const graphStore =
-          store ??
-          new GraphStore<ElementJSONInit, LinkJSONInit>({
-            graph,
-            cellNamespace,
-            cellModel,
-            initialCells: cells ?? initialCells ?? [],
-            autoSizeOrigin,
-          });
+        const graphStore = buildStore();
         return {
           cleanup() {
             if (store) return;
@@ -128,7 +135,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
     []
   );
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!isReady) return;
     ref.current.setOnIncrementalCellsChange((changeSet) => {
       onIncrementalCellsChange?.(changeSet);
@@ -146,6 +153,17 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
   }, [isReady, onIncrementalCellsChange, onCellsChange, ref, isControlled, cells]);
 
   if (!isReady) {
+    // Server render: provide a synchronous, per-request store so children and
+    // data hooks (`useCells`, ...) render to HTML. `GraphStore` is pure data
+    // (no DOM), so this is SSR-safe; `<Paper>` renders the diagram tree (or just
+    // its host element). On the client this branch is never reached once the
+    // layout effect runs. Evaluated at render time so it also fires when the
+    // server DOM shim has installed a headless `document`.
+    if (isServerEnvironment()) {
+      return (
+        <GraphStoreContext.Provider value={buildStore()}>{children}</GraphStoreContext.Provider>
+      );
+    }
     return null;
   }
 

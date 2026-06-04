@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+/* JointJS + @joint/react base styles (paper, cells, links), loaded into
+   Tailwind's components layer — the same import the Storybook setup uses.
+   Imported via the package export, not a relative path into another package. */
+@import '@joint/react/styles.css' layer(components);
+
+/* Tell Tailwind which source files to scan for class names. */
+@source './**/*.{ts,tsx}';
+
+:root {
+  color-scheme: dark;
+}
+
+/* Marching-ants link: a pure-CSS dash animation, so it runs even with JS
+   disabled (the server ships the class on the SVG line). */
+@keyframes jj-link-march {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+.jj-link-dashed {
+  stroke-dasharray: 6 6;
+  animation: jj-link-march 0.6s linear infinite;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(60rem 60rem at 70% -10%, rgba(56, 189, 248, 0.12), transparent 60%),
+    radial-gradient(50rem 50rem at 10% 110%, rgba(168, 85, 247, 0.12), transparent 60%),
+    #020617;
+  color: #e2e8f0;
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}

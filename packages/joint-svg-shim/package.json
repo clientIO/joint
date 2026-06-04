@@ -1,0 +1,105 @@
+{
+  "name": "@joint/svg-shim",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Headless DOM + SVG-geometry shim for running JointJS SVG/Vectorizer code in Node (server-side rendering).",
+  "license": "MPL-2.0",
+  "keywords": [
+    "jointjs",
+    "svg",
+    "ssr",
+    "server-side-rendering",
+    "jsdom",
+    "happy-dom",
+    "headless-dom"
+  ],
+  "main": "dist/esm/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "typescript": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./install": {
+      "types": "./dist/types/install.d.ts",
+      "import": "./dist/esm/install.js",
+      "require": "./dist/cjs/install.js"
+    },
+    "./flag": {
+      "types": "./dist/types/dom-shim-flag.d.ts",
+      "import": "./dist/esm/dom-shim-flag.js",
+      "require": "./dist/cjs/dom-shim-flag.js"
+    }
+  },
+  "sideEffects": [
+    "./dist/esm/install.js",
+    "./dist/cjs/install.js"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-svg-shim"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "scripts": {
+    "prepack": "yarn test && yarn build",
+    "build": "rollup -c rollup.config.ts --configPlugin esbuild && tsc --project tsconfig.types.json",
+    "test": "yarn run typecheck && yarn run lint && yarn jest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint-fix": "yarn run lint --fix"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.0",
+    "jsdom": "^26.1.0"
+  },
+  "peerDependencies": {
+    "happy-dom": ">=15.0.0"
+  },
+  "peerDependenciesMeta": {
+    "happy-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@joint/eslint-config": "workspace:*",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@swc/core": "^1.15.11",
+    "@swc/jest": "^0.2.39",
+    "@types/jest": "30.0.0",
+    "@types/jsdom": "21.1.7",
+    "@types/node": "^24.3.0",
+    "esbuild": "^0.25.0",
+    "eslint": "9.39.2",
+    "happy-dom": "^20.0.0",
+    "jest": "30.1.2",
+    "jest-environment-jsdom": "30.1.2",
+    "rollup": "^4.50.0",
+    "rollup-plugin-esbuild": "^6.2.1",
+    "typescript": "^5.9.2"
+  },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

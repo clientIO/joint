@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, type CSSProperties } from 'react';
+import { memo, useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react';
 import { usePaper } from '../../../hooks';
 import { mvc, V } from '@joint/core';
 import { createPortal } from 'react-dom';
@@ -11,7 +11,7 @@ function Component({ onSetElement }: Readonly<Props>) {
   const { paper } = usePaper();
   const divRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!paper || !divRef.current) {
       return;
     }
@@ -36,7 +36,8 @@ function Component({ onSetElement }: Readonly<Props>) {
     return () => {
       controller.stopListening();
     };
-  }, [divRef, onSetElement, paper]);
+    // `divRef` is a ref — stable identity, intentionally not a dependency.
+  }, [onSetElement, paper]);
 
   const style = useMemo(
     (): CSSProperties => ({

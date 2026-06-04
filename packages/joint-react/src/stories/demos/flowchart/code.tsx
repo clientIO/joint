@@ -31,7 +31,12 @@ type ElementData = {
 // top-left coincides with center, and `autoSizeOrigin="center"` preserves
 // that center through the first DOM measurement.
 const flowchartElements: Array<ElementRecord<ElementData>> = [
-  { id: 'start', type: 'element', data: { label: 'Start', type: 'start' }, position: { x: 60, y: 40 } },
+  {
+    id: 'start',
+    type: 'element',
+    data: { label: 'Start', type: 'start' },
+    position: { x: 60, y: 40 },
+  },
   {
     id: 'addToCart',
     type: 'element',
@@ -254,7 +259,10 @@ const flowchartLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: ReadonlyArray<CellRecord<ElementData>> = [...flowchartElements, ...flowchartLinks];
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
+  ...flowchartElements,
+  ...flowchartLinks,
+];
 
 interface PropsWithClick {
   readonly onMouseEnter?: () => void;

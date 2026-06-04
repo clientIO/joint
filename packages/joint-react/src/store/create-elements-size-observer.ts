@@ -16,6 +16,17 @@ import type { ElementLayout } from '../types/cell.types';
 import type { ElementJSONInit } from '../types/cell.types';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
+
+/**
+ * No-op stand-in used when `ResizeObserver` is unavailable (server-side
+ * rendering). There is nothing to measure without a DOM, so observe / unobserve
+ * / disconnect are inert — this keeps `GraphStore` construction SSR-safe.
+ */
+const NOOP_RESIZE_OBSERVER: ResizeObserver = {
+  observe() {},
+  unobserve() {},
+  disconnect() {},
+};
 // Epsilon value to avoid jitter due to sub-pixel rendering
 // especially on Safari
 const EPSILON = 0.5;
@@ -229,7 +240,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     activeObservedElementByDomNode.delete(observedElement.node);
   }
 
-  const observer = new ResizeObserver((entries) => {
+  const handleResize: ResizeObserverCallback = (entries) => {
     let hasAnySizeChange = false;
     const elements = getElements();
     const mutableLayouts: Record<CellId, ElementLayoutOptionalXY> = {};
@@ -277,7 +288,14 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     }
 
     onBatchUpdate(mutableLayouts);
-  });
+  };
+
+  // Guarded so `GraphStore` can be constructed during server rendering, where
+  // `ResizeObserver` does not exist. The no-op observer never fires.
+  const observer: ResizeObserver =
+    typeof ResizeObserver === 'undefined'
+      ? NOOP_RESIZE_OBSERVER
+      : new ResizeObserver(handleResize);
 
   return {
     add({ id, node, transform }: SetMeasuredNodeOptions) {
