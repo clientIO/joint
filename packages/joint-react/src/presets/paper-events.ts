@@ -393,7 +393,7 @@ export type PaperEventHandler<T extends keyof PaperEventHandlers> = NonNullable<
 /**
  * Combined handlers — camelCase `on*` + raw native — accepted by `addPaperEventListeners`.
  */
-export type PaperEventMap = Partial<dia.Paper.EventMap> & PaperEventHandlers;
+export type PaperEvents = Partial<dia.Paper.EventMap> & PaperEventHandlers;
 
 // ============================================================================
 // Subscription helpers
@@ -470,7 +470,7 @@ function subscribeRaw(
  * @param handlers - CamelCase `on*` + raw event handlers.
  * @returns Cleanup callback that calls `listener.stopListening()`.
  */
-export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap): () => void {
+export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEvents): () => void {
   const graph = paper.model;
   const controller = new mvc.Listener();
   const eventMap = handlers as EventHandlerMap;

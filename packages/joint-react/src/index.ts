@@ -111,13 +111,13 @@ export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
  * usePaperEvents()
  */
 export { usePaperEvents } from './hooks/use-paper-events';
-export type { PaperEventMap, PaperEventHandler } from './presets';
+export type { PaperEvents, PaperEventHandler } from './presets';
 
 /**
  * useGraphEvents()
  */
 export { useGraphEvents } from './hooks/use-graph-events';
-export type { GraphEventMap } from './hooks/use-graph-events';
+export type { GraphEvents } from './hooks/use-graph-events';
 
 /**
  * useCellDrag()

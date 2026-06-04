@@ -20,7 +20,7 @@ function isGraphInstance(value: unknown): value is dia.Graph {
  * @param handlers - Event handlers keyed by JointJS graph event names.
  * @returns Cleanup callback that stops all listeners.
  */
-function subscribeToGraphEvents(graph: dia.Graph, handlers: GraphEventMap): () => void {
+function subscribeToGraphEvents(graph: dia.Graph, handlers: GraphEvents): () => void {
   const controller = new mvc.Listener();
 
   for (const eventName in handlers) {
@@ -39,7 +39,7 @@ function subscribeToGraphEvents(graph: dia.Graph, handlers: GraphEventMap): () =
 /**
  * The map of graph events to handlers accepted by {@link useGraphEvents}.
  */
-export type GraphEventMap = Partial<dia.Graph.EventMap>;
+export type GraphEvents = Partial<dia.Graph.EventMap>;
 
 /**
  * Subscribes to graph events using original JointJS event names.
@@ -48,17 +48,17 @@ export type GraphEventMap = Partial<dia.Graph.EventMap>;
  * @group Hooks
  */
 export function useGraphEvents(
-  handlers: GraphEventMap,
+  handlers: GraphEvents,
   dependencies?: DependencyList
 ): void;
 export function useGraphEvents(
   graph: dia.Graph,
-  handlers: GraphEventMap,
+  handlers: GraphEvents,
   dependencies?: DependencyList
 ): void;
 export function useGraphEvents(
-  graphOrHandlers: dia.Graph | GraphEventMap,
-  handlersOrDependencies: GraphEventMap | DependencyList = EMPTY_DEPENDENCIES,
+  graphOrHandlers: dia.Graph | GraphEvents,
+  handlersOrDependencies: GraphEvents | DependencyList = EMPTY_DEPENDENCIES,
   dependenciesArgument: DependencyList = EMPTY_DEPENDENCIES
 ): void {
   const graphStore = useContext(GraphStoreContext);
@@ -70,8 +70,8 @@ export function useGraphEvents(
 
   const graph = shouldUseContextGraph ? graphStore?.graph ?? null : graphOrHandlers;
   const handlers = shouldUseContextGraph
-    ? (graphOrHandlers as GraphEventMap)
-    : (handlersOrDependencies as GraphEventMap);
+    ? (graphOrHandlers as GraphEvents)
+    : (handlersOrDependencies as GraphEvents);
   const dependencies = shouldUseContextGraph
     ? (handlersOrDependencies as DependencyList)
     : dependenciesArgument;

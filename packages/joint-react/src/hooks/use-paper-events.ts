@@ -3,25 +3,25 @@ import { usePaperStore, useResolvePaperId } from './use-paper';
 import type { PaperStore } from '../store';
 import type { PaperTarget } from '../types';
 import { isPaperTarget } from '../utils/resolve-paper-target';
-import { addPaperEventListeners, type PaperEventMap } from '../presets/paper-events';
+import { addPaperEventListeners, type PaperEvents } from '../presets/paper-events';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
-const EMPTY_HANDLERS: PaperEventMap = {};
+const EMPTY_HANDLERS: PaperEvents = {};
 
 /**
- * Distinguishes a `PaperEventMap` (a plain object) from a `DependencyList`
+ * Distinguishes a `PaperEvents` map (a plain object) from a `DependencyList`
  * (an array) — used to resolve the overloaded second argument without casts.
  * @param value - The handlers-or-dependencies argument.
  * @returns True when `value` is a handlers map rather than a dependency list.
  */
-function isPaperEventMap(value: PaperEventMap | DependencyList): value is PaperEventMap {
+function isPaperEvents(value: PaperEvents | DependencyList): value is PaperEvents {
   return !Array.isArray(value);
 }
 
-/** Normalized {@link usePaperEvents} arguments. */
+/** Resolved {@link usePaperEvents} arguments. */
 interface ResolvedPaperEventsArgs {
   readonly target: PaperTarget | undefined;
-  readonly handlers: PaperEventMap;
+  readonly handlers: PaperEvents;
   readonly dependencies: DependencyList;
 }
 
@@ -34,19 +34,19 @@ interface ResolvedPaperEventsArgs {
  * @returns The resolved target, handlers, and dependencies.
  */
 function resolvePaperEventsArgs(
-  paperOrHandlers: PaperTarget | PaperEventMap,
-  handlersOrDependencies: PaperEventMap | DependencyList,
+  paperOrHandlers: PaperTarget | PaperEvents,
+  handlersOrDependencies: PaperEvents | DependencyList,
   dependenciesArgument: DependencyList
 ): ResolvedPaperEventsArgs {
   if (!isPaperTarget(paperOrHandlers)) {
     // usePaperEvents(handlers, dependencies?)
-    const dependencies = isPaperEventMap(handlersOrDependencies)
+    const dependencies = isPaperEvents(handlersOrDependencies)
       ? EMPTY_DEPENDENCIES
       : handlersOrDependencies;
     return { target: undefined, handlers: paperOrHandlers, dependencies };
   }
   // usePaperEvents(target, handlers, dependencies?)
-  const handlers = isPaperEventMap(handlersOrDependencies) ? handlersOrDependencies : EMPTY_HANDLERS;
+  const handlers = isPaperEvents(handlersOrDependencies) ? handlersOrDependencies : EMPTY_HANDLERS;
   return { target: paperOrHandlers, handlers, dependencies: dependenciesArgument };
 }
 
@@ -59,7 +59,7 @@ function resolvePaperEventsArgs(
  */
 export function subscribeToPaperEvents(
   paperStore: PaperStore,
-  handlers: PaperEventMap
+  handlers: PaperEvents
 ): () => void {
   return addPaperEventListeners(paperStore.paper, handlers);
 }
@@ -70,7 +70,7 @@ export function subscribeToPaperEvents(
  * throws if no `Paper` context is available). Two key forms can be mixed in
  * the same handlers map:
  *
- * **Normalized form**: `on<Category><Event>` keys deliver a single context
+ * **CamelCase form**: `on<Category><Event>` keys deliver a single params
  * object with named properties.
  * ```tsx
  * usePaperEvents({
@@ -80,7 +80,7 @@ export function subscribeToPaperEvents(
  * ```
  *
  * **Raw form**: native JointJS event names with positional arguments. Use
- * for events without a normalized counterpart (`'resize'`, `'transform'`,
+ * for events without an `on*` counterpart (`'resize'`, `'transform'`,
  * `'render:done'`, `'cell:highlight'`, …).
  * ```tsx
  * usePaperEvents(paperId, {
@@ -89,14 +89,14 @@ export function subscribeToPaperEvents(
  * });
  * ```
  *
- * The normalized context omits the React-store `record` — to read the
- * normalised record shape, call `useCell(id, selector)` from your own
+ * The `on*` params object omits the React-store `record` — to read the
+ * record shape, call `useCell(id, selector)` from your own
  * component (the handler closure has access to the `id` it emits).
  * @param handlers - Event handlers map.
  * @param dependencies - Optional dependency array controlling re-subscription.
  * @group Hooks
  */
-export function usePaperEvents(handlers: PaperEventMap, dependencies?: DependencyList): void;
+export function usePaperEvents(handlers: PaperEvents, dependencies?: DependencyList): void;
 /**
  * Subscribes to paper events on the given paper target.
  * @param paper - Paper reference (string ID, dia.Paper instance, or ref).
@@ -106,12 +106,12 @@ export function usePaperEvents(handlers: PaperEventMap, dependencies?: Dependenc
  */
 export function usePaperEvents(
   paper: PaperTarget,
-  handlers: PaperEventMap,
+  handlers: PaperEvents,
   dependencies?: DependencyList
 ): void;
 export function usePaperEvents(
-  paperOrHandlers: PaperTarget | PaperEventMap,
-  handlersOrDependencies: PaperEventMap | DependencyList = EMPTY_DEPENDENCIES,
+  paperOrHandlers: PaperTarget | PaperEvents,
+  handlersOrDependencies: PaperEvents | DependencyList = EMPTY_DEPENDENCIES,
   dependenciesArgument: DependencyList = EMPTY_DEPENDENCIES
 ): void {
   const { target, handlers, dependencies } = resolvePaperEventsArgs(
