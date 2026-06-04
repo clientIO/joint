@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import '../index.css';
 import Code from './code';
-import CodeWithColor from './code-with-color';
-import CodeWithSVG from './code-with-svg';
+import CodeWithColor from './code-color';
+import CodeWithSVG from './code-svg';
 import CodeWithAddRemoveNode from './code-add-remove-node';
 export type Story = StoryObj<typeof Code>;
 
@@ -10,9 +10,9 @@ import { makeRootDocumentation } from '../../utils/make-story';
 
 import CodeRaw from './code?raw';
 
-import CodeWithColorRaw from './code-with-color?raw';
+import CodeWithColorRaw from './code-color?raw';
 
-import CodeWithSVGRaw from './code-with-svg?raw';
+import CodeWithSVGRaw from './code-svg?raw';
 
 import CodeWithAddRemoveNodeRaw from './code-add-remove-node?raw';
 

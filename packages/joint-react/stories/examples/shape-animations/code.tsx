@@ -18,7 +18,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 const STRAIGHT_LINKS = linkRoutingStraight({ perpendicular: true });
 
 import '../index.css';
-import type { Computed } from '../../../types/cell.types';
+import type { Computed } from '@joint/react';
 
 // ----------------------------------------------------------------------------
 // Types

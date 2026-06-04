@@ -40,7 +40,7 @@ export const reactTsConfig = defineConfig([
     },
     // Main rules for project files
     {
-        files: ['src/**/*.{ts,tsx}', '.storybook/**/*.{ts,tsx}'],
+        files: ['src/**/*.{ts,tsx}', 'stories/**/*.{ts,tsx}', '.storybook/**/*.{ts,tsx}'],
         languageOptions: {
             parser: tsParser,
             parserOptions: {

@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type CellRecord, GraphProvider, Paper } from '@joint/react';
-import './code-with-create-links-classname.css';
+import './code-create-links-classname.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type ElementData = { label: string };

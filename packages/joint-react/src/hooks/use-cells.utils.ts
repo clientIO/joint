@@ -3,7 +3,7 @@ import type { AnyCellRecord, CellId } from '../types/cell.types';
 import { isCollection } from '../utils/is';
 
 /** Normalised arguments after dispatching by the runtime call shape. */
-export interface ParsedUseCellsArgs<Cell extends AnyCellRecord, Selected> {
+export interface ParsedCellsArgs<Cell extends AnyCellRecord, Selected> {
   readonly targetId: CellId | undefined;
   readonly ids: readonly CellId[] | undefined;
   readonly isCollectionForm: boolean;
@@ -16,7 +16,7 @@ export interface ParsedUseCellsArgs<Cell extends AnyCellRecord, Selected> {
 function defaultParsedArgs<Cell extends AnyCellRecord, Selected>(
   targetId: CellId | undefined,
   ids: readonly CellId[] | undefined
-): ParsedUseCellsArgs<Cell, Selected> {
+): ParsedCellsArgs<Cell, Selected> {
   return {
     targetId,
     ids,
@@ -33,7 +33,7 @@ function defaultParsedArgs<Cell extends AnyCellRecord, Selected>(
 function parseCollectionArgs<Cell extends AnyCellRecord, Selected>(
   argument2: unknown,
   argument3: unknown
-): ParsedUseCellsArgs<Cell, Selected> {
+): ParsedCellsArgs<Cell, Selected> {
   return {
     targetId: undefined,
     ids: undefined,
@@ -54,7 +54,7 @@ function parseCollectionArgs<Cell extends AnyCellRecord, Selected>(
 function parseSelectorFirstArgs<Cell extends AnyCellRecord, Selected>(
   selectorArgument: (cells: readonly Cell[]) => Selected,
   isEqualArgument: unknown
-): ParsedUseCellsArgs<Cell, Selected> {
+): ParsedCellsArgs<Cell, Selected> {
   return {
     targetId: undefined,
     ids: undefined,
@@ -87,7 +87,7 @@ export function parseUseCellsArgs<Cell extends AnyCellRecord, Selected>(
     | ((cell: Cell | undefined) => Selected)
     | ((a: Selected, b: Selected) => boolean),
   argument3?: (a: Selected, b: Selected) => boolean
-): ParsedUseCellsArgs<Cell, Selected> {
+): ParsedCellsArgs<Cell, Selected> {
   if (isCollection(argument1)) {
     return parseCollectionArgs<Cell, Selected>(argument2, argument3);
   }

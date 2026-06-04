@@ -29,6 +29,6 @@
       "storybook-config/*": ["./.storybook/*"]
     }
   },
-  "include": ["src", ".storybook/*", "vite.config.ts"],
+  "include": ["src", "stories", ".storybook/*", "vite.config.ts"],
   "exclude": ["node_modules", "dist", "lib"]
 }
