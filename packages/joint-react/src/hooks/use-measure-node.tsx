@@ -1,7 +1,7 @@
 import { useContext, useLayoutEffect, type RefObject } from 'react';
 import { CellIdContext } from '../context';
 import { useGraphStore } from './use-graph-store';
-import type { TransformMeasurement } from '../store/create-elements-size-observer';
+import type { TransformElementLayout } from '../store/create-elements-size-observer';
 import { usePaper } from './use-paper';
 import type { ElementSize } from '../types/cell.types';
 import { useCell } from './use-cell';
@@ -29,7 +29,7 @@ export interface MeasureNodeOptions {
    * useMeasureNode(nodeRef, { transform });
    * ```
    */
-  readonly transform?: TransformMeasurement;
+  readonly transform?: TransformElementLayout;
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};

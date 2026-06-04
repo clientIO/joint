@@ -60,7 +60,7 @@ export type { HTMLHostProps } from './components/html-host';
  * <HTMLBox/>
  */
 export { HTMLBox } from './components/html-box';
-export type { HTMLHostProps as HTMLBoxProps } from './components/html-host';
+export type { HTMLBoxProps } from './components/html-box';
 
 // Hooks
 // -----
@@ -98,8 +98,8 @@ export { useCellId } from './hooks/use-cell-id';
 export { useMeasureNode } from './hooks/use-measure-node';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
 export type {
-  TransformMeasurement,
-  MeasurementContext,
+  TransformElementLayout,
+  TransformElementLayoutParams,
 } from './store/create-elements-size-observer';
 
 /**

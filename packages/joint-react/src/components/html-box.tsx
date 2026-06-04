@@ -18,6 +18,11 @@ const AUTO_SIZE_STYLE: CSSProperties = {
 };
 
 /**
+ * Props for the HTMLBox component, extending HTMLHostProps.
+ */
+export type HTMLBoxProps = HTMLHostProps;
+
+/**
  * Default themed HTML host that applies the `jj-box` CSS class.
  * Wraps {@link HTMLHost} (style-neutral foreignObject + measured div) and adds
  * the `jj-box` class for default styling via `--jj-box-*` CSS variables.
@@ -32,7 +37,7 @@ const AUTO_SIZE_STYLE: CSSProperties = {
  * <Paper renderElement={({ label }) => <DefaultHTMLHost>{label}</DefaultHTMLHost>} />
  * ```
  */
-export function HTMLBox(props: Readonly<HTMLHostProps> = {}) {
+export function HTMLBox(props: Readonly<HTMLBoxProps> = {}) {
   const { className, style, useModelGeometry, ...rest } = props;
   const mergedClassName = className ? `jj-box ${className}` : 'jj-box';
   const baseStyle = useModelGeometry ? BASE_STYLE : { ...BASE_STYLE, ...AUTO_SIZE_STYLE };
