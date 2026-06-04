@@ -3,10 +3,14 @@ import react from '@vitejs/plugin-react';
 import mdPlugin from 'vite-plugin-md';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'node:path';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
-  plugins: [react(), mdPlugin(), tsconfigPaths(), tailwindcss()],
+  plugins: [react(), mdPlugin(), tailwindcss()],
+  // Vite 8 resolves `tsconfig` path aliases natively — replaces the
+  // `vite-tsconfig-paths` plugin.
+  resolve: {
+    tsconfigPaths: true,
+  },
   assetsInclude: ['**/*.md'],
   build: {
     lib: {

@@ -64,6 +64,13 @@ const config: StorybookConfig = {
       { find: '@joint/react/presets', replacement: path.resolve(__dirname, '../src/presets/index.ts') },
       { find: /^@joint\/react$/, replacement: path.resolve(__dirname, '../src/index.ts') },
     ];
+    // Pre-bundle the heavy `@joint/core` dep. It resolves through a
+    // `node_modules` symlink, and Vite skips dependency optimization for linked
+    // packages by default — leaving its large ESM build to be transformed on
+    // demand and slowing the first load. (`@joint/react` is intentionally
+    // omitted — it's this package's dev target, aliased to source above.)
+    config.optimizeDeps = config.optimizeDeps || {};
+    config.optimizeDeps.include = [...(config.optimizeDeps.include ?? []), '@joint/core'];
     return config;
   },
 };
