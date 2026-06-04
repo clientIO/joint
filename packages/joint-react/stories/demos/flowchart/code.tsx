@@ -4,10 +4,9 @@
 
 import './index.css';
 import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformElementLayoutParams } from '@joint/react';
-import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect } from '@joint/react';
+import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect, linkRoutingOrthogonal } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { forwardRef, useRef, useState } from 'react';
 
 const unit = 4;

@@ -5,7 +5,6 @@
 import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 import {
   GraphProvider,
   Paper,
@@ -23,6 +22,7 @@ import {
   type ElementPort,
   type PaperProps,
   selectElementSize,
+  linkRoutingOrthogonal,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';

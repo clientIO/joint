@@ -7,12 +7,12 @@ import {
   Paper,
   useMeasureNode,
   useMarkup,
+  linkRoutingSmooth,
   type RenderElement,
   type TransformElementLayout,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
-import { linkRoutingSmooth } from '@joint/react/presets';
 
 const ROW_HEIGHT = 30;
 const HEADER_HEIGHT = 32;

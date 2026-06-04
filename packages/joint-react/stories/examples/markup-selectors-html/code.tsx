@@ -7,10 +7,10 @@ import {
   Paper,
   HTMLBox,
   useMarkup,
+  linkRoutingSmooth,
   type RenderElement,
 } from '@joint/react';
 import '../index.css';
-import { linkRoutingSmooth } from '@joint/react/presets';
 
 const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconnected: false });
 

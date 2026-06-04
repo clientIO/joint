@@ -166,7 +166,7 @@ export interface PortalPaperOptions {
    * Values inside `options` override matching keys here.
    * @example
    * ```tsx
-   * import { linkRoutingOrthogonal } from '@joint/react/presets';
+   * import { linkRoutingOrthogonal } from '@joint/react';
    *
    * <Paper linkRouting={linkRoutingOrthogonal()} />
    * ```

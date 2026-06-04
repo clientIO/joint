@@ -13,9 +13,9 @@ import {
   type LinkRecord,
   type Computed,
   selectElementSize,
+  linkRoutingSmooth,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { linkRoutingSmooth } from '@joint/react/presets';
 import { useCallback, useEffect, useRef } from 'react';
 
 const SMOOTH_LINKS = linkRoutingSmooth();

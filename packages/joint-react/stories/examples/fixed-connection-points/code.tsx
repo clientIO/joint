@@ -2,10 +2,9 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useRef } from 'react';
 import type { CellRecord, LinkStyle } from '@joint/react';
-import { GraphProvider, useCell, jsx, Paper, resolveLinkMarker, selectElementSize } from '@joint/react';
+import { GraphProvider, useCell, jsx, Paper, resolveLinkMarker, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, g } from '@joint/core';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   straightWhenDisconnected: false,

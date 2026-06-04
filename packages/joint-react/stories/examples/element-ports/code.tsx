@@ -10,11 +10,11 @@ import {
   useGraph,
   useCells,
   HTMLBox,
+  linkRoutingSmooth,
   type ElementPort,
   type ElementRecord,
   type Computed,
 } from '@joint/react';
-import { linkRoutingSmooth } from '@joint/react/presets';
 
 const SMOOTH_LINKS = linkRoutingSmooth();
 

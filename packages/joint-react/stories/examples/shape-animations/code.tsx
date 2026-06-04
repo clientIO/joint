@@ -10,9 +10,9 @@ import {
   useGraph,
   type ElementRecord,
   selectElementSize,
+  linkRoutingStraight,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
-import { linkRoutingStraight } from '@joint/react/presets';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 const STRAIGHT_LINKS = linkRoutingStraight({ perpendicular: true });

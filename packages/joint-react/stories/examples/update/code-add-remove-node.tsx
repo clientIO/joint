@@ -10,10 +10,10 @@ import {
   useGraph,
   type ElementRecord,
   type Computed,
+  linkRoutingOrthogonal,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   cornerType: 'line',

@@ -174,9 +174,16 @@ export type { ElementPort, ElementPortShape } from './presets';
  * Link types and utilities
  */
 export { resolveLinkMarker } from './theme/named-link-markers';
+export {
+  linkRoutingStraight,
+  linkRoutingOrthogonal,
+  linkRoutingSmooth,
+} from './presets';
+
 export type { LinkRecord } from './types/cell.types';
 export type { LinkStyle, LinkLabel, LinkMarkerRecord } from './presets';
 export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
+
 
 // MVC
 // ---

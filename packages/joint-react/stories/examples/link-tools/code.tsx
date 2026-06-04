@@ -2,9 +2,8 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { dia, linkTools } from '@joint/core';
 import '../index.css';
-import { type CellRecord, GraphProvider, jsx, Paper } from '@joint/react';
+import { type CellRecord, GraphProvider, jsx, Paper, linkRoutingOrthogonal } from '@joint/react';
 import { PRIMARY, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const WHITE = '#fff';
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal();

@@ -1,8 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useGraph, HTMLHost, type CellRecord, type ElementRecord, type LinkRecord } from '@joint/react';
+import { GraphProvider, Paper, useGraph, HTMLHost, type CellRecord, type ElementRecord, type LinkRecord, linkRoutingOrthogonal } from '@joint/react';
 
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ sourceOffset: 8, targetOffset: 8 });
 

@@ -10,9 +10,9 @@ import {
   useCells,
   useCellId,
   HTMLBox,
+  linkRoutingOrthogonal,
 } from '@joint/react';
 
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const PORT_SIZE = 20;
 const unit = 10;

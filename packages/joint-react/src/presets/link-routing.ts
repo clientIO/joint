@@ -18,7 +18,7 @@ import {
  * or pass options to customize.
  * @example
  * ```tsx
- * import { linkRoutingOrthogonal } from '@joint/react/presets';
+ * import { linkRoutingOrthogonal } from '@joint/react';
  *
  * <Paper linkRouting={linkRoutingOrthogonal()} />
  * ```
