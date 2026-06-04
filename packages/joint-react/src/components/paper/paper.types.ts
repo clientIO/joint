@@ -16,7 +16,7 @@ import type {
 import type { CellVisibility } from '../../presets/cell-visibility';
 import type { Interactive } from '../../presets/interactive';
 import type { LinkRouting } from '../../presets/link-routing';
-import type { NormalizedPaperHandlers } from '../../presets/paper-events';
+import type { PaperEventHandlers } from '../../presets/paper-events';
 
 /**
  * Value accepted by the Paper `transform` prop. Strings are parsed via the
@@ -224,7 +224,7 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  *
  * Normalized paper events are exposed directly as props
  * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …) via
- * {@link NormalizedPaperHandlers}. Each handler receives a single context
+ * {@link PaperEventHandlers}. Each handler receives a single context
  * object — e.g. `onBlankContextMenu={({ paper, event, x, y }) => …}`.
  *
  * Handlers participate in the event subscription's dependency list, exactly
@@ -237,7 +237,7 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * use the `usePaperEvents` hook.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps extends PortalPaperOptions, PropsWithChildren, NormalizedPaperHandlers {
+export interface PaperProps extends PortalPaperOptions, PropsWithChildren, PaperEventHandlers {
   /**
    * A function that renders the element.
    *

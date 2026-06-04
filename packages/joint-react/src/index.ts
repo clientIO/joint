@@ -111,7 +111,7 @@ export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
  * usePaperEvents()
  */
 export { usePaperEvents } from './hooks/use-paper-events';
-export type { PaperEventMap } from './presets';
+export type { PaperEventMap, PaperEventHandler } from './presets';
 
 /**
  * useGraphEvents()

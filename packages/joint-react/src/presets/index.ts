@@ -71,6 +71,7 @@ export { linkAttributes } from './link-attributes';
 export {
   addPaperEventListeners,
   type PaperEventMap,
+  type PaperEventHandler,
   type PointerCellEventParams,
   type PointerElementEventParams,
   type PointerLinkEventParams,
