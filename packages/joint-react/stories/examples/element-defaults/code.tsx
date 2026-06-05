@@ -8,15 +8,13 @@ import {
   HTMLBox,
   ElementModel,
   LinkModel,
-  useGraph
-} from '@joint/react';
-import {
+  useGraph,
   elementAttributes,
   elementPort,
   linkAttributes,
   linkLabel,
   linkStyle,
-} from '@joint/react/presets';
+} from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 

@@ -17,8 +17,8 @@ import {
   type RenderElement,
   selectCellType,
   selectElementSize,
+  linkRoutingOrthogonal,
 } from '@joint/react';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LIGHT, PAPER_STYLE } from 'storybook-config/theme';
 

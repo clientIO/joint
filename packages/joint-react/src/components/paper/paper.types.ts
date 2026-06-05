@@ -16,7 +16,7 @@ import type {
 import type { CellVisibility } from '../../presets/cell-visibility';
 import type { Interactive } from '../../presets/interactive';
 import type { LinkRouting } from '../../presets/link-routing';
-import type { NormalizedPaperHandlers } from '../../presets/paper-events';
+import type { PaperEventHandlers } from '../../presets/paper-events';
 
 /**
  * Value accepted by the Paper `transform` prop. Strings are parsed via the
@@ -27,7 +27,7 @@ import type { NormalizedPaperHandlers } from '../../presets/paper-events';
 export type PaperTransform = string | DOMMatrix;
 
 /** Context passed to the `defaultLink` factory. */
-export interface DefaultLinkContext {
+export interface DefaultLinkParams {
   /** The source end of the connection being created. */
   readonly source: ConnectionEnd;
   /** The paper instance. */
@@ -38,10 +38,10 @@ export interface DefaultLinkContext {
 
 /**
  * Value accepted by the Paper `defaultLink` prop — factory receiving
- * `DefaultLinkContext`, or a static `Partial<LinkRecord>`.
+ * `DefaultLinkParams`, or a static `Partial<LinkRecord>`.
  */
 export type DefaultLink =
-  | ((context: DefaultLinkContext) => dia.Link | Partial<LinkRecord>)
+  | ((context: DefaultLinkParams) => dia.Link | Partial<LinkRecord>)
   | Partial<LinkRecord>;
 
 /**
@@ -166,7 +166,7 @@ export interface PortalPaperOptions {
    * Values inside `options` override matching keys here.
    * @example
    * ```tsx
-   * import { linkRoutingOrthogonal } from '@joint/react/presets';
+   * import { linkRoutingOrthogonal } from '@joint/react';
    *
    * <Paper linkRouting={linkRoutingOrthogonal()} />
    * ```
@@ -222,9 +222,9 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  *
- * Normalized paper events are exposed directly as props
+ * Paper events are exposed directly as props
  * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …) via
- * {@link NormalizedPaperHandlers}. Each handler receives a single context
+ * {@link PaperEventHandlers}. Each handler receives a single params
  * object — e.g. `onBlankContextMenu={({ paper, event, x, y }) => …}`.
  *
  * Handlers participate in the event subscription's dependency list, exactly
@@ -233,11 +233,11 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * module-level function — so the paper subscribes once. A new inline arrow on
  * every render (`onBlankContextMenu={() => …}`) re-subscribes that paper's
  * events on every render; correct, but wasteful. For raw native event names or
- * events without a normalized form (`resize`, `transform`, `render:done`, …),
+ * events without an `on*` form (`resize`, `transform`, `render:done`, …),
  * use the `usePaperEvents` hook.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps extends PortalPaperOptions, PropsWithChildren, NormalizedPaperHandlers {
+export interface PaperProps extends PortalPaperOptions, PropsWithChildren, PaperEventHandlers {
   /**
    * A function that renders the element.
    *

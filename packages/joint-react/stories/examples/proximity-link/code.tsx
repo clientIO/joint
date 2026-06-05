@@ -10,11 +10,11 @@ import {
   type CellRecord,
   type ElementRecord,
   type Computed,
+  linkRoutingStraight,
 } from '@joint/react';
 import '../index.css';
 import { useEffect } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { linkRoutingStraight } from '@joint/react/presets';
 import type { dia } from '@joint/core';
 
 const STRAIGHT_LINKS = linkRoutingStraight({ perpendicular: true });

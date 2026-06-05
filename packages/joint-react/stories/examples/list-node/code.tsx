@@ -4,7 +4,7 @@
 
 import '../index.css';
 import { useCallback, useRef, type PropsWithChildren } from 'react';
-import { type CellRecord, GraphProvider, Paper, useCellId, useMeasureNode, type ElementRecord, type TransformMeasurement } from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, useCellId, useMeasureNode, type ElementRecord, type TransformElementLayout } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
@@ -41,7 +41,7 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
   const headerHeight = 50;
   const elementRef = useRef<HTMLDivElement>(null);
 
-  const transform: TransformMeasurement = useCallback(
+  const transform: TransformElementLayout = useCallback(
     ({ width: measuredWidth, height: measuredHeight }) => {
       const w = padding + measuredWidth + padding;
       const h = headerHeight + measuredHeight + padding;

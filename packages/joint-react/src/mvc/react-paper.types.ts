@@ -24,7 +24,7 @@ export interface PortalHostCell {
 }
 
 /** Context passed to a `PortalSelector` callback. */
-export interface PortalSelectorContext {
+export interface PortalSelectorParams {
   /** The cell model. Has a `portalSelector` field when it opts into portal rendering. */
   readonly model: dia.Cell & PortalHostCell;
   /** The paper instance. */
@@ -39,7 +39,7 @@ export interface PortalSelectorContext {
  *
  * - A **string** is used directly as the selector for `cellView.findNode()`.
  * - **`null`** disables all portal rendering.
- * - A **function** receives a {@link PortalSelectorContext} and returns:
+ * - A **function** receives a {@link PortalSelectorParams} and returns:
  *   - a **selector string** — look up that node,
  *   - an **`Element`** — use that DOM node directly,
  *   - **`null`** — skip rendering for this cell,
@@ -48,7 +48,7 @@ export interface PortalSelectorContext {
 export type PortalSelector =
   | string
   | null
-  | ((context: PortalSelectorContext) => string | Element | null | undefined);
+  | ((context: PortalSelectorParams) => string | Element | null | undefined);
 
 /**
  * Options for creating a ReactPaper instance with lifecycle callbacks.

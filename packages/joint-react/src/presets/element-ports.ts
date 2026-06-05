@@ -7,7 +7,7 @@ import type { LiteralUnion } from '../types/index';
  * - `'rect'` — rectangle
  * - Any other string — interpreted as SVG path `d` commands
  */
-export type PortShape = LiteralUnion<'ellipse' | 'rect'>;
+export type ElementPortShape = LiteralUnion<'ellipse' | 'rect'>;
 
 /**
  * Simplified port definition for declarative port configuration.
@@ -34,7 +34,7 @@ export interface ElementPort {
   /** Fill color of the port shape. @default '#333333' */
   color?: string;
   /** Shape of the port. @default 'ellipse' */
-  shape?: PortShape;
+  shape?: ElementPortShape;
   /** Outline color of the port shape. Accepts any CSS color. @default 'transparent' */
   outline?: string;
   /** Outline width of the port shape in px. @default 0 */
@@ -65,7 +65,7 @@ const defaultPortStyle = {
   width: 8,
   height: 8,
   color: '' as string,
-  shape: 'ellipse' as PortShape,
+  shape: 'ellipse' as ElementPortShape,
   outline: '' as string,
   outlineWidth: '' as number | string,
   className: '',

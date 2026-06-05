@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 
 /** Context passed to the `canEmbed` validate callback. */
-export interface ValidateEmbeddingContext {
+export interface ValidateEmbeddingParams {
   /** The element being embedded (dragged). */
   readonly child: { readonly id: dia.Cell.ID; readonly model: dia.Element };
   /** The candidate parent element. */
@@ -13,7 +13,7 @@ export interface ValidateEmbeddingContext {
 }
 
 /** Context passed to the `canUnembed` validate callback. */
-export interface ValidateUnembeddingContext {
+export interface ValidateUnembeddingParams {
   /** The element being unembedded. */
   readonly child: { readonly id: dia.Cell.ID; readonly model: dia.Element };
   /** The paper instance. */
@@ -23,10 +23,10 @@ export interface ValidateUnembeddingContext {
 }
 
 /** Callback that decides whether an element can be embedded into a parent. */
-export type ValidateEmbedding = (context: ValidateEmbeddingContext) => boolean;
+export type ValidateEmbedding = (context: ValidateEmbeddingParams) => boolean;
 
 /** Callback that decides whether an element can be unembedded from its parent. */
-export type ValidateUnembedding = (context: ValidateUnembeddingContext) => boolean;
+export type ValidateUnembedding = (context: ValidateUnembeddingParams) => boolean;
 
 /**
  * Converts a `dia.ElementView` into a structured `{ id, model }` info record.
@@ -49,7 +49,7 @@ function toEmbeddingInfo(view: dia.ElementView) {
  * );
  * ```
  */
-export function canEmbed(validate?: (context: ValidateEmbeddingContext) => boolean) {
+export function canEmbed(validate?: (context: ValidateEmbeddingParams) => boolean) {
   if (!validate) return () => true;
   return (childView: dia.ElementView, parentView: dia.ElementView): boolean => {
     const paper = childView.paper!;
@@ -75,7 +75,7 @@ export function canEmbed(validate?: (context: ValidateEmbeddingContext) => boole
  * );
  * ```
  */
-export function canUnembed(validate?: (context: ValidateUnembeddingContext) => boolean) {
+export function canUnembed(validate?: (context: ValidateUnembeddingParams) => boolean) {
   if (!validate) return () => true;
   return (childView: dia.ElementView): boolean => {
     const paper = childView.paper!;

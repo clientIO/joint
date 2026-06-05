@@ -7,12 +7,12 @@ import {
   Paper,
   useMeasureNode,
   useMarkup,
+  linkRoutingSmooth,
   type RenderElement,
-  type TransformMeasurement,
+  type TransformElementLayout,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
-import { linkRoutingSmooth } from '@joint/react/presets';
 
 const ROW_HEIGHT = 30;
 const HEADER_HEIGHT = 32;
@@ -86,7 +86,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
   const contentRef = useRef(null);
   const { magnetRef } = useMarkup();
 
-  const transform: TransformMeasurement = useCallback(({ height }) => {
+  const transform: TransformElementLayout = useCallback(({ height }) => {
     return {
       width: ELEMENT_WIDTH,
       height: HEADER_HEIGHT + height,

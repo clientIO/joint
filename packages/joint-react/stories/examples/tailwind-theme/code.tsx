@@ -2,9 +2,8 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { useState, useCallback, useRef } from 'react';
-import { type CellRecord, GraphProvider, Paper, selectElementSize, useCell } from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, selectElementSize, useCell, linkMarkerArrow } from '@joint/react';
 import { PAPER_CLASSNAME as DEFAULT_PAPER_CLASSNAME } from 'storybook-config/theme';
-import { linkMarkerArrow } from '@joint/react/presets';
 
 interface NodeUserData {
   readonly [key: string]: unknown;

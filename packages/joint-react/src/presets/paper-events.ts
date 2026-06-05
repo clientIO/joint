@@ -35,51 +35,51 @@ interface LinkContext {
 }
 
 // Composed building blocks — pointer/hover/wheel variants below add event + coords.
-type CellEventContext = BaseContext & CellContext;
-type ElementEventContext = BaseContext & ElementContext;
-type LinkEventContext = BaseContext & LinkContext;
+type CellEventParams = BaseContext & CellContext;
+type ElementEventParams = BaseContext & ElementContext;
+type LinkEventParams = BaseContext & LinkContext;
 
-type WithPointer<Ctx> = Ctx & {
+type WithPointer<Params> = Params & {
   readonly event: dia.Event;
   readonly x: number;
   readonly y: number;
 };
-type WithHover<Ctx> = Ctx & { readonly event: dia.Event };
-type WithWheel<Ctx> = WithPointer<Ctx> & { readonly delta: number };
+type WithHover<Params> = Params & { readonly event: dia.Event };
+type WithWheel<Params> = WithPointer<Params> & { readonly delta: number };
 
 // ============================================================================
 // Pointer / hover / wheel context aliases
 // ============================================================================
 
 /** Pointer-style cell-level payload (down/move/up/click/dblclick/contextmenu). */
-export type PointerCellEventContext = WithPointer<CellEventContext>;
+export type PointerCellEventParams = WithPointer<CellEventParams>;
 /** Pointer-style element-level payload. */
-export type PointerElementEventContext = WithPointer<ElementEventContext>;
+export type PointerElementEventParams = WithPointer<ElementEventParams>;
 /** Pointer-style link-level payload. */
-export type PointerLinkEventContext = WithPointer<LinkEventContext>;
+export type PointerLinkEventParams = WithPointer<LinkEventParams>;
 /** Pointer-style blank-area payload — event + coords on empty paper area. */
-export type PointerBlankEventContext = WithPointer<BaseContext>;
+export type PointerBlankEventParams = WithPointer<BaseContext>;
 
 /** Hover-style cell-level payload (mouseenter/leave/over/out). */
-export type HoverCellEventContext = WithHover<CellEventContext>;
+export type HoverCellEventParams = WithHover<CellEventParams>;
 /** Hover-style element-level payload. */
-export type HoverElementEventContext = WithHover<ElementEventContext>;
+export type HoverElementEventParams = WithHover<ElementEventParams>;
 /** Hover-style link-level payload. */
-export type HoverLinkEventContext = WithHover<LinkEventContext>;
+export type HoverLinkEventParams = WithHover<LinkEventParams>;
 /** Hover-style blank-area payload — event only on empty paper area. */
-export type HoverBlankEventContext = WithHover<BaseContext>;
+export type HoverBlankEventParams = WithHover<BaseContext>;
 
 /** Wheel cell-level payload (mousewheel) — pointer + delta. */
-export type WheelCellEventContext = WithWheel<CellEventContext>;
+export type WheelCellEventParams = WithWheel<CellEventParams>;
 /** Wheel element-level payload. */
-export type WheelElementEventContext = WithWheel<ElementEventContext>;
+export type WheelElementEventParams = WithWheel<ElementEventParams>;
 /** Wheel link-level payload. */
-export type WheelLinkEventContext = WithWheel<LinkEventContext>;
+export type WheelLinkEventParams = WithWheel<LinkEventParams>;
 /** Wheel blank-area payload — pointer + delta on empty paper area. */
-export type WheelBlankEventContext = WithWheel<BaseContext>;
+export type WheelBlankEventParams = WithWheel<BaseContext>;
 
 /** Magnet payload — element-only, pointer + magnet SVG node + port/selector. */
-export type MagnetEventContext = WithPointer<ElementEventContext> & {
+export type MagnetEventParams = WithPointer<ElementEventParams> & {
   readonly magnet: DOMElement;
   /** The port ID, or `null` if the magnet is not on a port. */
   readonly port: string | null;
@@ -92,17 +92,17 @@ export type MagnetEventContext = WithPointer<ElementEventContext> & {
 // ============================================================================
 
 /** Paper-edge hover payload (`paper:mouseenter` / `paper:mouseleave`). */
-export type PaperHoverEventContext = BaseContext & { readonly event: dia.Event };
+export type PaperHoverEventParams = BaseContext & { readonly event: dia.Event };
 
 /** Paper-level pan payload — `paper:pan` from touchpad / wheel pan. */
-export type PaperPanEventContext = BaseContext & {
+export type PaperPanEventParams = BaseContext & {
   readonly event: dia.Event;
   readonly deltaX: number;
   readonly deltaY: number;
 };
 
 /** Paper-level pinch payload — `paper:pinch` from touchpad pinch gesture. */
-export type PaperPinchEventContext = BaseContext & {
+export type PaperPinchEventParams = BaseContext & {
   readonly event: dia.Event;
   readonly x: number;
   readonly y: number;
@@ -110,28 +110,28 @@ export type PaperPinchEventContext = BaseContext & {
 };
 
 /** `translate` payload — paper translation. */
-export type TranslateEventContext = BaseContext & {
+export type TranslateEventParams = BaseContext & {
   readonly translateX: number;
   readonly translateY: number;
   readonly options: unknown;
 };
 
 /** `scale` payload — paper scale. */
-export type ScaleEventContext = BaseContext & {
+export type ScaleEventParams = BaseContext & {
   readonly scaleX: number;
   readonly scaleY: number;
   readonly options: unknown;
 };
 
 /** `resize` payload — paper dimensions. */
-export type ResizeEventContext = BaseContext & {
+export type ResizeEventParams = BaseContext & {
   readonly width: number;
   readonly height: number;
   readonly options: unknown;
 };
 
 /** `transform` payload — paper SVG transform matrix. */
-export type TransformEventContext = BaseContext & {
+export type TransformEventParams = BaseContext & {
   readonly matrix: SVGMatrix;
   readonly options: unknown;
 };
@@ -145,7 +145,7 @@ export type TransformEventContext = BaseContext & {
  * (dis)connected end as a {@link ConnectionEnd} (same shape used by
  * `validateConnection`, so the two stay symmetric).
  */
-export interface LinkConnectEventContext extends LinkEventContext {
+export interface LinkConnectEventParams extends LinkEventParams {
   readonly event: dia.Event;
   /** Which end of the link was (dis)connected. */
   readonly end: 'source' | 'target';
@@ -154,7 +154,7 @@ export interface LinkConnectEventContext extends LinkEventContext {
 }
 
 // ============================================================================
-// Normalized event maps (camelCase → native)
+// CamelCase → native event-name maps
 // ============================================================================
 
 const POINTER_CELL_MAP = {
@@ -277,7 +277,7 @@ const TRANSFORM_MAP = {
   onTransform: 'transform',
 } as const;
 
-export const NORMALIZED_KEYS = new Set<string>([
+export const PAPER_EVENT_KEYS = new Set<string>([
   ...Object.keys(POINTER_CELL_MAP),
   ...Object.keys(HOVER_CELL_MAP),
   ...Object.keys(WHEEL_CELL_MAP),
@@ -296,95 +296,104 @@ export const NORMALIZED_KEYS = new Set<string>([
 ]);
 
 // ============================================================================
-// Normalized handlers map (typed)
+// Paper event handlers (typed)
 // ============================================================================
 
 /**
- * Camel-cased, context-object handlers for the most common `dia.Paper` events.
+ * Camel-cased, params-object handlers for the most common `dia.Paper` events.
  * Mixable with raw `'element:pointerclick'` keys in the same handlers map.
  * Paper-level events that stay raw: `'resize'`, `'transform'`, `'scale'`,
  * `'translate'`, `'render:done'`, `'render:idle'`, `'cell:highlight'`,
  * `'cell:unhighlight'`, `'cell:highlight:invalid'`, `'link:snap:connect'`,
  * `'link:snap:disconnect'`.
  */
-export interface NormalizedPaperHandlers {
+export interface PaperEventHandlers {
   // pointer (cell — fires for any cell, element OR link)
-  readonly onCellPointerDown?: (ctx: PointerCellEventContext) => void;
-  readonly onCellPointerMove?: (ctx: PointerCellEventContext) => void;
-  readonly onCellPointerUp?: (ctx: PointerCellEventContext) => void;
-  readonly onCellPointerClick?: (ctx: PointerCellEventContext) => void;
-  readonly onCellPointerDblClick?: (ctx: PointerCellEventContext) => void;
-  readonly onCellContextMenu?: (ctx: PointerCellEventContext) => void;
+  readonly onCellPointerDown?: (params: PointerCellEventParams) => void;
+  readonly onCellPointerMove?: (params: PointerCellEventParams) => void;
+  readonly onCellPointerUp?: (params: PointerCellEventParams) => void;
+  readonly onCellPointerClick?: (params: PointerCellEventParams) => void;
+  readonly onCellPointerDblClick?: (params: PointerCellEventParams) => void;
+  readonly onCellContextMenu?: (params: PointerCellEventParams) => void;
   // pointer (element)
-  readonly onElementPointerDown?: (ctx: PointerElementEventContext) => void;
-  readonly onElementPointerMove?: (ctx: PointerElementEventContext) => void;
-  readonly onElementPointerUp?: (ctx: PointerElementEventContext) => void;
-  readonly onElementPointerClick?: (ctx: PointerElementEventContext) => void;
-  readonly onElementPointerDblClick?: (ctx: PointerElementEventContext) => void;
-  readonly onElementContextMenu?: (ctx: PointerElementEventContext) => void;
+  readonly onElementPointerDown?: (params: PointerElementEventParams) => void;
+  readonly onElementPointerMove?: (params: PointerElementEventParams) => void;
+  readonly onElementPointerUp?: (params: PointerElementEventParams) => void;
+  readonly onElementPointerClick?: (params: PointerElementEventParams) => void;
+  readonly onElementPointerDblClick?: (params: PointerElementEventParams) => void;
+  readonly onElementContextMenu?: (params: PointerElementEventParams) => void;
   // pointer (link)
-  readonly onLinkPointerDown?: (ctx: PointerLinkEventContext) => void;
-  readonly onLinkPointerMove?: (ctx: PointerLinkEventContext) => void;
-  readonly onLinkPointerUp?: (ctx: PointerLinkEventContext) => void;
-  readonly onLinkPointerClick?: (ctx: PointerLinkEventContext) => void;
-  readonly onLinkPointerDblClick?: (ctx: PointerLinkEventContext) => void;
-  readonly onLinkContextMenu?: (ctx: PointerLinkEventContext) => void;
+  readonly onLinkPointerDown?: (params: PointerLinkEventParams) => void;
+  readonly onLinkPointerMove?: (params: PointerLinkEventParams) => void;
+  readonly onLinkPointerUp?: (params: PointerLinkEventParams) => void;
+  readonly onLinkPointerClick?: (params: PointerLinkEventParams) => void;
+  readonly onLinkPointerDblClick?: (params: PointerLinkEventParams) => void;
+  readonly onLinkContextMenu?: (params: PointerLinkEventParams) => void;
   // hover (cell — fires for any cell)
-  readonly onCellMouseEnter?: (ctx: HoverCellEventContext) => void;
-  readonly onCellMouseLeave?: (ctx: HoverCellEventContext) => void;
-  readonly onCellMouseOver?: (ctx: HoverCellEventContext) => void;
-  readonly onCellMouseOut?: (ctx: HoverCellEventContext) => void;
+  readonly onCellMouseEnter?: (params: HoverCellEventParams) => void;
+  readonly onCellMouseLeave?: (params: HoverCellEventParams) => void;
+  readonly onCellMouseOver?: (params: HoverCellEventParams) => void;
+  readonly onCellMouseOut?: (params: HoverCellEventParams) => void;
   // hover (element/link)
-  readonly onElementMouseEnter?: (ctx: HoverElementEventContext) => void;
-  readonly onElementMouseLeave?: (ctx: HoverElementEventContext) => void;
-  readonly onElementMouseOver?: (ctx: HoverElementEventContext) => void;
-  readonly onElementMouseOut?: (ctx: HoverElementEventContext) => void;
-  readonly onLinkMouseEnter?: (ctx: HoverLinkEventContext) => void;
-  readonly onLinkMouseLeave?: (ctx: HoverLinkEventContext) => void;
-  readonly onLinkMouseOver?: (ctx: HoverLinkEventContext) => void;
-  readonly onLinkMouseOut?: (ctx: HoverLinkEventContext) => void;
+  readonly onElementMouseEnter?: (params: HoverElementEventParams) => void;
+  readonly onElementMouseLeave?: (params: HoverElementEventParams) => void;
+  readonly onElementMouseOver?: (params: HoverElementEventParams) => void;
+  readonly onElementMouseOut?: (params: HoverElementEventParams) => void;
+  readonly onLinkMouseEnter?: (params: HoverLinkEventParams) => void;
+  readonly onLinkMouseLeave?: (params: HoverLinkEventParams) => void;
+  readonly onLinkMouseOver?: (params: HoverLinkEventParams) => void;
+  readonly onLinkMouseOut?: (params: HoverLinkEventParams) => void;
   // wheel
-  readonly onCellMouseWheel?: (ctx: WheelCellEventContext) => void;
-  readonly onElementMouseWheel?: (ctx: WheelElementEventContext) => void;
-  readonly onLinkMouseWheel?: (ctx: WheelLinkEventContext) => void;
+  readonly onCellMouseWheel?: (params: WheelCellEventParams) => void;
+  readonly onElementMouseWheel?: (params: WheelElementEventParams) => void;
+  readonly onLinkMouseWheel?: (params: WheelLinkEventParams) => void;
   // magnet
-  readonly onElementMagnetPointerClick?: (ctx: MagnetEventContext) => void;
-  readonly onElementMagnetPointerDblClick?: (ctx: MagnetEventContext) => void;
-  readonly onElementMagnetContextMenu?: (ctx: MagnetEventContext) => void;
+  readonly onElementMagnetPointerClick?: (params: MagnetEventParams) => void;
+  readonly onElementMagnetPointerDblClick?: (params: MagnetEventParams) => void;
+  readonly onElementMagnetContextMenu?: (params: MagnetEventParams) => void;
   // link connect
-  readonly onLinkConnect?: (ctx: LinkConnectEventContext) => void;
-  readonly onLinkDisconnect?: (ctx: LinkConnectEventContext) => void;
-  readonly onLinkSnapConnect?: (ctx: LinkConnectEventContext) => void;
-  readonly onLinkSnapDisconnect?: (ctx: LinkConnectEventContext) => void;
+  readonly onLinkConnect?: (params: LinkConnectEventParams) => void;
+  readonly onLinkDisconnect?: (params: LinkConnectEventParams) => void;
+  readonly onLinkSnapConnect?: (params: LinkConnectEventParams) => void;
+  readonly onLinkSnapDisconnect?: (params: LinkConnectEventParams) => void;
   // blank pointer
-  readonly onBlankPointerDown?: (ctx: PointerBlankEventContext) => void;
-  readonly onBlankPointerMove?: (ctx: PointerBlankEventContext) => void;
-  readonly onBlankPointerUp?: (ctx: PointerBlankEventContext) => void;
-  readonly onBlankPointerClick?: (ctx: PointerBlankEventContext) => void;
-  readonly onBlankPointerDblClick?: (ctx: PointerBlankEventContext) => void;
-  readonly onBlankContextMenu?: (ctx: PointerBlankEventContext) => void;
+  readonly onBlankPointerDown?: (params: PointerBlankEventParams) => void;
+  readonly onBlankPointerMove?: (params: PointerBlankEventParams) => void;
+  readonly onBlankPointerUp?: (params: PointerBlankEventParams) => void;
+  readonly onBlankPointerClick?: (params: PointerBlankEventParams) => void;
+  readonly onBlankPointerDblClick?: (params: PointerBlankEventParams) => void;
+  readonly onBlankContextMenu?: (params: PointerBlankEventParams) => void;
   // blank hover
-  readonly onBlankMouseEnter?: (ctx: HoverBlankEventContext) => void;
-  readonly onBlankMouseLeave?: (ctx: HoverBlankEventContext) => void;
-  readonly onBlankMouseOver?: (ctx: HoverBlankEventContext) => void;
-  readonly onBlankMouseOut?: (ctx: HoverBlankEventContext) => void;
+  readonly onBlankMouseEnter?: (params: HoverBlankEventParams) => void;
+  readonly onBlankMouseLeave?: (params: HoverBlankEventParams) => void;
+  readonly onBlankMouseOver?: (params: HoverBlankEventParams) => void;
+  readonly onBlankMouseOut?: (params: HoverBlankEventParams) => void;
   // blank wheel
-  readonly onBlankMouseWheel?: (ctx: WheelBlankEventContext) => void;
+  readonly onBlankMouseWheel?: (params: WheelBlankEventParams) => void;
   // paper-level hover (fires when pointer enters/leaves the paper host)
-  readonly onPaperMouseEnter?: (ctx: PaperHoverEventContext) => void;
-  readonly onPaperMouseLeave?: (ctx: PaperHoverEventContext) => void;
+  readonly onPaperMouseEnter?: (params: PaperHoverEventParams) => void;
+  readonly onPaperMouseLeave?: (params: PaperHoverEventParams) => void;
   // paper-level touchpad
-  readonly onPaperPan?: (ctx: PaperPanEventContext) => void;
-  readonly onPaperPinch?: (ctx: PaperPinchEventContext) => void;
+  readonly onPaperPan?: (params: PaperPanEventParams) => void;
+  readonly onPaperPinch?: (params: PaperPinchEventParams) => void;
   // paper transforms
-  readonly onTranslate?: (ctx: TranslateEventContext) => void;
-  readonly onScale?: (ctx: ScaleEventContext) => void;
-  readonly onResize?: (ctx: ResizeEventContext) => void;
-  readonly onTransform?: (ctx: TransformEventContext) => void;
+  readonly onTranslate?: (params: TranslateEventParams) => void;
+  readonly onScale?: (params: ScaleEventParams) => void;
+  readonly onResize?: (params: ResizeEventParams) => void;
+  readonly onTransform?: (params: TransformEventParams) => void;
 }
 
-/** Combined handlers — normalized + raw native — accepted by `addPaperEventListeners`. */
-export type PaperEventMap = Partial<dia.Paper.EventMap> & NormalizedPaperHandlers;
+/**
+ * Extracts the callback type for a given paper event key.
+ * For example, `PaperEventHandler<'onCellPointerDown'>` is `(params: PointerCellEventParams) => void`.
+ * Useful for typing individual handler variables or parameters.
+ */
+export type PaperEventHandler<T extends keyof PaperEventHandlers> = NonNullable<PaperEventHandlers[T]>;
+
+/**
+ * Combined handlers — camelCase `on*` + raw native — accepted by `addPaperEventListeners`.
+ */
+export type PaperEventMap = Partial<dia.Paper.EventMap> & PaperEventHandlers;
 
 // ============================================================================
 // Subscription helpers
@@ -402,21 +411,21 @@ function makeCellContext(view: dia.CellView): CellContext {
 }
 
 /**
- * Subscribes a single normalized event group: walks `map`, looks up each
+ * Subscribes a single camelCase event group: walks `map`, looks up each
  * user handler in `eventMap`, and registers a native-args wrapper that
- * builds the context object via `wrap`.
+ * builds the params object via `wrap`.
  * @param controller
  * @param paper
  * @param eventMap
  * @param map
  * @param wrap
  */
-function subscribeGroup<Args extends unknown[], Ctx>(
+function subscribeGroup<Args extends unknown[], Params>(
   controller: mvc.Listener<[]>,
   paper: dia.Paper,
   eventMap: EventHandlerMap,
   map: Readonly<Record<string, string>>,
-  wrap: (...args: Args) => Ctx
+  wrap: (...args: Args) => Params
 ): void {
   for (const key in map) {
     const handler = eventMap[key];
@@ -429,7 +438,7 @@ function subscribeGroup<Args extends unknown[], Ctx>(
 
 /**
  * Registers raw (native-signature) handlers — any key in `eventMap` that
- * isn't a known normalized `on*` key.
+ * isn't a known `on*` key.
  * @param controller
  * @param paper
  * @param eventMap
@@ -440,7 +449,7 @@ function subscribeRaw(
   eventMap: EventHandlerMap
 ): void {
   for (const eventName in eventMap) {
-    if (NORMALIZED_KEYS.has(eventName)) continue;
+    if (PAPER_EVENT_KEYS.has(eventName)) continue;
     const handler = eventMap[eventName];
     if (!handler) continue;
     controller.listenTo(paper, eventName, (...args: Parameters<mvc.EventHandler>) => {
@@ -450,14 +459,15 @@ function subscribeRaw(
 }
 
 /**
- * Attaches a normalized handlers map to a paper and returns a cleanup
- * function that detaches everything. Pure JointJS adapter — no React.
+ * Attaches a handlers map (camelCase `on*` + raw native) to a paper and
+ * returns a cleanup function that detaches everything. Pure JointJS adapter —
+ * no React.
  *
  * `addPaperEventListeners` is the runtime that powers the React `usePaperEvents`
  * hook; it can also be used directly when wiring events outside React (e.g.
  * inside other presets, plugins, or non-React stencils).
  * @param paper - Target paper. The associated graph is read from `paper.model`.
- * @param handlers - Normalized + raw event handlers.
+ * @param handlers - CamelCase `on*` + raw event handlers.
  * @returns Cleanup callback that calls `listener.stopListening()`.
  */
 export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap): () => void {
@@ -663,21 +673,21 @@ export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap
 }
 
 /**
- * Picks the normalized paper-event handlers (`onBlankContextMenu`, …) out of a
+ * Picks the `on*` paper-event handlers (`onBlankContextMenu`, …) out of a
  * props object. Returns the handlers map (to subscribe) plus a parallel
  * `eventDependencies` array of the handler values, in key order — spread it
  * into a `useLayoutEffect` dependency list so the subscription re-runs only
  * when a handler reference changes. Non-event props are ignored, so changing
  * them never re-subscribes.
- * @param props - Any object that may contain normalized handler keys.
+ * @param props - Any object that may contain `on*` handler keys.
  * @returns `eventHandlers` (the matched `on*` entries) and `eventDependencies` (their values, in key order).
  */
-export function extractEventsFromPaperProps(props: Partial<NormalizedPaperHandlers>) {
-  const eventHandlers: Partial<NormalizedPaperHandlers> = {};
+export function extractEventsFromPaperProps(props: Partial<PaperEventHandlers>) {
+  const eventHandlers: Partial<PaperEventHandlers> = {};
   const eventDependencies: unknown[] = [];
   for (const property in props) {
-    const key = property as keyof NormalizedPaperHandlers;
-    if (NORMALIZED_KEYS.has(key)) {
+    const key = property as keyof PaperEventHandlers;
+    if (PAPER_EVENT_KEYS.has(key)) {
       // Variable-key write: cast past the readonly/union index to assign.
       (eventHandlers as Record<string, unknown>)[key] = props[key];
       eventDependencies.push(props[key]);

@@ -61,7 +61,6 @@ const config: StorybookConfig = {
     config.resolve.alias = [
       // Subpath exports must come before the bare package alias
       { find: '@joint/react/internal', replacement: path.resolve(__dirname, '../src/internal.ts') },
-      { find: '@joint/react/presets', replacement: path.resolve(__dirname, '../src/presets/index.ts') },
       { find: /^@joint\/react$/, replacement: path.resolve(__dirname, '../src/index.ts') },
     ];
     // Pre-bundle the heavy `@joint/core` dep. It resolves through a

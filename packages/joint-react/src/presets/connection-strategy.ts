@@ -2,7 +2,7 @@ import type { dia, connectionStrategies } from '@joint/core';
 import { connectionStrategies as strategies } from '@joint/core';
 
 /** Structured context passed to a connection-strategy callback. */
-export interface ConnectionStrategyContext {
+export interface ConnectionStrategyParams {
   /** The end JSON to return — starts as the dropped-end definition (already pinned if `pin` was set). */
   readonly end: dia.Link.EndJSON;
   /** The cell model the link end was dropped on. */
@@ -39,7 +39,7 @@ export interface ConnectionStrategyOptions {
 }
 
 /** Callback that decides how a dropped link end's JSON is stored. */
-export type ConnectionStrategy = (context: ConnectionStrategyContext) => dia.Link.EndJSON;
+export type ConnectionStrategy = (context: ConnectionStrategyParams) => dia.Link.EndJSON;
 
 const PIN_STRATEGIES: Record<ConnectionStrategyPin, connectionStrategies.ConnectionStrategy> = {
   none: strategies.useDefaults,

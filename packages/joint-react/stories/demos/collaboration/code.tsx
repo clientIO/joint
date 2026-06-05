@@ -14,8 +14,8 @@ import {
   type ElementRecord,
   type LinkRecord,
   type IncrementalCellsChange,
+  linkRoutingOrthogonal,
 } from '@joint/react';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 import Peer, { type DataConnection } from 'peerjs';
 import {
   createContext,

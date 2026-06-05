@@ -9,7 +9,7 @@ const EMPTY_DEPENDENCIES: DependencyList = [];
 const EMPTY_HANDLERS: PaperEventMap = {};
 
 /**
- * Distinguishes a `PaperEventMap` (a plain object) from a `DependencyList`
+ * Distinguishes a `PaperEventMap` map (a plain object) from a `DependencyList`
  * (an array) — used to resolve the overloaded second argument without casts.
  * @param value - The handlers-or-dependencies argument.
  * @returns True when `value` is a handlers map rather than a dependency list.
@@ -18,8 +18,8 @@ function isPaperEventMap(value: PaperEventMap | DependencyList): value is PaperE
   return !Array.isArray(value);
 }
 
-/** Normalized {@link usePaperEvents} arguments. */
-interface ResolvedPaperEventsArgs {
+/** Resolved {@link usePaperEvents} arguments. */
+interface ResolvedPaperEventMapArgs {
   readonly target: PaperTarget | undefined;
   readonly handlers: PaperEventMap;
   readonly dependencies: DependencyList;
@@ -33,11 +33,11 @@ interface ResolvedPaperEventsArgs {
  * @param dependenciesArgument - Third arg: dependencies (target form only).
  * @returns The resolved target, handlers, and dependencies.
  */
-function resolvePaperEventsArgs(
+function resolvePaperEventMapArgs(
   paperOrHandlers: PaperTarget | PaperEventMap,
   handlersOrDependencies: PaperEventMap | DependencyList,
   dependenciesArgument: DependencyList
-): ResolvedPaperEventsArgs {
+): ResolvedPaperEventMapArgs {
   if (!isPaperTarget(paperOrHandlers)) {
     // usePaperEvents(handlers, dependencies?)
     const dependencies = isPaperEventMap(handlersOrDependencies)
@@ -70,7 +70,7 @@ export function subscribeToPaperEvents(
  * throws if no `Paper` context is available). Two key forms can be mixed in
  * the same handlers map:
  *
- * **Normalized form**: `on<Category><Event>` keys deliver a single context
+ * **CamelCase form**: `on<Category><Event>` keys deliver a single params
  * object with named properties.
  * ```tsx
  * usePaperEvents({
@@ -80,7 +80,7 @@ export function subscribeToPaperEvents(
  * ```
  *
  * **Raw form**: native JointJS event names with positional arguments. Use
- * for events without a normalized counterpart (`'resize'`, `'transform'`,
+ * for events without an `on*` counterpart (`'resize'`, `'transform'`,
  * `'render:done'`, `'cell:highlight'`, …).
  * ```tsx
  * usePaperEvents(paperId, {
@@ -89,8 +89,8 @@ export function subscribeToPaperEvents(
  * });
  * ```
  *
- * The normalized context omits the React-store `record` — to read the
- * normalised record shape, call `useCell(id, selector)` from your own
+ * The `on*` params object omits the React-store `record` — to read the
+ * record shape, call `useCell(id, selector)` from your own
  * component (the handler closure has access to the `id` it emits).
  * @param handlers - Event handlers map.
  * @param dependencies - Optional dependency array controlling re-subscription.
@@ -114,7 +114,7 @@ export function usePaperEvents(
   handlersOrDependencies: PaperEventMap | DependencyList = EMPTY_DEPENDENCIES,
   dependenciesArgument: DependencyList = EMPTY_DEPENDENCIES
 ): void {
-  const { target, handlers, dependencies } = resolvePaperEventsArgs(
+  const { target, handlers, dependencies } = resolvePaperEventMapArgs(
     paperOrHandlers,
     handlersOrDependencies,
     dependenciesArgument

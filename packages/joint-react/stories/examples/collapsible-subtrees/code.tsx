@@ -1,14 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
-import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useNodesMeasuredEffect, usePaper, usePaperEvents, selectElementSize } from '@joint/react';
+import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useNodesMeasuredEffect, usePaper, usePaperEvents, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useMemo, useRef } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
 import '../index.css';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   cornerType: 'line',

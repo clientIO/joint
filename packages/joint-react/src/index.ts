@@ -22,22 +22,22 @@ export type {
   RenderElement,
   RenderLink,
   DefaultLink,
-  DefaultLinkContext,
+  DefaultLinkParams,
 } from './components/paper/paper.types';
 export type {
   PortalHostCell,
   PortalSelector,
-  PortalSelectorContext,
+  PortalSelectorParams,
 } from './mvc/react-paper.types';
 export type {
   ValidateConnection,
-  ValidateConnectionContext,
+  ValidateConnectionParams,
   ValidateEmbedding,
-  ValidateEmbeddingContext,
+  ValidateEmbeddingParams,
   ValidateUnembedding,
-  ValidateUnembeddingContext,
+  ValidateUnembeddingParams,
   ConnectionStrategy,
-  ConnectionStrategyContext,
+  ConnectionStrategyParams,
   ConnectionStrategyOptions,
   ConnectionStrategyPin,
   CanConnectOptions,
@@ -60,7 +60,7 @@ export type { HTMLHostProps } from './components/html-host';
  * <HTMLBox/>
  */
 export { HTMLBox } from './components/html-box';
-export type { HTMLHostProps as HTMLBoxProps } from './components/html-host';
+export type { HTMLBoxProps } from './components/html-box';
 
 // Hooks
 // -----
@@ -98,8 +98,8 @@ export { useCellId } from './hooks/use-cell-id';
 export { useMeasureNode } from './hooks/use-measure-node';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
 export type {
-  TransformMeasurement,
-  MeasurementContext,
+  TransformElementLayout,
+  TransformElementLayoutParams,
 } from './store/create-elements-size-observer';
 
 /**
@@ -111,7 +111,7 @@ export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
  * usePaperEvents()
  */
 export { usePaperEvents } from './hooks/use-paper-events';
-export type { PaperEventMap } from './presets';
+export type { PaperEventMap, PaperEventHandler } from './presets';
 
 /**
  * useGraphEvents()
@@ -167,16 +167,57 @@ export type {
 /**
  * Element types and utilities
  */
+export { elementPort, elementPorts, elementAttributes } from './presets';
 export type { ElementRecord, ElementPosition, ElementSize } from './types/cell.types';
-export type { ElementPort, PortShape } from './presets';
+export type {
+  ElementPort,
+  ElementPortShape
+} from './presets';
 
 /**
  * Link types and utilities
  */
 export { resolveLinkMarker } from './theme/named-link-markers';
+export {
+  linkRoutingStraight,
+  linkRoutingOrthogonal,
+  linkRoutingSmooth,
+  linkLabel,
+  linkLabels,
+  linkStyle,
+  linkStyleLine,
+  linkStyleWrapper,
+  linkAttributes,
+  linkMarkerArrow,
+  linkMarkerArrowOpen,
+  linkMarkerArrowSunken,
+  linkMarkerArrowQuill,
+  linkMarkerArrowDouble,
+  linkMarkerCircle,
+  linkMarkerDiamond,
+  linkMarkerLine,
+  linkMarkerCross,
+  linkMarkerFork,
+  linkMarkerForkClose,
+  linkMarkerMany,
+  linkMarkerManyOptional,
+  linkMarkerOne,
+  linkMarkerOneOptional,
+  linkMarkerOneOrMany,
+} from './presets';
 export type { LinkRecord } from './types/cell.types';
-export type { LinkStyle, LinkLabel, LinkMarkerRecord } from './presets';
+export type {
+  LinkStyle,
+  LinkLabel,
+  LinkMarkerRecord,
+  LinkMarkerOptions,
+  LinkMode,
+  LinkRoutingStraightOptions,
+  LinkRoutingOrthogonalOptions,
+  LinkRoutingSmoothOptions,
+} from './presets';
 export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
+
 
 // MVC
 // ---

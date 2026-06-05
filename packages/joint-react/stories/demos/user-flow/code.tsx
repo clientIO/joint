@@ -7,11 +7,10 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // We have pre-loaded tailwind css
-import { GraphProvider, Paper, useCell, useCellId, useMarkup, HTMLHost, type CellId, type CellRecord, type ElementRecord, type LinkRecord, type RenderElement, selectElementSize } from '@joint/react';
+import { GraphProvider, Paper, useCell, useCellId, useMarkup, HTMLHost, type CellId, type CellRecord, type ElementRecord, type LinkRecord, type RenderElement, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
 
 import { createContext, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ mode: 'bottom-top', cornerType: 'line' });
 

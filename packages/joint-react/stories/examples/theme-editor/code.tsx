@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useMemo, useRef, memo } from 'react';
 import type { CSSProperties } from 'react';
 import {
   type CellRecord,
-  type ValidateEmbeddingContext,
+  type ValidateEmbeddingParams,
   GraphProvider,
   Paper,
   HTMLBox,
@@ -425,7 +425,7 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
 
 // ── Element renderer ──────────────────────────────────────────────────────────
 
-function validateEmbedding({ parent }: ValidateEmbeddingContext): boolean {
+function validateEmbedding({ parent }: ValidateEmbeddingParams): boolean {
   return Boolean((parent.model.prop('data') as Data | undefined)?.isContainer);
 }
 

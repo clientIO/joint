@@ -13,8 +13,8 @@ import {
   type CellRecord,
   type Computed,
   type ElementRecord,
+  linkRoutingOrthogonal,
 } from '@joint/react';
-import { linkRoutingOrthogonal } from '@joint/react/presets';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // ─────────────────────────────────────────────────────────────────────────────
