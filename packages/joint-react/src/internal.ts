@@ -70,6 +70,7 @@ export { isRecord } from './utils/is';
 // Constants
 export { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from './mvc/element-model';
 export { LINK_MODEL_TYPE } from './mvc/link-model';
+export { ReactPaper } from './mvc/react-paper';
 
 // Internal Selectors
 export {
