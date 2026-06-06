@@ -712,6 +712,79 @@ describe('useCells (collection form)', () => {
     });
     expect(result.current).toEqual(['b', 'c']);
   });
+
+  // ── Non-graph cells (clipboard-style: cell instances not in the graph) ──
+
+  it('returns records for cells that are not in the graph', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          const clone = store.graph.getCell('a')!.clone() as dia.Cell;
+          collection = new mvc.Collection<dia.Cell>([clone]);
+        }
+        return useCells(collection);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]!.type).toBe(ELEMENT_MODEL_TYPE);
+  });
+
+  it('selector sees correct length when cells are not in the graph', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) collection = new mvc.Collection<dia.Cell>([]);
+        return useCells(collection, (cells) => cells.length === 0);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    expect(result.current).toBe(true);
+
+    await act(async () => {
+      const clone = storeRef!.graph.getCell('a')!.clone() as dia.Cell;
+      collection!.add(clone);
+      await flush();
+    });
+    expect(result.current).toBe(false);
+
+    await act(async () => {
+      collection!.reset([]);
+      await flush();
+    });
+    expect(result.current).toBe(true);
+  });
+
+  it('returns stable record reference across renders for non-graph cells', async () => {
+    storeRef = undefined;
+    let collection: mvc.Collection<dia.Cell> | undefined;
+    const { result, rerender } = renderHook(
+      () => {
+        const store = useGraphStore();
+        storeRef = store;
+        if (!collection) {
+          const clone = store.graph.getCell('a')!.clone() as dia.Cell;
+          collection = new mvc.Collection<dia.Cell>([clone]);
+        }
+        return useCells(collection);
+      },
+      { wrapper }
+    );
+    await act(async () => flush());
+    const first = result.current;
+    rerender();
+    await act(async () => flush());
+    expect(result.current).toBe(first);
+  });
 });
 
 // ── Collection + selector reactivity (empty-start, the real-world pattern) ──
