@@ -9,6 +9,7 @@ import { isCollection } from '../utils/is';
 import { subscribeToCollection } from '../utils/collection-subscription';
 import { parseUseCellsArgs } from './use-cells.utils';
 import { warnUnstableSelector } from '../utils/dev-warnings';
+import { toCellRecord } from '../state/data-mapping/cell-record-merge';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -25,16 +26,43 @@ type UnknownEqual = (a: unknown, b: unknown) => boolean;
 // ── Module-scoped helpers ───────────────────────────────────────────────────
 
 /**
- * Picks cells named by `subscribedIds` from the container in order.
- * Missing ids are skipped.
+ * Resolves a single cell record for the collection form. Tries the graph
+ * container first; falls back to the collection itself for cells that exist
+ * outside the graph (e.g. `ui.Clipboard` clones). Fallback records are cached
+ * by `dia.Cell` identity so repeat renders share the same reference and the
+ * outer shallow-equality short-circuit can fire.
+ */
+function resolveCell<Cell extends AnyCellRecord>(
+  id: CellId,
+  container: ReadonlyContainer<Cell>,
+  collection: mvc.Collection<dia.Cell> | undefined,
+  fallbackCache: WeakMap<dia.Cell, AnyCellRecord> | undefined
+): Cell | undefined {
+  const fromContainer = container.get(id);
+  if (fromContainer !== undefined) return fromContainer;
+  if (!collection || !fallbackCache) return undefined;
+  const rawCell = collection.get(id);
+  if (!rawCell) return undefined;
+  const cached = fallbackCache.get(rawCell);
+  if (cached !== undefined) return cached as Cell;
+  const record = toCellRecord(rawCell) as Cell;
+  fallbackCache.set(rawCell, record);
+  return record;
+}
+
+/**
+ * Picks cells named by `subscribedIds` in order. Missing ids (not in the
+ * graph container and not in the optional fallback `collection`) are skipped.
  */
 function pickCells<Cell extends AnyCellRecord>(
   container: ReadonlyContainer<Cell>,
-  subscribedIds: readonly CellId[]
+  subscribedIds: readonly CellId[],
+  collection: mvc.Collection<dia.Cell> | undefined,
+  fallbackCache: WeakMap<dia.Cell, AnyCellRecord> | undefined
 ): readonly Cell[] {
   const picked: Cell[] = [];
   for (const id of subscribedIds) {
-    const cell = container.get(id);
+    const cell = resolveCell(id, container, collection, fallbackCache);
     if (cell !== undefined) picked.push(cell);
   }
   return picked;
@@ -48,15 +76,19 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
   container: ReadonlyContainer<Cell>,
   targetId: CellId | undefined,
   subscribedIds: readonly CellId[] | undefined,
+  collection: mvc.Collection<dia.Cell> | undefined,
+  fallbackCache: WeakMap<dia.Cell, AnyCellRecord> | undefined,
   arraySelector: ((cells: readonly Cell[]) => Selected) | undefined,
   cellSelector: ((cell: Cell | undefined) => Selected) | undefined
 ): CellsResult<Cell, Selected> {
   if (targetId !== undefined) {
-    const cell = container.get(targetId);
+    const cell = resolveCell(targetId, container, collection, fallbackCache);
     return cellSelector ? cellSelector(cell) : cell;
   }
   const source: readonly Cell[] =
-    subscribedIds === undefined ? container.getAll() : pickCells(container, subscribedIds);
+    subscribedIds === undefined
+      ? container.getAll()
+      : pickCells(container, subscribedIds, collection, fallbackCache);
   return arraySelector ? arraySelector(source) : source;
 }
 
@@ -65,7 +97,8 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
 /**
  * Subscribe to a collection's cells. Tracks collection membership
  * (`add`/`remove`/`reset`) and reads cell records from the GraphProvider's
- * container. Collection cells not present in the graph are skipped.
+ * container. Cells not in the graph (e.g. `ui.Clipboard` clones) fall back to
+ * the collection's own `dia.Cell` instances, converted to records on demand.
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param collection - JointJS collection whose member IDs drive the subscription
  * @returns readonly resolved cells array filtered by collection membership
@@ -224,6 +257,7 @@ export function useCells<
 
   const collectionIdsRef = useRef<readonly CellId[]>([]);
   const collectionVersionRef = useRef(0);
+  const fallbackCacheRef = useRef<WeakMap<dia.Cell, AnyCellRecord>>(new WeakMap());
 
   // Use `null` sentinel so the init-block runs on first render too, picking up
   // any models that already exist in the collection at subscribe time.
@@ -295,6 +329,8 @@ export function useCells<
         container,
         targetId,
         subscribedIds,
+        collectionArgument,
+        fallbackCacheRef.current,
         arraySelectorRef.current,
         cellSelectorRef.current
       );
