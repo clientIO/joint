@@ -1,0 +1,14 @@
+:root {
+    /* ── Paper ───────────────────────────────────────────────────────────── */
+    --jj-paper-color: var(--jj-color-light-300);
+    --jj-paper-grid-color: var(--jj-color-light-700);
+    --jj-paper-connecting-highlight-color: var(--jj-color-primary);
+    --jj-paper-embedding-highlight-color: var(--jj-color-primary);
+}
+
+/* ── Paper ─────────────────────────────────────────────────────────────── */
+
+.jj-paper {
+    background-color: var(--jj-paper-color);
+    height: stretch;
+}

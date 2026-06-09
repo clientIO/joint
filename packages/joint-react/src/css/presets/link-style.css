@@ -1,0 +1,34 @@
+:root {
+        /* ── Links ───────────────────────────────────────────────────────────── */
+    --jj-link-color: var(--jj-color-link);
+    --jj-link-width: 1;
+    --jj-link-dash: none;
+    --jj-link-line-cap: butt;
+    --jj-link-connecting-color: var(--jj-color-primary);
+    --jj-link-connecting-width: 1.5;
+    --jj-link-connecting-dash: 8 4;
+}
+
+/* ── Links ─────────────────────────────────────────────────────────────── */
+
+.jj-link-line {
+    stroke: var(--jj-link-color);
+    stroke-width: var(--jj-link-width);
+    stroke-dasharray: var(--jj-link-dash);
+    stroke-linecap: var(--jj-link-line-cap);
+}
+
+.jj-is-connecting {
+    --jj-link-color: var(--jj-link-connecting-color);
+    --jj-link-width: var(--jj-link-connecting-width);
+    --jj-link-dash: var(--jj-link-connecting-dash, none);
+}
+
+.jj-is-snapped {
+    --jj-link-color: var(--jj-color-primary);
+}
+
+.jj-link-wrapper {
+    stroke: var(--jj-link-wrapper-color, transparent);
+    stroke-width: var(--jj-link-wrapper-width, 10);
+}
