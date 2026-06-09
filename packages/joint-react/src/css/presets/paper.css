@@ -27,6 +27,6 @@
     stroke-width: var(--jj-port-available-border-width);
 }
 
-.jj-is-element-available .jj-box {
-    border-color: var(--jj-box-available-border-color);
+.jj-is-dragging .jj-port[magnet="active"] {
+    cursor: var(--jj-port-dragging-cursor);
 }

@@ -15,118 +15,14 @@
 
 @layer joint;
 
+/* Root defined css variables for use in JointJS */
+@import './theme.css' layer(joint);
+
+/* Styles for JointJS react core */
+@import './joint-react.css' layer(joint);
+
+/* Preset styles for JointJS components */
 @import './presets/element-ports.css' layer(joint);
 @import './presets/link-labels.css' layer(joint);
 @import './presets/link-style.css' layer(joint);
 @import './presets/paper.css' layer(joint);
-
-@layer joint {
-  :root {
-    /* ── Palette ─────────────────────────────────────────────────────────── */
-    --jj-color-dark-900: #6f859b;
-    --jj-color-dark-800: #566c81;
-    --jj-color-dark-700: #425567;
-    --jj-color-dark-600: #344351;
-    --jj-color-dark-500: #293a49;
-    --jj-color-dark-400: #253544;
-    --jj-color-dark-300: #202f3e;
-    --jj-color-dark-200: #1a2733;
-    --jj-color-dark-100: #131e29;
-
-    --jj-color-light-100: #f5f6f8;
-    --jj-color-light-125: #f3f6f8;
-    --jj-color-light-150: #f0f4f7;
-    --jj-color-light-200: #eaf0f4;
-    --jj-color-light-300: #e4ebf1;
-    --jj-color-light-400: #dde6ed;
-    --jj-color-light-500: #cfdbe4;
-    --jj-color-light-600: #c1cfda;
-    --jj-color-light-700: #a6b6c5;
-    --jj-color-light-800: #8a9eb0;
-    --jj-color-light-900: #6f859b;
-
-    --jj-color-success: #36a18b;
-    --jj-color-destructive: #e03131;
-    --jj-color-valid: #566c81;
-    --jj-color-invalid: #868e96;
-
-    --jj-radius-sm: 2px;
-    --jj-radius-md: 3px;
-    --jj-radius-lg: 4px;
-
-    --jj-space-xs: 2px;
-    --jj-space-sm: 4px;
-    --jj-space-md: 6px;
-    --jj-space-lg: 10px;
-
-    --jj-color-primary: var(--jj-color-dark-500);
-    --jj-color-primary-contrast: var(--jj-color-light-100);
-    --jj-color-surface: var(--jj-color-light-100);
-    --jj-color-shape-surface: var(--jj-color-light-150);
-    --jj-color-shape-border: var(--jj-color-light-800);
-    --jj-color-link: var(--jj-color-light-800);
-    --jj-color-tool: var(--jj-color-light-100);
-    --jj-color-tool-border: var(--jj-color-light-900);
-    --jj-color-text: var(--jj-color-dark-200);
-    --jj-color-border: var(--jj-color-light-500);
-    --jj-color-border-subtle: var(--jj-color-light-200);
-
-    /* Cursor for hover state on draggable elements */
-    --jj-drag-cursor: move;
-    /* Cursor for elements and link labels while dragging */
-    --jj-dragging-cursor: move;
-    /* Cursor for ports when they are active (ready to be dragged) */
-    --jj-port-drag-cursor: crosshair;
-    /* Cursor for ports while dragging */
-    --jj-port-dragging-cursor: crosshair;
-
-    /* ── Box (HTML elements) ─────────────────────────────────────────────── */
-    --jj-box-color: var(--jj-color-shape-surface);
-    --jj-box-hover-border-color: var(--jj-color-primary);
-    --jj-box-fg-color: var(--jj-color-text);
-    --jj-box-border-color: var(--jj-color-shape-border);
-    --jj-box-border-width: 1px;
-    --jj-box-border-radius: var(--jj-radius-lg);
-    --jj-box-padding: 8px 12px;
-    --jj-box-font-size: 14px;
-    --jj-box-font-family: sans-serif;
-    --jj-box-available-border-color: var(--jj-color-valid);
-  }
-
-  /* ── Elements ────────────────────────────────────────────────────────── */
-
-  /* Applied to a cell view's root while its DOM is being measured by
-     useMeasureNode. Removed on the view's first updateView so the element
-     only becomes visible after its transform is applied — avoids a jump
-     when measurement is paired with a position change. */
-  .jj-is-measuring {
-    visibility: hidden;
-  }
-
-  .jj-box {
-    background: var(--jj-box-color);
-    color: var(--jj-box-fg-color);
-    border: var(--jj-box-border-width) solid var(--jj-box-border-color);
-    border-radius: var(--jj-box-border-radius);
-    padding: var(--jj-box-padding);
-    font-size: var(--jj-box-font-size);
-    font-family: var(--jj-box-font-family);
-    transition: border-color 0.2s;
-  }
-
-  .jj-box:hover {
-    border-color: var(--jj-box-hover-border-color);
-    cursor: var(--jj-drag-cursor);
-  }
-
-  /* ── Paper Interactions ─────────────────────────────────────────────────────── */
-
-  .jj-is-dragging .jj-box {
-    cursor: var(--jj-dragging-cursor);
-  }
-
-  .jj-is-dragging .jj-port[magnet="active"] {
-    cursor: var(--jj-port-dragging-cursor);
-  }
-
-}
