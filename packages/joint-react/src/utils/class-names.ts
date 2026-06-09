@@ -4,6 +4,7 @@
  * new state class, add the rule there first.
  */
 
+
 /** Applied to a cell view's root while `useMeasureNode` is hiding it. */
 export const MEASURING_CLASS_NAME = 'jj-is-measuring';
 
@@ -15,9 +16,3 @@ export const CONNECTING_CLASS_NAME = 'jj-is-connecting';
 
 /** Applied to a link view while its arrowhead is snapped to a valid target. */
 export const SNAPPED_CLASS_NAME = 'jj-is-snapped';
-
-/** Applied to magnets highlighted as available link targets. */
-export const MAGNET_AVAILABLE_CLASS_NAME = 'jj-is-magnet-available';
-
-/** Applied to elements highlighted as available link targets. */
-export const ELEMENT_AVAILABLE_CLASS_NAME = 'jj-is-element-available';

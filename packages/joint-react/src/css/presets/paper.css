@@ -12,3 +12,21 @@
     background-color: var(--jj-paper-color);
     height: stretch;
 }
+
+/* ── Paper Interactions ─────────────────────────────────────────────────────── */
+
+.jj-port[magnet="active"]:not(.jj-is-magnet-available):hover {
+    fill: var(--jj-port-hover-color);
+    stroke: var(--jj-port-hover-border-color);
+    stroke-width: var(--jj-port-hover-border-width);
+}
+
+.jj-port.jj-is-magnet-available {
+    fill: var(--jj-port-available-color);
+    stroke: var(--jj-port-available-border-color);
+    stroke-width: var(--jj-port-available-border-width);
+}
+
+.jj-is-element-available .jj-box {
+    border-color: var(--jj-box-available-border-color);
+}
