@@ -20,7 +20,7 @@ function isPaperEventMap(value: PaperEventMap | DependencyList): value is PaperE
 
 /** Resolved {@link usePaperEvents} arguments. */
 interface ResolvedPaperEventMapArgs {
-  readonly paperTarget: PaperTarget | undefined;
+  readonly target: PaperTarget | undefined;
   readonly handlers: PaperEventMap;
   readonly dependencies: DependencyList;
 }
@@ -43,11 +43,11 @@ function resolvePaperEventMapArgs(
     const dependencies = isPaperEventMap(handlersOrDependencies)
       ? EMPTY_DEPENDENCIES
       : handlersOrDependencies;
-    return { paperTarget: undefined, handlers: paperTargetOrHandlers, dependencies };
+    return { target: undefined, handlers: paperTargetOrHandlers, dependencies };
   }
   // usePaperEvents(paperTarget, handlers, dependencies?)
   const handlers = isPaperEventMap(handlersOrDependencies) ? handlersOrDependencies : EMPTY_HANDLERS;
-  return { paperTarget: paperTargetOrHandlers, handlers, dependencies: dependenciesArgument };
+  return { target: paperTargetOrHandlers, handlers, dependencies: dependenciesArgument };
 }
 
 /**
@@ -114,13 +114,13 @@ export function usePaperEvents(
   handlersOrDependencies: PaperEventMap | DependencyList = EMPTY_DEPENDENCIES,
   dependenciesArgument: DependencyList = EMPTY_DEPENDENCIES
 ): void {
-  const { paperTarget, handlers, dependencies } = resolvePaperEventMapArgs(
+  const { target, handlers, dependencies } = resolvePaperEventMapArgs(
     paperTargetOrHandlers,
     handlersOrDependencies,
     dependenciesArgument
   );
 
-  const paperId = useResolvePaperId(paperTarget);
+  const paperId = useResolvePaperId(target);
   const paperStore = usePaperStore(paperId);
 
   useLayoutEffect(() => {
