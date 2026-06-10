@@ -76,6 +76,7 @@ export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-gr
  */
 export { usePaper } from './hooks/use-paper';
 export type { PaperHandle } from './hooks/use-paper';
+export type { PaperTarget } from './types/paper.types';
 
 /**
  * useCells()

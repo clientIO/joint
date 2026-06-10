@@ -31,26 +31,26 @@ export function useNodesMeasuredEffect(
   dependencies?: DependencyList
 ): void;
 export function useNodesMeasuredEffect(
-  target: PaperTarget,
+  paperTarget: PaperTarget,
   callback: Callback,
   dependencies?: DependencyList
 ): void;
 export function useNodesMeasuredEffect(
-  targetOrCallback: PaperTarget | Callback,
+  paperTargetOrCallback: PaperTarget | Callback,
   callbackOrDependencies?: Callback | DependencyList,
   dependenciesArgument?: DependencyList
 ): void {
-  const isContextForm = typeof targetOrCallback === 'function';
+  const isContextForm = typeof paperTargetOrCallback === 'function';
 
-  const target = isContextForm ? undefined : (targetOrCallback as PaperTarget);
+  const paperTarget = isContextForm ? undefined : (paperTargetOrCallback as PaperTarget);
   const callback = isContextForm
-    ? (targetOrCallback as Callback)
+    ? (paperTargetOrCallback as Callback)
     : (callbackOrDependencies as Callback);
   const dependencies = isContextForm
     ? (callbackOrDependencies as DependencyList | undefined)
     : dependenciesArgument;
 
-  const paperId = useResolvePaperId(target);
+  const paperId = useResolvePaperId(paperTarget);
   const paperStore = usePaperStore(paperId);
 
   const callbackRef = useRef(callback);

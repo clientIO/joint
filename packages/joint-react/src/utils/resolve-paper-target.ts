@@ -16,33 +16,33 @@ export function isPaperTarget(value: unknown): value is PaperTarget {
 /**
  * Resolves a `dia.Paper` instance from a {@link PaperTarget}. String ids cannot
  * be resolved here (no access to the paper store) and return `null`.
- * @param target - The paper target to resolve.
+ * @param paperTarget - The paper target to resolve.
  * @returns The resolved paper, or `null`.
  */
-export function resolvePaper(target: PaperTarget): dia.Paper | null {
-  if (isString(target)) {
+export function resolvePaper(paperTarget: PaperTarget): dia.Paper | null {
+  if (isString(paperTarget)) {
     // ID form is not supported here since we don't have access to the paper store.
     return null;
   }
-  if (target instanceof dia.Paper) {
-    return target;
+  if (paperTarget instanceof dia.Paper) {
+    return paperTarget;
   }
   // Remaining union member: RefObject<dia.Paper | null>.
-  return target.current;
+  return paperTarget.current;
 }
 
 /**
  * Extracts the paper id from a {@link PaperTarget}.
- * @param target - The paper target to extract the id from.
+ * @param paperTarget - The paper target to extract the id from.
  * @returns The paper id string, or `null`.
  */
-export function resolvePaperId(target?: PaperTarget): string | null {
-  if (!target) {
+export function resolvePaperId(paperTarget?: PaperTarget): string | null {
+  if (!paperTarget) {
     return null;
   }
-  if (isString(target)) {
+  if (isString(paperTarget)) {
     // A string target is already the id.
-    return target;
+    return paperTarget;
   }
-  return resolvePaper(target)?.id ?? null;
+  return resolvePaper(paperTarget)?.id ?? null;
 }

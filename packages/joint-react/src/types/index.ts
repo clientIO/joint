@@ -1,5 +1,3 @@
-import type { dia } from '@joint/core';
-
 /**
  * Union of known string literals plus arbitrary strings while preserving
  * intellisense for the known members.
@@ -22,11 +20,5 @@ export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
  */
 export type Nullable<T> = { [K in keyof T]: T[K] | null };
 
-/**
- * Identifies a Paper instance — a registered id, a React ref, or the Paper
- * itself. Paper-targeting hooks never throw; an unresolved target simply means
- * "use the current Paper context or the default paper".
- */
-export type PaperTarget = string | React.RefObject<dia.Paper | null> | dia.Paper;
-
 export * from './event.types';
+export * from './paper.types';

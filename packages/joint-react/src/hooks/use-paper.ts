@@ -14,22 +14,22 @@ import { isRef } from '../utils/is';
  * For string IDs and `dia.Paper` instances resolution is synchronous. For
  * `RefObject<dia.Paper>` targets, a layout effect re-resolves the ID once
  * `useImperativeHandle` has set the ref.
- * @param target - The paper target to resolve.
+ * @param paperTarget - The paper target to resolve.
  * @returns The paper ID string, or `undefined` when not yet available.
  * @internal
  */
-export function useResolvePaperId(target: PaperTarget | undefined): string | undefined {
-  const isRefTarget = isRef(target);
-  const paperId = resolvePaperId(target);
+export function useResolvePaperId(paperTarget: PaperTarget | undefined): string | undefined {
+  const isRefTarget = isRef(paperTarget);
+  const paperId = resolvePaperId(paperTarget);
   const [, forceRender] = useReducer((c: number) => c + 1, 0);
   const resolvedIdRef = useRef<string | null>(paperId);
   resolvedIdRef.current = paperId;
 
   useLayoutEffect(() => {
     if (!isRefTarget || resolvedIdRef.current) return;
-    const id = resolvePaperId(target);
-    if (id) {
-      resolvedIdRef.current = id;
+    const resolvedId = resolvePaperId(paperTarget);
+    if (resolvedId) {
+      resolvedIdRef.current = resolvedId;
       forceRender();
     }
   });
@@ -46,17 +46,17 @@ export function useResolvePaperId(target: PaperTarget | undefined): string | und
  * Resolution order (no explicit id):
  * 1. `PaperStoreContext` (when called inside a `<Paper>` subtree)
  * 2. `DEFAULT_PAPER_ID` lookup (when a single `<Paper>` exists without an explicit `id`)
- * @param id - An explicit paper id, or omitted for the context/default paper.
+ * @param paperId - An explicit paper id, or omitted for the context/default paper.
  * @returns The resolved paper store, or `undefined` when no paper is mounted yet.
  * @group Hooks
  */
-export function usePaperStore(id?: string): PaperStore | undefined {
+export function usePaperStore(paperId?: string): PaperStore | undefined {
   const contextStore = useContext(PaperStoreContext);
   const { getPaperStore } = useGraphStore();
 
   const paperStoreById = useInternalData((snapshot) => {
-    if (id) {
-      return snapshot.papers[id] ? (getPaperStore(id) ?? null) : null;
+    if (paperId) {
+      return snapshot.papers[paperId] ? (getPaperStore(paperId) ?? null) : null;
     }
     if (!contextStore && snapshot.papers[DEFAULT_PAPER_ID]) {
       return getPaperStore(DEFAULT_PAPER_ID) ?? null;
@@ -64,7 +64,7 @@ export function usePaperStore(id?: string): PaperStore | undefined {
     return null;
   });
 
-  if (id) return paperStoreById ?? undefined;
+  if (paperId) return paperStoreById ?? undefined;
   if (contextStore) return contextStore;
   return paperStoreById ?? undefined;
 }
@@ -87,13 +87,13 @@ export interface PaperHandle {
  *
  * The returned object is always stable; only `paper` is `undefined` until the
  * `<Paper>` view has mounted.
- * @param id - An explicit paper id, or omitted for the context/default paper.
+ * @param paperId - An explicit paper id, or omitted for the context/default paper.
  * @returns A stable object with the resolved `paper` (or `undefined`) and a `wakeUp` action.
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
  */
-export function usePaper(id?: string): PaperHandle {
-  const paperStore = usePaperStore(id);
+export function usePaper(paperId?: string): PaperHandle {
+  const paperStore = usePaperStore(paperId);
   const paper = paperStore?.paper ?? undefined;
   const wakeUp = useCallback(() => {
     paper?.wakeUp();
