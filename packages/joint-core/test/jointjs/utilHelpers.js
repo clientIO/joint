@@ -6,6 +6,86 @@ QUnit.module('Lodash util helpers', function() {
     }
     const symbol = Symbol('a');
 
+    // Prototype pollution payloads. `JSON.parse` interprets these keys as own
+    // enumerable data properties (not as `Object.prototype` accessors), which
+    // can allow malicious payloads to be assigned to object prototypes
+    // (CWE-1321). The potentially dangerous keys are:
+    // - `__proto__`,
+    // - `constructor.prototype`,
+    // - `prototype`.
+    const pollutionPayloads = [
+        ['__proto__', () => JSON.parse('{ "__proto__": { "polluted": "yes" } }')],
+        ['constructor.prototype', () => JSON.parse('{ "constructor": { "prototype": { "polluted": "yes" } } }')],
+        ['prototype', () => JSON.parse('{ "prototype": { "polluted": "yes" } }')]
+    ];
+
+    // Deep variants of `pollutionPayloads`. The potentially dangerous key sits
+    // one level down, so reaching it requires a recursive path.
+    // - NOTE: These only make sense to try with plain-object destinations.
+    const nestedPollutionPayloads = [
+        ['nested __proto__', () => JSON.parse('{ "nested": { "__proto__": { "polluted": "yes" } } }')],
+        ['nested constructor.prototype', () => JSON.parse('{ "nested": { "constructor": { "prototype": { "polluted": "yes" } } } }')]
+    ];
+
+    // Sample constructor used as a function destination by the pollution tests.
+    // - Checked by `assertNoPollution()` against pollution of a user function's
+    //   prototype.
+    function TestFunction() {}
+
+    // Save references to original items before we potentially rewrite them:
+    const originalToString = Object.prototype.toString;
+    const originalProtoOf = [
+        [Object, Object.getPrototypeOf(Object)],
+        [Function, Object.getPrototypeOf(Function)],
+        [TestFunction, Object.getPrototypeOf(TestFunction)]
+    ];
+
+    // Destinations to check against prototype pollution from `assign`/`merge`
+    // (which try to write into their first argument).
+    // - Plain objects and arrow functions are created fresh in each test.
+    // - Shared built-ins (`Object`/`Function`) and `TestFunction` are restored
+    //   by `assertNoPollution`
+    const pollutionDestinations = [
+        ['a plain object', () => ({})],
+        ['the `Object` constructor', () => Object],
+        ['the `Function` constructor', () => Function],
+        ['a custom function', () => TestFunction],
+        ['an arrow function', () => () => {}]
+    ];
+
+    // Check against prototype pollution (injected `polluted` key appearing on a
+    // shared prototype or on the result's own inherited chain), including
+    // prototype rebinding and tampering with built-in prototype functions.
+    function assertNoPollution(assert, result, label) {
+        assert.strictEqual(({}).polluted, undefined, `${label}: Object.prototype is not polluted`);
+        assert.strictEqual((() => {}).polluted, undefined, `${label}: Function.prototype is not polluted`);
+        assert.strictEqual((new TestFunction()).polluted, undefined, `${label}: TestFunction.prototype is not polluted`);
+        assert.strictEqual(result.polluted, undefined, `${label}: the result does not inherit an injected key`);
+        assert.strictEqual(typeof Object.prototype.toString, 'function', `${label}: Object.prototype.toString is intact`);
+
+        // Prevent cascading failures:
+        // - Remove every own property a regression could write.
+        delete Object.prototype.polluted;
+        delete Object.__proto__;
+        delete Object.constructor;
+        delete Function.prototype.polluted;
+        delete Function.__proto__;
+        delete Function.constructor;
+        delete TestFunction.prototype.polluted;
+        delete TestFunction.__proto__;
+        delete TestFunction.constructor;
+        // - Re-attach `Object.prototype.toString` if a regression deleted it.
+        if (Object.prototype.toString !== originalToString) {
+            Object.prototype.toString = originalToString;
+        }
+        // - Undo `[[Prototype]]` rebinding from a `__proto__` setter regression.
+        originalProtoOf.forEach(([ctor, proto]) => {
+            if (Object.getPrototypeOf(ctor) !== proto) {
+                Object.setPrototypeOf(ctor, proto);
+            }
+        });
+    }
+
     /** Used to check whether methods support typed arrays. */
     const typedArrays = [
         'Float32Array',
@@ -50,6 +130,24 @@ QUnit.module('Lodash util helpers', function() {
             array[2] = 3;
 
             assert.deepEqual(joint.util.assign({}, array), { '0': 1, '1': undefined, '2': 3 });
+        });
+
+        // `assign` writes onto its first argument, so we need to:
+        // - Check (every destination x every shallow payload) for prototype
+        //   pollution.
+        pollutionDestinations.forEach(([destName, createDestination]) => {
+            pollutionPayloads.forEach(([name, payload]) => {
+                QUnit.test(`into ${destName} should not pollute via a \`${name}\` payload`, function(assert) {
+                    const result = joint.util.assign(createDestination(), payload());
+                    assertNoPollution(assert, result, `assign into ${destName} (${name})`);
+                });
+            });
+        });
+        // - Check (custom function x array-like payload) for prototype
+        //   pollution.
+        QUnit.test('into a custom function via an array-like source should not pollute', function(assert) {
+            const result = joint.util.assign(TestFunction, JSON.parse('{ "length": 0, "prototype": { "polluted": "yes" } }'));
+            assertNoPollution(assert, result, 'assign TestFunction (array-like + prototype)');
         });
     });
 
@@ -114,6 +212,18 @@ QUnit.module('Lodash util helpers', function() {
 
             expected = joint.util.clone(object);
             assert.deepEqual(joint.util.defaults({}, object, source), expected);
+        });
+
+        // `defaults` writes onto its first argument, so we need to:
+        // - Check (every destination x every shallow payload) for prototype
+        //   pollution.
+        pollutionDestinations.forEach(([destName, createDestination]) => {
+            pollutionPayloads.forEach(([name, payload]) => {
+                QUnit.test(`into ${destName} should not pollute via a \`${name}\` payload`, function(assert) {
+                    const result = joint.util.defaults(createDestination(), payload());
+                    assertNoPollution(assert, result, `defaults into ${destName} (${name})`);
+                });
+            });
         });
     });
 
@@ -213,6 +323,26 @@ QUnit.module('Lodash util helpers', function() {
             delete Object.a;
 
             assert.notOk(actual);
+        });
+
+        // `defaultsDeep` writes onto its first argument, so we need to:
+        // - Check (every destination x every shallow payload) for prototype
+        //   pollution.
+        pollutionDestinations.forEach(([destName, createDestination]) => {
+            pollutionPayloads.forEach(([name, payload]) => {
+                QUnit.test(`into ${destName} should not pollute via a \`${name}\` payload`, function(assert) {
+                    const result = joint.util.defaultsDeep(createDestination(), payload());
+                    assertNoPollution(assert, result, `defaultsDeep into ${destName} (${name})`);
+                });
+            });
+        });
+        // - Check (plain-object destination x every nested payload) for
+        //   prototype pollution.
+        nestedPollutionPayloads.forEach(([name, payload]) => {
+            QUnit.test(`should not pollute via a \`${name}\` payload`, function(assert) {
+                const result = joint.util.defaultsDeep({}, payload());
+                assertNoPollution(assert, result.nested, `defaultsDeep (${name})`);
+            });
         });
     });
 
@@ -781,6 +911,32 @@ QUnit.module('Lodash util helpers', function() {
                         }
                     });
                 });
+            });
+        });
+
+        // `clone` is shallow, so we only need to:
+        // - Check every shallow payload for prototype pollution.
+        // - (Nested potentially dangerous keys are never descended into.)
+        pollutionPayloads.forEach(([name, payload]) => {
+            QUnit.test(`clone should not pollute via a \`${name}\` payload`, function(assert) {
+                const result = joint.util.clone(payload());
+                assertNoPollution(assert, result, `clone (${name})`);
+            });
+        });
+
+        // `cloneDeep` recurses, so we need to:
+        // - Check every shallow payload for prototype pollution.
+        pollutionPayloads.forEach(([name, payload]) => {
+            QUnit.test(`cloneDeep should not pollute via a \`${name}\` payload`, function(assert) {
+                const result = joint.util.cloneDeep(payload());
+                assertNoPollution(assert, result, `cloneDeep (${name})`);
+            });
+        });
+        // - Check every nested payload for prototype pollution.
+        nestedPollutionPayloads.forEach(([name, payload]) => {
+            QUnit.test(`cloneDeep should not pollute via a \`${name}\` payload`, function(assert) {
+                const result = joint.util.cloneDeep(payload());
+                assertNoPollution(assert, result.nested, `cloneDeep (${name})`);
             });
         });
     });
@@ -2187,6 +2343,17 @@ QUnit.module('Lodash util helpers', function() {
             delete String.prototype.a;
             delete String.prototype.b;
         });
+
+        // `omit` clones its first argument and then unsets caller-specified
+        // paths, so we need to:
+        // - Check potentially dangerous keys for tampering with shared
+        //   prototype (`Object.prototype.toString` in this case).
+        ['__proto__.toString', 'constructor.prototype.toString'].forEach((path) => {
+            QUnit.test(`should not delete a built-in via a \`${path}\` path`, function(assert) {
+                const result = joint.util.omit({ 'a': 1 }, path);
+                assertNoPollution(assert, result, `omit (${path})`);
+            });
+        });
     });
 
     QUnit.module('pick', function() {
@@ -2230,6 +2397,18 @@ QUnit.module('Lodash util helpers', function() {
 
         QUnit.test('should work with a primitive `object`', function(assert) {
             assert.deepEqual(joint.util.pick('', 'slice'), { 'slice': ''.slice });
+        });
+
+        // `pick` writes caller-specified paths into a fresh object, so we need
+        // to:
+        // - Check potentially dangerous keys for prototype pollution.
+        QUnit.test('should not pollute via a `__proto__` path', function(assert) {
+            const result = joint.util.pick(JSON.parse('{ "__proto__": { "polluted": "yes" } }'), '__proto__.polluted');
+            assertNoPollution(assert, result, 'pick (__proto__ path)');
+        });
+        QUnit.test('should not pollute via a `constructor.prototype` path', function(assert) {
+            const result = joint.util.pick(JSON.parse('{ "constructor": { "prototype": { "polluted": "yes" } } }'), 'constructor.prototype.polluted');
+            assertNoPollution(assert, result, 'pick (constructor.prototype path)');
         });
     });
 
@@ -2650,6 +2829,26 @@ QUnit.module('Lodash util helpers', function() {
 
             assert.deepEqual(actual, expected);
         });
+
+        // `merge` writes onto its first argument, so we need to:
+        // - Check (every destination x every shallow payload) for prototype
+        //   pollution.
+        pollutionDestinations.forEach(([destName, createDestination]) => {
+            pollutionPayloads.forEach(([name, payload]) => {
+                QUnit.test(`into ${destName} should not pollute via a \`${name}\` payload`, function(assert) {
+                    const result = joint.util.merge(createDestination(), payload());
+                    assertNoPollution(assert, result, `merge into ${destName} (${name})`);
+                });
+            });
+        });
+        // - Check (plain-object destination x every nested payload) for
+        //   prototype pollution.
+        nestedPollutionPayloads.forEach(([name, payload]) => {
+            QUnit.test(`should not pollute via a \`${name}\` payload`, function(assert) {
+                const result = joint.util.merge({}, payload());
+                assertNoPollution(assert, result.nested, `merge (${name})`);
+            });
+        });
     });
 
     QUnit.module('merge with customizer (mergeWith)', function() {
@@ -2696,6 +2895,42 @@ QUnit.module('Lodash util helpers', function() {
             });
 
             assert.deepEqual(actual, { 'a': ['a', 'b', 'c'], 'b': ['b', 'c'] });
+        });
+
+        // `merge` with a customizer that returns a non-undefined value should
+        // work in the same way as `merge` without any customizer, so we need
+        // to:
+        // - Check (every destination x every shallow payload) for prototype
+        //   pollution.
+        pollutionDestinations.forEach(([destName, createDestination]) => {
+            pollutionPayloads.forEach(([name, payload]) => {
+                QUnit.test(`into ${destName} should not pollute when the customizer injects a value into a \`${name}\` payload`, function(assert) {
+                    const result = joint.util.merge(createDestination(), payload(), () => JSON.parse('{ "polluted": "yes" }'));
+                    assertNoPollution(assert, result, `mergeWith customizer injection into ${destName} (${name})`);
+                });
+            });
+        });
+        // - Check (plain-object destination x every nested payload) for
+        //   prototype pollution.
+        nestedPollutionPayloads.forEach(([name, payload]) => {
+            QUnit.test(`should not pollute when the customizer injects a value at the unsafe key reached via a \`${name}\` payload`, function(assert) {
+                const injectAtUnsafeKey = (objValue, srcValue, key) => {
+                    // Inject matching unsafe payload at each potentially
+                    // dangerous key.
+                    switch (key) {
+                        case '__proto__':
+                            return JSON.parse('{ "polluted": "yes" }');
+                        case 'constructor':
+                            // Traversal step - payload placed one level down.
+                            return JSON.parse('{ "prototype": { "polluted": "yes" } }');
+                        default:
+                            // Lets `merge` recurse into the payload.
+                            return undefined;
+                    }
+                };
+                const result = joint.util.merge({}, payload(), injectAtUnsafeKey);
+                assertNoPollution(assert, result.nested, `mergeWith deep customizer injection (${name})`);
+            });
         });
     });
 });
