@@ -20,7 +20,7 @@ function isPaperEventMap(value: PaperEventMap | DependencyList): value is PaperE
 
 /** Resolved {@link usePaperEvents} arguments. */
 interface ResolvedPaperEventMapArgs {
-  readonly target: PaperTarget | undefined;
+  readonly paperTarget: PaperTarget | undefined;
   readonly handlers: PaperEventMap;
   readonly dependencies: DependencyList;
 }
@@ -28,26 +28,26 @@ interface ResolvedPaperEventMapArgs {
 /**
  * Resolves the overloaded `usePaperEvents` arguments into a paper target, a
  * handlers map, and a dependency list — using runtime type guards, no casts.
- * @param paperOrHandlers - First arg: a paper target, or the handlers map.
+ * @param paperTargetOrHandlers - First arg: a paper target, or the handlers map.
  * @param handlersOrDependencies - Second arg: handlers (target form) or dependencies (context form).
  * @param dependenciesArgument - Third arg: dependencies (target form only).
  * @returns The resolved target, handlers, and dependencies.
  */
 function resolvePaperEventMapArgs(
-  paperOrHandlers: PaperTarget | PaperEventMap,
+  paperTargetOrHandlers: PaperTarget | PaperEventMap,
   handlersOrDependencies: PaperEventMap | DependencyList,
   dependenciesArgument: DependencyList
 ): ResolvedPaperEventMapArgs {
-  if (!isPaperTarget(paperOrHandlers)) {
+  if (!isPaperTarget(paperTargetOrHandlers)) {
     // usePaperEvents(handlers, dependencies?)
     const dependencies = isPaperEventMap(handlersOrDependencies)
       ? EMPTY_DEPENDENCIES
       : handlersOrDependencies;
-    return { target: undefined, handlers: paperOrHandlers, dependencies };
+    return { paperTarget: undefined, handlers: paperTargetOrHandlers, dependencies };
   }
-  // usePaperEvents(target, handlers, dependencies?)
+  // usePaperEvents(paperTarget, handlers, dependencies?)
   const handlers = isPaperEventMap(handlersOrDependencies) ? handlersOrDependencies : EMPTY_HANDLERS;
-  return { target: paperOrHandlers, handlers, dependencies: dependenciesArgument };
+  return { paperTarget: paperTargetOrHandlers, handlers, dependencies: dependenciesArgument };
 }
 
 /**
@@ -99,28 +99,28 @@ export function subscribeToPaperEvents(
 export function usePaperEvents(handlers: PaperEventMap, dependencies?: DependencyList): void;
 /**
  * Subscribes to paper events on the given paper target.
- * @param paper - Paper reference (string ID, dia.Paper instance, or ref).
+ * @param paperTarget - Paper reference (string ID, dia.Paper instance, or ref).
  * @param handlers - Event handlers map.
  * @param dependencies - Optional dependency array controlling re-subscription.
  * @group Hooks
  */
 export function usePaperEvents(
-  paper: PaperTarget,
+  paperTarget: PaperTarget,
   handlers: PaperEventMap,
   dependencies?: DependencyList
 ): void;
 export function usePaperEvents(
-  paperOrHandlers: PaperTarget | PaperEventMap,
+  paperTargetOrHandlers: PaperTarget | PaperEventMap,
   handlersOrDependencies: PaperEventMap | DependencyList = EMPTY_DEPENDENCIES,
   dependenciesArgument: DependencyList = EMPTY_DEPENDENCIES
 ): void {
-  const { target, handlers, dependencies } = resolvePaperEventMapArgs(
-    paperOrHandlers,
+  const { paperTarget, handlers, dependencies } = resolvePaperEventMapArgs(
+    paperTargetOrHandlers,
     handlersOrDependencies,
     dependenciesArgument
   );
 
-  const paperId = useResolvePaperId(target);
+  const paperId = useResolvePaperId(paperTarget);
   const paperStore = usePaperStore(paperId);
 
   useLayoutEffect(() => {

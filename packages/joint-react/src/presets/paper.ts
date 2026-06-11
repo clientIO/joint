@@ -2,7 +2,6 @@ import { dia, util } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
-import { DRAGGING_CLASS_NAME, ELEMENT_AVAILABLE_CLASS_NAME, MAGNET_AVAILABLE_CLASS_NAME } from '../utils/class-names';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -42,6 +41,15 @@ function getPointerId(event: dia.Event): number | null {
 const DEFAULT_CLICK_THRESHOLD = 5;
 const DEFAULT_GRID_SIZE = 10;
 const DEFAULT_SNAP_RADIUS = 15;
+
+/** Applied to magnets highlighted as available link targets. */
+export const MAGNET_AVAILABLE_CLASS_NAME = 'jj-is-magnet-available';
+
+/** Applied to elements highlighted as available link targets. */
+export const ELEMENT_AVAILABLE_CLASS_NAME = 'jj-is-element-available';
+
+/** Applied to the paper's host while a pointer drag is in progress. */
+export const DRAGGING_CLASS_NAME = 'jj-is-dragging';
 
 // Future improvement: this should sit on the dia.Paper prototype,
 // so it can be overridden by inheriting classes (e.g. Paper)

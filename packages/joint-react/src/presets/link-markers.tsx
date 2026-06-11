@@ -50,8 +50,8 @@ function defaults(options: LinkMarkerOptions = {}) {
  */
 export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 8 * scale;
-  const h = 4 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
   return {
     markup: jsx(
       <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
@@ -66,8 +66,8 @@ export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
  */
 export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
-  const w = 8 * scale;
-  const h = 4 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
   return {
     markup: jsx(
       <path d={`M ${w} ${-h} L 0 0 L ${w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
@@ -82,9 +82,9 @@ export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerReco
  */
 export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 10 * scale;
-  const h = 5 * scale;
-  const indent = 3 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
+  const indent = 2 * scale;
   return {
     markup: jsx(
       <path d={`M ${indent} ${-h} L ${indent - w} 0 L ${indent} ${h} L 0 0 z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
@@ -98,9 +98,9 @@ export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRe
  */
 export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 10 * scale;
-  const h = 5 * scale;
-  const indent = 3 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
+  const indent = 2 * scale;
   return {
     markup: jsx(
       <path d={`
@@ -121,9 +121,9 @@ export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRec
  */
 export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 7 * scale;
-  const h = 4 * scale;
-  const gap = 8 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
+  const gap = 7 * scale;
   return {
     markup: jsx(
       <>
@@ -154,8 +154,8 @@ export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord 
  */
 export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 5 * scale;
-  const h = 5 * scale;
+  const w = 4 * scale;
+  const h = 4 * scale;
   return {
     markup: jsx(
       <path d={`M 0 0 L ${-w} ${-h} L ${-w * 2} 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
@@ -183,7 +183,7 @@ export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
  */
 export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
-  const d = 5 * scale;
+  const d = 4 * scale;
   return {
     markup: jsx(
       <path d={`M ${-d} ${-d} L ${d} ${d} M ${-d} ${d} L ${d} ${-d}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
@@ -197,8 +197,8 @@ export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
  */
 export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 8 * scale;
-  const h = 4 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
   return {
     markup: jsx(
       <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
@@ -212,8 +212,8 @@ export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
  */
 export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 8 * scale;
-  const h = 4 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
   return {
     markup: jsx(
       <>
@@ -230,8 +230,8 @@ export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerReco
  */
 export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
-  const w = 8 * scale;
-  const h = 4 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
   return {
     markup: jsx(
       <>
@@ -248,9 +248,9 @@ export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
  */
 export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
-  const w = 8 * scale;
-  const h = 4 * scale;
-  const r = 4 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
+  const r = 3 * scale;
   const crowX = -(r * 2);
   return {
     markup: jsx(
@@ -268,7 +268,7 @@ export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerR
  */
 export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
-  const h = 5 * scale;
+  const h = 4 * scale;
   return {
     markup: jsx(
       <>
@@ -284,8 +284,8 @@ export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
  */
 export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
-  const h = 5 * scale;
-  const r = 4 * scale;
+  const h = 4 * scale;
+  const r = 3 * scale;
   const circleX = -r;
   return {
     markup: jsx(
@@ -303,8 +303,8 @@ export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRe
  */
 export function linkMarkerOneOrMany(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
-  const w = 8 * scale;
-  const h = 4 * scale;
+  const w = 6 * scale;
+  const h = 3 * scale;
   return {
     markup: jsx(
       <>

@@ -1,5 +1,10 @@
 import { dia } from '@joint/core';
-import { CONNECTING_CLASS_NAME, SNAPPED_CLASS_NAME } from '../utils/class-names';
+
+/** Applied to a link view while its arrowhead is being dragged. */
+export const CONNECTING_CLASS_NAME = 'jj-is-connecting';
+
+/** Applied to a link view while its arrowhead is snapped to a valid target. */
+export const SNAPPED_CLASS_NAME = 'jj-is-snapped';
 
 /**
  * Custom LinkView that adds CSS class hooks for link interaction states.
