@@ -52,6 +52,10 @@
     cursor: var(--jj-port-dragging-cursor);
 }
 
+.jj-is-dragging .jj-box {
+    cursor: var(--jj-dragging-cursor);
+}
+
 .jj-is-element-available .jj-box {
     border-color: var(--jj-box-available-border-color);
 }

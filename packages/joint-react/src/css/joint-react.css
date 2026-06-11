@@ -38,7 +38,3 @@
     border-color: var(--jj-box-hover-border-color);
     cursor: var(--jj-drag-cursor);
 }
-
-.jj-is-dragging .jj-box {
-    cursor: var(--jj-dragging-cursor);
-}

@@ -18,6 +18,11 @@
     stroke-linecap: var(--jj-link-line-cap);
 }
 
+.jj-link-wrapper {
+    stroke: var(--jj-link-wrapper-color, transparent);
+    stroke-width: var(--jj-link-wrapper-width, 10);
+}
+
 .jj-is-connecting {
     --jj-link-color: var(--jj-link-connecting-color);
     --jj-link-width: var(--jj-link-connecting-width);
@@ -28,7 +33,3 @@
     --jj-link-color: var(--jj-color-primary);
 }
 
-.jj-link-wrapper {
-    stroke: var(--jj-link-wrapper-color, transparent);
-    stroke-width: var(--jj-link-wrapper-width, 10);
-}
