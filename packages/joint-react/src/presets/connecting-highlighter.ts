@@ -6,11 +6,11 @@ export const CONNECTING_HIGHLIGHTER_NAME = 'connecting';
 
 /**
  * Custom connecting highlighter that combines a stroke outline with a CSS class
- * on the port element. The stroke element carries `jj-connecting-stroke` which
+ * on the port element. The stroke element carries `jj-highlight-connecting` which
  * allows CSS @starting-style transitions to animate the highlight's appearance.
  */
 export const ConnectingHighlighter = highlighters.stroke.extend({
-    className: `joint-highlight-stroke jj-highlight-connecting`,
+    className: `jj-highlight-connecting`,
     classNamePrefix: '',
 
     highlight(this: highlighters.stroke, cellView: dia.CellView, node: SVGElement): void {
