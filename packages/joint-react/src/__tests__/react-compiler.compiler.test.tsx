@@ -22,9 +22,10 @@ import { render, screen, fireEvent, act, renderHook } from '@testing-library/rea
 import { GraphProvider } from '../components/graph/graph-provider';
 import { useCells } from '../hooks/use-cells';
 import { useGraphStore } from '../hooks/use-graph-store';
-import { element, link, type InferElement } from '../utils/create';
+import type { InferElement } from '../utils/create';
 import { ELEMENT_MODEL_TYPE } from '../mvc/element-model';
-import type { CellRecord } from '../types/cell.types';
+import { LINK_MODEL_TYPE } from '../mvc/link-model';
+import type { CellRecord, ElementRecord, LinkRecord } from '../types/cell.types';
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
@@ -135,10 +136,10 @@ describe('React Compiler — @joint/react behaviour is unchanged', () => {
     expect(new Set(result.current)).toEqual(new Set(['b', 'c']));
   });
 
-  it('the element() / link() helpers and InferElement work compiled', () => {
-    const cells = [
-      element({ id: 'n', data: { label: 'A' } }),
-      link({ id: 'e', source: 'n', target: 'm' }),
+  it('InferElement narrows a cells collection compiled', () => {
+    const cells: Array<ElementRecord<{ label: string }> | LinkRecord<unknown>> = [
+      { id: 'n', type: ELEMENT_MODEL_TYPE, data: { label: 'A' } },
+      { id: 'e', type: LINK_MODEL_TYPE, source: 'n', target: 'm' },
     ];
     type Node = InferElement<typeof cells>;
     const node: Node = cells[0] as Node;

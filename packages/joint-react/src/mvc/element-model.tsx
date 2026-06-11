@@ -1,5 +1,4 @@
 import { dia } from '@joint/core';
-import type { ElementRecord } from '../types/cell.types';
 export const ELEMENT_MODEL_TYPE = 'element';
 
 /**
