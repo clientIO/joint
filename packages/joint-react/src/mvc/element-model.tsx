@@ -53,6 +53,8 @@ export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Eleme
       // Explicitly set attributes to avoid triggering `change` events.
       // See `element-mapper.ts` to see the values representing "no value"
       data: {},
+      // @todo we have to cast as `unknown`, because super.defaults need to be function, but its not.
+      // Mismatch in `joint-core/types/mvc.d.ts` typings needs to be resolved in joint-core to fix this.
     } as unknown as dia.Element.Attributes & Attributes;
   }
 }
