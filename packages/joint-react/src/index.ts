@@ -107,7 +107,6 @@ export type { MeasureNodeOptions } from './hooks/use-measure-node';
 export type {
   TransformElementLayout,
   TransformElementLayoutParams,
-  ElementLayoutOptionalXY,
 } from './store/create-elements-size-observer';
 
 /**

@@ -29,7 +29,7 @@
     "Callback",
     "BaseLinkOptions",
     "ProviderCells",
-    "ElementLayout",
+    "ElementLayoutOptionalXY",
     "IncrementalChange",
     "ArrayUpdate",
     "SetCell",
