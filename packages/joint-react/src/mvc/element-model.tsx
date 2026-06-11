@@ -1,4 +1,5 @@
 import { dia } from '@joint/core';
+import { PortalHostCell } from './paper.types';
 export const ELEMENT_MODEL_TYPE = 'element';
 
 /**
@@ -8,7 +9,9 @@ export const ELEMENT_MODEL_TYPE = 'element';
 export const PORTAL_SELECTOR = '__portal__';
 
 /**
- * A custom JointJS element that can render React components.
+ * Default element class used by `@joint/react`. Any `dia.Element` subclass
+ * can host React content; `ElementModel` is just what `@joint/react` reaches
+ * for when no custom class is provided.
  * @group Models
  * @example
  * ```ts
@@ -23,7 +26,7 @@ export const PORTAL_SELECTOR = '__portal__';
  */
 export class ElementModel<
   Attributes extends dia.Element.Attributes = dia.Element.Attributes
-> extends dia.Element<Attributes> {
+> extends dia.Element<Attributes> implements PortalHostCell {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
    * Read by `PaperView` to locate where `renderElement` mounts.

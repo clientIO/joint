@@ -1,17 +1,16 @@
 import { dia } from '@joint/core';
 import { linkStyle } from '../presets/link-style';
+import { PortalHostCell } from './paper.types';
 
 export const LINK_MODEL_TYPE = 'link';
 
 const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
 
 /**
- * A custom JointJS link that can render React components.
- * Provides wrapper, line, and portal markup. React renders additional content via portal.
- *
- * Theme-derived visual properties (colors, stroke widths, defaultLabel) are not
- * set here — they are applied at mapping time by the link mapper, so the theme
- * can be overridden via GraphProvider.
+ * Default link class used by `@joint/react`. Any `dia.Link` subclass can host
+ * React content; `LinkModel` is just what `@joint/react` reaches for when no
+ * custom class is provided. Ships wrapper + line markup with the default
+ * link style applied.
  * @group Models
  * @example
  * ```ts
@@ -26,7 +25,7 @@ const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
  */
 export class LinkModel<
   Attributes extends dia.Link.Attributes = dia.Link.Attributes
-> extends dia.Link<Attributes> {
+> extends dia.Link<Attributes> implements PortalHostCell {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
    * Links render into their root `<g>` — the experimental `renderLink` mounts
