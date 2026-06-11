@@ -4,12 +4,11 @@
     --jj-box-hover-border-color: var(--jj-color-primary);
     --jj-box-fg-color: var(--jj-color-text);
     --jj-box-border-color: var(--jj-color-shape-border);
-    --jj-box-border-width: 1px;
+    --jj-box-border-width: var(--jj-stroke-width);
     --jj-box-border-radius: var(--jj-radius-lg);
     --jj-box-padding: 8px 12px;
     --jj-box-font-size: 14px;
     --jj-box-font-family: sans-serif;
-    --jj-box-available-border-color: var(--jj-color-valid);
 }
 
 /* ── Elements ────────────────────────────────────────────────────────── */
@@ -25,7 +24,9 @@
 .jj-box {
     background: var(--jj-box-color);
     color: var(--jj-box-fg-color);
-    border: var(--jj-box-border-width) solid var(--jj-box-border-color);
+    border-width: var(--jj-box-border-width);
+    border-style: solid;
+    border-color: var(--jj-box-border-color);
     border-radius: var(--jj-box-border-radius);
     padding: var(--jj-box-padding);
     font-size: var(--jj-box-font-size);
@@ -36,10 +37,6 @@
 .jj-box:hover {
     border-color: var(--jj-box-hover-border-color);
     cursor: var(--jj-drag-cursor);
-}
-
-.jj-is-element-available .jj-box {
-    border-color: var(--jj-box-available-border-color);
 }
 
 .jj-is-dragging .jj-box {

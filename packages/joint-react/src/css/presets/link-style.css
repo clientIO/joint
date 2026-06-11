@@ -1,11 +1,11 @@
 :root {
         /* ── Links ───────────────────────────────────────────────────────────── */
     --jj-link-color: var(--jj-color-link);
-    --jj-link-width: 1;
+    --jj-link-width: var(--jj-stroke-width);
     --jj-link-dash: none;
     --jj-link-line-cap: butt;
-    --jj-link-connecting-color: var(--jj-color-primary);
-    --jj-link-connecting-width: 1.5;
+    --jj-link-connecting-color: var(--jj-color-link);
+    --jj-link-connecting-width: var(--jj-stroke-width);
     --jj-link-connecting-dash: 8 4;
 }
 
@@ -21,7 +21,7 @@
 .jj-is-connecting {
     --jj-link-color: var(--jj-link-connecting-color);
     --jj-link-width: var(--jj-link-connecting-width);
-    --jj-link-dash: var(--jj-link-connecting-dash, none);
+    --jj-link-dash: var(--jj-link-connecting-dash);
 }
 
 .jj-is-snapped {

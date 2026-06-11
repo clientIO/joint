@@ -4,6 +4,21 @@
     --jj-paper-grid-color: var(--jj-color-light-700);
     --jj-paper-connecting-highlight-color: var(--jj-color-primary);
     --jj-paper-embedding-highlight-color: var(--jj-color-primary);
+
+    /* ── Paper Interactions ────────────────────────────────────────────────── */
+    --jj-port-hover-color: var(--jj-color-shape-surface);
+    --jj-port-hover-border-color: var(--jj-color-link);
+    /* Effective 2px because of paint-order: stroke */
+    --jj-port-hover-border-width: calc(var(--jj-stroke-width) * 2);
+    --jj-port-available-color: var(--jj-color-dark-800);
+    --jj-port-available-border-color: var(--jj-color-dark-800);
+    --jj-port-available-border-width: var(--jj-port-border-width);
+
+    --jj-port-snapped-color: var(--jj-color-primary);
+    --jj-port-snapped-border-color: var(--jj-color-primary);
+    --jj-port-snapped-border-width: var(--jj-port-border-width);
+
+    --jj-box-available-border-color: var(--jj-color-valid);
 }
 
 /* ── Paper ─────────────────────────────────────────────────────────────── */
@@ -27,6 +42,29 @@
     stroke-width: var(--jj-port-available-border-width);
 }
 
+.jj-port.jj-is-snapped {
+    fill: var(--jj-port-snapped-color);
+    stroke: var(--jj-port-snapped-border-color);
+    stroke-width: var(--jj-port-snapped-border-width);
+}
+
 .jj-is-dragging .jj-port[magnet="active"] {
     cursor: var(--jj-port-dragging-cursor);
+}
+
+.jj-is-element-available .jj-box {
+    border-color: var(--jj-box-available-border-color);
+}
+
+/* ── Connecting highlight stroke ────────────────────────────────────────── */
+
+.jj-highlight-connecting {
+    transition: opacity 0.2s ease;
+    opacity: 1;
+}
+
+@starting-style {
+    .jj-highlight-connecting {
+        opacity: 0;
+    }
 }
