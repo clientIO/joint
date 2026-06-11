@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { LinkRecord } from '../../types/cell.types';
-import type { PortalSelector } from '../../mvc/react-paper.types';
-import type { ReactPaper } from '../../mvc/react-paper';
+import type { PortalSelector } from '../../mvc/paper.types';
+import type { PaperView } from '../../mvc/paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type {
   ConnectionEnd,
@@ -362,9 +362,9 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
   readonly portalSelector?: PortalSelector;
 
   /**
-   * Pre-created ReactPaper instance to adopt.
+   * Pre-created PaperView instance to adopt.
    * When provided, the Paper component wraps this paper instead of creating a new one.
    * The paper's DOM is assumed to be managed externally (e.g. by a stencil).
    */
-  readonly paper?: ReactPaper;
+  readonly paper?: PaperView;
 }

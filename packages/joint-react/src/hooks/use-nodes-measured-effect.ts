@@ -71,7 +71,7 @@ export function useNodesMeasuredEffect(
       }
       callbackRef.current({ isInitial, paper, graph });
       // The user callback may have moved cells via cell.position()/cell.size().
-      // ReactPaper runs in async mode, so those updates would be queued for the
+      // PaperView runs in async mode, so those updates would be queued for the
       // next rAF — producing a one-frame flash where the element is visible at its
       // pre-layout position. Flush them synchronously so the next paint already
       // reflects the post-layout state.

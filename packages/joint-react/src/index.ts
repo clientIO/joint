@@ -29,7 +29,7 @@ export type {
   PortalHostCell,
   PortalSelector,
   PortalSelectorParams,
-} from './mvc/react-paper.types';
+} from './mvc/paper.types';
 export {
   canConnect,
   connectionStrategy,
@@ -93,7 +93,7 @@ export type { ArrayUpdate } from './store/state-container';
 export { usePaper } from './hooks/use-paper';
 export type { PaperHandle } from './hooks/use-paper';
 export type { PaperTarget } from './types/paper.types';
-export type { ReactPaper } from './mvc/react-paper';
+export type { PaperView } from './mvc/paper';
 
 /**
  * useCells()

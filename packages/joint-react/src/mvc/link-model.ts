@@ -25,7 +25,7 @@ const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
  * ```
  */
 export class LinkModel<
-  Attributes extends dia.Link.Attributes = dia.Link.Attributes,
+  Attributes extends dia.Link.Attributes = dia.Link.Attributes
 > extends dia.Link<Attributes> {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
@@ -40,7 +40,9 @@ export class LinkModel<
    * Includes `connection: true` attrs which are required for JointJS to compute link paths.
    * @returns The default attributes.
    */
-  defaults() {
+  defaults(): Attributes {
+    // @ts-expect-error super.defaults is not a function in JS, but
+    // `defaults` must be a function according to `joint-core/types/mvc.d.ts`.
     return {
       ...super.defaults,
       type: LINK_MODEL_TYPE,
@@ -48,9 +50,7 @@ export class LinkModel<
       // Explicitly set attributes to avoid triggering `change` events.
       // See `link-mapper.ts` to see the values representing "no value"
       data: {},
-      // @todo we have to cast as `unknown`, because super.defaults need to be function, but its not.
-      // Mismatch in `joint-core/types/mvc.d.ts` typings needs to be resolved in joint-core to fix this.
-    } as unknown as Attributes;
+    };
   }
 
   markup: dia.MarkupJSON = [
