@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { dia } from '@joint/core';
 import { ElementModel } from '../element-model';
 import { LinkModel } from '../link-model';
@@ -36,7 +37,11 @@ type Assertions = [
   Expect<Equal<ElementData, NodeData>>,
   Expect<Equal<LinkData, EdgeData>>,
   // `ElementModel<A>` is exactly `dia.Element<A>` — the JointJS generic surface.
-  Expect<ElementModel<ElementRecord<NodeData>> extends dia.Element<ElementRecord<NodeData>> ? true : false>,
+  Expect<
+    ElementModel<ElementRecord<NodeData>> extends dia.Element<ElementRecord<NodeData>>
+      ? true
+      : false
+  >,
   Expect<LinkModel<LinkRecord<EdgeData>> extends dia.Link<LinkRecord<EdgeData>> ? true : false>,
 ];
 
@@ -72,5 +77,29 @@ describe('ElementModel / LinkModel — JointJS generics', () => {
     const asDiaLink: dia.Link<LinkRecord<EdgeData>> = edge;
     expect(asDiaElement).toBeInstanceOf(dia.Element);
     expect(asDiaLink).toBeInstanceOf(dia.Link);
+  });
+
+  it('typed get("data") — consumer pattern (e.g. SelectionFramesOptions.style)', () => {
+    interface ColorData {
+      readonly color: string;
+    }
+    const model = new ElementModel<ElementRecord<ColorData>>({
+      id: 'a',
+      type: 'element',
+      position: { x: 0, y: 0 },
+      size: { width: 1, height: 1 },
+      angle: 0,
+      data: { color: '#fff' },
+    });
+
+    // `Model.get<K>(key): T[K] | undefined`, so `get('data')` is the typed slice.
+    const data = model.get('data');
+    type GetDataIsTyped = Expect<Equal<typeof data, ColorData | undefined>>;
+    const _check: GetDataIsTyped = true;
+    expect(_check).toBe(true);
+
+    // `.color` is `string` — the goal. Needs `?.` because `get` is `| undefined`.
+    const color: string = model.get('data')?.color ?? 'fallback';
+    expect(color).toBe('#fff');
   });
 });
