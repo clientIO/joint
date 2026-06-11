@@ -21,7 +21,7 @@ import { useCallback, useSyncExternalStore } from 'react';
 import type { LinkRecord } from '../types/cell.types';
 import type { PaperStore } from '../store';
 import { ReactPaper } from '../mvc/react-paper';
-import type { PaperProps, PaperSupportedOptions, RenderLink } from '../components/paper/paper.types';
+import type { DefaultLink, PaperProps, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 
 import { mapLinkToAttributes } from '../state/data-mapping';
@@ -101,7 +101,7 @@ function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
  * into JointJS link model instances.
  * @param defaultLink
  */
-function createDefaultLinkCallback(defaultLink: PaperSupportedOptions['defaultLink']) {
+function createDefaultLinkCallback(defaultLink: DefaultLink | undefined) {
   // Guard for JS callers (TS already forbids it): a raw `dia.Link` instance
   // would force defensive `.clone()` on every connection and silently couple
   // every created link to one mutable model. Require a factory instead.
