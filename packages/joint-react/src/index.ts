@@ -10,7 +10,7 @@
 export { GraphProvider } from './components/graph/graph-provider';
 export type { GraphProviderProps } from './components/graph/graph-provider';
 export type { AutoSizeOrigin } from './store/graph-store';
-export type { IncrementalCellsChange, OnIncrementalCellsChange } from './store/graph-projection';
+export type { IncrementalCellsChange } from './store/graph-projection';
 
 /**
  * <Paper/>
@@ -47,9 +47,6 @@ export type {
   CellVisibilityParams,
   CellInteractivity,
   CellInteractivityParams,
-  LinkRouting,
-  ElementAttributes,
-  LinkAttributes,
 } from './presets';
 
 /**
