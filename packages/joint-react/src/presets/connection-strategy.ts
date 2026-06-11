@@ -24,7 +24,7 @@ export interface ConnectionStrategyParams {
 /** Built-in pin mode — how the dropped end is stored. */
 export type ConnectionStrategyPin = 'none' | 'absolute' | 'relative';
 
-/** Options for {@link connectionStrategy} — combines a pin mode with optional user customization. */
+/** Options for `connectionStrategy` — combines a pin mode with optional user customization. */
 export interface ConnectionStrategyOptions {
   /**
    * How to pin the dropped end.

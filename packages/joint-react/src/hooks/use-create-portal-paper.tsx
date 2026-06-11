@@ -33,7 +33,7 @@ import {
 } from '../presets/connection-strategy';
 import { canEmbed, canUnembed } from '../presets/can-embed';
 import { toNativeCellVisibility } from '../presets/cell-visibility';
-import { toNativeInteractive } from '../presets/interactive';
+import { toNativeCellInteractivity } from '../presets/cell-interactivity';
 import { toSVGMatrix } from '../utils/transform';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
@@ -293,7 +293,7 @@ export function useCreatePortalPaper(
     [cellVisibility]
   );
 
-  const interactiveValue = useMemo(() => toNativeInteractive(interactive), [interactive]);
+  const interactiveValue = useMemo(() => toNativeCellInteractivity(interactive), [interactive]);
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
 

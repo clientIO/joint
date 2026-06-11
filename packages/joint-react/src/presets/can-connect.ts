@@ -131,7 +131,7 @@ function hasDuplicateLink(
   return false;
 }
 
-/** Configuration accepted by {@link canConnect} controlling link validation rules. */
+/** Configuration accepted by `canConnect` controlling link validation rules. */
 export interface CanConnectOptions {
   /** Allow connecting a cell to itself. @default false */
   readonly allowSelfLoops?: boolean;

@@ -14,7 +14,7 @@ import type {
   ConnectionStrategyOptions,
 } from '../../presets/connection-strategy';
 import type { CellVisibility } from '../../presets/cell-visibility';
-import type { Interactive } from '../../presets/interactive';
+import type { CellInteractivity } from '../../presets/cell-interactivity';
 import type { LinkRouting } from '../../presets/link-routing';
 import type { PaperEventHandlers } from '../../presets/paper-events';
 
@@ -114,13 +114,13 @@ export interface PaperSupportedOptions {
 
   // ── Interactions ─────────────────────────────────────────────────────────
   /**
-   * Interaction permissions. Accepts:
+   * CellInteraction permissions. Accepts:
    * - `boolean` — enable/disable all interactions.
    * - `InteractivityOptions` — granular toggle per interaction kind.
    * - Function — receives `{ model, interaction, paper, graph }` and returns either form.
    * Native `(cellView, event)` callback is reachable via the `options` escape hatch.
    */
-  readonly interactive?: Interactive;
+  readonly interactive?: CellInteractivity;
   readonly highlighting?: dia.Paper.Options['highlighting'];
   readonly snapLabels?: dia.Paper.Options['snapLabels'];
   readonly snapLinks?: dia.Paper.Options['snapLinks'];

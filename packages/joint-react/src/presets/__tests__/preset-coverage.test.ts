@@ -7,7 +7,7 @@ import { outwardsCurveConnector } from '../connectors';
 import { rightAngleRouter } from '../routers';
 import { elementAttributes } from '../element-attributes';
 import { elementPort, elementPorts } from '../element-ports';
-import { toNativeInteractive } from '../interactive';
+import { toNativeCellInteractivity } from '../cell-interactivity';
 import { linkAttributes } from '../link-attributes';
 import { linkStyleLine, linkStyleWrapper, linkStyle } from '../link-style';
 import { getMarkerLength } from '../utils';
@@ -170,23 +170,23 @@ describe('presets / element-ports', () => {
 describe('presets / interactive', () => {
   it('function form wraps via native callback', () => {
     const cb = jest.fn(() => true);
-    const native = toNativeInteractive(cb);
+    const native = toNativeCellInteractivity(cb);
     const fakePaper = { model: {} } as any;
     const cellView = { model: { id: 'm' } } as any;
     expect((native as any).call(fakePaper, cellView, 'elementMove')).toBe(true);
     expect(cb).toHaveBeenCalled();
   });
   it('boolean passes through', () => {
-    expect(toNativeInteractive(true)).toBe(true);
+    expect(toNativeCellInteractivity(true)).toBe(true);
   });
   it('object form merges defaults', () => {
-    const out = toNativeInteractive({ elementMove: false } as any);
+    const out = toNativeCellInteractivity({ elementMove: false } as any);
     expect((out as any).elementMove).toBe(false);
     expect((out as any).labelMove).toBe(false);
   });
   it('undefined returns defaults', () => {
     const noInteractive: undefined = undefined;
-    const out = toNativeInteractive(noInteractive);
+    const out = toNativeCellInteractivity(noInteractive);
     expect((out as any).labelMove).toBe(false);
   });
 });

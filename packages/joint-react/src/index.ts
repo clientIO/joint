@@ -30,10 +30,6 @@ export type {
   PortalSelector,
   PortalSelectorParams,
 } from './mvc/paper.types';
-export {
-  canConnect,
-  connectionStrategy,
-} from './presets';
 export type {
   ValidateConnection,
   ValidateConnectionParams,
@@ -49,10 +45,8 @@ export type {
   ConnectionEnd,
   CellVisibility,
   CellVisibilityParams,
-  Interactive,
-  InteractiveCallback,
-  InteractiveParams,
-  Interaction,
+  CellInteractivity,
+  CellInteractivityParams,
   LinkRouting,
   ElementAttributes,
   LinkAttributes,
@@ -84,8 +78,6 @@ export type { HTMLBoxProps } from './components/html-box';
  */
 export { useGraph } from './hooks/use-graph';
 export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
-export type { SetCell, SetCellUpdater } from './hooks/use-cell-setters';
-export type { ArrayUpdate } from './store/state-container';
 
 /**
  * usePaper()

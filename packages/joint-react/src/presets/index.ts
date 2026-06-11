@@ -60,12 +60,12 @@ export {
   type CellVisibilityParams,
 } from './cell-visibility';
 export {
-  toNativeInteractive,
-  type Interactive,
-  type InteractiveCallback,
-  type InteractiveParams,
-  type Interaction,
-} from './interactive';
+  toNativeCellInteractivity,
+  type CellInteractivity,
+  type CellInteractivityCallback,
+  type CellInteractivityParams,
+  type CellInteraction,
+} from './cell-interactivity';
 export { elementAttributes, type ElementAttributes } from './element-attributes';
 export { linkAttributes, type LinkAttributes } from './link-attributes';
 export {
