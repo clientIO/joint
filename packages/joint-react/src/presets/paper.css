@@ -1,0 +1,74 @@
+:root {
+    /* ── Paper ───────────────────────────────────────────────────────────── */
+    --jj-paper-color: var(--jj-color-light-300);
+    --jj-paper-grid-color: var(--jj-color-light-700);
+    --jj-paper-connecting-highlight-color: var(--jj-color-primary);
+    --jj-paper-embedding-highlight-color: var(--jj-color-primary);
+
+    /* ── Paper Interactions ────────────────────────────────────────────────── */
+    --jj-port-hover-color: var(--jj-color-shape-surface);
+    --jj-port-hover-border-color: var(--jj-color-link);
+    /* Effective 2px because of paint-order: stroke */
+    --jj-port-hover-border-width: calc(var(--jj-stroke-width) * 2);
+    --jj-port-available-color: var(--jj-color-dark-800);
+    --jj-port-available-border-color: var(--jj-color-dark-800);
+    --jj-port-available-border-width: var(--jj-port-border-width);
+
+    --jj-port-connecting-color: var(--jj-color-primary);
+    --jj-port-connecting-border-color: var(--jj-color-primary);
+    --jj-port-connecting-border-width: var(--jj-port-border-width);
+
+    --jj-box-available-border-color: var(--jj-color-valid);
+}
+
+/* ── Paper ─────────────────────────────────────────────────────────────── */
+
+.jj-paper {
+    background-color: var(--jj-paper-color);
+    height: stretch;
+}
+
+/* ── Paper Interactions ─────────────────────────────────────────────────────── */
+
+.jj-port[magnet="active"]:not(.jj-is-magnet-available):hover {
+    fill: var(--jj-port-hover-color);
+    stroke: var(--jj-port-hover-border-color);
+    stroke-width: var(--jj-port-hover-border-width);
+}
+
+.jj-port.jj-is-magnet-available {
+    fill: var(--jj-port-available-color);
+    stroke: var(--jj-port-available-border-color);
+    stroke-width: var(--jj-port-available-border-width);
+}
+
+.jj-port.jj-is-connecting {
+    fill: var(--jj-port-connecting-color);
+    stroke: var(--jj-port-connecting-border-color);
+    stroke-width: var(--jj-port-connecting-border-width);
+}
+
+.jj-is-dragging .jj-port[magnet="active"] {
+    cursor: var(--jj-port-dragging-cursor);
+}
+
+.jj-is-dragging .jj-box {
+    cursor: var(--jj-dragging-cursor);
+}
+
+.jj-is-element-available .jj-box {
+    border-color: var(--jj-box-available-border-color);
+}
+
+/* ── Magnet highlighter stroke ────────────────────────────────────────── */
+
+.jj-magnet-highlighter {
+    transition: opacity 0.2s ease;
+    opacity: 1;
+}
+
+@starting-style {
+    .jj-magnet-highlighter {
+        opacity: 0;
+    }
+}

@@ -22,7 +22,7 @@
 @import './joint-react.css' layer(joint);
 
 /* Preset styles for JointJS components */
-@import './presets/element-ports.css' layer(joint);
-@import './presets/link-labels.css' layer(joint);
-@import './presets/link-style.css' layer(joint);
-@import './presets/paper.css' layer(joint);
+@import '../presets/element-ports.css' layer(joint);
+@import '../presets/link-labels.css' layer(joint);
+@import '../presets/link-view.css' layer(joint);
+@import '../presets/paper.css' layer(joint);

@@ -36,6 +36,8 @@
     --jj-space-md: 6px;
     --jj-space-lg: 10px;
 
+    --jj-stroke-width: 2px;
+
     --jj-color-primary: var(--jj-color-dark-500);
     --jj-color-primary-contrast: var(--jj-color-light-100);
     --jj-color-surface: var(--jj-color-light-100);
@@ -56,4 +58,10 @@
     --jj-port-drag-cursor: crosshair;
     /* Cursor for ports while dragging */
     --jj-port-dragging-cursor: crosshair;
+}
+
+@media (min-resolution: 1.5dppx) {
+  :root {
+    --jj-stroke-width: 1.5px;
+  }
 }

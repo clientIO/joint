@@ -1,7 +1,11 @@
-import { dia, util } from '@joint/core';
+import { dia, highlighters, util } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
+import {
+  MagnetHighlighter,
+  MAGNET_HIGHLIGHTER_NAME,
+} from './magnet-highlighter';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -55,7 +59,7 @@ export const DRAGGING_CLASS_NAME = 'jj-is-dragging';
 // so it can be overridden by inheriting classes (e.g. Paper)
 export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.CONNECTING]: {
-    name: 'stroke',
+    name: MAGNET_HIGHLIGHTER_NAME,
     options: {
       attrs: {
         strokeWidth: 1,
@@ -70,8 +74,8 @@ export const DEFAULT_HIGHLIGHTING = {
     name: 'stroke',
     options: {
       attrs: {
-        strokeWidth: 1.5,
-        stroke: 'var(--jj-paper-embedding-highlight-color)'
+        strokeWidth: 'var(--jj-stroke-width)',
+        stroke: 'var(--jj-paper-embedding-highlight-color)',
       },
       rx: 4,
       ry: 4,
@@ -211,6 +215,10 @@ export const Paper = dia.Paper.extend({
     markAvailable: true,
     clickThreshold: DEFAULT_CLICK_THRESHOLD,
     snapLinks: { radius: DEFAULT_SNAP_RADIUS },
+    highlighterNamespace: {
+      ...highlighters,
+      [MAGNET_HIGHLIGHTER_NAME]: MagnetHighlighter,
+    },
     highlighting: DEFAULT_HIGHLIGHTING,
     drawGrid: true,
     magnetThreshold: 'onleave',
