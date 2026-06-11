@@ -14,9 +14,9 @@
     --jj-port-available-border-color: var(--jj-color-dark-800);
     --jj-port-available-border-width: var(--jj-port-border-width);
 
-    --jj-port-snapped-color: var(--jj-color-primary);
-    --jj-port-snapped-border-color: var(--jj-color-primary);
-    --jj-port-snapped-border-width: var(--jj-port-border-width);
+    --jj-port-connecting-color: var(--jj-color-primary);
+    --jj-port-connecting-border-color: var(--jj-color-primary);
+    --jj-port-connecting-border-width: var(--jj-port-border-width);
 
     --jj-box-available-border-color: var(--jj-color-valid);
 }
@@ -42,10 +42,10 @@
     stroke-width: var(--jj-port-available-border-width);
 }
 
-.jj-port.jj-is-snapped {
-    fill: var(--jj-port-snapped-color);
-    stroke: var(--jj-port-snapped-border-color);
-    stroke-width: var(--jj-port-snapped-border-width);
+.jj-port.jj-is-connecting {
+    fill: var(--jj-port-connecting-color);
+    stroke: var(--jj-port-connecting-border-color);
+    stroke-width: var(--jj-port-connecting-border-width);
 }
 
 .jj-is-dragging .jj-port[magnet="active"] {
@@ -60,15 +60,15 @@
     border-color: var(--jj-box-available-border-color);
 }
 
-/* ── Connecting highlight stroke ────────────────────────────────────────── */
+/* ── Connecting highlighter stroke ────────────────────────────────────────── */
 
-.jj-highlight-connecting {
+.jj-connecting-highlighter {
     transition: opacity 0.2s ease;
     opacity: 1;
 }
 
 @starting-style {
-    .jj-highlight-connecting {
+    .jj-connecting-highlighter {
         opacity: 0;
     }
 }
