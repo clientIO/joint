@@ -130,31 +130,7 @@ export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
  * usePaperEvents()
  */
 export { usePaperEvents } from './hooks/use-paper-events';
-export type {
-  PaperEventMap,
-  PaperEventHandler,
-  PointerCellEventParams,
-  PointerElementEventParams,
-  PointerLinkEventParams,
-  PointerBlankEventParams,
-  HoverCellEventParams,
-  HoverElementEventParams,
-  HoverLinkEventParams,
-  HoverBlankEventParams,
-  WheelCellEventParams,
-  WheelElementEventParams,
-  WheelLinkEventParams,
-  WheelBlankEventParams,
-  MagnetEventParams,
-  LinkConnectEventParams,
-  PaperHoverEventParams,
-  PaperPanEventParams,
-  PaperPinchEventParams,
-  TranslateEventParams,
-  ScaleEventParams,
-  ResizeEventParams,
-  TransformEventParams,
-} from './presets';
+export type { PaperEventMap, PaperEventHandler } from './presets';
 
 /**
  * useGraphEvents()
