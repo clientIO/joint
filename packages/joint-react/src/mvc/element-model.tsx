@@ -21,9 +21,9 @@ export const PORTAL_SELECTOR = '__portal__';
  * });
  * ```
  */
-export class ElementModel<
-  Attributes extends dia.Element.Attributes = dia.Element.Attributes,
-> extends dia.Element<Attributes> {
+export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Element<
+  dia.Element.Attributes & Attributes
+> {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
    * Read by `ReactPaper` to locate where `renderElement` mounts.
@@ -53,6 +53,6 @@ export class ElementModel<
       // Explicitly set attributes to avoid triggering `change` events.
       // See `element-mapper.ts` to see the values representing "no value"
       data: {},
-    } as unknown as Attributes;
+    } as unknown as dia.Element.Attributes & Attributes;
   }
 }
