@@ -7,7 +7,7 @@ import { GraphProvider } from '../../graph/graph-provider';
 import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
 import { LINK_MODEL_TYPE } from '../../../mvc/link-model';
 import type { CellRecord } from '../../../types/cell.types';
-import type { Interactive } from '../../../presets/interactive';
+import type { CellInteractivity } from '../../../presets/cell-interactivity';
 
 const CELLS: readonly CellRecord[] = [
   { id: 'a', type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 }, size: { width: 50, height: 50 } } as CellRecord,
@@ -15,7 +15,7 @@ const CELLS: readonly CellRecord[] = [
   { id: 'l1', type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' } } as CellRecord,
 ];
 
-async function mountPaper(interactive: Interactive): Promise<dia.Paper> {
+async function mountPaper(interactive: CellInteractivity): Promise<dia.Paper> {
   let current: dia.Paper | null = null;
   render(
     <GraphProvider initialCells={CELLS}>

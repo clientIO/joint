@@ -60,14 +60,14 @@ export {
   type CellVisibilityParams,
 } from './cell-visibility';
 export {
-  toNativeInteractive,
-  type Interactive,
-  type InteractiveCallback,
-  type InteractiveParams,
-  type Interaction,
-} from './interactive';
-export { elementAttributes } from './element-attributes';
-export { linkAttributes } from './link-attributes';
+  toNativeCellInteractivity,
+  type CellInteractivity,
+  type CellInteractivityCallback,
+  type CellInteractivityParams,
+  type CellInteraction,
+} from './cell-interactivity';
+export { elementAttributes, type ElementAttributes } from './element-attributes';
+export { linkAttributes, type LinkAttributes } from './link-attributes';
 export {
   addPaperEventListeners,
   type PaperEventMap,

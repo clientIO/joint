@@ -3,8 +3,8 @@ import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
 import { useGraphStore } from './use-graph-store';
 import { useInternalData } from './use-stores';
-import type { ReactPaper } from '../mvc/react-paper';
-import { DEFAULT_PAPER_ID } from '../mvc/react-paper';
+import type { PaperView } from '../mvc/paper';
+import { DEFAULT_PAPER_ID } from '../mvc/paper';
 import type { PaperTarget } from '../types';
 import { resolvePaperId } from '../utils/resolve-paper-target';
 import { isRef } from '../utils/is';
@@ -72,7 +72,7 @@ export function usePaperStore(paperId?: string): PaperStore | undefined {
 /** Result of {@link usePaper} — the paper instance and imperative actions. */
 export interface PaperHandle {
   /** Resolved JointJS paper instance, or `undefined` until a `<Paper>` has mounted. */
-  readonly paper?: ReactPaper;
+  readonly paper?: PaperView;
   /**
    * Trigger a render pass on the paper. Forwards to `paper.wakeUp()`.
    * No-op when the paper isn't resolved yet.
@@ -82,8 +82,8 @@ export interface PaperHandle {
 }
 
 /**
- * Returns the active `ReactPaper` instance from context, by ID, or via the
- * default paper. Wraps {@link usePaperStore} and exposes `wakeUp()`.
+ * Returns the active `PaperView` instance from context, by ID, or via the
+ * default paper. Resolves the paper store and exposes `wakeUp()`.
  *
  * The returned object is always stable; only `paper` is `undefined` until the
  * `<Paper>` view has mounted.

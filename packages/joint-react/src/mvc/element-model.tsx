@@ -1,4 +1,5 @@
 import { dia } from '@joint/core';
+import { PortalHostCell } from './paper.types';
 export const ELEMENT_MODEL_TYPE = 'element';
 
 /**
@@ -8,7 +9,9 @@ export const ELEMENT_MODEL_TYPE = 'element';
 export const PORTAL_SELECTOR = '__portal__';
 
 /**
- * A custom JointJS element that can render React components.
+ * Default element class used by `@joint/react`. Any `dia.Element` subclass
+ * can host React content; `ElementModel` is just what `@joint/react` reaches
+ * for when no custom class is provided.
  * @group Models
  * @example
  * ```ts
@@ -21,12 +24,12 @@ export const PORTAL_SELECTOR = '__portal__';
  * });
  * ```
  */
-export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Element<
-  dia.Element.Attributes & Attributes
-> {
+export class ElementModel<
+  Attributes extends dia.Element.Attributes = dia.Element.Attributes
+> extends dia.Element<Attributes> implements PortalHostCell {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
-   * Read by `ReactPaper` to locate where `renderElement` mounts.
+   * Read by `PaperView` to locate where `renderElement` mounts.
    */
   portalSelector = PORTAL_SELECTOR;
 
@@ -45,7 +48,9 @@ export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Eleme
    * Sets the default attributes for the ElementModel.
    * @returns The default attributes.
    */
-  defaults() {
+  defaults(): Attributes {
+    // @ts-expect-error super.defaults is not a function in JS, but
+    // `defaults` must be a function according to `joint-core/types/mvc.d.ts`.
     return {
       ...super.defaults,
       type: ELEMENT_MODEL_TYPE,
@@ -53,8 +58,6 @@ export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Eleme
       // Explicitly set attributes to avoid triggering `change` events.
       // See `element-mapper.ts` to see the values representing "no value"
       data: {},
-      // @todo we have to cast as `unknown`, because super.defaults need to be function, but its not.
-      // Mismatch in `joint-core/types/mvc.d.ts` typings needs to be resolved in joint-core to fix this.
-    } as unknown as dia.Element.Attributes & Attributes;
+    };
   }
 }

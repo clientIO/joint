@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { dia} from '@joint/core';
 import { shapes } from '@joint/core';
-import { ReactPaper } from '../react-paper';
+import { PaperView } from '../paper';
 import { ElementModel } from '../element-model';
 import { GraphStore } from '../../store/graph-store';
 import type { CellId } from '../../types/cell.types';
@@ -10,9 +10,9 @@ import type { IncrementalChange } from '../../state/incremental.types';
 const TEST_PAPER_ID = 'portal-selector-paper';
 const DEFAULT_CELL_NAMESPACE = { ...shapes, element: ElementModel };
 
-describe('ReactPaper / portalSelector overrides', () => {
+describe('PaperView / portalSelector overrides', () => {
   let graphStore: GraphStore;
-  let paper: ReactPaper;
+  let paper: PaperView;
   let container: HTMLElement;
 
   beforeEach(() => {
@@ -34,8 +34,8 @@ describe('ReactPaper / portalSelector overrides', () => {
     container?.remove();
   });
 
-  function createPaper(portalSelector: any): ReactPaper {
-    return new ReactPaper({
+  function createPaper(portalSelector: any): PaperView {
+    return new PaperView({
       el: container,
       model: graphStore.graph,
       onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => {

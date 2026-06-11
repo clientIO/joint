@@ -25,7 +25,7 @@ export type SetCellUpdater<
 > = (previous: Element | Link) => Element | Link;
 
 /**
- * Function returned by {@link useSetCell}. Three forms:
+ * Function exposed by `GraphHandle.setCell`. Three forms:
  * - `setCell(record)` — direct form. `record.id` names the target. Cell
  *   exists: attributes merge over it. Cell missing: cell is added.
  * - `setCell(diaCell)` — dia.Cell form. The cell is converted to a record

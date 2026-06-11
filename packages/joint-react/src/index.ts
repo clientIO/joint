@@ -29,7 +29,7 @@ export type {
   PortalHostCell,
   PortalSelector,
   PortalSelectorParams,
-} from './mvc/react-paper.types';
+} from './mvc/paper.types';
 export type {
   ValidateConnection,
   ValidateConnectionParams,
@@ -43,6 +43,10 @@ export type {
   ConnectionStrategyPin,
   CanConnectOptions,
   ConnectionEnd,
+  CellVisibility,
+  CellVisibilityParams,
+  CellInteractivity,
+  CellInteractivityParams,
 } from './presets';
 
 /**
@@ -78,6 +82,7 @@ export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-gr
 export { usePaper } from './hooks/use-paper';
 export type { PaperHandle } from './hooks/use-paper';
 export type { PaperTarget } from './types/paper.types';
+export type { PaperView } from './mvc/paper';
 
 /**
  * useCells()

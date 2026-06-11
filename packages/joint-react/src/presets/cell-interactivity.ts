@@ -1,14 +1,14 @@
 import type { dia } from '@joint/core';
 
 /** Name of an interaction being queried (e.g. `'elementMove'`, `'arrowheadMove'`). */
-export type Interaction = keyof dia.CellView.InteractivityOptions;
+export type CellInteraction = keyof dia.CellView.InteractivityOptions;
 
 /** Context passed to an `interactive` callback. */
-export interface InteractiveParams {
+export interface CellInteractivityParams {
   /** The cell being interacted with. */
   readonly model: dia.Cell;
   /** The interaction being queried. */
-  readonly interaction: Interaction;
+  readonly interaction: CellInteraction;
   /** The paper hosting the cell. */
   readonly paper: dia.Paper;
   /** The graph the cell belongs to. */
@@ -20,15 +20,15 @@ export interface InteractiveParams {
  * context (instead of the native positional `(cellView, event)` form) and
  * returns either a boolean or the native `InteractivityOptions` object.
  */
-export type InteractiveCallback = (
-  context: InteractiveParams
+export type CellInteractivityCallback = (
+  context: CellInteractivityParams
 ) => boolean | dia.CellView.InteractivityOptions;
 
 /** Value accepted by the `interactive` Paper prop. */
-export type Interactive =
+export type CellInteractivity =
   | boolean
   | dia.CellView.InteractivityOptions
-  | InteractiveCallback;
+  | CellInteractivityCallback;
 
 /**
  * joint-react defaults applied when the user supplies no `interactive` prop,
@@ -47,15 +47,15 @@ const DEFAULT_INTERACTIVE: dia.CellView.InteractivityOptions = {
  * - `undefined` → defaults (`labelMove`/`linkMove` disabled).
  * - boolean → pass through.
  * - object → defaults applied first, user keys win.
- * - function → wrapped so the user callback receives an `InteractiveParams`
+ * - function → wrapped so the user callback receives an `CellInteractivityParams`
  *   instead of the native positional `(cellView, interaction)` args.
  *   Defaults are NOT merged into the function return — function form is an
  *   explicit takeover.
  * @param value - prop value
  * @returns native `dia.Paper.Options['interactive']`
  */
-export function toNativeInteractive(
-  value: Interactive | undefined
+export function toNativeCellInteractivity(
+  value: CellInteractivity | undefined
 ): dia.Paper.Options['interactive'] {
   if (value === undefined) return { ...DEFAULT_INTERACTIVE };
   if (typeof value === 'boolean') return value;
@@ -63,7 +63,7 @@ export function toNativeInteractive(
   return function (this: dia.Paper, cellView: dia.CellView, interaction: string) {
     return value({
       model: cellView.model,
-      interaction: interaction as Interaction,
+      interaction: interaction as CellInteraction,
       paper: this,
       graph: this.model,
     });

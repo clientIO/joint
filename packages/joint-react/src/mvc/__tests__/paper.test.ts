@@ -1,5 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import { ReactPaper } from '../react-paper';
+import { PaperView } from '../paper';
 import { ElementModel } from '../element-model';
 import { GraphStore } from '../../store/graph-store';
 import type { IncrementalChange } from '../../state/incremental.types';
@@ -10,15 +10,15 @@ const TEST_PAPER_ID = 'test-paper';
 const toCellId = (id: dia.Cell.ID): string => id as string;
 
 /**
- * Flush the microtask-based scheduler used by ReactPaper.
+ * Flush the microtask-based scheduler used by PaperView.
  */
 async function flushMicrotasks(): Promise<void> {
   await Promise.resolve();
 }
 
-describe('ReactPaper', () => {
+describe('PaperView', () => {
   let graphStore: GraphStore;
-  let paper: ReactPaper;
+  let paper: PaperView;
   let container: HTMLElement;
 
   beforeEach(() => {
@@ -34,9 +34,9 @@ describe('ReactPaper', () => {
   });
 
   /**
-   * Helper to create a ReactPaper with GraphStore callbacks wired.
+   * Helper to create a PaperView with GraphStore callbacks wired.
    */
-  function createPaper(options: Partial<dia.Paper.Options> = {}): ReactPaper {
+  function createPaper(options: Partial<dia.Paper.Options> = {}): PaperView {
     // Ensure the paper snapshot exists in internalState before creating the paper
     graphStore.internalState.setState((previous) => {
       if (previous.papers[TEST_PAPER_ID]) return previous;
@@ -49,7 +49,7 @@ describe('ReactPaper', () => {
       };
     });
 
-    return new ReactPaper({
+    return new PaperView({
       el: container,
       model: graphStore.graph,
       onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => {
@@ -65,7 +65,7 @@ describe('ReactPaper', () => {
   /**
    * Helper to access private pendingLinks for testing
    */
-  function getPendingLinks(p: ReactPaper): Set<string> {
+  function getPendingLinks(p: PaperView): Set<string> {
     return (p as unknown as { pendingLinks: Set<string> }).pendingLinks;
   }
 

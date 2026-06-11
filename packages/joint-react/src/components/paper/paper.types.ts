@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { LinkRecord } from '../../types/cell.types';
-import type { PortalSelector } from '../../mvc/react-paper.types';
-import type { ReactPaper } from '../../mvc/react-paper';
+import type { PortalSelector } from '../../mvc/paper.types';
+import type { PaperView } from '../../mvc/paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type {
   ConnectionEnd,
@@ -14,7 +14,7 @@ import type {
   ConnectionStrategyOptions,
 } from '../../presets/connection-strategy';
 import type { CellVisibility } from '../../presets/cell-visibility';
-import type { Interactive } from '../../presets/interactive';
+import type { CellInteractivity } from '../../presets/cell-interactivity';
 import type { LinkRouting } from '../../presets/link-routing';
 import type { PaperEventHandlers } from '../../presets/paper-events';
 
@@ -114,13 +114,13 @@ export interface PaperSupportedOptions {
 
   // ── Interactions ─────────────────────────────────────────────────────────
   /**
-   * Interaction permissions. Accepts:
+   * CellInteraction permissions. Accepts:
    * - `boolean` — enable/disable all interactions.
    * - `InteractivityOptions` — granular toggle per interaction kind.
    * - Function — receives `{ model, interaction, paper, graph }` and returns either form.
    * Native `(cellView, event)` callback is reachable via the `options` escape hatch.
    */
-  readonly interactive?: Interactive;
+  readonly interactive?: CellInteractivity;
   readonly highlighting?: dia.Paper.Options['highlighting'];
   readonly snapLabels?: dia.Paper.Options['snapLabels'];
   readonly snapLinks?: dia.Paper.Options['snapLinks'];
@@ -226,8 +226,8 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * For more information, see the JointJS documentation.
  *
  * Paper events are exposed directly as props
- * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …) via
- * {@link PaperEventHandlers}. Each handler receives a single params
+ * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …).
+ * Each handler receives a single params
  * object — e.g. `onBlankContextMenu={({ paper, event, x, y }) => …}`.
  *
  * Handlers participate in the event subscription's dependency list, exactly
@@ -362,9 +362,9 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
   readonly portalSelector?: PortalSelector;
 
   /**
-   * Pre-created ReactPaper instance to adopt.
+   * Pre-created PaperView instance to adopt.
    * When provided, the Paper component wraps this paper instead of creating a new one.
    * The paper's DOM is assumed to be managed externally (e.g. by a stencil).
    */
-  readonly paper?: ReactPaper;
+  readonly paper?: PaperView;
 }

@@ -10,13 +10,13 @@ import {
   ensureCellDragListeners,
   EMPTY_CELL_DRAG_STATE,
 } from '../use-cell-drag.utils';
-import type { ReactPaper } from '../../mvc/react-paper';
+import type { PaperView } from '../../mvc/paper';
 
 function createMockGraph(): dia.Graph {
   return new dia.Graph();
 }
 
-function createMockPaper(graph?: dia.Graph): ReactPaper {
+function createMockPaper(graph?: dia.Graph): PaperView {
   const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
   const model = graph ?? createMockGraph();
   return {
@@ -35,7 +35,7 @@ function createMockPaper(graph?: dia.Graph): ReactPaper {
       containsRect: jest.fn().mockReturnValue(true),
     }),
     model,
-  } as unknown as ReactPaper;
+  } as unknown as PaperView;
 }
 
 function createWrapper(options: { readonly cellId: string; readonly paper?: dia.Paper }) {
