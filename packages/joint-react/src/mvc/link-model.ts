@@ -36,23 +36,9 @@ export class LinkModel<
   portalSelector = 'root';
 
   /**
-   * Sets the default attributes for the LinkModel.
-   * Includes `connection: true` attrs which are required for JointJS to compute link paths.
-   * @returns The default attributes.
+   * Markup with wrapper and line paths. The wrapper is used for hit testing and has a wider stroke, while the line is used for visual display.
+   * React content (if any) is rendered into the root `<g>` via `renderLink`.
    */
-  defaults(): Attributes {
-    // @ts-expect-error super.defaults is not a function in JS, but
-    // `defaults` must be a function according to `joint-core/types/mvc.d.ts`.
-    return {
-      ...super.defaults,
-      type: LINK_MODEL_TYPE,
-      attrs: defaultLinkStyle,
-      // Explicitly set attributes to avoid triggering `change` events.
-      // See `link-mapper.ts` to see the values representing "no value"
-      data: {},
-    };
-  }
-
   markup: dia.MarkupJSON = [
     {
       tagName: 'path',
@@ -75,4 +61,22 @@ export class LinkModel<
       },
     },
   ];
+
+  /**
+   * Sets the default attributes for the LinkModel.
+   * Includes `connection: true` attrs which are required for JointJS to compute link paths.
+   * @returns The default attributes.
+   */
+  defaults(): Attributes {
+    // @ts-expect-error super.defaults is not a function in JS, but
+    // `defaults` must be a function according to `joint-core/types/mvc.d.ts`.
+    return {
+      ...super.defaults,
+      type: LINK_MODEL_TYPE,
+      attrs: defaultLinkStyle,
+      // Explicitly set attributes to avoid triggering `change` events.
+      // See `link-mapper.ts` to see the values representing "no value"
+      data: {},
+    };
+  }
 }
