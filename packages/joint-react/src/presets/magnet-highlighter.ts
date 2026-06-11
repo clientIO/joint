@@ -2,15 +2,15 @@ import { dia, highlighters, V } from '@joint/core';
 import { CONNECTING_CLASS_NAME } from './link-view';
 
 /** Name used to register this highlighter in the paper's highlighterNamespace. */
-export const CONNECTING_HIGHLIGHTER_NAME = 'connecting';
+export const MAGNET_HIGHLIGHTER_NAME = 'magnetHighlighter';
 
 /**
- * Custom connecting highlighter that combines a stroke outline with a CSS class
- * on the port element. The stroke element carries `jj-highlight-connecting` which
- * allows CSS @starting-style transitions to animate the highlight's appearance.
+ * Custom highlighter that combines a stroke outline with a CSS class
+ * on the magnet element. The stroke element carries `jj-magnet-highlighter` which
+ * allows CSS @starting-style transitions to animate the highlighter's appearance.
  */
-export const ConnectingHighlighter = highlighters.stroke.extend({
-    className: `jj-connecting-highlighter`,
+export const MagnetHighlighter = highlighters.stroke.extend({
+    className: `jj-magnet-highlighter`,
     classNamePrefix: '',
 
     highlight(this: highlighters.stroke, cellView: dia.CellView, node: SVGElement): void {

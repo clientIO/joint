@@ -60,15 +60,15 @@
     border-color: var(--jj-box-available-border-color);
 }
 
-/* ── Connecting highlighter stroke ────────────────────────────────────────── */
+/* ── Magnet highlighter stroke ────────────────────────────────────────── */
 
-.jj-connecting-highlighter {
+.jj-magnet-highlighter {
     transition: opacity 0.2s ease;
     opacity: 1;
 }
 
 @starting-style {
-    .jj-connecting-highlighter {
+    .jj-magnet-highlighter {
         opacity: 0;
     }
 }

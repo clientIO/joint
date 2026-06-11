@@ -3,9 +3,9 @@ import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
 import {
-  ConnectingHighlighter,
-  CONNECTING_HIGHLIGHTER_NAME,
-} from './connecting-highlighter';
+  MagnetHighlighter,
+  MAGNET_HIGHLIGHTER_NAME,
+} from './magnet-highlighter';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -59,7 +59,7 @@ export const DRAGGING_CLASS_NAME = 'jj-is-dragging';
 // so it can be overridden by inheriting classes (e.g. Paper)
 export const DEFAULT_HIGHLIGHTING = {
   [dia.CellView.Highlighting.CONNECTING]: {
-    name: CONNECTING_HIGHLIGHTER_NAME,
+    name: MAGNET_HIGHLIGHTER_NAME,
     options: {
       attrs: {
         strokeWidth: 1,
@@ -217,7 +217,7 @@ export const Paper = dia.Paper.extend({
     snapLinks: { radius: DEFAULT_SNAP_RADIUS },
     highlighterNamespace: {
       ...highlighters,
-      [CONNECTING_HIGHLIGHTER_NAME]: ConnectingHighlighter,
+      [MAGNET_HIGHLIGHTER_NAME]: MagnetHighlighter,
     },
     highlighting: DEFAULT_HIGHLIGHTING,
     drawGrid: true,
