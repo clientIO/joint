@@ -18,6 +18,7 @@ export type { IncrementalCellsChange } from './store/graph-projection';
 export { Paper } from './components/paper/paper';
 export type {
   PaperProps,
+  PaperOptions,
   PaperTransform,
   RenderElement,
   RenderLink,
