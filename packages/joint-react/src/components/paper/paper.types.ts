@@ -44,13 +44,16 @@ export type DefaultLink =
   | ((context: DefaultLinkParams) => dia.Link | Partial<LinkRecord>)
   | Partial<LinkRecord>;
 
+/** Raw `dia.Paper.Options` passthrough — the type of the `options` escape-hatch prop. */
+export type PaperOptions = dia.Paper.Options;
+
 /**
  * Officially supported Paper options. Pass-through props inherit their exact
  * native types via indexed access (`dia.Paper.Options['name']`), so any
  * type-level change in JointJS propagates automatically. Anything not listed
  * here is reachable via the `options` escape hatch, never implicitly exposed.
  */
-export interface PortalPaperOptions {
+export interface PaperSupportedOptions {
   // ── Wrapped (structured) ─────────────────────────────────────────────────
 
   /**
@@ -186,7 +189,7 @@ export interface PortalPaperOptions {
    * (`async`, `sorting`, `viewManagement`, `frozen`, `autoFreeze`) — the
    * portal rendering depends on their set values.
    */
-  readonly options?: dia.Paper.Options;
+  readonly options?: PaperOptions;
 }
 
 /**
@@ -237,7 +240,7 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * use the `usePaperEvents` hook.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps extends PortalPaperOptions, PropsWithChildren, PaperEventHandlers {
+export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, PaperEventHandlers {
   /**
    * A function that renders the element.
    *
