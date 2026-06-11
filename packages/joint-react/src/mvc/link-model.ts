@@ -24,9 +24,9 @@ const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
  * });
  * ```
  */
-export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
-  dia.Link.Attributes & Attributes
-> {
+export class LinkModel<
+  Attributes extends dia.Link.Attributes = dia.Link.Attributes,
+> extends dia.Link<Attributes> {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
    * Links render into their root `<g>` — the experimental `renderLink` mounts
@@ -48,7 +48,9 @@ export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
       // Explicitly set attributes to avoid triggering `change` events.
       // See `link-mapper.ts` to see the values representing "no value"
       data: {},
-    } as unknown as dia.Link.Attributes & Attributes;
+      // @todo we have to cast as `unknown`, because super.defaults need to be function, but its not.
+      // Mismatch in `joint-core/types/mvc.d.ts` typings needs to be resolved in joint-core to fix this.
+    } as unknown as Attributes;
   }
 
   markup: dia.MarkupJSON = [

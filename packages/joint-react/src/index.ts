@@ -169,6 +169,7 @@ export type {
 /**
  * Element types and utilities
  */
+export type { InferElement } from './utils/create';
 export { elementPort, elementPorts, elementAttributes } from './presets';
 export type { ElementRecord, ElementPosition, ElementSize } from './types/cell.types';
 export type {
@@ -179,6 +180,7 @@ export type {
 /**
  * Link types and utilities
  */
+export type { InferLink } from './utils/create';
 export { resolveLinkMarker } from './theme/named-link-markers';
 export {
   linkRoutingStraight,
