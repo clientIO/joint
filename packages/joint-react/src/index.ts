@@ -10,7 +10,7 @@
 export { GraphProvider } from './components/graph/graph-provider';
 export type { GraphProviderProps } from './components/graph/graph-provider';
 export type { AutoSizeOrigin } from './store/graph-store';
-export type { IncrementalCellsChange } from './store/graph-projection';
+export type { IncrementalCellsChange, OnIncrementalCellsChange } from './store/graph-projection';
 
 /**
  * <Paper/>
@@ -30,6 +30,10 @@ export type {
   PortalSelector,
   PortalSelectorParams,
 } from './mvc/react-paper.types';
+export {
+  canConnect,
+  connectionStrategy,
+} from './presets';
 export type {
   ValidateConnection,
   ValidateConnectionParams,
@@ -43,6 +47,15 @@ export type {
   ConnectionStrategyPin,
   CanConnectOptions,
   ConnectionEnd,
+  CellVisibility,
+  CellVisibilityParams,
+  Interactive,
+  InteractiveCallback,
+  InteractiveParams,
+  Interaction,
+  LinkRouting,
+  ElementAttributes,
+  LinkAttributes,
 } from './presets';
 
 /**
@@ -71,6 +84,8 @@ export type { HTMLBoxProps } from './components/html-box';
  */
 export { useGraph } from './hooks/use-graph';
 export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
+export type { SetCell, SetCellUpdater } from './hooks/use-cell-setters';
+export type { ArrayUpdate } from './store/state-container';
 
 /**
  * usePaper()
@@ -78,6 +93,7 @@ export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-gr
 export { usePaper } from './hooks/use-paper';
 export type { PaperHandle } from './hooks/use-paper';
 export type { PaperTarget } from './types/paper.types';
+export type { ReactPaper } from './mvc/react-paper';
 
 /**
  * useCells()
@@ -102,6 +118,7 @@ export type { MeasureNodeOptions } from './hooks/use-measure-node';
 export type {
   TransformElementLayout,
   TransformElementLayoutParams,
+  ElementLayoutOptionalXY,
 } from './store/create-elements-size-observer';
 
 /**
@@ -113,7 +130,31 @@ export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
  * usePaperEvents()
  */
 export { usePaperEvents } from './hooks/use-paper-events';
-export type { PaperEventMap, PaperEventHandler } from './presets';
+export type {
+  PaperEventMap,
+  PaperEventHandler,
+  PointerCellEventParams,
+  PointerElementEventParams,
+  PointerLinkEventParams,
+  PointerBlankEventParams,
+  HoverCellEventParams,
+  HoverElementEventParams,
+  HoverLinkEventParams,
+  HoverBlankEventParams,
+  WheelCellEventParams,
+  WheelElementEventParams,
+  WheelLinkEventParams,
+  WheelBlankEventParams,
+  MagnetEventParams,
+  LinkConnectEventParams,
+  PaperHoverEventParams,
+  PaperPanEventParams,
+  PaperPinchEventParams,
+  TranslateEventParams,
+  ScaleEventParams,
+  ResizeEventParams,
+  TransformEventParams,
+} from './presets';
 
 /**
  * useGraphEvents()

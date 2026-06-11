@@ -82,7 +82,7 @@ export class ReactPaper extends Paper {
    * Resolves the portal target node from a cell view.
    *
    * Resolution order:
-   * 1. Paper-level {@link ReactPaperOptions.portalSelector | portalSelector} if set.
+   * 1. Paper-level `portalSelector` option if set.
    * 2. The cell's own `portalSelector` field (`ElementModel` → `'__portal__'`,
    *    `LinkModel` → `'root'`). Cells without the field are skipped.
    * @param cellView - The cell view to resolve the portal node for.

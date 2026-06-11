@@ -83,7 +83,7 @@ export interface PaperHandle {
 
 /**
  * Returns the active `ReactPaper` instance from context, by ID, or via the
- * default paper. Wraps {@link usePaperStore} and exposes `wakeUp()`.
+ * default paper. Resolves the paper store and exposes `wakeUp()`.
  *
  * The returned object is always stable; only `paper` is `undefined` until the
  * `<Paper>` view has mounted.

@@ -66,8 +66,8 @@ export {
   type InteractiveParams,
   type Interaction,
 } from './interactive';
-export { elementAttributes } from './element-attributes';
-export { linkAttributes } from './link-attributes';
+export { elementAttributes, type ElementAttributes } from './element-attributes';
+export { linkAttributes, type LinkAttributes } from './link-attributes';
 export {
   addPaperEventListeners,
   type PaperEventMap,

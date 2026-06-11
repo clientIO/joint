@@ -226,8 +226,8 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * For more information, see the JointJS documentation.
  *
  * Paper events are exposed directly as props
- * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …) via
- * {@link PaperEventHandlers}. Each handler receives a single params
+ * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …).
+ * Each handler receives a single params
  * object — e.g. `onBlankContextMenu={({ paper, event, x, y }) => …}`.
  *
  * Handlers participate in the event subscription's dependency list, exactly
