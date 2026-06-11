@@ -10,7 +10,9 @@ function createElement<Attributes = dia.Element.Attributes>(
 describe('element-model', () => {
   describe('element', () => {
     it('should create a ElementModel instance', () => {
-      const element = new ElementModel({
+      // Like `dia.Element<A>`, the type argument is the full attributes hash;
+      // pass `dia.Element.Attributes` for the un-narrowed base surface.
+      const element = new ElementModel<dia.Element.Attributes>({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
@@ -21,7 +23,7 @@ describe('element-model', () => {
     });
 
     it('should have default attributes', () => {
-      const element = new ElementModel({
+      const element = new ElementModel<dia.Element.Attributes>({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
@@ -41,16 +43,20 @@ describe('element-model', () => {
     });
 
     it('should work with generic attributes', () => {
-      interface CustomAttributes {
+      // JointJS generics: the type argument is the full attributes hash, so a
+      // custom attribute type extends `dia.Element.Attributes`.
+      interface CustomAttributes extends dia.Element.Attributes {
         customProp?: string;
       }
 
       const element = new ElementModel<CustomAttributes>({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
+        customProp: 'hello',
       });
 
       expect(element).toBeInstanceOf(ElementModel);
+      expect(element.get('customProp')).toBe('hello');
     });
 
     describe('markup', () => {

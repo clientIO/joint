@@ -244,24 +244,24 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren, Paper
    * Note: JointJS works with SVG by default, so `renderElement` is appended inside an SVG node.
    * To render HTML elements, use the experimental `useHTMLOverlay` prop or an SVG `foreignObject`.
    *
-   * This is called when the element data changes.
+   * Receives the element's `data` slice only. Derive its type from your cells
+   * with `InferElement<typeof cells>['data']`.
    * @example
    * Example with `global component`:
    * ```tsx
-   * type BaseElementWithData = InferElement<typeof initialElements>
-   * function RenderElement({ label }: BaseElementWithData) {
-   *  return <HTMLElement className="node">{label}</HTMLElement>
+   * type NodeData = InferElement<typeof initialCells>['data']
+   * function RenderElement(data: NodeData) {
+   *  return <div className="node">{data.label}</div>
    * }
    * ```
    * @example
    * Example with `local component`:
    * ```tsx
-   *
-  type BaseElementWithData = InferElement<typeof initialElements>
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
-      (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
-      []
-  )
+   * type NodeData = InferElement<typeof initialCells>['data']
+   * const renderElement: RenderElement<NodeData> = useCallback(
+   *     (data) => <div className="node">{data.label}</div>,
+   *     []
+   * )
    * ```
    */
 

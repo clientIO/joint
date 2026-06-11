@@ -24,9 +24,9 @@ const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
  * });
  * ```
  */
-export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
-  dia.Link.Attributes & Attributes
-> {
+export class LinkModel<
+  Attributes extends dia.Link.Attributes = dia.Link.Attributes,
+> extends dia.Link<Attributes> {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
    * Links render into their root `<g>` — the experimental `renderLink` mounts
@@ -48,7 +48,7 @@ export class LinkModel<Attributes = dia.Link.Attributes> extends dia.Link<
       // Explicitly set attributes to avoid triggering `change` events.
       // See `link-mapper.ts` to see the values representing "no value"
       data: {},
-    } as unknown as dia.Link.Attributes & Attributes;
+    } as unknown as Attributes;
   }
 
   markup: dia.MarkupJSON = [

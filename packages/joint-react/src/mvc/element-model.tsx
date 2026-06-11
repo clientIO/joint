@@ -1,4 +1,5 @@
 import { dia } from '@joint/core';
+import type { ElementRecord } from '../types/cell.types';
 export const ELEMENT_MODEL_TYPE = 'element';
 
 /**
@@ -21,9 +22,9 @@ export const PORTAL_SELECTOR = '__portal__';
  * });
  * ```
  */
-export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Element<
-  dia.Element.Attributes & Attributes
-> {
+export class ElementModel<
+  Attributes extends dia.Element.Attributes = dia.Element.Attributes,
+> extends dia.Element<Attributes> {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
    * Read by `ReactPaper` to locate where `renderElement` mounts.
@@ -53,6 +54,6 @@ export class ElementModel<Attributes = dia.Element.Attributes> extends dia.Eleme
       // Explicitly set attributes to avoid triggering `change` events.
       // See `element-mapper.ts` to see the values representing "no value"
       data: {},
-    } as unknown as dia.Element.Attributes & Attributes;
+    } as unknown as Attributes;
   }
 }
