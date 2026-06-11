@@ -1,3 +1,8 @@
+11-06-2026 (v4.2.5)
+
+  @joint/core
+  * util - fix to guard `merge()`, `omit()`, `pick()`, `assign()` against potential prototype pollution attacks
+
 13-02-2026 (v4.2.4)
 
   @joint/core
