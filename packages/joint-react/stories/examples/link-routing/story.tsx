@@ -13,7 +13,7 @@ export default {
     docs: {
       description: {
         story:
-          'Demonstrates link presets from `@joint/react/presets`. ' +
+          'Demonstrates link presets from `@joint/react`. ' +
           'Switch between `linkRoutingStraight`, `linkRoutingOrthogonal`, and `linkRoutingSmooth` ' +
           'to change the routing, connector, anchor, and connection point of all links.',
       },
