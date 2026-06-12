@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { type CellRecord, GraphProvider, useCell, Paper, useOnElementsMeasured, type ElementRecord, selectElementSize } from '@joint/react';
+import { type CellRecord, GraphProvider, useCell, Paper, useOnElementsMeasured, type ElementRecord, selectElementSize, ElementsMeasuredParams } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
@@ -734,7 +734,7 @@ function addElementControls(paper: dia.Paper) {
 // ----------------------------------------------------------------------------
 function Main() {
   const handleElementsMeasured = useCallback(
-    ({ isInitial, paper }: { isInitial: boolean; paper: dia.Paper }) => {
+    ({ isInitial, paper }: ElementsMeasuredParams) => {
       if (!isInitial) return;
       addElementControls(paper);
     },

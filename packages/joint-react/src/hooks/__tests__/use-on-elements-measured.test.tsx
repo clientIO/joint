@@ -5,7 +5,7 @@ import { useOnElementsMeasured } from '../use-on-elements-measured';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { useGraphStore } from '../use-graph-store';
 import type { CellRecord } from '../../types/cell.types';
-import type { ElementsMeasuredEvent } from '../../types/event.types';
+import type { ElementsMeasuredParams } from '../use-on-elements-measured';
 import type { dia } from '@joint/core';
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
@@ -86,7 +86,7 @@ describe('useOnElementsMeasured', () => {
     await flush();
     expect(callback).toHaveBeenCalled();
     for (const [event] of callback.mock.calls) {
-      expect((event as ElementsMeasuredEvent).isInitial).toBe(false);
+      expect((event as ElementsMeasuredParams).isInitial).toBe(false);
     }
   });
 

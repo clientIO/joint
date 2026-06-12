@@ -26,7 +26,6 @@
     "PaperEventHandlers",
     "CellDragStateDragging",
     "CellDragStateIdle",
-    "Callback",
     "BaseLinkOptions",
     "ProviderCells",
     "ElementLayoutOptionalXY",

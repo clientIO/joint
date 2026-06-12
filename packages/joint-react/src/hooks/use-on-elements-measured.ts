@@ -1,10 +1,21 @@
 import { useLayoutEffect, useRef } from 'react';
+import type { dia } from '@joint/core';
 import { usePaperStore, useResolvePaperId } from './use-paper';
-import { type ElementsMeasuredEvent } from '../types/event.types';
 import type { PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 
-type Callback = (event: ElementsMeasuredEvent) => void;
+/** Payload delivered when paper-managed elements complete a measurement pass. */
+export interface ElementsMeasuredParams {
+  /** True when this is the first measurement (all elements sized for the first time). */
+  readonly isInitial: boolean;
+  /** The paper instance that triggered the event. */
+  readonly paper: dia.Paper;
+  /** The graph model associated with the paper. */
+  readonly graph: dia.Graph;
+}
+
+/** Callback signature for `useOnElementsMeasured`. */
+export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
 
 /**
  * Calls a callback when element sizes are measured or re-measured.
@@ -25,16 +36,16 @@ type Callback = (event: ElementsMeasuredEvent) => void;
  * });
  * ```
  */
-export function useOnElementsMeasured(callback: Callback): void;
-export function useOnElementsMeasured(paperTarget: PaperTarget, callback: Callback): void;
+export function useOnElementsMeasured(callback: OnElementsMeasured): void;
+export function useOnElementsMeasured(paperTarget: PaperTarget, callback: OnElementsMeasured): void;
 export function useOnElementsMeasured(
-  paperTargetOrCallback: PaperTarget | Callback,
-  callbackArgument?: Callback
+  paperTargetOrCallback: PaperTarget | OnElementsMeasured,
+  callbackArgument?: OnElementsMeasured
 ): void {
   const isContextForm = typeof paperTargetOrCallback === 'function';
 
   const paperTarget = isContextForm ? undefined : (paperTargetOrCallback as PaperTarget);
-  const callback = isContextForm ? (paperTargetOrCallback as Callback) : (callbackArgument as Callback);
+  const callback = isContextForm ? (paperTargetOrCallback as OnElementsMeasured) : (callbackArgument as OnElementsMeasured);
 
   const paperId = useResolvePaperId(paperTarget);
   const paperStore = usePaperStore(paperId);

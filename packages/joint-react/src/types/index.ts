@@ -20,5 +20,4 @@ export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
  */
 export type Nullable<T> = { [K in keyof T]: T[K] | null };
 
-export * from './event.types';
 export * from './paper.types';

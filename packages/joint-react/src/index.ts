@@ -113,6 +113,10 @@ export type {
  * useOnElementsMeasured()
  */
 export { useOnElementsMeasured } from './hooks/use-on-elements-measured';
+export type {
+  ElementsMeasuredParams,
+  OnElementsMeasured,
+} from './hooks/use-on-elements-measured';
 
 /**
  * usePaperEvents()
