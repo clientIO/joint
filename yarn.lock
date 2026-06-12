@@ -5569,7 +5569,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/core@workspace:*, @joint/core@workspace:^, @joint/core@workspace:packages/joint-core, @joint/core@workspace:~":
+"@joint/core@workspace:^, @joint/core@workspace:packages/joint-core, @joint/core@workspace:~":
   version: 0.0.0-use.local
   resolution: "@joint/core@workspace:packages/joint-core"
   dependencies:
@@ -6440,7 +6440,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/layout-directed-graph@workspace:*, @joint/layout-directed-graph@workspace:^, @joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph":
+"@joint/layout-directed-graph@workspace:^, @joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph":
   version: 0.0.0-use.local
   resolution: "@joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph"
   dependencies:
@@ -6498,9 +6498,9 @@ __metadata:
     "@babel/preset-react": "npm:^7.29.7"
     "@babel/preset-typescript": "npm:^7.29.7"
     "@chromatic-com/storybook": "npm:^5.2.1"
-    "@joint/core": "workspace:*"
+    "@joint/core": "workspace:^"
     "@joint/eslint-config": "workspace:*"
-    "@joint/layout-directed-graph": "workspace:*"
+    "@joint/layout-directed-graph": "workspace:^"
     "@reduxjs/toolkit": "npm:^2.11.0"
     "@rollup/plugin-commonjs": "npm:^28.0.6"
     "@rollup/plugin-node-resolve": "npm:^16.0.1"
