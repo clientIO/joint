@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
+import type { CellRecord, ElementModel, ElementsMeasuredParams, LinkRecord, LinkStyle, OnElementsMeasured } from '@joint/react';
 import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useOnElementsMeasured, usePaper, usePaperEvents, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useMemo, useRef } from 'react';
@@ -577,13 +577,14 @@ function RenderFTAElement(data: Readonly<FTAData>) {
 // Custom Element Tools
 // ----------------------------------------------------------------------------
 class ExpandButton extends elementTools.Button {
-  options: elementTools.Button.Options = {
-    x: 'calc(w / 2 - 35)',
-    y: 'calc(h - 15)',
-    action: (event, view, _tool) => {
-      view.paper?.trigger('element:expand', view, event);
-    },
-  };
+
+  preinitialize(options: elementTools.Button.Options) {
+    this.options = {
+      ...options,
+      x: 'calc(w / 2 - 35)',
+      y: 'calc(h - 15)',
+    };
+  }
 
   children = jsx(
     <>
@@ -671,29 +672,58 @@ function addExpandTools(paper: dia.Paper) {
     // Only add tools to IntermediateEvent elements
     if (element.prop('data/type') !== 'IntermediateEvent') continue;
 
-    const elementView = element.findView(paper);
+    const elementView = element.findView(paper) as dia.ElementView | null;
     if (!elementView) continue;
 
     const toolsView = new dia.ToolsView({
       name: 'expand-tools',
-      tools: [new ExpandButton()],
+      tools: [new ExpandButton({
+        action: () => expandBranch(graph, elementView.model),
+      })],
     });
 
     elementView.addTools(toolsView);
   }
 }
 
+function expandBranch(graph: dia.Graph, element: dia.Element) {
+  const successorElements = graph.getSuccessors(element);
+  const [successor] = successorElements;
+  if (successorElements.length === 0) return;
+
+  const shouldExpand = !successor.prop('hidden');
+  const successorCells = graph.getSubgraph([element, ...successorElements]);
+
+  for (const cell of successorCells) {
+    if (cell === element) {
+      cell.prop({
+        hidden: false,
+        data: {
+          collapsed: shouldExpand,
+        },
+      });
+    } else {
+      cell.prop('hidden', shouldExpand);
+      if (cell.isElement()) {
+        cell.prop('data/collapsed', false);
+      }
+    }
+  }
+
+  runLayout(graph);
+}
+
+
 // ----------------------------------------------------------------------------
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
-  const paperRef = useRef<dia.Paper | null>(null);
   const cellVisibilityCallback = useCallback(({ model }: { model: dia.Cell }) => {
     return !model.prop('hidden');
   }, []);
 
-  const handleElementsMeasured = useCallback(
-    ({ isInitial, paper, graph }: { isInitial: boolean; paper: dia.Paper; graph: dia.Graph }) => {
+  const handleElementsMeasured: OnElementsMeasured = useCallback(
+    ({ isInitial, paper, graph }) => {
       if (!isInitial) return;
       runLayout(graph);
       addExpandTools(paper);
@@ -707,54 +737,12 @@ function Main() {
     []
   );
 
-  const handleExpand = useCallback((jointPaper: dia.Paper, elementView: dia.ElementView) => {
-    const graph = jointPaper.model;
-    const element = elementView.model;
-    const successorElements = graph.getSuccessors(element);
-    const [successor] = successorElements;
-
-    if (successorElements.length === 0) return;
-
-    const shouldExpand = !successor.prop('hidden');
-    const successorCells = graph.getSubgraph([element, ...successorElements]);
-
-    for (const cell of successorCells) {
-      if (cell === element) {
-        cell.prop({
-          hidden: false,
-          data: {
-            collapsed: shouldExpand,
-          },
-        });
-      } else {
-        cell.prop('hidden', shouldExpand);
-        if (cell.isElement()) {
-          cell.prop('data/collapsed', false);
-        }
-      }
-    }
-
-    runLayout(graph);
-  }, []);
-
-  usePaperEvents(
-    {
-      'element:expand': (elementView) => {
-        const view = elementView as dia.ElementView;
-        if (!view.paper) return;
-        handleExpand(view.paper, view);
-      },
-    },
-    [handleExpand]
-  );
-
   useOnElementsMeasured(handleElementsMeasured);
 
   const renderElement = useCallback((data: FTAData) => RenderFTAElement(data), []);
 
   return (
     <Paper style={{ ...PAPER_STYLE, height: 600 }}
-      ref={paperRef}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibilityCallback}
