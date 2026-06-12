@@ -6545,6 +6545,7 @@ __metadata:
     redux-undo: "npm:1.1.0"
     resize-observer-polyfill: "npm:^1.5.1"
     rollup: "npm:^4.50.0"
+    rollup-plugin-dts: "npm:^6.4.1"
     rollup-plugin-esbuild: "npm:^6.2.1"
     storybook: "npm:^10.4.2"
     storybook-multilevel-sort: "npm:^2.1.0"
@@ -27522,6 +27523,25 @@ __metadata:
   peerDependencies:
     rollup: ">=1.12.0"
   checksum: 10/22faf8da2a35e4f0d650219f2f3eda99f33c43244832e996c569f1c6999c41bbe6f8bf05320fcad56e141c99a3c391782bf7cac3070b3a17a2fac3e4aa1a8b97
+  languageName: node
+  linkType: hard
+
+"rollup-plugin-dts@npm:^6.4.1":
+  version: 6.4.1
+  resolution: "rollup-plugin-dts@npm:6.4.1"
+  dependencies:
+    "@babel/code-frame": "npm:^7.29.0"
+    "@jridgewell/remapping": "npm:^2.3.5"
+    "@jridgewell/sourcemap-codec": "npm:^1.5.5"
+    convert-source-map: "npm:^2.0.0"
+    magic-string: "npm:^0.30.21"
+  peerDependencies:
+    rollup: ^3.29.4 || ^4
+    typescript: ^4.5 || ^5.0 || ^6.0
+  dependenciesMeta:
+    "@babel/code-frame":
+      optional: true
+  checksum: 10/a18685fde4c59339cacb47e084ff589b39fc680d186b496b83197370295002f748066e3c9c62ced2eca1af0bca77d3096bb24905c40c0478a6d845d63531293d
   languageName: node
   linkType: hard
 

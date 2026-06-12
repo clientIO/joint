@@ -1,5 +1,6 @@
 import { defineConfig, type RollupOptions } from 'rollup';
 import esbuild from 'rollup-plugin-esbuild';
+import dts from 'rollup-plugin-dts';
 
 interface CreateRollupConfigOptions {
   /** Entry points to build (e.g. ['src/index.ts', 'src/internal.ts']) */
@@ -63,6 +64,23 @@ export function createRollupConfig(options: CreateRollupConfigOptions): RollupOp
       context: 'globalThis',
       external,
       plugins,
+    },
+
+    // Declaration build (bundled .d.ts per entry)
+    {
+      // Named inputs so chunks emit as dist/types/<name>.d.ts (not dist/types/src/<name>.d.ts)
+      input: Object.fromEntries(
+        entries.map((entry) => [
+          entry.replace(/^src\//, '').replace(/\.tsx?$/, ''),
+          entry,
+        ])
+      ),
+      output: {
+        dir: 'dist/types',
+        format: 'esm',
+      },
+      external,
+      plugins: [dts()],
     },
   ]);
 }
