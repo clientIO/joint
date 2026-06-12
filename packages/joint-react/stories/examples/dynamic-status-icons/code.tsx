@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type dia, g, highlighters, V } from '@joint/core';
-import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useNodesMeasuredEffect, selectElementSize } from '@joint/react';
+import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useOnElementsMeasured, selectElementSize } from '@joint/react';
 import { useCallback, useEffect, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 
@@ -225,7 +225,7 @@ function Main() {
 
   useInterval(setRandomStatuses);
 
-  useNodesMeasuredEffect(({ isInitial, paper }) => {
+  useOnElementsMeasured(({ isInitial, paper }) => {
     if (!isInitial) return;
     for (const element of graph.getElements()) {
       StatusList.add(element.findView(paper), 'root', 'status', {

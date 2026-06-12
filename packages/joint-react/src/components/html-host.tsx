@@ -1,5 +1,5 @@
 import { useMemo, useRef, type CSSProperties, type HTMLAttributes, type RefObject } from 'react';
-import { useMeasureNode } from '../hooks/use-measure-node';
+import { useMeasureElement } from '../hooks/use-measure-element';
 import { useCell } from '../hooks/use-cell';
 import { selectElementSize } from '../selectors';
 
@@ -9,7 +9,7 @@ import { selectElementSize } from '../selectors';
  * All props are spread onto the inner `<div>`, so you can pass `children`,
  * `style`, `className`, event handlers, `data-*` attributes, etc.
  *
- * By default, the host measures its content via `useMeasureNode` and syncs
+ * By default, the host measures its content via `useMeasureElement` and syncs
  * the size back to the graph element. Set `useModelGeometry` to skip
  * measurement and render with the element's dimensions from the model instead.
  *
@@ -87,15 +87,15 @@ function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElem
  * @param root0.style
  */
 function MeasuredHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
-  const nodeRef = useRef<HTMLDivElement>(null);
-  const measuredSize = useMeasureNode(nodeRef);
+  const divRef = useRef<HTMLDivElement>(null);
+  const measuredSize = useMeasureElement(divRef);
   const mergedStyle = useMemo<CSSProperties>(
     () => ({ width: 'max-content', height: 'max-content', ...style }),
     [style]
   );
   return (
     <HTMLFrame
-      nodeRef={nodeRef}
+      nodeRef={divRef}
       width={measuredSize.width}
       height={measuredSize.height}
       style={mergedStyle}

@@ -9,7 +9,7 @@ import {
   useCellId,
   useGraph,
   useCells,
-  useNodesMeasuredEffect,
+  useOnElementsMeasured,
   type CellRecord,
   type Computed,
   type ElementRecord,
@@ -189,7 +189,7 @@ function LayoutRunner() {
     }
   }, [graph]);
 
-  useNodesMeasuredEffect(runLayout, [runLayout]);
+  useOnElementsMeasured(runLayout);
   return null;
 }
 

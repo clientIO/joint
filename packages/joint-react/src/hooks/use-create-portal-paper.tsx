@@ -59,7 +59,7 @@ export interface CreatePortalPaperOptions extends PaperProps {
    * Host element ref where the paper should be mounted automatically.
    * When omitted, paper rendering is manual (e.g. via `onReady` callback).
    */
-  readonly elementRef?: RefObject<HTMLElement | SVGElement | null>;
+  readonly nodeRef?: RefObject<HTMLElement | SVGElement | null>;
   /** Callback fired once when paper instance is created and ready. */
   readonly onReady?: (paper: PaperView) => void;
   /** Whether the paper is externally managed (skip div mounting). */
@@ -206,7 +206,7 @@ export function useCreatePortalPaper(
     // These are React host props and must not be forwarded to dia.Paper options.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     className,
-    elementRef,
+    nodeRef,
     onReady,
     id,
     paper: externalPaper,
@@ -295,7 +295,7 @@ export function useCreatePortalPaper(
 
   const interactiveValue = useMemo(() => toNativeCellInteractivity(interactive), [interactive]);
 
-  const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
+  const isReady = !!paper && (isExternalPaper || !nodeRef || !!nodeRef.current);
 
   const { eventDependencies, eventHandlers } = useMemo(
     () => extractEventsFromPaperProps(paperOptions),
@@ -308,7 +308,7 @@ export function useCreatePortalPaper(
   }, [paperStore, ...eventDependencies]);
 
   useLayoutEffect(() => {
-    const hostElementForCreation = elementRef?.current;
+    const hostElementForCreation = nodeRef?.current;
 
     const { paperStore, remove } = addPaper(id, {
       paperOptions: {
@@ -369,7 +369,7 @@ export function useCreatePortalPaper(
       onReady(paper);
     }
     paper.unfreeze();
-  }, [elementRef, onReady, paper]);
+  }, [nodeRef, onReady, paper]);
 
   useEffect(() => {
     if (!paperStore) return;

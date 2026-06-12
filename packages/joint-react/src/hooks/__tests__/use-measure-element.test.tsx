@@ -20,7 +20,7 @@ import { act, render, waitFor } from '@testing-library/react';
 import type { dia } from '@joint/core';
 import { GraphProvider, Paper } from '../../components';
 import { CellIdContext } from '../../context';
-import { useMeasureNode } from '../use-measure-node';
+import { useMeasureElement } from '../use-measure-element';
 import { useGraphStore } from '../use-graph-store';
 import { usePaper } from '../use-paper';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
@@ -57,7 +57,7 @@ function Probe() {
   const { paper } = usePaper();
   capturedGraph = graph;
   capturedPaper = paper;
-  const size = useMeasureNode(nodeRef);
+  const size = useMeasureElement(nodeRef);
   return (
     <>
       <rect ref={nodeRef} width={80} height={120} />
@@ -86,8 +86,8 @@ function renderProbe() {
 
 function NoCellProbe() {
   const ref = useRef<HTMLDivElement | null>(null);
-  // No CellIdContext — useMeasureNode throws.
-  useMeasureNode(ref);
+  // No CellIdContext — useMeasureElement throws.
+  useMeasureElement(ref);
   return null;
 }
 
@@ -96,18 +96,18 @@ const renderNullElement = () => null;
 function NoNodeProbe() {
   // Always-null ref — `if (!element) return;` early-out exercised.
   const ref = useRef<SVGRectElement | null>(null);
-  const size = useMeasureNode(ref);
+  const size = useMeasureElement(ref);
   return <text>{size.width}</text>;
 }
 
 const renderNoNodeProbe = () => <NoNodeProbe />;
 
-describe('useMeasureNode', () => {
+describe('useMeasureElement', () => {
   it('adds .jj-is-measuring on mount and removes it on the next paper render:done', async () => {
     capturedGraph = null;
     capturedPaper = undefined;
     const { container } = renderProbe();
-    // Class is applied by useMeasureNode in a layout effect; wait until it lands.
+    // Class is applied by useMeasureElement in a layout effect; wait until it lands.
     await waitFor(() => {
       const elementView = container.querySelector('.joint-cell.joint-element');
       expect(elementView).not.toBeNull();
@@ -143,7 +143,7 @@ describe('useMeasureNode', () => {
           </Paper>
         </GraphProvider>
       )
-    ).toThrow(/useMeasureNode\(\) must be used inside renderElement/);
+    ).toThrow(/useMeasureElement\(\) must be used inside renderElement/);
     consoleError.mockRestore();
   });
 
@@ -153,7 +153,7 @@ describe('useMeasureNode', () => {
     // so we capture the error there.
     function LinkProbe() {
       const ref = useRef<SVGRectElement | null>(null);
-      useMeasureNode(ref);
+      useMeasureElement(ref);
       return <rect ref={ref} width={1} height={1} />;
     }
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -252,7 +252,7 @@ describe('useMeasureNode', () => {
 
     function SameSizeProbe() {
       const nodeRef = useRef<SVGRectElement | null>(null);
-      useMeasureNode(nodeRef);
+      useMeasureElement(nodeRef);
       return <rect ref={nodeRef} width={80} height={120} />;
     }
 

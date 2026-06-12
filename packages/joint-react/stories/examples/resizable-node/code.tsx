@@ -5,7 +5,7 @@ import {
   GraphProvider,
   Paper,
   useCell,
-  useMeasureNode,
+  useMeasureElement,
   type Computed,
 } from '@joint/react';
 import '../index.css';
@@ -30,10 +30,10 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 ];
 
 function ResizableNode() {
-  const nodeRef = useRef<HTMLDivElement>(null);
+  const divRef = useRef<HTMLDivElement>(null);
   const label = useCell((element: Computed<ElementRecord<NodeData>>) => element.data.label);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
-    const node = nodeRef.current;
+    const node = divRef.current;
     if (!node) return;
 
     // Get the node's bounding rectangle
@@ -51,11 +51,11 @@ function ResizableNode() {
     }
   }, []);
 
-  const { width, height } = useMeasureNode(nodeRef);
+  const { width, height } = useMeasureElement(divRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div
-        ref={nodeRef}
+        ref={divRef}
         className="resizable-node"
         onMouseDown={handleMouseDown} // prevent drag events from propagating
         style={{

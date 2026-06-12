@@ -22,7 +22,7 @@ function PaperBase(
   const isExternalPaper = !!externalPaper;
   const { paperRef, paperStore, isReady, content } = useCreatePortalPaper({
     ...props,
-    elementRef: isExternalPaper ? undefined : paperHTMLElementRef,
+    nodeRef: isExternalPaper ? undefined : paperHTMLElementRef,
     id,
     style,
     className,

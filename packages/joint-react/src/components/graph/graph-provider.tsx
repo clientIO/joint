@@ -38,7 +38,7 @@ export interface GraphProviderProps<
   readonly cellModel?: typeof dia.Cell;
   /**
    * Reference point that stays fixed when an auto-sized element's measured
-   * size changes (via `useMeasureNode`). Mirrors CSS `transform-origin` semantics.
+   * size changes (via `useMeasureElement`). Mirrors CSS `transform-origin` semantics.
    * - `'top-left'` (default): element grows right/down.
    * - `'center'`: element grows symmetrically — its geometric center stays put.
    *

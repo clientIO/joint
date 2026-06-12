@@ -5,7 +5,7 @@ import {
   GraphProvider,
   Paper,
   useCell,
-  useMeasureNode,
+  useMeasureElement,
   usePaper,
   selectElementSize,
 } from '@joint/react';
@@ -77,10 +77,10 @@ function Controls() {
 }
 
 function HTMLItem({ label }: Readonly<ElementData>) {
-  const elementRef = useRef<HTMLDivElement>(null);
-  useMeasureNode(elementRef);
+  const divRef = useRef<HTMLDivElement>(null);
+  useMeasureElement(divRef);
   return (
-    <div ref={elementRef} className="node">
+    <div ref={divRef} className="node">
       <div>{label}</div>
     </div>
   );

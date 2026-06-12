@@ -5,7 +5,7 @@ import {
   type CellRecord,
   GraphProvider,
   Paper,
-  useMeasureNode,
+  useMeasureElement,
   useMarkup,
   linkRoutingSmooth,
   type RenderElement,
@@ -93,7 +93,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
     };
   }, []);
 
-  const { width = 0, height = 0 } = useMeasureNode(contentRef, { transform });
+  const { width = 0, height = 0 } = useMeasureElement(contentRef, { transform });
 
   return (
     <>

@@ -9,7 +9,7 @@ import {
   selectElementSize,
   useCell,
   useCellId,
-  useMeasureNode,
+  useMeasureElement,
   type CellRecord,
   type ElementRecord,
 } from '@joint/react';
@@ -133,12 +133,12 @@ export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryC
 }
 
 export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
-  const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(elementRef);
+  const divRef = useRef<HTMLDivElement>(null);
+  const { width, height } = useMeasureElement(divRef);
 
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <div ref={elementRef} {...props} />
+      <div ref={divRef} {...props} />
     </foreignObject>
   );
 }

@@ -82,7 +82,7 @@ export {
 // Internal Types (used by react-plus)
 export type { OmitWithoutIndexSignature, PaperTarget } from './types';
 export type { PortalSelector } from './mvc/paper.types';
-export type { MeasureNodeOptions } from './hooks/use-measure-node';
+export type { MeasureElementOptions } from './hooks/use-measure-element';
 
 // Event internals
 export { subscribeToPaperEvents } from './hooks/use-paper-events';

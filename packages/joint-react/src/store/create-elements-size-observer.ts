@@ -2,7 +2,7 @@
  * Element size observer with stack-based multi-hook support.
  *
  * Tracks DOM element sizes via ResizeObserver and syncs them to the graph.
- * Multiple `useMeasureNode` hooks can target the same cell ID — only the
+ * Multiple `useMeasureElement` hooks can target the same cell ID — only the
  * most recently added (active) node is observed. When it unmounts, the
  * previous node in the stack becomes active again.
  *

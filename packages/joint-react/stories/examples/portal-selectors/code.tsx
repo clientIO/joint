@@ -9,7 +9,7 @@ import {
   Paper,
   useCells,
   useGraph,
-  useMeasureNode,
+  useMeasureElement,
   usePaper,
   ELEMENT_MODEL_TYPE,
   type CellId,
@@ -141,7 +141,7 @@ function Shape({
   title?: string;
 }>) {
   const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useMeasureNode(textRef, {
+  const { width, height } = useMeasureElement(textRef, {
     transform: nodeSizeToModelSize,
   });
 

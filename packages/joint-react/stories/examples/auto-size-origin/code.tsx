@@ -10,7 +10,7 @@ import {
   useCell,
   useCellId,
   useGraph,
-  useMeasureNode,
+  useMeasureElement,
 } from '@joint/react';
 import { useCallback, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -36,7 +36,7 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 const STOP_DRAG = (event: React.MouseEvent | React.PointerEvent) => event.stopPropagation();
 
 function EditableNode() {
-  const nodeRef = useRef<HTMLDivElement>(null);
+  const divRef = useRef<HTMLDivElement>(null);
   const id = useCellId();
   const { graph } = useGraph();
   const label = useCell((element: Computed<ElementRecord<NodeData>>) => element.data.label);
@@ -48,12 +48,12 @@ function EditableNode() {
     [graph, id]
   );
 
-  const { width, height } = useMeasureNode(nodeRef);
+  const { width, height } = useMeasureElement(divRef);
 
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div
-        ref={nodeRef}
+        ref={divRef}
         style={{
           display: 'inline-flex',
           alignItems: 'center',

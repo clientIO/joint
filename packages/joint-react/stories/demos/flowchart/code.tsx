@@ -4,7 +4,7 @@
 
 import './index.css';
 import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformElementLayoutParams } from '@joint/react';
-import { GraphProvider, Paper, useMarkup, useMeasureNode, useNodesMeasuredEffect, linkRoutingOrthogonal } from '@joint/react';
+import { GraphProvider, Paper, useMarkup, useMeasureElement, useOnElementsMeasured, linkRoutingOrthogonal } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { forwardRef, useRef, useState } from 'react';
@@ -275,7 +275,7 @@ function DecisionElementRaw(
   ref: React.ForwardedRef<SVGPolygonElement>
 ) {
   const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useMeasureNode(textRef, {
+  const { width, height } = useMeasureElement(textRef, {
     transform: (options) => applyElementPadding(options),
   });
 
@@ -315,7 +315,7 @@ function StartElementRaw(
   const padding = 20;
 
   const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useMeasureNode(textRef, {
+  const { width, height } = useMeasureElement(textRef, {
     transform: (options) => applyElementPadding(options, padding),
   });
 
@@ -356,7 +356,7 @@ function StepElementRaw(
   const padding = 20;
 
   const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useMeasureNode(textRef, {
+  const { width, height } = useMeasureElement(textRef, {
     transform: (options) => applyElementPadding(options, padding),
   });
 
@@ -410,7 +410,7 @@ function RenderFlowchartElement(data: Readonly<ElementData>) {
 function Main() {
   const paperRef = useRef<dia.Paper | null>(null);
 
-  useNodesMeasuredEffect(({ isInitial, paper }) => {
+  useOnElementsMeasured(({ isInitial, paper }) => {
     if (!isInitial) return;
     paper.transformToFitContent({
       padding: 40,

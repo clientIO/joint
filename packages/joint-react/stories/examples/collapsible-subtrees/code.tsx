@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
-import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useNodesMeasuredEffect, usePaper, usePaperEvents, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
+import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useOnElementsMeasured, usePaper, usePaperEvents, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useMemo, useRef } from 'react';
 import { dia, elementTools } from '@joint/core';
@@ -748,7 +748,7 @@ function Main() {
     [handleExpand]
   );
 
-  useNodesMeasuredEffect(handleElementsMeasured);
+  useOnElementsMeasured(handleElementsMeasured);
 
   const renderElement = useCallback((data: FTAData) => RenderFTAElement(data), []);
 

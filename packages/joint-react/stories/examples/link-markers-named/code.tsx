@@ -3,7 +3,6 @@ import type { CellRecord, LinkRecord } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import type { LinkMarkerName } from '@joint/react';
-import { namedLinkMarkers } from '../../../src/theme/named-link-markers';
 
 const LINK_LENGTH = 160;
 const GAP_Y = 30;
@@ -11,9 +10,7 @@ const COLS = 2;
 const GAP_X = 220;
 const PADDING = 20;
 
-const markerNames = Object.keys(namedLinkMarkers).filter(
-  (name) => name !== 'none'
-) as LinkMarkerName[];
+const markerNames = ['arrow', 'arrow-open', 'arrow-sunken', 'circle', 'diamond'] as const satisfies LinkMarkerName[];
 
 function buildCells(): readonly CellRecord[] {
   const cells: LinkRecord[] = [];

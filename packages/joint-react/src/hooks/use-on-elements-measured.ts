@@ -1,10 +1,21 @@
-import { useLayoutEffect, useRef, type DependencyList } from 'react';
+import { useLayoutEffect, useRef } from 'react';
+import type { dia } from '@joint/core';
 import { usePaperStore, useResolvePaperId } from './use-paper';
-import { type ElementsMeasuredEvent } from '../types/event.types';
 import type { PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 
-type Callback = (event: ElementsMeasuredEvent) => void;
+/** Payload delivered when paper-managed elements complete a measurement pass. */
+export interface ElementsMeasuredParams {
+  /** True when this is the first measurement (all elements sized for the first time). */
+  readonly isInitial: boolean;
+  /** The paper instance that triggered the event. */
+  readonly paper: dia.Paper;
+  /** The graph model associated with the paper. */
+  readonly graph: dia.Graph;
+}
+
+/** Callback signature for `useOnElementsMeasured`. */
+export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
 
 /**
  * Calls a callback when element sizes are measured or re-measured.
@@ -15,40 +26,26 @@ type Callback = (event: ElementsMeasuredEvent) => void;
  * The callback receives `{ isInitial: boolean }` to distinguish the
  * first measurement from subsequent ones.
  * @param callback - Called each time element sizes are measured.
- * @param dependencies - Optional dependency array controlling re-subscription.
  * @group Hooks
  * @example
  * ```tsx
  * // Using a paper ref
  * const paperRef = useRef<dia.Paper>(null);
- * useNodesMeasuredEffect(paperRef, () => {
+ * useOnElementsMeasured(paperRef, () => {
  *   paperRef.current?.transformToFitContent({ padding: 20 });
  * });
  * ```
  */
-export function useNodesMeasuredEffect(
-  callback: Callback,
-  dependencies?: DependencyList
-): void;
-export function useNodesMeasuredEffect(
-  paperTarget: PaperTarget,
-  callback: Callback,
-  dependencies?: DependencyList
-): void;
-export function useNodesMeasuredEffect(
-  paperTargetOrCallback: PaperTarget | Callback,
-  callbackOrDependencies?: Callback | DependencyList,
-  dependenciesArgument?: DependencyList
+export function useOnElementsMeasured(callback: OnElementsMeasured): void;
+export function useOnElementsMeasured(paperTarget: PaperTarget, callback: OnElementsMeasured): void;
+export function useOnElementsMeasured(
+  paperTargetOrCallback: PaperTarget | OnElementsMeasured,
+  callbackArgument?: OnElementsMeasured
 ): void {
   const isContextForm = typeof paperTargetOrCallback === 'function';
 
   const paperTarget = isContextForm ? undefined : (paperTargetOrCallback as PaperTarget);
-  const callback = isContextForm
-    ? (paperTargetOrCallback as Callback)
-    : (callbackOrDependencies as Callback);
-  const dependencies = isContextForm
-    ? (callbackOrDependencies as DependencyList | undefined)
-    : dependenciesArgument;
+  const callback = isContextForm ? (paperTargetOrCallback as OnElementsMeasured) : (callbackArgument as OnElementsMeasured);
 
   const paperId = useResolvePaperId(paperTarget);
   const paperStore = usePaperStore(paperId);
@@ -86,6 +83,5 @@ export function useNodesMeasuredEffect(
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paperStore, ...(dependencies ?? [])]);
+  }, [paperStore, measureState, graph]);
 }
