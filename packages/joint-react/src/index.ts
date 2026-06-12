@@ -80,9 +80,9 @@ export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-gr
  * usePaper()
  */
 export { usePaper } from './hooks/use-paper';
+export { PaperView } from './mvc/paper';
 export type { PaperHandle } from './hooks/use-paper';
 export type { PaperTarget } from './types/paper.types';
-export type { PaperView } from './mvc/paper';
 
 /**
  * useCells()
