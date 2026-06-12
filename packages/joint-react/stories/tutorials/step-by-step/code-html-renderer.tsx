@@ -77,10 +77,10 @@ function Controls() {
 }
 
 function HTMLItem({ label }: Readonly<ElementData>) {
-  const nodeRef = useRef<HTMLDivElement>(null);
-  useMeasureElement(nodeRef);
+  const divRef = useRef<HTMLDivElement>(null);
+  useMeasureElement(divRef);
   return (
-    <div ref={nodeRef} className="node">
+    <div ref={divRef} className="node">
       <div>{label}</div>
     </div>
   );

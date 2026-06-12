@@ -133,12 +133,12 @@ export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryC
 }
 
 export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
-  const nodeRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureElement(nodeRef);
+  const divRef = useRef<HTMLDivElement>(null);
+  const { width, height } = useMeasureElement(divRef);
 
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <div ref={nodeRef} {...props} />
+      <div ref={divRef} {...props} />
     </foreignObject>
   );
 }

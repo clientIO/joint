@@ -39,7 +39,7 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
   const id = useCellId();
   const padding = 10;
   const headerHeight = 50;
-  const nodeRef = useRef<HTMLDivElement>(null);
+  const divRef = useRef<HTMLDivElement>(null);
 
   const transform: TransformElementLayout = useCallback(
     ({ width: measuredWidth, height: measuredHeight }) => {
@@ -53,7 +53,7 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
     []
   );
 
-  const { width, height } = useMeasureElement(nodeRef, { transform });
+  const { width, height } = useMeasureElement(divRef, { transform });
 
   const { setCell, isElement } = useGraph<ElementRecord<ListNodeData>>();
 
@@ -88,7 +88,7 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
         width={Math.max(width - 2 * padding, 0)}
         height={Math.max(height - headerHeight - padding, 0)}
       >
-        <div ref={nodeRef} className="absolute p-1 min-w-50">
+        <div ref={divRef} className="absolute p-1 min-w-50">
           <button
             type="button"
             onClick={addInput}

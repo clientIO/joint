@@ -118,7 +118,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  * import { useRef, useCallback } from 'react';
  *
  * function ListElement() {
- *   const nodeRef = useRef<HTMLDivElement>(null);
+ *   const divRef = useRef<HTMLDivElement>(null);
  *   const padding = 10;
  *   const headerHeight = 50;
  *
@@ -132,13 +132,13 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  *     []
  *   );
  *
- *   const { width, height } = useMeasureElement(nodeRef, { transform });
+ *   const { width, height } = useMeasureElement(divRef, { transform });
  *
  *   return (
  *     <>
  *       <rect width={width} height={height} fill="#121826" />
  *       <foreignObject x={padding} y={headerHeight} width={width - 2 * padding} height={height - headerHeight - padding}>
- *         <div ref={nodeRef}>Content</div>
+ *         <div ref={divRef}>Content</div>
  *       </foreignObject>
  *     </>
  *   );

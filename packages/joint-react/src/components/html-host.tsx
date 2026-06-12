@@ -87,15 +87,15 @@ function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElem
  * @param root0.style
  */
 function MeasuredHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
-  const nodeRef = useRef<HTMLDivElement>(null);
-  const measuredSize = useMeasureElement(nodeRef);
+  const divRef = useRef<HTMLDivElement>(null);
+  const measuredSize = useMeasureElement(divRef);
   const mergedStyle = useMemo<CSSProperties>(
     () => ({ width: 'max-content', height: 'max-content', ...style }),
     [style]
   );
   return (
     <HTMLFrame
-      nodeRef={nodeRef}
+      nodeRef={divRef}
       width={measuredSize.width}
       height={measuredSize.height}
       style={mergedStyle}

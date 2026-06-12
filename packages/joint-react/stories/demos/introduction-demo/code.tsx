@@ -168,11 +168,11 @@ function MessageComponent({
   }
   const id = useCellId();
   const { setCell } = useGraph<ElementRecord<ElementData>, LinkRecord>();
-  const nodeRef = React.useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureElement(nodeRef);
+  const divRef = React.useRef<HTMLDivElement>(null);
+  const { width, height } = useMeasureElement(divRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <div ref={nodeRef} className={MESSAGE_NODE_CLASSNAME}>
+      <div ref={divRef} className={MESSAGE_NODE_CLASSNAME}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 items-start">
             <div className="text-2xl">{iconContent}</div>
