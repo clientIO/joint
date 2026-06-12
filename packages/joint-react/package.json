@@ -39,7 +39,7 @@
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn run dist",
     "dist": "yarn run build",
-    "build": "rollup -c rollup.config.ts --configPlugin esbuild && tsc --project tsconfig.types.json",
+    "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build-storybook": "storybook build",
     "storybook": "storybook dev -p 6006",
     "test": "yarn run typecheck && yarn run lint && yarn jest",
@@ -61,12 +61,10 @@
       "import": "./dist/esm/internal.js",
       "require": "./dist/cjs/internal.js"
     },
-    "./styles.css": "./src/css/styles.css"
+    "./styles.css": "./dist/styles.css"
   },
   "files": [
     "dist/",
-    "src/css/*.css",
-    "src/presets/*.css",
     "./LICENSE",
     "./README.md"
   ],
@@ -110,6 +108,7 @@
     "babel-jest": "30",
     "babel-plugin-react-compiler": "^1.0.0",
     "canvas": "^3.1.0",
+    "esbuild": "0.25.12",
     "eslint": "9.39.2",
     "eslint-plugin-storybook": "^10.4.2",
     "glob": "^11.0.1",
