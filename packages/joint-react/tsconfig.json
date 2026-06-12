@@ -28,6 +28,6 @@
       "storybook-config/*": ["./.storybook/*"]
     }
   },
-  "include": ["src", "stories", ".storybook/*", "vite.config.ts"],
+  "include": ["src", "stories", ".storybook/*", "vite.config.ts", "rollup.config.ts", "scripts"],
   "exclude": ["node_modules", "dist", "lib"]
 }
