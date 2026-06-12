@@ -41,7 +41,7 @@ function getBreakTextWidth({ width, graph, cellId }: BreakTextWidthOptions) {
 
   const element = graph.getCell(cellId);
   if (!element.isElement()) {
-    throw new TypeError('SVGText must be used with useMeasureNode hook to measure the element size');
+    throw new TypeError('SVGText must be used with useMeasureElement hook to measure the element size');
   }
 
   return element.size().width ?? 0;

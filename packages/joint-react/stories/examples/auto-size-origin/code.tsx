@@ -10,7 +10,7 @@ import {
   useCell,
   useCellId,
   useGraph,
-  useMeasureNode,
+  useMeasureElement,
 } from '@joint/react';
 import { useCallback, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -48,7 +48,7 @@ function EditableNode() {
     [graph, id]
   );
 
-  const { width, height } = useMeasureNode(nodeRef);
+  const { width, height } = useMeasureElement(nodeRef);
 
   return (
     <foreignObject width={width} height={height} overflow="visible">

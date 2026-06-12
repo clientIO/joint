@@ -246,7 +246,7 @@ export class PaperView extends Paper {
   }
 
   /**
-   * Bit flag for marking views that have been measured by `useMeasureNode`
+   * Bit flag for marking views that have been measured by `useMeasureElement`
    * and are awaiting size/position updates.
    *
    * Bit 27 is chosen to sit immediately below joint-core's reserved view

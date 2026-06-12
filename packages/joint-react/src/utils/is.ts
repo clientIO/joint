@@ -47,7 +47,7 @@ export function isCollection(value: unknown): value is mvc.Collection<dia.Cell> 
 
 /**
  * Returns `true` when the element has a defined `size` with numeric `width` and `height`.
- * When `false`, the element is considered auto-sized (size determined by `useMeasureNode`).
+ * When `false`, the element is considered auto-sized (size determined by `useMeasureElement`).
  * @param data - The element data record to check for size
  * @returns Whether size is defined with numeric width and height
  */

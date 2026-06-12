@@ -64,7 +64,7 @@ export interface GraphStoreInternalSnapshot {
  * - `'top-left'` (default): element grows right/down — top-left stays put.
  * - `'center'`: element grows symmetrically — geometric center stays put.
  *
- * Only affects writes from the `useMeasureNode` pipeline. Manual `cell.resize()`,
+ * Only affects writes from the `useMeasureElement` pipeline. Manual `cell.resize()`,
  * interactive resize tools, and direct `cell.set('size', ...)` calls are unaffected.
  */
 export type AutoSizeOrigin = 'top-left' | 'center';

@@ -10,7 +10,7 @@ import {
   useGraph,
   useCells,
   HTMLBox,
-  useNodesMeasuredEffect,
+  useOnElementsMeasured,
   type CellRecord,
   type ElementRecord,
   type Computed,
@@ -62,9 +62,9 @@ function Main() {
     []
   );
 
-  useNodesMeasuredEffect(() => {
+  useOnElementsMeasured(() => {
     makeLayoutWithGrid({ graph, gridXSize });
-  }, []);
+  });
 
   const renderElement = useCallback((data: ElementData) => {
     return <HTMLBox className="flex items-center justify-center">{data.label}</HTMLBox>;

@@ -11,7 +11,7 @@ import { MEASURING_CLASS_NAME } from '../utils/class-names';
 /**
  * Options for configuring how the node size is measured and applied.
  */
-export interface MeasureNodeOptions {
+export interface MeasureElementOptions {
   /**
    * Custom transform function to modify the measured size before applying it to the graph element.
    *
@@ -26,13 +26,13 @@ export interface MeasureNodeOptions {
    *   width: width + 20, // Add 10px padding on each side
    *   height: height + 20,
    * });
-   * useMeasureNode(nodeRef, { transform });
+   * useMeasureElement(nodeRef, { transform });
    * ```
    */
   readonly transform?: TransformElementLayout;
 }
 
-const EMPTY_OBJECT: MeasureNodeOptions = {};
+const EMPTY_OBJECT: MeasureElementOptions = {};
 
 /**
  * Custom hook to automatically measure the size of a DOM element and synchronize it with the graph element's size.
@@ -48,7 +48,7 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * 3. Returns the current graph element's dimensions, which are always defined
  *
  * **Important constraints:**
- * - When multiple `useMeasureNode` hooks target the same element, the most recently mounted hook
+ * - When multiple `useMeasureElement` hooks target the same element, the most recently mounted hook
  *   takes precedence. When it unmounts, the previous hook becomes active again (stack semantics).
  * - Must be used within a `renderElement` function or a component rendered from within it.
  * - The returned values are always defined (width and height default to 0 if not set).
@@ -81,12 +81,12 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * @example
  * Basic usage with SVG element:
  * ```tsx
- * import { useMeasureNode } from '@joint/react';
+ * import { useMeasureElement } from '@joint/react';
  * import { useRef } from 'react';
  *
  * function RenderElement() {
  *   const rectRef = useRef<SVGRectElement>(null);
- *   const { width, height } = useMeasureNode(rectRef);
+ *   const { width, height } = useMeasureElement(rectRef);
  *
  *   return (
  *     <rect ref={rectRef} width={80} height={120} fill="#333" />
@@ -98,7 +98,7 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * ```tsx
  * function Card() {
  *   const frameRef = useRef<SVGRectElement>(null);
- *   const { width, height } = useMeasureNode(frameRef);
+ *   const { width, height } = useMeasureElement(frameRef);
  *   const gap = 10;
  *   const imageWidth = Math.max(width - gap * 2, 0);
  *   const imageHeight = Math.max(height - gap * 2, 0);
@@ -114,7 +114,7 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * @example
  * With custom transform to add padding:
  * ```tsx
- * import { useMeasureNode, type TransformMeasurement } from '@joint/react';
+ * import { useMeasureElement, type TransformMeasurement } from '@joint/react';
  * import { useRef, useCallback } from 'react';
  *
  * function ListElement() {
@@ -132,7 +132,7 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  *     []
  *   );
  *
- *   const { width, height } = useMeasureNode(nodeRef, { transform });
+ *   const { width, height } = useMeasureElement(nodeRef, { transform });
  *
  *   return (
  *     <>
@@ -145,16 +145,16 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * }
  * ```
  */
-export function useMeasureNode(
+export function useMeasureElement(
   nodeRef: RefObject<HTMLElement | SVGElement | null>,
-  options: MeasureNodeOptions = EMPTY_OBJECT
+  options: MeasureElementOptions = EMPTY_OBJECT
 ): Required<ElementSize> {
   const { transform } = options;
   const { graph, setMeasuredNode } = useGraphStore();
   const { paper } = usePaper();
   const id = useContext(CellIdContext);
   if (id === undefined) {
-    throw new Error('useMeasureNode() must be used inside renderElement');
+    throw new Error('useMeasureElement() must be used inside renderElement');
   }
   const size = useCell(selectElementSize);
 
@@ -165,7 +165,7 @@ export function useMeasureNode(
     const cell = graph.getCell(id);
     if (!cell?.isElement()) {
       throw new Error(
-        '`useMeasureNode` can only be used with elements, not links. ' +
+        '`useMeasureElement` can only be used with elements, not links. ' +
           `The cell with id "${id}" is not an element.`
       );
     }

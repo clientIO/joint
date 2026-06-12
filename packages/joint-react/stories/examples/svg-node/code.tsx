@@ -5,7 +5,7 @@ import {
   type CellRecord,
   GraphProvider,
   Paper,
-  useMeasureNode,
+  useMeasureElement,
   type TransformElementLayout,
   type RenderElement,
 } from '@joint/react';
@@ -42,7 +42,7 @@ function RenderedRect({ label }: Readonly<NodeData>) {
     [textMargin]
   );
 
-  const { width, height } = useMeasureNode(textRef, { transform });
+  const { width, height } = useMeasureElement(textRef, { transform });
 
   return (
     <>

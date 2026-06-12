@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type DependencyList } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { usePaperStore, useResolvePaperId } from './use-paper';
 import { type ElementsMeasuredEvent } from '../types/event.types';
 import type { PaperTarget } from '../types';
@@ -15,40 +15,26 @@ type Callback = (event: ElementsMeasuredEvent) => void;
  * The callback receives `{ isInitial: boolean }` to distinguish the
  * first measurement from subsequent ones.
  * @param callback - Called each time element sizes are measured.
- * @param dependencies - Optional dependency array controlling re-subscription.
  * @group Hooks
  * @example
  * ```tsx
  * // Using a paper ref
  * const paperRef = useRef<dia.Paper>(null);
- * useNodesMeasuredEffect(paperRef, () => {
+ * useOnElementsMeasured(paperRef, () => {
  *   paperRef.current?.transformToFitContent({ padding: 20 });
  * });
  * ```
  */
-export function useNodesMeasuredEffect(
-  callback: Callback,
-  dependencies?: DependencyList
-): void;
-export function useNodesMeasuredEffect(
-  paperTarget: PaperTarget,
-  callback: Callback,
-  dependencies?: DependencyList
-): void;
-export function useNodesMeasuredEffect(
+export function useOnElementsMeasured(callback: Callback): void;
+export function useOnElementsMeasured(paperTarget: PaperTarget, callback: Callback): void;
+export function useOnElementsMeasured(
   paperTargetOrCallback: PaperTarget | Callback,
-  callbackOrDependencies?: Callback | DependencyList,
-  dependenciesArgument?: DependencyList
+  callbackArgument?: Callback
 ): void {
   const isContextForm = typeof paperTargetOrCallback === 'function';
 
   const paperTarget = isContextForm ? undefined : (paperTargetOrCallback as PaperTarget);
-  const callback = isContextForm
-    ? (paperTargetOrCallback as Callback)
-    : (callbackOrDependencies as Callback);
-  const dependencies = isContextForm
-    ? (callbackOrDependencies as DependencyList | undefined)
-    : dependenciesArgument;
+  const callback = isContextForm ? (paperTargetOrCallback as Callback) : (callbackArgument as Callback);
 
   const paperId = useResolvePaperId(paperTarget);
   const paperStore = usePaperStore(paperId);
@@ -86,6 +72,5 @@ export function useNodesMeasuredEffect(
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paperStore, ...(dependencies ?? [])]);
+  }, [paperStore, measureState, graph]);
 }

@@ -100,19 +100,19 @@ export { useCell } from './hooks/use-cell';
 export { useCellId } from './hooks/use-cell-id';
 
 /**
- * useMeasureNode()
+ * useMeasureElement()
  */
-export { useMeasureNode } from './hooks/use-measure-node';
-export type { MeasureNodeOptions } from './hooks/use-measure-node';
+export { useMeasureElement } from './hooks/use-measure-element';
+export type { MeasureElementOptions } from './hooks/use-measure-element';
 export type {
   TransformElementLayout,
   TransformElementLayoutParams,
 } from './store/create-elements-size-observer';
 
 /**
- * useNodesMeasuredEffect()
+ * useOnElementsMeasured()
  */
-export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
+export { useOnElementsMeasured } from './hooks/use-on-elements-measured';
 
 /**
  * usePaperEvents()

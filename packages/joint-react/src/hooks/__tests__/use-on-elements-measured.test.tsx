@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/consistent-function-scoping */
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
-import { useNodesMeasuredEffect } from '../use-nodes-measured-effect';
+import { useOnElementsMeasured } from '../use-on-elements-measured';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { useGraphStore } from '../use-graph-store';
 import type { CellRecord } from '../../types/cell.types';
@@ -55,10 +55,10 @@ type MeasureStateRef = ReturnType<typeof useGraphStore>['measureState'];
 const bumpMeasureFor = (measureState: MeasureStateRef) => () =>
   measureState.set(incrementMeasureState);
 
-describe('useNodesMeasuredEffect', () => {
+describe('useOnElementsMeasured', () => {
   it('fires callback with isInitial=true after seed cells are measured', async () => {
     const callback = jest.fn();
-    renderHook(() => useNodesMeasuredEffect('measured-effect-paper', callback), { wrapper });
+    renderHook(() => useOnElementsMeasured('measured-effect-paper', callback), { wrapper });
 
     await waitFor(() => expect(callback).toHaveBeenCalled());
     const initialCalls = callback.mock.calls.filter(([event]) => event.isInitial === true);
@@ -71,7 +71,7 @@ describe('useNodesMeasuredEffect', () => {
     function Probe() {
       const { measureState } = useGraphStore();
       bumpMeasure = bumpMeasureFor(measureState);
-      useNodesMeasuredEffect('measured-effect-paper', callback);
+      useOnElementsMeasured('measured-effect-paper', callback);
       return null;
     }
     renderHook(() => Probe(), { wrapper });
@@ -94,7 +94,7 @@ describe('useNodesMeasuredEffect', () => {
   // pipeline sets the real size via `cell.set('size', ..., {fromMeasure: true})`.
   // Previously, the `change:size` listener in graph-changes.ts skipped
   // `fromMeasure` writes, so the measured-size never reached the tracking
-  // logic and `useNodesMeasuredEffect` never fired for elements that relied
+  // logic and `useOnElementsMeasured` never fired for elements that relied
   // on DOM measurement (e.g. the flowchart demo).
   it('fires callback when elements start at zero size and get measured via fromMeasure', async () => {
     const callback = jest.fn();
@@ -103,7 +103,7 @@ describe('useNodesMeasuredEffect', () => {
     function Probe() {
       const store = useGraphStore();
       graphRef = store.graph;
-      useNodesMeasuredEffect('zero-size-paper', callback);
+      useOnElementsMeasured('zero-size-paper', callback);
       return null;
     }
 

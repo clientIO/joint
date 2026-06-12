@@ -12,8 +12,8 @@ import {
   useCellId,
   useCells,
   useGraph,
-  useMeasureNode,
-  useNodesMeasuredEffect,
+  useMeasureElement,
+  useOnElementsMeasured,
   type CellId,
   type CellRecord,
   type Computed,
@@ -168,11 +168,11 @@ function MessageComponent({
   }
   const id = useCellId();
   const { setCell } = useGraph<ElementRecord<ElementData>, LinkRecord>();
-  const elementRef = React.useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(elementRef);
+  const nodeRef = React.useRef<HTMLDivElement>(null);
+  const { width, height } = useMeasureElement(nodeRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <div ref={elementRef} className={MESSAGE_NODE_CLASSNAME}>
+      <div ref={nodeRef} className={MESSAGE_NODE_CLASSNAME}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 items-start">
             <div className="text-2xl">{iconContent}</div>
@@ -271,7 +271,7 @@ function MinimapRenderElement() {
 function MiniMap() {
   const minimapId = useId();
 
-  useNodesMeasuredEffect(minimapId, ({ paper, graph }) => {
+  useOnElementsMeasured(minimapId, ({ paper, graph }) => {
     const contentArea = graph.getBBox();
     if (!contentArea) return;
     paper.transformToFitContent({

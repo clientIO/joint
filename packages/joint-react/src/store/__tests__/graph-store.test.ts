@@ -61,7 +61,7 @@ describe('GraphStore', () => {
       store.destroy(true);
     });
 
-    it('bumps measureState after initialCells seed (so useNodesMeasuredEffect can fire isInitial)', async () => {
+    it('bumps measureState after initialCells seed (so useOnElementsMeasured can fire isInitial)', async () => {
       const initialCells: readonly CellRecord[] = [
         {
           id: 'a',

@@ -2,7 +2,7 @@
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import type { CellRecord, TransformElementLayout } from '@joint/react';
-import { GraphProvider, Paper, useCellId, useMeasureNode, type RenderElement } from '@joint/react';
+import { GraphProvider, Paper, useCellId, useMeasureElement, type RenderElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type Data = { label: string };
@@ -38,7 +38,7 @@ function Card({ label }: Readonly<Partial<Data>>) {
     },
     []
   );
-  const { width, height } = useMeasureNode(contentRef, {
+  const { width, height } = useMeasureElement(contentRef, {
     transform: transformSize,
   });
 

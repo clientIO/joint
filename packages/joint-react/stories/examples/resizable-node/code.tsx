@@ -5,7 +5,7 @@ import {
   GraphProvider,
   Paper,
   useCell,
-  useMeasureNode,
+  useMeasureElement,
   type Computed,
 } from '@joint/react';
 import '../index.css';
@@ -51,7 +51,7 @@ function ResizableNode() {
     }
   }, []);
 
-  const { width, height } = useMeasureNode(nodeRef);
+  const { width, height } = useMeasureElement(nodeRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div

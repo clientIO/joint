@@ -4,7 +4,7 @@
 
 import '../index.css';
 import { useCallback, useRef, type PropsWithChildren } from 'react';
-import { type CellRecord, GraphProvider, Paper, useCellId, useMeasureNode, type ElementRecord, type TransformElementLayout } from '@joint/react';
+import { type CellRecord, GraphProvider, Paper, useCellId, useMeasureElement, type ElementRecord, type TransformElementLayout } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
@@ -39,7 +39,7 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
   const id = useCellId();
   const padding = 10;
   const headerHeight = 50;
-  const elementRef = useRef<HTMLDivElement>(null);
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   const transform: TransformElementLayout = useCallback(
     ({ width: measuredWidth, height: measuredHeight }) => {
@@ -53,7 +53,7 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
     []
   );
 
-  const { width, height } = useMeasureNode(elementRef, { transform });
+  const { width, height } = useMeasureElement(nodeRef, { transform });
 
   const { setCell, isElement } = useGraph<ElementRecord<ListNodeData>>();
 
@@ -88,7 +88,7 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
         width={Math.max(width - 2 * padding, 0)}
         height={Math.max(height - headerHeight - padding, 0)}
       >
-        <div ref={elementRef} className="absolute p-1 min-w-50">
+        <div ref={nodeRef} className="absolute p-1 min-w-50">
           <button
             type="button"
             onClick={addInput}

@@ -141,7 +141,7 @@ export function graphChanges(options: Options) {
         // `reset` suppresses per-cell `add` events, so size notifications
         // for seed elements never reach `onElementsSizeChange` via the
         // `add` listener. Mirror that path here so initial-measurement
-        // gating (e.g. `useNodesMeasuredEffect`) fires for seed cells.
+        // gating (e.g. `useOnElementsMeasured`) fires for seed cells.
         if (onElementsSizeChange && cell.isElement()) {
           onElementsSizeChange(cell.id, (cell as dia.Element).size());
         }
