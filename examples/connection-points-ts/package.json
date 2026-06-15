@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-connection-points-ts",
-  "version": "4.2.5",
+  "version": "4.3.0-beta.1",
   "main": "src/index.ts",
   "homepage": "https://jointjs.com",
   "author": {

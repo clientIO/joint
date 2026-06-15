@@ -1,7 +1,7 @@
 {
   "name": "@joint/layout-directed-graph",
   "title": "JointJS LayoutDirectedGraph",
-  "version": "4.2.5",
+  "version": "4.3.0-beta.1",
   "description": "LayoutDirectedGraph module for JointJS",
   "main": "dist/DirectedGraph.js",
   "module": "./DirectedGraph.mjs",
