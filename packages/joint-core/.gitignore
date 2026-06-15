@@ -5,6 +5,9 @@ coverage/
 api-report/
 *.log
 demo/**/dist/**
-test/ts/*.js*
+test/ts/*.js
+test/ts/*.js.map
+test/ts-exports/*.js
+test/ts-exports/*.js.map
 .tscache/
 .DS_Store

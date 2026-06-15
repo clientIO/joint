@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { mvc } from '@joint/core';
-import type { DOMElement } from '@joint/core/types/internal.js';
+import type { DOMElement } from '@joint/core/types/internal';
 import { type ConnectionEnd, toConnectionEnd } from './can-connect';
 
 // ============================================================================

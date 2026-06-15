@@ -5,7 +5,7 @@ import type {
   Link as DiaLink,
   Point as DiaPoint,
   Size as DiaSize,
-} from '@joint/core/dia';
+} from '@joint/core/types/dia';
 import type { ELEMENT_MODEL_TYPE } from '../mvc/element-model';
 import type { LINK_MODEL_TYPE } from '../mvc/link-model';
 import type { LinkPresetAttributes } from '../presets/link-attributes';

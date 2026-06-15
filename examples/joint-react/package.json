@@ -1,7 +1,7 @@
 {
   "name": "@joint/demo-joint-react",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
