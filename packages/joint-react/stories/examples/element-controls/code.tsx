@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   type CellRecord,
   GraphProvider,
@@ -6,6 +7,7 @@ import {
   useOnElementsMeasured,
   type ElementRecord,
   selectElementSize,
+  type OnElementsMeasured,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';

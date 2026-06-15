@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
+import type { CellRecord, LinkRecord, LinkStyle, OnElementsMeasured } from '@joint/react';
 import {
   type ElementRecord,
   GraphProvider,
@@ -18,7 +18,7 @@ import {
   linkRoutingOrthogonal,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
