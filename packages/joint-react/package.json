@@ -1,52 +1,15 @@
 {
   "name": "@joint/react",
-  "version": "1.0.0-alpha.5",
-  "type": "module",
+  "title": "JointJS React",
+  "version": "1.0.0-beta.1",
   "description": "React bindings and hooks for JointJS to build interactive diagrams and graphs.",
-  "license": "MPL-2.0",
-  "keywords": [
-    "jointjs",
-    "react",
-    "diagramming",
-    "graph",
-    "flowchart",
-    "uml",
-    "visualization",
-    "editor",
-    "drawing",
-    "stencil"
+  "type": "module",
+  "sideEffects": [
+    "dist/*.css"
   ],
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
-  "typescript": "src/index.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
-    },
-    "./internal": {
-      "types": "./dist/types/internal.d.ts",
-      "import": "./dist/esm/internal.js",
-      "require": "./dist/cjs/internal.js"
-    },
-    "./presets": {
-      "types": "./dist/types/presets/index.d.ts",
-      "import": "./dist/esm/presets/index.js",
-      "require": "./dist/cjs/presets/index.js"
-    },
-    "./src/*": "./src/*",
-    "./scripts/*": "./scripts/*.ts",
-    "./styles.css": "./src/css/styles.css"
-  },
-  "sideEffects": false,
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE",
-    "src"
-  ],
   "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
@@ -54,12 +17,31 @@
   },
   "contributors": [
     "Roman Bruckner <roman@jointjs.com> (https://github.com/kumilingus)",
-    "Samuel <samuel@jointjs.com> (https://github.com/samuelgja)"
+    "Samuel Gjabel <samuel@jointjs.com> (https://github.com/samuelgja)",
+    "Arthur Khokhlov <arthur@jointjs.com> (https://github.com/Geliogabalus)",
+    "Martin Kanera <martin@jointjs.com> (https://github.com/MartinKanera)",
+    "Zbynek Stara <zbynek@jointjs.com> (https://github.com/zbynekstara)"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-react"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MPL-2.0",
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
-    "prepack": "yarn test && yarn build",
-    "build": "rollup -c rollup.config.ts --configPlugin esbuild && tsc --project tsconfig.types.json",
+    "prepack": "yarn run dist",
+    "dist": "yarn run build",
+    "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build-storybook": "storybook build",
     "storybook": "storybook dev -p 6006",
     "test": "yarn run typecheck && yarn run lint && yarn jest",
@@ -70,6 +52,32 @@
     "docs:typedoc": "typedoc --out docs/api src",
     "bench": "jest --testMatch '<rootDir>/bench/**/*.{test,spec}.ts?(x)'"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs"
+    },
+    "./internal": {
+      "types": "./dist/types/internal.d.ts",
+      "import": "./dist/esm/internal.js",
+      "require": "./dist/cjs/internal.cjs"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist/",
+    "./LICENSE",
+    "./README.md"
+  ],
+  "dependencies": {
+    "@joint/core": "workspace:^",
+    "use-sync-external-store": "^1.6.0"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
   "devDependencies": {
     "@andypf/json-viewer": "^2.1.10",
     "@babel/preset-env": "^7.29.7",
@@ -77,7 +85,7 @@
     "@babel/preset-typescript": "^7.29.7",
     "@chromatic-com/storybook": "^5.2.1",
     "@joint/eslint-config": "workspace:*",
-    "@joint/layout-directed-graph": "workspace:*",
+    "@joint/layout-directed-graph": "workspace:^",
     "@reduxjs/toolkit": "^2.11.0",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-node-resolve": "^16.0.1",
@@ -102,6 +110,7 @@
     "babel-jest": "30",
     "babel-plugin-react-compiler": "^1.0.0",
     "canvas": "^3.1.0",
+    "esbuild": "0.25.12",
     "eslint": "9.39.2",
     "eslint-plugin-storybook": "^10.4.2",
     "glob": "^11.0.1",
@@ -122,6 +131,7 @@
     "redux-undo": "1.1.0",
     "resize-observer-polyfill": "^1.5.1",
     "rollup": "^4.50.0",
+    "rollup-plugin-dts": "^6.4.1",
     "rollup-plugin-esbuild": "^6.2.1",
     "storybook": "^10.4.2",
     "storybook-multilevel-sort": "^2.1.0",
@@ -140,19 +150,6 @@
     "vitest": "^3.0.4",
     "zustand": "^5.0.9"
   },
-  "dependencies": {
-    "@joint/core": "workspace:*",
-    "use-sync-external-store": "^1.6.0"
-  },
-  "peerDependencies": {
-    "react": ">=18",
-    "react-dom": ">=18"
-  },
-  "volta": {
-    "node": "22.14.0",
-    "npm": "11.2.0",
-    "yarn": "4.7.0"
-  },
   "resolutions": {
     "react": "19.1.1",
     "react-dom": "19.1.1",
@@ -160,7 +157,21 @@
     "@types/react-dom": "19.1.9",
     "@types/react-test-renderer": "19.1.0"
   },
-  "publishConfig": {
-    "access": "public"
-  }
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
+  },
+  "keywords": [
+    "jointjs",
+    "react",
+    "diagramming",
+    "graph",
+    "flowchart",
+    "uml",
+    "visualization",
+    "editor",
+    "drawing",
+    "stencil"
+  ]
 }
