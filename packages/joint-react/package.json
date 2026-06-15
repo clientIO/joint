@@ -1,7 +1,7 @@
 {
   "name": "@joint/react",
   "title": "JointJS React",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "React bindings and hooks for JointJS to build interactive diagrams and graphs.",
   "type": "module",
   "sideEffects": [
