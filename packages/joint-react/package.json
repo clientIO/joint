@@ -56,12 +56,12 @@
     ".": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "require": "./dist/cjs/index.cjs"
     },
     "./internal": {
       "types": "./dist/types/internal.d.ts",
       "import": "./dist/esm/internal.js",
-      "require": "./dist/cjs/internal.js"
+      "require": "./dist/cjs/internal.cjs"
     },
     "./styles.css": "./dist/styles.css"
   },

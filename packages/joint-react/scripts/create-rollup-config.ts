@@ -108,6 +108,11 @@ export function createRollupConfig(options: CreateRollupConfigOptions): RollupOp
         sourcemap: true,
         preserveModules: true,
         preserveModulesRoot: 'src',
+        // The package is `"type": "module"`, so Node treats `.js` files as ESM and
+        // `require()` of them fails with ERR_REQUIRE_ESM. Emit `.cjs` so Node
+        // recognizes this build as CommonJS regardless of the package `type`.
+        entryFileNames: '[name].cjs',
+        chunkFileNames: '[name].cjs',
       },
       context: 'globalThis',
       external,
@@ -126,6 +131,10 @@ export function createRollupConfig(options: CreateRollupConfigOptions): RollupOp
       output: {
         dir: 'dist/types',
         format: 'esm',
+        // Make rollup-plugin-dts's implicit `.d.ts` naming explicit so the emitted
+        // files always match the `types`/`exports` paths in package.json.
+        entryFileNames: '[name].d.ts',
+        chunkFileNames: '[name]-[hash].d.ts',
       },
       external,
       plugins: [dts()],
