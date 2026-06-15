@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-fta-js",
-  "version": "4.2.5",
+  "version": "4.3.0-beta.1",
   "main": "src/index.js",
   "homepage": "https://jointjs.com",
   "author": {
