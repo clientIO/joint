@@ -38,36 +38,9 @@ export const reactTsConfig = defineConfig([
             'space-before-function-paren': 'off',
         }
     },
-    {
-        files: [
-            '**/*.stories.*',
-            '**/*.test.*',
-            '**/stories/**/*.{ts,tsx}',
-            '.storybook/**/*.{ts,tsx}',
-        ],
-        plugins: {
-            'jsdoc': jsdocPlugin,
-        },
-        rules: {
-            'jsdoc/require-jsdoc': 'off',
-            'jsdoc/check-alignment': 'off',
-            'jsdoc/check-indentation': 'off',
-            'jsdoc/check-param-names': 'off',
-            'jsdoc/check-tag-names': 'off',
-            'jsdoc/check-types': 'off',
-            'jsdoc/implements-on-classes': 'off',
-            'jsdoc/match-description': 'off',
-            'jsdoc/newline-after-description': 'off',
-            'jsdoc/no-types': 'off',
-            'jsdoc/require-description': 'off',
-            'jsdoc/require-param': 'off',
-            'jsdoc/require-returns': 'off',
-            'jsdoc/valid-types': 'off',
-        },
-    },
     // Main rules for project files
     {
-        files: ['src/**/*.{ts,tsx}', '.storybook/**/*.{ts,tsx}'],
+        files: ['src/**/*.{ts,tsx}', 'stories/**/*.{ts,tsx}', '.storybook/**/*.{ts,tsx}'],
         languageOptions: {
             parser: tsParser,
             parserOptions: {
@@ -147,8 +120,34 @@ export const reactTsConfig = defineConfig([
             'sonarjs/prefer-immediate-return': 'off',
             'sonarjs/todo-tag': 'warn',
 
-            // JSDoc rules
-            'jsdoc/require-description': 'error',
+            // JSDoc rules — public API gets a description; internals stay free
+            // of doc noise. TS types already cover param/return shapes, so we
+            // do not require @param descriptions or @returns text.
+            'jsdoc/require-jsdoc': [
+                'warn',
+                {
+                    publicOnly: true,
+                    require: {
+                        FunctionDeclaration: true,
+                        ClassDeclaration: true,
+                        MethodDefinition: false,
+                        ArrowFunctionExpression: false,
+                        FunctionExpression: false,
+                    },
+                    contexts: [
+                        'TSInterfaceDeclaration',
+                        'TSTypeAliasDeclaration',
+                    ],
+                },
+            ],
+            'jsdoc/require-description': 'warn',
+            'jsdoc/require-param-description': 'off',
+            'jsdoc/require-param': 'off',
+            'jsdoc/require-returns': 'off',
+            'jsdoc/require-returns-description': 'off',
+            'jsdoc/require-property-description': 'off',
+            'jsdoc/escape-inline-tags': 'off',
+            'jsdoc/require-throws-type': 'off',
             'jsdoc/check-tag-names': [
                 'error',
                 {
@@ -189,9 +188,40 @@ export const reactTsConfig = defineConfig([
                         db: false,
                         cb: false,
                         refs: false,
+                        utils: false,
+                        util: false
                     },
                 },
             ],
+        },
+    },
+    // Relaxations for stories / tests — JSDoc rules off so demo code stays terse.
+    {
+        files: [
+            '**/*.stories.*',
+            '**/*.test.*',
+            '**/__tests__/**/*.{ts,tsx}',
+            '**/stories/**/*.{ts,tsx}',
+            '.storybook/**/*.{ts,tsx}',
+        ],
+        plugins: {
+            'jsdoc': jsdocPlugin,
+        },
+        rules: {
+            'jsdoc/require-jsdoc': 'off',
+            'jsdoc/check-alignment': 'off',
+            'jsdoc/check-indentation': 'off',
+            'jsdoc/check-param-names': 'off',
+            'jsdoc/check-tag-names': 'off',
+            'jsdoc/check-types': 'off',
+            'jsdoc/implements-on-classes': 'off',
+            'jsdoc/match-description': 'off',
+            'jsdoc/newline-after-description': 'off',
+            'jsdoc/no-types': 'off',
+            'jsdoc/require-description': 'off',
+            'jsdoc/require-param': 'off',
+            'jsdoc/require-returns': 'off',
+            'jsdoc/valid-types': 'off',
         },
     },
 ]);
