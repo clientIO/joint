@@ -893,7 +893,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     useModelGeometry: true,
                     gridWidth: 100,
                     gridHeight: 100,
-                    allowNewOrigin: 'any'
+                    allowNewOrigin: 'any',
                 });
                 // Content spans (-100, -100) → (200, 300). Grid at 0:
                 //   Right edge rounds to 200, Bottom to 300.
@@ -911,11 +911,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     originX: 50,
                     originY: 25
                 });
-                // Origin shifted by (50, 25): the returned rect's
-                // top-left moves by the same amount; dimensions are
-                // unchanged because content/grid relationship hasn't
-                // changed in origin-relative space.
-                assert.deepEqual(area.toJSON(), { x: -50, y: -75, width: 300, height: 400 });
+                // Grid lines now land at 50+n*100 (x) and 25+m*100 (y).
+                // Content x ∈ [-100, 200] snaps to [-150, 250] → width 400.
+                // Content y ∈ [-100, 300] snaps to [-175, 325] → height 500.
+                assert.deepEqual(area.toJSON(), { x: -150, y: -175, width: 400, height: 500 });
             });
 
             QUnit.test('origin without allowNewOrigin still offsets the rect', function(assert) {
