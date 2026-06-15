@@ -85,4 +85,6 @@ export type { PortalSelector } from './mvc/paper.types';
 export type { MeasureElementOptions } from './hooks/use-measure-element';
 
 // Event internals
-export { subscribeToPaperEvents } from './hooks/use-paper-events';
+export { subscribeToPaperEvents } from './hooks/use-on-paper-events';
+export { useOnEvents } from './hooks/use-on-events';
+export { useLatestRef } from './hooks/use-latest-ref';

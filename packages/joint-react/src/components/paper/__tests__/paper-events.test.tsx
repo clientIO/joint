@@ -181,15 +181,16 @@ describe('Paper normalized event props', () => {
     listenToSpy.mockRestore();
   });
 
-  it('documents the contract: a new inline handler re-subscribes every render', async () => {
+  it('documents the contract: an inline handler does NOT re-subscribe and the latest one fires', async () => {
     const listenToSpy = jest.spyOn(mvc.Listener.prototype, 'listenTo');
     const bindCount = (eventName: string) =>
       listenToSpy.mock.calls.filter((call) => String(call[1]) === eventName).length;
 
+    const calls: number[] = [];
     function Harness({ setRef }: Readonly<HarnessProps>) {
-      const [, force] = useState(0);
+      const [renderIndex, setRenderIndex] = useState(0);
       // eslint-disable-next-line sonarjs/no-nested-functions
-      const rerender = () => force((n) => n + 1);
+      const rerender = () => setRenderIndex((n) => n + 1);
       return (
         <>
           <button type="button" data-testid="rerender" onClick={rerender} />
@@ -197,20 +198,28 @@ describe('Paper normalized event props', () => {
             ref={setRef}
             style={{ width: 100, height: 100 }}
             renderElement={renderRectElement}
-            // New reference every render → re-subscribes every render (by design).
-            onBlankContextMenu={() => {}}
+            // New reference every render — but always-latest semantics mean the
+            // paper subscribes once and simply calls the freshest closure.
+            onBlankContextMenu={() => calls.push(renderIndex)}
           />
         </>
       );
     }
 
-    await mountPaper((ref) => <Harness setRef={ref} />);
+    const { paper } = await mountPaper((ref) => <Harness setRef={ref} />);
     const afterMount = bindCount('blank:contextmenu');
 
     clickTestId('rerender');
+    clickTestId('rerender');
 
-    // Inline handler changed identity → one more bind. Stable refs avoid this.
-    expect(bindCount('blank:contextmenu')).toBe(afterMount + 1);
+    // Inline handler identity changed twice → still a single subscription.
+    expect(bindCount('blank:contextmenu')).toBe(afterMount);
+
+    act(() => {
+      paper.trigger('blank:contextmenu', fakeEvent, 0, 0);
+    });
+    // The freshest closure (render index 2) ran, not a stale one.
+    expect(calls).toEqual([2]);
     listenToSpy.mockRestore();
   });
 

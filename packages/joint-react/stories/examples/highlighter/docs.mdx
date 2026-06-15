@@ -70,7 +70,7 @@ highlighters.stroke.remove(elementView, 'my-highlighter');
 
 ## Best Practices
 
-1. **Use paper events**: Subscribe to `element:mouseenter` / `element:mouseleave` via `usePaperEvents` for hover effects
+1. **Use paper events**: Subscribe to `element:mouseenter` / `element:mouseleave` via `useOnPaperEvents` for hover effects
 2. **Use state + useEffect**: For selection-driven highlighting, store selected ID in state and manage highlighters in a `useEffect`
 3. **Unique IDs**: Use a consistent highlighter ID (e.g. `'hover'`, `'selection'`) so adding a new one replaces the previous
 4. **Cleanup**: Use `highlighters.*.remove(elementView, id)` or `highlighters.*.removeAll(paper, id)` for cleanup

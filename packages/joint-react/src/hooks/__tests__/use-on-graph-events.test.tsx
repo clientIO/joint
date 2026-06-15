@@ -1,7 +1,7 @@
 import { mvc, type dia } from '@joint/core';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { graphProviderWrapper, getTestGraph } from '../../utils/test-wrappers';
-import { useGraphEvents } from '../use-graph-events';
+import { useOnGraphEvents } from '../use-on-graph-events';
 import { useGraph } from '../use-graph';
 
 const GRAPH_EVENT_ARGS: Partial<{ readonly [EventName in keyof dia.Graph.EventMap]: Parameters<dia.Graph.EventMap[EventName]> }> = {
@@ -22,7 +22,7 @@ const GRAPH_EVENT_ARGS: Partial<{ readonly [EventName in keyof dia.Graph.EventMa
   'batch:stop': [{ source: 'batch:stop' }],
 };
 
-describe('use-graph-events', () => {
+describe('use-on-graph-events', () => {
   it('binds all known graph events, pattern events, and custom events with raw JointJS args', async () => {
     const graph = getTestGraph();
     const listenerHandlers = new Map<
@@ -58,7 +58,7 @@ describe('use-graph-events', () => {
 
     try {
       renderHook(() => {
-        useGraphEvents(graph, handlers);
+        useOnGraphEvents(graph, handlers);
       });
 
       await waitFor(() => {
@@ -142,7 +142,7 @@ describe('use-graph-events', () => {
 
     try {
       renderHook(() => {
-        useGraphEvents(graph, { add: onAdd });
+        useOnGraphEvents(graph, { add: onAdd });
       });
 
       const callbacks = listenerHandlers.get('add') ?? [];
@@ -171,7 +171,7 @@ describe('use-graph-events', () => {
     const { result, unmount } = renderHook(
       () => {
         const { graph } = useGraph();
-        useGraphEvents({ 'batch:start': onBatchStart });
+        useOnGraphEvents({ 'batch:start': onBatchStart });
         return graph;
       },
       { wrapper }
@@ -202,46 +202,72 @@ describe('use-graph-events', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     expect(() => {
-      renderHook(() => useGraphEvents({ add: jest.fn() }));
-    }).toThrow('useGraphEvents without a graph target must be used within a GraphProvider.');
+      renderHook(() => useOnGraphEvents({ add: jest.fn() }));
+    }).toThrow('useOnGraphEvents without a graph target must be used within a GraphProvider.');
 
     consoleError.mockRestore();
   });
 
-  it('skips entries whose handler is undefined (line 28)', () => {
+  it('calls the latest handler without re-subscribing when identity changes', () => {
     const graph = getTestGraph();
-    const onAdd = jest.fn();
-    const listenerHandlers = new Map<
-      string,
-      Array<(...args: Parameters<mvc.EventHandler>) => void>
-    >();
-    const listenToSpy = jest
-      .spyOn(mvc.Listener.prototype, 'listenTo')
-      .mockImplementation((...args: unknown[]) => {
-        const [, eventNameOrHash, callback] = args;
-        if (typeof eventNameOrHash === 'string' && typeof callback === 'function') {
-          const callbacks = listenerHandlers.get(eventNameOrHash) ?? [];
-          callbacks.push(callback as (...args: Parameters<mvc.EventHandler>) => void);
-          listenerHandlers.set(eventNameOrHash, callbacks);
-        }
-      });
+    const listenToSpy = jest.spyOn(mvc.Listener.prototype, 'listenTo');
+    const addCalls = () =>
+      listenToSpy.mock.calls.filter((call) => (call[1] as unknown) === 'graph:probe');
     try {
-      // `remove: undefined` exercises the `if (!handler) continue;` guard
-      // (line 28). The hook must register `add` only and silently skip `remove`.
-      const handlers: Partial<dia.Graph.EventMap> = {
-        add: onAdd,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        remove: undefined as any,
-      };
-      renderHook(() => {
-        useGraphEvents(graph, handlers);
+      const firstHandler = jest.fn();
+      const secondHandler = jest.fn();
+      const { rerender } = renderHook(
+        ({ handler }: { handler: (...args: Parameters<mvc.EventHandler>) => void }) => {
+          // Fresh inline map every render — must NOT re-subscribe.
+          useOnGraphEvents(graph, { 'graph:probe': handler });
+        },
+        { initialProps: { handler: firstHandler } }
+      );
+      const subscriptionsAfterMount = addCalls().length;
+      expect(subscriptionsAfterMount).toBeGreaterThan(0);
+
+      rerender({ handler: secondHandler });
+      expect(addCalls().length).toBe(subscriptionsAfterMount);
+
+      act(() => {
+        graph.trigger('graph:probe', 'cell');
       });
-      expect(listenerHandlers.get('add')?.length ?? 0).toBeGreaterThan(0);
-      // `remove` was undefined → no listener registered for it.
-      expect(listenerHandlers.get('remove')).toBeUndefined();
+      expect(firstHandler).not.toHaveBeenCalled();
+      expect(secondHandler).toHaveBeenCalledWith('cell');
     } finally {
       listenToSpy.mockRestore();
     }
   });
 
+  it('skips an entry toggled to undefined and resumes when it returns', () => {
+    const graph = getTestGraph();
+    const onProbe = jest.fn();
+    const { rerender } = renderHook(
+      ({ isEnabled }: { isEnabled: boolean }) => {
+        useOnGraphEvents(graph, {
+          'graph:probe': isEnabled ? onProbe : undefined,
+        });
+      },
+      { initialProps: { isEnabled: true } }
+    );
+
+    act(() => {
+      graph.trigger('graph:probe', 'first');
+    });
+    expect(onProbe).toHaveBeenCalledTimes(1);
+
+    rerender({ isEnabled: false });
+    act(() => {
+      graph.trigger('graph:probe', 'while-disabled');
+    });
+    // Disabled — the live dispatch skips the undefined handler.
+    expect(onProbe).toHaveBeenCalledTimes(1);
+
+    rerender({ isEnabled: true });
+    act(() => {
+      graph.trigger('graph:probe', 'second');
+    });
+    expect(onProbe).toHaveBeenCalledTimes(2);
+    expect(onProbe).toHaveBeenLastCalledWith('second');
+  });
 });

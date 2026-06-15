@@ -385,15 +385,15 @@ export interface PaperEventHandlers {
 
 /**
  * Extracts the callback type for a given paper event key.
- * For example, `PaperEventHandler<'onCellPointerDown'>` is `(params: PointerCellEventParams) => void`.
+ * For example, `OnPaperEvent<'onCellPointerDown'>` is `(params: PointerCellEventParams) => void`.
  * Useful for typing individual handler variables or parameters.
  */
-export type PaperEventHandler<T extends keyof PaperEventHandlers> = NonNullable<PaperEventHandlers[T]>;
+export type OnPaperEvent<T extends keyof PaperEventHandlers> = NonNullable<PaperEventHandlers[T]>;
 
 /**
  * Combined handlers — camelCase `on*` + raw native — accepted by `addPaperEventListeners`.
  */
-export type PaperEventMap = Partial<dia.Paper.EventMap> & PaperEventHandlers;
+export type OnPaperEvents = Partial<dia.Paper.EventMap> & PaperEventHandlers;
 
 // ============================================================================
 // Subscription helpers
@@ -463,14 +463,14 @@ function subscribeRaw(
  * returns a cleanup function that detaches everything. Pure JointJS adapter —
  * no React.
  *
- * `addPaperEventListeners` is the runtime that powers the React `usePaperEvents`
+ * `addPaperEventListeners` is the runtime that powers the React `useOnPaperEvents`
  * hook; it can also be used directly when wiring events outside React (e.g.
  * inside other presets, plugins, or non-React stencils).
  * @param paper - Target paper. The associated graph is read from `paper.model`.
  * @param handlers - CamelCase `on*` + raw event handlers.
  * @returns Cleanup callback that calls `listener.stopListening()`.
  */
-export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap): () => void {
+export function addPaperEventListeners(paper: dia.Paper, handlers: OnPaperEvents): () => void {
   const graph = paper.model;
   const controller = new mvc.Listener();
   const eventMap = handlers as EventHandlerMap;
@@ -674,27 +674,20 @@ export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap
 
 /**
  * Picks the `on*` paper-event handlers (`onBlankContextMenu`, …) out of a
- * props object. Returns the handlers map (to subscribe) plus a parallel
- * `eventDependencies` array of the handler values, in key order — spread it
- * into a `useLayoutEffect` dependency list so the subscription re-runs only
- * when a handler reference changes. Non-event props are ignored, so changing
- * them never re-subscribes.
+ * props object. Non-event props are ignored.
  * @param props - Any object that may contain `on*` handler keys.
- * @returns `eventHandlers` (the matched `on*` entries) and `eventDependencies` (their values, in key order).
+ * @returns The matched `on*` entries.
  */
-export function extractEventsFromPaperProps(props: Partial<PaperEventHandlers>) {
+export function extractEventsFromPaperProps(
+  props: Partial<PaperEventHandlers>
+): Partial<PaperEventHandlers> {
   const eventHandlers: Partial<PaperEventHandlers> = {};
-  const eventDependencies: unknown[] = [];
   for (const property in props) {
     const key = property as keyof PaperEventHandlers;
     if (PAPER_EVENT_KEYS.has(key)) {
       // Variable-key write: cast past the readonly/union index to assign.
       (eventHandlers as Record<string, unknown>)[key] = props[key];
-      eventDependencies.push(props[key]);
     }
   }
-  return {
-    eventHandlers,
-    eventDependencies,
-  };
+  return eventHandlers;
 }

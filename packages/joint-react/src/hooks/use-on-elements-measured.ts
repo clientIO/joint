@@ -3,6 +3,7 @@ import type { dia } from '@joint/core';
 import { usePaperStore, useResolvePaperId } from './use-paper';
 import type { PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
+import { useLatestRef } from './use-latest-ref';
 
 /** Payload delivered when paper-managed elements complete a measurement pass. */
 export interface ElementsMeasuredParams {
@@ -50,8 +51,7 @@ export function useOnElementsMeasured(
   const paperId = useResolvePaperId(paperTarget);
   const paperStore = usePaperStore(paperId);
 
-  const callbackRef = useRef(callback);
-  callbackRef.current = callback;
+  const callbackRef = useLatestRef(callback);
 
   const { measureState, graph } = useGraphStore();
   const wasMeasuredRef = useRef(false);
@@ -83,5 +83,5 @@ export function useOnElementsMeasured(
     return () => {
       unsubscribe();
     };
-  }, [paperStore, measureState, graph]);
+  }, [paperStore, measureState, graph, callbackRef]);
 }

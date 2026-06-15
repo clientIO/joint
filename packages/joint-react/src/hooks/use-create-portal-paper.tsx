@@ -46,6 +46,7 @@ import {
 import { createSelectPaperVersion } from '../selectors';
 import { useAreElementsMeasured } from './use-are-elements-measured';
 import { LINK_MODEL_TYPE, subscribeToPaperEvents } from '../internal';
+import { useOnEvents } from './use-on-events';
 import type { CellId } from '../types/cell.types';
 import { extractEventsFromPaperProps } from '../presets/paper-events';
 
@@ -297,15 +298,8 @@ export function useCreatePortalPaper(
 
   const isReady = !!paper && (isExternalPaper || !nodeRef || !!nodeRef.current);
 
-  const { eventDependencies, eventHandlers } = useMemo(
-    () => extractEventsFromPaperProps(paperOptions),
-    [paperOptions]
-  );
-  useLayoutEffect(() => {
-    if (!paperStore) return;
-    return subscribeToPaperEvents(paperStore, eventHandlers);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paperStore, ...eventDependencies]);
+  const eventHandlers = useMemo(() => extractEventsFromPaperProps(paperOptions), [paperOptions]);
+  useOnEvents(paperStore, eventHandlers, subscribeToPaperEvents);
 
   useLayoutEffect(() => {
     const hostElementForCreation = nodeRef?.current;

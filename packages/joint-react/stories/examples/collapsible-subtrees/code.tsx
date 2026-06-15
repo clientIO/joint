@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
-import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useOnElementsMeasured, usePaper, usePaperEvents, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
+import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useOnElementsMeasured, usePaper, useOnPaperEvents, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useMemo, useRef } from 'react';
 import { dia, elementTools } from '@joint/core';
@@ -737,16 +737,13 @@ function Main() {
     runLayout(graph);
   }, []);
 
-  usePaperEvents(
-    {
-      'element:expand': (elementView) => {
-        const view = elementView as dia.ElementView;
-        if (!view.paper) return;
-        handleExpand(view.paper, view);
-      },
+  useOnPaperEvents({
+    'element:expand': (elementView) => {
+      const view = elementView as dia.ElementView;
+      if (!view.paper) return;
+      handleExpand(view.paper, view);
     },
-    [handleExpand]
-  );
+  });
 
   useOnElementsMeasured(handleElementsMeasured);
 
