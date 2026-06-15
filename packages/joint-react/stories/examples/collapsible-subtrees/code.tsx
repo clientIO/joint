@@ -13,7 +13,6 @@ import {
   useMarkup,
   useOnElementsMeasured,
   usePaper,
-  useOnPaperEvents,
   selectElementSize,
   linkRoutingOrthogonal,
 } from '@joint/react';
@@ -748,44 +747,6 @@ function Main() {
       horizontalAlign: 'middle',
     });
   }, []);
-
-  const handleExpand = useCallback((jointPaper: dia.Paper, elementView: dia.ElementView) => {
-    const graph = jointPaper.model;
-    const element = elementView.model;
-    const successorElements = graph.getSuccessors(element);
-    const [successor] = successorElements;
-
-    if (successorElements.length === 0) return;
-
-    const shouldExpand = !successor.prop('hidden');
-    const successorCells = graph.getSubgraph([element, ...successorElements]);
-
-    for (const cell of successorCells) {
-      if (cell === element) {
-        cell.prop({
-          hidden: false,
-          data: {
-            collapsed: shouldExpand,
-          },
-        });
-      } else {
-        cell.prop('hidden', shouldExpand);
-        if (cell.isElement()) {
-          cell.prop('data/collapsed', false);
-        }
-      }
-    }
-
-    runLayout(graph);
-  }, []);
-
-  useOnPaperEvents({
-    'element:expand': (elementView) => {
-      const view = elementView as dia.ElementView;
-      if (!view.paper) return;
-      handleExpand(view.paper, view);
-    },
-  });
 
   useOnElementsMeasured(handleElementsMeasured);
 
