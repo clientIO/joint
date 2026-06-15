@@ -32,9 +32,9 @@ export type CellInteractivity =
 
 /**
  * joint-react defaults applied when the user supplies no `interactive` prop,
- * or merged under user-supplied object values. Preserves the JointJS native
- * `labelMove: false` and adds `linkMove: false` so link endpoints don't drag
- * by default.
+ * passes `interactive={true}`, or as the base merged under user-supplied object
+ * values. Preserves the JointJS native `labelMove: false` and adds
+ * `linkMove: false` so link endpoints don't drag by default.
  */
 const DEFAULT_INTERACTIVE: dia.CellView.InteractivityOptions = {
   labelMove: false,
@@ -44,8 +44,9 @@ const DEFAULT_INTERACTIVE: dia.CellView.InteractivityOptions = {
 /**
  * Adapt the `interactive` prop to the native form.
  *
- * - `undefined` → defaults (`labelMove`/`linkMove` disabled).
- * - boolean → pass through.
+ * - `undefined` → defaults (`labelMove`/`linkMove` disabled, rest implicit true).
+ * - `true` → same defaults (`labelMove`/`linkMove` disabled, rest implicit true).
+ * - `false` → pass through (every interaction disabled).
  * - object → defaults applied first, user keys win.
  * - function → wrapped so the user callback receives an `CellInteractivityParams`
  *   instead of the native positional `(cellView, interaction)` args.
@@ -57,8 +58,8 @@ const DEFAULT_INTERACTIVE: dia.CellView.InteractivityOptions = {
 export function toNativeCellInteractivity(
   value: CellInteractivity | undefined
 ): dia.Paper.Options['interactive'] {
-  if (value === undefined) return { ...DEFAULT_INTERACTIVE };
-  if (typeof value === 'boolean') return value;
+  if (value === undefined || value === true) return DEFAULT_INTERACTIVE;
+  if (value === false) return false;
   if (typeof value === 'object') return { ...DEFAULT_INTERACTIVE, ...value };
   return function (this: dia.Paper, cellView: dia.CellView, interaction: string) {
     return value({

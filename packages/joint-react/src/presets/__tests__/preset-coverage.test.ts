@@ -176,8 +176,11 @@ describe('presets / interactive', () => {
     expect((native as any).call(fakePaper, cellView, 'elementMove')).toBe(true);
     expect(cb).toHaveBeenCalled();
   });
-  it('boolean passes through', () => {
-    expect(toNativeCellInteractivity(true)).toBe(true);
+  it('true returns defaults (linkMove/labelMove disabled, rest implicit true)', () => {
+    expect(toNativeCellInteractivity(true)).toEqual({ linkMove: false, labelMove: false });
+  });
+  it('false passes through (all interactions disabled)', () => {
+    expect(toNativeCellInteractivity(false)).toBe(false);
   });
   it('object form merges defaults', () => {
     const out = toNativeCellInteractivity({ elementMove: false } as any);

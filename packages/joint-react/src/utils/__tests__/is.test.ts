@@ -68,7 +68,7 @@ describe('is.ts utility functions', () => {
     });
 
     test('returns false when property is undefined', () => {
-      // eslint-disable-next-line sonarjs/no-undefined-argument -- undefined is the value under test
+       
       expect(is.hasProperty({ foo: 1 }, undefined)).toBe(false);
     });
 
