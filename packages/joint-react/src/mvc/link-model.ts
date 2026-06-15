@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
 import { linkStyle } from '../presets/link-style';
-import { PortalHostCell } from './paper.types';
+import type { PortalHostCell } from './paper.types';
 
 export const LINK_MODEL_TYPE = 'link';
 

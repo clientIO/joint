@@ -1,5 +1,5 @@
 import { dia } from '@joint/core';
-import { PortalHostCell } from './paper.types';
+import type { PortalHostCell } from './paper.types';
 export const ELEMENT_MODEL_TYPE = 'element';
 
 /**

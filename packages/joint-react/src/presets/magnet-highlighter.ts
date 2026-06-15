@@ -1,4 +1,5 @@
-import { dia, highlighters, V } from '@joint/core';
+import type { dia} from '@joint/core';
+import { highlighters, V } from '@joint/core';
 import { CONNECTING_CLASS_NAME } from './link-view';
 
 /** Name used to register this highlighter in the paper's highlighterNamespace. */
@@ -10,7 +11,7 @@ export const MAGNET_HIGHLIGHTER_NAME = 'magnetHighlighter';
  * allows CSS @starting-style transitions to animate the highlighter's appearance.
  */
 export const MagnetHighlighter = highlighters.stroke.extend({
-    className: `jj-magnet-highlighter`,
+    className: 'jj-magnet-highlighter',
     classNamePrefix: '',
 
     highlight(this: highlighters.stroke, cellView: dia.CellView, node: SVGElement): void {

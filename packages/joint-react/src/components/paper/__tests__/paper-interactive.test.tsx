@@ -35,12 +35,25 @@ async function mountPaper(interactive: CellInteractivity): Promise<dia.Paper> {
 const linkView = (paper: dia.Paper): dia.LinkView =>
   paper.findViewByModel(paper.model.getCell('l1')) as dia.LinkView;
 
+const elementView = (paper: dia.Paper): dia.ElementView =>
+  paper.findViewByModel(paper.model.getCell('a')) as dia.ElementView;
+
 describe('Paper interactive — link move', () => {
-  it('interactive={true} enables linkMove on the link view', async () => {
+  it('interactive={true} disables linkMove/labelMove but keeps the rest interactive', async () => {
     const paper = await mountPaper(true);
-    expect(paper.options.interactive).toBe(true);
+    expect(paper.options.interactive).toEqual({ linkMove: false, labelMove: false });
     // `dragStart` (LinkView) gates link-body move on `can('linkMove')`.
-    expect(linkView(paper).can('linkMove')).toBe(true);
+    expect(linkView(paper).can('linkMove')).toBe(false);
+    expect(linkView(paper).can('labelMove')).toBe(false);
+    // The rest stays true implicitly — connected elements are still movable.
+    expect(elementView(paper).can('elementMove')).toBe(true);
+  });
+
+  it('interactive={false} disables every interaction', async () => {
+    const paper = await mountPaper(false);
+    expect(paper.options.interactive).toBe(false);
+    expect(elementView(paper).can('elementMove')).toBe(false);
+    expect(linkView(paper).can('linkMove')).toBe(false);
   });
 
   it('default (no interactive) keeps linkMove disabled', async () => {
