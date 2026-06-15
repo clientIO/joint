@@ -4,7 +4,7 @@ import { GraphStoreContext } from '../context';
 import { isRecord } from '../utils/is';
 import { useOnEvents } from './use-on-events';
 
-const EMPTY_HANDLERS: OnGraphEvents = {};
+const EMPTY_HANDLERS: GraphEventMap = {};
 
 /**
  * Checks if a value is a JointJS graph instance.
@@ -21,7 +21,7 @@ function isGraphInstance(value: unknown): value is dia.Graph {
  * @param handlers - Event handlers keyed by JointJS graph event names.
  * @returns Cleanup callback that stops all listeners.
  */
-function subscribeToGraphEvents(graph: dia.Graph, handlers: OnGraphEvents): () => void {
+function subscribeToGraphEvents(graph: dia.Graph, handlers: GraphEventMap): () => void {
   const controller = new mvc.Listener();
 
   for (const eventName in handlers) {
@@ -39,7 +39,7 @@ function subscribeToGraphEvents(graph: dia.Graph, handlers: OnGraphEvents): () =
 /**
  * The map of graph events to handlers accepted by {@link useOnGraphEvents}.
  */
-export type OnGraphEvents = Partial<dia.Graph.EventMap>;
+export type GraphEventMap = Partial<dia.Graph.EventMap>;
 
 /**
  * Subscribes to graph events using original JointJS event names.
@@ -51,17 +51,17 @@ export type OnGraphEvents = Partial<dia.Graph.EventMap>;
  * @param handlers - Event handlers map keyed by JointJS graph event names.
  * @group Hooks
  */
-export function useOnGraphEvents(handlers: OnGraphEvents): void;
+export function useOnGraphEvents(handlers: GraphEventMap): void;
 /**
  * Subscribes to graph events on the given graph instance.
  * @param graph - Graph instance to subscribe on.
  * @param handlers - Event handlers map keyed by JointJS graph event names.
  * @group Hooks
  */
-export function useOnGraphEvents(graph: dia.Graph, handlers: OnGraphEvents): void;
+export function useOnGraphEvents(graph: dia.Graph, handlers: GraphEventMap): void;
 export function useOnGraphEvents(
-  graphOrHandlers: dia.Graph | OnGraphEvents,
-  handlersArgument?: OnGraphEvents
+  graphOrHandlers: dia.Graph | GraphEventMap,
+  handlersArgument?: GraphEventMap
 ): void {
   const graphStore = useContext(GraphStoreContext);
   const isTargetForm = isGraphInstance(graphOrHandlers);

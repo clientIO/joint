@@ -385,15 +385,15 @@ export interface PaperEventHandlers {
 
 /**
  * Extracts the callback type for a given paper event key.
- * For example, `OnPaperEvent<'onCellPointerDown'>` is `(params: PointerCellEventParams) => void`.
+ * For example, `PaperEventHandler<'onCellPointerDown'>` is `(params: PointerCellEventParams) => void`.
  * Useful for typing individual handler variables or parameters.
  */
-export type OnPaperEvent<T extends keyof PaperEventHandlers> = NonNullable<PaperEventHandlers[T]>;
+export type PaperEventHandler<T extends keyof PaperEventHandlers> = NonNullable<PaperEventHandlers[T]>;
 
 /**
  * Combined handlers — camelCase `on*` + raw native — accepted by `addPaperEventListeners`.
  */
-export type OnPaperEvents = Partial<dia.Paper.EventMap> & PaperEventHandlers;
+export type PaperEventMap = Partial<dia.Paper.EventMap> & PaperEventHandlers;
 
 // ============================================================================
 // Subscription helpers
@@ -470,7 +470,7 @@ function subscribeRaw(
  * @param handlers - CamelCase `on*` + raw event handlers.
  * @returns Cleanup callback that calls `listener.stopListening()`.
  */
-export function addPaperEventListeners(paper: dia.Paper, handlers: OnPaperEvents): () => void {
+export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap): () => void {
   const graph = paper.model;
   const controller = new mvc.Listener();
   const eventMap = handlers as EventHandlerMap;

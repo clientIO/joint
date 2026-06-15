@@ -70,8 +70,8 @@ export { elementAttributes, type ElementAttributes } from './element-attributes'
 export { linkAttributes, type LinkAttributes } from './link-attributes';
 export {
   addPaperEventListeners,
-  type OnPaperEvents,
-  type OnPaperEvent,
+  type PaperEventMap,
+  type PaperEventHandler,
   type PointerCellEventParams,
   type PointerElementEventParams,
   type PointerLinkEventParams,

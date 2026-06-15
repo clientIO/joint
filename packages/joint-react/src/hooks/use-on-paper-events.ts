@@ -2,10 +2,10 @@ import { usePaperStore, useResolvePaperId } from './use-paper';
 import type { PaperStore } from '../store';
 import type { PaperTarget } from '../types';
 import { isPaperTarget } from '../utils/resolve-paper-target';
-import { addPaperEventListeners, type OnPaperEvents } from '../presets/paper-events';
+import { addPaperEventListeners, type PaperEventMap } from '../presets/paper-events';
 import { useOnEvents } from './use-on-events';
 
-const EMPTY_HANDLERS: OnPaperEvents = {};
+const EMPTY_HANDLERS: PaperEventMap = {};
 
 /**
  * Subscribes all handlers to a paper, delegating runtime wiring to
@@ -16,7 +16,7 @@ const EMPTY_HANDLERS: OnPaperEvents = {};
  */
 export function subscribeToPaperEvents(
   paperStore: PaperStore,
-  handlers: OnPaperEvents
+  handlers: PaperEventMap
 ): () => void {
   return addPaperEventListeners(paperStore.paper, handlers);
 }
@@ -57,17 +57,17 @@ export function subscribeToPaperEvents(
  * @param handlers - Event handlers map.
  * @group Hooks
  */
-export function useOnPaperEvents(handlers: OnPaperEvents): void;
+export function useOnPaperEvents(handlers: PaperEventMap): void;
 /**
  * Subscribes to paper events on the given paper target.
  * @param paperTarget - Paper reference (string ID, dia.Paper instance, or ref).
  * @param handlers - Event handlers map.
  * @group Hooks
  */
-export function useOnPaperEvents(paperTarget: PaperTarget, handlers: OnPaperEvents): void;
+export function useOnPaperEvents(paperTarget: PaperTarget, handlers: PaperEventMap): void;
 export function useOnPaperEvents(
-  paperTargetOrHandlers: PaperTarget | OnPaperEvents,
-  handlersArgument?: OnPaperEvents
+  paperTargetOrHandlers: PaperTarget | PaperEventMap,
+  handlersArgument?: PaperEventMap
 ): void {
   const isTargetForm = isPaperTarget(paperTargetOrHandlers);
   const paperTarget = isTargetForm ? paperTargetOrHandlers : undefined;

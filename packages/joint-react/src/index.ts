@@ -121,13 +121,13 @@ export type {
  * useOnPaperEvents()
  */
 export { useOnPaperEvents } from './hooks/use-on-paper-events';
-export type { OnPaperEvents, OnPaperEvent } from './presets';
+export type { PaperEventMap, PaperEventHandler } from './presets';
 
 /**
  * useOnGraphEvents()
  */
 export { useOnGraphEvents } from './hooks/use-on-graph-events';
-export type { OnGraphEvents } from './hooks/use-on-graph-events';
+export type { GraphEventMap } from './hooks/use-on-graph-events';
 
 /**
  * useCellDrag()
