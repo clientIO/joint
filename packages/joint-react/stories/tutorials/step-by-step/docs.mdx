@@ -100,7 +100,7 @@ function RenderNode({ width, height, label }) {
 </Paper>
 
 function DiagramEvents() {
-  usePaperEvents({
+  useOnPaperEvents({
     'link:mouseenter': (linkView) => {
       linkView.highlight();
     },

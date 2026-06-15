@@ -1,10 +1,10 @@
-/* eslint-disable sonarjs/no-nested-functions */
+ 
 /* eslint-disable react-perf/jsx-no-new-object-as-prop -- the memoization probe
    intentionally passes a fresh object every render to prove the compiler
    stabilizes it. */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop -- same: an inline
    handler the compiler is expected to memoize. */
-/* eslint-disable unicorn/consistent-function-scoping */
+ 
 /**
  * React Compiler behavioural contract.
  *

@@ -1,5 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { type CellRecord, GraphProvider, useCell, Paper, useOnElementsMeasured, type ElementRecord, selectElementSize, OnElementsMeasured } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  useCell,
+  Paper,
+  useOnElementsMeasured,
+  type ElementRecord,
+  selectElementSize,
+  type OnElementsMeasured,
+} from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
@@ -68,7 +77,13 @@ const COLUMNS_COUNT = 4;
 const COLUMNS_GAP = 200;
 const ROW_GAP = 140;
 
-function pos(id: string, index: number, w: number, h: number, data: ControlledData): ElementRecord<ControlledData> {
+function pos(
+  id: string,
+  index: number,
+  w: number,
+  h: number,
+  data: ControlledData
+): ElementRecord<ControlledData> {
   const col = index % COLUMNS_COUNT;
   const row = Math.floor(index / COLUMNS_COUNT);
   return {
@@ -733,18 +748,16 @@ function addElementControls(paper: dia.Paper) {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
-  const handleElementsMeasured: OnElementsMeasured = useCallback(
-    ({ isInitial, paper }) => {
-      if (!isInitial) return;
-      addElementControls(paper);
-    },
-    []
-  );
+  const handleElementsMeasured: OnElementsMeasured = useCallback(({ isInitial, paper }) => {
+    if (!isInitial) return;
+    addElementControls(paper);
+  }, []);
 
   useOnElementsMeasured(handleElementsMeasured);
 
   return (
-    <Paper style={{ ...PAPER_STYLE, width: '100%', height: 600 }}
+    <Paper
+      style={{ ...PAPER_STYLE, width: '100%', height: 600 }}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       drawGrid={false}

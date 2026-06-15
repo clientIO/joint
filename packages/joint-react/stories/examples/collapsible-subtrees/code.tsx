@@ -1,9 +1,23 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { CellRecord, ElementModel, ElementsMeasuredParams, LinkRecord, LinkStyle, OnElementsMeasured } from '@joint/react';
-import { type ElementRecord, GraphProvider, jsx, Paper, SVGText, useCell, useCellId, useGraph, useMarkup, useOnElementsMeasured, usePaper, usePaperEvents, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
+import type { CellRecord, LinkRecord, LinkStyle, OnElementsMeasured } from '@joint/react';
+import {
+  type ElementRecord,
+  GraphProvider,
+  jsx,
+  Paper,
+  SVGText,
+  useCell,
+  useCellId,
+  useGraph,
+  useMarkup,
+  useOnElementsMeasured,
+  usePaper,
+  selectElementSize,
+  linkRoutingOrthogonal,
+} from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
@@ -577,7 +591,6 @@ function RenderFTAElement(data: Readonly<FTAData>) {
 // Custom Element Tools
 // ----------------------------------------------------------------------------
 class ExpandButton extends elementTools.Button {
-
   preinitialize(options: elementTools.Button.Options) {
     this.options = {
       ...options,
@@ -677,9 +690,11 @@ function addExpandTools(paper: dia.Paper) {
 
     const toolsView = new dia.ToolsView({
       name: 'expand-tools',
-      tools: [new ExpandButton({
-        action: () => expandBranch(graph, elementView.model),
-      })],
+      tools: [
+        new ExpandButton({
+          action: () => expandBranch(graph, elementView.model),
+        }),
+      ],
     });
 
     elementView.addTools(toolsView);
@@ -713,7 +728,6 @@ function expandBranch(graph: dia.Graph, element: dia.Element) {
   runLayout(graph);
 }
 
-
 // ----------------------------------------------------------------------------
 // Application Components
 // ----------------------------------------------------------------------------
@@ -722,27 +736,25 @@ function Main() {
     return !model.prop('hidden');
   }, []);
 
-  const handleElementsMeasured: OnElementsMeasured = useCallback(
-    ({ isInitial, paper, graph }) => {
-      if (!isInitial) return;
-      runLayout(graph);
-      addExpandTools(paper);
-      paper.transformToFitContent({
-        padding: 40,
-        useModelGeometry: true,
-        verticalAlign: 'middle',
-        horizontalAlign: 'middle',
-      });
-    },
-    []
-  );
+  const handleElementsMeasured: OnElementsMeasured = useCallback(({ isInitial, paper, graph }) => {
+    if (!isInitial) return;
+    runLayout(graph);
+    addExpandTools(paper);
+    paper.transformToFitContent({
+      padding: 40,
+      useModelGeometry: true,
+      verticalAlign: 'middle',
+      horizontalAlign: 'middle',
+    });
+  }, []);
 
   useOnElementsMeasured(handleElementsMeasured);
 
   const renderElement = useCallback((data: FTAData) => RenderFTAElement(data), []);
 
   return (
-    <Paper style={{ ...PAPER_STYLE, height: 600 }}
+    <Paper
+      style={{ ...PAPER_STYLE, height: 600 }}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibilityCallback}

@@ -10,7 +10,7 @@ import {
   Paper,
   useCells,
   useGraph,
-  useGraphEvents,
+  useOnGraphEvents,
   type Computed,
 } from '@joint/react';
 import { useState } from 'react';
@@ -66,7 +66,7 @@ function snapshot(graph: dia.Graph) {
 function useRawAttributes() {
   const { graph } = useGraph();
   const [attributes, setAttributes] = useState(() => snapshot(graph));
-  useGraphEvents(graph, { change: () => setAttributes(snapshot(graph)) });
+  useOnGraphEvents(graph, { change: () => setAttributes(snapshot(graph)) });
   return attributes;
 }
 

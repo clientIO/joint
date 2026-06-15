@@ -118,16 +118,16 @@ export type {
 } from './hooks/use-on-elements-measured';
 
 /**
- * usePaperEvents()
+ * useOnPaperEvents()
  */
-export { usePaperEvents } from './hooks/use-paper-events';
+export { useOnPaperEvents } from './hooks/use-on-paper-events';
 export type { PaperEventMap, PaperEventHandler } from './presets';
 
 /**
- * useGraphEvents()
+ * useOnGraphEvents()
  */
-export { useGraphEvents } from './hooks/use-graph-events';
-export type { GraphEventMap } from './hooks/use-graph-events';
+export { useOnGraphEvents } from './hooks/use-on-graph-events';
+export type { GraphEventMap } from './hooks/use-on-graph-events';
 
 /**
  * useCellDrag()

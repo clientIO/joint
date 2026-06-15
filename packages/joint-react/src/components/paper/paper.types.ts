@@ -230,14 +230,12 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * Each handler receives a single params
  * object — e.g. `onBlankContextMenu={({ paper, event, x, y }) => …}`.
  *
- * Handlers participate in the event subscription's dependency list, exactly
- * like a `useEffect` dependency: the subscription re-binds whenever a handler's
- * **reference** changes. Pass **stable references** — `useCallback` or a
- * module-level function — so the paper subscribes once. A new inline arrow on
- * every render (`onBlankContextMenu={() => …}`) re-subscribes that paper's
- * events on every render; correct, but wasteful. For raw native event names or
- * events without an `on*` form (`resize`, `transform`, `render:done`, …),
- * use the `usePaperEvents` hook.
+ * Handlers are **always-latest**: the paper subscribes once and each event
+ * reads the current handler, so inline arrows
+ * (`onBlankContextMenu={() => …}`) are fine — no `useCallback` needed and no
+ * re-subscription on render. For raw native event names or events without an
+ * `on*` form (`render:done`, `cell:highlight`, …), use the `useOnPaperEvents`
+ * hook.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
 export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, PaperEventHandlers {
