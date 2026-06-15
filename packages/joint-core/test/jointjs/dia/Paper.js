@@ -893,7 +893,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     useModelGeometry: true,
                     gridWidth: 100,
                     gridHeight: 100,
-                    allowNewOrigin: 'any'
+                    allowNewOrigin: 'any',
                 });
                 // Content spans (-100, -100) → (200, 300). Grid at 0:
                 //   Right edge rounds to 200, Bottom to 300.
