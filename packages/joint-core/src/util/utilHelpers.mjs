@@ -284,10 +284,31 @@ const isPrototype = (value) => {
     return value === proto;
 };
 
+// Prevents prototype pollution:
+// Does not provide access to any unsafe values.
+const isUnsafeFunctionKey = (key) => {
+    return key === 'prototype';
+};
+
 const assignValue = (object, key, value) => {
     const objValue = object[key];
     if (!(hasOwnProperty.call(object, key) && eq(objValue, value)) ||
         (value === undefined && !(key in object))) {
+        baseAssignValue(object, key, value);
+    }
+};
+
+const baseAssignValue = (object, key, value) => {
+    if (key === '__proto__') {
+        // Prevents prototype pollution:
+        // Preserves the value of __proto__ key without executing a setter.
+        Object.defineProperty(object, key, {
+            configurable: true,
+            enumerable: true,
+            value,
+            writable: true
+        });
+    } else {
         object[key] = value;
     }
 };
@@ -971,7 +992,7 @@ const baseClone = (value, isDeep = false, isFlat = false, isFull = true, customi
             if (!isDeep) {
                 return isFlat ?
                     copySymbolsIn(value, copyObject(value, Object.keys(value), result)) :
-                    copySymbols(value, Object.assign(result, value));
+                    copySymbols(value, copyObject(value, Object.keys(value), result));
             }
         } else {
             if (isFunc || !CLONEABLE_TAGS[tag]) {
@@ -1052,6 +1073,12 @@ const set = (object, path, value) => {
         const key = toKey(path[index]);
         let newValue = value;
 
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+            // Prevents prototype pollution:
+            // Does not assign any unsafe keys.
+            return object;
+        }
+
         if (index != lastIndex) {
             const objValue = nested[key];
             newValue = undefined;
@@ -1079,9 +1106,33 @@ const isIndex = (value, length) => {
 
 const unset = (object, path) => {
     path = castPath(path, object);
-    object = parent(object, path);
-    const lastSegment = path[path.length - 1];
-    return object == null || delete object[toKey(lastSegment)];
+
+    const length = path.length;
+
+    if (!length) {
+        return true;
+    }
+
+    let index = -1;
+
+    while (++index < length) {
+        const key = toKey(path[index]);
+
+        if (key === '__proto__' && !hasOwnProperty.call(object, '__proto__')) {
+            // Prevents prototype pollution:
+            // Blocks `'__proto__'` anywhere in the path if it's not expected.
+            return false;
+        }
+
+        if ((key === 'constructor' || key === 'prototype') && index < length - 1) {
+            // Prevents prototype pollution:
+            // Blocks `constructor`/`prototype` as non-terminal traversal keys.
+            return false;
+        }
+    }
+
+    const obj = parent(object, path);
+    return obj == null || delete obj[toKey(last(path))];
 };
 
 const isKeyable = (value) => {
@@ -1108,6 +1159,8 @@ const toPlainObject = (value) => {
     return result;
 };
 
+// Prevents prototype pollution:
+// Does not provide access to any unsafe values.
 const safeGet = (object, key) => {
     if (key === 'constructor' && typeof object[key] === 'function') {
         return;
@@ -1155,13 +1208,19 @@ const baseMerge = (object, source, srcIndex, customizer, stack) => {
         return;
     }
 
+    const targetIsFunction = typeof object === 'function';
     forIn(source, (srcValue, key) => {
+        if (targetIsFunction && isUnsafeFunctionKey(key)) {
+            // Prevents prototype pollution:
+            // Drops any unsafe keys.
+            return;
+        }
         if (isObject(srcValue)) {
             stack || (stack = new Stack);
             baseMergeDeep(object, source, key, srcIndex, baseMerge, customizer, stack);
         } else {
             let newValue = customizer
-                ? customizer(object[key], srcValue, `${key}`, object, source, stack)
+                ? customizer(safeGet(object, key), srcValue, `${key}`, object, source, stack)
                 : undefined;
 
             if (newValue === undefined) {
@@ -1234,7 +1293,7 @@ const baseMergeDeep = (object, source, key, srcIndex, mergeFunc, customizer, sta
 const assignMergeValue = (object, key, value) => {
     if ((value !== undefined && !eq(object[key], value)) ||
         (value === undefined && !(key in object))) {
-        assignValue(object, key, value);
+        baseAssignValue(object, key, value);
     }
 };
 
@@ -1859,12 +1918,22 @@ export const isString = function(value) {
 };
 
 export const assign = createAssigner((object, source) => {
+    const targetIsFunction = typeof object === 'function';
     if (isPrototype(source) || isArrayLike(source)) {
-        copyObject(source, keys(source), object);
+        const props = keys(source);
+        // Prevents prototype pollution:
+        // Drops any unsafe keys.
+        const filteredProps = targetIsFunction ? props.filter((key) => !isUnsafeFunctionKey(key)) : props;
+        copyObject(source, filteredProps, object);
         return;
     }
     for (var key in source) {
         if (hasOwnProperty.call(source, key)) {
+            if (targetIsFunction && isUnsafeFunctionKey(key)) {
+                // Prevents prototype pollution:
+                // Drops any unsafe keys.
+                continue;
+            }
             assignValue(object, key, source[key]);
         }
     }
