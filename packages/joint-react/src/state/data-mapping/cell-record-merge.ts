@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
 import type { ElementJSONInit, LinkJSONInit, AnyCellRecord } from '../../types/cell.types';
 import type { Container } from '../../store/state-container';
@@ -6,6 +5,8 @@ import { isShallowEqual, isPositionEqual, isSizeEqual } from '../../utils/select
 import { mapAttributesToElement } from './element-mapper';
 import { mapAttributesToLink } from './link-mapper';
 
+/* eslint-disable sonarjs/cognitive-complexity -- ref-identity fast paths are
+   intentionally inlined here; splitting them would defeat the optimization. */
 /**
  * Merge a newly-mapped cell record with the previous one, preserving reference
  * identity wherever possible.
@@ -65,6 +66,7 @@ export function mergeCellRecord<
     size: mergedSize,
   } as Element | Link;
 }
+/* eslint-enable sonarjs/cognitive-complexity */
 
 /**
  * Convert a JointJS cell to its CellRecord representation, routing by type.

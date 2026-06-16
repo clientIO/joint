@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
 import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
@@ -22,6 +20,7 @@ export type OnIncrementalCellsChange<Element extends ElementJSONInit, Link exten
   changes: IncrementalCellsChange<Element, Link>
 ) => void;
 
+/** Configuration for {@link graphProjection}. */
 interface GraphProjectionState<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
@@ -31,6 +30,16 @@ interface GraphProjectionState<
   readonly onElementsSizeChange?: (id: CellId, size: dia.Size) => void;
 }
 
+/* eslint-disable sonarjs/cognitive-complexity -- graph→container projection
+   keeps add/change/remove plus connected-link sweeps inline for one-pass perf. */
+/**
+ * Project a JointJS graph into a reactive cells container, keeping the two in
+ * sync. Subscribes to graph changes and mirrors add / change / remove events
+ * (including connected-link sweeps) into the container, optionally emitting an
+ * incremental change set after each commit.
+ * @param options - graph to project plus optional change/size callbacks
+ * @returns controller exposing the readonly cells container and sync/update/destroy methods
+ */
 export function graphProjection<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
@@ -168,7 +177,9 @@ export function graphProjection<
     },
   };
 }
+/* eslint-enable sonarjs/cognitive-complexity */
 
+/** Controller returned by {@link graphProjection}. */
 export type GraphProjection<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
