@@ -2941,6 +2941,18 @@ export const Paper = View.extend({
         return cellView;
     },
 
+    // Returns the CellView for a `cell` (or its id) only if it has already been
+    // instantiated. Unlike `findViewByModel`, this does NOT resolve placeholders
+    // and does NOT schedule any updates. Returns `null` if no real view exists.
+    getCellView: function(cell) {
+
+        const cellViewLike = this._getCellViewLike(cell);
+        if (cellViewLike && cellViewLike[CELL_VIEW_MARKER]) {
+            return cellViewLike;
+        }
+        return null;
+    },
+
     // Find all views at given point
     findViewsFromPoint: function(p) {
 
@@ -3561,7 +3573,7 @@ export const Paper = View.extend({
             // The view could have been disposed during dragging
             // e.g. dragged outside of the viewport and hidden
             // The model can be removed in previous mousemove event handlers
-            view = this.findViewByModel(view.model) || view;
+            view = this.getCellView(view.model) || view;
             view.pointermove(evt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
@@ -3583,7 +3595,7 @@ export const Paper = View.extend({
             // The view could have been disposed during dragging
             // e.g. dragged outside of the viewport and hidden
             // The model can be removed in previous mouseup event handlers (e.g. when deleting an element after dragging)
-            view = this.findViewByModel(view.model) || view;
+            view = this.getCellView(view.model) || view;
             view.pointerup(normalizedEvt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
