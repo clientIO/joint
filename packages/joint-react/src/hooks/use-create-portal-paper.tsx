@@ -45,7 +45,8 @@ import {
 } from '../components/paper/render-element/paper-element-item';
 import { createSelectPaperVersion } from '../selectors';
 import { useAreElementsMeasured } from './use-are-elements-measured';
-import { LINK_MODEL_TYPE, subscribeToPaperEvents } from '../internal';
+import { LINK_MODEL_TYPE } from '../mvc/link-model';
+import { subscribeToPaperEvents } from './use-on-paper-events';
 import { useOnEvents } from './use-on-events';
 import type { CellId } from '../types/cell.types';
 import { extractEventsFromPaperProps } from '../presets/paper-events';

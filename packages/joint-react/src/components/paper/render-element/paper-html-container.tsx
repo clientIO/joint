@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, type CSSProperties } from 'react';
-import { usePaper } from '../../../hooks';
+import { usePaper } from '../../../hooks/use-paper';
 import { mvc, V } from '@joint/core';
 import { createPortal } from 'react-dom';
 
