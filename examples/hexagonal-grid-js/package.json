@@ -1,7 +1,7 @@
 {
     "name": "@joint/demo-hexagonal-grid-js",
     "private": true,
-    "version": "4.3.0-beta.1",
+    "version": "4.3.0-beta.2",
     "type": "module",
     "scripts": {
         "dev": "vite",
