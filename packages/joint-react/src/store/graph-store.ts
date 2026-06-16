@@ -405,7 +405,7 @@ export class GraphStore<
     readonly paper: dia.Paper;
   }) => {
     const { cellId, onValidateLink, paper } = options;
-    const elementView = paper.findViewByModel(cellId);
+    const elementView = paper.getCellView(cellId);
     if (!elementView) {
       return;
     }

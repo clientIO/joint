@@ -318,7 +318,7 @@ describe('GraphStore.clearViewForElementAndLinks', () => {
 
     const { paperStore } = store.addPaper('p1', { paperOptions: {} });
 
-    // Stub the paper internals so clearViewForElementAndLinks's findViewByModel
+    // Stub the paper internals so clearViewForElementAndLinks's getCellView
     // returns a real-shaped element view. We also replace findView on the link
     // so clearConnectedLinkViews finds a writable mock view.
     const cleanNodesCache = jest.fn();
@@ -332,7 +332,7 @@ describe('GraphStore.clearViewForElementAndLinks', () => {
     link.findView = jest.fn().mockReturnValue(fakeLinkView) as unknown as typeof link.findView;
 
     const fakePaper = {
-      findViewByModel: jest.fn().mockReturnValue(fakeElementView),
+      getCellView: jest.fn().mockReturnValue(fakeElementView),
       remove: jest.fn(),
     } as unknown as dia.Paper;
 
@@ -354,12 +354,12 @@ describe('GraphStore.clearViewForElementAndLinks', () => {
 
   it('returns early when the cell view is not found', () => {
     const store = new GraphStore<CellRecord, CellRecord>({});
-    const findViewByModel = jest.fn(() => {
+    const getCellView = jest.fn(() => {
       // explicit no-return to satisfy linter while emulating "not found"
     });
-    const fakePaper = { findViewByModel } as unknown as dia.Paper;
+    const fakePaper = { getCellView } as unknown as dia.Paper;
     store.clearViewForElementAndLinks({ cellId: 'missing', paper: fakePaper });
-    expect(findViewByModel).toHaveBeenCalled();
+    expect(getCellView).toHaveBeenCalled();
     store.destroy(false);
   });
 });
