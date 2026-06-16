@@ -1,7 +1,7 @@
 {
   "name": "@joint/eslint-config",
   "title": "JointJS ESLintConfig",
-  "version": "4.3.0-beta.1",
+  "version": "4.3.0-beta.2",
   "description": "ESLintConfig module for JointJS",
   "sideEffects": false,
   "type": "module",
