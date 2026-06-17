@@ -1,6 +1,7 @@
 :root {
-        /* ── Links ───────────────────────────────────────────────────────────── */
+    /* ── Links ───────────────────────────────────────────────────────────── */
     --jj-link-color: var(--jj-color-link);
+    --jj-link-hover-color: var(--jj-color-primary);
     --jj-link-width: var(--jj-stroke-width);
     --jj-link-dash: none;
     --jj-link-line-cap: butt;
@@ -16,11 +17,11 @@
     stroke-width: var(--jj-link-width);
     stroke-dasharray: var(--jj-link-dash);
     stroke-linecap: var(--jj-link-line-cap);
+    transition: stroke 0.2s;
 }
 
-.jj-link-wrapper {
-    stroke: var(--jj-link-wrapper-color, transparent);
-    stroke-width: var(--jj-link-wrapper-width, 10);
+.jj-link-wrapper:hover+.jj-link-line {
+    stroke: var(--jj-link-hover-color);
 }
 
 .jj-is-connecting {
@@ -32,4 +33,3 @@
 .jj-is-snapped {
     --jj-link-color: var(--jj-color-primary);
 }
-
