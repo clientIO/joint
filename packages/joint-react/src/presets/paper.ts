@@ -63,7 +63,7 @@ export const DEFAULT_HIGHLIGHTING = {
     options: {
       attrs: {
         strokeWidth: 1,
-        stroke: 'var(--jj-paper-connecting-highlight-color)'
+        stroke: 'var(--jj-connecting-highlight-color)'
       },
       rx: 4,
       ry: 4,
@@ -75,7 +75,7 @@ export const DEFAULT_HIGHLIGHTING = {
     options: {
       attrs: {
         strokeWidth: 'var(--jj-stroke-width)',
-        stroke: 'var(--jj-paper-embedding-highlight-color)',
+        stroke: 'var(--jj-embedding-highlight-color)',
       },
       rx: 4,
       ry: 4,
