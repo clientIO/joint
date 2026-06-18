@@ -21,7 +21,7 @@
     fill: var(--jj-link-label-bg-color);
     stroke: var(--jj-link-label-border-color);
     stroke-width: var(--jj-link-label-border-width);
-    transition: stroke 0.2s;
+    transition: stroke var(--jj-transition-duration);
 }
 
 .jj-link-label-bg:hover {

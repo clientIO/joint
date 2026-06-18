@@ -63,7 +63,7 @@
 /* ── Magnet highlighter stroke ────────────────────────────────────────── */
 
 .jj-magnet-highlighter {
-    transition: opacity 0.2s ease;
+    transition: opacity var(--jj-transition-duration) ease;
     opacity: 1;
 }
 

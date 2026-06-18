@@ -17,7 +17,7 @@
     stroke-width: var(--jj-link-width);
     stroke-dasharray: var(--jj-link-dash);
     stroke-linecap: var(--jj-link-line-cap);
-    transition: stroke 0.2s;
+    transition: stroke var(--jj-transition-duration);
 }
 
 .jj-link-wrapper:hover+.jj-link-line {
