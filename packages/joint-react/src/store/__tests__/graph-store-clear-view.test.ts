@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-useless-undefined */
 import { dia } from '@joint/core';
 import { GraphStore } from '../graph-store';
 
@@ -8,10 +7,10 @@ describe('GraphStore clearView scheduling', () => {
 
   beforeEach(() => {
     graphStore = new GraphStore({});
-    // Create a minimal mock paper — clearViewForElementAndLinks calls paper.findViewByModel
-    // which returns undefined when no real paper views exist, causing early return
+    // Create a minimal mock paper — clearViewForElementAndLinks calls paper.getCellView
+    // which returns null when no real paper views exist, causing early return
     mockPaper = {
-      findViewByModel: () => undefined,
+      getCellView: () => null,
     } as unknown as dia.Paper;
   });
 

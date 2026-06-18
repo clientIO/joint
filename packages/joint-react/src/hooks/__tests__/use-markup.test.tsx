@@ -194,8 +194,7 @@ describe('useMarkup', () => {
     // `if (!elementView) return;` early-out, we wrap a probe rendered via
     // CellIdContext directly (without an active Paper view). Throws on
     // useMarkup's `usePaper()` outside Paper, so render with Paper but no
-    // matching cell — provide a fake id so paper.findViewByModel returns
-    // undefined.
+    // matching cell — provide a fake id so paper.getCellView returns null.
     emptyCaptured = undefined;
     render(
       <GraphProvider initialCells={initialCells}>
