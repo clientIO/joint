@@ -31,7 +31,7 @@
     padding: var(--jj-box-padding);
     font-size: var(--jj-box-font-size);
     font-family: var(--jj-box-font-family);
-    transition: border-color 0.2s;
+    transition: border-color var(--jj-transition-duration);
 }
 
 .jj-box:hover {
