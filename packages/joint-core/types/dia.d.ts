@@ -2065,6 +2065,8 @@ export class Paper extends mvc.View<Graph> {
 
     findViewByModel<T extends ElementView | LinkView>(model: Graph.CellRef): T;
 
+    getCellView<T extends ElementView | LinkView>(model: Graph.CellRef): T | null;
+
     /**
      * Finds all the element views at the specified point
      * @param point a point in local paper coordinates

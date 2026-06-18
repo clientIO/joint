@@ -286,6 +286,58 @@ QUnit.module('paper', function(hooks) {
         assert.ok(linkView.el.previousSibling === circleView.el, 'link view is after circle element in the DOM');
     });
 
+    QUnit.module('paper.getCellView()', function() {
+
+        QUnit.test('returns the view for an instantiated cell', function(assert) {
+
+            var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
+            this.graph.addCell(r1);
+
+            var view = this.paper.getCellView(r1);
+            assert.ok(view instanceof joint.dia.CellView, 'returns a CellView instance');
+            assert.equal(view.model, r1, 'view points to the original model');
+            assert.equal(this.paper.getCellView(r1.id), view, 'lookup by id returns the same view');
+        });
+
+        QUnit.test('returns null for an unknown cell or id', function(assert) {
+
+            assert.equal(this.paper.getCellView('does-not-exist'), null);
+            assert.equal(this.paper.getCellView(null), null);
+            assert.equal(this.paper.getCellView(undefined), null);
+        });
+
+        QUnit.test('returns null when only a placeholder exists and does not resolve it', function(assert) {
+
+            var paperEl = document.createElement('div');
+            fixtures.getElement().appendChild(paperEl);
+            var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            var paper = new joint.dia.Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                viewport: function() { return false; },
+                viewManagement: { lazyInitialize: true }
+            });
+
+            var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
+            graph.addCell(r1);
+
+            assert.equal(paper.getCellView(r1), null, 'no real view yet — placeholder only');
+            // Confirm a placeholder is registered (otherwise the assertion above is vacuous).
+            // Placeholders are plain objects without an `el`; real CellViews have one.
+            var viewLike = paper._getCellViewLike(r1);
+            assert.ok(viewLike, 'placeholder exists for the cell');
+            assert.notOk(viewLike.el, 'lookup returned the placeholder, not a real view');
+
+            // findViewByModel resolves the placeholder; getCellView must NOT have done so before this call.
+            var resolved = paper.findViewByModel(r1);
+            assert.ok(resolved instanceof joint.dia.CellView, 'findViewByModel resolves the placeholder');
+            assert.equal(paper.getCellView(r1), resolved, 'after resolution getCellView returns the real view');
+
+            paper.remove();
+        });
+    });
+
     QUnit.test('contextmenu', function(assert) {
 
         var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
