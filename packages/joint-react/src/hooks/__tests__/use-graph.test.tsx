@@ -1,11 +1,11 @@
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
-import { useGraph } from '../use-graph';
+import { useGraph, type GraphHandle } from '../use-graph';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { LINK_MODEL_TYPE } from '../../mvc/link-model';
-import type { AnyCellRecord, CellRecord, ElementRecord } from '../../types/cell.types';
+import type { AnyCellRecord, CellRecord, CellId, ElementRecord } from '../../types/cell.types';
 
 const INITIAL: readonly CellRecord[] = [
   {
@@ -43,6 +43,22 @@ function shiftAXBy10(previous: AnyCellRecord): AnyCellRecord {
     ...element,
     position: { x: (element.position?.x ?? 0) + 10, y: 0 },
   } as CellRecord;
+}
+
+interface NodeLabel {
+  readonly label: string;
+}
+
+// Compile-time proof that `setCellData` derives its data type from the
+// `useGraph` generics: `prev` is `NodeLabel` here (not `unknown`), so
+// `prev.label` type-checks. `tsc` fails if the inference regresses. Hoisted to
+// keep the inline updater shallow for the nested-function lint, and called from
+// a test below so it also runs.
+function appendBangToLabel(
+  handle: GraphHandle<ElementRecord<NodeLabel>>,
+  id: CellId
+): void {
+  handle.setCellData(id, (previous) => ({ ...previous, label: `${previous.label}!` }));
 }
 
 describe('useGraph', () => {
@@ -315,6 +331,38 @@ describe('useGraph', () => {
       const linkCell = result.current.store.graphProjection.cells.get('l1')!;
       expect(result.current.api.isElement(elementCell)).toBe(true);
       expect(result.current.api.isLink(linkCell)).toBe(true);
+    });
+  });
+
+  describe('setCellData (typed via useGraph generics)', () => {
+    it('replaces element data via the direct form', async () => {
+      const { result } = renderHook(
+        () => ({ api: useGraph<ElementRecord<NodeLabel>>(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.api.setCellData('a', { label: 'hi' });
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('a')?.get('data')).toEqual({ label: 'hi' });
+    });
+
+    it('runs an updater whose previous data is typed from the generics', async () => {
+      const { result } = renderHook(
+        () => ({ api: useGraph<ElementRecord<NodeLabel>>(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.api.setCellData('a', { label: 'hi' });
+        await flush();
+      });
+      await act(async () => {
+        appendBangToLabel(result.current.api, 'a');
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('a')?.get('data')).toEqual({ label: 'hi!' });
     });
   });
 });

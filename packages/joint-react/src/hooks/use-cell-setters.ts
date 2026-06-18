@@ -118,6 +118,64 @@ function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJ
 }
 
 /**
+ * Updater form for {@link SetCellData}. Receives the cell's current `data` and
+ * returns the next `data`. The return value replaces `data` wholesale — perform
+ * a partial update by merging inside the updater
+ * (`(prev) => ({ ...prev, ...patch })`).
+ * @template Data - cell data shape
+ */
+export type SetCellDataUpdater<Data> = (previousData: Data) => Data;
+
+/**
+ * Function exposed by `GraphHandle.setCellData` and returned by
+ * {@link useSetCellData}. Two forms, both keyed by cell id:
+ * - `setCellData(id, data)` — replaces the cell's `data` with `data`.
+ * - `setCellData(id, (prev) => next)` — updater form; `prev` is the current
+ *   `data`, the return value replaces it.
+ *
+ * Both forms throw when no cell with `id` exists — updating data implies the
+ * cell is already on the graph (use `setCell` to add a new one). The updater
+ * overload is listed first so a function argument matches it; any non-function
+ * argument falls through to the direct form.
+ * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
+ */
+export interface SetCellData<Data = Record<string, unknown>> {
+  (id: CellId, updater: SetCellDataUpdater<Data>): void;
+  (id: CellId, data: Data): void;
+}
+
+/**
+ * Returns a function that sets a single cell's `data` field. See
+ * {@link SetCellData} for the supported call forms. Throws when the target cell
+ * does not exist.
+ *
+ * Writes `data` directly on the `dia.Cell`, so JointJS fires `change:data` and
+ * every React subscription resyncs — no full-record merge is involved.
+ * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
+ * @returns memoized setCellData setter
+ */
+export function useSetCellData<Data = Record<string, unknown>>(): SetCellData<Data> {
+  const store = useGraphStore();
+  const { graph } = store;
+  return useCallback<SetCellData<Data>>(
+    (id: CellId, dataOrUpdater: unknown) => {
+      const previous = store.graphProjection.cells.get(id);
+      const diaCell = graph.getCell(id);
+      if (!previous || !diaCell) {
+        throw new Error(
+          `setCellData: cannot update — no cell with id "${String(id)}" exists. ` +
+            'Add the cell first with the direct form `setCell({ id, type, ... })`.'
+        );
+      }
+      const nextData =
+        typeof dataOrUpdater === 'function' ? dataOrUpdater(previous.data) : dataOrUpdater;
+      diaCell.set('data', nextData);
+    },
+    [graph, store]
+  );
+}
+
+/**
  * Returns a function that removes one cell by id or dia.Cell reference.
  * No-op if the cell does not exist.
  * @returns memoized removeCell setter

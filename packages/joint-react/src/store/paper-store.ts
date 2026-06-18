@@ -79,6 +79,13 @@ export class PaperStore {
 
   public features: Record<string, Feature> = {};
 
+  /**
+   * True when this store adopted a pre-created paper (e.g. `<Stencil>`'s drag
+   * paper) instead of creating its own. The adopting wrapper does not own the
+   * paper's lifecycle, so it must not remove it on `destroy()`.
+   */
+  private readonly isAdoptedPaper: boolean;
+
   /** Link changes pending flush — populated by clearView, flushed in afterRender. */
   private pendingLinkChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
 
@@ -97,6 +104,7 @@ export class PaperStore {
     this.paperId = id;
     this.renderElement = renderElement;
     this.renderLink = renderLink;
+    this.isAdoptedPaper = !!externalPaper;
 
     if (externalPaper) {
       // Adopt an externally created PaperView (e.g. from PortalStencil).
@@ -193,11 +201,16 @@ export class PaperStore {
    * Should be called when the paper is being removed from the graph store.
    */
   public destroy = () => {
-    // Remove the JointJS paper instance - this cleans up:
-    // - All event listeners on the paper
-    // - All cell views
-    // - The paper's DOM element
-    this.paper.remove();
+    // An adopted paper is owned by its creator (e.g. `<Stencil>`), which
+    // removes it itself — removing it here would kill a paper still in use,
+    // breaking the next adoption (notably under React StrictMode remounts).
+    if (!this.isAdoptedPaper) {
+      // Remove the JointJS paper instance - this cleans up:
+      // - All event listeners on the paper
+      // - All cell views
+      // - The paper's DOM element
+      this.paper.remove();
+    }
 
     // Clear registered features
     for (const feature of Object.values(this.features)) {

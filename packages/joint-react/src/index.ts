@@ -77,6 +77,12 @@ export { useGraph } from './hooks/use-graph';
 export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
 
 /**
+ * useSetCellData()
+ */
+export { useSetCellData } from './hooks/use-cell-setters';
+export type { SetCellData, SetCellDataUpdater } from './hooks/use-cell-setters';
+
+/**
  * usePaper()
  */
 export { usePaper } from './hooks/use-paper';

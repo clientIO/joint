@@ -3,6 +3,7 @@ import { shapes } from '@joint/core';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import {
   useSetCell,
+  useSetCellData,
   useRemoveCell,
   useRemoveCells,
   useResetCells,
@@ -81,6 +82,28 @@ const updateLink = new LinkModel({
   target: { id: 'b' },
 });
 const appendDiaLinkUpdater = (previous: readonly AnyCellRecord[]) => [...previous, updateLink];
+
+// Hoisted setCellData updaters — kept at module scope so the arrows do not nest
+// past the `sonarjs/no-nested-functions` depth limit inside `it`/`act`.
+const incrementDataCount = (previous: Record<string, unknown>): Record<string, unknown> => ({
+  ...previous,
+  count: Number(previous.count) + 1,
+});
+
+let receivedPreviousData: unknown;
+const recordPreviousData = (previous: Record<string, unknown>): Record<string, unknown> => {
+  receivedPreviousData = previous;
+  return previous;
+};
+
+interface NodeData {
+  readonly label: string;
+  readonly count: number;
+}
+const incrementNodeDataCount = (previous: NodeData): NodeData => ({
+  ...previous,
+  count: previous.count + 1,
+});
 
 describe('use-cell-setters', () => {
   describe('useSetCell — happy paths', () => {
@@ -471,6 +494,97 @@ describe('use-cell-setters', () => {
         await flush();
       });
       expect(result.current.store.graph.getCell('update-link')).toBeDefined();
+    });
+  });
+
+  describe('useSetCellData', () => {
+    it('replaces a cell’s data via the direct form', async () => {
+      const { result } = renderHook(
+        () => ({ setCellData: useSetCellData(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.setCellData('a', { label: 'hello' });
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('a')?.get('data')).toEqual({ label: 'hello' });
+    });
+
+    it('applies the updater to the current data and replaces it', async () => {
+      const { result } = renderHook(
+        () => ({ setCellData: useSetCellData(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.setCellData('a', { count: 1 });
+        await flush();
+      });
+      await act(async () => {
+        result.current.setCellData('a', incrementDataCount);
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('a')?.get('data')).toEqual({ count: 2 });
+    });
+
+    it('passes the real previous data to the updater', async () => {
+      const { result } = renderHook(
+        () => ({ setCellData: useSetCellData(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.setCellData('a', { seed: 42 });
+        await flush();
+      });
+      receivedPreviousData = undefined;
+      await act(async () => {
+        result.current.setCellData('a', recordPreviousData);
+        await flush();
+      });
+      expect(receivedPreviousData).toEqual({ seed: 42 });
+    });
+
+    it('sets data on a link cell', async () => {
+      const { result } = renderHook(
+        () => ({ setCellData: useSetCellData(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.setCellData('l1', { weight: 5 });
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('l1')?.get('data')).toEqual({ weight: 5 });
+    });
+
+    it('throws when no cell with the given id exists', async () => {
+      const { result } = renderHook(() => useSetCellData(), { wrapper });
+      await waitFor(() => expect(result.current).toBeDefined());
+      expect(() => result.current('missing', { any: true })).toThrow(
+        /setCellData: cannot update — no cell with id "missing" exists/
+      );
+    });
+
+    it('supports an explicit data type via the generic parameter', async () => {
+      const { result } = renderHook(
+        () => ({ setCellData: useSetCellData<NodeData>(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current.setCellData('a', { label: 'typed', count: 0 });
+        await flush();
+      });
+      await act(async () => {
+        result.current.setCellData('a', incrementNodeDataCount);
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('a')?.get('data')).toEqual({
+        label: 'typed',
+        count: 1,
+      });
     });
   });
 });
