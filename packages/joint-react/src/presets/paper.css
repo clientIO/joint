@@ -2,8 +2,8 @@
     /* ── Paper ───────────────────────────────────────────────────────────── */
     --jj-paper-color: var(--jj-color-light-300);
     --jj-paper-grid-color: var(--jj-color-light-700);
-    --jj-connecting-highlight-color: var(--jj-color-primary);
-    --jj-embedding-highlight-color: var(--jj-color-primary);
+    --jj-highlighter-connecting-color: var(--jj-color-primary);
+    --jj-highlighter-embedding-color: var(--jj-color-primary);
 
     /* ── Paper Interactions ────────────────────────────────────────────────── */
     --jj-port-hover-color: var(--jj-color-shape-surface);
