@@ -375,27 +375,21 @@ export function useCreatePortalPaper(
     if (!paperStore) return;
     if (!paper) return;
 
-    const nextOptions: Partial<dia.Paper.Options> = {
+    assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
       connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
-      cellVisibility: cellVisibilityCallback,
+      // When a feature owns `cellVisibility` (e.g. a virtual-rendering
+      // scroller), omit it — writing it would clobber the feature's wrapper.
+      // The escape hatch can't set it (excluded from PaperOptions), so the
+      // dedicated prop is the only source.
+      ...(paperStore.isCellVisibilityOwned ? {} : { cellVisibility: cellVisibilityCallback }),
       ...paperOptions,
       ...linkRouting,
       ...escapeHatchOptions,
-    };
-
-    // When a feature owns `cellVisibility` (e.g. a virtual-rendering scroller),
-    // omit it entirely — writing it (from the prop OR the `options` escape
-    // hatch) would clobber the feature's installed wrapper. The owner is kept
-    // in sync via the effect below.
-    if (paperStore.isCellVisibilityOwned) {
-      delete nextOptions.cellVisibility;
-    }
-
-    assignOptions(paper.options, nextOptions);
+    });
 
     const { drawGrid, gridSize } = paperOptions;
 

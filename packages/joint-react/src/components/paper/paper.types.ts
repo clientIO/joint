@@ -44,8 +44,12 @@ export type DefaultLink =
   | ((context: DefaultLinkParams) => dia.Link | Partial<LinkRecord>)
   | Partial<LinkRecord>;
 
-/** Raw `dia.Paper.Options` passthrough — the type of the `options` escape-hatch prop. */
-export type PaperOptions = dia.Paper.Options;
+/**
+ * Raw `dia.Paper.Options` passthrough — the type of the `options` escape-hatch prop.
+ * `cellVisibility` is excluded: use the dedicated `cellVisibility` prop (it is
+ * also managed by feature ownership, e.g. a virtual-rendering scroller).
+ */
+export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
 
 /**
  * Officially supported Paper options. Pass-through props inherit their exact
