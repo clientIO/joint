@@ -3,6 +3,21 @@ import { PaperStore } from '../paper-store';
 import { GraphStore } from '../graph-store';
 import { PaperView } from '../../mvc/paper';
 
+const allVisible: dia.Paper.Options['cellVisibility'] = () => true;
+const noneVisible: dia.Paper.Options['cellVisibility'] = () => false;
+
+function makeOwnershipStore() {
+  const graph = new dia.Graph();
+  const graphStore = new GraphStore({ graph });
+  const paperStore = new PaperStore({
+    graphStore,
+    paperOptions: { cellVisibility: allVisible },
+    id: 'test-paper',
+  });
+  paperStore.nativeCellVisibility = allVisible;
+  return { paperStore, userCallback: allVisible };
+}
+
 describe('PaperStore', () => {
   describe('constructor', () => {
     it('should create a PaperStore with paper instance', () => {
@@ -343,6 +358,67 @@ describe('PaperStore', () => {
       graphStore.destroy(true);
 
       expect(removeSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('cellVisibility ownership latch', () => {
+    const makeStore = makeOwnershipStore;
+
+    it('is not owned by default', () => {
+      const { paperStore } = makeStore();
+      expect(paperStore.isCellVisibilityOwned).toBe(false);
+    });
+
+    it('claim takes ownership and clears the paper option', () => {
+      const { paperStore } = makeStore();
+      paperStore.claimCellVisibility('owner');
+      expect(paperStore.isCellVisibilityOwned).toBe(true);
+      expect(paperStore.paper.options.cellVisibility).toBeUndefined();
+    });
+
+    it('release restores the native callback and drops ownership', () => {
+      const { paperStore, userCallback } = makeStore();
+      paperStore.claimCellVisibility('owner');
+      paperStore.releaseCellVisibility('owner');
+      expect(paperStore.isCellVisibilityOwned).toBe(false);
+      expect(paperStore.paper.options.cellVisibility).toBe(userCallback);
+    });
+
+    it('release by a non-owner is a no-op', () => {
+      const { paperStore } = makeStore();
+      paperStore.claimCellVisibility('owner');
+      paperStore.releaseCellVisibility('someone-else');
+      expect(paperStore.isCellVisibilityOwned).toBe(true);
+      expect(paperStore.paper.options.cellVisibility).toBeUndefined();
+    });
+
+    it('notifies the registered listener with the refreshed callback', () => {
+      const { paperStore } = makeStore();
+      const listener = jest.fn();
+      paperStore.claimCellVisibility('owner');
+      paperStore.registerCellVisibilityListener('owner', listener);
+      paperStore.nativeCellVisibility = noneVisible;
+      paperStore.notifyCellVisibilityChange(noneVisible);
+      expect(listener).toHaveBeenCalledWith(noneVisible);
+    });
+
+    it('does not register a listener for a non-owner', () => {
+      const { paperStore } = makeStore();
+      const listener = jest.fn();
+      paperStore.claimCellVisibility('owner');
+      paperStore.registerCellVisibilityListener('intruder', listener);
+      paperStore.notifyCellVisibilityChange(noneVisible);
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('clears the listener on release', () => {
+      const { paperStore } = makeStore();
+      const listener = jest.fn();
+      paperStore.claimCellVisibility('owner');
+      paperStore.registerCellVisibilityListener('owner', listener);
+      paperStore.releaseCellVisibility('owner');
+      paperStore.notifyCellVisibilityChange(noneVisible);
+      expect(listener).not.toHaveBeenCalled();
     });
   });
 });

@@ -336,6 +336,11 @@ export function useCreatePortalPaper(
 
     paperRef.current = paperStore.paper ?? null;
 
+    // Expose the resolved native callback so a feature that claims ownership
+    // (e.g. a virtual-rendering scroller) can route it into its own logic.
+    // Set before the deferred-feature loop runs so the feature sees it.
+    paperStore.nativeCellVisibility = cellVisibilityCallback;
+
     // Call deferred features registered before paper mounted.
     if (featuresContext) {
       for (const [, onAddFeature] of featuresContext.features) {
@@ -370,13 +375,23 @@ export function useCreatePortalPaper(
     if (!paperStore) return;
     if (!paper) return;
 
+    // Keep the resolved native callback current. When a feature owns
+    // `cellVisibility` (e.g. a virtual-rendering scroller), do NOT write it
+    // onto the paper — that would clobber the feature's wrapper. Instead push
+    // the refreshed value to the owner so it can re-wrap.
+    paperStore.nativeCellVisibility = cellVisibilityCallback;
+    const { isCellVisibilityOwned } = paperStore;
+    if (isCellVisibilityOwned) {
+      paperStore.notifyCellVisibilityChange(cellVisibilityCallback);
+    }
+
     assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
       connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
-      cellVisibility: cellVisibilityCallback,
+      ...(isCellVisibilityOwned ? {} : { cellVisibility: cellVisibilityCallback }),
       ...paperOptions,
       ...linkRouting,
       ...escapeHatchOptions,
