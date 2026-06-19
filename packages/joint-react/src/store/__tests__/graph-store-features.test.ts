@@ -177,6 +177,22 @@ describe('GraphStore feature lifecycle', () => {
     store.destroy(false);
   });
 
+  it('removePaperFeature releases cellVisibility ownership held by the removed feature', () => {
+    const store = new GraphStore({});
+    store.addPaper('p1', { paperOptions: {} });
+    const feature = makeFeature('feat-1');
+    store.setPaperFeature('p1', feature);
+    const paperStore = store.getPaperStore('p1')!;
+
+    paperStore.claimCellVisibility('feat-1');
+    expect(paperStore.isCellVisibilityOwned).toBe(true);
+
+    store.removePaperFeature('p1', 'feat-1');
+
+    expect(paperStore.isCellVisibilityOwned).toBe(false);
+    store.destroy(false);
+  });
+
   it('removePaperFeature is a no-op when paper is missing', () => {
     const store = new GraphStore({});
     expect(() => store.removePaperFeature('missing', 'a')).not.toThrow();

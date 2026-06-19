@@ -354,6 +354,10 @@ export class GraphStore<
       return;
     }
     feature.clean?.();
+    // Self-heal the cellVisibility latch: if the removed feature owned the
+    // option, drop ownership so the Paper component resumes managing it
+    // (no-op when it wasn't the owner).
+    paperStore.releaseCellVisibility(featureId);
     Reflect.deleteProperty(paperStore.features, featureId);
     this.bumpPaperVersion(paperId);
   }

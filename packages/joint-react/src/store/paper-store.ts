@@ -96,9 +96,6 @@ export class PaperStore {
    */
   private cellVisibilityOwner: string | null = null;
 
-  /** Listener invoked with the refreshed native callback while owned. */
-  private cellVisibilityListener: ((cb: dia.Paper.Options['cellVisibility']) => void) | null = null;
-
   /** Link changes pending flush — populated by clearView, flushed in afterRender. */
   private pendingLinkChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
 
@@ -236,33 +233,20 @@ export class PaperStore {
   public releaseCellVisibility(ownerId: string): void {
     if (this.cellVisibilityOwner !== ownerId) return;
     this.cellVisibilityOwner = null;
-    this.cellVisibilityListener = null;
     this.paper.options.cellVisibility = this.nativeCellVisibility;
   }
 
   /**
-   * Register a listener invoked with the refreshed native `cellVisibility`
-   * callback whenever the `<Paper>` prop changes while the option is owned.
-   * Lets the owner re-wrap without depending on React re-rendering the
-   * owning component. Cleared on {@link releaseCellVisibility}.
-   * @param ownerId - The owning feature's id (must match the current owner).
-   * @param listener - Receives the latest native callback.
-   */
-  public registerCellVisibilityListener(
-    ownerId: string,
-    listener: (cb: dia.Paper.Options['cellVisibility']) => void
-  ): void {
-    if (this.cellVisibilityOwner !== ownerId) return;
-    this.cellVisibilityListener = listener;
-  }
-
-  /**
-   * Notify the registered owner that the native `cellVisibility` callback
-   * changed. Called by the Paper component's update effect while owned.
+   * Notify the owning feature that the native `cellVisibility` callback
+   * changed (e.g. the `<Paper>` prop updated), so it can re-apply it.
+   * Routed through the owner's {@link Feature.onCellVisibilityChange} hook —
+   * no separate listener registry. No-op when unowned or the owner provides
+   * no hook.
    * @param cb - The refreshed native callback.
    */
-  public notifyCellVisibilityChange(cb: dia.Paper.Options['cellVisibility']): void {
-    this.cellVisibilityListener?.(cb);
+  public notifyCellVisibilityOwner(cb: dia.Paper.Options['cellVisibility']): void {
+    if (this.cellVisibilityOwner === null) return;
+    this.features[this.cellVisibilityOwner]?.onCellVisibilityChange?.(cb);
   }
 
   /**

@@ -295,6 +295,19 @@ export function useCreatePortalPaper(
     [cellVisibility]
   );
 
+  // `cellVisibility` is managed via the dedicated `cellVisibility` prop (and,
+  // when a feature claims it, via feature ownership). Ignore any
+  // `cellVisibility` supplied through the `options` escape hatch so it can't
+  // clobber an owning feature's callback.
+  const sanitizedEscapeHatchOptions = useMemo(() => {
+    if (!escapeHatchOptions || !('cellVisibility' in escapeHatchOptions)) {
+      return escapeHatchOptions;
+    }
+    const rest = { ...escapeHatchOptions };
+    delete rest.cellVisibility;
+    return rest;
+  }, [escapeHatchOptions]);
+
   const interactiveValue = useMemo(() => toNativeCellInteractivity(interactive), [interactive]);
 
   const isReady = !!paper && (isExternalPaper || !nodeRef || !!nodeRef.current);
@@ -325,7 +338,7 @@ export function useCreatePortalPaper(
         cellVisibility: cellVisibilityCallback,
         interactive: interactiveValue,
         ...linkRouting,
-        ...escapeHatchOptions,
+        ...sanitizedEscapeHatchOptions,
       },
       renderElement,
       renderLink,
@@ -375,26 +388,19 @@ export function useCreatePortalPaper(
     if (!paperStore) return;
     if (!paper) return;
 
-    // Keep the resolved native callback current. When a feature owns
-    // `cellVisibility` (e.g. a virtual-rendering scroller), do NOT write it
-    // onto the paper — that would clobber the feature's wrapper. Instead push
-    // the refreshed value to the owner so it can re-wrap.
-    paperStore.nativeCellVisibility = cellVisibilityCallback;
-    const { isCellVisibilityOwned } = paperStore;
-    if (isCellVisibilityOwned) {
-      paperStore.notifyCellVisibilityChange(cellVisibilityCallback);
-    }
-
     assignOptions(paper.options, {
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
       connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
-      ...(isCellVisibilityOwned ? {} : { cellVisibility: cellVisibilityCallback }),
+      // When a feature owns `cellVisibility` (e.g. a virtual-rendering
+      // scroller), do NOT write it onto the paper — that would clobber the
+      // feature's wrapper. The owner is kept in sync via the effect below.
+      ...(paperStore.isCellVisibilityOwned ? {} : { cellVisibility: cellVisibilityCallback }),
       ...paperOptions,
       ...linkRouting,
-      ...escapeHatchOptions,
+      ...sanitizedEscapeHatchOptions,
     });
 
     const { drawGrid, gridSize } = paperOptions;
@@ -418,13 +424,25 @@ export function useCreatePortalPaper(
     validateUnembeddingCallback,
     cellVisibilityCallback,
     interactiveValue,
-    escapeHatchOptions,
+    sanitizedEscapeHatchOptions,
     linkRouting,
     paper,
     paperOptions,
     paperStore,
     transform,
   ]);
+
+  // Keep the resolved native `cellVisibility` current and, when a feature owns
+  // it, push the refreshed callback to that owner. Keyed on the callback alone
+  // so unrelated prop changes don't trigger a redundant re-wrap / viewport
+  // recompute.
+  useEffect(() => {
+    if (!paperStore) return;
+    paperStore.nativeCellVisibility = cellVisibilityCallback;
+    if (paperStore.isCellVisibilityOwned) {
+      paperStore.notifyCellVisibilityOwner(cellVisibilityCallback);
+    }
+  }, [cellVisibilityCallback, paperStore]);
 
   const elements = useMemo(() => {
     if (!hasRenderElement) {

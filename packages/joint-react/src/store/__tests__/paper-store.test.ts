@@ -392,33 +392,32 @@ describe('PaperStore', () => {
       expect(paperStore.paper.options.cellVisibility).toBeUndefined();
     });
 
-    it('notifies the registered listener with the refreshed callback', () => {
+    it('notifies the owning feature via onCellVisibilityChange', () => {
       const { paperStore } = makeStore();
-      const listener = jest.fn();
+      const onCellVisibilityChange = jest.fn();
+      paperStore.features['owner'] = { id: 'owner', instance: {}, onCellVisibilityChange };
       paperStore.claimCellVisibility('owner');
-      paperStore.registerCellVisibilityListener('owner', listener);
-      paperStore.nativeCellVisibility = noneVisible;
-      paperStore.notifyCellVisibilityChange(noneVisible);
-      expect(listener).toHaveBeenCalledWith(noneVisible);
+      paperStore.notifyCellVisibilityOwner(noneVisible);
+      expect(onCellVisibilityChange).toHaveBeenCalledWith(noneVisible);
     });
 
-    it('does not register a listener for a non-owner', () => {
+    it('does not notify when no feature owns the option', () => {
       const { paperStore } = makeStore();
-      const listener = jest.fn();
-      paperStore.claimCellVisibility('owner');
-      paperStore.registerCellVisibilityListener('intruder', listener);
-      paperStore.notifyCellVisibilityChange(noneVisible);
-      expect(listener).not.toHaveBeenCalled();
+      const onCellVisibilityChange = jest.fn();
+      paperStore.features['owner'] = { id: 'owner', instance: {}, onCellVisibilityChange };
+      // No claim → unowned.
+      paperStore.notifyCellVisibilityOwner(noneVisible);
+      expect(onCellVisibilityChange).not.toHaveBeenCalled();
     });
 
-    it('clears the listener on release', () => {
+    it('does not notify after release', () => {
       const { paperStore } = makeStore();
-      const listener = jest.fn();
+      const onCellVisibilityChange = jest.fn();
+      paperStore.features['owner'] = { id: 'owner', instance: {}, onCellVisibilityChange };
       paperStore.claimCellVisibility('owner');
-      paperStore.registerCellVisibilityListener('owner', listener);
       paperStore.releaseCellVisibility('owner');
-      paperStore.notifyCellVisibilityChange(noneVisible);
-      expect(listener).not.toHaveBeenCalled();
+      paperStore.notifyCellVisibilityOwner(noneVisible);
+      expect(onCellVisibilityChange).not.toHaveBeenCalled();
     });
   });
 });
