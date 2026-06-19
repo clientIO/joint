@@ -295,55 +295,63 @@ export class GraphStore<
 
   public updatePaperSnapshot(
     paperId: string,
-    updater: (previous: PaperStoreState) => PaperStoreState
+    updater: (previous: PaperStoreState) => PaperStoreState,
+    sync = false
   ) {
     this.internalState.setState((previous) => {
       const currentPaper = previous.papers[paperId];
       const nextPaper = updater(currentPaper);
       if (currentPaper === nextPaper) return previous;
       return { ...previous, papers: { ...previous.papers, [paperId]: nextPaper } };
-    });
+    }, sync);
   }
 
-  private bumpPaperVersion(paperId: string) {
-    this.updatePaperSnapshot(paperId, (previous) => {
-      const nextVersion = (previous?.version ?? 0) + 1;
-      return { ...previous, version: nextVersion };
-    });
+  private bumpPaperVersion(paperId: string, sync = false) {
+    this.updatePaperSnapshot(
+      paperId,
+      (previous) => {
+        const nextVersion = (previous?.version ?? 0) + 1;
+        return { ...previous, version: nextVersion };
+      },
+      sync
+    );
   }
 
-  private bumpGraphFeaturesVersion() {
-    this.internalState.setState((previous) => ({
-      ...previous,
-      graphFeaturesVersion: (previous.graphFeaturesVersion ?? 0) + 1,
-    }));
+  private bumpGraphFeaturesVersion(sync = false) {
+    this.internalState.setState(
+      (previous) => ({
+        ...previous,
+        graphFeaturesVersion: (previous.graphFeaturesVersion ?? 0) + 1,
+      }),
+      sync
+    );
   }
 
-  public setGraphFeature(feature: Feature) {
+  public setGraphFeature(feature: Feature, sync = false) {
     if (this.features[feature.id] === feature) return;
     this.features[feature.id] = feature;
-    this.bumpGraphFeaturesVersion();
+    this.bumpGraphFeaturesVersion(sync);
   }
 
-  public removeGraphFeature(featureId: string) {
+  public removeGraphFeature(featureId: string, sync = false) {
     const feature = this.features[featureId];
     if (!feature) return;
     feature.clean?.();
     Reflect.deleteProperty(this.features, featureId);
-    this.bumpGraphFeaturesVersion();
+    this.bumpGraphFeaturesVersion(sync);
   }
 
-  public setPaperFeature(paperId: string, feature: Feature) {
+  public setPaperFeature(paperId: string, feature: Feature, sync = false) {
     const paperStore = this.paperStores.get(paperId);
     if (!paperStore) {
       throw new Error(`Paper with id ${paperId} not found`);
     }
     if (paperStore.features[feature.id] === feature) return;
     paperStore.features[feature.id] = feature;
-    this.bumpPaperVersion(paperId);
+    this.bumpPaperVersion(paperId, sync);
   }
 
-  public removePaperFeature(paperId: string, featureId: string) {
+  public removePaperFeature(paperId: string, featureId: string, sync = false) {
     const paperStore = this.paperStores.get(paperId);
     if (!paperStore) {
       return;
@@ -355,7 +363,7 @@ export class GraphStore<
     }
     feature.clean?.();
     Reflect.deleteProperty(paperStore.features, featureId);
-    this.bumpPaperVersion(paperId);
+    this.bumpPaperVersion(paperId, sync);
   }
 
   public setPaperViews(paperId: string, changes: Map<CellId, IncrementalChange<dia.Cell>>) {

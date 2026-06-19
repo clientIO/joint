@@ -121,13 +121,14 @@ function registerFeature(
   target: FeatureTarget,
   graphStore: GraphStore,
   paperStore: PaperStore | null,
-  feature: Feature
+  feature: Feature,
+  sync = false
 ) {
   if (isPaperReady(target, paperStore)) {
-    graphStore.setPaperFeature(paperStore.paperId, feature);
+    graphStore.setPaperFeature(paperStore.paperId, feature, sync);
     return;
   }
-  graphStore.setGraphFeature(feature);
+  graphStore.setGraphFeature(feature, sync);
 }
 
 /**
@@ -141,13 +142,14 @@ function unregisterFeature(
   target: FeatureTarget,
   graphStore: GraphStore,
   paperStore: PaperStore | null,
-  featureId: string
+  featureId: string,
+  sync = false
 ) {
   if (isPaperReady(target, paperStore)) {
-    graphStore.removePaperFeature(paperStore.paperId, featureId);
+    graphStore.removePaperFeature(paperStore.paperId, featureId, sync);
     return;
   }
-  graphStore.removeGraphFeature(featureId);
+  graphStore.removeGraphFeature(featureId, sync);
 }
 
 /**
@@ -338,9 +340,9 @@ export function useCreateFeature<T>(
     if (featureRef.current) {
       const existingInStore = resolveExistingFeature(target, graphStore, paperStore, id);
       if (existingInStore === featureRef.current) {
-        registerFeature(target, graphStore, paperStore, featureRef.current);
+        registerFeature(target, graphStore, paperStore, featureRef.current, true);
         setForwardRef(forwardedRef, featureRef.current.instance);
-        return () => unregisterFeature(target, graphStore, paperStore, featureRef.current!.id);
+        return () => unregisterFeature(target, graphStore, paperStore, featureRef.current!.id, true);
       }
       // Feature was cleaned up (e.g. by StrictMode cleanup) — discard the dead
       // reference so the creation path below creates a fresh instance.
@@ -362,11 +364,11 @@ export function useCreateFeature<T>(
 
     const feature = createAndRegisterFeature(target, onAddFeature, graphStore, paperStore, asChildren);
     featureRef.current = feature;
-    registerFeature(target, graphStore, paperStore, feature);
+    registerFeature(target, graphStore, paperStore, feature, true);
     setForwardRef(forwardedRef, feature.instance);
     return () => {
       isMountedRef.current = false;
-      unregisterFeature(target, graphStore, paperStore, feature.id);
+      unregisterFeature(target, graphStore, paperStore, feature.id, true);
     };
   }, [graphStore, paperStore]);
 
@@ -392,7 +394,7 @@ export function useCreateFeature<T>(
     const existingFeature = resolveExistingFeature(target, graphStore, paperStore, id);
     fireOnUpdate(target, onUpdateFeature, graphStore, paperStore, existingFeature?.instance, asChildren);
     if (existingFeature) {
-      registerFeature(target, graphStore, paperStore, existingFeature);
+      registerFeature(target, graphStore, paperStore, existingFeature, true);
     }
   }, [graphStore, paperStore, ...dependencies]);
 

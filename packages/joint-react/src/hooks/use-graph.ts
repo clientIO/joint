@@ -67,8 +67,8 @@ export interface GraphHandle<
    * - `setCell(record)` — `record.id` names the target. Existing cell:
    *   attributes merge over it. Missing cell: the cell is added.
    * - `setCell(id, (prev) => next)` — updater form. The updater is invoked
-   *   once with the real previous record. Throws when no cell with `id`
-   *   exists (use the direct form to add).
+   *   once with the real previous record. A nullish `id`, or an `id` with no
+   *   matching cell, warns in dev and no-ops (use the direct form to add).
    */
   readonly setCell: SetCell<Element, Link>;
   /**
@@ -76,7 +76,8 @@ export interface GraphHandle<
    * - `setCellData(id, data)` — replaces the cell's `data` with `data`.
    * - `setCellData(id, (prev) => next)` — updater form; `prev` is the current
    *   `data`, the return value replaces it (merge inside the updater for a
-   *   partial update). Both forms throw when no cell with `id` exists.
+   *   partial update). A nullish `id`, or an `id` with no matching cell, warns
+   *   in dev and no-ops.
    *
    * The `data` type is derived from the `useGraph<Element, Link>` generics (see
    * {@link HandleCellData}): typed records flow through, otherwise it falls back
@@ -86,10 +87,16 @@ export interface GraphHandle<
    * `useSetCellData<MyData>()` hook.
    */
   readonly setCellData: SetCellData<HandleCellData<Element, Link>>;
-  /** Remove a cell by id or dia.Cell reference. No-op when the cell is missing. */
-  readonly removeCell: (cellRef: CellRef) => void;
-  /** Remove multiple cells by id or dia.Cell reference. Missing refs are silently skipped. */
-  readonly removeCells: (cellRefs: readonly CellRef[]) => void;
+  /**
+   * Remove a cell by id or dia.Cell reference. A nullish reference warns in dev
+   * and no-ops; a reference that resolves to no cell is a silent no-op.
+   */
+  readonly removeCell: (cellRef?: CellRef | null) => void;
+  /**
+   * Remove multiple cells by id or dia.Cell reference. A nullish array warns in
+   * dev and no-ops; references that resolve to no cell are silently skipped.
+   */
+  readonly removeCells: (cellRefs?: readonly CellRef[] | null) => void;
   /** Atomically replace the cell set. Accepts dia.Cell instances alongside records. */
   readonly resetCells: (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => void;
   /** Apply an updater to the current cells array. Updater may return dia.Cell instances. */

@@ -194,6 +194,82 @@ describe('GraphStore feature lifecycle', () => {
   });
 });
 
+describe('GraphStore feature notification timing (StrictMode reactivity)', () => {
+  // Regression: `useSyncExternalStore` subscribers (e.g. usePaperFeatures) must
+  // be notified SYNCHRONOUSLY when a feature registers/unregisters from inside
+  // an effect — the StrictMode mount→unmount→remount path. A microtask-deferred
+  // notification is dropped across StrictMode's subscribe/unsubscribe churn,
+  // leaving consumers stuck on a stale snapshot (the real-world symptom: the
+  // <Diagram> interactions never see a late-registering <Selection> and bind the
+  // pan handler, so Shift+drag pans instead of selecting). `sync=true` is the
+  // contract useCreateFeature's effect-phase register/unregister relies on.
+
+  it('setPaperFeature notifies subscribers synchronously when sync=true', async () => {
+    const store = new GraphStore({});
+    store.addPaper('p1', { paperOptions: {} });
+    await flush(); // drain the addPaper snapshot notification
+
+    const listener = jest.fn();
+    const unsubscribe = store.internalState.subscribe(listener);
+
+    store.setPaperFeature('p1', makeFeature('feat-1'), true);
+
+    // Fired during the call — no microtask flush awaited.
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+    store.destroy(false);
+  });
+
+  it('setPaperFeature defers notification to a microtask by default (sync=false)', async () => {
+    const store = new GraphStore({});
+    store.addPaper('p1', { paperOptions: {} });
+    await flush();
+
+    const listener = jest.fn();
+    const unsubscribe = store.internalState.subscribe(listener);
+
+    store.setPaperFeature('p1', makeFeature('feat-1'));
+
+    expect(listener).not.toHaveBeenCalled(); // batched onto a microtask
+    await flush();
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+    store.destroy(false);
+  });
+
+  it('removePaperFeature notifies subscribers synchronously when sync=true', async () => {
+    const store = new GraphStore({});
+    store.addPaper('p1', { paperOptions: {} });
+    store.setPaperFeature('p1', makeFeature('feat-1'), true);
+    await flush();
+
+    const listener = jest.fn();
+    const unsubscribe = store.internalState.subscribe(listener);
+
+    store.removePaperFeature('p1', 'feat-1', true);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+    store.destroy(false);
+  });
+
+  it('graph features also honor synchronous notification when sync=true', () => {
+    const store = new GraphStore({});
+    const listener = jest.fn();
+    const unsubscribe = store.internalState.subscribe(listener);
+
+    store.setGraphFeature(makeFeature('g'), true);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+    store.destroy(false);
+  });
+});
+
 describe('GraphStore.applyControlled', () => {
   it('routes through graphProjection.updateGraph with the react-origin flag', () => {
     const store = new GraphStore({});

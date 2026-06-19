@@ -157,25 +157,46 @@ describe('use-cell-setters', () => {
     });
   });
 
-  describe('useSetCell — error paths', () => {
-    it('throws when called with a record that has no `id`', async () => {
-      const { result } = renderHook(() => useSetCell(), { wrapper });
+  describe('useSetCell — missing target warns and no-ops', () => {
+    it('warns and no-ops when called with a record that has no `id`', async () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { result } = renderHook(
+        () => ({ setCell: useSetCell(), store: useGraphStore() }),
+        { wrapper }
+      );
       await waitFor(() => expect(result.current).toBeDefined());
-      // Direct form: missing id triggers the "must have an id" guard (line 60).
-      expect(() =>
-        result.current({
-          type: ELEMENT_MODEL_TYPE,
-        } as unknown as CellRecord)
-      ).toThrow('setCell: input record must have an `id` to identify the target cell');
+      const before = result.current.store.graph.getCells().length;
+      await act(async () => {
+        result.current.setCell({ type: ELEMENT_MODEL_TYPE } as unknown as CellRecord);
+        await flush();
+      });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[setCell]'));
+      expect(result.current.store.graph.getCells().length).toBe(before);
+      warn.mockRestore();
     });
 
-    it('updater form throws when no cell with the given id exists', async () => {
+    it('updater form warns and no-ops when the id is nullish', async () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const { result } = renderHook(() => useSetCell(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
-      // Updater form against a missing id triggers the "cannot update" guard (line 106).
-      expect(() => result.current('missing', passthroughUpdater)).toThrow(
-        /setCell: cannot update — no cell with id "missing" exists/
-      );
+      await act(async () => {
+        result.current(null, passthroughUpdater);
+        await flush();
+      });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[setCell]'));
+      warn.mockRestore();
+    });
+
+    it('updater form warns and no-ops when no cell with the given id exists', async () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { result } = renderHook(() => useSetCell(), { wrapper });
+      await waitFor(() => expect(result.current).toBeDefined());
+      await act(async () => {
+        result.current('missing', passthroughUpdater);
+        await flush();
+      });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[setCell]'));
+      warn.mockRestore();
     });
   });
 
@@ -229,6 +250,23 @@ describe('use-cell-setters', () => {
       const { result } = renderHook(() => useRemoveCell(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
       expect(() => result.current('does-not-exist')).not.toThrow();
+    });
+
+    it('warns and no-ops when the reference is nullish', async () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { result } = renderHook(
+        () => ({ removeCell: useRemoveCell(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      const before = result.current.store.graph.getCells().length;
+      await act(async () => {
+        result.current.removeCell(null);
+        await flush();
+      });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[removeCell]'));
+      expect(result.current.store.graph.getCells().length).toBe(before);
+      warn.mockRestore();
     });
 
     it('removes a single cell when present', async () => {
@@ -559,12 +597,33 @@ describe('use-cell-setters', () => {
       expect(result.current.store.graph.getCell('l1')?.get('data')).toEqual({ weight: 5 });
     });
 
-    it('throws when no cell with the given id exists', async () => {
+    it('warns and no-ops when no cell with the given id exists', async () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const { result } = renderHook(() => useSetCellData(), { wrapper });
       await waitFor(() => expect(result.current).toBeDefined());
-      expect(() => result.current('missing', { any: true })).toThrow(
-        /setCellData: cannot update — no cell with id "missing" exists/
+      await act(async () => {
+        result.current('missing', { any: true });
+        await flush();
+      });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[setCellData]'));
+      warn.mockRestore();
+    });
+
+    it('warns and no-ops when the id is nullish', async () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { result } = renderHook(
+        () => ({ setCellData: useSetCellData(), store: useGraphStore() }),
+        { wrapper }
       );
+      await waitFor(() => expect(result.current).toBeDefined());
+      const before = result.current.store.graph.getCell('a')?.get('data');
+      await act(async () => {
+        result.current.setCellData(null, { any: true });
+        await flush();
+      });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[setCellData]'));
+      expect(result.current.store.graph.getCell('a')?.get('data')).toEqual(before);
+      warn.mockRestore();
     });
 
     it('supports an explicit data type via the generic parameter', async () => {

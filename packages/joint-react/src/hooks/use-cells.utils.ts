@@ -15,7 +15,7 @@ export interface ParsedCellsArgs<Cell extends AnyCellRecord, Selected> {
 /** Builds default parsed result with no selectors. */
 function defaultParsedArgs<Cell extends AnyCellRecord, Selected>(
   targetId: CellId | undefined,
-  ids: readonly CellId[] | undefined
+  ids?: readonly CellId[]
 ): ParsedCellsArgs<Cell, Selected> {
   return {
     targetId,
@@ -79,6 +79,7 @@ function parseSelectorFirstArgs<Cell extends AnyCellRecord, Selected>(
 export function parseUseCellsArgs<Cell extends AnyCellRecord, Selected>(
   argument1?:
     | CellId
+    | null
     | readonly CellId[]
     | ((cells: readonly Cell[]) => Selected)
     | mvc.Collection<dia.Cell>,
@@ -95,17 +96,10 @@ export function parseUseCellsArgs<Cell extends AnyCellRecord, Selected>(
     return parseSelectorFirstArgs<Cell, Selected>(argument1, argument2);
   }
 
-  const isIdsArray = Array.isArray(argument1);
-  const isSingleId = !isIdsArray && argument1 !== undefined;
-  const targetId: CellId | undefined = isSingleId ? (argument1 as CellId) : undefined;
-  const ids: readonly CellId[] | undefined = isIdsArray
-    ? (argument1 as readonly CellId[])
-    : undefined;
-
-  if (isIdsArray) {
+  if (Array.isArray(argument1)) {
     return {
-      targetId,
-      ids,
+      targetId: undefined,
+      ids: argument1 as readonly CellId[],
       isCollectionForm: false,
       arraySelector:
         typeof argument2 === 'function'
@@ -115,15 +109,21 @@ export function parseUseCellsArgs<Cell extends AnyCellRecord, Selected>(
       isEqual: typeof argument3 === 'function' ? argument3 : undefined,
     };
   }
-  if (isSingleId && typeof argument2 === 'function') {
+
+  // Single-cell form: an explicit id, or a nullish id treated as "no match"
+  // (the selector then receives `undefined`). A nullish id without a selector
+  // collapses to the no-arg full-array form.
+  const targetId: CellId | undefined =
+    argument1 === undefined || argument1 === null ? undefined : (argument1 as CellId);
+  if (typeof argument2 === 'function') {
     return {
       targetId,
-      ids,
+      ids: undefined,
       isCollectionForm: false,
       arraySelector: undefined,
       cellSelector: argument2 as (cell: Cell | undefined) => Selected,
       isEqual: typeof argument3 === 'function' ? argument3 : undefined,
     };
   }
-  return defaultParsedArgs<Cell, Selected>(targetId, ids);
+  return defaultParsedArgs<Cell, Selected>(targetId);
 }
