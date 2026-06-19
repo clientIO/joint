@@ -295,19 +295,6 @@ export function useCreatePortalPaper(
     [cellVisibility]
   );
 
-  // `cellVisibility` is managed via the dedicated `cellVisibility` prop (and,
-  // when a feature claims it, via feature ownership). Ignore any
-  // `cellVisibility` supplied through the `options` escape hatch so it can't
-  // clobber an owning feature's callback.
-  const sanitizedEscapeHatchOptions = useMemo(() => {
-    if (!escapeHatchOptions || !('cellVisibility' in escapeHatchOptions)) {
-      return escapeHatchOptions;
-    }
-    const rest = { ...escapeHatchOptions };
-    delete rest.cellVisibility;
-    return rest;
-  }, [escapeHatchOptions]);
-
   const interactiveValue = useMemo(() => toNativeCellInteractivity(interactive), [interactive]);
 
   const isReady = !!paper && (isExternalPaper || !nodeRef || !!nodeRef.current);
@@ -338,7 +325,7 @@ export function useCreatePortalPaper(
         cellVisibility: cellVisibilityCallback,
         interactive: interactiveValue,
         ...linkRouting,
-        ...sanitizedEscapeHatchOptions,
+        ...escapeHatchOptions,
       },
       renderElement,
       renderLink,
@@ -388,20 +375,27 @@ export function useCreatePortalPaper(
     if (!paperStore) return;
     if (!paper) return;
 
-    assignOptions(paper.options, {
+    const nextOptions: Partial<dia.Paper.Options> = {
       defaultLink: defaultLinkCallback,
       validateConnection: validateConnectionCallback,
       connectionStrategy: connectionStrategyCallback,
       validateEmbedding: validateEmbeddingCallback,
       validateUnembedding: validateUnembeddingCallback,
-      // When a feature owns `cellVisibility` (e.g. a virtual-rendering
-      // scroller), do NOT write it onto the paper — that would clobber the
-      // feature's wrapper. The owner is kept in sync via the effect below.
-      ...(paperStore.isCellVisibilityOwned ? {} : { cellVisibility: cellVisibilityCallback }),
+      cellVisibility: cellVisibilityCallback,
       ...paperOptions,
       ...linkRouting,
-      ...sanitizedEscapeHatchOptions,
-    });
+      ...escapeHatchOptions,
+    };
+
+    // When a feature owns `cellVisibility` (e.g. a virtual-rendering scroller),
+    // omit it entirely — writing it (from the prop OR the `options` escape
+    // hatch) would clobber the feature's installed wrapper. The owner is kept
+    // in sync via the effect below.
+    if (paperStore.isCellVisibilityOwned) {
+      delete nextOptions.cellVisibility;
+    }
+
+    assignOptions(paper.options, nextOptions);
 
     const { drawGrid, gridSize } = paperOptions;
 
@@ -424,7 +418,7 @@ export function useCreatePortalPaper(
     validateUnembeddingCallback,
     cellVisibilityCallback,
     interactiveValue,
-    sanitizedEscapeHatchOptions,
+    escapeHatchOptions,
     linkRouting,
     paper,
     paperOptions,
