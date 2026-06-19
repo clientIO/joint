@@ -10,6 +10,7 @@ import {
   useState,
   type RefObject,
   type ReactNode,
+  type ComponentType,
   useContext,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -108,9 +109,7 @@ function createDefaultLinkCallback(defaultLink: DefaultLink | undefined) {
   // would force defensive `.clone()` on every connection and silently couple
   // every created link to one mutable model. Require a factory instead.
   if (defaultLink instanceof dia.Link) {
-    throw new TypeError(
-      'defaultLink must be a function or Partial<LinkRecord>.'
-    );
+    throw new TypeError('defaultLink must be a function or Partial<LinkRecord>.');
   }
   return (cellView: dia.CellView, magnet: SVGElement = cellView.el) => {
     const paper = cellView.paper!;
@@ -146,7 +145,7 @@ function createDefaultLinkCallback(defaultLink: DefaultLink | undefined) {
  */
 function LinkItem({
   portalElement,
-  renderLink,
+  renderLink: RenderLink,
 }: {
   readonly portalElement: SVGElement | HTMLElement;
   readonly renderLink: RenderLink;
@@ -167,7 +166,7 @@ function LinkItem({
   if (!portalElement || id === undefined) {
     return null;
   }
-  const linkContent = renderLink(data);
+  const linkContent = <RenderLink {...data} />;
   return createPortal(linkContent, portalElement);
 }
 
