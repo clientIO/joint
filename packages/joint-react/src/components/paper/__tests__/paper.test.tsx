@@ -67,4 +67,22 @@ describe('Paper', () => {
       expect(refHolder.current).not.toBeNull();
     });
   });
+
+  it('throws when cellVisibility is set via the options escape hatch', () => {
+    // `PaperOptions` excludes `cellVisibility` at the type level; cast around
+    // it to simulate a plain-JS caller and assert the runtime guard.
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() =>
+      render(
+        <GraphProvider initialCells={CELLS}>
+          <Paper
+            style={{ width: 100, height: 100 }}
+            renderElement={renderRectElement}
+            options={{ cellVisibility: () => true } as never}
+          />
+        </GraphProvider>
+      )
+    ).toThrow(/cellVisibility.*escape hatch/);
+    spy.mockRestore();
+  });
 });
