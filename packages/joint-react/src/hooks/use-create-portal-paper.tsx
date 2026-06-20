@@ -294,8 +294,6 @@ export function useCreatePortalPaper(
   // (e.g. a virtual-rendering scroller); it must not come through the `options`
   // escape hatch. Excluded from `PaperOptions` at the type level — this guards
   // the same misuse in plain JS.
-  // `cellVisibility` is excluded from `PaperOptions` at the type level; this
-  // guards the same misuse for plain-JS callers.
   if (escapeHatchOptions && 'cellVisibility' in escapeHatchOptions) {
     throw new Error(
       'Paper: `cellVisibility` cannot be set via the `options` escape hatch — use the dedicated `cellVisibility` prop.'

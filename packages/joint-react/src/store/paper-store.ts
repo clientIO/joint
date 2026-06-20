@@ -166,6 +166,11 @@ export class PaperStore {
       this.paper = paper;
     }
 
+    // Seed the resolved native callback from the paper's initial option so
+    // `releaseCellVisibility` restores a correct value even before any
+    // prop-update effect runs (or when the store is used without the hook).
+    this.nativeCellVisibility = this.paper.options.cellVisibility;
+
     if (transform !== undefined) {
       this.paper.matrix(toSVGMatrix(transform));
     }

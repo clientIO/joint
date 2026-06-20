@@ -369,6 +369,21 @@ describe('PaperStore', () => {
       expect(paperStore.isCellVisibilityOwned).toBe(false);
     });
 
+    it('seeds nativeCellVisibility from paperOptions in the constructor', () => {
+      const graph = new dia.Graph();
+      const graphStore = new GraphStore({ graph });
+      const paperStore = new PaperStore({
+        graphStore,
+        paperOptions: { cellVisibility: allVisible },
+        id: 'seeded-paper',
+      });
+      // No manual assignment — claim then release must restore the seeded value.
+      expect(paperStore.nativeCellVisibility).toBe(allVisible);
+      paperStore.claimCellVisibility('owner');
+      paperStore.releaseCellVisibility('owner');
+      expect(paperStore.paper.options.cellVisibility).toBe(allVisible);
+    });
+
     it('claim takes ownership and clears the paper option', () => {
       const { paperStore } = makeStore();
       paperStore.claimCellVisibility('owner');
