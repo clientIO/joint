@@ -41,32 +41,47 @@ const DEFAULT_INTERACTIVE: dia.CellView.InteractivityOptions = {
   linkMove: false,
 };
 
+type StaticInteractivity = boolean | dia.CellView.InteractivityOptions | undefined;
+
+/**
+ * Resolve a static `interactive` value to the native shape, applying
+ * `DEFAULT_INTERACTIVE` as the baseline so every shape that means
+ * "interactivity on" produces the same defaults.
+ */
+function normalizeStaticInteractivity(
+  value: StaticInteractivity
+): false | dia.CellView.InteractivityOptions {
+  if (value === false) return false;
+  if (value === true || value == null) return { ...DEFAULT_INTERACTIVE };
+  if (typeof value === 'object') return { ...DEFAULT_INTERACTIVE, ...value };
+  return { ...DEFAULT_INTERACTIVE };
+}
+
 /**
  * Adapt the `interactive` prop to the native form.
  *
  * - `undefined` → defaults (`labelMove`/`linkMove` disabled, rest implicit true).
- * - `true` → same defaults (`labelMove`/`linkMove` disabled, rest implicit true).
+ * - `true` → same defaults.
  * - `false` → pass through (every interaction disabled).
  * - object → defaults applied first, user keys win.
- * - function → wrapped so the user callback receives an `CellInteractivityParams`
- *   instead of the native positional `(cellView, interaction)` args.
- *   Defaults are NOT merged into the function return — function form is an
- *   explicit takeover.
+ * - function → wrapped so the user callback receives a `CellInteractivityParams`
+ *   instead of the native positional `(cellView, interaction)` args. The
+ *   callback's return value is normalized identically to the static shapes,
+ *   so `() => true` and `() => ({})` both resolve to `DEFAULT_INTERACTIVE`.
  * @param value - prop value
  * @returns native `dia.Paper.Options['interactive']`
  */
 export function toNativeCellInteractivity(
   value: CellInteractivity | undefined
 ): dia.Paper.Options['interactive'] {
-  if (value === undefined || value === true) return DEFAULT_INTERACTIVE;
-  if (value === false) return false;
-  if (typeof value === 'object') return { ...DEFAULT_INTERACTIVE, ...value };
+  if (typeof value !== 'function') return normalizeStaticInteractivity(value);
   return function (this: dia.Paper, cellView: dia.CellView, interaction: string) {
-    return value({
+    const result = value({
       model: cellView.model,
       interaction: interaction as CellInteraction,
       paper: this,
       graph: this.model,
     });
+    return normalizeStaticInteractivity(result as StaticInteractivity);
   };
 }
