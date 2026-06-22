@@ -168,13 +168,42 @@ describe('presets / element-ports', () => {
 });
 
 describe('presets / interactive', () => {
-  it('function form wraps via native callback', () => {
+  it('function form wraps via native callback and normalizes the return value', () => {
     const cb = jest.fn(() => true);
     const native = toNativeCellInteractivity(cb);
     const fakePaper = { model: {} } as any;
     const cellView = { model: { id: 'm' } } as any;
-    expect((native as any).call(fakePaper, cellView, 'elementMove')).toBe(true);
+    // `() => true` is normalized to DEFAULT_INTERACTIVE so it matches the static
+    // `interactive={true}` shape.
+    expect((native as any).call(fakePaper, cellView, 'elementMove')).toEqual({
+      labelMove: false,
+      linkMove: false,
+    });
     expect(cb).toHaveBeenCalled();
+  });
+  it('function form normalizes object return — defaults merged under user keys', () => {
+    const native = toNativeCellInteractivity(() => ({ linkMove: true }) as any);
+    const fakePaper = { model: {} } as any;
+    const cellView = { model: { id: 'm' } } as any;
+    expect((native as any).call(fakePaper, cellView, 'linkMove')).toEqual({
+      labelMove: false,
+      linkMove: true,
+    });
+  });
+  it('function form passes false through', () => {
+    const native = toNativeCellInteractivity(() => false);
+    const fakePaper = { model: {} } as any;
+    const cellView = { model: { id: 'm' } } as any;
+    expect((native as any).call(fakePaper, cellView, 'elementMove')).toBe(false);
+  });
+  it('function form normalizes empty-object return to defaults', () => {
+    const native = toNativeCellInteractivity(() => ({}) as any);
+    const fakePaper = { model: {} } as any;
+    const cellView = { model: { id: 'm' } } as any;
+    expect((native as any).call(fakePaper, cellView, 'elementMove')).toEqual({
+      labelMove: false,
+      linkMove: false,
+    });
   });
   it('true returns defaults (linkMove/labelMove disabled, rest implicit true)', () => {
     expect(toNativeCellInteractivity(true)).toEqual({ linkMove: false, labelMove: false });
