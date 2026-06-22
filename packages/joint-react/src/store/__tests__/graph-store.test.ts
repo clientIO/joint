@@ -276,4 +276,68 @@ describe('GraphStore', () => {
       expect(store.paperStores.size).toBe(0);
     });
   });
+
+  describe('dev warning: resizing auto-sized elements', () => {
+    const addElement = (store: GraphStore, id: string) => {
+      const element = new shapes.standard.Rectangle({
+        id,
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 40 },
+      });
+      store.graph.addCell(element);
+      return element;
+    };
+
+    const measure = (store: GraphStore, id: string) => {
+      const node = document.createElement('div');
+      document.body.append(node);
+      store.setMeasuredNode({ id, node });
+      return () => node.remove();
+    };
+
+    it('warns when an auto-sized (observed) element is resized externally', () => {
+      const store = new GraphStore({});
+      const element = addElement(store, 'autoA');
+      const cleanup = measure(store, 'autoA');
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      element.resize(200, 80);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('auto-size mode'));
+
+      // dedup — a second resize of the same element does not warn again.
+      warn.mockClear();
+      element.resize(220, 90);
+      expect(warn).not.toHaveBeenCalled();
+
+      warn.mockRestore();
+      cleanup();
+      store.destroy(false);
+    });
+
+    it('does not warn for measurement-driven (autoSize) writes', () => {
+      const store = new GraphStore({});
+      const element = addElement(store, 'autoB');
+      const cleanup = measure(store, 'autoB');
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      element.set('size', { width: 200, height: 80 }, { autoSize: true });
+      expect(warn).not.toHaveBeenCalled();
+
+      warn.mockRestore();
+      cleanup();
+      store.destroy(false);
+    });
+
+    it('does not warn for a non-auto-sized element (useModelGeometry)', () => {
+      const store = new GraphStore({});
+      const element = addElement(store, 'staticC'); // never registered with the observer
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      element.resize(200, 80);
+      expect(warn).not.toHaveBeenCalled();
+
+      warn.mockRestore();
+      store.destroy(false);
+    });
+  });
 });

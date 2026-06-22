@@ -24,7 +24,7 @@ import {
 import { simpleScheduler } from '../utils/scheduler';
 import { cellInputToModel } from '../utils/normalize-cell-input';
 import type { CellInput } from '../types/cell.types';
-import { warnDuplicatePapers } from '../utils/dev-warnings';
+import { warnDuplicatePapers, warnResizeOnAutoSizedElement } from '../utils/dev-warnings';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -105,6 +105,8 @@ export class GraphStore<
 
   private observer: GraphStoreObserver;
   private onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
+  // dev-only `change:size` listener that warns about resizing auto-sized elements.
+  private warnAutoSizeResize?: (cell: dia.Cell, size: dia.Size, opt?: { autoSize?: boolean }) => void;
 
   constructor(public readonly config: GraphStoreOptions<Element, Link>) {
     const {
@@ -226,6 +228,19 @@ export class GraphStore<
       // (e.g. stencil drag's cloneView).
       this.graphProjection.syncFromGraph();
     }
+
+    // dev only — warn when an auto-sized element (registered with the size
+    // observer because it renders without `useModelGeometry`) is resized by
+    // something other than the measurement pipeline. Such resizes are
+    // immediately overwritten by the measured content size.
+    if (process.env.NODE_ENV !== 'production') {
+      this.warnAutoSizeResize = (cell, _size, opt) => {
+        if (opt?.autoSize) return; // our own measurement write
+        if (!this.observer.has(cell.id)) return; // not auto-sized → resize is honored
+        warnResizeOnAutoSizedElement(cell.id);
+      };
+      this.graph.on('change:size', this.warnAutoSizeResize);
+    }
   }
 
   public setOnIncrementalCellsChange = (callback: OnIncrementalCellsChange<Element, Link>) => {
@@ -288,6 +303,9 @@ export class GraphStore<
     this.graphProjection.destroy();
     this.internalState.clean();
     this.observer.clean();
+    if (this.warnAutoSizeResize) {
+      this.graph.off('change:size', this.warnAutoSizeResize);
+    }
     if (!isGraphExternal) {
       this.graph.clear();
     }
