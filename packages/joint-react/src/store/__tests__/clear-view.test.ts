@@ -253,11 +253,11 @@ describe('executeClearViewForCell', () => {
       size: { width: 10, height: 10 },
     });
 
-    const findViewByModel = jest.fn();
-    const paper = { findViewByModel } as unknown as dia.Paper;
+    const getCellView = jest.fn();
+    const paper = { getCellView } as unknown as dia.Paper;
 
     executeClearViewForCell([{ paper }], graph, 'a');
-    expect(findViewByModel).toHaveBeenCalledWith('a');
+    expect(getCellView).toHaveBeenCalledWith('a');
   });
 
   it('cleans the cell view nodes cache and clears connected link views', () => {
@@ -288,7 +288,7 @@ describe('executeClearViewForCell', () => {
     link.findView = jest.fn().mockReturnValue(mockLinkView) as unknown as typeof link.findView;
 
     const paper = {
-      findViewByModel: jest.fn().mockReturnValue(elementView),
+      getCellView: jest.fn().mockReturnValue(elementView),
     } as unknown as dia.Paper;
 
     executeClearViewForCell([{ paper }], graph, 'a');

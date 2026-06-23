@@ -825,15 +825,29 @@ export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [overrides, setOverrides] = useState<CSSVars>({});
   const [zoom, setZoom] = useState(1);
+  const [isThemeChanging, setIsThemeChanging] = useState(false);
 
   const themeVars = isDark ? DARK_THEME : LIGHT_THEME;
 
   const effectiveVars = useMemo(
-    () => ({ ...themeVars, ...overrides }),
-    [themeVars, overrides]
+    () => ({
+      ...themeVars,
+      ...overrides,
+      ...(isThemeChanging ? { '--jj-transition-duration': '0' } : {}),
+    }),
+    [themeVars, overrides, isThemeChanging]
   );
 
-  const toggleTheme = useCallback(() => setIsDark((previous) => !previous), []);
+  const toggleTheme = useCallback(() => {
+    setIsThemeChanging(true);
+    setIsDark((previous) => !previous);
+  }, []);
+
+  useEffect(() => {
+    if (!isThemeChanging) return;
+    const frameId = requestAnimationFrame(() => setIsThemeChanging(false));
+    return () => cancelAnimationFrame(frameId);
+  }, [isThemeChanging]);
   const zoomIn    = useCallback(() => setZoom((z) => Math.min(MAX_ZOOM, Math.round((z + ZOOM_STEP) * 10) / 10)), []);
   const zoomOut   = useCallback(() => setZoom((z) => Math.max(MIN_ZOOM, Math.round((z - ZOOM_STEP) * 10) / 10)), []);
   const resetZoom = useCallback(() => setZoom(1), []);

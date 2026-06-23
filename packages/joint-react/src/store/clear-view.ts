@@ -125,7 +125,7 @@ export function executeClearViewForCell(
       continue;
     }
 
-    const elementView = paper.findViewByModel(cellId);
+    const elementView = paper.getCellView(cellId);
     if (!elementView) {
       continue;
     }

@@ -69,7 +69,7 @@ export function useMarkup(): MarkupHandle {
   const id = useCellId();
   const applySelector = useCallback(
     (node: Element | null, selector: string) => {
-      const elementView = paper?.findViewByModel(id) as dia.ElementView | undefined;
+      const elementView = paper?.getCellView(id) as dia.ElementView | null;
       if (!elementView) return;
       if (node) {
         node.setAttribute('joint-selector', selector);

@@ -3,6 +3,21 @@ import { PaperStore } from '../paper-store';
 import { GraphStore } from '../graph-store';
 import { PaperView } from '../../mvc/paper';
 
+const allVisible: dia.Paper.Options['cellVisibility'] = () => true;
+const noneVisible: dia.Paper.Options['cellVisibility'] = () => false;
+
+function makeOwnershipStore() {
+  const graph = new dia.Graph();
+  const graphStore = new GraphStore({ graph });
+  const paperStore = new PaperStore({
+    graphStore,
+    paperOptions: { cellVisibility: allVisible },
+    id: 'test-paper',
+  });
+  paperStore.nativeCellVisibility = allVisible;
+  return { paperStore, userCallback: allVisible };
+}
+
 describe('PaperStore', () => {
   describe('constructor', () => {
     it('should create a PaperStore with paper instance', () => {
@@ -343,6 +358,81 @@ describe('PaperStore', () => {
       graphStore.destroy(true);
 
       expect(removeSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('cellVisibility ownership latch', () => {
+    const makeStore = makeOwnershipStore;
+
+    it('is not owned by default', () => {
+      const { paperStore } = makeStore();
+      expect(paperStore.isCellVisibilityOwned).toBe(false);
+    });
+
+    it('seeds nativeCellVisibility from paperOptions in the constructor', () => {
+      const graph = new dia.Graph();
+      const graphStore = new GraphStore({ graph });
+      const paperStore = new PaperStore({
+        graphStore,
+        paperOptions: { cellVisibility: allVisible },
+        id: 'seeded-paper',
+      });
+      // No manual assignment — claim then release must restore the seeded value.
+      expect(paperStore.nativeCellVisibility).toBe(allVisible);
+      paperStore.claimCellVisibility('owner');
+      paperStore.releaseCellVisibility('owner');
+      expect(paperStore.paper.options.cellVisibility).toBe(allVisible);
+    });
+
+    it('claim takes ownership and clears the paper option', () => {
+      const { paperStore } = makeStore();
+      paperStore.claimCellVisibility('owner');
+      expect(paperStore.isCellVisibilityOwned).toBe(true);
+      expect(paperStore.paper.options.cellVisibility).toBeUndefined();
+    });
+
+    it('release restores the native callback and drops ownership', () => {
+      const { paperStore, userCallback } = makeStore();
+      paperStore.claimCellVisibility('owner');
+      paperStore.releaseCellVisibility('owner');
+      expect(paperStore.isCellVisibilityOwned).toBe(false);
+      expect(paperStore.paper.options.cellVisibility).toBe(userCallback);
+    });
+
+    it('release by a non-owner is a no-op', () => {
+      const { paperStore } = makeStore();
+      paperStore.claimCellVisibility('owner');
+      paperStore.releaseCellVisibility('someone-else');
+      expect(paperStore.isCellVisibilityOwned).toBe(true);
+      expect(paperStore.paper.options.cellVisibility).toBeUndefined();
+    });
+
+    it('notifies the owning feature via onCellVisibilityChange', () => {
+      const { paperStore } = makeStore();
+      const onCellVisibilityChange = jest.fn();
+      paperStore.features['owner'] = { id: 'owner', instance: {}, onCellVisibilityChange };
+      paperStore.claimCellVisibility('owner');
+      paperStore.notifyCellVisibilityOwner(noneVisible);
+      expect(onCellVisibilityChange).toHaveBeenCalledWith(noneVisible);
+    });
+
+    it('does not notify when no feature owns the option', () => {
+      const { paperStore } = makeStore();
+      const onCellVisibilityChange = jest.fn();
+      paperStore.features['owner'] = { id: 'owner', instance: {}, onCellVisibilityChange };
+      // No claim → unowned.
+      paperStore.notifyCellVisibilityOwner(noneVisible);
+      expect(onCellVisibilityChange).not.toHaveBeenCalled();
+    });
+
+    it('does not notify after release', () => {
+      const { paperStore } = makeStore();
+      const onCellVisibilityChange = jest.fn();
+      paperStore.features['owner'] = { id: 'owner', instance: {}, onCellVisibilityChange };
+      paperStore.claimCellVisibility('owner');
+      paperStore.releaseCellVisibility('owner');
+      paperStore.notifyCellVisibilityOwner(noneVisible);
+      expect(onCellVisibilityChange).not.toHaveBeenCalled();
     });
   });
 });

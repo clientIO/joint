@@ -58,6 +58,8 @@
     --jj-port-drag-cursor: crosshair;
     /* Cursor for ports while dragging */
     --jj-port-dragging-cursor: crosshair;
+    /* Transition duration, set to 0 to disable */
+    --jj-transition-duration: 0.2s;
 }
 
 @media (min-resolution: 1.5dppx) {

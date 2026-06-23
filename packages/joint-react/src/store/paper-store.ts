@@ -85,6 +85,22 @@ export class PaperStore {
    * paper's lifecycle, so it must not remove it on `destroy()`.
    */
   private readonly isAdoptedPaper: boolean;
+  /**
+   * The native `cellVisibility` callback resolved from the `<Paper>`
+   * `cellVisibility` prop. Kept current on every prop change regardless of
+   * ownership, so a feature that claims the option (see
+   * {@link claimCellVisibility}) always has access to the latest value.
+   */
+  public nativeCellVisibility: dia.Paper.Options['cellVisibility'];
+
+  /**
+   * Feature id that currently owns `paper.options.cellVisibility`, or `null`
+   * when no feature owns it. While owned, the Paper component stops writing
+   * `cellVisibility` onto the paper and instead routes
+   * {@link nativeCellVisibility} to the owner. Generic — the store has no
+   * knowledge of which feature claims it.
+   */
+  private cellVisibilityOwner: string | null = null;
 
   /** Link changes pending flush — populated by clearView, flushed in afterRender. */
   private pendingLinkChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
@@ -157,6 +173,11 @@ export class PaperStore {
       this.paper = paper;
     }
 
+    // Seed the resolved native callback from the paper's initial option so
+    // `releaseCellVisibility` restores a correct value even before any
+    // prop-update effect runs (or when the store is used without the hook).
+    this.nativeCellVisibility = this.paper.options.cellVisibility;
+
     if (transform !== undefined) {
       this.paper.matrix(toSVGMatrix(transform));
     }
@@ -194,6 +215,50 @@ export class PaperStore {
 
   public getLinkView(id: CellId): dia.LinkView | undefined {
     return this.paper.getLinkView(id);
+  }
+
+  /** Whether some feature currently owns `paper.options.cellVisibility`. */
+  public get isCellVisibilityOwned(): boolean {
+    return this.cellVisibilityOwner !== null;
+  }
+
+  /**
+   * Claim ownership of `paper.options.cellVisibility` for a feature. Clears
+   * the option on the paper so a feature (e.g. a virtual-rendering scroller)
+   * can install its own callback without conflicting with the Paper
+   * component's write. Idempotent for the same owner; a different owner takes
+   * over. Generic — no knowledge of the claiming feature.
+   * @param ownerId - The claiming feature's id.
+   */
+  public claimCellVisibility(ownerId: string): void {
+    this.cellVisibilityOwner = ownerId;
+    this.paper.options.cellVisibility = undefined;
+  }
+
+  /**
+   * Release ownership previously taken via {@link claimCellVisibility}.
+   * Restores the paper's `cellVisibility` to the latest resolved native
+   * callback so the Paper component resumes managing it. No-op when a
+   * different feature owns it.
+   * @param ownerId - The releasing feature's id.
+   */
+  public releaseCellVisibility(ownerId: string): void {
+    if (this.cellVisibilityOwner !== ownerId) return;
+    this.cellVisibilityOwner = null;
+    this.paper.options.cellVisibility = this.nativeCellVisibility;
+  }
+
+  /**
+   * Notify the owning feature that the native `cellVisibility` callback
+   * changed (e.g. the `<Paper>` prop updated), so it can re-apply it.
+   * Routed through the owner's {@link Feature.onCellVisibilityChange} hook —
+   * no separate listener registry. No-op when unowned or the owner provides
+   * no hook.
+   * @param cb - The refreshed native callback.
+   */
+  public notifyCellVisibilityOwner(cb: dia.Paper.Options['cellVisibility']): void {
+    if (this.cellVisibilityOwner === null) return;
+    this.features[this.cellVisibilityOwner]?.onCellVisibilityChange?.(cb);
   }
 
   /**
