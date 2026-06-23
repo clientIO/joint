@@ -70,7 +70,7 @@ export interface CreatePortalPaperOptions extends PaperProps {
 }
 
 /** Return value of {@link useCreatePortalPaper}: the paper id, ref, and helper APIs. */
-export interface CreatePortalPaperHandle {
+export interface CreatePortalPaperResult {
   /** Effective paper id used in GraphStore. */
   readonly id: string;
   /** Current paper instance, available synchronously after mount and kept in sync afterwards. */
@@ -188,7 +188,7 @@ const defaultRenderElement = (data: unknown) => {
  */
 export function useCreatePortalPaper(
   options: Readonly<CreatePortalPaperOptions>
-): CreatePortalPaperHandle {
+): CreatePortalPaperResult {
   const {
     renderElement = defaultRenderElement,
     renderLink,
