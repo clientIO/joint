@@ -28,7 +28,7 @@ export type GraphJSON = dia.Graph.JSON;
 type TypedData<Data> = unknown extends Data ? never : Data;
 
 /**
- * `data` type for the handle's `setCellData`, derived from `useGraph`'s
+ * `data` type for the GraphApi's `setCellData`, derived from `useGraph`'s
  * `Element` / `Link` generics by reusing each record's `['data']`:
  * - both sides untyped → open `Record<string, unknown>` (keeps the no-generic
  *   `useGraph()` spreadable)

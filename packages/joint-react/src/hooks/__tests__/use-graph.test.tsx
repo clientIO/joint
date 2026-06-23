@@ -55,10 +55,10 @@ interface NodeLabel {
 // keep the inline updater shallow for the nested-function lint, and called from
 // a test below so it also runs.
 function appendBangToLabel(
-  handle: GraphApi<ElementRecord<NodeLabel>>,
+  api: GraphApi<ElementRecord<NodeLabel>>,
   id: CellId
 ): void {
-  handle.setCellData(id, (previous) => ({ ...previous, label: `${previous.label}!` }));
+  api.setCellData(id, (previous) => ({ ...previous, label: `${previous.label}!` }));
 }
 
 describe('useGraph', () => {
