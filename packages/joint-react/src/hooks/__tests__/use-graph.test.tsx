@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
-import { useGraph, type GraphHandle } from '../use-graph';
+import { useGraph, type GraphApi } from '../use-graph';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { LINK_MODEL_TYPE } from '../../mvc/link-model';
@@ -55,7 +55,7 @@ interface NodeLabel {
 // keep the inline updater shallow for the nested-function lint, and called from
 // a test below so it also runs.
 function appendBangToLabel(
-  handle: GraphHandle<ElementRecord<NodeLabel>>,
+  handle: GraphApi<ElementRecord<NodeLabel>>,
   id: CellId
 ): void {
   handle.setCellData(id, (previous) => ({ ...previous, label: `${previous.label}!` }));

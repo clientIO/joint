@@ -70,7 +70,7 @@ export function usePaperStore(paperId?: string): PaperStore | undefined {
 }
 
 /** Result of {@link usePaper} — the paper instance and imperative actions. */
-export interface PaperHandle {
+export interface PaperApi {
   /** Resolved JointJS paper instance, or `undefined` until a `<Paper>` has mounted. */
   readonly paper?: PaperView;
   /**
@@ -92,7 +92,7 @@ export interface PaperHandle {
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
  */
-export function usePaper(paperId?: string): PaperHandle {
+export function usePaper(paperId?: string): PaperApi {
   const paperStore = usePaperStore(paperId);
   const paper = paperStore?.paper ?? undefined;
   const wakeUp = useCallback(() => {

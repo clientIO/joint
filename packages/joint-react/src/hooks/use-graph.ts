@@ -56,7 +56,7 @@ type HandleCellData<Element extends ElementJSONInit, Link extends LinkJSONInit> 
  * @template Link - link record shape (e.g. `LinkRecord<MyData>` /
  *                  `Computed<LinkRecord<MyData>>`)
  */
-export interface GraphHandle<
+export interface GraphApi<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 > {
@@ -136,7 +136,7 @@ export interface GraphHandle<
   readonly importFromJSON: (json: GraphJSON) => void;
 }
 
-/** Options accepted by {@link GraphHandle.exportToJSON}. */
+/** Options accepted by {@link GraphApi.exportToJSON}. */
 export interface ExportToJSONOptions {
   /**
    * When `true`, every attribute is preserved (defaults included) and no
@@ -157,12 +157,12 @@ export interface ExportToJSONOptions {
  *                    `Computed<ElementRecord<MyData>>` for read shapes)
  * @template Link - link record shape (use `LinkRecord<MyData>` /
  *                  `Computed<LinkRecord<MyData>>`)
- * @returns the imperative API described by {@link GraphHandle}
+ * @returns the imperative API described by {@link GraphApi}
  */
 export function useGraph<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
->(): GraphHandle<Element, Link> {
+>(): GraphApi<Element, Link> {
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
 
@@ -173,7 +173,7 @@ export function useGraph<
   const resetCells = useResetCells<Element, Link>();
   const updateCells = useUpdateCells<Element, Link>();
 
-  const exportToJSON = useCallback<GraphHandle<Element, Link>['exportToJSON']>(
+  const exportToJSON = useCallback<GraphApi<Element, Link>['exportToJSON']>(
     (options) => {
       if (options?.includeDefaults) {
         // Raw graph state — defaults kept, no pruning.
@@ -194,7 +194,7 @@ export function useGraph<
     [graph]
   );
 
-  const importFromJSON = useCallback<GraphHandle<Element, Link>['importFromJSON']>(
+  const importFromJSON = useCallback<GraphApi<Element, Link>['importFromJSON']>(
     (json) => {
       graph.fromJSON(json);
     },

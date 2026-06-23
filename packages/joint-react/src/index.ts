@@ -70,7 +70,7 @@ export type { HTMLBoxProps } from './components/html-box';
  * useGraph()
  */
 export { useGraph } from './hooks/use-graph';
-export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
+export type { GraphApi, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
 
 /**
  * useSetCellData()
@@ -81,7 +81,7 @@ export { useSetCellData } from './hooks/use-cell-setters';
  * usePaper()
  */
 export { usePaper } from './hooks/use-paper';
-export type { PaperHandle } from './hooks/use-paper';
+export type { PaperApi } from './hooks/use-paper';
 export type { PaperTarget } from './types/paper.types';
 
 /**
@@ -137,7 +137,7 @@ export type { CellDragState } from './hooks/use-cell-drag';
  * useMarkup()
  */
 export { useMarkup } from './hooks/use-markup';
-export type { MarkupHandle, MagnetRefOptions } from './hooks/use-markup';
+export type { MarkupApi, MagnetRefOptions } from './hooks/use-markup';
 
 // Selectors
 // ---------
