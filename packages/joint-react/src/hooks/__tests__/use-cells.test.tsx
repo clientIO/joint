@@ -120,6 +120,22 @@ describe('useCells', () => {
     expect(result.current).toBeUndefined();
   });
 
+  it('single-cell selector form runs the selector with undefined for a nullish id', async () => {
+    const { result } = renderHook(() => useCells(null, (cell) => cell?.id?.toString() ?? 'none'), {
+      wrapper,
+    });
+    await act(async () => flush());
+    expect(result.current).toBe('none');
+  });
+
+  it('single-cell selector form runs the selector with the resolved cell for a real id', async () => {
+    const { result } = renderHook(() => useCells('a', (cell) => cell?.id?.toString() ?? 'none'), {
+      wrapper,
+    });
+    await act(async () => flush());
+    expect(result.current).toBe('a');
+  });
+
   it('selector form runs the selector on the cells array', async () => {
     const { result } = renderHook(() => useCells(selectCount), { wrapper });
     await act(async () => flush());

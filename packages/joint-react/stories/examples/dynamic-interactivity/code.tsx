@@ -45,9 +45,8 @@ interface PropertyEditorProps {
 
 function PropertyEditor({ selectedId }: Readonly<PropertyEditorProps>) {
   const { setCell } = useGraph<CellRecord<NodeData>>();
-  const label = useCells<CellRecord<NodeData>, string>(
-    selectedId ?? '',
-    (cell) => (cell?.type === 'element' ? cell.data?.label ?? '' : '')
+  const label = useCells<CellRecord<NodeData>, string>(selectedId, (cell) =>
+    cell?.type === 'element' ? cell.data?.label ?? '' : ''
   );
 
   const onChange = useCallback(

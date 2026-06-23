@@ -25,11 +25,7 @@ export type {
   DefaultLink,
   DefaultLinkParams,
 } from './components/paper/paper.types';
-export type {
-  PortalHostCell,
-  PortalSelector,
-  PortalSelectorParams,
-} from './mvc/paper.types';
+export type { PortalHostCell, PortalSelector, PortalSelectorParams } from './mvc/paper.types';
 export type {
   ValidateConnection,
   ValidateConnectionParams,
@@ -77,6 +73,11 @@ export { useGraph } from './hooks/use-graph';
 export type { GraphHandle, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
 
 /**
+ * useSetCellData()
+ */
+export { useSetCellData } from './hooks/use-cell-setters';
+
+/**
  * usePaper()
  */
 export { usePaper } from './hooks/use-paper';
@@ -112,10 +113,7 @@ export type {
  * useOnElementsMeasured()
  */
 export { useOnElementsMeasured } from './hooks/use-on-elements-measured';
-export type {
-  ElementsMeasuredParams,
-  OnElementsMeasured,
-} from './hooks/use-on-elements-measured';
+export type { ElementsMeasuredParams, OnElementsMeasured } from './hooks/use-on-elements-measured';
 
 /**
  * useOnPaperEvents()
@@ -180,10 +178,7 @@ export type {
 export type { InferElement } from './utils/create';
 export { elementPort, elementPorts, elementAttributes } from './presets';
 export type { ElementRecord, ElementPosition, ElementSize } from './types/cell.types';
-export type {
-  ElementPort,
-  ElementPortShape
-} from './presets';
+export type { ElementPort, ElementPortShape } from './presets';
 
 /**
  * Link types and utilities
@@ -229,7 +224,6 @@ export type {
   LinkRoutingSmoothOptions,
 } from './presets';
 export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
-
 
 // MVC
 // ---

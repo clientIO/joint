@@ -54,6 +54,13 @@ function createCssConfig(cssEntries: string[]): RollupOptions {
     input: virtualEntry,
     output: { dir: 'dist' },
     plugins: [cssPlugin],
+    // The virtual entry deliberately emits no JS (CSS is written by esbuild as a
+    // side effect and the placeholder chunk is dropped), so Rollup's EMPTY_BUNDLE
+    // warning is a false positive here. Pass every other warning through.
+    onwarn(warning, defaultHandler) {
+      if (warning.code === 'EMPTY_BUNDLE') return;
+      defaultHandler(warning);
+    },
   };
 }
 

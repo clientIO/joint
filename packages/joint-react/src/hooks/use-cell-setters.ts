@@ -11,6 +11,37 @@ import type {
 } from '../types/cell.types';
 import { type ArrayUpdate } from '../store/state-container';
 import { cellInputToRecord, cellInputToModel } from '../utils/normalize-cell-input';
+import { warnMissingSetterCell } from '../utils/dev-warnings';
+
+/** True for `null` / `undefined` cell ids passed to a setter. */
+function isMissingId(id: CellId | null | undefined): id is null | undefined {
+  return id === undefined || id === null;
+}
+
+/**
+ * Merges `next` over an existing cell record and writes the result onto the
+ * `dia.Cell`, preserving the original `id` and `type`.
+ * @template Element - element record shape
+ * @template Link - link record shape
+ * @param diaCell - the live cell to write to
+ * @param previous - the current record read from the store
+ * @param next - the incoming partial/whole record
+ * @param graph - graph used to map the merged record to cell attributes
+ */
+function writeMergedCell<Element extends ElementJSONInit, Link extends LinkJSONInit>(
+  diaCell: dia.Cell,
+  previous: Element | Link,
+  next: Element | Link,
+  graph: dia.Graph
+): void {
+  const merged = {
+    ...previous,
+    ...next,
+    id: previous.id,
+    type: previous.type,
+  };
+  diaCell.set(mapCellToAttributes(merged, graph));
+}
 
 /**
  * Updater function form for {@link SetCell}. Receives the current cell record
@@ -19,10 +50,9 @@ import { cellInputToRecord, cellInputToModel } from '../utils/normalize-cell-inp
  * @template Element - element record shape
  * @template Link - link record shape
  */
-export type SetCellUpdater<
-  Element extends ElementJSONInit,
-  Link extends LinkJSONInit,
-> = (previous: Element | Link) => Element | Link;
+export type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
+  previous: Element | Link
+) => Element | Link;
 
 /**
  * Function exposed by `GraphHandle.setCell`. Three forms:
@@ -30,17 +60,15 @@ export type SetCellUpdater<
  *   exists: attributes merge over it. Cell missing: cell is added.
  * - `setCell(diaCell)` — dia.Cell form. The cell is converted to a record
  *   and handled like the direct form.
- * - `setCell(id, updater)` — updater form. Throws when no cell with `id`
- *   exists. The updater is called once with the real previous record.
+ * - `setCell(id, updater)` — updater form. The updater is called once with the
+ *   real previous record. A nullish `id`, or an `id` with no matching cell,
+ *   warns in dev and no-ops — pass the direct form to add a new cell.
  * @template Element - element record shape
  * @template Link - link record shape
  */
-export interface SetCell<
-  Element extends ElementJSONInit,
-  Link extends LinkJSONInit,
-> {
+export interface SetCell<Element extends ElementJSONInit, Link extends LinkJSONInit> {
   (record: CellInput<Element, Link>): void;
-  (id: CellId, updater: SetCellUpdater<Element, Link>): void;
+  (id: CellId | null | undefined, updater: SetCellUpdater<Element, Link>): void;
 }
 
 /**
@@ -58,12 +86,29 @@ export function useSetCell<
   const { graph } = store;
   const setCell = useCallback(
     (
-      argument1: CellInput<Element, Link> | CellId,
+      argument1: CellInput<Element, Link> | CellId | null | undefined,
       argument2?: SetCellUpdater<Element, Link>
     ) => {
-      const next = resolveSetCellInput(argument1, argument2, store);
-      if (next.id === undefined) {
-        throw new Error('setCell: input record must have an `id` to identify the target cell');
+      // Updater form: the target must already exist so the updater receives a
+      // real previous record. A nullish id or a missing cell warns and no-ops.
+      if (typeof argument2 === 'function') {
+        const id = argument1 as CellId | null | undefined;
+        const previous = isMissingId(id) ? undefined : store.graphProjection.cells.get(id);
+        const diaCell = isMissingId(id) ? undefined : graph.getCell(id);
+        if (!previous || !diaCell) {
+          warnMissingSetterCell('setCell', id);
+          return;
+        }
+        writeMergedCell(diaCell, previous, argument2(previous), graph);
+        return;
+      }
+
+      // Direct form: a record names its own target. A missing cell is added;
+      // an existing cell is merged. A record without an id cannot be placed.
+      const next = cellInputToRecord<Element, Link>(argument1 as CellInput<Element, Link>);
+      if (isMissingId(next.id)) {
+        warnMissingSetterCell('setCell', next.id);
+        return;
       }
       const previous = store.graphProjection.cells.get(next.id);
       const diaCell = graph.getCell(next.id);
@@ -71,14 +116,7 @@ export function useSetCell<
         graph.addCell(mapCellToAttributes(next, graph));
         return;
       }
-      const merged = {
-        ...previous,
-        ...next,
-        id: previous.id,
-        type: previous.type,
-      };
-      const attributes = mapCellToAttributes(merged, graph);
-      diaCell.set(attributes);
+      writeMergedCell(diaCell, previous, next, graph);
     },
     [graph, store]
   );
@@ -86,47 +124,80 @@ export function useSetCell<
 }
 
 /**
- * Resolves a `setCell` invocation to a concrete cell record.
- *
- * - Two-arg form `setCell(id, updater)`: looks up the previous cell by id
- *   and invokes the updater once with the real previous record. Throws when
- *   no cell with the given id exists — updater form implies the cell exists.
- * - One-arg form `setCell(record)`: returns the record as-is. The caller
- *   decides add vs update by checking the cells container.
- * @template Element - element record shape
- * @template Link - link record shape
- * @param argument1 - cell record (direct form) or cell id (updater form)
- * @param argument2 - updater function (updater form only)
- * @param store - graph store used to read the previous record for the updater form
- * @returns resolved cell record
+ * Updater form for {@link SetCellData}. Receives the cell's current `data` and
+ * returns the next `data`. The return value replaces `data` wholesale — perform
+ * a partial update by merging inside the updater
+ * (`(prev) => ({ ...prev, ...patch })`).
+ * @template Data - cell data shape
  */
-function resolveSetCellInput<Element extends ElementJSONInit, Link extends LinkJSONInit>(
-  argument1: CellInput<Element, Link> | CellId,
-  argument2: SetCellUpdater<Element, Link> | undefined,
-  store: ReturnType<typeof useGraphStore<Element, Link>>
-): Element | Link {
-  if (argument2 === undefined) return cellInputToRecord<Element, Link>(argument1 as CellInput<Element, Link>);
-  const id = argument1 as CellId;
-  const previous = store.graphProjection.cells.get(id);
-  if (!previous) {
-    throw new Error(
-      `setCell: cannot update — no cell with id "${String(id)}" exists. ` +
-        'Use the direct form `setCell({ id, type, ... })` to add a new cell.'
-    );
-  }
-  return argument2(previous);
+export type SetCellDataUpdater<Data> = (previousData: Data) => Data;
+
+/**
+ * Function exposed by `GraphHandle.setCellData` and returned by
+ * {@link useSetCellData}. Two forms, both keyed by cell id:
+ * - `setCellData(id, data)` — replaces the cell's `data` with `data`.
+ * - `setCellData(id, (prev) => next)` — updater form; `prev` is the current
+ *   `data`, the return value replaces it.
+ *
+ * A nullish `id`, or an `id` with no matching cell, warns in dev and no-ops —
+ * updating data implies the cell is already on the graph (use `setCell` to add
+ * a new one). The updater overload is listed first so a function argument
+ * matches it; any non-function argument falls through to the direct form.
+ * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
+ */
+export interface SetCellData<Data = Record<string, unknown>> {
+  (id: CellId | null | undefined, updater: SetCellDataUpdater<Data>): void;
+  (id: CellId | null | undefined, data: Data): void;
+}
+
+/**
+ * Returns a function that sets a single cell's `data` field. See
+ * {@link SetCellData} for the supported call forms. Throws when the target cell
+ * does not exist.
+ *
+ * Writes `data` directly on the `dia.Cell`, so JointJS fires `change:data` and
+ * every React subscription resyncs — no full-record merge is involved.
+ * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
+ * @returns memoized setCellData setter
+ */
+export function useSetCellData<Data = Record<string, unknown>>(): SetCellData<Data> {
+  const store = useGraphStore();
+  const { graph } = store;
+  return useCallback<SetCellData<Data>>(
+    (id?: CellId | null, dataOrUpdater?: unknown) => {
+      if (isMissingId(id) || dataOrUpdater === undefined) {
+        warnMissingSetterCell('setCellData', id);
+        return;
+      }
+      const previous = store.graphProjection.cells.get(id);
+      const diaCell = graph.getCell(id);
+      if (!previous || !diaCell) {
+        warnMissingSetterCell('setCellData', id);
+        return;
+      }
+      const nextData =
+        typeof dataOrUpdater === 'function' ? dataOrUpdater(previous.data) : dataOrUpdater;
+      diaCell.set('data', nextData);
+    },
+    [graph, store]
+  );
 }
 
 /**
  * Returns a function that removes one cell by id or dia.Cell reference.
- * No-op if the cell does not exist.
+ * A nullish reference warns in dev and no-ops; a reference that resolves to no
+ * cell is a silent no-op (removal is idempotent — the cell is already gone).
  * @returns memoized removeCell setter
  */
 export function useRemoveCell() {
   const store = useGraphStore();
   const { graph } = store;
   return useCallback(
-    (cellRef: CellRef) => {
+    (cellRef?: CellRef | null) => {
+      if (cellRef === undefined || cellRef === null) {
+        warnMissingSetterCell('removeCell', cellRef);
+        return;
+      }
       const diaCell = graph.getCell(cellRef);
       if (!diaCell) return;
       graph.removeCells([diaCell]);
@@ -137,14 +208,19 @@ export function useRemoveCell() {
 
 /**
  * Returns a function that removes multiple cells by id or dia.Cell reference.
- * Ignores missing ids.
+ * A nullish array warns in dev and no-ops; references that resolve to no cell
+ * are silently skipped.
  * @returns memoized removeCells setter
  */
 export function useRemoveCells() {
   const store = useGraphStore();
   const { graph } = store;
   return useCallback(
-    (cellRefs: readonly CellRef[]) => {
+    (cellRefs?: readonly CellRef[] | null) => {
+      if (cellRefs === undefined || cellRefs === null) {
+        warnMissingSetterCell('removeCells', cellRefs);
+        return;
+      }
       const toRemove: dia.Cell[] = [];
       for (const cellRef of cellRefs) {
         const cell = graph.getCell(cellRef);
@@ -201,9 +277,7 @@ export function useUpdateCells<
   const store = useGraphStore<Element, Link>();
   return useCallback(
     (
-      updater: (
-        previous: ReadonlyArray<Element | Link>
-      ) => ReadonlyArray<CellInput<Element, Link>>
+      updater: (previous: ReadonlyArray<Element | Link>) => ReadonlyArray<CellInput<Element, Link>>
     ) => {
       const current = store.graphProjection.cells.getAll();
       const next = updater(current);

@@ -126,6 +126,12 @@ if (false as boolean) {
   // id form
   expectType<MyElement | undefined>(useCells<MyElement>('some-id'));
 
+  // nullish id + selector — selector receives `Cell | undefined`, returns Selected
+  const maybeId: CellId | null | undefined = undefined;
+  expectType<string>(
+    useCells<MyElement, string>(maybeId, (cell) => cell?.data.label ?? 'none')
+  );
+
   // id list
   expectType<readonly MyElement[]>(useCells<MyElement>(['a', 'b']));
 

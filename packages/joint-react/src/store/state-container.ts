@@ -219,10 +219,10 @@ export interface Atom<T> {
   readonly get: () => T;
   /** Alias for `get` — compatible with `useSyncExternalStore`. */
   readonly getSnapshot: () => T;
-  /** Update the value. Accepts a new value or an updater function. */
-  readonly set: (update: AtomUpdate<T>) => void;
+  /** Update the value. Accepts a new value or an updater function. Pass `sync` to notify synchronously. */
+  readonly set: (update: AtomUpdate<T>, sync?: boolean) => void;
   /** Alias for `set` — matches the old `createState` API during migration. */
-  readonly setState: (update: AtomUpdate<T>) => void;
+  readonly setState: (update: AtomUpdate<T>, sync?: boolean) => void;
   /** Subscribe to value changes. Returns an unsubscribe function. */
   readonly subscribe: (listener: () => void) => () => void;
   /** Remove all listeners. */
@@ -246,20 +246,37 @@ export function createAtom<T>(initialValue: T): Atom<T> {
   }
 
   /**
-   * Updates the atom value and notifies all listeners if the value changed.
-   * @param update
+   * Notifies every registered listener of a value change.
    */
-  function set(update: AtomUpdate<T>): void {
+  function notifyListeners(): void {
+    for (const listener of listeners) {
+      listener();
+    }
+  }
+
+  /**
+   * Updates the atom value and notifies listeners if the value changed.
+   *
+   * By default notifications are batched onto a microtask so cascading updates
+   * coalesce into a single React render. Pass `sync` to notify synchronously —
+   * required when the update happens inside an effect/commit and a
+   * `useSyncExternalStore` subscriber must observe it deterministically (a
+   * deferred notify can be dropped across StrictMode's unmount→remount churn).
+   * Never call with `sync` during React's render phase.
+   * @param update - New value or a previous-state updater.
+   * @param sync - Notify synchronously instead of on a microtask.
+   */
+  function set(update: AtomUpdate<T>, sync = false): void {
     const newValue = typeof update === 'function' ? (update as (previous: T) => T)(value) : update;
     if (isStrictEqual(value, newValue)) {
       return;
     }
     value = newValue;
-    simpleScheduler(() => {
-      for (const listener of listeners) {
-        listener();
-      }
-    });
+    if (sync) {
+      notifyListeners();
+      return;
+    }
+    simpleScheduler(notifyListeners);
   }
 
   /**

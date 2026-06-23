@@ -1,6 +1,24 @@
 import { DEFAULT_PAPER_ID } from '../mvc/paper';
+import type { CellId } from '../types/cell.types';
 
 const WARNED = new Set<string>();
+
+/**
+ * Warns (dev-only, tree-shaken in production) when a cell setter is called for
+ * a target that cannot be resolved — a nullish id, or an id with no matching
+ * cell on the graph. The setter then no-ops instead of throwing, so a transient
+ * nullish selection (e.g. nothing selected yet) does not crash the app.
+ * @param setterName - Setter identifier for the message (e.g. "setCell").
+ * @param id - The id that failed to resolve (may be `null` / `undefined`).
+ */
+export function warnMissingSetterCell(setterName: string, id: CellId | null | undefined): void {
+  if (process.env.NODE_ENV === 'production') return;
+  console.warn(
+    `[${setterName}] Skipped: no cell to update for id "${String(id)}". ` +
+      'Pass an existing cell id (and value), or add the cell first with ' +
+      '`setCell({ id, type, ... })`.'
+  );
+}
 
 /**
  * Warns once per hook instance when a selector returns an unstable reference

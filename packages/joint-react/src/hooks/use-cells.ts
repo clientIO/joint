@@ -81,9 +81,17 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
   arraySelector: ((cells: readonly Cell[]) => Selected) | undefined,
   cellSelector: ((cell: Cell | undefined) => Selected) | undefined
 ): CellsResult<Cell, Selected> {
+  // Single-cell-with-selector form: a nullish id resolves to no cell, so the
+  // selector runs against `undefined` instead of falling through to all cells.
+  if (cellSelector) {
+    const cell =
+      targetId === undefined
+        ? undefined
+        : resolveCell(targetId, container, collection, fallbackCache);
+    return cellSelector(cell);
+  }
   if (targetId !== undefined) {
-    const cell = resolveCell(targetId, container, collection, fallbackCache);
-    return cellSelector ? cellSelector(cell) : cell;
+    return resolveCell(targetId, container, collection, fallbackCache);
   }
   const source: readonly Cell[] =
     subscribedIds === undefined
@@ -144,10 +152,12 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
 ): Cell | undefined;
 /**
  * Subscribe to a single cell by id and derive a value from it. Subscribes
- * only to that id so unrelated mutations don't trigger re-renders.
+ * only to that id so unrelated mutations don't trigger re-renders. A nullish
+ * `id` resolves to no cell, so the selector runs against `undefined` — handy
+ * for optional selection state (`useCells(selectedId, ...)`) with no `?? ''`.
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell | undefined`)
- * @param id - cell id to track
+ * @param id - cell id to track (nullish → selector receives `undefined`)
  * @param selector - derive a value from the cell (or `undefined` when missing)
  * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
  * @returns selected value
@@ -156,7 +166,7 @@ export function useCells<
   Cell extends AnyCellRecord = Computed<CellRecord>,
   Selected = Cell | undefined,
 >(
-  id: CellId,
+  id: CellId | null | undefined,
   selector: (cell: Cell | undefined) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
@@ -216,6 +226,7 @@ export function useCells<
 >(
   argument1?:
     | CellId
+    | null
     | readonly CellId[]
     | ((cells: readonly Cell[]) => Selected)
     | mvc.Collection<dia.Cell>,

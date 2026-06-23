@@ -3,6 +3,7 @@ import { render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
 import { FeaturesProvider } from '../../components/features-provider/features-provider';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { GraphStore } from '../../store/graph-store';
 import type { CellRecord } from '../../types/cell.types';
 
 interface FeatureInstance {
@@ -130,6 +131,36 @@ describe('useCreateFeature — paper target lifecycle', () => {
     const [[updateOptions]] = onUpdate.mock.calls;
     expect(updateOptions.paperStore).toBeDefined();
     expect(updateOptions.instance).toEqual({ tag: 'update-test' });
+  });
+
+  it('registers paper features with synchronous notification (sync=true) from the create-effect', async () => {
+    // Regression: the create-effect must register the feature with a synchronous
+    // store notification so `useSyncExternalStore` consumers re-render reliably
+    // under StrictMode's mount→unmount→remount (a deferred notify gets dropped).
+    const setPaperFeatureSpy = jest.spyOn(GraphStore.prototype, 'setPaperFeature');
+    const onAdd = jest.fn(() => ({
+      id: 'paper-feat-sync',
+      instance: { tag: 'sync' } as FeatureInstance,
+    }));
+    render(
+      <GraphProvider initialCells={initialCells}>
+        <Paper style={{ width: 100, height: 100 }} id="features-sync-paper" renderElement={noopRender}>
+          <FeaturesProvider target="paper" id="paper-feat-sync" onAddFeature={onAdd}>
+            <div>sync-child</div>
+          </FeaturesProvider>
+        </Paper>
+      </GraphProvider>
+    );
+    await waitFor(() => {
+      expect(onAdd).toHaveBeenCalled();
+    });
+
+    const syncCalls = setPaperFeatureSpy.mock.calls.filter(
+      ([, feature, sync]) => (feature as { id: string }).id === 'paper-feat-sync' && sync === true
+    );
+    expect(syncCalls.length).toBeGreaterThan(0);
+
+    setPaperFeatureSpy.mockRestore();
   });
 
   it('paper-scoped feature deferred when paperStore is not yet mounted (line 282)', async () => {
