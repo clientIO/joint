@@ -1,3 +1,4 @@
+import type { dia } from '@joint/core';
 import { DEFAULT_PAPER_ID } from '../mvc/paper';
 import type { CellId } from '../types/cell.types';
 
@@ -101,4 +102,26 @@ export function warnDuplicatePapers(paperId: string, existingPaperIds: Iterable<
       return;
     }
   }
+}
+
+/**
+ * Warns once per element when an auto-sized element (rendered without
+ * `useModelGeometry`, so its size is measured from the React content) is
+ * resized externally — by a tool such as FreeTransform / Halo, or a direct
+ * `cell.resize()`. The measurement pipeline overwrites that size, so the
+ * resize has no effect. Dev-only — tree-shaken in production.
+ * @param cellId - The id of the resized auto-sized element.
+ */
+export function warnResizeOnAutoSizedElement(cellId: dia.Cell.ID): void {
+  if (process.env.NODE_ENV === 'production') return;
+  const key = `resize-auto-sized:${cellId}`;
+  if (WARNED.has(key)) return;
+  WARNED.add(key);
+
+  console.warn(
+    `[auto-size] Element "${cellId}" was resized while rendering in auto-size mode ` +
+      '(no `useModelGeometry` on its HTMLBox/HTMLHost). The measured content size ' +
+      'overrides the resize, so it has no effect. Pass `useModelGeometry` to honor an ' +
+      'explicit size (e.g. from FreeTransform / Halo).'
+  );
 }
