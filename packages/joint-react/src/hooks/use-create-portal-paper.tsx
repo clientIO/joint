@@ -172,9 +172,9 @@ function LinkItem({
 
 /**
  * The default element if the user doesn't provide a renderElement function.
- * Renders `data.label` inside a DefaultHTMLHost.
+ * Renders `data.label` inside an `HTMLBox`.
  * @param data - the element's user data slice
- * @returns A JSX element rendering the label inside a DefaultHTMLHost with default styling.
+ * @returns A JSX element rendering the label inside an `HTMLBox` with default styling.
  */
 const defaultRenderElement = (data: unknown) => {
   const label = (data as { label?: string } | undefined)?.label;

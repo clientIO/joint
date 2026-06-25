@@ -14,8 +14,11 @@ export interface MagnetRefOptions {
   readonly passive?: boolean;
 }
 
-/** Markup utilities returned by `useMarkup`. */
-/** @group Types */
+/**
+ * Markup utilities returned by {@link useMarkup}.
+ * @expand
+ * @group Types
+ */
 export interface MarkupApi {
   /**
    * Returns a React ref callback that registers the node under the given selector name.
@@ -39,15 +42,10 @@ export interface MarkupApi {
 }
 
 /**
- * Provides utilities for working with JointJS markup selectors in React-rendered elements.
- * The returned `selectorRef` creates ref callbacks that register SVG sub-elements as named
- * selectors on the element view. This enables links to target specific parts of a
- * React-rendered element by selector name (e.g. `item-0`, `item-1`).
- * `magnetRef` additionally marks the node as a JointJS magnet — a valid endpoint
- * for connections.
- * Must be used inside `renderElement`.
+ * Register SVG sub-elements as JointJS selectors (and optionally magnets) on
+ * the current element view, so links and tools can target named parts of a
+ * React-rendered element. Must be used inside `renderElement`.
  * @group Hooks
- * @returns An object with markup utilities.
  * @example
  * ```tsx
  * import { useMarkup } from '@joint/react';

@@ -572,7 +572,7 @@ export function WithHook() {
 
 ### b. Via ref (accessing paperCtx)
 
-Any component that accepts a `ref` (such as `Paper` or `GraphProvider`) exposes its instance/context via the ref. For `Paper`, the instance (including the underlying JointJS Paper) can be accessed via the `paperCtx` property on the ref object.
+`Paper` accepts a `ref` and exposes its instance/context via that ref. The instance (including the underlying JointJS Paper) can be accessed via the `paperCtx` property on the ref object. (For graph access, use the `useGraph()` hook from inside the provider tree — there is no ref on `GraphProvider`.)
 
 ```tsx
 import { useEffect, useRef } from 'react';

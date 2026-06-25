@@ -16,6 +16,7 @@ type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> =
  * Props common to every `GraphProvider` mode.
  * @template ElementData - User data attached to each element record.
  * @template LinkData - User data attached to each link record.
+ * @expand
  * @group Types
  */
 export interface GraphProviderProps<
@@ -48,7 +49,10 @@ export interface GraphProviderProps<
    * @default 'top-left'
    */
   readonly autoSizeOrigin?: AutoSizeOrigin;
-  /** Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle. */
+  /**
+   * Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle.
+   * @hidden
+   */
   readonly store?: GraphStore<Element, Link>;
 
   /**
@@ -72,9 +76,7 @@ export interface GraphProviderProps<
  * (`ElementAttributes` / `LinkAttributes`). Each `useGraphStore<E, L>()` call
  * re-binds the generics on read — the runtime instance is the same.
  */
-type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJSONInit> & {
-  ref?: React.Ref<dia.Graph | null>;
-};
+type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJSONInit>;
 
 /**
  * Internal base component for GraphProvider.
@@ -86,13 +88,12 @@ type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJS
  * @param props - GraphProvider props including optional forwarded ref.
  * @returns The rendered graph context provider or null while loading.
  */
-function GraphBase(props: GraphProviderBaseInternalProps) {
+function GraphBase(props: GraphProviderBaseInternalProps): React.ReactNode {
   const {
     children,
     store,
     onIncrementalCellsChange,
     onCellsChange,
-    ref: forwardedRef,
     graph,
     cellNamespace,
     cellModel,
@@ -103,10 +104,8 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
 
   const isControlled = !!cells;
 
-  const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>, dia.Graph>(
+  const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>>(
     {
-      instanceSelector: (instance) => instance.graph,
-      forwardedRef,
       onLoad() {
         const graphStore =
           store ??
@@ -186,7 +185,5 @@ export const GraphProvider = GraphBase as <
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 >(
-  props: GraphProviderProps<Element, Link> & {
-    ref?: React.Ref<dia.Graph | null>;
-  }
+  props: GraphProviderProps<Element, Link>
 ) => ReturnType<typeof GraphBase>;

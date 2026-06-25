@@ -46,16 +46,12 @@ type HandleCellData<Element extends ElementJSONInit, Link extends LinkJSONInit> 
   : TypedData<Element['data']> | TypedData<Link['data']>;
 
 /**
- * Public imperative API returned by {@link useGraph}.
- *
- * Setters mirror JointJS `syncCells` / `removeCells` / `resetCells` semantics and
- * preserve reference identity where possible — every write wraps a graph batch
- * with the internal `isUpdateFromReact` flag so React-driven changes do not
- * echo back into the subscription pipeline.
+ * Imperative API returned by {@link useGraph}.
  * @template Element - element record shape (e.g. `ElementRecord<MyData>` for
  *                    write input, `Computed<ElementRecord<MyData>>` for reads)
  * @template Link - link record shape (e.g. `LinkRecord<MyData>` /
  *                  `Computed<LinkRecord<MyData>>`)
+ * @expand
  * @group Types
  */
 export interface GraphApi<
@@ -138,7 +134,7 @@ export interface GraphApi<
   readonly importFromJSON: (json: GraphJSON) => void;
 }
 
-/** Options accepted by {@link GraphApi.exportToJSON}. */
+/** Options accepted by `GraphApi.exportToJSON`. */
 /** @group Types */
 export interface ExportToJSONOptions {
   /**
@@ -150,17 +146,12 @@ export interface ExportToJSONOptions {
 }
 
 /**
- * Hook exposing the graph instance and the full unified cell-mutation API.
- *
- * All setters run through the internal `isUpdateFromReact` flag so listeners
- * do not echo React-driven changes back through the subscription pipeline.
- * `isElement` / `isLink` delegate to the `GraphStore` methods, which consult
- * the graph's type registry so custom cell types narrow correctly.
+ * Access the graph and its imperative cell-mutation API. Must be called
+ * inside a `<GraphProvider>`.
  * @template Element - element record shape (use `ElementRecord<MyData>` for input,
  *                    `Computed<ElementRecord<MyData>>` for read shapes)
  * @template Link - link record shape (use `LinkRecord<MyData>` /
  *                  `Computed<LinkRecord<MyData>>`)
- * @returns the imperative API described by {@link GraphApi}
  */
 export function useGraph<
   Element extends ElementJSONInit = ElementJSONInit,

@@ -47,6 +47,7 @@ function isSameLayout(a: LinkLayout | undefined, b: LinkLayout | undefined): boo
  * trigger an infinite re-render loop because `Object.is` would see every
  * render as a store change.
  * @returns the current link's layout, or undefined when unavailable
+ * @experimental — depends on `renderLink`, which is itself experimental.
  */
 export function useLinkLayout(): LinkLayout | undefined {
   const id = useCellId();

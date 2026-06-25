@@ -1,4 +1,4 @@
-import { type CSSProperties } from 'react';
+import { type CSSProperties, type ReactNode } from 'react';
 import { HTMLHost, type HTMLHostProps } from './html-host';
 
 const BASE_STYLE: CSSProperties = {
@@ -24,21 +24,20 @@ const AUTO_SIZE_STYLE: CSSProperties = {
 export type HTMLBoxProps = HTMLHostProps;
 
 /**
- * Default themed HTML host that applies the `jj-box` CSS class.
- * Wraps {@link HTMLHost} (style-neutral foreignObject + measured div) and adds
- * the `jj-box` class for default styling via `--jj-box-*` CSS variables.
- * All props are forwarded to HTMLHost.
+ * Default themed HTML host that applies the `jj-box` CSS class. Use inside
+ * `<Paper renderElement={...}>` to render a graph element.
  *
- * Use `HTMLHost` directly when you want full control without default styles.
- * Use `DefaultHTMLHost` for out-of-the-box themed appearance.
- * @param props - HTML div attributes plus optional `measure` flag.
- * @returns A themed HTMLHost element with the `jj-box` CSS class applied.
+ * Wraps {@link HTMLHost} (style-neutral foreignObject + measured div) and adds
+ * the `jj-box` class for default styling via `--jj-box-*` CSS variables. All
+ * props are forwarded to `HTMLHost`. Use `HTMLHost` directly when you want
+ * full control without default styles.
  * @example
  * ```tsx
- * <Paper renderElement={({ label }) => <DefaultHTMLHost>{label}</DefaultHTMLHost>} />
+ * <Paper renderElement={({ label }) => <HTMLBox>{label}</HTMLBox>} />
  * ```
+ * @group Components
  */
-export function HTMLBox(props: Readonly<HTMLBoxProps> = {}) {
+export function HTMLBox(props: Readonly<HTMLBoxProps> = {}): ReactNode {
   const { className, style, useModelGeometry, ...rest } = props;
   const mergedClassName = className ? `jj-box ${className}` : 'jj-box';
   const baseStyle = useModelGeometry ? BASE_STYLE : { ...BASE_STYLE, ...AUTO_SIZE_STYLE };

@@ -248,6 +248,7 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * `on*` form (`render:done`, `cell:highlight`, …), use the `useOnPaperEvents`
  * hook.
  * @see https://docs.jointjs.com/api/dia/Paper
+ * @expand
  * @group Types
  */
 export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, PaperEventHandlers {
