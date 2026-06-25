@@ -102,10 +102,10 @@ describe('usePaper', () => {
     await waitFor(() => expect(result.current.paper).toBeDefined());
   });
 
-  it('returns { paper: undefined } outside Paper context', () => {
+  it('returns { paper: null } outside Paper context', () => {
     const wrapper = graphProviderWrapper({ initialCells: [] });
     const { result } = renderHook(() => usePaper(), { wrapper });
-    expect(result.current.paper).toBeUndefined();
+    expect(result.current.paper).toBeNull();
   });
 
   it('looks up paper by id', async () => {

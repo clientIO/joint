@@ -71,8 +71,8 @@ export function usePaperStore(paperId?: string): PaperStore | undefined {
 
 /** Result of {@link usePaper} — the paper instance and imperative actions. */
 export interface PaperApi {
-  /** Resolved JointJS paper instance, or `undefined` until a `<Paper>` has mounted. */
-  readonly paper?: PaperView;
+  /** Resolved JointJS paper instance, or `null` until a `<Paper>` has mounted. */
+  readonly paper: PaperView | null;
   /**
    * Trigger a render pass on the paper. Forwards to `paper.wakeUp()`.
    * No-op when the paper isn't resolved yet.
@@ -85,16 +85,16 @@ export interface PaperApi {
  * Returns the active `PaperView` instance from context, by ID, or via the
  * default paper. Resolves the paper store and exposes `wakeUp()`.
  *
- * The returned object is always stable; only `paper` is `undefined` until the
+ * The returned object is always stable; only `paper` is `null` until the
  * `<Paper>` view has mounted.
  * @param paperId - An explicit paper id, or omitted for the context/default paper.
- * @returns A stable object with the resolved `paper` (or `undefined`) and a `wakeUp` action.
+ * @returns A stable object with the resolved `paper` (or `null`) and a `wakeUp` action.
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
  */
 export function usePaper(paperId?: string): PaperApi {
   const paperStore = usePaperStore(paperId);
-  const paper = paperStore?.paper ?? undefined;
+  const paper = paperStore?.paper ?? null;
   const wakeUp = useCallback(() => {
     paper?.wakeUp();
   }, [paper]);
