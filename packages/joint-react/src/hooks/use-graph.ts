@@ -79,9 +79,9 @@ export interface GraphApi<
    *   partial update). A nullish `id`, or an `id` with no matching cell, warns
    *   in dev and no-ops.
    *
-   * The `data` type is derived from the `useGraph<Element, Link>` generics (see
-   * {@link HandleCellData}): typed records flow through, otherwise it falls back
-   * to `Record<string, unknown>`. A cell id can't be narrowed to element-vs-link
+   * The `data` type is derived from the `useGraph<Element, Link>` generics:
+   * typed records flow through, otherwise it falls back to
+   * `Record<string, unknown>`. A cell id can't be narrowed to element-vs-link
    * at the type level, so when both are typed the updater sees their union —
    * narrow inside it. For a single fixed `data` shape, use the standalone
    * `useSetCellData<MyData>()` hook.

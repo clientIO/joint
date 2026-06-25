@@ -124,7 +124,7 @@ export function useSetCell<
 }
 
 /**
- * Updater form for {@link SetCellData}. Receives the cell's current `data` and
+ * Updater form for `SetCellData`. Receives the cell's current `data` and
  * returns the next `data`. The return value replaces `data` wholesale — perform
  * a partial update by merging inside the updater
  * (`(prev) => ({ ...prev, ...patch })`).
@@ -151,9 +151,9 @@ export interface SetCellData<Data = Record<string, unknown>> {
 }
 
 /**
- * Returns a function that sets a single cell's `data` field. See
- * {@link SetCellData} for the supported call forms. Throws when the target cell
- * does not exist.
+ * Returns a function that sets a single cell's `data` field. Two forms:
+ * `setCellData(id, data)` replaces wholesale; `setCellData(id, (prev) => next)`
+ * uses an updater. Throws when the target cell does not exist.
  *
  * Writes `data` directly on the `dia.Cell`, so JointJS fires `change:data` and
  * every React subscription resyncs — no full-record merge is involved.

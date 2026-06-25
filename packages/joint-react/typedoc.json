@@ -22,6 +22,8 @@
     "namedLinkMarkers",
     "ElementJSONInit",
     "LinkJSONInit",
+    "SetCellData",
+    "HandleCellData",
     "GraphStore",
     "PaperView",
     "PaperEventHandlers",
