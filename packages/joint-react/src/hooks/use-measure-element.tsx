@@ -115,7 +115,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  * @example
  * With custom transform to add padding:
  * ```tsx
- * import { useMeasureElement, type TransformMeasurement } from '@joint/react';
+ * import { useMeasureElement, type TransformElementLayout } from '@joint/react';
  * import { useRef, useCallback } from 'react';
  *
  * function ListElement() {
@@ -123,7 +123,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  *   const padding = 10;
  *   const headerHeight = 50;
  *
- *   const transform: TransformMeasurement = useCallback(
+ *   const transform: TransformElementLayout = useCallback(
  *     ({ width: measuredWidth, height: measuredHeight }) => {
  *       return {
  *         width: padding + measuredWidth + padding,

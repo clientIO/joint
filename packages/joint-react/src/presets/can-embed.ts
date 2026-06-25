@@ -24,12 +24,16 @@ export interface ValidateUnembeddingParams {
   readonly graph: dia.Graph;
 }
 
-/** Callback that decides whether an element can be embedded into a parent. */
-/** @group Types */
+/**
+ * Callback that decides whether an element can be embedded into a parent.
+ * @group Types
+ */
 export type ValidateEmbedding = (context: ValidateEmbeddingParams) => boolean;
 
-/** Callback that decides whether an element can be unembedded from its parent. */
-/** @group Types */
+/**
+ * Callback that decides whether an element can be unembedded from its parent.
+ * @group Types
+ */
 export type ValidateUnembedding = (context: ValidateUnembeddingParams) => boolean;
 
 /**

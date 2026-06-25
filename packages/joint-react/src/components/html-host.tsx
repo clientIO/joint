@@ -9,7 +9,11 @@ import { selectElementSize } from '../selectors';
  * @group Types
  */
 export interface HTMLHostProps extends HTMLAttributes<HTMLDivElement> {
-  /** Skip DOM measurement and use the element's size from the model. Default: `false`. */
+  /**
+   * Skip measuring the rendered content and use the graph element's stored
+   * size instead. Cheaper, but the cell won't auto-resize when the React
+   * subtree changes. Default: `false`.
+   */
   readonly useModelGeometry?: boolean;
 }
 

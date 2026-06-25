@@ -168,20 +168,26 @@ export type Computed<T> =
           ? InternalLinkRecord<T['data']>
           : T;
 
-/** Short alias for cell ids; same as dia.Cell.ID. */
 // Future cleanup: drop this alias and use `dia.Cell.ID` directly everywhere.
 // It doesn't add anything and creates an extra import to keep in sync.
-/** @group Types */
+/**
+ * Short alias for cell ids; same as `dia.Cell.ID`.
+ * @group Types
+ */
 export type CellId = DiaCell.ID;
 
 // ── Element Layout Aliases ──────────────────────────────────────────────────
 
-/** Position of an element — alias for `dia.Point`. */
-/** @group Types */
+/**
+ * Position of an element — alias for `dia.Point`.
+ * @group Types
+ */
 export type ElementPosition = DiaPoint;
 
-/** Size of an element — alias for `dia.Size`. */
-/** @group Types */
+/**
+ * Size of an element — alias for `dia.Size`.
+ * @group Types
+ */
 export type ElementSize = DiaSize;
 
 // ── Element Layout (internal — used by size observer) ───────────────────────
@@ -228,6 +234,8 @@ export type CellInput<
   Link extends LinkJSONInit = LinkJSONInit,
 > = Element | Link | DiaCell;
 
-/** Re-export of JointJS core's `dia.Graph.CellRef` — cell id or dia.Cell instance. */
-/** @group Types */
+/**
+ * Re-export of JointJS core's `dia.Graph.CellRef` — a cell id or `dia.Cell` instance.
+ * @group Types
+ */
 export type CellRef = DiaGraph.CellRef;

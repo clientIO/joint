@@ -22,8 +22,10 @@ export interface ConnectionStrategyParams {
   readonly graph: dia.Graph;
 }
 
-/** Built-in pin mode — how the dropped end is stored. */
-/** @group Types */
+/**
+ * Built-in pin mode — how the dropped end is stored.
+ * @group Types
+ */
 export type ConnectionStrategyPin = 'none' | 'absolute' | 'relative';
 
 /** Options for `connectionStrategy` — combines a pin mode with optional user customization. */
@@ -41,8 +43,10 @@ export interface ConnectionStrategyOptions {
   readonly customize?: ConnectionStrategy;
 }
 
-/** Callback that decides how a dropped link end's JSON is stored. */
-/** @group Types */
+/**
+ * Callback that decides how a dropped link end's JSON is stored.
+ * @group Types
+ */
 export type ConnectionStrategy = (context: ConnectionStrategyParams) => dia.Link.EndJSON;
 
 const PIN_STRATEGIES: Record<ConnectionStrategyPin, connectionStrategies.ConnectionStrategy> = {

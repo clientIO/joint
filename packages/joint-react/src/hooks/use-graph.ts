@@ -128,8 +128,8 @@ export interface GraphApi<
   readonly exportToJSON: (options?: ExportToJSONOptions) => GraphJSON;
   /**
    * Replace the graph contents from a previously exported JSON object
-   * (e.g. produced by {@link exportToJSON}). Triggers JointJS's `reset`
-   * event so all React subscriptions resync automatically.
+   * (e.g. produced by `exportToJSON`). Triggers JointJS's `reset` event so
+   * all React subscriptions resync automatically.
    */
   readonly importFromJSON: (json: GraphJSON) => void;
 }

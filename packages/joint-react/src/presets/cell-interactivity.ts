@@ -27,8 +27,10 @@ export type CellInteractivityCallback = (
   context: CellInteractivityParams
 ) => boolean | dia.CellView.InteractivityOptions;
 
-/** Value accepted by the `interactive` Paper prop. */
-/** @group Types */
+/**
+ * Value accepted by the `interactive` Paper prop.
+ * @group Types
+ */
 export type CellInteractivity =
   | boolean
   | dia.CellView.InteractivityOptions

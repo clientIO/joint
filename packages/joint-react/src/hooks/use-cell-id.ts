@@ -11,6 +11,14 @@ import type { CellId } from '../types/cell.types';
  * it never subscribes to store updates. Throws when used outside a Paper
  * render context.
  * @returns the current cell id
+ * @group Hooks
+ * @example
+ * ```tsx
+ * function MyElement() {
+ *   const id = useCellId();
+ *   return <text>{id}</text>;
+ * }
+ * ```
  */
 export function useCellId(): CellId {
   const id = useContext(CellIdContext);

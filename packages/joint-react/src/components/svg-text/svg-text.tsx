@@ -114,9 +114,15 @@ function getTextWrapStyles({
 export interface SVGTextProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
-  readonly eol?: string;
+  /** Box width for the `textWrap` pass. */
   readonly width?: number;
+  /** Box height for the `textWrap` pass. */
   readonly height?: number;
+  /**
+   * Enable word-wrapping using the Vectorizer break-text algorithm.
+   * Pass `true` for default behavior or an options object to fine-tune
+   * (ellipsis, break-word, max-line-count, …).
+   */
   readonly textWrap?: boolean | util.BreakTextOptions;
 }
 

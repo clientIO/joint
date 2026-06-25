@@ -16,8 +16,10 @@ export interface ElementsMeasuredParams {
   readonly graph: dia.Graph;
 }
 
-/** Callback signature for `useOnElementsMeasured`. */
-/** @group Types */
+/**
+ * Callback signature for `useOnElementsMeasured`.
+ * @group Types
+ */
 export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
 
 /**

@@ -2,6 +2,11 @@ import { dia } from '@joint/core';
 import { linkStyle } from '../presets/link-style';
 import type { PortalHostCell } from './paper.types';
 
+/**
+ * Type discriminator for {@link LinkModel} — matches `dia.Cell.type` to
+ * identify React-link cells when iterating the graph.
+ * @group MVC
+ */
 export const LINK_MODEL_TYPE = 'link';
 
 const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();

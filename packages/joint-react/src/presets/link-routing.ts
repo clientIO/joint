@@ -148,8 +148,10 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
   };
 }
 
-/** Options for {@link linkRoutingSmooth}. */
-/** @group Types */
+/**
+ * Options for {@link linkRoutingSmooth}.
+ * @group Types
+ */
 export type LinkRoutingSmoothOptions = BaseLinkOptions;
 
 /**

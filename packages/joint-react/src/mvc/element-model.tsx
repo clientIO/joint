@@ -1,5 +1,10 @@
 import { dia } from '@joint/core';
 import type { PortalHostCell } from './paper.types';
+/**
+ * Type discriminator for {@link ElementModel} — matches `dia.Cell.type` to
+ * identify React-element cells when iterating the graph.
+ * @group MVC
+ */
 export const ELEMENT_MODEL_TYPE = 'element';
 
 /**

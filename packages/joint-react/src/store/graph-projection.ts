@@ -4,8 +4,10 @@ import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
 import { writeCellToContainer } from '../state/data-mapping/cell-record-merge';
 
-/** Incremental change set emitted by graphProjection after container commits. */
-/** @group Types */
+/**
+ * Incremental change set emitted by graphProjection after container commits.
+ * @group Types
+ */
 export interface IncrementalCellsChange<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,

@@ -115,7 +115,7 @@ function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []
  * function CustomComponent(props: Readonly<PropsWithChildren>) {
  *   return <div>{props.children}</div>;
  * }
- * const markup = jsxToMarkup(
+ * const markup = jsx(
  *   <CustomComponent>
  *     <span>Hello</span>
  *   </CustomComponent>

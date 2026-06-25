@@ -30,8 +30,10 @@ export interface ValidateConnectionParams {
   readonly graph: dia.Graph;
 }
 
-/** Callback that decides whether a connection is allowed. */
-/** @group Types */
+/**
+ * Callback that decides whether a connection is allowed.
+ * @group Types
+ */
 export type ValidateConnection = (context: ValidateConnectionParams) => boolean;
 
 /**
