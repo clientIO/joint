@@ -5,12 +5,14 @@ import { jsx } from '../utils/joint-jsx/jsx-to-markup';
  * A link marker record — an SVG complex marker JSON with an optional `length`
  * used by connection-point math to offset the line tip by the marker's visual footprint.
  * The built-in marker factories always set a `length`; inline user markers may omit it.
+ * @group Types
  */
 export interface LinkMarkerRecord extends dia.SVGComplexMarkerJSON {
   readonly length?: number;
 }
 
 /** Common options shared by every built-in link-marker factory. */
+/** @group Types */
 export interface LinkMarkerOptions {
   /** Unique ID for the marker. If not provided, a default ID will be generated based on the options. */
   /** Scale factor. Default: `1`. */

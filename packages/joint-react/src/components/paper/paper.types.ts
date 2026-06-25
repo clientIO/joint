@@ -23,10 +23,12 @@ import type { PaperEventHandlers } from '../../presets/paper-events';
  * native `DOMMatrix` constructor (CSS transform syntax — `scale()`,
  * `translate()`, `rotate()`, `matrix()` etc.). `DOMMatrix` instances pass
  * through. `SVGMatrix === DOMMatrix` in modern `lib.dom.d.ts`.
+ * @group Types
  */
 export type PaperTransform = string | DOMMatrix;
 
 /** Context passed to the `defaultLink` factory. */
+/** @group Types */
 export interface DefaultLinkParams {
   /** The source end of the connection being created. */
   readonly source: ConnectionEnd;
@@ -39,6 +41,7 @@ export interface DefaultLinkParams {
 /**
  * Value accepted by the Paper `defaultLink` prop — factory receiving
  * `DefaultLinkParams`, or a static `Partial<LinkRecord>`.
+ * @group Types
  */
 export type DefaultLink =
   | ((context: DefaultLinkParams) => dia.Link | Partial<LinkRecord>)
@@ -48,6 +51,7 @@ export type DefaultLink =
  * Raw `dia.Paper.Options` passthrough — the type of the `options` escape-hatch prop.
  * `cellVisibility` is excluded: use the dedicated `cellVisibility` prop (it is
  * also managed by feature ownership, e.g. a virtual-rendering scroller).
+ * @group Types
  */
 export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
 
@@ -56,6 +60,7 @@ export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
  * native types via indexed access (`dia.Paper.Options['name']`), so any
  * type-level change in JointJS propagates automatically. Anything not listed
  * here is reachable via the `options` escape hatch, never implicitly exposed.
+ * @group Types
  */
 export interface PaperSupportedOptions {
   // ── Wrapped (structured) ─────────────────────────────────────────────────
@@ -212,6 +217,7 @@ export interface PaperSupportedOptions {
  * If the renderer needs the id, position, size, or other slices, use the
  * context hooks: `useCellId()`, `useCell()` (with optional selector), or
  * `useCell(c => c.position / c.size / ...)`.
+ * @group Types
  */
 export type RenderElement<ElementData = unknown> = (data: ElementData) => ReactNode;
 
@@ -222,6 +228,7 @@ export type RenderElement<ElementData = unknown> = (data: ElementData) => ReactN
  * needed.
  *
  * The framework guarantees `data` is at least `{}` at this boundary.
+ * @group Types
  */
 export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
 
@@ -241,6 +248,7 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * `on*` form (`render:done`, `cell:highlight`, …), use the `useOnPaperEvents`
  * hook.
  * @see https://docs.jointjs.com/api/dia/Paper
+ * @group Types
  */
 export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, PaperEventHandlers {
   /**

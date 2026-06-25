@@ -6,13 +6,14 @@ import type { LiteralUnion } from '../types/index';
  * - `'ellipse'` — ellipse
  * - `'rect'` — rectangle
  * - Any other string — interpreted as SVG path `d` commands
+ * @group Types
  */
 export type ElementPortShape = LiteralUnion<'ellipse' | 'rect'>;
 
 /**
  * Simplified port definition for declarative port configuration.
  * Converted to full JointJS port format by the element mapper.
- * @group Graph
+ * @group Presets
  */
 export interface ElementPort {
   /**

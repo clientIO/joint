@@ -5,6 +5,7 @@ import type { dia } from '@joint/core';
 import { PORTAL_SELECTOR } from '../mvc/element-model';
 
 /** Options for `magnetRef`. */
+/** @group Types */
 export interface MagnetRefOptions {
   /**
    * Whether the magnet is passive — only a valid connection target, not a source.
@@ -14,6 +15,7 @@ export interface MagnetRefOptions {
 }
 
 /** Markup utilities returned by `useMarkup`. */
+/** @group Types */
 export interface MarkupApi {
   /**
    * Returns a React ref callback that registers the node under the given selector name.

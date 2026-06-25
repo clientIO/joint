@@ -24,6 +24,7 @@ import { selectElementSize } from '../selectors';
  */
 
 /** Props accepted by `HTMLHost`. Inherits all standard `<div>` attributes. */
+/** @group Types */
 export interface HTMLHostProps extends HTMLAttributes<HTMLDivElement> {
   /** Skip DOM measurement and use the element's size from the model. Default: `false`. */
   readonly useModelGeometry?: boolean;

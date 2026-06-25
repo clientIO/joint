@@ -16,6 +16,7 @@ import type { ElementPresetAttributes } from '../presets/element-attributes';
  * + an explicit `data?: unknown` declaration that narrows the
  * `Cell.Attributes` index signature (`[customAttribute: string]: any`) at
  * the upper-bound layer.
+ * @group Types
  */
 export interface ElementJSONInit extends DiaElement.JSONInit, ElementPresetAttributes {
   data?: unknown;
@@ -26,6 +27,7 @@ export interface ElementJSONInit extends DiaElement.JSONInit, ElementPresetAttri
  * + an explicit `data?: unknown` declaration that narrows the
  * `Cell.Attributes` index signature (`[customAttribute: string]: any`) at
  * the upper-bound layer.
+ * @group Types
  */
 export interface LinkJSONInit extends DiaLink.JSONInit, LinkPresetAttributes {
   data?: unknown;
@@ -47,6 +49,7 @@ type WithData<Data = unknown> = unknown extends Data
  * Element-flavored cell; default `Type = typeof ELEMENT_MODEL_TYPE` so
  * `cell.type === 'element'` narrows. Override `Type` (e.g.
  * `'standard.Rectangle'`) for built-in or custom shapes.
+ * @group Types
  */
 export type ElementRecord<
   ElementData = unknown,
@@ -74,6 +77,7 @@ type InternalElementRecord<ElementData = unknown> = PickRequired<
  * Link-flavored cell; default `Type = typeof LINK_MODEL_TYPE` so
  * `cell.type === 'link'` narrows. Override `Type` (e.g. `'standard.Link'`)
  * for built-in or custom shapes.
+ * @group Types
  */
 export type LinkRecord<
   LinkData = unknown,
@@ -103,6 +107,7 @@ type InternalLinkRecord<LinkData = unknown> = PickRequired<
  * `cell.type === 'element'` narrows correctly inside arrays / hooks. For
  * mixed built-in shape arrays with typed data, build the union manually:
  * `ElementRecord<MyData, 'standard.Rectangle'> | LinkRecord<MyData, 'standard.Link'>`.
+ * @group Types
  */
 export type CellRecord<
   ElementData = unknown,
@@ -118,6 +123,7 @@ export type CellRecord<
  * Use when you don't care about React-default `'element'` / `'link'`
  * discrimination (e.g. `initialCells` arrays mixing built-in shape types,
  * generic upper bounds in custom hooks).
+ * @group Types
  */
 export type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
 
@@ -149,6 +155,7 @@ export type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
  * ```ts
  * useCell((el: Computed<ElementRecord<MyData>>) => el.data.label);
  * ```
+ * @group Types
  */
 export type Computed<T> =
   T extends ElementRecord<infer ElementData>
@@ -164,14 +171,17 @@ export type Computed<T> =
 /** Short alias for cell ids; same as dia.Cell.ID. */
 // Future cleanup: drop this alias and use `dia.Cell.ID` directly everywhere.
 // It doesn't add anything and creates an extra import to keep in sync.
+/** @group Types */
 export type CellId = DiaCell.ID;
 
 // ── Element Layout Aliases ──────────────────────────────────────────────────
 
 /** Position of an element — alias for `dia.Point`. */
+/** @group Types */
 export type ElementPosition = DiaPoint;
 
 /** Size of an element — alias for `dia.Size`. */
+/** @group Types */
 export type ElementSize = DiaSize;
 
 // ── Element Layout (internal — used by size observer) ───────────────────────
@@ -179,6 +189,7 @@ export type ElementSize = DiaSize;
 /**
  * Flat element layout used internally by the size observer and transform callbacks.
  * @internal
+ * @group Types
  */
 export interface ElementLayout {
   readonly x: number;
@@ -194,6 +205,7 @@ export interface ElementLayout {
  * Layout data for a single link on a specific paper.
  * Contains source/target endpoint coordinates and the SVG path data.
  * @internal
+ * @group Types
  */
 export interface LinkLayout {
   readonly sourceX: number;
@@ -209,6 +221,7 @@ export interface LinkLayout {
  * initialCells, collection setter, etc.).
  * @template Element - element record shape
  * @template Link - link record shape
+ * @group Types
  */
 export type CellInput<
   Element extends ElementJSONInit = ElementJSONInit,
@@ -216,4 +229,5 @@ export type CellInput<
 > = Element | Link | DiaCell;
 
 /** Re-export of JointJS core's `dia.Graph.CellRef` — cell id or dia.Cell instance. */
+/** @group Types */
 export type CellRef = DiaGraph.CellRef;

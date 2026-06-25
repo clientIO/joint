@@ -19,6 +19,7 @@ const AUTO_SIZE_STYLE: CSSProperties = {
 
 /**
  * Props for the HTMLBox component, extending HTMLHostProps.
+ * @group Types
  */
 export type HTMLBoxProps = HTMLHostProps;
 

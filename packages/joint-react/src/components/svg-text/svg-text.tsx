@@ -108,6 +108,7 @@ function getTextWrapStyles({
 /**
  * Props for `SVGText` — combines native SVG `<text>` attributes with the
  * JointJS Vectorizer text options used for word-wrap and annotation rendering.
+ * @group Types
  */
 export interface SVGTextProps
   extends SVGTextElementAttributes<SVGTextElement>,

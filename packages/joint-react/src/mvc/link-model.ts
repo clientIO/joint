@@ -11,7 +11,7 @@ const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
  * React content; `LinkModel` is just what `@joint/react` reaches for when no
  * custom class is provided. Ships wrapper + line markup with the default
  * link style applied.
- * @group Models
+ * @group MVC
  * @example
  * ```ts
  * import { LinkModel } from '@joint/react';

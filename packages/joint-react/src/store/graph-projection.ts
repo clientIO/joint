@@ -5,6 +5,7 @@ import { asReadonlyContainer, createContainer } from './state-container';
 import { writeCellToContainer } from '../state/data-mapping/cell-record-merge';
 
 /** Incremental change set emitted by graphProjection after container commits. */
+/** @group Types */
 export interface IncrementalCellsChange<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
@@ -15,6 +16,7 @@ export interface IncrementalCellsChange<
 }
 /**
  * Callback type for incremental cell changes. Emitted after each graph change batch
+ * @group Types
  */
 export type OnIncrementalCellsChange<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
   changes: IncrementalCellsChange<Element, Link>
@@ -180,6 +182,7 @@ export function graphProjection<
 /* eslint-enable sonarjs/cognitive-complexity */
 
 /** Controller returned by {@link graphProjection}. */
+/** @group Types */
 export type GraphProjection<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,

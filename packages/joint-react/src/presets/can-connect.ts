@@ -1,6 +1,7 @@
 import type { dia } from '@joint/core';
 
 /** Describes one end (source or target) of a connection. */
+/** @group Types */
 export interface ConnectionEnd {
   /** The cell ID. */
   readonly id: dia.Cell.ID;
@@ -15,6 +16,7 @@ export interface ConnectionEnd {
 }
 
 /** Structured context for connection validation. */
+/** @group Types */
 export interface ValidateConnectionParams {
   /** The source end of the connection. */
   readonly source: ConnectionEnd;
@@ -29,6 +31,7 @@ export interface ValidateConnectionParams {
 }
 
 /** Callback that decides whether a connection is allowed. */
+/** @group Types */
 export type ValidateConnection = (context: ValidateConnectionParams) => boolean;
 
 /**
@@ -132,6 +135,7 @@ function hasDuplicateLink(
 }
 
 /** Configuration accepted by `canConnect` controlling link validation rules. */
+/** @group Types */
 export interface CanConnectOptions {
   /** Allow connecting a cell to itself. @default false */
   readonly allowSelfLoops?: boolean;

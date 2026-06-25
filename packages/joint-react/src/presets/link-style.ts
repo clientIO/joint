@@ -5,7 +5,7 @@ import { resolveLinkMarker, type LinkMarker } from '../theme/named-link-markers'
 /**
  * Visual/presentation attributes for a link line and its wrapper.
  * All properties are optional — empty strings let CSS variables from `theme.css` take over.
- * @group Graph
+ * @group Presets
  */
 export interface LinkStyle {
   /** Stroke color of the link line. Accepts any CSS color value including CSS variables. @default '' */

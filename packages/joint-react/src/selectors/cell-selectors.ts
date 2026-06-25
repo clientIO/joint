@@ -13,6 +13,7 @@ import type { CellId, CellRecord, ElementRecord, Computed } from '../types/cell.
 
 /**
  * Reads `element.position`. Stable ref while the element doesn't move.
+ * @group Selectors
  * @param element
  */
 export function selectElementPosition(element: Computed<ElementRecord>) {
@@ -21,6 +22,7 @@ export function selectElementPosition(element: Computed<ElementRecord>) {
 
 /**
  * Reads `element.size`. Stable ref while the element isn't resized.
+ * @group Selectors
  * @param element
  */
 export function selectElementSize(element: Computed<ElementRecord>) {
@@ -29,6 +31,7 @@ export function selectElementSize(element: Computed<ElementRecord>) {
 
 /**
  * Reads `element.angle`.
+ * @group Selectors
  * @param element
  */
 export function selectElementAngle(element: Computed<ElementRecord>): number {
@@ -39,6 +42,7 @@ export function selectElementAngle(element: Computed<ElementRecord>): number {
  * Reads `element.data` typed as `ElementData`. Pass the type as an
  * instantiation: `useCell(selectElementData<NodeData>)` — TypeScript
  * propagates `NodeData` through to the hook's `Selected` inference.
+ * @group Selectors
  * @param element
  */
 export function selectElementData<ElementData = unknown>(
@@ -51,12 +55,14 @@ export function selectElementData<ElementData = unknown>(
 
 /**
  * Reads `cell.id`. Note: `useCellId()` is cheaper when only the id is needed.
+ * @group Selectors
  * @param cell
  */
 export const selectCellId = (cell: Computed<CellRecord>) => cell.id;
 
 /**
  * Reads `cell.type` (e.g. `'element'`, `'link'`, or a built-in JointJS type).
+ * @group Selectors
  * @param cell
  */
 export const selectCellType = (cell: Computed<CellRecord>) => cell.type;
@@ -66,6 +72,7 @@ export const selectCellType = (cell: Computed<CellRecord>) => cell.type;
  * for top-level cells). The field lives on the record's index signature,
  * so we narrow it here for callers. Works for both elements and links —
  * any cell can be embedded.
+ * @group Selectors
  * @param cell
  */
 export const selectCellParent = (cell: Computed<CellRecord>): CellId | null =>
@@ -74,6 +81,7 @@ export const selectCellParent = (cell: Computed<CellRecord>): CellId | null =>
 /**
  * Reads the `layer` field — name of the JointJS layer the cell renders into,
  * or undefined when the cell uses the paper's default layer.
+ * @group Selectors
  * @param cell
  */
 export const selectCellLayer = (cell: Computed<CellRecord>): string | null =>
@@ -82,6 +90,7 @@ export const selectCellLayer = (cell: Computed<CellRecord>): string | null =>
 /**
  * Reads the `z` field — JointJS z-index (paint order within a layer).
  * Undefined when the cell hasn't been assigned an explicit z-index.
+ * @group Selectors
  * @param cell
  */
 export const selectCellZIndex = (cell: Computed<CellRecord>): number =>

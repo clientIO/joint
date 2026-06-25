@@ -1,6 +1,7 @@
 import type { dia } from '@joint/core';
 
 /** Context passed to a `cellVisibility` callback. */
+/** @group Types */
 export interface CellVisibilityParams {
   /** The cell whose visibility is being queried. */
   readonly model: dia.Cell;
@@ -16,6 +17,7 @@ export interface CellVisibilityParams {
  * Predicate deciding whether a cell should be rendered. Receives a
  * structured context object (instead of the native positional form).
  * Return `false` to hide the cell.
+ * @group Types
  */
 export type CellVisibility = (context: CellVisibilityParams) => boolean;
 

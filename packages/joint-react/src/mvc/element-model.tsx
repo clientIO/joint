@@ -4,7 +4,7 @@ export const ELEMENT_MODEL_TYPE = 'element';
 
 /**
  * Selector for the `<g>` element used as the React portal target inside ElementModel markup.
- * @group Models
+ * @group MVC
  */
 export const PORTAL_SELECTOR = '__portal__';
 
@@ -12,7 +12,7 @@ export const PORTAL_SELECTOR = '__portal__';
  * Default element class used by `@joint/react`. Any `dia.Element` subclass
  * can host React content; `ElementModel` is just what `@joint/react` reaches
  * for when no custom class is provided.
- * @group Models
+ * @group MVC
  * @example
  * ```ts
  * import { ElementModel } from '@joint/react';

@@ -21,6 +21,7 @@ import type {
 
 /**
  * The shape of the graph's JSON export, as produced by `graph.toJSON()`.
+ * @group Types
  */
 export type GraphJSON = dia.Graph.JSON;
 
@@ -55,6 +56,7 @@ type HandleCellData<Element extends ElementJSONInit, Link extends LinkJSONInit> 
  *                    write input, `Computed<ElementRecord<MyData>>` for reads)
  * @template Link - link record shape (e.g. `LinkRecord<MyData>` /
  *                  `Computed<LinkRecord<MyData>>`)
+ * @group Types
  */
 export interface GraphApi<
   Element extends ElementJSONInit = ElementJSONInit,
@@ -137,6 +139,7 @@ export interface GraphApi<
 }
 
 /** Options accepted by {@link GraphApi.exportToJSON}. */
+/** @group Types */
 export interface ExportToJSONOptions {
   /**
    * When `true`, every attribute is preserved (defaults included) and no

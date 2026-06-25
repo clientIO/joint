@@ -70,6 +70,7 @@ export function usePaperStore(paperId?: string): PaperStore | undefined {
 }
 
 /** Result of {@link usePaper} — the paper instance and imperative actions. */
+/** @group Types */
 export interface PaperApi {
   /** Resolved JointJS paper instance, or `null` until a `<Paper>` has mounted. */
   readonly paper: PaperView | null;

@@ -16,6 +16,7 @@ type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> =
  * Props common to every `GraphProvider` mode.
  * @template ElementData - User data attached to each element record.
  * @template LinkData - User data attached to each link record.
+ * @group Types
  */
 export interface GraphProviderProps<
   Element extends ElementJSONInit = ElementJSONInit,
@@ -179,6 +180,7 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
  * </GraphProvider>
  * ```
  * @see GraphProviderProps for all available props
+ * @group Components
  */
 export const GraphProvider = GraphBase as <
   Element extends ElementJSONInit = ElementJSONInit,

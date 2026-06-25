@@ -38,6 +38,7 @@ function subscribeToGraphEvents(graph: dia.Graph, handlers: GraphEventMap): () =
 
 /**
  * The map of graph events to handlers accepted by {@link useOnGraphEvents}.
+ * @group Types
  */
 export type GraphEventMap = Partial<dia.Graph.EventMap>;
 

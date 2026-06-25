@@ -35,6 +35,7 @@ export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
 /**
  * Paper snapshot is a simple version counter.
  * Incremented on every view mount/unmount change to trigger React re-renders.
+ * @group Types
  */
 export interface PaperStoreState {
   readonly version: number;
@@ -43,6 +44,7 @@ export interface PaperStoreState {
 
 /**
  * Full internal snapshot of the graph store.
+ * @group Types
  */
 export interface GraphStoreInternalSnapshot {
   readonly papers: Record<string, PaperStoreState>;
@@ -66,11 +68,13 @@ export interface GraphStoreInternalSnapshot {
  *
  * Only affects writes from the `useMeasureElement` pipeline. Manual `cell.resize()`,
  * interactive resize tools, and direct `cell.set('size', ...)` calls are unaffected.
+ * @group Types
  */
 export type AutoSizeOrigin = 'top-left' | 'center';
 
 /**
  * Options for creating a `GraphStore` in controlled mode. Requires the full cells
+ * @group Types
  */
 export interface GraphStoreOptions<
   Element extends ElementJSONInit = ElementJSONInit,

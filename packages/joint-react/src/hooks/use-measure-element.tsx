@@ -10,6 +10,7 @@ import { MEASURING_CLASS_NAME } from '../utils/class-names';
 
 /**
  * Options for configuring how the node size is measured and applied.
+ * @group Types
  */
 export interface MeasureElementOptions {
   /**

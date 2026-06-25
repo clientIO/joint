@@ -7,7 +7,7 @@
   "excludeProtected": true,
   "excludeExternals": true,
   "excludeNotDocumented": false,
-  "groupOrder": ["Components", "Hooks", "Models", "Utils", "*"],
+  "groupOrder": ["Components", "Hooks", "Selectors", "Presets", "MVC", "Types", "Utils", "*"],
   "gitRevision": "master",
   "customCss": "typedoc.css",
   "plugin": ["typedoc-github-theme"],

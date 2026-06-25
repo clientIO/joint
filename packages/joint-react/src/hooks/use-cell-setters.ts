@@ -49,6 +49,7 @@ function writeMergedCell<Element extends ElementJSONInit, Link extends LinkJSONI
  * exactly once with the real previous value.
  * @template Element - element record shape
  * @template Link - link record shape
+ * @group Types
  */
 export type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
   previous: Element | Link
@@ -65,6 +66,7 @@ export type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSO
  *   warns in dev and no-ops — pass the direct form to add a new cell.
  * @template Element - element record shape
  * @template Link - link record shape
+ * @group Types
  */
 export interface SetCell<Element extends ElementJSONInit, Link extends LinkJSONInit> {
   (record: CellInput<Element, Link>): void;
@@ -129,6 +131,7 @@ export function useSetCell<
  * a partial update by merging inside the updater
  * (`(prev) => ({ ...prev, ...patch })`).
  * @template Data - cell data shape
+ * @group Types
  */
 export type SetCellDataUpdater<Data> = (previousData: Data) => Data;
 
@@ -144,6 +147,7 @@ export type SetCellDataUpdater<Data> = (previousData: Data) => Data;
  * a new one). The updater overload is listed first so a function argument
  * matches it; any non-function argument falls through to the direct form.
  * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
+ * @group Types
  */
 export interface SetCellData<Data = Record<string, unknown>> {
   (id: CellId | null | undefined, updater: SetCellDataUpdater<Data>): void;

@@ -3,7 +3,7 @@ import type { LiteralUnion } from '../types';
 
 /**
  * Simplified label definition for graph links.
- * @group Graph
+ * @group Presets
  */
 export interface LinkLabel {
   /** Label text content. */
