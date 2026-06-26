@@ -114,7 +114,7 @@ function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []
  * @example
  * ```tsx
  * const markup = jsx(
- *   <g joint-selector="root">
+ *   <g>
  *     <rect width={80} height={40} fill="white" stroke="black" />
  *     <text x={10} y={25}>Hello</text>
  *   </g>
