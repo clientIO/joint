@@ -2,16 +2,22 @@ import { dia } from '@joint/core';
 import { linkStyle } from '../presets/link-style';
 import type { PortalHostCell } from './paper.types';
 
+/**
+ * Type discriminator for {@link LinkModel}, matches `dia.Cell.type` to
+ * identify React-link cells when iterating the graph.
+ * @group MVC
+ */
 export const LINK_MODEL_TYPE = 'link';
 
 const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
 
 /**
- * Default link class used by `@joint/react`. Any `dia.Link` subclass can host
- * React content; `LinkModel` is just what `@joint/react` reaches for when no
- * custom class is provided. Ships wrapper + line markup with the default
- * link style applied.
- * @group Models
+ * Default link class used by `@joint/react`. Any `dia.Cell` subclass
+ * implementing {@link PortalHostCell} can host React content; this one is
+ * what `@joint/react` reaches for when no custom link class is provided.
+ * Ships wrapper + line markup and mounts `renderLink` into the link's root
+ * `<g>`.
+ * @group MVC
  * @example
  * ```ts
  * import { LinkModel } from '@joint/react';
@@ -28,7 +34,7 @@ export class LinkModel<
 > extends dia.Link<Attributes> implements PortalHostCell {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
-   * Links render into their root `<g>` — the experimental `renderLink` mounts
+   * Links render into their root `<g>`, the experimental `renderLink` mounts
    * there when enabled. No dedicated portal group is kept in the markup so
    * React-less links stay lean.
    */

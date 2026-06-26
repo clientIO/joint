@@ -17,7 +17,7 @@ import { selectGraphFeaturesVersion } from '../selectors';
 const EMPTY_DEPENDENCIES: unknown[] = [];
 
 /**
- * Discriminator for feature lifecycle — determines where the feature is stored and managed.
+ * Discriminator for feature lifecycle, determines where the feature is stored and managed.
  * @internal
  */
 export type FeatureTarget = 'paper' | 'graph';
@@ -34,7 +34,7 @@ interface GraphStoreOptions {
   readonly graphStore: GraphStore;
 }
 
-/** Context passed to feature `onAdd` — exposes the paper or graph store depending on `Target`. */
+/** Context passed to feature `onAdd`, exposes the paper or graph store depending on `Target`. */
 export type OnAddFeatureOptions<Target extends FeatureTarget = 'paper'> = Target extends 'paper'
   ? PaperStoreOptions
   : GraphStoreOptions;

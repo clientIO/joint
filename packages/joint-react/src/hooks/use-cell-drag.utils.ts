@@ -3,20 +3,20 @@
  *
  * Architecture:
  *   WeakMap<dia.Paper, Atom<CellDragState>>
- *     — one atom per paper, lazily created on first `useCellDrag()` call.
- *     — garbage-collected when the paper is disposed (WeakMap).
+ *   , one atom per paper, lazily created on first `useCellDrag()` call.
+ *   , garbage-collected when the paper is disposed (WeakMap).
  *
  *   WeakSet<dia.Paper>
- *     — tracks which papers have drag listeners attached.
- *     — `ensureCellDragListeners(paper)` is idempotent: first call attaches
+ *   , tracks which papers have drag listeners attached.
+ *   , `ensureCellDragListeners(paper)` is idempotent: first call attaches
  *       `element:pointermove` / `element:pointerup` listeners that write
  *       to the atom. Subsequent calls are no-ops.
- *     — Listeners are cleaned up when `paper.remove()` is called.
+ *   , Listeners are cleaned up when `paper.remove()` is called.
  *
  *   `useCellDrag()` (in use-dragging.ts) reads the atom via
  *   `useSyncExternalStoreWithSelector`. Each element's selector derives
  *   `isDragging = snap.draggingCellId === myCellId`. Only the dragged
- *   element re-renders — non-dragged elements return a frozen IDLE ref.
+ *   element re-renders, non-dragged elements return a frozen IDLE ref.
  *
  */
 import { mvc } from '@joint/core';
@@ -40,7 +40,7 @@ const listenersAttached = new WeakSet<dia.Paper>();
 
 /**
  * Returns the dragging atom for a paper. Creates one lazily on first access.
- * Keyed by `dia.Paper` in a `WeakMap` — garbage-collected with the paper.
+ * Keyed by `dia.Paper` in a `WeakMap`, garbage-collected with the paper.
  * @param paper - The paper instance.
  */
 export function getCellDragState(paper: dia.Paper): Atom<CellDragState> {
@@ -53,7 +53,7 @@ export function getCellDragState(paper: dia.Paper): Atom<CellDragState> {
 }
 
 /**
- * Attaches drag event listeners to a paper. Idempotent — only the first
+ * Attaches drag event listeners to a paper. Idempotent, only the first
  * call per paper sets up listeners. Cleanup happens when paper is disposed.
  * @param paper - The paper instance.
  */

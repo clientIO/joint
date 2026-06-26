@@ -13,7 +13,7 @@ function ensureDefaults(attributes: dia.Link.JSONInit): dia.Link.JSONInit {
 }
 
 /**
- * Convert a React link record to JointJS-ready cell attributes —
+ * Convert a React link record to JointJS-ready cell attributes.
  * applies preset transforms (`style` → native `attrs`, `labelMap` → native
  * `labels`) and fills framework default for `data`.
  * @param link
@@ -29,7 +29,7 @@ export function mapLinkToAttributes(link: LinkJSONInit): dia.Link.JSONInit {
  * - `labelMap` on model → return `labelMap` (merge updated positions from native `labels`).
  * - No `labelMap` → return `labels` as-is.
  *
- * 1:1 mapping — no `presentation` wrapper.
+ * 1:1 mapping, no `presentation` wrapper.
  * @param attributes
  */
 export function mapAttributesToLink<LinkData = unknown>(

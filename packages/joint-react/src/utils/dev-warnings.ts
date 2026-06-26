@@ -6,7 +6,7 @@ const WARNED = new Set<string>();
 
 /**
  * Warns (dev-only, tree-shaken in production) when a cell setter is called for
- * a target that cannot be resolved — a nullish id, or an id with no matching
+ * a target that cannot be resolved, a nullish id, or an id with no matching
  * cell on the graph. The setter then no-ops instead of throwing, so a transient
  * nullish selection (e.g. nothing selected yet) does not crash the app.
  * @param setterName - Setter identifier for the message (e.g. "setCell").
@@ -23,7 +23,7 @@ export function warnMissingSetterCell(setterName: string, id: CellId | null | un
 
 /**
  * Warns once per hook instance when a selector returns an unstable reference
- * that could have been avoided. Dev-only — tree-shaken in production.
+ * that could have been avoided. Dev-only, tree-shaken in production.
  * Call after the equality check fails (new value will be emitted). Pass the
  * previous and next values; the helper inspects whether the difference is
  * only due to new object references with identical shallow content.
@@ -107,9 +107,9 @@ export function warnDuplicatePapers(paperId: string, existingPaperIds: Iterable<
 /**
  * Warns once per element when an auto-sized element (rendered without
  * `useModelGeometry`, so its size is measured from the React content) is
- * resized externally — by a tool such as FreeTransform / Halo, or a direct
+ * resized externally, by a tool such as FreeTransform / Halo, or a direct
  * `cell.resize()`. The measurement pipeline overwrites that size, so the
- * resize has no effect. Dev-only — tree-shaken in production.
+ * resize has no effect. Dev-only, tree-shaken in production.
  * @param cellId - The id of the resized auto-sized element.
  */
 export function warnResizeOnAutoSizedElement(cellId: dia.Cell.ID): void {

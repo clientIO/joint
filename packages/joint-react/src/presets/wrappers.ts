@@ -1,4 +1,4 @@
-import type { routers, connectors as connectorTypes , anchors, connectionPoints} from '@joint/core';
+import type { routers, connectors as connectorTypes, anchors, connectionPoints} from '@joint/core';
 import { connectors as connectorFns } from '@joint/core';
 
 /**
@@ -34,7 +34,7 @@ export function straightConnectorUntilConnected(connector: connectorTypes.Connec
 }
 
 /**
- * Wraps an anchor — uses `connected` when both ends are attached, `disconnected` otherwise.
+ * Wraps an anchor, uses `connected` when both ends are attached, `disconnected` otherwise.
  * @param connected
  * @param disconnected
  */
@@ -49,7 +49,7 @@ export function anchorWhenConnected(connected: anchors.Anchor, disconnected: anc
 }
 
 /**
- * Wraps a connection point — uses `connected` when both ends are attached, `disconnected` otherwise.
+ * Wraps a connection point, uses `connected` when both ends are attached, `disconnected` otherwise.
  * @param connected
  * @param disconnected
  */

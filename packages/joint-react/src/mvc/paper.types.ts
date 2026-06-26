@@ -17,13 +17,17 @@ import type { CellId } from '../types/cell.types';
  *   portalSelector = 'root';
  * }
  * ```
+ * @group Types
  */
 export interface PortalHostCell {
   /** Selector of the node inside the cell view where React content mounts. */
   readonly portalSelector?: string;
 }
 
-/** Context passed to a `PortalSelector` callback. */
+/**
+ * Context passed to a `PortalSelector` callback.
+ * @group Types
+ */
 export interface PortalSelectorParams {
   /** The cell model. Has a `portalSelector` field when it opts into portal rendering. */
   readonly model: dia.Cell & PortalHostCell;
@@ -40,10 +44,11 @@ export interface PortalSelectorParams {
  * - A **string** is used directly as the selector for `cellView.findNode()`.
  * - **`null`** disables all portal rendering.
  * - A **function** receives a {@link PortalSelectorParams} and returns:
- *   - a **selector string** — look up that node,
- *   - an **`Element`** — use that DOM node directly,
- *   - **`null`** — skip rendering for this cell,
- *   - **`undefined`** (or no return) — fall back to joint-react's default selector.
+ *   - a **selector string**, look up that node,
+ *   - an **`Element`**, use that DOM node directly,
+ *   - **`null`**, skip rendering for this cell,
+ *   - **`undefined`** (or no return), fall back to joint-react's default selector.
+ * @group Types
  */
 export type PortalSelector =
   | string
@@ -52,6 +57,7 @@ export type PortalSelector =
 
 /**
  * Options for creating a PaperView instance with lifecycle callbacks.
+ * @group Types
  */
 export interface PaperViewOptions extends dia.Paper.Options {
   readonly onViewMountChange?: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;

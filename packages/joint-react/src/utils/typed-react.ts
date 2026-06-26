@@ -3,7 +3,7 @@ import React from 'react';
 
 /**
  * Sugar around React.memo to avoid the need to specify the type of the component.
- * @group utils
+ * @group Utils
  */
 // There is an issue with Typescript when Component has generic Props
 // see: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/37087

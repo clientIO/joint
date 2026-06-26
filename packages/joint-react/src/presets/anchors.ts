@@ -40,7 +40,10 @@ export const perpendicularAnchor: anchors.Anchor = (
   return anchors.perpendicular(elementView, magnet, ref, _, endType, linkView);
 };
 
-/** Mode for the `midSide` anchor used on root elements and custom magnets. */
+/**
+ * Mode for the `midSide` anchor used on root elements and custom magnets.
+ * @group Types
+ */
 export type LinkMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto' | 'top-bottom' | 'bottom-top' | 'left-right' | 'right-left';
 
 /**

@@ -1,6 +1,9 @@
 import type { dia } from '@joint/core';
 
-/** Describes one end (source or target) of a connection. */
+/**
+ * Describes one end (source or target) of a connection.
+ * @group Types
+ */
 export interface ConnectionEnd {
   /** The cell ID. */
   readonly id: dia.Cell.ID;
@@ -14,7 +17,10 @@ export interface ConnectionEnd {
   readonly selector: string | null;
 }
 
-/** Structured context for connection validation. */
+/**
+ * Structured context for connection validation.
+ * @group Types
+ */
 export interface ValidateConnectionParams {
   /** The source end of the connection. */
   readonly source: ConnectionEnd;
@@ -28,7 +34,10 @@ export interface ValidateConnectionParams {
   readonly graph: dia.Graph;
 }
 
-/** Callback that decides whether a connection is allowed. */
+/**
+ * Callback that decides whether a connection is allowed.
+ * @group Types
+ */
 export type ValidateConnection = (context: ValidateConnectionParams) => boolean;
 
 /**
@@ -131,7 +140,10 @@ function hasDuplicateLink(
   return false;
 }
 
-/** Configuration accepted by `canConnect` controlling link validation rules. */
+/**
+ * Configuration accepted by `canConnect` controlling link validation rules.
+ * @group Types
+ */
 export interface CanConnectOptions {
   /** Allow connecting a cell to itself. @default false */
   readonly allowSelfLoops?: boolean;
@@ -141,9 +153,9 @@ export interface CanConnectOptions {
   readonly allowMultiLinks?: boolean;
   /**
    * Whether connecting to the root element (not a port/magnet) is allowed.
-   * - `true` — always allow root connections
-   * - `false` — never allow root (only ports/magnets)
-   * - `'auto'` — allow root only if the element has no ports
+   * - `true`, always allow root connections
+   * - `false`, never allow root (only ports/magnets)
+   * - `'auto'`, allow root only if the element has no ports
    * @default 'auto'
    */
   readonly allowRootConnection?: boolean | 'auto';

@@ -4,8 +4,8 @@ import { resolveLinkMarker, type LinkMarker } from '../theme/named-link-markers'
 
 /**
  * Visual/presentation attributes for a link line and its wrapper.
- * All properties are optional — empty strings let CSS variables from `theme.css` take over.
- * @group Graph
+ * All properties are optional, empty strings let CSS variables from `theme.css` take over.
+ * @group Presets
  */
 export interface LinkStyle {
   /** Stroke color of the link line. Accepts any CSS color value including CSS variables. @default '' */
@@ -47,8 +47,9 @@ const defaultLinkStyle: Readonly<Required<LinkStyle>> = {
 };
 
 /**
- * Builds the `line` selector attrs from a LinkStyle.
- * Handles stroke, markers, dash patterns, and CSS class.
+ * SVG attributes for the link's visible line, derived from a `LinkStyle`.
+ * Resolves stroke color/width, source/target markers, dash pattern, and the
+ * `line` selector's CSS class.
  * @param style
  */
 export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {
@@ -102,8 +103,8 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
 }
 
 /**
- * Builds the `wrapper` selector attrs from a LinkStyle.
- * Handles hit-area stroke, width, and CSS class.
+ * SVG attributes for the link's hit-area (the invisible wrapper around the
+ * visible line, used for pointer interaction), derived from a `LinkStyle`.
  * @param style
  */
 export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {

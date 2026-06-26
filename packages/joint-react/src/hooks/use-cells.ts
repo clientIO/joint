@@ -153,7 +153,7 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
 /**
  * Subscribe to a single cell by id and derive a value from it. Subscribes
  * only to that id so unrelated mutations don't trigger re-renders. A nullish
- * `id` resolves to no cell, so the selector runs against `undefined` — handy
+ * `id` resolves to no cell, so the selector runs against `undefined`, handy
  * for optional selection state (`useCells(selectedId, ...)`) with no `?? ''`.
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell | undefined`)

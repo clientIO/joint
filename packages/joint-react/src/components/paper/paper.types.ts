@@ -20,13 +20,17 @@ import type { PaperEventHandlers } from '../../presets/paper-events';
 
 /**
  * Value accepted by the Paper `transform` prop. Strings are parsed via the
- * native `DOMMatrix` constructor (CSS transform syntax — `scale()`,
+ * native `DOMMatrix` constructor (CSS transform syntax, `scale()`,
  * `translate()`, `rotate()`, `matrix()` etc.). `DOMMatrix` instances pass
  * through. `SVGMatrix === DOMMatrix` in modern `lib.dom.d.ts`.
+ * @group Types
  */
 export type PaperTransform = string | DOMMatrix;
 
-/** Context passed to the `defaultLink` factory. */
+/**
+ * Context passed to the `defaultLink` factory.
+ * @group Types
+ */
 export interface DefaultLinkParams {
   /** The source end of the connection being created. */
   readonly source: ConnectionEnd;
@@ -37,17 +41,19 @@ export interface DefaultLinkParams {
 }
 
 /**
- * Value accepted by the Paper `defaultLink` prop — factory receiving
+ * Value accepted by the Paper `defaultLink` prop, factory receiving
  * `DefaultLinkParams`, or a static `Partial<LinkRecord>`.
+ * @group Types
  */
 export type DefaultLink =
   | ((context: DefaultLinkParams) => dia.Link | Partial<LinkRecord>)
   | Partial<LinkRecord>;
 
 /**
- * Raw `dia.Paper.Options` passthrough — the type of the `options` escape-hatch prop.
+ * Raw `dia.Paper.Options` passthrough, the type of the `options` escape-hatch prop.
  * `cellVisibility` is excluded: use the dedicated `cellVisibility` prop (it is
  * also managed by feature ownership, e.g. a virtual-rendering scroller).
+ * @group Types
  */
 export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
 
@@ -56,6 +62,7 @@ export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
  * native types via indexed access (`dia.Paper.Options['name']`), so any
  * type-level change in JointJS propagates automatically. Anything not listed
  * here is reachable via the `options` escape hatch, never implicitly exposed.
+ * @group Types
  */
 interface PaperSupportedOptions {
   // ── Wrapped (structured) ─────────────────────────────────────────────────
@@ -119,9 +126,9 @@ interface PaperSupportedOptions {
   // ── Interactions ─────────────────────────────────────────────────────────
   /**
    * CellInteraction permissions. Accepts:
-   * - `boolean` — enable/disable all interactions.
-   * - `InteractivityOptions` — granular toggle per interaction kind.
-   * - Function — receives `{ model, interaction, paper, graph }` and returns either form.
+   * - `boolean`, enable/disable all interactions.
+   * - `InteractivityOptions`, granular toggle per interaction kind.
+   * - Function, receives `{ model, interaction, paper, graph }` and returns either form.
    * Native `(cellView, event)` callback is reachable via the `options` escape hatch.
    */
   readonly interactive?: CellInteractivity;
@@ -187,17 +194,17 @@ interface PaperSupportedOptions {
    * expose as a dedicated prop (e.g. `allowLink`, `validateMagnet`,
    * `restrictTranslate`, `onViewPostponed`).
    *
-   * Values set here override top-level props of the same name — treat this
+   * Values set here override top-level props of the same name, treat this
    * as the authoritative form for users who need direct access to the raw
    * JointJS API. Avoid overriding joint-react-controlled options
-   * (`async`, `sorting`, `viewManagement`, `frozen`, `autoFreeze`) — the
+   * (`async`, `sorting`, `viewManagement`, `frozen`, `autoFreeze`), the
    * portal rendering depends on their set values.
    */
   readonly options?: PaperOptions;
 }
 
 /**
- * Render function for elements. Receives the element's `data` slice only —
+ * Render function for elements. Receives the element's `data` slice only.
  * so the renderer re-runs ONLY when `data` changes, not when `position`,
  * `size`, `angle`, or other cell attributes update. Position and size are
  * applied by JointJS's view layer without touching React at all (SVG mode)
@@ -212,16 +219,18 @@ interface PaperSupportedOptions {
  * If the renderer needs the id, position, size, or other slices, use the
  * context hooks: `useCellId()`, `useCell()` (with optional selector), or
  * `useCell(c => c.position / c.size / ...)`.
+ * @group Types
  */
 export type RenderElement<ElementData = unknown> = (data: ElementData) => ReactNode;
 
 /**
- * Render function for links. Receives the link's `data` slice only — same
+ * Render function for links. Receives the link's `data` slice only, same
  * performance rationale as `RenderElement`. Use `useCell()` (with an
  * optional selector) inside the renderer when source / target / id are
  * needed.
  *
  * The framework guarantees `data` is at least `{}` at this boundary.
+ * @group Types
  */
 export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
 
@@ -232,15 +241,17 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * Paper events are exposed directly as props
  * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …).
  * Each handler receives a single params
- * object — e.g. `onBlankContextMenu={({ paper, event, x, y }) => …}`.
+ * object, e.g. `onBlankContextMenu={({ paper, event, x, y }) => …}`.
  *
  * Handlers are **always-latest**: the paper subscribes once and each event
  * reads the current handler, so inline arrows
- * (`onBlankContextMenu={() => …}`) are fine — no `useCallback` needed and no
+ * (`onBlankContextMenu={() => …}`) are fine, no `useCallback` needed and no
  * re-subscription on render. For raw native event names or events without an
  * `on*` form (`render:done`, `cell:highlight`, …), use the `useOnPaperEvents`
  * hook.
  * @see https://docs.jointjs.com/api/dia/Paper
+ * @expand
+ * @group Types
  */
 export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, PaperEventHandlers {
   /**
@@ -299,7 +310,7 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
   readonly renderLink?: RenderLink<any>;
   /**
    * Inline styles applied to the paper host element. Use `style.width` and
-   * `style.height` (or CSS via `className`) to size the paper — Paper does
+   * `style.height` (or CSS via `className`) to size the paper, Paper does
    * not expose dedicated width/height props.
    */
   readonly style?: CSSProperties;
@@ -336,17 +347,17 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
   /**
    * Paper-level override for the React portal target selector.
    *
-   * By default, each cell uses its own `portalSelector` field —
+   * By default, each cell uses its own `portalSelector` field.
    * `ElementModel` renders into its `'__portal__'` group, `LinkModel` into its
    * root `<g>`. Built-in JointJS shapes have no `portalSelector` field and
    * are skipped. Set this prop to force a single selector or a dynamic one
    * across all cells.
    *
    * A function receives `{ model, paper, graph }` and may return:
-   * - a **selector string** — look up that node,
-   * - an **`Element`** — use that DOM node directly,
-   * - **`null`** — skip rendering for this cell,
-   * - **`undefined`** (or no return) — fall back to the cell's own `portalSelector`.
+   * - a **selector string**, look up that node,
+   * - an **`Element`**, use that DOM node directly,
+   * - **`null`**, skip rendering for this cell,
+   * - **`undefined`** (or no return), fall back to the cell's own `portalSelector`.
    * @example
    * ```tsx
    * // Render into the 'root' selector of all cells

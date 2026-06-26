@@ -22,7 +22,7 @@ export function subscribeToPaperEvents(
 }
 
 /**
- * Subscribes to paper events. The paper argument is optional — when omitted
+ * Subscribes to paper events. The paper argument is optional, when omitted
  * the hook reads the active paper from the surrounding `Paper` context (it
  * throws if no `Paper` context is available). Two key forms can be mixed in
  * the same handlers map:
@@ -51,7 +51,7 @@ export function subscribeToPaperEvents(
  * `useCallback`. Re-subscription happens only when the paper or the set of
  * event names changes.
  *
- * The `on*` params object omits the React-store `record` — to read the
+ * The `on*` params object omits the React-store `record`, to read the
  * record shape, call `useCell(id, selector)` from your own
  * component (the handler closure has access to the `id` it emits).
  * @param handlers - Event handlers map.

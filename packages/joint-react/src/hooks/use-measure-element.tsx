@@ -10,6 +10,7 @@ import { MEASURING_CLASS_NAME } from '../utils/class-names';
 
 /**
  * Options for configuring how the node size is measured and applied.
+ * @group Types
  */
 export interface MeasureElementOptions {
   /**
@@ -53,7 +54,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  * - Must be used within a `renderElement` function or a component rendered from within it.
  * - The returned values are always defined (width and height default to 0 if not set).
  *
- * **Anti-pattern — do not combine with `useCell(selectElementSize)`:**
+ * **Anti-pattern, do not combine with `useCell(selectElementSize)`:**
  * Do not pair this hook with `useCell((cell) => cell.size)` (or the equivalent
  * `selectElementSize` selector) in the same component. This hook already
  * synchronizes the measured size to the graph element and returns the live
@@ -75,7 +76,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  * `selectElementSize` / similar selectors) in the same component. This hook
  * already synchronizes the measured size to the graph element. Use the
  * returned `width` / `height` from this hook directly rather than reading
- * the value back from the model — combining both creates a redundant
+ * the value back from the model, combining both creates a redundant
  * round-trip and can fight on the first measurement.
  * @group Hooks
  * @example
@@ -114,7 +115,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  * @example
  * With custom transform to add padding:
  * ```tsx
- * import { useMeasureElement, type TransformMeasurement } from '@joint/react';
+ * import { useMeasureElement, type TransformElementLayout } from '@joint/react';
  * import { useRef, useCallback } from 'react';
  *
  * function ListElement() {
@@ -122,7 +123,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  *   const padding = 10;
  *   const headerHeight = 50;
  *
- *   const transform: TransformMeasurement = useCallback(
+ *   const transform: TransformElementLayout = useCallback(
  *     ({ width: measuredWidth, height: measuredHeight }) => {
  *       return {
  *         width: padding + measuredWidth + padding,

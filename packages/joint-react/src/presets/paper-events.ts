@@ -141,15 +141,16 @@ type TransformEventParams = BaseContext & {
 // ============================================================================
 
 /**
- * `link:connect` / `link:disconnect` payload — the link + the cell at the
+ * `link:connect` / `link:disconnect` payload, the link + the cell at the
  * (dis)connected end as a {@link ConnectionEnd} (same shape used by
  * `validateConnection`, so the two stay symmetric).
+ * @group Types
  */
 interface LinkConnectEventParams extends LinkEventParams {
   readonly event: dia.Event;
   /** Which end of the link was (dis)connected. */
   readonly end: 'source' | 'target';
-  /** Cell at the (dis)connected end. Always present — these events fire only on actual cells. */
+  /** Cell at the (dis)connected end. Always present, these events fire only on actual cells. */
   readonly endCell: ConnectionEnd;
 }
 
@@ -306,6 +307,7 @@ const PAPER_EVENT_KEYS = new Set<string>([
  * `'translate'`, `'render:done'`, `'render:idle'`, `'cell:highlight'`,
  * `'cell:unhighlight'`, `'cell:highlight:invalid'`, `'link:snap:connect'`,
  * `'link:snap:disconnect'`.
+ * @group Types
  */
 export interface PaperEventHandlers {
   // pointer (cell — fires for any cell, element OR link)
@@ -387,13 +389,15 @@ export interface PaperEventHandlers {
  * Extracts the callback type for a given paper event key.
  * For example, `PaperEventHandler<'onCellPointerDown'>` is `(params: PointerCellEventParams) => void`.
  * Useful for typing individual handler variables or parameters.
+ * @group Types
  */
 export type PaperEventHandler<T extends keyof PaperEventHandlers> = NonNullable<
   PaperEventHandlers[T]
 >;
 
 /**
- * Combined handlers — camelCase `on*` + raw native — accepted by `addPaperEventListeners`.
+ * Combined handlers, camelCase `on*` + raw native, accepted by `addPaperEventListeners`.
+ * @group Types
  */
 export type PaperEventMap = Partial<dia.Paper.EventMap> & PaperEventHandlers;
 
@@ -439,7 +443,7 @@ function subscribeGroup<Args extends unknown[], Params>(
 }
 
 /**
- * Registers raw (native-signature) handlers — any key in `eventMap` that
+ * Registers raw (native-signature) handlers, any key in `eventMap` that
  * isn't a known `on*` key.
  * @param controller
  * @param paper
@@ -462,7 +466,7 @@ function subscribeRaw(
 
 /**
  * Attaches a handlers map (camelCase `on*` + raw native) to a paper and
- * returns a cleanup function that detaches everything. Pure JointJS adapter —
+ * returns a cleanup function that detaches everything. Pure JointJS adapter.
  * no React.
  *
  * `addPaperEventListeners` is the runtime that powers the React `useOnPaperEvents`

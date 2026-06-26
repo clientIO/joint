@@ -16,6 +16,8 @@ type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> =
  * Props common to every `GraphProvider` mode.
  * @template ElementData - User data attached to each element record.
  * @template LinkData - User data attached to each link record.
+ * @expand
+ * @group Types
  */
 export interface GraphProviderProps<
   Element extends ElementJSONInit = ElementJSONInit,
@@ -27,7 +29,7 @@ export interface GraphProviderProps<
    * @see https://docs.jointjs.com/api/dia/Graph
    */
   readonly graph?: dia.Graph;
-  /** React children rendered inside the provider — typically a `<Paper />`. */
+  /** React children rendered inside the provider, typically a `<Paper />`. */
   readonly children?: React.ReactNode;
   /**
    * Cell namespace passed through to `new dia.Graph`. Defaults to JointJS
@@ -40,14 +42,17 @@ export interface GraphProviderProps<
    * Reference point that stays fixed when an auto-sized element's measured
    * size changes (via `useMeasureElement`). Mirrors CSS `transform-origin` semantics.
    * - `'top-left'` (default): element grows right/down.
-   * - `'center'`: element grows symmetrically — its geometric center stays put.
+   * - `'center'`: element grows symmetrically, its geometric center stays put.
    *
    * Only affects measurement-driven writes. Manual `cell.resize()`, interactive
    * resize tools, and direct `cell.set('size', ...)` calls are unaffected.
    * @default 'top-left'
    */
   readonly autoSizeOrigin?: AutoSizeOrigin;
-  /** Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle. */
+  /**
+   * Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle.
+   * @hidden
+   */
   readonly store?: GraphStore<Element, Link>;
 
   /**
@@ -55,7 +60,7 @@ export interface GraphProviderProps<
    */
   readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
   readonly cells?: ProviderCells<Element, Link>;
-  /** Notification-only callback — React state is NOT pushed back into the graph. */
+  /** Notification-only callback, React state is NOT pushed back into the graph. */
   readonly onCellsChange?: (newCells: ProviderCells<Element, Link>) => void;
   /**
    * Notification fired with granular `added` / `changed` / `removed` sets
@@ -69,11 +74,9 @@ export interface GraphProviderProps<
  *
  * Internally GraphProvider stores the `GraphStore` with default generics
  * (`ElementAttributes` / `LinkAttributes`). Each `useGraphStore<E, L>()` call
- * re-binds the generics on read — the runtime instance is the same.
+ * re-binds the generics on read, the runtime instance is the same.
  */
-type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJSONInit> & {
-  ref?: React.Ref<dia.Graph | null>;
-};
+type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJSONInit>;
 
 /**
  * Internal base component for GraphProvider.
@@ -82,16 +85,15 @@ type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJS
  * flow into the unparameterised `GraphStoreContext` without a variance cast.
  * The exported `GraphProvider` re-types this base to the caller's `<Element,
  * Link>` parameters.
- * @param props - GraphProvider props including optional forwarded ref.
+ * @param props - GraphProvider props.
  * @returns The rendered graph context provider or null while loading.
  */
-function GraphBase(props: GraphProviderBaseInternalProps) {
+function GraphBase(props: GraphProviderBaseInternalProps): React.ReactNode {
   const {
     children,
     store,
     onIncrementalCellsChange,
     onCellsChange,
-    ref: forwardedRef,
     graph,
     cellNamespace,
     cellModel,
@@ -102,10 +104,8 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
 
   const isControlled = !!cells;
 
-  const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>, dia.Graph>(
+  const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>>(
     {
-      instanceSelector: (instance) => instance.graph,
-      forwardedRef,
       onLoad() {
         const graphStore =
           store ??
@@ -179,12 +179,11 @@ function GraphBase(props: GraphProviderBaseInternalProps) {
  * </GraphProvider>
  * ```
  * @see GraphProviderProps for all available props
+ * @group Components
  */
 export const GraphProvider = GraphBase as <
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 >(
-  props: GraphProviderProps<Element, Link> & {
-    ref?: React.Ref<dia.Graph | null>;
-  }
+  props: GraphProviderProps<Element, Link>
 ) => ReturnType<typeof GraphBase>;

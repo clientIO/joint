@@ -1,18 +1,25 @@
 import { dia } from '@joint/core';
 import type { PortalHostCell } from './paper.types';
+/**
+ * Type discriminator for {@link ElementModel}, matches `dia.Cell.type` to
+ * identify React-element cells when iterating the graph.
+ * @group MVC
+ */
 export const ELEMENT_MODEL_TYPE = 'element';
 
 /**
  * Selector for the `<g>` element used as the React portal target inside ElementModel markup.
- * @group Models
+ * @group MVC
  */
 export const PORTAL_SELECTOR = '__portal__';
 
 /**
- * Default element class used by `@joint/react`. Any `dia.Element` subclass
- * can host React content; `ElementModel` is just what `@joint/react` reaches
- * for when no custom class is provided.
- * @group Models
+ * Default element class used by `@joint/react`. Any `dia.Cell` subclass
+ * implementing {@link PortalHostCell} can host React content; this one is
+ * what `@joint/react` reaches for when no custom element class is provided.
+ * Adds a dedicated `<g>` group to its markup where `renderElement` mounts,
+ * placed under ports and highlighters by default so they paint on top.
+ * @group MVC
  * @example
  * ```ts
  * import { ElementModel } from '@joint/react';

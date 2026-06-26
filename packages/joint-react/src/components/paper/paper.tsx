@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { PaperStoreContext } from '../../context';
 import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
@@ -56,4 +56,16 @@ function PaperBase(
   );
 }
 
-export const Paper = forwardRef(PaperBase);
+/**
+ * The interactive diagram canvas.
+ *
+ * Renders the graph's elements and links, hosts user interactions
+ * (selection, drag, link creation, zoom/pan), and lets you customize each
+ * cell with your own React components. Mount inside a `<GraphProvider>` and
+ * size it with CSS. The canvas fills its parent.
+ * @see {@link PaperProps} for the full prop surface.
+ * @group Components
+ */
+export const Paper = forwardRef(PaperBase) as (
+  props: PaperProps & { ref?: React.Ref<dia.Paper | null> }
+) => React.ReactNode;

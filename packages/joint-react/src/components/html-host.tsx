@@ -1,31 +1,19 @@
-import { useMemo, useRef, type CSSProperties, type HTMLAttributes, type RefObject } from 'react';
+import { useMemo, useRef, type CSSProperties, type HTMLAttributes, type ReactNode, type RefObject } from 'react';
 import { useMeasureElement } from '../hooks/use-measure-element';
 import { useCell } from '../hooks/use-cell';
 import { selectElementSize } from '../selectors';
 
 /**
- * Style-neutral element host: a `<div>` inside a `<foreignObject>`.
- *
- * All props are spread onto the inner `<div>`, so you can pass `children`,
- * `style`, `className`, event handlers, `data-*` attributes, etc.
- *
- * By default, the host measures its content via `useMeasureElement` and syncs
- * the size back to the graph element. Set `useModelGeometry` to skip
- * measurement and render with the element's dimensions from the model instead.
- *
- * Does **not** apply any default theme class. For themed styling via
- * `--jj-box-*` CSS variables, use {@link DefaultHTMLHost} instead.
- * @example
- * ```tsx
- * <Paper renderElement={({ label }) => (
- *   <HTMLHost className="my-node">{label}</HTMLHost>
- * )} />
- * ```
+ * Props accepted by `HTMLHost`. Inherits all standard `<div>` attributes.
+ * @expand
+ * @group Types
  */
-
-/** Props accepted by `HTMLHost`. Inherits all standard `<div>` attributes. */
 export interface HTMLHostProps extends HTMLAttributes<HTMLDivElement> {
-  /** Skip DOM measurement and use the element's size from the model. Default: `false`. */
+  /**
+   * Skip measuring the rendered content and use the graph element's stored
+   * size instead. Cheaper, but the cell won't auto-resize when the React
+   * subtree changes. Default: `false`.
+   */
   readonly useModelGeometry?: boolean;
 }
 
@@ -55,11 +43,26 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
 }
 
 /**
- * Style-neutral element host: a measured `<div>` inside a `<foreignObject>`.
- * All props are passed through to the inner `<div>`.
- * @param props - HTML div attributes plus optional `useModelGeometry` flag.
+ * Style-neutral element host: a `<div>` inside a `<foreignObject>`. Use inside
+ * `<Paper renderElement={...}>` to render a graph element.
+ *
+ * All props are spread onto the inner `<div>` (`children`, `style`,
+ * `className`, event handlers, `data-*`, etc.). By default the host measures
+ * its content via `useMeasureElement` and syncs the size back to the graph
+ * element; set `useModelGeometry` to skip measurement and use the element's
+ * size from the model instead.
+ *
+ * Does **not** apply any default theme class. For themed styling via
+ * `--jj-box-*` CSS variables, use {@link HTMLBox} instead.
+ * @example
+ * ```tsx
+ * <Paper renderElement={({ label }) => (
+ *   <HTMLHost className="my-node">{label}</HTMLHost>
+ * )} />
+ * ```
+ * @group Components
  */
-export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
+export function HTMLHost(props: Readonly<HTMLHostProps> = {}): ReactNode {
   const { useModelGeometry = false, ...rest } = props;
 
   return useModelGeometry ? <StaticHTMLFrame {...rest} /> : <MeasuredHTMLFrame {...rest} />;
