@@ -65,7 +65,7 @@ export interface LinkRoutingStraightOptions extends BaseLinkOptions {
 
 /**
  * Straight-line links between elements.
- * The shortest path with no routing — a single line from source to target.
+ * The shortest path with no routing, a single line from source to target.
  * @param options
  */
 export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): LinkRouting {

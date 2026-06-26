@@ -63,8 +63,8 @@ export interface GraphStoreInternalSnapshot {
  * Reference point that stays fixed when an auto-sized element's measured size
  * changes. Mirrors CSS `transform-origin` semantics.
  *
- * - `'top-left'` (default): element grows right/down — top-left stays put.
- * - `'center'`: element grows symmetrically — geometric center stays put.
+ * - `'top-left'` (default): element grows right/down, top-left stays put.
+ * - `'center'`: element grows symmetrically, geometric center stays put.
  *
  * Only affects writes from the `useMeasureElement` pipeline. Manual `cell.resize()`,
  * interactive resize tools, and direct `cell.set('size', ...)` calls are unaffected.

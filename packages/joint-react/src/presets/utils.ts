@@ -16,7 +16,7 @@ export const BOUNDARY_OPTIONS = {
  * Reads the marker length from the link's native attrs for the given end type.
  * The length is how far to push the line tip from the connection point to
  * accommodate the marker. Cached on `linkView.metrics` for the current render
- * pass — JointJS resets the metrics map on every redraw, so the cache is
+ * pass, JointJS resets the metrics map on every redraw, so the cache is
  * automatically invalidated when attrs change.
  * @param linkView
  * @param endType

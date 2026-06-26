@@ -10,7 +10,7 @@ const KEY_SIGNATURE_SEPARATOR = '\u0000';
 /**
  * Builds the sorted, joined signature of the **active** event names (keys whose
  * handler is currently defined). The subscription re-runs only when this string
- * changes — handler identity never does.
+ * changes, handler identity never does.
  * @param handlers - Handler map; entries with an `undefined` value are inactive.
  * @returns Stable signature string for the active event-name set.
  */
@@ -28,11 +28,11 @@ function getActiveEventSignature(handlers: Partial<mvc.EventMap>): string {
  * Subscribes `handlers` on `target` with **always-latest** handler semantics
  * (the `useEffectEvent` pattern): the subscription is established once and
  * dispatch reads the current handler from a ref at event time. Consumers can
- * pass inline handler maps — no `useCallback`/`useMemo` needed, no stale
+ * pass inline handler maps, no `useCallback`/`useMemo` needed, no stale
  * closures, no re-subscription churn when a handler's identity changes.
  *
  * Re-subscribes only when `target` changes or the **set of active event names**
- * changes — i.e. a handler is added or removed (toggled to/from `undefined`),
+ * changes, i.e. a handler is added or removed (toggled to/from `undefined`),
  * mirroring how `onClick={undefined}` binds no listener. A handler swapped for
  * another function under the same key is picked up live, without re-subscribing.
  * @param target - Object to subscribe on; `null`/`undefined` skips subscription.

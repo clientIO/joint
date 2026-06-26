@@ -44,10 +44,10 @@ export interface PortalSelectorParams {
  * - A **string** is used directly as the selector for `cellView.findNode()`.
  * - **`null`** disables all portal rendering.
  * - A **function** receives a {@link PortalSelectorParams} and returns:
- *   - a **selector string** — look up that node,
- *   - an **`Element`** — use that DOM node directly,
- *   - **`null`** — skip rendering for this cell,
- *   - **`undefined`** (or no return) — fall back to joint-react's default selector.
+ *   - a **selector string**, look up that node,
+ *   - an **`Element`**, use that DOM node directly,
+ *   - **`null`**, skip rendering for this cell,
+ *   - **`undefined`** (or no return), fall back to joint-react's default selector.
  * @group Types
  */
 export type PortalSelector =

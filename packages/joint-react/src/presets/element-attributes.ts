@@ -14,7 +14,7 @@ export interface ElementPresetAttributes {
 }
 
 /**
- * Loose preset input — no `type` required. `dia.Element.Attributes` plus the
+ * Loose preset input, no `type` required. `dia.Element.Attributes` plus the
  * React preset extras (`portMap`, `portStyle`).
  */
 export interface ElementAttributes extends dia.Element.Attributes, ElementPresetAttributes {}

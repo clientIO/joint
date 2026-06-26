@@ -29,7 +29,7 @@ export interface GraphProviderProps<
    * @see https://docs.jointjs.com/api/dia/Graph
    */
   readonly graph?: dia.Graph;
-  /** React children rendered inside the provider — typically a `<Paper />`. */
+  /** React children rendered inside the provider, typically a `<Paper />`. */
   readonly children?: React.ReactNode;
   /**
    * Cell namespace passed through to `new dia.Graph`. Defaults to JointJS
@@ -42,7 +42,7 @@ export interface GraphProviderProps<
    * Reference point that stays fixed when an auto-sized element's measured
    * size changes (via `useMeasureElement`). Mirrors CSS `transform-origin` semantics.
    * - `'top-left'` (default): element grows right/down.
-   * - `'center'`: element grows symmetrically — its geometric center stays put.
+   * - `'center'`: element grows symmetrically, its geometric center stays put.
    *
    * Only affects measurement-driven writes. Manual `cell.resize()`, interactive
    * resize tools, and direct `cell.set('size', ...)` calls are unaffected.
@@ -60,7 +60,7 @@ export interface GraphProviderProps<
    */
   readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
   readonly cells?: ProviderCells<Element, Link>;
-  /** Notification-only callback — React state is NOT pushed back into the graph. */
+  /** Notification-only callback, React state is NOT pushed back into the graph. */
   readonly onCellsChange?: (newCells: ProviderCells<Element, Link>) => void;
   /**
    * Notification fired with granular `added` / `changed` / `removed` sets
@@ -74,7 +74,7 @@ export interface GraphProviderProps<
  *
  * Internally GraphProvider stores the `GraphStore` with default generics
  * (`ElementAttributes` / `LinkAttributes`). Each `useGraphStore<E, L>()` call
- * re-binds the generics on read — the runtime instance is the same.
+ * re-binds the generics on read, the runtime instance is the same.
  */
 type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJSONInit>;
 

@@ -57,16 +57,16 @@ export type ElementRecord<
 > = ElementJSONInit & WithType<Type> & WithData<ElementData>;
 
 /**
- * Internal element record shape — what the store holds after JointJS /
+ * Internal element record shape, what the store holds after JointJS /
  * `elementAttributes` defaults are applied. Reach via {@link Computed}
  * (`Computed<ElementRecord<MyData>>`); kept private so the public surface is
  * a single utility.
  *
  * Always populated by the framework:
- * - `position` — `dia.Element` defaults to `{ x: 0, y: 0 }`.
- * - `size` — `dia.Element` defaults to `{ width: 1, height: 1 }`.
- * - `angle` — `dia.Element` defaults to `0`.
- * - `data` — `elementAttributes` defaults to `{} as ElementData`.
+ * - `position`, `dia.Element` defaults to `{ x: 0, y: 0 }`.
+ * - `size`, `dia.Element` defaults to `{ width: 1, height: 1 }`.
+ * - `angle`, `dia.Element` defaults to `0`.
+ * - `data`, `elementAttributes` defaults to `{} as ElementData`.
  */
 type InternalElementRecord<ElementData = unknown> = PickRequired<
   ElementRecord<ElementData>,
@@ -85,15 +85,15 @@ export type LinkRecord<
 > = LinkJSONInit & WithType<Type> & WithData<LinkData>;
 
 /**
- * Internal link record shape — what the store holds after JointJS /
+ * Internal link record shape, what the store holds after JointJS /
  * `linkAttributes` defaults are applied. Reach via {@link Computed}
  * (`Computed<LinkRecord<MyData>>`); kept private so the public surface is a
  * single utility.
  *
  * Always populated by the framework:
- * - `source` — `dia.Link` defaults to `{}`.
- * - `target` — `dia.Link` defaults to `{}`.
- * - `data` — `linkAttributes` defaults to `{} as LinkData`.
+ * - `source`, `dia.Link` defaults to `{}`.
+ * - `target`, `dia.Link` defaults to `{}`.
+ * - `data`, `linkAttributes` defaults to `{} as LinkData`.
  */
 type InternalLinkRecord<LinkData = unknown> = PickRequired<
   LinkRecord<LinkData>,
@@ -119,7 +119,7 @@ export type CellRecord<
   | LinkRecord<LinkData, LinkType>;
 
 /**
- * Loose alias of `CellRecord` — `data` is `unknown`, `type` is any string.
+ * Loose alias of `CellRecord`, `data` is `unknown`, `type` is any string.
  * Use when you don't care about React-default `'element'` / `'link'`
  * discrimination (e.g. `initialCells` arrays mixing built-in shape types,
  * generic upper bounds in custom hooks).
@@ -128,7 +128,7 @@ export type CellRecord<
 export type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
 
 /**
- * Resolves any input cell shape to its internal store form — the variant with
+ * Resolves any input cell shape to its internal store form, the variant with
  * framework-populated fields (`id`, `position`, `size`, `angle`, `data` for
  * elements; `id`, `source`, `target`, `data` for links) required.
  *
@@ -179,13 +179,13 @@ export type CellId = DiaCell.ID;
 // ── Element Layout Aliases ──────────────────────────────────────────────────
 
 /**
- * Position of an element — alias for `dia.Point`.
+ * Position of an element, alias for `dia.Point`.
  * @group Types
  */
 export type ElementPosition = DiaPoint;
 
 /**
- * Size of an element — alias for `dia.Size`.
+ * Size of an element, alias for `dia.Size`.
  * @group Types
  */
 export type ElementSize = DiaSize;
@@ -235,7 +235,7 @@ export type CellInput<
 > = Element | Link | DiaCell;
 
 /**
- * Re-export of JointJS core's `dia.Graph.CellRef` — a cell id or `dia.Cell` instance.
+ * Re-export of JointJS core's `dia.Graph.CellRef`, a cell id or `dia.Cell` instance.
  * @group Types
  */
 export type CellRef = DiaGraph.CellRef;

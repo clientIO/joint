@@ -97,12 +97,12 @@ export class PaperStore {
    * Feature id that currently owns `paper.options.cellVisibility`, or `null`
    * when no feature owns it. While owned, the Paper component stops writing
    * `cellVisibility` onto the paper and instead routes
-   * {@link nativeCellVisibility} to the owner. Generic — the store has no
+   * {@link nativeCellVisibility} to the owner. Generic, the store has no
    * knowledge of which feature claims it.
    */
   private cellVisibilityOwner: string | null = null;
 
-  /** Link changes pending flush — populated by clearView, flushed in afterRender. */
+  /** Link changes pending flush, populated by clearView, flushed in afterRender. */
   private pendingLinkChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
 
   constructor(options: PaperStoreOptions) {
@@ -227,7 +227,7 @@ export class PaperStore {
    * the option on the paper so a feature (e.g. a virtual-rendering scroller)
    * can install its own callback without conflicting with the Paper
    * component's write. Idempotent for the same owner; a different owner takes
-   * over. Generic — no knowledge of the claiming feature.
+   * over. Generic, no knowledge of the claiming feature.
    * @param ownerId - The claiming feature's id.
    */
   public claimCellVisibility(ownerId: string): void {
@@ -251,7 +251,7 @@ export class PaperStore {
   /**
    * Notify the owning feature that the native `cellVisibility` callback
    * changed (e.g. the `<Paper>` prop updated), so it can re-apply it.
-   * Routed through the owner's {@link Feature.onCellVisibilityChange} hook —
+   * Routed through the owner's {@link Feature.onCellVisibilityChange} hook.
    * no separate listener registry. No-op when unowned or the owner provides
    * no hook.
    * @param cb - The refreshed native callback.

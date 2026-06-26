@@ -4,7 +4,7 @@ import { resolveLinkMarker, type LinkMarker } from '../theme/named-link-markers'
 
 /**
  * Visual/presentation attributes for a link line and its wrapper.
- * All properties are optional — empty strings let CSS variables from `theme.css` take over.
+ * All properties are optional, empty strings let CSS variables from `theme.css` take over.
  * @group Presets
  */
 export interface LinkStyle {

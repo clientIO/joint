@@ -7,7 +7,7 @@ import type { CellId, AnyCellRecord } from '../types/cell.types';
 export type Update<T> = ((previous: T | undefined) => T | undefined) | T;
 
 /**
- * Update payload for array-shaped state — replace or transform-from-previous.
+ * Update payload for array-shaped state, replace or transform-from-previous.
  * `Input` defaults to `T` (same type for read and write). Override it to
  * widen the write side, e.g. `ArrayUpdate<Record, Record | dia.Cell>`.
  */
@@ -24,7 +24,7 @@ export function getValue<T>(previous: T | undefined, updater: Update<T>): T | un
   return isUpdater(updater) ? updater(previous) : updater;
 }
 
-/** Read-only view of a cell container — supports reads, lookups, and subscriptions. */
+/** Read-only view of a cell container, supports reads, lookups, and subscriptions. */
 export interface ReadonlyContainer<Cell extends AnyCellRecord> {
   getVersion: () => number;
   getAll: () => readonly Cell[];
@@ -36,7 +36,7 @@ export interface ReadonlyContainer<Cell extends AnyCellRecord> {
   subscribeToAll: (listener: () => void) => () => void;
 }
 
-/** Mutable cell container — extends {@link ReadonlyContainer} with set/delete/reset operations. */
+/** Mutable cell container, extends {@link ReadonlyContainer} with set/delete/reset operations. */
 export interface Container<Cell extends AnyCellRecord> extends ReadonlyContainer<Cell> {
   set: (id: CellId, update: Update<Cell>) => void;
   delete: (id: CellId) => void;
@@ -68,7 +68,7 @@ export function asReadonlyContainer<Cell extends AnyCellRecord>(
  *
  * Backed by a mutable `items: T[]` array + `indexById: Map<id, number>` + a
  * monotonic `version` counter. Every mutation is O(1); `reset` is O(n) and is
- * a cold path. Delete uses swap-pop (unstable array order) — callers must
+ * a cold path. Delete uses swap-pop (unstable array order), callers must
  * not rely on insertion order for identity.
  */
 export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
@@ -210,18 +210,18 @@ export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
   };
 }
 
-/** Updater for atom values — always receives the current value (never undefined). */
+/** Updater for atom values, always receives the current value (never undefined). */
 export type AtomUpdate<T> = ((previous: T) => T) | T;
 
 /** Return type of {@link createAtom}. */
 export interface Atom<T> {
   /** Get the current value. */
   readonly get: () => T;
-  /** Alias for `get` — compatible with `useSyncExternalStore`. */
+  /** Alias for `get`, compatible with `useSyncExternalStore`. */
   readonly getSnapshot: () => T;
   /** Update the value. Accepts a new value or an updater function. Pass `sync` to notify synchronously. */
   readonly set: (update: AtomUpdate<T>, sync?: boolean) => void;
-  /** Alias for `set` — matches the old `createState` API during migration. */
+  /** Alias for `set`, matches the old `createState` API during migration. */
   readonly setState: (update: AtomUpdate<T>, sync?: boolean) => void;
   /** Subscribe to value changes. Returns an unsubscribe function. */
   readonly subscribe: (listener: () => void) => () => void;
@@ -231,7 +231,7 @@ export interface Atom<T> {
 
 /**
  * Creates a simple atomic value container with get/set/subscribe.
- * Items are immutable — the container replaces the value on each update.
+ * Items are immutable, the container replaces the value on each update.
  * @param initialValue - The initial value of the atom.
  */
 export function createAtom<T>(initialValue: T): Atom<T> {
@@ -258,7 +258,7 @@ export function createAtom<T>(initialValue: T): Atom<T> {
    * Updates the atom value and notifies listeners if the value changed.
    *
    * By default notifications are batched onto a microtask so cascading updates
-   * coalesce into a single React render. Pass `sync` to notify synchronously —
+   * coalesce into a single React render. Pass `sync` to notify synchronously.
    * required when the update happens inside an effect/commit and a
    * `useSyncExternalStore` subscriber must observe it deterministically (a
    * deferred notify can be dropped across StrictMode's unmount→remount churn).

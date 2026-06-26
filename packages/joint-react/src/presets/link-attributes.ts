@@ -17,7 +17,7 @@ export interface LinkPresetAttributes {
 }
 
 /**
- * Loose preset input — no `type` required. `dia.Link.Attributes` plus the
+ * Loose preset input, no `type` required. `dia.Link.Attributes` plus the
  * React preset extras (`style`, `labelMap`, `labelStyle`).
  */
 export interface LinkAttributes extends dia.Link.Attributes, LinkPresetAttributes {}

@@ -3,7 +3,7 @@ import type { PaperTarget } from '../types';
 import { isRef, isString } from './is';
 
 /**
- * Narrows an unknown value to a {@link PaperTarget} — a paper id string, a
+ * Narrows an unknown value to a {@link PaperTarget}, a paper id string, a
  * `dia.Paper` instance, or a `RefObject<dia.Paper>`. Used to discriminate
  * overloaded hook arguments (target vs handlers/options).
  * @param value - Candidate value.

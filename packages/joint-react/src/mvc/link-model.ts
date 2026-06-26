@@ -3,7 +3,7 @@ import { linkStyle } from '../presets/link-style';
 import type { PortalHostCell } from './paper.types';
 
 /**
- * Type discriminator for {@link LinkModel} — matches `dia.Cell.type` to
+ * Type discriminator for {@link LinkModel}, matches `dia.Cell.type` to
  * identify React-link cells when iterating the graph.
  * @group MVC
  */
@@ -34,7 +34,7 @@ export class LinkModel<
 > extends dia.Link<Attributes> implements PortalHostCell {
   /**
    * Selector of the node that serves as the React portal target inside this cell.
-   * Links render into their root `<g>` — the experimental `renderLink` mounts
+   * Links render into their root `<g>`, the experimental `renderLink` mounts
    * there when enabled. No dedicated portal group is kept in the markup so
    * React-less links stay lean.
    */

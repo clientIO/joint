@@ -107,8 +107,8 @@ function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []
 /**
  * Convert JSX into JointJS markup (static `dia.MarkupJSON`). Only intrinsic
  * SVG / HTML tags are emitted as nodes; component types are treated as
- * fragments — their children flow through but the wrapper itself is dropped.
- * No hooks, no state — purely static.
+ * fragments, their children flow through but the wrapper itself is dropped.
+ * No hooks, no state, purely static.
  * @param element JSX element.
  * @returns JointJS markup.
  * @example

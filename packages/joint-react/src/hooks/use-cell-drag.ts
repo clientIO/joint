@@ -68,10 +68,10 @@ const NOOP_CLEANUP = () => {};
 const NOOP_SUBSCRIBE = () => NOOP_CLEANUP;
 
 /**
- * Returns reactive drag state for the current cell. Self-contained — lazily
+ * Returns reactive drag state for the current cell. Self-contained, lazily
  * attaches paper event listeners on first subscription per paper.
  *
- * Only the dragged element re-renders — all other elements receive a frozen
+ * Only the dragged element re-renders, all other elements receive a frozen
  * idle reference.
  * Used inside `renderElement`.
  * @group Hooks

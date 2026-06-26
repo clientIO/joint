@@ -70,7 +70,7 @@ export function usePaperStore(paperId?: string): PaperStore | undefined {
 }
 
 /**
- * Result of {@link usePaper} — the paper instance and imperative actions.
+ * Result of {@link usePaper}, the paper instance and imperative actions.
  * @expand
  * @group Types
  */

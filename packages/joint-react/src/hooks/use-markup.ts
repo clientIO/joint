@@ -10,7 +10,7 @@ import { PORTAL_SELECTOR } from '../mvc/element-model';
  */
 export interface MagnetRefOptions {
   /**
-   * Whether the magnet is passive — only a valid connection target, not a source.
+   * Whether the magnet is passive, only a valid connection target, not a source.
    * When `false` (default), the magnet is `active` and links can start from it.
    */
   readonly passive?: boolean;
@@ -32,7 +32,7 @@ export interface MarkupApi {
   readonly selectorRef: (selector: string) => (node: Element | null) => void;
   /**
    * Returns a React ref callback that registers the node under the given selector name
-   * AND marks it as a JointJS magnet — a valid endpoint for link connections.
+   * AND marks it as a JointJS magnet, a valid endpoint for link connections.
    * @param selector - Unique selector name within the element (e.g. `'port-in'`, `'row-0'`).
    * @param options - Magnet behavior options.
    * @throws If `selector` equals the reserved portal selector name.

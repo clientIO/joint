@@ -2,13 +2,13 @@
  * Element size observer with stack-based multi-hook support.
  *
  * Tracks DOM element sizes via ResizeObserver and syncs them to the graph.
- * Multiple `useMeasureElement` hooks can target the same cell ID — only the
+ * Multiple `useMeasureElement` hooks can target the same cell ID, only the
  * most recently added (active) node is observed. When it unmounts, the
  * previous node in the stack becomes active again.
  *
  * Internal data structures:
- * - `observedStacksByCellId`  — `Map<CellId, ObservedElement[]>` (last = active)
- * - `activeObservedElementByDomNode` — `WeakMap` for O(1) lookup in the ResizeObserver callback
+ * - `observedStacksByCellId`, `Map<CellId, ObservedElement[]>` (last = active)
+ * - `activeObservedElementByDomNode`, `WeakMap` for O(1) lookup in the ResizeObserver callback
  */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell.types';

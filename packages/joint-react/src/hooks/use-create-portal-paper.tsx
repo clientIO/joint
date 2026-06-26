@@ -134,7 +134,7 @@ function createDefaultLinkCallback(defaultLink: DefaultLink | undefined) {
 
 /**
  * Portals custom link content into the resolved link view container.
- * Subscribes only to the link's `data` slice — source / target / endpoint
+ * Subscribes only to the link's `data` slice, source / target / endpoint
  * updates don't re-invoke the user renderer. If a renderer needs the full
  * link record (source/target/id), use `useCell()` or `useCellId()` from
  * inside it.

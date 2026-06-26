@@ -62,7 +62,7 @@ function PaperBase(
  * Renders the graph's elements and links, hosts user interactions
  * (selection, drag, link creation, zoom/pan), and lets you customize each
  * cell with your own React components. Mount inside a `<GraphProvider>` and
- * size it with CSS — the canvas fills its parent.
+ * size it with CSS. The canvas fills its parent.
  * @see {@link PaperProps} for the full prop surface.
  * @group Components
  */

@@ -153,9 +153,9 @@ export interface CanConnectOptions {
   readonly allowMultiLinks?: boolean;
   /**
    * Whether connecting to the root element (not a port/magnet) is allowed.
-   * - `true` — always allow root connections
-   * - `false` — never allow root (only ports/magnets)
-   * - `'auto'` — allow root only if the element has no ports
+   * - `true`, always allow root connections
+   * - `false`, never allow root (only ports/magnets)
+   * - `'auto'`, allow root only if the element has no ports
    * @default 'auto'
    */
   readonly allowRootConnection?: boolean | 'auto';

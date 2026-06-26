@@ -3,9 +3,9 @@ import type { LiteralUnion } from '../types/index';
 
 /**
  * Shape of a port.
- * - `'ellipse'` — ellipse
- * - `'rect'` — rectangle
- * - Any other string — interpreted as SVG path `d` commands
+ * - `'ellipse'`, ellipse
+ * - `'rect'`, rectangle
+ * - Any other string, interpreted as SVG path `d` commands
  * @group Types
  */
 export type ElementPortShape = LiteralUnion<'ellipse' | 'rect'>;

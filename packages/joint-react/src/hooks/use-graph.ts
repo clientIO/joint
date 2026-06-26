@@ -37,7 +37,7 @@ type TypedData<Data> = unknown extends Data ? never : Data;
  * - both sides typed → their union (narrow inside the updater)
  *
  * A cell id is opaque at the type level, so this cannot narrow element-vs-link
- * per call — it exposes the data shapes `useGraph` was told about.
+ * per call, it exposes the data shapes `useGraph` was told about.
  */
 type HandleCellData<Element extends ElementJSONInit, Link extends LinkJSONInit> = [
   TypedData<Element['data']> | TypedData<Link['data']>,
@@ -62,17 +62,17 @@ export interface GraphApi<
   readonly graph: dia.Graph;
   /**
    * Add or update a cell. Two forms:
-   * - `setCell(record)` — `record.id` names the target. Existing cell:
+   * - `setCell(record)`, `record.id` names the target. Existing cell:
    *   attributes merge over it. Missing cell: the cell is added.
-   * - `setCell(id, (prev) => next)` — updater form. The updater is invoked
+   * - `setCell(id, (prev) => next)`, updater form. The updater is invoked
    *   once with the real previous record. A nullish `id`, or an `id` with no
    *   matching cell, warns in dev and no-ops (use the direct form to add).
    */
   readonly setCell: SetCell<Element, Link>;
   /**
    * Set a single cell's `data` field. Two forms, both keyed by cell id:
-   * - `setCellData(id, data)` — replaces the cell's `data` with `data`.
-   * - `setCellData(id, (prev) => next)` — updater form; `prev` is the current
+   * - `setCellData(id, data)`, replaces the cell's `data` with `data`.
+   * - `setCellData(id, (prev) => next)`, updater form; `prev` is the current
    *   `data`, the return value replaces it (merge inside the updater for a
    *   partial update). A nullish `id`, or an `id` with no matching cell, warns
    *   in dev and no-ops.
@@ -80,7 +80,7 @@ export interface GraphApi<
    * The `data` type is derived from the `useGraph<Element, Link>` generics:
    * typed records flow through, otherwise it falls back to
    * `Record<string, unknown>`. A cell id can't be narrowed to element-vs-link
-   * at the type level, so when both are typed the updater sees their union —
+   * at the type level, so when both are typed the updater sees their union.
    * narrow inside it. For a single fixed `data` shape, use the standalone
    * `useSetCellData<MyData>()` hook.
    */
@@ -103,14 +103,14 @@ export interface GraphApi<
   ) => void;
   /**
    * Predicate / type guard: true when the input resolves to an element cell.
-   * Delegates to `GraphStore.isElement` — consults the graph's type registry
+   * Delegates to `GraphStore.isElement`, consults the graph's type registry
    * so any `dia.Element` subclass (including custom shapes) is recognised,
    * not just our default `ElementModel`.
    */
   readonly isElement: (input: Element | Link) => input is Element;
   /**
    * Predicate / type guard: true when the input resolves to a link cell.
-   * Delegates to `GraphStore.isLink` — consults the graph's type registry so
+   * Delegates to `GraphStore.isLink`, consults the graph's type registry so
    * any `dia.Link` subclass (including custom shapes) is recognised, not just
    * our default `LinkModel`.
    */
@@ -123,7 +123,7 @@ export interface GraphApi<
    * except inside `attrs` at the third nesting level (e.g.
    * `attrs.text.textWrap: {}` is a meaningful reset marker in JointJS shapes
    * and must survive). Pass `{ includeDefaults: true }` to keep every
-   * attribute on every cell — no pruning is applied in that mode.
+   * attribute on every cell, no pruning is applied in that mode.
    */
   readonly exportToJSON: (options?: ExportToJSONOptions) => GraphJSON;
   /**
@@ -141,7 +141,7 @@ export interface GraphApi<
 export interface ExportToJSONOptions {
   /**
    * When `true`, every attribute is preserved (defaults included) and no
-   * empty-attribute pruning is applied. Defaults to `false` — minimal output:
+   * empty-attribute pruning is applied. Defaults to `false`, minimal output:
    * defaults stripped, empties pruned (except `attrs.*.*`).
    */
   readonly includeDefaults?: boolean;

@@ -8,11 +8,11 @@ import { mapLinkToAttributes } from './link-mapper';
  * Route a unified cell record to its JointJS attributes, preserving any
  * custom `type` that isn't the library default.
  *
- * Known element / link types — including any `dia.Element` or `dia.Link`
- * subclass registered in the graph's `cellNamespace` — go through the typed
+ * Known element / link types, including any `dia.Element` or `dia.Link`
+ * subclass registered in the graph's `cellNamespace`, go through the typed
  * mappers (`mapElementToAttributes` / `mapLinkToAttributes`) so that
  * declarative fields like `portMap`, `style`, and `labelMap` are expanded
- * correctly. Types the graph cannot classify pass through verbatim — the
+ * correctly. Types the graph cannot classify pass through verbatim, the
  * user-chosen `type` and attributes are authoritative.
  *
  * Classification is done via `graph.getTypeConstructor(type).prototype.isElement()`

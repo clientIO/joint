@@ -52,7 +52,7 @@ export function selectElementAngle(element: Computed<ElementRecord>): number {
 
 /**
  * Reads `element.data` typed as `ElementData`. Pass the type as an
- * instantiation: `useCell(selectElementData<NodeData>)` — TypeScript
+ * instantiation: `useCell(selectElementData<NodeData>)`, TypeScript
  * propagates `NodeData` through to the hook's `Selected` inference.
  * @group Selectors
  * @param element
@@ -93,9 +93,9 @@ export const selectCellId = (cell: Computed<CellRecord>) => cell.id;
 export const selectCellType = (cell: Computed<CellRecord>) => cell.type;
 
 /**
- * Reads the `parent` field — cell id of the embedding parent, or `null` for
+ * Reads the `parent` field, cell id of the embedding parent, or `null` for
  * top-level cells. The field lives on the record's index signature, so we
- * narrow it here for callers. Works for both elements and links — any cell
+ * narrow it here for callers. Works for both elements and links, any cell
  * can be embedded.
  * @group Selectors
  * @param cell
@@ -108,7 +108,7 @@ export const selectCellParent = (cell: Computed<CellRecord>): CellId | null =>
   cell.parent ?? null;
 
 /**
- * Reads the `layer` field — name of the JointJS layer the cell renders into,
+ * Reads the `layer` field, name of the JointJS layer the cell renders into,
  * or `null` when the cell uses the paper's default layer.
  * @group Selectors
  * @param cell
@@ -121,7 +121,7 @@ export const selectCellLayer = (cell: Computed<CellRecord>): string | null =>
   cell.layer ?? null;
 
 /**
- * Reads the `z` field — JointJS z-index (paint order within a layer).
+ * Reads the `z` field, JointJS z-index (paint order within a layer).
  * Falls back to `0` when the cell has no explicit z-index.
  * @group Selectors
  * @param cell

@@ -57,13 +57,13 @@ export type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSO
 
 /**
  * Function exposed by `GraphApi.setCell`. Three forms:
- * - `setCell(record)` — direct form. `record.id` names the target. Cell
+ * - `setCell(record)`, direct form. `record.id` names the target. Cell
  *   exists: attributes merge over it. Cell missing: cell is added.
- * - `setCell(diaCell)` — dia.Cell form. The cell is converted to a record
+ * - `setCell(diaCell)`, dia.Cell form. The cell is converted to a record
  *   and handled like the direct form.
- * - `setCell(id, updater)` — updater form. The updater is called once with the
+ * - `setCell(id, updater)`, updater form. The updater is called once with the
  *   real previous record. A nullish `id`, or an `id` with no matching cell,
- *   warns in dev and no-ops — pass the direct form to add a new cell.
+ *   warns in dev and no-ops, pass the direct form to add a new cell.
  * @template Element - element record shape
  * @template Link - link record shape
  * @group Types
@@ -127,7 +127,7 @@ export function useSetCell<
 
 /**
  * Updater form for `SetCellData`. Receives the cell's current `data` and
- * returns the next `data`. The return value replaces `data` wholesale — perform
+ * returns the next `data`. The return value replaces `data` wholesale, perform
  * a partial update by merging inside the updater
  * (`(prev) => ({ ...prev, ...patch })`).
  * @template Data - cell data shape
@@ -138,11 +138,11 @@ export type SetCellDataUpdater<Data> = (previousData: Data) => Data;
 /**
  * Function exposed by `GraphApi.setCellData` and returned by
  * {@link useSetCellData}. Two forms, both keyed by cell id:
- * - `setCellData(id, data)` — replaces the cell's `data` with `data`.
- * - `setCellData(id, (prev) => next)` — updater form; `prev` is the current
+ * - `setCellData(id, data)`, replaces the cell's `data` with `data`.
+ * - `setCellData(id, (prev) => next)`, updater form; `prev` is the current
  *   `data`, the return value replaces it.
  *
- * A nullish `id`, or an `id` with no matching cell, warns in dev and no-ops —
+ * A nullish `id`, or an `id` with no matching cell, warns in dev and no-ops.
  * updating data implies the cell is already on the graph (use `setCell` to add
  * a new one). The updater overload is listed first so a function argument
  * matches it; any non-function argument falls through to the direct form.
@@ -161,7 +161,7 @@ export interface SetCellData<Data = Record<string, unknown>> {
  * in dev and no-ops.
  *
  * Writes `data` directly on the `dia.Cell`, so JointJS fires `change:data` and
- * every React subscription resyncs — no full-record merge is involved.
+ * every React subscription resyncs, no full-record merge is involved.
  * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
  * @returns memoized setCellData setter
  */
@@ -191,7 +191,7 @@ export function useSetCellData<Data = Record<string, unknown>>(): SetCellData<Da
 /**
  * Returns a function that removes one cell by id or dia.Cell reference.
  * A nullish reference warns in dev and no-ops; a reference that resolves to no
- * cell is a silent no-op (removal is idempotent — the cell is already gone).
+ * cell is a silent no-op (removal is idempotent, the cell is already gone).
  * @returns memoized removeCell setter
  */
 export function useRemoveCell() {
@@ -241,10 +241,10 @@ export function useRemoveCells() {
 /**
  * Returns a function that atomically replaces all cells.
  * Accepts either a new array or an updater receiving the current snapshot.
- * Both records and dia.Cell instances are accepted — dia.Cell instances
+ * Both records and dia.Cell instances are accepted, dia.Cell instances
  * are normalized to records before mapping.
  * Maps the next cells through `mapCellToAttributes` and calls
- * `graph.resetCells` directly — equivalent to JointJS' bulk-reset semantics.
+ * `graph.resetCells` directly, equivalent to JointJS' bulk-reset semantics.
  * @template Element - element record shape
  * @template Link - link record shape
  * @returns memoized resetCells setter
@@ -268,7 +268,7 @@ export function useResetCells<
 
 /**
  * Returns a function that applies an updater to the current cells array.
- * Shorthand for `resetCells(prev => updater(prev))` — removals happen via `filter`.
+ * Shorthand for `resetCells(prev => updater(prev))`, removals happen via `filter`.
  * The updater may return dia.Cell instances alongside records; they are
  * normalized before applying.
  * @template Element - element record shape
