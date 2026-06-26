@@ -16,7 +16,7 @@ const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
  * implementing {@link PortalHostCell} can host React content; this one is
  * what `@joint/react` reaches for when no custom link class is provided.
  * Ships wrapper + line markup and mounts `renderLink` into the link's root
- * `<g>` (`portalSelector = 'root'`).
+ * `<g>`.
  * @group MVC
  * @example
  * ```ts
