@@ -21,7 +21,7 @@ const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 const EPSILON = 0.5;
 
 /** Element layout where width/height are required but x/y may be omitted. */
-export type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
+type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
   Partial<Pick<ElementLayout, 'x' | 'y'>>;
 
 /**
@@ -37,7 +37,9 @@ export interface TransformElementLayoutParams extends Required<ElementLayout> {
  * Callback function called when an element's size is measured.
  * Allows custom handling of size updates before they're applied to the graph.
  */
-export type TransformElementLayout = (params: TransformElementLayoutParams) => ElementLayoutOptionalXY;
+export type TransformElementLayout = (
+  params: TransformElementLayoutParams
+) => ElementLayoutOptionalXY;
 
 /**
  * Options for registering an element to be measured for size changes.

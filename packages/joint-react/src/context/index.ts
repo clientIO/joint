@@ -3,8 +3,6 @@ import type { CellId } from '../types/cell.types';
 import type { GraphStore, PaperStore } from '../store';
 import type { Feature } from '../types/feature.types';
 
-export type { Feature } from '../types/feature.types';
-
 // The context is deliberately untyped by ElementData/LinkData: consumers cast
 // to their own specialized GraphStore<E, L> at the call site.
 export const GraphStoreContext = createContext<GraphStore | null>(null);
@@ -16,7 +14,7 @@ export const CellIdContext = createContext<CellId | undefined>(undefined);
  * Callback stored in the features context for deferred feature creation.
  * @internal
  */
-export type DeferredFeatureCallback = (
+type DeferredFeatureCallback = (
   options:
     | {
         readonly graphStore: GraphStore;

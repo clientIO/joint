@@ -165,11 +165,11 @@ const graphSlice = createSlice({
 });
 
 // Export actions for use in components
-export const { addElement, removeLastElement, applyIncrementalCellsChange } = graphSlice.actions;
+const { addElement, removeLastElement, applyIncrementalCellsChange } = graphSlice.actions;
 
 // Export undo/redo actions from redux-undo
-export const undo = () => ActionCreators.undo();
-export const redo = () => ActionCreators.redo();
+const undo = () => ActionCreators.undo();
+const redo = () => ActionCreators.redo();
 
 // ============================================================================
 // STEP 3: Create Redux Store

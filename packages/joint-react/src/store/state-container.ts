@@ -209,7 +209,7 @@ export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
 }
 
 /** Updater for atom values — always receives the current value (never undefined). */
-export type AtomUpdate<T> = ((previous: T) => T) | T;
+type AtomUpdate<T> = ((previous: T) => T) | T;
 
 /** Return type of {@link createAtom}. */
 export interface Atom<T> {

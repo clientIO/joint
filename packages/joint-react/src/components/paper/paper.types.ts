@@ -57,7 +57,7 @@ export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
  * type-level change in JointJS propagates automatically. Anything not listed
  * here is reachable via the `options` escape hatch, never implicitly exposed.
  */
-export interface PaperSupportedOptions {
+interface PaperSupportedOptions {
   // ── Wrapped (structured) ─────────────────────────────────────────────────
 
   /**

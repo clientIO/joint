@@ -20,10 +20,10 @@ import { mapAttributesToLink } from './link-mapper';
  * @param next - freshly mapped record from the graph
  * @returns merged record; may be `previous` itself when nothing changed
  */
-export function mergeCellRecord<
-  Element extends ElementJSONInit,
-  Link extends LinkJSONInit,
->(previous: Element | Link | undefined, next: Element | Link): Element | Link {
+function mergeCellRecord<Element extends ElementJSONInit, Link extends LinkJSONInit>(
+  previous: Element | Link | undefined,
+  next: Element | Link
+): Element | Link {
   if (!previous) return next;
 
   const previousData = previous.data as object | undefined;
@@ -73,10 +73,9 @@ export function mergeCellRecord<
  * @param cell - graph cell
  * @returns CellRecord suitable for the cells container
  */
-export function toCellRecord<
-  Element extends ElementJSONInit,
-  Link extends LinkJSONInit,
->(cell: dia.Cell): Element | Link {
+export function toCellRecord<Element extends ElementJSONInit, Link extends LinkJSONInit>(
+  cell: dia.Cell
+): Element | Link {
   return cell.isElement()
     ? (mapAttributesToElement(cell.attributes) as Element)
     : (mapAttributesToLink(cell.attributes) as Link);

@@ -50,7 +50,7 @@ function writeMergedCell<Element extends ElementJSONInit, Link extends LinkJSONI
  * @template Element - element record shape
  * @template Link - link record shape
  */
-export type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
+type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
   previous: Element | Link
 ) => Element | Link;
 
@@ -130,7 +130,7 @@ export function useSetCell<
  * (`(prev) => ({ ...prev, ...patch })`).
  * @template Data - cell data shape
  */
-export type SetCellDataUpdater<Data> = (previousData: Data) => Data;
+type SetCellDataUpdater<Data> = (previousData: Data) => Data;
 
 /**
  * Function exposed by `GraphApi.setCellData` and returned by
