@@ -105,20 +105,19 @@ function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []
 }
 
 /**
- * Convert JSX element to JointJS markup.
+ * Convert JSX into JointJS markup (static `dia.MarkupJSON`). Only intrinsic
+ * SVG / HTML tags are emitted as nodes; component types are treated as
+ * fragments — their children flow through but the wrapper itself is dropped.
+ * No hooks, no state — purely static.
  * @param element JSX element.
  * @returns JointJS markup.
- *
- * This generate just static markup from JSX, it doesn't support dynamic components and hooks.
  * @example
  * ```tsx
- * function CustomComponent(props: Readonly<PropsWithChildren>) {
- *   return <div>{props.children}</div>;
- * }
  * const markup = jsx(
- *   <CustomComponent>
- *     <span>Hello</span>
- *   </CustomComponent>
+ *   <g joint-selector="root">
+ *     <rect width={80} height={40} fill="white" stroke="black" />
+ *     <text x={10} y={25}>Hello</text>
+ *   </g>
  * );
  * ```
  */
