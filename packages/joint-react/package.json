@@ -131,6 +131,7 @@
     "tinybench": "^6.0.0",
     "typedoc": "^0.28.5",
     "typedoc-github-theme": "^0.3.0",
+    "typedoc-plugin-markdown": "^4.6.4",
     "typescript": "^5.9.2",
     "vite": "^8",
     "vite-plugin-md": "0.22.5",
