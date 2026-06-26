@@ -1,9 +1,15 @@
 import type { dia } from '@joint/core';
 
-/** Name of an interaction being queried (e.g. `'elementMove'`, `'arrowheadMove'`). */
+/**
+ * Name of an interaction being queried (e.g. `'elementMove'`, `'arrowheadMove'`).
+ * @group Types
+ */
 export type CellInteraction = keyof dia.CellView.InteractivityOptions;
 
-/** Context passed to an `interactive` callback. */
+/**
+ * Context passed to an `interactive` callback.
+ * @group Types
+ */
 export interface CellInteractivityParams {
   /** The cell being interacted with. */
   readonly model: dia.Cell;
@@ -19,12 +25,16 @@ export interface CellInteractivityParams {
  * Function form of the `interactive` Paper prop. Receives a structured
  * context (instead of the native positional `(cellView, event)` form) and
  * returns either a boolean or the native `InteractivityOptions` object.
+ * @group Types
  */
 export type CellInteractivityCallback = (
   context: CellInteractivityParams
 ) => boolean | dia.CellView.InteractivityOptions;
 
-/** Value accepted by the `interactive` Paper prop. */
+/**
+ * Value accepted by the `interactive` Paper prop.
+ * @group Types
+ */
 export type CellInteractivity =
   | boolean
   | dia.CellView.InteractivityOptions

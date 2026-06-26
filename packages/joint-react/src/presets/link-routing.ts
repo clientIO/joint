@@ -28,6 +28,7 @@ import {
  * Bundle of paper-level link defaults (router, connector, anchor, connection point)
  * produced by a routing preset like {@link linkRoutingStraight} or
  * {@link linkRoutingOrthogonal}.
+ * @group Types
  */
 export interface LinkRouting {
   readonly defaultRouter?: dia.Paper.Options['defaultRouter'];
@@ -49,7 +50,10 @@ interface BaseLinkOptions {
   readonly markerSelector?: string;
 }
 
-/** Options for {@link linkRoutingStraight}. */
+/**
+ * Options for {@link linkRoutingStraight}.
+ * @group Types
+ */
 export interface LinkRoutingStraightOptions extends BaseLinkOptions {
   /** Corner style at vertices. Default: `'point'`. */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
@@ -61,7 +65,7 @@ export interface LinkRoutingStraightOptions extends BaseLinkOptions {
 
 /**
  * Straight-line links between elements.
- * The shortest path with no routing — a single line from source to target.
+ * The shortest path with no routing, a single line from source to target.
  * @param options
  */
 export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): LinkRouting {
@@ -84,7 +88,10 @@ export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): L
   };
 }
 
-/** Options for {@link linkRoutingOrthogonal}. */
+/**
+ * Options for {@link linkRoutingOrthogonal}.
+ * @group Types
+ */
 export interface LinkRoutingOrthogonalOptions extends BaseLinkOptions {
   /** Corner style. Default: `'cubic'`. */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
@@ -145,7 +152,10 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
   };
 }
 
-/** Options for {@link linkRoutingSmooth}. */
+/**
+ * Options for {@link linkRoutingSmooth}.
+ * @group Types
+ */
 export type LinkRoutingSmoothOptions = BaseLinkOptions;
 
 /**

@@ -21,7 +21,7 @@ function ensureDefaults(attributes: dia.Element.JSONInit): dia.Element.JSONInit 
 }
 
 /**
- * Convert a React element record to JointJS-ready cell attributes —
+ * Convert a React element record to JointJS-ready cell attributes.
  * applies preset transforms (`portMap` → native `ports`) and fills
  * framework defaults for `position` / `size` / `angle` / `data`.
  * @param element
@@ -36,7 +36,7 @@ export function mapElementToAttributes(element: ElementJSONInit): dia.Element.JS
  * - `portMap` on model → return `portMap` (ignore native `ports`).
  * - No `portMap` → return `ports` as-is.
  *
- * 1:1 mapping — no `presentation` wrapper.
+ * 1:1 mapping, no `presentation` wrapper.
  * @param attributes
  */
 export function mapAttributesToElement<ElementData = unknown>(

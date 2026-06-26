@@ -14,7 +14,7 @@ export default {
     parameters: makeRootDocumentation({
         code: CodeRaw,
         description:
-            'Zero-config element rendering using the built-in `DefaultHTMLHost` component. ' +
+            'Zero-config element rendering using the built-in `HTMLBox` component. ' +
             'Elements auto-size to fit their label. Pass `width`/`height` in element data to set an explicit size. ' +
             'Styled via `--jj-box-*` CSS variables from `styles.css`.',
     }),

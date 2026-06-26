@@ -1,9 +1,12 @@
 import type { dia, connectionStrategies } from '@joint/core';
 import { connectionStrategies as strategies } from '@joint/core';
 
-/** Structured context passed to a connection-strategy callback. */
+/**
+ * Structured context passed to a connection-strategy callback.
+ * @group Types
+ */
 export interface ConnectionStrategyParams {
-  /** The end JSON to return — starts as the dropped-end definition (already pinned if `pin` was set). */
+  /** The end JSON to return, starts as the dropped-end definition (already pinned if `pin` was set). */
   readonly end: dia.Link.EndJSON;
   /** The cell model the link end was dropped on. */
   readonly model: dia.Cell;
@@ -21,16 +24,22 @@ export interface ConnectionStrategyParams {
   readonly graph: dia.Graph;
 }
 
-/** Built-in pin mode — how the dropped end is stored. */
+/**
+ * Built-in pin mode, how the dropped end is stored.
+ * @group Types
+ */
 export type ConnectionStrategyPin = 'none' | 'absolute' | 'relative';
 
-/** Options for `connectionStrategy` — combines a pin mode with optional user customization. */
+/**
+ * Options for `connectionStrategy`, combines a pin mode with optional user customization.
+ * @group Types
+ */
 export interface ConnectionStrategyOptions {
   /**
    * How to pin the dropped end.
-   * - `'none'` — no pinning; delegates to `connectionStrategies.useDefaults` (default).
-   * - `'absolute'` — pins with `pinAbsolute` (anchor in paper coords).
-   * - `'relative'` — pins with `pinRelative` (anchor as % of target).
+   * - `'none'`, no pinning; delegates to `connectionStrategies.useDefaults` (default).
+   * - `'absolute'`, pins with `pinAbsolute` (anchor in paper coords).
+   * - `'relative'`, pins with `pinRelative` (anchor as % of target).
    * @default 'none'
    */
   readonly pin?: ConnectionStrategyPin;
@@ -38,7 +47,10 @@ export interface ConnectionStrategyOptions {
   readonly customize?: ConnectionStrategy;
 }
 
-/** Callback that decides how a dropped link end's JSON is stored. */
+/**
+ * Callback that decides how a dropped link end's JSON is stored.
+ * @group Types
+ */
 export type ConnectionStrategy = (context: ConnectionStrategyParams) => dia.Link.EndJSON;
 
 const PIN_STRATEGIES: Record<ConnectionStrategyPin, connectionStrategies.ConnectionStrategy> = {

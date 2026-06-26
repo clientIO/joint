@@ -25,16 +25,16 @@ function isSameLayout(a: LinkLayout | undefined, b: LinkLayout | undefined): boo
 }
 
 /**
- * Read the current link's rendered geometry from the paper it lives on —
+ * Read the current link's rendered geometry from the paper it lives on.
  * `{ sourceX, sourceY, targetX, targetY, d }`, where `d` is the serialised
  * SVG path computed by JointJS's `LinkView`.
  *
- * Paper-scoped because link geometry is not a property of the graph record —
+ * Paper-scoped because link geometry is not a property of the graph record.
  * a single link can appear on multiple papers (e.g. main canvas + minimap)
  * with different routing. The layout is read from the paper context via
  * `usePaperStore()` and re-read whenever the paper finishes a render pass
  * (JointJS's `render:done` event), which covers every case that can change
- * a link's geometry — drag, programmatic position change, source/target
+ * a link's geometry, drag, programmatic position change, source/target
  * reconnection, resize, etc.
  *
  * Must be called inside `renderLink` (or a component mounted from one) so
@@ -43,10 +43,11 @@ function isSameLayout(a: LinkLayout | undefined, b: LinkLayout | undefined): boo
  * not yet positioned.
  *
  * The snapshot is memoised by structural equality, which is required by
- * `useSyncExternalStore` — returning a fresh object on every read would
+ * `useSyncExternalStore`, returning a fresh object on every read would
  * trigger an infinite re-render loop because `Object.is` would see every
  * render as a store change.
  * @returns the current link's layout, or undefined when unavailable
+ * @experimental, depends on `renderLink`, which is itself experimental.
  */
 export function useLinkLayout(): LinkLayout | undefined {
   const id = useCellId();

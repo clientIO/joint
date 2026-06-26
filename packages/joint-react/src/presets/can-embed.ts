@@ -1,6 +1,9 @@
 import type { dia } from '@joint/core';
 
-/** Context passed to the `canEmbed` validate callback. */
+/**
+ * Context passed to the `canEmbed` validate callback.
+ * @group Types
+ */
 export interface ValidateEmbeddingParams {
   /** The element being embedded (dragged). */
   readonly child: { readonly id: dia.Cell.ID; readonly model: dia.Element };
@@ -12,7 +15,10 @@ export interface ValidateEmbeddingParams {
   readonly graph: dia.Graph;
 }
 
-/** Context passed to the `canUnembed` validate callback. */
+/**
+ * Context passed to the `canUnembed` validate callback.
+ * @group Types
+ */
 export interface ValidateUnembeddingParams {
   /** The element being unembedded. */
   readonly child: { readonly id: dia.Cell.ID; readonly model: dia.Element };
@@ -22,10 +28,16 @@ export interface ValidateUnembeddingParams {
   readonly graph: dia.Graph;
 }
 
-/** Callback that decides whether an element can be embedded into a parent. */
+/**
+ * Callback that decides whether an element can be embedded into a parent.
+ * @group Types
+ */
 export type ValidateEmbedding = (context: ValidateEmbeddingParams) => boolean;
 
-/** Callback that decides whether an element can be unembedded from its parent. */
+/**
+ * Callback that decides whether an element can be unembedded from its parent.
+ * @group Types
+ */
 export type ValidateUnembedding = (context: ValidateUnembeddingParams) => boolean;
 
 /**

@@ -4,7 +4,7 @@ import { useCells } from './use-cells';
 import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.types';
 
 /**
- * Read the current cell from the closest `CellIdContext` — the id is provided
+ * Read the current cell from the closest `CellIdContext`, the id is provided
  * by `<Paper />` around `renderElement` / `renderLink`. Use this inside a
  * render callback (or a component mounted from one) to access the full cell
  * record.
@@ -19,7 +19,7 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(): Ce
  * Read a selected slice from the current cell (context-scoped). Re-renders
  * only when `isEqual(prev, next)` returns false.
  *
- * Throws if no cell resolves — never returns `undefined`.
+ * Throws if no cell resolves, never returns `undefined`.
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell`)
  * @param selector - derive a value from the current resolved cell record
@@ -31,7 +31,7 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>, Selec
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 /**
- * Subscribe to a specific cell by id. Works anywhere — does not require
+ * Subscribe to a specific cell by id. Works anywhere, does not require
  * `CellIdContext`. Throws when the id does not resolve to a cell.
  *
  * Cannot be unified with the `(selector)` overload because the argument type
@@ -46,7 +46,7 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(
 ): Cell;
 /**
  * Subscribe to a specific cell by id and derive a value from it. Works
- * anywhere — does not require `CellIdContext`. Throws when the id does not
+ * anywhere, does not require `CellIdContext`. Throws when the id does not
  * resolve to a cell.
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell`)

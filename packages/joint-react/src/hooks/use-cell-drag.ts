@@ -37,9 +37,9 @@ interface CellDragStateIdle extends CellDragStateBase {
   isDragging: false;
 }
 /**
- * Union of active drag state and idle state. Always has the same shape,
- * with all fields defined, but some are only meaningful when `isDragging` is true.
- * `isDragging` false equal to idle state, not dragging.
+ * Drag state for the current cell. When `isDragging` is `true`, the active
+ * fields (`event`, `dropArea`, `canDrop`, `paper`, `graph`) carry the
+ * in-progress drag; when `false`, those fields are present but inert.
  * @group Types
  */
 export type CellDragState = CellDragStateDragging | CellDragStateIdle;
@@ -68,10 +68,10 @@ const NOOP_CLEANUP = () => {};
 const NOOP_SUBSCRIBE = () => NOOP_CLEANUP;
 
 /**
- * Returns reactive drag state for the current cell. Self-contained — lazily
+ * Returns reactive drag state for the current cell. Self-contained, lazily
  * attaches paper event listeners on first subscription per paper.
  *
- * Only the dragged element re-renders — all other elements receive a frozen
+ * Only the dragged element re-renders, all other elements receive a frozen
  * idle reference.
  * Used inside `renderElement`.
  * @group Hooks

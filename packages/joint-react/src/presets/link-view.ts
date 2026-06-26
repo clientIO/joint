@@ -9,8 +9,8 @@ export const SNAPPED_CLASS_NAME = 'jj-is-snapped';
 /**
  * Custom LinkView that adds CSS class hooks for link interaction states.
  *
- * - `jj-is-connecting` — while dragging an arrowhead (before snapping)
- * - `jj-is-snapped` — while the arrowhead is snapped to a valid target
+ * - `jj-is-connecting`, while dragging an arrowhead (before snapping)
+ * - `jj-is-snapped`, while the arrowhead is snapped to a valid target
  */
 export class LinkView extends dia.LinkView {
 

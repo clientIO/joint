@@ -38,6 +38,7 @@ function subscribeToGraphEvents(graph: dia.Graph, handlers: GraphEventMap): () =
 
 /**
  * The map of graph events to handlers accepted by {@link useOnGraphEvents}.
+ * @group Types
  */
 export type GraphEventMap = Partial<dia.Graph.EventMap>;
 
@@ -50,6 +51,14 @@ export type GraphEventMap = Partial<dia.Graph.EventMap>;
  * event names changes.
  * @param handlers - Event handlers map keyed by JointJS graph event names.
  * @group Hooks
+ * @example
+ * ```tsx
+ * useOnGraphEvents({
+ *   'add': (cell) => console.log('added', cell.id),
+ *   'remove': (cell) => console.log('removed', cell.id),
+ *   'change:position': (cell) => console.log('moved', cell.id),
+ * });
+ * ```
  */
 export function useOnGraphEvents(handlers: GraphEventMap): void;
 /**

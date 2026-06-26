@@ -22,7 +22,7 @@ import type { CellId, ElementRecord } from '../../../types/cell.types';
 export interface ElementItemProps {
   /**
    * Element renderer. Invoked as a JSX component with the element's `data`
-   * spread as props — so wrapping it in `React.memo` works (React calls the
+   * spread as props, so wrapping it in `React.memo` works (React calls the
    * memo wrapper, not the inner function). Use `useCell(c => c.id)` inside
    * the renderer when the id is needed.
    */
@@ -88,7 +88,7 @@ function useUnresolvedElement(id: CellId): ElementRecord {
 
 /**
  * SVG element portal component. Subscribes only to the element's `data`
- * slice — position and size are handled by JointJS's view transform and
+ * slice, position and size are handled by JointJS's view transform and
  * never cause a React re-render here. Clears cached views after
  * measurement to force re-render with correct dimensions.
  * @param props - render/portal props

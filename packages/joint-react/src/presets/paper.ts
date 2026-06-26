@@ -153,7 +153,7 @@ export const Paper = dia.Paper.extend({
 
   /**
    * Capture the pointer once a drag is confirmed by joint-core (the
-   * `isDragging` flag is set by every action-confirmed branch — element,
+   * `isDragging` flag is set by every action-confirmed branch, element,
    * link, label, arrowhead, magnet→link). Idempotent: once `captureTarget`
    * is set in the drag's `evt.data`, subsequent pointermoves skip.
    * @param event - The pointermove event from document delegation.

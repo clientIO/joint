@@ -11,7 +11,7 @@ import type { CellRecord } from '../types/cell.types';
  * Testing helper to create a new JointJS graph instance.
  * @returns A new JointJS graph.
  * @internal
- * @group utils
+ * @group Utils
  */
 export function getTestGraph() {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
@@ -21,7 +21,7 @@ export function getTestGraph() {
  * @param props - Props forwarded to the `GraphProvider` root component.
  * @returns A component that wraps children with `GraphProvider`.
  * @internal
- * @group utils
+ * @group Utils
  */
 export function graphProviderWrapper(props: GraphProviderProps): React.JSXElementConstructor<{
   children: React.ReactNode;
@@ -42,7 +42,7 @@ interface Options {
  * @param options.graphProps - Props for the `GraphProvider` root.
  * @returns A component that wraps children inside `GraphProvider` + `Paper`.
  * @internal
- * @group utils
+ * @group Utils
  */
 export function paperRenderElementWrapper(options: Options): React.JSXElementConstructor<{
   children: React.ReactNode;
@@ -90,7 +90,7 @@ export const simpleRenderElementWrapper = paperRenderElementWrapper({
  * @param options.graphProviderProps - Props for the `GraphProvider` root.
  * @returns A component that wraps children inside `GraphProvider` + `Paper` with renderLink.
  * @internal
- * @group utils
+ * @group Utils
  */
 export function paperRenderLinkWrapper(options: Options): React.JSXElementConstructor<{
   children: React.ReactNode;

@@ -5,28 +5,24 @@ import type { LINK_MODEL_TYPE } from '../mvc/link-model';
 type CellArrayMember<Cells> = Cells extends ReadonlyArray<infer Member> ? Member : Cells;
 
 /**
- * Infer the element record type from a cells collection — typically
- * `typeof cells`.
+ * Infer the element record type from a cells collection, typically
+ * `typeof cells`. Selects the member whose `type` is `'element'`, so a mixed
+ * array narrows to its element variant with the inferred `data` shape.
+ * Compose with `Computed` for reading hooks, or index `['data']` for the
+ * render-data type.
  *
- * Selects the member whose `type` is `'element'`, so a mixed array narrows to
- * its element variant (with the inferred `data`). Compose with `Computed` for
- * reading hooks, or index `['data']` for the render-data type.
- *
- * Custom shapes (a `type` other than `'element'`) are excluded — type the
+ * Custom shapes (a `type` other than `'element'`) are excluded, type the
  * record union manually for those, as documented on `CellRecord`.
  * @group Utils
  * @example
  * ```ts
- * const cells: Array<ElementRecord<{ label: string }> | LinkRecord<{ weight: number }>> = [
+ * const cells = [
  *   { id: 'a', type: 'element', data: { label: 'A' } },
- *   { id: 'e', type: 'link', source: 'a', target: 'b', data: { weight: 2 } },
- * ];
+ *   { id: 'e', type: 'link', source: { id: 'a' }, target: { id: 'b' }, data: { weight: 2 } },
+ * ] as const;
  *
- * type Node = InferElement<typeof cells>;             // ElementRecord<{ label: string }>
- * type NodeData = InferElement<typeof cells>['data']; // { label: string }
- *
- * const renderElement: RenderElement<NodeData> = (data) => <text>{data.label}</text>;
- * useCell((node: Computed<Node>) => node.data.label);
+ * type Node = InferElement<typeof cells>;             // element variant of the union
+ * type NodeData = InferElement<typeof cells>['data']; // { label: 'A' }
  * ```
  */
 export type InferElement<Cells> = Extract<
@@ -35,13 +31,18 @@ export type InferElement<Cells> = Extract<
 >;
 
 /**
- * Infer the link record type from a cells collection — the link counterpart of
+ * Infer the link record type from a cells collection, the link counterpart of
  * {@link InferElement}. Selects the member whose `type` is `'link'`.
  * @group Utils
  * @example
  * ```ts
- * type Edge = InferLink<typeof cells>;          // LinkRecord<{ weight: number }>
- * type EdgeData = InferLink<typeof cells>['data'];
+ * const cells = [
+ *   { id: 'a', type: 'element', data: { label: 'A' } },
+ *   { id: 'e', type: 'link', source: { id: 'a' }, target: { id: 'b' }, data: { weight: 2 } },
+ * ] as const;
+ *
+ * type Edge = InferLink<typeof cells>;             // link variant of the union
+ * type EdgeData = InferLink<typeof cells>['data']; // { weight: 2 }
  * ```
  */
 export type InferLink<Cells> = Extract<

@@ -106,15 +106,23 @@ function getTextWrapStyles({
 }
 
 /**
- * Props for `SVGText` — combines native SVG `<text>` attributes with the
+ * Props for `SVGText`, combines native SVG `<text>` attributes with the
  * JointJS Vectorizer text options used for word-wrap and annotation rendering.
+ * @expand
+ * @group Types
  */
 export interface SVGTextProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
-  readonly eol?: string;
+  /** Box width for the `textWrap` pass. */
   readonly width?: number;
+  /** Box height for the `textWrap` pass. */
   readonly height?: number;
+  /**
+   * Enable word-wrapping using the Vectorizer break-text algorithm.
+   * Pass `true` for default behavior or an options object to fine-tune
+   * (ellipsis, break-word, max-line-count, …).
+   */
   readonly textWrap?: boolean | util.BreakTextOptions;
 }
 
@@ -219,13 +227,14 @@ function Component(props: SVGTextProps, ref: React.ForwardedRef<SVGTextElement>)
 }
 
 /**
- * SVGText component is a wrapper around the SVG text element that provides additional functionality for rendering text.
- * It uses the Vectorizer library to handle text rendering and annotations.
- * It allows you to specify various text options such as end-of-line characters, vertical alignment, line height, and more.
+ * SVG text wrapper with Vectorizer-powered rendering and annotations.
+ * Render anywhere under an SVG context.
+ *
+ * Supports end-of-line characters, vertical anchor, line height, and text
+ * wrapping via the Vectorizer text options.
  * @see Vectorizer
  * @see Vectorizer.TextOptions
  * @group Components
- * @returns The rendered SVG text element with the specified properties.
  * @example
  * Basic usage:
  * ```tsx
@@ -272,4 +281,6 @@ function Component(props: SVGTextProps, ref: React.ForwardedRef<SVGTextElement>)
  * }
  * ```
  */
-export const SVGText = forwardRef(Component);
+export const SVGText = forwardRef(Component) as (
+  props: SVGTextProps & { ref?: React.Ref<SVGTextElement | null> }
+) => React.ReactNode;

@@ -2,13 +2,13 @@
  * Element size observer with stack-based multi-hook support.
  *
  * Tracks DOM element sizes via ResizeObserver and syncs them to the graph.
- * Multiple `useMeasureElement` hooks can target the same cell ID — only the
+ * Multiple `useMeasureElement` hooks can target the same cell ID, only the
  * most recently added (active) node is observed. When it unmounts, the
  * previous node in the stack becomes active again.
  *
  * Internal data structures:
- * - `observedStacksByCellId`  — `Map<CellId, ObservedElement[]>` (last = active)
- * - `activeObservedElementByDomNode` — `WeakMap` for O(1) lookup in the ResizeObserver callback
+ * - `observedStacksByCellId`, `Map<CellId, ObservedElement[]>` (last = active)
+ * - `activeObservedElementByDomNode`, `WeakMap` for O(1) lookup in the ResizeObserver callback
  */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell.types';
@@ -20,12 +20,16 @@ const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // especially on Safari
 const EPSILON = 0.5;
 
-/** Element layout where width/height are required but x/y may be omitted. */
+/**
+ * Element layout where width/height are required but x/y may be omitted.
+ * @group Types
+ */
 export type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
   Partial<Pick<ElementLayout, 'x' | 'y'>>;
 
 /**
  * Options passed to the setSize callback when an element's size changes.
+ * @group Types
  */
 export interface TransformElementLayoutParams extends Required<ElementLayout> {
   /** The JointJS element instance */
@@ -36,11 +40,13 @@ export interface TransformElementLayoutParams extends Required<ElementLayout> {
 /**
  * Callback function called when an element's size is measured.
  * Allows custom handling of size updates before they're applied to the graph.
+ * @group Types
  */
 export type TransformElementLayout = (params: TransformElementLayoutParams) => ElementLayoutOptionalXY;
 
 /**
  * Options for registering an element to be measured for size changes.
+ * @group Types
  */
 export interface SetMeasuredNodeOptions {
   /** The DOM node (HTML or SVG) to observe for size changes */
@@ -80,6 +86,7 @@ interface Options {
  * Observer interface for tracking element size changes.
  * Uses ResizeObserver to automatically detect when DOM elements change size
  * and updates the corresponding graph elements.
+ * @group Types
  */
 export interface GraphStoreObserver {
   /**
