@@ -17,8 +17,8 @@ type CellArrayMember<Cells> = Cells extends ReadonlyArray<infer Member> ? Member
  * @example
  * ```ts
  * const cells = [
- *   { id: 'a', type: ELEMENT_MODEL_TYPE, data: { label: 'A' } },
- *   { id: 'e', type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' }, data: { weight: 2 } },
+ *   { id: 'a', type: 'element', data: { label: 'A' } },
+ *   { id: 'e', type: 'link', source: { id: 'a' }, target: { id: 'b' }, data: { weight: 2 } },
  * ] as const;
  *
  * type Node = InferElement<typeof cells>;             // element variant of the union
@@ -37,8 +37,8 @@ export type InferElement<Cells> = Extract<
  * @example
  * ```ts
  * const cells = [
- *   { id: 'a', type: ELEMENT_MODEL_TYPE, data: { label: 'A' } },
- *   { id: 'e', type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' }, data: { weight: 2 } },
+ *   { id: 'a', type: 'element', data: { label: 'A' } },
+ *   { id: 'e', type: 'link', source: { id: 'a' }, target: { id: 'b' }, data: { weight: 2 } },
  * ] as const;
  *
  * type Edge = InferLink<typeof cells>;             // link variant of the union
