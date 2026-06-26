@@ -10,7 +10,6 @@ import {
   useState,
   type RefObject,
   type ReactNode,
-  type ComponentType,
   useContext,
 } from 'react';
 import { createPortal } from 'react-dom';

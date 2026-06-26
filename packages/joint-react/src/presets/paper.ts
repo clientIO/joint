@@ -2,10 +2,7 @@ import { dia, highlighters, util } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
-import {
-  MagnetHighlighter,
-  MAGNET_HIGHLIGHTER_NAME,
-} from './magnet-highlighter';
+import { MagnetHighlighter, MAGNET_HIGHLIGHTER_NAME } from './magnet-highlighter';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -47,13 +44,13 @@ const DEFAULT_GRID_SIZE = 10;
 const DEFAULT_SNAP_RADIUS = 15;
 
 /** Applied to magnets highlighted as available link targets. */
-export const MAGNET_AVAILABLE_CLASS_NAME = 'jj-is-magnet-available';
+const MAGNET_AVAILABLE_CLASS_NAME = 'jj-is-magnet-available';
 
 /** Applied to elements highlighted as available link targets. */
-export const ELEMENT_AVAILABLE_CLASS_NAME = 'jj-is-element-available';
+const ELEMENT_AVAILABLE_CLASS_NAME = 'jj-is-element-available';
 
 /** Applied to the paper's host while a pointer drag is in progress. */
-export const DRAGGING_CLASS_NAME = 'jj-is-dragging';
+const DRAGGING_CLASS_NAME = 'jj-is-dragging';
 
 // Future improvement: this should sit on the dia.Paper prototype,
 // so it can be overridden by inheriting classes (e.g. Paper)
@@ -63,7 +60,7 @@ export const DEFAULT_HIGHLIGHTING = {
     options: {
       attrs: {
         strokeWidth: 1,
-        stroke: 'var(--jj-highlighter-connecting-color)'
+        stroke: 'var(--jj-highlighter-connecting-color)',
       },
       rx: 4,
       ry: 4,
@@ -114,8 +111,10 @@ const linkView = (
 };
 
 function getGridPatterns(): Record<string, dia.Paper.PatternOptions[]> {
-  // @ts-expect-error Accessing protected member to set default grid pattern colors
-  const patterns = util.cloneDeep(dia.Paper.gridPatterns as Record<string, dia.Paper.PatternOptions[]>);
+  const patterns = util.cloneDeep(
+    // @ts-expect-error Accessing protected member to set default grid pattern colors
+    dia.Paper.gridPatterns as Record<string, dia.Paper.PatternOptions[]>
+  );
   for (const pattern of Object.values(patterns)) {
     for (const subPattern of pattern) {
       if (!subPattern.color) continue;
@@ -125,107 +124,110 @@ function getGridPatterns(): Record<string, dia.Paper.PatternOptions[]> {
   return patterns;
 }
 
-export const Paper = dia.Paper.extend({
-  className: 'jj-paper joint-paper',
-  classNamePrefix: '',
-  documentEvents: POINTER_DOCUMENT_EVENTS,
+export const Paper = dia.Paper.extend(
+  {
+    className: 'jj-paper joint-paper',
+    classNamePrefix: '',
+    documentEvents: POINTER_DOCUMENT_EVENTS,
 
-  /**
-   * Add listeners that record the original pointerdown target into the
-   * drag's `evt.data`, so `pointermove` can use it as a `setPointerCapture`
-   * target. Three sources cover every drag-start path: `cell:pointerdown`
-   * (element / link / label), `element:magnet:pointerdown` (magnet drag),
-   * `blank:pointerdown` (drag from empty paper area).
-   */
-  startListening(this: dia.Paper) {
-    protectedProto.startListening.call(this);
-    const storePointerTarget = (_: unknown, event: dia.Event) => {
-      // On passive magnets `element:magnet:pointerdown` fires before `cell:pointerdown`;
-      // keep the magnet's target (more specific) and let the cell event bail.
-      if (this.eventData(event).pointerTarget) return;
-      this.eventData(event, { pointerTarget: event.target });
-    };
-    this.on({
-      'cell:pointerdown': storePointerTarget,
-      'element:magnet:pointerdown': storePointerTarget,
-    });
-  },
+    /**
+     * Add listeners that record the original pointerdown target into the
+     * drag's `evt.data`, so `pointermove` can use it as a `setPointerCapture`
+     * target. Three sources cover every drag-start path: `cell:pointerdown`
+     * (element / link / label), `element:magnet:pointerdown` (magnet drag),
+     * `blank:pointerdown` (drag from empty paper area).
+     */
+    startListening(this: dia.Paper) {
+      protectedProto.startListening.call(this);
+      const storePointerTarget = (_: unknown, event: dia.Event) => {
+        // On passive magnets `element:magnet:pointerdown` fires before `cell:pointerdown`;
+        // keep the magnet's target (more specific) and let the cell event bail.
+        if (this.eventData(event).pointerTarget) return;
+        this.eventData(event, { pointerTarget: event.target });
+      };
+      this.on({
+        'cell:pointerdown': storePointerTarget,
+        'element:magnet:pointerdown': storePointerTarget,
+      });
+    },
 
-  /**
-   * Capture the pointer once a drag is confirmed by joint-core (the
-   * `isDragging` flag is set by every action-confirmed branch, element,
-   * link, label, arrowhead, magnet→link). Idempotent: once `captureTarget`
-   * is set in the drag's `evt.data`, subsequent pointermoves skip.
-   * @param event - The pointermove event from document delegation.
-   */
-  pointermove(this: dia.Paper, event: dia.Event) {
-    protectedProto.pointermove.call(this, event);
-    const data = this.eventData(event);
-    if (data.captureTarget) return;
-    if (!this.isDragging(event)) return;
-    const pointerId = getPointerId(event);
-    if (pointerId === null) return;
-    const target = data.pointerTarget instanceof Element ? data.pointerTarget : this.el;
-    this.el.classList.add(DRAGGING_CLASS_NAME);
-    try {
-      target.setPointerCapture(pointerId);
-      this.eventData(event, { captureTarget: target });
-    } catch {
-      // Capture can fail if the element isn't connected — safe to ignore;
-      // the drag still works via `documentEvents`.
-    }
-  },
-
-  /**
-   * Run the upstream pointerup handler, then release capture. Also runs on
-   * `pointercancel` (mapped to the same method via the events hash) so
-   * OS-stolen pointers don't leave listeners attached.
-   * @param event - The pointerup or pointercancel event.
-   */
-  pointerup(this: dia.Paper, event: dia.Event) {
-    const pointerId = getPointerId(event);
-    const captureTarget = this.eventData(event).captureTarget as Element | undefined;
-    protectedProto.pointerup.call(this, event);
-    if (!captureTarget || pointerId === null) return;
-    this.el.classList.remove(DRAGGING_CLASS_NAME);
-    if (captureTarget.hasPointerCapture?.(pointerId)) {
+    /**
+     * Capture the pointer once a drag is confirmed by joint-core (the
+     * `isDragging` flag is set by every action-confirmed branch — element,
+     * link, label, arrowhead, magnet→link). Idempotent: once `captureTarget`
+     * is set in the drag's `evt.data`, subsequent pointermoves skip.
+     * @param event - The pointermove event from document delegation.
+     */
+    pointermove(this: dia.Paper, event: dia.Event) {
+      protectedProto.pointermove.call(this, event);
+      const data = this.eventData(event);
+      if (data.captureTarget) return;
+      if (!this.isDragging(event)) return;
+      const pointerId = getPointerId(event);
+      if (pointerId === null) return;
+      const target = data.pointerTarget instanceof Element ? data.pointerTarget : this.el;
+      this.el.classList.add(DRAGGING_CLASS_NAME);
       try {
-        captureTarget.releasePointerCapture(pointerId);
+        target.setPointerCapture(pointerId);
+        this.eventData(event, { captureTarget: target });
       } catch {
-        // Ignored — release can fail if the element was already detached.
+        // Capture can fail if the element isn't connected — safe to ignore;
+        // the drag still works via `documentEvents`.
       }
-    }
-  },
+    },
 
-  options: {
-    ...dia.Paper.prototype.options,
-    // Required for React integration features:
-    async: true,
-    sorting: dia.Paper.sorting.APPROX,
-    frozen: true,
-    autoFreeze: true,
-    viewManagement: {
-      disposeHidden: true,
-      lazyInitialize: true,
+    /**
+     * Run the upstream pointerup handler, then release capture. Also runs on
+     * `pointercancel` (mapped to the same method via the events hash) so
+     * OS-stolen pointers don't leave listeners attached.
+     * @param event - The pointerup or pointercancel event.
+     */
+    pointerup(this: dia.Paper, event: dia.Event) {
+      const pointerId = getPointerId(event);
+      const captureTarget = this.eventData(event).captureTarget as Element | undefined;
+      protectedProto.pointerup.call(this, event);
+      if (!captureTarget || pointerId === null) return;
+      this.el.classList.remove(DRAGGING_CLASS_NAME);
+      if (captureTarget.hasPointerCapture?.(pointerId)) {
+        try {
+          captureTarget.releasePointerCapture(pointerId);
+        } catch {
+          // Ignored — release can fail if the element was already detached.
+        }
+      }
     },
-    // Defaults (overridable from constructor options)
-    preventDefaultBlankAction: false,
-    linkPinning: false,
-    gridSize: DEFAULT_GRID_SIZE,
-    markAvailable: true,
-    clickThreshold: DEFAULT_CLICK_THRESHOLD,
-    snapLinks: { radius: DEFAULT_SNAP_RADIUS },
-    highlighterNamespace: {
-      ...highlighters,
-      [MAGNET_HIGHLIGHTER_NAME]: MagnetHighlighter,
+
+    options: {
+      ...dia.Paper.prototype.options,
+      // Required for React integration features:
+      async: true,
+      sorting: dia.Paper.sorting.APPROX,
+      frozen: true,
+      autoFreeze: true,
+      viewManagement: {
+        disposeHidden: true,
+        lazyInitialize: true,
+      },
+      // Defaults (overridable from constructor options)
+      preventDefaultBlankAction: false,
+      linkPinning: false,
+      gridSize: DEFAULT_GRID_SIZE,
+      markAvailable: true,
+      clickThreshold: DEFAULT_CLICK_THRESHOLD,
+      snapLinks: { radius: DEFAULT_SNAP_RADIUS },
+      highlighterNamespace: {
+        ...highlighters,
+        [MAGNET_HIGHLIGHTER_NAME]: MagnetHighlighter,
+      },
+      highlighting: DEFAULT_HIGHLIGHTING,
+      drawGrid: true,
+      magnetThreshold: 'onleave',
+      ...linkRoutingStraight(),
+      measureNode,
+      linkView,
     },
-    highlighting: DEFAULT_HIGHLIGHTING,
-    drawGrid: true,
-    magnetThreshold: 'onleave',
-    ...linkRoutingStraight(),
-    measureNode,
-    linkView,
   },
-}, {
-  gridPatterns: getGridPatterns(),
-}) as typeof dia.Paper;
+  {
+    gridPatterns: getGridPatterns(),
+  }
+) as typeof dia.Paper;

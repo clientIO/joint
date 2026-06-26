@@ -36,6 +36,7 @@ export type LinkMarker = LinkMarkerName | LinkMarkerRecord;
  * Resolves a LinkMarker to a {@link LinkMarkerRecord} or null.
  * @param marker - The LinkMarker to resolve
  * @returns The resolved marker or null
+ * @group Presets
  */
 export function resolveLinkMarker(marker: LinkMarker | undefined): LinkMarkerRecord | null {
   if (marker === undefined || marker === 'none') return null;

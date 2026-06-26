@@ -318,7 +318,7 @@ describe('createContainer', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('defers execution via microtask', () => {
+    it('notifies synchronously on commit', () => {
       const container = setup();
       container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
       container.commitChanges();
@@ -329,7 +329,7 @@ describe('createContainer', () => {
       container.set('a', { id: 'a', x: 10, y: 20, type: 'item' });
       container.commitChanges();
 
-      expect(listener).not.toHaveBeenCalled();
+      expect(listener).toHaveBeenCalledTimes(1);
     });
   });
 

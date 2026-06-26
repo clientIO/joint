@@ -120,6 +120,7 @@ function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []
  *   </g>
  * );
  * ```
+ * @group Utils
  */
 export function jsx(element: JSX.Element): dia.MarkupJSON {
   return jsxToMarkupWithArray(element, []);

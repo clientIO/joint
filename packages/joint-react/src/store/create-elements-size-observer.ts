@@ -20,11 +20,8 @@ const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // especially on Safari
 const EPSILON = 0.5;
 
-/**
- * Element layout where width/height are required but x/y may be omitted.
- * @group Types
- */
-export type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
+/** Element layout where width/height are required but x/y may be omitted. */
+type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
   Partial<Pick<ElementLayout, 'x' | 'y'>>;
 
 /**
@@ -42,7 +39,9 @@ export interface TransformElementLayoutParams extends Required<ElementLayout> {
  * Allows custom handling of size updates before they're applied to the graph.
  * @group Types
  */
-export type TransformElementLayout = (params: TransformElementLayoutParams) => ElementLayoutOptionalXY;
+export type TransformElementLayout = (
+  params: TransformElementLayoutParams
+) => ElementLayoutOptionalXY;
 
 /**
  * Options for registering an element to be measured for size changes.

@@ -17,6 +17,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE, GraphStore } from '../src/store/graph-store';
+import { ELEMENT_MODEL_TYPE } from '../src/mvc/element-model';
+import { LINK_MODEL_TYPE } from '../src/mvc/link-model';
 import type { Cells, CellRecord } from '../src/types/cell.types';
 import { saveBenchResults } from './save-baseline';
 
@@ -39,7 +41,7 @@ function buildInitialCells(count: number): Cells {
   for (let index = 0; index < count; index++) {
     cells.push({
       id: `el-${index}`,
-      type: 'ElementModel',
+      type: ELEMENT_MODEL_TYPE,
       position: { x: index * 10, y: index * 10 },
       size: { width: 100, height: 50 },
     });
@@ -47,7 +49,7 @@ function buildInitialCells(count: number): Cells {
   for (let index = 0; index < count - 1; index++) {
     cells.push({
       id: `link-${index}`,
-      type: 'LinkModel',
+      type: LINK_MODEL_TYPE,
       source: { id: `el-${index}` },
       target: { id: `el-${index + 1}` },
     });
@@ -68,9 +70,11 @@ function createControlledScenario(count: number): ControlledScenario {
   const store = new GraphStore({
     graph,
     initialCells: cells,
-    onIncrementalCellsChange: () => {
-      counter.count += 1;
-    },
+  });
+  // `onIncrementalCellsChange` is registered via the setter (the path
+  // `GraphProvider` uses), not the constructor — it is not a constructor option.
+  store.setOnIncrementalCellsChange(() => {
+    counter.count += 1;
   });
 
   return { graph, store, cells, counter };
@@ -120,6 +124,11 @@ describe('controlled-mode benchmark: round-trip via GraphStore + onIncrementalCe
       logResults(bench);
       saveBenchResults(bench, `controlled/position-change/n=${size}`, baselinePath);
       expect(bench.tasks.length).toBe(1);
+      // Position changes are coalesced onto a microtask (simpleScheduler), so a
+      // burst of `cell.set('position')` collapses into a single React-facing
+      // notification — the scaling win this benchmark exists to exercise. Drain
+      // the scheduler so the round-trip callback is observed before asserting.
+      await new Promise((resolve) => setTimeout(resolve, 0));
       expect(scenario.counter.count).toBeGreaterThan(0);
     }, 60_000);
 

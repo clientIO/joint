@@ -64,7 +64,7 @@ export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
  * here is reachable via the `options` escape hatch, never implicitly exposed.
  * @group Types
  */
-export interface PaperSupportedOptions {
+interface PaperSupportedOptions {
   // ── Wrapped (structured) ─────────────────────────────────────────────────
 
   /**

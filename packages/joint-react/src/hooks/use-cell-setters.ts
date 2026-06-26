@@ -51,7 +51,7 @@ function writeMergedCell<Element extends ElementJSONInit, Link extends LinkJSONI
  * @template Link - link record shape
  * @group Types
  */
-export type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
+type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
   previous: Element | Link
 ) => Element | Link;
 
@@ -133,7 +133,7 @@ export function useSetCell<
  * @template Data - cell data shape
  * @group Types
  */
-export type SetCellDataUpdater<Data> = (previousData: Data) => Data;
+type SetCellDataUpdater<Data> = (previousData: Data) => Data;
 
 /**
  * Function exposed by `GraphApi.setCellData` and returned by
@@ -164,6 +164,7 @@ export interface SetCellData<Data = Record<string, unknown>> {
  * every React subscription resyncs, no full-record merge is involved.
  * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
  * @returns memoized setCellData setter
+ * @group Hooks
  */
 export function useSetCellData<Data = Record<string, unknown>>(): SetCellData<Data> {
   const store = useGraphStore();

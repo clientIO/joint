@@ -88,7 +88,7 @@ type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJS
  * @param props - GraphProvider props.
  * @returns The rendered graph context provider or null while loading.
  */
-function GraphBase(props: GraphProviderBaseInternalProps): React.ReactNode {
+function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.ReactNode {
   const {
     children,
     store,

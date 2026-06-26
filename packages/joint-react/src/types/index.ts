@@ -5,7 +5,7 @@
 export type LiteralUnion<T extends string> = T | (string & Record<never, never>);
 
 /** Strips the index signature from `T`, leaving only explicitly declared keys. */
-export type RemoveIndexSignature<T> = {
+type RemoveIndexSignature<T> = {
   [K in keyof T as string extends K ? never : K]: T[K];
 };
 

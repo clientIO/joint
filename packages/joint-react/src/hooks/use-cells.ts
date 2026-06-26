@@ -110,6 +110,7 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param collection - JointJS collection whose member IDs drive the subscription
  * @returns readonly resolved cells array filtered by collection membership
+ * @group Hooks
  */
 export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures

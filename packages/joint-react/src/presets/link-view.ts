@@ -4,7 +4,7 @@ import { dia } from '@joint/core';
 export const CONNECTING_CLASS_NAME = 'jj-is-connecting';
 
 /** Applied to a link view while its arrowhead is snapped to a valid target. */
-export const SNAPPED_CLASS_NAME = 'jj-is-snapped';
+const SNAPPED_CLASS_NAME = 'jj-is-snapped';
 
 /**
  * Custom LinkView that adds CSS class hooks for link interaction states.
@@ -13,7 +13,6 @@ export const SNAPPED_CLASS_NAME = 'jj-is-snapped';
  * - `jj-is-snapped`, while the arrowhead is snapped to a valid target
  */
 export class LinkView extends dia.LinkView {
-
   _beforeArrowheadMove(data: unknown) {
     // @ts-expect-error Protected method override
     super._beforeArrowheadMove(data);

@@ -1,10 +1,7 @@
 import type { dia } from '@joint/core';
 
-/**
- * Name of an interaction being queried (e.g. `'elementMove'`, `'arrowheadMove'`).
- * @group Types
- */
-export type CellInteraction = keyof dia.CellView.InteractivityOptions;
+/** Name of an interaction being queried (e.g. `'elementMove'`, `'arrowheadMove'`). */
+type CellInteraction = keyof dia.CellView.InteractivityOptions;
 
 /**
  * Context passed to an `interactive` callback.
@@ -27,7 +24,7 @@ export interface CellInteractivityParams {
  * returns either a boolean or the native `InteractivityOptions` object.
  * @group Types
  */
-export type CellInteractivityCallback = (
+type CellInteractivityCallback = (
   context: CellInteractivityParams
 ) => boolean | dia.CellView.InteractivityOptions;
 
