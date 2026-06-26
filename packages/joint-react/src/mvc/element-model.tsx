@@ -17,7 +17,8 @@ export const PORTAL_SELECTOR = '__portal__';
  * Default element class used by `@joint/react`. Any `dia.Cell` subclass
  * implementing {@link PortalHostCell} can host React content; this one is
  * what `@joint/react` reaches for when no custom element class is provided.
- * Adds a dedicated `<g>` group to its markup where `renderElement` mounts.
+ * Adds a dedicated `<g>` group to its markup where `renderElement` mounts —
+ * placed under ports and highlighters by default, so they paint on top.
  * @group MVC
  * @example
  * ```ts
