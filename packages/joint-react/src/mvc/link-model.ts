@@ -12,10 +12,11 @@ export const LINK_MODEL_TYPE = 'link';
 const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
 
 /**
- * Default link class used by `@joint/react`. Any `dia.Link` subclass can host
- * React content; `LinkModel` is just what `@joint/react` reaches for when no
- * custom class is provided. Ships wrapper + line markup with the default
- * link style applied.
+ * Default link class used by `@joint/react`. Any `dia.Cell` subclass
+ * implementing {@link PortalHostCell} can host React content; this one is
+ * what `@joint/react` reaches for when no custom link class is provided.
+ * Ships wrapper + line markup and mounts `renderLink` into the link's root
+ * `<g>` (`portalSelector = 'root'`).
  * @group MVC
  * @example
  * ```ts

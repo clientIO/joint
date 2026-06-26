@@ -14,9 +14,11 @@ export const ELEMENT_MODEL_TYPE = 'element';
 export const PORTAL_SELECTOR = '__portal__';
 
 /**
- * Default element class used by `@joint/react`. Any `dia.Element` subclass
- * can host React content; `ElementModel` is just what `@joint/react` reaches
- * for when no custom class is provided.
+ * Default element class used by `@joint/react`. Any `dia.Cell` subclass
+ * implementing {@link PortalHostCell} can host React content; this one is
+ * what `@joint/react` reaches for when no custom element class is provided.
+ * Adds a dedicated `<g selector="__portal__">` group to its markup where
+ * `renderElement` mounts.
  * @group MVC
  * @example
  * ```ts
