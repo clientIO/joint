@@ -24,8 +24,10 @@ export interface PortalHostCell {
   readonly portalSelector?: string;
 }
 
-/** Context passed to a `PortalSelector` callback. */
-/** @group Types */
+/**
+ * Context passed to a `PortalSelector` callback.
+ * @group Types
+ */
 export interface PortalSelectorParams {
   /** The cell model. Has a `portalSelector` field when it opts into portal rendering. */
   readonly model: dia.Cell & PortalHostCell;

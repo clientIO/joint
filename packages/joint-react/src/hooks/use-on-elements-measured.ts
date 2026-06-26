@@ -5,8 +5,10 @@ import type { PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 import { useLatestRef } from './use-latest-ref';
 
-/** Payload delivered when paper-managed elements complete a measurement pass. */
-/** @group Types */
+/**
+ * Payload delivered when paper-managed elements complete a measurement pass.
+ * @group Types
+ */
 export interface ElementsMeasuredParams {
   /** True when this is the first measurement (all elements sized for the first time). */
   readonly isInitial: boolean;

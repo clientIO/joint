@@ -134,8 +134,10 @@ export interface GraphApi<
   readonly importFromJSON: (json: GraphJSON) => void;
 }
 
-/** Options accepted by `GraphApi.exportToJSON`. */
-/** @group Types */
+/**
+ * Options accepted by `GraphApi.exportToJSON`.
+ * @group Types
+ */
 export interface ExportToJSONOptions {
   /**
    * When `true`, every attribute is preserved (defaults included) and no

@@ -27,8 +27,10 @@ import type { PaperEventHandlers } from '../../presets/paper-events';
  */
 export type PaperTransform = string | DOMMatrix;
 
-/** Context passed to the `defaultLink` factory. */
-/** @group Types */
+/**
+ * Context passed to the `defaultLink` factory.
+ * @group Types
+ */
 export interface DefaultLinkParams {
   /** The source end of the connection being created. */
   readonly source: ConnectionEnd;

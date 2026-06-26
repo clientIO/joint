@@ -50,8 +50,10 @@ interface BaseLinkOptions {
   readonly markerSelector?: string;
 }
 
-/** Options for {@link linkRoutingStraight}. */
-/** @group Types */
+/**
+ * Options for {@link linkRoutingStraight}.
+ * @group Types
+ */
 export interface LinkRoutingStraightOptions extends BaseLinkOptions {
   /** Corner style at vertices. Default: `'point'`. */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
@@ -86,8 +88,10 @@ export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): L
   };
 }
 
-/** Options for {@link linkRoutingOrthogonal}. */
-/** @group Types */
+/**
+ * Options for {@link linkRoutingOrthogonal}.
+ * @group Types
+ */
 export interface LinkRoutingOrthogonalOptions extends BaseLinkOptions {
   /** Corner style. Default: `'cubic'`. */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';

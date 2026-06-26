@@ -85,7 +85,7 @@ type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJS
  * flow into the unparameterised `GraphStoreContext` without a variance cast.
  * The exported `GraphProvider` re-types this base to the caller's `<Element,
  * Link>` parameters.
- * @param props - GraphProvider props including optional forwarded ref.
+ * @param props - GraphProvider props.
  * @returns The rendered graph context provider or null while loading.
  */
 function GraphBase(props: GraphProviderBaseInternalProps): React.ReactNode {

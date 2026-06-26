@@ -570,22 +570,18 @@ export function WithHook() {
 }
 ```
 
-### b. Via ref (accessing paperCtx)
+### b. Via ref (accessing the JointJS Paper)
 
-`Paper` accepts a `ref` and exposes its instance/context via that ref. The instance (including the underlying JointJS Paper) can be accessed via the `paperCtx` property on the ref object. (For graph access, use the `useGraph()` hook from inside the provider tree — there is no ref on `GraphProvider`.)
+`Paper` forwards a `ref` to the underlying JointJS `dia.Paper` instance. Use it for imperative operations like `paper.scale`, `paper.translate`, `paper.fitToContent`, … (For graph access, use the `useGraph()` hook from inside the provider tree — there is no ref on `GraphProvider`.)
 
 ```tsx
 import { useEffect, useRef } from 'react';
-import type { PaperContext } from '@joint/react';
+import type { dia } from '@joint/core';
 
 export function WithRef() {
-  const paperRef = useRef<PaperContext | null>(null);
+  const paperRef = useRef<dia.Paper | null>(null);
   useEffect(() => {
-    // Access the Paper context (paperCtx) from the ref
-    const paperCtx = paperRef.current?.paperCtx;
-    // You can also access the JointJS Paper instance directly
-    const paper = paperCtx?.paper;
-    paper?.scale(2, 2);
+    paperRef.current?.scale(2, 2);
   }, []);
 
   return (

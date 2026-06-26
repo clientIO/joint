@@ -1,7 +1,9 @@
 import type { dia } from '@joint/core';
 
-/** Context passed to a `cellVisibility` callback. */
-/** @group Types */
+/**
+ * Context passed to a `cellVisibility` callback.
+ * @group Types
+ */
 export interface CellVisibilityParams {
   /** The cell whose visibility is being queried. */
   readonly model: dia.Cell;

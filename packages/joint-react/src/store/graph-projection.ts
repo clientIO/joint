@@ -183,8 +183,10 @@ export function graphProjection<
 }
 /* eslint-enable sonarjs/cognitive-complexity */
 
-/** Controller returned by {@link graphProjection}. */
-/** @group Types */
+/**
+ * Controller returned by {@link graphProjection}.
+ * @group Types
+ */
 export type GraphProjection<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,

@@ -51,47 +51,73 @@ type WithWheel<Params> = WithPointer<Params> & { readonly delta: number };
 // Pointer / hover / wheel context aliases
 // ============================================================================
 
-/** Pointer-style cell-level payload (down/move/up/click/dblclick/contextmenu). */
-/** @group Types */
+/**
+ * Pointer-style cell-level payload (down/move/up/click/dblclick/contextmenu).
+ * @group Types
+ */
 export type PointerCellEventParams = WithPointer<CellEventParams>;
-/** Pointer-style element-level payload. */
-/** @group Types */
+/**
+ * Pointer-style element-level payload.
+ * @group Types
+ */
 export type PointerElementEventParams = WithPointer<ElementEventParams>;
-/** Pointer-style link-level payload. */
-/** @group Types */
+/**
+ * Pointer-style link-level payload.
+ * @group Types
+ */
 export type PointerLinkEventParams = WithPointer<LinkEventParams>;
-/** Pointer-style blank-area payload — event + coords on empty paper area. */
-/** @group Types */
+/**
+ * Pointer-style blank-area payload — event + coords on empty paper area.
+ * @group Types
+ */
 export type PointerBlankEventParams = WithPointer<BaseContext>;
 
-/** Hover-style cell-level payload (mouseenter/leave/over/out). */
-/** @group Types */
+/**
+ * Hover-style cell-level payload (mouseenter/leave/over/out).
+ * @group Types
+ */
 export type HoverCellEventParams = WithHover<CellEventParams>;
-/** Hover-style element-level payload. */
-/** @group Types */
+/**
+ * Hover-style element-level payload.
+ * @group Types
+ */
 export type HoverElementEventParams = WithHover<ElementEventParams>;
-/** Hover-style link-level payload. */
-/** @group Types */
+/**
+ * Hover-style link-level payload.
+ * @group Types
+ */
 export type HoverLinkEventParams = WithHover<LinkEventParams>;
-/** Hover-style blank-area payload — event only on empty paper area. */
-/** @group Types */
+/**
+ * Hover-style blank-area payload — event only on empty paper area.
+ * @group Types
+ */
 export type HoverBlankEventParams = WithHover<BaseContext>;
 
-/** Wheel cell-level payload (mousewheel) — pointer + delta. */
-/** @group Types */
+/**
+ * Wheel cell-level payload (mousewheel) — pointer + delta.
+ * @group Types
+ */
 export type WheelCellEventParams = WithWheel<CellEventParams>;
-/** Wheel element-level payload. */
-/** @group Types */
+/**
+ * Wheel element-level payload.
+ * @group Types
+ */
 export type WheelElementEventParams = WithWheel<ElementEventParams>;
-/** Wheel link-level payload. */
-/** @group Types */
+/**
+ * Wheel link-level payload.
+ * @group Types
+ */
 export type WheelLinkEventParams = WithWheel<LinkEventParams>;
-/** Wheel blank-area payload — pointer + delta on empty paper area. */
-/** @group Types */
+/**
+ * Wheel blank-area payload — pointer + delta on empty paper area.
+ * @group Types
+ */
 export type WheelBlankEventParams = WithWheel<BaseContext>;
 
-/** Magnet payload — element-only, pointer + magnet SVG node + port/selector. */
-/** @group Types */
+/**
+ * Magnet payload — element-only, pointer + magnet SVG node + port/selector.
+ * @group Types
+ */
 export type MagnetEventParams = WithPointer<ElementEventParams> & {
   readonly magnet: DOMElement;
   /** The port ID, or `null` if the magnet is not on a port. */
@@ -104,20 +130,26 @@ export type MagnetEventParams = WithPointer<ElementEventParams> & {
 // Paper-level contexts
 // ============================================================================
 
-/** Paper-edge hover payload (`paper:mouseenter` / `paper:mouseleave`). */
-/** @group Types */
+/**
+ * Paper-edge hover payload (`paper:mouseenter` / `paper:mouseleave`).
+ * @group Types
+ */
 export type PaperHoverEventParams = BaseContext & { readonly event: dia.Event };
 
-/** Paper-level pan payload — `paper:pan` from touchpad / wheel pan. */
-/** @group Types */
+/**
+ * Paper-level pan payload — `paper:pan` from touchpad / wheel pan.
+ * @group Types
+ */
 export type PaperPanEventParams = BaseContext & {
   readonly event: dia.Event;
   readonly deltaX: number;
   readonly deltaY: number;
 };
 
-/** Paper-level pinch payload — `paper:pinch` from touchpad pinch gesture. */
-/** @group Types */
+/**
+ * Paper-level pinch payload — `paper:pinch` from touchpad pinch gesture.
+ * @group Types
+ */
 export type PaperPinchEventParams = BaseContext & {
   readonly event: dia.Event;
   readonly x: number;
@@ -125,32 +157,40 @@ export type PaperPinchEventParams = BaseContext & {
   readonly scale: number;
 };
 
-/** `translate` payload — paper translation. */
-/** @group Types */
+/**
+ * `translate` payload — paper translation.
+ * @group Types
+ */
 export type TranslateEventParams = BaseContext & {
   readonly translateX: number;
   readonly translateY: number;
   readonly options: unknown;
 };
 
-/** `scale` payload — paper scale. */
-/** @group Types */
+/**
+ * `scale` payload — paper scale.
+ * @group Types
+ */
 export type ScaleEventParams = BaseContext & {
   readonly scaleX: number;
   readonly scaleY: number;
   readonly options: unknown;
 };
 
-/** `resize` payload — paper dimensions. */
-/** @group Types */
+/**
+ * `resize` payload — paper dimensions.
+ * @group Types
+ */
 export type ResizeEventParams = BaseContext & {
   readonly width: number;
   readonly height: number;
   readonly options: unknown;
 };
 
-/** `transform` payload — paper SVG transform matrix. */
-/** @group Types */
+/**
+ * `transform` payload — paper SVG transform matrix.
+ * @group Types
+ */
 export type TransformEventParams = BaseContext & {
   readonly matrix: SVGMatrix;
   readonly options: unknown;

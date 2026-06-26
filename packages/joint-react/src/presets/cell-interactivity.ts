@@ -1,11 +1,15 @@
 import type { dia } from '@joint/core';
 
-/** Name of an interaction being queried (e.g. `'elementMove'`, `'arrowheadMove'`). */
-/** @group Types */
+/**
+ * Name of an interaction being queried (e.g. `'elementMove'`, `'arrowheadMove'`).
+ * @group Types
+ */
 export type CellInteraction = keyof dia.CellView.InteractivityOptions;
 
-/** Context passed to an `interactive` callback. */
-/** @group Types */
+/**
+ * Context passed to an `interactive` callback.
+ * @group Types
+ */
 export interface CellInteractivityParams {
   /** The cell being interacted with. */
   readonly model: dia.Cell;

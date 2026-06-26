@@ -1,8 +1,10 @@
 import type { dia, connectionStrategies } from '@joint/core';
 import { connectionStrategies as strategies } from '@joint/core';
 
-/** Structured context passed to a connection-strategy callback. */
-/** @group Types */
+/**
+ * Structured context passed to a connection-strategy callback.
+ * @group Types
+ */
 export interface ConnectionStrategyParams {
   /** The end JSON to return — starts as the dropped-end definition (already pinned if `pin` was set). */
   readonly end: dia.Link.EndJSON;
@@ -28,8 +30,10 @@ export interface ConnectionStrategyParams {
  */
 export type ConnectionStrategyPin = 'none' | 'absolute' | 'relative';
 
-/** Options for `connectionStrategy` — combines a pin mode with optional user customization. */
-/** @group Types */
+/**
+ * Options for `connectionStrategy` — combines a pin mode with optional user customization.
+ * @group Types
+ */
 export interface ConnectionStrategyOptions {
   /**
    * How to pin the dropped end.

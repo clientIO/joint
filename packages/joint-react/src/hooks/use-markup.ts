@@ -4,8 +4,10 @@ import { useCellId } from './use-cell-id';
 import type { dia } from '@joint/core';
 import { PORTAL_SELECTOR } from '../mvc/element-model';
 
-/** Options for `magnetRef`. */
-/** @group Types */
+/**
+ * Options for `magnetRef`.
+ * @group Types
+ */
 export interface MagnetRefOptions {
   /**
    * Whether the magnet is passive — only a valid connection target, not a source.
