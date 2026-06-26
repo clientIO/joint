@@ -240,10 +240,7 @@ function GraphWithRedux() {
   );
 
   return (
-    <GraphProvider
-      cells={cells}
-      onIncrementalCellsChange={handleIncrementalCellsChange}
-    >
+    <GraphProvider cells={cells} onIncrementalCellsChange={handleIncrementalCellsChange}>
       <ReduxConnectedPaperApp />
     </GraphProvider>
   );

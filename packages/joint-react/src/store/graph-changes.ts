@@ -85,9 +85,18 @@ export function graphChanges(options: Options) {
    * Records a cell change and notifies the change handler.
    * @param cell - The cell that changed.
    * @param type - Kind of change.
+   * @param sync - Notify synchronously instead of coalescing onto a microtask.
+   *   Used for `data` edits (`useSetCellData` / `useSetCell`) so a controlled
+   *   input bound to cell data updates in the same tick as the keystroke —
+   *   otherwise its caret jumps to the end. High-frequency changes (drags, bulk)
+   *   stay coalesced.
    */
-  function onCellEvent(cell: dia.Cell, type: 'change' | 'add' | 'remove') {
+  function onCellEvent(cell: dia.Cell, type: 'change' | 'add' | 'remove', sync = false) {
     changes.set(cell.id, { type, data: cell });
+    if (sync) {
+      options.onChanges({ changes, isInsideBatch: false });
+      return;
+    }
     onChanges({ changes, isInsideBatch: isInsideBatch() });
   }
 
@@ -98,7 +107,11 @@ export function graphChanges(options: Options) {
     'change',
     (cell: dia.Cell, { isUpdateFromReact }: JointJSEventOptions) => {
       if (isUpdateFromReact) return;
-      onCellEvent(cell, 'change');
+      // A `data` edit must notify synchronously (controlled inputs keep their
+      // caret); layout/other changes (drags) stay coalesced. Always coalesce
+      // inside a batch (a drag or a bulk op groups many changes).
+      const sync = cell.hasChanged('data') && !isInsideBatch();
+      onCellEvent(cell, 'change', sync);
     }
   );
   controller.listenTo(

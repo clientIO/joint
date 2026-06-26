@@ -154,32 +154,30 @@ export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
       return items.length;
     },
     commitChanges() {
-      simpleScheduler(() => {
-        if (changes.length === 0) {
-          return;
+      if (changes.length === 0) {
+        return;
+      }
+      const fired = new Set<CellId>();
+      for (const id of changes) {
+        if (fired.has(id)) continue;
+        fired.add(id);
+        const listenersForId = listeners.get(id);
+        if (!listenersForId) {
+          continue;
         }
-        const fired = new Set<CellId>();
-        for (const id of changes) {
-          if (fired.has(id)) continue;
-          fired.add(id);
-          const listenersForId = listeners.get(id);
-          if (!listenersForId) {
-            continue;
-          }
-          for (const listener of listenersForId) {
-            listener();
-          }
+        for (const listener of listenersForId) {
+          listener();
         }
-        if (previousSize !== items.length) {
-          previousSize = items.length;
-          for (const listener of sizeListeners) {
-            listener();
-          }
+      }
+      if (previousSize !== items.length) {
+        previousSize = items.length;
+        for (const listener of sizeListeners) {
+          listener();
         }
-        for (const listener of fullListeners) listener();
+      }
+      for (const listener of fullListeners) listener();
 
-        changes = [];
-      });
+      changes = [];
     },
     subscribe(id: CellId, listener: () => void) {
       let listenersForId = listeners.get(id);
@@ -258,11 +256,13 @@ export function createAtom<T>(initialValue: T): Atom<T> {
    * Updates the atom value and notifies listeners if the value changed.
    *
    * By default notifications are batched onto a microtask so cascading updates
-   * coalesce into a single React render. Pass `sync` to notify synchronously —
-   * required when the update happens inside an effect/commit and a
-   * `useSyncExternalStore` subscriber must observe it deterministically (a
-   * deferred notify can be dropped across StrictMode's unmount→remount churn).
-   * Never call with `sync` during React's render phase.
+   * coalesce into a single React render — and so a write that happens DURING
+   * render (e.g. a feature registering itself in `useCreateFeature`'s render
+   * path) does not synchronously setState another component. Pass `sync` to
+   * notify synchronously — required when the update happens inside an
+   * effect/commit and a `useSyncExternalStore` subscriber must observe it
+   * deterministically (a deferred notify can be dropped across StrictMode's
+   * unmount→remount churn). Never call with `sync` during React's render phase.
    * @param update - New value or a previous-state updater.
    * @param sync - Notify synchronously instead of on a microtask.
    */
