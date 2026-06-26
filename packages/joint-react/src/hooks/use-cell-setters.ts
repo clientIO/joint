@@ -157,7 +157,8 @@ export interface SetCellData<Data = Record<string, unknown>> {
 /**
  * Returns a function that sets a single cell's `data` field. Two forms:
  * `setCellData(id, data)` replaces wholesale; `setCellData(id, (prev) => next)`
- * uses an updater. Throws when the target cell does not exist.
+ * uses an updater. A nullish `id`, or an `id` with no matching cell, warns
+ * in dev and no-ops.
  *
  * Writes `data` directly on the `dia.Cell`, so JointJS fires `change:data` and
  * every React subscription resyncs — no full-record merge is involved.
