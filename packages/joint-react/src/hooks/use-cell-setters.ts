@@ -164,6 +164,7 @@ export interface SetCellData<Data = Record<string, unknown>> {
  * every React subscription resyncs, no full-record merge is involved.
  * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
  * @returns memoized setCellData setter
+ * @group Hooks
  */
 export function useSetCellData<Data = Record<string, unknown>>(): SetCellData<Data> {
   const store = useGraphStore();

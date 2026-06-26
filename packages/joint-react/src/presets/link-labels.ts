@@ -64,6 +64,7 @@ const defaultLabelStyle = {
  * ```ts
  * linkLabel({ text: 'Hello', color: '#333', position: 0.5 })
  * ```
+ * @group Presets
  */
 export function linkLabel(label: LinkLabel): dia.Link.Label {
   const {
@@ -164,6 +165,7 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
  * ```ts
  * linkLabels({ main: { text: 'Hello', fontSize: 12 } })
  * ```
+ * @group Presets
  */
 export function linkLabels(
   labels: Record<string, LinkLabel>,

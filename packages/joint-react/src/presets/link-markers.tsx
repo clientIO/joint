@@ -58,6 +58,7 @@ function defaults(options: LinkMarkerOptions = {}) {
 
 /**
  * Filled triangle marker for link endpoints. The classic directed-edge arrow.
+ * @group Presets
  */
 export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
@@ -75,6 +76,7 @@ export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Open chevron marker for link endpoints, two strokes meeting at a point,
  * no fill (no back edge).
+ * @group Presets
  */
 export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
@@ -92,6 +94,7 @@ export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerReco
 /**
  * Filled arrow marker with a concave (sunken) back edge, sharper, slimmer
  * silhouette than the plain `linkMarkerArrow`.
+ * @group Presets
  */
 export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
@@ -109,6 +112,7 @@ export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRe
 /**
  * Filled arrow marker with a split/quill back, the back edges form an open
  * V instead of meeting in a single point.
+ * @group Presets
  */
 export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
@@ -133,6 +137,7 @@ export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRec
 /**
  * Double arrow marker, two nested triangles, useful for "fast-forward" or
  * "strong direction" semantics.
+ * @group Presets
  */
 export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
@@ -152,6 +157,7 @@ export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRe
 
 /**
  * Circle marker for link endpoints. Pass `fill: 'none'` for an outline ring.
+ * @group Presets
  */
 export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
@@ -167,6 +173,7 @@ export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord 
 /**
  * Diamond marker for link endpoints, used in UML for aggregation/composition.
  * Pass `fill: 'none'` for an outline-only diamond (aggregation).
+ * @group Presets
  */
 export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
@@ -183,6 +190,7 @@ export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord
 /**
  * Vertical bar marker at the link endpoint, a neutral terminator that adds
  * a visual stop without implying direction.
+ * @group Presets
  */
 export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
@@ -198,6 +206,7 @@ export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Cross (X) marker centered at the link endpoint, typically used to mark
  * a forbidden or "no entry" connection.
+ * @group Presets
  */
 export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
@@ -212,6 +221,7 @@ export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
 
 /**
  * Fork marker, a reversed triangle, useful as a "return" or back-edge cap.
+ * @group Presets
  */
 export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
@@ -228,6 +238,7 @@ export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Fork marker with a closing vertical bar at the tip, a fork that
  * terminates on a solid wall.
+ * @group Presets
  */
 export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, fill, stroke, strokeWidth, className } = defaults(options);
@@ -247,6 +258,7 @@ export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerReco
 /**
  * Crow's foot marker for ER diagrams, denotes "many" cardinality on the
  * relation's end.
+ * @group Presets
  */
 export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
@@ -266,6 +278,7 @@ export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Crow's foot with circle marker for ER diagrams, denotes "many optional"
  * (zero-or-many) cardinality.
+ * @group Presets
  */
 export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
@@ -286,6 +299,7 @@ export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerR
 
 /**
  * Vertical bar marker for ER diagrams, denotes "one" (exactly-one) cardinality.
+ * @group Presets
  */
 export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
@@ -303,6 +317,7 @@ export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
 /**
  * Vertical bar with circle marker for ER diagrams, denotes "one optional"
  * (zero-or-one) cardinality.
+ * @group Presets
  */
 export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);
@@ -323,6 +338,7 @@ export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRe
 /**
  * Crow's foot with vertical bar marker for ER diagrams, denotes "one or
  * many" (at-least-one) cardinality.
+ * @group Presets
  */
 export function linkMarkerOneOrMany(options?: LinkMarkerOptions): LinkMarkerRecord {
   const { scale, stroke, strokeWidth, className } = defaults(options);

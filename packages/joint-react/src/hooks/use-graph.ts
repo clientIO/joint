@@ -154,6 +154,7 @@ export interface ExportToJSONOptions {
  *                    `Computed<ElementRecord<MyData>>` for read shapes)
  * @template Link - link record shape (use `LinkRecord<MyData>` /
  *                  `Computed<LinkRecord<MyData>>`)
+ * @group Hooks
  */
 export function useGraph<
   Element extends ElementJSONInit = ElementJSONInit,

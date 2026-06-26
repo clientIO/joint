@@ -51,6 +51,7 @@ const defaultLinkStyle: Readonly<Required<LinkStyle>> = {
  * Resolves stroke color/width, source/target markers, dash pattern, and the
  * `line` selector's CSS class.
  * @param style
+ * @group Presets
  */
 export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {
   const {
@@ -106,6 +107,7 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
  * SVG attributes for the link's hit-area (the invisible wrapper around the
  * visible line, used for pointer interaction), derived from a `LinkStyle`.
  * @param style
+ * @group Presets
  */
 export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {
   const {
@@ -135,6 +137,7 @@ export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVG
  * ```ts
  * const attrs = linkStyle({ color: '#333', width: 2, targetMarker: 'arrow' });
  * ```
+ * @group Presets
  */
 export function linkStyle(style: LinkStyle = {}): Record<string, Nullable<attributes.SVGAttributes>> {
   return {

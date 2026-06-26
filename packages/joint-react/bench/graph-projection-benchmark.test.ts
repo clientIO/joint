@@ -5,6 +5,8 @@ import path from 'node:path';
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE, GraphStore } from '../src/store/graph-store';
 import { graphProjection } from '../src/store/graph-projection';
+import { ELEMENT_MODEL_TYPE } from '../src/mvc/element-model';
+import { LINK_MODEL_TYPE } from '../src/mvc/link-model';
 import type { Cells, CellRecord } from '../src/types/cell.types';
 import { saveBenchResults } from './save-baseline';
 
@@ -20,7 +22,7 @@ function buildInitialCells(count: number): Cells {
   for (let index = 0; index < count; index++) {
     cells.push({
       id: `el-${index}`,
-      type: 'ElementModel',
+      type: ELEMENT_MODEL_TYPE,
       position: { x: index * 10, y: index * 10 },
       size: { width: 100, height: 50 },
     });
@@ -28,7 +30,7 @@ function buildInitialCells(count: number): Cells {
   for (let index = 0; index < count - 1; index++) {
     cells.push({
       id: `link-${index}`,
-      type: 'LinkModel',
+      type: LINK_MODEL_TYPE,
       source: { id: `el-${index}` },
       target: { id: `el-${index + 1}` },
     });
@@ -41,7 +43,7 @@ function populateGraph(graph: dia.Graph, count: number): void {
   for (let index = 0; index < count; index++) {
     jsons.push({
       id: `el-${index}`,
-      type: 'ElementModel',
+      type: ELEMENT_MODEL_TYPE,
       position: { x: index * 10, y: index * 10 },
       size: { width: 100, height: 50 },
     });
@@ -49,7 +51,7 @@ function populateGraph(graph: dia.Graph, count: number): void {
   for (let index = 0; index < count - 1; index++) {
     jsons.push({
       id: `link-${index}`,
-      type: 'LinkModel',
+      type: LINK_MODEL_TYPE,
       source: { id: `el-${index}` },
       target: { id: `el-${index + 1}` },
     });

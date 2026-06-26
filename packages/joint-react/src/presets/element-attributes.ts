@@ -26,6 +26,7 @@ export interface ElementAttributes extends dia.Element.Attributes, ElementPreset
  * supplied.
  * @param element - The element record to convert.
  * @returns JointJS-compatible cell attributes.
+ * @group Presets
  */
 export function elementAttributes(element: ElementAttributes): dia.Element.Attributes {
   if (!util.isObject(element)) {

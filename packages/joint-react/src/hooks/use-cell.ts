@@ -13,6 +13,7 @@ import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.
  * resolves to a cell in the store (e.g. deleted mid-render).
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @returns the current resolved cell record
+ * @group Hooks
  */
 export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(): Cell;
 /**

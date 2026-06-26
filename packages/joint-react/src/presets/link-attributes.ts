@@ -31,6 +31,7 @@ export interface LinkAttributes extends dia.Link.Attributes, LinkPresetAttribute
  * - Both `labelMap` and `labels` → throws.
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
+ * @group Presets
  */
 export function linkAttributes(link: LinkAttributes): dia.Link.Attributes {
   if (!util.isObject(link)) {

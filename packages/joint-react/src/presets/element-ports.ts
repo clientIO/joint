@@ -92,6 +92,7 @@ const defaultPortStyle = {
  * // Group-positioned (no cx/cy)
  * elementPort({ color: 'blue', shape: 'rect', width: 12, height: 12 })
  * ```
+ * @group Presets
  */
 export function elementPort(port: ElementPort): dia.Element.Port {
   const {
@@ -190,6 +191,7 @@ const PORT_GROUP = 'main';
  * ```ts
  * elementPorts({ out: { cx: 'calc(w)', cy: 'calc(h/2)' } })
  * ```
+ * @group Presets
  */
 export function elementPorts(ports: Record<string, ElementPort>, portStyle?: Partial<ElementPort>): {
   groups: Record<string, dia.Element.PortGroup>;

@@ -51,7 +51,7 @@
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
     "docs:typedoc": "typedoc --router group --out docs/api src",
     "docs:typedoc-md": "typedoc --plugin typedoc-plugin-markdown --router group --out docs/api-md src",
-    "bench": "jest --testMatch '<rootDir>/bench/**/*.{test,spec}.ts?(x)'"
+    "bench": "jest --selectProjects default --testMatch '<rootDir>/bench/**/*.{test,spec}.ts?(x)'"
   },
   "exports": {
     ".": {

@@ -67,6 +67,7 @@ export interface LinkRoutingStraightOptions extends BaseLinkOptions {
  * Straight-line links between elements.
  * The shortest path with no routing, a single line from source to target.
  * @param options
+ * @group Presets
  */
 export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): LinkRouting {
   const {
@@ -107,6 +108,7 @@ export interface LinkRoutingOrthogonalOptions extends BaseLinkOptions {
  * Orthogonal (right-angle) links between elements.
  * Routes links with horizontal and vertical segments only, avoiding element overlap.
  * @param options
+ * @group Presets
  */
 export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}): LinkRouting {
   const {
@@ -162,6 +164,7 @@ export type LinkRoutingSmoothOptions = BaseLinkOptions;
  * Smooth curved links between elements.
  * Renders links as bezier curves for a softer, more organic look.
  * @param options
+ * @group Presets
  */
 export function linkRoutingSmooth(options: LinkRoutingSmoothOptions = {}): LinkRouting {
   const {
