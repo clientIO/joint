@@ -36,7 +36,12 @@ export type InferElement<Cells> = Extract<
  * @group Utils
  * @example
  * ```ts
- * type Edge = InferLink<typeof cells>;          // link variant of the union
+ * const cells = [
+ *   { id: 'a', type: ELEMENT_MODEL_TYPE, data: { label: 'A' } },
+ *   { id: 'e', type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' }, data: { weight: 2 } },
+ * ] as const;
+ *
+ * type Edge = InferLink<typeof cells>;             // link variant of the union
  * type EdgeData = InferLink<typeof cells>['data']; // { weight: 2 }
  * ```
  */
