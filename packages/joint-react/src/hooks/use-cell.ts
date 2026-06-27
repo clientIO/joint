@@ -11,6 +11,7 @@ import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.
  *
  * Throws when used outside of a Paper render context, or when the id no longer
  * resolves to a cell in the store (e.g. deleted mid-render).
+ * @title Read the current cell
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @returns the current resolved cell record
  * @group Hooks
@@ -21,6 +22,7 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(): Ce
  * only when `isEqual(prev, next)` returns false.
  *
  * Throws if no cell resolves, never returns `undefined`.
+ * @title Select from the current cell
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell`)
  * @param selector - derive a value from the current resolved cell record
@@ -37,6 +39,7 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>, Selec
  *
  * Cannot be unified with the `(selector)` overload because the argument type
  * (`CellId` vs function) drives the return shape (record vs selected value).
+ * @title Read a cell by id
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param id - cell id to track
  * @returns the resolved cell record
@@ -49,6 +52,7 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * Subscribe to a specific cell by id and derive a value from it. Works
  * anywhere, does not require `CellIdContext`. Throws when the id does not
  * resolve to a cell.
+ * @title Select from a cell by id
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell`)
  * @param id - cell id to track

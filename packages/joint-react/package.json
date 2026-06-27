@@ -50,7 +50,7 @@
     "lint-fix": "yarn run lint --fix",
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
     "docs:typedoc": "typedoc --router group --out docs/api src",
-    "docs:typedoc-md": "typedoc --plugin typedoc-plugin-markdown --router group --out docs/api-md src",
+    "docs:typedoc-md": "typedoc --options typedoc.config.mjs",
     "bench": "jest --selectProjects default --testMatch '<rootDir>/bench/**/*.{test,spec}.ts?(x)'"
   },
   "exports": {

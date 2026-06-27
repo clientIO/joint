@@ -38,6 +38,8 @@ function subscribeToGraphEvents(graph: dia.Graph, handlers: GraphEventMap): () =
 
 /**
  * The map of graph events to handlers accepted by {@link useOnGraphEvents}.
+ * See [JointJS graph events](https://docs.jointjs.com/api/dia/Graph#events)
+ * for the available event names and their arguments.
  * @group Types
  */
 export type GraphEventMap = Partial<dia.Graph.EventMap>;
@@ -49,6 +51,7 @@ export type GraphEventMap = Partial<dia.Graph.EventMap>;
  * each event reads the current handler, so inline maps and closures need no
  * `useCallback`. Re-subscription happens only when the graph or the set of
  * event names changes.
+ * @title On the current graph
  * @param handlers - Event handlers map keyed by JointJS graph event names.
  * @group Hooks
  * @example
@@ -63,6 +66,7 @@ export type GraphEventMap = Partial<dia.Graph.EventMap>;
 export function useOnGraphEvents(handlers: GraphEventMap): void;
 /**
  * Subscribes to graph events on the given graph instance.
+ * @title On a specific graph
  * @param graph - Graph instance to subscribe on.
  * @param handlers - Event handlers map keyed by JointJS graph event names.
  * @group Hooks
