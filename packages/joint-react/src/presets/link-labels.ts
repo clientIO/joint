@@ -59,7 +59,7 @@ const defaultLabelStyle = {
 /**
  * Converts a simplified `LinkLabel` (text, color, position, …) into the JSON
  * shape JointJS expects in `link.labels`.
- * @param label
+ * @param label - the simplified link label to convert
  * @example
  * ```ts
  * linkLabel({ text: 'Hello', color: '#333', position: 0.5 })
@@ -159,8 +159,8 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
 
 /**
  * Converts a record of simplified LinkLabel definitions to an array of JointJS labels.
- * @param labels
- * @param labelStyle
+ * @param labels - map of label name to label definition
+ * @param labelStyle - optional style merged into every label
  * @example
  * ```ts
  * linkLabels({ main: { text: 'Hello', fontSize: 12 } })

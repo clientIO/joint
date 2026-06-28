@@ -26,6 +26,18 @@ export interface ElementAttributes extends dia.Element.Attributes, ElementPreset
  * supplied.
  * @param element - The element record to convert.
  * @returns JointJS-compatible cell attributes.
+ * @example
+ * ```tsx
+ * import { elementAttributes } from '@joint/react';
+ *
+ * const attrs = elementAttributes({
+ *   type: 'standard.Rectangle',
+ *   position: { x: 10, y: 20 },
+ *   size: { width: 120, height: 40 },
+ *   // React-preset shorthand: declarative ports
+ *   portMap: { in: { color: '#fff', cx: 0, cy: 0.5 } },
+ * });
+ * ```
  * @group Presets
  */
 export function elementAttributes(element: ElementAttributes): dia.Element.Attributes {
