@@ -27,16 +27,36 @@ export interface ElementAttributes extends dia.Element.Attributes, ElementPreset
  * @param element - The element record to convert.
  * @returns JointJS-compatible cell attributes.
  * @example
+ * Expand the declarative preset input into native attributes and hand them to
+ * a cell model:
  * ```tsx
- * import { elementAttributes } from '@joint/react';
+ * import { ElementModel, elementAttributes } from '@joint/react';
  *
- * const attrs = elementAttributes({
- *   type: 'standard.Rectangle',
- *   position: { x: 10, y: 20 },
- *   size: { width: 120, height: 40 },
- *   // React-preset shorthand: declarative ports
- *   portMap: { in: { color: '#fff', cx: 0, cy: 0.5 } },
- * });
+ * const element = new ElementModel(
+ *   elementAttributes({
+ *     type: 'standard.Rectangle',
+ *     position: { x: 10, y: 20 },
+ *     size: { width: 120, height: 40 },
+ *     portMap: { in: { color: '#fff', cx: 0, cy: 0.5 } }, // preset shorthand
+ *   })
+ * );
+ * ```
+ * @example
+ * Or build the defaults of a custom cell model class:
+ * ```tsx
+ * import { ElementModel, elementAttributes } from '@joint/react';
+ *
+ * class RectShape extends ElementModel {
+ *   defaults() {
+ *     return {
+ *       ...super.defaults(),
+ *       ...elementAttributes({
+ *         type: 'standard.Rectangle',
+ *         size: { width: 120, height: 40 },
+ *       }),
+ *     };
+ *   }
+ * }
  * ```
  * @group Presets
  */

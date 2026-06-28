@@ -32,16 +32,19 @@ export interface LinkAttributes extends dia.Link.Attributes, LinkPresetAttribute
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
  * @example
+ * Expand the declarative preset input into native attributes and hand them to
+ * a cell model:
  * ```tsx
- * import { linkAttributes } from '@joint/react';
+ * import { LinkModel, linkAttributes } from '@joint/react';
  *
- * const attrs = linkAttributes({
- *   source: { id: 'a' },
- *   target: { id: 'b' },
- *   // React-preset shorthand: line style + labels
- *   style: { color: '#333', width: 2 },
- *   labelMap: { mid: { text: 'edge', position: 0.5 } },
- * });
+ * const link = new LinkModel(
+ *   linkAttributes({
+ *     source: { id: 'a' },
+ *     target: { id: 'b' },
+ *     style: { color: '#333', width: 2 },           // preset shorthand
+ *     labelMap: { mid: { text: 'edge', position: 0.5 } },
+ *   })
+ * );
  * ```
  * @group Presets
  */
