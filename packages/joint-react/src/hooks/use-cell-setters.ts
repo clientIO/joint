@@ -56,7 +56,7 @@ type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> 
 ) => Element | Link;
 
 /**
- * Function exposed by `GraphApi.setCell`. Three forms:
+ * Function exposed by {@link GraphApi}.setCell. Three forms:
  * - `setCell(record)`, direct form. `record.id` names the target. Cell
  *   exists: attributes merge over it. Cell missing: cell is added.
  * - `setCell(diaCell)`, dia.Cell form. The cell is converted to a record
@@ -136,7 +136,7 @@ export function useSetCell<
 type SetCellDataUpdater<Data> = (previousData: Data) => Data;
 
 /**
- * Function exposed by `GraphApi.setCellData` and returned by
+ * Function exposed by {@link GraphApi}.setCellData and returned by
  * {@link useSetCellData}. Two forms, both keyed by cell id:
  * - `setCellData(id, data)`, replaces the cell's `data` with `data`.
  * - `setCellData(id, (prev) => next)`, updater form; `prev` is the current

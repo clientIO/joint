@@ -71,7 +71,7 @@ export function selectElementData<ElementData = unknown>(
 // ── Cell-level selectors (work for both elements and links) ───────────────
 
 /**
- * Reads `cell.id`. Note: `useCellId()` is cheaper when only the id is needed.
+ * Reads `cell.id`. Note: {@link useCellId}() is cheaper when only the id is needed.
  * @group Selectors
  * @param cell - the resolved cell record
  * @example

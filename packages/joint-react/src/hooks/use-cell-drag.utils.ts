@@ -1,9 +1,9 @@
 /**
- * Drag-tracking infrastructure for `useCellDrag()`.
+ * Drag-tracking infrastructure for {@link useCellDrag}().
  *
  * Architecture:
  *   WeakMap<dia.Paper, Atom<CellDragState>>
- *   , one atom per paper, lazily created on first `useCellDrag()` call.
+ *   , one atom per paper, lazily created on first {@link useCellDrag}() call.
  *   , garbage-collected when the paper is disposed (WeakMap).
  *
  *   WeakSet<dia.Paper>
@@ -13,7 +13,7 @@
  *       to the atom. Subsequent calls are no-ops.
  *   , Listeners are cleaned up when `paper.remove()` is called.
  *
- *   `useCellDrag()` (in use-dragging.ts) reads the atom via
+ *   {@link useCellDrag}() (in use-dragging.ts) reads the atom via
  *   `useSyncExternalStoreWithSelector`. Each element's selector derives
  *   `isDragging = snap.draggingCellId === myCellId`. Only the dragged
  *   element re-renders, non-dragged elements return a frozen IDLE ref.

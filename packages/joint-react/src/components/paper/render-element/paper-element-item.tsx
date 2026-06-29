@@ -62,7 +62,7 @@ function useElementDataSnapshot(id: CellId): Record<string, unknown> | undefined
  * portal wrappers can mount a 0×0 container synchronously rather than
  * crashing. Callers must tolerate optional `position` / `size`.
  *
- * Contrast with the public `useCell()` hook, which returns the
+ * Contrast with the public {@link useCell}() hook, which returns the
  * `Computed<ElementRecord>` (position/size/angle/data required) and throws
  * when the cell is missing.
  * @param id - cell id to subscribe to

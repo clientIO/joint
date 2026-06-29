@@ -32,7 +32,7 @@ type TypedData<Data> = unknown extends Data ? never : Data;
  * `data` type for the GraphApi's `setCellData`, derived from {@link useGraph}'s
  * `Element` / `Link` generics by reusing each record's `['data']`:
  * - both sides untyped → open `Record<string, unknown>` (keeps the no-generic
- *   `useGraph()` spreadable)
+ *   {@link useGraph}() spreadable)
  * - one side typed → that side's data
  * - both sides typed → their union (narrow inside the updater)
  *
@@ -135,7 +135,7 @@ export interface GraphApi<
 }
 
 /**
- * Options accepted by `GraphApi.exportToJSON`.
+ * Options accepted by {@link GraphApi}.exportToJSON.
  * @group Types
  */
 export interface ExportToJSONOptions {
