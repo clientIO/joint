@@ -6548,6 +6548,7 @@ __metadata:
     tinybench: "npm:^6.0.0"
     typedoc: "npm:^0.28.5"
     typedoc-github-theme: "npm:^0.3.0"
+    typedoc-plugin-markdown: "npm:^4.6.4"
     typescript: "npm:^5.9.2"
     use-sync-external-store: "npm:^1.6.0"
     vite: "npm:^8"
@@ -30436,6 +30437,15 @@ __metadata:
   peerDependencies:
     typedoc: ~0.28.0
   checksum: 10/55fb706cfa474a9fc27dbe43947ce61c9cc3443b5b24ab00ae7f18770852205e22e84b6098994fdb44dcbde05da88ddff475ef1b1c3eb408f8b726ceadcd0869
+  languageName: node
+  linkType: hard
+
+"typedoc-plugin-markdown@npm:^4.6.4":
+  version: 4.12.0
+  resolution: "typedoc-plugin-markdown@npm:4.12.0"
+  peerDependencies:
+    typedoc: 0.28.x
+  checksum: 10/218162f8d096dc46e47c6e841db1a978090fef644ccb7abbca69b7f9d367364592ac59b252a4e47340a2e9c6c433bf7d1287ed4c6be78188f8ba851560d74dc3
   languageName: node
   linkType: hard
 
