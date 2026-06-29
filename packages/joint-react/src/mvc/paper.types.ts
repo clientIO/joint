@@ -7,7 +7,7 @@ import type { CellId } from '../types/cell.types';
  * joint-react's portal rendering. Cells without a `portalSelector` are
  * skipped by default (unless a paper-level override is supplied).
  *
- * `ElementModel` and `LinkModel` satisfy this structurally; custom cell
+ * {@link ElementModel} and {@link LinkModel} satisfy this structurally; custom cell
  * classes can too:
  *
  * ```ts
@@ -25,7 +25,7 @@ export interface PortalHostCell {
 }
 
 /**
- * Context passed to a `PortalSelector` callback.
+ * Context passed to a {@link PortalSelector} callback.
  * @group Types
  */
 export interface PortalSelectorParams {

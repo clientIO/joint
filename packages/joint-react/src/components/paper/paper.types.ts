@@ -42,7 +42,7 @@ export interface DefaultLinkParams {
 
 /**
  * Value accepted by the Paper `defaultLink` prop, factory receiving
- * `DefaultLinkParams`, or a static `Partial<LinkRecord>`.
+ * {@link DefaultLinkParams}, or a static `Partial<LinkRecord>`.
  * @group Types
  */
 export type DefaultLink =
@@ -70,7 +70,7 @@ interface PaperSupportedOptions {
   /**
    * Defines the link created when the user starts dragging from a port or element.
    *
-   * Can be a factory function receiving connection context, a static `LinkRecord`,
+   * Can be a factory function receiving connection context, a static {@link LinkRecord},
    * or a `dia.Link` instance.
    */
   readonly defaultLink?: DefaultLink;
@@ -80,7 +80,7 @@ interface PaperSupportedOptions {
    *
    * - **Function**: custom validation with built-in rules (no self-loops, no link-to-link, no multi-links).
    *   Receives `{ source, target, endType, paper, graph }`.
-   * - **Object**: `CanConnectOptions` with built-in rules and optional `validate` callback.
+   * - **Object**: {@link CanConnectOptions} with built-in rules and optional `validate` callback.
    *
    * When omitted, defaults to `canConnect()` (no self-loops, no link-to-link, no multi-links).
    */
@@ -91,7 +91,7 @@ interface PaperSupportedOptions {
    *
    * - **Function**: receives `{ end, model, magnet, dropPoint, endType, link, paper, graph }`
    *   and returns the modified `EndJSON`.
-   * - **Object**: `ConnectionStrategyOptions` with `pin` preset and/or `customize` callback.
+   * - **Object**: {@link ConnectionStrategyOptions} with `pin` preset and/or `customize` callback.
    */
   readonly connectionStrategy?: ConnectionStrategyOptions | ConnectionStrategy;
 
@@ -172,8 +172,8 @@ interface PaperSupportedOptions {
   // ── Link routing bundle ──────────────────────────────────────────────────
   /**
    * Bundle of link routing defaults (router, connector, anchor, connection
-   * point). Use a preset (`linkRoutingStraight`, `linkRoutingOrthogonal`,
-   * `linkRoutingSmooth`) or pass a custom object of the same shape.
+   * point). Use a preset ({@link linkRoutingStraight}, {@link linkRoutingOrthogonal},
+   * {@link linkRoutingSmooth}) or pass a custom object of the same shape.
    *
    * `defaultLinkAnchor` is reachable via the `options` escape hatch.
    *
@@ -225,7 +225,7 @@ export type RenderElement<ElementData = unknown> = (data: ElementData) => ReactN
 
 /**
  * Render function for links. Receives the link's `data` slice only, same
- * performance rationale as `RenderElement`. Use `useCell()` (with an
+ * performance rationale as {@link RenderElement}. Use `useCell()` (with an
  * optional selector) inside the renderer when source / target / id are
  * needed.
  *
@@ -247,7 +247,7 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * reads the current handler, so inline arrows
  * (`onBlankContextMenu={() => …}`) are fine, no `useCallback` needed and no
  * re-subscription on render. For raw native event names or events without an
- * `on*` form (`render:done`, `cell:highlight`, …), use the `useOnPaperEvents`
+ * `on*` form (`render:done`, `cell:highlight`, …), use the {@link useOnPaperEvents}
  * hook.
  * @see https://docs.jointjs.com/api/dia/Paper
  * @expand
@@ -348,7 +348,7 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
    * Paper-level override for the React portal target selector.
    *
    * By default, each cell uses its own `portalSelector` field.
-   * `ElementModel` renders into its `'__portal__'` group, `LinkModel` into its
+   * {@link ElementModel} renders into its `'__portal__'` group, {@link LinkModel} into its
    * root `<g>`. Built-in JointJS shapes have no `portalSelector` field and
    * are skipped. Set this prop to force a single selector or a dynamic one
    * across all cells.

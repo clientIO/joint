@@ -8,11 +8,11 @@ type CellArrayMember<Cells> = Cells extends ReadonlyArray<infer Member> ? Member
  * Infer the element record type from a cells collection, typically
  * `typeof cells`. Selects the member whose `type` is `'element'`, so a mixed
  * array narrows to its element variant with the inferred `data` shape.
- * Compose with `Computed` for reading hooks, or index `['data']` for the
+ * Compose with {@link Computed} for reading hooks, or index `['data']` for the
  * render-data type.
  *
  * Custom shapes (a `type` other than `'element'`) are excluded, type the
- * record union manually for those, as documented on `CellRecord`.
+ * record union manually for those, as documented on {@link CellRecord}.
  * @group Types
  * @example
  * ```ts

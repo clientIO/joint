@@ -4,7 +4,7 @@ import { LINK_MODEL_TYPE } from '../mvc/link-model';
 
 /**
  * Check whether a type string denotes an element via the graph's type
- * registry. Falls back to the literal `ELEMENT_MODEL_TYPE` for the default.
+ * registry. Falls back to the literal {@link ELEMENT_MODEL_TYPE} for the default.
  * @param type - cell type name
  * @param graph - active graph
  * @returns true when the constructor for `type` extends `dia.Element`
@@ -17,7 +17,7 @@ export function isElementType(type: string, graph: dia.Graph): boolean {
 
 /**
  * Check whether a type string denotes a link via the graph's type registry.
- * Falls back to the literal `LINK_MODEL_TYPE` for the default.
+ * Falls back to the literal {@link LINK_MODEL_TYPE} for the default.
  * @param type - cell type name
  * @param graph - active graph
  * @returns true when the constructor for `type` extends `dia.Link`

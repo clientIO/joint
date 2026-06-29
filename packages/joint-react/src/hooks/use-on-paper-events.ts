@@ -23,8 +23,8 @@ export function subscribeToPaperEvents(
 
 /**
  * Subscribes to paper events. The paper argument is optional, when omitted
- * the hook reads the active paper from the surrounding `Paper` context (it
- * throws if no `Paper` context is available). Two key forms can be mixed in
+ * the hook reads the active paper from the surrounding {@link Paper} context (it
+ * throws if no {@link Paper} context is available). Two key forms can be mixed in
  * the same handlers map:
  *
  * **CamelCase form**: `on<Category><Event>` keys deliver a single params

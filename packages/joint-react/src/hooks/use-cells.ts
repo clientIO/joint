@@ -69,7 +69,7 @@ function pickCells<Cell extends AnyCellRecord>(
 }
 
 /**
- * Builds the next selector result for `useCells`. Module-scoped so the
+ * Builds the next selector result for {@link useCells}. Module-scoped so the
  * closure does not nest deeply inside `useCells.select`.
  */
 function computeNext<Cell extends AnyCellRecord, Selected>(

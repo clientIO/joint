@@ -83,10 +83,10 @@ export interface CreatePortalPaperResult {
 }
 
 /**
- * Resolves the `LinkModel` constructor from graph cell namespace.
+ * Resolves the {@link LinkModel} constructor from graph cell namespace.
  * @param graph - Graph instance with layer collection namespace.
- * @returns The `LinkModel` constructor from graph namespace.
- * @throws {Error} When `LinkModel` is missing in graph namespace.
+ * @returns The {@link LinkModel} constructor from graph namespace.
+ * @throws {Error} When {@link LinkModel} is missing in graph namespace.
  */
 function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
   const Ctor = graph.getTypeConstructor(LINK_MODEL_TYPE) as LinkModelConstructor | undefined;
@@ -99,7 +99,7 @@ function getLinkModelConstructor(graph: dia.Graph): LinkModelConstructor {
 
 /**
  * Creates a JointJS-compatible `defaultLink` callback from the React prop.
- * Wraps the user-facing `DefaultLinkParams` API and converts `LinkRecord` results
+ * Wraps the user-facing {@link DefaultLinkParams} API and converts {@link LinkRecord} results
  * into JointJS link model instances.
  * @param defaultLink
  */
@@ -171,9 +171,9 @@ function LinkItem({
 
 /**
  * The default element if the user doesn't provide a renderElement function.
- * Renders `data.label` inside an `HTMLBox`.
+ * Renders `data.label` inside an {@link HTMLBox}.
  * @param data - the element's user data slice
- * @returns A JSX element rendering the label inside an `HTMLBox` with default styling.
+ * @returns A JSX element rendering the label inside an {@link HTMLBox} with default styling.
  */
 const defaultRenderElement = (data: unknown) => {
   const label = (data as { label?: string } | undefined)?.label;

@@ -4,7 +4,7 @@ import { useCell } from '../hooks/use-cell';
 import { selectElementSize } from '../selectors';
 
 /**
- * Props accepted by `HTMLHost`. Inherits all standard `<div>` attributes.
+ * Props accepted by {@link HTMLHost}. Inherits all standard `<div>` attributes.
  * @expand
  * @group Types
  */
@@ -48,7 +48,7 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
  *
  * All props are spread onto the inner `<div>` (`children`, `style`,
  * `className`, event handlers, `data-*`, etc.). By default the host measures
- * its content via `useMeasureElement` and syncs the size back to the graph
+ * its content via {@link useMeasureElement} and syncs the size back to the graph
  * element; set `useModelGeometry` to skip measurement and use the element's
  * size from the model instead.
  *

@@ -4,13 +4,13 @@ import type { GraphStore } from '../store';
 import type { ElementJSONInit, LinkJSONInit } from '../types/cell.types';
 
 /**
- * Hook for accessing the `GraphStore` from a `GraphProvider`.
+ * Hook for accessing the `GraphStore` from a {@link GraphProvider}.
  * Each call site narrows the store's record shape via its own generics.
  * @template Element - element record shape (must extend `ElementAttributes`)
  * @template Link - link record shape (must extend `LinkAttributes`)
  * @group Hooks
  * @returns The JointJS graph store narrowed to the consumer's record shape.
- * @throws {Error} If used outside of a `GraphProvider`.
+ * @throws {Error} If used outside of a {@link GraphProvider}.
  */
 export function useGraphStore<
   Element extends ElementJSONInit = ElementJSONInit,

@@ -29,7 +29,7 @@ export type GraphJSON = dia.Graph.JSON;
 type TypedData<Data> = unknown extends Data ? never : Data;
 
 /**
- * `data` type for the GraphApi's `setCellData`, derived from `useGraph`'s
+ * `data` type for the GraphApi's `setCellData`, derived from {@link useGraph}'s
  * `Element` / `Link` generics by reusing each record's `['data']`:
  * - both sides untyped → open `Record<string, unknown>` (keeps the no-generic
  *   `useGraph()` spreadable)
@@ -37,7 +37,7 @@ type TypedData<Data> = unknown extends Data ? never : Data;
  * - both sides typed → their union (narrow inside the updater)
  *
  * A cell id is opaque at the type level, so this cannot narrow element-vs-link
- * per call, it exposes the data shapes `useGraph` was told about.
+ * per call, it exposes the data shapes {@link useGraph} was told about.
  */
 type HandleCellData<Element extends ElementJSONInit, Link extends LinkJSONInit> = [
   TypedData<Element['data']> | TypedData<Link['data']>,
@@ -105,14 +105,14 @@ export interface GraphApi<
    * Predicate / type guard: true when the input resolves to an element cell.
    * Delegates to `GraphStore.isElement`, consults the graph's type registry
    * so any `dia.Element` subclass (including custom shapes) is recognised,
-   * not just our default `ElementModel`.
+   * not just our default {@link ElementModel}.
    */
   readonly isElement: (input: Element | Link) => input is Element;
   /**
    * Predicate / type guard: true when the input resolves to a link cell.
    * Delegates to `GraphStore.isLink`, consults the graph's type registry so
    * any `dia.Link` subclass (including custom shapes) is recognised, not just
-   * our default `LinkModel`.
+   * our default {@link LinkModel}.
    */
   readonly isLink: (input: Element | Link) => input is Link;
   /**

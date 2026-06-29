@@ -38,7 +38,7 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>, Selec
  * `CellIdContext`. Throws when the id does not resolve to a cell.
  *
  * Cannot be unified with the `(selector)` overload because the argument type
- * (`CellId` vs function) drives the return shape (record vs selected value).
+ * ({@link CellId} vs function) drives the return shape (record vs selected value).
  * @title Read a cell by id
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param id - cell id to track

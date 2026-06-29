@@ -93,7 +93,7 @@ export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerReco
 
 /**
  * Filled arrow marker with a concave (sunken) back edge, sharper, slimmer
- * silhouette than the plain `linkMarkerArrow`.
+ * silhouette than the plain {@link linkMarkerArrow}.
  * @group Presets
  */
 export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRecord {

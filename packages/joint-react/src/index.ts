@@ -179,7 +179,7 @@ export type { MarkupApi, MagnetRefOptions } from './hooks/use-markup';
 // ---------
 
 /**
- * Cell selectors, pass to `useCell` / `useCells`
+ * Cell selectors, pass to {@link useCell} / {@link useCells}
  * @group Selectors
  */
 export {

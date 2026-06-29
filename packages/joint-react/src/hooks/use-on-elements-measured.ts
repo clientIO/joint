@@ -19,7 +19,7 @@ export interface ElementsMeasuredParams {
 }
 
 /**
- * Callback signature for `useOnElementsMeasured`.
+ * Callback signature for {@link useOnElementsMeasured}.
  * @group Types
  */
 export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;

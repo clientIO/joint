@@ -7,7 +7,7 @@ import type { PaperProps } from './paper.types';
 import { DEFAULT_PAPER_ID } from '../../mvc/paper';
 
 /**
- * Internal Paper implementation used by forwarded `Paper` component.
+ * Internal Paper implementation used by forwarded {@link Paper} component.
  * @param props - Paper component props.
  * @param forwardedRef - Ref receiving the created JointJS paper instance.
  * @returns JSX for paper host and portaled paper content.

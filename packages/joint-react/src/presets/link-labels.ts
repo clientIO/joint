@@ -57,7 +57,7 @@ const defaultLabelStyle = {
 } as const;
 
 /**
- * Converts a simplified `LinkLabel` (text, color, position, …) into the JSON
+ * Converts a simplified {@link LinkLabel} (text, color, position, …) into the JSON
  * shape JointJS expects in `link.labels`.
  * @param label - the simplified link label to convert
  * @example
