@@ -14,10 +14,6 @@ import sonarjsPlugin from 'eslint-plugin-sonarjs';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import tsEslint from 'typescript-eslint';
 
-import path from 'node:path';
-
-const tsConfigPath = path.resolve('./', 'tsconfig.json');
-
 /**
  * ESLint config to support all React files with .ts, .tsx extensions
  */
@@ -47,7 +43,9 @@ export const reactTsConfig = defineConfig([
                 ecmaVersion: 'latest',
                 ecmaFeatures: { jsx: true },
                 sourceType: 'module',
-                project: tsConfigPath,
+                // Resolve nearest `tsconfig.json` per file.
+                // - Lets type-aware linting work regardless of current working directory.
+                projectService: true,
             },
         },
         settings: {
@@ -160,6 +158,7 @@ export const reactTsConfig = defineConfig([
                         'expand',
                         'inline',
                         'hidden',
+                        'title',
                     ],
                 },
             ],
