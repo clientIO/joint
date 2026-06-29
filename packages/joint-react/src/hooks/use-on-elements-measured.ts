@@ -32,6 +32,7 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  *
  * The callback receives `{ isInitial: boolean }` to distinguish the
  * first measurement from subsequent ones.
+ * @title On the current paper
  * @param callback - Called each time element sizes are measured.
  * @group Hooks
  * @example
@@ -44,6 +45,13 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  * ```
  */
 export function useOnElementsMeasured(callback: OnElementsMeasured): void;
+/**
+ * Calls a callback when element sizes are measured, on a specific paper.
+ * @title On a specific paper
+ * @param paperTarget - Paper reference (string ID, dia.Paper instance, or ref).
+ * @param callback - Called each time element sizes are measured.
+ * @group Hooks
+ */
 export function useOnElementsMeasured(paperTarget: PaperTarget, callback: OnElementsMeasured): void;
 export function useOnElementsMeasured(
   paperTargetOrCallback: PaperTarget | OnElementsMeasured,

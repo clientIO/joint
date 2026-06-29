@@ -13,7 +13,7 @@ type CellArrayMember<Cells> = Cells extends ReadonlyArray<infer Member> ? Member
  *
  * Custom shapes (a `type` other than `'element'`) are excluded, type the
  * record union manually for those, as documented on `CellRecord`.
- * @group Utils
+ * @group Types
  * @example
  * ```ts
  * const cells = [
@@ -33,7 +33,7 @@ export type InferElement<Cells> = Extract<
 /**
  * Infer the link record type from a cells collection, the link counterpart of
  * {@link InferElement}. Selects the member whose `type` is `'link'`.
- * @group Utils
+ * @group Types
  * @example
  * ```ts
  * const cells = [

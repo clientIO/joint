@@ -54,12 +54,14 @@ export function subscribeToPaperEvents(
  * The `on*` params object omits the React-store `record`, to read the
  * record shape, call `useCell(id, selector)` from your own
  * component (the handler closure has access to the `id` it emits).
+ * @title On the current paper
  * @param handlers - Event handlers map.
  * @group Hooks
  */
 export function useOnPaperEvents(handlers: PaperEventMap): void;
 /**
  * Subscribes to paper events on the given paper target.
+ * @title On a specific paper
  * @param paperTarget - Paper reference (string ID, dia.Paper instance, or ref).
  * @param handlers - Event handlers map.
  * @group Hooks

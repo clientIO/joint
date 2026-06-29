@@ -107,6 +107,7 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
  * (`add`/`remove`/`reset`) and reads cell records from the GraphProvider's
  * container. Cells not in the graph (e.g. `ui.Clipboard` clones) fall back to
  * the collection's own `dia.Cell` instances, converted to records on demand.
+ * @title Subscribe to a collection
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param collection - JointJS collection whose member IDs drive the subscription
  * @returns readonly resolved cells array filtered by collection membership
@@ -118,6 +119,7 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
 ): readonly Cell[];
 /**
  * Subscribe to a collection's cells with a selector.
+ * @title Select from a collection
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type
  * @param collection - JointJS collection whose member IDs drive the subscription
@@ -138,12 +140,14 @@ export function useCells<
  *
  * Returned array reference is stable across data-only mutations (the internal
  * container mutates items in-place). Size changes produce a new snapshot token.
+ * @title Subscribe to all cells
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @returns readonly resolved cells array
  */
 export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(): readonly Cell[];
 /**
  * Subscribe to a single cell by id.
+ * @title Subscribe to a cell by id
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param id - cell id to track
  * @returns current resolved cell, or undefined when missing
@@ -156,6 +160,7 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * only to that id so unrelated mutations don't trigger re-renders. A nullish
  * `id` resolves to no cell, so the selector runs against `undefined`, handy
  * for optional selection state (`useCells(selectedId, ...)`) with no `?? ''`.
+ * @title Select from a cell by id
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell | undefined`)
  * @param id - cell id to track (nullish → selector receives `undefined`)
@@ -176,6 +181,7 @@ export function useCells<
  * (not the full container) so unrelated mutations don't trigger re-renders.
  * Returns the picked cells in the order they appear in `ids`; missing ids
  * are skipped. The array reference is stable when no picked cell changed.
+ * @title Subscribe to specific cells
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param ids - cell ids to track
  * @returns array of resolved cells (only those that exist; missing ids are skipped)
@@ -187,6 +193,7 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
 /**
  * Subscribe to a specific set of cells by id and derive a value from them.
  * Subscribes only to those ids; the selector receives the picked cells array.
+ * @title Select from specific cells
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param ids - cell ids to track
@@ -205,6 +212,7 @@ export function useCells<
 ): Selected;
 /**
  * Subscribe via a selector. Runs on every commit; return equal values to skip re-render.
+ * @title Subscribe via a selector
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param selector - derive a value from the resolved cells array

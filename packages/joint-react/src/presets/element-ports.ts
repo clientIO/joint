@@ -83,7 +83,7 @@ const defaultPortStyle = {
  *
  * When `cx`/`cy` are provided, the port uses absolute positioning.
  * When omitted, position is left to the port group (e.g. `'left'`, `'right'`).
- * @param port
+ * @param port - the simplified port definition to convert
  * @example
  * ```ts
  * // Absolute positioned
@@ -185,8 +185,8 @@ const PORT_GROUP = 'main';
 /**
  * Converts a record of simplified ElementPort definitions to the full JointJS ports object.
  * Each port gets absolute positioning under the `'main'` group.
- * @param ports
- * @param portStyle
+ * @param ports - map of port id to port definition
+ * @param portStyle - optional style merged into every port
  * @example
  * ```ts
  * elementPorts({ out: { cx: 'calc(w)', cy: 'calc(h/2)' } })

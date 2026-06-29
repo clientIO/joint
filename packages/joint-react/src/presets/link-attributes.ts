@@ -31,6 +31,21 @@ export interface LinkAttributes extends dia.Link.Attributes, LinkPresetAttribute
  * - Both `labelMap` and `labels` → throws.
  * @param link - The link record to convert.
  * @returns JointJS-compatible cell attributes.
+ * @example
+ * Expand the declarative preset input into native attributes and hand them to
+ * a cell model:
+ * ```tsx
+ * import { LinkModel, linkAttributes } from '@joint/react';
+ *
+ * const link = new LinkModel(
+ *   linkAttributes({
+ *     source: { id: 'a' },
+ *     target: { id: 'b' },
+ *     style: { color: '#333', width: 2 },           // preset shorthand
+ *     labelMap: { mid: { text: 'edge', position: 0.5 } },
+ *   })
+ * );
+ * ```
  * @group Presets
  */
 export function linkAttributes(link: LinkAttributes): dia.Link.Attributes {
