@@ -13,7 +13,7 @@ type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> =
 >;
 
 /**
- * Props common to every `GraphProvider` mode.
+ * Props common to every {@link GraphProvider} mode.
  * @template ElementData - User data attached to each element record.
  * @template LinkData - User data attached to each link record.
  * @expand
@@ -40,7 +40,7 @@ export interface GraphProviderProps<
   readonly cellModel?: typeof dia.Cell;
   /**
    * Reference point that stays fixed when an auto-sized element's measured
-   * size changes (via `useMeasureElement`). Mirrors CSS `transform-origin` semantics.
+   * size changes (via {@link useMeasureElement}). Mirrors CSS `transform-origin` semantics.
    * - `'top-left'` (default): element grows right/down.
    * - `'center'`: element grows symmetrically, its geometric center stays put.
    *
@@ -83,7 +83,7 @@ type GraphProviderBaseInternalProps = GraphProviderProps<ElementJSONInit, LinkJS
  *
  * Operates exclusively on the base record shape so the runtime instance can
  * flow into the unparameterised `GraphStoreContext` without a variance cast.
- * The exported `GraphProvider` re-types this base to the caller's `<Element,
+ * The exported {@link GraphProvider} re-types this base to the caller's `<Element,
  * Link>` parameters.
  * @param props - GraphProvider props.
  * @returns The rendered graph context provider or null while loading.

@@ -66,7 +66,7 @@ export interface GraphStoreInternalSnapshot {
  * - `'top-left'` (default): element grows right/down, top-left stays put.
  * - `'center'`: element grows symmetrically, geometric center stays put.
  *
- * Only affects writes from the `useMeasureElement` pipeline. Manual `cell.resize()`,
+ * Only affects writes from the {@link useMeasureElement} pipeline. Manual `cell.resize()`,
  * interactive resize tools, and direct `cell.set('size', ...)` calls are unaffected.
  * @group Types
  */
@@ -266,7 +266,7 @@ export class GraphStore<
    *
    * Accepts a cell record, an existing cell id, or a bare type name. Falls
    * back to `graph.getTypeConstructor(type).prototype.isElement()` when the
-   * type is not our default `ElementModel`, so any `dia.Element` subclass
+   * type is not our default {@link ElementModel}, so any `dia.Element` subclass
    * registered in the cell namespace (`standard.Rectangle`, custom shapes,
    * etc.) is correctly recognised.
    * @param cell - cell record, cell id, or type name
@@ -282,7 +282,7 @@ export class GraphStore<
    *
    * Accepts a cell record, an existing cell id, or a bare type name. Falls
    * back to `graph.getTypeConstructor(type).prototype.isLink()` when the type
-   * is not our default `LinkModel`, so any `dia.Link` subclass registered in
+   * is not our default {@link LinkModel}, so any `dia.Link` subclass registered in
    * the cell namespace is correctly recognised.
    * @param cell - cell record, cell id, or type name
    * @returns `true` when the resolved type extends `dia.Link`

@@ -56,9 +56,9 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  *
  * **Anti-pattern, do not combine with `useCell(selectElementSize)`:**
  * Do not pair this hook with `useCell((cell) => cell.size)` (or the equivalent
- * `selectElementSize` selector) in the same component. This hook already
+ * {@link selectElementSize} selector) in the same component. This hook already
  * synchronizes the measured size to the graph element and returns the live
- * `width` / `height`. Reading the value back through `useCell` adds a redundant
+ * `width` / `height`. Reading the value back through {@link useCell} adds a redundant
  * subscription and an extra render. Prefer the returned `width`/`height` from
  * this hook directly.
  * @param nodeRef - A reference to the HTML or SVG element to measure. The element must be rendered
@@ -73,7 +73,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  * @throws {Error} If the cell is not a valid element.
  *
  * **Important:** Do not combine with `useCell((cell) => cell.size)` (or
- * `selectElementSize` / similar selectors) in the same component. This hook
+ * {@link selectElementSize} / similar selectors) in the same component. This hook
  * already synchronizes the measured size to the graph element. Use the
  * returned `width` / `height` from this hook directly rather than reading
  * the value back from the model, combining both creates a redundant

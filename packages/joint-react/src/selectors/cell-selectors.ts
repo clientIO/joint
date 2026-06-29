@@ -1,7 +1,7 @@
 import type { CellId, CellRecord, ElementRecord, Computed } from '../types/cell.types';
 
 /**
- * Selector helpers to pass into `useCell` / `useCells`.
+ * Selector helpers to pass into {@link useCell} / {@link useCells}.
  *
  * Each selector reads a single slice of the resolved record. The store
  * preserves slice reference identity across unrelated cell changes (see

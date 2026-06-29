@@ -3,7 +3,7 @@ import type { AnyCellRecord, CellId } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
 
 /**
- * Creates a self-managing subscription for the collection form of `useCells`.
+ * Creates a self-managing subscription for the collection form of {@link useCells}.
  *
  * Subscribes to each cell ID in the container (per-ID granularity) AND to
  * collection membership events (`add`/`remove`/`reset`). On membership

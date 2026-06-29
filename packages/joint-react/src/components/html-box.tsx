@@ -30,7 +30,7 @@ export type HTMLBoxProps = HTMLHostProps;
  *
  * Wraps {@link HTMLHost} (style-neutral foreignObject + measured div) and adds
  * the `jj-box` class for default styling via `--jj-box-*` CSS variables. All
- * props are forwarded to `HTMLHost`. Use `HTMLHost` directly when you want
+ * props are forwarded to {@link HTMLHost}. Use {@link HTMLHost} directly when you want
  * full control without default styles.
  * @example
  * ```tsx

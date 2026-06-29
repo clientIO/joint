@@ -69,7 +69,7 @@ function parseSelectorFirstArgs<Cell extends AnyCellRecord, Selected>(
 }
 
 /**
- * Classifies the runtime arguments of `useCells` into a normalised shape so
+ * Classifies the runtime arguments of {@link useCells} into a normalised shape so
  * the hook body can stay flat and cheap to read.
  * @param argument1 - first positional arg (id, ids, collection, or selector)
  * @param argument2 - second positional arg (selector or isEqual depending on form)

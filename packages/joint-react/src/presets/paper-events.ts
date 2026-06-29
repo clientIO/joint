@@ -469,7 +469,7 @@ function subscribeRaw(
  * returns a cleanup function that detaches everything. Pure JointJS adapter.
  * no React.
  *
- * `addPaperEventListeners` is the runtime that powers the React `useOnPaperEvents`
+ * `addPaperEventListeners` is the runtime that powers the React {@link useOnPaperEvents}
  * hook; it can also be used directly when wiring events outside React (e.g.
  * inside other presets, plugins, or non-React stencils).
  * @param paper - Target paper. The associated graph is read from `paper.model`.

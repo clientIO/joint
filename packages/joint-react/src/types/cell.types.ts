@@ -58,7 +58,7 @@ export type ElementRecord<
 
 /**
  * Internal element record shape, what the store holds after JointJS /
- * `elementAttributes` defaults are applied. Reach via {@link Computed}
+ * {@link elementAttributes} defaults are applied. Reach via {@link Computed}
  * (`Computed<ElementRecord<MyData>>`); kept private so the public surface is
  * a single utility.
  *
@@ -66,7 +66,7 @@ export type ElementRecord<
  * - `position`, `dia.Element` defaults to `{ x: 0, y: 0 }`.
  * - `size`, `dia.Element` defaults to `{ width: 1, height: 1 }`.
  * - `angle`, `dia.Element` defaults to `0`.
- * - `data`, `elementAttributes` defaults to `{} as ElementData`.
+ * - `data`, {@link elementAttributes} defaults to `{} as ElementData`.
  */
 type InternalElementRecord<ElementData = unknown> = PickRequired<
   ElementRecord<ElementData>,
@@ -86,14 +86,14 @@ export type LinkRecord<
 
 /**
  * Internal link record shape, what the store holds after JointJS /
- * `linkAttributes` defaults are applied. Reach via {@link Computed}
+ * {@link linkAttributes} defaults are applied. Reach via {@link Computed}
  * (`Computed<LinkRecord<MyData>>`); kept private so the public surface is a
  * single utility.
  *
  * Always populated by the framework:
  * - `source`, `dia.Link` defaults to `{}`.
  * - `target`, `dia.Link` defaults to `{}`.
- * - `data`, `linkAttributes` defaults to `{} as LinkData`.
+ * - `data`, {@link linkAttributes} defaults to `{} as LinkData`.
  */
 type InternalLinkRecord<LinkData = unknown> = PickRequired<
   LinkRecord<LinkData>,
@@ -119,7 +119,7 @@ export type CellRecord<
   | LinkRecord<LinkData, LinkType>;
 
 /**
- * Loose alias of `CellRecord`, `data` is `unknown`, `type` is any string.
+ * Loose alias of {@link CellRecord}, `data` is `unknown`, `type` is any string.
  * Use when you don't care about React-default `'element'` / `'link'`
  * discrimination (e.g. `initialCells` arrays mixing built-in shape types,
  * generic upper bounds in custom hooks).
@@ -145,10 +145,10 @@ export type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
  * | `Internal` (default)               | `Computed<CellRecord>`            |
  *
  * Custom records (with their own `type` literal that doesn't match
- * `ElementRecord` / `LinkRecord`) pass through unchanged so the store shape
+ * {@link ElementRecord} / {@link LinkRecord}) pass through unchanged so the store shape
  * can be composed: `Computed<CellRecord> | MyCustomRecord`.
  *
- * Reading hooks (`useCell`, `useCells`) yield the `Computed` variant so
+ * Reading hooks ({@link useCell}, {@link useCells}) yield the `Computed` variant so
  * consumers don't need `?? {}` / `?? 0` fallbacks for fields the store
  * always populates.
  * @example

@@ -64,7 +64,7 @@ export class PaperView extends Paper {
 
   /**
    * Mounts the paper DOM element into the provided host element.
-   * This is used by React wrappers (`Paper`, `PaperScroller`) to control where
+   * This is used by React wrappers ({@link Paper}, `PaperScroller`) to control where
    * JointJS paper DOM is attached.
    * @param element - The host element where paper should be rendered.
    * @returns The same PaperView instance for chaining.
@@ -83,8 +83,8 @@ export class PaperView extends Paper {
    *
    * Resolution order:
    * 1. Paper-level `portalSelector` option if set.
-   * 2. The cell's own `portalSelector` field (`ElementModel` → `'__portal__'`,
-   *    `LinkModel` → `'root'`). Cells without the field are skipped.
+   * 2. The cell's own `portalSelector` field ({@link ElementModel} → `'__portal__'`,
+   *    {@link LinkModel} → `'root'`). Cells without the field are skipped.
    * @param cellView - The cell view to resolve the portal node for.
    * @returns The portal DOM node, or null if not found / skipped.
    */
@@ -246,7 +246,7 @@ export class PaperView extends Paper {
   }
 
   /**
-   * Bit flag for marking views that have been measured by `useMeasureElement`
+   * Bit flag for marking views that have been measured by {@link useMeasureElement}
    * and are awaiting size/position updates.
    *
    * Bit 27 is chosen to sit immediately below joint-core's reserved view

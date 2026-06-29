@@ -10,7 +10,7 @@ import { resolvePaperId } from '../utils/resolve-paper-target';
 import { isRef } from '../utils/is';
 
 /**
- * Resolves a paper ID from any `PaperTarget`, handling the ref-timing problem.
+ * Resolves a paper ID from any {@link PaperTarget}, handling the ref-timing problem.
  * For string IDs and `dia.Paper` instances resolution is synchronous. For
  * `RefObject<dia.Paper>` targets, a layout effect re-resolves the ID once
  * `useImperativeHandle` has set the ref.

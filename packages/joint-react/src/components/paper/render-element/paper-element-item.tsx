@@ -57,7 +57,7 @@ function useElementDataSnapshot(id: CellId): Record<string, unknown> | undefined
 
 /**
  * Subscribes to the cell by id and returns the raw (un-resolved)
- * `ElementRecord`. Returns a `{ id, type }` placeholder during the brief
+ * {@link ElementRecord}. Returns a `{ id, type }` placeholder during the brief
  * window between `insertView` firing and the cell landing in the store, so
  * portal wrappers can mount a 0×0 container synchronously rather than
  * crashing. Callers must tolerate optional `position` / `size`.

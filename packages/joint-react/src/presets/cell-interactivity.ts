@@ -71,7 +71,7 @@ function normalizeStaticInteractivity(
  * - `true` → same defaults.
  * - `false` → pass through (every interaction disabled).
  * - object → defaults applied first, user keys win.
- * - function → wrapped so the user callback receives a `CellInteractivityParams`
+ * - function → wrapped so the user callback receives a {@link CellInteractivityParams}
  *   instead of the native positional `(cellView, interaction)` args. The
  *   callback's return value is normalized identically to the static shapes,
  *   so `() => true` and `() => ({})` both resolve to `DEFAULT_INTERACTIVE`.

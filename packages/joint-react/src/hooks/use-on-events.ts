@@ -22,8 +22,8 @@ function getActiveEventSignature(handlers: Partial<mvc.EventMap>): string {
 }
 
 /**
- * Base of the `useOn*Events` hook family (`useOnPaperEvents`,
- * `useOnGraphEvents`, plugin hooks like `useOnKeyboardEvents`).
+ * Base of the `useOn*Events` hook family ({@link useOnPaperEvents},
+ * {@link useOnGraphEvents}, plugin hooks like `useOnKeyboardEvents`).
  *
  * Subscribes `handlers` on `target` with **always-latest** handler semantics
  * (the `useEffectEvent` pattern): the subscription is established once and

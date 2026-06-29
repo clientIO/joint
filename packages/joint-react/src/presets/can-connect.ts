@@ -41,7 +41,7 @@ export interface ValidateConnectionParams {
 export type ValidateConnection = (context: ValidateConnectionParams) => boolean;
 
 /**
- * Builds a `ConnectionEnd` from a cell view and its magnet element.
+ * Builds a {@link ConnectionEnd} from a cell view and its magnet element.
  * @param cellView
  * @param magnet
  */

@@ -24,7 +24,7 @@ export interface CellVisibilityParams {
 export type CellVisibility = (context: CellVisibilityParams) => boolean;
 
 /**
- * Adapt a context-form `CellVisibility` callback to the native
+ * Adapt a context-form {@link CellVisibility} callback to the native
  * `dia.Paper.Options['cellVisibility']` signature
  * `(this: paper, model, isMounted) => boolean`.
  * @param cb - user-supplied context-form predicate
