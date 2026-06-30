@@ -12,7 +12,6 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@joint/react"><img src="https://img.shields.io/npm/v/@joint/react?style=flat-square&color=0EA5E9" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/@joint/react"><img src="https://img.shields.io/npm/types/@joint/react?style=flat-square&color=3178C6" alt="types" /></a>
-  <a href="https://bundlephobia.com/package/@joint/react"><img src="https://img.shields.io/bundlephobia/minzip/@joint/react?style=flat-square&color=8B5CF6" alt="bundle" /></a>
   <a href="https://www.npmjs.com/package/@joint/react"><img src="https://img.shields.io/npm/dm/@joint/react?style=flat-square&color=F59E0B" alt="downloads" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/npm/l/@joint/react?style=flat-square&color=10B981" alt="license" /></a>
 </p>
@@ -35,8 +34,6 @@ Built on the proven JointJS core, you get a mature diagramming engine and an idi
 - **Full control.** Complete control over how diagrams render and behave — shapes, ports, links, routing, and custom interactions.
 - **Performance at scale.** Smooth interaction on large graphs with thousands of nodes.
 - **Idiomatic React.** Real components and hooks that fit naturally into your existing React app and tooling.
-
-> **Benchmarked to 10,000 nodes.** A single-node update stays near constant-time as the graph grows, and bursts of updates coalesce into a single React render — so the data layer doesn't get slower as your diagram gets bigger. Reproduce the numbers with `yarn bench`.
 
 ## Installation
 
