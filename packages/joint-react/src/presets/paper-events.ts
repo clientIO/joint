@@ -386,9 +386,11 @@ export interface PaperEventHandlers {
 }
 
 /**
- * Extracts the callback type for a given paper event key.
- * For example, `PaperEventHandler<'onCellPointerDown'>` is `(params: PointerCellEventParams) => void`.
- * Useful for typing individual handler variables or parameters.
+ * The handler signature for a single paper event, looked up by its camelCase
+ * name. For example `PaperEventHandler<'onCellPointerDown'>` resolves to
+ * `(params: PointerCellEventParams) => void`. Handy for typing a standalone
+ * handler before adding it to a {@link PaperEventMap}.
+ * @template T - The event key to look up (a camelCase `on*` key of the paper's React event handlers, see {@link PaperEventMap}).
  * @group Types
  */
 export type PaperEventHandler<T extends keyof PaperEventHandlers> = NonNullable<
@@ -396,7 +398,9 @@ export type PaperEventHandler<T extends keyof PaperEventHandlers> = NonNullable<
 >;
 
 /**
- * Combined handlers, camelCase `on*` + raw native, accepted by `addPaperEventListeners`.
+ * Every paper-event handler accepted by {@link useOnPaperEvents}: the typed
+ * camelCase `on*` handlers (each delivering a single params object) plus any raw
+ * native event name with its positional arguments. Mix both freely in one map.
  * @group Types
  */
 export type PaperEventMap = Partial<dia.Paper.EventMap> & PaperEventHandlers;

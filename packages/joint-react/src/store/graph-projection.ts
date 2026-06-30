@@ -5,15 +5,23 @@ import { asReadonlyContainer, createContainer } from './state-container';
 import { writeCellToContainer } from '../state/data-mapping/cell-record-merge';
 
 /**
- * Incremental change set emitted by graphProjection after container commits.
+ * A batch of cell changes reported after each graph update, delivered to the
+ * `onIncrementalCellsChange` callback of {@link GraphProviderProps}. Lets you
+ * apply just the delta to an external store instead of diffing the whole graph.
+ * @template Element - Shape of the element cells stored in the graph.
+ * @template Link - Shape of the link cells stored in the graph.
+ * @expand
  * @group Types
  */
 export interface IncrementalCellsChange<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 > {
+  /** Cells added since the last commit, keyed by cell id. */
   readonly added: Map<CellId, Element | Link>;
+  /** Cells whose attributes changed since the last commit, keyed by cell id. */
   readonly changed: Map<CellId, Element | Link>;
+  /** Ids of cells removed since the last commit (including a removed element's links). */
   readonly removed: Set<CellId>;
 }
 /**
@@ -24,7 +32,7 @@ export type OnIncrementalCellsChange<Element extends ElementJSONInit, Link exten
   changes: IncrementalCellsChange<Element, Link>
 ) => void;
 
-/** Configuration for {@link graphProjection}. */
+/** Options for {@link graphProjection}. */
 interface GraphProjectionState<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,

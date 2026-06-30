@@ -1,24 +1,26 @@
 import { dia } from '@joint/core';
 import type { PortalHostCell } from './paper.types';
 /**
- * Type discriminator for {@link ElementModel}, matches `dia.Cell.type` to
- * identify React-element cells when iterating the graph.
+ * The `type` value `@joint/react` stamps on every {@link ElementModel}
+ * (`'element'`). Match it against a cell's `type` to single out React elements
+ * when iterating the graph.
  * @group MVC
  */
 export const ELEMENT_MODEL_TYPE = 'element';
 
 /**
  * Selector for the `<g>` element used as the React portal target inside ElementModel markup.
- * @group MVC
+ * @internal
  */
 export const PORTAL_SELECTOR = '__portal__';
 
 /**
- * Default element class used by `@joint/react`. Any `dia.Cell` subclass
- * implementing {@link PortalHostCell} can host React content; this one is
- * what `@joint/react` reaches for when no custom element class is provided.
- * Adds a dedicated `<g>` group to its markup where `renderElement` mounts,
- * placed under ports and highlighters by default so they paint on top.
+ * The element class `@joint/react` registers and uses by default for every
+ * element you add to the graph. Its markup carries a dedicated `<g>` group (the
+ * `'__portal__'` selector) where your {@link RenderElement} output is mounted, so
+ * React content renders beneath the element's ports and highlighters. Extend it
+ * to customize the markup or default attributes, or supply any `dia.Element`
+ * subclass that implements {@link PortalHostCell} to host React content yourself.
  * @group MVC
  * @example
  * ```ts
@@ -35,14 +37,15 @@ export class ElementModel<
   Attributes extends dia.Element.Attributes = dia.Element.Attributes
 > extends dia.Element<Attributes> implements PortalHostCell {
   /**
-   * Selector of the node that serves as the React portal target inside this cell.
-   * Read by `PaperView` to locate where `renderElement` mounts.
+   * Selector of the node in this cell's view where `@joint/react` mounts your
+   * {@link RenderElement} content, the `'__portal__'` `<g>` group.
    */
   portalSelector = PORTAL_SELECTOR;
 
   /**
-   * Markup containing a dedicated `<g>` group for React portal rendering.
-   * Ports and highlighters are appended after this group, ensuring correct stacking order.
+   * Markup with a single `<g>` group (`'__portal__'`) that hosts the React
+   * portal. JointJS appends ports and highlighters after this group, so they
+   * paint on top of your React content.
    */
   markup: dia.MarkupJSON = [
     {
@@ -52,7 +55,8 @@ export class ElementModel<
   ];
 
   /**
-   * Sets the default attributes for the ElementModel.
+   * Default attributes applied to every ElementModel: the `'element'` type, a
+   * 0x0 size, and an empty `data` object.
    * @returns The default attributes.
    */
   defaults(): Attributes {

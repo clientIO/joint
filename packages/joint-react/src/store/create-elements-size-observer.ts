@@ -25,18 +25,36 @@ type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
   Partial<Pick<ElementLayout, 'x' | 'y'>>;
 
 /**
- * Options passed to the setSize callback when an element's size changes.
+ * The element's measurement, passed to a {@link TransformElementLayout} callback.
+ * Carries the element's current `x`, `y`, and `angle` together with the freshly
+ * measured `width` and `height`, plus the underlying model and cell id.
+ * @expand
  * @group Types
  */
 export interface TransformElementLayoutParams extends Required<ElementLayout> {
-  /** The JointJS element instance */
+  /** The JointJS `dia.Element` instance being measured. */
   readonly model: dia.Element;
+  /** Id of the cell being measured. */
   readonly id: CellId;
 }
 
 /**
- * Callback function called when an element's size is measured.
- * Allows custom handling of size updates before they're applied to the graph.
+ * Adjusts a measured element layout before it is written to the graph. Receives
+ * the element's current geometry plus its newly measured size, and returns the
+ * `width`/`height` (and optionally `x`/`y`) to apply — use it to clamp sizes,
+ * snap to a grid, or reposition while auto-sizing. Pass it via the `transform`
+ * option of {@link useMeasureElement}.
+ * @example
+ * ```tsx
+ * import type { TransformElementLayout } from '@joint/react';
+ *
+ * // Never let a measured element shrink below 80px wide.
+ * const transform: TransformElementLayout = ({ width, height }) => ({
+ *   width: Math.max(width, 80),
+ *   height,
+ * });
+ * ```
+ * @see {@link TransformElementLayoutParams}
  * @group Types
  */
 export type TransformElementLayout = (
@@ -90,7 +108,7 @@ interface Options {
 export interface GraphStoreObserver {
   /**
    * Adds an element to be observed for size changes.
-   * @param options - Configuration for the measured node
+   * @param options - Options for measuring the element
    * @returns Cleanup function to stop observing
    */
   readonly add: (options: SetMeasuredNodeOptions) => () => void;

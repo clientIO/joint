@@ -18,22 +18,33 @@ const AUTO_SIZE_STYLE: CSSProperties = {
 };
 
 /**
- * Props for the HTMLBox component, extending HTMLHostProps.
+ * Props for {@link HTMLBox}. Same shape as {@link HTMLHostProps}: `className` is
+ * merged with the `jj-box` class and `style` is layered on top of the default
+ * box styling before reaching the underlying {@link HTMLHost}; the rest pass
+ * through unchanged.
  * @expand
  * @group Types
  */
 export interface HTMLBoxProps extends HTMLHostProps {}
 
 /**
- * Default themed HTML host that applies the `jj-box` CSS class. Use inside
- * `<Paper renderElement={...}>` to render a graph element.
+ * Renders a graph element as a pre-styled HTML box. Reach for this inside
+ * `<Paper renderElement={...}>` when you want elements that already look good
+ * without writing any CSS.
  *
- * Wraps {@link HTMLHost} (style-neutral foreignObject + measured div) and adds
- * the `jj-box` class for default styling via `--jj-box-*` CSS variables. All
- * props are forwarded to {@link HTMLHost}. Use {@link HTMLHost} directly when you want
- * full control without default styles.
+ * Wraps {@link HTMLHost} and adds the `jj-box` class, which themes the box
+ * through `--jj-box-*` CSS variables (background, border, radius, padding,
+ * font). Like {@link HTMLHost}, it measures its content and syncs the size back
+ * to the element by default; set `useModelGeometry` to size it from the model
+ * instead. All props reach the underlying {@link HTMLHost}; `className` is merged
+ * with the `jj-box` class and `style` is layered on top of the default box
+ * styling, while the rest pass through unchanged. Use {@link HTMLHost} directly
+ * when you want a blank host with no default styling.
  * @example
  * ```tsx
+ * import { Paper, HTMLBox } from '@joint/react';
+ *
+ * // Each element renders as a ready-styled box showing its label.
  * <Paper renderElement={({ label }) => <HTMLBox>{label}</HTMLBox>} />
  * ```
  * @group Components

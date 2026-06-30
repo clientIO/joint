@@ -6,20 +6,23 @@ import { useGraphStore } from './use-graph-store';
 import { useLatestRef } from './use-latest-ref';
 
 /**
- * Payload delivered when paper-managed elements complete a measurement pass.
+ * Payload passed to the {@link useOnElementsMeasured} callback after a
+ * measurement pass.
  * @group Types
+ * @expand
  */
 export interface ElementsMeasuredParams {
-  /** True when this is the first measurement (all elements sized for the first time). */
+  /** True on the first measurement pass (at least one element has been sized). */
   readonly isInitial: boolean;
-  /** The paper instance that triggered the event. */
+  /** The paper this hook is bound to (the surrounding `<Paper>` context, or the paper passed via `paperTarget`). */
   readonly paper: dia.Paper;
   /** The graph model associated with the paper. */
   readonly graph: dia.Graph;
 }
 
 /**
- * Callback signature for {@link useOnElementsMeasured}.
+ * Callback invoked by {@link useOnElementsMeasured} after each measurement pass;
+ * receives the {@link ElementsMeasuredParams} payload.
  * @group Types
  */
 export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
@@ -27,30 +30,52 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
 /**
  * Calls a callback when element sizes are measured or re-measured.
  *
- * Fires on initial measurement (all elements have `width` and `height`)
- * and on subsequent size changes detected by the paper.
+ * Fires on the first measurement pass (at least one element has been sized)
+ * and again whenever an element is resized.
  *
- * The callback receives `{ isInitial: boolean }` to distinguish the
- * first measurement from subsequent ones.
+ * The callback receives {@link ElementsMeasuredParams}; check `isInitial` to
+ * distinguish the first measurement from later ones.
  * @title On the current paper
  * @param callback - Called each time element sizes are measured.
  * @group Hooks
  * @example
  * ```tsx
- * // Using a paper ref
- * const paperRef = useRef<dia.Paper>(null);
- * useOnElementsMeasured(paperRef, () => {
- *   paperRef.current?.transformToFitContent({ padding: 20 });
- * });
+ * import { useOnElementsMeasured } from '@joint/react';
+ *
+ * // Mount inside a <Paper>: fit the surrounding paper once everything is sized.
+ * function FitOnMeasure() {
+ *   useOnElementsMeasured(({ paper, isInitial }) => {
+ *     if (isInitial) {
+ *       paper.transformToFitContent({ padding: 20 });
+ *     }
+ *   });
+ *   return null;
+ * }
  * ```
  */
 export function useOnElementsMeasured(callback: OnElementsMeasured): void;
 /**
- * Calls a callback when element sizes are measured, on a specific paper.
+ * Calls a callback when element sizes are measured, targeting a specific paper
+ * instead of the surrounding context. Useful when several papers share one graph.
  * @title On a specific paper
- * @param paperTarget - Paper reference (string ID, dia.Paper instance, or ref).
+ * @param paperTarget - Which paper to watch: a registered paper id, a
+ *   `dia.Paper` instance, or a React ref to one.
  * @param callback - Called each time element sizes are measured.
  * @group Hooks
+ * @example
+ * ```tsx
+ * import { useOnElementsMeasured } from '@joint/react';
+ * import { useRef } from 'react';
+ * import type { dia } from '@joint/core';
+ *
+ * function FitSpecificPaper() {
+ *   const paperRef = useRef<dia.Paper>(null);
+ *   useOnElementsMeasured(paperRef, ({ paper }) => {
+ *     paper.transformToFitContent({ padding: 20 });
+ *   });
+ *   return null;
+ * }
+ * ```
  */
 export function useOnElementsMeasured(paperTarget: PaperTarget, callback: OnElementsMeasured): void;
 export function useOnElementsMeasured(

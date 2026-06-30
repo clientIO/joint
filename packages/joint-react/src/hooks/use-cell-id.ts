@@ -14,6 +14,8 @@ import type { CellId } from '../types/cell.types';
  * @group Hooks
  * @example
  * ```tsx
+ * import { useCellId } from '@joint/react';
+ *
  * function MyElement() {
  *   const id = useCellId();
  *   return <text>{id}</text>;

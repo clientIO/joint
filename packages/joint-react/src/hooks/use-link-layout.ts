@@ -25,30 +25,42 @@ function isSameLayout(a: LinkLayout | undefined, b: LinkLayout | undefined): boo
 }
 
 /**
- * Read the current link's rendered geometry from the paper it lives on.
- * `{ sourceX, sourceY, targetX, targetY, d }`, where `d` is the serialised
- * SVG path computed by JointJS's `LinkView`.
+ * Returns the current link's rendered geometry, its source and target endpoint
+ * coordinates plus the SVG path string (`{ sourceX, sourceY, targetX, targetY,
+ * d }`, where `d` is the path computed by JointJS). Use it to draw custom link
+ * decorations, labels, or overlays that need to follow the link's actual route.
  *
- * Paper-scoped because link geometry is not a property of the graph record.
- * a single link can appear on multiple papers (e.g. main canvas + minimap)
- * with different routing. The layout is read from the paper context via
- * `usePaperStore()` and re-read whenever the paper finishes a render pass
- * (JointJS's `render:done` event), which covers every case that can change
- * a link's geometry, drag, programmatic position change, source/target
- * reconnection, resize, etc.
+ * Geometry is per-paper: the same link can render with different routing on
+ * different papers (e.g. the main canvas and a minimap), so the hook reports the
+ * geometry on the paper it is mounted under. The value stays in sync, it
+ * re-reads after every render pass, covering drags, programmatic position
+ * changes, source/target reconnections, and resizes.
  *
- * Must be called inside `renderLink` (or a component mounted from one) so
- * `CellIdContext` resolves the target link id. Returns `undefined` while the
- * link view is still being created or when the link's source / target are
- * not yet positioned.
- *
- * The snapshot is memoised by structural equality, which is required by
- * `useSyncExternalStore`, returning a fresh object on every read would
- * trigger an infinite re-render loop because `Object.is` would see every
- * render as a store change.
- * @returns the current link's layout, or undefined when unavailable
+ * Call it inside `renderLink` (or a component mounted from one) so the target
+ * link id resolves from context. Returns `undefined` only until the link view
+ * exists — no paper has mounted yet, or the view is still being created. Once the
+ * view appears the value is always defined; it may briefly report zeroed
+ * coordinates and an empty path string until JointJS computes the first route.
+ * @returns The current link's layout, or `undefined` while no link view exists yet.
  * @experimental Depends on `renderLink`, which is itself experimental.
  * @group Hooks
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper, useLinkLayout } from '@joint/react';
+ *
+ * // A badge that tracks the midpoint of the link as it is routed.
+ * function LinkMidpointBadge() {
+ *   const layout = useLinkLayout();
+ *   if (!layout) return null;
+ *   const midX = (layout.sourceX + layout.targetX) / 2;
+ *   const midY = (layout.sourceY + layout.targetY) / 2;
+ *   return <circle cx={midX} cy={midY} r={4} fill="tomato" />;
+ * }
+ *
+ * <GraphProvider>
+ *   <Paper renderLink={() => <LinkMidpointBadge />} />
+ * </GraphProvider>
+ * ```
  */
 export function useLinkLayout(): LinkLayout | undefined {
   const id = useCellId();

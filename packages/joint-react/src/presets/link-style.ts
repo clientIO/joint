@@ -3,32 +3,33 @@ import type { Nullable, LiteralUnion } from '../types';
 import { resolveLinkMarker, type LinkMarker } from '../theme/named-link-markers';
 
 /**
- * Visual/presentation attributes for a link line and its wrapper.
- * All properties are optional, empty strings let CSS variables from `theme.css` take over.
- * @group Presets
+ * Visual styling for a link, the visible line plus its invisible pointer
+ * hit-area wrapper. Hand it to {@link linkStyle} (or a link record's `style`
+ * field); empty-string values fall back to the CSS variables in `theme.css`.
+ * @group Types
  */
 export interface LinkStyle {
-  /** Stroke color of the link line. Accepts any CSS color value including CSS variables. @default '' */
+  /** Stroke color of the visible line. Any CSS color, including CSS variables. Empty inherits the theme default. @default '' */
   color?: string;
-  /** Stroke width of the link line. Accepts a number (px) or CSS value string. @default '' */
+  /** Stroke width of the visible line, a number (px) or CSS length string. Empty inherits the theme default. @default '' */
   width?: number | string;
-  /** Source marker name or custom marker definition. Use `'none'` for no marker. @default 'none' */
+  /** Marker at the source end: a {@link LinkMarkerName}, a {@link LinkMarkerRecord}, or `'none'` for no marker. @default 'none' */
   sourceMarker?: LinkMarker;
-  /** Target marker name or custom marker definition. Use `'none'` for no marker. @default 'none' */
+  /** Marker at the target end: a {@link LinkMarkerName}, a {@link LinkMarkerRecord}, or `'none'` for no marker. @default 'none' */
   targetMarker?: LinkMarker;
-  /** CSS class name to apply to the link line. @default '' */
+  /** Extra CSS class added to the visible line. @default '' */
   className?: string;
-  /** Stroke dash pattern (SVG `stroke-dasharray` syntax, e.g. `'5,5'`). @default '' */
+  /** Dash pattern in SVG `stroke-dasharray` syntax, e.g. `'5,5'` for a dashed line. @default '' */
   dasharray?: string;
-  /** Stroke line cap for the link line. @default '' */
+  /** Stroke line cap of the line ends. @default '' */
   linecap?: LiteralUnion<'butt' | 'round' | 'square'>;
-  /** Stroke line join for the link line. @default '' */
+  /** Stroke line join at the line's corners. @default '' */
   linejoin?: LiteralUnion<'miter' | 'round' | 'bevel'>;
-  /** Stroke width of the link wrapper (hit area) in pixels. @default 10 */
+  /** Stroke width, in px, of the transparent wrapper that widens the pointer hit area. @default 10 */
   wrapperWidth?: number;
-  /** Stroke color of the link wrapper (outline). @default 'transparent' */
+  /** Stroke color of the wrapper. Usually transparent, set it to make the hit area visible while debugging. @default 'transparent' */
   wrapperColor?: string;
-  /** CSS class name to apply to the link wrapper (outline). @default '' */
+  /** Extra CSS class added to the wrapper. @default '' */
   wrapperClassName?: string;
 }
 
@@ -47,10 +48,22 @@ const defaultLinkStyle: Readonly<Required<LinkStyle>> = {
 };
 
 /**
- * SVG attributes for the link's visible line, derived from a {@link LinkStyle}.
- * Resolves stroke color/width, source/target markers, dash pattern, and the
- * `line` selector's CSS class.
+ * Builds the SVG `attrs` for a link's visible `line` from a {@link LinkStyle}:
+ * stroke color and width, source/target markers, dash pattern, and the line's
+ * CSS class. This is the `line` half of {@link linkStyle}; reach for it when you
+ * style the line and wrapper selectors separately.
  * @param style - link style to convert to SVG attributes
+ * @returns SVG attributes for the `line` selector
+ * @example
+ * ```ts
+ * import { LinkModel, linkStyleLine, linkStyleWrapper } from '@joint/react';
+ *
+ * const style = { color: '#333', width: 2 };
+ * const link = new LinkModel({
+ *   source: { id: 'a' }, target: { id: 'b' },
+ *   attrs: { line: linkStyleLine(style), wrapper: linkStyleWrapper(style) },
+ * });
+ * ```
  * @group Presets
  */
 export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {
@@ -104,9 +117,22 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
 }
 
 /**
- * SVG attributes for the link's hit-area (the invisible wrapper around the
- * visible line, used for pointer interaction), derived from a {@link LinkStyle}.
+ * Builds the SVG `attrs` for a link's `wrapper`, the wide invisible path around
+ * the visible line that catches pointer events, from a {@link LinkStyle}. This is
+ * the `wrapper` half of {@link linkStyle}; reach for it when you style the line
+ * and wrapper selectors separately.
  * @param style - link style to convert to SVG attributes
+ * @returns SVG attributes for the `wrapper` selector
+ * @example
+ * ```ts
+ * import { LinkModel, linkStyleLine, linkStyleWrapper } from '@joint/react';
+ *
+ * const style = { color: '#333', width: 2 };
+ * const link = new LinkModel({
+ *   source: { id: 'a' }, target: { id: 'b' },
+ *   attrs: { line: linkStyleLine(style), wrapper: linkStyleWrapper(style) },
+ * });
+ * ```
  * @group Presets
  */
 export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {
@@ -131,11 +157,20 @@ export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVG
 }
 
 /**
- * Converts a {@link LinkStyle} into JointJS SVG `attrs` for `line` and `wrapper` selectors.
+ * Converts a {@link LinkStyle} into the JointJS SVG `attrs` object a link needs,
+ * keyed by the `line` and `wrapper` selectors. Use it to set a link's `attrs`
+ * directly, or rely on the `style` shorthand handled by {@link linkAttributes}.
  * @param style - link style to convert to SVG attributes
+ * @returns An `attrs` object with `line` and `wrapper` entries
  * @example
  * ```ts
- * const attrs = linkStyle({ color: '#333', width: 2, targetMarker: 'arrow' });
+ * import { LinkModel, linkStyle } from '@joint/react';
+ *
+ * const link = new LinkModel({
+ *   source: { id: 'a' },
+ *   target: { id: 'b' },
+ *   attrs: linkStyle({ color: '#333', width: 2, targetMarker: 'arrow' }),
+ * });
  * ```
  * @group Presets
  */

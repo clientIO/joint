@@ -9,22 +9,22 @@ import { selectElementSize } from '../selectors';
 import { MEASURING_CLASS_NAME } from '../utils/class-names';
 
 /**
- * Options for configuring how the node size is measured and applied.
+ * Options for {@link useMeasureElement}, controlling how the measured DOM size is
+ * turned into the graph element's size.
  * @group Types
+ * @expand
  */
 export interface MeasureElementOptions {
   /**
-   * Custom transform function to modify the measured size before applying it to the graph element.
-   *
-   * This function receives the measured dimensions from the DOM node and the current graph element,
-   * allowing you to add padding, apply scaling, or perform other transformations.
-   * @param options - The measured size and the graph element instance (width, height, x, y, element)
-   * @returns The size values to apply to the graph element. Must include `width` and `height`.
-   * @default By default, the measured size is applied directly via `element.set('size', {width, height})`
+   * Adjusts the measured size before it is written to the graph element, e.g. to
+   * add padding or reserve space for a header. Receives the measured dimensions
+   * plus the element's current layout ({@link TransformElementLayoutParams}) and
+   * returns the `width`/`height` (and optionally `x`/`y`) to apply.
+   * @default When omitted, the measured `width`/`height` are applied to the element unchanged.
    * @example
    * ```tsx
    * const transform = ({ width, height }) => ({
-   *   width: width + 20, // Add 10px padding on each side
+   *   width: width + 20, // 10px padding on each side
    *   height: height + 20,
    * });
    * useMeasureElement(nodeRef, { transform });
@@ -36,84 +36,78 @@ export interface MeasureElementOptions {
 const EMPTY_OBJECT: MeasureElementOptions = {};
 
 /**
- * Custom hook to automatically measure the size of a DOM element and synchronize it with the graph element's size.
+ * Measures a rendered DOM node and keeps the graph element's size in sync with
+ * it. Point `nodeRef` at the HTML or SVG node that defines the element's size;
+ * whenever that node resizes, the matching graph element is resized to match
+ * (optionally adjusted by a `transform`, see {@link MeasureElementOptions}), and
+ * the element's current `width`/`height` are returned for your own layout math.
  *
- * This hook uses the ResizeObserver API to monitor size changes of the referenced DOM element
- * and automatically updates the corresponding graph element's size. The returned values represent
- * the current size of the graph element (which may differ from the measured DOM size if a custom
- * `transform` function is provided).
- *
- * **How it works:**
- * 1. Observes the DOM element referenced by `nodeRef` for size changes
- * 2. When the DOM element's size changes, applies the size (or transformed size) to the graph element
- * 3. Returns the current graph element's dimensions, which are always defined
- *
- * **Important constraints:**
- * - When multiple `useMeasureElement` hooks target the same element, the most recently mounted hook
- *   takes precedence. When it unmounts, the previous hook becomes active again (stack semantics).
- * - Must be used within a `renderElement` function or a component rendered from within it.
- * - The returned values are always defined (width and height default to 0 if not set).
- *
- * **Anti-pattern, do not combine with `useCell(selectElementSize)`:**
- * Do not pair this hook with `useCell((cell) => cell.size)` (or the equivalent
- * {@link selectElementSize} selector) in the same component. This hook already
- * synchronizes the measured size to the graph element and returns the live
- * `width` / `height`. Reading the value back through {@link useCell} adds a redundant
- * subscription and an extra render. Prefer the returned `width`/`height` from
- * this hook directly.
- * @param nodeRef - A reference to the HTML or SVG element to measure. The element must be rendered
- *                     in the DOM when the hook runs.
- * @param options - Optional configuration for measuring and transforming the node size.
- * @returns An object containing the current graph element's dimensions:
- *   - `width`: The current width of the graph element in pixels (defaults to 0)
- *   - `height`: The current height of the graph element in pixels (defaults to 0)
- *   - `x`: The current x position of the graph element (defaults to 0)
- *   - `y`: The current y position of the graph element (defaults to 0)
- *   - `angle`: The current angle of the graph element (defaults to 0)
- * @throws {Error} If the cell is not a valid element.
- *
- * **Important:** Do not combine with `useCell((cell) => cell.size)` (or
- * {@link selectElementSize} / similar selectors) in the same component. This hook
- * already synchronizes the measured size to the graph element. Use the
- * returned `width` / `height` from this hook directly rather than reading
- * the value back from the model, combining both creates a redundant
- * round-trip and can fight on the first measurement.
+ * Reach for it when an element's size is driven by its rendered content rather
+ * than fixed up front, e.g. text that wraps or a list that grows.
+ * @remarks
+ * - Call this inside a `renderElement` callback (or a component rendered from
+ *   one); it reads the current cell from context and throws otherwise.
+ * - When several `useMeasureElement` calls target the same element, the most
+ *   recently mounted one wins. When it unmounts, the previous one takes over
+ *   again.
+ * - Do not also read the size back with the {@link selectElementSize} selector
+ *   (or `useCell((cell) => cell.size)`) in the same component. This hook already
+ *   syncs the size and returns the live `width`/`height`; reading it again only
+ *   adds a redundant subscription and an extra render.
+ * @param nodeRef - Ref to the HTML or SVG node to measure. It must be mounted in
+ *   the DOM while the hook runs.
+ * @param options - Optional {@link MeasureElementOptions}; the main option is a
+ *   `transform` that adjusts the measured size before it is applied.
+ * @returns The graph element's current `width` and `height` (always defined).
+ * @throws If used outside a `renderElement` context, or if the current cell is a
+ *   link rather than an element.
  * @group Hooks
  * @example
- * Basic usage with SVG element:
+ * @title Basic usage
  * ```tsx
  * import { useMeasureElement } from '@joint/react';
  * import { useRef } from 'react';
  *
- * function RenderElement() {
- *   const rectRef = useRef<SVGRectElement>(null);
- *   const { width, height } = useMeasureElement(rectRef);
- *
- *   return (
- *     <rect ref={rectRef} width={80} height={120} fill="#333" />
- *   );
- * }
- * ```
- * @example
- * Using returned values for calculations:
- * ```tsx
- * function Card() {
- *   const frameRef = useRef<SVGRectElement>(null);
- *   const { width, height } = useMeasureElement(frameRef);
- *   const gap = 10;
- *   const imageWidth = Math.max(width - gap * 2, 0);
- *   const imageHeight = Math.max(height - gap * 2, 0);
+ * // The element grows to fit its text label.
+ * function LabelElement() {
+ *   const textRef = useRef<SVGTextElement>(null);
+ *   const { width, height } = useMeasureElement(textRef);
  *
  *   return (
  *     <>
- *       <rect ref={frameRef} width={80} height={120} fill="#333" />
- *       <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />
+ *       <rect width={width} height={height} fill="#333" />
+ *       <text ref={textRef} x={4} y={16} fill="#fff">Hello world</text>
  *     </>
  *   );
  * }
  * ```
  * @example
- * With custom transform to add padding:
+ * @title Use the returned size
+ * ```tsx
+ * import { useMeasureElement } from '@joint/react';
+ * import { useRef } from 'react';
+ *
+ * const iconURL = 'https://example.com/icon.svg';
+ *
+ * // Size follows the HTML content; use the returned size to place an icon inside.
+ * function Card() {
+ *   const contentRef = useRef<HTMLDivElement>(null);
+ *   const { width, height } = useMeasureElement(contentRef);
+ *   const iconSize = 16;
+ *
+ *   return (
+ *     <>
+ *       <rect width={width} height={height} fill="#333" />
+ *       <image href={iconURL} x={width - iconSize} y={0} width={iconSize} height={iconSize} />
+ *       <foreignObject width={width} height={height}>
+ *         <div ref={contentRef} style={{ padding: 8, color: '#fff' }}>Card content</div>
+ *       </foreignObject>
+ *     </>
+ *   );
+ * }
+ * ```
+ * @example
+ * @title Adjust size with a transform
  * ```tsx
  * import { useMeasureElement, type TransformElementLayout } from '@joint/react';
  * import { useRef, useCallback } from 'react';

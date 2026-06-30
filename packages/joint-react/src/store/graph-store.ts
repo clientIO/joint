@@ -53,13 +53,6 @@ export interface GraphStoreInternalSnapshot {
 }
 
 /**
- * Options common to all `GraphStore` constructor variants.
- *
- * The controlled / uncontrolled split is modelled with a discriminated union
- * to rule out the nonsensical combination of `cells` and `initialCells`
- * being passed together.
- */
-/**
  * Reference point that stays fixed when an auto-sized element's measured size
  * changes. Mirrors CSS `transform-origin` semantics.
  *
@@ -73,7 +66,9 @@ export interface GraphStoreInternalSnapshot {
 export type AutoSizeOrigin = 'top-left' | 'center';
 
 /**
- * Options for creating a `GraphStore` in controlled mode. Requires the full cells
+ * Options for constructing a {@link GraphStore}: an optional existing `dia.Graph`,
+ * cell namespace/model overrides, the auto-size origin, and `initialCells` used to
+ * seed the graph once on creation.
  * @group Types
  */
 export interface GraphStoreOptions<
@@ -262,14 +257,14 @@ export class GraphStore<
   }
 
   /**
-   * Type guard: does the input resolve to an element cell?
+   * Type guard: does this cell record resolve to an element?
    *
-   * Accepts a cell record, an existing cell id, or a bare type name. Falls
+   * Reads `cell.type` and classifies it via the graph's type registry. Falls
    * back to `graph.getTypeConstructor(type).prototype.isElement()` when the
    * type is not our default {@link ElementModel}, so any `dia.Element` subclass
    * registered in the cell namespace (`standard.Rectangle`, custom shapes,
    * etc.) is correctly recognised.
-   * @param cell - cell record, cell id, or type name
+   * @param cell - the cell record to classify
    * @returns `true` when the resolved type extends `dia.Element`
    */
   public isElement = (cell: Element | Link): cell is Element => {
@@ -278,13 +273,13 @@ export class GraphStore<
   };
 
   /**
-   * Type guard: does the input resolve to a link cell?
+   * Type guard: does this cell record resolve to a link?
    *
-   * Accepts a cell record, an existing cell id, or a bare type name. Falls
+   * Reads `cell.type` and classifies it via the graph's type registry. Falls
    * back to `graph.getTypeConstructor(type).prototype.isLink()` when the type
    * is not our default {@link LinkModel}, so any `dia.Link` subclass registered in
    * the cell namespace is correctly recognised.
-   * @param cell - cell record, cell id, or type name
+   * @param cell - the cell record to classify
    * @returns `true` when the resolved type extends `dia.Link`
    */
   public isLink = (cell: Element | Link): cell is Link => {

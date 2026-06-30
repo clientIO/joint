@@ -10,9 +10,10 @@ import { selectElementSize } from '../selectors';
  */
 export interface HTMLHostProps extends HTMLAttributes<HTMLDivElement> {
   /**
-   * Skip measuring the rendered content and use the graph element's stored
-   * size instead. Cheaper, but the cell won't auto-resize when the React
-   * subtree changes. Default: `false`.
+   * Skip measuring the rendered content and size the host from the graph
+   * element's stored geometry instead. Cheaper, but the element no longer
+   * auto-resizes when the React subtree changes.
+   * @default false
    */
   readonly useModelGeometry?: boolean;
 }
@@ -43,19 +44,23 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
 }
 
 /**
- * Style-neutral element host: a `<div>` inside a `<foreignObject>`. Use inside
- * `<Paper renderElement={...}>` to render a graph element.
+ * Renders a graph element as an unstyled HTML node you fully control. Reach for
+ * this inside `<Paper renderElement={...}>` when you want plain DOM (a `<div>`,
+ * inputs, your own components) instead of SVG shapes, with no default theme.
  *
  * All props are spread onto the inner `<div>` (`children`, `style`,
  * `className`, event handlers, `data-*`, etc.). By default the host measures
- * its content via {@link useMeasureElement} and syncs the size back to the graph
- * element; set `useModelGeometry` to skip measurement and use the element's
- * size from the model instead.
+ * its content via {@link useMeasureElement} and syncs that size back to the
+ * graph element; set `useModelGeometry` to skip measurement and size the host
+ * from the element's model geometry instead.
  *
- * Does **not** apply any default theme class. For themed styling via
- * `--jj-box-*` CSS variables, use {@link HTMLBox} instead.
+ * Applies no default styling. For a ready-themed box driven by `--jj-box-*` CSS
+ * variables, use {@link HTMLBox} instead.
  * @example
  * ```tsx
+ * import { Paper, HTMLHost } from '@joint/react';
+ *
+ * // Render each element as your own HTML node and style it via CSS.
  * <Paper renderElement={({ label }) => (
  *   <HTMLHost className="my-node">{label}</HTMLHost>
  * )} />

@@ -2,37 +2,44 @@ import type { dia } from '@joint/core';
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 
 /**
- * A link marker record, an SVG complex marker JSON with an optional `length`
- * used by connection-point math to offset the line tip by the marker's visual footprint.
- * The built-in marker factories always set a `length`; inline user markers may omit it.
+ * A link endpoint marker, an SVG complex-marker JSON plus an optional `length`.
+ * Attach one to a {@link LinkStyle}'s `sourceMarker` / `targetMarker`. The
+ * built-in `linkMarker*` factories return this shape, or you can hand-write one.
  * @group Types
  */
 export interface LinkMarkerRecord extends dia.SVGComplexMarkerJSON {
+  /**
+   * The marker's visual length along the link, in px. Connection-point math pulls
+   * the line tip back by this much so the line meets the marker instead of poking
+   * through it. Omit it to apply no offset (treated as `0`).
+   */
   readonly length?: number;
 }
 
 /**
- * Sizing, color, and stroke options shared by every built-in `linkMarker*` factory.
+ * Sizing, color, and stroke options shared by every built-in `linkMarker*`
+ * factory. Build a marker, then attach it to a {@link LinkStyle}.
  * @group Types
  * @example
  * ```ts
- * // see: stories/examples/link-markers/code.tsx
- * linkStyle({
+ * import { linkStyle, linkMarkerArrow, linkMarkerCircle } from '@joint/react';
+ *
+ * const attrs = linkStyle({
  *   sourceMarker: linkMarkerCircle({ scale: 1.2 }),
  *   targetMarker: linkMarkerArrow({ fill: 'none' }),
  * });
  * ```
  */
 export interface LinkMarkerOptions {
-  /** Uniform scale factor applied to the marker geometry. Default: `1`. */
+  /** Uniform scale factor applied to the marker geometry. @default 1 */
   readonly scale?: number;
-  /** Fill color. Default inherits the link's stroke. Use `'none'` for an outline-only marker. */
+  /** Fill color. Defaults to inheriting the link's stroke; use `'none'` for an outline-only marker. @default 'inherit' */
   readonly fill?: string;
-  /** Stroke color. Default inherits the link's stroke. */
+  /** Stroke (outline) color. Defaults to inheriting the link's stroke. @default 'inherit' */
   readonly stroke?: string;
-  /** Stroke width in pixels. Default: `2`. */
+  /** Stroke width, in px. @default 2 */
   readonly strokeWidth?: number;
-  /** Optional CSS class applied to the marker root. */
+  /** Optional CSS class added to the marker root. */
   readonly className?: string;
 }
 /** Default fill color for markers. */
@@ -57,7 +64,14 @@ function defaults(options: LinkMarkerOptions = {}) {
 }
 
 /**
- * Filled triangle marker for link endpoints. The classic directed-edge arrow.
+ * Filled triangle marker for link endpoints, the classic directed-edge arrow.
+ * @returns A marker record for a {@link LinkStyle}'s `sourceMarker` / `targetMarker`
+ * @example
+ * ```ts
+ * import { linkStyle, linkMarkerArrow } from '@joint/react';
+ *
+ * const attrs = linkStyle({ targetMarker: linkMarkerArrow() });
+ * ```
  * @group Presets
  */
 export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
@@ -135,8 +149,8 @@ export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRec
 }
 
 /**
- * Double arrow marker, two nested triangles, useful for "fast-forward" or
- * "strong direction" semantics.
+ * Double arrow marker, two stacked triangles drawn one behind the other along
+ * the link, useful for "fast-forward" or "strong direction" semantics.
  * @group Presets
  */
 export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRecord {

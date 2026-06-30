@@ -144,8 +144,7 @@ type SetCellDataUpdater<Data> = (previousData: Data) => Data;
  *
  * A nullish `id`, or an `id` with no matching cell, warns in dev and no-ops.
  * updating data implies the cell is already on the graph (use `setCell` to add
- * a new one). The updater overload is listed first so a function argument
- * matches it; any non-function argument falls through to the direct form.
+ * a new one).
  * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
  * @group Types
  */
@@ -161,10 +160,25 @@ export interface SetCellData<Data = Record<string, unknown>> {
  * in dev and no-ops.
  *
  * Writes `data` directly on the `dia.Cell`, so JointJS fires `change:data` and
- * every React subscription resyncs, no full-record merge is involved.
+ * every React subscription resyncs, no full-record merge is involved. Read the
+ * value back with {@link useCell}.
  * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
  * @returns memoized setCellData setter
  * @group Hooks
+ * @example
+ * ```tsx
+ * import { useSetCellData } from '@joint/react';
+ *
+ * function DoneToggle({ id }: { id: string }) {
+ *   const setCellData = useSetCellData<{ done: boolean }>();
+ *   // Updater form: flip the `done` flag on the cell's data.
+ *   return (
+ *     <button onClick={() => setCellData(id, (prev) => ({ ...prev, done: !prev.done }))}>
+ *       Toggle
+ *     </button>
+ *   );
+ * }
+ * ```
  */
 export function useSetCellData<Data = Record<string, unknown>>(): SetCellData<Data> {
   const store = useGraphStore();

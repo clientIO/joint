@@ -1,42 +1,77 @@
 import type { dia } from '@joint/core';
 
 /**
- * Context passed to the `canEmbed` validate callback.
+ * Context handed to a {@link ValidateEmbedding} callback while an element is
+ * dragged over a candidate parent. Use it to compare the dragged `child` against
+ * the `parent` it would drop into.
  * @group Types
+ * @expand
  */
 export interface ValidateEmbeddingParams {
-  /** The element being embedded (dragged). */
+  /** The element being dragged (the would-be child). */
   readonly child: { readonly id: dia.Cell.ID; readonly model: dia.Element };
-  /** The candidate parent element. */
+  /** The element it would be embedded into (the would-be parent). */
   readonly parent: { readonly id: dia.Cell.ID; readonly model: dia.Element };
-  /** The paper instance. */
+  /** The paper the elements live on. */
   readonly paper: dia.Paper;
-  /** The graph instance. */
+  /** The graph the elements belong to. */
   readonly graph: dia.Graph;
 }
 
 /**
- * Context passed to the `canUnembed` validate callback.
+ * Context handed to a {@link ValidateUnembedding} callback when an embedded
+ * element is dragged out of its parent.
  * @group Types
+ * @expand
  */
 export interface ValidateUnembeddingParams {
-  /** The element being unembedded. */
+  /** The embedded element being dragged out of its parent. */
   readonly child: { readonly id: dia.Cell.ID; readonly model: dia.Element };
-  /** The paper instance. */
+  /** The paper the element lives on. */
   readonly paper: dia.Paper;
-  /** The graph instance. */
+  /** The graph the element belongs to. */
   readonly graph: dia.Graph;
 }
 
 /**
- * Callback that decides whether an element can be embedded into a parent.
+ * Decides whether a dragged element may be embedded into a parent element.
+ * Return `true` to allow the drop, `false` to reject it. Pass it to the
+ * `validateEmbedding` prop of `<Paper>`; the callback receives a structured
+ * {@link ValidateEmbeddingParams} context.
  * @group Types
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper } from '@joint/react';
+ * import type { ValidateEmbedding } from '@joint/react';
+ *
+ * // Only "container" elements may accept children.
+ * const validate: ValidateEmbedding = ({ parent }) => parent.model.get('type') === 'container';
+ *
+ * <GraphProvider>
+ *   <Paper validateEmbedding={validate} renderElement={() => <rect width={80} height={40} />} />
+ * </GraphProvider>;
+ * ```
  */
 export type ValidateEmbedding = (context: ValidateEmbeddingParams) => boolean;
 
 /**
- * Callback that decides whether an element can be unembedded from its parent.
+ * Decides whether an embedded element may be detached from its parent. Return
+ * `true` to allow detaching, `false` to keep it embedded. Pass it to the
+ * `validateUnembedding` prop of `<Paper>`; the callback receives a structured
+ * {@link ValidateUnembeddingParams} context.
  * @group Types
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper } from '@joint/react';
+ * import type { ValidateUnembedding } from '@joint/react';
+ *
+ * // Keep "locked" elements embedded; everything else can be dragged out.
+ * const validate: ValidateUnembedding = ({ child }) => !child.model.get('locked');
+ *
+ * <GraphProvider>
+ *   <Paper validateUnembedding={validate} renderElement={() => <rect width={80} height={40} />} />
+ * </GraphProvider>;
+ * ```
  */
 export type ValidateUnembedding = (context: ValidateUnembeddingParams) => boolean;
 
@@ -54,12 +89,6 @@ function toEmbeddingInfo(view: dia.ElementView) {
  * `{ child, parent, paper, graph }` context for the validate callback.
  * @param validate - Optional custom validation. Defaults to `() => true`.
  * @returns A JointJS-compatible `validateEmbedding` function.
- * @example
- * ```ts
- * paper.options.validateEmbedding = canEmbed(
- *   ({ parent }) => parent.model.get('type') === 'container'
- * );
- * ```
  */
 export function canEmbed(validate?: (context: ValidateEmbeddingParams) => boolean) {
   if (!validate) return () => true;
@@ -80,12 +109,6 @@ export function canEmbed(validate?: (context: ValidateEmbeddingParams) => boolea
  * `{ child, paper, graph }` context for the validate callback.
  * @param validate - Optional custom validation. Defaults to `() => true`.
  * @returns A JointJS-compatible `validateUnembedding` function.
- * @example
- * ```ts
- * paper.options.validateUnembedding = canUnembed(
- *   ({ child }) => !child.model.get('locked')
- * );
- * ```
  */
 export function canUnembed(validate?: (context: ValidateUnembeddingParams) => boolean) {
   if (!validate) return () => true;

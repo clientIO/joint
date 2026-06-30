@@ -13,9 +13,10 @@ type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> =
 >;
 
 /**
- * Props common to every {@link GraphProvider} mode.
- * @template ElementData - User data attached to each element record.
- * @template LinkData - User data attached to each link record.
+ * Props for {@link GraphProvider} — pick the graph source (existing
+ * instance, initial cells, or a controlled cells array) and subscribe to changes.
+ * @template Element - Shape of the element cells stored in the graph.
+ * @template Link - Shape of the link cells stored in the graph.
  * @expand
  * @group Types
  */
@@ -32,11 +33,18 @@ export interface GraphProviderProps<
   /** React children rendered inside the provider, typically a `<Paper />`. */
   readonly children?: React.ReactNode;
   /**
-   * Cell namespace passed through to `new dia.Graph`. Defaults to JointJS
-   * built-in shapes plus the `@joint/react` ElementModel and LinkModel.
+   * Cell namespace passed to `new dia.Graph`. Your entries are merged on top of
+   * the built-ins, so JointJS shapes and the `@joint/react` {@link ElementModel}
+   * / {@link LinkModel} stay available even when you register custom shapes.
+   * @default JointJS `shapes` plus the `@joint/react` cell models
    */
   readonly cellNamespace?: unknown;
-  /** Custom cell model used as the base class for all cells in the graph. */
+  /**
+   * Base model class used for every cell the graph constructs from JSON. Maps to
+   * the (deprecated) `cellModel` option of `dia.Graph`; prefer `cellNamespace`,
+   * which registers shapes by `type` and supports per-type model classes.
+   * @see https://docs.jointjs.com/api/dia/Graph
+   */
   readonly cellModel?: typeof dia.Cell;
   /**
    * Reference point that stays fixed when an auto-sized element's measured
@@ -56,15 +64,29 @@ export interface GraphProviderProps<
   readonly store?: GraphStore<Element, Link>;
 
   /**
-   * Initial cells for uncontrolled mode. Ignored if `cells` is provided. Should not
+   * Cells used to seed the graph once, at mount, for uncontrolled mode. Later
+   * changes to this array are not applied. Ignored when `cells` is provided.
+   * @see {@link CellInput}
    */
   readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
+  /**
+   * Controlled cells array. Whenever this array changes, the graph is re-synced
+   * to match it (and `initialCells` is ignored); passing the same reference on a
+   * re-render does not re-sync. Pair it with `onCellsChange` to mirror user edits
+   * back into your own state.
+   */
   readonly cells?: ProviderCells<Element, Link>;
-  /** Notification-only callback, React state is NOT pushed back into the graph. */
+  /**
+   * Fires after each graph change with the full, updated cells array. Use it to
+   * keep external React state in sync with the graph; it is notification only
+   * and does not itself write anything back into the graph.
+   */
   readonly onCellsChange?: (newCells: ProviderCells<Element, Link>) => void;
   /**
-   * Notification fired with granular `added` / `changed` / `removed` sets
-   * after each commit. Independent of controlled/uncontrolled mode.
+   * Fires after each commit with the granular `added` / `changed` / `removed`
+   * delta, so you can apply just the change to an external store (Redux, Zustand,
+   * etc.). Works in both controlled and uncontrolled mode.
+   * @see {@link IncrementalCellsChange}
    */
   readonly onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
 }
@@ -153,32 +175,55 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
 }
 
 /**
- * GraphProvider supplies graph context to its children.
+ * Creates (or adopts) a JointJS graph and shares it with every `<Paper>` and
+ * graph hook rendered inside it. Mount it near the root of your diagram: hooks
+ * like {@link useGraph}, {@link useCells}, and {@link useCell} read the graph
+ * from its context and throw when used outside a provider.
  *
- * **Modes of operation:**
- *
- * 1. **Uncontrolled** (JointJS owns the graph after mount):
+ * It works in three modes, depending on which props you pass: pass
+ * `initialCells` to let JointJS own the graph after mount (uncontrolled), pass
+ * `cells` + `onCellsChange` to drive the graph from React state (controlled), or
+ * pass `onIncrementalCellsChange` to forward deltas to an external store.
+ * @example
+ * @title Uncontrolled — seed once, JointJS owns the graph
  * ```tsx
- * <GraphProvider initialCells={[...]}>
- *   <Paper />
+ * import { GraphProvider, Paper } from '@joint/react';
+ *
+ * // `renderElement` receives the element's `data` slice only — not its
+ * // geometry. Read position/size with the context hooks (e.g. useCell) when
+ * // you need them.
+ * <GraphProvider
+ *   initialCells={[{ id: '1', type: 'element', position: { x: 20, y: 20 }, size: { width: 80, height: 40 }, data: { label: 'A' } }]}
+ * >
+ *   <Paper renderElement={(data) => <rect width={80} height={40} rx={4} fill="#4763ff" />} />
  * </GraphProvider>
  * ```
- *
- * 2. **Controlled** (React owns the cells array):
+ * @example
+ * @title Controlled — React state owns the cells
  * ```tsx
- * const [cells, setCells] = useState<readonly CellRecord[]>([...]);
+ * import { useState } from 'react';
+ * import { GraphProvider, Paper, type CellRecord } from '@joint/react';
+ *
+ * const [cells, setCells] = useState<readonly CellRecord[]>([]);
  * <GraphProvider cells={cells} onCellsChange={setCells}>
  *   <Paper />
  * </GraphProvider>
  * ```
- *
- * 3. **Incremental-notification** (external store, Redux/Zustand):
+ * @example
+ * @title Incremental — forward deltas to an external store
  * ```tsx
- * <GraphProvider onIncrementalCellsChange={(c) => dispatch(c)}>
+ * import { GraphProvider, Paper } from '@joint/react';
+ *
+ * <GraphProvider
+ *   onIncrementalCellsChange={(delta) => {
+ *     // forward the { added, changed, removed } delta to your external store
+ *     store.apply(delta);
+ *   }}
+ * >
  *   <Paper />
  * </GraphProvider>
  * ```
- * @see GraphProviderProps for all available props
+ * @see {@link GraphProviderProps} for the full list of props.
  * @group Components
  */
 export const GraphProvider = GraphBase as <

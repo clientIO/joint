@@ -41,7 +41,12 @@ export const perpendicularAnchor: anchors.Anchor = (
 };
 
 /**
- * Mode for the `midSide` anchor used on root elements and custom magnets.
+ * Chooses which side of an element or port a link attaches to when using the
+ * mid-side anchor. `'auto'` picks the side nearest the other end; `'horizontal'`
+ * and `'vertical'` lock to left/right or top/bottom; the `'prefer-*'` variants
+ * favor one axis but fall back to the other; and the directional pairs
+ * (`'top-bottom'`, `'left-right'`, etc.) pin the source and target to opposite
+ * sides.
  * @group Types
  */
 export type LinkMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto' | 'top-bottom' | 'bottom-top' | 'left-right' | 'right-left';

@@ -26,6 +26,7 @@ export interface PortalHostCell {
 
 /**
  * Context passed to a {@link PortalSelector} callback.
+ * @expand
  * @group Types
  */
 export interface PortalSelectorParams {
@@ -57,9 +58,9 @@ export type PortalSelector =
 
 /**
  * Options for creating a PaperView instance with lifecycle callbacks.
- * @group Types
  */
 export interface PaperViewOptions extends dia.Paper.Options {
+  /** Called when cell views mount or unmount, with the per-cell incremental changes. */
   readonly onViewMountChange?: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;
   /**
    * Selector used to locate the React portal target node inside a cell view.

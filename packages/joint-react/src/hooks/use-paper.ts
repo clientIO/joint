@@ -48,7 +48,7 @@ export function useResolvePaperId(paperTarget: PaperTarget | undefined): string 
  * 2. `DEFAULT_PAPER_ID` lookup (when a single `<Paper>` exists without an explicit `id`)
  * @param paperId - An explicit paper id, or omitted for the context/default paper.
  * @returns The resolved paper store, or `undefined` when no paper is mounted yet.
- * @group Hooks
+ * @internal
  */
 export function usePaperStore(paperId?: string): PaperStore | undefined {
   const contextStore = useContext(PaperStoreContext);
@@ -86,15 +86,37 @@ export interface PaperApi {
 }
 
 /**
- * Returns the active `PaperView` instance from context, by ID, or via the
- * default paper. Resolves the paper store and exposes `wakeUp()`.
+ * Access the JointJS paper (`dia.Paper`) instance for the surrounding `<Paper>`,
+ * a specific paper by id, or the default paper. Use it to drive the paper
+ * imperatively, scale, fit content, or wake it up, from anywhere under a
+ * {@link GraphProvider}.
  *
- * The returned object is always stable; only `paper` is `null` until the
- * `<Paper>` view has mounted.
+ * The returned object is referentially stable for a given resolved paper; its
+ * `paper` is `null` until the `<Paper>` view has mounted, so guard calls with
+ * `paper?.`.
  * @param paperId - An explicit paper id, or omitted for the context/default paper.
- * @returns A stable object with the resolved `paper` (or `null`) and a `wakeUp` action.
+ * @returns The {@link PaperApi}: the resolved `paper` (or `null`) and a `wakeUp` action.
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper, usePaper } from '@joint/react';
+ *
+ * function FitButton() {
+ *   const { paper } = usePaper();
+ *   // `paper` is null until the <Paper> view has mounted.
+ *   return <button onClick={() => paper?.transformToFitContent({ padding: 20 })}>Fit</button>;
+ * }
+ *
+ * function App() {
+ *   return (
+ *     <GraphProvider>
+ *       <Paper />
+ *       <FitButton />
+ *     </GraphProvider>
+ *   );
+ * }
+ * ```
  */
 export function usePaper(paperId?: string): PaperApi {
   const paperStore = usePaperStore(paperId);

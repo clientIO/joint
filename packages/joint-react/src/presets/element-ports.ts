@@ -2,63 +2,64 @@ import { type dia } from '@joint/core';
 import type { LiteralUnion } from '../types/index';
 
 /**
- * Shape of a port.
- * - `'ellipse'`, ellipse
- * - `'rect'`, rectangle
- * - Any other string, interpreted as SVG path `d` commands
+ * Shape of a port's body.
+ * - `'ellipse'` renders an ellipse.
+ * - `'rect'` renders a rectangle.
+ * - Any other string is used directly as the SVG path `d` attribute.
  * @group Types
  */
 export type ElementPortShape = LiteralUnion<'ellipse' | 'rect'>;
 
 /**
- * Simplified port definition for declarative port configuration.
- * Converted to full JointJS port format by the element mapper.
- * @group Presets
+ * Declarative port description for {@link elementPort} and {@link elementPorts}.
+ * Captures the common port styling and label options in a flat shape, which the
+ * presets expand into a full `dia.Element.Port`.
+ * @group Types
  */
 export interface ElementPort {
   /**
-   * X position of the port (absolute positioning).
-   * Supports calc() expressions (e.g., 'calc(w)').
-   * Optional when using group-based positioning.
+   * Horizontal position of the port, relative to the element, for absolute
+   * placement. Accepts a number or a `calc()` expression such as `'calc(w)'`.
+   * Omit to let the port group position the port instead.
    */
   cx?: number | string;
   /**
-   * Y position of the port (absolute positioning).
-   * Supports calc() expressions (e.g., 'calc(h)').
-   * Optional when using group-based positioning.
+   * Vertical position of the port, relative to the element, for absolute
+   * placement. Accepts a number or a `calc()` expression such as `'calc(h)'`.
+   * Omit to let the port group position the port instead.
    */
   cy?: number | string;
-  /** Width of the port shape. @default 10 */
+  /** Width of the port shape, in pixels. @default 8 */
   width?: number;
-  /** Height of the port shape. @default 10 */
+  /** Height of the port shape, in pixels. @default 8 */
   height?: number;
-  /** Fill color of the port shape. @default '#333333' */
+  /** Fill color of the port shape. Any CSS color; when empty the port inherits the `jj-port` stylesheet fill. @default '' */
   color?: string;
-  /** Shape of the port. @default 'ellipse' */
+  /** Shape of the port body. @default 'ellipse' */
   shape?: ElementPortShape;
-  /** Outline color of the port shape. Accepts any CSS color. @default 'transparent' */
+  /** Outline (stroke) color of the port shape. Any CSS color; when empty the stroke comes from the stylesheet. @default '' */
   outline?: string;
-  /** Outline width of the port shape in px. @default 0 */
+  /** Outline (stroke) width of the port shape, in pixels. Empty leaves the stroke width unset. @default '' */
   outlineWidth?: number;
-  /** CSS class name to apply to the port shape. */
+  /** Extra CSS class added to the port shape alongside the built-in `jj-port` class. @default '' */
   className?: string;
-  /** Whether the port is limited to only being a target (not source) for links. @default false */
+  /** Restricts the port to being a link target only; links cannot be started from it. @default false */
   passive?: boolean;
-  /** Label displayed next to the port. */
+  /** Text label rendered next to the port. Omit for an unlabeled port. */
   label?: string;
-  /** Position of the port label. @default 'outside' */
+  /** Placement of the label relative to the port, e.g. `'outside'`, `'inside'`, or a side name. @default 'outside' */
   labelPosition?: string;
-  /** Color of the port label text. @default '#333333' */
+  /** Color of the label text. Any CSS color; when empty the color comes from the stylesheet. @default '' */
   labelColor?: string;
-  /** Font size of the port label text. */
+  /** Font size of the label text, in pixels. When empty the size comes from the stylesheet. @default '' */
   labelFontSize?: number;
-  /** Font family of the port label text. */
+  /** Font family of the label text. When empty the family comes from the stylesheet. @default '' */
   labelFontFamily?: string;
-  /** CSS class name to apply to the port label. */
+  /** Extra CSS class added to the label alongside the built-in `jj-port-label` class. @default '' */
   labelClassName?: string;
-  /** Horizontal offset of the port label in pixels. */
+  /** Horizontal offset of the label from its computed position, in pixels. */
   labelOffsetX?: number;
-  /** Vertical offset of the port label in pixels. */
+  /** Vertical offset of the label from its computed position, in pixels. */
   labelOffsetY?: number;
 }
 
@@ -79,18 +80,20 @@ const defaultPortStyle = {
 } as const;
 
 /**
- * Creates a JointJS port definition from simplified options.
- *
- * When `cx`/`cy` are provided, the port uses absolute positioning.
- * When omitted, position is left to the port group (e.g. `'left'`, `'right'`).
- * @param port - the simplified port definition to convert
+ * Builds a full `dia.Element.Port` from a declarative {@link ElementPort}.
+ * When `cx`/`cy` are set the port is placed absolutely; when they are omitted the
+ * port relies on the positioning of whatever group it is placed in.
+ * @param port - The declarative port description to expand.
+ * @returns A JointJS port object ready to drop into an element's `ports.items`.
  * @example
- * ```ts
- * // Absolute positioned
- * elementPort({ cx: 'calc(w)', cy: 'calc(h/2)', color: 'red' })
+ * ```tsx
+ * import { elementPort } from '@joint/react';
  *
- * // Group-positioned (no cx/cy)
- * elementPort({ color: 'blue', shape: 'rect', width: 12, height: 12 })
+ * // Absolute placement via calc() expressions, relative to the element size.
+ * const outlet = elementPort({ cx: 'calc(w)', cy: 'calc(h/2)', color: 'red' });
+ *
+ * // No cx/cy: the port group decides where it sits.
+ * const inlet = elementPort({ shape: 'rect', width: 12, height: 12 });
  * ```
  * @group Presets
  */
@@ -183,13 +186,18 @@ export function elementPort(port: ElementPort): dia.Element.Port {
 const PORT_GROUP = 'main';
 
 /**
- * Converts a record of simplified ElementPort definitions to the full JointJS ports object.
- * Each port gets absolute positioning under the `'main'` group.
- * @param ports - map of port id to port definition
- * @param portStyle - optional style merged into every port
+ * Expands a map of declarative {@link ElementPort}s into a full JointJS `ports`
+ * object (a `groups` definition plus the `items` array). Every port is placed
+ * absolutely under a single `'main'` group, keyed by its map id.
+ * @param ports - Map of port id to its {@link ElementPort} description.
+ * @param portStyle - Shared defaults merged under each port; per-port values win.
+ * @returns The `ports` object to assign to an element's attributes.
  * @example
- * ```ts
- * elementPorts({ out: { cx: 'calc(w)', cy: 'calc(h/2)' } })
+ * ```tsx
+ * import { elementPorts } from '@joint/react';
+ *
+ * // One output port on the right edge, vertically centered.
+ * const ports = elementPorts({ out: { cx: 'calc(w)', cy: 'calc(h/2)' } });
  * ```
  * @group Presets
  */

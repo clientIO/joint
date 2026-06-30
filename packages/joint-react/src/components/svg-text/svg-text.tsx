@@ -106,22 +106,30 @@ function getTextWrapStyles({
 }
 
 /**
- * Props for {@link SVGText}, combines native SVG `<text>` attributes with the
- * JointJS Vectorizer text options used for word-wrap and annotation rendering.
+ * Props for {@link SVGText}: native SVG `<text>` attributes plus the JointJS
+ * Vectorizer text options (end-of-line marker, vertical anchor, line height,
+ * text-on-path, annotations) and opt-in word wrapping.
  * @expand
  * @group Types
  */
 export interface SVGTextProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
-  /** Box width for the `textWrap` pass. */
+  /**
+   * Wrapping width in pixels for the `textWrap` pass. Falls back to the graph
+   * element's current width when omitted.
+   */
   readonly width?: number;
-  /** Box height for the `textWrap` pass. */
+  /**
+   * Maximum height in pixels for the `textWrap` pass; lines that overflow it
+   * are dropped.
+   */
   readonly height?: number;
   /**
-   * Enable word-wrapping using the Vectorizer break-text algorithm.
-   * Pass `true` for default behavior or an options object to fine-tune
-   * (ellipsis, break-word, max-line-count, …).
+   * Wrap the text to the available `width` using the JointJS `util.breakText`
+   * algorithm. Pass `true` for the defaults, or an options object to fine-tune
+   * wrapping (ellipsis, max line count, hyphenation, …).
+   * @default false
    */
   readonly textWrap?: boolean | util.BreakTextOptions;
 }
@@ -227,58 +235,53 @@ function Component(props: SVGTextProps, ref: React.ForwardedRef<SVGTextElement>)
 }
 
 /**
- * SVG text wrapper with Vectorizer-powered rendering and annotations.
- * Render anywhere under an SVG context.
+ * Renders an SVG `<text>` element with JointJS-quality text layout: word
+ * wrapping, custom line breaks, vertical alignment, line height, text-on-path,
+ * and rich annotations. Use it inside `<Paper renderElement={...}>` to label or
+ * caption an element; its children must be a single string.
  *
- * Supports end-of-line characters, vertical anchor, line height, and text
- * wrapping via the Vectorizer text options.
- * @see Vectorizer
- * @see Vectorizer.TextOptions
+ * The text is laid out with the JointJS Vectorizer (`V(...).text()`), and
+ * `textWrap` runs `util.breakText` so long strings wrap to the element's width.
+ * See {@link SVGTextProps} for every supported option.
  * @group Components
  * @example
- * Basic usage:
+ * @title Basic label
  * ```tsx
- * import { SVGText } from '@joint/react';
+ * import { Paper, SVGText } from '@joint/react';
  *
- * function RenderElement() {
- *   return (
- *     <SVGText x={10} y={20}>
- *       Hello World
- *     </SVGText>
- *   );
- * }
+ * // Label each element with a static caption.
+ * <Paper renderElement={() => <SVGText x={10} y={20}>Hello World</SVGText>} />
  * ```
  * @example
- * With text wrapping:
+ * @title Wrap text to a fixed width
  * ```tsx
- * import { SVGText } from '@joint/react';
+ * import { Paper, SVGText } from '@joint/react';
  *
- * function RenderElement() {
- *   return (
+ * // Wrap a long caption to the element's current width.
+ * <Paper
+ *   renderElement={() => (
  *     <SVGText x={10} y={20} width={100} textWrap>
  *       This is a long text that will wrap to multiple lines
  *     </SVGText>
- *   );
- * }
+ *   )}
+ * />
  * ```
  * @example
- * With custom text options:
+ * @title Vertical anchor, line height, and line breaks
  * ```tsx
- * import { SVGText } from '@joint/react';
+ * import { Paper, SVGText } from '@joint/react';
  *
- * function RenderElement() {
- *   return (
- *     <SVGText
- *       x={10}
- *       y={20}
- *       textVerticalAnchor="middle"
- *       lineHeight={1.5}
- *       eol="\n"
- *     >
- *       Line 1\nLine 2
+ * // A real "\n" in the string is what splits the content into two lines, so
+ * // pass it through an expression container (not raw JSX text, where "\n"
+ * // stays literal). textVerticalAnchor centers the block and lineHeight sets
+ * // the spacing between the lines.
+ * <Paper
+ *   renderElement={() => (
+ *     <SVGText x={10} y={20} textVerticalAnchor="middle" lineHeight={1.5}>
+ *       {'Line 1\nLine 2'}
  *     </SVGText>
- *   );
- * }
+ *   )}
+ * />
  * ```
  */
 export const SVGText = forwardRef(Component) as (

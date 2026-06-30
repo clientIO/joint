@@ -14,19 +14,19 @@ import { usePaper } from './use-paper';
 interface CellDragStateBase {
   /** True when cell is being dragged. */
   readonly isDragging: boolean;
-  /** True when the drop area is within the paper area. */
+  /** Reserved drop-validity flag; currently always `true` (not yet computed). */
   readonly canDrop: boolean;
   /** True when cell is a preview. */
   readonly isPreview: boolean;
-  /** Bounding rect of dragged cell in coords. */
+  /** Bounding box of the dragged cell, in paper coordinates. */
   readonly dropArea?: g.Rect;
-  /** Latest event during drag. */
+  /** Pointer event for this drag frame. */
   readonly event?: dia.Event;
-  /** Paper instance for dragging cell */
+  /** The paper the cell is being dragged on. */
   readonly paper?: dia.Paper;
-  /** Graph model for dragging cell */
+  /** Convenience alias for `paper.model`. */
   readonly graph?: dia.Graph;
-  /** ID of the dragged cell */
+  /** ID of the cell being dragged. */
   readonly cellId?: dia.Cell.ID;
 }
 
@@ -37,9 +37,10 @@ interface CellDragStateIdle extends CellDragStateBase {
   isDragging: false;
 }
 /**
- * Drag state for the current cell. When `isDragging` is `true`, the active
- * fields (`event`, `dropArea`, `canDrop`, `paper`, `graph`) carry the
- * in-progress drag; when `false`, those fields are present but inert.
+ * Drag state for the current cell, returned by {@link useCellDrag}. While a
+ * drag is in progress (`isDragging` is `true`), the active fields (`event`,
+ * `dropArea`, `paper`, `graph`, `cellId`) carry the live drag; when `false`
+ * they are `undefined`. `isPreview` and `canDrop` are always present.
  * @group Types
  */
 export type CellDragState = CellDragStateDragging | CellDragStateIdle;
@@ -68,16 +69,19 @@ const NOOP_CLEANUP = () => {};
 const NOOP_SUBSCRIBE = () => NOOP_CLEANUP;
 
 /**
- * Returns reactive drag state for the current cell. Self-contained, lazily
- * attaches paper event listeners on first subscription per paper.
+ * Tracks the live drag state of the current cell while the user drags it
+ * across the paper. Read `isDragging` to dim the element, or `canDrop` /
+ * `dropArea` to render a drop indicator. Use it inside a `renderElement`
+ * callback.
  *
- * Only the dragged element re-renders, all other elements receive a frozen
- * idle reference.
- * Used inside `renderElement`.
+ * Only the cell being dragged re-renders; every other cell receives a shared,
+ * frozen idle reference, so large diagrams stay cheap to render.
  * @group Hooks
- * @returns Drag state scoped to the current cell.
+ * @returns the {@link CellDragState} scoped to the current cell
  * @example
  * ```tsx
+ * import { Paper, useCellDrag } from '@joint/react';
+ *
  * function MyElement({ label }: { label: string }) {
  *   const { isDragging } = useCellDrag();
  *   return (
@@ -86,6 +90,8 @@ const NOOP_SUBSCRIBE = () => NOOP_CLEANUP;
  *     </div>
  *   );
  * }
+ *
+ * <Paper renderElement={(el) => <MyElement label={String(el.id)} />} />;
  * ```
  */
 export function useCellDrag(): CellDragState {

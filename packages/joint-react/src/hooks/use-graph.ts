@@ -81,7 +81,7 @@ export interface GraphApi<
    * typed records flow through, otherwise it falls back to
    * `Record<string, unknown>`. A cell id can't be narrowed to element-vs-link
    * at the type level, so when both are typed the updater sees their union.
-   * narrow inside it. For a single fixed `data` shape, use the standalone
+   * Narrow inside it. For a single fixed `data` shape, use the standalone
    * `useSetCellData<MyData>()` hook.
    */
   readonly setCellData: SetCellData<HandleCellData<Element, Link>>;
@@ -103,16 +103,14 @@ export interface GraphApi<
   ) => void;
   /**
    * Predicate / type guard: true when the input resolves to an element cell.
-   * Delegates to `GraphStore.isElement`, consults the graph's type registry
-   * so any `dia.Element` subclass (including custom shapes) is recognised,
-   * not just our default {@link ElementModel}.
+   * Consults the graph's type registry so any `dia.Element` subclass (including
+   * custom shapes) is recognised, not just the default {@link ElementModel}.
    */
   readonly isElement: (input: Element | Link) => input is Element;
   /**
    * Predicate / type guard: true when the input resolves to a link cell.
-   * Delegates to `GraphStore.isLink`, consults the graph's type registry so
-   * any `dia.Link` subclass (including custom shapes) is recognised, not just
-   * our default {@link LinkModel}.
+   * Consults the graph's type registry so any `dia.Link` subclass (including
+   * custom shapes) is recognised, not just the default {@link LinkModel}.
    */
   readonly isLink: (input: Element | Link) => input is Link;
   /**
@@ -135,26 +133,65 @@ export interface GraphApi<
 }
 
 /**
- * Options accepted by {@link GraphApi}.exportToJSON.
+ * Options for {@link GraphApi}'s `exportToJSON`.
+ * @expand
  * @group Types
  */
 export interface ExportToJSONOptions {
   /**
-   * When `true`, every attribute is preserved (defaults included) and no
-   * empty-attribute pruning is applied. Defaults to `false`, minimal output:
-   * defaults stripped, empties pruned (except `attrs.*.*`).
+   * When `true`, every attribute is kept (defaults included) and no
+   * empty-attribute pruning is applied. The default minimal output strips
+   * attributes that match each cell's `defaults` and prunes empty `{}`
+   * (except inside `attrs` at depth 3, e.g. `attrs.text.textWrap: {}`, which
+   * JointJS treats as a meaningful reset marker).
+   * @default false
    */
   readonly includeDefaults?: boolean;
 }
 
 /**
- * Access the graph and its imperative cell-mutation API. Must be called
- * inside a `<GraphProvider>`.
+ * Access the graph together with its imperative cell-mutation API for adding,
+ * updating, removing, and serializing cells. Call this inside a
+ * {@link GraphProvider}.
  * @template Element - element record shape (use `ElementRecord<MyData>` for input,
  *                    `Computed<ElementRecord<MyData>>` for read shapes)
  * @template Link - link record shape (use `LinkRecord<MyData>` /
  *                  `Computed<LinkRecord<MyData>>`)
+ * @returns The {@link GraphApi}: the `dia.Graph` instance plus `setCell`,
+ *          `setCellData`, `removeCell`, `resetCells`, `exportToJSON`, and the
+ *          other cell actions.
  * @group Hooks
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper, useGraph } from '@joint/react';
+ *
+ * function Toolbar() {
+ *   const { setCell, exportToJSON } = useGraph();
+ *   return (
+ *     <button
+ *       onClick={() =>
+ *         setCell({
+ *           id: 'node-1',
+ *           type: 'standard.Rectangle',
+ *           position: { x: 40, y: 40 },
+ *           size: { width: 120, height: 60 },
+ *         })
+ *       }
+ *     >
+ *       Add node
+ *     </button>
+ *   );
+ * }
+ *
+ * function App() {
+ *   return (
+ *     <GraphProvider>
+ *       <Paper />
+ *       <Toolbar />
+ *     </GraphProvider>
+ *   );
+ * }
+ * ```
  */
 export function useGraph<
   Element extends ElementJSONInit = ElementJSONInit,

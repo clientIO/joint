@@ -105,14 +105,28 @@ function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []
 }
 
 /**
- * Convert JSX into JointJS markup (static `dia.MarkupJSON`). Only intrinsic
- * SVG / HTML tags are emitted as nodes; component types are treated as
- * fragments, their children flow through but the wrapper itself is dropped.
- * No hooks, no state, purely static.
- * @param element JSX element.
- * @returns JointJS markup.
+ * Converts a JSX tree into static JointJS markup (`dia.MarkupJSON`), ready to
+ * assign as a cell's `markup`. Intrinsic SVG/HTML tags become markup nodes;
+ * function components are rendered once and their output is converted; fragments
+ * (and any non-string element type) are unwrapped so their children flow through
+ * without a wrapper node.
+ *
+ * Text, number, boolean, and `null` children become text content; any other
+ * child type throws. This is a one-time, static conversion with no hooks, no
+ * state, and no React lifecycle, so author plain markup here rather than
+ * interactive components.
+ * @param element - The JSX tree to convert, typically authored inline as `<g>…</g>`.
+ * @returns The equivalent JointJS markup array.
+ * @remarks
+ * Two prop conventions are translated for you:
+ * - `className` is emitted as the SVG `class` attribute.
+ * - Any `joint-*` prop is lifted onto the markup node itself, e.g.
+ *   `joint-selector="body"` sets the node's `selector` (the same selector names
+ *   that {@link useMarkup} registers at runtime).
  * @example
  * ```tsx
+ * import { jsx } from '@joint/react';
+ *
  * const markup = jsx(
  *   <g>
  *     <rect width={80} height={40} fill="white" stroke="black" />

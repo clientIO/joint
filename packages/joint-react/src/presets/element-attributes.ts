@@ -7,28 +7,35 @@ import type { ElementPort } from './element-ports';
  * React-side declarative fields the preset adds on top of `dia.Element.Attributes`.
  * Composed orthogonally into both `ElementAttributes` (preset input) and
  * `ElementJSONInit` (record/mapper boundary).
+ * @group Types
  */
 export interface ElementPresetAttributes {
+  /** Ports keyed by id; each value is an {@link ElementPort} expanded into native `ports` by {@link elementPorts}, and its key becomes the port id. */
   portMap?: Record<string, ElementPort>;
+  /** Shared {@link ElementPort} styling merged into every `portMap` entry before that entry's own values. */
   portStyle?: Partial<ElementPort>;
 }
 
 /**
  * Loose preset input, no `type` required. `dia.Element.Attributes` plus the
  * React preset extras (`portMap`, `portStyle`).
+ * @expand
+ * @group Types
  */
 export interface ElementAttributes extends dia.Element.Attributes, ElementPresetAttributes {}
 
 /**
- * Normalizes element configuration into JointJS-compatible cell attributes.
- * Expands the React-preset `portMap` shorthand into native `ports` via
- * {@link elementPorts}(); passes native `ports` through; throws when both are
- * supplied.
- * @param element - The element record to convert.
- * @returns JointJS-compatible cell attributes.
+ * Normalizes a declarative element description into JointJS cell attributes.
+ * The `portMap` shorthand is expanded into native `ports` via {@link elementPorts}
+ * (and kept on the result as `portMap`); a native `ports` value is passed through
+ * untouched. Use it when feeding a {@link ElementModel} or building a model's
+ * `defaults()`.
+ * @param element - The declarative element description to convert.
+ * @returns Attributes ready to pass to an element model.
+ * @throws TypeError when `element` is not a plain object.
+ * @throws Error when both `portMap` and `ports` are supplied.
  * @example
- * Expand the declarative preset input into native attributes and hand them to
- * a cell model:
+ * Feed an element model:
  * ```tsx
  * import { ElementModel, elementAttributes } from '@joint/react';
  *
@@ -42,7 +49,7 @@ export interface ElementAttributes extends dia.Element.Attributes, ElementPreset
  * );
  * ```
  * @example
- * Or build the defaults of a custom cell model class:
+ * Build a custom model's defaults:
  * ```tsx
  * import { ElementModel, elementAttributes } from '@joint/react';
  *

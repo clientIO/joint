@@ -19,16 +19,17 @@ import type { LinkRouting } from '../../presets/link-routing';
 import type { PaperEventHandlers } from '../../presets/paper-events';
 
 /**
- * Value accepted by the Paper `transform` prop. Strings are parsed via the
- * native `DOMMatrix` constructor (CSS transform syntax, `scale()`,
- * `translate()`, `rotate()`, `matrix()` etc.). `DOMMatrix` instances pass
- * through. `SVGMatrix === DOMMatrix` in modern `lib.dom.d.ts`.
+ * Viewport transform accepted by the `<Paper>` `transform` prop: either a CSS
+ * transform string (e.g. `'scale(0.5)'`, `'translate(10px, 20px) rotate(15deg)'`)
+ * or a `DOMMatrix`. Strings are parsed with the native `DOMMatrix` constructor.
  * @group Types
  */
 export type PaperTransform = string | DOMMatrix;
 
 /**
- * Context passed to the `defaultLink` factory.
+ * Context handed to a {@link DefaultLink} factory while the user drags a new
+ * connection from a port or element.
+ * @expand
  * @group Types
  */
 export interface DefaultLinkParams {
@@ -41,8 +42,10 @@ export interface DefaultLinkParams {
 }
 
 /**
- * Value accepted by the Paper `defaultLink` prop, factory receiving
- * {@link DefaultLinkParams}, or a static `Partial<LinkRecord>`.
+ * Defines the link created when the user drags a new connection from a port or
+ * element. Either a factory receiving {@link DefaultLinkParams} (returning a
+ * `dia.Link` or a partial {@link LinkRecord}) or a static partial
+ * {@link LinkRecord}.
  * @group Types
  */
 export type DefaultLink =
@@ -50,9 +53,10 @@ export type DefaultLink =
   | Partial<LinkRecord>;
 
 /**
- * Raw `dia.Paper.Options` passthrough, the type of the `options` escape-hatch prop.
- * `cellVisibility` is excluded: use the dedicated `cellVisibility` prop (it is
- * also managed by feature ownership, e.g. a virtual-rendering scroller).
+ * Raw `dia.Paper.Options` accepted by the {@link PaperProps} `options` escape
+ * hatch, for any native option joint-react does not expose as a dedicated prop.
+ * `cellVisibility` is excluded: use the dedicated `cellVisibility` prop instead
+ * (it is also managed by feature ownership, e.g. a virtual-rendering scroller).
  * @group Types
  */
 export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
@@ -62,7 +66,6 @@ export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
  * native types via indexed access (`dia.Paper.Options['name']`), so any
  * type-level change in JointJS propagates automatically. Anything not listed
  * here is reachable via the `options` escape hatch, never implicitly exposed.
- * @group Types
  */
 interface PaperSupportedOptions {
   // ── Wrapped (structured) ─────────────────────────────────────────────────
@@ -116,39 +119,133 @@ interface PaperSupportedOptions {
   // by host CSS (`className` / `style`); `paper.getComputedSize()` falls
   // back to `el.clientWidth/clientHeight` when `options.width/height` are
   // not numeric (see `dia.Paper.getComputedSize`).
+  /**
+   * Draws a grid pattern on the paper background. Pass `true` for the default
+   * grid or an object to style it (e.g. `{ color: 'red', thickness: 2 }`).
+   * @default true
+   */
   readonly drawGrid?: dia.Paper.Options['drawGrid'];
+  /**
+   * Spacing of the rendered grid lines in px. Falls back to `gridSize` when not
+   * set.
+   * @default matches `gridSize`
+   */
   readonly drawGridSize?: dia.Paper.Options['drawGridSize'];
+  /**
+   * Grid step in px that element positions snap to while dragging.
+   * @default 10
+   */
   readonly gridSize?: dia.Paper.Options['gridSize'];
+  /**
+   * Paper background color, image, or pattern. Pass an object such as
+   * `{ color: 'lightblue', image: '/bg.png', repeat: 'flip-xy' }`.
+   * @default false
+   */
   readonly background?: dia.Paper.Options['background'];
+  /**
+   * Renders link labels into a dedicated top layer (so they are not occluded by
+   * later cells). Pass `true`, or a layer name to target a specific layer.
+   * @default false
+   */
   readonly labelsLayer?: dia.Paper.Options['labelsLayer'];
+  /**
+   * Lets cell content spill outside the paper viewport instead of being clipped.
+   * @default false
+   */
   readonly overflow?: dia.Paper.Options['overflow'];
 
   // ── Interactions ─────────────────────────────────────────────────────────
   /**
-   * CellInteraction permissions. Accepts:
-   * - `boolean`, enable/disable all interactions.
-   * - `InteractivityOptions`, granular toggle per interaction kind.
-   * - Function, receives `{ model, interaction, paper, graph }` and returns either form.
-   * Native `(cellView, event)` callback is reachable via the `options` escape hatch.
+   * Which pointer interactions are enabled on cells. Accepts a boolean to toggle
+   * everything, an `InteractivityOptions` object for granular control per
+   * interaction kind, or a {@link CellInteractivity} callback returning either
+   * form per cell. The native `(cellView, event)` callback is reachable via the
+   * `options` escape hatch.
+   * @default { labelMove: false, linkMove: false }
    */
   readonly interactive?: CellInteractivity;
+  /**
+   * Highlighter definitions keyed by highlight type (connecting, embedding,
+   * magnet/element availability). Override to restyle these visual cues.
+   * @default joint-react's themed highlighters
+   */
   readonly highlighting?: dia.Paper.Options['highlighting'];
+  /**
+   * Snaps a dragged link label to the closest point on the link path.
+   * @default false
+   */
   readonly snapLabels?: dia.Paper.Options['snapLabels'];
+  /**
+   * Snaps a dragged link end to nearby ports/elements. Pass `{ radius }` to set
+   * the snapping distance in px.
+   * @default { radius: 15 }
+   */
   readonly snapLinks?: dia.Paper.Options['snapLinks'];
+  /**
+   * Allows a link end to snap to its own source/target element.
+   * @default false
+   */
   readonly snapLinksSelf?: dia.Paper.Options['snapLinksSelf'];
+  /**
+   * Highlights valid drop targets (magnets and elements) while a link is being
+   * dragged.
+   * @default true
+   */
   readonly markAvailable?: dia.Paper.Options['markAvailable'];
+  /**
+   * Allows dropping a link end on blank paper, pinning it to a fixed point
+   * instead of requiring an element/port.
+   * @default false
+   */
   readonly linkPinning?: dia.Paper.Options['linkPinning'];
 
   // ── Event thresholds / prevention ────────────────────────────────────────
+  /**
+   * Maximum pointer travel (in px) still treated as a click rather than a drag.
+   * @default 5
+   */
   readonly clickThreshold?: dia.Paper.Options['clickThreshold'];
+  /**
+   * Pointer travel (in px) required before `pointermove` events start firing.
+   * @default 0
+   */
   readonly moveThreshold?: dia.Paper.Options['moveThreshold'];
+  /**
+   * Pointer travel (in px) before a link is created from a magnet, or
+   * `'onleave'` to create it once the pointer leaves the magnet.
+   * @default 'onleave'
+   */
   readonly magnetThreshold?: dia.Paper.Options['magnetThreshold'];
+  /**
+   * Suppresses the browser context menu over the paper so `contextmenu` events
+   * can drive your own UI.
+   * @default true
+   */
   readonly preventContextMenu?: dia.Paper.Options['preventContextMenu'];
+  /**
+   * Prevents the browser default action on cell pointer events.
+   * @default true
+   */
   readonly preventDefaultViewAction?: dia.Paper.Options['preventDefaultViewAction'];
+  /**
+   * Prevents the browser default action on blank-area pointer events.
+   * @default false
+   */
   readonly preventDefaultBlankAction?: dia.Paper.Options['preventDefaultBlankAction'];
 
   // ── Embedding ────────────────────────────────────────────────────────────
+  /**
+   * Enables embedding: dropping an element onto another re-parents it (the
+   * child then moves with its parent). Pair with the `validateEmbedding` prop to
+   * control which parents are allowed.
+   * @default false
+   */
   readonly embeddingMode?: dia.Paper.Options['embeddingMode'];
+  /**
+   * When embedding, only the frontmost element under the pointer is considered a
+   * parent; otherwise candidates are tested front-to-back.
+   * @default true
+   */
   readonly frontParentOnly?: dia.Paper.Options['frontParentOnly'];
 
   // ── Cell visibility ──────────────────────────────────────────────────────
@@ -160,13 +257,45 @@ interface PaperSupportedOptions {
   readonly cellVisibility?: CellVisibility;
 
   // ── Namespaces ───────────────────────────────────────────────────────────
+  /**
+   * Namespace of cell-view constructors used to resolve a cell's view by type.
+   * @default JointJS built-in cell views
+   */
   readonly cellViewNamespace?: dia.Paper.Options['cellViewNamespace'];
+  /**
+   * Namespace of layer-view constructors used to resolve custom paper layers.
+   * @default JointJS built-in layer views
+   */
   readonly layerViewNamespace?: dia.Paper.Options['layerViewNamespace'];
+  /**
+   * Namespace used to resolve router names referenced by links.
+   * @default JointJS built-in `routers`
+   */
   readonly routerNamespace?: dia.Paper.Options['routerNamespace'];
+  /**
+   * Namespace used to resolve connector names referenced by links.
+   * @default JointJS built-in `connectors`
+   */
   readonly connectorNamespace?: dia.Paper.Options['connectorNamespace'];
+  /**
+   * Namespace used to resolve highlighter names referenced by `highlighting`.
+   * @default JointJS built-in highlighters plus joint-react's magnet highlighter
+   */
   readonly highlighterNamespace?: dia.Paper.Options['highlighterNamespace'];
+  /**
+   * Namespace used to resolve element anchor names.
+   * @default JointJS built-in `anchors`
+   */
   readonly anchorNamespace?: dia.Paper.Options['anchorNamespace'];
+  /**
+   * Namespace used to resolve link anchor names.
+   * @default JointJS built-in `linkAnchors`
+   */
   readonly linkAnchorNamespace?: dia.Paper.Options['linkAnchorNamespace'];
+  /**
+   * Namespace used to resolve connection point names.
+   * @default JointJS built-in `connectionPoints`
+   */
   readonly connectionPointNamespace?: dia.Paper.Options['connectionPointNamespace'];
 
   // ── Link routing bundle ──────────────────────────────────────────────────
@@ -204,8 +333,8 @@ interface PaperSupportedOptions {
 }
 
 /**
- * Render function for elements. Receives the element's `data` slice only.
- * so the renderer re-runs ONLY when `data` changes, not when `position`,
+ * Render function for elements. Receives the element's `data` slice only, so
+ * the renderer re-runs ONLY when `data` changes, not when `position`,
  * `size`, `angle`, or other cell attributes update. Position and size are
  * applied by JointJS's view layer without touching React at all (SVG mode)
  * or by a thin wrapper div that doesn't invoke the renderer (HTML mode).
@@ -235,8 +364,9 @@ export type RenderElement<ElementData = unknown> = (data: ElementData) => ReactN
 export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
 
 /**
- * The props for the Paper component. Extend the `dia.Paper.Options` interface.
- * For more information, see the JointJS documentation.
+ * Props for {@link Paper} — the React-friendly surface over
+ * `dia.Paper.Options`, plus joint-react extras such as custom cell rendering, a
+ * controlled viewport `transform`, and portal targeting.
  *
  * Paper events are exposed directly as props
  * (`onBlankContextMenu`, `onElementPointerClick`, `onLinkMouseEnter`, …).
@@ -255,27 +385,26 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  */
 export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, PaperEventHandlers {
   /**
-   * A function that renders the element.
+   * Renders each element from its `data` slice.
    *
    * Note: JointJS works with SVG by default, so `renderElement` is appended inside an SVG node.
    * To render HTML elements, use the experimental `useHTMLOverlay` prop or an SVG `foreignObject`.
    *
    * Receives the element's `data` slice only. Derive its type from your cells
    * with `InferElement<typeof cells>['data']`.
-   * @example
-   * Example with `global component`:
+   * @example Global component
    * ```tsx
    * type NodeData = InferElement<typeof initialCells>['data']
+   * // HTML content lives inside <HTMLBox> so it renders correctly in SVG mode.
    * function RenderElement(data: NodeData) {
-   *  return <div className="node">{data.label}</div>
+   *   return <HTMLBox className="node">{data.label}</HTMLBox>
    * }
    * ```
-   * @example
-   * Example with `local component`:
+   * @example Local component
    * ```tsx
    * type NodeData = InferElement<typeof initialCells>['data']
    * const renderElement: RenderElement<NodeData> = useCallback(
-   *     (data) => <div className="node">{data.label}</div>,
+   *     (data) => <HTMLBox className="node">{data.label}</HTMLBox>,
    *     []
    * )
    * ```
@@ -284,26 +413,39 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly renderElement?: RenderElement<any>;
   /**
-   * A function that renders the link.
+   * Renders each link's content from its `data` slice. Re-runs when the link's
+   * `data` changes.
    *
    * Note: JointJS works with SVG by default, so `renderLink` content is appended inside an SVG node.
    * To render HTML elements, use an SVG `foreignObject`.
+   *
+   * Receives the link's `data` slice only. Derive its type from your cells with
+   * `InferLink<typeof cells>['data']`. When you need the source, target, or id,
+   * read them with {@link useCell}() from inside the renderer.
    * @experimental - this feature is experimental and may have limitations or issues. Use at your own risk.
-   * This is called when the link data changes.
-   * @example
-   * Example with `global component`:
+   * @example Global component
    * ```tsx
-   * function RenderLink({ id, ...data }: Link) {
-   *   return <text>Link {id}</text>;
+   * type LinkData = InferLink<typeof initialCells>['data']
+   * function RenderLink(data: LinkData) {
+   *   return <text>{data.label}</text>;
    * }
    * ```
-   * @example
-   * Example with `local component`:
+   * @example Local component
    * ```tsx
-   * const renderLink: RenderLink<Link> = useCallback(
-   *   (link) => <text>{link.source} → {link.target}</text>,
+   * type LinkData = InferLink<typeof initialCells>['data']
+   * const renderLink: RenderLink<LinkData> = useCallback(
+   *   (data) => <text>{data.label}</text>,
    *   []
    * )
+   * ```
+   * @example Reading the id alongside the data slice
+   * ```tsx
+   * type LinkData = InferLink<typeof initialCells>['data']
+   * function RenderLink(data: LinkData) {
+   *   // source / target / id live on the context, not the data slice
+   *   const id = useCellId();
+   *   return <text>{data.label} ({id})</text>;
+   * }
    * ```
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -325,22 +467,26 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
    * `'translate(10px, 20px) rotate(15deg)'`) or a `DOMMatrix`. Useful for
    * zoom, minimap, and arbitrary viewport transforms.
    * @example
-   * transform="scale(0.4)"
-   * transform={new DOMMatrix().scale(2).translate(10, 20)}
+   * ```tsx
+   * <Paper transform="scale(0.4)" />
+   * <Paper transform={new DOMMatrix().scale(2).translate(10, 20)} />
+   * ```
    */
   readonly transform?: PaperTransform;
 
   /**
-   * The threshold for click events in pixels.
-   * If the mouse moves more than this distance, it will be considered a drag event.
-   * @default 10
+   * Maximum pointer travel (in px) still treated as a click rather than a drag.
+   * Moving farther than this between press and release suppresses the
+   * `pointerclick` event.
+   * @default 5
    */
   readonly clickThreshold?: number;
 
   /**
-   * Enabled if renderElements is render to pure HTML elements.
-   * By default, `joint/react` renderElements to SVG elements, so for using HTML elements without this prop, you need to use `foreignObject` element.
-   * @experimental - this feature is still experimental and there are known issues with HTML elements rendering. Use at your own risk.
+   * Renders elements as real HTML in an overlay instead of inside an SVG node.
+   * By default `renderElement` output is mounted in SVG, so plain HTML needs a
+   * `foreignObject` (or an {@link HTMLBox}); enable this to skip that wrapping.
+   * @experimental Known issues with HTML element rendering — use at your own risk.
    * @default false
    */
   readonly useHTMLOverlay?: boolean;
@@ -375,9 +521,13 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
   readonly portalSelector?: PortalSelector;
 
   /**
-   * Pre-created PaperView instance to adopt.
+   * Pre-created paper instance to adopt.
    * When provided, the Paper component wraps this paper instead of creating a new one.
    * The paper's DOM is assumed to be managed externally (e.g. by a stencil).
+   *
+   * `PaperView` is an internally-managed instance, not a public, importable type;
+   * you normally receive it from another joint-react construct (such as a stencil)
+   * rather than constructing it yourself.
    */
   readonly paper?: PaperView;
 }

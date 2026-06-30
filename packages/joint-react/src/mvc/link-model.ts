@@ -3,8 +3,9 @@ import { linkStyle } from '../presets/link-style';
 import type { PortalHostCell } from './paper.types';
 
 /**
- * Type discriminator for {@link LinkModel}, matches `dia.Cell.type` to
- * identify React-link cells when iterating the graph.
+ * The `type` value `@joint/react` stamps on every {@link LinkModel} (`'link'`).
+ * Match it against a cell's `type` to single out React links when iterating the
+ * graph.
  * @group MVC
  */
 export const LINK_MODEL_TYPE = 'link';
@@ -12,11 +13,12 @@ export const LINK_MODEL_TYPE = 'link';
 const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
 
 /**
- * Default link class used by `@joint/react`. Any `dia.Cell` subclass
- * implementing {@link PortalHostCell} can host React content; this one is
- * what `@joint/react` reaches for when no custom link class is provided.
- * Ships wrapper + line markup and mounts `renderLink` into the link's root
- * `<g>`.
+ * The link class `@joint/react` registers and uses by default for every link you
+ * add to the graph. Its markup has two paths, a wide transparent `wrapper` that
+ * widens the pointer hit area and the visible `line`, and it mounts the
+ * experimental {@link RenderLink} output into the link's root `<g>`. Extend it to
+ * customize the markup or default attributes, or supply any `dia.Link` subclass
+ * that implements {@link PortalHostCell} to host React content yourself.
  * @group MVC
  * @example
  * ```ts
@@ -24,8 +26,8 @@ const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
  *
  * const link = new LinkModel({
  *   id: 'link-1',
- *   source: '1',
- *   target: '2',
+ *   source: { id: '1' },
+ *   target: { id: '2' },
  * });
  * ```
  */
@@ -33,16 +35,17 @@ export class LinkModel<
   Attributes extends dia.Link.Attributes = dia.Link.Attributes
 > extends dia.Link<Attributes> implements PortalHostCell {
   /**
-   * Selector of the node that serves as the React portal target inside this cell.
-   * Links render into their root `<g>`, the experimental `renderLink` mounts
-   * there when enabled. No dedicated portal group is kept in the markup so
-   * React-less links stay lean.
+   * Selector of the node in this cell's view where `@joint/react` mounts React
+   * content, the link's root `<g>` (`'root'`). The markup keeps no dedicated
+   * portal group so React-less links stay lean; the experimental
+   * {@link RenderLink} mounts here when enabled.
    */
   portalSelector = 'root';
 
   /**
-   * Markup with wrapper and line paths. The wrapper is used for hit testing and has a wider stroke, while the line is used for visual display.
-   * React content (if any) is rendered into the root `<g>` via `renderLink`.
+   * Markup with two paths: a wide, transparent `wrapper` that widens the pointer
+   * hit area, and the visible `line`. React content (if any) mounts into the
+   * link's root `<g>` via {@link RenderLink}.
    */
   markup: dia.MarkupJSON = [
     {
@@ -68,8 +71,9 @@ export class LinkModel<
   ];
 
   /**
-   * Sets the default attributes for the LinkModel.
-   * Includes `connection: true` attrs which are required for JointJS to compute link paths.
+   * Default attributes for every LinkModel: the `'link'` type, the default link
+   * styling, and an empty `data` object. The styling sets `connection: true` on
+   * the `line`/`wrapper` paths, which JointJS needs to compute the link path.
    * @returns The default attributes.
    */
   defaults(): Attributes {
