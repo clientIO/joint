@@ -8,11 +8,12 @@ import { useOnEvents } from './use-on-events';
 const EMPTY_HANDLERS: PaperEventMap = {};
 
 /**
- * Subscribes all handlers to a paper, delegating runtime wiring to
- * {@link addPaperEventListeners}.
+ * Subscribes all handlers to a paper, delegating runtime wiring to the
+ * `addPaperEventListeners` runtime.
  * @param paperStore - Paper store to subscribe on.
  * @param handlers - Event handlers map.
  * @returns Cleanup callback that stops all listeners.
+ * @internal
  */
 export function subscribeToPaperEvents(
   paperStore: PaperStore,
@@ -22,10 +23,15 @@ export function subscribeToPaperEvents(
 }
 
 /**
- * Subscribes to paper events. The paper argument is optional, when omitted
- * the hook reads the active paper from the surrounding {@link Paper} context (it
- * throws if no {@link Paper} context is available). Two key forms can be mixed in
- * the same handlers map:
+ * Subscribes to `dia.Paper` events, pointer clicks, hovers, drags, link
+ * connections, zoom/pan, and more, so you can respond to user interaction on the
+ * canvas. When no paper argument is given, the hook targets the paper from the
+ * surrounding {@link Paper} context (or the single default paper). Mount it
+ * inside a `<GraphProvider>`. Unlike {@link useOnGraphEvents}, it tolerates a
+ * paper that has not mounted yet — it does not throw while waiting and
+ * subscribes once a paper becomes available.
+ *
+ * Two key forms can be mixed in the same handlers map:
  *
  * **CamelCase form**: `on<Category><Event>` keys deliver a single params
  * object with named properties.
@@ -54,17 +60,52 @@ export function subscribeToPaperEvents(
  * The `on*` params object omits the React-store `record`, to read the
  * record shape, call `useCell(id, selector)` from your own
  * component (the handler closure has access to the `id` it emits).
+ *
+ * See {@link PaperEventMap} for every accepted key, and {@link PaperEventHandler}
+ * for typing an individual handler.
  * @title On the current paper
- * @param handlers - Event handlers map.
+ * @param handlers - Map of paper events to callbacks (camelCase `on*` and/or raw).
  * @group Hooks
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper, useOnPaperEvents } from '@joint/react';
+ *
+ * function SelectionLogger() {
+ *   useOnPaperEvents({
+ *     onElementPointerClick: ({ id }) => console.log('clicked element', id),
+ *     onBlankPointerClick: ({ x, y }) => console.log('clicked blank at', x, y),
+ *   });
+ *   return null;
+ * }
+ *
+ * <GraphProvider>
+ *   <Paper renderElement={() => <rect width={80} height={40} fill="#3498db" />} />
+ *   <SelectionLogger />
+ * </GraphProvider>
+ * ```
  */
 export function useOnPaperEvents(handlers: PaperEventMap): void;
 /**
- * Subscribes to paper events on the given paper target.
+ * Subscribes to paper events on a specific paper you name, by registered id,
+ * `dia.Paper` instance, or React ref. Use this to target one paper when several
+ * are mounted (e.g. a main canvas plus a minimap). Same camelCase/raw handler
+ * forms and always-latest semantics as the context form.
  * @title On a specific paper
- * @param paperTarget - Paper reference (string ID, dia.Paper instance, or ref).
- * @param handlers - Event handlers map.
+ * @param paperTarget - The paper to listen on, see {@link PaperTarget}.
+ * @param handlers - Map of paper events to callbacks (camelCase `on*` and/or raw).
  * @group Hooks
+ * @example
+ * ```tsx
+ * import { useOnPaperEvents } from '@joint/react';
+ *
+ * // Target a paper by its registered id.
+ * function MinimapLogger() {
+ *   useOnPaperEvents('minimap', {
+ *     onBlankPointerClick: ({ x, y }) => console.log('minimap click', x, y),
+ *   });
+ *   return null;
+ * }
+ * ```
  */
 export function useOnPaperEvents(paperTarget: PaperTarget, handlers: PaperEventMap): void;
 export function useOnPaperEvents(

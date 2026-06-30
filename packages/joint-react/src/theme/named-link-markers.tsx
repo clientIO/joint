@@ -21,21 +21,34 @@ export const namedLinkMarkers = {
 } as const satisfies Record<string, LinkMarkerRecord | null>;
 
 /**
- * Keys of the built-in `namedLinkMarkers` registry (e.g. `'arrow'`, `'circle'`).
+ * The names of the built-in link markers you can pass to a {@link LinkStyle}:
+ * `'arrow'`, `'arrow-open'`, `'arrow-sunken'`, `'circle'`, `'diamond'`, or
+ * `'none'`.
  * @group Types
  */
 export type LinkMarkerName = keyof typeof namedLinkMarkers;
 
 /**
- * A named preset or a custom {@link LinkMarkerRecord}.
+ * A link endpoint marker, either a built-in {@link LinkMarkerName} or a custom
+ * {@link LinkMarkerRecord}.
  * @group Types
  */
 export type LinkMarker = LinkMarkerName | LinkMarkerRecord;
 
 /**
- * Resolves a LinkMarker to a {@link LinkMarkerRecord} or null.
- * @param marker - The LinkMarker to resolve
- * @returns The resolved marker or null
+ * Normalizes a {@link LinkMarker} into a concrete {@link LinkMarkerRecord}. Looks
+ * up a built-in name (`'arrow'`, `'circle'`, …) in the marker registry, passes a
+ * custom record through unchanged, and returns `null` for `'none'`, `undefined`,
+ * or an unknown name, meaning "draw no marker".
+ * @param marker - a marker name, a custom marker record, `'none'`, or `undefined`
+ * @returns The resolved marker record, or `null` when no marker should be drawn
+ * @example
+ * ```ts
+ * import { resolveLinkMarker } from '@joint/react';
+ *
+ * resolveLinkMarker('arrow'); // built-in arrow record
+ * resolveLinkMarker('none');  // null
+ * ```
  * @group Presets
  */
 export function resolveLinkMarker(marker: LinkMarker | undefined): LinkMarkerRecord | null {

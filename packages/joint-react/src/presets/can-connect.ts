@@ -1,42 +1,64 @@
 import type { dia } from '@joint/core';
 
 /**
- * Describes one end (source or target) of a connection.
+ * One end (source or target) of a link: the cell it attaches to and the exact
+ * port or magnet within that cell. Shared by {@link ValidateConnectionParams}
+ * and emitted on `link:connect` / `link:disconnect` events, so validation and
+ * event payloads describe a connection the same way.
  * @group Types
+ * @expand
  */
 export interface ConnectionEnd {
-  /** The cell ID. */
+  /** ID of the cell this end attaches to. */
   readonly id: dia.Cell.ID;
-  /** The cell model (element or link). */
+  /** The cell model (element or link) this end attaches to. */
   readonly model: dia.Cell;
-  /** The port ID, or `null` if not connected to a port. */
+  /** ID of the port the end attaches to, or `null` when it attaches to the cell body. */
   readonly port: string | null;
-  /** The SVG magnet element, or `null` when connecting to the root element. */
+  /** The SVG magnet node the end attaches to, or `null` when attaching to the cell's root. */
   readonly magnet: Element | null;
-  /** The `joint-selector` attribute of the magnet, or `null`. */
+  /** Value of the magnet's `joint-selector` attribute, or `null` when it has none. */
   readonly selector: string | null;
 }
 
 /**
- * Structured context for connection validation.
+ * Context handed to a {@link ValidateConnection} callback (and to the `validate`
+ * option of {@link CanConnectOptions}) while the user drags a link end. Describes
+ * both ends of the pending connection along with the paper and graph it lives in.
  * @group Types
+ * @expand
  */
 export interface ValidateConnectionParams {
-  /** The source end of the connection. */
+  /** The source end of the pending connection. */
   readonly source: ConnectionEnd;
-  /** The target end of the connection. */
+  /** The target end of the pending connection. */
   readonly target: ConnectionEnd;
-  /** Which end of the link is being dragged (`'source'` or `'target'`). */
+  /** Which end the user is dragging: `'source'` or `'target'`. */
   readonly endType: dia.LinkEnd;
-  /** The paper instance. */
+  /** The paper the link is being drawn on. */
   readonly paper: dia.Paper;
-  /** The graph instance. */
+  /** The graph the link belongs to. */
   readonly graph: dia.Graph;
 }
 
 /**
- * Callback that decides whether a connection is allowed.
+ * Decides whether a link may connect its source end to its target end. Return
+ * `true` to allow the connection, `false` to reject it. Pass it (or a
+ * {@link CanConnectOptions} object) to the `validateConnection` prop of `<Paper>`;
+ * the callback receives a structured {@link ValidateConnectionParams} context.
  * @group Types
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper } from '@joint/react';
+ * import type { ValidateConnection } from '@joint/react';
+ *
+ * // Only accept links that end on a port named "in".
+ * const validate: ValidateConnection = ({ target }) => target.port === 'in';
+ *
+ * <GraphProvider>
+ *   <Paper validateConnection={validate} renderElement={() => <rect width={80} height={40} />} />
+ * </GraphProvider>;
+ * ```
  */
 export type ValidateConnection = (context: ValidateConnectionParams) => boolean;
 
@@ -141,25 +163,43 @@ function hasDuplicateLink(
 }
 
 /**
- * Configuration accepted by `canConnect` controlling link validation rules.
+ * Options for the `validateConnection` prop of `<Paper>` — declarative rules
+ * that toggle the common connection constraints (self-loops, link-to-link,
+ * duplicate links, root connections) and optionally layer your own check on top.
+ * Reach for this object instead of a {@link ValidateConnection} callback when the
+ * built-in rules already cover what you need.
  * @group Types
+ * @expand
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper } from '@joint/react';
+ *
+ * <GraphProvider>
+ *   <Paper
+ *     validateConnection={{
+ *       allowSelfLoops: true,
+ *       validate: ({ target }) => target.port === 'in',
+ *     }}
+ *     renderElement={() => <rect width={80} height={40} />}
+ *   />
+ * </GraphProvider>;
+ * ```
  */
 export interface CanConnectOptions {
-  /** Allow connecting a cell to itself. @default false */
+  /** Allow a cell to connect to itself. @default false */
   readonly allowSelfLoops?: boolean;
-  /** Allow connecting to or from links (not just elements). @default false */
+  /** Allow links to start or end on another link, not just on elements. @default false */
   readonly allowLinkToLink?: boolean;
-  /** Allow multiple links between the same source+port and target+port. @default false */
+  /** Allow more than one link between the same source+port and target+port. @default false */
   readonly allowMultiLinks?: boolean;
   /**
-   * Whether connecting to the root element (not a port/magnet) is allowed.
-   * - `true`, always allow root connections
-   * - `false`, never allow root (only ports/magnets)
-   * - `'auto'`, allow root only if the element has no ports
-   * @default 'auto'
+   * Whether a link may attach to an element's root (its body) instead of a port or magnet.
+   * - `true` — always allow root connections.
+   * - `false` — never allow them; require a port or magnet.
+   * - `'auto'` — allow a root connection only when the element has no ports. @default 'auto'
    */
   readonly allowRootConnection?: boolean | 'auto';
-  /** Custom validation on top of the built-in rules. Runs only if built-in checks pass. */
+  /** Extra check run only after every built-in rule passes; receives the same {@link ValidateConnectionParams} context as {@link ValidateConnection}. */
   readonly validate?: (context: ValidateConnectionParams) => boolean;
 }
 
@@ -171,17 +211,6 @@ export interface CanConnectOptions {
  * context and runs only after the built-in checks pass.
  * @param options - Rules and optional custom validator.
  * @returns A JointJS-compatible `validateConnection` function.
- * @example
- * ```ts
- * // Default rules
- * paper.options.validateConnection = canConnect();
- *
- * // Allow self-loops + custom logic
- * paper.options.validateConnection = canConnect({
- *   allowSelfLoops: true,
- *   validate: ({ source, target }) => target.port === 'in',
- * });
- * ```
  */
 export function canConnect(options: CanConnectOptions = {}) {
   const {

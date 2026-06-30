@@ -1,13 +1,15 @@
 import type { dia } from '@joint/core';
 
 /**
- * Context passed to a `cellVisibility` callback.
+ * Context handed to a {@link CellVisibility} callback each time the paper decides
+ * whether to render a cell.
  * @group Types
+ * @expand
  */
 export interface CellVisibilityParams {
-  /** The cell whose visibility is being queried. */
+  /** The cell whose visibility is being decided. */
   readonly model: dia.Cell;
-  /** Whether the cell currently has a mounted view in the paper. */
+  /** Whether the cell currently has a view mounted in the paper. */
   readonly isMounted: boolean;
   /** The paper rendering the cell. */
   readonly paper: dia.Paper;
@@ -16,10 +18,24 @@ export interface CellVisibilityParams {
 }
 
 /**
- * Predicate deciding whether a cell should be rendered. Receives a
- * structured context object (instead of the native positional form).
- * Return `false` to hide the cell.
+ * Decides whether a cell is rendered on the paper. Return `false` to skip
+ * rendering it (handy for viewport culling or hiding cells by state), `true` to
+ * render it. Pass it to the `cellVisibility` prop of `<Paper>`; the callback
+ * receives a structured {@link CellVisibilityParams} context instead of the
+ * native positional arguments.
  * @group Types
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper } from '@joint/react';
+ * import type { CellVisibility } from '@joint/react';
+ *
+ * // Hide every cell flagged as collapsed.
+ * const cellVisibility: CellVisibility = ({ model }) => !model.get('collapsed');
+ *
+ * <GraphProvider>
+ *   <Paper cellVisibility={cellVisibility} renderElement={() => <rect width={80} height={40} />} />
+ * </GraphProvider>;
+ * ```
  */
 export type CellVisibility = (context: CellVisibilityParams) => boolean;
 

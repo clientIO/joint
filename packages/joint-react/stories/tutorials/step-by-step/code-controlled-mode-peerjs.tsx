@@ -198,7 +198,6 @@ function createPeerJSManager(callbacks: {
   });
 
   peer.on('error', (error) => {
-    // eslint-disable-next-line no-console
     console.error('PeerJS error:', error);
     if (error.type === 'peer-unavailable') {
       onConnectionStatusChange('disconnected');
@@ -259,7 +258,6 @@ function createPeerJSManager(callbacks: {
     });
 
     conn.on('error', (error) => {
-      // eslint-disable-next-line no-console
       console.error('Connection error:', error);
       onConnectionStatusChange('disconnected');
     });
@@ -368,7 +366,6 @@ function Main() {
           setCopyFeedback(false);
         }, 2000);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error('Failed to copy ID:', error);
       }
     }

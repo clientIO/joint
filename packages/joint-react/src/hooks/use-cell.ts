@@ -15,6 +15,18 @@ import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @returns the current resolved cell record
  * @group Hooks
+ * @example
+ * ```tsx
+ * import { Paper, useCell } from '@joint/react';
+ *
+ * function NodeLabel() {
+ *   // The id comes from the <Paper> render callback context.
+ *   const cell = useCell();
+ *   return <text>{String(cell.id)}</text>;
+ * }
+ *
+ * <Paper renderElement={() => <NodeLabel />} />;
+ * ```
  */
 export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(): Cell;
 /**
@@ -26,8 +38,19 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(): Ce
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `Cell`)
  * @param selector - derive a value from the current resolved cell record
- * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
+ * @param isEqual - equality test used to short-circuit re-renders (defaults to a shallow, array-aware comparison that falls back to Object.is for scalar results)
  * @returns selected value
+ * @example
+ * ```tsx
+ * import { useCell, selectElementData } from '@joint/react';
+ *
+ * function NodeLabel() {
+ *   type NodeData = { label: string };
+ *   // Re-renders only when this element's data changes.
+ *   const data = useCell(selectElementData<NodeData>);
+ *   return <text>{data.label}</text>;
+ * }
+ * ```
  */
 export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = Cell>(
   selector: (cell: Cell) => Selected,
@@ -36,13 +59,20 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>, Selec
 /**
  * Subscribe to a specific cell by id. Works anywhere, does not require
  * `CellIdContext`. Throws when the id does not resolve to a cell.
- *
- * Cannot be unified with the `(selector)` overload because the argument type
- * ({@link CellId} vs function) drives the return shape (record vs selected value).
  * @title Read a cell by id
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @param id - cell id to track
  * @returns the resolved cell record
+ * @example
+ * ```tsx
+ * import { useCell } from '@joint/react';
+ *
+ * function CellTypeBadge({ id }: { id: string }) {
+ *   // Works outside a render callback too — subscribes to this id anywhere.
+ *   const cell = useCell(id);
+ *   return <span>{cell.type}</span>;
+ * }
+ * ```
  */
 export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
@@ -57,7 +87,7 @@ export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @template Selected - selector return type (defaults to `Cell`)
  * @param id - cell id to track
  * @param selector - derive a value from the resolved cell record
- * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
+ * @param isEqual - equality test used to short-circuit re-renders (defaults to a shallow, array-aware comparison that falls back to Object.is for scalar results)
  * @returns selected value
  */
 export function useCell<Cell extends AnyCellRecord = Computed<CellRecord>, Selected = Cell>(

@@ -12,61 +12,68 @@ import {
 } from './wrappers';
 
 /**
- * Ready-made Paper configurations for common link routing styles.
- * Each preset is a function that returns a `LinkRouting` bundle for router,
- * connector, anchor, and connection point. Call with no args for defaults,
- * or pass options to customize.
- * @example
- * ```tsx
- * import { linkRoutingOrthogonal } from '@joint/react';
- *
- * <Paper linkRouting={linkRoutingOrthogonal()} />
- * ```
- */
-
-/**
  * Bundle of paper-level link defaults (router, connector, anchor, connection point)
  * produced by a routing preset like {@link linkRoutingStraight} or
  * {@link linkRoutingOrthogonal}.
  * @group Types
  */
 export interface LinkRouting {
+  /** Paper-level default router this preset installs for links that don't set their own. */
   readonly defaultRouter?: dia.Paper.Options['defaultRouter'];
+  /** Paper-level default connector that draws the routed points into the link's path. */
   readonly defaultConnector?: dia.Paper.Options['defaultConnector'];
+  /** Paper-level default anchor that decides where on an element each link end attaches. */
   readonly defaultAnchor?: dia.Paper.Options['defaultAnchor'];
+  /** Paper-level default connection point where the link meets the element boundary. */
   readonly defaultConnectionPoint?: dia.Paper.Options['defaultConnectionPoint'];
 }
 
 interface BaseLinkOptions {
-  /** Anchor mode for root elements and custom magnets. Passed to `midSide`. */
+  /** Which side of an element or port each link end attaches to; see {@link LinkMode} for how each value behaves. @default 'auto' */
   readonly mode?: LinkMode;
-  /** Offset (in px) applied to the connection point at the source end. Default: `0`. */
+  /** Offset (in px) applied to the connection point at the source end. @default 0 */
   readonly sourceOffset?: number;
-  /** Offset (in px) applied to the connection point at the target end. Default: `0`. */
+  /** Offset (in px) applied to the connection point at the target end. @default 0 */
   readonly targetOffset?: number;
-  /** Use straight-line routing when an end is not connected. Default: `true`. */
+  /** Fall back to a straight line while either end is still unconnected (e.g. mid-drag). @default true */
   readonly straightWhenDisconnected?: boolean;
-  /** The attrs selector that holds the marker definitions. Default: `'line'`. */
+  /** The attrs selector that holds the marker definitions. @default 'line' */
   readonly markerSelector?: string;
 }
 
 /**
  * Options for {@link linkRoutingStraight}.
+ * @remarks The inherited `mode` and `straightWhenDisconnected` options have no
+ * effect on straight routing; they apply only to {@link linkRoutingOrthogonal}
+ * and {@link linkRoutingSmooth}.
  * @group Types
+ * @expand
  */
 export interface LinkRoutingStraightOptions extends BaseLinkOptions {
-  /** Corner style at vertices. Default: `'point'`. */
+  /** Corner style applied at manual vertices. @default 'point' */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
-  /** Corner radius at vertices (in px). Default: `0`. */
+  /** Corner radius at vertices, in px. @default 0 */
   readonly cornerRadius?: number;
-  /** Use perpendicular anchor instead of center. Default: `false`. */
+  /** Anchor links perpendicular to the element edge instead of at its center. @default false */
   readonly perpendicular?: boolean;
 }
 
 /**
- * Straight-line links between elements.
- * The shortest path with no routing, a single line from source to target.
- * @param options - straight routing options
+ * Straight-line routing: links are drawn as a direct line from source to target,
+ * with no obstacle avoidance. The simplest, lowest-overhead routing.
+ *
+ * Returns a `LinkRouting` bundle for the {@link Paper} `linkRouting` prop that
+ * sets the paper's router, connector, anchor, and connection point in one step.
+ * For other looks, reach for {@link linkRoutingOrthogonal} (right-angle segments
+ * that steer around elements) or {@link linkRoutingSmooth} (curved links).
+ * @param options - overrides for corner style, anchor, and connection-point offsets
+ * @returns Paper link defaults for straight routing
+ * @example
+ * ```tsx
+ * import { Paper, linkRoutingStraight } from '@joint/react';
+ *
+ * <Paper linkRouting={linkRoutingStraight()} />
+ * ```
  * @group Presets
  */
 export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): LinkRouting {
@@ -92,22 +99,34 @@ export function linkRoutingStraight(options: LinkRoutingStraightOptions = {}): L
 /**
  * Options for {@link linkRoutingOrthogonal}.
  * @group Types
+ * @expand
  */
 export interface LinkRoutingOrthogonalOptions extends BaseLinkOptions {
-  /** Corner style. Default: `'cubic'`. */
+  /** Corner style at each bend. @default 'cubic' */
   readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
-  /** Corner radius for the rounded connector (in px). Default: `8`. */
+  /** Corner radius of the rounded bends, in px. @default 8 */
   readonly cornerRadius?: number;
-  /** Minimum distance (in px) the link keeps from elements when routing. */
+  /** Distance, in px, the route keeps clear of elements as it steers around them. @default 20 */
   readonly margin?: number;
-  /** Minimum length (in px) of each link segment. Default: `margin / 4`. */
+  /** Smallest distance, in px, the router travels before it can turn. @default margin / 4 */
   readonly minPathMargin?: number;
 }
 
 /**
- * Orthogonal (right-angle) links between elements.
- * Routes links with horizontal and vertical segments only, avoiding element overlap.
- * @param options - orthogonal routing options
+ * Orthogonal routing: links travel in horizontal and vertical segments only and
+ * steer around elements, the right-angle look common in flowcharts and ER
+ * diagrams.
+ *
+ * Returns a `LinkRouting` bundle for the {@link Paper} `linkRouting` prop.
+ * @param options - overrides for corner style/radius, routing margins, and anchors
+ * @returns Paper link defaults for orthogonal routing
+ * @example
+ * ```tsx
+ * import { Paper, linkRoutingOrthogonal } from '@joint/react';
+ *
+ * // round the bends and keep links 24px clear of elements
+ * <Paper linkRouting={linkRoutingOrthogonal({ cornerRadius: 12, margin: 24 })} />
+ * ```
  * @group Presets
  */
 export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}): LinkRouting {
@@ -157,13 +176,23 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
 /**
  * Options for {@link linkRoutingSmooth}.
  * @group Types
+ * @expand
  */
-export type LinkRoutingSmoothOptions = BaseLinkOptions;
+export interface LinkRoutingSmoothOptions extends BaseLinkOptions {}
 
 /**
- * Smooth curved links between elements.
- * Renders links as bezier curves for a softer, more organic look.
- * @param options - smooth routing options
+ * Smooth routing: links are drawn as soft bezier curves instead of straight or
+ * right-angle segments, for a more organic look.
+ *
+ * Returns a `LinkRouting` bundle for the {@link Paper} `linkRouting` prop.
+ * @param options - overrides for anchor and connection-point offsets
+ * @returns Paper link defaults for smooth routing
+ * @example
+ * ```tsx
+ * import { Paper, linkRoutingSmooth } from '@joint/react';
+ *
+ * <Paper linkRouting={linkRoutingSmooth()} />
+ * ```
  * @group Presets
  */
 export function linkRoutingSmooth(options: LinkRoutingSmoothOptions = {}): LinkRouting {

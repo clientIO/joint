@@ -302,7 +302,7 @@ function createPeerManager(callbacks: {
     connectTo(incomingConn.peer);
   });
   peer.on('error', (error) => {
-    console.error('PeerJS:', error); // eslint-disable-line no-console
+    console.error('PeerJS:', error);
     onStatus('disconnected');
   });
 

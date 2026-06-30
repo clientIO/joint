@@ -124,7 +124,7 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @template Selected - selector return type
  * @param collection - JointJS collection whose member IDs drive the subscription
  * @param selector - derive a value from the picked resolved cells array
- * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
+ * @param isEqual - equality test used to short-circuit re-renders (defaults to a shallow, array-aware comparison that falls back to Object.is for scalar results)
  * @returns selected value
  */
 export function useCells<
@@ -143,6 +143,15 @@ export function useCells<
  * @title Subscribe to all cells
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @returns readonly resolved cells array
+ * @example
+ * ```tsx
+ * import { useCells } from '@joint/react';
+ *
+ * function CellCount() {
+ *   const cells = useCells();
+ *   return <span>{cells.length} cells</span>;
+ * }
+ * ```
  */
 export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(): readonly Cell[];
 /**
@@ -165,7 +174,7 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @template Selected - selector return type (defaults to `Cell | undefined`)
  * @param id - cell id to track (nullish → selector receives `undefined`)
  * @param selector - derive a value from the cell (or `undefined` when missing)
- * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
+ * @param isEqual - equality test used to short-circuit re-renders (defaults to a shallow, array-aware comparison that falls back to Object.is for scalar results)
  * @returns selected value
  */
 export function useCells<
@@ -198,7 +207,7 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param ids - cell ids to track
  * @param selector - derive a value from the picked resolved cells array
- * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
+ * @param isEqual - equality test used to short-circuit re-renders (defaults to a shallow, array-aware comparison that falls back to Object.is for scalar results)
  * @returns selected value
  */
 export function useCells<
@@ -216,8 +225,20 @@ export function useCells<
  * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
  * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param selector - derive a value from the resolved cells array
- * @param isEqual - equality test used to short-circuit re-renders (defaults to Object.is)
+ * @param isEqual - equality test used to short-circuit re-renders (defaults to a shallow, array-aware comparison that falls back to Object.is for scalar results)
  * @returns selected value
+ * @example
+ * ```tsx
+ * import { useCells } from '@joint/react';
+ *
+ * function ElementCount() {
+ *   // Counts cells whose type is the default 'element' and re-renders only when
+ *   // that count changes; shape-typed elements (e.g. 'standard.Rectangle') are
+ *   // not included.
+ *   const count = useCells((cells) => cells.filter((cell) => cell.type === 'element').length);
+ *   return <span>{count} elements</span>;
+ * }
+ * ```
  */
 export function useCells<
   Cell extends AnyCellRecord = Computed<CellRecord>,

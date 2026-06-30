@@ -62,7 +62,7 @@ export const reactTsConfig = defineConfig([
         },
         rules: {
             // General JS rules
-            'no-console': 'error',
+            'no-console': ['error', { allow: ['warn', 'error'] }],
             'no-nested-ternary': 'warn',
             'no-shadow': 'error',
             'no-unused-vars': 'off',
@@ -73,6 +73,7 @@ export const reactTsConfig = defineConfig([
 
             // TypeScript rules
             '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+            '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/no-non-null-assertion': 'off',
             '@typescript-eslint/strict-boolean-expressions': 'off',

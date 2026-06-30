@@ -5,13 +5,15 @@ import type { dia } from '@joint/core';
 import { PORTAL_SELECTOR } from '../mvc/element-model';
 
 /**
- * Options for `magnetRef`.
+ * Options for {@link MarkupApi}'s `magnetRef`.
+ * @expand
  * @group Types
  */
 export interface MagnetRefOptions {
   /**
-   * Whether the magnet is passive, only a valid connection target, not a source.
-   * When `false` (default), the magnet is `active` and links can start from it.
+   * When `true`, the magnet is passive: a valid connection target but not a
+   * source. When `false`, it is active and links can also start from it.
+   * @default false
    */
   readonly passive?: boolean;
 }
@@ -23,11 +25,10 @@ export interface MagnetRefOptions {
  */
 export interface MarkupApi {
   /**
-   * Returns a React ref callback that registers the node under the given selector name.
-   * Sets the `joint-selector` attribute on the node and adds it to `elementView.selectors`
-   * so links and tools can target it by name.
+   * Returns a React ref callback that registers the node under the given selector
+   * name so links and tools can target it by name.
    * @param selector - Unique selector name within the element (e.g. `'body'`, `'item-0'`).
-   * @throws If `selector` equals the reserved portal selector name.
+   * @throws If `selector` is one of the reserved names (`__portal__`, `root`, `portRoot`).
    */
   readonly selectorRef: (selector: string) => (node: Element | null) => void;
   /**
@@ -35,7 +36,7 @@ export interface MarkupApi {
    * AND marks it as a JointJS magnet, a valid endpoint for link connections.
    * @param selector - Unique selector name within the element (e.g. `'port-in'`, `'row-0'`).
    * @param options - Magnet behavior options.
-   * @throws If `selector` equals the reserved portal selector name.
+   * @throws If `selector` is one of the reserved names (`__portal__`, `root`, `portRoot`).
    */
   readonly magnetRef: (
     selector: string,
@@ -48,20 +49,25 @@ export interface MarkupApi {
  * the current element view, so links and tools can target named parts of a
  * React-rendered element. Must be used inside `renderElement`.
  * @group Hooks
+ * @returns The {@link MarkupApi}: a `selectorRef` factory that tags an SVG node
+ * under a named selector so links and tools can target it, and a `magnetRef`
+ * factory that does the same and also marks the node as a connectable magnet.
  * @example
  * ```tsx
  * import { useMarkup } from '@joint/react';
  *
- * function MyComponent({ labels }) {
+ * function MyComponent({ labels }: { labels: string[] }) {
  *   const { selectorRef, magnetRef } = useMarkup();
  *   return (
- *     <>
+ *     // Tag the group as the 'body' selector so tools can target it.
+ *     <g ref={selectorRef('body')}>
  *       {labels.map((label, index) => (
+ *         // Each row is a magnet, so links can connect to it.
  *         <g ref={magnetRef(`item-${index}`)} key={label}>
  *           <text>{label}</text>
  *         </g>
  *       ))}
- *     </>
+ *     </g>
  *   );
  * }
  * ```

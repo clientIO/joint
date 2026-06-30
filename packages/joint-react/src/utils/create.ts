@@ -13,9 +13,12 @@ type CellArrayMember<Cells> = Cells extends ReadonlyArray<infer Member> ? Member
  *
  * Custom shapes (a `type` other than `'element'`) are excluded, type the
  * record union manually for those, as documented on {@link CellRecord}.
+ * @template Cells - the cells collection to infer from, usually `typeof cells`
  * @group Types
  * @example
  * ```ts
+ * import type { InferElement } from '@joint/react';
+ *
  * const cells = [
  *   { id: 'a', type: 'element', data: { label: 'A' } },
  *   { id: 'e', type: 'link', source: { id: 'a' }, target: { id: 'b' }, data: { weight: 2 } },
@@ -33,9 +36,12 @@ export type InferElement<Cells> = Extract<
 /**
  * Infer the link record type from a cells collection, the link counterpart of
  * {@link InferElement}. Selects the member whose `type` is `'link'`.
+ * @template Cells - the cells collection to infer from, usually `typeof cells`
  * @group Types
  * @example
  * ```ts
+ * import type { InferLink } from '@joint/react';
+ *
  * const cells = [
  *   { id: 'a', type: 'element', data: { label: 'A' } },
  *   { id: 'e', type: 'link', source: { id: 'a' }, target: { id: 'b' }, data: { weight: 2 } },

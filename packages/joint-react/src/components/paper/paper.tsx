@@ -63,6 +63,31 @@ function PaperBase(
  * (selection, drag, link creation, zoom/pan), and lets you customize each
  * cell with your own React components. Mount inside a `<GraphProvider>` and
  * size it with CSS. The canvas fills its parent.
+ * @example
+ * ```tsx
+ * import { GraphProvider, Paper, HTMLBox, type CellRecord } from '@joint/react';
+ *
+ * interface NodeData {
+ *   label: string;
+ * }
+ *
+ * const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
+ *   { id: '1', type: 'element', position: { x: 40, y: 40 }, data: { label: 'Hello' } },
+ *   { id: '2', type: 'element', position: { x: 280, y: 180 }, data: { label: 'World' } },
+ *   { id: 'edge', type: 'link', source: { id: '1' }, target: { id: '2' } },
+ * ];
+ *
+ * function Diagram() {
+ *   return (
+ *     <GraphProvider initialCells={initialCells}>
+ *       <Paper
+ *         style={{ width: '100%', height: 600 }}
+ *         renderElement={(data: NodeData) => <HTMLBox>{data.label}</HTMLBox>}
+ *       />
+ *     </GraphProvider>
+ *   );
+ * }
+ * ```
  * @see {@link PaperProps} for the full prop surface.
  * @group Components
  */
