@@ -22,7 +22,7 @@ export interface ElementAttributes extends dia.Element.Attributes, ElementPreset
 /**
  * Normalizes element configuration into JointJS-compatible cell attributes.
  * Expands the React-preset `portMap` shorthand into native `ports` via
- * `elementPorts()`; passes native `ports` through; throws when both are
+ * {@link elementPorts}(); passes native `ports` through; throws when both are
  * supplied.
  * @param element - The element record to convert.
  * @returns JointJS-compatible cell attributes.

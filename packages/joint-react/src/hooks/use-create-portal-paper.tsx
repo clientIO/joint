@@ -135,7 +135,7 @@ function createDefaultLinkCallback(defaultLink: DefaultLink | undefined) {
  * Portals custom link content into the resolved link view container.
  * Subscribes only to the link's `data` slice, source / target / endpoint
  * updates don't re-invoke the user renderer. If a renderer needs the full
- * link record (source/target/id), use `useCell()` or `useCellId()` from
+ * link record (source/target/id), use {@link useCell}() or {@link useCellId}() from
  * inside it.
  * @param props - Link props.
  * @param props.portalElement - Link portal container element.

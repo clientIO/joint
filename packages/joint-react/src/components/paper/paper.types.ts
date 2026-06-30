@@ -217,7 +217,7 @@ interface PaperSupportedOptions {
  * for built-in JointJS shapes that ship without a `data` field.
  *
  * If the renderer needs the id, position, size, or other slices, use the
- * context hooks: `useCellId()`, `useCell()` (with optional selector), or
+ * context hooks: {@link useCellId}(), {@link useCell}() (with optional selector), or
  * `useCell(c => c.position / c.size / ...)`.
  * @group Types
  */
@@ -225,7 +225,7 @@ export type RenderElement<ElementData = unknown> = (data: ElementData) => ReactN
 
 /**
  * Render function for links. Receives the link's `data` slice only, same
- * performance rationale as {@link RenderElement}. Use `useCell()` (with an
+ * performance rationale as {@link RenderElement}. Use {@link useCell}() (with an
  * optional selector) inside the renderer when source / target / id are
  * needed.
  *

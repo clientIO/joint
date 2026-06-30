@@ -70,7 +70,7 @@ function pickCells<Cell extends AnyCellRecord>(
 
 /**
  * Builds the next selector result for {@link useCells}. Module-scoped so the
- * closure does not nest deeply inside `useCells.select`.
+ * closure does not nest deeply inside {@link useCells}.select.
  */
 function computeNext<Cell extends AnyCellRecord, Selected>(
   container: ReadonlyContainer<Cell>,

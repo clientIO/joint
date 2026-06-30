@@ -26,7 +26,7 @@ export interface LinkAttributes extends dia.Link.Attributes, LinkPresetAttribute
  * Converts a `LinkAttributes` record to JointJS cell attributes.
  *
  * - `style` → converted to SVG `attrs` via `linkStyle()`.
- * - `labelMap` → converted to native `labels` array via `linkLabels()`.
+ * - `labelMap` → converted to native `labels` array via {@link linkLabels}().
  * - `labels` (array) → passed through as-is.
  * - Both `labelMap` and `labels` → throws.
  * @param link - The link record to convert.

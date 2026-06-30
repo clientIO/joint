@@ -22,7 +22,7 @@ const AUTO_SIZE_STYLE: CSSProperties = {
  * @expand
  * @group Types
  */
-export type HTMLBoxProps = HTMLHostProps;
+export interface HTMLBoxProps extends HTMLHostProps {}
 
 /**
  * Default themed HTML host that applies the `jj-box` CSS class. Use inside
