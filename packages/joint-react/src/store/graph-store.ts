@@ -42,7 +42,7 @@ export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
 export const AUTO_SIZE_OPTION = 'autoSize';
 
 /** Option shape accepted by `dia.Cell.set()` writes from the auto-size pipeline. */
-export type AutoSizeOptions = { [AUTO_SIZE_OPTION]?: boolean };
+type AutoSizeOptions = { [AUTO_SIZE_OPTION]?: boolean };
 
 /**
  * Paper snapshot is a simple version counter.
