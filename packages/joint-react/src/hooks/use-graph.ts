@@ -81,8 +81,7 @@ export interface GraphApi<
    * typed records flow through, otherwise it falls back to
    * `Record<string, unknown>`. A cell id can't be narrowed to element-vs-link
    * at the type level, so when both are typed the updater sees their union.
-   * Narrow inside it. For a single fixed `data` shape, use the standalone
-   * `useSetCellData<MyData>()` hook.
+   * Narrow inside it.
    */
   readonly setCellData: SetCellData<HandleCellData<Element, Link>>;
   /**
