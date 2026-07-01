@@ -27,8 +27,8 @@ export type { FeaturesContext as FeaturesContextType } from './context';
 export { FeaturesProvider } from './components';
 
 // Store Classes
-export { GraphStore, DEFAULT_CELL_NAMESPACE } from './store/graph-store';
-export type { GraphStoreInternalSnapshot, PaperStoreState } from './store/graph-store';
+export { GraphStore, DEFAULT_CELL_NAMESPACE, AUTO_SIZE_OPTION } from './store/graph-store';
+export type { GraphStoreInternalSnapshot, PaperStoreState, AutoSizeOptions } from './store/graph-store';
 export type { GraphStoreOptions } from './store/graph-store';
 export { PaperStore } from './store/paper-store';
 export type { PaperStoreOptions, AddPaperOptions } from './store/paper-store';

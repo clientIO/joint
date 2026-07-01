@@ -33,6 +33,18 @@ export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
 };
 
 /**
+ * `dia.Cell.set()` option key used to mark writes that originate from the
+ * auto-size / measurement pipeline. `change:size` listeners can read it to
+ * distinguish measurement writes from external ones (controlled-mode sync,
+ * `cell.resize`, interactive tools) and avoid feedback loops. Exported for
+ * plugin authors and `@joint/react-plus` via `@joint/react/internal`.
+ */
+export const AUTO_SIZE_OPTION = 'autoSize';
+
+/** Option shape accepted by `dia.Cell.set()` writes from the auto-size pipeline. */
+export type AutoSizeOptions = { [AUTO_SIZE_OPTION]?: boolean };
+
+/**
  * Paper snapshot is a simple version counter.
  * Incremented on every view mount/unmount change to trigger React re-renders.
  * @group Types
@@ -105,7 +117,7 @@ export class GraphStore<
   private observer: GraphStoreObserver;
   private onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
   // dev-only `change:size` listener that warns about resizing auto-sized elements.
-  private warnAutoSizeResize?: (cell: dia.Cell, size: dia.Size, opt?: { autoSize?: boolean }) => void;
+  private warnAutoSizeResize?: (cell: dia.Cell, size: dia.Size, opt?: AutoSizeOptions) => void;
 
   constructor(public readonly config: GraphStoreOptions<Element, Link>) {
     const {
@@ -196,7 +208,7 @@ export class GraphStore<
             };
           }
 
-          model.set(attributes, { autoSize: true });
+          model.set(attributes, { [AUTO_SIZE_OPTION]: true });
           // Top-left auto-size (default): don't write position — the cell's
           // top-left stays put implicitly and it grows right/down.
         }
@@ -234,7 +246,7 @@ export class GraphStore<
     // immediately overwritten by the measured content size.
     if (process.env.NODE_ENV !== 'production') {
       this.warnAutoSizeResize = (cell, _size, opt) => {
-        if (opt?.autoSize) return; // our own measurement write
+        if (opt?.[AUTO_SIZE_OPTION]) return; // our own measurement write
         if (!this.observer.has(cell.id)) return; // not auto-sized → resize is honored
         warnResizeOnAutoSizedElement(cell.id);
       };
