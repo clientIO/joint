@@ -1018,6 +1018,115 @@ QUnit.module('graph', function(hooks) {
         );
     });
 
+    QUnit.test('graph.getConnectedLinks() with port/magnet options', function(assert) {
+        var graph = this.graph;
+
+        new joint.shapes.standard.Rectangle({
+            id: 'a',
+            ports: { items: [{ id: 'in' }, { id: 'out' }] },
+        }).addTo(graph);
+        new joint.shapes.standard.Rectangle({ id: 'b' }).addTo(graph);
+
+        // a.out -> b
+        new joint.shapes.standard.Link({
+            id: 'l1',
+            source: { id: 'a', port: 'out' },
+            target: { id: 'b' },
+        }).addTo(graph);
+        // a.out -> b (second link on the same port)
+        new joint.shapes.standard.Link({
+            id: 'l2',
+            source: { id: 'a', port: 'out' },
+            target: { id: 'b' },
+        }).addTo(graph);
+        // b -> a.in
+        new joint.shapes.standard.Link({
+            id: 'l3',
+            source: { id: 'b' },
+            target: { id: 'a', port: 'in' },
+        }).addTo(graph);
+        // b -> a (no port)
+        new joint.shapes.standard.Link({
+            id: 'l4',
+            source: { id: 'b' },
+            target: { id: 'a' },
+        }).addTo(graph);
+        // a.out -> a.in (self-loop across two ports)
+        new joint.shapes.standard.Link({
+            id: 'l5',
+            source: { id: 'a', port: 'out' },
+            target: { id: 'a', port: 'in' },
+        }).addTo(graph);
+        // a(.body magnet) -> b
+        new joint.shapes.standard.Link({
+            id: 'l6',
+            source: { id: 'a', magnet: '.body' },
+            target: { id: 'b' },
+        }).addTo(graph);
+        // a(out port + .body magnet) -> b
+        new joint.shapes.standard.Link({
+            id: 'l7',
+            source: { id: 'a', port: 'out', magnet: '.body' },
+            target: { id: 'b' },
+        }).addTo(graph);
+
+        var a = graph.getCell('a');
+        var ids = function(links) { return _.sortBy(_.map(links, 'id')); };
+
+        // Port.
+        assert.deepEqual(
+            ids(graph.getConnectedLinks(a, { port: 'out' })),
+            ['l1', 'l2', 'l5', 'l7'],
+            'port matches links attached to the element at that port, either end.',
+        );
+        assert.deepEqual(
+            ids(graph.getConnectedLinks(a, { outbound: true, port: 'out' })),
+            ['l1', 'l2', 'l5', 'l7'],
+            'outbound + port narrows to links leaving the given port.',
+        );
+        assert.deepEqual(
+            ids(graph.getConnectedLinks(a, { inbound: true, port: 'in' })),
+            ['l3', 'l5'],
+            'inbound + port narrows to links arriving at the given port.',
+        );
+        assert.deepEqual(
+            ids(graph.getConnectedLinks(a, { outbound: true, port: 'in' })),
+            [],
+            'outbound + input port yields no links (outbound attaches at the source end).',
+        );
+        assert.deepEqual(
+            ids(graph.getConnectedLinks(a, { port: 'missing' })),
+            [],
+            'unknown port yields no links.',
+        );
+
+        // Magnet.
+        assert.deepEqual(
+            ids(graph.getConnectedLinks(a, { magnet: '.body' })),
+            ['l6', 'l7'],
+            'magnet matches links attached to the element at that magnet.',
+        );
+
+        // Port + magnet (AND).
+        assert.deepEqual(
+            ids(graph.getConnectedLinks(a, { port: 'out', magnet: '.body' })),
+            ['l7'],
+            'port + magnet requires the end to match both.',
+        );
+        assert.deepEqual(
+            ids(graph.getConnectedLinks(a, { port: 'in', magnet: '.body' })),
+            [],
+            'port + magnet with no end matching both yields no links.',
+        );
+
+        // Unchanged when neither option is given.
+        assert.deepEqual(
+            ids(graph.getConnectedLinks(a)),
+            ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7'],
+            'no port/magnet option leaves behavior unchanged.',
+        );
+    });
+
     QUnit.test('graph.getConnectedLinks()', function(assert) {
         var graph = this.graph;
         this.setupTestMixtureGraph(graph);
