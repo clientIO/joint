@@ -8,6 +8,17 @@ import { mapCellToAttributes } from '../state/data-mapping';
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
 
 /**
+ * Batch option flag (passed to `graph.startBatch(name, opt)`) marking a batch
+ * whose container commits should be **deferred** and flushed once on close —
+ * how {@link useGraphTransaction} coalesces many edits into one React update.
+ *
+ * Deferral is opt-in per batch via this flag, NOT the batch name: plain batches
+ * (interactive drags, `auto-size`, layout) still commit live, so reactive
+ * readers and overlays follow the element in real time.
+ */
+export const DEFER_COMMIT_BATCH_OPTION = 'reactDeferCommit';
+
+/**
  * Options for applying a React-driven cells snapshot to the graph.
  *
  * A single unified `cells` stream replaces the earlier `elements` / `links`
@@ -65,7 +76,13 @@ export function graphChanges(options: Options) {
   const changes = new Map<CellId, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
+  let deferDepth = 0;
   let isSyncedWithReact = true;
+
+  /** True while a {@link DEFER_COMMIT_BATCH_OPTION} batch is open — commits are deferred. */
+  function isDeferring() {
+    return deferDepth > 0;
+  }
 
   /**
    * Schedules onChanges to fire on next tick.
@@ -98,10 +115,10 @@ export function graphChanges(options: Options) {
   function onCellEvent(cell: dia.Cell, type: 'change' | 'add' | 'remove', sync = false) {
     changes.set(cell.id, { type, data: cell });
     if (sync) {
-      options.onChanges({ changes, isInsideBatch: false, deferCommit: isInsideBatch() });
+      options.onChanges({ changes, isInsideBatch: false, deferCommit: isDeferring() });
       return;
     }
-    onChanges({ changes, isInsideBatch: isInsideBatch(), deferCommit: isInsideBatch() });
+    onChanges({ changes, isInsideBatch: isInsideBatch(), deferCommit: isDeferring() });
   }
 
   const controller = new mvc.Listener();
@@ -170,13 +187,13 @@ export function graphChanges(options: Options) {
       options.onChanges({
         changes,
         isInsideBatch: isInsideBatch(),
-        deferCommit: isInsideBatch(),
+        deferCommit: isDeferring(),
       });
     }
   );
 
   controller.listenTo(graph, LAYOUT_UPDATE_EVENT, ({ changes: layoutChanges }) => {
-    onChanges({ changes: layoutChanges, isInsideBatch: true, deferCommit: isInsideBatch() });
+    onChanges({ changes: layoutChanges, isInsideBatch: true, deferCommit: isDeferring() });
   });
 
   controller.listenTo(graph, 'change:size', (cell: dia.Cell, newSize: dia.Size) => {
@@ -184,18 +201,21 @@ export function graphChanges(options: Options) {
     onElementsSizeChange(cell.id, newSize);
   });
 
-  // Always-on batch tracking. Any batch defers container commits until it
-  // closes, so a burst of edits (sync or async) flushes as a single React
-  // update. batchDepth is already 0 here, so this final flush commits.
-  controller.listenTo(graph, 'batch:start', () => {
+  // Always-on batch tracking. A batch flagged with DEFER_COMMIT_BATCH_OPTION
+  // defers its container commits until it closes, so a burst of edits (sync or
+  // async) flushes as a single React update. Plain batches commit live.
+  controller.listenTo(graph, 'batch:start', (batchOptions: JointJSEventOptions = {}) => {
     batchDepth += 1;
+    if (batchOptions[DEFER_COMMIT_BATCH_OPTION]) deferDepth += 1;
   });
 
-  controller.listenTo(graph, 'batch:stop', ({ isUpdateFromReact }: JointJSEventOptions = {}) => {
+  controller.listenTo(graph, 'batch:stop', (batchOptions: JointJSEventOptions = {}) => {
     batchDepth -= 1;
+    // Decrement before flushing so the deferring batch's own close commits.
+    if (batchOptions[DEFER_COMMIT_BATCH_OPTION] && deferDepth > 0) deferDepth -= 1;
     if (batchDepth > 0) return;
-    if (isUpdateFromReact) return;
-    onChanges({ changes, isInsideBatch: false, deferCommit: isInsideBatch() });
+    if (batchOptions.isUpdateFromReact) return;
+    onChanges({ changes, isInsideBatch: false, deferCommit: isDeferring() });
   });
 
   return {

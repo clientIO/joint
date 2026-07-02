@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useReducer, useLayoutEffect, useRef } from 'react';
+import { useContext, useMemo, useReducer, useLayoutEffect, useRef } from 'react';
 import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
 import { useGraphStore } from './use-graph-store';
@@ -134,17 +134,15 @@ export interface PaperApi {
 export function usePaper(paperId?: string): PaperApi {
   const paperStore = usePaperStore(paperId);
   const paper = paperStore?.paper ?? null;
-  const wakeUp = useCallback(() => {
-    paper?.wakeUp();
-  }, [paper]);
-  const freeze = useCallback(() => {
-    paper?.freeze();
-  }, [paper]);
-  const unfreeze = useCallback(() => {
-    paper?.unfreeze();
-  }, [paper]);
+  // The memo already recomputes only when `paper` changes, so the actions are
+  // stable without separate useCallbacks — define them inline.
   return useMemo(
-    () => ({ paper, wakeUp, freeze, unfreeze }),
-    [paper, wakeUp, freeze, unfreeze]
+    () => ({
+      paper,
+      wakeUp: () => paper?.wakeUp(),
+      freeze: () => paper?.freeze(),
+      unfreeze: () => paper?.unfreeze(),
+    }),
+    [paper]
   );
 }

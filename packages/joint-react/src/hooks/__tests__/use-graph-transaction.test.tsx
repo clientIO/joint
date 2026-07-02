@@ -386,3 +386,22 @@ describe('useGraph().transaction — controlled mode', () => {
     expect(a?.data).toEqual({ label: 'a', nested: { count: 9 } });
   });
 });
+
+describe('commit deferral scope', () => {
+  it('commits live inside a plain (non-transaction) batch, not only at batch:stop', async () => {
+    await renderUncontrolled();
+
+    const commits = countCommits();
+    await act(async () => {
+      // A plain batch — e.g. what an interactive drag opens. Its edits must
+      // commit live so reactive readers/overlays follow the element; otherwise
+      // they freeze mid-drag and only snap into place on batch:stop.
+      storeRef!.graph.startBatch('drag');
+      cellA().set('position', { x: 5, y: 5 });
+      await flush();
+      expect(commits.get()).toBeGreaterThan(0);
+      storeRef!.graph.stopBatch('drag');
+    });
+    commits.unsubscribe();
+  });
+});

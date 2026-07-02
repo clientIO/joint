@@ -2,9 +2,18 @@ import { useCallback } from 'react';
 import { useGraphStore } from './use-graph-store';
 import { useResetCells } from './use-cell-setters';
 import { isPromise } from '../utils/is';
+import { DEFER_COMMIT_BATCH_OPTION } from '../store/graph-changes';
 
 /** Default JointJS batch name used to group a transaction's edits. */
 const DEFAULT_BATCH_NAME = 'transaction';
+
+/**
+ * Batch options that flag this batch for deferred React commits — so all the
+ * transaction's edits (sync or across `await`s) flush as ONE update on close.
+ * Plain batches (drags, auto-size, layout) omit this and keep committing live,
+ * which is why overlays/readers still follow the element in real time.
+ */
+const DEFERRED_BATCH: Record<string, unknown> = { [DEFER_COMMIT_BATCH_OPTION]: true };
 
 /** Freeze key so a paper already frozen for another reason is left untouched on unfreeze. */
 const TRANSACTION_FREEZE_KEY = 'react/transaction';
@@ -84,18 +93,22 @@ export function useGraphTransaction(): Transaction {
           : [];
 
       for (const paper of papers) paper.freeze({ key: TRANSACTION_FREEZE_KEY });
-      graph.startBatch(batchName);
+      // The DEFERRED_BATCH flag opts this batch into commit-deferral, so every
+      // edit below coalesces into one React update when the batch closes.
+      graph.startBatch(batchName, DEFERRED_BATCH);
 
       const unfreezeAll = () => {
         for (const paper of papers) paper.unfreeze({ key: TRANSACTION_FREEZE_KEY });
       };
       const commit = () => {
-        graph.stopBatch(batchName);
+        graph.stopBatch(batchName, DEFERRED_BATCH);
         unfreezeAll();
       };
       const revert = () => {
-        graph.stopBatch(batchName);
+        // Restore INSIDE the still-open batch so the rollback flushes as part of
+        // the batch's single commit (not a separate one), then close and repaint.
         if (snapshot) resetCells(snapshot);
+        graph.stopBatch(batchName, DEFERRED_BATCH);
         unfreezeAll();
       };
 

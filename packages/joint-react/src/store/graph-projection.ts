@@ -108,9 +108,18 @@ export function graphProjection<
         }
       }
 
-      // Inside a batch, defer the notification; the container keeps accumulating
-      // and flushes once when the batch closes. `commitChanges` self-guards when
-      // there is nothing pending.
+      // Two commit modes, decided by `deferCommit` (see graph-changes):
+      //
+      // - Plain batches (interactive drags, `auto-size`, layout) and lone edits
+      //   have `deferCommit === false` → commit NOW. Reactive readers and
+      //   overlays must follow the element live; deferring here would freeze
+      //   them mid-drag and only snap them into place on batch:stop.
+      //
+      // - Transaction batches (flagged via DEFER_COMMIT_BATCH_OPTION) have
+      //   `deferCommit === true` → skip the notify. The container keeps
+      //   accumulating and flushes ONCE when the transaction closes, so a burst
+      //   of edits (sync or spread across `await`s) becomes a single React
+      //   update. `commitChanges` self-guards when nothing is pending.
       if (!deferCommit) cells.commitChanges();
 
       const hasTrackedChanges =
