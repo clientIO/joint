@@ -142,8 +142,9 @@ export interface GraphApi<
   readonly importFromJSON: (json: GraphJSON) => void;
   /**
    * Run a callback as one atomic transaction: every edit inside collapses into
-   * a single undo entry and (for sync callbacks) a single re-render, and the
-   * graph is restored on error unless `rollback: false`. See {@link Transaction}.
+   * a single undo entry and (for sync callbacks) a single re-render. Pass
+   * `{ rollback: true }` to restore the graph on error (off by default —
+   * partial edits stay). See {@link Transaction}.
    */
   readonly transaction: Transaction;
 }

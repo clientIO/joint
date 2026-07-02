@@ -299,7 +299,7 @@ const keyedCalls = (spy: jest.SpyInstance) =>
     .length;
 
 describe('useGraph().transaction — paper freezing', () => {
-  it('freezes every bound paper and unfreezes on close when freezePapers is set', async () => {
+  it('freezes every bound paper and unfreezes on close when deferPaint is set', async () => {
     await renderWithPaper();
     const paper = firstPaper();
     const freezeSpy = jest.spyOn(paper, 'freeze');
@@ -310,7 +310,7 @@ describe('useGraph().transaction — paper freezing', () => {
         () => {
           cellA().set('position', { x: 5, y: 5 });
         },
-        { freezePapers: true }
+        { deferPaint: true }
       );
       await flush();
     });

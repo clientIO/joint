@@ -30,11 +30,11 @@ export interface TransactionOptions {
    */
   readonly rollback?: boolean;
   /**
-   * Freeze every paper bound to the graph for the duration, so all views repaint
-   * once when the transaction closes instead of on every edit. Disabled by
-   * default; pass `true` to coalesce the repaint (hides intermediate frames).
+   * Defer paint on every paper bound to the graph for the duration, so all views
+   * repaint once when the transaction closes instead of on every edit. Disabled
+   * by default; pass `true` to coalesce the repaint (hides intermediate frames).
    */
-  readonly freezePapers?: boolean;
+  readonly deferPaint?: boolean;
   /**
    * Name of the JointJS batch used to group the edits — drives undo grouping and
    * identifies the batch on `batch:start` / `batch:stop`. Defaults to `'transaction'`.
@@ -49,8 +49,8 @@ export interface TransactionOptions {
  *
  * Pass `rollback: true` to restore the graph to its pre-transaction state when
  * the callback throws or rejects (the error is always re-thrown), and
- * `freezePapers: true` to freeze every bound paper so views repaint once, on
- * close. The callback may be sync or `async`; an async callback is awaited
+ * `deferPaint: true` to defer paint on every bound paper so views repaint once,
+ * on close. The callback may be sync or `async`; an async callback is awaited
  * before the transaction closes and the call returns the pending promise.
  * @group Types
  */
@@ -79,16 +79,16 @@ export function useGraphTransaction(): Transaction {
 
   return useCallback(
     <TResult>(callback: () => TResult, options?: TransactionOptions): TResult => {
-      const { rollback, freezePapers, name } = options ?? {};
+      const { rollback, deferPaint, name } = options ?? {};
       const { graph, graphProjection, paperStores } = store;
       const batchName = name ?? DEFAULT_BATCH_NAME;
 
       // Immutable records + shallow copy = a fast, correct pre-transaction snapshot
       // (container slots are replaced on change, never mutated in place). Opt-in.
       const snapshot = rollback === true ? [...graphProjection.cells.getAll()] : null;
-      // Opt-in: freeze every bound paper so the whole transaction repaints once, on close.
+      // Opt-in: defer paint on every bound paper so the whole transaction repaints once, on close.
       const papers =
-        freezePapers === true
+        deferPaint === true
           ? [...paperStores.values()].map((paperStore) => paperStore.paper)
           : [];
 

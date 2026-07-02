@@ -126,7 +126,7 @@ function Controls() {
 
   // Async: awaited writes still commit once, when the transaction closes.
   // Papers stay live by default, so the cascade is visible (pass
-  // `freezePapers: true` to instead coalesce the repaint to the end).
+  // `deferPaint: true` to instead coalesce the repaint to the end).
   async function cascadeAsync() {
     setIsRunning(true);
     setTone('idle');

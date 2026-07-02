@@ -14,7 +14,7 @@ export default {
     code: CodeRaw,
     description:
       '`useGraph().transaction` runs many graph edits as one atomic step: a single undo entry, ' +
-      'a single React update (even across `await`s), and automatic rollback if the callback throws.',
+      'a single React update (even across `await`s), and opt-in rollback (`{ rollback: true }`) if the callback throws.',
   }),
 } satisfies Meta<typeof Code>;
 

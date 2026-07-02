@@ -20,8 +20,8 @@ Three things happen for the whole block, not per edit:
 
 - **One undo entry.** Every write collapses into a single command (grouped via a JointJS batch).
 - **One React update.** Synchronous edits already coalesce; a transaction also coalesces **async** edits split across `await`s into a single commit.
-- **Opt-in single repaint.** Pass `{ freezePapers: true }` to freeze every bound paper for the duration so views repaint once, on close. Off by default, so the async demos below stay live and you can watch each step.
-- **Automatic rollback.** If the callback throws or its promise rejects, the graph is restored to its pre-transaction state, then the error re-throws. Opt out with `{ rollback: false }`.
+- **Opt-in single repaint.** Pass `{ deferPaint: true }` to defer paint on every bound paper for the duration so views repaint once, on close. Off by default, so the async demos below stay live and you can watch each step.
+- **Opt-in rollback.** Pass `{ rollback: true }` to restore the graph to its pre-transaction state when the callback throws or its promise rejects; the error is always re-thrown. Off by default — partial edits stay.
 
 ## Try it
 
