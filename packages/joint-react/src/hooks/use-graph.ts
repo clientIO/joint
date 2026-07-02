@@ -87,19 +87,34 @@ export interface GraphApi<
   readonly setCellData: SetCellData<HandleCellData<Element, Link>>;
   /**
    * Remove a cell by id or dia.Cell reference. A nullish reference warns in dev
-   * and no-ops; a reference that resolves to no cell is a silent no-op.
+   * and no-ops; a reference that resolves to no cell is a silent no-op. The
+   * optional `metadata` is forwarded as the `graph.removeCells` event opt.
    */
-  readonly removeCell: (cellRef?: CellRef | null) => void;
+  readonly removeCell: (cellRef?: CellRef | null, metadata?: Record<string, unknown>) => void;
   /**
    * Remove multiple cells by id or dia.Cell reference. A nullish array warns in
-   * dev and no-ops; references that resolve to no cell are silently skipped.
+   * dev and no-ops; references that resolve to no cell are silently skipped. The
+   * optional `metadata` is forwarded as the `graph.removeCells` event opt.
    */
-  readonly removeCells: (cellRefs?: readonly CellRef[] | null) => void;
-  /** Atomically replace the cell set. Accepts dia.Cell instances alongside records. */
-  readonly resetCells: (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => void;
-  /** Apply an updater to the current cells array. Updater may return dia.Cell instances. */
+  readonly removeCells: (
+    cellRefs?: readonly CellRef[] | null,
+    metadata?: Record<string, unknown>
+  ) => void;
+  /**
+   * Atomically replace the cell set. Accepts dia.Cell instances alongside
+   * records. The optional `metadata` is forwarded as the `graph.resetCells` opt.
+   */
+  readonly resetCells: (
+    input: ArrayUpdate<Element | Link, CellInput<Element, Link>>,
+    metadata?: Record<string, unknown>
+  ) => void;
+  /**
+   * Apply an updater to the current cells array. Updater may return dia.Cell
+   * instances. The optional `metadata` is forwarded as the sync event opt.
+   */
   readonly updateCells: (
-    updater: (previous: ReadonlyArray<Element | Link>) => ReadonlyArray<CellInput<Element, Link>>
+    updater: (previous: ReadonlyArray<Element | Link>) => ReadonlyArray<CellInput<Element, Link>>,
+    metadata?: Record<string, unknown>
   ) => void;
   /**
    * Predicate / type guard: true when the input resolves to an element cell.

@@ -32,7 +32,8 @@ function writeMergedCell<Element extends ElementJSONInit, Link extends LinkJSONI
   diaCell: dia.Cell,
   previous: Element | Link,
   next: Element | Link,
-  graph: dia.Graph
+  graph: dia.Graph,
+  metadata?: Record<string, unknown>
 ): void {
   const merged = {
     ...previous,
@@ -40,7 +41,7 @@ function writeMergedCell<Element extends ElementJSONInit, Link extends LinkJSONI
     id: previous.id,
     type: previous.type,
   };
-  diaCell.set(mapCellToAttributes(merged, graph));
+  diaCell.set(mapCellToAttributes(merged, graph), metadata);
 }
 
 /**
@@ -69,8 +70,12 @@ type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> 
  * @group Types
  */
 export interface SetCell<Element extends ElementJSONInit, Link extends LinkJSONInit> {
-  (record: CellInput<Element, Link>): void;
-  (id: CellId | null | undefined, updater: SetCellUpdater<Element, Link>): void;
+  (record: CellInput<Element, Link>, metadata?: Record<string, unknown>): void;
+  (
+    id: CellId | null | undefined,
+    updater: SetCellUpdater<Element, Link>,
+    metadata?: Record<string, unknown>
+  ): void;
 }
 
 /**
@@ -89,10 +94,12 @@ export function useSetCell<
   const setCell = useCallback(
     (
       argument1: CellInput<Element, Link> | CellId | null | undefined,
-      argument2?: SetCellUpdater<Element, Link>
+      argument2?: SetCellUpdater<Element, Link> | Record<string, unknown>,
+      argument3?: Record<string, unknown>
     ) => {
-      // Updater form: the target must already exist so the updater receives a
-      // real previous record. A nullish id or a missing cell warns and no-ops.
+      // Updater form `setCell(id, updater, metadata?)`: the target must already
+      // exist so the updater receives a real previous record. A nullish id or a
+      // missing cell warns and no-ops.
       if (typeof argument2 === 'function') {
         const id = argument1 as CellId | null | undefined;
         const previous = isMissingId(id) ? undefined : store.graphProjection.cells.get(id);
@@ -101,12 +108,14 @@ export function useSetCell<
           warnMissingSetterCell('setCell', id);
           return;
         }
-        writeMergedCell(diaCell, previous, argument2(previous), graph);
+        writeMergedCell(diaCell, previous, argument2(previous), graph, argument3);
         return;
       }
 
-      // Direct form: a record names its own target. A missing cell is added;
-      // an existing cell is merged. A record without an id cannot be placed.
+      // Direct form `setCell(record, metadata?)`: a record names its own target.
+      // A missing cell is added; an existing cell is merged. A record without an
+      // id cannot be placed.
+      const metadata = argument2;
       const next = cellInputToRecord<Element, Link>(argument1 as CellInput<Element, Link>);
       if (isMissingId(next.id)) {
         warnMissingSetterCell('setCell', next.id);
@@ -115,10 +124,10 @@ export function useSetCell<
       const previous = store.graphProjection.cells.get(next.id);
       const diaCell = graph.getCell(next.id);
       if (!previous || !diaCell) {
-        graph.addCell(mapCellToAttributes(next, graph));
+        graph.addCell(mapCellToAttributes(next, graph), metadata);
         return;
       }
-      writeMergedCell(diaCell, previous, next, graph);
+      writeMergedCell(diaCell, previous, next, graph, metadata);
     },
     [graph, store]
   );
@@ -149,8 +158,12 @@ type SetCellDataUpdater<Data> = (previousData: Data) => Data;
  * @group Types
  */
 export interface SetCellData<Data = Record<string, unknown>> {
-  (id: CellId | null | undefined, updater: SetCellDataUpdater<Data>): void;
-  (id: CellId | null | undefined, data: Data): void;
+  (
+    id: CellId | null | undefined,
+    updater: SetCellDataUpdater<Data>,
+    metadata?: Record<string, unknown>
+  ): void;
+  (id: CellId | null | undefined, data: Data, metadata?: Record<string, unknown>): void;
 }
 
 /**
@@ -184,7 +197,7 @@ export function useSetCellData<Data = Record<string, unknown>>(): SetCellData<Da
   const store = useGraphStore();
   const { graph } = store;
   return useCallback<SetCellData<Data>>(
-    (id?: CellId | null, dataOrUpdater?: unknown) => {
+    (id?: CellId | null, dataOrUpdater?: unknown, metadata?: Record<string, unknown>) => {
       if (isMissingId(id) || dataOrUpdater === undefined) {
         warnMissingSetterCell('setCellData', id);
         return;
@@ -197,7 +210,7 @@ export function useSetCellData<Data = Record<string, unknown>>(): SetCellData<Da
       }
       const nextData =
         typeof dataOrUpdater === 'function' ? dataOrUpdater(previous.data) : dataOrUpdater;
-      diaCell.set('data', nextData);
+      diaCell.set('data', nextData, metadata);
     },
     [graph, store]
   );
@@ -213,14 +226,14 @@ export function useRemoveCell() {
   const store = useGraphStore();
   const { graph } = store;
   return useCallback(
-    (cellRef?: CellRef | null) => {
+    (cellRef?: CellRef | null, metadata?: Record<string, unknown>) => {
       if (cellRef === undefined || cellRef === null) {
         warnMissingSetterCell('removeCell', cellRef);
         return;
       }
       const diaCell = graph.getCell(cellRef);
       if (!diaCell) return;
-      graph.removeCells([diaCell]);
+      graph.removeCells([diaCell], metadata);
     },
     [graph]
   );
@@ -236,7 +249,7 @@ export function useRemoveCells() {
   const store = useGraphStore();
   const { graph } = store;
   return useCallback(
-    (cellRefs?: readonly CellRef[] | null) => {
+    (cellRefs?: readonly CellRef[] | null, metadata?: Record<string, unknown>) => {
       if (cellRefs === undefined || cellRefs === null) {
         warnMissingSetterCell('removeCells', cellRefs);
         return;
@@ -247,7 +260,7 @@ export function useRemoveCells() {
         if (cell) toRemove.push(cell);
       }
       if (toRemove.length === 0) return;
-      graph.removeCells(toRemove);
+      graph.removeCells(toRemove, metadata);
     },
     [graph]
   );
@@ -271,11 +284,14 @@ export function useResetCells<
   const store = useGraphStore<Element, Link>();
   const { graph } = store;
   return useCallback(
-    (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => {
+    (
+      input: ArrayUpdate<Element | Link, CellInput<Element, Link>>,
+      metadata?: Record<string, unknown>
+    ) => {
       const current = store.graphProjection.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
       const models = next.map((cell) => cellInputToModel<Element, Link>(cell, graph));
-      graph.resetCells(models);
+      graph.resetCells(models, metadata);
     },
     [graph, store]
   );
@@ -297,12 +313,13 @@ export function useUpdateCells<
   const store = useGraphStore<Element, Link>();
   return useCallback(
     (
-      updater: (previous: ReadonlyArray<Element | Link>) => ReadonlyArray<CellInput<Element, Link>>
+      updater: (previous: ReadonlyArray<Element | Link>) => ReadonlyArray<CellInput<Element, Link>>,
+      metadata?: Record<string, unknown>
     ) => {
       const current = store.graphProjection.cells.getAll();
       const next = updater(current);
       const cellRecords = next.map((cell) => cellInputToRecord<Element, Link>(cell));
-      store.applyControlled(cellRecords);
+      store.applyControlled(cellRecords, metadata);
     },
     [store]
   );

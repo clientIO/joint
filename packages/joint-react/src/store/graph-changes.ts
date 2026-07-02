@@ -23,6 +23,8 @@ export interface UpdateGraphOptions<
   /** Cell records to sync. If omitted, the current graph cells are preserved untouched. */
   readonly cells?: ReadonlyArray<Element | Link>;
   readonly flag?: 'updateFromReact';
+  /** Extra options forwarded verbatim into the `graph.syncCells` event opt. */
+  readonly metadata?: Record<string, unknown>;
 }
 
 /**
@@ -205,7 +207,7 @@ export function graphChanges(options: Options) {
       Element extends ElementJSONInit = ElementJSONInit,
       Link extends LinkJSONInit = LinkJSONInit,
     >(update: UpdateGraphOptions<Element, Link>): UpdateGraphResult {
-      const { cells, flag } = update;
+      const { cells, flag, metadata } = update;
       if (!isSyncedWithReact) {
         isSyncedWithReact = true;
         return { cellIds: [] };
@@ -225,7 +227,9 @@ export function graphChanges(options: Options) {
       }
 
       graph.startBatch('updateFromReact');
+      // Spread metadata first so the required sync flags always win.
       graph.syncCells(cellsToSync, {
+        ...metadata,
         remove: true,
         isUpdateFromReact: flag === 'updateFromReact',
       });
