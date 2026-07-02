@@ -107,7 +107,7 @@ export function graphChanges(options: Options) {
    * @param cell - The cell that changed.
    * @param type - Kind of change.
    * @param sync - Notify synchronously instead of coalescing onto a microtask.
-   *   Used for `data` edits ({@link useSetCellData} / `useSetCell`) so a controlled
+   *   Used for `data` edits (`setCellData` / `useSetCell`) so a controlled
    *   input bound to cell data updates in the same tick as the keystroke —
    *   otherwise its caret jumps to the end. High-frequency changes (drags, bulk)
    *   stay coalesced.

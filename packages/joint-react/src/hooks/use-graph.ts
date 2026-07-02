@@ -13,12 +13,7 @@ import {
   type SetCellData,
 } from './use-cell-setters';
 import type { ArrayUpdate } from '../store/state-container';
-import type {
-  ElementJSONInit,
-  LinkJSONInit,
-  CellInput,
-  CellRef,
-} from '../types/cell.types';
+import type { ElementJSONInit, LinkJSONInit, CellInput, CellRef } from '../types/cell.types';
 
 /**
  * The shape of the graph's JSON export, as produced by `graph.toJSON()`.
