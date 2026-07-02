@@ -229,6 +229,30 @@ describe('useGraph().transaction', () => {
     expect(dataOf('a')).toEqual({ label: 'a', nested: { count: 0 } });
   });
 
+  it('rolls back as a single store commit (restore flushes with the batch)', async () => {
+    await renderUncontrolled();
+
+    const commits = countCommits();
+    await act(async () => {
+      expect(() =>
+        transactionRef!(
+          () => {
+            cellA().set('position', { x: 111, y: 222 });
+            cellA().set('size', { width: 333, height: 444 });
+            throw new Error('boom');
+          },
+          { rollback: true }
+        )
+      ).toThrow('boom');
+      await flush();
+    });
+    commits.unsubscribe();
+
+    expect(commits.get()).toBe(1);
+    expect(positionOf('a')).toEqual({ x: 0, y: 0 });
+    expect(sizeOf('a')).toEqual({ width: 10, height: 10 });
+  });
+
   it('coalesces many delayed async edits into a single React update', async () => {
     await renderUncontrolled();
 
