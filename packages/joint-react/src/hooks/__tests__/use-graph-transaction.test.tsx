@@ -104,7 +104,7 @@ describe('useGraph().transaction', () => {
             storeRef!.graph.getCell('a')!.set('position', { x: 999, y: 999 });
             throw new Error('boom');
           },
-          { rollback: true }
+          { rollbackOnError: true }
         )
       ).toThrow('boom');
       await flush();
@@ -115,7 +115,7 @@ describe('useGraph().transaction', () => {
     expect(storeRef!.graphProjection.cells.get('a')?.position).toEqual({ x: 0, y: 0 });
   });
 
-  it('keeps partial edits by default (rollback off)', async () => {
+  it('keeps partial edits by default (rollbackOnError off)', async () => {
     await renderUncontrolled();
 
     await act(async () => {
@@ -156,7 +156,7 @@ describe('useGraph().transaction', () => {
             await flush();
             throw new Error('async boom');
           },
-          { rollback: true }
+          { rollbackOnError: true }
         )
       ).rejects.toThrow('async boom');
       await flush();
@@ -176,7 +176,7 @@ describe('useGraph().transaction', () => {
             cellA().set('size', { width: 999, height: 999 });
             throw new Error('boom');
           },
-          { rollback: true }
+          { rollbackOnError: true }
         )
       ).toThrow('boom');
       await flush();
@@ -197,7 +197,7 @@ describe('useGraph().transaction', () => {
             cellA().prop('data/label', 'changed');
             throw new Error('boom');
           },
-          { rollback: true }
+          { rollbackOnError: true }
         )
       ).toThrow('boom');
       await flush();
@@ -218,7 +218,7 @@ describe('useGraph().transaction', () => {
             cellA().prop('data/nested/count', 99);
             throw new Error('boom');
           },
-          { rollback: true }
+          { rollbackOnError: true }
         )
       ).toThrow('boom');
       await flush();
@@ -241,7 +241,7 @@ describe('useGraph().transaction', () => {
             cellA().set('size', { width: 333, height: 444 });
             throw new Error('boom');
           },
-          { rollback: true }
+          { rollbackOnError: true }
         )
       ).toThrow('boom');
       await flush();
@@ -299,7 +299,7 @@ const keyedCalls = (spy: jest.SpyInstance) =>
     .length;
 
 describe('useGraph().transaction — paper freezing', () => {
-  it('freezes every bound paper and unfreezes on close when freezePapers is set', async () => {
+  it('freezes every bound paper and unfreezes on close when deferPaint is set', async () => {
     await renderWithPaper();
     const paper = firstPaper();
     const freezeSpy = jest.spyOn(paper, 'freeze');
@@ -310,7 +310,7 @@ describe('useGraph().transaction — paper freezing', () => {
         () => {
           cellA().set('position', { x: 5, y: 5 });
         },
-        { freezePapers: true }
+        { deferPaint: true }
       );
       await flush();
     });

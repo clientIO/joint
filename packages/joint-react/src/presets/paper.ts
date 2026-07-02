@@ -3,6 +3,7 @@ import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
 import { MagnetHighlighter, MAGNET_HIGHLIGHTER_NAME } from './magnet-highlighter';
+import { wheelGuard } from '../utils/wheel-guard';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -21,6 +22,7 @@ type ProtectedPaperPrototype = {
   readonly pointermove: (event: dia.Event) => void;
   readonly pointerup: (event: dia.Event) => void;
   readonly startListening: () => void;
+  readonly guard: (event: dia.Event, view: dia.CellView) => boolean;
 };
 
 const protectedProto = dia.Paper.prototype as unknown as ProtectedPaperPrototype;
@@ -174,6 +176,20 @@ export const Paper = dia.Paper.extend(
         // Capture can fail if the element isn't connected — safe to ignore;
         // the drag still works via `documentEvents`.
       }
+    },
+
+    /**
+     * Compose {@link wheelGuard} onto joint-core's `guard`: a wheel over a
+     * scrollable node body (native `<textarea>` or an element marked
+     * `data-joint-scrollable`, both with actual overflow) short-circuits the
+     * paper's mousewheel pipeline so the region scrolls natively.
+     * `Ctrl`/`Cmd`+wheel is never guarded — pinch-zoom keeps working. The
+     * caller's own `options.guard` still runs via the super call.
+     * @param event - Event delivered to the paper's dispatch.
+     * @param view - View resolved from the event target, if any.
+     */
+    guard(this: dia.Paper, event: dia.Event, view: dia.CellView) {
+      return protectedProto.guard.call(this, event, view) || wheelGuard(event);
     },
 
     /**

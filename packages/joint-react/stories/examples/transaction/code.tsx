@@ -126,7 +126,7 @@ function Controls() {
 
   // Async: awaited writes still commit once, when the transaction closes.
   // Papers stay live by default, so the cascade is visible (pass
-  // `freezePapers: true` to instead coalesce the repaint to the end).
+  // `deferPaint: true` to instead coalesce the repaint to the end).
   async function cascadeAsync() {
     setIsRunning(true);
     setTone('idle');
@@ -156,7 +156,7 @@ function Controls() {
           }
           throw new Error('layout rejected');
         },
-        { rollback: withRollback }
+        { rollbackOnError: withRollback }
       );
     } catch {
       setTone('fail');
@@ -179,7 +179,7 @@ function Controls() {
           }));
         }
       },
-      { rollback: false }
+      { rollbackOnError: false }
     );
     setTone('idle');
     setMessage('Back to the neat row.');
