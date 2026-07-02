@@ -68,9 +68,7 @@ export function graphProjection<
   const graphChangesController = graphChanges({
     graph,
     onElementsSizeChange,
-    onChanges: ({ changes, isInsideBatch }) => {
-      let hasChange = false;
-
+    onChanges: ({ changes, isInsideBatch, deferCommit }) => {
       for (const [id, change] of changes) {
         const { data, type } = change;
         switch (type) {
@@ -82,7 +80,6 @@ export function graphProjection<
               if (isAdd) added!.set(id, record);
               else changed!.set(id, record);
             }
-            hasChange = true;
             // Connected-links sweep is only needed on `change` (an element
             // moved or resized — its links' routes need re-snapshotting).
             // On `add`, the link gets its own change-set entry from JointJS
@@ -98,7 +95,6 @@ export function graphProjection<
             if (!data) continue;
             cells.delete(id);
             if (trackChanges) removed!.add(id);
-            hasChange = true;
             if (data.isElement()) {
               // Connected links are also removed by JointJS — mirror that.
               for (const link of graph.getConnectedLinks(data)) {
@@ -112,7 +108,19 @@ export function graphProjection<
         }
       }
 
-      if (hasChange) cells.commitChanges();
+      // Two commit modes, decided by `deferCommit` (see graph-changes):
+      //
+      // - Plain batches (interactive drags, `auto-size`, layout) and lone edits
+      //   have `deferCommit === false` → commit NOW. Reactive readers and
+      //   overlays must follow the element live; deferring here would freeze
+      //   them mid-drag and only snap them into place on batch:stop.
+      //
+      // - Transaction batches (flagged via DEFER_COMMIT_BATCH_OPTION) have
+      //   `deferCommit === true` → skip the notify. The container keeps
+      //   accumulating and flushes ONCE when the transaction closes, so a burst
+      //   of edits (sync or spread across `await`s) becomes a single React
+      //   update. `commitChanges` self-guards when nothing is pending.
+      if (!deferCommit) cells.commitChanges();
 
       const hasTrackedChanges =
         trackChanges &&

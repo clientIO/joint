@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
+import { useGraphTransaction, type Transaction } from './use-graph-transaction';
 import {
   useSetCell,
   useSetCellData,
@@ -12,12 +13,7 @@ import {
   type SetCellData,
 } from './use-cell-setters';
 import type { ArrayUpdate } from '../store/state-container';
-import type {
-  ElementJSONInit,
-  LinkJSONInit,
-  CellInput,
-  CellRef,
-} from '../types/cell.types';
+import type { ElementJSONInit, LinkJSONInit, CellInput, CellRef } from '../types/cell.types';
 
 /**
  * The shape of the graph's JSON export, as produced by `graph.toJSON()`.
@@ -81,24 +77,39 @@ export interface GraphApi<
    * typed records flow through, otherwise it falls back to
    * `Record<string, unknown>`. A cell id can't be narrowed to element-vs-link
    * at the type level, so when both are typed the updater sees their union.
-   * Narrow inside it.
+   * Narrow inside it, or fix the `data` shape via `useGraph<ElementRecord<MyData>>()`.
    */
   readonly setCellData: SetCellData<HandleCellData<Element, Link>>;
   /**
    * Remove a cell by id or dia.Cell reference. A nullish reference warns in dev
-   * and no-ops; a reference that resolves to no cell is a silent no-op.
+   * and no-ops; a reference that resolves to no cell is a silent no-op. The
+   * optional `metadata` is forwarded as the `graph.removeCells` event opt.
    */
-  readonly removeCell: (cellRef?: CellRef | null) => void;
+  readonly removeCell: (cellRef?: CellRef | null, metadata?: Record<string, unknown>) => void;
   /**
    * Remove multiple cells by id or dia.Cell reference. A nullish array warns in
-   * dev and no-ops; references that resolve to no cell are silently skipped.
+   * dev and no-ops; references that resolve to no cell are silently skipped. The
+   * optional `metadata` is forwarded as the `graph.removeCells` event opt.
    */
-  readonly removeCells: (cellRefs?: readonly CellRef[] | null) => void;
-  /** Atomically replace the cell set. Accepts dia.Cell instances alongside records. */
-  readonly resetCells: (input: ArrayUpdate<Element | Link, CellInput<Element, Link>>) => void;
-  /** Apply an updater to the current cells array. Updater may return dia.Cell instances. */
+  readonly removeCells: (
+    cellRefs?: readonly CellRef[] | null,
+    metadata?: Record<string, unknown>
+  ) => void;
+  /**
+   * Atomically replace the cell set. Accepts dia.Cell instances alongside
+   * records. The optional `metadata` is forwarded as the `graph.resetCells` opt.
+   */
+  readonly resetCells: (
+    input: ArrayUpdate<Element | Link, CellInput<Element, Link>>,
+    metadata?: Record<string, unknown>
+  ) => void;
+  /**
+   * Apply an updater to the current cells array. Updater may return dia.Cell
+   * instances. The optional `metadata` is forwarded as the sync event opt.
+   */
   readonly updateCells: (
-    updater: (previous: ReadonlyArray<Element | Link>) => ReadonlyArray<CellInput<Element, Link>>
+    updater: (previous: ReadonlyArray<Element | Link>) => ReadonlyArray<CellInput<Element, Link>>,
+    metadata?: Record<string, unknown>
   ) => void;
   /**
    * Predicate / type guard: true when the input resolves to an element cell.
@@ -129,6 +140,12 @@ export interface GraphApi<
    * all React subscriptions resync automatically.
    */
   readonly importFromJSON: (json: GraphJSON) => void;
+  /**
+   * Run a callback as one atomic transaction: every edit inside collapses into
+   * a single undo entry and (for sync callbacks) a single re-render, and the
+   * graph is restored on error unless `rollback: false`. See {@link Transaction}.
+   */
+  readonly transaction: Transaction;
 }
 
 /**
@@ -205,6 +222,7 @@ export function useGraph<
   const removeCells = useRemoveCells();
   const resetCells = useResetCells<Element, Link>();
   const updateCells = useUpdateCells<Element, Link>();
+  const transaction = useGraphTransaction();
 
   const exportToJSON = useCallback<GraphApi<Element, Link>['exportToJSON']>(
     (options) => {
@@ -247,6 +265,7 @@ export function useGraph<
       isLink: store.isLink,
       exportToJSON,
       importFromJSON,
+      transaction,
     }),
     [
       graph,
@@ -259,6 +278,7 @@ export function useGraph<
       updateCells,
       exportToJSON,
       importFromJSON,
+      transaction,
     ]
   );
 }

@@ -33,9 +33,10 @@ export const PORTAL_SELECTOR = '__portal__';
  * });
  * ```
  */
-export class ElementModel<
-  Attributes extends dia.Element.Attributes = dia.Element.Attributes
-> extends dia.Element<Attributes> implements PortalHostCell {
+export class ElementModel<Attributes extends dia.Element.Attributes = dia.Element.Attributes>
+  extends dia.Element<Attributes>
+  implements PortalHostCell
+{
   /**
    * Selector of the node in this cell's view where `@joint/react` mounts your
    * {@link RenderElement} content, the `'__portal__'` `<g>` group.
@@ -51,6 +52,7 @@ export class ElementModel<
     {
       tagName: 'g',
       selector: PORTAL_SELECTOR,
+      attributes: { tabindex: -1 },
     },
   ];
 

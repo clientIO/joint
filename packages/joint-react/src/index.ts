@@ -88,6 +88,9 @@ export { useGraph } from './hooks/use-graph';
 /** @group Types */
 export type { GraphApi, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
 
+/** @group Types */
+export type { Transaction, TransactionOptions } from './hooks/use-graph-transaction';
+
 /**
  * usePaper()
  * @group Hooks
@@ -97,6 +100,11 @@ export { usePaper } from './hooks/use-paper';
 export type { PaperApi } from './hooks/use-paper';
 /** @group Types */
 export type { PaperTarget } from './types/paper.types';
+/**
+ * Default `<Paper>` id used when none is provided.
+ * @group Constants
+ */
+export { DEFAULT_PAPER_ID } from './mvc/paper';
 
 /**
  * useCells()

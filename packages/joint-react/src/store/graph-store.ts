@@ -263,9 +263,13 @@ export class GraphStore<
    * parent-owned `cells` prop changes). Equivalent to `graphProjection.updateGraph`
    * with the react-origin flag set.
    * @param cells - new cells snapshot from the parent
+   * @param metadata - extra options forwarded to the underlying `graph.syncCells` opt
    */
-  public applyControlled(cells: ReadonlyArray<Element | Link>) {
-    this.graphProjection.updateGraph({ cells, flag: 'updateFromReact' });
+  public applyControlled(
+    cells: ReadonlyArray<Element | Link>,
+    metadata?: Record<string, unknown>
+  ) {
+    this.graphProjection.updateGraph({ cells, flag: 'updateFromReact', metadata });
   }
 
   /**

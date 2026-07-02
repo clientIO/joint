@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { shapes } from '@joint/core';
+import { shapes, type dia } from '@joint/core';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import {
   useSetCell,
@@ -645,5 +645,97 @@ describe('use-cell-setters', () => {
         count: 1,
       });
     });
+  });
+});
+
+// The JointJS event `opt` is always the handler's last argument.
+function captureOpt(graph: dia.Graph, event: string) {
+  const captured: { opt?: Record<string, unknown> } = {};
+  graph.on(event, (...args: unknown[]) => {
+    captured.opt = args.at(-1) as Record<string, unknown>;
+  });
+  return captured;
+}
+
+function renderSetters() {
+  return renderHook(
+    () => ({
+      setCell: useSetCell(),
+      setCellData: useSetCellData(),
+      removeCell: useRemoveCell(),
+      removeCells: useRemoveCells(),
+      resetCells: useResetCells(),
+      updateCells: useUpdateCells(),
+      store: useGraphStore(),
+    }),
+    { wrapper }
+  );
+}
+
+describe('setter metadata forwarding', () => {
+  it('setCell (updater) forwards metadata to the change opt', async () => {
+    const { result } = renderSetters();
+    await waitFor(() => expect(result.current).toBeDefined());
+    const captured = captureOpt(result.current.store.graph, 'change');
+    act(() => result.current.setCell('a', setCellAUpdater, { tag: 'meta' }));
+    expect(captured.opt?.tag).toBe('meta');
+  });
+
+  it('setCell (direct add) forwards metadata to the add opt', async () => {
+    const { result } = renderSetters();
+    await waitFor(() => expect(result.current).toBeDefined());
+    const captured = captureOpt(result.current.store.graph, 'add');
+    act(() =>
+      result.current.setCell(
+        {
+          id: 'c',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 10, height: 10 },
+        } as CellRecord,
+        { tag: 'meta' }
+      )
+    );
+    expect(captured.opt?.tag).toBe('meta');
+  });
+
+  it('setCellData forwards metadata to the change opt', async () => {
+    const { result } = renderSetters();
+    await waitFor(() => expect(result.current).toBeDefined());
+    const captured = captureOpt(result.current.store.graph, 'change');
+    act(() => result.current.setCellData('a', { label: 'x' }, { tag: 'meta' }));
+    expect(captured.opt?.tag).toBe('meta');
+  });
+
+  it('removeCell forwards metadata to the remove opt', async () => {
+    const { result } = renderSetters();
+    await waitFor(() => expect(result.current).toBeDefined());
+    const captured = captureOpt(result.current.store.graph, 'remove');
+    act(() => result.current.removeCell('b', { tag: 'meta' }));
+    expect(captured.opt?.tag).toBe('meta');
+  });
+
+  it('removeCells forwards metadata to the remove opt', async () => {
+    const { result } = renderSetters();
+    await waitFor(() => expect(result.current).toBeDefined());
+    const captured = captureOpt(result.current.store.graph, 'remove');
+    act(() => result.current.removeCells(['b'], { tag: 'meta' }));
+    expect(captured.opt?.tag).toBe('meta');
+  });
+
+  it('resetCells forwards metadata to the reset opt', async () => {
+    const { result } = renderSetters();
+    await waitFor(() => expect(result.current).toBeDefined());
+    const captured = captureOpt(result.current.store.graph, 'reset');
+    act(() => result.current.resetCells([...baseCells], { tag: 'meta' }));
+    expect(captured.opt?.tag).toBe('meta');
+  });
+
+  it('updateCells forwards metadata to the synced event opt', async () => {
+    const { result } = renderSetters();
+    await waitFor(() => expect(result.current).toBeDefined());
+    const captured = captureOpt(result.current.store.graph, 'remove');
+    act(() => result.current.updateCells(filterOutCellB, { tag: 'meta' }));
+    expect(captured.opt?.tag).toBe('meta');
   });
 });

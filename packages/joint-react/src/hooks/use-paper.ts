@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useReducer, useLayoutEffect, useRef } from 'react';
+import { useContext, useMemo, useReducer, useLayoutEffect, useRef } from 'react';
 import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
 import { useGraphStore } from './use-graph-store';
@@ -83,6 +83,18 @@ export interface PaperApi {
    * @see https://docs.jointjs.com/api/dia/Paper#wakeUp
    */
   readonly wakeUp: () => void;
+  /**
+   * Suspend view updates so edits don't repaint until {@link PaperApi.unfreeze}.
+   * Forwards to `paper.freeze()`. No-op when the paper isn't resolved yet.
+   * @see https://docs.jointjs.com/api/dia/Paper#freeze
+   */
+  readonly freeze: () => void;
+  /**
+   * Resume view updates and flush everything queued while frozen. Forwards to
+   * `paper.unfreeze()`. No-op when the paper isn't resolved yet.
+   * @see https://docs.jointjs.com/api/dia/Paper#unfreeze
+   */
+  readonly unfreeze: () => void;
 }
 
 /**
@@ -95,7 +107,8 @@ export interface PaperApi {
  * `paper` is `null` until the `<Paper>` view has mounted, so guard calls with
  * `paper?.`.
  * @param paperId - An explicit paper id, or omitted for the context/default paper.
- * @returns The {@link PaperApi}: the resolved `paper` (or `null`) and a `wakeUp` action.
+ * @returns The {@link PaperApi}: the resolved `paper` (or `null`) plus `wakeUp`,
+ *          `freeze`, and `unfreeze` actions.
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
  * @example
@@ -121,8 +134,15 @@ export interface PaperApi {
 export function usePaper(paperId?: string): PaperApi {
   const paperStore = usePaperStore(paperId);
   const paper = paperStore?.paper ?? null;
-  const wakeUp = useCallback(() => {
-    paper?.wakeUp();
-  }, [paper]);
-  return useMemo(() => ({ paper, wakeUp }), [paper, wakeUp]);
+  // The memo already recomputes only when `paper` changes, so the actions are
+  // stable without separate useCallbacks — define them inline.
+  return useMemo(
+    () => ({
+      paper,
+      wakeUp: () => paper?.wakeUp(),
+      freeze: () => paper?.freeze(),
+      unfreeze: () => paper?.unfreeze(),
+    }),
+    [paper]
+  );
 }

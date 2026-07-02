@@ -60,12 +60,16 @@ describe('element-model', () => {
     });
 
     describe('markup', () => {
-      it('should have markup with a portal group', () => {
+      it('should have markup with a portal group focusable by default', () => {
         const element = new ElementModel();
         expect(element.markup).toEqual([
           {
             tagName: 'g',
             selector: PORTAL_SELECTOR,
+            // tabindex makes elements programmatically focusable (links carry no
+            // portal group, so they stay non-focusable); -1 keeps them out of the
+            // sequential Tab order.
+            attributes: { tabindex: -1 },
           },
         ]);
       });
