@@ -258,6 +258,10 @@ export namespace Graph {
     interface ConnectionOptions extends Cell.EmbeddableOptions {
         inbound?: boolean;
         outbound?: boolean;
+        /** Restrict to links attached to the element at this port. */
+        port?: string;
+        /** Restrict to links attached to the element at this magnet (selector). */
+        magnet?: string;
     }
 
     interface ExploreOptions extends ConnectionOptions {
