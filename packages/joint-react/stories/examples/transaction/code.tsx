@@ -156,7 +156,7 @@ function Controls() {
           }
           throw new Error('layout rejected');
         },
-        { rollback: withRollback }
+        { rollbackOnError: withRollback }
       );
     } catch {
       setTone('fail');
@@ -179,7 +179,7 @@ function Controls() {
           }));
         }
       },
-      { rollback: false }
+      { rollbackOnError: false }
     );
     setTone('idle');
     setMessage('Back to the neat row.');

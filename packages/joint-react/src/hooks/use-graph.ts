@@ -143,8 +143,10 @@ export interface GraphApi<
   /**
    * Run a callback as one atomic transaction: every edit inside collapses into
    * a single undo entry and (for sync callbacks) a single re-render. Pass
-   * `{ rollback: true }` to restore the graph on error (off by default —
-   * partial edits stay). See {@link Transaction}.
+   * `{ rollbackOnError: true }` to restore the graph on error (off by default —
+   * partial edits stay; enabling it snapshots the full cells array up-front,
+   * so leave off for large graphs when the callback is trusted). See
+   * {@link Transaction}.
    */
   readonly transaction: Transaction;
 }
