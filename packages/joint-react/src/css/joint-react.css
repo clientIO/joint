@@ -16,9 +16,15 @@
 /* Applied to a cell view's root while its DOM is being measured by
      useMeasureElement. Removed on the view's first updateView so the element
      only becomes visible after its transform is applied — avoids a jump
-     when measurement is paired with a position change. */
+     when measurement is paired with a position change.
+     Hide via opacity, NOT `visibility: hidden` / `display: none`: those make the
+     content unfocusable, so a synchronous `.focus()` on a just-measured element
+     (e.g. focusing a freshly added node) would no-op until the class is removed a
+     frame later. `opacity: 0` hides the flash while keeping the element focusable;
+     `pointer-events: none` preserves the non-interactivity during the measure. */
 .jj-is-measuring {
-    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .jj-box {

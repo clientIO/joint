@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-object-as-prop, react-perf/jsx-no-new-function-as-prop */
 import { render, waitFor } from '@testing-library/react';
 import { HTMLHost } from '../html-host';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
@@ -95,6 +95,45 @@ describe('HTMLHost', () => {
       const div = container.querySelector('foreignObject div') as HTMLDivElement | null;
       expect(div?.style.color).toBe('blue');
       expect(div?.style.position).toBe('static');
+    });
+  });
+
+  it('forwards a ref onto the inner div (measured mode)', async () => {
+    let captured: HTMLDivElement | null = null;
+    const setRef = (node: HTMLDivElement | null) => {
+      captured = node;
+    };
+    const { container } = render(<HTMLHost ref={setRef}>ref-measured</HTMLHost>, {
+      wrapper: paperRenderElementWrapper({
+        graphProviderProps: { initialCells: SIZED_CELLS },
+      }),
+    });
+    await waitFor(() => {
+      const div = container.querySelector('foreignObject div') as HTMLDivElement | null;
+      expect(captured).toBe(div);
+      expect(captured).toBeInstanceOf(HTMLDivElement);
+      expect(div?.textContent).toBe('ref-measured');
+    });
+  });
+
+  it('forwards a ref onto the inner div when useModelGeometry is true', async () => {
+    let captured: HTMLDivElement | null = null;
+    const setRef = (node: HTMLDivElement | null) => {
+      captured = node;
+    };
+    const { container } = render(
+      <HTMLHost useModelGeometry ref={setRef}>
+        ref-static
+      </HTMLHost>,
+      {
+        wrapper: paperRenderElementWrapper({
+          graphProviderProps: { initialCells: SIZED_CELLS },
+        }),
+      }
+    );
+    await waitFor(() => {
+      const div = container.querySelector('foreignObject div') as HTMLDivElement | null;
+      expect(captured).toBe(div);
     });
   });
 });

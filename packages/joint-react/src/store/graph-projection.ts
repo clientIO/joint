@@ -68,9 +68,7 @@ export function graphProjection<
   const graphChangesController = graphChanges({
     graph,
     onElementsSizeChange,
-    onChanges: ({ changes, isInsideBatch }) => {
-      let hasChange = false;
-
+    onChanges: ({ changes, isInsideBatch, deferCommit }) => {
       for (const [id, change] of changes) {
         const { data, type } = change;
         switch (type) {
@@ -82,7 +80,6 @@ export function graphProjection<
               if (isAdd) added!.set(id, record);
               else changed!.set(id, record);
             }
-            hasChange = true;
             // Connected-links sweep is only needed on `change` (an element
             // moved or resized — its links' routes need re-snapshotting).
             // On `add`, the link gets its own change-set entry from JointJS
@@ -98,7 +95,6 @@ export function graphProjection<
             if (!data) continue;
             cells.delete(id);
             if (trackChanges) removed!.add(id);
-            hasChange = true;
             if (data.isElement()) {
               // Connected links are also removed by JointJS — mirror that.
               for (const link of graph.getConnectedLinks(data)) {
@@ -112,7 +108,10 @@ export function graphProjection<
         }
       }
 
-      if (hasChange) cells.commitChanges();
+      // Inside a batch, defer the notification; the container keeps accumulating
+      // and flushes once when the batch closes. `commitChanges` self-guards when
+      // there is nothing pending.
+      if (!deferCommit) cells.commitChanges();
 
       const hasTrackedChanges =
         trackChanges &&

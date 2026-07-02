@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
+import { useGraphTransaction, type Transaction } from './use-graph-transaction';
 import {
   useSetCell,
   useSetCellData,
@@ -81,8 +82,7 @@ export interface GraphApi<
    * typed records flow through, otherwise it falls back to
    * `Record<string, unknown>`. A cell id can't be narrowed to element-vs-link
    * at the type level, so when both are typed the updater sees their union.
-   * Narrow inside it. For a single fixed `data` shape, use the standalone
-   * `useSetCellData<MyData>()` hook.
+   * Narrow inside it, or fix the `data` shape via `useGraph<ElementRecord<MyData>>()`.
    */
   readonly setCellData: SetCellData<HandleCellData<Element, Link>>;
   /**
@@ -130,6 +130,12 @@ export interface GraphApi<
    * all React subscriptions resync automatically.
    */
   readonly importFromJSON: (json: GraphJSON) => void;
+  /**
+   * Run a callback as one atomic transaction: every edit inside collapses into
+   * a single undo entry and (for sync callbacks) a single re-render, and the
+   * graph is restored on error unless `rollback: false`. See {@link Transaction}.
+   */
+  readonly transaction: Transaction;
 }
 
 /**
@@ -206,6 +212,7 @@ export function useGraph<
   const removeCells = useRemoveCells();
   const resetCells = useResetCells<Element, Link>();
   const updateCells = useUpdateCells<Element, Link>();
+  const transaction = useGraphTransaction();
 
   const exportToJSON = useCallback<GraphApi<Element, Link>['exportToJSON']>(
     (options) => {
@@ -248,6 +255,7 @@ export function useGraph<
       isLink: store.isLink,
       exportToJSON,
       importFromJSON,
+      transaction,
     }),
     [
       graph,
@@ -260,6 +268,7 @@ export function useGraph<
       updateCells,
       exportToJSON,
       importFromJSON,
+      transaction,
     ]
   );
 }

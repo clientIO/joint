@@ -1,5 +1,14 @@
-import { useMemo, useRef, type CSSProperties, type HTMLAttributes, type ReactNode, type RefObject } from 'react';
+import {
+  forwardRef,
+  useMemo,
+  type CSSProperties,
+  type ForwardedRef,
+  type HTMLAttributes,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { useMeasureElement } from '../hooks/use-measure-element';
+import { useCombinedRef } from '../hooks/use-combined-ref';
 import { useCell } from '../hooks/use-cell';
 import { selectElementSize } from '../selectors';
 
@@ -22,6 +31,11 @@ interface HTMLFrameProps extends Omit<HTMLHostProps, 'useModelGeometry'> {
   readonly nodeRef?: RefObject<HTMLDivElement | null>;
   readonly width?: number;
   readonly height?: number;
+}
+
+/** Internal frame props: the inner `<div>` attributes plus the host's forwarded ref. */
+interface FrameVariantProps extends HTMLAttributes<HTMLDivElement> {
+  readonly hostRef?: ForwardedRef<HTMLDivElement>;
 }
 
 /**
@@ -49,10 +63,11 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
  * inputs, your own components) instead of SVG shapes, with no default theme.
  *
  * All props are spread onto the inner `<div>` (`children`, `style`,
- * `className`, event handlers, `data-*`, etc.). By default the host measures
- * its content via {@link useMeasureElement} and syncs that size back to the
- * graph element; set `useModelGeometry` to skip measurement and size the host
- * from the element's model geometry instead.
+ * `className`, event handlers, `data-*`, etc.), and a forwarded `ref` lands on
+ * that same inner `<div>` — so a parent can focus or measure the host directly.
+ * By default the host measures its content via {@link useMeasureElement} and
+ * syncs that size back to the graph element; set `useModelGeometry` to skip
+ * measurement and size the host from the element's model geometry instead.
  *
  * Applies no default styling. For a ready-themed box driven by `--jj-box-*` CSS
  * variables, use {@link HTMLBox} instead.
@@ -67,25 +82,38 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
  * ```
  * @group Components
  */
-export function HTMLHost(props: Readonly<HTMLHostProps> = {}): ReactNode {
+function HTMLHostComponent(
+  props: Readonly<HTMLHostProps>,
+  ref: ForwardedRef<HTMLDivElement>
+): ReactNode {
   const { useModelGeometry = false, ...rest } = props;
 
-  return useModelGeometry ? <StaticHTMLFrame {...rest} /> : <MeasuredHTMLFrame {...rest} />;
+  return useModelGeometry ? (
+    <StaticHTMLFrame hostRef={ref} {...rest} />
+  ) : (
+    <MeasuredHTMLFrame hostRef={ref} {...rest} />
+  );
 }
+
+export const HTMLHost = forwardRef(HTMLHostComponent);
 
 /**
  * Internal component that uses the element's size from the model.
  * Rendered when `useModelGeometry` is set.
  * @param root0
  * @param root0.style
+ * @param root0.hostRef
  */
-function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
+function StaticHTMLFrame({ style, hostRef, ...rest }: Readonly<FrameVariantProps>) {
+  const divRef = useCombinedRef<HTMLDivElement>(hostRef);
   const { height, width } = useCell(selectElementSize);
   const mergedStyle = useMemo<CSSProperties>(
     () => ({ width, height, ...style }),
     [width, height, style]
   );
-  return <HTMLFrame width={width} height={height} style={mergedStyle} {...rest} />;
+  return (
+    <HTMLFrame nodeRef={divRef} width={width} height={height} style={mergedStyle} {...rest} />
+  );
 }
 
 /**
@@ -93,9 +121,10 @@ function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElem
  * Rendered by default when `useModelGeometry` is not set.
  * @param root0
  * @param root0.style
+ * @param root0.hostRef
  */
-function MeasuredHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
-  const divRef = useRef<HTMLDivElement>(null);
+function MeasuredHTMLFrame({ style, hostRef, ...rest }: Readonly<FrameVariantProps>) {
+  const divRef = useCombinedRef<HTMLDivElement>(hostRef);
   const measuredSize = useMeasureElement(divRef);
   const mergedStyle = useMemo<CSSProperties>(
     () => ({ width: 'max-content', height: 'max-content', ...style }),
@@ -107,6 +136,7 @@ function MeasuredHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivEl
       width={measuredSize.width}
       height={measuredSize.height}
       style={mergedStyle}
+      tabIndex={rest.tabIndex ?? 0}
       {...rest}
     />
   );

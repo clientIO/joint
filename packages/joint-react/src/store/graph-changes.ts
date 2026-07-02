@@ -37,6 +37,8 @@ export interface UpdateGraphResult {
 interface OnChangeOptions {
   readonly changes: Map<CellId, IncrementalChange<dia.Cell>>;
   readonly isInsideBatch: boolean;
+  /** Skip the container commit; the open batch flushes it once, on close. */
+  readonly deferCommit: boolean;
 }
 
 interface Options {
@@ -94,10 +96,10 @@ export function graphChanges(options: Options) {
   function onCellEvent(cell: dia.Cell, type: 'change' | 'add' | 'remove', sync = false) {
     changes.set(cell.id, { type, data: cell });
     if (sync) {
-      options.onChanges({ changes, isInsideBatch: false });
+      options.onChanges({ changes, isInsideBatch: false, deferCommit: isInsideBatch() });
       return;
     }
-    onChanges({ changes, isInsideBatch: isInsideBatch() });
+    onChanges({ changes, isInsideBatch: isInsideBatch(), deferCommit: isInsideBatch() });
   }
 
   const controller = new mvc.Listener();
@@ -163,12 +165,16 @@ export function graphChanges(options: Options) {
       // `reset` is a one-shot bulk operation and callers (e.g. GraphStore
       // constructor) expect the cells container to be observable
       // synchronously after `graph.resetCells(...)` returns.
-      options.onChanges({ changes, isInsideBatch: isInsideBatch() });
+      options.onChanges({
+        changes,
+        isInsideBatch: isInsideBatch(),
+        deferCommit: isInsideBatch(),
+      });
     }
   );
 
   controller.listenTo(graph, LAYOUT_UPDATE_EVENT, ({ changes: layoutChanges }) => {
-    onChanges({ changes: layoutChanges, isInsideBatch: true });
+    onChanges({ changes: layoutChanges, isInsideBatch: true, deferCommit: isInsideBatch() });
   });
 
   controller.listenTo(graph, 'change:size', (cell: dia.Cell, newSize: dia.Size) => {
@@ -176,7 +182,9 @@ export function graphChanges(options: Options) {
     onElementsSizeChange(cell.id, newSize);
   });
 
-  // Always-on batch tracking
+  // Always-on batch tracking. Any batch defers container commits until it
+  // closes, so a burst of edits (sync or async) flushes as a single React
+  // update. batchDepth is already 0 here, so this final flush commits.
   controller.listenTo(graph, 'batch:start', () => {
     batchDepth += 1;
   });
@@ -185,7 +193,7 @@ export function graphChanges(options: Options) {
     batchDepth -= 1;
     if (batchDepth > 0) return;
     if (isUpdateFromReact) return;
-    onChanges({ changes, isInsideBatch: false });
+    onChanges({ changes, isInsideBatch: false, deferCommit: isInsideBatch() });
   });
 
   return {

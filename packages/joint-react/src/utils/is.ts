@@ -2,6 +2,10 @@
 import { util, mvc, type dia } from '@joint/core';
 import type { FunctionComponent, JSX } from 'react';
 
+export function isPromise<T = unknown>(value: unknown): value is Promise<T> {
+  return value instanceof Promise || (isRecord(value) && typeof value.then === 'function');
+}
+
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return util.isObject(value);
 }
