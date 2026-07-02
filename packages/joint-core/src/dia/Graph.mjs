@@ -967,6 +967,24 @@ export const Graph = Model.extend({
             }, this);
         }
 
+        // Restrict to links attached to `model` at a specific port and/or magnet. Matched on
+        // the direction-appropriate end (source for outbound, target for inbound), so a
+        // self-loop is not matched via its other end when only one direction is requested.
+        if (opt.port !== undefined || opt.magnet !== undefined) {
+            const { port, magnet } = opt;
+            const modelId = model.id;
+            const endMatches = (end) => {
+                if (end.id !== modelId) return false;
+                if (port !== undefined && end.port !== port) return false;
+                if (magnet !== undefined && end.magnet !== magnet) return false;
+                return true;
+            };
+            links = links.filter((link) =>
+                (outbound && endMatches(link.source())) ||
+                (inbound && endMatches(link.target()))
+            );
+        }
+
         return links;
     },
 
