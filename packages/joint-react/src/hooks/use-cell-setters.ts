@@ -136,8 +136,8 @@ export function useSetCell<
 type SetCellDataUpdater<Data> = (previousData: Data) => Data;
 
 /**
- * Function exposed by {@link GraphApi}.setCellData and returned by
- * {@link useSetCellData}. Two forms, both keyed by cell id:
+ * Function exposed by {@link GraphApi}.setCellData. Two forms, both keyed by
+ * cell id:
  * - `setCellData(id, data)`, replaces the cell's `data` with `data`.
  * - `setCellData(id, (prev) => next)`, updater form; `prev` is the current
  *   `data`, the return value replaces it.
@@ -154,31 +154,17 @@ export interface SetCellData<Data = Record<string, unknown>> {
 }
 
 /**
- * Returns a function that sets a single cell's `data` field. Two forms:
- * `setCellData(id, data)` replaces wholesale; `setCellData(id, (prev) => next)`
- * uses an updater. A nullish `id`, or an `id` with no matching cell, warns
- * in dev and no-ops.
+ * Internal hook that returns a function to set a single cell's `data` field.
+ * Two forms: `setCellData(id, data)` replaces wholesale;
+ * `setCellData(id, (prev) => next)` uses an updater. A nullish `id`, or an
+ * `id` with no matching cell, warns in dev and no-ops.
  *
  * Writes `data` directly on the `dia.Cell`, so JointJS fires `change:data` and
- * every React subscription resyncs, no full-record merge is involved. Read the
- * value back with {@link useCell}.
+ * every React subscription resyncs, no full-record merge is involved. Consumed
+ * by {@link useGraph} to expose `setCellData` on the {@link GraphApi}.
  * @template Data - cell data shape (defaults to an open `Record<string, unknown>`)
  * @returns memoized setCellData setter
- * @group Hooks
- * @example
- * ```tsx
- * import { useSetCellData } from '@joint/react';
- *
- * function DoneToggle({ id }: { id: string }) {
- *   const setCellData = useSetCellData<{ done: boolean }>();
- *   // Updater form: flip the `done` flag on the cell's data.
- *   return (
- *     <button onClick={() => setCellData(id, (prev) => ({ ...prev, done: !prev.done }))}>
- *       Toggle
- *     </button>
- *   );
- * }
- * ```
+ * @internal
  */
 export function useSetCellData<Data = Record<string, unknown>>(): SetCellData<Data> {
   const store = useGraphStore();

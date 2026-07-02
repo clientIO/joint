@@ -89,12 +89,6 @@ export { useGraph } from './hooks/use-graph';
 export type { GraphApi, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
 
 /**
- * useSetCellData()
- * @group Hooks
- */
-export { useSetCellData } from './hooks/use-cell-setters';
-
-/**
  * usePaper()
  * @group Hooks
  */
