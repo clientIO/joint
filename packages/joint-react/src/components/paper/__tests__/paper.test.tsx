@@ -68,6 +68,43 @@ describe('Paper', () => {
     });
   });
 
+  it('keeps joint classes on paper.el when the className prop changes', async () => {
+    // paper.el IS the React-rendered host div: dia.Paper imperatively adds
+    // `joint-paper joint-theme-default` to it after mount. A className prop
+    // change must not clobber those — React replacing the whole class
+    // attribute silently kills every class-based consumer (theme CSS, and any
+    // paper `guard` walking up to `.joint-paper`, which breaks wheel
+    // zoom/pan after e.g. an infinite→sheets mode switch).
+    function App({ mode }: Readonly<{ mode: string }>) {
+      return (
+        <GraphProvider initialCells={CELLS}>
+          <Paper
+            className={mode}
+            style={{ width: 100, height: 100 }}
+            renderElement={renderRectElement}
+          />
+        </GraphProvider>
+      );
+    }
+    const { container, rerender } = render(<App mode="mode-a" />);
+    await waitFor(() => {
+      const element = container.querySelector('.joint-paper');
+      expect(element).toBeTruthy();
+      expect(element!.classList.contains('mode-a')).toBe(true);
+    });
+
+    rerender(<App mode="mode-b" />);
+
+    await waitFor(() => {
+      const element = container.querySelector('.mode-b');
+      expect(element).toBeTruthy();
+      expect(element!.classList.contains('mode-a')).toBe(false);
+      // The imperative joint classes survive the React className update.
+      expect(element!.classList.contains('joint-paper')).toBe(true);
+      expect(element!.classList.contains('joint-theme-default')).toBe(true);
+    });
+  });
+
   it('throws when cellVisibility is set via the options escape hatch', () => {
     // `PaperOptions` excludes `cellVisibility` at the type level; cast around
     // it to simulate a plain-JS caller and assert the runtime guard.

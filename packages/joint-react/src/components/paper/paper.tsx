@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { PaperStoreContext } from '../../context';
 import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
@@ -35,6 +35,19 @@ function PaperBase(
   const portaledChildren =
     isReady && children && paper?.el ? createPortal(children, paper.el) : null;
 
+  // The host div IS `paper.el`: dia.Paper adds its own classes (`joint-paper`,
+  // theme) to it imperatively after mount, so `className` must not go through
+  // the JSX attribute — React would rewrite the whole class attribute and wipe
+  // the joint classes. Add the prop's tokens via classList instead; the effect
+  // cleanup removes them again, so a changed prop swaps only its own tokens.
+  useLayoutEffect(() => {
+    const element = paperHTMLElementRef.current;
+    if (!element || !className) return;
+    const tokens = className.split(/\s+/).filter(Boolean);
+    element.classList.add(...tokens);
+    return () => element.classList.remove(...tokens);
+  }, [className]);
+
   // When paper is externally managed (e.g. by PortalStencil), skip the host div —
   // the paper's DOM is already mounted elsewhere. Only render portal content.
   if (isExternalPaper) {
@@ -48,7 +61,8 @@ function PaperBase(
 
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
-      <div className={className} ref={paperHTMLElementRef} style={style}>
+      {/* className intentionally NOT passed — see the classList effect above. */}
+      <div ref={paperHTMLElementRef} style={style}>
         {isReady && content}
       </div>
       {portaledChildren}
