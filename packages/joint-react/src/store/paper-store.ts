@@ -10,6 +10,7 @@ import type { PaperStoreState } from './graph-store';
 import { simpleScheduler } from '../utils/scheduler';
 import { toSVGMatrix } from '../utils/transform';
 import type { PaperTransform } from '../components/paper/paper.types';
+import { wheelGuard } from '../utils/wheel-guard';
 
 /**
  * Options for adding a new paper instance to the graph store.
@@ -169,6 +170,17 @@ export class PaperStore {
           graphStore.setPaperViews(this.paperId, changes);
         },
       });
+
+      // Compose `wheelGuard` over the caller's `guard` so a wheel over a
+      // scrollable region (`<textarea>` or `data-joint-scrollable`) short-
+      // circuits `paper:pan` / `paper:pinch` and lets the region scroll
+      // natively. Caller's guard runs first via OR-composition; ours only
+      // fires when theirs would have let the wheel through. Adopted papers
+      // skip this — the external owner manages its own guard.
+      const previousGuard = paper.options.guard;
+      paper.options.guard = previousGuard
+        ? (evt, view) => previousGuard.call(paper, evt, view) || wheelGuard(evt)
+        : (evt) => wheelGuard(evt);
 
       this.paper = paper;
     }
