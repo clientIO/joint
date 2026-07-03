@@ -128,8 +128,9 @@ function getGridPatterns(): Record<string, dia.Paper.PatternOptions[]> {
 
 export const Paper = dia.Paper.extend(
   {
-    className: 'jj-paper joint-paper',
+    className: 'jj-paper',
     classNamePrefix: '',
+
     documentEvents: POINTER_DOCUMENT_EVENTS,
 
     /**

@@ -382,7 +382,6 @@ describe('presets / paper module / Paper', () => {
     try {
       expect(paper).toBeInstanceOf(dia.Paper);
       expect(paper.el.classList.contains('jj-paper')).toBe(true);
-      expect(paper.el.classList.contains('joint-paper')).toBe(true);
     } finally {
       paper.remove();
       container.remove();
