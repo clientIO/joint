@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - master
-      - dev
     paths:
       - 'packages/joint-react/**'           # Only trigger if files in this folder change
       - '.github/workflows/**'              # (optional) include changes to the workflow itself
