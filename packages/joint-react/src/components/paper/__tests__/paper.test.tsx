@@ -72,9 +72,9 @@ describe('Paper', () => {
     // paper.el IS the React-rendered host div: dia.Paper imperatively adds
     // `jj-paper` to it after mount. A className prop change must not clobber
     // it — React replacing the whole class attribute silently kills every
-    // class-based consumer (theme CSS, and any paper `guard` walking up to
-    // `.jj-paper`, which breaks wheel zoom/pan after e.g. an
-    // infinite→sheets mode switch).
+    // class-based consumer (paper CSS keyed off `.jj-paper`, and any
+    // downstream `.jj-paper .foo` selectors) after e.g. an infinite→sheets
+    // mode switch.
     function App({ mode }: Readonly<{ mode: string }>) {
       return (
         <GraphProvider initialCells={CELLS}>
