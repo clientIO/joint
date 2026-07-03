@@ -405,7 +405,8 @@ describe('presets / theme suppression', () => {
     });
 
     try {
-      for (const className of Array.from(paper.el.classList)) {
+      const classNames = [...paper.el.classList];
+      for (const className of classNames) {
         expect(className.startsWith('joint-theme-')).toBe(false);
       }
     } finally {
