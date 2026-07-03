@@ -1,217 +1,122 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { render, screen, waitFor } from '@testing-library/react';
-import { GraphProvider } from '../../graph-provider/graph-provider';
-import { createElements, type InferElement } from '../../../utils/create';
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { useEffect, useRef } from 'react';
+import { render, waitFor } from '@testing-library/react';
+import type { dia } from '@joint/core';
 import { Paper } from '../paper';
-import { MeasuredNode } from '../../measured-node/measured-node';
-import { runStorybookSnapshot } from '../../../utils/run-storybook-snapshot';
-import * as stories from '../paper.stories';
-import { usePaper } from '../../../hooks';
-import { useEffect } from 'react';
+import { GraphProvider } from '../../graph/graph-provider';
+import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
+import type { CellRecord } from '../../../types/cell.types';
 
-const initialElements = createElements([
-  { id: '1', label: 'Node 1' },
-  { id: '2', label: 'Node 2' },
-]);
+const CELLS: readonly CellRecord[] = [
+  {
+    id: '1',
+    type: ELEMENT_MODEL_TYPE,
+    size: { width: 50, height: 50 },
+  } as CellRecord,
+];
 
-type Element = InferElement<typeof initialElements>;
-const PAPER_WIDTH = 200;
+const renderRectElement = () => <rect />;
 
-// we need to mock `new ResizeObserver`, to return the size width 50 and height 50 for test purposes
-// Mock ResizeObserver to return a size with width 50 and height 50
-jest.mock('../../../utils/create-element-size-observer', () => ({
-  createElementSizeObserver: jest.fn((element, onResize) => {
-    // Simulate a resize event with specific width and height
-    onResize({ width: 50, height: 50 });
-    // Return a cleanup function that just calls `disconnect` (this is just a placeholder)
-    // eslint-disable-next-line unicorn/consistent-function-scoping
-    return () => {};
-  }),
-}));
-
-// Mock `useAreElementMeasured` to simulate elements being measured
-jest.mock('../../../hooks/use-are-elements-measured', () => ({
-  useAreElementMeasured: jest.fn(() => true),
-}));
-
-runStorybookSnapshot({
-  Component: Paper,
-  name: 'Paper',
-  stories,
-});
-
-describe('Paper Component', () => {
-  it('renders elements correctly with correct measured node and onMeasured event', async () => {
-    const onMeasuredMock = jest.fn();
-    let size = { width: 0, height: 0 };
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element>
-          width={PAPER_WIDTH}
-          height={150}
-          onElementsSizeReady={onMeasuredMock}
-          renderElement={({ label, width, height }) => {
-            size = { width, height };
-            return (
-              <foreignObject width={width} height={height}>
-                <MeasuredNode>
-                  <div className="node">{label}</div>
-                </MeasuredNode>
-              </foreignObject>
-            );
-          }}
-        />
+describe('Paper', () => {
+  it('falls back to style.width / style.height when width / height props are omitted', async () => {
+    const { container } = render(
+      <GraphProvider initialCells={CELLS}>
+        <Paper style={{ width: 200, height: 150 }} renderElement={renderRectElement} />
       </GraphProvider>
     );
+    // Paper host div should exist with applied style.
     await waitFor(() => {
-      expect(screen.getByText('Node 1')).toBeInTheDocument();
-      expect(screen.getByText('Node 2')).toBeInTheDocument();
-      expect(onMeasuredMock).toHaveBeenCalledTimes(1);
-      expect(size).toEqual({ width: 50, height: 50 });
+      const host = container.querySelector('div') as HTMLDivElement | null;
+      expect(host).toBeTruthy();
+      // svg child rendered → paper successfully created with resolved dims
+      expect(container.querySelector('svg')).toBeTruthy();
     });
   });
 
-  it('renders elements correctly with useHTMLOverlay enabled', async () => {
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element>
-          useHTMLOverlay
-          renderElement={({ label }) => <div className="html-node">{label}</div>}
-        />
+  it('renders paper without explicit width/height (style undefined branch)', async () => {
+    const { container } = render(
+      <GraphProvider initialCells={CELLS}>
+        <Paper renderElement={renderRectElement} />
       </GraphProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText('Node 1')).toBeInTheDocument();
-      expect(screen.getByText('Node 2')).toBeInTheDocument();
-      expect(screen.getByText('Node 1').closest('.html-node')).toBeTruthy();
+      expect(container.querySelector('svg')).toBeTruthy();
     });
   });
 
-  it('calls onElementsSizeChange when element sizes change', async () => {
-    const onElementsSizeChangeMock = jest.fn();
-    const updatedElements = createElements([
-      { id: '1', label: 'Node 1', width: 100, height: 50 },
-      { id: '2', label: 'Node 2', width: 150, height: 75 },
-    ]);
-
-    const { rerender } = render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element>
-          onElementsSizeChange={onElementsSizeChangeMock}
-          renderElement={({ label }) => <div className="node">{label}</div>}
-        />
-      </GraphProvider>
-    );
-
-    // Simulate element size change by rerendering with updated elements
-    rerender(
-      <GraphProvider initialElements={updatedElements}>
-        <Paper<Element>
-          onElementsSizeChange={onElementsSizeChangeMock}
-          renderElement={({ label }) => <div className="node">{label}</div>}
-        />
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      expect(onElementsSizeChangeMock).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('overwrites default paper element with overwriteDefaultPaperElement', () => {
-    const customElement = document.createElement('div');
-    customElement.className = 'custom-paper-element';
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element> overwriteDefaultPaperElement={() => customElement} />
-      </GraphProvider>
-    );
-    expect(document.querySelector('.custom-paper-element')).toBeInTheDocument();
-  });
-  it('should fire custom event on the paper', async () => {
-    const handleCustomEvent = jest.fn();
-
-    // eslint-disable-next-line unicorn/consistent-function-scoping
-    function FireEvent() {
-      const paper = usePaper();
+  it('forwards the paper instance through ref via useImperativeHandle', async () => {
+    const refHolder: { current: dia.Paper | null } = { current: null };
+    function App() {
+      const ref = useRef<dia.Paper | null>(null);
+      // Push the ref value into a sentinel state so waitFor can poll a re-render.
       useEffect(() => {
-        paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
-      }, [paper]);
-      return null;
+        if (ref.current && !refHolder.current) {
+          refHolder.current = ref.current;
+        }
+      });
+      return (
+        <GraphProvider initialCells={CELLS}>
+          <Paper style={{ width: 100, height: 100 }} ref={ref} renderElement={renderRectElement} />
+        </GraphProvider>
+      );
     }
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element> onCustomEvent={handleCustomEvent}>
-          <FireEvent />
-        </Paper>
-      </GraphProvider>
-    );
-
+    const { rerender } = render(<App />);
+    // Trigger a re-render after the paper is ready so the effect captures it.
     await waitFor(() => {
-      expect(handleCustomEvent).toHaveBeenCalledTimes(1);
+      rerender(<App />);
+      expect(refHolder.current).not.toBeNull();
     });
   });
 
-  it('applies default clickThreshold and custom clickThreshold', () => {
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element> />
-      </GraphProvider>
-    );
-    const paperElement = document.querySelector('.joint-paper');
-    expect(paperElement).toBeInTheDocument();
-
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element> clickThreshold={20} />
-      </GraphProvider>
-    );
-    // Ensure no errors occur when custom clickThreshold is applied
-    expect(paperElement).toBeInTheDocument();
-  });
-
-  it('applies scale to the paper', () => {
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element> scale={2} />
-      </GraphProvider>
-    );
-    const layersGroup = document.querySelector('.joint-layers');
-    expect(layersGroup).toHaveAttribute('transform', 'matrix(2,0,0,2,0,0)');
-  });
-
-  it('uses default elementSelector and custom elementSelector', async () => {
-    const customSelector = jest.fn((item) => ({ ...item, custom: true }));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function RenderElement({ custom }: any) {
-      return <rect id={custom ? 'isCustom' : 'nope'} width={50} height={50} fill="blue" />;
+  it('keeps joint classes on paper.el when the className prop changes', async () => {
+    // paper.el IS the React-rendered host div: `mvc.View` adds `jj-paper`
+    // to it imperatively after mount. A className prop change must not
+    // clobber it — React replaces the whole `class` attribute, so the
+    // imperatively-added class has to be re-applied by the Paper wrapper.
+    function App({ mode }: Readonly<{ mode: string }>) {
+      return (
+        <GraphProvider initialCells={CELLS}>
+          <Paper
+            className={mode}
+            style={{ width: 100, height: 100 }}
+            renderElement={renderRectElement}
+          />
+        </GraphProvider>
+      );
     }
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element> elementSelector={customSelector} renderElement={RenderElement} />
-      </GraphProvider>
-    );
+    const { container, rerender } = render(<App mode="mode-a" />);
+    await waitFor(() => {
+      const element = container.querySelector('.jj-paper');
+      expect(element).toBeTruthy();
+      expect(element!.classList.contains('mode-a')).toBe(true);
+    });
 
-    // Ensure the customSelector is called for each element
-    expect(customSelector).toHaveBeenCalledTimes(initialElements.length);
+    rerender(<App mode="mode-b" />);
 
     await waitFor(() => {
-      // Validate that the elements are rendered correctly
-      const element = document.querySelector('#isCustom');
-      expect(element).toBeInTheDocument();
-      expect(element).toHaveAttribute('width', '50');
+      const element = container.querySelector('.mode-b');
+      expect(element).toBeTruthy();
+      expect(element!.classList.contains('mode-a')).toBe(false);
+      // The imperative joint class survives the React className update.
+      expect(element!.classList.contains('jj-paper')).toBe(true);
     });
   });
 
-  it('calls onElementsSizeReady when elements are measured', async () => {
-    const onElementsSizeReadyMock = jest.fn();
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element> onElementsSizeReady={onElementsSizeReadyMock} />
-      </GraphProvider>
-    );
-    await waitFor(() => {
-      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
-    });
+  it('throws when cellVisibility is set via the options escape hatch', () => {
+    // `PaperOptions` excludes `cellVisibility` at the type level; cast around
+    // it to simulate a plain-JS caller and assert the runtime guard.
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() =>
+      render(
+        <GraphProvider initialCells={CELLS}>
+          <Paper
+            style={{ width: 100, height: 100 }}
+            renderElement={renderRectElement}
+            options={{ cellVisibility: () => true } as never}
+          />
+        </GraphProvider>
+      )
+    ).toThrow(/cellVisibility.*escape hatch/);
+    spy.mockRestore();
   });
 });

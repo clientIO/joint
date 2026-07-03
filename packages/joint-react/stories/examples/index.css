@@ -1,0 +1,93 @@
+.node {
+  background-color: #ed2637;
+  border-radius: 8px;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  font-family: Ppfraktionsans, sans-serif;
+  cursor: move;
+  color: #dde6ed;
+  flex-direction: column;
+}
+
+.node:hover {
+  color: #131e29;
+  background-color: #ff9505;
+}
+
+body {
+  font-family: Ppfraktionsans, sans-serif;
+  color: #dde6ed;
+}
+
+.highlighted {
+  stroke: #ed2637;
+  stroke-width: 2px;
+}
+
+.rotatable-node {
+  background-color: #ed2637;
+  border-radius: 8px;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  font-family: Ppfraktionsans, sans-serif;
+  cursor: move;
+  color: #dde6ed;
+  flex-direction: column;
+}
+
+.rotatable-node__handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #ed2637;
+  left: 50%;
+  top: -30px;
+  border-radius: 100%;
+  transform: translate(-50%, -50%);
+  cursor: alias;
+}
+
+.rotatable-node__handle:after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 2px;
+  height: 30px;
+  background: #ed2637;
+  left: 4px;
+  top: 5px;
+}
+
+.header {
+  cursor: grab;
+}
+
+.header:active {
+  cursor: grabbing;
+}
+
+.item {
+  cursor: crosshair;
+}
+
+.item:hover .item__bg {
+  fill: #1a2938;
+}
+
+.item:hover text {
+  fill: #ffffff;
+}
+
+.fade-in {
+  transition: opacity 0.3s ease-in;
+  opacity: 1;
+  @starting-style {
+    opacity: 0;
+  }
+}

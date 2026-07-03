@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["src/index.ts!", "src/internal.ts!", "stories/stories-utils.ts!"],
+  "ignore": ["**/*.css", ".storybook/**", "stories/utils/get-api-documentation-link.tsx"],
+  "ignoreDependencies": [
+    "react-scan",
+    "@babel/preset-env",
+    "@babel/preset-react",
+    "@babel/preset-typescript",
+    "babel-plugin-react-compiler"
+  ],
+  "ignoreExportsUsedInFile": false
+}

@@ -1,14 +1,20 @@
-/* eslint-disable unicorn/prefer-module */
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import mdPlugin from 'vite-plugin-md';
+import tailwindcss from '@tailwindcss/vite';
 import path from 'node:path';
-import tsconfigPaths from 'vite-tsconfig-paths';
+
 export default defineConfig({
-  plugins: [react(), mdPlugin(), tsconfigPaths()],
+  plugins: [react(), mdPlugin(), tailwindcss()],
+  // Vite 8 resolves `tsconfig` path aliases natively — replaces the
+  // `vite-tsconfig-paths` plugin.
+  resolve: {
+    tsconfigPaths: true,
+  },
   assetsInclude: ['**/*.md'],
   build: {
     lib: {
+      // eslint-disable-next-line unicorn/prefer-module
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'JointReact',
       fileName: (format) => `joint-react.${format}.js`,

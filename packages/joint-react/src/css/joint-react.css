@@ -1,0 +1,46 @@
+:root {
+    /* ── Box (HTML elements) ─────────────────────────────────────────────── */
+    --jj-box-color: var(--jj-color-shape-surface);
+    --jj-box-hover-border-color: var(--jj-color-primary);
+    --jj-box-fg-color: var(--jj-color-text);
+    --jj-box-border-color: var(--jj-color-shape-border);
+    --jj-box-border-width: var(--jj-stroke-width);
+    --jj-box-border-radius: var(--jj-radius-lg);
+    --jj-box-padding: 8px 12px;
+    --jj-box-font-size: 14px;
+    --jj-box-font-family: sans-serif;
+}
+
+/* ── Elements ────────────────────────────────────────────────────────── */
+
+/* Applied to a cell view's root while its DOM is being measured by
+     useMeasureElement. Removed on the view's first updateView so the element
+     only becomes visible after its transform is applied — avoids a jump
+     when measurement is paired with a position change.
+     Hide via opacity, NOT `visibility: hidden` / `display: none`: those make the
+     content unfocusable, so a synchronous `.focus()` on a just-measured element
+     (e.g. focusing a freshly added node) would no-op until the class is removed a
+     frame later. `opacity: 0` hides the flash while keeping the element focusable;
+     `pointer-events: none` preserves the non-interactivity during the measure. */
+.jj-is-measuring {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.jj-box {
+    background: var(--jj-box-color);
+    color: var(--jj-box-fg-color);
+    border-width: var(--jj-box-border-width);
+    border-style: solid;
+    border-color: var(--jj-box-border-color);
+    border-radius: var(--jj-box-border-radius);
+    padding: var(--jj-box-padding);
+    font-size: var(--jj-box-font-size);
+    font-family: var(--jj-box-font-family);
+    transition: border-color var(--jj-transition-duration);
+}
+
+.jj-box:hover {
+    border-color: var(--jj-box-hover-border-color);
+    cursor: var(--jj-drag-cursor);
+}

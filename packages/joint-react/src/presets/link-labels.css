@@ -1,0 +1,34 @@
+:root {
+    /* ── Link Labels ─────────────────────────────────────────────────────── */
+    --jj-link-label-bg-color: var(--jj-color-light-200);
+    --jj-link-label-color: var(--jj-color-text);
+    --jj-link-label-font-size: 10px;
+    --jj-link-label-font-family: Arial, sans-serif;
+    --jj-link-label-border-color: var(--jj-color-light-700);
+    --jj-link-label-border-width: var(--jj-stroke-width);
+    --jj-link-label-border-radius: var(--jj-radius-sm);
+}
+
+/* ── Link Labels ───────────────────────────────────────────────────────── */
+
+.jj-link-label {
+    fill: var(--jj-link-label-color);
+    font-size: var(--jj-link-label-font-size);
+    font-family: var(--jj-link-label-font-family);
+}
+
+.jj-link-label-bg {
+    fill: var(--jj-link-label-bg-color);
+    stroke: var(--jj-link-label-border-color);
+    stroke-width: var(--jj-link-label-border-width);
+    transition: stroke var(--jj-transition-duration);
+}
+
+.jj-link-label-bg:hover {
+    stroke: var( --jj-color-light-900);
+}
+
+rect.jj-link-label-bg {
+    rx: var(--jj-link-label-border-radius);
+    ry: var(--jj-link-label-border-radius);
+}

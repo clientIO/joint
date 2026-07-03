@@ -1,59 +1,16 @@
 /* eslint-disable jsdoc/require-jsdoc */
-import { dia, util } from '@joint/core';
-import type { GraphCell } from './cell/get-cell';
-import type { GraphLink } from '../types/link-types';
-import type { GraphElement } from '../types/element-types';
+import { util, mvc, type dia } from '@joint/core';
 import type { FunctionComponent, JSX } from 'react';
 
-export type Setter<Value> = (item: Value) => Value;
-
-export function isSetter(value: unknown): value is Setter<unknown> {
-  // check if value is a function and there is parameter
-  return typeof value === 'function' && value.length === 1;
+export function isPromise<T = unknown>(value: unknown): value is Promise<T> {
+  return value instanceof Promise || (isRecord(value) && typeof value.then === 'function');
 }
 
-export function isDiaId(value: unknown): value is dia.Cell.ID {
-  return util.isString(value) || util.isNumber(value);
-}
-
-export function isDefined<Value>(value: Value | undefined): value is Value {
-  return value !== undefined;
-}
-
-export function isAttribute<Value>(value: unknown): value is keyof Value {
-  return util.isString(value);
-}
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return util.isObject(value);
 }
 
-export function isGraphCell<Element extends GraphElement = GraphElement>(
-  value: unknown
-): value is GraphCell<Element> {
-  return isRecord(value) && 'isElement' in value && 'isLink' in value;
-}
-
-export function isGraphElement(value: unknown): value is GraphElement {
-  return isGraphCell(value) && value.isElement;
-}
-
-export function isGraphLink(value: unknown): value is GraphLink {
-  return isGraphCell(value) && value.isLink;
-}
-
-export function isLinkInstance(value: unknown): value is dia.Link {
-  return value instanceof dia.Link;
-}
-
-export function isCellInstance(value: unknown): value is dia.Cell {
-  return value instanceof dia.Cell;
-}
-
-export function isUnsized(width: number | undefined, height: number | undefined) {
-  return width === undefined || height === undefined;
-}
-
-export function hasChildren(props: Record<string, unknown>) {
+function hasChildren(props: Record<string, unknown>) {
   return 'children' in props;
 }
 export function isString(value: unknown): value is string {
@@ -77,4 +34,38 @@ export function isReactComponentFunction(value: unknown): value is FunctionCompo
 
 export function isWithChildren(value: unknown): value is { children: JSX.Element[] } {
   return isRecord(value) && hasChildren(value);
+}
+
+export function isUpdater<T>(updater: ((previous: T) => T) | T): updater is (previous: T) => T {
+  return typeof updater === 'function' && 'call' in updater;
+}
+
+export function isRef<T>(value: unknown): value is React.RefObject<T> {
+  return isRecord(value) && 'current' in value;
+}
+
+export function isCollection(value: unknown): value is mvc.Collection<dia.Cell> {
+  return value instanceof mvc.Collection;
+}
+
+
+/**
+ * Returns `true` when the element has a defined `size` with numeric `width` and `height`.
+ * When `false`, the element is considered auto-sized (size determined by {@link useMeasureElement}).
+ * @param data - The element data record to check for size
+ * @returns Whether size is defined with numeric width and height
+ */
+export function hasDefinedSize(data: Record<string, unknown>): boolean {
+  const size = data.size as Record<string, unknown> | undefined;
+  return isRecord(size) && isNumber(size.width) && isNumber(size.height);
+}
+
+export function hasProperty<T extends Record<string, unknown>>(
+  object?: T,
+  property?: string
+): object is T {
+  if (!object || !property) {
+    return false;
+  }
+  return property in object;
 }

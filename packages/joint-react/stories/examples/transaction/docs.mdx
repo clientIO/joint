@@ -1,0 +1,66 @@
+import { Meta, Canvas, Markdown } from '@storybook/addon-docs/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+<Meta of={Stories} />
+
+# Transactions
+
+`useGraph().transaction` groups any number of graph edits into one atomic step.
+
+```tsx
+const { transaction, setCell } = useGraph();
+
+transaction(() => {
+  for (const id of ids) setCell(id, (prev) => ({ ...prev, position: layout(id) }));
+});
+```
+
+Three things happen for the whole block, not per edit:
+
+- **One undo entry.** Every write collapses into a single command (grouped via a JointJS batch).
+- **One React update.** Synchronous edits already coalesce; a transaction also coalesces **async** edits split across `await`s into a single commit.
+- **Opt-in single repaint.** Pass `{ deferPaint: true }` to defer paint on every bound paper for the duration so views repaint once, on close. Off by default, so the async demos below stay live and you can watch each step.
+- **Opt-in rollback.** Pass `{ rollbackOnError: true }` to restore the graph to its pre-transaction state when the callback throws or its promise rejects; the error is always re-thrown. Off by default — partial edits stay. Enabling it snapshots the full cells array up-front (an `O(n)` shallow copy) even when the callback succeeds, so leave off for large graphs when the callback is trusted.
+
+## Try it
+
+- **Shuffle · sync** moves all six nodes in one synchronous transaction.
+- **Cascade · async** moves them one by one with an `await` between each, still a single transaction.
+- **Cascade, then fail** runs the async cascade and rejects at the end. With **auto-rollback** on, every node snaps back; turn it off to keep the partial scatter.
+
+<Canvas of={Stories.Default} />
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+## Async transactions
+
+The callback may be `async`. It is awaited before the transaction closes, and the call returns the pending promise, so you can `await` the whole unit:
+
+```tsx
+await tx(async () => {
+  for (const id of ids) {
+    setCell(id, (prev) => ({ ...prev, position: next(id) }));
+    await settle();
+  }
+});
+```
+
+## Rollback
+
+Rollback snapshots the cells before running and restores them on failure, so a rejected transaction leaves the graph exactly as it was:
+
+```tsx
+try {
+  await tx(async () => {
+    applyEdits();
+    if (!isValid()) throw new Error('rejected');
+  });
+} catch {
+  // graph is already back to its pre-transaction state
+}
+```

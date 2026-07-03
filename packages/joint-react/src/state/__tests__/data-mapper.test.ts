@@ -1,0 +1,438 @@
+/* eslint-disable unicorn/prevent-abbreviations */
+
+import { dia, shapes } from '@joint/core';
+import { ELEMENT_MODEL_TYPE, ElementModel } from '../../mvc/element-model';
+import { LinkModel, LINK_MODEL_TYPE } from '../../mvc/link-model';
+import type { ElementRecord, LinkRecord } from '../../types/cell.types';
+import type { ElementPort } from '../../presets/element-ports';
+import {
+  mapElementToAttributes,
+  mapLinkToAttributes,
+  mapAttributesToElement,
+  mapAttributesToLink,
+} from '../data-mapping';
+
+const DEFAULT_CELL_NAMESPACE = { ...shapes, element: ElementModel, link: LinkModel };
+
+describe('dataMapper', () => {
+  let graph: dia.Graph;
+
+  beforeEach(() => {
+    graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+  });
+
+  afterEach(() => {
+    graph.clear();
+  });
+
+  describe('element round-trip', () => {
+    it('should convert ElementInput to JointJS and back', () => {
+      const id = 'el-1';
+      const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
+      };
+
+      const cellJson = mapElementToAttributes(element);
+      expect(cellJson.position).toEqual({ x: 10, y: 20 });
+      expect(cellJson.size).toEqual({ width: 100, height: 50 });
+      expect(cellJson.type).toBe('element');
+
+      graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
+      const cell = graph.getCell(id) as dia.Element;
+      const result = mapAttributesToElement(cell.attributes);
+
+      // Layout fields included via position/size
+      expect(result).toMatchObject({
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
+      });
+      // User data nested in data field
+      expect(result).toHaveProperty('data');
+    });
+
+    it('should store user data in data field and extract on reverse', () => {
+      const id = 'el-1';
+      const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
+        data: { label: 'Hello', color: 'red' },
+        position: { x: 0, y: 0 },
+        size: { width: 50, height: 50 },
+      };
+
+      const cellJson = mapElementToAttributes(element);
+      expect(cellJson.data).toMatchObject({ label: 'Hello', color: 'red' });
+
+      graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
+      const cell = graph.getCell(id) as dia.Element;
+      const result = mapAttributesToElement(cell.attributes);
+
+      expect(result).toHaveProperty('data.label', 'Hello');
+      expect(result).toHaveProperty('data.color', 'red');
+    });
+
+    it('should include all cell.data properties regardless of previousData', () => {
+      const id = 'el-1';
+      const cellJson = {
+        type: 'element',
+        id,
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
+        data: { known: 'value', extra: 'also-included' },
+      } as dia.Cell.JSON;
+      graph.addCell(cellJson);
+      const cell = graph.getCell(id) as dia.Element;
+
+      const result = mapAttributesToElement(cell.attributes);
+      expect(result).toHaveProperty('data.known', 'value');
+      expect(result).toHaveProperty('data.extra', 'also-included');
+    });
+
+    it('should round-trip with ports', () => {
+      const id = 'el-1';
+      const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
+        data: { label: 'Node 1' },
+        position: { x: 100, y: 50 },
+        size: { width: 150, height: 60 },
+        portMap: { p1: { cx: 0, cy: '50%' } },
+      };
+
+      const cellJson = mapElementToAttributes(element);
+      expect(cellJson.position).toEqual({ x: 100, y: 50 });
+      expect(cellJson.data).toMatchObject({ label: 'Node 1' });
+      expect(cellJson.portMap).toEqual({ p1: { cx: 0, cy: '50%' } });
+
+      graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
+      const cell = graph.getCell(id) as dia.Element;
+      const result = mapAttributesToElement(cell.attributes);
+
+      expect(result).toHaveProperty('data.label', 'Node 1');
+      // Ports are available at top level
+      expect(result).toHaveProperty('portMap');
+    });
+  });
+
+  describe('element ports conversion', () => {
+    it('should convert simplified ports to JointJS format', () => {
+      const portMap: Record<string, ElementPort> = {
+        p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
+      };
+      const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+        portMap,
+      };
+
+      const cellJson = mapElementToAttributes(element);
+      expect(cellJson.ports).toBeDefined();
+      expect(cellJson.ports?.groups?.main).toBeDefined();
+      expect(cellJson.ports?.items).toHaveLength(1);
+      expect(cellJson.ports?.items?.[0].id).toBe('p1');
+    });
+
+    it('should convert port with label', () => {
+      const portMap: Record<string, ElementPort> = {
+        p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
+      };
+      const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+        portMap,
+      };
+
+      const cellJson = mapElementToAttributes(element);
+      const [port] = cellJson.ports!.items!;
+      expect(port.label).toBeDefined();
+      expect(port.label!.position!.name).toBe('outside');
+      expect(port.attrs?.label?.text).toBe('Port A');
+    });
+
+    it('should handle rect shape ports', () => {
+      const portMap: Record<string, ElementPort> = {
+        p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
+      };
+      const element: ElementRecord = {
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+        portMap,
+      };
+
+      const cellJson = mapElementToAttributes(element);
+      const portMarkup = cellJson.ports!.items![0].markup as dia.MarkupNodeJSON[];
+      expect(portMarkup[0].tagName).toBe('rect');
+    });
+  });
+
+  describe('link round-trip', () => {
+    it('should convert link data to JointJS and back', () => {
+      const id = 'link-1';
+      const link: LinkRecord = { type: LINK_MODEL_TYPE, source: { id: 'el-1' }, target: { id: 'el-2' } };
+
+      const cellJson = mapLinkToAttributes(link);
+      expect(cellJson.source).toEqual({ id: 'el-1' });
+      expect(cellJson.target).toEqual({ id: 'el-2' });
+      expect(cellJson.type).toBe(LINK_MODEL_TYPE);
+
+      graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
+      const cell = graph.getCell(id) as dia.Link;
+      const result = mapAttributesToLink(cell.attributes);
+
+      expect(result.source).toEqual({ id: 'el-1' });
+      expect(result.target).toEqual({ id: 'el-2' });
+    });
+
+    it('should apply theme defaults', () => {
+      const link: LinkRecord = { type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' }, style: {} };
+
+      const cellJson = mapLinkToAttributes(link);
+      expect(cellJson.attrs?.line?.style?.stroke).toBe('');
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe('');
+    });
+
+    it('should apply custom theme props', () => {
+      const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
+        source: { id: 'a' },
+        target: { id: 'b' },
+        style: {
+          color: 'red',
+          width: 4,
+          dasharray: '5 5',
+        },
+      };
+
+      const cellJson = mapLinkToAttributes(link);
+      expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(4);
+      expect(cellJson.attrs?.line?.style?.strokeDasharray).toBe('5 5');
+    });
+
+    it('should store user data in cell.data', () => {
+      const link: LinkRecord = { type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
+
+      const cellJson = mapLinkToAttributes(link);
+      expect(cellJson.data?.weight).toBe(5);
+      // Presentation values are not in data
+      expect(cellJson.data?.color).toBeUndefined();
+    });
+
+    it('should include all cell.data properties regardless of previousData', () => {
+      const id = 'link-1';
+      const cellJson = {
+        type: 'standard.Link',
+        id,
+        source: { id: 'a' },
+        target: { id: 'b' },
+        data: { known: 'value', extra: 'also-included' },
+      } as dia.Cell.JSON;
+      graph.addCell(cellJson);
+      const cell = graph.getCell(id) as dia.Link;
+
+      // previousData is passed through but the default mapper does not filter by it
+      const result = mapAttributesToLink(cell.attributes);
+      expect(result).toHaveProperty('data.known', 'value');
+      expect(result).toHaveProperty('data.extra', 'also-included');
+    });
+
+    it('should convert labels Record to JointJS labels array', () => {
+      const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
+        source: { id: 'a' },
+        target: { id: 'b' },
+        labelMap: {
+          lbl1: { text: 'Yes', position: 0.3 },
+          lbl2: { text: 'No', position: 0.7, offset: 20 },
+        },
+      };
+
+      const cellJson = mapLinkToAttributes(link);
+      expect(cellJson.labels).toHaveLength(2);
+      expect(cellJson.labels![0]).toMatchObject({ id: 'lbl1', position: { distance: 0.3 } });
+      expect(cellJson.labels![1]).toMatchObject({
+        id: 'lbl2',
+        position: { distance: 0.7, offset: 20 },
+      });
+    });
+
+    it('should round-trip labels with position and offset changes', () => {
+      const id = 'link-1';
+      const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
+        source: { id: 'a' },
+        target: { id: 'b' },
+        labelMap: {
+          lbl1: { text: 'Yes', position: 0.3 },
+        },
+      };
+
+      const cellJson = mapLinkToAttributes(link);
+      graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
+      const cell = graph.getCell(id) as dia.Link;
+
+      // Simulate labelMove updating position and offset
+      const labels = cell.labels();
+      labels[0].position = { distance: 0.6, offset: 15 };
+      cell.labels(labels);
+
+      const result = mapAttributesToLink(cell.attributes);
+      expect(result.labelMap).toBeDefined();
+      expect(result.labelMap!['lbl1']).toMatchObject({ text: 'Yes', position: 0.6, offset: 15 });
+    });
+
+    it('should handle source/target with ports', () => {
+      const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
+        source: { id: 'el-1', port: 'p1' },
+        target: { id: 'el-2', port: 'p2' },
+      };
+
+      const cellJson = mapLinkToAttributes(link);
+      expect(cellJson.source).toEqual({ id: 'el-1', port: 'p1' });
+      expect(cellJson.target).toEqual({ id: 'el-2', port: 'p2' });
+    });
+  });
+
+  describe('named exports', () => {
+    it('should export all four mapper functions', () => {
+      expect(mapElementToAttributes).toBeInstanceOf(Function);
+      expect(mapLinkToAttributes).toBeInstanceOf(Function);
+      expect(mapAttributesToElement).toBeInstanceOf(Function);
+      expect(mapAttributesToLink).toBeInstanceOf(Function);
+    });
+  });
+
+  describe('element attrs handling', () => {
+    it('should not include attrs when undefined (ElementModel default)', () => {
+      const cellJson = mapElementToAttributes({
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+      });
+      expect(cellJson).not.toHaveProperty('attrs');
+    });
+
+    it('should pass attrs through when provided', () => {
+      const cellJson = mapElementToAttributes({
+        type: ELEMENT_MODEL_TYPE,
+        data: undefined,
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+        attrs: { body: { fill: 'red' }, label: { text: 'Hello', fill: 'white' } },
+      });
+      expect(cellJson.attrs).toEqual({
+        body: { fill: 'red' },
+        label: { text: 'Hello', fill: 'white' },
+      });
+    });
+
+    it('should pass custom type through', () => {
+      const cellJson = mapElementToAttributes({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+        type: 'standard.Rectangle',
+        data: undefined,
+      });
+      expect(cellJson.type).toBe('standard.Rectangle');
+    });
+
+    it('should round-trip attrs and type', () => {
+      const cellJson = mapElementToAttributes({
+        position: { x: 10, y: 20 },
+        size: { width: 80, height: 40 },
+        type: 'standard.Rectangle',
+        data: undefined,
+        attrs: { body: { fill: 'blue' }, label: { text: 'Test', fill: 'white' } },
+      });
+
+      graph.addCell({ ...cellJson, id: 'el-1' } as dia.Cell.JSON);
+      const cell = graph.getCell('el-1') as dia.Element;
+      const result = mapAttributesToElement(cell.attributes);
+
+      expect(result.type).toBe('standard.Rectangle');
+      expect(result.attrs).toBeDefined();
+    });
+  });
+
+  describe('built-in shapes (native JointJS)', () => {
+    it('standard.Rectangle should render with correct body size after addCell', () => {
+      const cellJson = mapElementToAttributes({
+        position: { x: 20, y: 20 },
+        size: { width: 100, height: 50 },
+        type: 'standard.Rectangle',
+        data: undefined,
+        attrs: { body: { fill: 'red' }, label: { fill: 'white', text: 'Rectangle' } },
+      });
+
+      graph.addCell({ ...cellJson, id: 'rect-1' } as dia.Cell.JSON);
+      const cell = graph.getCell('rect-1') as dia.Element;
+
+      // Cell should have the correct size
+      expect(cell.size()).toEqual({ width: 100, height: 50 });
+      expect(cell.position()).toEqual({ x: 20, y: 20 });
+
+      // The body attrs from standard.Rectangle defaults should be preserved
+      // (refWidth, refHeight etc.) — user attrs should merge, not replace
+      const bodyAttrs = cell.attr('body');
+      expect(bodyAttrs.fill).toBe('red');
+      // refWidth/refHeight come from standard.Rectangle defaults
+      expect(bodyAttrs.width).toBe('calc(w)');
+      expect(bodyAttrs.height).toBe('calc(h)');
+    });
+
+    it('standard.Rectangle should work via syncCells (not just addCell)', () => {
+      const cellJson = mapElementToAttributes({
+        position: { x: 0, y: 0 },
+        size: { width: 120, height: 60 },
+        type: 'standard.Rectangle',
+        data: undefined,
+        attrs: { body: { fill: 'green' }, label: { fill: 'white', text: 'Synced' } },
+      });
+
+      // syncCells is what GraphProvider actually uses
+      graph.syncCells([{ ...cellJson, id: 'sync-rect' } as dia.Cell.JSON], { remove: true });
+      const cell = graph.getCell('sync-rect') as dia.Element;
+
+      expect(cell).toBeDefined();
+      expect(cell.size()).toEqual({ width: 120, height: 60 });
+
+      const bodyAttrs = cell.attr('body');
+      expect(bodyAttrs.fill).toBe('green');
+      // Model defaults should be preserved
+      expect(bodyAttrs.width).toBe('calc(w)');
+      expect(bodyAttrs.height).toBe('calc(h)');
+    });
+
+    it('standard.Circle should preserve default body attrs', () => {
+      const cellJson = mapElementToAttributes({
+        position: { x: 0, y: 0 },
+        size: { width: 60, height: 60 },
+        type: 'standard.Circle',
+        data: undefined,
+        attrs: {
+          body: { fill: 'blue', stroke: '#333' },
+          label: { fill: 'white', text: 'Circle' },
+        },
+      });
+
+      graph.addCell({ ...cellJson, id: 'circle-1' } as dia.Cell.JSON);
+      const cell = graph.getCell('circle-1') as dia.Element;
+
+      const bodyAttrs = cell.attr('body');
+      expect(bodyAttrs.fill).toBe('blue');
+      expect(bodyAttrs.stroke).toBe('#333');
+      // Default circle attrs should still be present (standard.Circle uses calc(s/2))
+      expect(bodyAttrs.cx).toBe('calc(s/2)');
+      expect(bodyAttrs.cy).toBe('calc(s/2)');
+    });
+  });
+});

@@ -1,0 +1,35 @@
+:root {
+    /* ── Links ───────────────────────────────────────────────────────────── */
+    --jj-link-color: var(--jj-color-link);
+    --jj-link-hover-color: var(--jj-color-primary);
+    --jj-link-width: var(--jj-stroke-width);
+    --jj-link-dash: none;
+    --jj-link-line-cap: butt;
+    --jj-link-connecting-color: var(--jj-color-link);
+    --jj-link-connecting-width: var(--jj-stroke-width);
+    --jj-link-connecting-dash: 8 4;
+}
+
+/* ── Links ─────────────────────────────────────────────────────────────── */
+
+.jj-link-line {
+    stroke: var(--jj-link-color);
+    stroke-width: var(--jj-link-width);
+    stroke-dasharray: var(--jj-link-dash);
+    stroke-linecap: var(--jj-link-line-cap);
+    transition: stroke var(--jj-transition-duration);
+}
+
+.jj-link-wrapper:hover+.jj-link-line {
+    stroke: var(--jj-link-hover-color);
+}
+
+.jj-is-connecting {
+    --jj-link-color: var(--jj-link-connecting-color);
+    --jj-link-width: var(--jj-link-connecting-width);
+    --jj-link-dash: var(--jj-link-connecting-dash);
+}
+
+.jj-is-snapped {
+    --jj-link-color: var(--jj-color-primary);
+}

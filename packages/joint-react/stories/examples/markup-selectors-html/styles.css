@@ -1,0 +1,17 @@
+:root {
+  --jj-color-primary: rgba(59, 130, 246, 1);
+}
+
+.table-row.jj-is-available {
+  background: rgba(59, 130, 246, 0.08);
+  outline: 0.5px dashed rgba(59, 130, 246, 0.5);
+  outline-offset: -1.5px;
+}
+
+.jj-is-available .jj-box {
+  border: 1px solid rgba(59, 130, 246, 1);
+}
+
+.joint-element:not(.jj-is-available) .table-row:hover {
+  background: rgba(128, 128, 128, 0.06);
+}

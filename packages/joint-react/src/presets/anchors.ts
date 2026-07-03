@@ -1,0 +1,105 @@
+import type { dia } from '@joint/core';
+import { anchors } from '@joint/core';
+import { getMarkerLength, MODEL_GEOMETRY_OPTIONS } from './utils';
+
+/**
+ * Anchor that uses `center` with model geometry for the root element and ports,
+ * and plain `center` (DOM-measured) for custom magnets.
+ * @param elementView
+ * @param magnet
+ * @param ref
+ * @param _
+ * @param endType
+ * @param linkView
+ */
+export const centerAnchor: anchors.Anchor = (
+  elementView, magnet, ref, _, endType, linkView
+) => {
+  if (magnet === elementView.el || magnet.getAttribute('port')) {
+    return anchors.center(elementView, magnet, ref, MODEL_GEOMETRY_OPTIONS, endType, linkView);
+  }
+  return anchors.center(elementView, magnet, ref, _, endType, linkView);
+};
+
+/**
+ * Anchor that uses `perpendicular` with model geometry for the root element and ports,
+ * and plain `perpendicular` (DOM-measured) for custom magnets.
+ * @param elementView
+ * @param magnet
+ * @param ref
+ * @param _
+ * @param endType
+ * @param linkView
+ */
+export const perpendicularAnchor: anchors.Anchor = (
+  elementView, magnet, ref, _, endType, linkView
+) => {
+  if (magnet === elementView.el || magnet.getAttribute('port')) {
+    return anchors.perpendicular(elementView, magnet, ref, MODEL_GEOMETRY_OPTIONS, endType, linkView);
+  }
+  return anchors.perpendicular(elementView, magnet, ref, _, endType, linkView);
+};
+
+/**
+ * Chooses which side of an element or port a link attaches to when using the
+ * mid-side anchor. `'auto'` picks the side nearest the other end; `'horizontal'`
+ * and `'vertical'` lock to left/right or top/bottom; the `'prefer-*'` variants
+ * favor one axis but fall back to the other; and the directional pairs
+ * (`'top-bottom'`, `'left-right'`, etc.) pin the source and target to opposite
+ * sides.
+ * @group Types
+ */
+export type LinkMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto' | 'top-bottom' | 'bottom-top' | 'left-right' | 'right-left';
+
+/**
+ * Creates an anchor function that chooses the anchor position based on the magnet type:
+ * - Root element → `midSide` with model geometry and the given `mode`.
+ * - Port magnet → a specific side of the port bbox, with optional padding.
+ * - Other magnets → `midSide` (DOM-based)
+ * @param mode - The `midSide` mode. Default: `'auto'`.
+ * @param sourceOffset - Padding for source end (px). Default: `0`.
+ * @param targetOffset - Padding for target end (px). Default: `0`.
+ * @param markerSelector
+ */
+export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetOffset = 0, markerSelector = 'line'): anchors.Anchor {
+  return (elementView, magnet, ref, _, endType, linkView) => {
+    const userOffset = endType === 'source' ? sourceOffset : targetOffset;
+    const markerLength = getMarkerLength(linkView, endType, markerSelector);
+    const padding = userOffset + markerLength;
+    if (magnet === elementView.el) {
+      // For the root element, use midSide with model geometry and padding
+      const rootArgs = { useModelGeometry: true, rotate: true, mode, padding };
+      return anchors.midSide(elementView, magnet, ref, rootArgs, endType, linkView);
+    }
+    const element = elementView.model as dia.Element;
+    const portId = magnet.getAttribute('port');
+    if (portId && element.hasPort(portId)) {
+      // For ports, calculate the point based on the port bbox and element geometry
+      const portRect = element.getPortRelativeRect(portId);
+      const point = element.position().offset(
+        portRect.x + portRect.width / 2,
+        portRect.y + portRect.height / 2
+      );
+
+      const side = element.getBBox().sideNearestToPoint(point);
+      switch (side) {
+        case 'left': { point.x -= portRect.width / 2 + padding; break; }
+        case 'right': { point.x += portRect.width / 2 + padding; break; }
+        case 'top': { point.y -= portRect.height / 2 + padding; break; }
+        case 'bottom': { point.y += portRect.height / 2 + padding; break; }
+        // No default
+      }
+
+      // Rotate the point according to the element's angle, since port positions are relative to the pre-rotated element
+      const angle = element.angle();
+      if (angle !== 0) {
+        point.rotate(element.getCenter(), -angle);
+      }
+
+      return point;
+    }
+    // For other magnets, use midSide with DOM geometry
+    const magnetArgs = { mode, rotate: true, padding } as anchors.MidSideAnchorArguments;
+    return anchors.midSide(elementView, magnet, ref, magnetArgs, endType, linkView);
+  };
+}

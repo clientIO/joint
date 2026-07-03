@@ -1,0 +1,92 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import '../index.css';
+import { useCallback, useRef } from 'react';
+import type { CellRecord, TransformElementLayout } from '@joint/react';
+import { GraphProvider, Paper, useCellId, useMeasureElement, type RenderElement } from '@joint/react';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+
+type Data = { label: string };
+const initialCells: ReadonlyArray<CellRecord<Data>> = [
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 10 } },
+  {
+    id: '2',
+    type: 'element',
+    data: { label: 'Node 2 with longer text' },
+    position: { x: 250, y: 150 },
+  },
+  {
+    id: 'e1-2',
+    type: 'link',
+    source: { id: '1' },
+    target: { id: '2' },
+    style: { color: PRIMARY },
+  },
+];
+
+function Card({ label }: Readonly<Partial<Data>>) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const gap = 10;
+  const imageWidth = 50;
+  const transformSize: TransformElementLayout = useCallback(
+    ({ x, y, width: measuredWidth, height: measuredHeight }) => {
+      return {
+        width: gap + imageWidth + gap + measuredWidth + gap,
+        height: gap + Math.max(measuredHeight, imageWidth) + gap,
+        x,
+        y,
+      };
+    },
+    []
+  );
+  const { width, height } = useMeasureElement(contentRef, {
+    transform: transformSize,
+  });
+
+  const imageHeight = height - 2 * gap;
+  const iconURL = `https://placehold.co/${imageWidth}x${imageHeight}`;
+  const foWidth = Math.max(width - 2 * gap - imageWidth - gap, 0);
+  const foHeight = Math.max(height - 2 * gap, 0);
+
+  return (
+    <>
+      <rect width={width} height={height} fill="#999" stroke="#333" strokeWidth="2"></rect>
+      {imageHeight > 0 && (
+        <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />
+      )}
+      <foreignObject x={gap + imageWidth + gap} y={gap} width={foWidth} height={foHeight}>
+        <div
+          ref={contentRef}
+          style={{
+            position: 'absolute',
+            color: '#eee',
+            maxWidth: '100px',
+            overflow: 'hidden',
+            overflowWrap: 'break-word',
+          }}
+        >
+          {label}
+        </div>
+      </foreignObject>
+    </>
+  );
+}
+
+function CardRenderer(data: Readonly<Data>) {
+  // Demonstrates calling `useCellId()` inside a component used by `renderElement`
+  // to read the cell id without subscribing to store updates.
+  const id = useCellId();
+  return <Card label={data.label ?? String(id)} />;
+}
+
+function Main() {
+  const renderElement: RenderElement<Data> = useCallback((data) => <CardRenderer {...data} />, []);
+  return <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} renderElement={renderElement} />;
+}
+
+export default function App() {
+  return (
+    <GraphProvider initialCells={initialCells}>
+      <Main />
+    </GraphProvider>
+  );
+}

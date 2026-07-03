@@ -1,0 +1,28 @@
+/*
+ * @joint/react — Base CSS Styles
+ *
+ * Provides CSS custom properties for styling links, labels, and ports.
+ * Import this file to enable CSS-driven theming:
+ *
+ * Styles are defined in the `joint` layer, which you can import into your Tailwind setup
+ * or use without any libraries.
+
+ * Here is the example of a possible import when using with Tailwind:
+ * @import 'tailwindcss';
+ * @import '../src/css/styles.css' layer(components);
+ *
+ */
+
+@layer joint;
+
+/* Root defined css variables for use in JointJS */
+@import './theme.css' layer(joint);
+
+/* Styles for JointJS react core */
+@import './joint-react.css' layer(joint);
+
+/* Preset styles for JointJS components */
+@import '../presets/element-ports.css' layer(joint);
+@import '../presets/link-labels.css' layer(joint);
+@import '../presets/link-view.css' layer(joint);
+@import '../presets/paper.css' layer(joint);

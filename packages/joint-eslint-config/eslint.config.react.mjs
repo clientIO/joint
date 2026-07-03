@@ -14,10 +14,6 @@ import sonarjsPlugin from 'eslint-plugin-sonarjs';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import tsEslint from 'typescript-eslint';
 
-import path from 'node:path';
-
-const tsConfigPath = path.resolve('./', 'tsconfig.json');
-
 /**
  * ESLint config to support all React files with .ts, .tsx extensions
  */
@@ -47,7 +43,9 @@ export const reactTsConfig = defineConfig([
                 ecmaVersion: 'latest',
                 ecmaFeatures: { jsx: true },
                 sourceType: 'module',
-                project: tsConfigPath,
+                // Resolve nearest `tsconfig.json` per file.
+                // - Lets type-aware linting work regardless of current working directory.
+                projectService: true,
             },
         },
         settings: {
@@ -64,7 +62,7 @@ export const reactTsConfig = defineConfig([
         },
         rules: {
             // General JS rules
-            'no-console': 'error',
+            'no-console': ['error', { allow: ['warn', 'error'] }],
             'no-nested-ternary': 'warn',
             'no-shadow': 'error',
             'no-unused-vars': 'off',
@@ -75,6 +73,7 @@ export const reactTsConfig = defineConfig([
 
             // TypeScript rules
             '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+            '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/no-non-null-assertion': 'off',
             '@typescript-eslint/strict-boolean-expressions': 'off',
@@ -157,6 +156,10 @@ export const reactTsConfig = defineConfig([
                         'remarks',
                         'example',
                         'experimental',
+                        'expand',
+                        'inline',
+                        'hidden',
+                        'title',
                     ],
                 },
             ],
@@ -189,7 +192,8 @@ export const reactTsConfig = defineConfig([
                         cb: false,
                         refs: false,
                         utils: false,
-                        util: false
+                        util: false,
+                        utils: false
                     },
                 },
             ],
