@@ -130,18 +130,25 @@ function endMatches(
 }
 
 /**
- * Returns `true` if a duplicate link already exists between the two ends
- * (ignoring the link currently being validated).
+ * Returns `true` if a link already exists between the two ends (ignoring the
+ * link currently being validated). Matches on element id + port/magnet at both
+ * ends.
+ *
+ * When `singlePerPair` is `false`, only a same-direction link counts (source→
+ * target). When `true`, the reverse-direction link (target→source) counts too,
+ * so at most one link may exist between the pair regardless of orientation.
  * @param sourceView
  * @param sourceNode
  * @param targetView
  * @param targetNode
  * @param linkView
+ * @param singlePerPair - also match the reverse-direction link
  */
 function hasDuplicateLink(
   sourceView: dia.CellView, sourceNode: SVGElement | undefined,
   targetView: dia.CellView, targetNode: SVGElement | undefined,
   linkView: dia.LinkView,
+  singlePerPair: boolean,
 ): boolean {
   const sourceId = sourceView.model.id;
   const targetId = targetView.model.id;
@@ -149,15 +156,25 @@ function hasDuplicateLink(
   const targetPort = getEndPort(targetView, targetNode);
   const sourceMagnet = getEndMagnetSelector(sourceNode);
   const targetMagnet = getEndMagnetSelector(targetNode);
+  // `getConnectedLinks` returns links where our source node is either endpoint,
+  // so a reverse-direction link (target→source) is already in this set.
   const links = sourceView.paper!.model.getConnectedLinks(sourceView.model);
   for (const link of links) {
     if (link === linkView.model) continue;
     const ls = link.source();
     const lt = link.target();
-    if (ls.id !== sourceId || lt.id !== targetId) continue;
-    if (!endMatches(ls, sourcePort, sourceMagnet)) continue;
-    if (!endMatches(lt, targetPort, targetMagnet)) continue;
-    return true;
+    const forward =
+      ls.id === sourceId && lt.id === targetId &&
+      endMatches(ls, sourcePort, sourceMagnet) &&
+      endMatches(lt, targetPort, targetMagnet);
+    if (forward) return true;
+    if (singlePerPair) {
+      const reverse =
+        ls.id === targetId && lt.id === sourceId &&
+        endMatches(ls, targetPort, targetMagnet) &&
+        endMatches(lt, sourcePort, sourceMagnet);
+      if (reverse) return true;
+    }
   }
   return false;
 }
@@ -190,8 +207,17 @@ export interface CanConnectOptions {
   readonly allowSelfLoops?: boolean;
   /** Allow links to start or end on another link, not just on elements. @default false */
   readonly allowLinkToLink?: boolean;
-  /** Allow more than one link between the same source+port and target+port. @default false */
-  readonly allowMultiLinks?: boolean;
+  /**
+   * How many links may connect the same source+port and target+port. Matching
+   * is port/magnet aware, so links on different ports never collide.
+   * - `'none'` — no limit; any number of links, in either direction.
+   * - `'one-per-direction'` — one link each way: a second `A→B` is blocked, but
+   *   the reverse `B→A` is allowed.
+   * - `'one-per-pair'` — one link per element pair: `A→B` blocks both another
+   *   `A→B` and the reverse `B→A`.
+   * @default 'one-per-direction'
+   */
+  readonly linkLimit?: 'none' | 'one-per-direction' | 'one-per-pair';
   /**
    * Whether a link may attach to an element's root (its body) instead of a port or magnet.
    * - `true` — always allow root connections.
@@ -206,9 +232,10 @@ export interface CanConnectOptions {
 /**
  * Creates a JointJS-native `validateConnection` function with configurable rules.
  *
- * By default, rejects self-loops, link-to-link connections, and multi-links.
- * An optional `validate` callback receives a structured `{ source, target, paper, graph }`
- * context and runs only after the built-in checks pass.
+ * By default, rejects self-loops, link-to-link connections, and same-direction
+ * duplicate links (`linkLimit: 'one-per-direction'`). An optional `validate`
+ * callback receives a structured `{ source, target, paper, graph }` context and
+ * runs only after the built-in checks pass.
  * @param options - Rules and optional custom validator.
  * @returns A JointJS-compatible `validateConnection` function.
  */
@@ -216,7 +243,7 @@ export function canConnect(options: CanConnectOptions = {}) {
   const {
     allowSelfLoops = false,
     allowLinkToLink = false,
-    allowMultiLinks = false,
+    linkLimit = 'one-per-direction',
     allowRootConnection = 'auto',
     validate,
   } = options;
@@ -231,7 +258,10 @@ export function canConnect(options: CanConnectOptions = {}) {
     if (!allowLinkToLink && (!sourceView.model.isElement() || !targetView.model.isElement())) return false;
     if (isRootBlocked(sourceView, sourceNode, allowRootConnection)) return false;
     if (isRootBlocked(targetView, targetNode, allowRootConnection)) return false;
-    if (!allowMultiLinks && hasDuplicateLink(sourceView, sourceNode, targetView, targetNode, linkView)) {
+    if (
+      linkLimit !== 'none' &&
+      hasDuplicateLink(sourceView, sourceNode, targetView, targetNode, linkView, linkLimit === 'one-per-pair')
+    ) {
       return false;
     }
     if (validate) {

@@ -175,7 +175,7 @@ describe('presets / can-connect / canConnect built-in rules', () => {
     expect(function_(sourceView, undefined, targetView, undefined, 'target', linkView)).toBe(true);
   });
 
-  it('allows multiple links when configured', () => {
+  it('allows multiple links when linkLimit is none', () => {
     const existing = {
       source: () => ({ id: 's' }),
       target: () => ({ id: 't' }),
@@ -183,8 +183,73 @@ describe('presets / can-connect / canConnect built-in rules', () => {
     const sourceView = makeCellView({ id: 's', paperLinks: [existing] });
     const targetView = makeCellView({ id: 't' });
     const linkView = { model: {} } as any;
-    const function_ = canConnect({ allowMultiLinks: true });
+    const function_ = canConnect({ linkLimit: 'none' });
     expect(function_(sourceView, undefined, targetView, undefined, 'target', linkView)).toBe(true);
+  });
+
+  it('one-per-direction (default) allows the reverse-direction link', () => {
+    // Existing link goes t→s; the new link goes s→t (opposite direction).
+    const reverseLink = {
+      source: () => ({ id: 't', port: null }),
+      target: () => ({ id: 's', port: null }),
+    };
+    const sourceView = makeCellView({ id: 's', paperLinks: [reverseLink] });
+    const targetView = makeCellView({ id: 't' });
+    const linkView = { model: {} } as any;
+    const function_ = canConnect();
+    expect(function_(sourceView, undefined, targetView, undefined, 'target', linkView)).toBe(true);
+  });
+
+  it('one-per-pair blocks the reverse-direction link', () => {
+    const reverseLink = {
+      source: () => ({ id: 't', port: null }),
+      target: () => ({ id: 's', port: null }),
+    };
+    const sourceView = makeCellView({ id: 's', paperLinks: [reverseLink] });
+    const targetView = makeCellView({ id: 't' });
+    const linkView = { model: {} } as any;
+    const function_ = canConnect({ linkLimit: 'one-per-pair' });
+    expect(function_(sourceView, undefined, targetView, undefined, 'target', linkView)).toBe(false);
+  });
+
+  it('one-per-pair still blocks the same-direction duplicate', () => {
+    const forwardLink = {
+      source: () => ({ id: 's', port: null }),
+      target: () => ({ id: 't', port: null }),
+    };
+    const sourceView = makeCellView({ id: 's', paperLinks: [forwardLink] });
+    const targetView = makeCellView({ id: 't' });
+    const linkView = { model: {} } as any;
+    const function_ = canConnect({ linkLimit: 'one-per-pair' });
+    expect(function_(sourceView, undefined, targetView, undefined, 'target', linkView)).toBe(false);
+  });
+
+  it('linkLimit none skips both same- and reverse-direction checks', () => {
+    const reverseLink = {
+      source: () => ({ id: 't', port: null }),
+      target: () => ({ id: 's', port: null }),
+    };
+    const sourceView = makeCellView({ id: 's', paperLinks: [reverseLink] });
+    const targetView = makeCellView({ id: 't' });
+    const linkView = { model: {} } as any;
+    const function_ = canConnect({ linkLimit: 'none' });
+    expect(function_(sourceView, undefined, targetView, undefined, 'target', linkView)).toBe(true);
+  });
+
+  it('one-per-pair allows a reverse link on a different port pair', () => {
+    // Existing reverse link uses ports t:p1 → s:p1; the new s→t link uses
+    // different ports (s:p2 → t:p2), so it is not the same connection.
+    const reverseLink = {
+      source: () => ({ id: 't', port: 'p1' }),
+      target: () => ({ id: 's', port: 'p1' }),
+    };
+    const sourceView = makeCellView({ id: 's', paperLinks: [reverseLink] });
+    const targetView = makeCellView({ id: 't' });
+    const linkView = { model: {} } as any;
+    const sourceMagnet = makeMagnet({ port: 'p2' });
+    const targetMagnet = makeMagnet({ port: 'p2' });
+    const function_ = canConnect({ linkLimit: 'one-per-pair' });
+    expect(function_(sourceView, sourceMagnet, targetView, targetMagnet, 'target', linkView)).toBe(true);
   });
 
   it('treats different ids as non-duplicate', () => {
