@@ -130,6 +130,8 @@ export const Paper = dia.Paper.extend(
   {
     className: 'jj-paper',
     classNamePrefix: '',
+    theme: null,
+    defaultTheme: null,
 
     documentEvents: POINTER_DOCUMENT_EVENTS,
 

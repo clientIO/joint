@@ -70,11 +70,11 @@ describe('Paper', () => {
 
   it('keeps joint classes on paper.el when the className prop changes', async () => {
     // paper.el IS the React-rendered host div: dia.Paper imperatively adds
-    // `jj-paper joint-theme-default` to it after mount. A className prop
-    // change must not clobber those — React replacing the whole class
-    // attribute silently kills every class-based consumer (theme CSS, and any
-    // paper `guard` walking up to `.jj-paper`, which breaks wheel
-    // zoom/pan after e.g. an infinite→sheets mode switch).
+    // `jj-paper` to it after mount. A className prop change must not clobber
+    // it — React replacing the whole class attribute silently kills every
+    // class-based consumer (theme CSS, and any paper `guard` walking up to
+    // `.jj-paper`, which breaks wheel zoom/pan after e.g. an
+    // infinite→sheets mode switch).
     function App({ mode }: Readonly<{ mode: string }>) {
       return (
         <GraphProvider initialCells={CELLS}>
@@ -99,9 +99,8 @@ describe('Paper', () => {
       const element = container.querySelector('.mode-b');
       expect(element).toBeTruthy();
       expect(element!.classList.contains('mode-a')).toBe(false);
-      // The imperative joint classes survive the React className update.
+      // The imperative joint class survives the React className update.
       expect(element!.classList.contains('jj-paper')).toBe(true);
-      expect(element!.classList.contains('joint-theme-default')).toBe(true);
     });
   });
 
