@@ -422,7 +422,7 @@ function Main() {
           id: end.id,
         };
       }}
-      validateConnection={{ allowMultiLinks: true }}
+      validateConnection={{ linkLimit: 'none' }}
       snapLinks
       defaultLink={DEFAULT_LINK}
       // Highlighting configuration
