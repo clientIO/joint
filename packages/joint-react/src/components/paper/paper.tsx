@@ -35,7 +35,7 @@ function PaperBase(
   const portaledChildren =
     isReady && children && paper?.el ? createPortal(children, paper.el) : null;
 
-  // The host div IS `paper.el`: dia.Paper adds its own classes (`joint-paper`,
+  // The host div IS `paper.el`: dia.Paper adds its own classes (`jj-paper`,
   // theme) to it imperatively after mount, so `className` must not go through
   // the JSX attribute — React would rewrite the whole class attribute and wipe
   // the joint classes. Add the prop's tokens via classList instead; the effect

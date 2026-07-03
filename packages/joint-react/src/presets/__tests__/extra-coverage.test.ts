@@ -382,7 +382,32 @@ describe('presets / paper module / Paper', () => {
     try {
       expect(paper).toBeInstanceOf(dia.Paper);
       expect(paper.el.classList.contains('jj-paper')).toBe(true);
-      expect(paper.el.classList.contains('joint-paper')).toBe(true);
+    } finally {
+      paper.remove();
+      container.remove();
+    }
+  });
+});
+
+// `theme` + `defaultTheme` cleared on the Paper preset so `mvc.View.initialize`
+// skips `addThemeClassName` and no `joint-theme-*` class lands on `paper.el`.
+describe('presets / theme suppression', () => {
+  it('does not add joint-theme-* class to paper.el', () => {
+    const container = document.createElement('div');
+    document.body.append(container);
+    const graph = new dia.Graph({}, { cellNamespace: shapes });
+    const paper = new Paper({
+      el: container,
+      model: graph,
+      cellViewNamespace: shapes,
+      width: 100,
+      height: 100,
+    });
+
+    try {
+      for (const className of Array.from(paper.el.classList)) {
+        expect(className.startsWith('joint-theme-')).toBe(false);
+      }
     } finally {
       paper.remove();
       container.remove();

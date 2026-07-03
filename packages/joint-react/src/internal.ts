@@ -66,6 +66,7 @@ export type { ElementJSONInit, LinkJSONInit } from './types/cell.types';
 export { assignOptions, pickValues, makeOptions } from './utils/object-utilities';
 export { resolvePaper, resolvePaperId, isPaperTarget } from './utils/resolve-paper-target';
 export { isRecord } from './utils/is';
+export { wheelGuard, SCROLLABLE_ATTRIBUTE } from './utils/wheel-guard';
 
 // Constants
 export { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from './mvc/element-model';

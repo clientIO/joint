@@ -13,6 +13,16 @@ const SNAPPED_CLASS_NAME = 'jj-is-snapped';
  * - `jj-is-snapped`, while the arrowhead is snapped to a valid target
  */
 export class LinkView extends dia.LinkView {
+  // Suppress the `joint-theme-default` class that `mvc.View.initialize` would
+  // otherwise add via `setTheme(this.options.theme || this.defaultTheme)`.
+  // `preinitialize` runs BEFORE `initialize` in Backbone's View constructor,
+  // so the instance defaults are set in time for `setTheme` to read them.
+  // Empty strings are falsy — `addThemeClassName` bails without adding a class.
+  preinitialize() {
+    this.theme = '';
+    this.defaultTheme = '';
+  }
+
   _beforeArrowheadMove(data: unknown) {
     // @ts-expect-error Protected method override
     super._beforeArrowheadMove(data);
