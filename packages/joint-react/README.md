@@ -24,6 +24,8 @@
   💬 <a href="https://github.com/clientIO/joint/discussions">Discussions</a>
 </p>
 
+[![Use Cases](https://github.com/user-attachments/assets/fc6de738-3fad-48f7-99aa-ba8c3729d9b1)](https://github.com/user-attachments/assets/fc6de738-3fad-48f7-99aa-ba8c3729d9b1)
+
 ---
 
 Built on the proven JointJS core, you get a mature diagramming engine and an idiomatic React layer in one. Like JointJS, it's open source.
