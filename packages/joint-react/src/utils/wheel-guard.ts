@@ -1,7 +1,7 @@
 // Paper `guard` composed into every `<Paper>`'s `dia.Paper.options.guard` so a
 // wheel over a scrollable node body scrolls the box instead of firing the
 // paper's own `paper:pan` / `paper:pinch` events. Regions opt in with
-// `data-joint-scrollable`; native `<textarea>` is covered free.
+// `data-jj-scrollable`; native `<textarea>` is covered free.
 // `Ctrl`/`Cmd`+wheel is the paper's pinch-zoom modifier — never guarded.
 interface GuardEvent {
   readonly type: string;
@@ -16,7 +16,7 @@ interface GuardEvent {
  * the element owns the wheel input, so `paper:pan` / `paper:pinch` do not fire.
  * @group Constants
  */
-export const SCROLLABLE_ATTRIBUTE = 'data-joint-scrollable';
+export const SCROLLABLE_ATTRIBUTE = 'data-jj-scrollable';
 
 const SCROLLABLE_SELECTOR = `textarea, [${SCROLLABLE_ATTRIBUTE}]`;
 

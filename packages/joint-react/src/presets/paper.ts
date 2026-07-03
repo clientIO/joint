@@ -181,7 +181,7 @@ export const Paper = dia.Paper.extend(
     /**
      * Compose {@link wheelGuard} onto joint-core's `guard`: a wheel over a
      * scrollable node body (native `<textarea>` or an element marked
-     * `data-joint-scrollable`, both with actual overflow) short-circuits the
+     * `data-jj-scrollable`, both with actual overflow) short-circuits the
      * paper's mousewheel pipeline so the region scrolls natively.
      * `Ctrl`/`Cmd`+wheel is never guarded — pinch-zoom keeps working. The
      * caller's own `options.guard` still runs via the super call.
