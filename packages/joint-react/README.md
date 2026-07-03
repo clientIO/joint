@@ -28,12 +28,13 @@
 
 ---
 
-Built on the proven JointJS core, you get a mature diagramming engine and an idiomatic React layer in one. Like JointJS, it's open source.
+Built on the proven JointJS core, you get a mature diagramming UI library and an idiomatic React layer in one. Like JointJS, it's open source.
 
 ## Why JointJS for React
 
 - **A real data model.** A serializable graph you can query, transform, and persist — the backbone for complex, stateful diagram applications, not just visual nodes.
 - **Full control.** Complete control over how diagrams render and behave — shapes, ports, links, routing, and custom interactions.
+- **Production-grade UX.** The interaction details end users expect come built in: connection snapping, link routing that avoids obstacles, element and link tools, highlighters for hover and selection states. Good UX is designed into every feature, not left for you to assemble.
 - **Performance at scale.** Smooth interaction on large graphs with thousands of nodes.
 - **Idiomatic React.** Real components and hooks that fit naturally into your existing React app and tooling.
 
@@ -79,6 +80,8 @@ export default function Diagram() {
 
 JointJS for React is built for production-scale diagramming — applications where the diagram is a core part of the product and has to handle real complexity: a rich data model, large graphs, domain-specific shapes, and deep control over interactions and rendering.
 
+Production-scale is not only about node count. Most workflow tools top out at tens of nodes, yet their users still expect a polished editing experience: precise connections, clear feedback on hover and selection, links that route cleanly around obstacles. JointJS for React treats that end-user UX as part of the library, so you ship it instead of building it.
+
 It's designed to be the layer you build on as your requirements grow, from the first prototype through to a mature, scaling application.
 
 ## Use cases
@@ -121,7 +124,7 @@ It exposes `search_docs` and `search_demos`, so your agent writes correct JointJ
 
 ## Commercial version
 
-The open-source library covers core diagramming. **JointJS+ for React** is the commercial extension that adds production-ready plugins (stencils, toolbars, advanced layouts, import/export, and more), professional demo apps (including source code), and direct support from the team that builds the library. [Start a free 30-day trial.](https://www.jointjs.com/free-trial)
+The open-source library covers core diagramming. **JointJS+ for React** is the commercial extension that takes the end-user experience further with production-ready plugins — stencils, toolbars, snaplines, keyboard shortcuts, undo/redo, advanced layouts, import/export, and more — plus professional demo apps (including source code) and direct support from the team that builds the library. [Start a free 30-day trial.](https://www.jointjs.com/free-trial)
 
 ## License
 
