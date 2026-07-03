@@ -69,12 +69,10 @@ describe('Paper', () => {
   });
 
   it('keeps joint classes on paper.el when the className prop changes', async () => {
-    // paper.el IS the React-rendered host div: dia.Paper imperatively adds
-    // `jj-paper` to it after mount. A className prop change must not clobber
-    // it — React replacing the whole class attribute silently kills every
-    // class-based consumer (paper CSS keyed off `.jj-paper`, and any
-    // downstream `.jj-paper .foo` selectors) after e.g. an infinite→sheets
-    // mode switch.
+    // paper.el IS the React-rendered host div: `mvc.View` adds `jj-paper`
+    // to it imperatively after mount. A className prop change must not
+    // clobber it — React replaces the whole `class` attribute, so the
+    // imperatively-added class has to be re-applied by the Paper wrapper.
     function App({ mode }: Readonly<{ mode: string }>) {
       return (
         <GraphProvider initialCells={CELLS}>
