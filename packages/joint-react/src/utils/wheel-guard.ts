@@ -20,8 +20,8 @@ export const SCROLLABLE_ATTRIBUTE = 'data-jj-scrollable';
 
 const SCROLLABLE_SELECTOR = `textarea, [${SCROLLABLE_ATTRIBUTE}]`;
 
-function overflows(el: Element): boolean {
-  return el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth;
+function overflows(element: Element): boolean {
+  return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
 }
 
 /**
@@ -39,11 +39,11 @@ export function wheelGuard(event: GuardEvent): boolean {
   if (event.ctrlKey || event.metaKey) return false;
   if (!(event.target instanceof Element)) return false;
   for (
-    let el: Element | null = event.target.closest(SCROLLABLE_SELECTOR);
-    el;
-    el = el.parentElement?.closest(SCROLLABLE_SELECTOR) ?? null
+    let element: Element | null = event.target.closest(SCROLLABLE_SELECTOR);
+    element;
+    element = element.parentElement?.closest(SCROLLABLE_SELECTOR) ?? null
   ) {
-    if (overflows(el)) return true;
+    if (overflows(element)) return true;
   }
   return false;
 }
