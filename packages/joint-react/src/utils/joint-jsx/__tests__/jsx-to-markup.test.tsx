@@ -199,21 +199,6 @@ describe('jsx-to-markup', () => {
     expect(jsx(undefined as never)).toEqual([]);
   });
 
-  it('should skip function type that is not a React component', () => {
-    const markup = jsx(
-      // @ts-expect-error we use internal api here ($$typeof)
-      { type: () => <div />, props: {}, $$typeof: Symbol.for('react.element') }
-    );
-    // The function returns <div />, so the result is markup for a div
-    expect(markup).toEqual([
-      {
-        tagName: 'div',
-        children: [],
-        attributes: {},
-      },
-    ]);
-  });
-
   it('should handle React component function returning a primitive', () => {
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function PrimitiveComponent() {
@@ -305,5 +290,31 @@ describe('jsx-to-markup', () => {
         attributes: {},
       },
     ]);
+  });
+
+  it('should convert className prop to class attribute', () => {
+    const markup = jsx(<div className="my-class" id="x" />);
+    expect(markup).toEqual([
+      {
+        tagName: 'div',
+        children: [],
+        attributes: { class: 'my-class', id: 'x' },
+      },
+    ]);
+  });
+
+  it('returns markups when a valid element has non-record props', () => {
+    // Simulate a valid React element whose props field is not an object.
+    // isValidElement only checks $$typeof, so we can fake one to drive the
+    // `!isRecord(props)` branch inside jsxToMarkupWithArray.
+    const REACT_ELEMENT_TYPE = Symbol.for('react.transitional.element');
+    const fakeElement = {
+      $$typeof: REACT_ELEMENT_TYPE,
+      type: 'div',
+      props: 'not-a-record',
+      key: null,
+      ref: null,
+    } as never;
+    expect(jsx(fakeElement)).toEqual([]);
   });
 });

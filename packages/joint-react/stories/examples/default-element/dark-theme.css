@@ -1,0 +1,20 @@
+.default-element-demo.dark {
+  --jj-paper-color: #1e1e2e;
+  --jj-color-grid: #45475a;
+  --jj-color-primary: #3ff7c7;
+
+  --jj-box-color: #313244;
+  --jj-box-fg-color: #cdd6f4;
+  --jj-box-border-color: #585b70;
+  --jj-box-available-border-color: #25f7ff;
+
+  --jj-link-color: #89b4fa;
+
+  --jj-link-label-color: #cdd6f4;
+  --jj-link-label-bg-color: #313244;
+  --jj-link-label-border-color: #585b70;
+
+  --jj-port-color: #cdd6f4;
+  --jj-port-border-color: #1e1e2e;
+  --jj-port-available-color: #25f7ff;
+}

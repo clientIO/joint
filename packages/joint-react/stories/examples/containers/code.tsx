@@ -1,0 +1,133 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import type { CellRecord, ValidateEmbeddingParams } from '@joint/react';
+import { GraphProvider, useCell, Paper, HTMLHost, selectElementSize } from '@joint/react';
+import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
+
+type ContainerData = {
+  readonly label: string;
+  readonly isContainer?: boolean;
+  readonly [key: string]: unknown;
+};
+
+const initialCells: ReadonlyArray<CellRecord<ContainerData>> = [
+  {
+    id: 'container',
+    type: 'element',
+    position: { x: 50, y: 50 },
+    size: { width: 300, height: 200 },
+    data: { label: 'Container', isContainer: true },
+    z: 1,
+  },
+  {
+    id: 'child-1',
+    type: 'element',
+    position: { x: 70, y: 80 },
+    data: { label: 'Child 1' },
+    parent: 'container',
+    z: 2,
+  },
+  {
+    id: 'child-2',
+    type: 'element',
+    position: { x: 200, y: 80 },
+    data: { label: 'Child 2' },
+    parent: 'container',
+    z: 2,
+  },
+  {
+    id: 'link-1',
+    type: 'link',
+    source: { id: 'child-1' },
+    target: { id: 'child-2' },
+    parent: 'container',
+    style: { color: 'white' },
+    z: 2,
+  },
+];
+
+function ContainerNode({ label }: Readonly<ContainerData>) {
+  const { width, height } = useCell(selectElementSize);
+  return (
+    <g>
+      <rect
+        width={width}
+        height={height}
+        rx={8}
+        ry={8}
+        fill="#1f2937"
+        stroke={PRIMARY}
+        strokeWidth={2}
+        strokeDasharray="5,5"
+      />
+      <text x={10} y={20} fill={PRIMARY} fontSize={12} fontWeight="bold">
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function ChildElement({ label }: Readonly<ContainerData>) {
+  return (
+    <HTMLHost
+      style={{
+        padding: '10px 10px',
+        border: `1px solid ${SECONDARY}`,
+        background: BG,
+        borderRadius: 6,
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 500,
+        cursor: 'move',
+        display: 'inline-block',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label}
+    </HTMLHost>
+  );
+}
+
+function RenderElement(data: Readonly<ContainerData>) {
+  if (data.isContainer) {
+    return <ContainerNode {...data} />;
+  }
+  return <ChildElement {...data} />;
+}
+
+function validateParentChildRelationship({ parent }: ValidateEmbeddingParams): boolean {
+  // Only allow embedding into container elements
+  return Boolean(parent.model.prop('data/isContainer'));
+}
+
+function Main() {
+  return (
+    <Paper style={{ ...PAPER_STYLE, height: 350 }}
+      className={PAPER_CLASSNAME}
+      renderElement={RenderElement}
+      embeddingMode
+      validateEmbedding={validateParentChildRelationship}
+      highlighting={{
+        embedding: {
+          name: 'mask',
+          options: {
+            padding: 5,
+            attrs: {
+              stroke: SECONDARY,
+              strokeWidth: 2,
+              strokeLinejoin: 'round',
+            },
+          },
+        },
+      }}
+      drawGrid={false}
+    />
+  );
+}
+
+export default function App() {
+  return (
+    <GraphProvider initialCells={initialCells}>
+      <Main />
+    </GraphProvider>
+  );
+}

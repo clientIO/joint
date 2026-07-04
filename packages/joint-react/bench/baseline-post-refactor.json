@@ -1,0 +1,563 @@
+{
+  "meta": {
+    "savedAt": "2026-06-26T12:56:20.613Z",
+    "gitSha": "9a741ac576b9b0336b96e4b121e826969ecfc036",
+    "node": "v24.11.1",
+    "platform": "darwin/arm64"
+  },
+  "results": {
+    "hooks/key-derivation/n=10": [
+      {
+        "name": "key derivation (10)",
+        "opsPerSec": 9102033552.308687,
+        "mean": 0.00012776233369654266,
+        "stddev": 0.002638525657641091,
+        "min": 0.00004099999978279811,
+        "max": 6.915790999999899,
+        "samples": 7827033
+      }
+    ],
+    "hooks/full-iteration-selector/n=10": [
+      {
+        "name": "full iteration + selector (10)",
+        "opsPerSec": 2535300828.319926,
+        "mean": 0.0006300311846347321,
+        "stddev": 0.008285664941017352,
+        "min": 0.000249999999141437,
+        "max": 3.906082999999853,
+        "samples": 1587224
+      }
+    ],
+    "hooks/single-id-get-selector/n=10": [
+      {
+        "name": "single-ID get + selector (10)",
+        "opsPerSec": 9001583723.37333,
+        "mean": 0.00018175384538777985,
+        "stddev": 0.006982715983930184,
+        "min": 0,
+        "max": 9.703125,
+        "samples": 5501981
+      }
+    ],
+    "hooks/shallow-map-comparison/n=10": [
+      {
+        "name": "shallow Map equal (10)",
+        "opsPerSec": 5260348561.022442,
+        "mean": 0.00026741772974151634,
+        "stddev": 0.018586417085768542,
+        "min": 0.0001249999986612238,
+        "max": 35.464584000001196,
+        "samples": 3739468
+      },
+      {
+        "name": "shallow Map unequal (10)",
+        "opsPerSec": 1658734644.1832,
+        "mean": 0.0007927398140844134,
+        "stddev": 0.07175949929966026,
+        "min": 0.000499999998282874,
+        "max": 65.3604579999992,
+        "samples": 1261448
+      }
+    ],
+    "hooks/key-derivation/n=100": [
+      {
+        "name": "key derivation (100)",
+        "opsPerSec": 1774311969.0672424,
+        "mean": 0.0006912953496554602,
+        "stddev": 0.0042805118715596654,
+        "min": 0.00041599999894970097,
+        "max": 3.0222079999985,
+        "samples": 1446560
+      }
+    ],
+    "hooks/full-iteration-selector/n=100": [
+      {
+        "name": "full iteration + selector (100)",
+        "opsPerSec": 507671227.5095935,
+        "mean": 0.002142448513894801,
+        "stddev": 0.0036657148157697955,
+        "min": 0.0017499999994470272,
+        "max": 0.9238330000007409,
+        "samples": 466757
+      }
+    ],
+    "hooks/single-id-get-selector/n=100": [
+      {
+        "name": "single-ID get + selector (100)",
+        "opsPerSec": 9785151296.529823,
+        "mean": 0.00011706911128019761,
+        "stddev": 0.0005970687730137746,
+        "min": 0.00004099999932805076,
+        "max": 0.7452919999996084,
+        "samples": 8541963
+      }
+    ],
+    "hooks/shallow-map-comparison/n=100": [
+      {
+        "name": "shallow Map equal (100)",
+        "opsPerSec": 619759976.4328091,
+        "mean": 0.0017797496249183477,
+        "stddev": 0.004928262145344146,
+        "min": 0.0014159999991534278,
+        "max": 1.6197920000049635,
+        "samples": 561877
+      },
+      {
+        "name": "shallow Map unequal (100)",
+        "opsPerSec": 214259776.51406443,
+        "mean": 0.004807214665830148,
+        "stddev": 0.008679019293239498,
+        "min": 0.004249999998137355,
+        "max": 3.7966250000026776,
+        "samples": 208021
+      }
+    ],
+    "hooks/key-derivation/n=1000": [
+      {
+        "name": "key derivation (1000)",
+        "opsPerSec": 158246163.84223586,
+        "mean": 0.007386272042366138,
+        "stddev": 0.012492956118353328,
+        "min": 0.00458299999445444,
+        "max": 0.7620830000014394,
+        "samples": 135387
+      }
+    ],
+    "hooks/full-iteration-selector/n=1000": [
+      {
+        "name": "full iteration + selector (1000)",
+        "opsPerSec": 53454084.79351535,
+        "mean": 0.02129658160833463,
+        "stddev": 0.038570989492294296,
+        "min": 0.01641599999857135,
+        "max": 7.478792000001704,
+        "samples": 46956
+      }
+    ],
+    "hooks/single-id-get-selector/n=1000": [
+      {
+        "name": "single-ID get + selector (1000)",
+        "opsPerSec": 9166420604.692993,
+        "mean": 0.0001251065802928049,
+        "stddev": 0.0007809810394888233,
+        "min": 0.00004099999932805076,
+        "max": 1.1806250000008731,
+        "samples": 7993185
+      }
+    ],
+    "hooks/shallow-map-comparison/n=1000": [
+      {
+        "name": "shallow Map equal (1000)",
+        "opsPerSec": 45520810.90012255,
+        "mean": 0.02337060094885724,
+        "stddev": 0.01735478693567373,
+        "min": 0.019332999996549916,
+        "max": 2.1166249999951106,
+        "samples": 42789
+      },
+      {
+        "name": "shallow Map unequal (1000)",
+        "opsPerSec": 19032585.013689395,
+        "mean": 0.05319225739362969,
+        "stddev": 0.01233989935991809,
+        "min": 0.04958299999998417,
+        "max": 0.5364170000029844,
+        "samples": 18800
+      }
+    ],
+    "container/set-existing/n=10": [
+      {
+        "name": "container/set-existing/n=10",
+        "opsPerSec": 9592454913.876112,
+        "mean": 0.00016832206860405515,
+        "stddev": 0.02144274469249424,
+        "min": 0.00004099999978279811,
+        "max": 16.599791000000096,
+        "samples": 5940992
+      }
+    ],
+    "container/set-insert/n=10": [
+      {
+        "name": "container/set-insert/n=10",
+        "opsPerSec": 1870925041.0296748,
+        "mean": 0.0021810410745922845,
+        "stddev": 0.1436830191870582,
+        "min": 0.00008299999990413198,
+        "max": 60.109167000000525,
+        "samples": 479810
+      }
+    ],
+    "container/delete/n=10": [
+      {
+        "name": "container/delete/n=10",
+        "opsPerSec": 5004339519.769123,
+        "mean": 0.0003761938737584461,
+        "stddev": 0.03202565772999689,
+        "min": 0.00008299999899463728,
+        "max": 34.68854199999987,
+        "samples": 2658204
+      }
+    ],
+    "container/set-existing/n=100": [
+      {
+        "name": "container/set-existing/n=100",
+        "opsPerSec": 7253824663.55854,
+        "mean": 0.00028278877246390113,
+        "stddev": 0.03293144498715692,
+        "min": 0.00004099999932805076,
+        "max": 23.537250000001222,
+        "samples": 3536769
+      }
+    ],
+    "container/set-insert/n=100": [
+      {
+        "name": "container/set-insert/n=100",
+        "opsPerSec": 2185360546.4693413,
+        "mean": 0.000867978722371453,
+        "stddev": 0.05464836489957179,
+        "min": 0.00008299999899463728,
+        "max": 48.484958000000915,
+        "samples": 1152102
+      }
+    ],
+    "container/delete/n=100": [
+      {
+        "name": "container/delete/n=100",
+        "opsPerSec": 4489749482.126936,
+        "mean": 0.0006207028242609257,
+        "stddev": 0.056656323590607384,
+        "min": 0.00008299999899463728,
+        "max": 44.992583999999624,
+        "samples": 1611077
+      }
+    ],
+    "container/set-existing/n=1000": [
+      {
+        "name": "container/set-existing/n=1000",
+        "opsPerSec": 6664601294.396632,
+        "mean": 0.0002293271080192436,
+        "stddev": 0.018391597064712235,
+        "min": 0.00004099999932805076,
+        "max": 14.313709000001836,
+        "samples": 4360584
+      }
+    ],
+    "container/set-insert/n=1000": [
+      {
+        "name": "container/set-insert/n=1000",
+        "opsPerSec": 2179882528.2149706,
+        "mean": 0.0007241478586251268,
+        "stddev": 0.04747592625527253,
+        "min": 0.00008399999933317304,
+        "max": 52.340125000002445,
+        "samples": 1380934
+      }
+    ],
+    "container/delete/n=1000": [
+      {
+        "name": "container/delete/n=1000",
+        "opsPerSec": 5023721533.135179,
+        "mean": 0.0003402160279832834,
+        "stddev": 0.03183056589487867,
+        "min": 0.00008299999899463728,
+        "max": 17.620999999999185,
+        "samples": 2939309
+      }
+    ],
+    "container/set-existing/n=10000": [
+      {
+        "name": "container/set-existing/n=10000",
+        "opsPerSec": 4854997578.069838,
+        "mean": 0.0002787159528021243,
+        "stddev": 0.012646159218378443,
+        "min": 0.00004099999932805076,
+        "max": 10.18841600000087,
+        "samples": 3594723
+      }
+    ],
+    "container/set-insert/n=10000": [
+      {
+        "name": "container/set-insert/n=10000",
+        "opsPerSec": 2261029328.077687,
+        "mean": 0.0006746024195350448,
+        "stddev": 0.06521042624281774,
+        "min": 0.00008299999899463728,
+        "max": 69.15299999999843,
+        "samples": 1572864
+      }
+    ],
+    "container/delete/n=10000": [
+      {
+        "name": "container/delete/n=10000",
+        "opsPerSec": 3887125313.234764,
+        "mean": 0.00040134613158840046,
+        "stddev": 0.021213862287074087,
+        "min": 0.00008299999899463728,
+        "max": 21.516250000000582,
+        "samples": 2491616
+      }
+    ],
+    "controlled/position-change/n=10": [
+      {
+        "name": "controlled/position-change/n=10",
+        "opsPerSec": 157236218.1228957,
+        "mean": 0.006798862942264942,
+        "stddev": 0.00730341671823921,
+        "min": 0.005666999999903055,
+        "max": 2.183082999999897,
+        "samples": 147084
+      }
+    ],
+    "controlled/updateGraph/n=10": [
+      {
+        "name": "controlled/updateGraph/n=10",
+        "opsPerSec": 7200873.030667038,
+        "mean": 0.1476165065682614,
+        "stddev": 0.06462752538728161,
+        "min": 0.12708399999974063,
+        "max": 1.8675410000000738,
+        "samples": 6775
+      }
+    ],
+    "controlled/position-change/n=100": [
+      {
+        "name": "controlled/position-change/n=100",
+        "opsPerSec": 109897013.22483212,
+        "mean": 0.015529662453024722,
+        "stddev": 0.0523553713119434,
+        "min": 0.0059999999994033715,
+        "max": 6.114709000000403,
+        "samples": 64394
+      }
+    ],
+    "controlled/updateGraph/n=100": [
+      {
+        "name": "controlled/updateGraph/n=100",
+        "opsPerSec": 542543.6686074686,
+        "mean": 2.5535463137755285,
+        "stddev": 3.572476213316869,
+        "min": 1.2611249999999927,
+        "max": 57.444915999999466,
+        "samples": 392
+      }
+    ],
+    "controlled/position-change/n=1000": [
+      {
+        "name": "controlled/position-change/n=1000",
+        "opsPerSec": 82319389.7423361,
+        "mean": 0.03426556061540249,
+        "stddev": 0.28126870447489927,
+        "min": 0.006374999999025022,
+        "max": 28.474333000000115,
+        "samples": 29184
+      }
+    ],
+    "controlled/updateGraph/n=1000": [
+      {
+        "name": "controlled/updateGraph/n=1000",
+        "opsPerSec": 40238.18429834901,
+        "mean": 27.495591765625022,
+        "stddev": 9.060631782506034,
+        "min": 13.829125000000204,
+        "max": 53.331874999999854,
+        "samples": 64
+      }
+    ],
+    "controlled/position-change/n=10000": [
+      {
+        "name": "controlled/position-change/n=10000",
+        "opsPerSec": 114634877.57925694,
+        "mean": 0.01591508894866051,
+        "stddev": 0.10630700839023834,
+        "min": 0.006250000000363798,
+        "max": 14.191624999999476,
+        "samples": 62834
+      }
+    ],
+    "controlled/updateGraph/n=10000": [
+      {
+        "name": "controlled/updateGraph/n=10000",
+        "opsPerSec": 5866.66567428112,
+        "mean": 185.22899542187494,
+        "stddev": 89.41845182660455,
+        "min": 139.24441600000137,
+        "max": 784.1291249999995,
+        "samples": 64
+      }
+    ],
+    "graph-view/position-change/n=10": [
+      {
+        "name": "baseline (10)",
+        "opsPerSec": 190462872.61717582,
+        "mean": 0.005388789051098068,
+        "stddev": 0.0029441271422667816,
+        "min": 0.0047919999924488366,
+        "max": 0.27241700000013225,
+        "samples": 185571
+      },
+      {
+        "name": "graphView (10)",
+        "opsPerSec": 176923394.2606117,
+        "mean": 0.006061630109193776,
+        "stddev": 0.018858364527156866,
+        "min": 0.005165999988093972,
+        "max": 5.472125000000233,
+        "samples": 164973
+      },
+      {
+        "name": "GraphStore (10)",
+        "opsPerSec": 175403777.94359493,
+        "mean": 0.005856419600213291,
+        "stddev": 0.0038008396470550912,
+        "min": 0.0051660000026458874,
+        "max": 0.7481659999903059,
+        "samples": 170753
+      }
+    ],
+    "graph-view/position-change/n=100": [
+      {
+        "name": "baseline (100)",
+        "opsPerSec": 187918405.56497228,
+        "mean": 0.005409530296086672,
+        "stddev": 0.0025216102357608,
+        "min": 0.0048749999987194315,
+        "max": 0.34950000001117587,
+        "samples": 184859
+      },
+      {
+        "name": "graphView (100)",
+        "opsPerSec": 177282846.09199417,
+        "mean": 0.005773934696776197,
+        "stddev": 0.009373650897513497,
+        "min": 0.005166999995708466,
+        "max": 3.700874999994994,
+        "samples": 173238
+      },
+      {
+        "name": "GraphStore (100)",
+        "opsPerSec": 175438320.33901396,
+        "mean": 0.005957949429539988,
+        "stddev": 0.015887500501456923,
+        "min": 0.005166999995708466,
+        "max": 4.620666999995592,
+        "samples": 167845
+      }
+    ],
+    "graph-view/position-change/n=1000": [
+      {
+        "name": "baseline (1000)",
+        "opsPerSec": 180143352.39820114,
+        "mean": 0.00580519906534934,
+        "stddev": 0.013418927300730306,
+        "min": 0.0048749999987194315,
+        "max": 5.2114999999903375,
+        "samples": 172260
+      },
+      {
+        "name": "graphView (1000)",
+        "opsPerSec": 160266498.24717423,
+        "mean": 0.006791004930256765,
+        "stddev": 0.009344679392794153,
+        "min": 0.005292000001645647,
+        "max": 1.991915999999037,
+        "samples": 147254
+      },
+      {
+        "name": "GraphStore (1000)",
+        "opsPerSec": 166626911.96536332,
+        "mean": 0.006130196760798409,
+        "stddev": 0.0035441007766006867,
+        "min": 0.005292000001645647,
+        "max": 0.40704099999857135,
+        "samples": 163127
+      }
+    ],
+    "graph-projection/position-change/n=10": [
+      {
+        "name": "baseline (10)",
+        "opsPerSec": 161557116.3173571,
+        "mean": 0.006834966044235606,
+        "stddev": 0.007308573169337244,
+        "min": 0.005458000000089669,
+        "max": 0.9919170000000577,
+        "samples": 146308
+      },
+      {
+        "name": "graphProjection (10)",
+        "opsPerSec": 149230760.29084107,
+        "mean": 0.007903611879074289,
+        "stddev": 0.01947725138702822,
+        "min": 0.005957999999736785,
+        "max": 3.5417919999999867,
+        "samples": 126525
+      },
+      {
+        "name": "GraphStore (10)",
+        "opsPerSec": 121930647.74715658,
+        "mean": 0.014754530938330623,
+        "stddev": 0.09755133766428084,
+        "min": 0.005957999999736785,
+        "max": 15.573499999999513,
+        "samples": 67780
+      }
+    ],
+    "graph-projection/position-change/n=100": [
+      {
+        "name": "baseline (100)",
+        "opsPerSec": 101417810.06484096,
+        "mean": 0.03332241076307389,
+        "stddev": 0.45364963030742494,
+        "min": 0.005874999999832653,
+        "max": 47.54591699999946,
+        "samples": 30010
+      },
+      {
+        "name": "graphProjection (100)",
+        "opsPerSec": 82146180.94625443,
+        "mean": 0.03185789700541546,
+        "stddev": 0.23653690890482493,
+        "min": 0.006292000000030384,
+        "max": 24.838708000001134,
+        "samples": 31390
+      },
+      {
+        "name": "GraphStore (100)",
+        "opsPerSec": 107824652.24534024,
+        "mean": 0.01614418052371774,
+        "stddev": 0.07231301767024387,
+        "min": 0.006124999999883585,
+        "max": 8.082916999999725,
+        "samples": 61942
+      }
+    ],
+    "graph-projection/position-change/n=1000": [
+      {
+        "name": "baseline (1000)",
+        "opsPerSec": 111711781.03085949,
+        "mean": 0.016222944538840746,
+        "stddev": 0.09040577218414217,
+        "min": 0.005916999998589745,
+        "max": 14.222999999999956,
+        "samples": 62386
+      },
+      {
+        "name": "graphProjection (1000)",
+        "opsPerSec": 110544984.6762098,
+        "mean": 0.016250856089156912,
+        "stddev": 0.09428158912855929,
+        "min": 0.006457999999838648,
+        "max": 16.033792000000176,
+        "samples": 61552
+      },
+      {
+        "name": "GraphStore (1000)",
+        "opsPerSec": 116700306.81772408,
+        "mean": 0.013303929876136874,
+        "stddev": 0.050927563796028565,
+        "min": 0.006207999998878222,
+        "max": 5.420540999999503,
+        "samples": 75167
+      }
+    ]
+  }
+}

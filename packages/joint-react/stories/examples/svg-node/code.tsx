@@ -1,0 +1,98 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import '../index.css';
+import {
+  type CellRecord,
+  GraphProvider,
+  Paper,
+  useMeasureElement,
+  type TransformElementLayout,
+  type RenderElement,
+} from '@joint/react';
+import { useCallback, useRef } from 'react';
+
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+}
+
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  {
+    id: 'e1-2',
+    type: 'link',
+    source: { id: '1' },
+    target: { id: '2' },
+  },
+];
+
+function RenderedRect({ label }: Readonly<NodeData>) {
+  const textMargin = 20;
+  const cornerRadius = 5;
+  const textRef = useRef<SVGTextElement>(null);
+
+  const transform: TransformElementLayout = useCallback(
+    ({ width: measuredWidth, height: measuredHeight }) => {
+      return {
+        width: measuredWidth + textMargin,
+        height: measuredHeight + textMargin,
+      };
+    },
+    [textMargin]
+  );
+
+  const { width, height } = useMeasureElement(textRef, { transform });
+
+  return (
+    <>
+      <rect
+        rx={cornerRadius}
+        ry={cornerRadius}
+        width={width}
+        height={height}
+        stroke={'black'}
+        fill={'white'}
+      />
+      <text
+        ref={textRef}
+        x={width / 2}
+        y={height / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill={'black'}
+        fontSize={14}
+        fontWeight="bold"
+      >
+        {label}
+      </text>
+    </>
+  );
+}
+
+function Main() {
+  const renderElement: RenderElement<NodeData> = useCallback(
+    (data) => <RenderedRect label={data?.label ?? ''} />,
+    []
+  );
+  return (
+    <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
+      <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} renderElement={renderElement} />
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+        }}
+      ></div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <GraphProvider initialCells={initialCells}>
+      <Main />
+    </GraphProvider>
+  );
+}

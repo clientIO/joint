@@ -1,10 +1,21 @@
-import { useContext } from 'react';
-import { GraphAreElementsMeasuredContext } from '../context';
+import { useGraphStore } from './use-graph-store';
+import { useSyncExternalStore } from 'react';
+
 /**
- * useAreElementMeasured is a custom hook that returns information if nodes are properly measured - they have defined size.
- * It is used to determine if the elements in the graph have been measured.
- * @returns - The value of the GraphAreElementsMeasuredContext.
+ * Returns `true` when at least one element has been measured.
  */
-export function useAreElementMeasured() {
-  return useContext(GraphAreElementsMeasuredContext);
+export function useAreElementsMeasured() {
+  const { measureState } = useGraphStore();
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      // subscribe for both, elements size from container and also measure state changes.
+      const unsubscribeMeasureState = measureState.subscribe(onStoreChange);
+      return () => {
+        unsubscribeMeasureState();
+      };
+    },
+    () => {
+      return measureState.get() > 0;
+    }
+  );
 }

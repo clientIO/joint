@@ -1,26 +1,31 @@
-import type { dia } from '@joint/core';
 import { useContext } from 'react';
-import { CellIdContext } from '../context/cell-id.context';
+import { CellIdContext } from '../context';
+import type { CellId } from '../types/cell.types';
 
 /**
- * Return cell id from the paper (paper item).
- * It must be used inside `renderElement` function.
- * @returns - The cell id.
- * @throws - If the hook is not used inside the paper context.
- * @group hooks
- * @description
- * This hook is used to get the cell id from the paper `RenderElement`.
- * It must be used inside the `renderElement` function.
+ * Read the current cell id from the nearest `CellIdContext`. Populated by
+ * `<Paper />` around every `renderElement` / `renderLink` invocation.
+ *
+ * Use this inside a render callback (or any component mounted from one) when
+ * you only need the id, it's cheaper than {@link useCell}() since
+ * it never subscribes to store updates. Throws when used outside a Paper
+ * render context.
+ * @returns the current cell id
+ * @group Hooks
  * @example
- * ```ts
- * const cellId = useCellId();
- * console.log(cellId);
+ * ```tsx
+ * import { useCellId } from '@joint/react';
+ *
+ * function MyElement() {
+ *   const id = useCellId();
+ *   return <text>{id}</text>;
+ * }
  * ```
  */
-export function useCellId(): dia.Cell.ID {
+export function useCellId(): CellId {
   const id = useContext(CellIdContext);
   if (id === undefined) {
-    throw new Error('useCellId is not used inside paper context');
+    throw new Error('useCellId() must be used inside renderElement or renderLink');
   }
   return id;
 }

@@ -1,0 +1,69 @@
+:root {
+    /* ── Palette ─────────────────────────────────────────────────────────── */
+    --jj-color-dark-900: #6f859b;
+    --jj-color-dark-800: #566c81;
+    --jj-color-dark-700: #425567;
+    --jj-color-dark-600: #344351;
+    --jj-color-dark-500: #293a49;
+    --jj-color-dark-400: #253544;
+    --jj-color-dark-300: #202f3e;
+    --jj-color-dark-200: #1a2733;
+    --jj-color-dark-100: #131e29;
+
+    --jj-color-light-100: #f5f6f8;
+    --jj-color-light-125: #f3f6f8;
+    --jj-color-light-150: #f0f4f7;
+    --jj-color-light-200: #eaf0f4;
+    --jj-color-light-300: #e4ebf1;
+    --jj-color-light-400: #dde6ed;
+    --jj-color-light-500: #cfdbe4;
+    --jj-color-light-600: #c1cfda;
+    --jj-color-light-700: #a6b6c5;
+    --jj-color-light-800: #8a9eb0;
+    --jj-color-light-900: #6f859b;
+
+    --jj-color-success: #36a18b;
+    --jj-color-destructive: #e03131;
+    --jj-color-valid: #566c81;
+    --jj-color-invalid: #868e96;
+
+    --jj-radius-sm: 2px;
+    --jj-radius-md: 3px;
+    --jj-radius-lg: 4px;
+
+    --jj-space-xs: 2px;
+    --jj-space-sm: 4px;
+    --jj-space-md: 6px;
+    --jj-space-lg: 10px;
+
+    --jj-stroke-width: 2px;
+
+    --jj-color-primary: var(--jj-color-dark-500);
+    --jj-color-primary-contrast: var(--jj-color-light-100);
+    --jj-color-surface: var(--jj-color-light-100);
+    --jj-color-shape-surface: var(--jj-color-light-150);
+    --jj-color-shape-border: var(--jj-color-light-800);
+    --jj-color-link: var(--jj-color-light-800);
+    --jj-color-tool: var(--jj-color-light-100);
+    --jj-color-tool-border: var(--jj-color-light-900);
+    --jj-color-text: var(--jj-color-dark-200);
+    --jj-color-border: var(--jj-color-light-500);
+    --jj-color-border-subtle: var(--jj-color-light-200);
+
+    /* Cursor for hover state on draggable elements */
+    --jj-drag-cursor: move;
+    /* Cursor for elements and link labels while dragging */
+    --jj-dragging-cursor: move;
+    /* Cursor for ports when they are active (ready to be dragged) */
+    --jj-port-drag-cursor: crosshair;
+    /* Cursor for ports while dragging */
+    --jj-port-dragging-cursor: crosshair;
+    /* Transition duration, set to 0 to disable */
+    --jj-transition-duration: 0.2s;
+}
+
+@media (min-resolution: 1.5dppx) {
+  :root {
+    --jj-stroke-width: 1.5px;
+  }
+}

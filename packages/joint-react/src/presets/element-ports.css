@@ -1,0 +1,32 @@
+:root {
+    /* ── Ports ───────────────────────────────────────────────────────────── */
+    --jj-port-color: var(--jj-color-surface);
+    --jj-port-border-color: var(--jj-color-link);
+    /* Effective 1px because of paint-order: stroke */
+    --jj-port-border-width: var(--jj-stroke-width);
+    --jj-port-label-color: var(--jj-color-light-900);
+    --jj-port-label-font-size: 10px;
+    --jj-port-label-font-family: Arial, sans-serif;
+}
+
+/* ── Ports ──────────────────────────────────────────────────────────────── */
+
+.jj-port {
+    fill: var(--jj-port-color);
+    stroke: var(--jj-port-border-color);
+    stroke-width: var(--jj-port-border-width);
+    transition:
+        fill var(--jj-transition-duration),
+        stroke var(--jj-transition-duration),
+        stroke-width var(--jj-transition-duration);
+}
+
+.jj-port[magnet="active"] {
+    cursor: var(--jj-port-drag-cursor);
+}
+
+.jj-port-label {
+    fill: var(--jj-port-label-color);
+    font-size: var(--jj-port-label-font-size);
+    font-family: var(--jj-port-label-font-family);
+}

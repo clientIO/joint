@@ -1,8 +1,27 @@
 /* eslint-disable @eslint-react/no-create-ref */
 import { render, screen } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { createRef, forwardRef, useImperativeHandle } from 'react';
-import { useCombinedRef } from '../use-combined-ref';
+import { createRef } from 'react';
+import { setForwardRef, useCombinedRef } from '../use-combined-ref';
+
+describe('setForwardRef', () => {
+  it('returns silently when ref is undefined', () => {
+    expect(() => setForwardRef(undefined, document.createElement('div'))).not.toThrow();
+  });
+  it('writes to a ref object', () => {
+    const ref = createRef<HTMLDivElement>();
+    const node = document.createElement('div');
+    setForwardRef(ref, node);
+    expect(ref.current).toBe(node);
+  });
+  it('calls a ref function', () => {
+    let captured: HTMLDivElement | null = null;
+    setForwardRef<HTMLDivElement>((value) => {
+      captured = value;
+    }, document.createElement('div'));
+    expect(captured).not.toBeNull();
+  });
+});
 
 describe('useCombinedRef', () => {
   it('should return a ref object', () => {
@@ -34,17 +53,5 @@ describe('useCombinedRef', () => {
     render(<Test />);
     const element = screen.getByTestId('el');
     expect(calledValue).toBe(element);
-  });
-
-  it('should work with React.forwardRef', () => {
-    const Comp = forwardRef<HTMLDivElement>((props, ref) => {
-      const combinedRef = useCombinedRef<HTMLDivElement>(ref);
-      // @ts-expect-error its just test
-      useImperativeHandle(ref, () => ({ test: true }), []);
-      return <div ref={combinedRef} />;
-    });
-    const ref = createRef<HTMLDivElement>();
-    renderHook(() => <Comp ref={ref} />);
-    // No error means it works
   });
 });

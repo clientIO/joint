@@ -1,89 +1,46 @@
-import { getCell, getElement, getLink } from '../cell/get-cell';
-import type { dia } from '@joint/core';
+import { dia, shapes } from '@joint/core';
+import { mapAttributesToLink } from '../../state/data-mapping';
+import { ElementModel } from '../../mvc/element-model';
+import { LinkModel, LINK_MODEL_TYPE } from '../../mvc/link-model';
 
-describe('getCell', () => {
-  let mockCell: dia.Cell;
+const DEFAULT_CELL_NAMESPACE = { ...shapes, element: ElementModel, link: LinkModel };
+
+describe('graph-state-selectors link mapping', () => {
+  let graph: dia.Graph;
 
   beforeEach(() => {
-    mockCell = {
-      id: 'mock-id',
-      attributes: {
-        size: { width: 100, height: 50 },
-        position: { x: 10, y: 20 },
-        data: { key: 'value' },
-        type: 'mock-type',
-        ports: { items: [] },
-      },
-      isElement: jest.fn(),
-      isLink: jest.fn(),
-      get: jest.fn((key) => {
-        const mockData = {
-          source: 'source-id',
-          target: 'target-id',
-          z: 1,
-          markup: '<markup>',
-          defaultLabel: 'default-label',
-          ports: { items: [] },
-          size: { width: 100, height: 50 },
-          position: { x: 10, y: 20 },
-          data: { key: 'value' },
-        };
-        // @ts-expect-error its just mock
-        return mockData[key];
-      }),
-    } as unknown as dia.Cell;
+    graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
   });
 
-  describe('getElement', () => {
-    it('should extract element attributes correctly', () => {
-      const element = getElement(mockCell);
-      expect(element).toEqual({
-        id: 'mock-id',
-        isElement: true,
-        isLink: false,
-        data: { key: 'value' },
-        type: 'mock-type',
-        ports: { items: [] },
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
-      });
-    });
+  afterEach(() => {
+    graph.clear();
   });
 
-  describe('getLink', () => {
+  describe('attributesToLink', () => {
     it('should extract link attributes correctly', () => {
-      const link = getLink(mockCell);
-      expect(link).toEqual({
-        id: 'mock-id',
-        isElement: false,
-        isLink: true,
-        source: 'source-id',
-        target: 'target-id',
-        type: 'mock-type',
+      const id = 'link-1';
+      const cellJson = {
+        type: LINK_MODEL_TYPE,
+        id,
+        source: { id: 'source-id' },
+        target: { id: 'target-id' },
         z: 1,
-        markup: '<markup>',
-        defaultLabel: 'default-label',
-        ports: { items: [] },
-        size: { width: 100, height: 50 },
-        position: { x: 10, y: 20 },
         data: { key: 'value' },
+      } as dia.Cell.JSON;
+      graph.addCell(cellJson);
+      const cell = graph.getCell(id) as dia.Link;
+
+      const link = mapAttributesToLink(cell.attributes);
+
+      expect(link).toMatchObject({
+        source: { id: 'source-id' },
+        target: { id: 'target-id' },
       });
-    });
-  });
-
-  describe('getCell', () => {
-    it('should return an element when the cell is an element', () => {
-      (mockCell.isElement as unknown as jest.Mock).mockReturnValue(true);
-      const result = getCell(mockCell);
-      expect(result).toEqual(expect.objectContaining({ isElement: true, isLink: false }));
-    });
-
-    it('should return a link when the cell is a link', () => {
-      (mockCell.isElement as unknown as jest.Mock).mockReturnValue(false);
-      const result = getCell(mockCell);
-      expect(result).toEqual(expect.objectContaining({ isElement: false, isLink: true }));
+      // User data is in the data field
+      expect(link.data).toMatchObject({ key: 'value' });
+      // Internal JointJS properties are not mapped back
+      expect(link).not.toHaveProperty('markup');
+      expect(link).not.toHaveProperty('defaultLabel');
     });
   });
 });

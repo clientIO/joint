@@ -1,17 +1,29 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback } from 'react';
-import { GraphProvider, Paper, type GraphProps, type PaperProps } from '../components';
+import { GraphProvider, Paper, type GraphProviderProps, type PaperProps } from '../components';
+import { dia } from '@joint/core';
+import { DEFAULT_CELL_NAMESPACE } from '../store/graph-store';
+import { ELEMENT_MODEL_TYPE } from '../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../mvc/link-model';
+import type { CellRecord } from '../types/cell.types';
 
 /**
- * This wrapper is used to render a graph provider.
- * It is used in the tests to render a graph provider.
- * @param props - The props for the graph provider.
- * @returns - The wrapper.
+ * Testing helper to create a new JointJS graph instance.
+ * @returns A new JointJS graph.
  * @internal
- * @group utils
- * @description
- * This wrapper is used to render a graph provider.
+ * @group Utils
  */
-export function graphProviderWrapper(props: GraphProps): React.JSXElementConstructor<{
+export function getTestGraph() {
+  return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+}
+/**
+ * Testing helper to render a `GraphProvider` provider.
+ * @param props - Props forwarded to the `GraphProvider` root component.
+ * @returns A component that wraps children with `GraphProvider`.
+ * @internal
+ * @group Utils
+ */
+export function graphProviderWrapper(props: GraphProviderProps): React.JSXElementConstructor<{
   children: React.ReactNode;
 }> {
   return function GraphProviderWrapper({ children }) {
@@ -21,42 +33,82 @@ export function graphProviderWrapper(props: GraphProps): React.JSXElementConstru
 
 interface Options {
   paperProps?: PaperProps;
-  graphProps?: GraphProps;
+  graphProviderProps?: GraphProviderProps;
 }
 /**
- * This wrapper is used to render a paper with a graph provider.
- * It is used in the tests to render a paper with a graph provider.
- * @param options - The options for the wrapper.
- * @param options.paperProps - The props for the paper.
- * @param options.graphProps - The props for the graph provider.
- * @returns - The wrapper.
+ * Testing helper to render a `Paper` inside a `GraphProvider` provider.
+ * @param options - Wrapper options.
+ * @param options.paperProps - Props for `Paper`.
+ * @param options.graphProps - Props for the `GraphProvider` root.
+ * @returns A component that wraps children inside `GraphProvider` + `Paper`.
  * @internal
- * @group utils
+ * @group Utils
  */
 export function paperRenderElementWrapper(options: Options): React.JSXElementConstructor<{
   children: React.ReactNode;
 }> {
-  const { paperProps, graphProps } = options;
+  const { paperProps, graphProviderProps } = options;
   return function GraphProviderWrapper({ children }) {
     const renderElement = useCallback(() => {
       return children;
     }, [children]);
     return (
-      <GraphProvider {...graphProps}>
-        <Paper {...paperProps} renderElement={renderElement}></Paper>
+      <GraphProvider {...graphProviderProps}>
+        <Paper style={{ width: 100, height: 100 }} {...paperProps} renderElement={renderElement}></Paper>
       </GraphProvider>
     );
   };
 }
 
 export const simpleRenderElementWrapper = paperRenderElementWrapper({
-  graphProps: {
-    initialElements: [
+  graphProviderProps: {
+    initialCells: [
       {
         id: '1',
-        width: 97,
-        height: 99,
-      },
+        type: ELEMENT_MODEL_TYPE,
+        size: { width: 97, height: 99 },
+      } as CellRecord,
+      {
+        id: '2',
+        type: ELEMENT_MODEL_TYPE,
+        size: { width: 50, height: 50 },
+      } as CellRecord,
+      {
+        id: '3',
+        type: LINK_MODEL_TYPE,
+        source: { id: '1' },
+        target: { id: '2' },
+      } as CellRecord,
     ],
   },
 });
+
+/**
+ * Testing helper to render a `Paper` inside a `GraphProvider` provider with renderLink support.
+ * @param options - Wrapper options.
+ * @param options.paperProps - Props for `Paper`.
+ * @param options.graphProviderProps - Props for the `GraphProvider` root.
+ * @returns A component that wraps children inside `GraphProvider` + `Paper` with renderLink.
+ * @internal
+ * @group Utils
+ */
+export function paperRenderLinkWrapper(options: Options): React.JSXElementConstructor<{
+  children: React.ReactNode;
+}> {
+  const { paperProps, graphProviderProps } = options;
+  return function GraphProviderWrapper({ children }) {
+    const renderLink = useCallback(() => {
+      return children;
+    }, [children]);
+    return (
+      <GraphProvider {...graphProviderProps}>
+        <Paper style={{ width: 100, height: 100 }}
+          {...paperProps}
+          renderLink={renderLink}
+          // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
+          renderElement={() => <rect />}
+        ></Paper>
+      </GraphProvider>
+    );
+  };
+}

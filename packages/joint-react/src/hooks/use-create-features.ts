@@ -1,0 +1,402 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useContext, useLayoutEffect, useRef } from 'react';
+import { useGraphStore } from './use-graph-store';
+import { useInternalData } from './use-stores';
+import { usePaperStore } from './use-paper';
+import { setForwardRef } from './use-combined-ref';
+import type { GraphStore } from '../store/graph-store';
+import type { PaperStore } from '../store/paper-store';
+import {
+  PaperFeaturesContext,
+  GraphFeaturesContext,
+} from '../context';
+import type { FeaturesContext } from '../context';
+import type { Feature } from '../types/feature.types';
+import { selectGraphFeaturesVersion } from '../selectors';
+
+const EMPTY_DEPENDENCIES: unknown[] = [];
+
+/**
+ * Discriminator for feature lifecycle, determines where the feature is stored and managed.
+ * @internal
+ */
+export type FeatureTarget = 'paper' | 'graph';
+
+// --- Callback option types based on target ---
+
+interface PaperStoreOptions {
+  readonly graphStore: GraphStore;
+  readonly paperStore: PaperStore;
+  readonly asChildren: boolean;
+}
+
+interface GraphStoreOptions {
+  readonly graphStore: GraphStore;
+}
+
+/** Context passed to feature `onAdd`, exposes the paper or graph store depending on `Target`. */
+export type OnAddFeatureOptions<Target extends FeatureTarget = 'paper'> = Target extends 'paper'
+  ? PaperStoreOptions
+  : GraphStoreOptions;
+
+/** Same as {@link OnAddFeatureOptions}, plus the live feature `instance` being updated. */
+export type OnUpdateFeatureOptions<
+  T,
+  Target extends FeatureTarget = 'paper',
+> = OnAddFeatureOptions<Target> & { readonly instance: T };
+
+/** Same as {@link OnAddFeatureOptions}, plus the freshly mounted feature `instance`. */
+export type OnLoadFeatureOptions<
+  T,
+  Target extends FeatureTarget = 'paper',
+> = OnAddFeatureOptions<Target> & { readonly instance: T };
+
+/** Factory that creates and registers a feature instance against the target store. */
+export type OnAddFeature<T, Target extends FeatureTarget = 'paper'> = (
+  options: OnAddFeatureOptions<Target>
+) => Feature<T>;
+
+/** Callback invoked when a previously created feature instance needs to react to updated props. */
+export type OnUpdateFeature<T, Target extends FeatureTarget = 'paper'> = (
+  options: OnUpdateFeatureOptions<T, Target>
+) => void;
+
+/** Callback invoked once a feature instance has been mounted and is ready to use. */
+export type OnLoadFeature<T, Target extends FeatureTarget = 'paper'> = (
+  options: OnLoadFeatureOptions<T, Target>
+) => void;
+
+/** Configuration accepted by {@link useCreateFeature} to wire a feature into a store. */
+export interface AddFeatureOptions<T, Target extends FeatureTarget = 'paper'> {
+  readonly onAddFeature: OnAddFeature<T, Target>;
+  readonly onLoad?: OnLoadFeature<T, Target>;
+  readonly onUpdateFeature?: OnUpdateFeature<T, Target>;
+  readonly id: string;
+  readonly forwardedRef?: React.Ref<unknown>;
+}
+
+// --- Internal helpers to avoid type assertions ---
+
+/**
+ * Checks if the target is paper and the paper store is available.
+ * @param target
+ * @param paperStore
+ */
+function isPaperReady(
+  target: FeatureTarget,
+  paperStore: PaperStore | null
+): paperStore is PaperStore {
+  return target === 'paper' && paperStore !== null;
+}
+
+/**
+ * Creates a feature and registers it with the appropriate store.
+ * @param target
+ * @param onAddFeature
+ * @param graphStore
+ * @param paperStore
+ * @param asChildren
+ */
+function createAndRegisterFeature<T>(
+  target: FeatureTarget,
+  onAddFeature: OnAddFeature<T, FeatureTarget>,
+  graphStore: GraphStore,
+  paperStore: PaperStore | null,
+  asChildren: boolean
+): Feature<T> {
+  if (isPaperReady(target, paperStore)) {
+    return onAddFeature({ graphStore, paperStore, asChildren });
+  }
+  return onAddFeature({ graphStore });
+}
+
+/**
+ * Registers a feature with the appropriate store based on target.
+ * @param target
+ * @param graphStore
+ * @param paperStore
+ * @param feature
+ */
+function registerFeature(
+  target: FeatureTarget,
+  graphStore: GraphStore,
+  paperStore: PaperStore | null,
+  feature: Feature,
+  sync = false
+) {
+  if (isPaperReady(target, paperStore)) {
+    graphStore.setPaperFeature(paperStore.paperId, feature, sync);
+    return;
+  }
+  graphStore.setGraphFeature(feature, sync);
+}
+
+/**
+ * Unregisters a feature from the appropriate store based on target.
+ * @param target
+ * @param graphStore
+ * @param paperStore
+ * @param featureId
+ */
+function unregisterFeature(
+  target: FeatureTarget,
+  graphStore: GraphStore,
+  paperStore: PaperStore | null,
+  featureId: string,
+  sync = false
+) {
+  if (isPaperReady(target, paperStore)) {
+    graphStore.removePaperFeature(paperStore.paperId, featureId, sync);
+    return;
+  }
+  graphStore.removeGraphFeature(featureId, sync);
+}
+
+/**
+ * Resolves an existing feature instance from the appropriate store by id.
+ * @param target
+ * @param graphStore
+ * @param paperStore
+ * @param id
+ */
+function resolveExistingFeature(
+  target: FeatureTarget,
+  graphStore: GraphStore,
+  paperStore: PaperStore | null,
+  id: string
+): Feature | undefined {
+  if (target === 'paper' && paperStore) {
+    return paperStore.features[id];
+  }
+  return graphStore.features[id];
+}
+
+// Feature instances are stored as `unknown` but callbacks expect `T`.
+// This boundary requires a cast — no runtime guard exists for generic type parameters.
+/**
+ * Invokes the onLoad callback with the feature instance cast to the expected type.
+ * @param target
+ * @param onLoad
+ * @param graphStore
+ * @param paperStore
+ * @param instance
+ * @param asChildren
+ */
+function fireOnLoad<T>(
+  target: FeatureTarget,
+  onLoad: OnLoadFeature<T, FeatureTarget>,
+  graphStore: GraphStore,
+  paperStore: PaperStore | null,
+  instance: unknown,
+  asChildren: boolean
+) {
+  const typedInstance = instance as T;
+  if (isPaperReady(target, paperStore)) {
+    onLoad({ graphStore, paperStore, instance: typedInstance, asChildren });
+    return;
+  }
+  onLoad({ graphStore, instance: typedInstance });
+}
+
+/**
+ * Invokes the onUpdateFeature callback with the feature instance cast to the expected type.
+ * @param target
+ * @param onUpdateFeature
+ * @param graphStore
+ * @param paperStore
+ * @param instance
+ * @param asChildren
+ */
+function fireOnUpdate<T>(
+  target: FeatureTarget,
+  onUpdateFeature: OnUpdateFeature<T, FeatureTarget>,
+  graphStore: GraphStore,
+  paperStore: PaperStore | null,
+  instance: unknown,
+  asChildren: boolean
+) {
+  const typedInstance = instance as T;
+  if (isPaperReady(target, paperStore)) {
+    onUpdateFeature({ graphStore, paperStore, instance: typedInstance, asChildren });
+    return;
+  }
+  onUpdateFeature({ graphStore, instance: typedInstance });
+}
+
+/**
+ * Creates and manages a feature lifecycle for either paper or graph scope.
+ *
+ * Paper features are deferred until a PaperStore is available and stored per-paper.
+ * Graph features are created immediately and stored on the GraphStore.
+ * @param target - Where the feature lives: 'paper' (per-paper) or 'graph' (global).
+ * @param options - Feature configuration including callbacks and id.
+ * @param dependencies - Optional dependency array to trigger feature updates.
+ * @returns The features context for nesting child features.
+ * @internal
+ */
+export function useCreateFeature<T>(
+  target: 'paper',
+  options: AddFeatureOptions<T, 'paper'>,
+  dependencies?: unknown[]
+): FeaturesContext;
+export function useCreateFeature<T>(
+  target: 'graph',
+  options: AddFeatureOptions<T, 'graph'>,
+  dependencies?: unknown[]
+): FeaturesContext;
+export function useCreateFeature<T, Target extends FeatureTarget>(
+  target: Target,
+  options: AddFeatureOptions<T, Target>,
+  dependencies?: unknown[]
+): FeaturesContext;
+export function useCreateFeature<T>(
+  target: FeatureTarget,
+  options: AddFeatureOptions<T, FeatureTarget>,
+  dependencies: unknown[] = EMPTY_DEPENDENCIES
+): FeaturesContext {
+  const { onAddFeature, onUpdateFeature, onLoad, id, forwardedRef } = options;
+  const isPaperTarget = target === 'paper';
+  const graphStore = useGraphStore();
+  // Always called — returns null when no PaperStoreContext is above
+  const contextPaperStore = usePaperStore();
+  const featuresRef = useRef<FeaturesContext>({ features: new Map() });
+
+  // When the hook is called OUTSIDE a Paper subtree (e.g. PaperScroller wraps
+  // Paper, so PaperScroller sits above PaperStoreContext), the deferred-queue
+  // path creates the feature inside some paperStore but `useCreateFeature`
+  // can't see that paperStore via context. Scan the graphStore's papers map
+  // for the one whose features bag contains our id, so update/load paths
+  // still have a paperStore to operate on.
+  const fallbackPaperStore = useInternalData((snapshot) => {
+    if (!isPaperTarget) return null;
+    if (contextPaperStore) return null;
+    for (const paperId of Object.keys(snapshot.papers)) {
+      const ps = graphStore.getPaperStore(paperId);
+      if (ps?.features[id]) return ps;
+    }
+    return null;
+  });
+  const paperStore = contextPaperStore ?? fallbackPaperStore;
+
+  // Subscribe to paper feature changes (resolves paper feature instances)
+  const paperFeatureInstance = useInternalData(() => {
+    if (!paperStore) return null;
+    return paperStore.features[id]?.instance ?? null;
+  });
+
+  // Subscribe to graph feature version (resolves graph feature instances)
+  useInternalData(selectGraphFeaturesVersion);
+
+  const resolvedFeature = isPaperTarget
+    ? paperFeatureInstance
+    : (graphStore.features[id]?.instance ?? null);
+
+  const paperCtx = useContext(PaperFeaturesContext);
+  const graphCtx = useContext(GraphFeaturesContext);
+  const featureContext = (isPaperTarget ? paperCtx : graphCtx) ?? featuresRef.current;
+
+  const asChildren = !!paperStore;
+
+  // Guard: skip onUpdateFeature on initial mount — it must only fire on dependency changes
+  const isMountedRef = useRef(false);
+  // Holds the created feature to survive strict-mode cleanup/re-mount without re-calling onAddFeature
+  const featureRef = useRef<Feature | null>(null);
+
+  // Paper-specific registration paths:
+  //  - Paper not yet mounted: defer via `featureContext` so Paper's mount
+  //    effect picks up the feature before it sets `isReady=true`.
+  //  - Paper already mounted (this hook is being called from inside
+  //    `<Paper>`'s subtree): register synchronously during render so the
+  //    feature is visible to sibling consumers reading `paperStore.features`
+  //    in the same commit. Without this, a `<Stencil>` sibling that creates
+  //    its underlying instance in `useImperativeApi`'s onLoad sees an empty
+  //    feature snapshot and never picks up the inside-Paper-registered
+  //    feature.
+  if (isPaperTarget && !featureContext.features.has(id) && !featureRef.current) {
+    if (paperStore) {
+      const feature = createAndRegisterFeature(
+        target,
+        onAddFeature,
+        graphStore,
+        paperStore,
+        true
+      );
+      featureRef.current = feature;
+      registerFeature(target, graphStore, paperStore, feature);
+    } else {
+      featureContext.features.set(id, onAddFeature);
+    }
+  }
+
+  // Create and register the feature (fires onAddFeature exactly once)
+  useLayoutEffect(() => {
+    if (isPaperTarget && !paperStore) return;
+
+    // Re-register cached feature if it was already created during render
+    // (inside-Paper case). In StrictMode, the cleanup runs feature.clean()
+    // which destroys JointJS views. If the cached feature is no longer in the
+    // store, discard it so a fresh instance is created below instead of
+    // re-registering dead views.
+    if (featureRef.current) {
+      const existingInStore = resolveExistingFeature(target, graphStore, paperStore, id);
+      if (existingInStore === featureRef.current) {
+        registerFeature(target, graphStore, paperStore, featureRef.current, true);
+        setForwardRef(forwardedRef, featureRef.current.instance);
+        return () => unregisterFeature(target, graphStore, paperStore, featureRef.current!.id, true);
+      }
+      // Feature was cleaned up (e.g. by StrictMode cleanup) — discard the dead
+      // reference so the creation path below creates a fresh instance.
+      featureRef.current = null;
+    }
+
+    // Adopt a feature that was already registered by the deferred-queue path
+    // (e.g. PaperScroller wraps Paper — Paper's mount picks up the deferred
+    // onAddFeature and registers the feature in its paperStore). Without
+    // adoption, the create-effect would call onAddFeature again here once
+    // the fallback paperStore lookup resolves, creating a duplicate
+    // instance.
+    const existing = resolveExistingFeature(target, graphStore, paperStore, id);
+    if (existing) {
+      featureRef.current = existing;
+      setForwardRef(forwardedRef, existing.instance);
+      return;
+    }
+
+    const feature = createAndRegisterFeature(target, onAddFeature, graphStore, paperStore, asChildren);
+    featureRef.current = feature;
+    registerFeature(target, graphStore, paperStore, feature, true);
+    setForwardRef(forwardedRef, feature.instance);
+    return () => {
+      isMountedRef.current = false;
+      unregisterFeature(target, graphStore, paperStore, feature.id, true);
+    };
+  }, [graphStore, paperStore]);
+
+  // Fire onLoad when feature instance becomes available
+  useLayoutEffect(() => {
+    if (!onLoad) return;
+    if (isPaperTarget && !paperStore) return;
+    if (!resolvedFeature) return;
+    fireOnLoad(target, onLoad, graphStore, paperStore, resolvedFeature, asChildren);
+  }, [resolvedFeature]);
+
+  // Fire onUpdateFeature ONLY when dependencies change after mount.
+  // Never fires on initial mount — onAddFeature handles creation.
+  // resolvedFeature is intentionally NOT in deps to prevent spurious fires
+  // when the feature instance first resolves (null → instance).
+  useLayoutEffect(() => {
+    if (!onUpdateFeature) return;
+    if (isPaperTarget && !paperStore) return;
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
+    const existingFeature = resolveExistingFeature(target, graphStore, paperStore, id);
+    fireOnUpdate(target, onUpdateFeature, graphStore, paperStore, existingFeature?.instance, asChildren);
+    if (existingFeature) {
+      registerFeature(target, graphStore, paperStore, existingFeature, true);
+    }
+  }, [graphStore, paperStore, ...dependencies]);
+
+  return featureContext;
+}

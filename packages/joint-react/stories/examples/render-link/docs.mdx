@@ -1,0 +1,23 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/addon-docs/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+<Meta of={Stories} />
+
+# Render Link Example
+
+This example demonstrates how to use `renderLink` to render custom React components for links. Each link is rendered as an SVG `<path>` with a label placed at the midpoint using a `<foreignObject>`.
+
+The `useLinkLayout` hook provides layout data (source/target coordinates and path `d` attribute) for positioning the link path and label.
+
+### Demo
+
+<Canvas of={Stories.Default} />
+
+### Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>

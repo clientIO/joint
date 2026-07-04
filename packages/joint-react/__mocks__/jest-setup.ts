@@ -3,6 +3,9 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import { configure } from '@testing-library/react';
+
+configure({ reactStrictMode: true });
 
 // Mocks
 // -----
@@ -12,6 +15,26 @@ import '@testing-library/jest-dom';
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGPathElement
  */
 globalThis.SVGPathElement = jest.fn();
+
+/**
+ * @description Minimal DOMMatrix polyfill — JSDOM doesn't ship it.
+ * Always returns the identity matrix. Tests don't validate transform math;
+ * they only need the constructor to not throw and produce a/b/c/d/e/f
+ * fields readable by `V.createSVGMatrix`.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix
+ */
+class MockDOMMatrix {
+  a = 1;
+  b = 0;
+  c = 0;
+  d = 1;
+  e = 0;
+  f = 0;
+}
+Object.defineProperty(globalThis, 'DOMMatrix', {
+  writable: true,
+  value: MockDOMMatrix,
+});
 
 /**
  * @description Mock SVGAngle which is used for sanity checks in Vectorizer library
@@ -82,6 +105,15 @@ beforeEach(() => {
   Object.defineProperty(globalThis.SVGElement.prototype, 'getBBox', {
     writable: true,
     value: jest.fn().mockImplementation(() => SVGRect),
+  });
+
+  /**
+   * @description Mock checkVisibility method which is not implemented in JSDOM
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/checkVisibility
+   */
+  Object.defineProperty(globalThis.Element.prototype, 'checkVisibility', {
+    writable: true,
+    value: jest.fn().mockImplementation(() => true),
   });
 });
 
