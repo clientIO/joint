@@ -13,7 +13,10 @@ import { toCellRecord } from '../state/data-mapping/cell-record-merge';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-/** Union of all possible `useCells` return shapes (depends on argument form). */
+/**
+ * Union of all possible `useCells` return shapes (depends on argument form).
+ *  `Cell` here is the already-resolved (Computed) record the helpers work with.
+ */
 type CellsResult<Cell extends AnyCellRecord, Selected> =
   | readonly Cell[]
   | Cell
@@ -108,19 +111,19 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
  * container. Cells not in the graph (e.g. `ui.Clipboard` clones) fall back to
  * the collection's own `dia.Cell` instances, converted to records on demand.
  * @title Subscribe to a collection
- * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form
  * @param collection - JointJS collection whose member IDs drive the subscription
  * @returns readonly resolved cells array filtered by collection membership
  * @group Hooks
  */
-export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
+export function useCells<Cell extends AnyCellRecord = CellRecord>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   collection: mvc.Collection<dia.Cell>
-): readonly Cell[];
+): ReadonlyArray<Computed<Cell>>;
 /**
  * Subscribe to a collection's cells with a selector.
  * @title Select from a collection
- * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form
  * @template Selected - selector return type
  * @param collection - JointJS collection whose member IDs drive the subscription
  * @param selector - derive a value from the picked resolved cells array
@@ -128,11 +131,11 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @returns selected value
  */
 export function useCells<
-  Cell extends AnyCellRecord = Computed<CellRecord>,
-  Selected = readonly Cell[],
+  Cell extends AnyCellRecord = CellRecord,
+  Selected = ReadonlyArray<Computed<Cell>>,
 >(
   collection: mvc.Collection<dia.Cell>,
-  selector: (cells: readonly Cell[]) => Selected,
+  selector: (cells: ReadonlyArray<Computed<Cell>>) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 /**
@@ -141,7 +144,7 @@ export function useCells<
  * Returned array reference is stable across data-only mutations (the internal
  * container mutates items in-place). Size changes produce a new snapshot token.
  * @title Subscribe to all cells
- * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form
  * @returns readonly resolved cells array
  * @example
  * ```tsx
@@ -153,24 +156,24 @@ export function useCells<
  * }
  * ```
  */
-export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(): readonly Cell[];
+export function useCells<Cell extends AnyCellRecord = CellRecord>(): ReadonlyArray<Computed<Cell>>;
 /**
  * Subscribe to a single cell by id.
  * @title Subscribe to a cell by id
- * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form
  * @param id - cell id to track
  * @returns current resolved cell, or undefined when missing
  */
-export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
+export function useCells<Cell extends AnyCellRecord = CellRecord>(
   id: CellId
-): Cell | undefined;
+): Computed<Cell> | undefined;
 /**
  * Subscribe to a single cell by id and derive a value from it. Subscribes
  * only to that id so unrelated mutations don't trigger re-renders. A nullish
  * `id` resolves to no cell, so the selector runs against `undefined`, handy
  * for optional selection state (`useCells(selectedId, ...)`) with no `?? ''`.
  * @title Select from a cell by id
- * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form
  * @template Selected - selector return type (defaults to `Cell | undefined`)
  * @param id - cell id to track (nullish → selector receives `undefined`)
  * @param selector - derive a value from the cell (or `undefined` when missing)
@@ -178,11 +181,11 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @returns selected value
  */
 export function useCells<
-  Cell extends AnyCellRecord = Computed<CellRecord>,
-  Selected = Cell | undefined,
+  Cell extends AnyCellRecord = CellRecord,
+  Selected = Computed<Cell> | undefined,
 >(
   id: CellId | null | undefined,
-  selector: (cell: Cell | undefined) => Selected,
+  selector: (cell: Computed<Cell> | undefined) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 /**
@@ -191,19 +194,19 @@ export function useCells<
  * Returns the picked cells in the order they appear in `ids`; missing ids
  * are skipped. The array reference is stable when no picked cell changed.
  * @title Subscribe to specific cells
- * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form
  * @param ids - cell ids to track
  * @returns array of resolved cells (only those that exist; missing ids are skipped)
  */
-export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
+export function useCells<Cell extends AnyCellRecord = CellRecord>(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   ids: readonly CellId[]
-): readonly Cell[];
+): ReadonlyArray<Computed<Cell>>;
 /**
  * Subscribe to a specific set of cells by id and derive a value from them.
  * Subscribes only to those ids; the selector receives the picked cells array.
  * @title Select from specific cells
- * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form
  * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param ids - cell ids to track
  * @param selector - derive a value from the picked resolved cells array
@@ -211,18 +214,18 @@ export function useCells<Cell extends AnyCellRecord = Computed<CellRecord>>(
  * @returns selected value
  */
 export function useCells<
-  Cell extends AnyCellRecord = Computed<CellRecord>,
-  Selected = readonly Cell[],
+  Cell extends AnyCellRecord = CellRecord,
+  Selected = ReadonlyArray<Computed<Cell>>,
 >(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   ids: readonly CellId[],
-  selector: (cells: readonly Cell[]) => Selected,
+  selector: (cells: ReadonlyArray<Computed<Cell>>) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 /**
  * Subscribe via a selector. Runs on every commit; return equal values to skip re-render.
  * @title Subscribe via a selector
- * @template Cell - resolved cell record shape (defaults to Computed<CellRecord>)
+ * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form
  * @template Selected - selector return type (defaults to `readonly Cell[]`)
  * @param selector - derive a value from the resolved cells array
  * @param isEqual - equality test used to short-circuit re-renders (defaults to a shallow, array-aware comparison that falls back to Object.is for scalar results)
@@ -241,37 +244,42 @@ export function useCells<
  * ```
  */
 export function useCells<
-  Cell extends AnyCellRecord = Computed<CellRecord>,
-  Selected = readonly Cell[],
+  Cell extends AnyCellRecord = CellRecord,
+  Selected = ReadonlyArray<Computed<Cell>>,
 >(
-  selector: (cells: readonly Cell[]) => Selected,
+  selector: (cells: ReadonlyArray<Computed<Cell>>) => Selected,
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 
 // ── Implementation ──────────────────────────────────────────────────────────
 
 export function useCells<
-  Cell extends AnyCellRecord = Computed<CellRecord>,
-  Selected = readonly Cell[],
+  Cell extends AnyCellRecord = CellRecord,
+  Selected = ReadonlyArray<Computed<Cell>>,
 >(
   argument1?:
     | CellId
     | null
     | readonly CellId[]
-    | ((cells: readonly Cell[]) => Selected)
+    | ((cells: ReadonlyArray<Computed<Cell>>) => Selected)
     | mvc.Collection<dia.Cell>,
   argument2?:
-    | ((cells: readonly Cell[]) => Selected)
-    | ((cell: Cell | undefined) => Selected)
+    | ((cells: ReadonlyArray<Computed<Cell>>) => Selected)
+    | ((cell: Computed<Cell> | undefined) => Selected)
     | ((a: Selected, b: Selected) => boolean),
   argument3?: (a: Selected, b: Selected) => boolean
-): CellsResult<Cell, Selected> {
+): CellsResult<Computed<Cell>, Selected> {
   const store = useGraphStore();
-  const container = store.graphProjection.cells as ReadonlyContainer<Cell>;
+  // The store holds resolved (Computed) records; the public `Cell` generic is the
+  // input record shape, so internally we work in `Computed<Cell>`.
+  const container = store.graphProjection.cells as ReadonlyContainer<Computed<Cell>>;
 
   const collectionArgument = isCollection(argument1) ? argument1 : undefined;
 
-  const { targetId, ids, arraySelector, cellSelector, isEqual } = parseUseCellsArgs<Cell, Selected>(
+  const { targetId, ids, arraySelector, cellSelector, isEqual } = parseUseCellsArgs<
+    Computed<Cell>,
+    Selected
+  >(
     argument1,
     argument2,
     argument3
@@ -284,7 +292,7 @@ export function useCells<
   cellSelectorRef.current = cellSelector;
 
   /** Local alias for the hook's return shape so the cache type stays readable. */
-  type Result = CellsResult<Cell, Selected>;
+  type Result = CellsResult<Computed<Cell>, Selected>;
   const cachedRef = useRef<{ hasValue: boolean; value: Result }>({
     hasValue: false,
     value: undefined,
@@ -366,7 +374,7 @@ export function useCells<
   const select = useCallback(
     (): Result => {
       const subscribedIds = collectionArgument ? collectionIdsRef.current : idsRef.current;
-      const next = computeNext<Cell, Selected>(
+      const next = computeNext<Computed<Cell>, Selected>(
         container,
         targetId,
         subscribedIds,
@@ -384,7 +392,9 @@ export function useCells<
       // The all-cells form receives the container's mutable array. Shallow-copy
       // so the cached value is a distinct reference, enabling
       // areArraysShallowEqual to compare element-by-element on subsequent calls.
-      const value = isRawAllCells ? ([...(next as readonly Cell[])] as unknown as Result) : next;
+      const value = isRawAllCells
+        ? ([...(next as ReadonlyArray<Computed<Cell>>)] as unknown as Result)
+        : next;
       cachedRef.current = { hasValue: true, value };
       return value;
     },
