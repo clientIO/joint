@@ -42,6 +42,8 @@ interface LinkUserData {
 }
 type MyElement = Computed<ElementRecord<ElementUserData>>;
 type MyLink = Computed<LinkRecord<LinkUserData>>;
+// Bare (write-shape) record; the hook must resolve it to its `Computed` form.
+type MyElementRecord = ElementRecord<ElementUserData>;
 
 /** Compile-time assertion that `actual` is assignable to `Expected`. */
 const expectType = <Expected>(_actual: Expected): void => {
@@ -81,6 +83,13 @@ if (false as boolean) {
 
   // id-targeted with explicit Cell generic
   expectType<MyElement>(useCell<MyElement>('some-id'));
+
+  // The generic is the INPUT record; the read resolves to Computed. Passing a
+  // bare record (optional position/size/data) must return the required-field
+  // shape — fails under a signature that returns the record unchanged.
+  expectType<MyElement>(useCell<MyElementRecord>());
+  expectType<MyElement>(useCell<MyElementRecord>('some-id'));
+  expectType<number>(useCell<MyElementRecord, number>((el) => el.position.x));
 
   // id-targeted with selector annotated
   expectType<string>(useCell('some-id', (el: MyElement) => el.data.label));
