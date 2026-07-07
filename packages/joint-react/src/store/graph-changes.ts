@@ -52,6 +52,12 @@ interface OnChangeOptions {
   readonly isInsideBatch: boolean;
   /** Skip the container commit; the open batch flushes it once, on close. */
   readonly deferCommit: boolean;
+  /**
+   * The changes are a full bulk `reset`: `changes` holds every surviving cell
+   * as an `add`, so the consumer must prune any container cell not present here
+   * (a `reset` emits no per-cell `remove` events for the cells it drops).
+   */
+  readonly isReset?: boolean;
 }
 
 interface Options {
@@ -188,6 +194,7 @@ export function graphChanges(options: Options) {
         changes,
         isInsideBatch: isInsideBatch(),
         deferCommit: isDeferring(),
+        isReset: true,
       });
     }
   );

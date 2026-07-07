@@ -68,7 +68,7 @@ export function graphProjection<
   const graphChangesController = graphChanges({
     graph,
     onElementsSizeChange,
-    onChanges: ({ changes, isInsideBatch, deferCommit }) => {
+    onChanges: ({ changes, isInsideBatch, deferCommit, isReset }) => {
       for (const [id, change] of changes) {
         const { data, type } = change;
         switch (type) {
@@ -105,6 +105,25 @@ export function graphProjection<
             }
             break;
           }
+        }
+      }
+
+      // A bulk `reset` sends only `add`s for the surviving cells and no per-cell
+      // `remove`s, so prune any container cell the reset dropped — otherwise
+      // reactive readers (`useCells`) keep counting ghost cells the canvas
+      // (rendered from the graph) no longer shows. Same reconciliation the
+      // React-driven `updateGraph()` path does below, keyed off the reset's set.
+      if (isReset) {
+        const survivingIds = new Set<CellId>(changes.keys());
+        // Snapshot ids first — `cells.delete` swap-pops the live array, so
+        // iterating `getAll()` while deleting would skip entries.
+        const staleIds: CellId[] = [];
+        for (const item of cells.getAll()) {
+          if (item.id !== undefined && !survivingIds.has(item.id)) staleIds.push(item.id);
+        }
+        for (const staleId of staleIds) {
+          cells.delete(staleId);
+          if (trackChanges) removed!.add(staleId);
         }
       }
 
