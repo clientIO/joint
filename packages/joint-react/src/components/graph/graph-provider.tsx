@@ -27,7 +27,7 @@ export interface GraphProviderProps<
   /**
    * Pre-existing JointJS graph instance to use. If omitted, GraphProvider
    * creates a fresh `new dia.Graph(...)`.
-   * @see https://docs.jointjs.com/api/dia/Graph
+   * @see [`dia.Graph`](https://docs.jointjs.com/api/dia/Graph)
    */
   readonly graph?: dia.Graph;
   /** React children rendered inside the provider, typically a `<Paper />`. */
@@ -43,7 +43,7 @@ export interface GraphProviderProps<
    * Base model class used for every cell the graph constructs from JSON. Maps to
    * the (deprecated) `cellModel` option of `dia.Graph`; prefer `cellNamespace`,
    * which registers shapes by `type` and supports per-type model classes.
-   * @see https://docs.jointjs.com/api/dia/Graph
+   * @see [`dia.Graph`](https://docs.jointjs.com/api/dia/Graph)
    */
   readonly cellModel?: typeof dia.Cell;
   /**
