@@ -16,7 +16,7 @@ export interface $AnimationOptions {
     complete?: (this: DOMElement) => void;
 }
 
-export interface Event {
+interface MVCEvent {
     // Event
     bubbles: boolean | undefined;
     cancelable: boolean | undefined;
@@ -74,7 +74,7 @@ export interface TriggeredEvent<
     TData = any,
     TCurrentTarget = any,
     TTarget = any
-> extends Event {
+> extends MVCEvent {
     currentTarget: TCurrentTarget;
     delegateTarget: TDelegateTarget;
     target: TTarget;
@@ -415,7 +415,9 @@ export interface ViewBaseOptions<TModel extends (Model | undefined) = Model, TEl
     events?: _Result<EventsHash> | undefined;
 }
 
-export type ViewBaseEventListener = (event: Event) => void;
+export type ViewBaseEventListener = (event: MVCEvent) => void;
+
+export { MVCEvent as Event };
 
 export class ViewBase<TModel extends (Model | undefined) = Model, TElement extends DOMElement = HTMLElement> extends EventsMixin implements Events {
     /**
