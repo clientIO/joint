@@ -1,5 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { StrictMode } from 'react';
 import { render, waitFor } from '@testing-library/react';
+import type { dia } from '@joint/core';
 import { GraphProvider, Paper } from '../../components';
 import { FeaturesProvider } from '../../components/features-provider/features-provider';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
@@ -185,6 +187,53 @@ describe('useCreateFeature — paper target lifecycle', () => {
     );
     await waitFor(() => {
       expect(onAdd).toHaveBeenCalled();
+    });
+  });
+
+  it('does not leak a duplicate paper feature under StrictMode (React 18 double-render)', async () => {
+    // Regression for the selection "2x drag" bug. Under React 18's StrictMode
+    // the render body runs twice; the feature must still be created and bound
+    // EXACTLY once. A leaked duplicate binds a second paper listener (its
+    // constructor's side effect) that is never cleaned, so every interaction
+    // fires twice. Passes trivially on React 19 (single render) — the guard
+    // bites under the React 18 project (`yarn test:react18`).
+    let capturedPaper: dia.Paper | null = null;
+    const onAdd = jest.fn(({ paperStore }: { paperStore: { paper: dia.Paper } }) => {
+      const { paper } = paperStore;
+      capturedPaper = paper;
+      // Distinct per-instance listener on purpose: a shared handler would be
+      // removed for every instance on the first clean, masking a leaked duplicate.
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const handler = () => {};
+      paper.on('leak:probe', handler);
+      return {
+        id: 'leak-probe',
+        instance: { tag: 'leak' } as FeatureInstance,
+        clean() {
+          paper.off('leak:probe', handler);
+        },
+      };
+    });
+
+    render(
+      <StrictMode>
+        <GraphProvider initialCells={initialCells}>
+          <Paper style={{ width: 100, height: 100 }} id="leak-paper" renderElement={noopRender}>
+            <FeaturesProvider target="paper" id="leak-probe" onAddFeature={onAdd}>
+              <div>leak-child</div>
+            </FeaturesProvider>
+          </Paper>
+        </GraphProvider>
+      </StrictMode>
+    );
+
+    await waitFor(() => expect(capturedPaper).not.toBeNull());
+    await waitFor(() => {
+      const paper = capturedPaper as unknown as {
+        _events?: Record<string, readonly unknown[]>;
+      } | null;
+      const listeners = paper?._events?.['leak:probe'] ?? [];
+      expect(listeners).toHaveLength(1);
     });
   });
 });

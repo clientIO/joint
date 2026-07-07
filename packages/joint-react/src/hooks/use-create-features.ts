@@ -302,30 +302,38 @@ export function useCreateFeature<T>(
   // Holds the created feature to survive strict-mode cleanup/re-mount without re-calling onAddFeature
   const featureRef = useRef<Feature | null>(null);
 
-  // Paper-specific registration paths:
-  //  - Paper not yet mounted: defer via `featureContext` so Paper's mount
-  //    effect picks up the feature before it sets `isReady=true`.
-  //  - Paper already mounted (this hook is being called from inside
-  //    `<Paper>`'s subtree): register synchronously during render so the
-  //    feature is visible to sibling consumers reading `paperStore.features`
-  //    in the same commit. Without this, a `<Stencil>` sibling that creates
-  //    its underlying instance in `useImperativeApi`'s onLoad sees an empty
-  //    feature snapshot and never picks up the inside-Paper-registered
-  //    feature.
-  if (isPaperTarget && !featureContext.features.has(id) && !featureRef.current) {
-    if (paperStore) {
-      const feature = createAndRegisterFeature(
-        target,
-        onAddFeature,
-        graphStore,
-        paperStore,
-        true
-      );
-      featureRef.current = feature;
-      registerFeature(target, graphStore, paperStore, feature);
-    } else {
+  // Register the feature synchronously DURING RENDER when the hook runs inside
+  // an already-mounted `<Paper>`, so the feature is visible to sibling consumers
+  // reading `paperStore.features` in the SAME commit. Without this, a `<Stencil>`
+  // sibling that builds its instance in `useImperativeApi`'s onLoad sees an empty
+  // snapshot and never picks up the inside-Paper feature. When Paper is not yet
+  // mounted, the factory is deferred instead for Paper's mount effect to run.
+  const registerFeatureDuringRender = () => {
+    // Paper not mounted yet: defer the factory; Paper's mount effect picks it up.
+    if (!paperStore) {
       featureContext.features.set(id, onAddFeature);
+      return;
     }
+    // StrictMode double-invokes render, and ref writes from the discarded first
+    // pass are NOT preserved into the second, so `featureRef.current` alone can't
+    // dedupe across the two passes (React 18 runs this block twice). The store
+    // registration IS preserved (external state), so adopt an instance already
+    // registered for this id instead of constructing a duplicate — a duplicate
+    // leaks (its constructor bound paper listeners; only the committed instance's
+    // cleanup runs) and fires every interaction twice (e.g. selection drag
+    // translating each cell 2x).
+    const alreadyRegistered = resolveExistingFeature(target, graphStore, paperStore, id);
+    if (alreadyRegistered) {
+      featureRef.current = alreadyRegistered;
+      return;
+    }
+    const feature = createAndRegisterFeature(target, onAddFeature, graphStore, paperStore, true);
+    featureRef.current = feature;
+    registerFeature(target, graphStore, paperStore, feature);
+  };
+
+  if (isPaperTarget && !featureContext.features.has(id) && !featureRef.current) {
+    registerFeatureDuringRender();
   }
 
   // Create and register the feature (fires onAddFeature exactly once)

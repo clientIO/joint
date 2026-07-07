@@ -7,7 +7,9 @@
     "@babel/preset-env",
     "@babel/preset-react",
     "@babel/preset-typescript",
-    "babel-plugin-react-compiler"
+    "babel-plugin-react-compiler",
+    "react18",
+    "react18-dom"
   ],
   "ignoreExportsUsedInFile": false
 }
