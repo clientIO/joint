@@ -30,6 +30,9 @@
     "./packages/*",
     "./examples/*"
   ],
+  "resolutions": {
+    "grunt-contrib-qunit/puppeteer": "24.22.0"
+  },
   "volta": {
     "node": "22.14.0",
     "npm": "11.2.0",
