@@ -1,3 +1,9 @@
+07-07-2026 (v4.3.1)
+
+  @joint/react
+  * useCreateFeature - fix duplicate paper feature registration under React 18 StrictMode causing interactions to fire twice (e.g. selection drag translating cells 2x)
+  * useCells - fix ghost cells reported after `resetCells()` (bulk reset emits no per-cell `remove` events)
+
 07-07-2026 (v4.3.0)
 
   @joint/react
