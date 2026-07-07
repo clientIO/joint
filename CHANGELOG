@@ -1,9 +1,9 @@
 07-07-2026 (v4.3.0)
 
-@joint/react
+  @joint/react
   * new package - idiomatic React components and hooks for JointJS, built directly on the core engine
 
-@joint/core
+  @joint/core
   * dia.Paper - add `originX` and `originY` options to `getFitToContentArea()`
   * dia.Paper - add typed `EventMap` for IDE autocomplete and type-checking on `on()` calls
   * dia.Paper - `resolveViewClass` factory now receives the resolved namespace view class as a second argument
