@@ -57,6 +57,19 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
   );
 }
 
+function HTMLHostComponent(
+  props: Readonly<HTMLHostProps>,
+  ref: ForwardedRef<HTMLDivElement>
+): ReactNode {
+  const { useModelGeometry = false, ...rest } = props;
+
+  return useModelGeometry ? (
+    <StaticHTMLFrame hostRef={ref} {...rest} />
+  ) : (
+    <MeasuredHTMLFrame hostRef={ref} {...rest} />
+  );
+}
+
 /**
  * Renders a graph element as an unstyled HTML node you fully control. Reach for
  * this inside `<Paper renderElement={...}>` when you want plain DOM (a `<div>`,
@@ -82,19 +95,6 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
  * ```
  * @group Components
  */
-function HTMLHostComponent(
-  props: Readonly<HTMLHostProps>,
-  ref: ForwardedRef<HTMLDivElement>
-): ReactNode {
-  const { useModelGeometry = false, ...rest } = props;
-
-  return useModelGeometry ? (
-    <StaticHTMLFrame hostRef={ref} {...rest} />
-  ) : (
-    <MeasuredHTMLFrame hostRef={ref} {...rest} />
-  );
-}
-
 export const HTMLHost = forwardRef(HTMLHostComponent);
 
 /**

@@ -244,16 +244,14 @@ function Component(props: SVGTextProps, ref: React.ForwardedRef<SVGTextElement>)
  * `textWrap` runs `util.breakText` so long strings wrap to the element's width.
  * See {@link SVGTextProps} for every supported option.
  * @group Components
- * @example
- * @title Basic label
+ * @example Basic label
  * ```tsx
  * import { Paper, SVGText } from '@joint/react';
  *
  * // Label each element with a static caption.
  * <Paper renderElement={() => <SVGText x={10} y={20}>Hello World</SVGText>} />
  * ```
- * @example
- * @title Wrap text to a fixed width
+ * @example Wrap text to a fixed width
  * ```tsx
  * import { Paper, SVGText } from '@joint/react';
  *
@@ -266,8 +264,7 @@ function Component(props: SVGTextProps, ref: React.ForwardedRef<SVGTextElement>)
  *   )}
  * />
  * ```
- * @example
- * @title Vertical anchor, line height, and line breaks
+ * @example Vertical anchor, line height, and line breaks
  * ```tsx
  * import { Paper, SVGText } from '@joint/react';
  *

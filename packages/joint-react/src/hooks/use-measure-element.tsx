@@ -62,8 +62,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  * @throws If used outside a `renderElement` context, or if the current cell is a
  *   link rather than an element.
  * @group Hooks
- * @example
- * @title Basic usage
+ * @example Basic usage
  * ```tsx
  * import { useMeasureElement } from '@joint/react';
  * import { useRef } from 'react';
@@ -81,8 +80,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  *   );
  * }
  * ```
- * @example
- * @title Use the returned size
+ * @example Use the returned size
  * ```tsx
  * import { useMeasureElement } from '@joint/react';
  * import { useRef } from 'react';
@@ -106,8 +104,7 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  *   );
  * }
  * ```
- * @example
- * @title Adjust size with a transform
+ * @example Adjust size with a transform
  * ```tsx
  * import { useMeasureElement, type TransformElementLayout } from '@joint/react';
  * import { useRef, useCallback } from 'react';
