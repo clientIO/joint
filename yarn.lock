@@ -6540,6 +6540,7 @@ __metadata:
     redux: "npm:^5.0.1"
     redux-undo: "npm:1.1.0"
     rollup: "npm:^4.50.0"
+    rollup-plugin-banner2: "npm:^1.2.2"
     rollup-plugin-dts: "npm:^6.4.1"
     rollup-plugin-esbuild: "npm:^6.2.1"
     storybook: "npm:^10.4.2"

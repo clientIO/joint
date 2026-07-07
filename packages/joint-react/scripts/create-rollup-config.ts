@@ -1,8 +1,19 @@
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin, type RollupOptions } from 'rollup';
 import esbuild from 'rollup-plugin-esbuild';
 import { build as runEsbuild } from 'esbuild';
 import dts from 'rollup-plugin-dts';
+import banner from 'rollup-plugin-banner2';
+
+// JointJS banner prepended to every emitted JS file.
+// - see `joint-core/grunt/resources/banner.js`
+const packageJson = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8')
+) as { title: string; version: string; description: string };
+const today = new Date();
+const formattedDate = `${today.toLocaleDateString('en-US', { year: 'numeric' })}-${today.toLocaleDateString('en-US', { month: '2-digit' })}-${today.toLocaleDateString('en-US', { day: '2-digit' })}`;
+const bannerText = `/*! ${packageJson.title} v${packageJson.version} (${formattedDate}) - ${packageJson.description}\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n*/\n\n`;
 
 interface CreateRollupConfigOptions {
   /** Entry points to build (e.g. ['src/index.ts', 'src/internal.ts']) */
@@ -38,6 +49,7 @@ function createCssConfig(cssEntries: string[]): RollupOptions {
             bundle: true,
             outfile: path.join('dist', path.basename(entry)),
             loader: { '.css': 'css' },
+            banner: { css: bannerText },
           })
         )
       );
@@ -100,6 +112,7 @@ export function createRollupConfig(options: CreateRollupConfigOptions): RollupOp
         sourcemap: true,
         preserveModules: true,
         preserveModulesRoot: 'src',
+        plugins: [banner(() => bannerText)],
       },
       context: 'globalThis',
       external,
@@ -120,6 +133,7 @@ export function createRollupConfig(options: CreateRollupConfigOptions): RollupOp
         // recognizes this build as CommonJS regardless of the package `type`.
         entryFileNames: '[name].cjs',
         chunkFileNames: '[name].cjs',
+        plugins: [banner(() => bannerText)],
       },
       context: 'globalThis',
       external,
@@ -142,6 +156,7 @@ export function createRollupConfig(options: CreateRollupConfigOptions): RollupOp
         // files always match the `types`/`exports` paths in package.json.
         entryFileNames: '[name].d.ts',
         chunkFileNames: '[name]-[hash].d.ts',
+        plugins: [banner(() => bannerText)],
       },
       external,
       plugins: [dts()],

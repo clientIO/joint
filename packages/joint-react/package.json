@@ -123,6 +123,7 @@
     "redux": "^5.0.1",
     "redux-undo": "1.1.0",
     "rollup": "^4.50.0",
+    "rollup-plugin-banner2": "^1.2.2",
     "rollup-plugin-dts": "^6.4.1",
     "rollup-plugin-esbuild": "^6.2.1",
     "storybook": "^10.4.2",
