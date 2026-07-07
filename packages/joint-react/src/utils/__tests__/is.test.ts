@@ -69,7 +69,7 @@ describe('is.ts utility functions', () => {
 
     test('returns false when property is undefined', () => {
        
-      expect(is.hasProperty({ foo: 1 }, undefined)).toBe(false);
+      expect(is.hasProperty({ foo: 1 })).toBe(false);
     });
 
     test('returns false when both are undefined', () => {
