@@ -12,10 +12,9 @@ type LooseElement = dia.Element & {
 
 describe('getElementLayoutFields', () => {
   it('returns null when the element has no size attribute', () => {
-    const element = new dia.Element() as LooseElement;
-    // dia.Element has a default size; force it to undefined to exercise the early return
-     
-    element.set('size', undefined);
+    const element = new dia.Element();
+    // dia.Element has a default size; remove it to exercise the early return
+    element.unset('size');
     expect(getElementLayoutFields(element)).toBeNull();
   });
 
@@ -33,11 +32,11 @@ describe('getElementLayoutFields', () => {
   });
 
   it('falls back to default point when position is missing', () => {
-    const element = new dia.Element({
+    const element = new dia.Element<dia.Element.Attributes>({
       size: { width: 100, height: 50 },
-    }) as LooseElement;
-     
-    element.set('position', undefined);
+    });
+    // no position provided; remove the default to exercise the fallback
+    element.unset('position');
     const result = getElementLayoutFields(element);
     expect(result?.position).toEqual({ x: 0, y: 0 });
   });
