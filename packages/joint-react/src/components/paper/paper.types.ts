@@ -379,7 +379,7 @@ export type RenderLink<LinkData = unknown> = (data: LinkData) => ReactNode;
  * re-subscription on render. For raw native event names or events without an
  * `on*` form (`render:done`, `cell:highlight`, …), use the {@link useOnPaperEvents}
  * hook.
- * @see https://docs.jointjs.com/api/dia/Paper
+ * @see [`dia.Paper`](https://docs.jointjs.com/api/dia/Paper)
  * @expand
  * @group Types
  */

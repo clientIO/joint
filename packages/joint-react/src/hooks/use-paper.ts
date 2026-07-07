@@ -80,19 +80,19 @@ export interface PaperApi {
   /**
    * Trigger a render pass on the paper. Forwards to `paper.wakeUp()`.
    * No-op when the paper isn't resolved yet.
-   * @see https://docs.jointjs.com/api/dia/Paper#wakeUp
+   * @see [`paper.wakeUp()`](https://docs.jointjs.com/api/dia/Paper#wakeup)
    */
   readonly wakeUp: () => void;
   /**
    * Suspend view updates so edits don't repaint until {@link PaperApi.unfreeze}.
    * Forwards to `paper.freeze()`. No-op when the paper isn't resolved yet.
-   * @see https://docs.jointjs.com/api/dia/Paper#freeze
+   * @see [`paper.freeze()`](https://docs.jointjs.com/api/dia/Paper#freeze)
    */
   readonly freeze: () => void;
   /**
    * Resume view updates and flush everything queued while frozen. Forwards to
    * `paper.unfreeze()`. No-op when the paper isn't resolved yet.
-   * @see https://docs.jointjs.com/api/dia/Paper#unfreeze
+   * @see [`paper.unfreeze()`](https://docs.jointjs.com/api/dia/Paper#unfreeze)
    */
   readonly unfreeze: () => void;
 }
@@ -109,7 +109,7 @@ export interface PaperApi {
  * @param paperId - An explicit paper id, or omitted for the context/default paper.
  * @returns The {@link PaperApi}: the resolved `paper` (or `null`) plus `wakeUp`,
  *          `freeze`, and `unfreeze` actions.
- * @see https://docs.jointjs.com/learn/quickstart/paper
+ * @see [Paper quickstart](https://docs.jointjs.com/learn/quickstart/paper)
  * @group Hooks
  * @example
  * ```tsx
