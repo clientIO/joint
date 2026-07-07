@@ -184,8 +184,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
  * `initialCells` to let JointJS own the graph after mount (uncontrolled), pass
  * `cells` + `onCellsChange` to drive the graph from React state (controlled), or
  * pass `onIncrementalCellsChange` to forward deltas to an external store.
- * @example
- * @title Uncontrolled — seed once, JointJS owns the graph
+ * @example Uncontrolled — seed once, JointJS owns the graph
  * ```tsx
  * import { GraphProvider, Paper } from '@joint/react';
  *
@@ -198,8 +197,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
  *   <Paper renderElement={(data) => <rect width={80} height={40} rx={4} fill="#4763ff" />} />
  * </GraphProvider>
  * ```
- * @example
- * @title Controlled — React state owns the cells
+ * @example Controlled — React state owns the cells
  * ```tsx
  * import { useState } from 'react';
  * import { GraphProvider, Paper, type CellRecord } from '@joint/react';
@@ -209,8 +207,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
  *   <Paper />
  * </GraphProvider>
  * ```
- * @example
- * @title Incremental — forward deltas to an external store
+ * @example Incremental — forward deltas to an external store
  * ```tsx
  * import { GraphProvider, Paper } from '@joint/react';
  *
