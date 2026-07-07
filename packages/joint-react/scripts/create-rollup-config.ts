@@ -49,6 +49,7 @@ function createCssConfig(cssEntries: string[]): RollupOptions {
             bundle: true,
             outfile: path.join('dist', path.basename(entry)),
             loader: { '.css': 'css' },
+            banner: { css: bannerText },
           })
         )
       );
@@ -155,6 +156,7 @@ export function createRollupConfig(options: CreateRollupConfigOptions): RollupOp
         // files always match the `types`/`exports` paths in package.json.
         entryFileNames: '[name].d.ts',
         chunkFileNames: '[name]-[hash].d.ts',
+        plugins: [banner(() => bannerText)],
       },
       external,
       plugins: [dts()],
