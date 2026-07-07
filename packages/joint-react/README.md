@@ -18,10 +18,8 @@
 
 <p align="center">
   🚀 <a href="#quick-start">Quick start</a> ·
-  📖 <a href="https://react.jointjs.com/api/index.html">Docs</a> ·
-  🧩 <a href="https://react.jointjs.com/learn/?path=/docs/introduction--docs">Live examples</a> ·
-  🤖 <a href="#using-jointjs-for-react-with-ai-coding-agents">MCP server</a> ·
-  💬 <a href="https://github.com/clientIO/joint/discussions">Discussions</a>
+  🧩 <a href="https://www.jointjs.com/demos/ai-workflow-builder">Live Example</a> ·
+  📖 <a href="#learn-more">Learn more</a>
 </p>
 
 [![Use Cases](https://github.com/user-attachments/assets/fc6de738-3fad-48f7-99aa-ba8c3729d9b1)](https://github.com/user-attachments/assets/fc6de738-3fad-48f7-99aa-ba8c3729d9b1)
@@ -58,7 +56,7 @@ interface NodeData {
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '1', type: 'element', position: { x: 40, y: 40 }, data: { label: 'Hello' } },
   { id: '2', type: 'element', position: { x: 280, y: 180 }, data: { label: 'World' } },
-  { id: 'link-1', type: 'link', source: { id: '1' }, target: { id: '2' } },
+  { id: '1 → 2', type: 'link', source: { id: '1' }, target: { id: '2' } },
 ];
 
 function renderElement(data: NodeData) {
@@ -74,7 +72,7 @@ export default function Diagram() {
 }
 ```
 
-`GraphProvider` holds the graph state, `Paper` renders it, and `renderElement` turns each node's data into a React component. See the [documentation](#documentation) for the full getting-started guide.
+`GraphProvider` holds the graph state, `Paper` renders it, and `renderElement` turns each node's data into a React component. See [Learn more](#learn-more) for the full getting-started guide.
 
 ## When is JointJS for React the right choice?
 
@@ -103,11 +101,12 @@ JointJS for React is used to build production diagramming applications across ma
 
 Explore the [demos](https://www.jointjs.com/demos) to see them in action.
 
-## Documentation
+## Learn more
 
-- 📖 [API reference](https://react.jointjs.com/api/index.html)
-- 🧩 [Live examples (Storybook)](https://react.jointjs.com/learn/?path=/docs/introduction--docs)
-- 🖼️ [Demos](https://www.jointjs.com/demos)
+- 📖 [Learn JointJS for React](https://docs.jointjs.com/react)
+- 🧾 [API reference](https://docs.jointjs.com/api-react)
+- 🖼️ [Examples](https://www.jointjs.com/demos)
+- 🤖 [MCP server](#using-jointjs-for-react-with-ai-coding-agents)
 - 💬 [Ask a question or share feedback](https://github.com/clientIO/joint/discussions)
 
 ## Using JointJS for React with AI coding agents
