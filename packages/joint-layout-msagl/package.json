@@ -37,7 +37,7 @@
     "dist": "yarn build",
     "build": "yarn clean && yarn build:esm && yarn build:umd",
     "clean": "rm -rf dist",
-    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:esm": "tsc --project tsconfig.esm.json && node scripts/add-esm-banner.mjs",
     "build:umd": "rollup --config",
     "watch": "yarn build && concurrently \"tsc --project tsconfig.esm.json --watch\" \"rollup --config --watch\"",
     "test": "yarn build && karma start karma.conf.js",
