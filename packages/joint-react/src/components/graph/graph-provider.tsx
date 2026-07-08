@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import React, { useLayoutEffect } from 'react';
+import React, { memo, useLayoutEffect } from 'react';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
@@ -152,18 +152,19 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
 
   useLayoutEffect(() => {
     if (!isReady) return;
-    ref.current.setOnIncrementalCellsChange((changeSet) => {
+    const { setOnIncrementalCellsChange, applyControlled, graphProjection } = ref.current;
+    setOnIncrementalCellsChange((changeSet) => {
       onIncrementalCellsChange?.(changeSet);
       if (onCellsChange) {
-        onCellsChange([...ref.current.graphProjection.cells.getAll()]);
+        onCellsChange(graphProjection.cells.getSnapshot());
         return;
       }
       if (isControlled) {
-        ref.current.applyControlled(cells);
+        applyControlled(cells);
       }
     });
     if (isControlled) {
-      ref.current.applyControlled(cells ?? []);
+      applyControlled(cells ?? []);
     }
   }, [isReady, onIncrementalCellsChange, onCellsChange, ref, isControlled, cells]);
 
@@ -223,7 +224,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
  * @see {@link GraphProviderProps} for the full list of props.
  * @group Components
  */
-export const GraphProvider = GraphBase as <
+export const GraphProvider = memo(GraphBase) as <
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 >(

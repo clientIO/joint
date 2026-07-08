@@ -26,11 +26,12 @@ function selectOptionalItemData(item: ItemData | undefined): { label: string } |
 
 function populateContainer(count: number): ReadonlyContainer<ItemData> {
   const container = createContainer<ItemData>();
+  const added = new Map<string, ItemData>();
   for (let index = 0; index < count; index++) {
     const id = `node-${index}`;
-    container.set(id, { id, data: { label: `Node ${index}` }, x: index * 10, y: index * 10 });
+    added.set(id, { id, data: { label: `Node ${index}` }, x: index * 10, y: index * 10 });
   }
-  container.commitChanges();
+  container.batchSet({ added, changed: new Map(), removed: new Set() });
   return asReadonlyContainer(container);
 }
 
@@ -64,7 +65,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       const bench = new Bench({ time: 1000 });
 
       bench.add(`key derivation (${size})`, () => {
-        const items = container.getAll();
+        const items = container.getSnapshot();
         const keys: string[] = [];
         for (const item of items) keys.push(item.id);
         // Simulate comparison with previous keys
@@ -89,7 +90,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
 
       bench.add(`full iteration + selector (${size})`, () => {
         const result = new Map<string, { label: string }>();
-        for (const item of container.getAll()) {
+        for (const item of container.getSnapshot()) {
           result.set(item.id, selectItemData(item));
         }
         return result;
@@ -126,7 +127,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       const mapA = new Map<string, { label: string }>();
       const mapB = new Map<string, { label: string }>();
 
-      for (const item of container.getAll()) {
+      for (const item of container.getSnapshot()) {
         const reference = item.data;
         mapA.set(item.id, reference);
         mapB.set(item.id, reference); // Same references — equal case

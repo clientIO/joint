@@ -1,531 +1,393 @@
-/* eslint-disable sonarjs/no-element-overwrite */
 /* eslint-disable unicorn/consistent-function-scoping */
-import { createAtom, createContainer, getValue } from '../state-container';
-
-/** Flush pending microtasks so commitChanges callbacks execute. */
-const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
-
-describe('getValue', () => {
-  it('returns the value directly when not a function', () => {
-    expect(getValue({ id: 'old' }, { id: 'new' })).toEqual({ id: 'new' });
-  });
-
-  it('calls the updater function with previous value', () => {
-    expect(
-      getValue({ id: 'a', v: 1 }, (previous) => ({ id: 'a', v: (previous?.v ?? 0) + 10 }))
-    ).toEqual({
-      id: 'a',
-      v: 11,
-    });
-  });
-
-  it('passes undefined-capable previous to updater', () => {
-    const updater = jest.fn((previous: { id: string; v: number } | undefined) => ({
-      id: 'a',
-      v: (previous?.v ?? 0) + 5,
-    }));
-    getValue({ id: 'a', v: 3 }, updater);
-    expect(updater).toHaveBeenCalledWith({ id: 'a', v: 3 });
-  });
-});
+import { createAtom, createContainer, type Container } from '../state-container';
 
 describe('createContainer', () => {
   type Item = { readonly id: string; x: number; y: number; type: string };
-  function setup() {
-    return createContainer<Item>();
-  }
+  const setup = () => createContainer<Item>();
 
-  describe('get / add / delete / getSize / has', () => {
+  // The container is now updated with a single batched change set. These helpers
+  // express the three primitive operations the old `set`/`delete` API covered so
+  // each test still reads as add / update / remove.
+  const add = (container: Container<Item>, ...items: Item[]) =>
+    container.batchSet({
+      added: new Map(items.map((item) => [item.id, item])),
+      changed: new Map(),
+      removed: new Set(),
+    });
+  const update = (container: Container<Item>, ...items: Item[]) =>
+    container.batchSet({
+      added: new Map(),
+      changed: new Map(items.map((item) => [item.id, item])),
+      removed: new Set(),
+    });
+  const remove = (container: Container<Item>, ...ids: string[]) =>
+    container.batchSet({ added: new Map(), changed: new Map(), removed: new Set(ids) });
+
+  describe('get / add / delete / size / has', () => {
     it('returns undefined for missing id', () => {
       const container = setup();
       expect(container.get('a')).toBeUndefined();
       expect(container.has('a')).toBe(false);
     });
 
-    it('adds and retrieves a value', async () => {
+    it('adds and retrieves a value', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       expect(container.get('a')).toEqual({ id: 'a', x: 1, y: 2, type: 'item' });
       expect(container.has('a')).toBe(true);
     });
 
-    it('updates an existing value with a direct value (slot replace, stable array ref)', async () => {
+    it('updates an existing value in place (same index, new snapshot ref)', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      const before = container.getSnapshot();
 
-      const refBefore = container.getAll();
-      container.set('a', { id: 'a', x: 10, y: 20, type: 'item' });
-      container.commitChanges();
-      await flush();
+      update(container, { id: 'a', x: 10, y: 20, type: 'item' });
       expect(container.get('a')).toEqual({ id: 'a', x: 10, y: 20, type: 'item' });
-      expect(container.getAll()).toBe(refBefore);
+      // Immutable snapshot: the reference changes on every commit ...
+      expect(container.getSnapshot()).not.toBe(before);
+      // ... and the previous snapshot is left untouched.
+      expect(before).toEqual([{ id: 'a', x: 1, y: 2, type: 'item' }]);
     });
 
-    it('updates an existing value with an updater function', async () => {
+    it('empty change set is a no-op (same snapshot ref, no notify)', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
-      container.set('a', (previous) => ({
-        id: 'a',
-        x: (previous?.x ?? 0) + 5,
-        y: (previous?.y ?? 0) + 5,
-        type: 'item',
-      }));
-      container.commitChanges();
-      await flush();
-      expect(container.get('a')).toEqual({ id: 'a', x: 6, y: 7, type: 'item' });
-    });
-
-    it('ignores set when updater returns undefined', async () => {
-      const container = setup();
-      container.set('a', (): Item | undefined => {
-        return;
-      });
-      container.commitChanges();
-      await flush();
-      expect(container.get('a')).toBeUndefined();
-      expect(container.getSize()).toBe(0);
-    });
-
-    it('ignores set when value is strictly equal to previous', async () => {
-      const container = setup();
-      const value: Item = { id: 'a', x: 1, y: 2, type: 'item' };
-      container.set('a', value);
-      container.commitChanges();
-      await flush();
-
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      const before = container.getSnapshot();
       const listener = jest.fn();
-      container.subscribe('a', listener);
+      container.subscribeById('a', listener);
 
-      container.set('a', value); // same reference
-      container.commitChanges();
-      await flush();
-
+      container.batchSet({ added: new Map(), changed: new Map(), removed: new Set() });
+      expect(container.getSnapshot()).toBe(before);
       expect(listener).not.toHaveBeenCalled();
     });
 
-    it('deletes an existing value with swap-pop', async () => {
+    it('deletes an existing value', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.set('c', { id: 'c', x: 5, y: 6, type: 'item' });
-      container.commitChanges();
-      await flush();
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' },
+        { id: 'c', x: 5, y: 6, type: 'item' }
+      );
 
-      container.delete('a');
-      container.commitChanges();
-      await flush();
-
+      remove(container, 'a');
       expect(container.get('a')).toBeUndefined();
       expect(container.has('a')).toBe(false);
-      expect(container.getSize()).toBe(2);
+      expect(container.getSnapshot().length).toBe(2);
       const ids = container
-        .getAll()
+        .getSnapshot()
         .map((item) => item.id)
         .toSorted((a, b) => String(a).localeCompare(String(b)));
       expect(ids).toEqual(['b', 'c']);
     });
 
-    it('delete of the last item does not swap', async () => {
+    it('delete preserves the order of the remaining items', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.commitChanges();
-      await flush();
-
-      container.delete('b');
-      container.commitChanges();
-      await flush();
-      expect(container.getAll().map((item) => item.id)).toEqual(['a']);
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
+      remove(container, 'b');
+      expect(container.getSnapshot().map((item) => item.id)).toEqual(['a']);
     });
 
-    it('delete is a no-op for missing id', async () => {
+    it('tracks size correctly through add and delete', () => {
       const container = setup();
-      const sizeListener = jest.fn();
-      container.subscribeToSize(sizeListener);
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
+      expect(container.getSnapshot().length).toBe(2);
 
-      container.delete('nonexistent');
-      container.commitChanges();
-      await flush();
-
-      expect(sizeListener).not.toHaveBeenCalled();
-    });
-
-    it('tracks size correctly through add and delete', async () => {
-      const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.commitChanges();
-      await flush();
-      expect(container.getSize()).toBe(2);
-
-      container.delete('a');
-      container.commitChanges();
-      await flush();
-      expect(container.getSize()).toBe(1);
+      remove(container, 'a');
+      expect(container.getSnapshot().length).toBe(1);
     });
   });
 
-  describe('reset — atomic replace-all', () => {
-    it('replaces all items', async () => {
+  describe('replace-all (remove + add in one batch)', () => {
+    it('replaces all items', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.commitChanges();
-      await flush();
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
 
-      container.reset([
-        { id: 'x', x: 10, y: 20, type: 'item' },
-        { id: 'y', x: 30, y: 40, type: 'item' },
-      ]);
-      container.commitChanges();
-      await flush();
+      container.batchSet({
+        added: new Map([
+          ['x', { id: 'x', x: 10, y: 20, type: 'item' }],
+          ['y', { id: 'y', x: 30, y: 40, type: 'item' }],
+        ]),
+        changed: new Map(),
+        removed: new Set(['a', 'b']),
+      });
 
       expect(container.has('a')).toBe(false);
       expect(container.has('b')).toBe(false);
       expect(container.get('x')?.x).toBe(10);
       expect(container.get('y')?.y).toBe(40);
-      expect(container.getSize()).toBe(2);
+      expect(container.getSnapshot().length).toBe(2);
     });
 
-    it('empty reset clears', async () => {
+    it('removing every item clears the container', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
-      container.reset([]);
-      container.commitChanges();
-      await flush();
-      expect(container.getSize()).toBe(0);
-    });
-
-    it('reset bumps version once per call', () => {
-      const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      const v0 = container.getVersion();
-      container.reset([
-        { id: 'b', x: 2, y: 3, type: 'item' },
-        { id: 'c', x: 4, y: 5, type: 'item' },
-      ]);
-      expect(container.getVersion()).toBe(v0 + 1);
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      remove(container, 'a');
+      expect(container.getSnapshot().length).toBe(0);
     });
   });
 
-  describe('commitChanges', () => {
-    it('does nothing when there are no changes', async () => {
+  describe('batchSet notifications', () => {
+    it('notifies listeners for changed ids', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       const listener = jest.fn();
-      container.subscribe('a', listener);
+      container.subscribeById('a', listener);
 
-      container.commitChanges(); // no changes queued
-      await flush();
-      expect(listener).not.toHaveBeenCalled();
-    });
-
-    it('notifies listeners for changed ids', async () => {
-      const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
-      const listener = jest.fn();
-      container.subscribe('a', listener);
-
-      container.set('a', { id: 'a', x: 10, y: 20, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      update(container, { id: 'a', x: 10, y: 20, type: 'item' });
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('notifies listeners on delete', async () => {
+    it('notifies listeners on delete', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       const listener = jest.fn();
-      container.subscribe('a', listener);
+      container.subscribeById('a', listener);
 
-      container.delete('a');
-      container.commitChanges();
-      await flush();
-
+      remove(container, 'a');
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('does not notify listeners for unrelated ids', async () => {
+    it('does not notify listeners for unrelated ids', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       const listenerA = jest.fn();
-      container.subscribe('a', listenerA);
+      container.subscribeById('a', listenerA);
 
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      add(container, { id: 'b', x: 3, y: 4, type: 'item' });
       expect(listenerA).not.toHaveBeenCalled();
     });
 
-    it('dedupes dirty ids within one commit (multiple sets → one listener call)', async () => {
+    it('fires a changed id listener exactly once per batch', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       const listener = jest.fn();
-      container.subscribe('a', listener);
+      container.subscribeById('a', listener);
 
-      container.set('a', { id: 'a', x: 10, y: 20, type: 'item' });
-      container.set('a', { id: 'a', x: 100, y: 200, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      update(container, { id: 'a', x: 100, y: 200, type: 'item' });
       expect(listener).toHaveBeenCalledTimes(1);
       expect(container.get('a')).toEqual({ id: 'a', x: 100, y: 200, type: 'item' });
     });
 
-    it('clears the changes queue after commit', async () => {
+    it('notifies synchronously (no scheduler)', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       const listener = jest.fn();
-      container.subscribe('a', listener);
+      container.subscribeById('a', listener);
 
-      container.set('a', { id: 'a', x: 10, y: 20, type: 'item' });
-      container.commitChanges();
-      await flush();
-
-      container.commitChanges(); // second commit should be no-op
-      await flush();
-
-      expect(listener).toHaveBeenCalledTimes(1);
-    });
-
-    it('notifies synchronously on commit', () => {
-      const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-
-      const listener = jest.fn();
-      container.subscribe('a', listener);
-
-      container.set('a', { id: 'a', x: 10, y: 20, type: 'item' });
-      container.commitChanges();
-
+      update(container, { id: 'a', x: 10, y: 20, type: 'item' });
       expect(listener).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('subscribe', () => {
-    it('returns an unsubscribe function', async () => {
+  describe('subscribeById', () => {
+    it('returns an unsubscribe function', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       const listener = jest.fn();
-      const unsubscribe = container.subscribe('a', listener);
+      const unsubscribe = container.subscribeById('a', listener);
 
-      container.set('a', { id: 'a', x: 10, y: 20, type: 'item' });
-      container.commitChanges();
-      await flush();
+      update(container, { id: 'a', x: 10, y: 20, type: 'item' });
       expect(listener).toHaveBeenCalledTimes(1);
 
       unsubscribe();
-
-      container.set('a', { id: 'a', x: 100, y: 200, type: 'item' });
-      container.commitChanges();
-      await flush();
+      update(container, { id: 'a', x: 100, y: 200, type: 'item' });
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('supports multiple listeners for the same id', async () => {
+    it('supports multiple listeners for the same id', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       const listener1 = jest.fn();
       const listener2 = jest.fn();
-      container.subscribe('a', listener1);
-      container.subscribe('a', listener2);
+      container.subscribeById('a', listener1);
+      container.subscribeById('a', listener2);
 
-      container.set('a', { id: 'a', x: 10, y: 20, type: 'item' });
-      container.commitChanges();
-      await flush();
-
+      update(container, { id: 'a', x: 10, y: 20, type: 'item' });
       expect(listener1).toHaveBeenCalledTimes(1);
       expect(listener2).toHaveBeenCalledTimes(1);
     });
 
-    it('cleans up listener set when last listener unsubscribes', async () => {
+    it('cleans up listener set when last listener unsubscribes', () => {
       const container = setup();
       const listener = jest.fn();
-      const unsubscribe = container.subscribe('a', listener);
+      const unsubscribe = container.subscribeById('a', listener);
       unsubscribe();
 
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       expect(listener).not.toHaveBeenCalled();
     });
   });
 
-  describe('subscribeToSize', () => {
-    it('notifies when size changes after add', async () => {
+  describe('subscribe (every commit)', () => {
+    it('fires once per batch regardless of how many ids changed', () => {
       const container = setup();
-      const listener = jest.fn();
-      container.subscribeToSize(listener);
+      const all = jest.fn();
+      container.subscribe(all);
 
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-
-      expect(listener).toHaveBeenCalledTimes(1);
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
+      expect(all).toHaveBeenCalledTimes(1);
     });
 
-    it('notifies when size changes after delete', async () => {
+    it('fires on data-only updates too (the snapshot reference changed)', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      const all = jest.fn();
+      container.subscribe(all);
 
-      const listener = jest.fn();
-      container.subscribeToSize(listener);
-
-      container.delete('a');
-      container.commitChanges();
-      await flush();
-
-      expect(listener).toHaveBeenCalledTimes(1);
+      update(container, { id: 'a', x: 9, y: 9, type: 'item' });
+      expect(all).toHaveBeenCalledTimes(1);
     });
 
-    it('does not notify when size stays the same (update)', async () => {
+    it('returns an unsubscribe function', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
+      const all = jest.fn();
+      const unsubscribe = container.subscribe(all);
 
-      const listener = jest.fn();
-      container.subscribeToSize(listener);
-
-      container.set('a', { id: 'a', x: 10, y: 20, type: 'item' });
-      container.commitChanges();
-      await flush();
-
-      expect(listener).not.toHaveBeenCalled();
-    });
-
-    it('returns an unsubscribe function', async () => {
-      const container = setup();
-      const listener = jest.fn();
-      const unsubscribe = container.subscribeToSize(listener);
-
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-      expect(listener).toHaveBeenCalledTimes(1);
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      expect(all).toHaveBeenCalledTimes(1);
 
       unsubscribe();
-
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.commitChanges();
-      await flush();
-      expect(listener).toHaveBeenCalledTimes(1);
+      add(container, { id: 'b', x: 3, y: 4, type: 'item' });
+      expect(all).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('subscribeToAll', () => {
-    it('fires once per commit regardless of dirty count', async () => {
+  describe('immutable snapshot', () => {
+    it('produces a new reference on a data-only update, leaving the old one intact', () => {
       const container = setup();
-      const full = jest.fn();
-      container.subscribeToAll(full);
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
+      const ref1 = container.getSnapshot();
 
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.commitChanges();
-      await flush();
-
-      expect(full).toHaveBeenCalledTimes(1);
+      update(container, { id: 'a', x: 999, y: 999, type: 'item' });
+      expect(container.getSnapshot()).not.toBe(ref1);
+      // The previous snapshot is never mutated in place.
+      expect(ref1.find((item) => item.id === 'a')).toEqual({ id: 'a', x: 1, y: 2, type: 'item' });
     });
 
-    it('returns an unsubscribe function', async () => {
+    it('produces a new reference on delete, leaving the old one intact', () => {
       const container = setup();
-      const full = jest.fn();
-      const unsubscribe = container.subscribeToAll(full);
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
+      const ref1 = container.getSnapshot();
 
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.commitChanges();
-      await flush();
-      expect(full).toHaveBeenCalledTimes(1);
-
-      unsubscribe();
-
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.commitChanges();
-      await flush();
-      expect(full).toHaveBeenCalledTimes(1);
+      remove(container, 'a');
+      expect(container.getSnapshot()).not.toBe(ref1);
+      expect(ref1.length).toBe(2); // old snapshot still holds both
     });
   });
 
-  describe('reference stability', () => {
-    it('getAll returns the same array reference across data-only mutations', async () => {
+  describe('lazy snapshot & id list — memoisation + multi-consumer consistency', () => {
+    it('getSnapshot returns the SAME reference to concurrent readers within a commit', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.commitChanges();
-      await flush();
-      const ref1 = container.getAll();
-      container.set('a', { id: 'a', x: 999, y: 999, type: 'item' });
-      container.commitChanges();
-      await flush();
-      expect(container.getAll()).toBe(ref1);
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
+      // Two independent readers after one commit see the identical array (built
+      // once, memoised), so React cannot tear across subscribers.
+      const readerA = container.getSnapshot();
+      const readerB = container.getSnapshot();
+      expect(readerA).toBe(readerB);
     });
 
-    it('getAll returns the same array reference across swap-pop deletes', async () => {
+    it('getSnapshot is stable between commits and a fresh reference after one', () => {
       const container = setup();
-      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
-      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
-      container.commitChanges();
-      await flush();
-      const ref1 = container.getAll();
-      container.delete('a');
-      container.commitChanges();
-      await flush();
-      expect(container.getAll()).toBe(ref1);
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      const first = container.getSnapshot();
+      expect(container.getSnapshot()).toBe(first); // no commit → same reference
+      update(container, { id: 'a', x: 9, y: 9, type: 'item' });
+      expect(container.getSnapshot()).not.toBe(first); // commit → new reference
     });
 
-    it('version is monotonically increasing', () => {
+    it('a held snapshot is never mutated by later commits', () => {
       const container = setup();
-      const versions: number[] = [];
-      for (let index = 0; index < 50; index++) {
-        container.set(`k${index}`, { id: `k${index}`, x: index, y: index, type: 'item' });
-        versions.push(container.getVersion());
-      }
-      for (let index = 1; index < versions.length; index++) {
-        expect(versions[index]).toBeGreaterThan(versions[index - 1]);
-      }
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      const held = container.getSnapshot();
+      update(container, { id: 'a', x: 100, y: 100, type: 'item' });
+      remove(container, 'a');
+      expect(held).toEqual([{ id: 'a', x: 1, y: 2, type: 'item' }]);
+    });
+
+    it('getSize is correct and O(1) (does not depend on materialising the snapshot)', () => {
+      const container = setup();
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
+      expect(container.getSize()).toBe(2);
+      remove(container, 'a');
+      expect(container.getSize()).toBe(1);
+    });
+
+    it('getIds stays the SAME reference across data-only commits (the key to O(1) drags)', () => {
+      const container = setup();
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
+      const ids = container.getIds();
+      expect(ids).toEqual(['a', 'b']);
+      update(container, { id: 'a', x: 9, y: 9, type: 'item' }); // data-only
+      expect(container.getIds()).toBe(ids); // unchanged reference → no id-list work
+    });
+
+    it('getIds returns a new reference when the id set changes', () => {
+      const container = setup();
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      const ids = container.getIds();
+      add(container, { id: 'b', x: 3, y: 4, type: 'item' }); // structural
+      expect(container.getIds()).not.toBe(ids);
+      expect(container.getIds()).toEqual(['a', 'b']);
+    });
+
+    it('getIds invalidates when a NEW id arrives via the changed bucket', () => {
+      const container = setup();
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      const idsBefore = container.getIds();
+      // A producer may route a genuinely-new cell through `changed` (e.g. a link
+      // swept in by a moved element lands in `changed`, not `added`). getIds()
+      // and getSnapshot() must not tear — both must include the new id.
+      container.batchSet({
+        added: new Map(),
+        changed: new Map([['b', { id: 'b', x: 3, y: 4, type: 'item' }]]),
+        removed: new Set(),
+      });
+      expect(container.has('b')).toBe(true);
+      expect(container.getSnapshot().map((item) => item.id)).toContain('b');
+      expect(container.getIds()).not.toBe(idsBefore);
+      expect(container.getIds()).toEqual(['a', 'b']);
     });
   });
 
-  describe('stress — 10k random ops keep items[] and indexById in sync', () => {
+  describe('stress — 10k random ops keep the snapshot and backing map in sync', () => {
     it('invariants hold', () => {
       const container = setup();
       const oracle = new Map<string, Item>();
@@ -540,16 +402,18 @@ describe('createContainer', () => {
         const op = rand();
         const id = `k${Math.floor(rand() * 500)}`;
         if (op < 0.7) {
-          const v: Item = { id, x: counter++, y: counter, type: 'item' };
-          container.set(id, v);
-          oracle.set(id, v);
+          const value: Item = { id, x: counter++, y: counter, type: 'item' };
+          // A single-item `changed` set covers both insert and update: patchSlot
+          // appends an unknown id and overwrites a known one.
+          container.batchSet({ added: new Map(), changed: new Map([[id, value]]), removed: new Set() });
+          oracle.set(id, value);
         } else {
-          container.delete(id);
+          container.batchSet({ added: new Map(), changed: new Map(), removed: new Set([id]) });
           oracle.delete(id);
         }
       }
-      expect(container.getSize()).toBe(oracle.size);
-      for (const [id, v] of oracle) expect(container.get(id)).toEqual(v);
+      expect(container.getSnapshot().length).toBe(oracle.size);
+      for (const [id, value] of oracle) expect(container.get(id)).toEqual(value);
     });
   });
 });
