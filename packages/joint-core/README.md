@@ -39,7 +39,7 @@ Explore all [180+ demo apps](https://www.jointjs.com/demos) that serve as boiler
 
 JointJS is framework-agnostic and works with any frontend stack. React has first-class, native support; the others have integration guides and examples:
 
-- **React** — native components and hooks (JointJS for React) <!-- TODO: link to the new React docs when live -->
+- [**React**](https://docs.jointjs.com/react) — native components and hooks (JointJS for React)
 - [Angular](https://docs.jointjs.com/learn/integration/angular/)
 - [Vue](https://docs.jointjs.com/learn/integration/vue)
 - [Svelte](https://docs.jointjs.com/learn/integration/svelte)
