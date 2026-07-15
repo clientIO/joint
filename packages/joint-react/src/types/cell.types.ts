@@ -6,6 +6,7 @@ import type {
   Point as DiaPoint,
   Size as DiaSize,
 } from '@joint/core/types/dia';
+import type { Collection as MvcCollection } from '@joint/core/types/mvc';
 import type { ELEMENT_MODEL_TYPE } from '../mvc/element-model';
 import type { LINK_MODEL_TYPE } from '../mvc/link-model';
 import type { LinkPresetAttributes } from '../presets/link-attributes';
@@ -269,3 +270,19 @@ export type CellInput<
  * @group Types
  */
 export type CellRef = DiaGraph.CellRef;
+
+/**
+ * A JointJS cell collection (e.g. the `collection` from a selection). Iterable —
+ * it yields its `dia.Cell` models — so it can be passed directly to the bulk
+ * cell setters instead of `collection.toArray()`.
+ * @group Types
+ */
+export type CellCollection = MvcCollection<DiaCell>;
+
+/**
+ * A list of cell references accepted by `removeCells`: either a readonly array
+ * of {@link CellRef}s (ids and/or `dia.Cell` instances) or a {@link CellCollection}.
+ * Both are iterated the same way.
+ * @group Types
+ */
+export type CellRefList = readonly CellRef[] | CellCollection;

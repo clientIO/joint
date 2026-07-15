@@ -8,6 +8,8 @@ import type {
   CellId,
   CellInput,
   CellRef,
+  CellCollection,
+  CellRefList,
 } from '../types/cell.types';
 import { type ArrayUpdate } from '../store/state-container';
 import { cellInputToRecord, cellInputToModel } from '../utils/normalize-cell-input';
@@ -227,15 +229,17 @@ export function useRemoveCell() {
 
 /**
  * Returns a function that removes multiple cells by id or dia.Cell reference.
- * A nullish array warns in dev and no-ops; references that resolve to no cell
- * are silently skipped.
+ * Accepts a readonly array or a JointJS cell collection (both are iterated the
+ * same way, so a selection's `collection` can be passed directly). A nullish
+ * input warns in dev and no-ops; references that resolve to no cell are silently
+ * skipped.
  * @returns memoized removeCells setter
  */
 export function useRemoveCells() {
   const store = useGraphStore();
   const { graph } = store;
   return useCallback(
-    (cellRefs?: readonly CellRef[] | null, metadata?: Record<string, unknown>) => {
+    (cellRefs?: CellRefList | null, metadata?: Record<string, unknown>) => {
       if (cellRefs === undefined || cellRefs === null) {
         warnMissingSetterCell('removeCells', cellRefs);
         return;
@@ -254,9 +258,9 @@ export function useRemoveCells() {
 
 /**
  * Returns a function that atomically replaces all cells.
- * Accepts either a new array or an updater receiving the current snapshot.
- * Both records and dia.Cell instances are accepted, dia.Cell instances
- * are normalized to records before mapping.
+ * Accepts a new array, a JointJS cell collection, or an updater receiving the
+ * current snapshot. Both records and dia.Cell instances are accepted, dia.Cell
+ * instances are normalized to records before mapping.
  * Maps the next cells through `mapCellToAttributes` and calls
  * `graph.resetCells` directly, equivalent to JointJS' bulk-reset semantics.
  * @template Element - element record shape
@@ -271,12 +275,14 @@ export function useResetCells<
   const { graph } = store;
   return useCallback(
     (
-      input: ArrayUpdate<Element | Link, CellInput<Element, Link>>,
+      input: ArrayUpdate<Element | Link, CellInput<Element, Link>> | CellCollection,
       metadata?: Record<string, unknown>
     ) => {
       const current = store.graphProjection.cells.getAll();
       const next = typeof input === 'function' ? input(current) : input;
-      const models = next.map((cell) => cellInputToModel<Element, Link>(cell, graph));
+      // `next` may be a readonly array or a JointJS collection (both iterable);
+      // Array.from normalizes either into the mapped model array in one pass.
+      const models = Array.from(next, (cell) => cellInputToModel<Element, Link>(cell, graph));
       graph.resetCells(models, metadata);
     },
     [graph, store]
