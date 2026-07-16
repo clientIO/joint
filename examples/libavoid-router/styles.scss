@@ -1,0 +1,21 @@
+/* Shared styles for the examples. */
+
+body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+.canvas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+
+    .joint-paper {
+
+        border: 1px solid #E2E2E2;
+    }
+}
