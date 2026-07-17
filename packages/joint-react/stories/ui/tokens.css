@@ -1,0 +1,102 @@
+/*
+ * @joint/react Storybook — unified design tokens.
+ *
+ * Single source of truth for the storybook look. The JointJS brand
+ * (navy #131E29, red #ED2637, orange #FF9505, light #DDE6ED) drives a
+ * calm, dark, diagram-native surface. Neutrals are tinted toward the
+ * navy hue so nothing reads as flat gray.
+ *
+ * Imported once from `.storybook/preview.css` (after `@import 'tailwindcss'`)
+ * so the `@theme` colors below register as Tailwind utilities
+ * (`bg-canvas`, `text-brand`, `border-hairline`, …) across every story.
+ */
+
+@theme {
+  /* Surfaces — deep navy stepped for elevation */
+  --color-app: #0c141c;
+  --color-surface: #101b25;
+  --color-surface-2: #17232f;
+  --color-canvas: #14202b;
+
+  /* Ink */
+  --color-ink: #dde6ed;
+  --color-ink-muted: #93a4b3;
+  --color-ink-faint: #647585;
+
+  /* Hairlines (light tint, low alpha) */
+  --color-hairline: oklch(0.92 0.02 230 / 0.1);
+  --color-hairline-strong: oklch(0.92 0.02 230 / 0.18);
+
+  /* Brand */
+  --color-brand: #ed2637;
+  --color-brand-fg: #fff5f4;
+  --color-accent: #ff9505;
+
+  /* Radii — one system */
+  --radius-panel: 14px;
+  --radius-control: 9px;
+
+  /* Fonts */
+  --font-display: 'Ppfraktionsans', 'PP Fraktion Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', 'SFMono-Regular', 'SF Mono', Menlo, monospace;
+
+  /* Motion — exponential ease-out, no bounce */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* @joint/react's `.jj-paper` ships an opaque light background (it expects the
+   host app to theme it). In the storybook the unified dark Canvas owns the
+   backdrop, so the paper is transparent and the dot-grid shows through.
+   Demos that intentionally theme the paper set an inline background, which
+   still wins over this rule. */
+.jj-paper {
+  background-color: transparent;
+}
+
+/* The diagram canvas: a faint dot-grid that reads as "graph paper" without
+   competing with the elements drawn on top. This is the single most
+   unifying, on-brand texture in the whole storybook. */
+.jj-dotgrid {
+  background-color: var(--color-canvas);
+  background-image: radial-gradient(oklch(0.92 0.02 230 / 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-position: -1px -1px;
+}
+
+/* Collapsible height without animating `height` (grid-rows trick). */
+.jj-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.32s var(--ease-out-quint);
+}
+.jj-collapse[data-open='true'] {
+  grid-template-rows: 1fr;
+}
+.jj-collapse > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* One entrance, staggered — used by the Showcase frame on mount. */
+@keyframes jj-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.jj-rise {
+  animation: jj-rise 0.5s var(--ease-out-quint) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jj-collapse {
+    transition: none;
+  }
+  .jj-rise {
+    animation: none;
+  }
+}

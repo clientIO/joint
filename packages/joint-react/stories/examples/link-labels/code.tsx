@@ -1,10 +1,14 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { type CellRecord, GraphProvider, Paper } from '@joint/react';
-import { LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
-import '../index.css';
+
+// Colors — unified dark diagram palette.
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const TEXT_COLOR = '#DDE6ED';
+const LABEL_BACKGROUND_COLOR = '#1c2836';
+const LABEL_OUTLINE_COLOR = '#3c4f63';
+const LINK_COLOR = '#8697A6';
 
 interface ShapeData {
-  readonly [key: string]: unknown;
   readonly label: string;
 }
 
@@ -26,15 +30,15 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
     type: 'link',
     source: { id: '1' },
     target: { id: '2' },
-    style: { color: 'blue', targetMarker: 'arrow' },
+    style: { color: LINK_COLOR, targetMarker: 'arrow' },
     labelMap: {
       main: {
         position: 0.5,
         text: 'Link 1-2',
-        color: 'blue',
+        color: TEXT_COLOR,
         backgroundShape: 'ellipse',
-        backgroundColor: 'white',
-        backgroundOutline: 'blue',
+        backgroundColor: LABEL_BACKGROUND_COLOR,
+        backgroundOutline: LABEL_OUTLINE_COLOR,
         backgroundPadding: { horizontal: 12, vertical: 6 },
       },
     },
@@ -59,38 +63,29 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
       plus: {
         text: '+',
         position: 15,
-        color: 'black',
+        color: TEXT_COLOR,
         backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
         backgroundOutline: SECONDARY,
         backgroundOutlineWidth: 2,
-        backgroundColor: LIGHT,
+        backgroundColor: LABEL_BACKGROUND_COLOR,
       },
       minus: {
         text: '-',
         position: -15,
-        color: 'black',
+        color: TEXT_COLOR,
         backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
         backgroundOutline: PRIMARY,
         backgroundOutlineWidth: 2,
-        backgroundColor: LIGHT,
+        backgroundColor: LABEL_BACKGROUND_COLOR,
       },
     },
   },
 ];
 
-function Main() {
-  return (
-    <Paper style={{ width: '100%', height: 350 }}
-      className={PAPER_CLASSNAME}
-      interactive={INTERACTIVE_OPTIONS}
-    />
-  );
-}
-
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Main />
+      <Paper className="size-full" interactive={INTERACTIVE_OPTIONS} />
     </GraphProvider>
   );
 }

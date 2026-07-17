@@ -1,24 +1,42 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-
 import { forwardRef, useCallback, useRef } from 'react';
 import {
-  type CellRecord,
   GraphProvider,
   Paper,
-  useMeasureElement,
-  useMarkup,
   linkRoutingSmooth,
+  useMarkup,
+  useMeasureElement,
+  type CellRecord,
   type RenderElement,
   type TransformElementLayout,
 } from '@joint/react';
-import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
 
 const ROW_HEIGHT = 30;
 const HEADER_HEIGHT = 32;
 const ELEMENT_WIDTH = 160;
-const HEADER_COLOR = '#f6c744';
+
+// Colors — unified dark diagram palette.
+const NODE_BODY_COLOR = '#1c2836';
+const NODE_BORDER_COLOR = '#ED2637';
+const HEADER_COLOR = '#243445';
+const TEXT_COLOR = '#DDE6ED';
+const LINK_COLOR = '#8697A6';
+const HIGHLIGHT_COLOR = '#DDE6ED';
+
 const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconnected: false });
+
+const HIGHLIGHTING = {
+  connecting: {
+    name: 'stroke',
+    options: {
+      padding: 0,
+      attrs: { stroke: HIGHLIGHT_COLOR, strokeWidth: 3 },
+    },
+  },
+};
+
+const DEFAULT_LINK = { style: { color: LINK_COLOR } };
+const VALIDATE_CONNECTION = { allowRootConnection: false };
 
 interface StackedData {
   readonly name: string;
@@ -29,19 +47,13 @@ const initialCells: ReadonlyArray<CellRecord<StackedData>> = [
   {
     id: '1',
     type: 'element',
-    data: {
-      name: 'Component A',
-      labels: ['Header', 'Body', 'Footer'],
-    },
+    data: { name: 'Component A', labels: ['Header', 'Body', 'Footer'] },
     position: { x: 50, y: 50 },
   },
   {
     id: '2',
     type: 'element',
-    data: {
-      name: 'Component B',
-      labels: ['Input', 'Process', 'Output'],
-    },
+    data: { name: 'Component B', labels: ['Input', 'Process', 'Output'] },
     position: { x: 300, y: 50 },
   },
   {
@@ -49,7 +61,7 @@ const initialCells: ReadonlyArray<CellRecord<StackedData>> = [
     type: 'link',
     source: { id: '1', magnet: 'item-2' },
     target: { id: '2', magnet: 'item-2' },
-    style: { color: LIGHT },
+    style: { color: LINK_COLOR },
   },
 ];
 
@@ -64,15 +76,22 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
   return (
     <g ref={ref} className="item">
       {index > 0 && (
-        <line x1={0} y1={rowY} x2={width} y2={rowY} stroke={PRIMARY} strokeOpacity={0.3} />
+        <line x1={0} y1={rowY} x2={width} y2={rowY} stroke={NODE_BORDER_COLOR} strokeOpacity={0.3} />
       )}
-      <rect className="item__bg" x={0} y={rowY} width={width} height={ROW_HEIGHT} fill={BG} />
+      <rect
+        className="item__bg"
+        x={0}
+        y={rowY}
+        width={width}
+        height={ROW_HEIGHT}
+        fill={NODE_BODY_COLOR}
+      />
       <text
         x={width / 2}
         y={rowY + ROW_HEIGHT / 2}
         textAnchor="middle"
         dominantBaseline="central"
-        fill={TEXT}
+        fill={TEXT_COLOR}
         fontSize={13}
         fontFamily="sans-serif"
       >
@@ -83,15 +102,13 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
 });
 
 function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
-  const contentRef = useRef(null);
+  const contentRef = useRef<SVGGElement>(null);
   const { magnetRef } = useMarkup();
 
-  const transform: TransformElementLayout = useCallback(({ height }) => {
-    return {
-      width: ELEMENT_WIDTH,
-      height: HEADER_HEIGHT + height,
-    };
-  }, []);
+  const transform: TransformElementLayout = useCallback(
+    ({ height }) => ({ width: ELEMENT_WIDTH, height: HEADER_HEIGHT + height }),
+    []
+  );
 
   const { width = 0, height = 0 } = useMeasureElement(contentRef, { transform });
 
@@ -100,13 +117,12 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
       <rect
         width={width}
         height={height}
-        fill={BG}
-        stroke={PRIMARY}
+        fill={NODE_BODY_COLOR}
+        stroke={NODE_BORDER_COLOR}
         strokeWidth={2}
         rx={4}
         ry={4}
       />
-      {/* Header */}
       <g className="header">
         <rect width={width} height={HEADER_HEIGHT} fill={HEADER_COLOR} rx={4} ry={4} />
         <rect x={0} y={HEADER_HEIGHT - 4} width={width} height={4} fill={HEADER_COLOR} />
@@ -115,7 +131,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
           y={HEADER_HEIGHT / 2}
           textAnchor="middle"
           dominantBaseline="central"
-          fill="#1a1a1a"
+          fill={TEXT_COLOR}
           fontSize={14}
           fontFamily="sans-serif"
           fontWeight="bold"
@@ -123,28 +139,24 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
           {name}
         </text>
       </g>
-      {/* Attribute rows */}
       <g ref={contentRef}>
-        {labels?.map((label, index) => {
-          const rowY = HEADER_HEIGHT + index * ROW_HEIGHT;
-          return (
-            <Item
-              key={label}
-              ref={magnetRef(`item-${index}`)}
-              label={label}
-              index={index}
-              width={width}
-              rowY={rowY}
-            />
-          );
-        })}
+        {labels?.map((label, index) => (
+          <Item
+            key={label}
+            ref={magnetRef(`item-${index}`)}
+            label={label}
+            index={index}
+            width={width}
+            rowY={HEADER_HEIGHT + index * ROW_HEIGHT}
+          />
+        ))}
       </g>
-      {/* Border on top for clean rounded corners */}
+      {/* Redraw the border on top of the rows so the rounded corners stay clean. */}
       <rect
         width={width}
         height={height}
         fill="none"
-        stroke={PRIMARY}
+        stroke={NODE_BORDER_COLOR}
         strokeWidth={2}
         rx={4}
         ry={4}
@@ -154,36 +166,21 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedData>>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<StackedData> = useCallback((data) => {
-    return <StackedNode name={data.name} labels={data.labels} />;
-  }, []);
+  const renderElement: RenderElement<StackedData> = useCallback(
+    (data) => <StackedNode name={data.name} labels={data.labels} />,
+    []
+  );
 
   return (
-    <Paper style={{ ...PAPER_STYLE, width: '100%', height: 250 }}
-      className={PAPER_CLASSNAME}
+    <Paper
+      className="size-full"
       renderElement={renderElement}
-      magnetThreshold={'onleave'}
+      magnetThreshold="onleave"
       linkPinning={false}
       linkRouting={SMOOTH_LINKS}
-      highlighting={{
-        connecting: {
-          name: 'stroke',
-          options: {
-            padding: 0,
-            attrs: {
-              stroke: LIGHT,
-              strokeWidth: 3,
-            },
-          },
-        },
-      }}
-      defaultLink={{
-        style: { color: LIGHT },
-      }}
-      validateConnection={{
-        allowRootConnection: false,
-      }}
-      drawGrid={false}
+      highlighting={HIGHLIGHTING}
+      defaultLink={DEFAULT_LINK}
+      validateConnection={VALIDATE_CONNECTION}
     />
   );
 }

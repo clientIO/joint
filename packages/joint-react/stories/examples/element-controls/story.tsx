@@ -1,18 +1,25 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import '../index.css';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import { makeRootDocumentation } from '../../utils/make-story';
+import codeRaw from './code?raw';
 
-import CodeRaw from './code?raw';
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Examples/Element Controls',
   component: Code,
   tags: ['example'],
-  parameters: makeRootDocumentation({
-    code: CodeRaw,
-  }),
+  parameters: {
+    showcase: {
+      description:
+        'Drag custom elementTools.Control handles to reshape SVG nodes, re-rendering each React shape from its updated element data.',
+      apiUrl: getAPILink('useOnElementsMeasured'),
+      code: codeRaw,
+      canvasHeight: 640,
+    },
+  },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

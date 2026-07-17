@@ -1,18 +1,25 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import '../index.css';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import { makeRootDocumentation } from '../../utils/make-story';
-import CodeRaw from './code?raw';
+import codeRaw from './code?raw';
 
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Examples/Portal Selectors',
   component: Code,
   tags: ['example'],
-  parameters: makeRootDocumentation({
-    code: CodeRaw,
-  }),
+  parameters: {
+    showcase: {
+      canvasHeight: 660,
+      description:
+        'Renders React content into built-in JointJS shapes with a custom portalSelector, plus click-to-select highlighting and a live minimap.',
+      apiUrl: getAPILink('PortalSelector', 'Types'),
+      code: codeRaw,
+    },
+  },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

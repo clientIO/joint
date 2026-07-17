@@ -1,16 +1,21 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { dia, util } from '@joint/core';
-import type { CellRecord, LinkRecord, LinkMarker } from '@joint/react';
+import type { CellRecord, LinkRecord, LinkMarker, PaperEventHandler } from '@joint/react';
 import { GraphProvider, Paper, usePaper, jsx } from '@joint/react';
-import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
 
-const BG_COLOR = BG;
-const FG_COLOR = 'white';
+// Colors — unified dark diagram palette.
+// BG_COLOR doubles as the paper background and as the "punch-out" fill of the
+// hollow markers, so the two must stay the same value to read as cut-outs.
+const BG_COLOR = '#14202b';
+const LINK_COLOR = '#8697A6';
+const BRAND_COLOR = '#ED2637';
+const ACCENT_COLOR = '#FF9505';
+// The logo asset is black artwork, so it needs a light plate to stay legible.
+const LOGO_PLATE_COLOR = '#DDE6ED';
 
-const markers: LinkMarker[] = [
+const PAPER_BACKGROUND_STYLE = { background: BG_COLOR };
+
+const markers: readonly LinkMarker[] = [
   // #1
   { markup: jsx(
     <path
@@ -313,7 +318,7 @@ const markers: LinkMarker[] = [
         rx="2"
         ry="2"
         transform="rotate(-90)"
-        fill={BG_COLOR}
+        fill={LOGO_PLATE_COLOR}
         stroke="context-stroke"
         stroke-width="2"
       />
@@ -337,7 +342,7 @@ const markers: LinkMarker[] = [
         ry="2"
         transform="rotate(-90)"
         fill={BG_COLOR}
-        stroke="#0075f2"
+        stroke={ACCENT_COLOR}
         stroke-width="2"
       />
       <image
@@ -352,8 +357,8 @@ const markers: LinkMarker[] = [
   // #48
   { markup: jsx(
     <>
-      <path d="M -4 0 H 12 M 4 -8 V 8" stroke="#ed2637" stroke-width="2" fill="none" />
-      <circle r="8" cx="4" fill="none" stroke="#0075f2" stroke-width="2" />
+      <path d="M -4 0 H 12 M 4 -8 V 8" stroke={BRAND_COLOR} stroke-width="2" fill="none" />
+      <circle r="8" cx="4" fill="none" stroke={ACCENT_COLOR} stroke-width="2" />
     </>
   ) },
   // #49
@@ -361,19 +366,19 @@ const markers: LinkMarker[] = [
     <>
       <path
         d="M 0 -4 L 10 0 M 0 4 L 10 0 M 0 0 H 10"
-        stroke="#0075f2"
+        stroke={ACCENT_COLOR}
         stroke-width="2"
         fill="none"
       />
-      <circle cx="14" r="3" fill={BG_COLOR} stroke="#ed2637" stroke-width="2" />
+      <circle cx="14" r="3" fill={BG_COLOR} stroke={BRAND_COLOR} stroke-width="2" />
     </>
   ) },
   // #50
   { markup: jsx(
     <>
       <path d="M 10 0 L 0 0" stroke={BG_COLOR} stroke-width="3" />
-      <path d="M -2 0 L 8 -6 V 6 z" stroke="none" fill="#ed2637" />
-      <path d="M 8 0 L 18 -6 V 6 z" stroke="none" fill="#0075f2" />
+      <path d="M -2 0 L 8 -6 V 6 z" stroke="none" fill={BRAND_COLOR} />
+      <path d="M 8 0 L 18 -6 V 6 z" stroke="none" fill={ACCENT_COLOR} />
     </>
   ) },
 ];
@@ -396,7 +401,7 @@ function buildLinks(): LinkRecord[] {
       source: { x, y },
       target: { x: x + LINK_BBOX_WIDTH, y: y + LINK_BBOX_HEIGHT },
       style: {
-        color: FG_COLOR,
+        color: LINK_COLOR,
         width: 2,
         sourceMarker: marker,
         targetMarker: marker,
@@ -412,7 +417,7 @@ const initialCells: readonly CellRecord[] = buildLinks();
 const TextHighlighter = dia.HighlighterView.extend({
   tagName: 'text',
   attributes: {
-    fill: '#ed2637',
+    fill: BRAND_COLOR,
     pointerEvents: 'none',
     textAnchor: 'middle',
     fontSize: 8,
@@ -483,20 +488,31 @@ function Main() {
     }
   }, [zoom, paper]);
 
+  const handleLinkPointerDown = useCallback<PaperEventHandler<'onLinkPointerDown'>>(
+    ({ model: link }) => {
+      setZoom((previous) => {
+        if (previous.type === 'link' && previous.link === link) {
+          return { type: 'arrow', link };
+        }
+        return { type: 'link', link };
+      });
+    },
+    []
+  );
+
+  const handleBlankPointerDown = useCallback<PaperEventHandler<'onBlankPointerDown'>>(
+    () => setZoom({ type: 'overview' }),
+    []
+  );
+
   return (
-    <Paper style={{ background: BG_COLOR, width: '100%' }}
-      className={`${PAPER_CLASSNAME} h-150`}
+    <Paper
+      className="size-full"
+      style={PAPER_BACKGROUND_STYLE}
       interactive={false}
       drawGrid={false}
-      onLinkPointerDown={({ model: link }) => {
-        setZoom((previous) => {
-          if (previous.type === 'link' && previous.link === link) {
-            return { type: 'arrow', link };
-          }
-          return { type: 'link', link };
-        });
-      }}
-      onBlankPointerDown={() => setZoom({ type: 'overview' })}
+      onLinkPointerDown={handleLinkPointerDown}
+      onBlankPointerDown={handleBlankPointerDown}
     />
   );
 }

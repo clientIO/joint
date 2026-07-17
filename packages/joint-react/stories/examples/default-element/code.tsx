@@ -1,40 +1,38 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useState, useCallback, useMemo, useRef, memo } from 'react';
-import { type CellRecord, GraphProvider, Paper, HTMLBox, type LinkMarkerName } from '@joint/react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  GraphProvider,
+  Paper,
+  HTMLBox,
+  type CellRecord,
+  type RenderElement,
+  type LinkMarkerName,
+} from '@joint/react';
 
-// Dark theme overrides
+// Overrides the built-in --jj-* theme variables while the wrapper has the `dark` class.
 import './dark-theme.css';
 
 interface Data {
   readonly label: string;
   readonly width?: number;
   readonly height?: number;
-  readonly [key: string]: unknown;
 }
 
-const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
 const DEFAULT_LINK = { style: { targetMarker: 'arrow' as LinkMarkerName } };
 
 const initialCells: ReadonlyArray<CellRecord<Data>> = [
   {
     id: 'a',
     type: 'element',
-    // No width or height — element auto-sizes to fit label
-    data: {
-      label: 'no width or height',
-    },
+    // No width or height — element auto-sizes to fit label.
+    data: { label: 'no width or height' },
     position: { x: 100, y: 60 },
     portMap: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } },
   },
   {
     id: 'b',
     type: 'element',
-    // Explicit width — height grows to fit content
-    data: {
-      label: 'fixed width, auto height',
-      width: 120,
-    },
+    // Explicit width — height grows to fit content.
+    data: { label: 'fixed width, auto height', width: 120 },
     position: { x: 280, y: 60 },
     portMap: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
@@ -44,12 +42,8 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
   {
     id: 'c',
     type: 'element',
-    // Explicit width and height — fixed box, content clipped
-    data: {
-      label: 'fixed width and height',
-      width: 120,
-      height: 80,
-    },
+    // Explicit width and height — fixed box, content clipped.
+    data: { label: 'fixed width and height', width: 120, height: 80 },
     position: { x: 450, y: 60 },
     portMap: {
       in: { cx: 0, cy: 'calc(0.5 * h)', passive: true },
@@ -59,11 +53,8 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
   {
     id: 'd',
     type: 'element',
-    // Explicit height — width grows to fit content
-    data: {
-      label: 'auto width, fixed height',
-      height: 120,
-    },
+    // Explicit height — width grows to fit content.
+    data: { label: 'auto width, fixed height', height: 120 },
     position: { x: 620, y: 60 },
     portMap: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true } },
   },
@@ -90,41 +81,18 @@ const initialCells: ReadonlyArray<CellRecord<Data>> = [
   },
 ];
 
-const RenderElement = memo(function RenderElement({ data }: Readonly<{ data: Data }>) {
-  const { label, width, height } = data;
-  const boxStyle = useMemo(() => ({ width, height }), [width, height]);
-  return (
-    <HTMLBox style={boxStyle}>
-      {label}
-    </HTMLBox>
-  );
-});
-
-function renderElement(data: Data) {
-  return <RenderElement data={data} />;
+function ElementBox({ label, width, height }: Readonly<Data>) {
+  const style = useMemo(() => ({ width, height }), [width, height]);
+  return <HTMLBox style={style}>{label}</HTMLBox>;
 }
 
-export default function App() {
+const renderElement: RenderElement<Data> = (data) => (
+  <ElementBox label={data.label} width={data.width} height={data.height} />
+);
+
+function Diagram() {
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  const buttonStyle = useMemo(
-    () => ({
-      display: 'inline-flex' as const,
-      alignItems: 'center' as const,
-      gap: 6,
-      padding: '5px 14px',
-      cursor: 'pointer' as const,
-      borderRadius: 20,
-      border: 'none',
-      fontSize: 13,
-      fontWeight: 500,
-      background: isDark ? '#313244' : '#e0e7ff',
-      color: isDark ? '#cdd6f4' : '#4338ca',
-      transition: 'background 0.2s, color 0.2s',
-    }),
-    [isDark]
-  );
 
   const toggleTheme = useCallback(() => {
     setIsDark((previous) => {
@@ -135,19 +103,21 @@ export default function App() {
   }, []);
 
   return (
-    <div ref={wrapperRef} className="default-element-demo">
-      <div style={TOOLBAR_STYLE}>
-        <button type="button" onClick={toggleTheme} style={buttonStyle}>
+    <div ref={wrapperRef} className="default-element-demo flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <button type="button" className="jj-btn" onClick={toggleTheme}>
           {isDark ? '☀️ Light' : '🌙 Dark'}
         </button>
       </div>
-      <GraphProvider initialCells={initialCells}>
-        <Paper style={{ height: 240 }}
-          className={PAPER_CLASSNAME}
-          renderElement={renderElement}
-          defaultLink={DEFAULT_LINK}
-        />
-      </GraphProvider>
+      <Paper className="min-h-0 flex-1" renderElement={renderElement} defaultLink={DEFAULT_LINK} />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <GraphProvider initialCells={initialCells}>
+      <Diagram />
+    </GraphProvider>
   );
 }

@@ -1,23 +1,26 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
+import codeRaw from './code?raw';
 
-import RawCode from './code?raw';
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Demos/Collaboration',
   component: Code,
   tags: ['demo'],
   parameters: {
-    docs: {
-      description: {
-        story: 'Real-time collaborative diagramming with PeerJS. Open in two tabs to test.',
-      },
-      source: {
-        code: RawCode,
-      },
+    showcase: {
+      description:
+        'Keeps a diagram in sync across peers in real time by broadcasting every added, changed, and removed cell from the onIncrementalCellsChange diff callback over a PeerJS connection.',
+      apiUrl: getAPILink('IncrementalCellsChange', 'Types'),
+      canvasHeight: 400,
+      plainCanvas: true,
+      code: codeRaw,
     },
   },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

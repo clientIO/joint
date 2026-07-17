@@ -1,7 +1,7 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { type CellRecord, GraphProvider, Paper, HTMLBox, elementPort } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
-import '../index.css';
+
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
 
 const PORT_SIZE = 12;
 
@@ -83,16 +83,17 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 ];
 
 function RenderElement({ label }: Readonly<NodeData>) {
-  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
+  return (
+    <HTMLBox className="jj-node" useModelGeometry>
+      {label}
+    </HTMLBox>
+  );
 }
 
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper style={{ height: 380 }}
-        className={PAPER_CLASSNAME}
-        renderElement={RenderElement}
-      />
+      <Paper className="size-full" renderElement={RenderElement} />
     </GraphProvider>
   );
 }

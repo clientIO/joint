@@ -1,59 +1,37 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { type CellRecord, GraphProvider, Paper, selectElementSize, useCell } from '@joint/react';
 
-import {
-  type CellRecord,
-  GraphProvider,
-  useCell,
-  Paper,
-  selectElementSize,
-} from '@joint/react';
-import '../index.css';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
+const PRIMARY = '#ED2637';
+const NODE_FILL = '#1c2836';
 
-const initialCells: CellRecord[] = [
-  {
-    id: '1',
-    type: 'element',
-    position: { x: 100, y: 15 },
-    size: { width: 130, height: 35 },
-  },
-  {
-    id: '2',
-    type: 'element',
-    position: { x: 100, y: 200 },
-    size: { width: 130, height: 35 },
-  },
+const initialCells: readonly CellRecord[] = [
+  { id: '1', type: 'element', position: { x: 100, y: 15 }, size: { width: 130, height: 35 } },
+  { id: '2', type: 'element', position: { x: 100, y: 200 }, size: { width: 130, height: 35 } },
   {
     id: 'e1-2',
     type: 'link',
     source: { id: '1' },
     target: { id: '2' },
-    color: '#4f46e5',
-    width: 1,
+    style: { color: PRIMARY, width: 1 },
   },
 ];
 
-function RenderElement() {
+function SizedRect() {
   const { width, height } = useCell(selectElementSize);
   return (
     <rect
       rx={10}
       ry={10}
-      className="node"
       width={width}
       height={height}
-      fill="white"
-      stroke="#4f46e5"
+      fill={NODE_FILL}
+      stroke={PRIMARY}
+      strokeWidth={2}
     />
   );
 }
 
 function Main() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} renderElement={RenderElement} />
-    </div>
-  );
+  return <Paper className="size-full" renderElement={SizedRect} />;
 }
 
 export default function App() {

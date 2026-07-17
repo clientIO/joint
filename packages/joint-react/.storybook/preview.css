@@ -1,7 +1,25 @@
 @import 'tailwindcss';
+@import '../stories/ui/tokens.css';
+@import '../stories/ui/demo.css';
 @import '../src/css/styles.css' layer(components);
 
 /* Custom variants for the Tailwind theme demo */
 @custom-variant forest (&:where(.forest, .forest *));
 @custom-variant ocean (&:where(.ocean, .ocean *));
 @custom-variant sunset (&:where(.sunset, .sunset *));
+
+/* Storybook canvas root — the deep app backdrop behind every Showcase frame. */
+.sb-show-main,
+body {
+  background-color: var(--color-app);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* A single, very subtle brand glow anchored top-center. Not a glowing-accent
+   cliché — it just keeps the flat dark backdrop from feeling dead. */
+.sb-show-main {
+  background-image: radial-gradient(120% 60% at 50% -10%, oklch(0.5 0.14 20 / 0.06), transparent 60%);
+}

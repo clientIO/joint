@@ -1,15 +1,31 @@
 // eslint-disable-next-line unicorn/prevent-abbreviations
 import { getApiDocsBaseUrl } from './get-api-docs-base-url';
 
-export function getAPILink(name: string, path = 'functions') {
-  return `${getApiDocsBaseUrl()}/${path}/${name}.html`;
-}
-export function getAPIDocumentationLink(name: string, path = 'functions') {
-  const href = getAPILink(name, path);
-  return <a href={href}>{name}</a>;
+/** TypeDoc `group` categories exposed at docs.jointjs.com/api-react. */
+export type ApiCategory =
+  | 'Components'
+  | 'Hooks'
+  | 'Utils'
+  | 'Variables'
+  | 'Types'
+  | 'Selectors'
+  | 'MVC'
+  | 'Presets';
+
+function inferCategory(name: string): ApiCategory {
+  if (name.startsWith('use')) return 'Hooks';
+  if (name.startsWith('select')) return 'Selectors';
+  // Lower-case leading char that isn't a hook/selector → a utility function.
+  if (name[0] === name[0]?.toLowerCase()) return 'Utils';
+  return 'Components';
 }
 
-export function getAPIPropsLink(name: string, propertyName: string, path = 'interfaces') {
-  const href = `${getAPILink(name, path)}#${propertyName}`;
-  return <a href={href}>{propertyName}</a>;
+/**
+ * Builds a link to the generated API reference, e.g.
+ * `https://docs.jointjs.com/api-react/Hooks/useGraph`.
+ * @param name - The exported symbol name.
+ * @param category - TypeDoc group. Inferred from the name when omitted.
+ */
+export function getAPILink(name: string, category?: ApiCategory): string {
+  return `${getApiDocsBaseUrl()}/${category ?? inferCategory(name)}/${name}`;
 }

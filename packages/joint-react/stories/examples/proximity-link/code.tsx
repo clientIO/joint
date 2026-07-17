@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   GraphProvider,
   HTMLBox,
@@ -12,11 +11,11 @@ import {
   type Computed,
   linkRoutingStraight,
 } from '@joint/react';
-import '../index.css';
 import { useEffect } from 'react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 
+const PRIMARY = '#ED2637';
+const PROXIMITY_THRESHOLD = 60;
 const STRAIGHT_LINKS = linkRoutingStraight({ perpendicular: true });
 
 interface NodeData {
@@ -32,8 +31,6 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
   { id: '4', type: 'element', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
 ];
-
-const PROXIMITY_THRESHOLD = 60;
 
 function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
   const [source, target] = [String(id), String(closeId)].toSorted((first, second) =>
@@ -96,25 +93,17 @@ function ResizableNode() {
     };
   }, [setCell, closeIds, id, removeCell]);
 
-  return <HTMLBox>{label}</HTMLBox>;
-}
-
-function Main() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper style={{ height: 280 }}
-        className={PAPER_CLASSNAME}
-        renderElement={ResizableNode}
-        linkRouting={STRAIGHT_LINKS}
-      />
-    </div>
-  );
+  return <HTMLBox className="jj-node">{label}</HTMLBox>;
 }
 
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Main />
+      <Paper
+        className="size-full"
+        renderElement={ResizableNode}
+        linkRouting={STRAIGHT_LINKS}
+      />
     </GraphProvider>
   );
 }

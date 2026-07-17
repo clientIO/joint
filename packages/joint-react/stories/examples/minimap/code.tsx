@@ -1,11 +1,22 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import '../index.css';
-import { useCallback } from 'react';
-import { type CellRecord, GraphProvider, useCell, HTMLBox, Paper, type RenderElement, selectElementSize } from '@joint/react';
-import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
+import { useCallback, useMemo } from 'react';
+import {
+  type CellRecord,
+  GraphProvider,
+  HTMLBox,
+  Paper,
+  type RenderElement,
+  selectElementSize,
+  useCell,
+} from '@joint/react';
+
+// Colors — unified dark diagram palette. Node fills stay distinct so each node
+// stays recognizable in the minimap.
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const TEXT_COLOR = '#DDE6ED';
+const LINK_COLOR = '#8697A6';
 
 interface NodeData {
-  readonly [key: string]: unknown;
   readonly label: string;
   readonly color: string;
 }
@@ -30,56 +41,47 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
     type: 'link',
     source: { id: '1' },
     target: { id: '2' },
-    color: LIGHT,
+    style: { color: LINK_COLOR },
   },
 ];
 
-function MinimapElement({ color }: Readonly<NodeData>) {
+/** Scaled-down node for the minimap: a filled rect matching the element size. */
+function MinimapNode({ color }: Readonly<Pick<NodeData, 'color'>>) {
   const { width, height } = useCell(selectElementSize);
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 
-function MiniMap() {
-  const renderElement: RenderElement<NodeData> = useCallback(
-    (data) => <MinimapElement {...(data as NodeData)} />,
-    []
-  );
-
+/** Full node for the main, interactive view. */
+function MainNode({ label, color }: Readonly<NodeData>) {
+  const style = useMemo(() => ({ background: color, color: TEXT_COLOR }), [color]);
   return (
-    <div className="absolute bottom-4 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
-      <Paper style={{ height: '100%' }}
-        id="minimap"
-        interactive={false}
-        transform={'scale(0.4)'}
-        className={PAPER_CLASSNAME}
-        renderElement={renderElement}
-      />
-    </div>
-  );
-}
-
-function RenderNode({ data }: Readonly<{ data: NodeData }>) {
-  const { label, color } = data;
-  return (
-    <HTMLBox useModelGeometry style={{ backgroundColor: color, color: 'white', alignItems: 'center', justifyContent: 'center', display: 'flex', borderRadius: 10 }}>
+    <HTMLBox useModelGeometry className="jj-node" style={style}>
       {label}
     </HTMLBox>
   );
 }
 
-function Main() {
-  const renderElement: RenderElement<NodeData> = useCallback(
-    (data) => <RenderNode data={data} />,
+function Diagram() {
+  const renderMain: RenderElement<NodeData> = useCallback(
+    (data) => <MainNode label={data.label} color={data.color} />,
     []
   );
+  const renderMinimap: RenderElement<NodeData> = useCallback(
+    (data) => <MinimapNode color={data.color} />,
+    []
+  );
+
   return (
-    <div className="flex flex-row relative">
-      <Paper style={{ height: 280 }}
-        id="main-view"
-        className={PAPER_CLASSNAME}
-        renderElement={renderElement}
-      />
-      <MiniMap />
+    <div className="relative size-full">
+      <Paper className="size-full" renderElement={renderMain} />
+      <div className="absolute bottom-4 right-4 h-[150px] w-[200px] overflow-hidden rounded-lg border border-[rgba(221,230,237,0.18)] bg-[rgba(12,20,28,0.72)]">
+        <Paper
+          className="size-full"
+          interactive={false}
+          transform="scale(0.4)"
+          renderElement={renderMinimap}
+        />
+      </div>
     </div>
   );
 }
@@ -87,7 +89,7 @@ function Main() {
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Main />
+      <Diagram />
     </GraphProvider>
   );
 }

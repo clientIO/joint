@@ -1,20 +1,75 @@
- 
- 
- 
-
-/* eslint-disable unicorn/prevent-abbreviations */
-
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-// We have pre-loaded tailwind css
-import { GraphProvider, Paper, useCell, useCellId, useMarkup, HTMLHost, type CellId, type CellRecord, type ElementRecord, type LinkRecord, type RenderElement, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
-
+// Tailwind utility classes are provided globally by the Storybook preview.
+import {
+  GraphProvider,
+  Paper,
+  useCell,
+  useCellId,
+  useMarkup,
+  HTMLHost,
+  type CanConnectOptions,
+  type CellId,
+  type CellRecord,
+  type ElementRecord,
+  type LinkRecord,
+  type RenderElement,
+  selectElementSize,
+  linkRoutingOrthogonal,
+} from '@joint/react';
 import { createContext, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ mode: 'bottom-top', cornerType: 'line' });
 
-const ThemeContext = createContext(false);
+// Links may only end on an element's input port, and may not start from one.
+const CONNECTION_RULES: CanConnectOptions = {
+  allowRootConnection: false,
+  validate: ({ source, target }) => {
+    if (source.selector === 'in') return false;
+    return target.selector === 'in';
+  },
+};
+
+const ThemeContext = createContext(true);
+
+// This demo is about the light/dark theme switch, so both palettes are intentional.
+// The dark one is the unified diagram palette; red stays as the add-port accent.
+const DARK_THEME = {
+  canvas: 'bg-[#121c26] border border-[#2f4053]',
+  cardBg: 'bg-[#1c2836]',
+  cardBorder: 'border-[#3c4f63]',
+  cardText: 'text-[#DDE6ED]',
+  cardSubtext: 'text-[#93A4B3]',
+  cardShadow: 'shadow-xl shadow-black/40',
+  portFill: '#DDE6ED',
+  portTextFill: '#121c26',
+  portButtonCircle: '#121c26',
+  portButtonStroke: '#DDE6ED',
+  inputFill: '#121c26',
+  inputStroke: '#8697A6',
+  addButtonFill: '#ED2637',
+  addButtonStroke: '#DDE6ED',
+  linkColor: '#8697A6',
+} as const;
+
+const LIGHT_THEME = {
+  canvas: 'bg-gray-100',
+  cardBg: 'bg-white',
+  cardBorder: 'border-gray-100',
+  cardText: 'text-black',
+  cardSubtext: 'text-black/60',
+  cardShadow: 'shadow-lg',
+  portFill: 'black',
+  portTextFill: 'white',
+  portButtonCircle: 'white',
+  portButtonStroke: 'black',
+  inputFill: '#FFFFFF',
+  inputStroke: '#000000',
+  addButtonFill: 'black',
+  addButtonStroke: 'white',
+  linkColor: '#000000',
+} as const;
 
 // Port pill dimensions
 const PORT_PILL_WIDTH = 80;
@@ -31,6 +86,15 @@ const INPUT_PORT_CENTER_X = 20;
 const NODE_PADDING_LEFT = 10;
 const NODE_PADDING_RIGHT = 44;
 const NODE_MIN_WIDTH = 250;
+
+type NodeType = 'user-action' | 'entity' | 'confirm' | 'message';
+
+const NODE_ICONS: Record<NodeType, string> = {
+  'user-action': 'user',
+  entity: 'building',
+  confirm: 'check',
+  message: 'comment',
+};
 
 function getNodeWidth(portCount: number) {
   return Math.max(
@@ -49,18 +113,18 @@ function getPortCenterX(index: number) {
 type NodeData = {
   readonly title: string;
   readonly description: string;
-  readonly nodeType: 'user-action' | 'entity' | 'confirm' | 'message';
+  readonly nodeType: NodeType;
   readonly outputPorts: readonly OutputPort[];
 };
 
-type NodeType = ElementRecord<NodeData>;
+type NodeRecord = ElementRecord<NodeData>;
 
 const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
   { id: '1', label: 'Port 1' },
   { id: '2', label: 'Port 2' },
 ];
 
-const initialElements: Record<string, NodeType> = {
+const initialElements: Record<string, NodeRecord> = {
   '1': {
     id: '1',
     type: 'element',
@@ -139,83 +203,43 @@ function RenderElementBase({
   const id = useCellId();
   const { magnetRef } = useMarkup();
   const { width, height } = useCell(selectElementSize);
-
-  let icon: string;
-  switch (nodeType) {
-    case 'user-action': {
-      icon = 'fas fa-user';
-      break;
-    }
-    case 'entity': {
-      icon = 'fas fa-building';
-      break;
-    }
-    case 'confirm': {
-      icon = 'fas fa-check';
-      break;
-    }
-    case 'message': {
-      icon = 'fas fa-comment';
-      break;
-    }
-    default: {
-      icon = 'fas fa-question';
-      break;
-    }
-  }
-
   const isDark = useContext(ThemeContext);
 
-  // Dark: frosted glass on deep navy. Red only as small accent (add btn). Ports are subtle light pills.
-  const cardBg = isDark ? 'bg-[#162231]' : 'bg-white';
-  const cardBorder = isDark ? 'border-transparent' : 'border-gray-100';
-  const cardText = isDark ? 'text-[#dde6ed]' : 'text-black';
-  const cardSubtext = isDark ? 'text-[#dde6ed]/35' : 'text-black/60';
-  const cardShadow = isDark ? 'shadow-xl shadow-black/40' : 'shadow-lg';
-  const draggingClass = 'border-2 border-transparent';
-
-  const portFill = isDark ? '#dde6ed' : 'black';
-  const portTextFill = isDark ? '#131e29' : 'white';
-  const portBtnCircle = isDark ? '#131e29' : 'white';
-  const portBtnStroke = isDark ? '#dde6ed' : 'black';
-  const inputFill = isDark ? '#131e29' : '#FFFFFF';
-  const inputStroke = isDark ? 'rgba(255,255,255,0.35)' : '#000000';
-  const addBtnFill = isDark ? '#ed2637' : 'black';
-  const addBtnStroke = isDark ? '#dde6ed' : 'white';
+  const icon = NODE_ICONS[nodeType];
+  const theme = isDark ? DARK_THEME : LIGHT_THEME;
 
   return (
     <>
-      {/* Content of the node */}
       <HTMLHost
         style={{
           width: getNodeWidth(outputPorts.length),
           paddingBottom: PORT_PILL_HEIGHT + 10,
         }}
-        className={`cursor-move w-75 rounded-lg px-4 py-2 flex flex-col border ${cardBg} ${cardBorder} ${cardText} ${cardShadow} ${draggingClass}`}
+        className={`cursor-move w-75 rounded-lg px-4 py-2 flex flex-col border-2 ${theme.cardBg} ${theme.cardBorder} ${theme.cardText} ${theme.cardShadow}`}
       >
         <div className="flex flex-1 flex-row items-center px-2 py-1 mb-2">
-          <i className={`fas fa-${icon} ${cardText}`}></i>
+          <i className={`fas fa-${icon} ${theme.cardText}`}></i>
           <div className="flex flex-col flex-1 ml-4">
-            <div className={cardText}>{title}</div>
-            <div className={`text-sm ${cardText}`}>{description}</div>
+            <div className={theme.cardText}>{title}</div>
+            <div className={`text-sm ${theme.cardText}`}>{description}</div>
           </div>
         </div>
-        <div className={`text-xs py-1 ${cardSubtext}`}>
+        <div className={`text-xs py-1 ${theme.cardSubtext}`}>
           Ports: in + {outputPorts.length} outputs
         </div>
       </HTMLHost>
-      {/* Input port */}
+      {/* Input port (passive magnet: a valid target, never a source) */}
       <circle
         ref={magnetRef('in', { passive: true })}
         className="port-in"
         cx={INPUT_PORT_CENTER_X}
         cy={0}
         r={INPUT_PORT_RADIUS}
-        fill={inputFill}
-        stroke={inputStroke}
+        fill={theme.inputFill}
+        stroke={theme.inputStroke}
         strokeWidth={2}
       />
-      {/* Output ports */}
+      {/* Output ports (active magnets: links start from here) */}
       {outputPorts.map((port, index) => (
         <g
           key={port.id}
@@ -230,18 +254,17 @@ function RenderElementBase({
             width={PORT_PILL_WIDTH}
             height={PORT_PILL_HEIGHT}
             rx={PORT_PILL_RADIUS}
-            fill={portFill}
+            fill={theme.portFill}
           />
           <text
             x={-6}
-            fill={portTextFill}
+            fill={theme.portTextFill}
             fontSize={11}
             textAnchor="middle"
             dominantBaseline="central"
           >
             {port.label}
           </text>
-          {/* Remove port button */}
           <g
             className="port-button"
             cursor="pointer"
@@ -253,12 +276,16 @@ function RenderElementBase({
               onRemovePort(id, port.id);
             }}
           >
-            <circle r={PORT_PILL_RADIUS - 3} fill={portBtnCircle} />
-            <path d="M -3 -3 L 3 3 M 3 -3 L -3 3" stroke={portBtnStroke} strokeWidth={1.5} />
+            <circle r={PORT_PILL_RADIUS - 3} fill={theme.portButtonCircle} />
+            <path
+              d="M -3 -3 L 3 3 M 3 -3 L -3 3"
+              stroke={theme.portButtonStroke}
+              strokeWidth={1.5}
+            />
           </g>
         </g>
       ))}
-      {/* Add port button */}
+      {/* Add-port button */}
       <g
         className="port-button"
         cursor="pointer"
@@ -270,72 +297,60 @@ function RenderElementBase({
           onAddPort(id);
         }}
       >
-        <circle r={12} fill={addBtnFill} />
-        <path d="M -5 0 H 5 M 0 -5 V 5" stroke={addBtnStroke} strokeWidth={2} />
+        <circle r={12} fill={theme.addButtonFill} />
+        <path d="M -5 0 H 5 M 0 -5 V 5" stroke={theme.addButtonStroke} strokeWidth={2} />
       </g>
     </>
   );
 }
 const RenderElement = memo(RenderElementBase);
 
-function buildInitialCells(isDark: boolean): ReadonlyArray<CellRecord<NodeData>> {
-  const linkColor = isDark ? 'rgba(255,255,255,0.35)' : '#000000';
+function buildInitialCells(): ReadonlyArray<CellRecord<NodeData>> {
   const cells: Array<CellRecord<NodeData>> = [];
   for (const node of Object.values(initialElements)) cells.push(node);
-  for (const link of Object.values(initialLinks)) {
-    cells.push({ ...link, style: { ...link.style, color: linkColor } });
-  }
+  for (const link of Object.values(initialLinks)) cells.push(link);
   return cells;
 }
 
 function Main() {
   const isDark = useContext(ThemeContext);
-  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeData>>>(() => buildInitialCells(false));
+  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeData>>>(buildInitialCells);
+  const { linkColor } = isDark ? DARK_THEME : LIGHT_THEME;
 
   const themedCells = useMemo<ReadonlyArray<CellRecord<NodeData>>>(() => {
-    const linkColor = isDark ? 'rgba(255,255,255,0.35)' : '#000000';
     return cells.map((cell): CellRecord<NodeData> => {
       if (cell.type !== 'link') return cell;
-      const link = cell as LinkRecord;
-      return { ...link, style: { ...link.style, color: linkColor } };
+      return { ...cell, style: { ...cell.style, color: linkColor } };
     });
-  }, [cells, isDark]);
+  }, [cells, linkColor]);
+
+  const defaultLink = useMemo(() => ({ style: { color: linkColor } }), [linkColor]);
 
   const onAddPort = useCallback((id: CellId) => {
     setCells((previous) =>
       previous.map((cell): CellRecord<NodeData> => {
-        if (cell.type !== 'element') return cell;
-        if (cell.id !== id) return cell;
-        const node = cell as ElementRecord<NodeData>;
-        if (!node.data) return cell;
-        return { ...node, data: appendOutputPort(node.data) };
+        if (cell.type !== 'element' || cell.id !== id || !cell.data) return cell;
+        return { ...cell, data: appendOutputPort(cell.data) };
       })
     );
   }, []);
 
   const onRemovePort = useCallback((id: CellId, portId: string) => {
-    const keepPort = (port: { id: string }) => port.id !== portId;
+    const keepPort = (port: OutputPort) => port.id !== portId;
     setCells((previous) =>
       previous
         .map((cell): CellRecord<NodeData> | undefined => {
           if (cell.type === 'element') {
-            if (cell.id !== id) return cell;
-            const node = cell as ElementRecord<NodeData>;
-            if (!node.data) return cell;
+            if (cell.id !== id || !cell.data) return cell;
             return {
-              ...node,
-              data: {
-                ...node.data,
-                outputPorts: node.data.outputPorts.filter(keepPort),
-              },
+              ...cell,
+              data: { ...cell.data, outputPorts: cell.data.outputPorts.filter(keepPort) },
             };
           }
           if (cell.type === 'link') {
-            const link = cell as LinkRecord;
-            const isSource = link.source?.id === id && link.source?.magnet === portId;
-            const isTarget = link.target?.id === id && link.target?.magnet === portId;
-            if (isSource || isTarget) return undefined;
-            return link;
+            const isSource = cell.source?.id === id && cell.source?.magnet === portId;
+            const isTarget = cell.target?.id === id && cell.target?.magnet === portId;
+            return isSource || isTarget ? undefined : cell;
           }
           return cell;
         })
@@ -353,25 +368,17 @@ function Main() {
 
   return (
     <GraphProvider cells={themedCells} onCellsChange={setCells}>
-      <Paper style={{ backgroundColor: 'transparent', width: '100%', height: '100%' }}
+      <Paper
+        className="size-full"
         gridSize={5}
         drawGrid={false}
-        defaultLink={{
-          style: { color: isDark ? 'rgba(255,255,255,0.35)' : '#000000' },
-        }}
+        defaultLink={defaultLink}
         renderElement={renderElement}
         clickThreshold={10}
-        magnetThreshold={'onleave'}
+        magnetThreshold="onleave"
         linkPinning={false}
         snapLinks={{ radius: 50 }}
-        validateConnection={{
-          allowRootConnection: false,
-
-          validate: ({ source, target }) => {
-            if (source.selector === 'in') return false;
-            return target.selector === 'in';
-          },
-        }}
+        validateConnection={CONNECTION_RULES}
         linkRouting={ORTHOGONAL_LINKS}
       />
     </GraphProvider>
@@ -381,11 +388,11 @@ function Main() {
 function ThemeSwitch({ isDark, onClick }: Readonly<{ isDark: boolean; onClick: () => void }>) {
   return (
     <button
+      type="button"
       onClick={onClick}
       title="Switch between light and dark mode"
       className={`absolute top-6 right-6 z-10 w-[70px] h-[30px] rounded-full cursor-pointer border-0 transition-colors duration-300 ${isDark ? 'bg-slate-700' : 'bg-slate-900'}`}
     >
-      {/* Sun icon */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="16"
@@ -408,7 +415,6 @@ function ThemeSwitch({ isDark, onClick }: Readonly<{ isDark: boolean; onClick: (
         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
       </svg>
-      {/* Moon icon */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="16"
@@ -419,7 +425,6 @@ function ThemeSwitch({ isDark, onClick }: Readonly<{ isDark: boolean; onClick: (
       >
         <path d="M12.0557 3.59974C12.2752 3.2813 12.2913 2.86484 12.0972 2.53033C11.9031 2.19582 11.5335 2.00324 11.1481 2.03579C6.02351 2.46868 2 6.76392 2 12C2 17.5228 6.47715 22 12 22C17.236 22 21.5313 17.9764 21.9642 12.8518C21.9967 12.4664 21.8041 12.0968 21.4696 11.9027C21.1351 11.7086 20.7187 11.7248 20.4002 11.9443C19.4341 12.6102 18.2641 13 17 13C13.6863 13 11 10.3137 11 6.99996C11 5.73589 11.3898 4.56587 12.0557 3.59974Z" />
       </svg>
-      {/* Toggle knob */}
       <div
         className={`w-[24px] h-[24px] rounded-full absolute top-[3px] transition-transform duration-500 ease-in-out ${isDark ? 'translate-x-[40px] bg-slate-300' : 'translate-x-[4px] bg-white'}`}
       />
@@ -428,14 +433,14 @@ function ThemeSwitch({ isDark, onClick }: Readonly<{ isDark: boolean; onClick: (
 }
 
 export default function App() {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
+  const toggleTheme = useCallback(() => setIsDark((value) => !value), []);
+  const { canvas } = isDark ? DARK_THEME : LIGHT_THEME;
   return (
     <ThemeContext.Provider value={isDark}>
-      <div
-        className={`relative w-full h-[700px] rounded-xl ${isDark ? 'bg-[#131e29] border border-[rgba(255,255,255,0.35)]' : 'bg-gray-100'}`}
-      >
+      <div className={`relative size-full rounded-xl ${canvas}`}>
         <Main />
-        <ThemeSwitch isDark={isDark} onClick={() => setIsDark((v) => !v)} />
+        <ThemeSwitch isDark={isDark} onClick={toggleTheme} />
       </div>
     </ThemeContext.Provider>
   );

@@ -1,19 +1,18 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+import { useCallback, type ChangeEvent } from 'react';
 import {
   type CellRecord,
+  type Computed,
+  type ElementRecord,
   GraphProvider,
   HTMLHost,
   Paper,
   useCellId,
   useCells,
   useGraph,
-  type ElementRecord,
-  type Computed,
   linkRoutingOrthogonal,
 } from '@joint/react';
-import '../index.css';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+
+const PRIMARY = '#ED2637';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   cornerType: 'line',
@@ -23,96 +22,67 @@ const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
 });
 
 interface NodeData {
-  readonly [key: string]: unknown;
   readonly label: string;
-  readonly color: string;
 }
+
+type NodeElement = ElementRecord<NodeData>;
+type ResolvedNodeElement = Computed<NodeElement>;
 
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
-  {
-    id: '1',
-    type: 'element',
-    data: { label: 'Node 1', color: '#ffffff' },
-    position: { x: 40, y: 70 },
-  },
-  {
-    id: '2',
-    type: 'element',
-    data: { label: 'Node 2', color: '#ffffff' },
-    position: { x: 270, y: 120 },
-  },
-  {
-    id: '3',
-    type: 'element',
-    data: { label: 'Node 2', color: '#ffffff' },
-    position: { x: 30, y: 180 },
-  },
-  {
-    id: 'e1-1',
-    type: 'link',
-    source: { id: '1' },
-    target: { id: '2' },
-    color: PRIMARY,
-  },
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 40, y: 70 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 270, y: 120 } },
+  { id: '3', type: 'element', data: { label: 'Node 3' }, position: { x: 30, y: 180 } },
+  { id: 'e1-2', type: 'link', source: { id: '1' }, target: { id: '2' }, style: { color: PRIMARY } },
 ];
 
-function LabelInput({ id, label }: Readonly<{ id: string; label: string }>) {
-  const { setCell, isElement } = useGraph<ElementRecord<NodeData>>();
-  return (
-    <input
-      style={{ padding: 5, marginTop: 4 }}
-      value={label}
-      onChange={(event) =>
-        setCell(id, (previous) => {
-          if (!isElement(previous)) return previous;
-          return {
-            ...previous,
-            data: {
-              ...(previous.data ?? { label: '', color: '#ffffff' }),
-              label: event.target.value,
-            },
-          };
-        })
-      }
-      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-    />
-  );
-}
-
-function RenderElement({ label }: Readonly<NodeData>) {
+function RemovableNode({ label }: Readonly<NodeData>) {
   const id = useCellId();
   const { removeCell } = useGraph();
+  const handleRemove = useCallback(() => removeCell(id), [id, removeCell]);
   return (
-    <HTMLHost className="min-w-[120px] bg-white rounded-lg border border-gray-300 shadow-md">
-      <div className="flex flex-1 justify-center items-center py-2 flex-col mx-4">
-        <span className="mb-1 text-sm break-all text-black">{label}</span>
-        <button
-          onClick={() => removeCell(id)}
-          type="button"
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-        >
-          Remove
-        </button>
-      </div>
+    <HTMLHost className="jj-node gap-2">
+      <span className="break-all">{label}</span>
+      <button type="button" className="jj-btn jj-btn--sm" onClick={handleRemove}>
+        Remove
+      </button>
     </HTMLHost>
   );
 }
 
-function Main() {
-  const { isElement } = useGraph<ElementRecord<NodeData>>();
-  const elements = useCells<
-    Computed<ElementRecord<NodeData>>,
-    ReadonlyArray<ElementRecord<NodeData>>
-  >((cells) => cells.filter((cell) => isElement(cell)) as ReadonlyArray<ElementRecord<NodeData>>);
+function LabelInput({ id, label }: Readonly<{ id: string; label: string }>) {
+  const { setCell, isElement } = useGraph<NodeElement>();
+  const handleChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const next = event.target.value;
+      setCell(id, (previous) => {
+        if (!isElement(previous)) return previous;
+        return { ...previous, data: { ...previous.data, label: next } };
+      });
+    },
+    [id, isElement, setCell]
+  );
   return (
-    <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper style={{ height: 380 }}
-        className={PAPER_CLASSNAME}
+    <label className="jj-field">
+      <span className="jj-label">{id}</span>
+      <input className="jj-input w-full" value={label} onChange={handleChange} />
+    </label>
+  );
+}
+
+function Main() {
+  const { isElement } = useGraph<NodeElement>();
+  const elements = useCells<ResolvedNodeElement, readonly ResolvedNodeElement[]>((cells) =>
+    cells.filter((cell) => isElement(cell))
+  );
+  return (
+    <div className="flex size-full flex-row">
+      <Paper
+        className="min-w-0 flex-1"
         clickThreshold={10}
         linkRouting={ORTHOGONAL_LINKS}
-        renderElement={RenderElement}
+        renderElement={RemovableNode}
       />
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="flex w-56 flex-col gap-2 p-3">
         {elements.map((element) => (
           <LabelInput key={String(element.id)} id={String(element.id)} label={element.data.label} />
         ))}

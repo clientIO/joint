@@ -1,12 +1,10 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
-import { type CellRecord, GraphProvider } from '@joint/react';
-import { Paper } from '@joint/react';
+import { type CellRecord, GraphProvider, Paper } from '@joint/react';
 
-type ElementData = { label: string; color: string };
+const PRIMARY = '#ED2637';
+
+type ElementData = { label: string };
 
 class LinkModel extends shapes.standard.Link {
   defaults() {
@@ -23,14 +21,8 @@ class LinkModel extends shapes.standard.Link {
         stroke: color,
         strokeWidth: 10,
         strokeLinejoin: 'round',
-        sourceMarker: {
-          type: 'circle',
-          r: 8,
-        },
-        targetMarker: {
-          type: 'circle',
-          r: 8,
-        },
+        sourceMarker: { type: 'circle', r: 8 },
+        targetMarker: { type: 'circle', r: 8 },
       },
       wrapper: {
         connection: true,
@@ -41,18 +33,20 @@ class LinkModel extends shapes.standard.Link {
   }
 }
 
+const cellNamespace = { LinkModel };
+
 const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   {
     id: '1',
     type: 'element',
-    data: { label: 'Node 1', color: PRIMARY },
+    data: { label: 'Node 1' },
     position: { x: 100, y: 15 },
     size: { width: 140, height: 50 },
   },
   {
     id: '2',
     type: 'element',
-    data: { label: 'Node 2', color: PRIMARY },
+    data: { label: 'Node 2' },
     position: { x: 100, y: 200 },
     size: { width: 140, height: 50 },
   },
@@ -65,21 +59,10 @@ const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   },
 ];
 
-function Main() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} />
-    </div>
-  );
-}
-
 export default function App() {
   return (
-    <GraphProvider
-      initialCells={initialCells}
-      cellNamespace={{ LinkModel }}
-    >
-      <Main />
+    <GraphProvider initialCells={initialCells} cellNamespace={cellNamespace}>
+      <Paper className="size-full" />
     </GraphProvider>
   );
 }

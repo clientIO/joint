@@ -10,10 +10,10 @@ const __dirname = path.dirname(__filename);
 
 configureSort({
   storyOrder: {
-    tutorials: null,
     examples: null,
+    demos: null,
     components: null,
-    hooks: null,
+    utils: null,
     '**': { default: null },
   },
 });

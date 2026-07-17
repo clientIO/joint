@@ -1,23 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
+import codeRaw from './code?raw';
 
-import RawCode from './code?raw';
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Examples/Link Markers',
   component: Code,
   tags: ['example'],
   parameters: {
-    docs: {
-      description: {
-        story: 'Grid of links showing all built-in marker shapes (source and target).',
-      },
-      source: {
-        code: RawCode,
-      },
+    showcase: {
+      description:
+        'Renders every built-in link marker on both ends of a link, with a slider to scale the marker geometry.',
+      apiUrl: getAPILink('linkMarkerArrow', 'Presets'),
+      canvasHeight: 960,
+      code: codeRaw,
     },
   },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};
