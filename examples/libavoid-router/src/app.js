@@ -150,7 +150,7 @@ export const init = async () => {
         target: { id: c4.id },
     });
 
-    graph.addCells([c1, c2, c3, c4, c5, l1, l2, l3, l4]);
+    graph.resetCells([c1, c2, c3, c4, c5, l1, l2, l3, l4]);
 
     canvasEl.appendChild(paper.el);
 

@@ -268,13 +268,15 @@ export class RouterService {
     }
 
     private onGraphReset(previousModels: dia.Cell[]): void {
-        previousModels.forEach((cell) => {
-            if (cell.isElement()) {
-                this.deleteShape(cell);
-            } else if (cell.isLink()) {
-                this.deleteConnector(cell);
-            }
-        });
+        if (previousModels) {
+            previousModels.forEach((cell) => {
+                if (cell.isElement()) {
+                    this.deleteShape(cell);
+                } else if (cell.isLink()) {
+                    this.deleteConnector(cell);
+                }
+            });
+        }
 
         this.routeAll();
     }
