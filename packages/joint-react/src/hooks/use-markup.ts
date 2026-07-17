@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { usePaper } from './use-paper';
 import { useCellId } from './use-cell-id';
-import type { dia } from '@joint/core';
 import { PORTAL_SELECTOR } from '../mvc/element-model';
 
 /**
@@ -77,16 +76,25 @@ export function useMarkup(): MarkupApi {
   const id = useCellId();
   const applySelector = useCallback(
     (node: Element | null, selector: string) => {
-      const elementView = paper?.getCellView(id) as dia.ElementView | null;
-      if (!elementView) return;
+      // The view can exist but not yet have rendered its markup — its `selectors`
+      // map (the selector -> node dictionary) is then `undefined`: joint-core only
+      // assigns it during render and never re-nulls it. This happens during a
+      // visibility/teardown churn, e.g. hiding a cell when its group collapses. A
+      // ref-cleanup would otherwise do `delete undefined[selector]` and throw
+      // "Cannot convert undefined or null to object". Guard the map, not just the
+      // view. `selectors` isn't part of the public ElementView type, hence the cast
+      // to a deletable dictionary.
+      const elementView = paper?.getCellView(id) as {
+        selectors?: Record<string, Element | undefined>;
+      } | null;
+      const selectors = elementView?.selectors;
+      if (!selectors) return;
       if (node) {
         node.setAttribute('joint-selector', selector);
-        // @ts-expect-error - selector is dynamic key on selectors object
-        elementView.selectors[selector] = node;
+        selectors[selector] = node;
       } else {
-        // @ts-expect-error - selector is dynamic key on selectors object
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete elementView.selectors[selector];
+        delete selectors[selector];
       }
     },
     [paper, id]
