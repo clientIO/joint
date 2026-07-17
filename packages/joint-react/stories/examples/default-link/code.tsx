@@ -1,9 +1,5 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import '../index.css';
-import type { CellRecord, ElementPort } from '@joint/react';
-import { GraphProvider, Paper, HTMLBox, type DefaultLinkParams } from '@joint/react';
+import type { CellRecord, DefaultLinkParams, ElementPort } from '@joint/react';
+import { GraphProvider, Paper, HTMLBox } from '@joint/react';
 
 const RED = '#ef4444';
 const GREEN = '#22c55e';
@@ -50,8 +46,11 @@ const PORT_COLORS: Record<string, string> = {
   blue: BLUE,
 };
 
+const FALLBACK_LINK_COLOR = '#8697A6';
+
+/** Colors a newly dragged link to match the port it started from. */
 function defaultLink({ source }: DefaultLinkParams) {
-  const color = (source.port && PORT_COLORS[source.port]) || '#333';
+  const color = (source.port && PORT_COLORS[source.port]) || FALLBACK_LINK_COLOR;
   return {
     style: { color, targetMarker: 'arrow-sunken' as const },
     z: -1,
@@ -59,15 +58,19 @@ function defaultLink({ source }: DefaultLinkParams) {
 }
 
 function RenderElement({ label }: Readonly<NodeData>) {
-  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
+  return (
+    <HTMLBox useModelGeometry className="jj-node">
+      {label}
+    </HTMLBox>
+  );
 }
 
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper style={{ height: 300 }}
+      <Paper
+        className="size-full"
         renderElement={RenderElement}
-        className={PAPER_CLASSNAME}
         defaultLink={defaultLink}
         snapLinks
         linkPinning={false}

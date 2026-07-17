@@ -1,33 +1,37 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import '../index.css';
 import { V } from '@joint/core';
 import {
   type CellRecord,
-  GraphProvider,
-  Paper,
-  useGraph,
-  useCells,
-  HTMLBox,
-  linkRoutingSmooth,
+  type Computed,
   type ElementPort,
   type ElementRecord,
-  type Computed,
+  GraphProvider,
+  HTMLBox,
+  Paper,
+  linkRoutingSmooth,
+  useCells,
+  useGraph,
 } from '@joint/react';
+
+// Colors — unified dark diagram palette.
+const OUTPUT_PORT_COLOR = '#FF9505';
+const INPUT_PORT_COLOR = '#ED2637';
+// Port labels have no stylesheet fill of their own, so they need an explicit
+// light color to stay readable on the dark canvas.
+const PORT_LABEL_COLOR = '#DDE6ED';
+
+const PORT_SIZE = 16;
 
 const SMOOTH_LINKS = linkRoutingSmooth();
 
-const SECONDARY = '#6366f1';
-
 // Custom path shapes — computed from width/height so they scale with port size.
-function trianglePath(w: number, h: number) {
+function trianglePath(w: number, h: number): string {
   const hw = w / 2;
   const hh = h / 2;
   return `M ${-hw} ${-hh} L ${hw} 0 L ${-hw} ${hh} Z`;
 }
 
-function roundedRectPath(w: number, h: number) {
+function roundedRectPath(w: number, h: number): string {
   return V.rectToPath({
     x: -w / 2,
     y: -h / 2,
@@ -45,21 +49,6 @@ const SHAPE_OPTIONS = [
   { value: 'rounded-rect', label: 'Rounded Rect' },
 ] as const;
 
-/** Resolve custom shape names to SVG paths based on port size. */
-function resolveShape(shape: string, w: number, h: number): string {
-  if (shape === 'triangle') return trianglePath(w, h);
-  if (shape === 'rounded-rect') return roundedRectPath(w, h);
-  return shape;
-}
-
-// --- Data types ---
-
-interface PortNodeData {
-  readonly [key: string]: unknown;
-  readonly label: string;
-  readonly color: string;
-}
-
 const LABEL_POSITION_OPTIONS = [
   'outside',
   'inside',
@@ -71,20 +60,35 @@ const LABEL_POSITION_OPTIONS = [
   'bottom',
 ] as const;
 
-function getShapeLabel(shape: string): string {
-  return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
+/** Resolve custom shape names to SVG paths based on port size. */
+function resolveShape(shape: string, w: number, h: number): string {
+  if (shape === 'triangle') return trianglePath(w, h);
+  if (shape === 'rounded-rect') return roundedRectPath(w, h);
+  return shape;
 }
 
-const PORT_SIZE = 16;
+function getShapeLabel(shape: string): string {
+  return SHAPE_OPTIONS.find((option) => option.value === shape)?.label ?? 'Path';
+}
+
+interface PortNodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+}
 
 const initialCells: ReadonlyArray<CellRecord<PortNodeData>> = [
   {
     id: 'node-1',
     type: 'element',
-    data: { label: 'Node 1', color: PRIMARY },
+    data: { label: 'Node 1' },
     position: { x: 50, y: 100 },
     size: { width: 140, height: 80 },
-    portStyle: { width: PORT_SIZE, height: PORT_SIZE, color: SECONDARY },
+    portStyle: {
+      width: PORT_SIZE,
+      height: PORT_SIZE,
+      color: OUTPUT_PORT_COLOR,
+      labelColor: PORT_LABEL_COLOR,
+    },
     portMap: {
       'out-1': {
         cx: 'calc(w)',
@@ -105,10 +109,15 @@ const initialCells: ReadonlyArray<CellRecord<PortNodeData>> = [
   {
     id: 'node-2',
     type: 'element',
-    data: { label: 'Node 2', color: SECONDARY },
+    data: { label: 'Node 2' },
     position: { x: 350, y: 100 },
     size: { width: 140, height: 80 },
-    portStyle: { width: PORT_SIZE, height: PORT_SIZE, color: PRIMARY },
+    portStyle: {
+      width: PORT_SIZE,
+      height: PORT_SIZE,
+      color: INPUT_PORT_COLOR,
+      labelColor: PORT_LABEL_COLOR,
+    },
     portMap: {
       'in-1': {
         cx: 0,
@@ -142,40 +151,15 @@ const initialCells: ReadonlyArray<CellRecord<PortNodeData>> = [
   },
 ];
 
-// --- Styles ---
-
-const inputStyle = {
-  padding: '6px 10px',
-  border: '1px solid rgba(0, 0, 0, 0.15)',
-  borderRadius: 8,
-  fontSize: 12,
-  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  color: '#1f2937',
-  outline: 'none',
-};
-
-const labelStyle = {
-  width: 45,
-  fontSize: 11,
-  color: '#6b7280',
-  fontWeight: 500,
-} as const;
-
-const rowStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 8,
-} as const;
-
-// --- Port Controls ---
-
 interface PortControlProps {
   readonly elementId: string;
   readonly portId: string;
   readonly port: ElementPort;
+  /** Element-level port color, used when the port has no color of its own. */
+  readonly defaultColor: string;
 }
 
-function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
+function PortControl({ elementId, portId, port, defaultColor }: Readonly<PortControlProps>) {
   const { setCell, isElement } = useGraph();
 
   const updatePort = (updates: Partial<ElementPort>) => {
@@ -191,45 +175,26 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
   };
 
   return (
-    <div
-      style={{
-        padding: '8px 12px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        backgroundColor: 'rgba(0, 0, 0, 0.02)',
-        borderRadius: 8,
-      }}
-    >
-      <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 12 }}>
+    <div className="flex flex-col gap-2 rounded-control border border-hairline bg-surface-2/60 p-3">
+      <div className="text-xs font-semibold text-ink">
         {portId}
-        <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
-          {getShapeLabel(port.shape ?? 'ellipse')}
-        </span>
+        <span className="ml-1.5 font-normal text-ink-faint">{getShapeLabel(port.shape ?? 'ellipse')}</span>
       </div>
 
-      {/* Color */}
-      <div style={rowStyle}>
-        <label style={labelStyle}>Color</label>
+      <label className="jj-field w-full">
+        <span className="jj-label w-12 shrink-0">Color</span>
         <input
           type="color"
-          value={port.color ?? '#333333'}
+          className="jj-input h-8 w-12 shrink-0 cursor-pointer p-1"
+          value={port.color ?? defaultColor}
           onChange={(event) => updatePort({ color: event.target.value })}
-          style={{
-            width: 36,
-            height: 28,
-            border: 'none',
-            cursor: 'pointer',
-            borderRadius: 6,
-            padding: 0,
-          }}
         />
-      </div>
+      </label>
 
-      {/* Shape */}
-      <div style={rowStyle}>
-        <label style={labelStyle}>Shape</label>
+      <label className="jj-field w-full">
+        <span className="jj-label w-12 shrink-0">Shape</span>
         <select
+          className="jj-select flex-1"
           value={port.shape ?? 'ellipse'}
           onChange={(event) => {
             const shape = resolveShape(
@@ -239,106 +204,98 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
             );
             updatePort({ shape });
           }}
-          style={{ ...inputStyle, flex: 1, cursor: 'pointer' }}
         >
-          {SHAPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
+          {SHAPE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
-      </div>
+      </label>
 
-      {/* Size */}
-      <div style={rowStyle}>
-        <label style={labelStyle}>Size</label>
+      <label className="jj-field w-full">
+        <span className="jj-label w-12 shrink-0">Size</span>
         <input
           type="number"
-          value={port.width ?? 16}
+          className="jj-input w-16"
+          value={port.width ?? PORT_SIZE}
           onChange={(event) => updatePort({ width: Number(event.target.value) })}
-          style={{ ...inputStyle, width: 55 }}
           min={4}
           max={40}
         />
-        <span style={{ fontSize: 11, color: '#9ca3af' }}>&times;</span>
+        <span className="text-ink-faint">&times;</span>
         <input
           type="number"
-          value={port.height ?? 16}
+          className="jj-input w-16"
+          value={port.height ?? PORT_SIZE}
           onChange={(event) => updatePort({ height: Number(event.target.value) })}
-          style={{ ...inputStyle, width: 55 }}
           min={4}
           max={40}
         />
-      </div>
+      </label>
 
-      {/* Label */}
-      <div style={rowStyle}>
-        <label style={labelStyle}>Label</label>
+      <label className="jj-field w-full">
+        <span className="jj-label w-12 shrink-0">Label</span>
         <input
           type="text"
+          className="jj-input flex-1"
           value={port.label ?? ''}
           onChange={(event) => updatePort({ label: event.target.value || undefined })}
-          style={{ ...inputStyle, flex: 1 }}
           placeholder="None"
         />
-      </div>
+      </label>
 
-      {/* Label Position */}
-      <div style={rowStyle}>
-        <label style={labelStyle}>Pos</label>
+      <label className="jj-field w-full">
+        <span className="jj-label w-12 shrink-0">Pos</span>
         <select
+          className="jj-select flex-1"
           value={port.labelPosition ?? 'outside'}
           onChange={(event) => updatePort({ labelPosition: event.target.value })}
-          style={{ ...inputStyle, flex: 1, cursor: 'pointer' }}
         >
-          {LABEL_POSITION_OPTIONS.map((pos) => (
-            <option key={pos} value={pos}>
-              {pos}
+          {LABEL_POSITION_OPTIONS.map((position) => (
+            <option key={position} value={position}>
+              {position}
             </option>
           ))}
         </select>
-      </div>
+      </label>
 
-      {/* Label Offset X */}
-      <div style={rowStyle}>
-        <label style={labelStyle}>dx</label>
+      <label className="jj-field w-full">
+        <span className="jj-label w-12 shrink-0">dx</span>
         <input
           type="checkbox"
+          className="accent-brand"
           checked={port.labelOffsetX !== undefined}
           onChange={(event) => updatePort({ labelOffsetX: event.target.checked ? 0 : undefined })}
-          style={{ accentColor: PRIMARY }}
         />
         <input
           type="number"
+          className="jj-input flex-1 disabled:opacity-40"
           value={port.labelOffsetX ?? 0}
           disabled={port.labelOffsetX === undefined}
           onChange={(event) => updatePort({ labelOffsetX: Number(event.target.value) })}
-          style={{ ...inputStyle, flex: 1, opacity: port.labelOffsetX === undefined ? 0.4 : 1 }}
         />
-      </div>
+      </label>
 
-      {/* Label Offset Y */}
-      <div style={rowStyle}>
-        <label style={labelStyle}>dy</label>
+      <label className="jj-field w-full">
+        <span className="jj-label w-12 shrink-0">dy</span>
         <input
           type="checkbox"
+          className="accent-brand"
           checked={port.labelOffsetY !== undefined}
           onChange={(event) => updatePort({ labelOffsetY: event.target.checked ? 0 : undefined })}
-          style={{ accentColor: PRIMARY }}
         />
         <input
           type="number"
+          className="jj-input flex-1 disabled:opacity-40"
           value={port.labelOffsetY ?? 0}
           disabled={port.labelOffsetY === undefined}
           onChange={(event) => updatePort({ labelOffsetY: Number(event.target.value) })}
-          style={{ ...inputStyle, flex: 1, opacity: port.labelOffsetY === undefined ? 0.4 : 1 }}
         />
-      </div>
+      </label>
     </div>
   );
 }
-
-// --- Element Port Controls ---
 
 interface ElementPortControlsProps {
   readonly id: string;
@@ -347,37 +304,38 @@ interface ElementPortControlsProps {
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
   const portEntries = Object.entries(element.portMap ?? {});
-  const { label } = element.data ?? { label: '' };
+  const label = element.data?.label ?? '';
+  const defaultColor = element.portStyle?.color ?? OUTPUT_PORT_COLOR;
 
   return (
-    <div
-      style={{
-        padding: '12px 16px',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-      }}
-    >
-      <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 13 }}>
+    <div className="flex flex-col gap-2.5 border-b border-hairline px-4 py-3">
+      <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
         {label}
-        <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
+        <span className="jj-chip">
           {portEntries.length} port{portEntries.length === 1 ? '' : 's'}
         </span>
       </div>
 
       {portEntries.map(([portId, port]) => (
-        <PortControl key={portId} elementId={id} portId={portId} port={port} />
+        <PortControl
+          key={portId}
+          elementId={id}
+          portId={portId}
+          port={port}
+          defaultColor={defaultColor}
+        />
       ))}
     </div>
   );
 }
 
 function RenderElement({ label }: Readonly<PortNodeData>) {
-  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
+  return (
+    <HTMLBox useModelGeometry className="jj-node">
+      {label}
+    </HTMLBox>
+  );
 }
-
-// --- Main ---
 
 function Main() {
   const cells = useCells();
@@ -386,43 +344,17 @@ function Main() {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', height: 400, position: 'relative' }}>
-      <Paper style={{ height: 400 }}
+    <div className="relative size-full">
+      <Paper
+        className="size-full"
         renderElement={RenderElement}
-        className={PAPER_CLASSNAME}
-        snapLinks={true}
+        snapLinks
         linkPinning={false}
         linkRouting={SMOOTH_LINKS}
       />
 
-      {/* Control Panel */}
-      <div
-        style={{
-          position: 'absolute',
-          right: 16,
-          top: 16,
-          bottom: 16,
-          width: 260,
-          backgroundColor: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderRadius: 16,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
-          overflowY: 'auto',
-          overflowX: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            padding: '16px 16px 12px',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#1f2937',
-            letterSpacing: '-0.01em',
-          }}
-        >
+      <div className="absolute right-3 top-3 bottom-3 w-64 overflow-y-auto rounded-panel border border-hairline-strong bg-surface/90 backdrop-blur">
+        <div className="border-b border-hairline px-4 pt-4 pb-3 text-[13px] font-bold text-ink">
           Port Properties
         </div>
 

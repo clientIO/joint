@@ -1,26 +1,22 @@
 import type { Preview } from '@storybook/react-vite';
 import { theme } from './theme';
 import { withStrictMode } from './decorators/with-strict-mode';
+import { withShowcase } from './decorators/with-showcase';
 import './preview.css';
 
-export const decorators = [withStrictMode];
+// Showcase is the outermost frame; StrictMode wraps the live story inside it.
+export const decorators = [withShowcase, withStrictMode];
 
 const preview: Preview = {
   parameters: {
-    layout: 'padded',
+    // The Showcase frame owns all spacing and the app background.
+    layout: 'fullscreen',
     docs: {
       theme,
     },
-    backgrounds: {
-      options: {
-        dark: { name: 'Dark', value: theme.appBg },
-      },
-    },
-    parameters: {
-      options: {
-        // @ts-expect-error its storybook multilevel sort
-        storySort: (a, b) => globalThis['storybook-multilevel-sort:storySort'](a, b),
-      },
+    options: {
+      // @ts-expect-error injected by storybook-multilevel-sort
+      storySort: (a, b) => globalThis['storybook-multilevel-sort:storySort'](a, b),
     },
     controls: {
       matchers: {
@@ -30,14 +26,7 @@ const preview: Preview = {
     },
   },
 
-  tags: ['autodocs'],
   decorators,
-
-  initialGlobals: {
-    backgrounds: {
-      value: 'dark',
-    },
-  },
 };
 
 export default preview;

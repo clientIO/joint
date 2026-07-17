@@ -1,56 +1,61 @@
 /* eslint-disable sonarjs/pseudo-random */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { HTMLBox, GraphProvider, Paper, type CellRecord, type ElementRecord, type LinkRecord } from '@joint/react';
-import '../index.css';
-import React, { useCallback, useState, startTransition } from 'react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { useCallback, useState, startTransition, type Dispatch, type SetStateAction } from 'react';
+
+const X_NODES = 15;
+const Y_NODES = 30;
+const NODE_WIDTH = 80;
+const NODE_HEIGHT = 30;
+const RANDOM_SPREAD = 1500;
+
+// Colors — unified dark diagram palette.
+const LINK_COLOR = '#8697A6';
+
+// Shared by every link, so the hundreds of them allocate a single style object.
+const LINK_STYLE = { color: LINK_COLOR, dasharray: '5 2', width: 1 };
 
 interface StressNodeData {
   readonly label: string;
-  readonly fontSize: number;
 }
-
-const RENDER_ELEMENT_STYLE: React.CSSProperties = {
-  fontSize: 12,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
 
 function RenderElement({ label }: Readonly<StressNodeData>) {
-  return <HTMLBox useModelGeometry style={RENDER_ELEMENT_STYLE}>{label}</HTMLBox>;
+  return (
+    <HTMLBox useModelGeometry className="jj-node">
+      {label}
+    </HTMLBox>
+  );
 }
 
-function buildInitialCells(xNodes = 15, yNodes = 30): ReadonlyArray<CellRecord<StressNodeData>> {
+/** Build a grid of nodes chained together by links, to exercise rendering at scale. */
+function buildInitialCells(xNodes: number, yNodes: number): ReadonlyArray<CellRecord<StressNodeData>> {
   const cells: Array<CellRecord<StressNodeData>> = [];
   let nodeId = 1;
   let edgeId = 1;
-  let recentNodeId: number | null = null;
+  let previousNodeId: number | null = null;
 
   for (let y = 0; y < yNodes; y++) {
     for (let x = 0; x < xNodes; x++) {
-      const id = `stress-${nodeId.toString()}`;
       cells.push({
-        id,
+        id: `stress-${nodeId}`,
         type: 'element',
-        data: { label: `Node ${nodeId}`, fontSize: 11 },
+        data: { label: `Node ${nodeId}` },
         position: { x: x * 100, y: y * 50 },
-        size: { width: 80, height: 30 },
+        size: { width: NODE_WIDTH, height: NODE_HEIGHT },
       } satisfies ElementRecord<StressNodeData>);
 
-      if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
+      if (previousNodeId !== null) {
         cells.push({
-          id: `edge-${edgeId.toString()}`,
+          id: `edge-${edgeId}`,
           type: 'link',
-          source: { id: `stress-${recentNodeId.toString()}` },
-          target: { id: `stress-${nodeId.toString()}` },
+          source: { id: `stress-${previousNodeId}` },
+          target: { id: `stress-${nodeId}` },
           z: -1,
-          style: { color: '#999999', dasharray: '5 2', width: 1 },
+          style: LINK_STYLE,
         } satisfies LinkRecord);
         edgeId++;
       }
 
-      recentNodeId = nodeId;
+      previousNodeId = nodeId;
       nodeId++;
     }
   }
@@ -58,41 +63,36 @@ function buildInitialCells(xNodes = 15, yNodes = 30): ReadonlyArray<CellRecord<S
   return cells;
 }
 
-const initialCells = buildInitialCells(15, 30);
+const initialCells = buildInitialCells(X_NODES, Y_NODES);
+
+function randomizePosition(cell: CellRecord<StressNodeData>): CellRecord<StressNodeData> {
+  if (cell.type !== 'element') return cell;
+  return {
+    ...cell,
+    position: { x: Math.random() * RANDOM_SPREAD, y: Math.random() * RANDOM_SPREAD },
+  };
+}
 
 function Main({
   setCells,
 }: Readonly<{
-  setCells: React.Dispatch<React.SetStateAction<ReadonlyArray<CellRecord<StressNodeData>>>>;
+  setCells: Dispatch<SetStateAction<ReadonlyArray<CellRecord<StressNodeData>>>>;
 }>) {
-  const randomizePosition = useCallback(
-    (cell: CellRecord<StressNodeData>): CellRecord<StressNodeData> => {
-      if (cell.type !== 'element') return cell;
-      return {
-        ...(cell as ElementRecord<StressNodeData>),
-        position: { x: Math.random() * 1500, y: Math.random() * 1500 },
-      };
-    },
-    []
-  );
-  const updatePos = useCallback(() => {
+  const randomizePositions = useCallback(() => {
     startTransition(() => {
       setCells((previous) => previous.map(randomizePosition));
     });
-  }, [setCells, randomizePosition]);
+  }, [setCells]);
 
   return (
-    <div className="flex flex-row relative">
-      <Paper style={{ height: 600 }} id="main-view" className={PAPER_CLASSNAME} renderElement={RenderElement}/>
-      <div className="absolute top-4 right-4">
-        <button
-          type="button"
-          onClick={updatePos}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          change pos
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <button type="button" className="jj-btn jj-btn--primary" onClick={randomizePositions}>
+          Randomize positions
         </button>
       </div>
+      {/* Zoomed out so the whole 450-node grid stays visible while it re-renders. */}
+      <Paper className="min-h-0 flex-1" transform="scale(0.4)" renderElement={RenderElement} />
     </div>
   );
 }

@@ -15,8 +15,7 @@ import {
   selectElementSize,
   linkRoutingSmooth,
 } from '@joint/react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, type ChangeEvent } from 'react';
 
 const SMOOTH_LINKS = linkRoutingSmooth();
 
@@ -55,24 +54,25 @@ type ShapeElement = ElementRecord<ShapeData>;
 // Constants
 // ----------------------------------------------------------------------------
 
-const MAIN_COLOR = '#1e293b';
-const MAIN_BORDER = '#334155';
-const SECONDARY_COLOR = '#0f172a';
+// Colors — unified dark diagram palette.
+const MAIN_COLOR = '#1c2836';
+const MAIN_BORDER = '#3c4f63';
+const SECONDARY_COLOR = '#121c26';
+const SECONDARY_BORDER = '#2f4053';
+const TEXT_COLOR = '#DDE6ED';
+const TEXT_MUTED = '#93A4B3';
+const LINK_COLOR = '#8697A6';
+
+// Per-product accents — these carry meaning, each product keeps its own hue.
 const BTC_COLOR = '#f59e0b';
 const GOLD_COLOR = '#eab308';
 const SP500_COLOR = '#3b82f6';
-const TEXT_COLOR = '#e2e8f0';
-const TEXT_MUTED = '#94a3b8';
-const LINK_COLOR = '#475569';
 
 const CURRENT_YEAR = 2026;
 const INVESTMENT_ID = 'investment';
 const PRODUCT_IDS = ['gold', 'bitcoin', 'sp500'] as const;
 
 const DEFAULT_ROI_VALUE = { value: 0, roi: 0 };
-
-const INPUT_CLASSNAME =
-  'box-border text-right my-1 w-full bg-slate-800 border border-slate-600 text-slate-200 rounded px-1.5 py-[3px] text-[13px] leading-none focus:border-blue-400 focus:outline-none';
 
 // Historical price data (2013-2026) — Jan average prices
 const historicalPrices: Record<string, Record<string, number>> = {
@@ -112,7 +112,7 @@ const initialElements: ShapeElement[] = [
     type: 'element',
     data: { type: 'Product', name: 'gold', label: 'Gold', percentage: 25, color: GOLD_COLOR },
     position: { x: 300, y: 100 },
-    size: { width: 140, height: 120 },
+    size: { width: 140, height: 130 },
     z: 3,
   },
   {
@@ -120,7 +120,7 @@ const initialElements: ShapeElement[] = [
     type: 'element',
     data: { type: 'Product', name: 'bitcoin', label: 'Bitcoin', percentage: 25, color: BTC_COLOR },
     position: { x: 300, y: 330 },
-    size: { width: 140, height: 120 },
+    size: { width: 140, height: 130 },
     z: 5,
   },
   {
@@ -128,7 +128,7 @@ const initialElements: ShapeElement[] = [
     type: 'element',
     data: { type: 'Product', name: 'sp500', label: 'S&P 500', percentage: 50, color: SP500_COLOR },
     position: { x: 300, y: 560 },
-    size: { width: 140, height: 120 },
+    size: { width: 140, height: 130 },
     z: 7,
   },
   {
@@ -162,7 +162,7 @@ const initialElements: ShapeElement[] = [
     id: 'performance',
     type: 'element',
     data: { type: 'OverallPerformance' },
-    // The position and size of this element will be adjusted to fit its embedded performance nodes
+    // The position and size of this element are adjusted to fit its embedded performance nodes.
     z: -1,
   },
 ];
@@ -258,7 +258,7 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
   const { width, height } = useCell(selectElementSize);
 
   const handleFundsChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       if (!event.target.validity.valid) return;
       const newFunds = Number(event.target.value);
       setCell(INVESTMENT_ID, (previous) => {
@@ -274,7 +274,7 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
   );
 
   const handleYearChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
+    (event: ChangeEvent<HTMLSelectElement>) => {
       const newYear = Number(event.target.value);
       setCell(INVESTMENT_ID, (previous) => {
         if (!isElement(previous)) return previous;
@@ -300,43 +300,29 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
         strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div
-          className="p-3 flex flex-col text-center font-sans leading-none"
-          style={{ color: TEXT_COLOR }}
-        >
-          <h2
-            className="mt-3 mb-5 font-semibold text-lg tracking-tight"
-            style={{ color: TEXT_COLOR }}
-          >
+        <div className="flex flex-col p-3 text-center font-sans leading-none">
+          <h2 className="mt-3 mb-5 text-lg font-semibold tracking-tight" style={{ color: TEXT_COLOR }}>
             Investment
           </h2>
-          <div className="flex flex-col">
-            <label className="text-[13px]" style={{ color: TEXT_MUTED }}>
-              Amount ($)
-              <input
-                className={`${INPUT_CLASSNAME} mt-1.5`}
-                type="number"
-                value={funds}
-                onChange={handleFundsChange}
-              />
-            </label>
-          </div>
-          <div className="flex flex-col mt-3">
-            <label className="text-[13px]" style={{ color: TEXT_MUTED }}>
-              Year
-              <select
-                className={`${INPUT_CLASSNAME} mt-1.5`}
-                value={year}
-                onChange={handleYearChange}
-              >
-                {YEARS.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <label className="flex flex-col text-left text-[13px]" style={{ color: TEXT_MUTED }}>
+            Amount ($)
+            <input
+              className="jj-input mt-1.5 w-full text-right"
+              type="number"
+              value={funds}
+              onChange={handleFundsChange}
+            />
+          </label>
+          <label className="mt-3 flex flex-col text-left text-[13px]" style={{ color: TEXT_MUTED }}>
+            Year
+            <select className="jj-select mt-1.5 w-full" value={year} onChange={handleYearChange}>
+              {YEARS.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </foreignObject>
     </>
@@ -352,11 +338,10 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
   const { width, height } = useCell(selectElementSize);
 
   const handlePercentageChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       if (!event.target.validity.valid) return;
       const newPercentage = Number(event.target.value);
 
-      // Read all current product percentages for redistribution
       setCell(name, (previous) => {
         if (!isElement(previous)) return previous;
         if (previous.data?.type !== 'Product') return previous;
@@ -366,12 +351,9 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
         };
       });
 
-      // Redistribute the difference among other products
-      const currentPercentage = percentage;
-      let diff = currentPercentage - newPercentage;
+      // Redistribute the difference across the other products, starting after this one.
+      let diff = percentage - newPercentage;
       const currentIndex = PRODUCT_IDS.indexOf(name);
-
-      // Products after the changed one, then wrap around
       const sortedIds = [
         ...PRODUCT_IDS.slice(currentIndex + 1),
         ...PRODUCT_IDS.slice(0, currentIndex),
@@ -408,38 +390,48 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
         strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div
-          className="p-3 flex flex-col text-center font-sans text-[13px] leading-none"
-          style={{ color: TEXT_COLOR }}
-        >
-          <div className="flex items-center justify-center gap-1.5 mt-2 mb-3">
-            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: color }} />
-            <span className="font-semibold text-sm" style={{ color: TEXT_COLOR }}>
+        <div className="flex flex-col p-3 text-center font-sans text-[13px] leading-none">
+          <div className="mt-2 mb-3 flex items-center justify-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: color }} />
+            <span className="text-sm font-semibold" style={{ color: TEXT_COLOR }}>
               {label}
             </span>
           </div>
-          <div className="flex flex-col">
-            <label className="text-[13px]" style={{ color: TEXT_MUTED }}>
-              Allocation
-              <span className="flex flex-row items-center mt-1.5">
-                <input
-                  className={INPUT_CLASSNAME}
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={percentage}
-                  onChange={handlePercentageChange}
-                />
-                <span className="shrink-0 pl-1.5 text-right" style={{ color: TEXT_MUTED }}>
-                  %
-                </span>
+          <label className="flex flex-col text-left text-[13px]" style={{ color: TEXT_MUTED }}>
+            Allocation
+            <span className="mt-1.5 flex flex-row items-center">
+              <input
+                className="jj-input w-full text-right"
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={percentage}
+                onChange={handlePercentageChange}
+              />
+              <span className="shrink-0 pl-1.5" style={{ color: TEXT_MUTED }}>
+                %
               </span>
-            </label>
-          </div>
+            </span>
+          </label>
         </div>
       </foreignObject>
     </>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Performance rows (shared read-only value/ROI display)
+// ----------------------------------------------------------------------------
+
+function PerformanceRow({ label, value }: Readonly<{ label: string; value: string }>) {
+  return (
+    <div className="flex items-center justify-between">
+      <span style={{ color: TEXT_MUTED }}>{label}</span>
+      <span className="font-medium tabular-nums" style={{ color: TEXT_COLOR }}>
+        {value}
+      </span>
+    </div>
   );
 }
 
@@ -452,7 +444,7 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const { graph } = useGraph();
   const { width, height } = useCell(selectElementSize);
 
-  // Use graph topology to find the connected product (inbound neighbor via link)
+  // Use graph topology to find the connected product (inbound neighbor via link).
   const { value, roi } = useCells<Computed<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>(
     (cells) => {
       const cell = graph.getCell(cellId);
@@ -494,38 +486,13 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
         strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div
-          className="p-3 flex flex-col text-center font-sans text-[13px]"
-          style={{ color: TEXT_COLOR }}
-        >
-          <p className="font-semibold text-sm mt-1 mb-2" style={{ color: TEXT_COLOR }}>
+        <div className="flex flex-col p-3 text-center font-sans text-[13px]">
+          <p className="mt-1 mb-2 text-sm font-semibold" style={{ color: TEXT_COLOR }}>
             {label}
           </p>
-          <div className="flex flex-col gap-1">
-            <label className="flex items-center text-left">
-              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>
-                Value
-              </span>
-              <input
-                className={INPUT_CLASSNAME}
-                name="value"
-                type="text"
-                readOnly
-                value={formatValue(value)}
-              />
-            </label>
-            <label className="flex items-center text-left">
-              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>
-                ROI
-              </span>
-              <input
-                className={INPUT_CLASSNAME}
-                name="roi"
-                type="text"
-                readOnly
-                value={formatValue(roi)}
-              />
-            </label>
+          <div className="flex flex-col gap-1.5">
+            <PerformanceRow label="Value" value={formatValue(value)} />
+            <PerformanceRow label="ROI" value={`${formatValue(roi)}%`} />
           </div>
         </div>
       </foreignObject>
@@ -542,7 +509,7 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const { graph } = useGraph();
   const { width, height } = useCell(selectElementSize);
 
-  // Use graph topology: walk embedded performance cells, find their inbound product neighbors
+  // Walk the embedded performance cells, resolve each inbound product neighbor, and sum values.
   const { value, roi } = useCells<Computed<ElementRecord<ShapeData>>, typeof DEFAULT_ROI_VALUE>(
     (cells) => {
       const investmentItem = cells.find((c) => String(c.id) === INVESTMENT_ID) as
@@ -585,48 +552,23 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
         rx={12}
         ry={12}
         fill={SECONDARY_COLOR}
-        stroke={MAIN_BORDER}
+        stroke={SECONDARY_BORDER}
         strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div
-          className="p-3 flex flex-col justify-between text-center font-sans text-[13px] h-full leading-none"
-          style={{ color: TEXT_COLOR }}
-        >
+        <div className="flex h-full flex-col justify-between p-3 text-center font-sans text-[13px] leading-none">
           <p className="mt-3 mb-2" style={{ color: TEXT_MUTED }}>
             Portfolio value in{' '}
             <strong className="font-semibold" style={{ color: TEXT_COLOR }}>
               {CURRENT_YEAR}
             </strong>
           </p>
-          <div className="flex flex-col gap-1">
-            <p className="text-[12px] mb-1" style={{ color: TEXT_MUTED }}>
+          <div className="flex flex-col gap-1.5">
+            <p className="mb-1 text-[12px]" style={{ color: TEXT_MUTED }}>
               Overall performance
             </p>
-            <label className="flex items-center text-left">
-              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>
-                Value
-              </span>
-              <input
-                className={INPUT_CLASSNAME}
-                name="value"
-                type="text"
-                readOnly
-                value={formatValue(value)}
-              />
-            </label>
-            <label className="flex items-center text-left">
-              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>
-                ROI
-              </span>
-              <input
-                className={INPUT_CLASSNAME}
-                name="roi"
-                type="text"
-                readOnly
-                value={formatValue(roi)}
-              />
-            </label>
+            <PerformanceRow label="Value" value={formatValue(value)} />
+            <PerformanceRow label="ROI" value={`${formatValue(roi)}%`} />
           </div>
         </div>
       </foreignObject>
@@ -666,8 +608,7 @@ function Main() {
   useEffect(() => {
     const paper = paperRef.current;
     if (!paper) return;
-    // Resize the container elements to fit their content
-    // (performance nodes should fit their embedded product nodes)
+    // Resize the container elements to fit their embedded performance nodes.
     for (const element of graph.getElements()) {
       if (element.getEmbeddedCells().length > 0) {
         element.fitEmbeds({
@@ -686,9 +627,9 @@ function Main() {
   }, [graph]);
 
   return (
-    <Paper style={{ backgroundColor: '#0f172a', width: '100%', height: 800 }}
+    <Paper
       ref={paperRef}
-      className={PAPER_CLASSNAME}
+      className="size-full"
       renderElement={RenderElement}
       linkRouting={SMOOTH_LINKS}
       interactive={{ stopDelegation: false }}

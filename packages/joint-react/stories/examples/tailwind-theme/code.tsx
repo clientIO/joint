@@ -1,31 +1,23 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useState, type MouseEvent } from 'react';
 import { type CellRecord, GraphProvider, Paper, selectElementSize, useCell, linkMarkerArrow } from '@joint/react';
-import { PAPER_CLASSNAME as DEFAULT_PAPER_CLASSNAME } from 'storybook-config/theme';
 
-interface NodeUserData {
-  readonly [key: string]: unknown;
-  label: string;
-}
+type NodeData = { readonly label: string };
+
+const ELEMENT_SIZE = { width: 120, height: 50 };
 
 const PORT_STYLE = {
   width: 15,
   height: 15,
   className: `
     stroke-2
-
     hover:fill-blue-500
     forest:hover:fill-lime-300
     ocean:hover:fill-cyan-200
     sunset:hover:fill-orange-400
-
     stroke-white
     forest:stroke-emerald-950
     ocean:stroke-sky-950
     sunset:stroke-amber-50
-
     fill-slate-400
     forest:fill-emerald-400
     ocean:fill-sky-400
@@ -36,10 +28,8 @@ const PORT_STYLE = {
     forest:fill-emerald-400
     ocean:fill-sky-400
     sunset:fill-amber-600
-  `
+  `,
 } as const;
-
-const ELEMENT_SIZE = { width: 120, height: 50 };
 
 const DEFAULT_LINK = {
   style: {
@@ -53,14 +43,14 @@ const DEFAULT_LINK = {
         forest:fill-emerald-600
         ocean:fill-sky-400
         sunset:fill-amber-500
-      `
+      `,
     }),
     className: `
       stroke-slate-400
       forest:stroke-emerald-600
       ocean:stroke-sky-400
       sunset:stroke-amber-500
-    `
+    `,
   },
   labelStyle: {
     backgroundPadding: { horizontal: 6, vertical: 4 },
@@ -76,16 +66,15 @@ const DEFAULT_LINK = {
       forest:fill-emerald-900
       ocean:fill-sky-900
       sunset:fill-amber-50
-
       stroke-slate-300
       forest:stroke-emerald-700
       ocean:stroke-sky-600
       sunset:stroke-amber-400
-    `
-  }
+    `,
+  },
 } as const;
 
-const initialCells: ReadonlyArray<CellRecord<NodeUserData>> = [
+const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
     id: 'a',
     type: 'element',
@@ -163,18 +152,18 @@ const initialCells: ReadonlyArray<CellRecord<NodeUserData>> = [
   },
 ];
 
-function Node({ label }: Readonly<NodeUserData>) {
+function Node({ label }: Readonly<NodeData>) {
   const { width, height } = useCell(selectElementSize);
 
   return (
     <>
       <rect
         className="
-                    fill-slate-50 stroke-slate-300
-                    forest:fill-emerald-900 forest:stroke-emerald-600
-                    ocean:fill-sky-900 ocean:stroke-sky-500
-                    sunset:fill-amber-50 sunset:stroke-amber-400
-                "
+          fill-slate-50 stroke-slate-300
+          forest:fill-emerald-900 forest:stroke-emerald-600
+          ocean:fill-sky-900 ocean:stroke-sky-500
+          sunset:fill-amber-50 sunset:stroke-amber-400
+        "
         width={width}
         height={height}
         rx="8"
@@ -182,11 +171,11 @@ function Node({ label }: Readonly<NodeUserData>) {
       />
       <text
         className="
-                    fill-slate-800
-                    forest:fill-emerald-100
-                    ocean:fill-sky-100
-                    sunset:fill-amber-900
-                "
+          fill-slate-800
+          forest:fill-emerald-100
+          ocean:fill-sky-100
+          sunset:fill-amber-900
+        "
         x={width / 2}
         y={height / 2}
         dominantBaseline="middle"
@@ -200,7 +189,7 @@ function Node({ label }: Readonly<NodeUserData>) {
 
 type Theme = 'default' | 'forest' | 'ocean' | 'sunset';
 
-const themes: Theme[] = ['default', 'forest', 'ocean', 'sunset'];
+const themes: readonly Theme[] = ['default', 'forest', 'ocean', 'sunset'];
 
 const themeLabels: Record<Theme, string> = {
   default: 'Slate',
@@ -209,54 +198,37 @@ const themeLabels: Record<Theme, string> = {
   sunset: 'Sunset',
 };
 
-const PAPER_CLASSNAME = DEFAULT_PAPER_CLASSNAME + `
-  bg-white
-  forest:bg-emerald-950
-  ocean:bg-sky-950
-  sunset:bg-amber-100
-`;
-
 function Diagram() {
-  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeUserData>>>(initialCells);
   const [theme, setTheme] = useState<Theme>('default');
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const selectTheme = useCallback((next: Theme) => {
-    setTheme(next);
-    const element = wrapperRef.current;
-    if (element) {
-      for (const t of themes) {
-        if (t !== 'default') element.classList.toggle(t, t === next);
-      }
-    }
+  const selectTheme = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+    setTheme(event.currentTarget.value as Theme);
   }, []);
 
+  // Toggling the theme variant class on the wrapper flips every `forest:` /
+  // `ocean:` / `sunset:` utility on the descendant cells at once.
+  const wrapperTheme = theme === 'default' ? '' : theme;
+
   return (
-    <div ref={wrapperRef}>
-      <fieldset className="mb-3 flex gap-1 rounded-lg border border-slate-200 p-1 w-fit">
-        {themes.map((t) => (
-          <label
-            key={t}
-            className={`px-3 py-1 text-xs rounded-md cursor-pointer select-none transition-colors ${
-              theme === t ? 'bg-slate-800 text-white' : 'text-slate-600 hover:bg-slate-100'
-            }`}
+    <div className={`flex size-full flex-col ${wrapperTheme}`}>
+      <div className="jj-controls m-3">
+        {themes.map((name) => (
+          <button
+            key={name}
+            type="button"
+            value={name}
+            className={name === theme ? 'jj-btn jj-btn--primary' : 'jj-btn'}
+            onClick={selectTheme}
           >
-            <input
-              type="radio"
-              name="theme"
-              className="sr-only"
-              checked={theme === t}
-              onChange={() => selectTheme(t)}
-            />
-            {themeLabels[t]}
-          </label>
+            {themeLabels[name]}
+          </button>
         ))}
-      </fieldset>
-      <GraphProvider cells={cells} onCellsChange={setCells}>
-        <Paper style={{ height: 240 }}
-          className={PAPER_CLASSNAME}
+      </div>
+      <GraphProvider initialCells={initialCells}>
+        <Paper
+          className="min-h-0 flex-1 bg-white forest:bg-emerald-950 ocean:bg-sky-950 sunset:bg-amber-100"
           renderElement={Node}
-          defaultLink={() => DEFAULT_LINK}
+          defaultLink={DEFAULT_LINK}
         />
       </GraphProvider>
     </div>

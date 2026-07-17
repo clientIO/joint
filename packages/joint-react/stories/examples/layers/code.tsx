@@ -1,10 +1,30 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, shapes } from '@joint/core';
-import { type CellRecord, GraphProvider, useCell, Paper, ElementModel, LinkModel, HTMLHost, selectElementSize, usePaper } from '@joint/react';
-import { useMemo, useState } from 'react';
-import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
+import {
+  type CellRecord,
+  type CellVisibility,
+  GraphProvider,
+  useCell,
+  Paper,
+  ElementModel,
+  LinkModel,
+  HTMLHost,
+  selectElementSize,
+  usePaper,
+} from '@joint/react';
+import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import './styles.css';
+
+// Colors — unified dark diagram palette.
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const BACKGROUND_LAYER_FILL = '#121c26';
+const BACKGROUND_LAYER_STROKE = '#2f4053';
+const TEXT_COLOR = '#DDE6ED';
+const MUTED_TEXT_COLOR = '#93A4B3';
+
+const PAPER_ID = 'layers-paper';
+/** Render order: first added draws behind, last draws in front. */
+const LAYERS = ['background', 'main', 'foreground'] as const;
 
 interface LayeredElementData {
   readonly [key: string]: unknown;
@@ -13,13 +33,11 @@ interface LayeredElementData {
   readonly isBackground?: boolean;
 }
 
-// readonly CellRecord[] assigned to different layers
 const initialCells: ReadonlyArray<CellRecord<LayeredElementData>> = [
-  // Background layer elements
   {
     id: 'bg-1',
     type: 'element',
-    data: { label: 'Background 1', color: '#374151', isBackground: true },
+    data: { label: 'Background 1', color: BACKGROUND_LAYER_FILL, isBackground: true },
     position: { x: 20, y: 20 },
     size: { width: 200, height: 150 },
     layer: 'background',
@@ -27,12 +45,11 @@ const initialCells: ReadonlyArray<CellRecord<LayeredElementData>> = [
   {
     id: 'bg-2',
     type: 'element',
-    data: { label: 'Background 2', color: '#374151', isBackground: true },
+    data: { label: 'Background 2', color: BACKGROUND_LAYER_FILL, isBackground: true },
     position: { x: 250, y: 20 },
     size: { width: 200, height: 150 },
     layer: 'background',
   },
-  // Main layer elements
   {
     id: 'main-1',
     type: 'element',
@@ -47,7 +64,6 @@ const initialCells: ReadonlyArray<CellRecord<LayeredElementData>> = [
     position: { x: 280, y: 50 },
     layer: 'main',
   },
-  // Foreground layer element
   {
     id: 'fg-1',
     type: 'element',
@@ -55,7 +71,6 @@ const initialCells: ReadonlyArray<CellRecord<LayeredElementData>> = [
     position: { x: 100, y: 200 },
     layer: 'foreground',
   },
-  // Links assigned to layers
   {
     id: 'link-1',
     type: 'link',
@@ -84,11 +99,10 @@ function BackgroundNode({ label, color }: Readonly<LayeredElementData>) {
         rx={8}
         ry={8}
         fill={color}
-        stroke="#1f2937"
+        stroke={BACKGROUND_LAYER_STROKE}
         strokeWidth={2}
-        opacity={0.5}
       />
-      <text x={10} y={25} fill="white" fontSize={12} opacity={0.7}>
+      <text x={10} y={25} fill={MUTED_TEXT_COLOR} fontSize={12}>
         {label}
       </text>
     </g>
@@ -96,156 +110,92 @@ function BackgroundNode({ label, color }: Readonly<LayeredElementData>) {
 }
 
 function ElementNode({ label, color }: Readonly<LayeredElementData>) {
+  const style = useMemo(() => ({ background: color, color: TEXT_COLOR }), [color]);
   return (
-    <HTMLHost
-      className="fade-in"
-      style={{
-        padding: '12px 20px',
-        backgroundColor: color,
-        borderRadius: 8,
-        color: 'white',
-        fontSize: 14,
-        fontWeight: 500,
-        cursor: 'move',
-        display: 'inline-block',
-        whiteSpace: 'nowrap',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-      }}
-    >
+    <HTMLHost className="jj-node fade-in" style={style}>
       {label}
     </HTMLHost>
   );
 }
 
 function RenderElement(data: Readonly<LayeredElementData>) {
-  if (data.isBackground) {
-    return <BackgroundNode {...data} />;
-  }
-  return <ElementNode {...data} />;
+  return data.isBackground ? <BackgroundNode {...data} /> : <ElementNode {...data} />;
 }
 
-interface MainProps {
-  readonly hiddenLayers: Set<string>;
-  readonly toggleLayer: (layerId: string) => void;
-}
+function Main() {
+  const [hiddenLayers, setHiddenLayers] = useState<ReadonlySet<string>>(() => new Set());
+  const { wakeUp } = usePaper(PAPER_ID);
 
-function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
-  const layers = ['background', 'main', 'foreground'];
-  const { wakeUp } = usePaper('layers-paper');
+  const toggleLayer = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      const layerId = event.currentTarget.dataset.layer;
+      if (!layerId) return;
+      setHiddenLayers((previous) => {
+        const next = new Set(previous);
+        if (next.has(layerId)) {
+          next.delete(layerId);
+        } else {
+          next.add(layerId);
+        }
+        return next;
+      });
+      // Refresh the paper so hidden/shown cells are re-evaluated immediately.
+      wakeUp();
+    },
+    [wakeUp]
+  );
+
+  const cellVisibility = useCallback<CellVisibility>(
+    ({ model }) => {
+      const cellLayer = model.layer();
+      return !cellLayer || !hiddenLayers.has(cellLayer);
+    },
+    [hiddenLayers]
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', gap: 8, padding: '8px 0' }}>
-        {layers.map((layerId) => (
-          <button
-            key={layerId}
-            type="button"
-            onClick={() => {
-              toggleLayer(layerId);
-              wakeUp();
-            }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 6,
-              border: 'none',
-              backgroundColor: hiddenLayers.has(layerId) ? '#4b5563' : PRIMARY,
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: 14,
-              opacity: hiddenLayers.has(layerId) ? 0.5 : 1,
-            }}
-          >
-            {hiddenLayers.has(layerId) ? 'Show' : 'Hide'} {layerId}
-          </button>
-        ))}
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        {LAYERS.map((layerId) => {
+          const isHidden = hiddenLayers.has(layerId);
+          return (
+            <button
+              key={layerId}
+              type="button"
+              data-layer={layerId}
+              className={isHidden ? 'jj-btn' : 'jj-btn jj-btn--primary'}
+              onClick={toggleLayer}
+            >
+              {isHidden ? 'Show' : 'Hide'} {layerId}
+            </button>
+          );
+        })}
       </div>
-      <Paper style={{ ...PAPER_STYLE, height: 300 }}
-        id="layers-paper"
-        className={PAPER_CLASSNAME}
+      <Paper
+        id={PAPER_ID}
+        className="min-h-0 flex-1"
         renderElement={RenderElement}
-        cellVisibility={({ model }) => {
-          const cellLayer = model.layer();
-          return !cellLayer || !hiddenLayers.has(cellLayer);
-        }}
-        drawGrid={false}
+        cellVisibility={cellVisibility}
       />
     </div>
   );
 }
 
 export default function App() {
-  const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(() => new Set());
-
-  // The `fade-in` class must be set when the link is appended to the DOM
-  // in order for the transition to work correctly.
-  class FadingLink extends shapes.standard.Link {
-    defaults() {
-      return {
-        ...super.defaults,
-        // overriding the default markup to add a class to the link line
-        markup: [
-          {
-            tagName: 'path',
-            selector: 'wrapper',
-            attributes: {
-              fill: 'none',
-              cursor: 'pointer',
-              stroke: 'transparent',
-              'stroke-linecap': 'round',
-            },
-          },
-          {
-            tagName: 'path',
-            selector: 'line',
-            className: 'fade-in', // Apply fade-in class to link line
-            attributes: {
-              fill: 'none',
-              'pointer-events': 'none',
-            },
-          },
-        ],
-      };
-    }
-  }
-
-  // Create graph with layers configured
   const graph = useMemo(() => {
-    const g = new dia.Graph(
+    const nextGraph = new dia.Graph(
       {},
-      {
-        cellNamespace: {
-          ...shapes,
-          element: ElementModel,
-          link: LinkModel,
-          standard: {
-            ...shapes.standard,
-            Link: FadingLink,
-          },
-        },
-      }
+      { cellNamespace: { ...shapes, element: ElementModel, link: LinkModel } }
     );
-    // Add layers in order (background renders first, foreground last)
-    g.addLayer({ id: 'background' });
-    g.addLayer({ id: 'main' });
-    g.addLayer({ id: 'foreground' });
-    return g;
-  }, [FadingLink]);
-
-  const toggleLayer = (layerId: string) => {
-    setHiddenLayers((previous) => {
-      const next = new Set(previous);
-      if (next.has(layerId)) {
-        next.delete(layerId);
-      } else {
-        next.add(layerId);
-      }
-      return next;
-    });
-  };
+    for (const id of LAYERS) {
+      nextGraph.addLayer({ id });
+    }
+    return nextGraph;
+  }, []);
 
   return (
     <GraphProvider graph={graph} initialCells={initialCells}>
-      <Main hiddenLayers={hiddenLayers} toggleLayer={toggleLayer} />
+      <Main />
     </GraphProvider>
   );
 }

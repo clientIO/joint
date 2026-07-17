@@ -1,17 +1,36 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useEffect, useMemo, useState } from 'react';
-import { type CellRecord, GraphProvider, useCell, Paper, HTMLBox, useMarkup, type ElementPort, type LinkRecord, usePaper, selectElementSize, linkRoutingStraight, linkRoutingOrthogonal, linkRoutingSmooth, type LinkRoutingStraightOptions, type LinkRoutingOrthogonalOptions, type LinkRoutingSmoothOptions, type LinkMode } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import '../index.css';
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type MouseEvent } from 'react';
+import {
+  GraphProvider,
+  Paper,
+  HTMLBox,
+  useCell,
+  useMarkup,
+  usePaper,
+  selectElementSize,
+  linkRoutingStraight,
+  linkRoutingOrthogonal,
+  linkRoutingSmooth,
+  type CellRecord,
+  type ElementPort,
+  type LinkRecord,
+  type LinkRoutingStraightOptions,
+  type LinkRoutingOrthogonalOptions,
+  type LinkRoutingSmoothOptions,
+  type LinkMode,
+} from '@joint/react';
 import type { dia } from '@joint/core';
+
+// Colors — unified dark diagram palette.
+const PRIMARY = '#ED2637';
+const NODE_FILL = '#1c2836';
+const NODE_STROKE = '#3c4f63';
+const TEXT_COLOR = '#DDE6ED';
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
 interface NodeData {
   readonly label: string;
   readonly type?: 'svg';
-  readonly [key: string]: unknown;
 }
 
 const PORT_OUT: ElementPort = { cx: 'calc(w)', cy: 'calc(h/2)', width: 16, height: 16 };
@@ -90,7 +109,11 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
 // ── Element renderers ───────────────────────────────────────────────────────
 
 function RenderHTMLElement({ label }: Readonly<NodeData>) {
-  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
+  return (
+    <HTMLBox useModelGeometry className="jj-node">
+      {label}
+    </HTMLBox>
+  );
 }
 
 function RenderSVGElement({ label }: Readonly<NodeData>) {
@@ -103,8 +126,8 @@ function RenderSVGElement({ label }: Readonly<NodeData>) {
         height={height}
         rx={6}
         ry={6}
-        fill="#1e293b"
-        stroke="#475569"
+        fill={NODE_FILL}
+        stroke={NODE_STROKE}
         strokeWidth={1.5}
       />
       <text
@@ -112,7 +135,7 @@ function RenderSVGElement({ label }: Readonly<NodeData>) {
         y={(height - 40) / 2}
         textAnchor="middle"
         dominantBaseline="central"
-        fill="#e2e8f0"
+        fill={TEXT_COLOR}
         fontSize={13}
         fontFamily="sans-serif"
         fontWeight={500}
@@ -128,7 +151,7 @@ function RenderSVGElement({ label }: Readonly<NodeData>) {
         rx={4}
         ry={4}
         fill={PRIMARY}
-        stroke="#1e293b"
+        stroke={NODE_FILL}
         strokeWidth={2}
         cursor="crosshair"
       />
@@ -241,159 +264,147 @@ function PresetPicker() {
     ]
   );
 
+  // Changing the routing preset rewrites the paper options but does not re-route
+  // links that are already drawn, so request an explicit connection update.
   useEffect(() => {
     for (const link of paper?.model.getLinks() ?? []) {
       const linkView = paper?.findViewByModel(link) as dia.LinkView | null;
-      if (linkView) {
-        linkView.requestConnectionUpdate();
-      }
+      linkView?.requestConnectionUpdate();
     }
   }, [linkPreset, paper]);
 
+  const handlePreset = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+    setPreset(event.currentTarget.value as PresetName);
+  }, []);
+  const handleMode = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+    setLinkMode(event.target.value as LinkMode);
+  }, []);
+  const handleSourceOffset = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setSourceOffset(Number(event.target.value));
+  }, []);
+  const handleTargetOffset = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setTargetOffset(Number(event.target.value));
+  }, []);
+  const handleStraightWhenDisconnected = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setStraightWhenDisconnected(event.target.checked);
+  }, []);
+  const handlePerpendicular = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setPerpendicular(event.target.checked);
+  }, []);
+  const handleCornerType = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+    setCornerType(event.target.value as LinkRoutingOrthogonalOptions['cornerType']);
+  }, []);
+  const handleCornerRadius = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setCornerRadius(Number(event.target.value));
+  }, []);
+
   return (
-    <>
-      <Paper style={{ height: 500 }}
-        id="main-paper"
-        className={PAPER_CLASSNAME}
-        renderElement={RenderElement}
-        gridSize={1}
-        drawGridSize={20}
-        defaultLink={createLink}
-        linkRouting={linkPreset}
-      />
-      <div className="flex flex-wrap items-center gap-4 px-3 py-2 mt-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-sans select-none">
-        {/* Preset selector */}
-        <div className="flex items-center gap-3">
-          <span className="font-semibold text-slate-700">Preset</span>
-          <div className="flex rounded-md overflow-hidden border border-slate-300">
-            {PRESET_NAMES.map((name) => (
-              <button
-                key={name}
-                type="button"
-                className={`px-3 py-1 text-xs font-medium transition-colors ${
-                  preset === name
-                    ? 'bg-indigo-500 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-100'
-                }`}
-                onClick={() => setPreset(name)}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <div className="jj-field">
+          <span className="jj-label">Preset</span>
+          {PRESET_NAMES.map((name) => (
+            <button
+              key={name}
+              type="button"
+              value={name}
+              className={`jj-btn jj-btn--sm${preset === name ? ' jj-btn--primary' : ''}`}
+              onClick={handlePreset}
+            >
+              {name}
+            </button>
+          ))}
         </div>
 
-        <div className="w-px h-5 bg-slate-300" />
+        {preset !== 'straight' && (
+          <label className="jj-field">
+            <span className="jj-label">Mode</span>
+            <select className="jj-select" value={linkMode} onChange={handleMode}>
+              {ANCHOR_MODES.map((mode) => (
+                <option key={mode} value={mode}>
+                  {mode}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
-        {/* Shared options */}
-        <div className="flex items-center gap-3">
-          {preset !== 'straight' && (
-            <label className="flex items-center gap-1.5 text-slate-600">
-              <span className="text-xs">mode</span>
-              <select
-                className="px-1.5 py-0.5 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                value={linkMode}
-                onChange={(event) => setLinkMode(event.target.value as LinkMode)}
-              >
-                {ANCHOR_MODES.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
+        <label className="jj-field">
+          <span className="jj-label">Source offset</span>
+          <input
+            className="jj-input w-16"
+            type="number"
+            value={sourceOffset}
+            onChange={handleSourceOffset}
+          />
+        </label>
+        <label className="jj-field">
+          <span className="jj-label">Target offset</span>
+          <input
+            className="jj-input w-16"
+            type="number"
+            value={targetOffset}
+            onChange={handleTargetOffset}
+          />
+        </label>
+
+        {preset !== 'straight' && (
+          <label className="jj-field">
+            <input
+              type="checkbox"
+              checked={straightWhenDisconnected}
+              onChange={handleStraightWhenDisconnected}
+            />
+            <span className="jj-label">Straight when disconnected</span>
+          </label>
+        )}
+
+        {preset === 'straight' && (
+          <label className="jj-field">
+            <input type="checkbox" checked={perpendicular} onChange={handlePerpendicular} />
+            <span className="jj-label">Perpendicular</span>
+          </label>
+        )}
+
+        {preset === 'orthogonal' && (
+          <>
+            <label className="jj-field">
+              <span className="jj-label">Corner</span>
+              <select className="jj-select" value={cornerType} onChange={handleCornerType}>
+                {CORNER_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
                   </option>
                 ))}
               </select>
             </label>
-          )}
-          <label className="flex items-center gap-1.5 text-slate-600">
-            <span className="text-xs">srcOffset</span>
-            <input
-              type="number"
-              className="w-14 px-1.5 py-0.5 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-              value={sourceOffset}
-              onChange={(event) => setSourceOffset(Number(event.target.value))}
-            />
-          </label>
-          <label className="flex items-center gap-1.5 text-slate-600">
-            <span className="text-xs">tgtOffset</span>
-            <input
-              type="number"
-              className="w-14 px-1.5 py-0.5 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-              value={targetOffset}
-              onChange={(event) => setTargetOffset(Number(event.target.value))}
-            />
-          </label>
-          {preset !== 'straight' && (
-            <label className="flex items-center gap-1.5 text-slate-600 cursor-pointer">
+            <label className="jj-field">
+              <span className="jj-label">Radius</span>
               <input
-                type="checkbox"
-                className="accent-indigo-500"
-                checked={straightWhenDisconnected}
-                onChange={(event) => setStraightWhenDisconnected(event.target.checked)}
+                className="jj-input w-16"
+                type="number"
+                value={cornerRadius}
+                onChange={handleCornerRadius}
               />
-              <span className="text-xs">straight when disconnected</span>
             </label>
-          )}
-        </div>
-
-        {/* Straight-specific options */}
-        {preset === 'straight' && (
-          <>
-            <div className="w-px h-5 bg-slate-300" />
-            <label className="flex items-center gap-1.5 text-slate-600 cursor-pointer">
-              <input
-                type="checkbox"
-                className="accent-indigo-500"
-                checked={perpendicular}
-                onChange={(event) => setPerpendicular(event.target.checked)}
-              />
-              <span className="text-xs">perpendicular</span>
-            </label>
-          </>
-        )}
-
-        {/* Orthogonal-specific options */}
-        {preset === 'orthogonal' && (
-          <>
-            <div className="w-px h-5 bg-slate-300" />
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-1.5 text-slate-600">
-                <span className="text-xs">corner</span>
-                <select
-                  className="px-1.5 py-0.5 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                  value={cornerType}
-                  onChange={(event) =>
-                    setCornerType(event.target.value as LinkRoutingOrthogonalOptions['cornerType'])
-                  }
-                >
-                  {CORNER_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex items-center gap-1.5 text-slate-600">
-                <span className="text-xs">radius</span>
-                <input
-                  type="number"
-                  className="w-14 px-1.5 py-0.5 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                  value={cornerRadius}
-                  onChange={(event) => setCornerRadius(Number(event.target.value))}
-                />
-              </label>
-            </div>
           </>
         )}
       </div>
-    </>
+      <Paper
+        id="main-paper"
+        className="min-h-0 flex-1"
+        renderElement={RenderElement}
+        defaultLink={createLink}
+        linkRouting={linkPreset}
+      />
+    </div>
   );
 }
 
 export default function App() {
   return (
-    <div>
-      <GraphProvider initialCells={initialCells}>
-        <PresetPicker />
-      </GraphProvider>
-    </div>
+    <GraphProvider initialCells={initialCells}>
+      <PresetPicker />
+    </GraphProvider>
   );
 }

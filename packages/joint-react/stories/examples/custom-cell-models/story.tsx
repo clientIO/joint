@@ -1,26 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import RawCode from './code?raw';
+import codeRaw from './code?raw';
 
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Examples/Custom Cell Models',
   component: Code,
   tags: ['example'],
   parameters: {
-    docs: {
-      description: {
-        story:
-          'Demonstrates custom ElementModel subclasses with default ports defined in `defaults()`. ' +
-          'One uses native JointJS `ports` with groups, the other uses `portMap` for absolute positioning.',
-      },
-      source: {
-        code: RawCode,
-      },
+    showcase: {
+      description:
+        'Subclass ElementModel and LinkModel to bake default ports and labels into custom cell types registered through cellNamespace.',
+      apiUrl: getAPILink('ElementModel', 'MVC'),
+      canvasHeight: 300,
+      code: codeRaw,
     },
   },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

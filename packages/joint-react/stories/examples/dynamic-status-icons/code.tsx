@@ -1,9 +1,23 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { g, highlighters, V } from '@joint/core';
+import type { CellRecord } from '@joint/react';
+import {
+  GraphProvider,
+  useCell,
+  Paper,
+  SVGText,
+  useGraph,
+  useOnElementsMeasured,
+  selectElementSize,
+} from '@joint/react';
+import { useCallback, useEffect } from 'react';
 
-import { type dia, g, highlighters, V } from '@joint/core';
-import { type CellRecord, GraphProvider, useCell, Paper, SVGText, useGraph, useOnElementsMeasured, selectElementSize } from '@joint/react';
-import { useCallback, useEffect, useRef } from 'react';
-import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
+// Colors — unified dark diagram palette. The status dot colors are random on
+// purpose: the color IS the status this demo renders.
+const SHAPE_STROKE_COLOR = '#ED2637';
+const SHAPE_FILL_COLOR = '#1c2836';
+const STATUS_STROKE_COLOR = '#3c4f63';
+const TEXT_COLOR = '#DDE6ED';
+
 
 const ShapeTypes = {
   rectangle: 'rectangle',
@@ -50,26 +64,40 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   },
 ];
 
-// ----------------------------------------------------------------------------
-// Shapes
-// ----------------------------------------------------------------------------
-function RectangleShape({ label }: Readonly<ShapeData>) {
+interface ShapeLabelProps {
+  readonly label: string;
+  readonly width: number;
+  readonly height: number;
+}
 
+function ShapeLabel({ label, width, height }: Readonly<ShapeLabelProps>) {
+  return (
+    <SVGText
+      x={width / 2}
+      y={height / 2}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fill={TEXT_COLOR}
+      fontSize={14}
+      fontWeight="bold"
+    >
+      {label}
+    </SVGText>
+  );
+}
+
+function RectangleShape({ label }: Readonly<ShapeData>) {
   const { width, height } = useCell(selectElementSize);
   return (
     <>
-      <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} />
-      <SVGText
-        x={width / 2}
-        y={height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill={TEXT}
-        fontSize={14}
-        fontWeight="bold"
-      >
-        {label}
-      </SVGText>
+      <rect
+        width={width}
+        height={height}
+        fill={SHAPE_FILL_COLOR}
+        stroke={SHAPE_STROKE_COLOR}
+        strokeWidth={2}
+      />
+      <ShapeLabel label={label} width={width} height={height} />
     </>
   );
 }
@@ -82,21 +110,11 @@ function CircleShape({ label }: Readonly<ShapeData>) {
         cx={width / 2}
         cy={height / 2}
         r={width / 2}
-        fill={BG}
-        stroke={PRIMARY}
+        fill={SHAPE_FILL_COLOR}
+        stroke={SHAPE_STROKE_COLOR}
         strokeWidth={2}
       />
-      <SVGText
-        x={width / 2}
-        y={height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill={TEXT}
-        fontSize={14}
-        fontWeight="bold"
-      >
-        {label}
-      </SVGText>
+      <ShapeLabel label={label} width={width} height={height} />
     </>
   );
 }
@@ -110,21 +128,11 @@ function EllipseShape({ label }: Readonly<ShapeData>) {
         cy={height / 2}
         rx={width / 2}
         ry={height / 2}
-        fill={BG}
-        stroke={PRIMARY}
+        fill={SHAPE_FILL_COLOR}
+        stroke={SHAPE_STROKE_COLOR}
         strokeWidth={2}
       />
-      <SVGText
-        x={width / 2}
-        y={height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill={TEXT}
-        fontSize={14}
-        fontWeight="bold"
-      >
-        {label}
-      </SVGText>
+      <ShapeLabel label={label} width={width} height={height} />
     </>
   );
 }
@@ -135,27 +143,15 @@ function PathShape({ label }: Readonly<ShapeData>) {
     <>
       <path
         d={`M 0 ${0.25 * height} 0 ${0.75 * height} ${0.6 * width} ${height} C ${1.2 * width} ${height} ${1.2 * width} 0 ${0.6 * width} 0 Z`}
-        fill={BG}
-        stroke={PRIMARY}
+        fill={SHAPE_FILL_COLOR}
+        stroke={SHAPE_STROKE_COLOR}
         strokeWidth={2}
       />
-      <SVGText
-        x={width / 2}
-        y={height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill={TEXT}
-        fontSize={14}
-        fontWeight="bold"
-      >
-        {label}
-      </SVGText>
+      <ShapeLabel label={label} width={width} height={height} />
     </>
   );
 }
-// ----------------------------------------------------------------------------
-// Renderer
-// ----------------------------------------------------------------------------
+
 function RenderElement(data: Readonly<ShapeData>) {
   switch (data.type) {
     case ShapeTypes.rectangle: {
@@ -173,9 +169,7 @@ function RenderElement(data: Readonly<ShapeData>) {
   }
 }
 
-// ----------------------------------------------------------------------------
-// Custom Highlighter
-// ----------------------------------------------------------------------------
+/** Renders each status entry as a colored ellipse in the highlighter's list. */
 class StatusList extends highlighters.list {
   createListItem(color: string, { width, height }: { width: number; height: number }) {
     const { node } = V('ellipse', {
@@ -184,24 +178,18 @@ class StatusList extends highlighters.list {
       cx: width / 2,
       cy: height / 2,
       fill: color,
-      stroke: '#333',
+      stroke: STATUS_STROKE_COLOR,
       strokeWidth: 2,
     });
-
     return node;
   }
 }
 
-// ----------------------------------------------------------------------------
-// Helper Functions
-// ----------------------------------------------------------------------------
 function randomColor() {
   // eslint-disable-next-line unicorn/numeric-separators-style, sonarjs/pseudo-random
   return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
 }
-// ----------------------------------------------------------------------------
-// Custom Hooks
-// ----------------------------------------------------------------------------
+
 function useInterval(action: () => void, interval: number = 1000) {
   useEffect(() => {
     const intervalId = setInterval(action, interval);
@@ -209,12 +197,8 @@ function useInterval(action: () => void, interval: number = 1000) {
   }, [action, interval]);
 }
 
-// ----------------------------------------------------------------------------
-// Application Components
-// ----------------------------------------------------------------------------
 function Main() {
   const { graph } = useGraph();
-  const paperRef = useRef<dia.Paper | null>(null);
 
   const setRandomStatuses = useCallback(() => {
     for (const element of graph.getElements()) {
@@ -240,13 +224,7 @@ function Main() {
   });
 
   return (
-    <Paper style={{ ...PAPER_STYLE, height: 500 }}
-      ref={paperRef}
-      className={PAPER_CLASSNAME}
-      renderElement={RenderElement}
-      gridSize={20}
-      drawGrid={{ name: 'mesh' }}
-    />
+    <Paper className="size-full" renderElement={RenderElement} drawGrid={false} />
   );
 }
 
