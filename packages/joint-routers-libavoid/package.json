@@ -54,11 +54,14 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@joint/core": "workspace:~",
     "libavoid-js": "^0.4.5"
+  },
+  "peerDependencies": {
+    "@joint/core": "workspace:~"
   },
   "devDependencies": {
     "@joint/eslint-config": "workspace:*",
+    "@joint/core": "workspace:~",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.1",

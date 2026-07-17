@@ -1,3 +1,2 @@
-export { AvoidRouter } from './AvoidRouter.mjs';
 export { libavoid } from './router.mjs';
-export * from './types.mjs';
+export { init } from './init.mjs';

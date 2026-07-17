@@ -1,5 +1,4 @@
-import { shapes } from '@joint/core';
-import { libavoid } from '@joint/routers-libavoid';
+import { shapes, util } from '@joint/core';
 
 const portRadius = 8;
 const portAttrs = {
@@ -16,8 +15,7 @@ export class Node extends shapes.standard.Rectangle {
     static PORT_RADIUS = portRadius;
 
     defaults() {
-        return {
-            ...super.defaults,
+        return util.defaultsDeep({
             type: 'Node',
             z: 2,
             attrs: {
@@ -53,17 +51,15 @@ export class Node extends shapes.standard.Rectangle {
                     },
                 },
             },
-        };
+        }, super.defaults);
     }
 }
 
 export class Edge extends shapes.standard.Link {
     defaults() {
-        return {
-            ...super.defaults,
+        return util.defaultsDeep({
             type: 'Edge',
             z: 1,
-            router: libavoid,
             attrs: {
                 line: {
                     stroke: '#464454',
@@ -71,6 +67,6 @@ export class Edge extends shapes.standard.Link {
                     targetMarker: { d: 'M 5 2.5 0 0 5 -2.5 Z' },
                 },
             },
-        };
+        }, super.defaults);
     }
 }

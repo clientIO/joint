@@ -1,5 +1,5 @@
 import { linkTools, elementTools, dia, shapes, highlighters } from '@joint/core';
-import { AvoidRouter } from '@joint/routers-libavoid';
+import { init as libavoidInit, libavoid } from '@joint/routers-libavoid';
 import { Node, Edge } from './shapes';
 import ResizeTool from './resize-tool';
 
@@ -11,8 +11,6 @@ import ResizeTool from './resize-tool';
 
 export const init = async () => {
 
-    await AvoidRouter.load();
-
     const canvasEl = document.getElementById('canvas');
 
     const cellNamespace = {
@@ -22,6 +20,13 @@ export const init = async () => {
     };
 
     const graph = new dia.Graph({}, { cellNamespace });
+
+    const routerService = await libavoidInit({
+        graph,
+        shapeBufferDistance: 20,
+        idealNudgingDistance: 10,
+    });
+
     const paper = new dia.Paper({
         model: graph,
         cellViewNamespace: cellNamespace,
@@ -35,6 +40,7 @@ export const init = async () => {
         background: { color: '#F3F7F6' },
         snapLinks: { radius: 30 },
         overflow: true,
+        defaultRouter: libavoid(routerService),
         defaultConnector: {
             name: 'straight',
             args: {
@@ -222,15 +228,4 @@ export const init = async () => {
     paper.on('link:pointerup', (linkView) => {
         highlighters.addClass.remove(linkView);
     });
-
-    // Start the Avoid Router.
-
-    const router = new AvoidRouter(graph, {
-        shapeBufferDistance: 20,
-        idealNudgingDistance: 10,
-        portOverflow: Node.PORT_RADIUS,
-    });
-
-    router.addGraphListeners();
-    router.routeAll();
 };
