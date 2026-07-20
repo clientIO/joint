@@ -24,7 +24,7 @@
     "test-e2e-all": "yarn workspaces foreach --all -tvv run test-e2e-all",
     "lint": "yarn workspaces foreach --all -tvv run lint",
     "lint-fix": "yarn workspaces foreach --all -tvv run lint-fix",
-    "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/core\" --include \"@joint/layout-directed-graph\" --include \"@joint/layout-msagl\" --include \"@joint/routers-libavoid\" pack --out %s-%v.tgz"
+    "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/core\" --include \"@joint/layout-directed-graph\" --include \"@joint/layout-msagl\" --include \"@joint/routers-avoid\" pack --out %s-%v.tgz"
   },
   "devDependencies": {
     "@changesets/cli": "3.0.0"

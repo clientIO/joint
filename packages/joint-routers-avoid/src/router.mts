@@ -1,33 +1,12 @@
-import { type dia, g, routers } from '@joint/core';
+import { type dia, type g, routers } from '@joint/core';
 import { type AvoidRoute, RouterService } from './RouterService.mjs';
 
-// A router for JointJS links that follows the "custom router" contract
-// documented at:
-// https://docs.jointjs.com/learn/features/diagram-basics/links/#custom-router
-//
-// Register it under a name and reference it from a link, e.g.:
-//
-//   import { routers } from '@joint/core';
-//   import { libavoid } from '@joint/routers-libavoid';
-//
-//   routers.libavoid = libavoid;
-//   link.router('libavoid');
-//
-// or pass it directly: `link.router(libavoid)`.
-//
-// The actual obstacle-avoiding route is computed incrementally by an
-// `AvoidRouter` instance associated with the link's graph (see `AvoidRouter`
-// - it must be created and kept in sync via `addGraphListeners()`/`routeAll()`
-// for this router to have anything to read). When no such instance exists
-// yet for the link's graph, or the last computed route is not valid, this
-// falls back to the built-in `rightAngle` router.
-
-export function libavoid(_vertices: dia.Point[], _args: unknown, linkView: dia.LinkView): dia.Point[] {
+export function avoid(_vertices: dia.Point[], _args: unknown, linkView: dia.LinkView): dia.Point[] {
     const link = linkView.model;
 
-    // initialize the timestamp
-    if (!link.attr('__libavoidRouter')) {
-        link.attr('__libavoidRouter', Date.now(), { avoidRouter: true });
+    // initialize the special attribute for rerouting
+    if (!link.attr('__avoidRouter')) {
+        link.attr('__avoidRouter', Date.now(), { avoidRouter: true });
     }
 
     const routerService = RouterService.getInstance(link.graph);
@@ -41,7 +20,7 @@ export function libavoid(_vertices: dia.Point[], _args: unknown, linkView: dia.L
 
     if (!route || !isRouteValid(route, sourceElement, sourcePortId, targetElement, targetPortId)) {
         return routers.rightAngle(_vertices, {
-            margin: 0,
+            margin: routerService?.margin,
         }, linkView);
     }
 
@@ -50,10 +29,11 @@ export function libavoid(_vertices: dia.Point[], _args: unknown, linkView: dia.L
     const sourceAnchorDelta = getLinkAnchorDelta(sourceElement, sourcePortId, sourcePoint);
     const targetAnchorDelta = getLinkAnchorDelta(targetElement, targetPortId, targetPoint);
 
-    // Anchor exactly at the libavoid route's start/end point.
+    // Anchor exactly at the avoid route's start/end point.
     const sourceAnchorDiff = { x: sourceAnchorDelta.x, y: sourceAnchorDelta.y };
     const targetAnchorDiff = { x: targetAnchorDelta.x, y: targetAnchorDelta.y };
 
+    // temporarily set the anchors to the new positions so that the link is drawn correctly
     linkView.sourceAnchor = linkView.sourceAnchor.clone().translate(sourceAnchorDiff);
     linkView.targetAnchor = linkView.targetAnchor.clone().translate(targetAnchorDiff);
 
@@ -72,8 +52,8 @@ function getLinkAnchorDelta(element: dia.Element, portId: string | null, point: 
     return point.difference(anchorPosition);
 }
 
-// Determines whether the libavoid route should be used or whether to
-// fall back to the `rightAngle` router. Libavoid does not expose a
+// Determines whether the avoid route should be used or whether to
+// fall back to the `rightAngle` router. Avoid does not expose a
 // dedicated way to check this, so heuristics are used instead.
 function isRouteValid(
     route: AvoidRoute,

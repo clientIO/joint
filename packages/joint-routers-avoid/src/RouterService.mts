@@ -1,8 +1,8 @@
-import { g, mvc, util } from '@joint/core';
+import { g, mvc } from '@joint/core';
 
 import type { dia } from '@joint/core';
 import type { ConnDirFlags, Avoid as AvoidInstance, Router as AvoidRouter, ShapeRef, ConnRef } from 'libavoid-js';
-import { libavoid } from './router.mjs';
+import { avoid } from './router.mjs';
 
 const DEFAULT_PIN_CLASS_ID = 1;
 
@@ -17,6 +17,7 @@ export interface RouterServiceOptions {
     avoidInstance: AvoidInstance;
     avoidRouter: AvoidRouter;
     commitTransactions?: boolean;
+    margin?: number;
 }
 
 export class RouterService {
@@ -42,8 +43,9 @@ export class RouterService {
     private readonly linksByPointer: Record<number, dia.Link> = {};
     private readonly onAvoidConnectorChange: (connRefPointer: number) => void;
 
-    private nextPinId = 100000;
+    readonly margin: number;
 
+    private nextPinId = 100000;
     private graphListener?: mvc.Listener<[]>;
 
     private connectionDirections: {
@@ -58,6 +60,8 @@ export class RouterService {
         this.graph = options.graph;
         this.avoidInstance = options.avoidInstance;
         this.avoidRouter = options.avoidRouter;
+
+        this.margin = options.margin ?? 0;
 
         this.connectionDirections = {
             top: this.avoidInstance.ConnDirUp,
@@ -103,7 +107,7 @@ export class RouterService {
         );
     }
 
-    // Maps a JointJS port id to a libavoid pin id (a number). The pin id
+    // Maps a JointJS port id to an avoid pin id (a number). The pin id
     // does not need to be unique across the whole diagram, only per shape.
     private getConnectionPinId(elementId: dia.Cell.ID, portId: string): number {
         const pinKey = `${elementId}:${portId}`;
@@ -194,7 +198,7 @@ export class RouterService {
         }
 
         // Note: we do not assign the connRef's `id` to the JointJS link,
-        // since libavoid-js does not behave correctly when a connRef is
+        // since libavoid-js (the underlying WASM library) does not behave correctly when a connRef is
         // added-removed-added with the same `id`. Instead, we keep track
         // of the mapping using the connRef's raw pointer (`connRef.g`).
         edgeRefs[link.id] = connRef;
@@ -225,19 +229,19 @@ export class RouterService {
         const link = this.linksByPointer[connRefPointer];
         if (!link) return;
         // triggers link view update
-        link.attr('__libavoidRouter', Date.now(), { avoidRouter: true });
+        link.attr('__avoidRouter', Date.now(), { avoidRouter: true });
     }
 
     // Updates every shape and connector, then routes all links.
     routeAll(): void {
         const { graph, avoidRouter } = this;
         graph.getElements().forEach((element) => this.updateShape(element));
-        graph.getLinks().filter((link) => this.isLibavoidRoutedLink(link)).forEach((link) => this.updateConnector(link));
+        graph.getLinks().filter((link) => this.isAvoidRoutedLink(link)).forEach((link) => this.updateConnector(link));
         avoidRouter.processTransaction();
     }
 
-    private isLibavoidRoutedLink(link: dia.Link): boolean {
-        return link.router() === libavoid;
+    private isAvoidRoutedLink(link: dia.Link): boolean {
+        return link.router() === avoid;
     }
 
     private onCellRemoved(cell: dia.Cell): void {
@@ -252,7 +256,7 @@ export class RouterService {
     private onCellAdded(cell: dia.Cell): void {
         if (cell.isElement()) {
             this.updateShape(cell);
-        } else if (cell.isLink() && this.isLibavoidRoutedLink(cell)) {
+        } else if (cell.isLink() && this.isAvoidRoutedLink(cell)) {
             this.updateConnector(cell);
         }
         this.avoidRouter.processTransaction();
@@ -264,7 +268,7 @@ export class RouterService {
         let needsRerouting = false;
 
         if ('source' in cell.changed || 'target' in cell.changed) {
-            if (!cell.isLink() || !this.isLibavoidRoutedLink(cell)) return;
+            if (!cell.isLink() || !this.isAvoidRoutedLink(cell)) return;
             this.updateConnector(cell);
             needsRerouting = true;
         }
@@ -285,7 +289,7 @@ export class RouterService {
             previousModels.forEach((cell) => {
                 if (cell.isElement()) {
                     this.deleteShape(cell);
-                } else if (cell.isLink() && this.isLibavoidRoutedLink(cell)) {
+                } else if (cell.isLink() && this.isAvoidRoutedLink(cell)) {
                     this.deleteConnector(cell);
                 }
             });

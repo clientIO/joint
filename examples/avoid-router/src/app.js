@@ -1,5 +1,5 @@
 import { linkTools, elementTools, dia, shapes, highlighters } from '@joint/core';
-import { init as initLibavoid } from '@joint/routers-libavoid';
+import { init as initAvoid } from '@joint/routers-avoid';
 import { Node, Edge, TemporaryEdge } from './shapes';
 import ResizeTool from './resize-tool';
 
@@ -22,7 +22,7 @@ export const init = async () => {
 
     const graph = new dia.Graph({}, { cellNamespace });
 
-    await initLibavoid({
+    await initAvoid({
         graph,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,

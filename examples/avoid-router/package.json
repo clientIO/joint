@@ -1,5 +1,5 @@
 {
-  "name": "@joint/demo-libavoid-router",
+  "name": "@joint/demo-avoid-router",
   "version": "4.3.0",
   "main": "src/index.js",
   "homepage": "https://jointjs.com",
@@ -18,8 +18,8 @@
   },
   "dependencies": {
     "@joint/core": "workspace:^",
-    "@joint/routers-libavoid": "workspace:^",
-    "libavoid-js": "0.4.5"
+    "@joint/routers-avoid": "workspace:^",
+    "libavoid-js": "^0.4.5"
   },
   "devDependencies": {
     "copy-webpack-plugin": "5.1.1",

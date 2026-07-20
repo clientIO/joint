@@ -1,8 +1,8 @@
 {
-  "name": "@joint/routers-libavoid",
-  "title": "JointJS RoutersLibavoid",
+  "name": "@joint/routers-avoid",
+  "title": "JointJS Avoid Router",
   "version": "4.3.0",
-  "description": "Libavoid router module for JointJS",
+  "description": "Avoid router module for JointJS",
   "sideEffects": false,
   "main": "./dist/esm/index.mjs",
   "module": "./dist/esm/index.mjs",
@@ -15,7 +15,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/clientIO/joint.git",
-    "directory": "packages/joint-routers-libavoid"
+    "directory": "packages/joint-routers-avoid"
   },
   "bugs": {
     "url": "https://github.com/clientIO/joint/issues"
@@ -57,11 +57,12 @@
     "libavoid-js": "^0.4.5"
   },
   "peerDependencies": {
-    "@joint/core": "workspace:~"
+    "@joint/core": "workspace:~",
+    "libavoid-js": "^0.4.5"
   },
   "devDependencies": {
-    "@joint/eslint-config": "workspace:*",
     "@joint/core": "workspace:~",
+    "@joint/eslint-config": "workspace:*",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.1",
@@ -86,6 +87,6 @@
     "jointjs",
     "router",
     "routing",
-    "libavoid"
+    "avoid"
   ]
 }

@@ -1,4 +1,4 @@
-# JointJS Libavoid Router
+# JointJS Avoid Router
 
 A module that routes *[JointJS](https://www.jointjs.com)* links using [libavoid](https://github.com/mjwybrow/libavoid), a C++ library for automatic, obstacle-avoiding orthogonal connector routing, compiled to WebAssembly via [libavoid-js](https://github.com/Aksem/libavoid-js).
 
@@ -13,21 +13,21 @@ This package exposes that behavior as a [custom router](https://docs.jointjs.com
 ### Installation
 
 ```bash
-npm install @joint/routers-libavoid
+npm install @joint/routers-avoid
 ```
 
 ### Basic Usage
 
-The underlying WebAssembly module must be loaded once, asynchronously, before an `AvoidRouter` instance is created. The `libavoid` router is then registered like any other custom router:
+The underlying WebAssembly module must be loaded once, asynchronously, before an `AvoidRouter` instance is created. The `avoid` router is then registered like any other custom router:
 
 ```ts
 import { dia, shapes, routers } from '@joint/core';
-import { AvoidRouter, libavoid } from '@joint/routers-libavoid';
+import { AvoidRouter, avoid } from '@joint/routers-avoid';
 
 await AvoidRouter.load();
 
 // Register the router under a name, so it can be referenced from links.
-routers.libavoid = libavoid;
+routers.avoid = avoid;
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
@@ -37,10 +37,10 @@ const paper = new dia.Paper({
 });
 
 // ... add elements and links to the graph ...
-// Links routed by libavoid must use the router by name:
-// new shapes.standard.Link({ router: { name: 'libavoid' }, ... })
+// Links routed by avoid must use the router by name:
+// new shapes.standard.Link({ router: { name: 'avoid' }, ... })
 
-// Create the manager that tracks elements/links as libavoid
+// Create the manager that tracks elements/links as avoid
 // obstacles/connectors for this graph, and computes their routes.
 const avoidRouter = new AvoidRouter(graph, {
     shapeBufferDistance: 20,
@@ -54,13 +54,13 @@ avoidRouter.routeAll();
 avoidRouter.addGraphListeners();
 ```
 
-Alternatively, the router can be used without registering it globally, by passing the function directly: `link.router(libavoid)`.
+Alternatively, the router can be used without registering it globally, by passing the function directly: `link.router(avoid)`.
 
 ## 📖 API Reference
 
-### `libavoid(vertices, args, linkView): dia.Point[]`
+### `avoid(vertices, args, linkView): dia.Point[]`
 
-The router function itself, following the [custom router](https://docs.jointjs.com/learn/features/diagram-basics/links/#custom-router) signature. It looks up the `AvoidRouter` instance registered for the link's graph and returns the route currently computed by libavoid for that link. Falls back to the built-in `rightAngle` router when no `AvoidRouter` exists yet for the graph, or when the last computed libavoid route is not valid (see Caveats below).
+The router function itself, following the [custom router](https://docs.jointjs.com/learn/features/diagram-basics/links/#custom-router) signature. It looks up the `AvoidRouter` instance registered for the link's graph and returns the route currently computed by the avoid router for that link. Falls back to the built-in `rightAngle` router when no `AvoidRouter` exists yet for the graph, or when the last computed avoid route is not valid (see Caveats below).
 
 ### `AvoidRouter.load(wasmPath?): Promise<void>`
 
@@ -68,7 +68,7 @@ Loads the `libavoid-js` WebAssembly module. Must resolve before any `AvoidRouter
 
 ### `new AvoidRouter(graph, options?)`
 
-The manager responsible for keeping libavoid's internal obstacle/connector graph in sync with a `dia.Graph`, and for computing the routes that the `libavoid` router function reads.
+The manager responsible for keeping the avoid router's internal obstacle/connector graph in sync with a `dia.Graph`, and for computing the routes that the `avoid` router function reads.
 
 - `graph`: `dia.Graph` - the graph to route.
 - `options?`: `AvoidRouterOptions`
@@ -88,15 +88,15 @@ interface AvoidRouterOptions {
 - `addGraphListeners()` / `removeGraphListeners()` - keep the router in sync with graph changes (added/removed cells, moved/resized elements, reconnected links).
 - `updateShape(element)` / `deleteShape(element)` - register/remove an obstacle.
 - `updateConnector(link)` / `deleteConnector(link)` - register/remove a connector.
-- `routeLink(link)` - recomputes and caches the libavoid route for a single link, and updates its anchors accordingly.
-- `getRoute(link)` - the last route cached for a link (used by the `libavoid` router function).
+- `routeLink(link)` - recomputes and caches the avoid route for a single link, and updates its anchors accordingly.
+- `getRoute(link)` - the last route cached for a link (used by the `avoid` router function).
 
 ## ⚠️ Caveats & Known Limitations
 
 - **Asynchronous setup** - the WebAssembly module must be loaded with `AvoidRouter.load()` before use; this is asynchronous and must be awaited.
 - **Bundler configuration** - `libavoid-js` ships its logic and the `libavoid.wasm` binary as separate files. Consuming applications are responsible for ensuring `libavoid.wasm` is served alongside the rest of the bundle (e.g. via a copy plugin for your bundler of choice).
-- **Fallback routing** - libavoid does not expose a way to check whether a computed route is valid, so a heuristic is used. When the route is deemed invalid, the `libavoid` router falls back to the `rightAngle` router.
-- **One `AvoidRouter` per graph** - constructing more than one `AvoidRouter` for the same `dia.Graph` replaces the instance used by the `libavoid` router function.
+- **Fallback routing** - libavoid does not expose a way to check whether a computed route is valid, so a heuristic is used. When the route is deemed invalid, the `avoid` router falls back to the `rightAngle` router.
+- **One `AvoidRouter` per graph** - constructing more than one `AvoidRouter` for the same `dia.Graph` replaces the instance used by the `avoid` router function.
 - **Custom vertices (checkpoints)** are not currently supported.
 
 ## 📄 License

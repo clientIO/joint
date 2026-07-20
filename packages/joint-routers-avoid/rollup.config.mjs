@@ -22,7 +22,7 @@ export default [
             {
                 file: 'dist/umd/index.js',
                 format: 'umd',
-                name: 'joint.routers.libavoid',
+                name: 'joint.routers.avoid',
                 extend: true,
                 globals: {
                     '@joint/core': 'joint',
@@ -35,7 +35,7 @@ export default [
             {
                 file: 'dist/umd/index.min.js',
                 format: 'umd',
-                name: 'joint.routers.libavoid',
+                name: 'joint.routers.avoid',
                 extend: true,
                 globals: {
                     '@joint/core': 'joint',

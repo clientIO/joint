@@ -36,6 +36,7 @@ export interface InitOptions {
     graph: dia.Graph;
     shapeBufferDistance?: number;
     idealNudgingDistance?: number;
+    commitTransactions?: boolean;
 }
 
 export async function init(options: InitOptions): Promise<void> {
@@ -51,6 +52,8 @@ export async function init(options: InitOptions): Promise<void> {
     RouterService.create({
         avoidInstance,
         avoidRouter,
-        graph: options.graph
+        graph: options.graph,
+        commitTransactions: options.commitTransactions ?? true,
+        margin: options.shapeBufferDistance ?? 0,
     });
 }

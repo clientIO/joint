@@ -5931,6 +5931,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-avoid-router@workspace:examples/avoid-router":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-avoid-router@workspace:examples/avoid-router"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/routers-avoid": "workspace:^"
+    copy-webpack-plugin: "npm:5.1.1"
+    css-loader: "npm:3.5.3"
+    file-loader: "npm:6.0.0"
+    libavoid-js: "npm:^0.4.5"
+    sass: "npm:1.26.8"
+    sass-loader: "npm:8.0.2"
+    style-loader: "npm:1.2.1"
+    webpack: "npm:5.98.0"
+    webpack-cli: "npm:6.0.1"
+    webpack-dev-server: "npm:5.2.0"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-bezier-js@workspace:examples/bezier-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-bezier-js@workspace:examples/bezier-js"
@@ -6341,25 +6360,6 @@ __metadata:
     webpack: "npm:^5.53.0"
     webpack-cli: "npm:^4.8.0"
     webpack-dev-server: "npm:^4.2.1"
-  languageName: unknown
-  linkType: soft
-
-"@joint/demo-libavoid-router@workspace:examples/libavoid-router":
-  version: 0.0.0-use.local
-  resolution: "@joint/demo-libavoid-router@workspace:examples/libavoid-router"
-  dependencies:
-    "@joint/core": "workspace:^"
-    "@joint/routers-libavoid": "workspace:^"
-    copy-webpack-plugin: "npm:5.1.1"
-    css-loader: "npm:3.5.3"
-    file-loader: "npm:6.0.0"
-    libavoid-js: "npm:0.4.5"
-    sass: "npm:1.26.8"
-    sass-loader: "npm:8.0.2"
-    style-loader: "npm:1.2.1"
-    webpack: "npm:5.98.0"
-    webpack-cli: "npm:6.0.1"
-    webpack-dev-server: "npm:5.2.0"
   languageName: unknown
   linkType: soft
 
@@ -6788,9 +6788,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/routers-libavoid@workspace:^, @joint/routers-libavoid@workspace:packages/joint-routers-libavoid":
+"@joint/routers-avoid@workspace:^, @joint/routers-avoid@workspace:packages/joint-routers-avoid":
   version: 0.0.0-use.local
-  resolution: "@joint/routers-libavoid@workspace:packages/joint-routers-libavoid"
+  resolution: "@joint/routers-avoid@workspace:packages/joint-routers-avoid"
   dependencies:
     "@joint/core": "workspace:~"
     "@joint/eslint-config": "workspace:*"
@@ -6809,6 +6809,9 @@ __metadata:
     rollup: "npm:4.36.0"
     rollup-plugin-banner2: "npm:^1.2.2"
     typescript: "npm:^5.7.3"
+  peerDependencies:
+    "@joint/core": "workspace:~"
+    libavoid-js: ^0.4.5
   languageName: unknown
   linkType: soft
 
