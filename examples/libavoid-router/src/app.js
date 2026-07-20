@@ -1,6 +1,6 @@
 import { linkTools, elementTools, dia, shapes, highlighters } from '@joint/core';
-import { init as libavoidInit, libavoid } from '@joint/routers-libavoid';
-import { Node, Edge } from './shapes';
+import { init as initLibavoid } from '@joint/routers-libavoid';
+import { Node, Edge, TemporaryEdge } from './shapes';
 import ResizeTool from './resize-tool';
 
 // Avoid Docs
@@ -17,11 +17,12 @@ export const init = async () => {
         ...shapes,
         Node,
         Edge,
+        TemporaryEdge
     };
 
     const graph = new dia.Graph({}, { cellNamespace });
 
-    const routerService = await libavoidInit({
+    await initLibavoid({
         graph,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
@@ -40,7 +41,6 @@ export const init = async () => {
         background: { color: '#F3F7F6' },
         snapLinks: { radius: 30 },
         overflow: true,
-        defaultRouter: libavoid(routerService),
         defaultConnector: {
             name: 'straight',
             args: {
@@ -150,7 +150,7 @@ export const init = async () => {
         target: { id: c4.id },
     });
 
-    graph.resetCells([c1, c2, c3, c4, c5, l1, l2, l3, l4]);
+    graph.resetCells([c1, c2, c3, c4, c5, l1 , l2, l3, l4]);
 
     canvasEl.appendChild(paper.el);
 

@@ -38,7 +38,7 @@ export interface InitOptions {
     idealNudgingDistance?: number;
 }
 
-export async function init(options: InitOptions): Promise<RouterService> {
+export async function init(options: InitOptions): Promise<void> {
     await load();
 
     const avoidInstance = AvoidLib.getInstance();
@@ -48,11 +48,9 @@ export async function init(options: InitOptions): Promise<RouterService> {
         options.idealNudgingDistance ?? 10
     );
 
-    const routerService = new RouterService({
+    RouterService.create({
         avoidInstance,
         avoidRouter,
         graph: options.graph
     });
-
-    return routerService;
 }

@@ -1,4 +1,5 @@
 import { shapes, util } from '@joint/core';
+import { libavoid } from '@joint/routers-libavoid';
 
 const portRadius = 8;
 const portAttrs = {
@@ -67,6 +68,23 @@ export class Edge extends shapes.standard.Link {
                     targetMarker: { d: 'M 5 2.5 0 0 5 -2.5 Z' },
                 },
             },
+            router: libavoid
+        }, super.defaults);
+    }
+}
+
+export class TemporaryEdge extends shapes.standard.Link {
+    defaults() {
+        return util.defaultsDeep({
+            type: 'TemporaryEdge',
+            z: 1,
+            attrs: {
+                line: {
+                    stroke: '#464454',
+                    strokeWidth: 1,
+                    targetMarker: { d: 'M 5 2.5 0 0 5 -2.5 Z' },
+                },
+            }
         }, super.defaults);
     }
 }

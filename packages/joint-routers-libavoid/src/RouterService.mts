@@ -2,6 +2,7 @@ import { g, mvc, util } from '@joint/core';
 
 import type { dia } from '@joint/core';
 import type { ConnDirFlags, Avoid as AvoidInstance, Router as AvoidRouter, ShapeRef, ConnRef } from 'libavoid-js';
+import { libavoid } from './router.mjs';
 
 const DEFAULT_PIN_CLASS_ID = 1;
 
@@ -19,6 +20,16 @@ export interface RouterServiceOptions {
 }
 
 export class RouterService {
+
+    private static instances: Map<dia.Graph, RouterService> = new Map();
+
+    static getInstance(graph: dia.Graph): RouterService | undefined {
+        return RouterService.instances.get(graph);
+    }
+
+    static create(options: RouterServiceOptions): void {
+        this.instances.set(options.graph, new RouterService(options));
+    }
 
     private readonly graph: dia.Graph;
     private readonly avoidInstance: AvoidInstance;
@@ -43,7 +54,7 @@ export class RouterService {
         all: ConnDirFlags;
     };
 
-    constructor(options: RouterServiceOptions) {
+    private constructor(options: RouterServiceOptions) {
         this.graph = options.graph;
         this.avoidInstance = options.avoidInstance;
         this.avoidRouter = options.avoidRouter;
@@ -213,15 +224,20 @@ export class RouterService {
     private routeLinkByPointer(connRefPointer: number): void {
         const link = this.linksByPointer[connRefPointer];
         if (!link) return;
-        link.router();
+        // triggers link view update
+        link.attr('__libavoidRouter', Date.now(), { avoidRouter: true });
     }
 
     // Updates every shape and connector, then routes all links.
     routeAll(): void {
         const { graph, avoidRouter } = this;
         graph.getElements().forEach((element) => this.updateShape(element));
-        graph.getLinks().forEach((link) => this.updateConnector(link));
+        graph.getLinks().filter((link) => this.isLibavoidRoutedLink(link)).forEach((link) => this.updateConnector(link));
         avoidRouter.processTransaction();
+    }
+
+    private isLibavoidRoutedLink(link: dia.Link): boolean {
+        return link.router() === libavoid;
     }
 
     private onCellRemoved(cell: dia.Cell): void {
@@ -236,7 +252,7 @@ export class RouterService {
     private onCellAdded(cell: dia.Cell): void {
         if (cell.isElement()) {
             this.updateShape(cell);
-        } else if (cell.isLink()) {
+        } else if (cell.isLink() && this.isLibavoidRoutedLink(cell)) {
             this.updateConnector(cell);
         }
         this.avoidRouter.processTransaction();
@@ -248,11 +264,8 @@ export class RouterService {
         let needsRerouting = false;
 
         if ('source' in cell.changed || 'target' in cell.changed) {
-            if (!cell.isLink()) return;
-            if (!this.updateConnector(cell)) {
-                // The link is not routed with libavoid; reset it to a straight line.
-                this.resetLink(cell);
-            }
+            if (!cell.isLink() || !this.isLibavoidRoutedLink(cell)) return;
+            this.updateConnector(cell);
             needsRerouting = true;
         }
 
@@ -272,23 +285,13 @@ export class RouterService {
             previousModels.forEach((cell) => {
                 if (cell.isElement()) {
                     this.deleteShape(cell);
-                } else if (cell.isLink()) {
+                } else if (cell.isLink() && this.isLibavoidRoutedLink(cell)) {
                     this.deleteConnector(cell);
                 }
             });
         }
 
         this.routeAll();
-    }
-
-    // Resets a link to a straight line (e.g. it is not connected to an element).
-    private resetLink(link: dia.Link): void {
-        const newAttributes = util.cloneDeep(link.attributes);
-        newAttributes.vertices = [];
-        newAttributes.router = undefined;
-        delete newAttributes.source!.anchor;
-        delete newAttributes.target!.anchor;
-        link.set(newAttributes, { avoidRouter: true });
     }
 
     private getVerticesFromAvoidRoute(route: { size(): number; get_ps(index: number): dia.Point }): g.Point[] {

@@ -51,7 +51,9 @@ function resolveSides(source, target) {
     } else if (sourceView.model.isLink()) {
         sourceSide = getDirectionForLinkConnection(targetPoint, sourcePoint, sourceView);
     } else if (sourceDirection === Directions.ANCHOR_SIDE) {
-        sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
+        sourceSide = sourceBBox.center().equals(sourcePoint)
+            ? sourceBBox.sideNearestToPoint(targetPoint)
+            : sourceBBox.sideNearestToPoint(sourcePoint);
     } else if (sourceDirection === Directions.MAGNET_SIDE) {
         sourceSide = sourceView.model.getBBox().sideNearestToPoint(sourcePoint);
     } else {
@@ -66,7 +68,9 @@ function resolveSides(source, target) {
     } else if (targetView.model.isLink()) {
         targetSide = getDirectionForLinkConnection(sourcePoint, targetPoint, targetView);
     } else if (targetDirection === Directions.ANCHOR_SIDE) {
-        targetSide = targetBBox.sideNearestToPoint(targetPoint);
+        targetSide = targetBBox.center().equals(targetPoint)
+            ? targetBBox.sideNearestToPoint(sourcePoint)
+            : targetBBox.sideNearestToPoint(targetPoint);
     } else if (targetDirection === Directions.MAGNET_SIDE) {
         targetSide = targetView.model.getBBox().sideNearestToPoint(targetPoint);
     } else {

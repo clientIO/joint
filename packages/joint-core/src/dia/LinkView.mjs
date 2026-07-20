@@ -644,13 +644,13 @@ export const LinkView = CellView.extend({
         const vertices = model.vertices();
         // 1. Find Anchors
         const anchors = this.findAnchors(vertices);
-        const sourceAnchor = this.sourceAnchor = anchors.source;
-        const targetAnchor = this.targetAnchor = anchors.target;
+        this.sourceAnchor = anchors.source;
+        this.targetAnchor = anchors.target;
         // 2. Find Route
         const route = this.findRoute(vertices);
         this.route = route;
         // 3. Find Connection Points
-        var connectionPoints = this.findConnectionPoints(route, sourceAnchor, targetAnchor);
+        var connectionPoints = this.findConnectionPoints(route, this.sourceAnchor, this.targetAnchor);
         this.sourcePoint = connectionPoints.source;
         this.targetPoint = connectionPoints.target;
     },

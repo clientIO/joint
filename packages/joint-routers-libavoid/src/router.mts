@@ -1,5 +1,5 @@
-import { type dia, type g, routers } from '@joint/core';
-import type { AvoidRoute, RouterService } from './RouterService.mjs';
+import { type dia, g, routers } from '@joint/core';
+import { type AvoidRoute, RouterService } from './RouterService.mjs';
 
 // A router for JointJS links that follows the "custom router" contract
 // documented at:
@@ -22,45 +22,42 @@ import type { AvoidRoute, RouterService } from './RouterService.mjs';
 // yet for the link's graph, or the last computed route is not valid, this
 // falls back to the built-in `rightAngle` router.
 
-export function libavoid(routerService: RouterService) {
-    return function(_vertices: dia.Point[], _args: unknown, linkView: dia.LinkView): dia.Point[] {
-        const link = linkView.model;
-        const route = routerService.getRoute(link);
+export function libavoid(_vertices: dia.Point[], _args: unknown, linkView: dia.LinkView): dia.Point[] {
+    const link = linkView.model;
 
-        const { id: sourceId, port: sourcePortId = null } = link.source();
-        const { id: targetId, port: targetPortId = null } = link.target();
+    // initialize the timestamp
+    if (!link.attr('__libavoidRouter')) {
+        link.attr('__libavoidRouter', Date.now(), { avoidRouter: true });
+    }
 
-        const sourceElement = link.getSourceElement() as dia.Element;
-        const targetElement = link.getTargetElement() as dia.Element;
+    const routerService = RouterService.getInstance(link.graph);
+    const route = routerService?.getRoute(link);
 
-        if (!route || !isRouteValid(route, sourceElement, sourcePortId, targetElement, targetPortId)) {
-            return routers.rightAngle(_vertices, { margin: 0 }, linkView);
-        }
+    const { port: sourcePortId = null } = link.source();
+    const { port: targetPortId = null } = link.target();
 
-        const { sourcePoint, targetPoint, vertices } = route;
+    const sourceElement = link.getSourceElement() as dia.Element;
+    const targetElement = link.getTargetElement() as dia.Element;
 
-        const sourceAttrs: dia.Link.EndJSON = {
-            id: sourceId,
-            port: sourcePortId || undefined,
-            anchor: { name: 'modelCenter' },
-        };
-        const targetAttrs: dia.Link.EndJSON = {
-            id: targetId,
-            port: targetPortId || undefined,
-            anchor: { name: 'modelCenter' },
-        };
+    if (!route || !isRouteValid(route, sourceElement, sourcePortId, targetElement, targetPortId)) {
+        return routers.rightAngle(_vertices, {
+            margin: 0,
+        }, linkView);
+    }
 
-        const sourceAnchorDelta = getLinkAnchorDelta(sourceElement, sourcePortId, sourcePoint);
-        const targetAnchorDelta = getLinkAnchorDelta(targetElement, targetPortId, targetPoint);
+    const { sourcePoint, targetPoint, vertices } = route;
 
-        // Anchor exactly at the libavoid route's start/end point.
-        sourceAttrs.anchor!.args = { dx: sourceAnchorDelta.x, dy: sourceAnchorDelta.y };
-        targetAttrs.anchor!.args = { dx: targetAnchorDelta.x, dy: targetAnchorDelta.y };
+    const sourceAnchorDelta = getLinkAnchorDelta(sourceElement, sourcePortId, sourcePoint);
+    const targetAnchorDelta = getLinkAnchorDelta(targetElement, targetPortId, targetPoint);
 
-        link.set({ source: sourceAttrs, target: targetAttrs }, { avoidRouter: true });
+    // Anchor exactly at the libavoid route's start/end point.
+    const sourceAnchorDiff = { x: sourceAnchorDelta.x, y: sourceAnchorDelta.y };
+    const targetAnchorDiff = { x: targetAnchorDelta.x, y: targetAnchorDelta.y };
 
-        return vertices;
-    };
+    linkView.sourceAnchor = linkView.sourceAnchor.clone().translate(sourceAnchorDiff);
+    linkView.targetAnchor = linkView.targetAnchor.clone().translate(targetAnchorDiff);
+
+    return vertices;
 }
 
 function getLinkAnchorDelta(element: dia.Element, portId: string | null, point: g.Point): g.Point {
@@ -87,7 +84,7 @@ function isRouteValid(
 ): boolean {
     const { sourcePoint, targetPoint, vertices } = route;
 
-    const size = vertices.length;
+    const size = vertices.length + 2; // +2 for source and target points
     if (size > 2) {
         // A route with more than two points is considered valid.
         return true;
