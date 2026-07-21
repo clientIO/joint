@@ -1,16 +1,16 @@
-import { type dia, type g, routers } from '@joint/core';
-import { type AvoidRoute, RouterService } from './RouterService.mjs';
+import { type dia, g, routers } from '@joint/core';
+import { RouterService } from './RouterService.mjs';
 
 export function avoid(_vertices: dia.Point[], _args: unknown, linkView: dia.LinkView): dia.Point[] {
     const link = linkView.model;
 
     // initialize the special attribute for rerouting
-    if (!link.attr('__avoidRouter')) {
+    if (link.attr('__avoidRouter') === undefined) {
         link.attr('__avoidRouter', Date.now(), { avoidRouter: true });
     }
 
     const routerService = RouterService.getInstance(link.graph);
-    const route = routerService?.getRoute(link);
+    const route: dia.Point[] = routerService?.getRoute(link.id) ?? [];
 
     const { port: sourcePortId = null } = link.source();
     const { port: targetPortId = null } = link.target();
@@ -24,7 +24,9 @@ export function avoid(_vertices: dia.Point[], _args: unknown, linkView: dia.Link
         }, linkView);
     }
 
-    const { sourcePoint, targetPoint, vertices } = route;
+    const sourcePoint = route[0]!;
+    const targetPoint = route[route.length - 1]!;
+    const vertices = route.slice(1, -1);
 
     const sourceAnchorDelta = getLinkAnchorDelta(sourceElement, sourcePortId, sourcePoint);
     const targetAnchorDelta = getLinkAnchorDelta(targetElement, targetPortId, targetPoint);
@@ -40,8 +42,8 @@ export function avoid(_vertices: dia.Point[], _args: unknown, linkView: dia.Link
     return vertices;
 }
 
-function getLinkAnchorDelta(element: dia.Element, portId: string | null, point: g.Point): g.Point {
-    let anchorPosition: g.Point;
+function getLinkAnchorDelta(element: dia.Element, portId: string | null, point: dia.Point): dia.Point {
+    let anchorPosition: dia.Point;
     if (portId) {
         const port = element.getPort(portId);
         const portPosition = element.getPortsPositions(port.group as string)[portId]!;
@@ -49,26 +51,27 @@ function getLinkAnchorDelta(element: dia.Element, portId: string | null, point: 
     } else {
         anchorPosition = element.getBBox().center();
     }
-    return point.difference(anchorPosition);
+    return new g.Point(point).difference(anchorPosition);
 }
 
 // Determines whether the avoid route should be used or whether to
 // fall back to the `rightAngle` router. Avoid does not expose a
 // dedicated way to check this, so heuristics are used instead.
 function isRouteValid(
-    route: AvoidRoute,
+    route: dia.Point[],
     sourceElement: dia.Element | null,
     sourcePortId: string | null,
     targetElement: dia.Element | null,
     targetPortId: string | null
 ): boolean {
-    const { sourcePoint, targetPoint, vertices } = route;
-
-    const size = vertices.length + 2; // +2 for source and target points
+    const size = route.length; // +2 for source and target points
     if (size > 2) {
         // A route with more than two points is considered valid.
         return true;
     }
+
+    const sourcePoint = route[0]!;
+    const targetPoint = route[route.length - 1]!;
 
     if (sourcePoint.x !== targetPoint.x && sourcePoint.y !== targetPoint.y) {
         // The route is not straight.
