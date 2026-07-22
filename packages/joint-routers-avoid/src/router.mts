@@ -1,28 +1,56 @@
 import { type dia, g, routers } from '@joint/core';
 import { RouterService } from './RouterService.mjs';
 
+// Caches the last computed source/target anchors per link so that they can
+// be reapplied when the router is invoked without a reroute (i.e. when
+// `__avoidRouter/reroute` is not `true`).
+const lastAnchors = new WeakMap<dia.Link, { sourceAnchor: g.Point, targetAnchor: g.Point }>();
+
 export function avoid(_vertices: dia.Point[], _args: unknown, linkView: dia.LinkView): dia.Point[] {
     const link = linkView.model;
 
-    // initialize the special attribute for rerouting
-    if (link.attr('__avoidRouter') === undefined) {
-        link.attr('__avoidRouter', Date.now(), { avoidRouter: true });
+    const routerService = RouterService.getInstance(linkView.paper!);
+    const route: dia.Point[] = routerService?.getRoute(link.id) ?? [];
+
+    if (!route || !isRouteValid(route, linkView, routerService?.margin)) {
+        return routers.rightAngle(_vertices, {
+            margin: routerService?.margin,
+            // @ts-expect-error not documented
+            useModelMargin: true,
+        }, linkView);
     }
 
-    const routerService = RouterService.getInstance(link.graph);
-    const route: dia.Point[] = routerService?.getRoute(link.id) ?? [];
+    if (link.prop('__avoidRouter/reroute') === true) {
+        const cachedAnchors = lastAnchors.get(link);
+        if (cachedAnchors) {
+            linkView.sourceAnchor = cachedAnchors.sourceAnchor;
+            linkView.targetAnchor = cachedAnchors.targetAnchor;
+        }
+        return linkView.route;
+    }
+
+    const updatedRoute = getUpdatedRoute(route, linkView);
+
+    // temporarily set the anchors to the new positions so that the link is drawn correctly
+    linkView.sourceAnchor = updatedRoute.sourceAnchor;
+    linkView.targetAnchor = updatedRoute.targetAnchor;
+
+    lastAnchors.set(link, {
+        sourceAnchor: updatedRoute.sourceAnchor,
+        targetAnchor: updatedRoute.targetAnchor,
+    });
+
+    return updatedRoute.vertices;
+}
+
+function getUpdatedRoute(route: dia.Point[], linkView: dia.LinkView): { sourceAnchor: g.Point, targetAnchor: g.Point, vertices: dia.Point[] } {
+    const link = linkView.model;
 
     const { port: sourcePortId = null } = link.source();
     const { port: targetPortId = null } = link.target();
 
     const sourceElement = link.getSourceElement() as dia.Element;
     const targetElement = link.getTargetElement() as dia.Element;
-
-    if (!route || !isRouteValid(route, sourceElement, sourcePortId, targetElement, targetPortId)) {
-        return routers.rightAngle(_vertices, {
-            margin: routerService?.margin,
-        }, linkView);
-    }
 
     const sourcePoint = route[0]!;
     const targetPoint = route[route.length - 1]!;
@@ -31,15 +59,15 @@ export function avoid(_vertices: dia.Point[], _args: unknown, linkView: dia.Link
     const sourceAnchorDelta = getLinkAnchorDelta(sourceElement, sourcePortId, sourcePoint);
     const targetAnchorDelta = getLinkAnchorDelta(targetElement, targetPortId, targetPoint);
 
-    // Anchor exactly at the avoid route's start/end point.
-    const sourceAnchorDiff = { x: sourceAnchorDelta.x, y: sourceAnchorDelta.y };
-    const targetAnchorDiff = { x: targetAnchorDelta.x, y: targetAnchorDelta.y };
-
     // temporarily set the anchors to the new positions so that the link is drawn correctly
-    linkView.sourceAnchor = linkView.sourceAnchor.clone().translate(sourceAnchorDiff);
-    linkView.targetAnchor = linkView.targetAnchor.clone().translate(targetAnchorDiff);
+    const sourceAnchor = linkView.sourceAnchor.clone().translate(sourceAnchorDelta);
+    const targetAnchor = linkView.targetAnchor.clone().translate(targetAnchorDelta);
 
-    return vertices;
+    return {
+        sourceAnchor,
+        targetAnchor,
+        vertices
+    };
 }
 
 function getLinkAnchorDelta(element: dia.Element, portId: string | null, point: dia.Point): dia.Point {
@@ -59,15 +87,17 @@ function getLinkAnchorDelta(element: dia.Element, portId: string | null, point: 
 // dedicated way to check this, so heuristics are used instead.
 function isRouteValid(
     route: dia.Point[],
-    sourceElement: dia.Element | null,
-    sourcePortId: string | null,
-    targetElement: dia.Element | null,
-    targetPortId: string | null
+    linkView: dia.LinkView,
+    margin: number = 0
 ): boolean {
     const size = route.length; // +2 for source and target points
     if (size > 2) {
         // A route with more than two points is considered valid.
         return true;
+    }
+
+    if (size < 2) {
+        return false;
     }
 
     const sourcePoint = route[0]!;
@@ -78,14 +108,24 @@ function isRouteValid(
         return false;
     }
 
-    //const { margin } = this;
+    const link = linkView.model;
 
-    if (sourcePortId && targetElement!.getBBox()/*.inflate(margin)*/.containsPoint(sourcePoint)) {
+    const { port: sourcePortId = null } = link.source();
+    const { port: targetPortId = null } = link.target();
+
+    const sourceElement = link.getSourceElement() as dia.Element;
+    const targetElement = link.getTargetElement() as dia.Element;
+
+    if (!sourceElement || !targetElement) {
+        return false;
+    }
+
+    if (sourcePortId && targetElement!.getBBox().inflate(margin).containsPoint(sourcePoint)) {
         // The source point is inside the target element.
         return false;
     }
 
-    if (targetPortId && sourceElement!.getBBox()/*.inflate(margin)*/.containsPoint(targetPoint)) {
+    if (targetPortId && sourceElement!.getBBox().inflate(margin).containsPoint(targetPoint)) {
         // The target point is inside the source element.
         return false;
     }

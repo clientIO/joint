@@ -8,24 +8,24 @@ import { avoid } from './router.mjs';
 const DEFAULT_PIN_CLASS_ID = 1;
 
 export interface RouterServiceOptions {
-    graph: dia.Graph;
+    paper: dia.Paper;
     provider: Provider;
     margin?: number;
 }
 
 export class RouterService {
 
-    private static instances: Map<dia.Graph, RouterService> = new Map();
+    private static instances: Map<dia.Paper, RouterService> = new Map();
 
-    static getInstance(graph: dia.Graph): RouterService | undefined {
-        return RouterService.instances.get(graph);
+    static getInstance(paper: dia.Paper): RouterService | undefined {
+        return RouterService.instances.get(paper);
     }
 
     static create(options: RouterServiceOptions): void {
-        this.instances.set(options.graph, new RouterService(options));
+        this.instances.set(options.paper, new RouterService(options));
     }
 
-    private readonly graph: dia.Graph;
+    private readonly paper: dia.Paper;
     private readonly provider: Provider;
     private readonly pinIds: Record<string, number> = {};
     private readonly connectorRoutes: Record<dia.Cell.ID, dia.Point[]> = {};
@@ -44,7 +44,7 @@ export class RouterService {
     };
 
     private constructor(options: RouterServiceOptions) {
-        this.graph = options.graph;
+        this.paper = options.paper;
         this.margin = options.margin ?? 0;
         this.provider = options.provider;
 
@@ -66,7 +66,7 @@ export class RouterService {
         this.removeGraphListeners();
 
         const listener = new mvc.Listener<[]>();
-        listener.listenTo(this.graph, {
+        listener.listenTo(this.paper.model, {
             remove: (cell: dia.Cell) => this.onCellRemoved(cell),
             add: (cell: dia.Cell) => this.onCellAdded(cell),
             change: (cell: dia.Cell, opt: dia.Cell.Options) => this.onCellChanged(cell, opt),
@@ -87,11 +87,12 @@ export class RouterService {
     }
 
     private routeLink(linkId: dia.Cell.ID, points: dia.Point[]): void {
-        const link = this.graph.getCell(linkId) as dia.Link | undefined;
+        const link = this.paper.model.getCell(linkId) as dia.Link | undefined;
         if (!link) return;
         this.connectorRoutes[linkId] = points;
-        // triggers link view update
-        link.attr('__avoidRouter', Date.now(), { avoidRouter: true });
+        link.prop('__avoidRouter/reroute', false, { avoidRouter: true });
+        link.prop('__avoidRouter/points', points, { avoidRouter: true });
+        this.paper.getCellView(link)?.update();
     }
 
     private isAvoidRoutedLink(link: dia.Link): boolean {
@@ -119,11 +120,18 @@ export class RouterService {
 
         if ('source' in cell.changed || 'target' in cell.changed) {
             if (!cell.isLink() || !this.isAvoidRoutedLink(cell)) return;
+            cell.prop('__avoidRouter/reroute', true, { avoidRouter: true });
+            console.log(this.getAvoidConnector(cell));
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
 
         if ('position' in cell.changed || 'size' in cell.changed) {
             if (!cell.isElement()) return;
+            this.paper.model.getConnectedLinks(cell).forEach((link) => {
+                if (this.isAvoidRoutedLink(link)) {
+                    link.prop('__avoidRouter/reroute', true, { avoidRouter: true });
+                }
+            });
             this.provider.updateShape(this.getAvoidShape(cell));
         }
     }
@@ -211,8 +219,8 @@ export class RouterService {
         }
 
         this.provider.updateGraph(
-            this.graph.getElements().map((element) => this.getAvoidShape(element)),
-            this.graph.getLinks().filter((link) => this.isAvoidRoutedLink(link)).map((link) => this.getAvoidConnector(link))
+            this.paper.model.getElements().map((element) => this.getAvoidShape(element)),
+            this.paper.model.getLinks().filter((link) => this.isAvoidRoutedLink(link)).map((link) => this.getAvoidConnector(link))
         );
     }
 }

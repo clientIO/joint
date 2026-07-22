@@ -22,12 +22,6 @@ export const init = async () => {
 
     const graph = new dia.Graph({}, { cellNamespace });
 
-    await initAvoid({
-        graph,
-        shapeBufferDistance: 20,
-        idealNudgingDistance: 10,
-    });
-
     const paper = new dia.Paper({
         model: graph,
         cellViewNamespace: cellNamespace,
@@ -78,6 +72,13 @@ export const init = async () => {
             if (source === target) return false;
             return end === 'target' ? !target.hasPorts() : !source.hasPorts();
         },
+    });
+
+    await initAvoid({
+        paper,
+        shapeBufferDistance: 20,
+        idealNudgingDistance: 10,
+        useWorker: true
     });
 
     const c1 = new Node({

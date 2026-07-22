@@ -34,7 +34,7 @@ function getSegmentAngle(line) {
 }
 
 function simplifyPoints(points) {
-    // TODO: use own more efficient implementation (filter points that do not change direction).
+    // TODO: own more efficient implementation (filter points that do not change direction).
     // To simplify segments that are almost aligned (start and end points differ by e.g. 0.5px), use a threshold of 1.
     return new g.Polyline(points).simplify({ threshold: 1 }).points;
 }
@@ -260,25 +260,26 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     }
 }
 
-function pointDataFromAnchor(view, anchor, bbox, direction, isPort, margin) {
+function pointDataFromAnchor(view, anchor, bbox, direction, isPort, margin, useModelMargin) {
     if (direction === Directions.AUTO) {
         direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
 
     const isElement = view && view.model.isElement();
 
+    let rect;
+    if (useModelMargin) {
+        rect = isElement ? view.model.getBBox() : anchor;
+    } else {
+        rect = isElement ? g.Rect.fromRectUnion(anchor, bbox, view.model.getBBox()) : anchor;
+    }
+
     const {
         x: x0,
         y: y0,
         width = 0,
         height = 0
-    } = isElement
-        // Find the union of:
-        // - the element bbox
-        // - the ports may overlap the element body
-        // - the anchor point may be outside the element body and port
-        ? g.Rect.fromRectUnion(anchor, bbox, view.model.getBBox())
-        : anchor;
+    } = rect;
 
     return {
         point: anchor,
@@ -1877,12 +1878,13 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     const useVertices = opt.useVertices || false;
 
+    const useModelMargin = opt.useModelMargin || false;
+
     const isSourcePort = !!linkView.model.source().port;
-    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, sourceMargin);
+    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, sourceMargin, useModelMargin);
 
     const isTargetPort = !!linkView.model.target().port;
-    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, targetMargin);
-
+    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, targetMargin, useModelMargin);
     const resultVertices = [];
 
     if (!useVertices || vertices.length === 0) {
@@ -1894,7 +1896,7 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     const [resolvedSourceDirection] = resolveSides(sourcePoint, firstVertex);
     const isElement = sourcePoint.view && sourcePoint.view.model.isElement();
-    const sourceBBox = isElement ? moveAndExpandBBox(sourcePoint.view.model.getBBox(), resolvedSourceDirection, sourceMargin) : null;
+    const sourceBBox = isElement ? moveAndExpandBBox(useModelMargin ? linkView.sourceView.model.getBBox() : linkView.sourceBBox, resolvedSourceDirection, sourceMargin) : null;
     const isVertexInside = isElement ? sourceBBox.containsPoint(firstVertex.point) : false;
 
     if (isVertexInside) {
@@ -2020,7 +2022,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             const roundedLastSegmentAngle = Math.round(getSegmentAngle(lastSegment));
             const lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
 
-            const targetBBox = moveAndExpandBBox(targetPoint.view.model.getBBox(), resolvedTargetDirection, margin);
+            const targetBBox = moveAndExpandBBox(useModelMargin ? linkView.targetView.model.getBBox() : linkView.targetBBox, resolvedTargetDirection, margin);
 
             const alignsVertically = lastVertex.point.x === targetPoint.point.x;
             const alignsHorizontally = lastVertex.point.y === targetPoint.point.y;
