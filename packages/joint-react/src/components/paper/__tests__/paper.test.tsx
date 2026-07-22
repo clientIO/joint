@@ -119,4 +119,66 @@ describe('Paper', () => {
     ).toThrow(/cellVisibility.*escape hatch/);
     spy.mockRestore();
   });
+
+  it('keeps inline style authoritative over className (same as an HTML div)', async () => {
+    // Report: `<Paper style={{ width: 1000 }} className="w-10" />` should let the
+    // inline width win over the class, like any HTML element. The host div IS
+    // `paper.el`; the inline `style` must land on it (present in the `style`
+    // attribute) so the CSS cascade — inline beats class, there is no
+    // `!important` in paper.css — resolves in the user's favour. `_setDimensions`
+    // (which runs with width/height forced to `undefined`) must not wipe it.
+    const { container } = render(
+      <GraphProvider initialCells={CELLS}>
+        <Paper
+          style={{ width: 1000, height: 500 }}
+          className="w-10"
+          renderElement={renderRectElement}
+        />
+      </GraphProvider>
+    );
+    await waitFor(() => expect(container.querySelector('svg')).toBeTruthy());
+    const host = container.querySelector('.jj-paper');
+    if (!(host instanceof HTMLElement)) throw new Error('paper host div not found');
+    // Inline style survived on paper.el → wins over the class in a real browser.
+    expect(host.style.width).toBe('1000px');
+    expect(host.style.height).toBe('500px');
+    // The class is applied too (alongside the framework's jj-paper).
+    expect(host.classList.contains('w-10')).toBe(true);
+    expect(host.classList.contains('jj-paper')).toBe(true);
+  });
+
+  it('redraws the visual grid when drawGridSize changes reactively', async () => {
+    // Regression: the visual grid only redrew via the top-level `drawGrid`
+    // prop; `drawGridSize` changes updated snapping (gridSize) but left the
+    // rendered grid pattern stale.
+    const refHolder: { current: dia.Paper | null } = { current: null };
+    function App({ drawGridSize }: Readonly<{ drawGridSize: number }>) {
+      const ref = useRef<dia.Paper | null>(null);
+      useEffect(() => {
+        if (ref.current) refHolder.current = ref.current;
+      });
+      return (
+        <GraphProvider initialCells={CELLS}>
+          <Paper
+            ref={ref}
+            renderElement={renderRectElement}
+            style={{ width: 300, height: 200 }}
+            gridSize={10}
+            drawGridSize={drawGridSize}
+          />
+        </GraphProvider>
+      );
+    }
+    const patternWidth = () =>
+      refHolder.current?.el.querySelector('pattern')?.getAttribute('width') ?? null;
+
+    const { rerender } = render(<App drawGridSize={20} />);
+    await waitFor(() => {
+      rerender(<App drawGridSize={20} />);
+      expect(patternWidth()).toBe('20');
+    });
+
+    rerender(<App drawGridSize={60} />);
+    await waitFor(() => expect(patternWidth()).toBe('60'));
+  });
 });
