@@ -82,14 +82,14 @@ export class MainThreadProvider extends Provider {
         }
     }
 
-    updateConnector(connector: Connector, process: boolean = true): ConnRef | null {
+    updateConnector(connector: Connector, process: boolean = true) {
         const { shapeRefs, connectorRefs } = this;
         if (
             connector.sourceId === undefined || connector.sourcePinId === undefined ||
             connector.targetId === undefined || connector.targetPinId === undefined
         ) {
             this.deleteConnector(connector.id, process);
-            return null;
+            return;
         }
 
         const sourceShapeRef = shapeRefs[connector.sourceId];
@@ -112,7 +112,10 @@ export class MainThreadProvider extends Provider {
 
         if (existingConnRef) {
             // It was already created, we just updated the endpoints.
-            return connRef;
+            if (process) {
+                this.avoidRouter.processTransaction();
+            }
+            return;
         }
 
         // Note: we do not assign the connRef's `id` to the JointJS link,
@@ -128,7 +131,7 @@ export class MainThreadProvider extends Provider {
             this.avoidRouter.processTransaction();
         }
 
-        return connRef;
+        return;
     }
 
     deleteShape(shapeId: dia.Cell.ID, process: boolean = true): void {

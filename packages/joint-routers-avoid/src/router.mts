@@ -90,6 +90,18 @@ function isRouteValid(
     linkView: dia.LinkView,
     margin: number = 0
 ): boolean {
+    const link = linkView.model;
+
+    const { port: sourcePortId = null } = link.source();
+    const { port: targetPortId = null } = link.target();
+
+    const sourceElement = link.getSourceElement() as dia.Element;
+    const targetElement = link.getTargetElement() as dia.Element;
+
+    if (!sourceElement || !targetElement) {
+        return false;
+    }
+
     const size = route.length; // +2 for source and target points
     if (size > 2) {
         // A route with more than two points is considered valid.
@@ -105,18 +117,6 @@ function isRouteValid(
 
     if (sourcePoint.x !== targetPoint.x && sourcePoint.y !== targetPoint.y) {
         // The route is not straight.
-        return false;
-    }
-
-    const link = linkView.model;
-
-    const { port: sourcePortId = null } = link.source();
-    const { port: targetPortId = null } = link.target();
-
-    const sourceElement = link.getSourceElement() as dia.Element;
-    const targetElement = link.getTargetElement() as dia.Element;
-
-    if (!sourceElement || !targetElement) {
         return false;
     }
 

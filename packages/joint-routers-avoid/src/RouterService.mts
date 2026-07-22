@@ -92,7 +92,10 @@ export class RouterService {
         this.connectorRoutes[linkId] = points;
         link.prop('__avoidRouter/reroute', false, { avoidRouter: true });
         link.prop('__avoidRouter/points', points, { avoidRouter: true });
-        this.paper.getCellView(link)?.update();
+        const cellView = this.paper.getCellView(link);
+        if (cellView && this.paper.isCellVisible(link)) {
+            cellView.update();
+        }
     }
 
     private isAvoidRoutedLink(link: dia.Link): boolean {
@@ -121,7 +124,6 @@ export class RouterService {
         if ('source' in cell.changed || 'target' in cell.changed) {
             if (!cell.isLink() || !this.isAvoidRoutedLink(cell)) return;
             cell.prop('__avoidRouter/reroute', true, { avoidRouter: true });
-            console.log(this.getAvoidConnector(cell));
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
 

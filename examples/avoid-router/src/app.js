@@ -78,7 +78,7 @@ export const init = async () => {
         paper,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
-        useWorker: true
+        useWorker: false
     });
 
     const c1 = new Node({
