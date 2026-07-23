@@ -16,11 +16,9 @@ const preview: Preview = {
         dark: { name: 'Dark', value: theme.appBg },
       },
     },
-    parameters: {
-      options: {
-        // @ts-expect-error its storybook multilevel sort
-        storySort: (a, b) => globalThis['storybook-multilevel-sort:storySort'](a, b),
-      },
+    options: {
+      // @ts-expect-error its storybook multilevel sort
+      storySort: (a, b) => globalThis['storybook-multilevel-sort:storySort'](a, b),
     },
     controls: {
       matchers: {
