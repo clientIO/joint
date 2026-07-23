@@ -106,7 +106,7 @@ Explore the [demos](https://www.jointjs.com/demos) to see them in action.
 - 📖 [Learn JointJS for React](https://docs.jointjs.com/react)
 - 🧾 [API reference](https://docs.jointjs.com/api-react)
 - 🖼️ [Examples](https://www.jointjs.com/demos)
-- 📚 [Storybook](https://react.jointjs.com/learn/?path=/docs/introduction--docs)
+- 📚 [Storybook](https://react.jointjs.com/learn/)
 - 🤖 [MCP server](#using-jointjs-for-react-with-ai-coding-agents)
 - 💬 [Ask a question or share feedback](https://github.com/clientIO/joint/discussions)
 
