@@ -1,20 +1,24 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-export type Story = StoryObj<typeof Code>;
-import { makeRootDocumentation } from '../../utils/make-story';
+import codeRaw from './code?raw';
 
-import CodeRaw from './code?raw';
-
-export default {
+const meta = {
   title: 'Examples/Default Link',
   component: Code,
   tags: ['example'],
-  parameters: makeRootDocumentation({
-    code: CodeRaw,
-    description:
-      'Demonstrates the `defaultLink` prop with a factory that reads the source port to set the link color. Drag from the colored ports to create links matching that color.',
-  }),
+  parameters: {
+    showcase: {
+      description:
+        'Colors each new link by reading its source port in a defaultLink factory as you drag from the colored ports.',
+      apiUrl: getAPILink('DefaultLinkParams', 'Types'),
+      code: codeRaw,
+    },
+  },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

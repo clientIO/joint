@@ -1,18 +1,14 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ChangeEvent, type ComponentProps } from 'react';
 import {
   type CellRecord,
   GraphProvider,
+  HTMLBox,
   Paper,
+  type RenderElement,
+  useCellId,
   useCells,
   useGraph,
 } from '@joint/react';
-import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
-
-import '../index.css';
-
-// ============================================================================
-// Data
-// ============================================================================
 
 interface NodeData {
   readonly label: string;
@@ -20,37 +16,46 @@ interface NodeData {
 
 const SIZE = { width: 140, height: 50 };
 
-type PaperInteraction = Pick<
-  React.ComponentProps<typeof Paper>,
-  'interactive' |
-  'onElementPointerClick' | 'onBlankPointerClick' |
-  'onElementMouseEnter' | 'onElementMouseLeave'
->;
+// Colors — unified dark diagram palette.
+const LINK_COLOR = '#8697A6';
+
+const LINK_STYLE = { color: LINK_COLOR, targetMarker: 'arrow' } as const;
 
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: 'a', type: 'element', data: { label: 'Source' }, position: { x: 60, y: 60 }, size: SIZE },
   { id: 'b', type: 'element', data: { label: 'Process' }, position: { x: 300, y: 60 }, size: SIZE },
   { id: 'c', type: 'element', data: { label: 'Sink' }, position: { x: 540, y: 60 }, size: SIZE },
-  { id: 'a→b', type: 'link', source: { id: 'a' }, target: { id: 'b' }, style: { targetMarker: 'arrow' } },
-  { id: 'b→c', type: 'link', source: { id: 'b' }, target: { id: 'c' }, style: { targetMarker: 'arrow' } },
+  { id: 'a→b', type: 'link', source: { id: 'a' }, target: { id: 'b' }, style: LINK_STYLE },
+  { id: 'b→c', type: 'link', source: { id: 'b' }, target: { id: 'c' }, style: LINK_STYLE },
 ];
 
-// ============================================================================
-// Property Editor — visible only in edit mode
-// ============================================================================
+type PaperInteraction = Pick<
+  ComponentProps<typeof Paper>,
+  'interactive' | 'onElementPointerClick' | 'onBlankPointerClick' | 'onElementMouseEnter' | 'onElementMouseLeave'
+>;
 
-interface PropertyEditorProps {
+interface NodeBodyProps {
+  readonly label: string;
   readonly selectedId: string | null;
 }
 
-function PropertyEditor({ selectedId }: Readonly<PropertyEditorProps>) {
+function NodeBody({ label, selectedId }: Readonly<NodeBodyProps>) {
+  const isSelected = String(useCellId()) === selectedId;
+  return <HTMLBox className={isSelected ? 'jj-node jj-node--active' : 'jj-node'}>{label}</HTMLBox>;
+}
+
+interface LabelEditorProps {
+  readonly selectedId: string | null;
+}
+
+function LabelEditor({ selectedId }: Readonly<LabelEditorProps>) {
   const { setCell } = useGraph<CellRecord<NodeData>>();
   const label = useCells<CellRecord<NodeData>, string>(selectedId, (cell) =>
     cell?.type === 'element' ? cell.data?.label ?? '' : ''
   );
 
   const onChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       if (!selectedId) return;
       const next = event.target.value;
       setCell(selectedId, (previous) => {
@@ -61,33 +66,17 @@ function PropertyEditor({ selectedId }: Readonly<PropertyEditorProps>) {
     [selectedId, setCell]
   );
 
+  if (!selectedId) {
+    return <span className="jj-chip">Select a node to edit</span>;
+  }
+
   return (
-    <aside className="w-full bg-white border border-gray-200 rounded-lg shadow-md text-sm text-gray-800 overflow-hidden">
-      <header className="px-4 py-2 border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">
-        Property Editor
-      </header>
-      <div className="p-4">
-        {selectedId ? (
-          <>
-            <label className="block mb-1 text-xs font-medium text-gray-500 uppercase tracking-wide">Label</label>
-            <input
-              value={label}
-              onChange={onChange}
-              className="w-full px-2 py-1.5 rounded border border-gray-300 bg-white text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-            <div className="mt-3 text-xs text-gray-400">id: {selectedId}</div>
-          </>
-        ) : (
-          <div className="text-gray-400 italic">Click an element to edit it.</div>
-        )}
-      </div>
-    </aside>
+    <label className="jj-field">
+      <span className="jj-label">Label</span>
+      <input className="jj-input w-40" value={label} onChange={onChange} />
+    </label>
   );
 }
-
-// ============================================================================
-// Main
-// ============================================================================
 
 function Main() {
   const [editMode, setEditMode] = useState(true);
@@ -102,7 +91,7 @@ function Main() {
     });
   }, []);
 
-  // Edit mode: select & edit elements. View mode: read-only, hover for info.
+  // Edit mode: select and edit elements. View mode: read-only, hover for info.
   const interactivity = useMemo<PaperInteraction>(() => {
     if (editMode) {
       return {
@@ -121,42 +110,30 @@ function Main() {
     };
   }, [editMode]);
 
+  const renderElement: RenderElement<NodeData> = useCallback(
+    (data) => <NodeBody label={data.label} selectedId={selectedId} />,
+    [selectedId]
+  );
+
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        <button type="button" onClick={toggleMode} className={BUTTON_CLASSNAME}>
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <button type="button" className="jj-btn jj-btn--primary" onClick={toggleMode}>
           {editMode ? 'Edit mode' : 'View mode'}
         </button>
-        <span className="text-xs opacity-70">
-          Toggle to switch <code>interactive</code> live. Edit: drag &amp; click to edit. View: read-only, hover for info.
+        {editMode ? (
+          <LabelEditor selectedId={selectedId} />
+        ) : (
+          <span className="jj-chip">{hovered ? `Hovering ${hovered}` : 'Hover a node for info'}</span>
+        )}
+        <span className="jj-label">
+          {editMode ? 'Drag and click nodes to edit them.' : 'Read-only — interactive is off.'}
         </span>
       </div>
-
-      <div className="flex">
-        <div className="flex-1 relative">
-          <Paper
-            className={PAPER_CLASSNAME + ' h-[300px]'}
-            {...interactivity}
-          />
-          {!editMode && hovered && (
-            <div className="absolute top-2 right-2 px-3 py-1 rounded-md bg-white border border-gray-200 shadow-md text-xs font-medium text-gray-700 pointer-events-none">
-              Hovering: {hovered}
-            </div>
-          )}
-        </div>
-        {editMode && (
-          <div className="w-64 shrink-0 ml-3">
-            <PropertyEditor selectedId={selectedId} />
-          </div>
-        )}
-      </div>
+      <Paper className="min-h-0 flex-1" renderElement={renderElement} {...interactivity} />
     </div>
   );
 }
-
-// ============================================================================
-// App
-// ============================================================================
 
 export default function App() {
   return (

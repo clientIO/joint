@@ -1,12 +1,19 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { type CellRecord, GraphProvider, HTMLBox, Paper, useCellId, type ElementRecord } from '@joint/react';
-import '../index.css';
-import { PRIMARY, LIGHT, PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
-import { useGraph } from '@joint/react';
+import { useCallback, useMemo, type ChangeEvent, type CSSProperties } from 'react';
+import {
+  type CellRecord,
+  type ElementRecord,
+  GraphProvider,
+  HTMLBox,
+  Paper,
+  useCellId,
+  useGraph,
+} from '@joint/react';
+
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const LINK_COLOR = '#8697A6';
 
 interface NodeData {
-  readonly [key: string]: unknown;
   readonly label: string;
   readonly color: string;
 }
@@ -31,41 +38,33 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
     type: 'link',
     source: { id: '1' },
     target: { id: '2' },
-    color: LIGHT,
+    style: { color: LINK_COLOR },
   },
 ];
 
-function RenderElement({ color }: Readonly<NodeData>) {
+function ColorNode({ color }: Readonly<NodeData>) {
   const id = useCellId();
   const { setCell, isElement } = useGraph<ElementRecord<NodeData>>();
+  const handleColor = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const next = event.target.value;
+      setCell(id, (previous) => {
+        if (!isElement(previous)) return previous;
+        return { ...previous, data: { ...previous.data, color: next } };
+      });
+    },
+    [id, isElement, setCell]
+  );
+  const style = useMemo<CSSProperties>(() => ({ backgroundColor: color }), [color]);
   return (
-    <HTMLBox useModelGeometry
-      style={{ backgroundColor: color }}
-      className="node"
-    >
-      <input
-        className="nodrag"
-        type="color"
-        onChange={(event) => {
-          setCell(id, (previous) => {
-            if (!isElement(previous)) return previous;
-            return {
-              ...previous,
-              data: { ...(previous.data ?? { label: '', color: '#ffffff' }), color: event.target.value },
-            };
-          });
-        }}
-        defaultValue={color}
-      />
+    <HTMLBox useModelGeometry className="jj-node" style={style}>
+      <input type="color" value={color} onChange={handleColor} />
     </HTMLBox>
   );
 }
+
 function Main() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} renderElement={RenderElement} />
-    </div>
-  );
+  return <Paper className="size-full" renderElement={ColorNode} />;
 }
 
 export default function WithColor() {

@@ -1,11 +1,9 @@
 /* eslint-disable unicorn/consistent-function-scoping */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import './index.css';
 import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformElementLayoutParams } from '@joint/react';
 import { GraphProvider, Paper, useMarkup, useMeasureElement, useOnElementsMeasured, linkRoutingOrthogonal } from '@joint/react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { forwardRef, useRef, useState } from 'react';
 
@@ -405,11 +403,7 @@ function RenderFlowchartElement(data: Readonly<ElementData>) {
   return <StepElement ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...data} />;
 }
 
-// Create link tools
-
 function Main() {
-  const paperRef = useRef<dia.Paper | null>(null);
-
   useOnElementsMeasured(({ isInitial, paper }) => {
     if (!isInitial) return;
     paper.transformToFitContent({
@@ -421,12 +415,11 @@ function Main() {
   });
 
   return (
-    <Paper style={{ height: 600 }}
-      ref={paperRef}
+    <Paper
       gridSize={5}
       overflow
       snapLabels
-      className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
+      className="flowchart-paper size-full"
       renderElement={RenderFlowchartElement}
       drawGrid={false}
       linkRouting={ORTHOGONAL_LINKS}
@@ -553,7 +546,7 @@ function ThemeSwitch({ onClick }: Readonly<{ onClick: () => void }>) {
 export default function App() {
   const [isLight, setIsLight] = useState(false);
   return (
-    <div className={`flowchart-wrapper${isLight ? ' light-theme' : ''}`}>
+    <div className={`flowchart-wrapper size-full${isLight ? ' light-theme' : ''}`}>
       <GraphProvider initialCells={initialCells} autoSizeOrigin="center">
         <Main />
       </GraphProvider>

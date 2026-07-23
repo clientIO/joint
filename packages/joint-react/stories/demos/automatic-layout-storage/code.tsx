@@ -1,7 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable sonarjs/pseudo-random */
-// We have pre-loaded tailwind css
 import {
   GraphProvider,
   Paper,
@@ -10,26 +6,26 @@ import {
   useGraph,
   useCells,
   useOnElementsMeasured,
+  linkRoutingOrthogonal,
   type CellRecord,
   type Computed,
   type ElementRecord,
-  linkRoutingOrthogonal,
 } from '@joint/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent, KeyboardEvent, MouseEvent, ReactNode, Ref, SyntheticEvent } from 'react';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Concept
-//
-// We persist a flat array of minimal cells — element `data` plus link
-// source/target ids. Everything else is automatic:
-//
-//   - size      → measured by <HTMLHost> from the rendered DOM
-//   - position  → recomputed by a tree layout each time nodes are measured
-//   - styles    → declared once in code, not persisted
-//
-// Click any node to edit it inline (uses `useGraph().setCell`).
-// "Save .json" downloads a tiny JSON file. "Load .json" reads one back in.
-// ─────────────────────────────────────────────────────────────────────────────
+/*
+ * Automatic layout & storage
+ *
+ * Persist a flat array of minimal cells — element `data` plus link
+ * source/target ids. Everything else is derived at runtime:
+ *   - size     → measured from the rendered DOM by <HTMLHost>
+ *   - position → recomputed by a tree layout whenever elements are measured
+ *   - styles   → declared in code, never persisted
+ *
+ * Click a card to edit it inline. "Save .json" downloads the snapshot;
+ * "Load .json" reads one back and remounts the graph.
+ */
 
 interface NodeData {
   readonly title: string;
@@ -69,21 +65,31 @@ const SEED: Snapshot = [
   { id: 'l7', type: 'link', source: 'n7', target: 'n8' },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Memo selector: snapshot → unified readonly CellRecord[] array the GraphProvider expects.
-// Note that we never put position or size here — those come from measurement
-// and the layout pass at runtime.
-// ─────────────────────────────────────────────────────────────────────────────
+const LINK_STROKE_COLOR = '#8697A6';
 
+// Links carry style, not geometry — declared once here, never persisted.
 const LINK_ATTRS = {
   line: {
-    stroke: '#1c2434',
+    stroke: LINK_STROKE_COLOR,
     strokeWidth: 1.5,
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
   },
 };
 
+// Orthogonal routing is static, so build it once outside render.
+const LINK_ROUTING = linkRoutingOrthogonal({
+  sourceOffset: 6,
+  targetOffset: 6,
+  margin: 18,
+  mode: 'bottom-top',
+});
+
+/**
+ * Expand the minimal snapshot into the `CellRecord[]` the `GraphProvider`
+ * expects. Position and size are intentionally omitted — they come from
+ * measurement and the layout pass at runtime.
+ */
 function toCells(snapshot: Snapshot): ReadonlyArray<CellRecord<NodeData>> {
   return snapshot.map((cell) =>
     cell.type === 'element'
@@ -98,9 +104,7 @@ function toCells(snapshot: Snapshot): ReadonlyArray<CellRecord<NodeData>> {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// File save / load (simple .json round-trip)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── File save / load (a plain .json round-trip) ──────────────────────────────
 
 function saveSnapshotToFile(snapshot: Snapshot, filename: string): void {
   const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
@@ -119,14 +123,14 @@ async function loadSnapshotFromFile(file: File): Promise<Snapshot> {
   return parsed;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tree layout — DFS assigns each leaf the next column, each parent the
-// midpoint of its children. Reruns every time HTMLHost reports new sizes.
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Tree layout ──────────────────────────────────────────────────────────────
+// A DFS gives each leaf the next column and each parent the midpoint of its
+// children. It reruns every time <HTMLHost> reports new sizes.
 
 const COLUMN_WIDTH = 230;
 const ROW_GAP = 50;
 const PADDING = 40;
+
 function LayoutRunner() {
   const { graph } = useGraph<ElementRecord<NodeData>>();
 
@@ -193,10 +197,9 @@ function LayoutRunner() {
   return null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Renderer — a card with click-to-edit fields.
-// Uses `useGraph().setCell` from inside the graph context to update its own data.
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Node card ────────────────────────────────────────────────────────────────
+// A card with click-to-edit fields. Uses `useGraph().setCell` from inside the
+// graph context to update its own data.
 
 function NodeCard({ title, owner }: Readonly<NodeData>) {
   const id = useCellId();
@@ -212,7 +215,7 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
   // Exit edit mode when the user clicks/taps anywhere outside the card.
   useEffect(() => {
     if (!isEditing) return;
-    const handler = (event: MouseEvent) => {
+    const handler = (event: Event) => {
       if (editorRef.current?.contains(event.target as Node)) return;
       setIsEditing(false);
     };
@@ -220,13 +223,13 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
     return () => document.removeEventListener('mousedown', handler);
   }, [isEditing]);
 
-  // Inputs need to swallow the pointer/mouse events so JointJS doesn't try
-  // to start a drag on the cell while the user is interacting with them.
-  const swallowEditorEvent = useCallback((event: React.SyntheticEvent) => {
+  // Inputs must swallow the pointer/mouse events so JointJS doesn't start a
+  // drag on the cell while the user is interacting with them.
+  const swallowEditorEvent = useCallback((event: SyntheticEvent) => {
     event.stopPropagation();
   }, []);
 
-  const enterEdit = useCallback((event: React.MouseEvent) => {
+  const enterEdit = useCallback((event: MouseEvent) => {
     event.stopPropagation();
     setIsEditing(true);
   }, []);
@@ -240,7 +243,7 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
     [setCell, id, title]
   );
 
-  const exitOnEnter = useCallback((event: React.KeyboardEvent) => {
+  const exitOnEnter = useCallback((event: KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === 'Escape') {
       event.preventDefault();
       setIsEditing(false);
@@ -249,10 +252,10 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
 
   return (
     <HTMLHost
-      className={`w-50 px-4 py-3.5 bg-[#fbf8ee] rounded-[5px] font-sans text-[#1c2434] transition-[border-color,box-shadow] duration-150 border ${
+      className={`w-50 border px-4 py-3.5 rounded-[10px] font-sans text-ink transition-[border-color,box-shadow] duration-150 bg-surface-2 ${
         isEditing
-          ? 'cursor-default border-[#b54f23] shadow-[0_0_0_3px_rgba(181,79,35,0.12),0_12px_24px_-16px_rgba(28,36,52,0.4)]'
-          : 'cursor-grab border-[rgba(28,36,52,0.18)] shadow-[0_8px_22px_-16px_rgba(28,36,52,0.4)]'
+          ? 'cursor-default border-brand shadow-[0_0_0_3px_rgba(237,38,55,0.15),0_12px_24px_-16px_rgba(0,0,0,0.7)]'
+          : 'cursor-grab border-hairline-strong shadow-[0_8px_22px_-16px_rgba(0,0,0,0.8)]'
       }`}
     >
       {isEditing ? (
@@ -280,43 +283,45 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
             type="button"
             onClick={enterEdit}
             onPointerDown={swallowEditorEvent}
-            className="flex items-center justify-between w-full p-0 m-0 font-serif text-base font-semibold text-[#1c2434] text-left bg-transparent border-0 cursor-text"
+            className="flex items-center justify-between w-full p-0 m-0 font-serif text-base font-semibold text-ink text-left bg-transparent border-0 cursor-text"
           >
             {title}
             <PencilGlyph />
           </button>
-          <div className="text-[11px] text-[rgba(28,36,52,0.55)] mt-1">Owner · {owner}</div>
+          <div className="text-[11px] text-ink-muted mt-1">Owner · {owner}</div>
         </>
       )}
     </HTMLHost>
   );
 }
 
-function FieldLabel({ children }: Readonly<{ children: React.ReactNode }>) {
+function FieldLabel({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <div className="text-[8px] tracking-[0.2em] uppercase text-[rgba(28,36,52,0.5)] mb-0.75">
-      {children}
-    </div>
+    <div className="text-[8px] tracking-[0.2em] uppercase text-ink-faint mb-0.75">{children}</div>
   );
 }
 
 interface InlineInputProps {
   readonly value: string;
   readonly onChange: (next: string) => void;
-  readonly onKeyDown: (event: React.KeyboardEvent) => void;
+  readonly onKeyDown: (event: KeyboardEvent) => void;
   readonly font: 'serif' | 'sans';
-  readonly ref?: React.Ref<HTMLInputElement>;
+  readonly ref?: Ref<HTMLInputElement>;
 }
 
 function InlineInput({ value, onChange, onKeyDown, font, ref }: Readonly<InlineInputProps>) {
+  const handleChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value),
+    [onChange]
+  );
   return (
     <input
       ref={ref}
       type="text"
       value={value}
-      onChange={(event) => onChange(event.target.value)}
+      onChange={handleChange}
       onKeyDown={onKeyDown}
-      className={`w-full px-0 py-1 m-0 bg-transparent border-0 border-b border-[rgba(28,36,52,0.25)] outline-none text-[#1c2434] ${
+      className={`w-full px-0 py-1 m-0 bg-transparent border-0 border-b border-hairline-strong outline-none text-ink ${
         font === 'serif' ? 'font-serif text-base font-semibold' : 'font-sans text-xs font-medium'
       }`}
     />
@@ -342,10 +347,9 @@ function PencilGlyph() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Inspector — reads live graph state via hooks and projects it back to the
-// minimal Snapshot shape the user actually persists.
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Inspector ────────────────────────────────────────────────────────────────
+// Reads live graph state via hooks and projects it back to the minimal
+// Snapshot shape the user actually persists.
 
 function useLiveSnapshot(): Snapshot {
   const cells = useCells<Computed<CellRecord<NodeData>>>();
@@ -381,41 +385,39 @@ function Inspector({ snapshot }: Readonly<{ snapshot: Snapshot }>) {
   const linkCount = snapshot.filter((cell) => cell.type === 'link').length;
 
   return (
-    <aside className="w-80 shrink-0 bg-[#f1ebda] border-l border-[rgba(28,36,52,0.12)] flex flex-col">
-      <div className="px-5.5 pt-5 pb-3">
-        <div className="text-[9px] tracking-[0.18em] uppercase text-[rgba(28,36,52,0.5)]">
+    <aside className="w-72 shrink-0 bg-surface border-l border-hairline flex flex-col">
+      <div className="px-5 pt-5 pb-3">
+        <div className="text-[9px] tracking-[0.18em] uppercase text-ink-faint">
           What gets persisted
         </div>
-        <div className="text-lg font-semibold mt-1 leading-[1.3]">
+        <div className="text-lg font-semibold mt-1 leading-[1.3] text-ink">
           Just the{' '}
-          <code className="font-mono text-xs bg-[rgba(28,36,52,0.08)] px-1.25 py-px rounded-sm">
+          <code className="font-mono text-xs bg-surface-2 text-ink px-1.25 py-px rounded-sm">
             data
           </code>{' '}
           field.
         </div>
-        <p className="mt-2 mb-0 text-xs text-[rgba(28,36,52,0.6)] leading-normal">
+        <p className="mt-2 mb-0 text-xs text-ink-muted leading-normal">
           Click a card to edit its title or owner. Save downloads the JSON below — sizes and
           positions are recomputed on load.
         </p>
       </div>
-      <div className="flex justify-between mx-5.5 py-2 border-t border-b border-dashed border-[rgba(28,36,52,0.18)] font-mono text-[10px] text-[rgba(28,36,52,0.6)]">
+      <div className="flex justify-between mx-5 py-2 border-t border-b border-dashed border-hairline font-mono text-[10px] text-ink-muted">
         <span>
           {elementCount} nodes · {linkCount} links
         </span>
         <span>{bytes} B</span>
       </div>
-      <pre className="flex-1 m-0 px-5.5 pt-3.5 pb-5.5 overflow-auto font-mono text-[11px] leading-[1.55] text-[#1c2434] bg-transparent whitespace-pre-wrap break-words">
+      <pre className="flex-1 m-0 px-5 pt-3.5 pb-5 overflow-auto font-mono text-[11px] leading-[1.55] text-ink bg-transparent whitespace-pre-wrap break-words">
         {json}
       </pre>
     </aside>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Inner shell — lives inside GraphProvider and owns add / remove / save.
-// All operations talk to the live graph; the snapshot for Save and Inspector
-// is derived from `useCells()`.
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Inner shell ──────────────────────────────────────────────────────────────
+// Lives inside GraphProvider and owns add / remove / save. All operations talk
+// to the live graph; the snapshot for Save and Inspector comes from `useCells`.
 
 let nextSampleIndex = 1;
 const SAMPLE_TITLES = ['Spike', 'QA pass', 'Polish', 'Audit', 'Migrate', 'Demo'];
@@ -440,6 +442,7 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
     // Pick a random existing parent so the tree fans out.
     const others = graph.getElements().filter((cell) => String(cell.id) !== id);
     if (others.length > 0) {
+      // eslint-disable-next-line sonarjs/pseudo-random -- demo only: any existing node is a fine parent
       const parent = others[Math.floor(Math.random() * others.length)];
       setCell({
         id: `l${Date.now().toString(36)}`,
@@ -463,49 +466,36 @@ function InnerShell({ onLoadFile }: Readonly<InnerShellProps>) {
   }, [liveSnapshot]);
 
   return (
-    <>
-      <header className="flex items-center justify-between px-5.5 py-4.5 border-b border-[rgba(28,36,52,0.12)] gap-4">
-        <div>
-          <div className="text-[9px] tracking-[0.18em] uppercase text-[rgba(28,36,52,0.5)]">
-            Demo · click a card to edit · file persistence
-          </div>
-          <h2 className="mt-1 mb-0 text-[22px] font-semibold tracking-[-0.01em]">
-            Save the data. Forget the geometry.
-          </h2>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleAdd}>+ Add node</Button>
-          <Button onClick={handleRemoveLast}>− Remove last</Button>
-          <Button onClick={handleSave} primary>
-            Save .json
-          </Button>
-          <Button onClick={onLoadFile}>Load .json</Button>
-        </div>
-      </header>
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <button type="button" className="jj-btn" onClick={handleAdd}>
+          + Add node
+        </button>
+        <button type="button" className="jj-btn" onClick={handleRemoveLast}>
+          − Remove last
+        </button>
+        <button type="button" className="jj-btn jj-btn--primary" onClick={handleSave}>
+          Save .json
+        </button>
+        <button type="button" className="jj-btn" onClick={onLoadFile}>
+          Load .json
+        </button>
+      </div>
 
-      <div className="flex-1 flex min-h-0">
-        <div className="flex-1 relative bg-[radial-gradient(rgba(28,36,52,0.12)_1px,transparent_1px)] bg-[length:20px_20px] [background-position:12px_12px]">
-          <Paper style={{ backgroundColor: 'transparent', width: '100%', height: '100%' }}
-            linkRouting={linkRoutingOrthogonal({
-              sourceOffset: 6,
-              targetOffset: 6,
-              margin: 18,
-              mode: 'bottom-top',
-            })}
-            renderElement={NodeCard}
-          />
+      <div className="flex min-h-0 flex-1">
+        <div className="relative min-w-0 flex-1">
+          <Paper className="size-full" linkRouting={LINK_ROUTING} renderElement={NodeCard} />
           <LayoutRunner />
         </div>
         <Inspector snapshot={liveSnapshot} />
       </div>
-    </>
+    </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// App — hosts GraphProvider and the file input. Bumps `reloadKey` on Load
-// so the GraphProvider remounts with the new initial cells.
-// ─────────────────────────────────────────────────────────────────────────────
+// ── App ──────────────────────────────────────────────────────────────────────
+// Hosts GraphProvider and the file input. Bumps `reloadKey` on Load so the
+// GraphProvider remounts with the new initial cells.
 
 export default function App() {
   const [seed, setSeed] = useState<Snapshot>(SEED);
@@ -516,7 +506,7 @@ export default function App() {
 
   const handleLoadClick = useCallback(() => fileInputRef.current?.click(), []);
 
-  const handleFileChosen = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChosen = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
@@ -527,7 +517,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="w-full h-165 bg-[#f5f0e3] text-[#1c2434] rounded-md overflow-hidden border border-[rgba(28,36,52,0.14)] flex flex-col font-sans">
+    <>
       <input
         ref={fileInputRef}
         type="file"
@@ -538,32 +528,6 @@ export default function App() {
       <GraphProvider key={reloadKey} initialCells={initialCells}>
         <InnerShell onLoadFile={handleLoadClick} />
       </GraphProvider>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tiny reusable bits
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface ButtonProps {
-  readonly children: React.ReactNode;
-  readonly onClick?: () => void;
-  readonly primary?: boolean;
-}
-
-function Button({ children, onClick, primary }: Readonly<ButtonProps>) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-3.5 py-2 text-xs font-medium font-sans rounded-sm cursor-pointer border ${
-        primary
-          ? 'border-[#b54f23] bg-[#b54f23] text-[#fbf8ee]'
-          : 'border-[rgba(28,36,52,0.2)] bg-[#fbf8ee] text-[#1c2434]'
-      }`}
-    >
-      {children}
-    </button>
+    </>
   );
 }

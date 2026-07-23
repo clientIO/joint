@@ -1,10 +1,8 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import {
   type AutoSizeOrigin,
   type CellRecord,
-  type ElementRecord,
   type Computed,
+  type ElementRecord,
   GraphProvider,
   Paper,
   useCell,
@@ -12,9 +10,19 @@ import {
   useGraph,
   useMeasureElement,
 } from '@joint/react';
-import { useCallback, useRef, useState } from 'react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import '../index.css';
+import {
+  useCallback,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+  type SyntheticEvent,
+} from 'react';
+
+// Colors — unified dark diagram palette.
+const PRIMARY = '#ED2637';
+const NODE_BODY_COLOR = '#1c2836';
+const TEXT_COLOR = '#DDE6ED';
 
 interface NodeData {
   readonly [key: string]: unknown;
@@ -33,98 +41,90 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   },
 ];
 
-const STOP_DRAG = (event: React.MouseEvent | React.PointerEvent) => event.stopPropagation();
+const cardStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '8px 12px',
+  backgroundColor: NODE_BODY_COLOR,
+  border: `1px solid ${PRIMARY}`,
+  borderRadius: 8,
+  color: TEXT_COLOR,
+  cursor: 'move',
+};
 
+const inputStyle: CSSProperties = {
+  minWidth: 40,
+  border: 'none',
+  outline: 'none',
+  background: 'transparent',
+  font: 'inherit',
+  color: 'inherit',
+  cursor: 'text',
+};
+
+/** Keep clicks inside the input from starting a paper drag. */
+function stopDrag(event: SyntheticEvent) {
+  event.stopPropagation();
+}
+
+/**
+ * A node that grows to fit its editable label. `useMeasureElement` reports the
+ * card's rendered size, which drives the `foreignObject` box and the auto-size
+ * write governed by `autoSizeOrigin`.
+ */
 function EditableNode() {
-  const divRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const id = useCellId();
   const { graph } = useGraph();
   const label = useCell((element: Computed<ElementRecord<NodeData>>) => element.data.label);
 
   const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       graph.getCell(id)?.prop('data/label', event.target.value);
     },
     [graph, id]
   );
 
-  const { width, height } = useMeasureElement(divRef);
+  const { width, height } = useMeasureElement(contentRef);
 
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <div
-        ref={divRef}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          padding: '8px 12px',
-          backgroundColor: '#fff',
-          border: `1px solid ${PRIMARY}`,
-          borderRadius: 8,
-          fontFamily: 'Ppfraktionsans, sans-serif',
-          color: '#131e29',
-          cursor: 'move',
-        }}
-      >
+      <div ref={contentRef} style={cardStyle}>
         <input
           value={label}
           onChange={handleChange}
-          onMouseDown={STOP_DRAG}
-          onPointerDown={STOP_DRAG}
+          onMouseDown={stopDrag}
+          onPointerDown={stopDrag}
           size={Math.max(label.length, 6)}
-          style={{
-            border: 'none',
-            outline: 'none',
-            background: 'transparent',
-            font: 'inherit',
-            color: 'inherit',
-            cursor: 'text',
-            minWidth: 40,
-          }}
+          style={inputStyle}
         />
       </div>
     </foreignObject>
   );
 }
 
-function Diagram() {
-  return (
-    <Paper
-      style={{ height: 380 }}
-      className={PAPER_CLASSNAME}
-      renderElement={EditableNode}
-    />
-  );
-}
-
 export default function App() {
   const [origin, setOrigin] = useState<AutoSizeOrigin>('top-left');
 
+  const handleOrigin = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+    setOrigin(event.target.value as AutoSizeOrigin);
+  }, []);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 8 }}>
-        <label htmlFor="autoSizeOriginToggle" style={{ fontFamily: 'Ppfraktionsans, sans-serif' }}>
-          autoSizeOrigin:
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <label className="jj-field">
+          <span className="jj-label">autoSizeOrigin</span>
+          <select className="jj-select" value={origin} onChange={handleOrigin}>
+            <option value="top-left">top-left</option>
+            <option value="center">center</option>
+          </select>
         </label>
-        <select
-          id="autoSizeOriginToggle"
-          value={origin}
-          onChange={(event) => setOrigin(event.target.value as AutoSizeOrigin)}
-        >
-          <option value="top-left">top-left</option>
-          <option value="center">center</option>
-        </select>
-        <span style={{ opacity: 0.7, fontFamily: 'Ppfraktionsans, sans-serif' }}>
-          (switching remounts the provider — current edits reset to initial)
-        </span>
+        <span className="jj-chip">switching remounts the provider — edits reset</span>
       </div>
-      {/*
-        Workaround: `autoSizeOrigin` is read at GraphStore construction time.
-        Remount via `key` so the new value takes effect — keeps example logic
-        trivial without plumbing live-prop updates into the store.
-      */}
+      {/* `autoSizeOrigin` is read once when the store is constructed, so remount the provider via `key` to apply a new value. */}
       <GraphProvider key={origin} initialCells={initialCells} autoSizeOrigin={origin}>
-        <Diagram />
+        <Paper className="min-h-0 flex-1" renderElement={EditableNode} />
       </GraphProvider>
     </div>
   );

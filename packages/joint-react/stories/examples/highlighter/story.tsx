@@ -1,19 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import { makeRootDocumentation } from '../../utils/make-story';
+import codeRaw from './code?raw';
 
-import CodeRaw from './code?raw';
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Examples/Highlighter',
   component: Code,
   tags: ['example'],
-  parameters: makeRootDocumentation({
-    code: CodeRaw,
-  }),
+  parameters: {
+    showcase: {
+      description:
+        'Highlight a node on hover with the JointJS mask and opacity highlighters, added and removed through Paper element mouse events.',
+      apiUrl: getAPILink('Paper'),
+      code: codeRaw,
+    },
+  },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Mask: Story = {
   args: {
@@ -26,4 +32,3 @@ export const Opacity: Story = {
     variant: 'opacity',
   },
 };
-

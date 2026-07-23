@@ -1,20 +1,12 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { type CellRecord, GraphProvider, Paper } from '@joint/react';
+
+const PRIMARY = '#ED2637';
+
 type ElementData = { label: string };
+
 const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
-  {
-    id: '1',
-    type: 'element',
-    data: { label: 'Node 1' },
-    position: { x: 100, y: 15 },
-  },
-  {
-    id: '2',
-    type: 'element',
-    data: { label: 'Node 2' },
-    position: { x: 100, y: 200 },
-  },
+  { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   {
     id: 'e1-2',
     type: 'link',
@@ -24,18 +16,10 @@ const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   },
 ];
 
-function Main() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} />
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Main />
+      <Paper className="size-full" />
     </GraphProvider>
   );
 }

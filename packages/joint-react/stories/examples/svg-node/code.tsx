@@ -1,6 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import '../index.css';
 import {
   type CellRecord,
   GraphProvider,
@@ -11,48 +8,42 @@ import {
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
 
+const TEXT_MARGIN = 20;
+const CORNER_RADIUS = 5;
+
+// Colors — unified dark diagram palette.
+const NODE_FILL_COLOR = '#1c2836';
+const NODE_STROKE_COLOR = '#3c4f63';
+const TEXT_COLOR = '#DDE6ED';
+
 interface NodeData {
-  readonly [key: string]: unknown;
   readonly label: string;
 }
 
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   { id: '2', type: 'element', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-  {
-    id: 'e1-2',
-    type: 'link',
-    source: { id: '1' },
-    target: { id: '2' },
-  },
+  { id: 'e1-2', type: 'link', source: { id: '1' }, target: { id: '2' } },
 ];
 
+const growAroundText: TransformElementLayout = ({ width, height }) => ({
+  width: width + TEXT_MARGIN,
+  height: height + TEXT_MARGIN,
+});
+
 function RenderedRect({ label }: Readonly<NodeData>) {
-  const textMargin = 20;
-  const cornerRadius = 5;
   const textRef = useRef<SVGTextElement>(null);
-
-  const transform: TransformElementLayout = useCallback(
-    ({ width: measuredWidth, height: measuredHeight }) => {
-      return {
-        width: measuredWidth + textMargin,
-        height: measuredHeight + textMargin,
-      };
-    },
-    [textMargin]
-  );
-
-  const { width, height } = useMeasureElement(textRef, { transform });
+  const { width, height } = useMeasureElement(textRef, { transform: growAroundText });
 
   return (
     <>
       <rect
-        rx={cornerRadius}
-        ry={cornerRadius}
+        rx={CORNER_RADIUS}
+        ry={CORNER_RADIUS}
         width={width}
         height={height}
-        stroke={'black'}
-        fill={'white'}
+        stroke={NODE_STROKE_COLOR}
+        fill={NODE_FILL_COLOR}
       />
       <text
         ref={textRef}
@@ -60,7 +51,7 @@ function RenderedRect({ label }: Readonly<NodeData>) {
         y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill={'black'}
+        fill={TEXT_COLOR}
         fontSize={14}
         fontWeight="bold"
       >
@@ -72,21 +63,10 @@ function RenderedRect({ label }: Readonly<NodeData>) {
 
 function Main() {
   const renderElement: RenderElement<NodeData> = useCallback(
-    (data) => <RenderedRect label={data?.label ?? ''} />,
+    (data) => <RenderedRect label={data.label ?? ''} />,
     []
   );
-  return (
-    <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} renderElement={renderElement} />
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-        }}
-      ></div>
-    </div>
-  );
+  return <Paper className="size-full" renderElement={renderElement} />;
 }
 
 export default function App() {

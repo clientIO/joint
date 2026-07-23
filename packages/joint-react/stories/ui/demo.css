@@ -1,0 +1,190 @@
+/*
+ * Unified controls & nodes for story demos.
+ *
+ * These semantic classes keep the *shown* example code short and readable
+ * (`className="jj-btn jj-btn--primary"` rather than a wall of utilities) while
+ * guaranteeing every demo's buttons, inputs and HTML nodes look like one
+ * product. Imported globally via `.storybook/preview.css`.
+ */
+
+/* ── Control bar ─────────────────────────────────────────────────────────── */
+.jj-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: color-mix(in oklab, var(--color-surface-2) 60%, transparent);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.jj-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: var(--radius-control);
+  background: color-mix(in oklab, var(--color-surface-2) 70%, transparent);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.15s var(--ease-out-quint),
+    border-color 0.15s var(--ease-out-quint),
+    transform 0.15s var(--ease-out-quint);
+}
+.jj-btn:hover {
+  border-color: var(--color-ink-faint);
+}
+.jj-btn:active {
+  transform: translateY(1px);
+}
+.jj-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-brand) 55%, transparent);
+}
+.jj-btn:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.jj-btn--primary {
+  background: var(--color-brand);
+  border-color: transparent;
+  color: var(--color-brand-fg);
+}
+.jj-btn--primary:hover {
+  background: color-mix(in oklab, var(--color-brand) 90%, black);
+  border-color: transparent;
+}
+.jj-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-ink-muted);
+}
+.jj-btn--ghost:hover {
+  background: var(--color-surface-2);
+  color: var(--color-ink);
+}
+.jj-btn--sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+/* ── Inputs & selects ────────────────────────────────────────────────────── */
+.jj-input,
+.jj-select {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-app);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.15s var(--ease-out-quint);
+}
+.jj-input:focus,
+.jj-select:focus {
+  outline: none;
+  border-color: color-mix(in oklab, var(--color-brand) 60%, transparent);
+}
+.jj-input::placeholder {
+  color: var(--color-ink-faint);
+}
+
+/* ── Label / field ───────────────────────────────────────────────────────── */
+.jj-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.jj-label {
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ── HTML node (for HTMLBox / foreignObject content) ─────────────────────── */
+.jj-node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--color-surface-2) 92%, var(--color-brand));
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 20px -14px rgba(0, 0, 0, 0.8);
+  cursor: move;
+  transition:
+    border-color 0.15s var(--ease-out-quint),
+    background-color 0.15s var(--ease-out-quint);
+}
+.jj-node:hover {
+  border-color: color-mix(in oklab, var(--color-brand) 55%, transparent);
+}
+.jj-node--active {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 1px var(--color-brand);
+}
+
+/* ── Introduction landing ────────────────────────────────────────────────── */
+.jj-intro__eyebrow {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--color-brand);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.jj-intro__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+.jj-intro__links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: var(--radius-control);
+  background: color-mix(in oklab, var(--color-surface-2) 60%, transparent);
+  color: var(--color-ink);
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color 0.15s var(--ease-out-quint);
+}
+.jj-intro__links a:hover {
+  border-color: var(--color-brand);
+}
+
+/* ── Small status chip ───────────────────────────────────────────────────── */
+.jj-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-hairline-strong);
+  background: var(--color-surface-2);
+  color: var(--color-ink-muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+}

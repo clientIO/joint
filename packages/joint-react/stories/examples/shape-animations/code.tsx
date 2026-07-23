@@ -1,28 +1,24 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-
+import { useCallback, useEffect, useRef } from 'react';
+import type { ChangeEvent, CSSProperties } from 'react';
 import {
-  type CellRecord,
   GraphProvider,
-  useCell,
   Paper,
   SVGText,
+  linkRoutingStraight,
+  selectElementSize,
+  useCell,
   useCells,
   useGraph,
-  type ElementRecord,
-  selectElementSize,
-  linkRoutingStraight,
 } from '@joint/react';
-import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import type { CellRecord, Computed, ElementRecord } from '@joint/react';
+
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const BG = '#131E29';
+const LIGHT = '#DDE6ED';
 
 const STRAIGHT_LINKS = linkRoutingStraight({ perpendicular: true });
 
-import '../index.css';
-import type { Computed } from '@joint/react';
-
-// ----------------------------------------------------------------------------
-// Types
-// ----------------------------------------------------------------------------
 const ShapeTypes = {
   generator: 'generator',
   bulb: 'bulb',
@@ -42,15 +38,17 @@ interface BulbData {
 
 type ShapeData = GeneratorData | BulbData;
 
-// ----------------------------------------------------------------------------
-// Constants
-// ----------------------------------------------------------------------------
-// Turbine geometry
+// The generator whose power drives the whole circuit.
+const GENERATOR_ID = 'generator';
+
 const TURBINE_R = 16;
 const TURBINE_A = 3;
 const TURBINE_B = 4;
+const TURBINE_PATH = `M ${TURBINE_A} ${TURBINE_A} ${TURBINE_B} ${TURBINE_R} -${TURBINE_B} ${TURBINE_R} -${TURBINE_A} ${TURBINE_A} -${TURBINE_R} ${TURBINE_B} -${TURBINE_R} -${TURBINE_B} -${TURBINE_A} -${TURBINE_A} -${TURBINE_B} -${TURBINE_R} ${TURBINE_B} -${TURBINE_R} ${TURBINE_A} -${TURBINE_A} ${TURBINE_R} -${TURBINE_B} ${TURBINE_R} ${TURBINE_B} Z`;
 
-// Colors (derived from storybook theme)
+const BULB_GLASS_PATH =
+  'M 14.01 0 C 3.23 0.01 -3.49 11.68 1.91 21.01 C 2.93 22.78 4.33 24.31 6.01 25.48 L 6.01 32 L 22.01 32 L 22.01 25.48 C 30.85 19.31 29.69 5.89 19.93 1.32 C 18.08 0.45 16.06 0 14.01 0 Z';
+
 const GENERATOR_BODY = '#8c1722';
 const GENERATOR_STROKE = '#6e1019';
 const GENERATOR_DARK = '#1a0508';
@@ -63,15 +61,14 @@ const BULB_CAP = BG;
 const BULB_LIT_FILL = '#ffd580';
 const BULB_LIT_STROKE = SECONDARY;
 
-const WIRE_LINE = '#5c6f7a';
+const WIRE_LINE = '#8697A6';
 const WIRE_OUTLINE = BG;
 
-// The generator element ID that controls power for the circuit
-const GENERATOR_ID = 'generator';
+const STATUS_OFF = PRIMARY;
+const STATUS_ON = '#36A18B';
 
-// ----------------------------------------------------------------------------
-// Initial Data
-// ----------------------------------------------------------------------------
+const RANGE_STYLE: CSSProperties = { flex: 1, accentColor: PRIMARY };
+
 const wireStyle = {
   color: WIRE_LINE,
   width: 2,
@@ -83,7 +80,7 @@ const wireStyle = {
 
 const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   {
-    id: 'generator',
+    id: GENERATOR_ID,
     type: 'element',
     data: { type: ShapeTypes.generator, power: 0.9 },
     position: { x: 50, y: 50 },
@@ -106,7 +103,7 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   {
     id: 'wire1',
     type: 'link',
-    source: { id: 'generator' },
+    source: { id: GENERATOR_ID },
     target: { id: 'bulb1' },
     style: wireStyle,
     z: -1,
@@ -114,74 +111,68 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   {
     id: 'wire2',
     type: 'link',
-    source: { id: 'generator' },
+    source: { id: GENERATOR_ID },
     target: { id: 'bulb2' },
     style: wireStyle,
     z: -1,
   },
 ];
 
-// ----------------------------------------------------------------------------
-// Generator Component
-// ----------------------------------------------------------------------------
+/** Human-readable label for the generator's power multiplier. */
+function formatPower(power: number): string {
+  const percent = Math.round(power * 100);
+  if (percent === 0) return 'Off';
+  if (percent === 100) return 'On';
+  if (percent === 400) return 'Max';
+  return `${percent} %`;
+}
+
+/** Reactively read the generator's current power from the graph. */
+function useGeneratorPower(): number {
+  return useCells<Computed<ElementRecord<ShapeData>>, number>((cells) => {
+    const generator = cells.find((cell) => cell.id === GENERATOR_ID);
+    const data = generator?.data;
+    return data?.type === ShapeTypes.generator ? data.power : 0;
+  });
+}
+
+/** Returns a stable setter that writes a new power onto the generator cell. */
+function useSetGeneratorPower(): (power: number) => void {
+  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
+  return useCallback(
+    (power: number) => {
+      setCell(GENERATOR_ID, (previous) => {
+        if (!isElement(previous)) return previous;
+        return { ...previous, data: { type: ShapeTypes.generator, power } };
+      });
+    },
+    [setCell, isElement]
+  );
+}
+
 function GeneratorNode({ power }: Readonly<GeneratorData>) {
   const { width, height } = useCell(selectElementSize);
-  const turbinePathRef = useRef<SVGPathElement>(null);
+  const turbineRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
+  const setPower = useSetGeneratorPower();
 
-  // Turbine blade path
-  const turbinePath = `
-    M ${TURBINE_A} ${TURBINE_A} ${TURBINE_B} ${TURBINE_R} -${TURBINE_B} ${TURBINE_R} -${TURBINE_A} ${TURBINE_A} -${TURBINE_R} ${TURBINE_B} -${TURBINE_R} -${TURBINE_B} -${TURBINE_A} -${TURBINE_A} -${TURBINE_B} -${TURBINE_R} ${TURBINE_B} -${TURBINE_R} ${TURBINE_A} -${TURBINE_A} ${TURBINE_R} -${TURBINE_B} ${TURBINE_R} ${TURBINE_B} Z`;
-
-  // Initialize and control animation
+  // Create the endless spin once, then drive its speed via playbackRate.
   useEffect(() => {
-    const turbineElement = turbinePathRef.current;
-    if (!turbineElement) return;
-
+    const turbine = turbineRef.current;
+    if (!turbine) return;
     if (!animationRef.current) {
-      const keyframes = { transform: ['rotate(0deg)', 'rotate(360deg)'] };
-      animationRef.current = turbineElement.animate(keyframes, {
-        fill: 'forwards',
-        duration: 1000,
-        iterations: Infinity,
-      });
+      animationRef.current = turbine.animate(
+        { transform: ['rotate(0deg)', 'rotate(360deg)'] },
+        { fill: 'forwards', duration: 1000, iterations: Infinity }
+      );
     }
-
     animationRef.current.playbackRate = power;
   }, [power]);
 
-  // Power display text
-  const powerText = useMemo(() => {
-    const percent = Math.round(power * 100);
-    if (percent === 0) return 'Off';
-    if (percent === 100) return 'On';
-    if (percent === 400) return 'Max';
-    return `${percent} %`;
-  }, [power]);
-
-  const statusColor = power === 0 ? '#ed4912' : '#65b374';
-
-  const handleTogglePower = useCallback(() => {
-    const newPower = power === 0 ? 1 : 0;
-    setCell(GENERATOR_ID, (previous) => {
-      if (!isElement(previous)) return previous;
-      const previousData = previous.data?.type === ShapeTypes.generator ? previous.data : undefined;
-      const nextData: GeneratorData = {
-        ...(previousData ?? { type: ShapeTypes.generator, power: 0 }),
-        type: ShapeTypes.generator,
-        power: newPower,
-      };
-      return {
-        ...previous,
-        data: nextData,
-      };
-    });
-  }, [power, setCell, isElement]);
+  const togglePower = useCallback(() => setPower(power === 0 ? 1 : 0), [power, setPower]);
 
   return (
     <>
-      {/* Body */}
       <rect
         width={width}
         height={height}
@@ -191,46 +182,40 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
         rx={5}
         ry={5}
       />
-      {/* Generator group */}
       <g transform={`translate(${width / 2}, ${height / 2})`}>
-        {/* Background circle */}
         <circle r={24} fill={GENERATOR_DARK} stroke={GENERATOR_ACCENT} strokeWidth={2} />
-        {/* Spinning turbine */}
         <path
-          ref={turbinePathRef}
-          d={turbinePath}
+          ref={turbineRef}
+          d={TURBINE_PATH}
           fill={GENERATOR_BLADE}
           stroke={GENERATOR_ACCENT}
           strokeWidth={2}
         />
       </g>
-      {/* Status indicator */}
       <circle
         cx={width - 10}
         cy={height - 10}
         r={5}
-        fill={statusColor}
-        stroke="white"
+        fill={power === 0 ? STATUS_OFF : STATUS_ON}
+        stroke={LIGHT}
         cursor="pointer"
-        onClick={handleTogglePower}
+        onClick={togglePower}
       />
-      {/* Power readout */}
       <SVGText
         x={width - 18}
         y={height - 5}
-        fill="white"
+        fill={LIGHT}
         fontSize={7}
         fontFamily="sans-serif"
         textAnchor="end"
         textVerticalAnchor="bottom"
       >
-        {powerText}
+        {formatPower(power)}
       </SVGText>
-      {/* Label */}
       <SVGText
         x={width / 2}
         y={height + 10}
-        fill={GENERATOR_DARK}
+        fill={LIGHT}
         fontSize={14}
         fontFamily="sans-serif"
         textAnchor="middle"
@@ -242,68 +227,37 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
   );
 }
 
-/**
- * Reads generator power reactively from the cells container.
- */
-function useGeneratorPower(): number {
-  return useCells<Computed<ElementRecord<ShapeData>>, number>((cells) => {
-    const generator = cells.find((cell) => cell.id === GENERATOR_ID) as
-      | ElementRecord<ShapeData>
-      | undefined;
-    const data = generator?.data;
-    if (data?.type !== ShapeTypes.generator) return 0;
-    return data.power;
-  });
-}
-
-// ----------------------------------------------------------------------------
-// Bulb Component
-// ----------------------------------------------------------------------------
 function BulbNode({ watts }: Readonly<BulbData>) {
   const { width, height } = useCell(selectElementSize);
   const glassRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-
-  // Read generator power from the store (reactive)
   const generatorPower = useGeneratorPower();
 
-  // Compute light state from generator power (derived state)
-  const light = Math.round(generatorPower * 100) >= watts;
+  // A bulb lights once the generator's power reaches its wattage threshold.
+  const isLit = Math.round(generatorPower * 100) >= watts;
 
-  // Glass bulb path (scaled to fit width/height)
-  const glassPath =
-    'M 14.01 0 C 3.23 0.01 -3.49 11.68 1.91 21.01 C 2.93 22.78 4.33 24.31 6.01 25.48 L 6.01 32 L 22.01 32 L 22.01 25.48 C 30.85 19.31 29.69 5.89 19.93 1.32 C 18.08 0.45 16.06 0 14.01 0 Z';
-
-  // Initialize and control light animation
+  // Create the on/off tween once, then play it forwards (lit) or backwards (off).
   useEffect(() => {
-    const glassElement = glassRef.current;
-    if (!glassElement) return;
-
+    const glass = glassRef.current;
+    if (!glass) return;
     if (!animationRef.current) {
-      const keyframes = {
-        stroke: [BULB_GLASS_STROKE, BULB_LIT_STROKE],
-        fill: [BULB_GLASS, BULB_LIT_FILL],
-        strokeWidth: [1, 2],
-      };
-      animationRef.current = glassElement.animate(keyframes, {
-        fill: 'forwards',
-        duration: 500,
-        iterations: 1,
-      });
+      animationRef.current = glass.animate(
+        {
+          stroke: [BULB_GLASS_STROKE, BULB_LIT_STROKE],
+          fill: [BULB_GLASS, BULB_LIT_FILL],
+          strokeWidth: [1, 2],
+        },
+        { fill: 'forwards', duration: 500, iterations: 1 }
+      );
     }
-
-    animationRef.current.playbackRate = light ? 1 : -1;
-  }, [light]);
+    animationRef.current.playbackRate = isLit ? 1 : -1;
+  }, [isLit]);
 
   return (
     <>
-      {/* Glass bulb */}
-      <path ref={glassRef} d={glassPath} fill={BULB_GLASS} stroke={BULB_GLASS_STROKE} />
-      {/* Cap 1 */}
+      <path ref={glassRef} d={BULB_GLASS_PATH} fill={BULB_GLASS} stroke={BULB_GLASS_STROKE} />
       <rect x={width / 2 - 6} y={height + 1} width={12} height={3} fill={BULB_CAP} />
-      {/* Cap 2 */}
       <rect x={width / 2 - 5} y={height + 5} width={10} height={3} fill={BULB_CAP} />
-      {/* Wattage label */}
       <SVGText
         x={width / 2}
         y={height / 2}
@@ -319,9 +273,6 @@ function BulbNode({ watts }: Readonly<BulbData>) {
   );
 }
 
-// ----------------------------------------------------------------------------
-// Render Dispatcher
-// ----------------------------------------------------------------------------
 function RenderShapeElement(data: Readonly<ShapeData>) {
   switch (data.type) {
     case ShapeTypes.generator: {
@@ -333,97 +284,44 @@ function RenderShapeElement(data: Readonly<ShapeData>) {
   }
 }
 
-// ----------------------------------------------------------------------------
-// Power Control Component
-// ----------------------------------------------------------------------------
 function PowerControl() {
-  const { setCell, isElement } = useGraph<ElementRecord<ShapeData>>();
-
-  // Read generator power from store (reactive)
   const power = useGeneratorPower();
+  const setPower = useSetGeneratorPower();
 
   const handlePowerChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newPower = event.target.valueAsNumber;
-      setCell(GENERATOR_ID, (previous) => {
-        if (!isElement(previous)) return previous;
-        const previousData = previous.data?.type === ShapeTypes.generator ? previous.data : undefined;
-        const nextData: GeneratorData = {
-          ...(previousData ?? { type: ShapeTypes.generator, power: 0 }),
-          type: ShapeTypes.generator,
-          power: newPower,
-        };
-        return {
-          ...previous,
-          data: nextData,
-        };
-      });
-    },
-    [setCell, isElement]
+    (event: ChangeEvent<HTMLInputElement>) => setPower(event.target.valueAsNumber),
+    [setPower]
   );
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '12px 16px',
-        background: BG,
-        borderRadius: 8,
-        marginTop: 16,
-      }}
-    >
-      <label
-        htmlFor="power-input"
-        style={{
-          color: TEXT,
-          fontFamily: 'sans-serif',
-          fontSize: 14,
-          fontWeight: 500,
-        }}
-      >
+    <div className="jj-controls m-3">
+      <label htmlFor="power-input" className="jj-label">
         Power
       </label>
       <input
-        type="range"
         id="power-input"
+        type="range"
         min={0}
         max={4}
         step={0.1}
         value={power}
         onChange={handlePowerChange}
-        style={{
-          flex: 1,
-          accentColor: PRIMARY,
-        }}
+        style={RANGE_STYLE}
       />
-      <output
-        htmlFor="power-input"
-        style={{
-          color: SECONDARY,
-          fontFamily: 'monospace',
-          fontSize: 14,
-          minWidth: 50,
-          textAlign: 'right',
-        }}
-      >
+      <output htmlFor="power-input" className="jj-chip">
         {power.toFixed(1)} x
       </output>
     </div>
   );
 }
 
-// ----------------------------------------------------------------------------
-// Main Component
-// ----------------------------------------------------------------------------
 function Main() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <Paper style={{ width: '100%', height: 500 }}
-        className={PAPER_CLASSNAME}
+    <div className="flex size-full flex-col">
+      <Paper
+        className="min-h-0 flex-1"
         renderElement={RenderShapeElement}
-        transform={'scale(3)'}
+        transform="scale(3)"
         linkRouting={STRAIGHT_LINKS}
       />
       <PowerControl />
@@ -431,9 +329,6 @@ function Main() {
   );
 }
 
-// ----------------------------------------------------------------------------
-// App Export
-// ----------------------------------------------------------------------------
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>

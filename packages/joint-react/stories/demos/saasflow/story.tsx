@@ -1,23 +1,26 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
+import codeRaw from './code?raw';
 
-import RawCode from './code?raw';
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Demos/SaaSflow',
   component: Code,
   tags: ['demo'],
   parameters: {
-    docs: {
-      description: {
-        story: 'SaaS project management flow with dark/light theme toggle',
-      },
-      source: {
-        code: RawCode,
-      },
+    showcase: {
+      description:
+        'Renders a SaaS project-management flow of HTML nodes with connectable ports and orthogonal links, toggling the whole diagram between dark and light themes.',
+      apiUrl: getAPILink('HTMLHost'),
+      canvasHeight: 700,
+      plainCanvas: true,
+      code: codeRaw,
     },
   },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

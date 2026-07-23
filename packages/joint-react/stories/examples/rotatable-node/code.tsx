@@ -1,6 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
-  type CellRecord,
   GraphProvider,
   HTMLHost,
   Paper,
@@ -9,12 +7,33 @@ import {
   useCells,
   useGraph,
   usePaper,
-  type ElementRecord,
-  type Computed,
 } from '@joint/react';
-import '../index.css';
+import type { CellRecord, Computed, ElementRecord } from '@joint/react';
 import { useCallback } from 'react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
+
+const PRIMARY = '#ED2637';
+
+const HANDLE_STYLE: CSSProperties = {
+  position: 'absolute',
+  left: '50%',
+  top: -30,
+  width: 10,
+  height: 10,
+  borderRadius: '100%',
+  background: PRIMARY,
+  transform: 'translate(-50%, -50%)',
+  cursor: 'alias',
+};
+
+const HANDLE_LINE_STYLE: CSSProperties = {
+  position: 'absolute',
+  left: 4,
+  top: 5,
+  width: 2,
+  height: 30,
+  background: PRIMARY,
+};
 
 interface NodeData {
   readonly [key: string]: unknown;
@@ -54,13 +73,10 @@ function RotatableNode() {
   );
 
   const handlePointerDown = useCallback(
-    (event: React.PointerEvent) => {
+    (event: ReactPointerEvent<HTMLDivElement>) => {
       event.stopPropagation();
       event.preventDefault();
-      const node = event.currentTarget as HTMLDivElement;
-      if (!node) {
-        return;
-      }
+      const node = event.currentTarget;
       node.setPointerCapture(event.pointerId);
       node.addEventListener('pointermove', dragHandle);
     },
@@ -68,11 +84,8 @@ function RotatableNode() {
   );
 
   const handlePointerUp = useCallback(
-    (event: React.PointerEvent) => {
-      const node = event.currentTarget as HTMLDivElement;
-      if (!node) {
-        return;
-      }
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      const node = event.currentTarget;
       node.removeEventListener('pointermove', dragHandle);
       node.releasePointerCapture(event.pointerId);
     },
@@ -80,12 +93,10 @@ function RotatableNode() {
   );
 
   return (
-    <HTMLHost className="rotatable-node">
-      <div
-        className="rotatable-node__handle"
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-      />
+    <HTMLHost className="jj-node">
+      <div style={HANDLE_STYLE} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
+        <div style={HANDLE_LINE_STYLE} />
+      </div>
       {label}
     </HTMLHost>
   );
@@ -93,27 +104,26 @@ function RotatableNode() {
 
 function Main() {
   const { isElement } = useGraph<ElementRecord<NodeData>>();
-  const elementRotation = useCells<Computed<ElementRecord<NodeData>>, readonly string[]>((cells) =>
+  const angles = useCells<Computed<ElementRecord<NodeData>>, readonly string[]>((cells) =>
     cells
       .filter((cell) => isElement(cell))
       .map((cell) => {
         const element = cell as ElementRecord<NodeData>;
-        return `${(element.angle ?? 0).toString().padStart(3, '0')} deg`;
+        return `${element.data.label}: ${element.angle ?? 0}°`;
       })
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} renderElement={RotatableNode} />
-      <div>
-        <u>angle</u>
-        {elementRotation.map((rotation, index) => (
-          // eslint-disable-next-line @eslint-react/no-array-index-key
-          <div key={`${index}-${rotation}`} style={{ marginLeft: 10 }}>
-            {index + 1}. {rotation}
-          </div>
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <span className="jj-label">Drag a node&apos;s handle to rotate it</span>
+        {angles.map((angle) => (
+          <span key={angle} className="jj-chip">
+            {angle}
+          </span>
         ))}
       </div>
+      <Paper className="min-h-0 flex-1" renderElement={RotatableNode} />
     </div>
   );
 }

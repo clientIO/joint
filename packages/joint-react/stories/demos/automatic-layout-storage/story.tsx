@@ -1,25 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
+import codeRaw from './code?raw';
 
-import RawCode from './code?raw';
-
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Demos/Automatic Layout & Storage',
   component: Code,
   tags: ['demo'],
   parameters: {
-    docs: {
-      description: {
-        story:
-          'Controlled-mode persistence demo. Only the `data` field of each node is saved to localStorage — sizes are measured automatically by `HTMLHost`, and positions are recomputed by a BFS hierarchical layout each time the diagram mounts. Use **Save** / **Load** to round-trip through storage, then refresh the story to see the data come back.',
-      },
-      source: {
-        code: RawCode,
-      },
+    showcase: {
+      description:
+        'Persists only the data field of each node to a JSON file, while HTMLHost measures node sizes and a tree layout recomputes positions on every measurement.',
+      apiUrl: getAPILink('useOnElementsMeasured'),
+      canvasHeight: 640,
+      code: codeRaw,
     },
   },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

@@ -42,22 +42,22 @@ const RemoteDragContext = createContext<{ dragging: Set<string>; color: string; 
   name: 'Peer',
 });
 
+// Unified dark diagram palette. The light half is the deliberate other side of the
+// theme switch below, not a leftover of the old default theme.
 const DARK = {
-  canvas: '#0a0a0a',
-  card: '#161616',
-  cardBorder: 'rgba(255,255,255,0.06)',
-  text: '#f5f5f7',
-  sub: 'rgba(245,245,247,0.5)',
-  muted: 'rgba(245,245,247,0.25)',
-  accent: '#0071e3',
-  accentGlow: 'rgba(0,113,227,0.3)',
-  green: '#30d158',
-  orange: '#ff9f0a',
-  red: '#ff453a',
-  surface: '#1c1c1e',
-  surfaceBorder: 'rgba(255,255,255,0.08)',
-  link: 'rgba(255,255,255,0.15)',
-  port: 'rgba(255,255,255,0.3)',
+  canvas: '#121c26',
+  card: '#1c2836',
+  cardBorder: '#3c4f63',
+  text: '#DDE6ED',
+  sub: '#93A4B3',
+  muted: 'rgba(147,164,179,0.5)',
+  accent: '#ED2637',
+  green: '#36A18B',
+  orange: '#FF9505',
+  surface: '#243445',
+  surfaceBorder: '#2f4053',
+  link: '#8697A6',
+  port: '#8697A6',
 } as const;
 
 const LIGHT = {
@@ -68,10 +68,8 @@ const LIGHT = {
   sub: 'rgba(29,29,31,0.5)',
   muted: 'rgba(29,29,31,0.2)',
   accent: '#0071e3',
-  accentGlow: 'rgba(0,113,227,0.15)',
   green: '#34c759',
   orange: '#ff9500',
-  red: '#ff3b30',
   surface: '#ffffff',
   surfaceBorder: 'rgba(0,0,0,0.06)',
   link: 'rgba(0,0,0,0.12)',
@@ -342,7 +340,6 @@ function createPeerManager(callbacks: {
         }
       }
     },
-    isReceiving: () => ignoreNext,
   };
 }
 
@@ -377,10 +374,7 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>)
     : `0 20px 50px rgba(0,0,0,0.12), 0 0 0 1px ${activeColor}55`;
   const cardShadow = isActive ? activeShadow : defaultShadow;
 
-  const defaultIconBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-  const iconBg = defaultIconBg;
-  const iconColor = theme.sub;
-  const iconGlow = 'none';
+  const iconBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
 
   return (
     <>
@@ -402,8 +396,7 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>)
             className="w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0"
             style={{
               backgroundColor: iconBg,
-              color: iconColor,
-              boxShadow: iconGlow,
+              color: theme.sub,
               transition: 'all 120ms ease',
             }}
           >
@@ -896,7 +889,9 @@ function GraphWithRedux() {
           initialCells={themedCells}
           onIncrementalCellsChange={handleIncrementalChange}
         >
-          <Paper style={{ backgroundColor: theme.canvas, width: '100%', height: '100%' }}
+          <Paper
+            className="size-full"
+            style={{ backgroundColor: theme.canvas }}
             gridSize={1}
             overflow
             linkPinning={false}
@@ -997,11 +992,10 @@ export default function App() {
     <ThemeContext.Provider value={isDark}>
       <Provider store={store}>
         <div
-          className="relative w-full h-[680px] rounded-2xl overflow-hidden"
+          className="relative size-full overflow-hidden"
           style={{
             backgroundColor: theme.canvas,
-            border: `1px solid ${theme.surfaceBorder}`,
-            transition: 'background-color 300ms, border-color 300ms',
+            transition: 'background-color 300ms',
           }}
         >
           <GraphWithRedux />

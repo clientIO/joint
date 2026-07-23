@@ -1,21 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import { makeRootDocumentation } from '../../utils/make-story';
-import CodeRaw from './code?raw';
+import codeRaw from './code?raw';
+
+const meta = {
+  title: 'Examples/Transaction',
+  component: Code,
+  tags: ['example'],
+  parameters: {
+    showcase: {
+      canvasHeight: 500,
+      description:
+        'Group many graph edits into one atomic transaction — a single undo entry and one React commit across awaits — with opt-in rollback when the callback rejects.',
+      apiUrl: getAPILink('useGraph'),
+      code: codeRaw,
+    },
+  },
+} satisfies Meta<typeof Code>;
+
+export default meta;
 
 export type Story = StoryObj<typeof Code>;
-
-export default {
-  title: 'Examples/Transaction',
-  tags: ['example'],
-  component: Code,
-  parameters: makeRootDocumentation({
-    code: CodeRaw,
-    description:
-      '`useGraph().transaction` runs many graph edits as one atomic step: a single undo entry, ' +
-      'a single React update (even across `await`s), and opt-in rollback (`{ rollbackOnError: true }`) if the callback throws.',
-  }),
-} satisfies Meta<typeof Code>;
 
 export const Default: Story = {};

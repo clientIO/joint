@@ -1,8 +1,7 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-
 import { useCallback } from 'react';
 import {
   type CellRecord,
+  type CanConnectOptions,
   GraphProvider,
   Paper,
   HTMLBox,
@@ -10,9 +9,14 @@ import {
   linkRoutingSmooth,
   type RenderElement,
 } from '@joint/react';
-import '../index.css';
 
 const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconnected: false });
+const VALIDATE_CONNECTION: CanConnectOptions = { allowRootConnection: false };
+
+// Colors — unified dark diagram palette. The card body, border and primary text
+// come from the shared `jj-node` class; only the table chrome is styled here.
+const HEADER_COLOR = '#243445';
+const MUTED_TEXT_COLOR = '#93A4B3';
 
 interface TableData {
   readonly name: string;
@@ -62,6 +66,7 @@ const cardStyle: React.CSSProperties = {
   justifyContent: 'flex-start',
   textAlign: 'left',
   padding: 0,
+  overflow: 'hidden',
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
 };
 
@@ -70,7 +75,8 @@ const headerStyle: React.CSSProperties = {
   fontWeight: 600,
   fontSize: 13,
   letterSpacing: '0.01em',
-  borderBottom: '1px solid',
+  background: HEADER_COLOR,
+  borderBottom: '1px solid rgba(128, 128, 128, 0.2)',
 };
 
 const rowStyle: React.CSSProperties = {
@@ -81,6 +87,7 @@ const rowStyle: React.CSSProperties = {
   fontSize: 12,
   cursor: 'crosshair',
   userSelect: 'none',
+  borderBottom: '1px solid rgba(128, 128, 128, 0.15)',
 };
 
 const fieldStyle: React.CSSProperties = {
@@ -88,7 +95,7 @@ const fieldStyle: React.CSSProperties = {
 };
 
 const typeStyle: React.CSSProperties = {
-  color: '#999',
+  color: MUTED_TEXT_COLOR,
   fontSize: 11,
 };
 
@@ -99,25 +106,9 @@ interface TableRowProps {
 }
 
 function TableRow({ field, type, index }: Readonly<TableRowProps>) {
-  const { selectorRef } = useMarkup();
-  const selectorRefForRow = selectorRef(`row-${index}`);
-  const setRowRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (node) node.setAttribute('magnet', 'active');
-      selectorRefForRow(node);
-    },
-    [selectorRefForRow]
-  );
-
+  const { magnetRef } = useMarkup();
   return (
-    <div
-      className="table-row"
-      ref={setRowRef}
-      style={{
-        ...rowStyle,
-        borderBottom: '1px solid rgba(128, 128, 128, 0.15)',
-      }}
-    >
+    <div ref={magnetRef(`row-${index}`)} style={rowStyle}>
       <span style={fieldStyle}>{field}</span>
       <span style={typeStyle}>{type}</span>
     </div>
@@ -126,7 +117,7 @@ function TableRow({ field, type, index }: Readonly<TableRowProps>) {
 
 function TableNode({ name, rows }: Readonly<Partial<TableData>>) {
   return (
-    <HTMLBox useModelGeometry style={cardStyle}>
+    <HTMLBox className="jj-node" useModelGeometry style={cardStyle}>
       <div style={headerStyle}>{name}</div>
       {rows?.map((row, index) => (
         <TableRow key={row.field} field={row.field} type={row.type} index={index} />
@@ -141,12 +132,13 @@ function Main() {
   }, []);
 
   return (
-    <Paper style={{ width: '100%', height: 280 }}
+    <Paper
+      className="size-full"
       renderElement={renderElement}
       magnetThreshold="onleave"
       linkPinning={false}
       linkRouting={SMOOTH_LINKS}
-      validateConnection={{ allowRootConnection: false }}
+      validateConnection={VALIDATE_CONNECTION}
       drawGrid={false}
     />
   );

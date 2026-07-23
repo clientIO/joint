@@ -1,23 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
+import codeRaw from './code?raw';
 
-import RawCode from './code?raw';
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Demos/Flowchart',
   component: Code,
   tags: ['demo'],
   parameters: {
-    docs: {
-      description: {
-        story: 'Demo of flowchart',
-      },
-      source: {
-        code: RawCode,
-      },
+    showcase: {
+      canvasHeight: 620,
+      description:
+        'Wire auto-sized start, step, and decision shapes together with orthogonal links to build an interactive, themeable flowchart with hover highlights and editable anchors.',
+      apiUrl: getAPILink('linkRoutingOrthogonal', 'Presets'),
+      code: codeRaw,
     },
   },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

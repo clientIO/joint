@@ -1,12 +1,28 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useGraph, HTMLHost, type CellRecord, type ElementRecord, type LinkRecord, linkRoutingOrthogonal } from '@joint/react';
-
+import type { dia } from '@joint/core';
+import {
+  GraphProvider,
+  HTMLHost,
+  Paper,
+  linkRoutingOrthogonal,
+  useGraph,
+  type CellRecord,
+  type ElementRecord,
+  type LinkRecord,
+} from '@joint/react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({ sourceOffset: 8, targetOffset: 8 });
-
-import type { dia } from '@joint/core';
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 // ── Theme ───────────────────────────────────────────────────────────────────
 
@@ -50,7 +66,9 @@ const LIGHT = {
   toolbarHover: 'rgba(0,0,0,0.04)',
 } as const;
 
-function useTheme() {
+type Theme = typeof DARK | typeof LIGHT;
+
+function useTheme(): Theme {
   const isDark = useContext(ThemeContext);
   return isDark ? DARK : LIGHT;
 }
@@ -173,13 +191,14 @@ const DEFAULT_LINK = () => ({
 
 // ── Node Component ──────────────────────────────────────────────────────────
 
+const STATUS_COLORS: Record<string, string> = {
+  active: '#34d399',
+  pending: '#fbbf24',
+  done: '#6b7280',
+};
+
 function StatusDot({ status }: Readonly<{ status?: string }>) {
-  const colorMap: Record<string, string> = {
-    active: '#34d399',
-    pending: '#fbbf24',
-    done: '#6b7280',
-  };
-  const color = colorMap[status ?? ''] ?? colorMap.done;
+  const color = STATUS_COLORS[status ?? ''] ?? STATUS_COLORS.done;
   return (
     <span
       className="inline-block w-2 h-2 rounded-full mr-1.5"
@@ -188,10 +207,7 @@ function StatusDot({ status }: Readonly<{ status?: string }>) {
   );
 }
 
-function ProgressBar({
-  value,
-  theme,
-}: Readonly<{ value: number; theme: typeof DARK | typeof LIGHT }>) {
+function ProgressBar({ value, theme }: Readonly<{ value: number; theme: Theme }>) {
   return (
     <div className="w-full h-1.5 rounded-full mt-2" style={{ backgroundColor: theme.accentSoft }}>
       <div
@@ -283,7 +299,7 @@ function ToolbarButton({
   children,
   accent,
   onClick,
-}: Readonly<{ children: React.ReactNode; accent?: boolean; onClick?: () => void }>) {
+}: Readonly<{ children: ReactNode; accent?: boolean; onClick?: () => void }>) {
   const theme = useTheme();
   return (
     <button
@@ -306,7 +322,7 @@ function ToolbarButton({
   );
 }
 
-function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | null> }>) {
+function Toolbar({ paperRef }: Readonly<{ paperRef: RefObject<dia.Paper | null> }>) {
   const theme = useTheme();
   const { setCell } = useGraph<ElementRecord<SaasNodeData>>();
 
@@ -487,7 +503,9 @@ function Main() {
 
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper style={{ backgroundColor: 'transparent', width: '100%', height: '100%' }}
+      <Paper
+        className="size-full"
+        style={{ backgroundColor: 'transparent' }}
         ref={paperRef}
         gridSize={5}
         drawGrid={false}
@@ -568,8 +586,8 @@ export default function App() {
   return (
     <ThemeContext.Provider value={isDark}>
       <div
-        className="relative w-full h-[720px] rounded-xl overflow-hidden transition-colors duration-500"
-        style={{ backgroundColor: theme.canvas, border: `1px solid ${theme.cardBorder}` }}
+        className="relative size-full overflow-hidden transition-colors duration-500"
+        style={{ backgroundColor: theme.canvas }}
       >
         <Main />
         <ThemeSwitch isDark={isDark} onClick={() => setIsDark((v) => !v)} />

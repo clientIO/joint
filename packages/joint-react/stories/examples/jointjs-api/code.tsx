@@ -1,7 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, type CSSProperties } from 'react';
 import { dia, linkTools, mvc, shapes } from '@joint/core';
 import {
   GraphProvider,
@@ -13,11 +10,11 @@ import {
   useGraph,
   usePaper,
 } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-import '../index.css';
-
-const COLORS = ['#ED2637', '#FF9505', '#3498db', '#2ecc71', '#9b59b6', '#1abc9c'];
+const PRIMARY = '#ED2637';
+const LINK_COLOR = '#8697A6';
+// The color cycle is the point of the demo — these stay vivid on purpose.
+const COLORS = [PRIMARY, '#FF9505', '#3498db', '#2ecc71', '#9b59b6', '#1abc9c'];
 
 interface ElementData {
   readonly [key: string]: unknown;
@@ -28,13 +25,13 @@ interface ElementData {
 function createGraph(): dia.Graph {
   const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ElementModel, LinkModel } });
 
-  const element1 = new ElementModel({
+  const elementA = new ElementModel({
     id: 'el1',
     position: { x: 50, y: 50 },
     data: { label: 'Element A', color: PRIMARY },
   });
 
-  const element2 = new ElementModel({
+  const elementB = new ElementModel({
     id: 'el2',
     position: { x: 350, y: 200 },
     data: { label: 'Element B', color: '#3498db' },
@@ -44,15 +41,10 @@ function createGraph(): dia.Graph {
     id: 'link1',
     source: { id: 'el1' },
     target: { id: 'el2' },
-    attrs: {
-      line: {
-        stroke: '#7f8c8d',
-        strokeWidth: 2,
-      },
-    },
+    attrs: { line: { stroke: LINK_COLOR, strokeWidth: 2 } },
   });
 
-  graph.resetCells([element1, element2, link]);
+  graph.resetCells([elementA, elementB, link]);
 
   return graph;
 }
@@ -61,43 +53,32 @@ function Node({ label, color }: Readonly<ElementData>) {
   const id = useCellId();
   const { graph } = useGraph();
 
-  const handleClick = () => {
+  const cycleColor = useCallback(() => {
     const element = graph.getCell(id);
     if (!element) return;
-    const currentColor = element.prop('data/color') as string;
-    const currentIndex = COLORS.indexOf(currentColor);
-    const nextColor = COLORS[(currentIndex + 1) % COLORS.length];
-    element.prop('data/color', nextColor);
-  };
+    const currentIndex = COLORS.indexOf(element.prop('data/color') as string);
+    element.prop('data/color', COLORS[(currentIndex + 1) % COLORS.length]);
+  }, [graph, id]);
+
+  const style = useMemo<CSSProperties>(
+    () => ({
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8,
+      padding: '12px 16px',
+      borderRadius: 10,
+      background: color ?? PRIMARY,
+      color: '#fff',
+      fontWeight: 600,
+    }),
+    [color]
+  );
 
   return (
-    <HTMLHost
-      style={{
-        backgroundColor: color ?? PRIMARY,
-        borderRadius: 8,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 6,
-        color: '#fff',
-        fontFamily: 'sans-serif',
-        border: 'none',
-        padding: '10px 20px'
-      }}
-    >
-      <span style={{ fontSize: 14, fontWeight: 600 }}>{label}</span>
-      <button
-        onClick={handleClick}
-        style={{
-          padding: '4px 12px',
-          fontSize: 12,
-          cursor: 'pointer',
-          borderRadius: 4,
-          border: '1px solid rgba(255,255,255,0.5)',
-          backgroundColor: 'rgba(255,255,255,0.2)',
-          color: '#fff',
-        }}
-      >
-        Change Color
+    <HTMLHost style={style}>
+      <span>{label}</span>
+      <button type="button" className="jj-btn jj-btn--sm" onClick={cycleColor}>
+        Change color
       </button>
     </HTMLHost>
   );
@@ -140,11 +121,12 @@ function Main() {
     };
   }, [paper]);
 
-  const renderElement = (data: ElementData) => <Node label={data.label} color={data.color} />;
-
-  return (
-    <Paper style={{ height: 380 }} id="my-paper" className={PAPER_CLASSNAME} renderElement={renderElement} />
+  const renderElement = useCallback(
+    (data: ElementData) => <Node label={data.label} color={data.color} />,
+    []
   );
+
+  return <Paper id="my-paper" className="size-full" renderElement={renderElement} />;
 }
 
 export default function App() {

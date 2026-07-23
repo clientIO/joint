@@ -1,7 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type {
-  ElementRecord,
-  LinkRecord} from '@joint/react';
+import type { ElementRecord, LinkRecord } from '@joint/react';
 import {
   GraphProvider,
   Paper,
@@ -15,8 +12,9 @@ import {
   linkLabel,
   linkStyle,
 } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
-import '../index.css';
+
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
 
 // ── Custom element with native JointJS `ports` in defaults ──────────────
 
@@ -100,8 +98,10 @@ interface NodeData {
 }
 
 type CustomCellRecord =
-  ElementRecord<unknown, 'PortsElement' | 'PortMapElement'> |
-  LinkRecord<unknown, 'LabelsLink' | 'LabelMapLink'>;
+  | ElementRecord<unknown, 'PortsElement' | 'PortMapElement'>
+  | LinkRecord<unknown, 'LabelsLink' | 'LabelMapLink'>;
+
+const CELL_NAMESPACE = { PortsElement, PortMapElement, LabelsLink, LabelMapLink };
 
 const initialCells: readonly CustomCellRecord[] = [
   {
@@ -148,24 +148,32 @@ const initialCells: readonly CustomCellRecord[] = [
 
 // ── Component ───────────────────────────────────────────────────────────
 
-const JSON_VIEWER_STYLE = { fontSize: 10 } as const;
-const CELL_NAMESPACE = { PortsElement, PortMapElement, LabelsLink, LabelMapLink };
-
 function renderElement({ label }: Readonly<NodeData>) {
-  return <HTMLBox useModelGeometry>{label}</HTMLBox>;
+  return (
+    <HTMLBox useModelGeometry className="jj-node">
+      {label}
+    </HTMLBox>
+  );
 }
 
+// Shows the models serialize back to full cells — ports and labels included —
+// even though each record above only declared minimal data.
 function JSONViewer() {
   const { exportToJSON } = useGraph();
-  const json = exportToJSON();
-  return <pre style={JSON_VIEWER_STYLE}>{JSON.stringify(json, null, 2)}</pre>;
+  return (
+    <pre className="m-0 max-h-40 shrink-0 overflow-auto border-t border-hairline bg-surface p-3 font-mono text-[10px] leading-relaxed text-ink-muted">
+      {JSON.stringify(exportToJSON(), null, 2)}
+    </pre>
+  );
 }
 
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells} cellNamespace={CELL_NAMESPACE}>
-      <Paper style={{ height: 300 }} className={PAPER_CLASSNAME} renderElement={renderElement} />
-      <JSONViewer />
+      <div className="flex size-full flex-col">
+        <Paper className="min-h-0 flex-1" renderElement={renderElement} />
+        <JSONViewer />
+      </div>
     </GraphProvider>
   );
 }

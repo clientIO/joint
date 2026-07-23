@@ -1,9 +1,3 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable no-shadow */
-/* eslint-disable sonarjs/pseudo-random */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import '../index.css';
 import {
   GraphProvider,
   Paper,
@@ -15,14 +9,13 @@ import {
   type ElementRecord,
   type Computed,
 } from '@joint/react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, type ChangeEvent } from 'react';
 import type { dia } from '@joint/core';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const INPUT_CLASSNAME =
-  'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
+const GAP = 20;
 
 type ElementData = { label: string };
+
 const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   { id: '1', type: 'element', data: { label: 'Node 1' } },
   { id: '2', type: 'element', data: { label: 'Node 2' } },
@@ -35,85 +28,68 @@ const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   { id: '9', type: 'element', data: { label: 'Node 9' } },
 ];
 
+/** Arrange every element into a grid with the given number of columns. */
+function layoutGrid(graph: dia.Graph, columns: number) {
+  const cols = Math.max(1, columns);
+  for (const [index, element] of graph.getElements().entries()) {
+    const { width, height } = element.size();
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    element.position(GAP + col * (width + GAP), GAP + row * (height + GAP));
+  }
+}
+
 function Main() {
   const { graph, setCell } = useGraph<ElementRecord<ElementData>>();
-  const paperRef = useRef<dia.Paper | null>(null);
+  const [columns, setColumns] = useState(3);
+  const nextIdRef = useRef(initialCells.length);
 
-  // Number of elements per row
-  const [gridXSize, setGridXSize] = useState(3);
+  // Re-run the grid layout every time an element is (re)measured.
+  useOnElementsMeasured(() => layoutGrid(graph, columns));
 
-  // Grid layout logic based on number of columns
-  const makeLayoutWithGrid = useCallback(
-    ({ graph, gridXSize }: { gridXSize: number; graph: dia.Graph }) => {
-      const gap = 20;
-      const cols = Math.max(1, gridXSize); // avoid divide by 0
-      const elements = graph.getElements();
+  const elementCount = useCells<Computed<CellRecord>, number>((cells) => {
+    let total = 0;
+    for (const cell of cells) if (cell.type === 'element') total += 1;
+    return total;
+  });
 
-      for (const [index, element] of elements.entries()) {
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-
-        const { width, height } = element.size();
-        const x = col * (width + gap);
-        const y = row * (height + gap);
-        element.position(gap + x, gap + y);
-      }
-    },
+  const renderElement = useCallback(
+    (data: ElementData) => <HTMLBox className="jj-node">{data.label}</HTMLBox>,
     []
   );
 
-  useOnElementsMeasured(() => {
-    makeLayoutWithGrid({ graph, gridXSize });
-  });
+  const handleColumns = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const next = Number(event.target.value);
+      setColumns(next);
+      layoutGrid(graph, next);
+    },
+    [graph]
+  );
 
-  const renderElement = useCallback((data: ElementData) => {
-    return <HTMLBox className="flex items-center justify-center">{data.label}</HTMLBox>;
-  }, []);
+  const addNode = useCallback(() => {
+    nextIdRef.current += 1;
+    setCell({ id: `${nextIdRef.current}`, type: 'element', data: { label: `Node ${elementCount + 1}` } });
+  }, [elementCount, setCell]);
 
-  const elementsLength = useCells<Computed<CellRecord>, number>((cells) => {
-    let count = 0;
-    for (const cell of cells) if (cell.type === 'element') count += 1;
-    return count;
-  });
   return (
-    <div className="flex flex-col">
-      <div className="mb-8 flex flex-row items-center">
-        <label className="mr-2 text-sm font-medium text-gray-900 dark:text-white">
-          Number of elements per row:
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <label className="jj-field">
+          <span className="jj-label">Elements per row</span>
+          <input
+            className="jj-input w-16"
+            type="number"
+            min={1}
+            value={columns}
+            onChange={handleColumns}
+          />
         </label>
-        <input
-          type="number"
-          className={INPUT_CLASSNAME}
-          placeholder="Grid X Size"
-          value={gridXSize}
-          onChange={(event) => {
-            const gridXSize = Number(event.target.value);
-            setGridXSize(gridXSize);
-            makeLayoutWithGrid({ graph, gridXSize });
-          }}
-          min={0}
-        />
-
-        <button
-          onClick={() => {
-            const newId = `${Math.random()}`;
-            setCell({
-              id: newId,
-              type: 'element',
-              data: { label: `Node ${elementsLength + 1}` },
-            });
-          }}
-          type="button"
-          className="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Add Node
+        <button type="button" className="jj-btn jj-btn--primary" onClick={addNode}>
+          Add node
         </button>
       </div>
-      <Paper style={{ height: 450 }}
-        ref={paperRef}
-        className={PAPER_CLASSNAME}
-        renderElement={renderElement}
-      />
+      <Paper className="min-h-0 flex-1" renderElement={renderElement} />
     </div>
   );
 }
