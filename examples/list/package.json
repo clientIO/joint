@@ -1,6 +1,5 @@
 {
   "name": "@joint/demo-list",
-  "version": "4.3.0",
   "main": "src/index.ts",
   "homepage": "https://jointjs.com",
   "author": {

@@ -1,6 +1,5 @@
 {
   "name": "@joint/demo-tree-shake",
-  "version": "4.3.0",
   "description": "JointJS - Tree Shake Demo",
   "main": "index.html",
   "homepage": "https://jointjs.com",

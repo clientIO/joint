@@ -1,6 +1,5 @@
 {
   "name": "@joint/demo-angular-element-view-ts",
-  "version": "4.3.0",
   "private": true,
   "scripts": {
     "ng": "ng",

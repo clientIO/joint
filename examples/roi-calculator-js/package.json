@@ -1,7 +1,6 @@
 {
     "name": "@joint/demo-roi-calculator-js",
     "private": true,
-    "version": "4.3.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
