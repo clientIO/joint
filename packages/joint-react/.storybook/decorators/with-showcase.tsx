@@ -34,7 +34,6 @@ const EYEBROWS: Record<string, string> = {
   Examples: 'Example',
   Demos: 'Demo',
   Components: 'Component',
-  Tutorials: 'Tutorial',
   Utils: 'Utility',
   Hooks: 'Hook',
 };

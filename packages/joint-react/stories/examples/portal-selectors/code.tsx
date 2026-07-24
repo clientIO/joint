@@ -203,6 +203,7 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
     >
       <Paper
         {...PAPER_PROPS}
+        id="minimap"
         className="size-full"
         interactive={false}
         transform={`scale(${scale})`}
@@ -299,6 +300,7 @@ function Main() {
       <div className="relative min-h-0 flex-1">
         <Paper
           {...PAPER_PROPS}
+          id="main"
           ref={setPaper}
           className="size-full"
           snapLinks={SNAP_LINKS}

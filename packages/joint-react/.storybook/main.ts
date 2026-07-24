@@ -51,7 +51,6 @@ const config: StorybookConfig = {
     hook: {},
     example: {},
     demo: {},
-    tutorial: {},
     utils: {},
   },
 

@@ -73,9 +73,10 @@ function Diagram() {
 
   return (
     <div className="relative size-full">
-      <Paper className="size-full" renderElement={renderMain} />
+      <Paper id="main" className="size-full" renderElement={renderMain} />
       <div className="absolute bottom-4 right-4 h-[150px] w-[200px] overflow-hidden rounded-lg border border-[rgba(221,230,237,0.18)] bg-[rgba(12,20,28,0.72)]">
         <Paper
+          id="minimap"
           className="size-full"
           interactive={false}
           transform="scale(0.4)"
