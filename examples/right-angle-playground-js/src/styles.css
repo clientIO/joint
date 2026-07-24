@@ -5,13 +5,46 @@
 }
 
 body {
-    background-color: #151D29;
+    background-color: #f8fafc;
     width: 100%;
     height: 100vh;
 }
 
-#paper-container {
+#paper {
     position: absolute;
     inset: 0;
     overflow: hidden;
+}
+
+.toolbar {
+    padding: 8px 12px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.control-group label {
+    font-family: monospace;
+    color: #226CE0;
+}
+
+.control-group output {
+    min-width: 18px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: #64748b;
+}
+
+input[type="range"] {
+    accent-color: #226CE0;
+    cursor: pointer;
 }

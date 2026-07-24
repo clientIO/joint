@@ -488,8 +488,8 @@ function routeBetweenPoints(source, target, opt = {}) {
 
     const { targetInSourceBBox = false } = opt;
 
-    const minSourceMargin = opt.minPathMargin != null ? Math.min(opt.minPathMargin, sourceMargin) : sourceMargin;
-    const minTargetMargin = opt.minPathMargin != null ? Math.min(opt.minPathMargin, targetMargin) : targetMargin;
+    const minSourceMargin = opt.minPathMargin ?? sourceMargin;
+    const minTargetMargin = opt.minPathMargin ?? targetMargin;
 
     const tBoxX1 = tBoxX0 + targetWidth;
     const tBoxY1 = tBoxY0 + targetHeight;
@@ -1866,10 +1866,10 @@ function getLoopCoordinates(direction, angle, margin) {
 
 function rightAngleRouter(vertices, opt, linkView) {
     const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, minPathMargin = null } = opt;
-    const margin = opt.margin || 20;
+    const margin = opt.margin ?? 20;
 
-    const sourceMargin = opt.sourceMargin || margin;
-    const targetMargin = opt.targetMargin || margin;
+    const sourceMargin = opt.sourceMargin ?? margin;
+    const targetMargin = opt.targetMargin ?? margin;
 
     const useVertices = opt.useVertices || false;
 
