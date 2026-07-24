@@ -88,7 +88,7 @@ const link = new shapes.standard.Link({
         wrapper: {
             stroke: '#f43f5e',
             strokeOpacity: 0.2,
-            strokeLinecap: 'none'
+            strokeLinecap: 'butt'
         }
     }
 });

@@ -10,7 +10,7 @@ body {
     height: 100vh;
 }
 
-#paper-container {
+#paper {
     position: absolute;
     inset: 0;
     overflow: hidden;
