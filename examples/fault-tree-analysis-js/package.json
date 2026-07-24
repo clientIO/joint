@@ -1,7 +1,6 @@
 {
     "name": "@joint/demo-fault-tree-analysis-js",
     "private": true,
-    "version": "4.3.0",
     "type": "module",
     "scripts": {
         "dev": "vite",

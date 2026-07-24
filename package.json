@@ -1,6 +1,5 @@
 {
   "name": "joint",
-  "version": "4.3.0",
   "sideEffects": false,
   "homepage": "https://jointjs.com",
   "author": {
@@ -24,6 +23,8 @@
     "test-e2e-all": "yarn workspaces foreach --all -tvv run test-e2e-all",
     "lint": "yarn workspaces foreach --all -tvv run lint",
     "lint-fix": "yarn workspaces foreach --all -tvv run lint-fix",
+    "version-check": "yarn version check --interactive",
+    "version-apply": "yarn version apply --all",
     "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/core\" --include \"@joint/layout-directed-graph\" --include \"@joint/layout-msagl\" pack --out %s-%v.tgz"
   },
   "workspaces": [

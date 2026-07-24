@@ -1,7 +1,6 @@
 {
     "name": "@joint/demo-dynamic-font-size-js",
     "private": true,
-    "version": "4.3.0",
     "type": "module",
     "scripts": {
         "dev": "vite",

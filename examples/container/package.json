@@ -1,6 +1,5 @@
 {
   "name": "@joint/demo-container",
-  "version": "4.3.0",
   "main": "dist/bundle.js",
   "author": {
     "name": "client IO",

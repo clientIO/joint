@@ -1,6 +1,5 @@
 {
   "name": "@joint/demo-bezier-js",
-  "version": "4.3.0",
   "main": "src/index.js",
   "homepage": "https://jointjs.com",
   "author": {
