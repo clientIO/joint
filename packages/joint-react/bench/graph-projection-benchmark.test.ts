@@ -73,10 +73,10 @@ function createWithGraphProjection(count: number) {
   const view = graphProjection({ graph });
 
   for (let index = 0; index < count; index++) {
-    view.cells.subscribe(`el-${index}`, () => {});
+    view.cells.subscribeById(`el-${index}`, () => {});
   }
   for (let index = 0; index < count - 1; index++) {
-    view.cells.subscribe(`link-${index}`, () => {});
+    view.cells.subscribeById(`link-${index}`, () => {});
   }
 
   return { graph, view };
@@ -89,10 +89,10 @@ function createWithGraphStore(count: number) {
   });
 
   for (let index = 0; index < count; index++) {
-    store.graphProjection.cells.subscribe(`el-${index}`, () => {});
+    store.graphProjection.cells.subscribeById(`el-${index}`, () => {});
   }
   for (let index = 0; index < count - 1; index++) {
-    store.graphProjection.cells.subscribe(`link-${index}`, () => {});
+    store.graphProjection.cells.subscribeById(`link-${index}`, () => {});
   }
 
   return { graph: store.graph, store };

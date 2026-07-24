@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import React, { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 'react';
+import React, { forwardRef, memo, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { PaperStoreContext } from '../../context';
 import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
@@ -70,6 +70,8 @@ function PaperBase(
   );
 }
 
+const ForwardedPaper = forwardRef(PaperBase);
+
 /**
  * The interactive diagram canvas.
  *
@@ -105,6 +107,6 @@ function PaperBase(
  * @see {@link PaperProps} for the full prop surface.
  * @group Components
  */
-export const Paper = forwardRef(PaperBase) as (
+export const Paper = memo(ForwardedPaper) as (
   props: PaperProps & { ref?: React.Ref<dia.Paper | null> }
 ) => React.ReactNode;

@@ -98,7 +98,7 @@ function computeNext<Cell extends AnyCellRecord, Selected>(
   }
   const source: readonly Cell[] =
     subscribedIds === undefined
-      ? container.getAll()
+      ? container.getSnapshot()
       : pickCells(container, subscribedIds, collection, fallbackCache);
   return arraySelector ? arraySelector(source) : source;
 }
@@ -332,15 +332,15 @@ export function useCells<
           collectionVersionRef
         );
       }
-      if (targetId !== undefined) return container.subscribe(targetId, listener);
+      if (targetId !== undefined) return container.subscribeById(targetId, listener);
       const subscribedIds = idsRef.current;
       if (subscribedIds && subscribedIds.length > 0) {
-        const unsubscribers = subscribedIds.map((id) => container.subscribe(id, listener));
+        const unsubscribers = subscribedIds.map((id) => container.subscribeById(id, listener));
         return () => {
           for (const unsubscribe of unsubscribers) unsubscribe();
         };
       }
-      return container.subscribeToAll(listener);
+      return container.subscribe(listener);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [container, collectionArgument, targetId, idsKey]
@@ -349,11 +349,15 @@ export function useCells<
   // ── Snapshot ──
 
   const getSnapshot = useCallback(() => {
-    if (targetId !== undefined && !cellSelectorRef.current) {
-      return container.get(targetId);
-    }
+    // Per-id token for ANY single-cell form (with or without a selector): the
+    // token is the cell record itself, so the store only re-reads when THIS cell
+    // changes, never on unrelated commits. Immutable records keep the reference
+    // stable between changes, so useSyncExternalStore stays consistent.
+    if (targetId !== undefined) return container.get(targetId);
     if (collectionArgument) return collectionVersionRef.current;
-    return container.getVersion();
+    // All-cells / ids / selector-only forms: the immutable snapshot reference
+    // changes on every commit and doubles as the change token.
+    return container.getSnapshot();
   }, [container, collectionArgument, targetId]);
 
   // ── Equality ──
@@ -369,8 +373,6 @@ export function useCells<
 
   // ── Selector ──
 
-  const isRawAllCells = targetId === undefined && !ids && !collectionArgument && !hasSelector;
-
   const select = useCallback(
     (): Result => {
       const subscribedIds = collectionArgument ? collectionIdsRef.current : idsRef.current;
@@ -383,23 +385,22 @@ export function useCells<
         arraySelectorRef.current,
         cellSelectorRef.current
       );
+      // Reuse the cached value when equal so the returned reference stays stable
+      // across commits that didn't affect this subscription.
       if (cachedRef.current.hasValue && isEqualCallback(cachedRef.current.value, next)) {
         return cachedRef.current.value;
       }
       if (hasSelector && cachedRef.current.hasValue) {
         warnUnstableSelector('useCells', cachedRef.current.value, next, !!isEqual);
       }
-      // The all-cells form receives the container's mutable array. Shallow-copy
-      // so the cached value is a distinct reference, enabling
-      // areArraysShallowEqual to compare element-by-element on subsequent calls.
-      const value = isRawAllCells
-        ? ([...(next as ReadonlyArray<Computed<Cell>>)] as unknown as Result)
-        : next;
-      cachedRef.current = { hasValue: true, value };
-      return value;
+      // No defensive copy for the all-cells form: the container's snapshot is
+      // already immutable and yields a fresh reference on every commit, so it is
+      // safe to return as-is.
+      cachedRef.current = { hasValue: true, value: next };
+      return next;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [container, collectionArgument, targetId, idsKey, isEqualCallback, isRawAllCells]
+    [container, collectionArgument, targetId, idsKey, isEqualCallback]
   );
 
   return useSyncExternalStoreWithSelector(

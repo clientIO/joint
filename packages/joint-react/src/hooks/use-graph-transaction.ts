@@ -28,10 +28,10 @@ export interface TransactionOptions {
    * its promise rejects. Disabled by default; pass `true` to roll back on error
    * (otherwise partial edits are kept). The error is always re-thrown.
    *
-   * Comes with an up-front overhead: enabling it snapshots the full cells
-   * array at transaction start (an `O(n)` shallow copy over every cell in the
-   * graph), even when the callback succeeds and no rollback is needed. Leave
-   * off for large graphs where the callback is trusted not to throw.
+   * Cheap to enable: the cells container is immutable, so this just holds the
+   * current snapshot reference at transaction start (O(1), no copy). The only
+   * real cost is paid on an actual rollback, which re-applies that snapshot via
+   * `resetCells`.
    */
   readonly rollbackOnError?: boolean;
   /**
@@ -88,9 +88,10 @@ export function useGraphTransaction(): Transaction {
       const { graph, graphProjection, paperStores } = store;
       const batchName = name ?? DEFAULT_BATCH_NAME;
 
-      // Immutable records + shallow copy = a fast, correct pre-transaction snapshot
-      // (container slots are replaced on change, never mutated in place). Opt-in.
-      const snapshot = rollbackOnError === true ? [...graphProjection.cells.getAll()] : null;
+      // The cells snapshot is already immutable — a new array reference is produced
+      // on every commit, never mutated in place — so holding the reference is an
+      // O(1), correct pre-transaction snapshot. No copy needed. Opt-in.
+      const snapshot = rollbackOnError === true ? graphProjection.cells.getSnapshot() : null;
       // Opt-in: defer paint on every bound paper so the whole transaction repaints once, on close.
       const papers =
         deferPaint === true

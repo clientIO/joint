@@ -63,7 +63,7 @@ function getLink(
 /** Number of cells classified as elements via the graph's type registry. */
 function countElements(graph: dia.Graph, view: ReturnType<typeof graphProjection>): number {
   let count = 0;
-  for (const cell of view.cells.getAll()) {
+  for (const cell of view.cells.getSnapshot()) {
     const cellType = cell.type as string | undefined;
     if (cellType !== undefined && isElementType(cellType, graph)) count++;
   }
@@ -73,7 +73,7 @@ function countElements(graph: dia.Graph, view: ReturnType<typeof graphProjection
 /** Number of cells classified as links via the graph's type registry. */
 function countLinks(graph: dia.Graph, view: ReturnType<typeof graphProjection>): number {
   let count = 0;
-  for (const cell of view.cells.getAll()) {
+  for (const cell of view.cells.getSnapshot()) {
     const cellType = cell.type as string | undefined;
     if (cellType !== undefined && isLinkType(cellType, graph)) count++;
   }
@@ -271,8 +271,8 @@ describe('graphProjection — per-id subscriptions', () => {
 
     const listener1 = jest.fn();
     const listener2 = jest.fn();
-    view.cells.subscribe('el-1', listener1);
-    view.cells.subscribe('el-2', listener2);
+    view.cells.subscribeById('el-1', listener1);
+    view.cells.subscribeById('el-2', listener2);
 
     (graph.getCell('el-2') as dia.Element).position(50, 60);
     await flush();
@@ -282,22 +282,24 @@ describe('graphProjection — per-id subscriptions', () => {
     view.destroy();
   });
 
-  it('size listener fires on add / remove but not on data-only change', async () => {
+  it('subscribe fires on every commit — add, data-only change, and remove', async () => {
     const { graph, view } = setup();
-    const sizeListener = jest.fn();
-    view.cells.subscribeToSize(sizeListener);
+    const listener = jest.fn();
+    view.cells.subscribe(listener);
 
     addElement(graph, 'el-1');
     await flush();
-    expect(sizeListener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(1);
 
+    // The immutable snapshot gets a new reference on a data-only change too, so
+    // the all-commits `subscribe` now fires here (the old size-only listener did not).
     (graph.getCell('el-1') as dia.Element).position(50, 60);
     await flush();
-    expect(sizeListener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(2);
 
     (graph.getCell('el-1') as dia.Element).remove();
     await flush();
-    expect(sizeListener).toHaveBeenCalledTimes(2);
+    expect(listener).toHaveBeenCalledTimes(3);
 
     view.destroy();
   });
@@ -378,7 +380,7 @@ describe('graphProjection — destroy', () => {
     await flush();
 
     const listener = jest.fn();
-    view.cells.subscribe('el-1', listener);
+    view.cells.subscribeById('el-1', listener);
 
     view.destroy();
 
@@ -463,7 +465,7 @@ describe('graphProjection — controlled-mode updateGraph round-trip', () => {
     await flush();
 
     // Read current container state (what notifyCellsChange would expose)
-    const nextCells = view.cells.getAll() as readonly CellRecord[];
+    const nextCells = view.cells.getSnapshot() as readonly CellRecord[];
     view.updateGraph({ cells: nextCells, flag: 'updateFromReact' });
     await flush();
 
@@ -767,7 +769,7 @@ describe('graphProjection — syncFromGraph and partial updateGraph', () => {
     view.syncFromGraph();
     expect(view.cells.has('a')).toBe(true);
     expect(view.cells.has('b')).toBe(true);
-    expect(view.cells.getSize()).toBe(2);
+    expect(view.cells.getSnapshot().length).toBe(2);
     view.destroy();
   });
 

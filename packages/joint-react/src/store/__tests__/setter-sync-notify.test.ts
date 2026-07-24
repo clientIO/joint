@@ -29,7 +29,7 @@ describe('data edits notify synchronously; layout changes coalesce', () => {
     });
 
     let notified = 0;
-    const unsubscribe = view.cells.subscribe('el-1', () => {
+    const unsubscribe = view.cells.subscribeById('el-1', () => {
       notified += 1;
     });
 
@@ -57,7 +57,7 @@ describe('data edits notify synchronously; layout changes coalesce', () => {
     await flush();
 
     let notified = 0;
-    const unsubscribe = view.cells.subscribe('el-1', () => {
+    const unsubscribe = view.cells.subscribeById('el-1', () => {
       notified += 1;
     });
 
