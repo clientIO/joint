@@ -1,3 +1,13 @@
+24-07-2026 (v4.3.2)
+
+  @joint/react
+  * <Paper /> - fix the visual grid to redraw reactively when `drawGrid`, `drawGridSize`, or `gridSize` change
+
+24-07-2026 (v4.3.1)
+
+  @joint/core
+  * routers.rightAngle - fix to allow zero-value margins and un-clamp `minPathMargin`
+
 07-07-2026 (v4.3.1)
 
   @joint/react
