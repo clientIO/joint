@@ -175,7 +175,7 @@ export type { CellDragState } from './hooks/use-cell-drag';
  */
 export { useMarkup } from './hooks/use-markup';
 /** @group Types */
-export type { MarkupApi, MagnetRefOptions } from './hooks/use-markup';
+export type { MarkupApi, MagnetRefOptions, StartLinkDragEvent } from './hooks/use-markup';
 
 // Selectors
 // ---------
