@@ -135,6 +135,37 @@ export const Paper = dia.Paper.extend(
 
     documentEvents: POINTER_DOCUMENT_EVENTS,
 
+    // Cell focus tracking. `focusin`/`focusout` bubble (unlike `focus`/`blur`),
+    // so they delegate to `.joint-cell` and report which cell owns the focused
+    // node (e.g. a `tabindex` element) via the `cell:focus` / `cell:blur` paper
+    // events. The parent hash is spread first because a subclass `events` object
+    // replaces — rather than merges with — the inherited one.
+    events: {
+      ...dia.Paper.prototype.events,
+      'focusin .joint-cell': 'handleCellFocus',
+      'focusout .joint-cell': 'handleCellBlur',
+    },
+
+    /**
+     * Delegated `focusin` on a cell — emit `cell:focus` naming the cell that
+     * owns the newly focused node.
+     * @param event - The delegated focusin event; `event.target` is the node.
+     */
+    handleCellFocus(this: dia.Paper, event: dia.Event) {
+      const view = this.findView<dia.ElementView | dia.LinkView>(event.target);
+      if (view) view.notify('cell:focus', event);
+    },
+
+    /**
+     * Delegated `focusout` on a cell — emit `cell:blur` naming the cell that
+     * owned the just-blurred node.
+     * @param event - The delegated focusout event; `event.target` is the node.
+     */
+    handleCellBlur(this: dia.Paper, event: dia.Event) {
+      const view = this.findView<dia.ElementView | dia.LinkView>(event.target);
+      if (view) view.notify('cell:blur', event);
+    },
+
     /**
      * Add listeners that record the original pointerdown target into the
      * drag's `evt.data`, so `pointermove` can use it as a `setPointerCapture`

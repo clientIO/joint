@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { shapes, type dia } from '@joint/core';
+import { shapes, mvc, type dia } from '@joint/core';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import {
   useSetCell,
@@ -328,6 +328,24 @@ describe('use-cell-setters', () => {
       expect(result.current.store.graph.getCell('a')).toBeUndefined();
       expect(result.current.store.graph.getCell('b')).toBeUndefined();
     });
+
+    it('removes cells passed as a JointJS collection (no toArray needed)', async () => {
+      const { result } = renderHook(
+        () => ({ removeCells: useRemoveCells(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      const cellA = result.current.store.graph.getCell('a');
+      const cellB = result.current.store.graph.getCell('b');
+      if (!cellA || !cellB) throw new Error('expected cells a and b to exist');
+      const collection = new mvc.Collection<dia.Cell>([cellA, cellB]);
+      await act(async () => {
+        result.current.removeCells(collection);
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('a')).toBeUndefined();
+      expect(result.current.store.graph.getCell('b')).toBeUndefined();
+    });
   });
 
   describe('useResetCells', () => {
@@ -364,6 +382,23 @@ describe('use-cell-setters', () => {
       });
       expect(result.current.store.graph.getCell('a')).toBeUndefined();
       expect(result.current.store.graph.getCell('b')).toBeDefined();
+    });
+
+    it('accepts a JointJS collection as the next cell set', async () => {
+      const { result } = renderHook(
+        () => ({ resetCells: useResetCells(), store: useGraphStore() }),
+        { wrapper }
+      );
+      await waitFor(() => expect(result.current).toBeDefined());
+      const cellB = result.current.store.graph.getCell('b');
+      if (!cellB) throw new Error('expected cell b to exist');
+      const collection = new mvc.Collection<dia.Cell>([cellB]);
+      await act(async () => {
+        result.current.resetCells(collection);
+        await flush();
+      });
+      expect(result.current.store.graph.getCell('b')).toBeDefined();
+      expect(result.current.store.graph.getCell('a')).toBeUndefined();
     });
   });
 

@@ -13,7 +13,14 @@ import {
   type SetCellData,
 } from './use-cell-setters';
 import type { ArrayUpdate } from '../store/state-container';
-import type { ElementJSONInit, LinkJSONInit, CellInput, CellRef } from '../types/cell.types';
+import type {
+  ElementJSONInit,
+  LinkJSONInit,
+  CellInput,
+  CellRef,
+  CellCollection,
+  CellRefList,
+} from '../types/cell.types';
 
 /**
  * The shape of the graph's JSON export, as produced by `graph.toJSON()`.
@@ -87,20 +94,24 @@ export interface GraphApi<
    */
   readonly removeCell: (cellRef?: CellRef | null, metadata?: Record<string, unknown>) => void;
   /**
-   * Remove multiple cells by id or dia.Cell reference. A nullish array warns in
-   * dev and no-ops; references that resolve to no cell are silently skipped. The
-   * optional `metadata` is forwarded as the `graph.removeCells` event opt.
+   * Remove multiple cells by id or dia.Cell reference. Accepts a readonly array
+   * or a JointJS cell collection (e.g. a selection's `collection`) directly. A
+   * nullish input warns in dev and no-ops; references that resolve to no cell
+   * are silently skipped. The optional `metadata` is forwarded as the
+   * `graph.removeCells` event opt.
    */
   readonly removeCells: (
-    cellRefs?: readonly CellRef[] | null,
+    cellRefs?: CellRefList | null,
     metadata?: Record<string, unknown>
   ) => void;
   /**
-   * Atomically replace the cell set. Accepts dia.Cell instances alongside
-   * records. The optional `metadata` is forwarded as the `graph.resetCells` opt.
+   * Atomically replace the cell set. Accepts an array (dia.Cell instances
+   * alongside records), a JointJS cell collection, or an updater receiving the
+   * current snapshot. The optional `metadata` is forwarded as the
+   * `graph.resetCells` opt.
    */
   readonly resetCells: (
-    input: ArrayUpdate<Element | Link, CellInput<Element, Link>>,
+    input: ArrayUpdate<Element | Link, CellInput<Element, Link>> | CellCollection,
     metadata?: Record<string, unknown>
   ) => void;
   /**
