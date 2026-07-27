@@ -395,7 +395,7 @@ export class Path {
 
     equals(p: Path): boolean;
 
-    getSegment(index: number): Segment | null;
+    getSegment(index: number): Segment;
 
     getSegmentSubdivisions(opt?: PrecisionOpt): Curve[][];
 
