@@ -3476,9 +3476,16 @@ export const Paper = View.extend({
         const view = this.findView(target);
         const isContextMenu = (button === 2);
 
-        if (view) {
+        // Guard before any interaction starts, on blank areas too. Every other pointer
+        // handler (`pointerclick`, `pointerdblclick`, `contextMenuTrigger`, `mouseover`, …)
+        // guards unconditionally; guarding only the `view` branch let a press on non-SVG
+        // content inside `el` (an HTML overlay, a popup, a toolbar) start a blank
+        // interaction even though `guard()` rejects that target — and the matching
+        // `blank:pointerclick` was then guarded, so the events came out asymmetric.
+        // `contextmenu` stays exempt: `contextMenuTrigger()` runs its own guard.
+        if (!isContextMenu && this.guard(evt, view)) return;
 
-            if (!isContextMenu && this.guard(evt, view)) return;
+        if (view) {
 
             const isTargetFormNode = this.FORM_CONTROL_TAG_NAMES.includes(target.tagName);
 

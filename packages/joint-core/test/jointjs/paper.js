@@ -1240,6 +1240,79 @@ QUnit.module('paper', function(hooks) {
         assert.ok(diffX < 5 && diffY < 5, 'element should not have been moved');
     });
 
+    QUnit.test('pointerdown is guarded on blank areas too', function(assert) {
+
+        // A press on non-SVG content inside `paper.el` (an HTML overlay, popup or
+        // toolbar) must not start a blank interaction: `guard()` rejects such a target,
+        // and every other pointer handler honours that. `pointerdown` used to consult
+        // `guard()` only when a cell view was found, so `blank:pointerdown` fired for
+        // overlay content while the matching `blank:pointerclick` stayed guarded.
+        const overlayEl = document.createElement('div');
+        this.paper.el.appendChild(overlayEl);
+
+        assert.equal(this.paper.guard({ type: 'mousedown', button: 0, target: overlayEl }), true,
+            'guard() rejects an HTML overlay target');
+
+        let blankPointerdownCount = 0;
+        this.paper.on('blank:pointerdown', function() {
+            blankPointerdownCount += 1;
+        });
+
+        simulate.mousedown({ el: overlayEl, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: overlayEl, clientX: 10, clientY: 10 });
+
+        assert.equal(blankPointerdownCount, 0,
+            'no blank:pointerdown for a press on HTML content inside the paper');
+
+        // A genuine blank press (on the SVG) must still work.
+        simulate.mousedown({ el: this.paper.svg, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: this.paper.svg, clientX: 10, clientY: 10 });
+
+        assert.equal(blankPointerdownCount, 1, 'blank:pointerdown still fires on the SVG');
+
+        overlayEl.remove();
+    });
+
+    QUnit.test('a press on a form control does not drag the element', function(assert) {
+
+        // FORM_CONTROL_TAG_NAMES marks a press on a <button>/<input>/<select>/<textarea>/
+        // <option> as default-interaction-prevented, so neither an element move
+        // (`ElementView#dragStart`) nor a link drag (`ElementView#dragMagnetStart`) begins
+        // from one. That is what lets a clickable control live inside a draggable element.
+        const element = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 },
+            markup: joint.util.svg`
+                <foreignObject @selector="fo" width="100" height="100">
+                    <button @selector="button" type="button">click me</button>
+                </foreignObject>
+            `
+        });
+        this.graph.addCell(element);
+
+        const elementView = this.paper.findViewByModel(element);
+        const buttonEl = elementView.findNode('button');
+        assert.ok(buttonEl, 'the button is rendered');
+
+        const positionBefore = element.position();
+
+        simulate.mousedown({ el: buttonEl, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: buttonEl, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: buttonEl, clientX: 250, clientY: 250 });
+
+        assert.deepEqual(element.position(), positionBefore,
+            'the element did not move when dragging from a <button>');
+
+        // Control: the same gesture on the element body DOES move it, so the assertion
+        // above reflects the form-control gate and not an inert drag simulation.
+        simulate.mousedown({ el: elementView.el, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: elementView.el, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: elementView.el, clientX: 250, clientY: 250 });
+
+        assert.notDeepEqual(element.position(), positionBefore,
+            'the element moved when dragging from its body');
+    });
+
     QUnit.test('getContentArea()', function(assert) {
 
         assert.checkBboxApproximately(2/* +- */, this.paper.getContentArea(), {
