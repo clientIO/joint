@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useCallback, useEffect, useRef } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
@@ -161,7 +162,8 @@ describe('useMarkup', () => {
     cleanupUtilities = undefined;
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper style={{ width: 100, height: 100 }}
+        <Paper
+          style={{ width: 100, height: 100 }}
           id="markup-cleanup-paper"
           renderElement={renderCleanupProbe}
         />
@@ -177,7 +179,8 @@ describe('useMarkup', () => {
     reservedUtilities = undefined;
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper style={{ width: 100, height: 100 }}
+        <Paper
+          style={{ width: 100, height: 100 }}
           id="markup-reserved-paper"
           renderElement={renderReservedProbe}
         />
@@ -198,7 +201,8 @@ describe('useMarkup', () => {
     emptyCaptured = undefined;
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper style={{ width: 100, height: 100 }}
+        <Paper
+          style={{ width: 100, height: 100 }}
           id="markup-empty-paper"
           renderElement={renderEmptyMarkupProbe}
         />
