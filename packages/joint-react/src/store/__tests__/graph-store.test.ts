@@ -15,7 +15,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       expect(store.graph).toBeInstanceOf(dia.Graph);
       expect(store.graphProjection).toBeDefined();
-      expect(store.graphProjection.cells.getSize()).toBe(0);
+      expect(store.graphProjection.cells.getSnapshot().length).toBe(0);
       store.destroy(false);
     });
 
@@ -44,7 +44,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells });
       expect(store.graph.getCell('a')).toBeDefined();
       expect(store.graph.getCell('b')).toBeDefined();
-      expect(store.graphProjection.cells.getSize()).toBe(2);
+      expect(store.graphProjection.cells.getSnapshot().length).toBe(2);
       store.destroy(false);
     });
 
@@ -106,7 +106,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells: [element, link] });
       expect(store.graph.getCell('dia-el')).toBeDefined();
       expect(store.graph.getCell('dia-lk')).toBeDefined();
-      expect(store.graphProjection.cells.getSize()).toBe(2);
+      expect(store.graphProjection.cells.getSnapshot().length).toBe(2);
       store.destroy(false);
     });
 
@@ -119,7 +119,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells: [rect] });
       expect(store.graph.getCell('rect-1')).toBeDefined();
       expect(store.graph.getCell('rect-1')!.get('type')).toBe('standard.Rectangle');
-      expect(store.graphProjection.cells.getSize()).toBe(1);
+      expect(store.graphProjection.cells.getSnapshot().length).toBe(1);
       store.destroy(false);
     });
 
@@ -138,7 +138,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells: [record, diaElement] });
       expect(store.graph.getCell('rec-a')).toBeDefined();
       expect(store.graph.getCell('dia-b')).toBeDefined();
-      expect(store.graphProjection.cells.getSize()).toBe(2);
+      expect(store.graphProjection.cells.getSnapshot().length).toBe(2);
       store.destroy(false);
     });
 
@@ -163,7 +163,7 @@ describe('GraphStore', () => {
       const onCellsChange = jest.fn();
       const store = new GraphStore({});
       store.setOnIncrementalCellsChange(() => {
-        onCellsChange(store.graphProjection.cells.getAll());
+        onCellsChange(store.graphProjection.cells.getSnapshot());
       });
       store.graph.addCell({
         id: 'a',

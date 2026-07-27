@@ -1,8 +1,8 @@
 import { type dia } from '@joint/core';
 import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
-import { asReadonlyContainer, createContainer } from './state-container';
-import { writeCellToContainer } from '../state/data-mapping/cell-record-merge';
+import { asReadonlyContainer, createContainer, type ContainerChangeSet } from './state-container';
+import { mergeCellRecord, toCellRecord } from '../state/data-mapping/cell-record-merge';
 
 /**
  * A batch of cell changes reported after each graph update, delivered to the
@@ -60,10 +60,66 @@ export function graphProjection<
 
   const cells = createContainer<Element | Link>();
 
+  // Pending container change set — accumulates across deferred commits (a
+  // transaction batch) and is flushed into the immutable snapshot by
+  // `cells.batchSet` whenever `deferCommit` is false. Buckets are kept disjoint
+  // (an id lives in exactly one) so `batchSet` never re-adds an existing cell.
+  const pendingAdded = new Map<CellId, Element | Link>();
+  const pendingChanged = new Map<CellId, Element | Link>();
+  const pendingRemoved = new Set<CellId>();
+
+  // Incremental change set for `onIncrementalCellsChange` — a SEPARATE lifecycle
+  // from the container set: the container commits live mid-batch (so reactive
+  // readers follow a drag), while the incremental callback accumulates until the
+  // batch boundary (`!isInsideBatch`) and fires once there.
   const trackChanges = onIncrementalCellsChange !== undefined;
   const added = trackChanges ? new Map<CellId, Element | Link>() : undefined;
   const changed = trackChanges ? new Map<CellId, Element | Link>() : undefined;
   const removed = trackChanges ? new Set<CellId>() : undefined;
+
+  /** Latest staged-or-committed record for `id` (pending wins over committed). */
+  function currentRecord(id: CellId): Element | Link | undefined {
+    return pendingChanged.get(id) ?? pendingAdded.get(id) ?? cells.get(id);
+  }
+
+  /**
+   * Merge a graph cell into the pending container set, preserving sub-ref
+   * identity. Returns the merged record, or `undefined` when nothing observable
+   * changed (the merge returned the previous reference) so callers skip the
+   * incremental bookkeeping too — the same "unchanged → no notify" fast path the
+   * mutable container had.
+   */
+  function stageWrite(cell: dia.Cell, isAdd: boolean): Element | Link | undefined {
+    const { id } = cell;
+    const previous = currentRecord(id);
+    const merged = mergeCellRecord<Element, Link>(previous, toCellRecord<Element, Link>(cell));
+    if (merged === previous) return undefined;
+    pendingRemoved.delete(id);
+    if (isAdd || pendingAdded.has(id)) pendingAdded.set(id, merged);
+    else pendingChanged.set(id, merged);
+    return merged;
+  }
+
+  /** Drop a cell from the pending container set (marked removed only if committed). */
+  function stageRemove(id: CellId): void {
+    pendingAdded.delete(id);
+    pendingChanged.delete(id);
+    if (cells.has(id)) pendingRemoved.add(id);
+  }
+
+  /** Flush the pending container set into the immutable snapshot, then clear it. */
+  function flushContainer(): void {
+    if (pendingAdded.size === 0 && pendingChanged.size === 0 && pendingRemoved.size === 0) return;
+    const changeSet: ContainerChangeSet<Element | Link> = {
+      added: pendingAdded,
+      changed: pendingChanged,
+      removed: pendingRemoved,
+    };
+    cells.batchSet(changeSet);
+    pendingAdded.clear();
+    pendingChanged.clear();
+    pendingRemoved.clear();
+  }
 
   const graphChangesController = graphChanges({
     graph,
@@ -75,32 +131,38 @@ export function graphProjection<
           case 'add':
           case 'change': {
             const isAdd = type === 'add';
-            const record = writeCellToContainer(cells, data);
+            stageWrite(data, isAdd);
             if (trackChanges) {
-              if (isAdd) added!.set(id, record);
-              else changed!.set(id, record);
+              // Report every primary add/change in the incremental delta using
+              // the final staged record — NOT gated on whether this stageWrite
+              // observed a change. A cell may have been pre-staged by an earlier
+              // connected-links sweep in the same batch (e.g. move a node, then
+              // add a link to it), so its own add/change would merge to a no-op
+              // here yet must still appear in the delta. This matches the
+              // pre-immutable behaviour, which read the record back
+              // unconditionally after writing it.
+              const staged = currentRecord(id) as Element | Link;
+              if (isAdd) added!.set(id, staged);
+              else changed!.set(id, staged);
             }
-            // Connected-links sweep is only needed on `change` (an element
-            // moved or resized — its links' routes need re-snapshotting).
-            // On `add`, the link gets its own change-set entry from JointJS
-            // and will be written in this loop without re-ordering issues.
+            // Connected-links sweep is only needed on `change` (an element moved
+            // or resized — its links' routes need re-snapshotting). Swept links
+            // go to the container only, not the incremental callback — matching
+            // the previous behaviour.
             if (!isAdd && data.isElement()) {
-              for (const link of graph.getConnectedLinks(data)) {
-                writeCellToContainer(cells, link);
-              }
+              for (const link of graph.getConnectedLinks(data)) stageWrite(link, false);
             }
             break;
           }
           case 'remove': {
             if (!data) continue;
-            cells.delete(id);
+            stageRemove(id);
             if (trackChanges) removed!.add(id);
             if (data.isElement()) {
               // Connected links are also removed by JointJS — mirror that.
               for (const link of graph.getConnectedLinks(data)) {
-                const linkId = link.id;
-                cells.delete(linkId);
-                if (trackChanges) removed!.add(linkId);
+                stageRemove(link.id);
+                if (trackChanges) removed!.add(link.id);
               }
             }
             break;
@@ -109,37 +171,34 @@ export function graphProjection<
       }
 
       // A bulk `reset` sends only `add`s for the surviving cells and no per-cell
-      // `remove`s, so prune any container cell the reset dropped — otherwise
+      // `remove`s, so prune any committed cell the reset dropped — otherwise
       // reactive readers (`useCells`) keep counting ghost cells the canvas
       // (rendered from the graph) no longer shows. Same reconciliation the
       // React-driven `updateGraph()` path does below, keyed off the reset's set.
       if (isReset) {
         const survivingIds = new Set<CellId>(changes.keys());
-        // Snapshot ids first — `cells.delete` swap-pops the live array, so
-        // iterating `getAll()` while deleting would skip entries.
-        const staleIds: CellId[] = [];
-        for (const item of cells.getAll()) {
-          if (item.id !== undefined && !survivingIds.has(item.id)) staleIds.push(item.id);
-        }
-        for (const staleId of staleIds) {
-          cells.delete(staleId);
-          if (trackChanges) removed!.add(staleId);
+        for (const item of cells.getSnapshot()) {
+          const staleId = item.id;
+          if (staleId !== undefined && !survivingIds.has(staleId)) {
+            stageRemove(staleId);
+            if (trackChanges) removed!.add(staleId);
+          }
         }
       }
 
       // Two commit modes, decided by `deferCommit` (see graph-changes):
       //
       // - Plain batches (interactive drags, `auto-size`, layout) and lone edits
-      //   have `deferCommit === false` → commit NOW. Reactive readers and
-      //   overlays must follow the element live; deferring here would freeze
-      //   them mid-drag and only snap them into place on batch:stop.
+      //   have `deferCommit === false` → flush NOW. Reactive readers and overlays
+      //   must follow the element live; deferring here would freeze them mid-drag
+      //   and only snap them into place on batch:stop.
       //
       // - Transaction batches (flagged via DEFER_COMMIT_BATCH_OPTION) have
-      //   `deferCommit === true` → skip the notify. The container keeps
-      //   accumulating and flushes ONCE when the transaction closes, so a burst
-      //   of edits (sync or spread across `await`s) becomes a single React
-      //   update. `commitChanges` self-guards when nothing is pending.
-      if (!deferCommit) cells.commitChanges();
+      //   `deferCommit === true` → keep accumulating in `pending*` and flush ONCE
+      //   when the transaction closes, so a burst of edits (sync or spread across
+      //   `await`s) becomes a single React update. `flushContainer` self-guards
+      //   when nothing is pending.
+      if (!deferCommit) flushContainer();
 
       const hasTrackedChanges =
         trackChanges &&
@@ -158,15 +217,13 @@ export function graphProjection<
   });
 
   /**
-   * Populate the cells container from current graph state. Called after
-   * initial sync to seed state that was missed because graphChanges skips
-   * events with `isUpdateFromReact`.
+   * Populate the cells container from current graph state. Called after initial
+   * sync to seed state that was missed because graphChanges skips events with
+   * `isUpdateFromReact`.
    */
   function syncFromGraph() {
-    for (const cell of graph.getCells()) {
-      writeCellToContainer(cells, cell);
-    }
-    if (cells.getSize() > 0) cells.commitChanges();
+    for (const cell of graph.getCells()) stageWrite(cell, true);
+    flushContainer();
   }
 
   return {
@@ -177,39 +234,28 @@ export function graphProjection<
       if (update.flag !== 'updateFromReact') return;
       if (!update.cells) return;
 
-      let hasChange = false;
-
+      // React-origin graph events are ignored by graphChanges (isUpdateFromReact),
+      // so sync the container directly from the just-synced cells.
       for (const id of cellIds) {
         const cell = graph.getCell(id);
         if (!cell) continue;
-        writeCellToContainer(cells, cell);
-        hasChange = true;
+        stageWrite(cell, !cells.has(id) && !pendingAdded.has(id));
       }
 
-      // Fast path: if the container size already matches the user's cell
-      // count, every container entry is a user cell and the prune scan below
-      // would be a no-op — skip the O(n) `getAll()` walk and the `userIds`
-      // Set allocation entirely. This is the steady-state path for
-      // controlled components that update the same set of cells on every
-      // React render.
-      if (cells.getSize() > cellIds.length) {
+      // Fast path: if the post-add container would already match the user's cell
+      // count, no committed cell is stale — skip the prune scan and the `userIds`
+      // Set allocation. `getSize()` is O(1) and never materialises the snapshot,
+      // so a controlled drag (no add/remove) does no O(n) work here.
+      // `pendingAdded.size` covers cells not yet committed.
+      if (cells.getSize() + pendingAdded.size > cellIds.length) {
         const userIds = new Set<CellId>(cellIds);
-        // Snapshot ids first — `cells.delete` swap-pops the live array, so
-        // iterating `cells.getAll()` while deleting would skip the entry
-        // that lands in the freed slot.
-        const containerIds: CellId[] = [];
-        for (const item of cells.getAll()) {
-          if (item.id !== undefined) containerIds.push(item.id);
-        }
-        for (const id of containerIds) {
-          if (!userIds.has(id)) {
-            cells.delete(id);
-            hasChange = true;
-          }
+        for (const item of cells.getSnapshot()) {
+          const { id } = item;
+          if (id !== undefined && !userIds.has(id)) stageRemove(id);
         }
       }
 
-      if (hasChange) cells.commitChanges();
+      flushContainer();
     },
     destroy() {
       graphChangesController.destroy();

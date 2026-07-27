@@ -30,7 +30,7 @@ export function subscribeToCollection<Cell extends AnyCellRecord>(
     for (const unsub of cellUnsubs) unsub();
     const ids = collection.models.map((m) => m.id as CellId);
     collectionIdsRef.current = ids;
-    cellUnsubs = ids.map((id) => container.subscribe(id, bumpAndNotify));
+    cellUnsubs = ids.map((id) => container.subscribeById(id, bumpAndNotify));
   };
 
   resubscribeCells();
