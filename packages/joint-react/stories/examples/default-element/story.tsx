@@ -1,23 +1,24 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import { makeRootDocumentation } from '../../utils/make-story';
+import codeRaw from './code?raw';
 
-import CodeRaw from './code?raw';
+const meta = {
+  title: 'Examples/Default Element',
+  component: Code,
+  tags: ['example'],
+  parameters: {
+    showcase: {
+      description:
+        'Renders elements with the built-in HTMLBox, which auto-sizes to its label unless width or height is set in the element data.',
+      apiUrl: getAPILink('HTMLBox'),
+      code: codeRaw,
+    },
+  },
+} satisfies Meta<typeof Code>;
+
+export default meta;
 
 export type Story = StoryObj<typeof Code>;
-
-export default {
-    title: 'Examples/Default Element',
-    component: Code,
-    tags: ['example'],
-    parameters: makeRootDocumentation({
-        code: CodeRaw,
-        description:
-            'Zero-config element rendering using the built-in `HTMLBox` component. ' +
-            'Elements auto-size to fit their label. Pass `width`/`height` in element data to set an explicit size. ' +
-            'Styled via `--jj-box-*` CSS variables from `styles.css`.',
-    }),
-} satisfies Meta<typeof Code>;
 
 export const Default: Story = {};

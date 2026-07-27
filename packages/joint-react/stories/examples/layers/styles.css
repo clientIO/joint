@@ -1,0 +1,13 @@
+/*
+ * Fade a cell in when it (re)appears — e.g. when its layer is toggled back on.
+ * `@starting-style` only animates when the class is present at DOM-insertion
+ * time, so it is set directly in the node markup rather than added later.
+ */
+.fade-in {
+  transition: opacity 0.3s ease-in;
+  opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+}

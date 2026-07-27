@@ -1,17 +1,39 @@
-/* eslint-disable @eslint-react/no-array-index-key */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { useCallback, useRef, type ChangeEvent } from 'react';
+import {
+  GraphProvider,
+  Paper,
+  useCellId,
+  useGraph,
+  useMeasureElement,
+  type CellRecord,
+  type ElementRecord,
+  type TransformElementLayout,
+} from '@joint/react';
 
-import '../index.css';
-import { useCallback, useRef, type PropsWithChildren } from 'react';
-import { type CellRecord, GraphProvider, Paper, useCellId, useMeasureElement, type ElementRecord, type TransformElementLayout } from '@joint/react';
-import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY } from 'storybook-config/theme';
-import { useGraph } from '@joint/react';
+// Colors — unified dark diagram palette.
+const PRIMARY = '#ED2637';
+const NODE_BODY_COLOR = '#1c2836';
+const NODE_STROKE_COLOR = '#3c4f63';
+const TEXT_COLOR = '#DDE6ED';
+
+const PADDING = 10;
+const HEADER_HEIGHT = 50;
+
+interface ListItem {
+  readonly id: string;
+  readonly value: string;
+}
 
 interface ListNodeData {
   readonly label: string;
-  readonly inputs: string[];
+  readonly inputs: readonly ListItem[];
 }
+
+let nextItemId = 0;
+const createItemId = (): string => {
+  nextItemId += 1;
+  return `item-${nextItemId}`;
+};
 
 const initialCells: ReadonlyArray<CellRecord<ListNodeData>> = [
   {
@@ -35,96 +57,81 @@ const initialCells: ReadonlyArray<CellRecord<ListNodeData>> = [
   },
 ];
 
-function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
+// Grow the node around its measured content, leaving room for the header.
+const transform: TransformElementLayout = ({ width, height }) => ({
+  width: PADDING + width + PADDING,
+  height: HEADER_HEIGHT + height + PADDING,
+});
+
+function ListNode({ label, inputs }: Readonly<ListNodeData>) {
   const id = useCellId();
-  const padding = 10;
-  const headerHeight = 50;
-  const divRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { width, height } = useMeasureElement(contentRef, { transform });
+  const { setCellData } = useGraph<ElementRecord<ListNodeData>>();
 
-  const transform: TransformElementLayout = useCallback(
-    ({ width: measuredWidth, height: measuredHeight }) => {
-      const w = padding + measuredWidth + padding;
-      const h = headerHeight + measuredHeight + padding;
-      return {
-        width: w,
-        height: h,
-      };
-    },
-    []
-  );
+  const addItem = useCallback(() => {
+    setCellData(id, (previous) => ({
+      ...previous,
+      inputs: [...previous.inputs, { id: createItemId(), value: '' }],
+    }));
+  }, [id, setCellData]);
 
-  const { width, height } = useMeasureElement(divRef, { transform });
-
-  const { setCell, isElement } = useGraph<ElementRecord<ListNodeData>>();
-
-  const addInput = () => {
-    setCell(id, (previous) => {
-      if (!isElement(previous)) return previous;
-      const previousData = previous.data;
-      const previousInputs = Array.isArray(previousData?.inputs) ? previousData.inputs : [];
-      return {
+  const handleItemChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const { itemId } = event.currentTarget.dataset;
+      const { value } = event.currentTarget;
+      setCellData(id, (previous) => ({
         ...previous,
-        data: { ...(previousData ?? { label: '', inputs: [] }), inputs: [...previousInputs, ''] },
-      };
-    });
-  };
+        inputs: previous.inputs.map((item) => (item.id === itemId ? { ...item, value } : item)),
+      }));
+    },
+    [id, setCellData]
+  );
 
   return (
     <>
-      <rect width={width} height={height} fill="#121826" stroke="#eee" strokeWidth="2"></rect>
+      <rect
+        width={width}
+        height={height}
+        fill={NODE_BODY_COLOR}
+        stroke={NODE_STROKE_COLOR}
+        strokeWidth="2"
+      />
       <text
         x={width / 2}
-        y={headerHeight / 2}
+        y={HEADER_HEIGHT / 2}
         fontSize={20}
         textAnchor="middle"
-        fill="#eee"
-        dominantBaseline={'middle'}
+        dominantBaseline="middle"
+        fill={TEXT_COLOR}
       >
-        {`${children}`}
+        {label}
       </text>
       <foreignObject
-        x={padding}
-        y={headerHeight}
-        width={Math.max(width - 2 * padding, 0)}
-        height={Math.max(height - headerHeight - padding, 0)}
+        x={PADDING}
+        y={HEADER_HEIGHT}
+        width={Math.max(width - 2 * PADDING, 0)}
+        height={Math.max(height - HEADER_HEIGHT - PADDING, 0)}
       >
-        <div ref={divRef} className="absolute p-1 min-w-50">
-          <button
-            type="button"
-            onClick={addInput}
-            className={'p-1 bg-rose-600 rounded-[4px] text-white hover:opacity-65 mb-3 w-full'}
-          >
+        <div ref={contentRef} className="absolute min-w-50 p-1">
+          <button type="button" onClick={addItem} className="jj-btn jj-btn--primary mb-3 w-full">
             Add item
           </button>
-          <ul className={'list-none'}>
-            {inputs.map((input, index) => (
-              <li key={index}>
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                  Item {index + 1}
-                </label>
+          <ul className="list-none">
+            {inputs.map((item, index) => (
+              <li key={item.id} className="mb-2">
+                <span className="jj-label mb-1 block text-xs">Item {index + 1}</span>
                 <input
                   type="text"
-                  value={input}
-                  className={
-                    'block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'
-                  }
-                  onChange={(event) => {
-                    const newInputs = [...inputs];
-                    newInputs[index] = event.target.value;
-                    setCell(id, (previous) => {
-                      if (!isElement(previous)) return previous;
-                      const previousData = previous.data;
-                      return {
-                        ...previous,
-                        data: { ...(previousData ?? { label: '', inputs: [] }), inputs: newInputs },
-                      };
-                    });
-                  }}
+                  value={item.value}
+                  data-item-id={item.id}
+                  onChange={handleItemChange}
+                  className="jj-input w-full"
                 />
               </li>
             ))}
           </ul>
-          {inputs.length === 0 && <div className="text-gray-500 text-xs">No items</div>}
+          {inputs.length === 0 && <div className="jj-label text-xs">No items</div>}
         </div>
       </foreignObject>
     </>
@@ -132,21 +139,11 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
 }
 
 function Main() {
-  const renderElement = useCallback((data: ListNodeData) => {
-    const { label, inputs } = data;
-    return (
-      <ListElement label={label} inputs={inputs}>
-        {label}
-      </ListElement>
-    );
-  }, []);
-  return (
-    <Paper style={{ ...PAPER_STYLE, height: 500 }}
-      className={PAPER_CLASSNAME}
-      renderElement={renderElement}
-      drawGrid={false}
-    />
+  const renderElement = useCallback(
+    (data: ListNodeData) => <ListNode label={data.label} inputs={data.inputs} />,
+    []
   );
+  return <Paper className="size-full" renderElement={renderElement} />;
 }
 
 export default function App() {

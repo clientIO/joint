@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   type CellRecord,
   GraphProvider,
@@ -8,12 +7,9 @@ import {
   HTMLBox,
   useCells,
 } from '@joint/react';
-import '../index.css';
 import type { dia } from '@joint/core';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 interface NodeData {
-  readonly [key: string]: unknown;
   readonly label: string;
 }
 
@@ -24,30 +20,25 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   { id: '4', type: 'element', data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
 ];
 
-function ResizableNode(data: Readonly<NodeData>) {
+function IntersectionNode(data: Readonly<NodeData>) {
   const { graph } = useGraph();
   const id = useCellId();
-  const element = graph.getCell(id) as dia.Element;
 
+  // Recompute on every graph change whether this element overlaps another.
   const isIntersected = useCells(() => {
+    const element = graph.getCell(id) as dia.Element;
     return graph.findElementsUnderElement(element).length > 0;
   });
 
-  return <HTMLBox style={{ borderColor: isIntersected ? PRIMARY : '' }}>{data.label}</HTMLBox>;
-}
-
-function Main() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper className={PAPER_CLASSNAME} renderElement={ResizableNode} />
-    </div>
+    <HTMLBox className={isIntersected ? 'jj-node jj-node--active' : 'jj-node'}>{data.label}</HTMLBox>
   );
 }
 
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Main />
+      <Paper className="size-full" renderElement={IntersectionNode} />
     </GraphProvider>
   );
 }

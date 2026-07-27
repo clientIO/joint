@@ -1,5 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { CellRecord, LinkRecord, LinkStyle, OnElementsMeasured } from '@joint/react';
 import {
   type ElementRecord,
@@ -16,18 +14,27 @@ import {
   selectElementSize,
   linkRoutingOrthogonal,
 } from '@joint/react';
-import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useMemo } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
-import '../index.css';
+const PRIMARY = '#ED2637';
+const BG = '#131E29';
+const LIGHT = '#DDE6ED';
+const TEXT = '#DDE6ED';
+const RAISED = '#243445';
+const ACCENT = '#FF9505';
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   cornerType: 'line',
   cornerRadius: 10,
   mode: 'bottom-top',
 });
+
+// Static prop values, hoisted so they keep a stable reference across renders.
+const ELLIPSIS_TEXT_WRAP = { ellipsis: true };
+const ID_ANNOTATIONS = [{ start: 4, end: 10, attrs: { fill: ACCENT } }];
+
 // Base properties shared by all events
 interface BaseEvent {
   readonly label: string;
@@ -273,7 +280,7 @@ function useElementPattern() {
       },
       markup: jsx(
         <>
-          <rect width="12" height="12" fill="#131e29" stroke="none" />
+          <rect width="12" height="12" fill={BG} stroke="none" />
           <path d="M 0 0 L 12 12 M 6 -6 L 18 6 M -6 6 L 6 18" />
         </>
       ),
@@ -299,7 +306,7 @@ function useGatePattern() {
       },
       markup: jsx(
         <>
-          <rect width="6" height="6" fill="#131e29" stroke="none" />
+          <rect width="6" height="6" fill={BG} stroke="none" />
           <path d="M 3 0 L 3 6" />
         </>
       ),
@@ -408,7 +415,7 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
         fill={TEXT}
         x={width / 2}
         y={height / 2 - 40}
-        textWrap={{ ellipsis: true }}
+        textWrap={ELLIPSIS_TEXT_WRAP}
         textAnchor="middle"
         textVerticalAnchor="middle"
       >
@@ -423,7 +430,7 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
         fill={TEXT}
         textAnchor="middle"
         textVerticalAnchor="middle"
-        annotations={[{ start: 4, end: 10, attrs: { fill: '#f6f740' } }]}
+        annotations={ID_ANNOTATIONS}
       >
         {`id: ${id}`}
       </SVGText>
@@ -453,7 +460,7 @@ function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
         fill={TEXT}
         x={width / 2}
         y={height / 2}
-        textWrap={{ ellipsis: true }}
+        textWrap={ELLIPSIS_TEXT_WRAP}
         textAnchor="middle"
         textVerticalAnchor="middle"
       >
@@ -487,7 +494,7 @@ function BasicEventNode(props: Readonly<BasicEvent>) {
         fill={TEXT}
         x={width / 2}
         y={height / 2}
-        textWrap={{ ellipsis: true }}
+        textWrap={ELLIPSIS_TEXT_WRAP}
         textAnchor="middle"
         textVerticalAnchor="middle"
       >
@@ -519,7 +526,7 @@ function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
         fill={TEXT}
         x={width / 2}
         y={height / 2}
-        textWrap={{ ellipsis: true }}
+        textWrap={ELLIPSIS_TEXT_WRAP}
         textAnchor="middle"
         textVerticalAnchor="middle"
       >
@@ -554,7 +561,7 @@ function ConditioningEventNode({ label }: Readonly<ConditioningEvent>) {
         fill={TEXT}
         x={width / 2}
         y={height / 2}
-        textWrap={{ ellipsis: true }}
+        textWrap={ELLIPSIS_TEXT_WRAP}
         textAnchor="middle"
         textVerticalAnchor="middle"
       >
@@ -603,7 +610,9 @@ class ExpandButton extends elementTools.Button {
     <>
       <rect
         joint-selector="button"
-        fill="#cad8e3"
+        fill={RAISED}
+        stroke={LIGHT}
+        stroke-width="1"
         x="-8"
         y="-8"
         width="16"
@@ -613,7 +622,7 @@ class ExpandButton extends elementTools.Button {
       <path
         joint-selector="icon"
         fill="none"
-        stroke="#131e29"
+        stroke={LIGHT}
         stroke-width="2"
         pointer-events="none"
       />
@@ -754,8 +763,7 @@ function Main() {
 
   return (
     <Paper
-      style={{ ...PAPER_STYLE, height: 600 }}
-      className={PAPER_CLASSNAME}
+      className="size-full"
       renderElement={renderElement}
       cellVisibility={cellVisibilityCallback}
       linkRouting={ORTHOGONAL_LINKS}

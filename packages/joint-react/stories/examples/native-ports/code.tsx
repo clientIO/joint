@@ -1,7 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PAPER_CLASSNAME, PAPER_STYLE } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
-import '../index.css';
 import {
   type CellRecord,
   GraphProvider,
@@ -12,17 +9,17 @@ import {
 } from '@joint/react';
 import { useCallback } from 'react';
 
-// Element palette
-const INDIGO = '#4f46e5';
-const VIOLET = '#7c3aed';
-const SLATE = '#334155';
+// Colors — unified dark diagram palette.
+const NODE_COLOR = '#1c2836';
+const NODE_ACCENT_COLOR = '#243445';
+const NODE_STROKE_COLOR = '#3c4f63';
+const TEXT_COLOR = '#DDE6ED';
+const MUTED_TEXT_COLOR = '#93A4B3';
+const LINK_COLOR = '#8697A6';
 
-// Link palette (distinct from elements)
-const EMERALD = '#10b981';
-
-// Port colors
-const PORT_IN = '#818cf8';
-const PORT_OUT = '#a78bfa';
+// Input and output ports are colored apart so the two port groups stay readable.
+const PORT_IN_COLOR = '#36A18B';
+const PORT_OUT_COLOR = '#FF9505';
 
 interface NativeElementUserData {
   readonly [key: string]: unknown;
@@ -57,12 +54,12 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
         markup: [{ tagName: 'text', selector: 'label' }],
       },
       attrs: {
-        circle: { ...PORT_CIRCLE, fill: PORT_IN, stroke: '#e0e7ff' },
-        label: { fill: SLATE, fontSize: 10, fontFamily: 'sans-serif' },
+        circle: { ...PORT_CIRCLE, fill: PORT_IN_COLOR, stroke: NODE_STROKE_COLOR },
+        label: { fill: MUTED_TEXT_COLOR, fontSize: 10, fontFamily: 'sans-serif' },
       },
     };
     for (const id of inputPorts) {
-      items.push({ id, group: 'in', attrs: { label: { text: id, fill: '#cbd5e1' } } });
+      items.push({ id, group: 'in', attrs: { label: { text: id } } });
     }
   }
 
@@ -78,12 +75,12 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
         markup: [{ tagName: 'text', selector: 'label' }],
       },
       attrs: {
-        circle: { ...PORT_CIRCLE, fill: PORT_OUT, stroke: '#ede9fe' },
-        label: { fill: SLATE, fontSize: 10, fontFamily: 'sans-serif' },
+        circle: { ...PORT_CIRCLE, fill: PORT_OUT_COLOR, stroke: NODE_STROKE_COLOR },
+        label: { fill: MUTED_TEXT_COLOR, fontSize: 10, fontFamily: 'sans-serif' },
       },
     };
     for (const id of outputPorts) {
-      items.push({ id, group: 'out', attrs: { label: { text: id, fill: '#cbd5e1' } } });
+      items.push({ id, group: 'out', attrs: { label: { text: id } } });
     }
   }
 
@@ -95,7 +92,7 @@ const initialCells: ReadonlyArray<CellRecord<NativeElementUserData>> = [
     id: 'node-1',
     type: 'element',
     data: {
-      color: INDIGO,
+      color: NODE_COLOR,
       label: 'Source',
       inputPorts: ['in-1', 'in-2'],
       outputPorts: ['out-1', 'out-2', 'out-3'],
@@ -108,7 +105,7 @@ const initialCells: ReadonlyArray<CellRecord<NativeElementUserData>> = [
     id: 'node-2',
     type: 'element',
     data: {
-      color: VIOLET,
+      color: NODE_ACCENT_COLOR,
       label: 'Transform',
       inputPorts: ['in-1', 'in-2'],
       outputPorts: ['out-1', 'out-2'],
@@ -121,7 +118,7 @@ const initialCells: ReadonlyArray<CellRecord<NativeElementUserData>> = [
     id: 'node-3',
     type: 'element',
     data: {
-      color: INDIGO,
+      color: NODE_COLOR,
       label: 'Sink',
       inputPorts: ['in-1', 'in-2', 'in-3'],
       outputPorts: ['out-1'],
@@ -135,35 +132,35 @@ const initialCells: ReadonlyArray<CellRecord<NativeElementUserData>> = [
     type: 'link',
     source: { id: 'node-1', port: 'out-1' },
     target: { id: 'node-2', port: 'in-1' },
-    style: { color: EMERALD },
+    style: { color: LINK_COLOR },
   },
   {
     id: 'link-2',
     type: 'link',
     source: { id: 'node-1', port: 'out-2' },
     target: { id: 'node-3', port: 'in-1' },
-    style: { color: EMERALD },
+    style: { color: LINK_COLOR },
   },
   {
     id: 'link-3',
     type: 'link',
     source: { id: 'node-1', port: 'out-3' },
     target: { id: 'node-3', port: 'in-2' },
-    style: { color: EMERALD },
+    style: { color: LINK_COLOR },
   },
   {
     id: 'link-4',
     type: 'link',
     source: { id: 'node-2', port: 'out-1' },
     target: { id: 'node-3', port: 'in-3' },
-    style: { color: EMERALD },
+    style: { color: LINK_COLOR },
   },
   {
     id: 'link-5',
     type: 'link',
     source: { id: 'node-2', port: 'out-2' },
     target: { id: 'node-1', port: 'in-2' },
-    style: { color: EMERALD },
+    style: { color: LINK_COLOR },
   },
 ];
 
@@ -179,14 +176,22 @@ function Node({ color, label }: Readonly<{ color: string; label: string }>) {
           <stop offset="100%" stopColor="black" stopOpacity="0.1" />
         </radialGradient>
       </defs>
-      <ellipse cx={cx} cy={cy} rx={cx} ry={cy} fill={color} />
+      <ellipse
+        cx={cx}
+        cy={cy}
+        rx={cx}
+        ry={cy}
+        fill={color}
+        stroke={NODE_STROKE_COLOR}
+        strokeWidth={1}
+      />
       <ellipse cx={cx} cy={cy} rx={cx} ry={cy} fill={`url(#grad-${label})`} />
       <text
         x={cx}
         y={cy}
         textAnchor="middle"
         dominantBaseline="central"
-        fill="white"
+        fill={TEXT_COLOR}
         fontSize="15"
         fontFamily="sans-serif"
         fontWeight="600"
@@ -204,8 +209,8 @@ function Main() {
   );
 
   return (
-    <Paper style={{ ...PAPER_STYLE, height: 420 }}
-      className={PAPER_CLASSNAME}
+    <Paper
+      className="size-full"
       renderElement={renderElement}
       linkPinning={false}
       drawGrid={false}

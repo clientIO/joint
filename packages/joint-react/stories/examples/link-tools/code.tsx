@@ -1,15 +1,21 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { dia, linkTools } from '@joint/core';
-import '../index.css';
-import { type CellRecord, GraphProvider, jsx, Paper, linkRoutingOrthogonal } from '@joint/react';
-import { PRIMARY, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
+import {
+  type CellRecord,
+  GraphProvider,
+  HTMLBox,
+  jsx,
+  linkRoutingOrthogonal,
+  Paper,
+} from '@joint/react';
 
-const WHITE = '#fff';
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const HANDLE_FILL = '#1c2836';
+const BOUNDARY_STROKE = '#8697A6';
+
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal();
 
 interface NodeData {
-  readonly [key: string]: unknown;
   readonly label: string;
 }
 
@@ -42,27 +48,27 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   },
 ];
 
-// 1) creating link tools
+// Built-in tool: draggable vertex handles with a custom look.
 const verticesTool = new linkTools.Vertices({
   handleClass: linkTools.Vertices.VertexHandle.extend({
     style: {
-      fill: WHITE,
+      fill: HANDLE_FILL,
       stroke: SECONDARY,
       strokeWidth: 2,
     },
   }),
 });
 
+// Built-in tool: an outline drawn along the whole link.
 const boundaryTool = new linkTools.Boundary({
-  style: { stroke: '#999' },
+  style: { stroke: BOUNDARY_STROKE },
 });
-// 2) create custom link tool
 
+// Custom tool: a button whose markup is authored in JSX via the `jsx` utility.
 const infoButton = new linkTools.Button({
-  // using jsx utility by joint-jsx, convert jsx to markup
   markup: jsx(
     <>
-      <circle r="8" fill={WHITE} stroke={PRIMARY} strokeWidth="2" cursor="pointer" />
+      <circle r="8" fill={HANDLE_FILL} stroke={PRIMARY} strokeWidth="2" cursor="pointer" />
       <path
         d="M -5 0 L 5 0 M 0 -5 L 0 5"
         fill="none"
@@ -78,43 +84,41 @@ const infoButton = new linkTools.Button({
   },
 });
 
+// Built-in tool: a draggable handle to reconnect the link's target end.
 const targetArrowhead = new linkTools.TargetArrowhead({
   attributes: {
     fill: 'transparent',
     d: 'M -10 -10 V 10 H 10 V -10 Z',
     cursor: 'grab',
-  }
+  },
 });
 
-// 3) creating a tools view
 const toolsView = new dia.ToolsView({
   tools: [boundaryTool, verticesTool, infoButton, targetArrowhead],
 });
 
-function Main() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper style={{ height: 280 }}
-        className={PAPER_CLASSNAME}
-        linkRouting={ORTHOGONAL_LINKS}
-        onLinkMouseEnter={({ view }) => view.addTools(toolsView)}
-        onLinkMouseLeave={({ view }) => view.removeTools()}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-        }}
-      ></div>
-    </div>
-  );
+function renderElement(data: NodeData) {
+  return <HTMLBox className="jj-node">{data.label}</HTMLBox>;
+}
+
+function showTools({ view }: { view: dia.LinkView }) {
+  view.addTools(toolsView);
+}
+
+function hideTools({ view }: { view: dia.LinkView }) {
+  view.removeTools();
 }
 
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Main />
+      <Paper
+        className="size-full"
+        renderElement={renderElement}
+        linkRouting={ORTHOGONAL_LINKS}
+        onLinkMouseEnter={showTools}
+        onLinkMouseLeave={hideTools}
+      />
     </GraphProvider>
   );
 }

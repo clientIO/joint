@@ -4,24 +4,25 @@ import { useState } from 'react';
 import {
   GraphProvider,
   Paper,
-  useGraph,
   HTMLHost,
+  useGraph,
   useCells,
   type CellRecord,
   type ElementRecord,
   type LinkRecord,
   type Computed,
 } from '@joint/react';
-import '../index.css';
-import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
 
-const SECONDARY = '#6366f1';
-const DARK = '#111827';
+// Colors — unified dark diagram palette. Node colors are the point of this demo
+// (they are editable at runtime), these are only the starting values.
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const LINK_COLOR = '#8697A6';
+const NODE_TEXT_COLOR = '#DDE6ED';
 
 type NodeData = {
   readonly label: string;
   readonly color: string;
-  readonly [key: string]: unknown;
 };
 
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
@@ -29,21 +30,21 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
     id: '1',
     type: 'element',
     data: { label: 'Node A', color: PRIMARY },
-    position: { x: 50, y: 50 },
+    position: { x: 60, y: 60 },
     size: { width: 120, height: 60 },
   },
   {
     id: '2',
     type: 'element',
     data: { label: 'Node B', color: SECONDARY },
-    position: { x: 250, y: 50 },
+    position: { x: 260, y: 60 },
     size: { width: 120, height: 60 },
   },
   {
     id: '3',
     type: 'element',
     data: { label: 'Node C', color: PRIMARY },
-    position: { x: 150, y: 180 },
+    position: { x: 160, y: 200 },
     size: { width: 120, height: 60 },
   },
   {
@@ -51,322 +52,179 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
     type: 'link',
     source: { id: '1' },
     target: { id: '2' },
-    color: DARK,
+    style: { color: LINK_COLOR },
   },
   {
     id: 'link-1-3',
     type: 'link',
     source: { id: '1' },
     target: { id: '3' },
-    color: DARK,
+    style: { color: LINK_COLOR },
   },
 ];
 
-// --- Node Component ---
-
-function RenderElement({ label = '', color = PRIMARY }: Readonly<NodeData>) {
+function RenderElement({ label, color }: Readonly<NodeData>) {
   return (
     <HTMLHost
       useModelGeometry
-      style={{
-        overflow: 'auto',
-        backgroundColor: color,
-        borderRadius: 8,
-        color: 'white',
-        fontWeight: 500,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-      }}
+      className="jj-node"
+      style={{ backgroundColor: color, color: NODE_TEXT_COLOR }}
     >
       {label}
     </HTMLHost>
   );
 }
 
-// --- Control Panel Components ---
-
 interface ElementControlsProps {
   readonly id: string;
-  readonly element?: NodeData;
-  readonly position?: { x?: number; y?: number };
-  readonly size?: { width?: number; height?: number };
-  readonly angle?: number;
+  readonly element: Computed<ElementRecord<NodeData>>;
 }
 
-function ElementControls({
-  id,
-  element,
-  position,
-  size: layout,
-  angle,
-}: Readonly<ElementControlsProps>) {
-  const { setCell, removeCell, isElement } = useGraph<ElementRecord<NodeData>>();
-  const inputStyle = {
-    padding: '6px 10px',
-    border: '1px solid rgba(0, 0, 0, 0.15)',
-    borderRadius: 8,
-    fontSize: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    color: '#1f2937',
-    outline: 'none',
-    transition: 'border-color 0.15s, box-shadow 0.15s',
-  };
-  if (!element) {
-    return null;
-  }
+function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
+  const { setCell, setCellData, removeCell } = useGraph<ElementRecord<NodeData>>();
+  const { label, color } = element.data;
+  const { x, y } = element.position;
+  const { width, height } = element.size;
+  const { angle } = element;
 
   return (
-    <div
-      style={{
-        padding: '12px 16px',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-      }}
-    >
-      <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 13 }}>
-        {element.label}
-        <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
-          #{id}
-        </span>
+    <div className="flex flex-col gap-2 rounded-control border border-hairline bg-surface-2 p-3">
+      <div className="flex items-center justify-between text-sm font-semibold text-ink">
+        <span>{label}</span>
+        <span className="text-xs font-normal text-ink-faint">#{id}</span>
       </div>
 
-      {/* Label */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Label</label>
+      <label className="jj-field flex w-full">
+        <span className="jj-label w-12 shrink-0">Label</span>
         <input
+          className="jj-input min-w-0 flex-1"
           type="text"
-          value={element.label}
-          onChange={(event) =>
-            setCell(id, (previous) => {
-              if (!isElement(previous)) return previous;
-              const { data } = previous;
-              if (!data) return previous;
-              return {
-                ...previous,
-                data: { ...data, label: event.target.value },
-              };
-            })
-          }
-          style={{ ...inputStyle, flex: 1 }}
+          value={label}
+          onChange={(event) => setCellData(id, (data) => ({ ...data, label: event.target.value }))}
         />
-      </div>
+      </label>
 
-      {/* Color */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Color</label>
+      <label className="jj-field flex w-full">
+        <span className="jj-label w-12 shrink-0">Color</span>
         <input
+          className="jj-input h-9 w-12 p-1"
           type="color"
-          value={element.color}
+          value={color}
+          onChange={(event) => setCellData(id, (data) => ({ ...data, color: event.target.value }))}
+        />
+      </label>
+
+      <div className="jj-field flex w-full">
+        <span className="jj-label w-12 shrink-0">Pos</span>
+        <input
+          className="jj-input min-w-0 flex-1"
+          type="number"
+          aria-label="Position X"
+          value={Math.round(x)}
           onChange={(event) =>
-            setCell(id, (previous) => {
-              if (!isElement(previous)) return previous;
-              const { data } = previous;
-              if (!data) return previous;
-              return {
-                ...previous,
-                data: { ...data, color: event.target.value },
-              };
-            })
+            setCell(id, (previous) => ({
+              ...previous,
+              position: { x: Number(event.target.value), y: previous.position?.y ?? 0 },
+            }))
           }
-          style={{
-            width: 36,
-            height: 28,
-            border: 'none',
-            cursor: 'pointer',
-            borderRadius: 6,
-            padding: 0,
-          }}
+        />
+        <input
+          className="jj-input min-w-0 flex-1"
+          type="number"
+          aria-label="Position Y"
+          value={Math.round(y)}
+          onChange={(event) =>
+            setCell(id, (previous) => ({
+              ...previous,
+              position: { x: previous.position?.x ?? 0, y: Number(event.target.value) },
+            }))
+          }
         />
       </div>
 
-      {/* Position */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Pos</label>
+      <div className="jj-field flex w-full">
+        <span className="jj-label w-12 shrink-0">Size</span>
         <input
+          className="jj-input min-w-0 flex-1"
           type="number"
-          value={position?.x ?? 0}
+          aria-label="Width"
+          value={Math.round(width)}
           onChange={(event) =>
-            setCell(id, (previous) => {
-              if (!isElement(previous)) return previous;
-              return {
-                ...previous,
-                position: { x: Number(event.target.value), y: previous.position?.y ?? 0 },
-              };
-            })
+            setCell(id, (previous) => ({
+              ...previous,
+              size: { width: Number(event.target.value), height: previous.size?.height ?? 0 },
+            }))
           }
-          style={{ ...inputStyle, width: 65 }}
-          placeholder="X"
         />
         <input
+          className="jj-input min-w-0 flex-1"
           type="number"
-          value={position?.y ?? 0}
+          aria-label="Height"
+          value={Math.round(height)}
           onChange={(event) =>
-            setCell(id, (previous) => {
-              if (!isElement(previous)) return previous;
-              return {
-                ...previous,
-                position: { x: previous.position?.x ?? 0, y: Number(event.target.value) },
-              };
-            })
+            setCell(id, (previous) => ({
+              ...previous,
+              size: { width: previous.size?.width ?? 0, height: Number(event.target.value) },
+            }))
           }
-          style={{ ...inputStyle, width: 65 }}
-          placeholder="Y"
         />
       </div>
 
-      {/* Size */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Size</label>
+      <label className="jj-field flex w-full">
+        <span className="jj-label w-12 shrink-0">Angle</span>
         <input
-          type="number"
-          value={layout?.width ?? 0}
-          onChange={(event) =>
-            setCell(id, (previous) => {
-              if (!isElement(previous)) return previous;
-              return {
-                ...previous,
-                size: {
-                  width: Number(event.target.value),
-                  height: previous.size?.height ?? 0,
-                },
-              };
-            })
-          }
-          style={{ ...inputStyle, width: 65 }}
-          placeholder="W"
-        />
-        <input
-          type="number"
-          value={layout?.height ?? 0}
-          onChange={(event) =>
-            setCell(id, (previous) => {
-              if (!isElement(previous)) return previous;
-              return {
-                ...previous,
-                size: {
-                  width: previous.size?.width ?? 0,
-                  height: Number(event.target.value),
-                },
-              };
-            })
-          }
-          style={{ ...inputStyle, width: 65 }}
-          placeholder="H"
-        />
-      </div>
-
-      {/* Angle */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Angle</label>
-        <input
+          className="min-w-0 flex-1"
           type="range"
-          min="0"
-          max="360"
-          value={angle ?? 0}
-          onChange={(event) =>
-            setCell(id, (previous) =>
-              previous.type === 'element'
-                ? { ...previous, angle: Number(event.target.value) }
-                : previous
-            )
-          }
-          style={{ flex: 1, accentColor: PRIMARY }}
+          min={0}
+          max={360}
+          value={Math.round(angle)}
+          style={{ accentColor: PRIMARY }}
+          onChange={(event) => setCell(id, (previous) => ({ ...previous, angle: Number(event.target.value) }))}
         />
-        <span style={{ fontSize: 11, width: 32, color: '#6b7280' }}>{angle ?? 0}°</span>
-      </div>
+        <span className="w-8 shrink-0 text-right text-xs text-ink-muted">{Math.round(angle)}°</span>
+      </label>
 
-      {/* Remove */}
-      <button
-        onClick={() => removeCell(id)}
-        style={{
-          marginTop: 4,
-          padding: '8px 12px',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-          color: '#dc2626',
-          border: '1px solid rgba(239, 68, 68, 0.2)',
-          borderRadius: 8,
-          cursor: 'pointer',
-          fontSize: 11,
-          fontWeight: 500,
-          transition: 'background-color 0.15s',
-        }}
-      >
+      <button type="button" className="jj-btn jj-btn--sm" onClick={() => removeCell(id)}>
         Remove
       </button>
     </div>
   );
 }
 
-function getLinkEndpointId(endpoint: LinkRecord['source']): string {
-  return String(endpoint?.id ?? 'unknown');
-}
-
 interface LinkControlsProps {
   readonly id: string;
-  readonly link: LinkRecord;
+  readonly link: Computed<LinkRecord>;
 }
 
 function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
   const { setCell, removeCell } = useGraph();
-  const sourceId = getLinkEndpointId(link.source);
-  const targetId = getLinkEndpointId(link.target);
+  const sourceId = String(link.source?.id ?? '?');
+  const targetId = String(link.target?.id ?? '?');
+  const color = link.style?.color || LINK_COLOR;
 
   return (
-    <div
-      style={{
-        padding: '12px 16px',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-      }}
-    >
-      <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 13 }}>
-        {sourceId} <span style={{ color: '#9ca3af', margin: '0 4px' }}>→</span> {targetId}
+    <div className="flex flex-col gap-2 rounded-control border border-hairline bg-surface-2 p-3">
+      <div className="flex items-center gap-1 text-sm font-semibold text-ink">
+        {sourceId} <span className="text-ink-faint">→</span> {targetId}
       </div>
 
-      {/* Stroke Color */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Color</label>
+      <label className="jj-field flex w-full">
+        <span className="jj-label w-12 shrink-0">Color</span>
         <input
+          className="jj-input h-9 w-12 p-1"
           type="color"
-          value={(link.color as string) ?? '#000000'}
+          value={color}
           onChange={(event) =>
             setCell(id, (previous) =>
-              previous.type === 'link' ? { ...previous, color: event.target.value } : previous
+              previous.type === 'link'
+                ? { ...previous, style: { ...previous.style, color: event.target.value } }
+                : previous
             )
           }
-          style={{
-            width: 36,
-            height: 28,
-            border: 'none',
-            cursor: 'pointer',
-            borderRadius: 6,
-            padding: 0,
-          }}
         />
-      </div>
+      </label>
 
-      {/* Remove */}
-      <button
-        onClick={() => removeCell(id)}
-        style={{
-          marginTop: 4,
-          padding: '8px 12px',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-          color: '#dc2626',
-          border: '1px solid rgba(239, 68, 68, 0.2)',
-          borderRadius: 8,
-          cursor: 'pointer',
-          fontSize: 11,
-          fontWeight: 500,
-          transition: 'background-color 0.15s',
-        }}
-      >
+      <button type="button" className="jj-btn jj-btn--sm" onClick={() => removeCell(id)}>
         Remove
       </button>
     </div>
@@ -375,275 +233,144 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 
 function AddElementForm() {
   const { setCell } = useGraph<ElementRecord<NodeData>>();
-  const elementIds = useCells<Computed<CellRecord>, string[]>((cells) =>
-    cells.filter((c) => c.type === 'element').map((c) => String(c.id))
+  const elementIds = useCells<Computed<CellRecord<NodeData>>, readonly string[]>((cells) =>
+    cells.filter((cell) => cell.type === 'element').map((cell) => String(cell.id))
   );
   const [label, setLabel] = useState('');
 
-  const handleAdd = () => {
-    if (!label.trim()) return;
-
-    const existingIds = elementIds.map(Number).filter((numberValue) => !Number.isNaN(numberValue));
-    const newId = String(Math.max(0, ...existingIds) + 1);
-
-    // eslint-disable-next-line sonarjs/pseudo-random -- Random position for demo purposes
-    const randomX = 50 + Math.random() * 200;
-    // eslint-disable-next-line sonarjs/pseudo-random -- Random position for demo purposes
-    const randomY = 50 + Math.random() * 150;
-
+  const addNode = () => {
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    const numericIds = elementIds.map(Number).filter((value) => !Number.isNaN(value));
+    const nextId = String(Math.max(0, ...numericIds) + 1);
+    // eslint-disable-next-line sonarjs/pseudo-random -- random spawn position is cosmetic, not security-sensitive
+    const position = { x: 60 + Math.random() * 200, y: 60 + Math.random() * 160 };
     setCell({
-      id: newId,
+      id: nextId,
       type: 'element',
-      data: { label: label.trim(), color: PRIMARY },
-      position: { x: randomX, y: randomY },
+      data: { label: trimmed, color: PRIMARY },
+      position,
       size: { width: 120, height: 60 },
     });
     setLabel('');
   };
 
   return (
-    <div
-      style={{
-        padding: '12px 16px',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-      }}
-    >
-      <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 12 }}>Add Node</div>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <input
-          type="text"
-          value={label}
-          onChange={(event) => setLabel(event.target.value)}
-          placeholder="Label..."
-          style={{
-            flex: 1,
-            padding: '8px 12px',
-            border: '1px solid rgba(0, 0, 0, 0.15)',
-            borderRadius: 8,
-            fontSize: 12,
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            color: '#1f2937',
-            outline: 'none',
-          }}
-          onKeyDown={(event) => event.key === 'Enter' && handleAdd()}
-        />
-        <button
-          onClick={handleAdd}
-          style={{
-            padding: '8px 14px',
-            backgroundColor: PRIMARY,
-            color: 'white',
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: 11,
-            fontWeight: 600,
-          }}
-        >
-          +
-        </button>
-      </div>
+    <div className="jj-controls">
+      <input
+        className="jj-input min-w-0 flex-1"
+        type="text"
+        placeholder="New node label…"
+        value={label}
+        onChange={(event) => setLabel(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') addNode();
+        }}
+      />
+      <button type="button" className="jj-btn jj-btn--primary" onClick={addNode}>
+        Add node
+      </button>
     </div>
   );
 }
 
 function AddLinkForm() {
-  const { setCell } = useGraph<ElementRecord<NodeData>>();
-  const elements = useCells<Computed<CellRecord>, Array<[string, Computed<ElementRecord<NodeData>>]>>(
+  const { setCell } = useGraph();
+  const elements = useCells<Computed<CellRecord<NodeData>>, ReadonlyArray<{ id: string; label: string }>>(
     (cells) => {
-      const result: Array<[string, Computed<ElementRecord<NodeData>>]> = [];
+      const list: Array<{ id: string; label: string }> = [];
       for (const cell of cells) {
-        if (cell.type === 'element') {
-          result.push([String(cell.id), cell as Computed<ElementRecord<NodeData>>]);
-        }
+        if (cell.type === 'element') list.push({ id: String(cell.id), label: cell.data.label });
       }
-      return result;
+      return list;
     }
   );
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
 
-  const selectStyle = {
-    flex: 1,
-    padding: '8px 10px',
-    border: '1px solid rgba(0, 0, 0, 0.15)',
-    borderRadius: 8,
-    fontSize: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    color: '#1f2937',
-    outline: 'none',
-    cursor: 'pointer',
-  };
-
-  const handleAdd = () => {
+  const addLink = () => {
     if (!source || !target || source === target) return;
-
-    const newId = `link-${source}-${target}-${Date.now()}`;
     setCell({
-      id: newId,
+      id: `link-${source}-${target}-${Date.now()}`,
       type: 'link',
       source: { id: source },
       target: { id: target },
-      color: LIGHT,
+      style: { color: LINK_COLOR },
     });
     setSource('');
     setTarget('');
   };
 
   return (
-    <div
-      style={{
-        padding: '12px 16px',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-      }}
-    >
-      <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 12 }}>Add Link</div>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <select
-          value={source}
-          onChange={(event) => setSource(event.target.value)}
-          style={selectStyle}
-        >
-          <option value="">From...</option>
-          {elements.map(([id, element]) => (
-            <option key={id} value={id}>
-              {element.data.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={target}
-          onChange={(event) => setTarget(event.target.value)}
-          style={selectStyle}
-        >
-          <option value="">To...</option>
-          {elements.map(([id, element]) => (
-            <option key={id} value={id}>
-              {element.data.label}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={handleAdd}
-          style={{
-            padding: '8px 14px',
-            backgroundColor: PRIMARY,
-            color: 'white',
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: 11,
-            fontWeight: 600,
-          }}
-        >
-          +
-        </button>
-      </div>
+    <div className="jj-controls">
+      <select
+        className="jj-select min-w-0 flex-1"
+        aria-label="Link source"
+        value={source}
+        onChange={(event) => setSource(event.target.value)}
+      >
+        <option value="">From…</option>
+        {elements.map((element) => (
+          <option key={element.id} value={element.id}>
+            {element.label}
+          </option>
+        ))}
+      </select>
+      <select
+        className="jj-select min-w-0 flex-1"
+        aria-label="Link target"
+        value={target}
+        onChange={(event) => setTarget(event.target.value)}
+      >
+        <option value="">To…</option>
+        {elements.map((element) => (
+          <option key={element.id} value={element.id}>
+            {element.label}
+          </option>
+        ))}
+      </select>
+      <button type="button" className="jj-btn jj-btn--primary" onClick={addLink}>
+        Add link
+      </button>
     </div>
   );
 }
 
-// --- Main Component ---
 function Main() {
   const cells = useCells<Computed<CellRecord<NodeData>>>();
-  const elements: Array<[string, ElementRecord<NodeData>]> = [];
-  const links: Array<[string, LinkRecord]> = [];
+  const elements: Array<Computed<ElementRecord<NodeData>>> = [];
+  const links: Array<Computed<LinkRecord>> = [];
   for (const cell of cells) {
     if (cell.type === 'element') {
-      elements.push([String(cell.id), cell]);
+      elements.push(cell);
     } else if (cell.type === 'link') {
-      links.push([String(cell.id), cell]);
+      links.push(cell);
     }
   }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
-      {/* Canvas */}
-      <Paper style={{ height: 500 }} className={PAPER_CLASSNAME} renderElement={RenderElement} />
+    <div className="flex size-full">
+      <Paper className="min-w-0 flex-1" renderElement={RenderElement} />
+      <aside className="flex w-72 shrink-0 flex-col gap-3 overflow-y-auto border-l border-hairline bg-surface p-3">
+        <div className="text-sm font-semibold text-ink">Cell actions</div>
 
-      {/* Control Panel - Glassmorphism Style */}
-      <div
-        style={{
-          position: 'absolute',
-          right: 16,
-          top: 16,
-          bottom: 16,
-          width: 260,
-          backgroundColor: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderRadius: 16,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
-          overflowY: 'auto',
-          overflowX: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            padding: '16px 16px 12px',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#1f2937',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          Cell Actions
-        </div>
-
-        {/* Add forms */}
         <AddElementForm />
         <AddLinkForm />
 
-        {/* Element Controls */}
-        <div
-          style={{
-            padding: '10px 16px',
-            backgroundColor: 'rgba(0, 0, 0, 0.03)',
-            fontSize: 11,
-            fontWeight: 600,
-            color: '#6b7280',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}
-        >
+        <div className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
           Nodes ({elements.length})
         </div>
-        {elements.map(([id, element]) => (
-          <ElementControls
-            key={id}
-            id={id}
-            element={element.data}
-            position={element.position}
-            size={element.size}
-            angle={element.angle}
-          />
+        {elements.map((element) => (
+          <ElementControls key={element.id} id={String(element.id)} element={element} />
         ))}
 
-        {/* Link Controls */}
-        <div
-          style={{
-            padding: '10px 16px',
-            backgroundColor: 'rgba(0, 0, 0, 0.03)',
-            fontSize: 11,
-            fontWeight: 600,
-            color: '#6b7280',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}
-        >
+        <div className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
           Links ({links.length})
         </div>
-        {links.map(([id, link]) => (
-          <LinkControls key={id} id={id} link={link} />
+        {links.map((link) => (
+          <LinkControls key={link.id} id={String(link.id)} link={link} />
         ))}
-      </div>
+      </aside>
     </div>
   );
 }

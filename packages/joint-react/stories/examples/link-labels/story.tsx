@@ -1,20 +1,24 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
-
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import CodeRaw from './code?raw';
-import { makeRootDocumentation } from '../../utils/make-story';
+import codeRaw from './code?raw';
 
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Examples/Link Labels',
   component: Code,
   tags: ['example'],
-  parameters: makeRootDocumentation({
-    code: CodeRaw,
-    description: 'Demonstrates adding labels to links.',
-  }),
+  parameters: {
+    showcase: {
+      description:
+        'Attach styled, draggable labels to links declaratively through the labelMap field on each link record.',
+      apiUrl: getAPILink('LinkLabel', 'Types'),
+      code: codeRaw,
+    },
+  },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

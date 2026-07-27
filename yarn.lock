@@ -22,13 +22,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@andypf/json-viewer@npm:^2.1.10":
-  version: 2.2.0
-  resolution: "@andypf/json-viewer@npm:2.2.0"
-  checksum: 10/4c27d7f5d288919b8dfa9d073cc88da9b7fede4786b708b559f690835da5c6dbb56707ed4467f7e1f2a083f18ea146c4855222965387a4051b96dbe611c0d4fd
-  languageName: node
-  linkType: hard
-
 "@angular-devkit/architect@npm:0.1902.19":
   version: 0.1902.19
   resolution: "@angular-devkit/architect@npm:0.1902.19"
@@ -6496,7 +6489,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/react@workspace:packages/joint-react"
   dependencies:
-    "@andypf/json-viewer": "npm:^2.1.10"
     "@babel/preset-env": "npm:^7.29.7"
     "@babel/preset-react": "npm:^7.29.7"
     "@babel/preset-typescript": "npm:^7.29.7"
@@ -6529,10 +6521,10 @@ __metadata:
     eslint-plugin-storybook: "npm:^10.4.2"
     jest: "npm:30.1.2"
     jest-environment-jsdom: "npm:30.1.2"
-    jotai: "npm:^2.15.2"
     knip: "npm:6.21.0"
     peerjs: "npm:^1.5.5"
     prettier: "npm:3.3.3"
+    prism-react-renderer: "npm:^2.4.1"
     react: "npm:^19.1.1"
     react-dom: "npm:^19.1.1"
     react-redux: "npm:^9.2.0"
@@ -6540,7 +6532,6 @@ __metadata:
     react18: "npm:react@18.3.1"
     react18-dom: "npm:react-dom@18.3.1"
     redux: "npm:^5.0.1"
-    redux-undo: "npm:1.1.0"
     rollup: "npm:^4.50.0"
     rollup-plugin-banner2: "npm:^1.2.2"
     rollup-plugin-dts: "npm:^6.4.1"
@@ -6556,7 +6547,6 @@ __metadata:
     use-sync-external-store: "npm:^1.6.0"
     vite: "npm:^8"
     vite-plugin-md: "npm:0.22.5"
-    zustand: "npm:^5.0.9"
   peerDependencies:
     react: ">=18"
     react-dom: ">=18"
@@ -10611,6 +10601,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prismjs@npm:^1.26.0":
+  version: 1.26.6
+  resolution: "@types/prismjs@npm:1.26.6"
+  checksum: 10/37c056eb7a9130ef6548d7655af78ea575c8eaa9167ea2dd64d8719384b1af4a385ffe928aa4939da607ce276703a6787bdac8ecc79a373e2a73ddf6d75bc161
+  languageName: node
+  linkType: hard
+
 "@types/qs@npm:*":
   version: 6.14.0
   resolution: "@types/qs@npm:6.14.0"
@@ -14317,6 +14314,13 @@ __metadata:
   version: 1.0.4
   resolution: "clone@npm:1.0.4"
   checksum: 10/d06418b7335897209e77bdd430d04f882189582e67bd1f75a04565f3f07f5b3f119a9d670c943b6697d0afb100f03b866b3b8a1f91d4d02d72c4ecf2bb64b5dd
+  languageName: node
+  linkType: hard
+
+"clsx@npm:^2.0.0":
+  version: 2.1.1
+  resolution: "clsx@npm:2.1.1"
+  checksum: 10/cdfb57fa6c7649bbff98d9028c2f0de2f91c86f551179541cf784b1cfdc1562dcb951955f46d54d930a3879931a980e32a46b598acaea274728dbe068deca919
   languageName: node
   linkType: hard
 
@@ -21519,27 +21523,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"jotai@npm:^2.15.2":
-  version: 2.19.1
-  resolution: "jotai@npm:2.19.1"
-  peerDependencies:
-    "@babel/core": ">=7.0.0"
-    "@babel/template": ">=7.0.0"
-    "@types/react": ">=17.0.0"
-    react: ">=17.0.0"
-  peerDependenciesMeta:
-    "@babel/core":
-      optional: true
-    "@babel/template":
-      optional: true
-    "@types/react":
-      optional: true
-    react:
-      optional: true
-  checksum: 10/bb599ccd305820d9e6c25a23d34d66c4a47caea041065d553ea522c3299562f84fff1724a1a17da3401a3af60cc0500a80c6294bca61e3b8708daf5bebb3b8a2
-  languageName: node
-  linkType: hard
-
 "jquery@npm:~3.7.1":
   version: 3.7.1
   resolution: "jquery@npm:3.7.1"
@@ -25710,6 +25693,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prism-react-renderer@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "prism-react-renderer@npm:2.4.1"
+  dependencies:
+    "@types/prismjs": "npm:^1.26.0"
+    clsx: "npm:^2.0.0"
+  peerDependencies:
+    react: ">=16.0.0"
+  checksum: 10/f76ea89b8b18c477eb74e9ddda2571b5c4d21142731f6733160723aa03567b17df315d7db68ffb1122c199750ece65578ecacb488559229b26db5474d6aae55b
+  languageName: node
+  linkType: hard
+
 "proc-log@npm:^5.0.0":
   version: 5.0.0
   resolution: "proc-log@npm:5.0.0"
@@ -26474,13 +26469,6 @@ __metadata:
   peerDependencies:
     redux: ^5.0.0
   checksum: 10/38c563db5f0bbec90d2e65cc27f3c870c1b6102e0c071258734fac41cb0e51d31d894125815c2f4133b20aff231f51f028ad99bccc05a7e3249f1a5d5a959ed3
-  languageName: node
-  linkType: hard
-
-"redux-undo@npm:1.1.0":
-  version: 1.1.0
-  resolution: "redux-undo@npm:1.1.0"
-  checksum: 10/87b097167b5c90512b3294ae9d3f53b3c9b8d2bb61b9c1541fd2896fd5f9c6a5af2a8ea866a4cc4409e138e35046ae2531baad02c5e2c225b08e9d5c10ea19dd
   languageName: node
   linkType: hard
 
@@ -32606,26 +32594,5 @@ __metadata:
   version: 0.15.1
   resolution: "zone.js@npm:0.15.1"
   checksum: 10/10f8b8651694e7c9484b32da677d4051b8aaa7e2cb3a6baa1f608ff789e249fbccca33820b0590f9d80a7bbfc860a3ae3a6969b5c433f77b1b66e896f3d5b4d5
-  languageName: node
-  linkType: hard
-
-"zustand@npm:^5.0.9":
-  version: 5.0.12
-  resolution: "zustand@npm:5.0.12"
-  peerDependencies:
-    "@types/react": ">=18.0.0"
-    immer: ">=9.0.6"
-    react: ">=18.0.0"
-    use-sync-external-store: ">=1.2.0"
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    immer:
-      optional: true
-    react:
-      optional: true
-    use-sync-external-store:
-      optional: true
-  checksum: 10/b84c85fc4133ec5ee05c11d0f2f3dff0f7537d9d0f1d3475a8e5a92f42ee1ba6d38039e09baf510075eb738e3d55018a635b3fa7db07c94e8d5717104abab9e5
   languageName: node
   linkType: hard

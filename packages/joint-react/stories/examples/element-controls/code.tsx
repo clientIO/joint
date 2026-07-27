@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   type CellRecord,
   GraphProvider,
@@ -9,10 +8,12 @@ import {
   selectElementSize,
   type OnElementsMeasured,
 } from '@joint/react';
-import '../index.css';
-import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
 import { useCallback } from 'react';
+
+const PRIMARY = '#ED2637';
+const LIGHT = '#DDE6ED';
+const TEXT = '#DDE6ED';
 
 // ----------------------------------------------------------------------------
 // Type Definitions
@@ -755,14 +756,7 @@ function Main() {
 
   useOnElementsMeasured(handleElementsMeasured);
 
-  return (
-    <Paper
-      style={{ ...PAPER_STYLE, width: '100%', height: 600 }}
-      className={PAPER_CLASSNAME}
-      renderElement={renderElement}
-      drawGrid={false}
-    />
-  );
+  return <Paper className="size-full" renderElement={renderElement} />;
 }
 
 export default function App() {

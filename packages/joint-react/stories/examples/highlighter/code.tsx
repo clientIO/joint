@@ -1,10 +1,11 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { type CellRecord, GraphProvider, useCell, Paper, useMarkup, selectElementSize } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
-import '../index.css';
-import { useRef } from 'react';
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { useCallback } from 'react';
+
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const NODE_FILL_COLOR = '#1c2836';
+const TEXT_COLOR = '#DDE6ED';
 
 interface NodeData {
   readonly [key: string]: unknown;
@@ -42,7 +43,7 @@ function RenderElement({ label }: Readonly<NodeData>) {
   const { width, height } = useCell(selectElementSize);
 
   return (
-    <g width={width} height={height} className="node">
+    <g width={width} height={height}>
       <rect
         ref={selectorRef('body')}
         rx={10}
@@ -50,17 +51,19 @@ function RenderElement({ label }: Readonly<NodeData>) {
         width={width}
         height={height}
         stroke={PRIMARY}
-        fill="white"
+        fill={NODE_FILL_COLOR}
       />
-      <text x={width / 2} y={height / 2} textAnchor="middle" dominantBaseline="middle" fill="black">
+      <text
+        x={width / 2}
+        y={height / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill={TEXT_COLOR}
+      >
         {label ?? 'Node'}
       </text>
     </g>
   );
-}
-
-interface MainProps {
-  readonly variant: HighlighterVariant;
 }
 
 function addHighlighter(variant: HighlighterVariant, elementView: dia.ElementView) {
@@ -97,19 +100,27 @@ function removeHighlighter(variant: HighlighterVariant, elementView: dia.Element
   }
 }
 
+interface MainProps {
+  readonly variant: HighlighterVariant;
+}
+
 function Main({ variant }: Readonly<MainProps>) {
-  const paperRef = useRef<dia.Paper | null>(null);
+  const handleMouseEnter = useCallback(
+    ({ view }: { view: dia.ElementView }) => addHighlighter(variant, view),
+    [variant]
+  );
+  const handleMouseLeave = useCallback(
+    ({ view }: { view: dia.ElementView }) => removeHighlighter(variant, view),
+    [variant]
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper style={{ height: 280 }}
-        ref={paperRef}
-        className={PAPER_CLASSNAME}
-        renderElement={RenderElement}
-        onElementMouseEnter={({ view }) => addHighlighter(variant, view)}
-        onElementMouseLeave={({ view }) => removeHighlighter(variant, view)}
-      />
-    </div>
+    <Paper
+      className="size-full"
+      renderElement={RenderElement}
+      onElementMouseEnter={handleMouseEnter}
+      onElementMouseLeave={handleMouseLeave}
+    />
   );
 }
 

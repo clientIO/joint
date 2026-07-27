@@ -1,19 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import { makeRootDocumentation } from '../../utils/make-story';
+import codeRaw from './code?raw';
 
-import CodeRaw from './code?raw';
-
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Examples/Stress',
   component: Code,
   tags: ['example'],
-  parameters: makeRootDocumentation({
-    code: CodeRaw,
-  }),
+  parameters: {
+    showcase: {
+      description:
+        'Stress-tests the paper with hundreds of controlled nodes, randomizing every position inside a React transition.',
+      apiUrl: getAPILink('GraphProvider'),
+      canvasHeight: 720,
+      code: codeRaw,
+    },
+  },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

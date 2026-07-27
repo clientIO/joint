@@ -9,8 +9,10 @@ import {
   useGraph,
   type ElementRecord,
 } from '@joint/react';
-import '../index.css';
-import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
+
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const NODE_TEXT = '#DDE6ED';
 
 interface NodeData {
   readonly label: string;
@@ -51,7 +53,7 @@ function NodeShape({ label }: Readonly<NodeData>) {
         x={NODE_WIDTH / 2}
         y={NODE_HEIGHT / 2 + 5}
         textAnchor="middle"
-        fill={LIGHT}
+        fill={NODE_TEXT}
         fontSize={15}
         fontWeight={600}
       >
@@ -68,42 +70,6 @@ const TONE_COLOR: Record<Tone, string> = {
   ok: PRIMARY,
   fail: SECONDARY,
 };
-
-function Action({
-  label,
-  color,
-  filled,
-  disabled,
-  onClick,
-}: Readonly<{
-  label: string;
-  color: string;
-  filled?: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-}>) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      style={{
-        padding: '9px 16px',
-        borderRadius: 10,
-        border: `1.5px solid ${color}`,
-        background: filled ? color : 'transparent',
-        color: filled ? BG : color,
-        fontWeight: 600,
-        fontSize: 13,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.45 : 1,
-        transition: 'opacity 140ms ease-out',
-      }}
-    >
-      {label}
-    </button>
-  );
-}
 
 function Controls() {
   const { setCell, transaction: tx } = useGraph<ElementRecord<NodeData>>();
@@ -186,47 +152,45 @@ function Controls() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-        <Action label="Shuffle · sync" color={PRIMARY} filled disabled={isRunning} onClick={shuffleSync} />
-        <Action label="Cascade · async" color={PRIMARY} disabled={isRunning} onClick={cascadeAsync} />
-        <Action label="Cascade, then fail" color={SECONDARY} disabled={isRunning} onClick={cascadeThenFail} />
-        <Action label="Reset" color="rgba(221, 230, 237, 0.6)" disabled={isRunning} onClick={reset} />
-        <label
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 7,
-            marginLeft: 4,
-            fontSize: 13,
-            color: LIGHT,
-            cursor: isRunning ? 'not-allowed' : 'pointer',
-            opacity: isRunning ? 0.45 : 1,
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={withRollback}
-            disabled={isRunning}
-            onChange={(event) => setWithRollback(event.target.checked)}
-            style={{ accentColor: SECONDARY, width: 15, height: 15 }}
-          />
-          auto-rollback
-        </label>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 9, minHeight: 20 }}>
+    <div className="jj-controls m-3">
+      <button
+        type="button"
+        className="jj-btn jj-btn--primary"
+        disabled={isRunning}
+        onClick={shuffleSync}
+      >
+        Shuffle · sync
+      </button>
+      <button type="button" className="jj-btn" disabled={isRunning} onClick={cascadeAsync}>
+        Cascade · async
+      </button>
+      <button type="button" className="jj-btn" disabled={isRunning} onClick={cascadeThenFail}>
+        Cascade, then fail
+      </button>
+      <button type="button" className="jj-btn jj-btn--ghost" disabled={isRunning} onClick={reset}>
+        Reset
+      </button>
+      <label className="jj-field">
+        <input
+          type="checkbox"
+          checked={withRollback}
+          disabled={isRunning}
+          onChange={(event) => setWithRollback(event.target.checked)}
+          style={{ accentColor: SECONDARY }}
+        />
+        <span className="jj-label">auto-rollback</span>
+      </label>
+      <span className="jj-chip">
         <span
           style={{
-            width: 9,
-            height: 9,
+            width: 8,
+            height: 8,
             borderRadius: '50%',
             background: TONE_COLOR[tone],
-            boxShadow: tone === 'idle' ? 'none' : `0 0 10px ${TONE_COLOR[tone]}`,
-            flexShrink: 0,
           }}
         />
-        <span style={{ fontSize: 13.5, color: LIGHT }}>{message}</span>
-      </div>
+        {message}
+      </span>
     </div>
   );
 }
@@ -234,13 +198,9 @@ function Controls() {
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 760 }}>
+      <div className="flex size-full flex-col">
         <Controls />
-        <Paper
-          style={{ ...PAPER_STYLE, height: 360 }}
-          className={PAPER_CLASSNAME}
-          renderElement={NodeShape}
-        />
+        <Paper className="min-h-0 flex-1" renderElement={NodeShape} />
       </div>
     </GraphProvider>
   );
