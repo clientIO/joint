@@ -60,6 +60,9 @@ type PointerLinkEventParams = WithPointer<LinkEventParams>;
 /** Pointer-style blank-area payload — event + coords on empty paper area. */
 type PointerBlankEventParams = WithPointer<BaseContext>;
 
+/** Focus-style cell-level payload (focusin/focusout) — cell context + event. */
+type FocusCellEventParams = WithHover<CellEventParams>;
+
 /** Hover-style cell-level payload (mouseenter/leave/over/out). */
 type HoverCellEventParams = WithHover<CellEventParams>;
 /** Hover-style element-level payload. */
@@ -179,6 +182,17 @@ const POINTER_CELL_MAP = {
   onLinkContextMenu: 'link:contextmenu',
 } as const;
 
+// Focus enters/leaves a cell when a focusable node inside it (e.g. a `tabindex`
+// element) gains/loses focus. `onCellFocus`/`onCellBlur` map to the paper's
+// `cell:focus` / `cell:blur` events, which are driven by the bubbling
+// `focusin`/`focusout` DOM events — plain `focus`/`blur` do not bubble and so
+// cannot be delegated to cells (the same reason React's own onFocus/onBlur use
+// focusin/focusout under the hood).
+const FOCUS_CELL_MAP = {
+  onCellFocus: 'cell:focus',
+  onCellBlur: 'cell:blur',
+} as const;
+
 const HOVER_CELL_MAP = {
   onCellMouseEnter: 'cell:mouseenter',
   onCellMouseLeave: 'cell:mouseleave',
@@ -280,6 +294,7 @@ const TRANSFORM_MAP = {
 
 const PAPER_EVENT_KEYS = new Set<string>([
   ...Object.keys(POINTER_CELL_MAP),
+  ...Object.keys(FOCUS_CELL_MAP),
   ...Object.keys(HOVER_CELL_MAP),
   ...Object.keys(WHEEL_CELL_MAP),
   ...Object.keys(MAGNET_MAP),
@@ -317,6 +332,10 @@ export interface PaperEventHandlers {
   readonly onCellPointerClick?: (params: PointerCellEventParams) => void;
   readonly onCellPointerDblClick?: (params: PointerCellEventParams) => void;
   readonly onCellContextMenu?: (params: PointerCellEventParams) => void;
+  // focus (cell — fires when a focusable node inside any cell gains/loses focus,
+  // driven by the bubbling focusin/focusout DOM events).
+  readonly onCellFocus?: (params: FocusCellEventParams) => void;
+  readonly onCellBlur?: (params: FocusCellEventParams) => void;
   // pointer (element)
   readonly onElementPointerDown?: (params: PointerElementEventParams) => void;
   readonly onElementPointerMove?: (params: PointerElementEventParams) => void;
@@ -498,6 +517,14 @@ export function addPaperEventListeners(paper: dia.Paper, handlers: PaperEventMap
       x,
       y,
     })
+  );
+
+  subscribeGroup(
+    controller,
+    paper,
+    eventMap,
+    FOCUS_CELL_MAP,
+    (view: dia.CellView, event: dia.Event) => ({ ...baseContext, ...makeCellContext(view), event })
   );
 
   subscribeGroup(

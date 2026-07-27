@@ -207,6 +207,8 @@ export type {
   CellId,
   CellInput,
   CellRef,
+  CellRefList,
+  CellCollection,
   CellRecord,
   AnyCellRecord,
   Computed,
