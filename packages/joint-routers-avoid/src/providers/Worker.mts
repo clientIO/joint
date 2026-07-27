@@ -1,4 +1,5 @@
 import type { dia } from '@joint/core';
+import { util } from '@joint/core';
 import type { Connector, ProviderOptions, Shape } from './Provider.mjs';
 import type { Avoid as AvoidInstance, Router as AvoidRouter, ConnRef, ShapeRef } from 'libavoid-js';
 import { AvoidLib } from 'libavoid-js';
@@ -46,6 +47,13 @@ export type WorkerRequest =
     | WorkerDeleteShapeRequest
     | WorkerDeleteConnectorRequest
     | WorkerUpdateGraphRequest;
+
+// Requests other than `init` are queued and debounced so that bursts of
+// messages (e.g. shape updates while dragging an element) do not each
+// trigger their own `avoidRouter.processTransaction()` call.
+type QueueableWorkerRequest = Exclude<WorkerRequest, WorkerInitRequest>;
+
+const MESSAGE_DEBOUNCE_WAIT = 50;
 
 export interface WorkerReadyResponse {
     type: 'ready';
@@ -120,7 +128,7 @@ function handleInit(options: ProviderOptions): void {
     postResponse({ type: 'ready' });
 }
 
-function handleUpdateShape(shape: Shape, process: boolean): void {
+function handleUpdateShape(shape: Shape): void {
     const { x, y, width, height } = shape.bbox;
     const shapeRect = new avoidInstance.Rectangle(
         new avoidInstance.Point(x, y),
@@ -131,9 +139,6 @@ function handleUpdateShape(shape: Shape, process: boolean): void {
     if (existingShapeRef) {
         // Only update the position and size of the shape.
         avoidRouter.moveShape(existingShapeRef, shapeRect);
-        if (process) {
-            avoidRouter.processTransaction();
-        }
         return;
     }
 
@@ -152,13 +157,9 @@ function handleUpdateShape(shape: Shape, process: boolean): void {
         );
         pinRef.setExclusive(false);
     });
-
-    if (process) {
-        avoidRouter.processTransaction();
-    }
 }
 
-function handleDeleteConnector(connectorId: dia.Cell.ID, process: boolean): void {
+function handleDeleteConnector(connectorId: dia.Cell.ID): void {
     const connRef = connectorRefs[connectorId];
     if (!connRef) {
         postResponse({ type: 'connectorChanged', connectorId: connectorId!, points: [] });
@@ -166,18 +167,14 @@ function handleDeleteConnector(connectorId: dia.Cell.ID, process: boolean): void
     };
     avoidRouter.deleteConnector(connRef);
     delete connectorRefs[connectorId];
-
-    if (process) {
-        avoidRouter.processTransaction();
-    }
 }
 
-function handleUpdateConnector(connector: Connector, process: boolean): void {
+function handleUpdateConnector(connector: Connector): void {
     if (
         connector.sourceId === undefined || connector.sourcePinId === undefined ||
         connector.targetId === undefined || connector.targetPinId === undefined
     ) {
-        handleDeleteConnector(connector.id, process);
+        handleDeleteConnector(connector.id);
         return;
     }
 
@@ -201,10 +198,6 @@ function handleUpdateConnector(connector: Connector, process: boolean): void {
 
     if (existingConnRef) {
         // It was already created, we just updated the endpoints.
-        if (process) {
-            avoidRouter.processTransaction();
-        }
-
         return;
     }
 
@@ -216,60 +209,70 @@ function handleUpdateConnector(connector: Connector, process: boolean): void {
     // @ts-expect-error do not defined in the type definition, but it is present in the actual object
     linksByPointer[connRef.g] = connector.id;
     connRef.setCallback(onAvoidConnectorChanged, connRef);
-
-    if (process) {
-        avoidRouter.processTransaction();
-    }
 }
 
-function handleDeleteShape(shapeId: dia.Cell.ID, process: boolean): void {
+function handleDeleteShape(shapeId: dia.Cell.ID): void {
     const shapeRef = shapeRefs[shapeId];
     if (!shapeRef) return;
     avoidRouter.deleteShape(shapeRef);
     delete shapeRefs[shapeId];
+}
 
-    if (process) {
-        avoidRouter.processTransaction();
+function handleUpdateGraph(shapes: Shape[], connectors: Connector[]): void {
+    shapes.forEach((shape) => handleUpdateShape(shape));
+    connectors.forEach((connector) => handleUpdateConnector(connector));
+}
+
+const messageQueue: QueueableWorkerRequest[] = [];
+
+function handleQueuedMessage(message: QueueableWorkerRequest): void {
+    switch (message.type) {
+        case 'updateShape': {
+            handleUpdateShape(message.shape);
+            break;
+        }
+        case 'updateConnector': {
+            handleUpdateConnector(message.connector);
+            break;
+        }
+        case 'deleteShape': {
+            handleDeleteShape(message.shapeId);
+            break;
+        }
+        case 'deleteConnector': {
+            handleDeleteConnector(message.connectorId);
+            break;
+        }
+        case 'updateGraph': {
+            handleUpdateGraph(message.shapes, message.connectors);
+            break;
+        }
     }
 }
 
-function handleUpdateGraph(shapes: Shape[], connectors: Connector[], process: boolean): void {
-    shapes.forEach((shape) => handleUpdateShape(shape, false));
-    connectors.forEach((connector) => handleUpdateConnector(connector, false));
+// Drains the queued messages, applying each of them, and runs
+// `processTransaction()` at most once for the whole batch.
+const flushMessageQueue = util.debounce(() => {
+    const messages = messageQueue.splice(0, messageQueue.length);
+    if (messages.length === 0) return;
 
-    if (process) {
+    const shouldProcess = messages.some((message) => message.process);
+    messages.forEach(handleQueuedMessage);
+
+    if (shouldProcess) {
         avoidRouter.processTransaction();
     }
-}
+}, MESSAGE_DEBOUNCE_WAIT);
 
 onmessage = async(evt: MessageEvent<WorkerRequest>) => {
     const message = evt.data;
 
-    switch (message.type) {
-        case 'init': {
-            await AvoidLib.load();
-            handleInit(message.options);
-            break;
-        }
-        case 'updateShape': {
-            handleUpdateShape(message.shape, message.process);
-            break;
-        }
-        case 'updateConnector': {
-            handleUpdateConnector(message.connector, message.process);
-            break;
-        }
-        case 'deleteShape': {
-            handleDeleteShape(message.shapeId, message.process);
-            break;
-        }
-        case 'deleteConnector': {
-            handleDeleteConnector(message.connectorId, message.process);
-            break;
-        }
-        case 'updateGraph': {
-            handleUpdateGraph(message.shapes, message.connectors, message.process);
-            break;
-        }
+    if (message.type === 'init') {
+        await AvoidLib.load();
+        handleInit(message.options);
+        return;
     }
+
+    messageQueue.push(message);
+    flushMessageQueue();
 };

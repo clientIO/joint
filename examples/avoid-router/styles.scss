@@ -5,6 +5,34 @@ body {
     height: 100vh;
     margin: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: sans-serif;
+}
+
+.tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 8px 0;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E2E2E2;
+    flex: 0 0 auto;
+}
+
+.tab-button {
+    padding: 8px 16px;
+    border: 1px solid #E2E2E2;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    background: #F3F7F6;
+    color: #464454;
+    cursor: pointer;
+    font-size: 14px;
+
+    &.active {
+        background: #FFFFFF;
+        font-weight: 600;
+    }
 }
 
 .canvas {
@@ -12,7 +40,8 @@ body {
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
 
     .joint-paper {
         border: 1px solid #E2E2E2;

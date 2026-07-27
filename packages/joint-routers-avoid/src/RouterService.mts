@@ -92,10 +92,7 @@ export class RouterService {
         this.connectorRoutes[linkId] = points;
         link.prop('__avoidRouter/reroute', false, { avoidRouter: true });
         link.prop('__avoidRouter/points', points, { avoidRouter: true });
-        const cellView = this.paper.getCellView(link);
-        if (cellView && this.paper.isCellVisible(link)) {
-            cellView.update();
-        }
+        this.updateLinkView(link);
     }
 
     private isAvoidRoutedLink(link: dia.Link): boolean {
@@ -124,6 +121,7 @@ export class RouterService {
         if ('source' in cell.changed || 'target' in cell.changed) {
             if (!cell.isLink() || !this.isAvoidRoutedLink(cell)) return;
             cell.prop('__avoidRouter/reroute', true, { avoidRouter: true });
+            this.updateLinkView(cell);
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
 
@@ -132,6 +130,7 @@ export class RouterService {
             this.paper.model.getConnectedLinks(cell).forEach((link) => {
                 if (this.isAvoidRoutedLink(link)) {
                     link.prop('__avoidRouter/reroute', true, { avoidRouter: true });
+                    this.updateLinkView(link);
                 }
             });
             this.provider.updateShape(this.getAvoidShape(cell));
@@ -224,5 +223,12 @@ export class RouterService {
             this.paper.model.getElements().map((element) => this.getAvoidShape(element)),
             this.paper.model.getLinks().filter((link) => this.isAvoidRoutedLink(link)).map((link) => this.getAvoidConnector(link))
         );
+    }
+
+    private updateLinkView(link: dia.Link): void {
+        const cellView = this.paper.getCellView(link);
+        if (cellView && this.paper.isCellVisible(link)) {
+            cellView.update();
+        }
     }
 }

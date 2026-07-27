@@ -1,6 +1,8 @@
 import { linkTools, elementTools, dia, shapes, highlighters } from '@joint/core';
 import { init as initAvoid } from '@joint/routers-avoid';
 import { Node, Edge, TemporaryEdge } from './shapes';
+import { Message, FlowchartStart, Link as AppLink } from './large-graph-shapes';
+import { largeGraph } from './large-graph-data';
 import ResizeTool from './resize-tool';
 
 // Avoid Docs
@@ -9,17 +11,19 @@ import ResizeTool from './resize-tool';
 // There is a bug in JointJS, that does not allow you to use port
 // ids that are numbers.
 
-export const init = async () => {
+const cellNamespace = {
+    ...shapes,
+    Node,
+    Edge,
+    TemporaryEdge,
+    app: {
+        Message,
+        FlowchartStart,
+        Link: AppLink,
+    },
+};
 
-    const canvasEl = document.getElementById('canvas');
-
-    const cellNamespace = {
-        ...shapes,
-        Node,
-        Edge,
-        TemporaryEdge
-    };
-
+function createPaper(canvasEl, paperOptions = {}) {
     const graph = new dia.Graph({}, { cellNamespace });
 
     const paper = new dia.Paper({
@@ -54,6 +58,47 @@ export const init = async () => {
                 },
             },
         },
+        ...paperOptions,
+    });
+
+    canvasEl.appendChild(paper.el);
+
+    return { graph, paper };
+}
+
+function addLinkInteractionHandlers(paper) {
+    // Add a class to the links when they are being interacted with.
+    // See `styles.css` for the styles.
+
+    paper.on('link:mouseenter', (linkView) => {
+        linkView.addTools(
+            new dia.ToolsView({
+                tools: [
+                    new linkTools.Remove(),
+                    new linkTools.TargetArrowhead(),
+                ],
+            })
+        );
+    });
+
+    paper.on('link:mouseleave', (linkView) => {
+        linkView.removeTools();
+    });
+
+    paper.on('link:pointerdown', (linkView) => {
+        highlighters.addClass.add(linkView, 'line', 'active-link', {
+            className: 'active-link'
+        });
+    });
+
+    paper.on('link:pointerup', (linkView) => {
+        highlighters.addClass.remove(linkView);
+    });
+}
+
+export const initSimpleExample = async (canvasEl) => {
+
+    const { graph, paper } = createPaper(canvasEl, {
         defaultLink: () => new Edge(),
         validateConnection: (
             sourceView,
@@ -78,7 +123,7 @@ export const init = async () => {
         paper,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
-        useWorker: false
+        useWorker: false,
     });
 
     const c1 = new Node({
@@ -153,8 +198,6 @@ export const init = async () => {
 
     graph.resetCells([c1, c2, c3, c4, c5, l1 , l2, l3, l4]);
 
-    canvasEl.appendChild(paper.el);
-
     paper.unfreeze();
     paper.fitToContent({
         useModelGeometry: true,
@@ -193,22 +236,6 @@ export const init = async () => {
         el.findView(paper).addTools(new dia.ToolsView({ tools }));
     }
 
-    // Add tools to the links.
-    paper.on('link:mouseenter', (linkView) => {
-        linkView.addTools(
-            new dia.ToolsView({
-                tools: [
-                    new linkTools.Remove(),
-                    new linkTools.TargetArrowhead(),
-                ],
-            })
-        );
-    });
-
-    paper.on('link:mouseleave', (linkView) => {
-        linkView.removeTools();
-    });
-
     paper.on('blank:pointerdblclick', (evt, x, y) => {
         const node = new Node({
             position: { x: x - 50, y: y - 50 },
@@ -217,16 +244,32 @@ export const init = async () => {
         graph.addCell(node);
     });
 
-    // Add a class to the links when they are being interacted with.
-    // See `styles.css` for the styles.
+    // Add tools to the links.
+    addLinkInteractionHandlers(paper);
+};
 
-    paper.on('link:pointerdown', (linkView) => {
-        highlighters.addClass.add(linkView, 'line', 'active-link', {
-            className: 'active-link'
-        });
+export const initLargeGraphExample = async (canvasEl) => {
+
+    const { graph, paper } = createPaper(canvasEl, {
+        defaultLink: () => new AppLink(),
     });
 
-    paper.on('link:pointerup', (linkView) => {
-        highlighters.addClass.remove(linkView);
+    await initAvoid({
+        paper,
+        shapeBufferDistance: 20,
+        idealNudgingDistance: 10,
+        useWorker: true
     });
+
+    graph.resetCells(largeGraph.cells);
+
+    paper.unfreeze();
+    paper.transformToFitContent({
+        useModelGeometry: true,
+        padding: 50,
+        minScale: 0.1,
+        maxScale: 1,
+    });
+
+    addLinkInteractionHandlers(paper);
 };

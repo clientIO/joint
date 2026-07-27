@@ -21,12 +21,17 @@ export function avoid(_vertices: dia.Point[], _args: unknown, linkView: dia.Link
     }
 
     if (link.prop('__avoidRouter/reroute') === true) {
-        const cachedAnchors = lastAnchors.get(link);
+        return routers.rightAngle(_vertices, {
+            margin: routerService?.margin,
+            // @ts-expect-error not documented
+            useModelMargin: true,
+        }, linkView);
+        /*const cachedAnchors = lastAnchors.get(link);
         if (cachedAnchors) {
             linkView.sourceAnchor = cachedAnchors.sourceAnchor;
             linkView.targetAnchor = cachedAnchors.targetAnchor;
         }
-        return linkView.route;
+        return linkView.route;*/
     }
 
     const updatedRoute = getUpdatedRoute(route, linkView);
@@ -74,8 +79,12 @@ function getLinkAnchorDelta(element: dia.Element, portId: string | null, point: 
     let anchorPosition: dia.Point;
     if (portId) {
         const port = element.getPort(portId);
-        const portPosition = element.getPortsPositions(port.group as string)[portId]!;
-        anchorPosition = element.position().offset(portPosition);
+        if (port) {
+            const portPosition = element.getPortsPositions(port.group as string)[portId]!;
+            anchorPosition = element.position().offset(portPosition);
+        } else {
+            anchorPosition = element.getBBox().center();
+        }
     } else {
         anchorPosition = element.getBBox().center();
     }

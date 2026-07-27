@@ -11,7 +11,12 @@
 </head>
 
 <body>
-    <div id="canvas" class="canvas"></div>
+    <div class="tabs">
+        <button class="tab-button active" data-tab="simple" type="button">Simple graph</button>
+        <button class="tab-button" data-tab="large" type="button">Large graph</button>
+    </div>
+    <div id="canvas-simple" class="canvas"></div>
+    <div id="canvas-large" class="canvas" style="display: none;"></div>
     <script src="bundle.js"></script>
 
 </body>
