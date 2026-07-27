@@ -1,10 +1,7 @@
-import { isUpdater } from '../utils/is';
+/* eslint-disable unicorn/prefer-spread */
 import { simpleScheduler } from '../utils/scheduler';
 import { isStrictEqual } from '../utils/selector-utils';
 import type { CellId, AnyCellRecord } from '../types/cell.types';
-
-/** Update payload accepted by container setters: a new value or a previous-state updater. */
-export type Update<T> = ((previous: T | undefined) => T | undefined) | T;
 
 /**
  * Update payload for array-shaped state, replace or transform-from-previous.
@@ -16,37 +13,54 @@ export type ArrayUpdate<T, Input = T> =
   | ((previous: readonly T[]) => readonly Input[]);
 
 /**
- * Resolves an update value by applying it if it is a function, or returning it directly.
- * @param previous
- * @param updater
+ * A batch of container changes applied in one shot by {@link Container.batchSet}.
+ *
+ * Mirrors the incremental-change shape delivered to `onIncrementalCellsChange`,
+ * so the graph projection can build a single change set and feed it to both the
+ * container and the incremental callback. All three collections are keyed by
+ * cell id; the same id never appears in more than one of them.
  */
-export function getValue<T>(previous: T | undefined, updater: Update<T>): T | undefined {
-  return isUpdater(updater) ? updater(previous) : updater;
+export interface ContainerChangeSet<Cell extends AnyCellRecord> {
+  /** Cells new to the container, in insertion order (appended to the snapshot). */
+  readonly added: ReadonlyMap<CellId, Cell>;
+  /** Cells already in the container whose record reference changed (patched in place). */
+  readonly changed: ReadonlyMap<CellId, Cell>;
+  /** Ids of cells to drop from the container. */
+  readonly removed: ReadonlySet<CellId>;
 }
 
 /** Read-only view of a cell container, supports reads, lookups, and subscriptions. */
 export interface ReadonlyContainer<Cell extends AnyCellRecord> {
-  getVersion: () => number;
-  getAll: () => readonly Cell[];
+  /**
+   * The current immutable snapshot array, built lazily and memoised until the
+   * next commit. Per-id readers should prefer {@link ReadonlyContainer.get};
+   * only whole-list readers need this, and they share one build per commit.
+   */
+  getSnapshot: () => readonly Cell[];
   get: (id: CellId) => Cell | undefined;
   has: (id: CellId) => boolean;
+  /** Number of cells. O(1) — does not materialise the snapshot. */
   getSize: () => number;
-  subscribe: (id: CellId, listener: () => void) => () => void;
-  subscribeToSize: (listener: () => void) => () => void;
-  subscribeToAll: (listener: () => void) => () => void;
+  /**
+   * The list of ids, memoised and stable **across data-only commits** — the
+   * reference changes only when the id SET changes (add/remove). Lets "which ids
+   * exist" readers subscribe without doing O(n) work on a drag.
+   */
+  getIds: () => readonly CellId[];
+  /** Subscribe to changes of a single cell by id (the fast per-cell path). */
+  subscribeById: (id: CellId, listener: () => void) => () => void;
+  /** Subscribe to every commit. */
+  subscribe: (listener: () => void) => () => void;
 }
 
-/** Mutable cell container, extends {@link ReadonlyContainer} with set/delete/reset operations. */
+/** Mutable cell container, extends {@link ReadonlyContainer} with the batch writer. */
 export interface Container<Cell extends AnyCellRecord> extends ReadonlyContainer<Cell> {
-  set: (id: CellId, update: Update<Cell>) => void;
-  delete: (id: CellId) => void;
-  reset: (next: readonly Cell[]) => void;
-  commitChanges: () => void;
+  batchSet: (changeSet: ContainerChangeSet<Cell>) => void;
 }
 
 /**
  * Wraps a container to expose only read and subscribe operations.
- * @param container
+ * @param container - the mutable container to expose read-only.
  */
 export function asReadonlyContainer<Cell extends AnyCellRecord>(
   container: Container<Cell>
@@ -54,132 +68,97 @@ export function asReadonlyContainer<Cell extends AnyCellRecord>(
   return {
     get: container.get,
     has: container.has,
-    getVersion: container.getVersion,
-    getAll: container.getAll,
     getSize: container.getSize,
+    getSnapshot: container.getSnapshot,
+    getIds: container.getIds,
+    subscribeById: container.subscribeById,
     subscribe: container.subscribe,
-    subscribeToSize: container.subscribeToSize,
-    subscribeToAll: container.subscribeToAll,
   };
 }
 
 /**
- * Creates a keyed container with per-id subscriptions and batched change notifications.
+ * Creates a keyed container backed by a `Map` with a **lazily-materialised,
+ * memoised immutable snapshot**.
  *
- * Backed by a mutable `items: T[]` array + `indexById: Map<id, number>` + a
- * monotonic `version` counter. Every mutation is O(1); `reset` is O(n) and is
- * a cold path. Delete uses swap-pop (unstable array order), callers must
- * not rely on insertion order for identity.
+ * `batchSet` mutates only the backing `Map` and invalidates the memoised
+ * snapshot — it is **O(change-set), never O(n)**: no array is copied on a
+ * commit. The snapshot array is (re)built on demand by `getSnapshot()` and
+ * memoised until the next commit, so:
+ *  - per-id readers (`get(id)`, `useCell`) never materialise the array, so a
+ *    drag that only changes cell data is O(change-set) per commit;
+ *  - whole-list readers (`useCells()`) share ONE build per commit;
+ *  - "which ids exist" readers use `getIds()`, which stays a stable reference
+ *    across data-only commits, so they do no work on a drag.
+ *
+ * The memoisation is also what keeps concurrent reads consistent: within a
+ * commit the first `getSnapshot()` builds the array and every other reader gets
+ * the SAME reference, so React never tears across subscribers.
  */
 export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
-  const items: Cell[] = [];
-  const indexById = new Map<CellId, number>();
+  const byId = new Map<CellId, Cell>();
+  // Memoised immutable snapshot; `null` means "dirty — rebuild on next read".
+  let snapshot: readonly Cell[] | null = [];
+  // Memoised id list; invalidated ONLY when the id set changes (add/remove), so
+  // it stays a stable reference across data-only commits (a drag).
+  let idsSnapshot: readonly CellId[] | null = [];
   const listeners = new Map<CellId, Set<() => void>>();
-  const sizeListeners = new Set<() => void>();
-  const fullListeners = new Set<() => void>();
-  // Array for O(1) insertion — dedup happens on commit via the `fired` Set.
-  // A Set-based `changes` was tried but regressed hot insert loops by 15-20%
-  // because `Set.add` is measurably slower than `Array.push` when many
-  // unique ids accumulate between commits (each add does a hash lookup).
-  let changes: CellId[] = [];
-  let previousSize = 0;
-  let version = 0;
+  const allListeners = new Set<() => void>();
+
+  /** Fire the per-id listeners registered for `id` (no-op when none). */
+  function fireId(id: CellId): void {
+    const listenersForId = listeners.get(id);
+    if (!listenersForId) return;
+    for (const listener of listenersForId) listener();
+  }
+
   return {
+    getSnapshot(): readonly Cell[] {
+      // Build once per commit, then hand the SAME reference to every reader.
+      snapshot ??= Array.from(byId.values());
+      return snapshot;
+    },
     get(id: CellId): Cell | undefined {
-      const index = indexById.get(id);
-      return index === undefined ? undefined : items[index];
+      return byId.get(id);
     },
     has(id: CellId): boolean {
-      return indexById.has(id);
+      return byId.has(id);
     },
-    getAll(): readonly Cell[] {
-      return items;
+    getSize(): number {
+      return byId.size;
     },
-    set(id: CellId, update: Update<Cell>) {
-      const index = indexById.get(id);
-      const previous = index === undefined ? undefined : items[index];
-      const value = getValue(previous, update);
-      if (!value) {
-        return;
-      }
-      if (isStrictEqual(previous, value)) {
-        return;
-      }
-      if (index === undefined) {
-        indexById.set(id, items.length);
-        items.push(value);
-      } else {
-        items[index] = value;
-      }
-      changes.push(id);
-      version++;
+    getIds(): readonly CellId[] {
+      idsSnapshot ??= Array.from(byId.keys());
+      return idsSnapshot;
     },
-    delete(id: CellId) {
-      const index = indexById.get(id);
-      if (index === undefined) {
-        return;
+    batchSet({ added, changed, removed }: ContainerChangeSet<Cell>): void {
+      if (changed.size === 0 && added.size === 0 && removed.size === 0) return;
+      // O(change-set): mutate the backing map only. A changed id keeps its Map
+      // position; a removed id is dropped; an added id is appended.
+      //
+      // The id list must invalidate whenever the id SET changes. `added`/`removed`
+      // always change it; a `changed` id is normally already present, but a
+      // producer may route a genuinely-new cell through `changed` (a new link
+      // swept in by a moved element), so detect that here instead of trusting the
+      // bucketing — otherwise `getIds()` would tear from `getSnapshot()`.
+      let idSetChanged = added.size > 0 || removed.size > 0;
+      for (const [id, record] of changed) {
+        if (!byId.has(id)) idSetChanged = true;
+        byId.set(id, record);
       }
-      const lastIndex = items.length - 1;
-      if (index !== lastIndex) {
-        const last = items[lastIndex];
-        items[index] = last;
-        // Stored items are always keyed by id; the optional `id` is for
-        // input shapes only.
-        indexById.set(last.id as CellId, index);
-      }
-      items.pop();
-      indexById.delete(id);
-      changes.push(id);
-      version++;
-    },
-    reset(next: readonly Cell[]) {
-      // Stored items are always keyed by id; the optional `id` is for input
-      // shapes only.
-      for (const previous of items) changes.push(previous.id as CellId);
-      items.length = 0;
-      indexById.clear();
-      let index = 0;
-      for (const item of next) {
-        items.push(item);
-        indexById.set(item.id as CellId, index);
-        changes.push(item.id as CellId);
-        index++;
-      }
-      version++;
-    },
-    getVersion() {
-      return version;
-    },
-    getSize() {
-      return items.length;
-    },
-    commitChanges() {
-      if (changes.length === 0) {
-        return;
-      }
-      const fired = new Set<CellId>();
-      for (const id of changes) {
-        if (fired.has(id)) continue;
-        fired.add(id);
-        const listenersForId = listeners.get(id);
-        if (!listenersForId) {
-          continue;
-        }
-        for (const listener of listenersForId) {
-          listener();
-        }
-      }
-      if (previousSize !== items.length) {
-        previousSize = items.length;
-        for (const listener of sizeListeners) {
-          listener();
-        }
-      }
-      for (const listener of fullListeners) listener();
+      for (const id of removed) byId.delete(id);
+      for (const [id, record] of added) byId.set(id, record);
+      // Invalidate the memoised record snapshot every commit; invalidate the id
+      // list only when the id set actually changed (so a drag keeps it stable).
+      snapshot = null;
+      if (idSetChanged) idsSnapshot = null;
 
-      changes = [];
+      // Wake the touched ids' subscribers, then the all-subscribers once.
+      for (const id of changed.keys()) fireId(id);
+      for (const id of added.keys()) fireId(id);
+      for (const id of removed) fireId(id);
+      for (const listener of allListeners) listener();
     },
-    subscribe(id: CellId, listener: () => void) {
+    subscribeById(id: CellId, listener: () => void) {
       let listenersForId = listeners.get(id);
       if (!listenersForId) {
         listenersForId = new Set();
@@ -188,21 +167,17 @@ export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
       listenersForId.add(listener);
       return () => {
         listenersForId?.delete(listener);
-        if (listenersForId?.size === 0) {
+        // Guard the map delete against a re-subscribe replacing this id's Set
+        // between the first and a repeated unsubscribe call.
+        if (listenersForId?.size === 0 && listeners.get(id) === listenersForId) {
           listeners.delete(id);
         }
       };
     },
-    subscribeToAll(listener: () => void) {
-      fullListeners.add(listener);
+    subscribe(listener: () => void) {
+      allListeners.add(listener);
       return () => {
-        fullListeners.delete(listener);
-      };
-    },
-    subscribeToSize(listener: () => void) {
-      sizeListeners.add(listener);
-      return () => {
-        sizeListeners.delete(listener);
+        allListeners.delete(listener);
       };
     },
   };

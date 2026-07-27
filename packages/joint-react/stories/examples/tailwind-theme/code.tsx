@@ -2,7 +2,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { useState, useCallback, useRef } from 'react';
-import { type CellRecord, GraphProvider, Paper, selectElementSize, useCell, linkMarkerArrow } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  Paper,
+  selectElementSize,
+  useCell,
+  linkMarkerArrow,
+} from '@joint/react';
 import { PAPER_CLASSNAME as DEFAULT_PAPER_CLASSNAME } from 'storybook-config/theme';
 
 interface NodeUserData {
@@ -36,7 +43,7 @@ const PORT_STYLE = {
     forest:fill-emerald-400
     ocean:fill-sky-400
     sunset:fill-amber-600
-  `
+  `,
 } as const;
 
 const ELEMENT_SIZE = { width: 120, height: 50 };
@@ -53,14 +60,14 @@ const DEFAULT_LINK = {
         forest:fill-emerald-600
         ocean:fill-sky-400
         sunset:fill-amber-500
-      `
+      `,
     }),
     className: `
       stroke-slate-400
       forest:stroke-emerald-600
       ocean:stroke-sky-400
       sunset:stroke-amber-500
-    `
+    `,
   },
   labelStyle: {
     backgroundPadding: { horizontal: 6, vertical: 4 },
@@ -81,9 +88,11 @@ const DEFAULT_LINK = {
       forest:stroke-emerald-700
       ocean:stroke-sky-600
       sunset:stroke-amber-400
-    `
-  }
+    `,
+  },
 } as const;
+
+const DEFAULT_LINK_FN = () => DEFAULT_LINK;
 
 const initialCells: ReadonlyArray<CellRecord<NodeUserData>> = [
   {
@@ -209,7 +218,9 @@ const themeLabels: Record<Theme, string> = {
   sunset: 'Sunset',
 };
 
-const PAPER_CLASSNAME = DEFAULT_PAPER_CLASSNAME + `
+const PAPER_CLASSNAME =
+  DEFAULT_PAPER_CLASSNAME +
+  `
   bg-white
   forest:bg-emerald-950
   ocean:bg-sky-950
@@ -253,11 +264,7 @@ function Diagram() {
         ))}
       </fieldset>
       <GraphProvider cells={cells} onCellsChange={setCells}>
-        <Paper style={{ height: 240 }}
-          className={PAPER_CLASSNAME}
-          renderElement={Node}
-          defaultLink={() => DEFAULT_LINK}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={Node} defaultLink={DEFAULT_LINK_FN} />
       </GraphProvider>
     </div>
   );

@@ -41,7 +41,7 @@ const sizeOf = (id: string) => storeRef!.graph.getCell(id)?.get('size');
 const dataOf = (id: string) => storeRef!.graph.getCell(id)?.get('data');
 const countCommits = () => {
   let commits = 0;
-  const unsubscribe = storeRef!.graphProjection.cells.subscribeToAll(() => {
+  const unsubscribe = storeRef!.graphProjection.cells.subscribe(() => {
     commits += 1;
   });
   return { get: () => commits, unsubscribe };
@@ -69,7 +69,7 @@ describe('useGraph().transaction', () => {
     // One commit fires the subscribers once → React schedules one re-render.
     // (Counting commits is StrictMode-proof, unlike raw render counts.)
     let commits = 0;
-    const unsubscribe = storeRef!.graphProjection.cells.subscribeToAll(() => {
+    const unsubscribe = storeRef!.graphProjection.cells.subscribe(() => {
       commits += 1;
     });
 

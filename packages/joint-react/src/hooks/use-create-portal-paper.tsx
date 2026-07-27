@@ -16,8 +16,8 @@ import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
 import { usePaperStore } from './use-paper';
 import { useInternalData } from './use-stores';
-import { useContainerKeys } from './use-container-keys';
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCells } from './use-cells';
+import { useCellIds } from './use-cell-ids';
 import type { LinkRecord } from '../types/cell.types';
 import type { PaperStore } from '../store';
 import { PaperView } from '../mvc/paper';
@@ -150,18 +150,10 @@ function LinkItem({
   readonly renderLink: RenderLink;
 }) {
   const id = useContext(CellIdContext);
-  const store = useGraphStore();
-  const { cells } = store.graphProjection;
-  const subscribe = useCallback(
-    (listener: () => void) => (id === undefined ? () => {} : cells.subscribe(id, listener)),
-    [cells, id]
-  );
-  const getSnapshot = useCallback(() => {
-    if (id === undefined) return EMPTY_DATA;
-    const record = cells.get(id) as LinkRecord | undefined;
-    return record?.data ?? EMPTY_DATA;
-  }, [cells, id]);
-  const data = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  // Subscribe to just this link's `data` slice (missing-tolerant — a nullish id
+  // or a not-yet / no-longer present record resolves to EMPTY_DATA rather than
+  // throwing, unlike useCell).
+  const data = useCells(id, (cell) => cell?.data ?? EMPTY_DATA);
   if (!portalElement || id === undefined) {
     return null;
   }
@@ -179,7 +171,6 @@ const defaultRenderElement = (data: unknown) => {
   const label = (data as { label?: string } | undefined)?.label;
   return <HTMLBox>{label}</HTMLBox>;
 };
-
 /**
  * Creates and manages a React-backed JointJS paper instance lifecycle.
  * @param options - Hook options with paper settings and behavior overrides.
@@ -220,9 +211,10 @@ export function useCreatePortalPaper(
   const graphStore = useGraphStore();
   const areElementsMeasured = useAreElementsMeasured();
 
-  // Subscribe to cells-container size — only re-renders when cells are added or removed.
-  // Partition the id list by type so element / link portals can be rendered separately.
-  const allCellIds = useContainerKeys(graphStore.graphProjection.cells);
+  // The set of cell ids — stable across data-only commits (a drag does zero work
+  // here), a new reference only on add/remove. Partition by type for portals.
+  const allCellIds = useCellIds();
+
   const { elementIds, linkIds } = useMemo(() => {
     const elements: CellId[] = [];
     const links: CellId[] = [];

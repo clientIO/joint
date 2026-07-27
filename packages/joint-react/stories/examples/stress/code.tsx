@@ -1,6 +1,13 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { HTMLBox, GraphProvider, Paper, type CellRecord, type ElementRecord, type LinkRecord } from '@joint/react';
+import {
+  HTMLBox,
+  GraphProvider,
+  Paper,
+  type CellRecord,
+  type ElementRecord,
+  type LinkRecord,
+} from '@joint/react';
 import '../index.css';
 import React, { useCallback, useState, startTransition } from 'react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -18,7 +25,11 @@ const RENDER_ELEMENT_STYLE: React.CSSProperties = {
 };
 
 function RenderElement({ label }: Readonly<StressNodeData>) {
-  return <HTMLBox useModelGeometry style={RENDER_ELEMENT_STYLE}>{label}</HTMLBox>;
+  return (
+    <HTMLBox useModelGeometry style={RENDER_ELEMENT_STYLE}>
+      {label}
+    </HTMLBox>
+  );
 }
 
 function buildInitialCells(xNodes = 15, yNodes = 30): ReadonlyArray<CellRecord<StressNodeData>> {
@@ -83,7 +94,7 @@ function Main({
 
   return (
     <div className="flex flex-row relative">
-      <Paper style={{ height: 600 }} id="main-view" className={PAPER_CLASSNAME} renderElement={RenderElement}/>
+      <Paper id="main-view" className={PAPER_CLASSNAME} renderElement={RenderElement} />
       <div className="absolute top-4 right-4">
         <button
           type="button"

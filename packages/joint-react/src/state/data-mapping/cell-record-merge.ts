@@ -1,6 +1,5 @@
 import type { dia } from '@joint/core';
-import type { ElementJSONInit, LinkJSONInit, AnyCellRecord } from '../../types/cell.types';
-import type { Container } from '../../store/state-container';
+import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
 import { isShallowEqual, isPositionEqual, isSizeEqual } from '../../utils/selector-utils';
 import { mapAttributesToElement } from './element-mapper';
 import { mapAttributesToLink } from './link-mapper';
@@ -20,7 +19,7 @@ import { mapAttributesToLink } from './link-mapper';
  * @param next - freshly mapped record from the graph
  * @returns merged record; may be `previous` itself when nothing changed
  */
-function mergeCellRecord<Element extends ElementJSONInit, Link extends LinkJSONInit>(
+export function mergeCellRecord<Element extends ElementJSONInit, Link extends LinkJSONInit>(
   previous: Element | Link | undefined,
   next: Element | Link
 ): Element | Link {
@@ -79,23 +78,4 @@ export function toCellRecord<Element extends ElementJSONInit, Link extends LinkJ
   return cell.isElement()
     ? (mapAttributesToElement(cell.attributes) as Element)
     : (mapAttributesToLink(cell.attributes) as Link);
-}
-
-/**
- * Write a cell into a records container via `mergeCellRecord`, preserving
- * sub-ref identity. The merge fast-path returns `previous` itself when
- * nothing observable changed; the container then skips notifying subscribers.
- * @param container - destination records container
- * @param cell - graph cell to write
- * @returns the merged record (may be the previous reference when unchanged)
- */
-export function writeCellToContainer<Cell extends AnyCellRecord>(
-  container: Container<Cell>,
-  cell: dia.Cell
-): Cell {
-  container.set(cell.id, (previous) => {
-    const next = toCellRecord(cell);
-    return mergeCellRecord(previous, next as Cell) as Cell;
-  });
-  return container.get(cell.id) as Cell;
 }
