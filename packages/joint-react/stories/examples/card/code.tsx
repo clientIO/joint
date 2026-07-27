@@ -1,9 +1,9 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import '../index.css';
 import { useCallback, useRef } from 'react';
 import type { CellRecord, TransformElementLayout } from '@joint/react';
 import { GraphProvider, Paper, useCellId, useMeasureElement, type RenderElement } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+
+const PRIMARY = '#ED2637';
 
 type Data = { label: string };
 const initialCells: ReadonlyArray<CellRecord<Data>> = [
@@ -80,7 +80,7 @@ function CardRenderer(data: Readonly<Data>) {
 
 function Main() {
   const renderElement: RenderElement<Data> = useCallback((data) => <CardRenderer {...data} />, []);
-  return <Paper style={{ height: 280 }} className={PAPER_CLASSNAME} renderElement={renderElement} />;
+  return <Paper className="size-full" renderElement={renderElement} />;
 }
 
 export default function App() {

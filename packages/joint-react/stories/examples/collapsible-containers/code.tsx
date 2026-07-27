@@ -1,9 +1,7 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useCallback, useEffect } from 'react';
 import { dia, elementTools } from '@joint/core';
+import type { CellRecord } from '@joint/react';
 import {
-  type CellRecord,
   GraphProvider,
   jsx,
   Paper,
@@ -13,8 +11,6 @@ import {
   SVGText,
   selectElementSize,
 } from '@joint/react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import '../index.css';
 
 // ============================================================================
 // Constants
@@ -23,15 +19,20 @@ import '../index.css';
 const HEADER_HEIGHT = 30;
 const PADDING = 10;
 
-// Colors
-const CONTAINER_HEADER_COLOR = '#4666E5';
-const CONTAINER_BODY_COLOR = '#FCFCFC';
-const CONTAINER_STROKE_COLOR = '#DDDDDD';
-const CHILD_BODY_COLOR = '#F9DBDF';
-const CHILD_STROKE_COLOR = '#FF4365';
+// Colors — unified dark diagram palette.
+const CONTAINER_HEADER_COLOR = '#243445';
+const CONTAINER_BODY_COLOR = '#121c26';
+const CONTAINER_STROKE_COLOR = '#2f4053';
+const CHILD_BODY_COLOR = '#1c2836';
+const CHILD_STROKE_COLOR = '#3c4f63';
 const SHADOW_COLOR = '#000000';
-const TEXT_COLOR = '#222222';
-const LINK_COLOR = '#222222';
+const TEXT_COLOR = '#DDE6ED';
+const LINK_COLOR = '#8697A6';
+
+// Static style objects, hoisted so they keep a stable reference across renders.
+const POINTER_CURSOR_STYLE = { cursor: 'pointer' };
+const HEADER_TEXT_SHADOW_STYLE = { textShadow: '1px 1px #222222' };
+const HEADER_TEXT_WRAP = { maxLineCount: 1, ellipsis: '*' };
 
 // ============================================================================
 // Utilities
@@ -202,7 +203,7 @@ function ExpandButton({
   const d = collapsed ? 'M -4 0 4 0 M 0 -4 0 4' : 'M -4 0 4 0';
 
   return (
-    <g transform={transform} onClick={onClick} style={{ cursor: 'pointer' }}>
+    <g transform={transform} onClick={onClick} style={POINTER_CURSOR_STYLE}>
       <rect
         fill={SHADOW_COLOR}
         fillOpacity={0.2}
@@ -262,12 +263,9 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerData>) {
         fontSize={16}
         fontFamily="sans-serif"
         letterSpacing={1}
-        style={{ textShadow: '1px 1px #222222' }}
+        style={HEADER_TEXT_SHADOW_STYLE}
         width={width - 40}
-        textWrap={{
-          maxLineCount: 1,
-          ellipsis: '*',
-        }}
+        textWrap={HEADER_TEXT_WRAP}
       >
         {title}
       </SVGText>
@@ -407,26 +405,26 @@ function Main() {
     }
   }, [graph]);
 
+  const showRemoveTool = useCallback(({ view }: { view: dia.ElementView }) => {
+    view.removeTools();
+    view.addTools(
+      new dia.ToolsView({
+        tools: [new elementTools.Remove({ useModelGeometry: true, x: 0, y: 0 })],
+      })
+    );
+  }, []);
+
+  const hideRemoveTool = useCallback(({ view }: { view: dia.ElementView }) => {
+    view.removeTools();
+  }, []);
+
   return (
-    <Paper style={{ backgroundColor: '#F3F7F6', height: 500 }}
-      className={PAPER_CLASSNAME}
+    <Paper
+      className="size-full"
       renderElement={renderElement}
       cellVisibility={cellVisibility}
-      onElementMouseEnter={({ view }) => {
-        view.removeTools();
-        view.addTools(
-          new dia.ToolsView({
-            tools: [
-              new elementTools.Remove({
-                useModelGeometry: true,
-                y: 0,
-                x: 0,
-              }),
-            ],
-          })
-        );
-      }}
-      onElementMouseLeave={({ view }) => view.removeTools()}
+      onElementMouseEnter={showRemoveTool}
+      onElementMouseLeave={hideRemoveTool}
     />
   );
 }

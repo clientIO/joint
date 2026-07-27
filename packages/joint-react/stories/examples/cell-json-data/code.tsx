@@ -1,31 +1,44 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { shapes, dia } from '@joint/core';
-import '../index.css';
 import {
-  type CellRecord,
   GraphProvider,
-  useCell,
   Paper,
+  ElementModel,
+  useCell,
+  useCells,
+  useGraph,
+  selectElementSize,
+  type CellRecord,
   type ElementRecord,
   type RenderElement,
-  useCells,
-  ElementModel,
-  selectElementSize,
-  useGraph,
 } from '@joint/react';
 import { useCallback, useMemo } from 'react';
 
-// ============================================================================
-// Types
-// ============================================================================
+// Colors — unified dark diagram palette.
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const SUCCESS = '#36A18B';
+const NODE_STROKE_COLOR = '#3c4f63';
+const TEXT_COLOR = '#DDE6ED';
+const LINK_COLOR = '#8697A6';
+const LABEL_BACKGROUND_COLOR = '#243445';
 
-const SECONDARY = '#6366f1';
+/** Raw `standard.Link` attrs — dark line with a matching label chip. */
+const LINK_ATTRS = { line: { stroke: LINK_COLOR } };
+
+/** Builds a raw label JSON for `standard.Link`, themed to the dark palette. */
+function linkLabelJSON(text: string) {
+  return {
+    attrs: {
+      text: { text, fill: TEXT_COLOR },
+      rect: { fill: LABEL_BACKGROUND_COLOR },
+    },
+  };
+}
 
 /**
- * Element user data: raw JointJS cell JSON — nested `position`/`size`,
- * with custom properties (`label`, `color`) at the top level.
- * The mapper is near-identity.
+ * Element user data stored as raw JointJS cell JSON: the built-in
+ * `position`/`size`/`type` fields live at the top level, custom props
+ * (`label`, `color`) go inside `data`.
  */
 interface ElementData {
   readonly [key: string]: unknown;
@@ -33,60 +46,47 @@ interface ElementData {
   readonly color: string;
 }
 
-// ============================================================================
-// Data
-// ============================================================================
-
-const initialCells: ReadonlyArray<CellRecord<ElementData, unknown, 'MyElementModel', 'standard.Link'>> = [
+const initialCells: ReadonlyArray<
+  CellRecord<ElementData, unknown, 'MyElementModel', 'standard.Link'>
+> = [
   {
     id: 'node-1',
+    type: 'MyElementModel',
     position: { x: 70, y: 100 },
     size: { width: 160, height: 60 },
-    type: 'MyElementModel',
-    data: {
-      label: 'Node 1',
-      color: PRIMARY,
-    },
+    data: { label: 'Node 1', color: PRIMARY },
   },
   {
     id: 'node-2',
+    type: 'MyElementModel',
     position: { x: 370, y: 70 },
     size: { width: 160, height: 60 },
-    type: 'MyElementModel',
-    data: {
-      label: 'Node 2',
-      color: SECONDARY,
-    },
+    data: { label: 'Node 2', color: SECONDARY },
   },
   {
     id: 'node-3',
+    type: 'MyElementModel',
     position: { x: 220, y: 250 },
     size: { width: 160, height: 60 },
-    type: 'MyElementModel',
-    data: {
-      label: 'Node 3',
-      color: '#10b981',
-    },
+    data: { label: 'Node 3', color: SUCCESS },
   },
   {
     id: 'link-1',
     type: 'standard.Link',
     source: { id: 'node-1' },
     target: { id: 'node-2' },
-    labels: [{ attrs: { text: { text: 'Link 1' } } }],
+    attrs: LINK_ATTRS,
+    labels: [linkLabelJSON('Link 1')],
   },
   {
     id: 'link-2',
     type: 'standard.Link',
     source: { id: 'node-1' },
     target: { id: 'node-3' },
-    labels: [{ attrs: { text: { text: 'Link 1' } } }],
+    attrs: LINK_ATTRS,
+    labels: [linkLabelJSON('Link 2')],
   },
 ];
-
-// ============================================================================
-// Element Shape
-// ============================================================================
 
 function ElementShape({ label, color }: Readonly<ElementData>) {
   const { width, height } = useCell(selectElementSize);
@@ -98,7 +98,7 @@ function ElementShape({ label, color }: Readonly<ElementData>) {
         width={width}
         height={height}
         fill={color}
-        stroke="#333"
+        stroke={NODE_STROKE_COLOR}
         strokeWidth={2}
       />
       <text
@@ -106,7 +106,7 @@ function ElementShape({ label, color }: Readonly<ElementData>) {
         y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill="white"
+        fill={TEXT_COLOR}
         fontSize={14}
         fontWeight="bold"
       >
@@ -116,47 +116,35 @@ function ElementShape({ label, color }: Readonly<ElementData>) {
   );
 }
 
-// ============================================================================
-// Data Panel — shows live raw cell JSON
-// ============================================================================
-
+/** Reads every element back from the store and renders its live cell JSON. */
 function DataPanel() {
   const { isElement } = useGraph<ElementRecord<ElementData>>();
-  const elements = useCells((cells): Array<[string, ElementRecord<ElementData>]> => {
-    const result: Array<[string, ElementRecord<ElementData>]> = [];
+  const elements = useCells((cells) => {
+    const result: Array<ElementRecord<ElementData>> = [];
     for (const cell of cells) {
-      if (isElement(cell)) {
-        result.push([String(cell.id), cell as ElementRecord<ElementData>]);
-      }
+      if (isElement(cell)) result.push(cell);
     }
     return result;
   });
   return (
-    <div className="p-4 min-w-[200px] text-sm font-mono">
-      <h3 className="text-base font-bold mb-3">Cell JSON Data</h3>
-      {elements.map(([id, element]) => (
-        <div key={id} className="mb-3 p-2 rounded bg-gray-800">
-          <div className="font-bold mb-1">{element.data.label}</div>
+    <aside className="w-56 shrink-0 overflow-auto border-l border-white/10 p-4 font-mono text-sm">
+      <h3 className="mb-3 text-base font-bold">Cell JSON data</h3>
+      {elements.map((element) => (
+        <div key={element.id} className="mb-3 rounded-lg bg-white/5 p-3">
+          <div className="mb-1 font-bold">{element.data.label}</div>
           <div>
-            position: {'{'}x: {Math.round(element.position?.x ?? 0)}, y:{' '}
-            {Math.round(element.position?.y ?? 0)}
-            {'}'}
+            position: {'{'} x: {Math.round(element.position?.x ?? 0)}, y:{' '}
+            {Math.round(element.position?.y ?? 0)} {'}'}
           </div>
-          <div className="text-gray-400 text-xs mt-1">
+          <div className="mt-1 text-xs opacity-60">
             size: {element.size?.width ?? 0} &times; {element.size?.height ?? 0}
           </div>
-          <div className="text-gray-400 text-xs">type: {element.type}</div>
+          <span className="jj-chip mt-2">{element.type}</span>
         </div>
       ))}
-    </div>
+    </aside>
   );
 }
-
-// ============================================================================
-// Main
-// ============================================================================
-
-const PAPER_STYLE = { flex: 1 };
 
 function Main() {
   const renderElement: RenderElement<ElementData> = useCallback(
@@ -164,32 +152,22 @@ function Main() {
     []
   );
   return (
-    <div className="flex w-full h-full">
-      <Paper style={{ ...PAPER_STYLE, height: 400 }}
-        className={PAPER_CLASSNAME}
-        renderElement={renderElement}
-      />
+    <div className="flex size-full">
+      <Paper className="min-w-0 flex-1" renderElement={renderElement} />
       <DataPanel />
     </div>
   );
 }
 
-// ============================================================================
-// App
-// ============================================================================
-
 export default function App() {
-  const graph = useMemo(() => {
-    return new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...shapes,
-          MyElementModel: ElementModel,
-        },
-      }
-    );
-  }, []);
+  const graph = useMemo(
+    () =>
+      new dia.Graph(
+        {},
+        { cellNamespace: { ...shapes, MyElementModel: ElementModel } }
+      ),
+    []
+  );
   return (
     <GraphProvider graph={graph} initialCells={initialCells}>
       <Main />

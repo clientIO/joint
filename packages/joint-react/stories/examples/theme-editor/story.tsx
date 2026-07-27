@@ -1,25 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import { makeRootDocumentation } from '../../utils/make-story';
-import CodeRaw from './code?raw';
+import codeRaw from './code?raw';
+
+const meta = {
+  title: 'Examples/Theme Editor',
+  component: Code,
+  tags: ['example'],
+  parameters: {
+    showcase: {
+      description:
+        'Edit the built-in --jj-* CSS theme variables live in a side panel and watch the paper, links, labels, and nodes restyle instantly.',
+      apiUrl: getAPILink('Paper'),
+      canvasHeight: 560,
+      code: codeRaw,
+    },
+  },
+} satisfies Meta<typeof Code>;
+
+export default meta;
 
 export type Story = StoryObj<typeof Code>;
-
-export default {
-    title: 'Examples/Theme Editor',
-    component: Code,
-    tags: ['example'],
-    parameters: makeRootDocumentation({
-        code: CodeRaw,
-        description:
-            'Live CSS variable editor for the built-in `styles.css` theme system. ' +
-            'Switch between light and dark presets — any variable you have manually overridden ' +
-            'in the form will be preserved across theme changes. ' +
-            'Hover over elements or links to reveal element tools (boundary + remove) ' +
-            'and link tools (vertex handles + remove). ' +
-            'Styled via `--jj-*` CSS variables from `styles.css`.',
-    }),
-} satisfies Meta<typeof Code>;
 
 export const Default: Story = {};

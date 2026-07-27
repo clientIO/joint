@@ -1,15 +1,20 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["src/index.ts!", "src/internal.ts!", "stories/stories-utils.ts!"],
-  "ignore": ["**/*.css", ".storybook/**", "stories/utils/get-api-documentation-link.tsx"],
+  "entry": [
+    "src/internal.ts!",
+    ".storybook/{main,manager,preview}.ts",
+    "stories/**/story.tsx",
+    "stories/**/*.mdx"
+  ],
+  "ignore": ["**/*.css"],
   "ignoreDependencies": [
     "react-scan",
     "@babel/preset-env",
     "@babel/preset-react",
     "@babel/preset-typescript",
     "babel-plugin-react-compiler",
-    "react18",
-    "react18-dom"
+    "react18-dom",
+    "@storybook/react"
   ],
   "ignoreExportsUsedInFile": false
 }

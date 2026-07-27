@@ -1,20 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-export type Story = StoryObj<typeof Code>;
-import { makeRootDocumentation } from '../../utils/make-story';
+import codeRaw from './code?raw';
 
-import CodeRaw from './code?raw';
-
-export default {
+const meta = {
   title: 'Examples/Element Ports',
   component: Code,
   tags: ['example'],
-  parameters: makeRootDocumentation({
-    code: CodeRaw,
-    description:
-      'Demonstrates the simplified element ports API. Define ports as a flat array with `cx`, `cy`, `color`, and `shape` properties instead of the verbose JointJS ports format.',
-  }),
+  parameters: {
+    showcase: {
+      description:
+        'Give elements labeled ports with custom shape, color, and position, then edit each port live from a side panel.',
+      apiUrl: getAPILink('ElementPort', 'Types'),
+      canvasHeight: 640,
+      code: codeRaw,
+    },
+  },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

@@ -1,32 +1,41 @@
 import { create } from 'storybook/theming';
-export const PRIMARY = '#ED2637';
-export const BG = '#131E29';
-export const SECONDARY = '#FF9505';
-export const LIGHT = '#DDE6ED';
-export const TEXT = '#DDE6ED';
+
+// Brands the Storybook chrome (sidebar, toolbar). Diagram colors live in
+// `stories/ui/tokens.css`; individual demos keep their own local color consts.
+const BRAND = '#ED2637';
+const TEXT = '#DDE6ED';
+const APP_BG = '#0C141C';
+const APP_CONTENT = '#101B25';
+
 export const theme = create({
   base: 'dark',
-  brandTitle: 'JointJS react',
-  fontBase: 'Ppfraktionsans, sans-serif',
+  brandTitle: 'JointJS React',
+  fontBase: 'Ppfraktionsans, ui-sans-serif, system-ui, sans-serif',
+  fontCode: 'ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, monospace',
   brandUrl: 'https://www.jointjs.com/',
   brandImage:
     'https://cdn.prod.website-files.com/63061d4ee85b5a18644f221c/633045c1d726c7116dcbe582_JJS_logo.svg',
   brandTarget: '_self',
-  colorPrimary: PRIMARY,
-  appBg: BG,
-  appContentBg: BG,
+
+  colorPrimary: BRAND,
+  colorSecondary: BRAND,
+
+  appBg: APP_BG,
+  appContentBg: APP_CONTENT,
+  appPreviewBg: APP_BG,
+  appBorderColor: 'rgba(221,230,237,0.10)',
+  appBorderRadius: 10,
+
   textColor: TEXT,
-  colorSecondary: PRIMARY,
-  barTextColor: TEXT,
-  barSelectedColor: PRIMARY,
-  barHoverColor: PRIMARY,
-  barBg: BG,
+  textMutedColor: '#93A4B3',
+
+  barBg: APP_BG,
+  barTextColor: '#93A4B3',
+  barSelectedColor: BRAND,
+  barHoverColor: BRAND,
+
+  inputBg: APP_CONTENT,
+  inputBorder: 'rgba(221,230,237,0.14)',
+  inputTextColor: TEXT,
+  inputBorderRadius: 8,
 });
-
-export const BUTTON_CLASSNAME =
-  'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2 text-sm';
-
-export const PAPER_CLASSNAME =
-  'border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-4 mr-2 h-[400px] w-full';
-
-export const PAPER_STYLE = { backgroundColor: BG } as const;

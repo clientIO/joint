@@ -11,7 +11,6 @@ import {
   type LinkMarkerName,
   useGraph,
 } from '@joint/react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 
@@ -451,10 +450,13 @@ function renderElement(data: Data) {
 // ── Diagram ───────────────────────────────────────────────────────────────────
 
 const INTERACTIVE_OPTIONS = { labelMove: true } as const;
-const PAPER_HEIGHT = 560;
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 2;
 const ZOOM_STEP = 0.1;
+
+// Intentional inline background: theming the paper surface via `--jj-paper-color`
+// is the point of this demo, so it must win over the storybook's transparent paper.
+const paperStyle = { backgroundColor: 'var(--jj-paper-color)' } as const;
 
 interface DiagramProps {
   readonly zoom: number;
@@ -465,8 +467,8 @@ function Diagram({ zoom }: Readonly<DiagramProps>) {
 
   return (
     <Paper
-      className={PAPER_CLASSNAME}
-      style={{ height: PAPER_HEIGHT }}
+      className="min-w-0 flex-1"
+      style={paperStyle}
       renderElement={renderElement}
       defaultLink={DEFAULT_LINK}
       interactive={INTERACTIVE_OPTIONS}
@@ -523,104 +525,67 @@ function Diagram({ zoom }: Readonly<DiagramProps>) {
 interface ColorSelectProps {
   readonly value: string;
   readonly onChange: (hex: string) => void;
-  readonly isDark: boolean;
 }
 
-function ColorSelect({ value, onChange, isDark }: Readonly<ColorSelectProps>) {
+function ColorSelect({ value, onChange }: Readonly<ColorSelectProps>) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const current = PALETTE.find((c) => (c.value ?? c.hex) === value);
+  const current = PALETTE.find((color) => (color.value ?? color.hex) === value);
+
+  const toggleOpen = useCallback(() => setOpen((previous) => !previous), []);
 
   useEffect(() => {
     if (!open) return;
-    const onMouseDown = (event_: MouseEvent) => {
-      if (!containerRef.current?.contains(event_.target as Node)) {
-        setOpen(false);
-      }
+    const onMouseDown = (event: MouseEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', onMouseDown);
     return () => document.removeEventListener('mousedown', onMouseDown);
   }, [open]);
 
-  const triggerBg = isDark ? '#2a2a3d' : '#ffffff';
-  const triggerBorder = isDark ? '#585b70' : 'rgba(0,0,0,0.18)';
-  const triggerColor = isDark ? '#cdd6f4' : '#1f2937';
-  const dropdownBg = isDark ? '#2a2a3d' : '#ffffff';
-  const groupLabelColor = isDark ? '#585b70' : '#c1cfda';
-  const hoverBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
-  const selectedBg = isDark ? 'rgba(137,180,250,0.15)' : 'rgba(67,110,210,0.1)';
-
   return (
-    <div ref={containerRef} style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-      {/* Trigger */}
-      <button
-        type="button"
-        onClick={() => setOpen((previous) => !previous)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          width: '100%', padding: '3px 7px',
-          border: `1px solid ${triggerBorder}`, borderRadius: 5,
-          background: triggerBg, color: triggerColor,
-          cursor: 'pointer', fontSize: 11,
-        }}
-      >
-        <span style={{
-          width: 14, height: 14, borderRadius: 3, flexShrink: 0,
-          backgroundColor: current?.hex ?? value, border: '1px solid rgba(0,0,0,0.2)',
-        }} />
-        <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {current?.name ?? value}
-        </span>
-        <span style={{ fontSize: 8, opacity: 0.5, flexShrink: 0 }}>{'▾'}</span>
+    <div ref={containerRef} className="relative min-w-0 flex-1">
+      <button type="button" className="jj-select flex w-full items-center gap-2" onClick={toggleOpen}>
+        <span
+          className="size-3.5 shrink-0 rounded-[3px] border border-black/20"
+          style={{ backgroundColor: current?.hex ?? value }}
+        />
+        <span className="min-w-0 flex-1 truncate text-left">{current?.name ?? value}</span>
+        <span className="shrink-0 text-[8px] opacity-50">▾</span>
       </button>
 
-      {/* Dropdown */}
       {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 3px)', left: 0, right: 0,
-          zIndex: 200, maxHeight: 220, overflowY: 'auto',
-          backgroundColor: dropdownBg,
-          border: `1px solid ${triggerBorder}`,
-          borderRadius: 8,
-          boxShadow: '0 6px 24px rgba(0,0,0,0.18)',
-        }}>
+        <div className="absolute inset-x-0 top-full z-[200] mt-[3px] max-h-56 overflow-y-auto rounded-[--radius-control] border border-hairline-strong bg-surface-2 shadow-[0_8px_28px_rgba(0,0,0,0.45)]">
           {PALETTE_GROUPS.map((group) => (
             <div key={group.label}>
-              <div style={{
-                padding: '5px 8px 2px',
-                fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.06em', color: groupLabelColor,
-              }}>
+              <div className="px-2 pb-0.5 pt-2 text-[9px] font-bold uppercase tracking-[0.06em] text-ink-faint">
                 {group.label}
               </div>
-              {group.colors.map((color) => (
-                <button
-                  key={color.name}
-                  type="button"
-                  onClick={() => { onChange(color.value ?? color.hex); setOpen(false); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    width: '100%', padding: '4px 8px',
-                    border: 'none', cursor: 'pointer', textAlign: 'left',
-                    background: (color.value ?? color.hex) === value ? selectedBg : 'transparent',
-                    color: triggerColor,
-                  }}
-                  onMouseEnter={(event_) => {
-                    if ((color.value ?? color.hex) !== value) (event_.currentTarget as HTMLButtonElement).style.background = hoverBg;
-                  }}
-                  onMouseLeave={(event_) => {
-                    (event_.currentTarget as HTMLButtonElement).style.background = (color.value ?? color.hex) === value ? selectedBg : 'transparent';
-                  }}
-                >
-                  <span style={{
-                    width: 14, height: 14, borderRadius: 3, flexShrink: 0,
-                    backgroundColor: color.hex, border: '1px solid rgba(0,0,0,0.2)',
-                  }} />
-                  <span style={{ fontSize: 11, flex: 1 }}>{color.name}</span>
-                  <span style={{ fontSize: 10, opacity: 0.4, fontFamily: 'monospace', flexShrink: 0 }}>{color.hex}</span>
-                </button>
-              ))}
+              {group.colors.map((color) => {
+                const colorValue = color.value ?? color.hex;
+                const isSelected = colorValue === value;
+                return (
+                  <button
+                    key={color.name}
+                    type="button"
+                    className={`flex w-full items-center gap-2 px-2 py-1 text-left hover:bg-white/5 ${
+                      isSelected ? 'bg-brand/15' : ''
+                    }`}
+                    onClick={() => {
+                      onChange(colorValue);
+                      setOpen(false);
+                    }}
+                  >
+                    <span
+                      className="size-3.5 shrink-0 rounded-[3px] border border-black/20"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                    <span className="flex-1 text-[11px] text-ink">{color.name}</span>
+                    <span className="shrink-0 font-mono text-[10px] text-ink-faint">{color.hex}</span>
+                  </button>
+                );
+              })}
             </div>
           ))}
         </div>
@@ -634,36 +599,20 @@ function ColorSelect({ value, onChange, isDark }: Readonly<ColorSelectProps>) {
 interface VariableControlProps {
   readonly cssVariable: VariableDefinition;
   readonly value: string;
-  readonly isDark: boolean;
-  readonly inputBg: string;
-  readonly inputBorder: string;
-  readonly inputColor: string;
   readonly onSet: (name: string, value: string) => void;
 }
 
-function VariableControl({ cssVariable, value, isDark, inputBg, inputBorder, inputColor, onSet }: Readonly<VariableControlProps>) {
-  const sharedInputStyle = {
-    flex: 1, minWidth: 0, padding: '3px 7px',
-    border: `1px solid ${inputBorder}`, borderRadius: 5,
-    fontSize: 11, backgroundColor: inputBg, color: inputColor, outline: 'none',
-  };
-
+function VariableControl({ cssVariable, value, onSet }: Readonly<VariableControlProps>) {
   if (cssVariable.type === 'color') {
-    return (
-      <ColorSelect
-        value={value}
-        onChange={(hex) => onSet(cssVariable.name, hex)}
-        isDark={isDark}
-      />
-    );
+    return <ColorSelect value={value} onChange={(hex) => onSet(cssVariable.name, hex)} />;
   }
 
   if (cssVariable.type === 'cssvar') {
     return (
       <select
+        className="jj-select min-w-0 flex-1 text-[11px]"
         value={value}
-        onChange={(event_) => onSet(cssVariable.name, event_.target.value)}
-        style={{ ...sharedInputStyle, cursor: 'pointer' }}
+        onChange={(event) => onSet(cssVariable.name, event.target.value)}
       >
         {cssVariable.options?.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
@@ -672,15 +621,16 @@ function VariableControl({ cssVariable, value, isDark, inputBg, inputBorder, inp
     );
   }
 
+  const isNumber = cssVariable.type === 'number';
   return (
     <input
-      type={cssVariable.type === 'number' ? 'number' : 'text'}
+      className="jj-input min-w-0 flex-1 text-[11px]"
+      type={isNumber ? 'number' : 'text'}
       value={value}
-      min={cssVariable.type === 'number' ? 0.5 : undefined}
-      max={cssVariable.type === 'number' ? 10 : undefined}
-      step={cssVariable.type === 'number' ? 0.5 : undefined}
-      onChange={(event_) => onSet(cssVariable.name, event_.target.value)}
-      style={sharedInputStyle}
+      min={isNumber ? 0.5 : undefined}
+      max={isNumber ? 10 : undefined}
+      step={isNumber ? 0.5 : undefined}
+      onChange={(event) => onSet(cssVariable.name, event.target.value)}
     />
   );
 }
@@ -688,132 +638,68 @@ function VariableControl({ cssVariable, value, isDark, inputBg, inputBorder, inp
 interface FormPanelProps {
   readonly themeVars: CSSVars;
   readonly overrides: CSSVars;
-  readonly isDark: boolean;
   readonly onSet: (name: string, value: string) => void;
   readonly onReset: (name: string) => void;
   readonly onResetAll: () => void;
 }
 
-function FormPanel({ themeVars, overrides, isDark, onSet, onReset, onResetAll }: Readonly<FormPanelProps>) {
-  const bg = isDark ? 'rgba(30,30,46,0.97)' : 'rgba(255,255,255,0.97)';
-  const border = isDark ? '#45475a' : '#dde6ed';
-  const headingColor = isDark ? '#cdd6f4' : '#1a2733';
-  const subtleColor = isDark ? '#a6adc8' : '#6b7280';
-  const divider = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
-  const inputBg = isDark ? '#2a2a3d' : '#ffffff';
-  const inputBorder = isDark ? '#585b70' : 'rgba(0,0,0,0.18)';
-  const inputColor = isDark ? '#cdd6f4' : '#1f2937';
-
+function FormPanel({ themeVars, overrides, onSet, onReset, onResetAll }: Readonly<FormPanelProps>) {
   const hasOverrides = Object.keys(overrides).length > 0;
 
   return (
-    <div style={{
-      width: '100%',
-      marginTop: 12,
-      backgroundColor: bg,
-      border: `1px solid ${border}`,
-      borderRadius: 12,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-    }}>
-      {/* Header */}
-      <div style={{
-        padding: '10px 14px',
-        borderBottom: `1px solid ${divider}`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: headingColor, letterSpacing: '-0.01em' }}>
-          CSS Variables
-        </span>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex items-center justify-between border-b border-hairline px-3 py-2">
+        <span className="text-[12px] font-semibold text-ink">CSS Variables</span>
         {hasOverrides && (
-          <button
-            type="button"
-            onClick={onResetAll}
-            style={{
-              fontSize: 10, padding: '2px 7px', cursor: 'pointer',
-              border: `1px solid ${inputBorder}`, borderRadius: 6,
-              background: 'transparent', color: subtleColor,
-            }}
-          >
+          <button type="button" className="jj-btn jj-btn--ghost jj-btn--sm" onClick={onResetAll}>
             Reset all
           </button>
         )}
       </div>
 
-      {/* Sections */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-      {SECTIONS.map((section, sectionIndex) => {
-        const isLeftColumn = sectionIndex % 2 === 0;
-        const lastRowStart = SECTIONS.length % 2 === 0 ? SECTIONS.length - 2 : SECTIONS.length - 1;
-        const isLastRow = sectionIndex >= lastRowStart;
-        return (
-        <div
-          key={section.title}
-          style={{
-            padding: '8px 14px',
-            borderRight: isLeftColumn ? `1px solid ${divider}` : undefined,
-            borderBottom: isLastRow ? undefined : `1px solid ${divider}`,
-          }}
-        >
-          <div style={{
-            fontSize: 10, fontWeight: 700, color: subtleColor,
-            textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6,
-          }}>
-            {section.title}
-          </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
+        {SECTIONS.map((section) => (
+          <div key={section.title} className="mb-4 last:mb-0">
+            <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.06em] text-ink-faint">
+              {section.title}
+            </div>
 
-          {section.vars.map((cssVariable) => {
-            const value = overrides[cssVariable.name] ?? themeVars[cssVariable.name] ?? CSS_DEFAULTS[cssVariable.name] ?? '';
-            const isOverridden = cssVariable.name in overrides;
+            {section.vars.map((cssVariable) => {
+              const value =
+                overrides[cssVariable.name] ??
+                themeVars[cssVariable.name] ??
+                CSS_DEFAULTS[cssVariable.name] ??
+                '';
+              const isOverridden = cssVariable.name in overrides;
+              const themeValue = themeVars[cssVariable.name] ?? CSS_DEFAULTS[cssVariable.name] ?? '';
 
-            const displayLabel = cssVariable.name.replace(/^--jj-/, '');
-
-            return (
-              <div key={cssVariable.name} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                <label
-                  title={cssVariable.name}
-                  style={{
-                    width: 155, flexShrink: 0, fontSize: 11, color: subtleColor,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}
-                >
-                  {displayLabel}
-                  {isOverridden && (
-                    <span style={{ marginLeft: 3, fontSize: 9, color: '#89b4fa' }}>●</span>
-                  )}
-                </label>
-
-                <VariableControl
-                  cssVariable={cssVariable}
-                  value={value}
-                  isDark={isDark}
-                  inputBg={inputBg}
-                  inputBorder={inputBorder}
-                  inputColor={inputColor}
-                  onSet={onSet}
-                />
-
-                {isOverridden && (
-                  <button
-                    type="button"
-                    onClick={() => onReset(cssVariable.name)}
-                    title={`Reset to ${themeVars[cssVariable.name]}`}
-                    style={{
-                      fontSize: 9, padding: '2px 4px', cursor: 'pointer',
-                      border: `1px solid ${inputBorder}`, borderRadius: 4,
-                      background: 'transparent', color: subtleColor, lineHeight: 1, flexShrink: 0,
-                    }}
+              return (
+                <div key={cssVariable.name} className="mb-1.5 flex items-center gap-2">
+                  <label
+                    title={cssVariable.name}
+                    className="flex w-[128px] shrink-0 items-center gap-1 text-[11px] text-ink-muted"
                   >
-                    ✕
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      );
-      })}
+                    <span className="min-w-0 truncate">{cssVariable.name.replace(/^--jj-/, '')}</span>
+                    {isOverridden && <span className="shrink-0 text-brand">●</span>}
+                  </label>
+
+                  <VariableControl cssVariable={cssVariable} value={value} onSet={onSet} />
+
+                  {isOverridden && (
+                    <button
+                      type="button"
+                      className="jj-btn jj-btn--ghost jj-btn--sm shrink-0"
+                      title={`Reset to ${themeValue}`}
+                      onClick={() => onReset(cssVariable.name)}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -864,70 +750,53 @@ export default function App() {
 
   const resetAll = useCallback(() => setOverrides({}), []);
 
-  const toggleButtonStyle = useMemo(() => ({
-    display: 'inline-flex' as const,
-    alignItems: 'center' as const,
-    gap: 6,
-    padding: '5px 14px',
-    cursor: 'pointer' as const,
-    borderRadius: 20,
-    border: 'none' as const,
-    fontSize: 13,
-    fontWeight: 500,
-    background: isDark ? '#313244' : '#e0e7ff',
-    color: isDark ? '#cdd6f4' : '#4338ca',
-    transition: 'background 0.2s, color 0.2s',
-  }), [isDark]);
-
-  const zoomButtonStyle = useMemo(() => ({
-    display: 'inline-flex' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    width: 26, height: 26,
-    cursor: 'pointer' as const,
-    borderRadius: 6,
-    border: `1px solid ${isDark ? '#585b70' : 'rgba(0,0,0,0.18)'}`,
-    background: isDark ? '#313244' : '#e0e7ff',
-    color: isDark ? '#cdd6f4' : '#4338ca',
-    fontSize: 15, fontWeight: 700,
-  }), [isDark]);
-
-  const zoomLabelStyle = useMemo(() => ({
-    minWidth: 40, textAlign: 'center' as const,
-    fontSize: 12, cursor: 'pointer' as const,
-    color: isDark ? '#a6adc8' : '#6b7280',
-    fontVariantNumeric: 'tabular-nums' as const,
-  }), [isDark]);
-
-  const dividerStyle = useMemo(() => ({
-    width: 1, height: 20,
-    background: isDark ? '#45475a' : '#dde6ed',
-  }), [isDark]);
-
   return (
-    <div style={effectiveVars as CSSProperties}>
-      <div style={{ marginBottom: 10, display: 'flex', gap: 8, alignItems: 'center' }}>
-        <button type="button" onClick={toggleTheme} style={toggleButtonStyle}>
-          {isDark ? '☀️ Light' : '🌙 Dark'}
-        </button>
-        <div style={dividerStyle} />
-        <button type="button" onClick={zoomOut} style={zoomButtonStyle} title="Zoom out">−</button>
-        <button type="button" onClick={resetZoom} style={zoomLabelStyle} title="Reset zoom">
-          {Math.round(zoom * 100)}%
-        </button>
-        <button type="button" onClick={zoomIn} style={zoomButtonStyle} title="Zoom in">+</button>
-      </div>
+    <div className="flex size-full" style={effectiveVars as CSSProperties}>
       <GraphProvider initialCells={initialCells}>
         <Diagram zoom={zoom} />
       </GraphProvider>
-      <FormPanel
-        themeVars={themeVars}
-        overrides={overrides}
-        isDark={isDark}
-        onSet={setVariable}
-        onReset={resetVariable}
-        onResetAll={resetAll}
-      />
+
+      <aside className="flex w-[340px] shrink-0 flex-col border-l border-hairline bg-surface">
+        <div className="flex items-center gap-2 border-b border-hairline p-3">
+          <button type="button" className="jj-btn jj-btn--sm" onClick={toggleTheme}>
+            {isDark ? '☀️ Light' : '🌙 Dark'}
+          </button>
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              type="button"
+              className="jj-btn jj-btn--ghost jj-btn--sm"
+              onClick={zoomOut}
+              aria-label="Zoom out"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              className="jj-btn jj-btn--ghost jj-btn--sm min-w-[52px]"
+              onClick={resetZoom}
+              title="Reset zoom"
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+            <button
+              type="button"
+              className="jj-btn jj-btn--ghost jj-btn--sm"
+              onClick={zoomIn}
+              aria-label="Zoom in"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        <FormPanel
+          themeVars={themeVars}
+          overrides={overrides}
+          onSet={setVariable}
+          onReset={resetVariable}
+          onResetAll={resetAll}
+        />
+      </aside>
     </div>
   );
 }

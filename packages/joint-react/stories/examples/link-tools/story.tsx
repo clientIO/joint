@@ -1,18 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-export type Story = StoryObj<typeof Code>;
-import { makeRootDocumentation } from '../../utils/make-story';
+import codeRaw from './code?raw';
 
-import CodeRaw from './code?raw';
-
-export default {
+const meta = {
   title: 'Examples/Link tools',
   component: Code,
   tags: ['example'],
-  parameters: makeRootDocumentation({
-    code: CodeRaw,
-  }),
+  parameters: {
+    showcase: {
+      canvasHeight: 380,
+      description:
+        'Attach interactive link tools — a boundary, editable vertices, a custom JSX button, and a draggable arrowhead — that appear when hovering over a link.',
+      apiUrl: getAPILink('jsx'),
+      code: codeRaw,
+    },
+  },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

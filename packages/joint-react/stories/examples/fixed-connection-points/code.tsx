@@ -1,10 +1,26 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { useEffect, useRef } from 'react';
-import type { CellRecord, LinkStyle } from '@joint/react';
-import { GraphProvider, useCell, jsx, Paper, resolveLinkMarker, selectElementSize, linkRoutingOrthogonal } from '@joint/react';
-import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
+import { useCallback, useEffect, useRef } from 'react';
 import { dia, elementTools, linkTools, highlighters, g } from '@joint/core';
+import {
+  GraphProvider,
+  Paper,
+  useCell,
+  jsx,
+  resolveLinkMarker,
+  selectElementSize,
+  linkRoutingOrthogonal,
+} from '@joint/react';
+import type { CanConnectOptions, CellRecord, ConnectionStrategy, LinkStyle } from '@joint/react';
+
+// Colors — unified dark diagram palette.
+const BG = '#131E29';
+const PRIMARY = '#ED2637';
+const TEXT = '#DDE6ED';
+const LINK_COLOR = '#8697A6';
+const ANCHOR_FILL = '#FF9505';
+const ANCHOR_STROKE = BG;
+
+/** Delay (ms) before hover tools fade out, so the pointer can travel to them. */
+const TOOLS_REMOVE_DELAY = 1000;
 
 const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   straightWhenDisconnected: false,
@@ -16,14 +32,9 @@ const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
 /** Distance (px) to shift the dropped link-end away from the shape edge. */
 const ANCHOR_MARGIN = resolveLinkMarker('arrow')?.length ?? 0;
 
-const DEFAULT_LINK_STYLE: LinkStyle = { color: LIGHT, width: 2, targetMarker: 'arrow' };
+const DEFAULT_LINK_STYLE: LinkStyle = { color: LINK_COLOR, width: 2, targetMarker: 'arrow' };
 const DEFAULT_LINK = { style: DEFAULT_LINK_STYLE };
 
-import '../index.css';
-
-// ----------------------------------------------------------------------------
-// Type Definitions
-// ----------------------------------------------------------------------------
 const ShapeTypes = {
   square: 'square',
   rectangle: 'rectangle',
@@ -37,17 +48,7 @@ interface ShapeData {
   readonly label?: string;
 }
 
-// ----------------------------------------------------------------------------
-// Colors
-// ----------------------------------------------------------------------------
-const GRID_COLOR = '#1a2938';
-const ANCHOR_FILL = '#f6f740';
-const ANCHOR_STROKE = '#131e29';
-
-// ----------------------------------------------------------------------------
-// Anchor Helper Functions
-// ----------------------------------------------------------------------------
-
+/** Fixed anchor points for a shape, optionally shifted outward by `margin`. */
 function getAnchors(shapeType: ShapeType, width: number, height: number, margin = 0): dia.Point[] {
   switch (shapeType) {
     case ShapeTypes.square: {
@@ -89,6 +90,7 @@ function getAnchors(shapeType: ShapeType, width: number, height: number, margin 
   }
 }
 
+/** Pick the anchor nearest to a point expressed in the shape's local space. */
 function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.Point {
   let minDistance = Infinity;
   let [closest] = anchors;
@@ -102,9 +104,6 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
   return closest;
 }
 
-// ----------------------------------------------------------------------------
-// Initial readonly CellRecord[]
-// ----------------------------------------------------------------------------
 const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   {
     id: 'square1',
@@ -183,9 +182,7 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
   },
 ];
 
-// ----------------------------------------------------------------------------
-// Custom Highlighter
-// ----------------------------------------------------------------------------
+/** Draws every available anchor as a dot while a link is dragged over a shape. */
 const AnchorsHighlighter = dia.HighlighterView.extend({
   tagName: 'g',
   attributes: {
@@ -207,9 +204,6 @@ const AnchorsHighlighter = dia.HighlighterView.extend({
   },
 });
 
-// ----------------------------------------------------------------------------
-// Shapes
-// ----------------------------------------------------------------------------
 function Rectangle({ label }: Readonly<ShapeData>) {
   const { width, height } = useCell(selectElementSize);
   return (
@@ -267,9 +261,6 @@ function Ellipse({ label }: Readonly<ShapeData>) {
   );
 }
 
-// ----------------------------------------------------------------------------
-// Element Rendering
-// ----------------------------------------------------------------------------
 function RenderElement(data: Readonly<ShapeData>) {
   switch (data.shapeType) {
     case ShapeTypes.square:
@@ -282,9 +273,6 @@ function RenderElement(data: Readonly<ShapeData>) {
   }
 }
 
-// ----------------------------------------------------------------------------
-// Tool Markup
-// ----------------------------------------------------------------------------
 const anchorButtonMarkup = jsx(
   <circle r={6} stroke={ANCHOR_STROKE} strokeWidth={4} fill={ANCHOR_FILL} cursor="pointer" />
 );
@@ -299,10 +287,18 @@ const removeButtonMarkup = jsx(
   </g>
 );
 
-// ----------------------------------------------------------------------------
-// Tools
-// ----------------------------------------------------------------------------
-function getElementTools(elementView: dia.ElementView) {
+const VertexHandle = linkTools.Vertices.VertexHandle.extend({
+  attributes: {
+    r: 6,
+    fill: ANCHOR_FILL,
+    stroke: ANCHOR_STROKE,
+    strokeWidth: 2,
+    cursor: 'move',
+  },
+});
+
+/** One Connect tool per anchor so a new link can be started from a fixed point. */
+function getElementTools(elementView: dia.ElementView): elementTools.Connect[] {
   const { model } = elementView;
   const { width, height } = model.size();
   const shapeType = model.prop('data/shapeType') as ShapeType;
@@ -318,21 +314,9 @@ function getElementTools(elementView: dia.ElementView) {
   );
 }
 
-function getLinkTools(_linkView: dia.LinkView) {
-  const VertexHandle = linkTools.Vertices.VertexHandle.extend({
-    attributes: {
-      r: 6,
-      fill: ANCHOR_FILL,
-      stroke: ANCHOR_STROKE,
-      strokeWidth: 2,
-      cursor: 'move',
-    },
-  });
-
-  const tools: dia.ToolView[] = [
-    new linkTools.Vertices({
-      handleClass: VertexHandle,
-    }),
+function getLinkTools(): dia.ToolView[] {
+  return [
+    new linkTools.Vertices({ handleClass: VertexHandle }),
     new linkTools.Remove({
       distance: -40,
       markup: removeButtonMarkup,
@@ -343,13 +327,33 @@ function getLinkTools(_linkView: dia.LinkView) {
       visibility: (view) => view.getConnectionLength() > 200,
     }),
   ];
-
-  return tools;
 }
 
-// ----------------------------------------------------------------------------
-// Main Component
-// ----------------------------------------------------------------------------
+/** Snap a dropped link end to the fixed anchor nearest the drop point. */
+const connectionStrategy: ConnectionStrategy = ({ end, model, dropPoint, endType }) => {
+  const element = model as dia.Element;
+  const { width, height } = element.size();
+  const shapeType = element.prop('data/shapeType') as ShapeType;
+  const margin = endType === 'target' ? ANCHOR_MARGIN : 0;
+  const anchors = getAnchors(shapeType, width, height, margin);
+  const relativePoint = element.getRelativePointFromAbsolute(dropPoint);
+  const anchor = findClosestAnchor(anchors, relativePoint);
+  return {
+    id: end.id,
+    anchor: {
+      name: 'modelCenter',
+      args: {
+        dx: anchor.x - width / 2,
+        dy: anchor.y - height / 2,
+      },
+    },
+  };
+};
+
+const HIGHLIGHTING: dia.Paper.Options['highlighting'] = { connecting: { name: 'anchors' } };
+const HIGHLIGHTER_NAMESPACE = { ...highlighters, anchors: AnchorsHighlighter };
+const VALIDATE_CONNECTION: CanConnectOptions = { linkLimit: 'none' };
+
 function Main() {
   const currentToolsViewRef = useRef<dia.ToolsView | null>(null);
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
@@ -363,82 +367,63 @@ function Main() {
     };
   }, []);
 
+  const showTools = useCallback(
+    ({ model, view, paper }: { model: dia.Cell; view: dia.CellView; paper: dia.Paper }) => {
+      paper.removeTools();
+
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+
+      const tools = model.isLink() ? getLinkTools() : getElementTools(view as dia.ElementView);
+
+      const toolsView = new dia.ToolsView({ tools });
+      view.addTools(toolsView);
+      currentToolsViewRef.current = toolsView;
+    },
+    []
+  );
+
+  const fadeOutTools = useCallback(() => {
+    timeoutIdRef.current = setTimeout(() => {
+      currentToolsViewRef.current?.remove();
+      currentToolsViewRef.current = null;
+      timeoutIdRef.current = null;
+    }, TOOLS_REMOVE_DELAY);
+
+    currentToolsViewRef.current?.el.classList.add(
+      'opacity-0',
+      'transition-opacity',
+      'duration-300',
+      'delay-300'
+    );
+  }, []);
+
+  const hideTools = useCallback(({ view }: { view: dia.ElementView }) => {
+    view.removeTools();
+  }, []);
+
   return (
-    <Paper style={{ ...PAPER_STYLE, width: '100%', height: 650 }}
-      onCellMouseEnter={({ model, view, paper }) => {
-        paper.removeTools();
-
-        if (timeoutIdRef.current) {
-          clearTimeout(timeoutIdRef.current);
-          timeoutIdRef.current = null;
-        }
-
-        const tools = model.isLink()
-          ? getLinkTools(view as dia.LinkView)
-          : getElementTools(view as dia.ElementView);
-
-        const toolsView = new dia.ToolsView({ tools });
-        view.addTools(toolsView);
-        currentToolsViewRef.current = toolsView;
-      }}
-      onCellMouseLeave={() => {
-        timeoutIdRef.current = setTimeout(() => {
-          currentToolsViewRef.current?.remove();
-          currentToolsViewRef.current = null;
-          timeoutIdRef.current = null;
-        }, 1000);
-
-        currentToolsViewRef.current?.el.classList.add(
-          'opacity-0',
-          'transition-opacity',
-          'duration-300',
-          'delay-300'
-        );
-      }}
-      onElementPointerMove={({ view }) => view.removeTools()}
-      className={PAPER_CLASSNAME}
+    <Paper
+      className="size-full"
       renderElement={RenderElement}
       gridSize={20}
-      drawGrid={{ name: 'mesh', args: { color: GRID_COLOR } }}
       linkPinning={false}
       linkRouting={ORTHOGONAL_LINKS}
-      // Connection strategy - find closest anchor point
-      connectionStrategy={({ end, model, dropPoint, endType }) => {
-        const element = model as dia.Element;
-        const { width, height } = element.size();
-        const shapeType = element.prop('data/shapeType') as ShapeType;
-        const margin = endType === 'target' ? ANCHOR_MARGIN : 0;
-        const anchors = getAnchors(shapeType, width, height, margin);
-        const relativePoint = element.getRelativePointFromAbsolute(dropPoint);
-        const anchor = findClosestAnchor(anchors, relativePoint);
-        return {
-          anchor: {
-            name: 'modelCenter',
-            args: {
-              dx: anchor.x - width / 2,
-              dy: anchor.y - height / 2,
-            },
-          },
-          id: end.id,
-        };
-      }}
-      validateConnection={{ linkLimit: 'none' }}
+      connectionStrategy={connectionStrategy}
+      validateConnection={VALIDATE_CONNECTION}
       snapLinks
       defaultLink={DEFAULT_LINK}
-      // Highlighting configuration
-      highlighting={{
-        connecting: {
-          name: 'anchors',
-        },
-      }}
-      highlighterNamespace={{ ...highlighters, anchors: AnchorsHighlighter }}
+      highlighting={HIGHLIGHTING}
+      highlighterNamespace={HIGHLIGHTER_NAMESPACE}
+      onCellMouseEnter={showTools}
+      onCellMouseLeave={fadeOutTools}
+      onElementPointerMove={hideTools}
     />
   );
 }
 
-// ----------------------------------------------------------------------------
-// App Component
-// ----------------------------------------------------------------------------
 export default function App() {
   return (
     <GraphProvider initialCells={initialCells}>

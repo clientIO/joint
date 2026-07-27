@@ -1,27 +1,24 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
+import codeRaw from './code?raw';
 
-import RawCode from './code?raw';
-export type Story = StoryObj<typeof Code>;
-
-export default {
-    title: 'Examples/Tailwind Theme',
-    component: Code,
-    tags: ['example'],
-    parameters: {
-        docs: {
-            description: {
-                story:
-                    'Demonstrates CSS theming with Tailwind v4 CSS variables. ' +
-                    'The `tailwind-theme.css` maps `--jj-*` to Tailwind variables ' +
-                    'like `--color-slate-500`. Light/dark toggle switches the palette.',
-            },
-            source: {
-                code: RawCode,
-            },
-        },
+const meta = {
+  title: 'Examples/Tailwind Theme',
+  component: Code,
+  tags: ['example'],
+  parameters: {
+    showcase: {
+      description:
+        'Theme nodes, ports, links, and labels with Tailwind utility classes and switch between four palettes by toggling a variant class on the wrapper.',
+      apiUrl: getAPILink('Paper'),
+      code: codeRaw,
     },
+  },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

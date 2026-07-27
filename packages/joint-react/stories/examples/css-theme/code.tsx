@@ -1,22 +1,20 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
-  type CellRecord,
   GraphProvider,
-  useCell,
   Paper,
-  type RenderElement,
+  useCell,
   selectElementSize,
+  type CellRecord,
+  type RenderElement,
 } from '@joint/react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-// Plain CSS overrides for light/dark (no Tailwind)
+// Plain CSS custom properties drive the theme (no Tailwind) — see theme-overrides.css.
 import './theme-overrides.css';
 
-type NodeData = {
-  readonly label: string;
-  readonly [key: string]: unknown;
-};
+type NodeData = { readonly label: string };
+
+// Intentional inline background: theming the paper surface is the point of this demo.
+const paperStyle = { background: 'var(--paper-bg)' };
 
 const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
   {
@@ -47,8 +45,7 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
     position: { x: 510, y: 60 },
     size: { width: 120, height: 50 },
   },
-  // Links: no explicit color/width — CSS variables provide styling.
-  // One link overrides color to show per-link precedence.
+  // Links with no explicit color/width inherit their styling from CSS variables.
   {
     id: 'a→b',
     type: 'link',
@@ -73,16 +70,13 @@ const initialCells: ReadonlyArray<CellRecord<NodeData>> = [
     style: { targetMarker: 'arrow' },
     labelMap: { status: { text: 'approved' } },
   },
+  // One link overrides the color inline — an explicit prop beats the CSS variable.
   {
     id: 'c→d',
     type: 'link',
     source: { id: 'c' },
     target: { id: 'd' },
-    style: {
-      color: '#f59e0b', // explicit override — inline style beats CSS variables
-      width: 3,
-      targetMarker: 'arrow',
-    },
+    style: { color: '#f59e0b', width: 3, targetMarker: 'arrow' },
     labelMap: { status: { text: 'pending' } },
   },
 ];
@@ -113,15 +107,11 @@ function Node({ label }: Readonly<{ label: string }>) {
   );
 }
 
+const renderElement: RenderElement<NodeData> = (data) => <Node label={data.label} />;
+
 function Diagram() {
-  const [cells, setCells] = useState<ReadonlyArray<CellRecord<NodeData>>>(initialCells);
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  const renderElement: RenderElement<NodeData> = useCallback(
-    (data) => <Node label={data.label} />,
-    []
-  );
 
   const toggleTheme = useCallback(() => {
     setIsDark((previous) => {
@@ -132,43 +122,25 @@ function Diagram() {
   }, []);
 
   return (
-    <div ref={wrapperRef} className="css-theme">
-      <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-        <button
-          type="button"
-          onClick={toggleTheme}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '5px 14px',
-            cursor: 'pointer',
-            borderRadius: 20,
-            border: 'none',
-            fontSize: 13,
-            fontWeight: 500,
-            background: isDark ? '#312e81' : '#e0e7ff',
-            color: isDark ? '#c7d2fe' : '#4338ca',
-            transition: 'background 0.2s, color 0.2s',
-          }}
-        >
-          {isDark ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark'}
+    <div ref={wrapperRef} className="css-theme flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <button type="button" className="jj-btn" onClick={toggleTheme}>
+          {isDark ? '☀️ Light' : '🌙 Dark'}
         </button>
-        <span style={{ fontSize: 12, color: '#94a3b8' }}>
-          Links inherit color from <code>--jj-link-color</code>. The amber link overrides via{' '}
+        <span className="jj-label">
+          Links inherit <code>--jj-link-color</code>; the amber link overrides it with a{' '}
           <code>color</code> prop.
         </span>
       </div>
-      <GraphProvider cells={cells} onCellsChange={setCells}>
-        <Paper style={{ background: 'var(--paper-bg)', height: 240 }}
-          className={PAPER_CLASSNAME}
-          renderElement={renderElement}
-        />
-      </GraphProvider>
+      <Paper className="min-h-0 flex-1" style={paperStyle} renderElement={renderElement} />
     </div>
   );
 }
 
 export default function App() {
-  return <Diagram />;
+  return (
+    <GraphProvider initialCells={initialCells}>
+      <Diagram />
+    </GraphProvider>
+  );
 }

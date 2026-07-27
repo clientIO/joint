@@ -1,8 +1,33 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback, useMemo, useState, type ChangeEvent } from 'react';
 import type { CellRecord, ElementPort, ElementRecord, LinkRecord } from '@joint/react';
-import { GraphProvider, Paper, HTMLBox, linkRoutingSmooth, linkMarkerArrow, linkMarkerArrowOpen, linkMarkerArrowSunken, linkMarkerArrowQuill, linkMarkerArrowDouble, linkMarkerCircle, linkMarkerDiamond, linkMarkerLine, linkMarkerCross, linkMarkerFork, linkMarkerForkClose, linkMarkerMany, linkMarkerManyOptional, linkMarkerOne, linkMarkerOneOptional, linkMarkerOneOrMany } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import {
+  GraphProvider,
+  Paper,
+  HTMLBox,
+  linkRoutingSmooth,
+  linkMarkerArrow,
+  linkMarkerArrowOpen,
+  linkMarkerArrowSunken,
+  linkMarkerArrowQuill,
+  linkMarkerArrowDouble,
+  linkMarkerCircle,
+  linkMarkerDiamond,
+  linkMarkerLine,
+  linkMarkerCross,
+  linkMarkerFork,
+  linkMarkerForkClose,
+  linkMarkerMany,
+  linkMarkerManyOptional,
+  linkMarkerOne,
+  linkMarkerOneOptional,
+  linkMarkerOneOrMany,
+} from '@joint/react';
+
+// Colors — unified dark diagram palette.
+const PRIMARY = '#ED2637';
+const LABEL_TEXT_COLOR = '#DDE6ED';
+const LABEL_BODY_COLOR = '#1c2836';
+const LABEL_STROKE_COLOR = '#3c4f63';
 
 const PORT_GAP = 30;
 const PORT_SIZE = 8;
@@ -12,7 +37,7 @@ const PADDING = 40;
 
 const SMOOTH_LINKS = linkRoutingSmooth();
 
-// Each entry: [display name, factory function, extra opts for outline variant]
+// Each entry: [display name, marker factory, extra options for the outline variant].
 const MARKER_ENTRIES = [
   ['arrow', linkMarkerArrow],
   ['arrow-outline', linkMarkerArrow, { fill: 'none' }],
@@ -59,7 +84,7 @@ function buildPortMap(side: 'left' | 'right'): Record<string, ElementPort> {
 
 const elementHeight = PADDING * 2 + (MARKER_ENTRIES.length - 1) * PORT_GAP;
 
-const initialElements: ElementRecord[] = [
+const initialElements: readonly ElementRecord[] = [
   {
     id: 'left',
     type: 'element',
@@ -79,11 +104,9 @@ const initialElements: ElementRecord[] = [
 ];
 
 function buildLinks(scale: number): LinkRecord[] {
-  const result: LinkRecord[] = [];
-  for (const entry of MARKER_ENTRIES) {
-    const [name, factory, extraOptions] = entry;
+  return MARKER_ENTRIES.map(([name, factory, extraOptions]) => {
     const marker = factory({ scale, ...extraOptions });
-    result.push({
+    return {
       id: name,
       type: 'link',
       source: { id: 'left', port: name },
@@ -96,60 +119,52 @@ function buildLinks(scale: number): LinkRecord[] {
       labelMap: {
         label: {
           text: name,
+          color: LABEL_TEXT_COLOR,
+          backgroundColor: LABEL_BODY_COLOR,
+          backgroundOutline: LABEL_STROKE_COLOR,
           backgroundBorderRadius: 4,
           fontSize: 10,
         },
       },
-    });
-  }
-  return result;
+    };
+  });
 }
 
 function RenderElement() {
-  return <HTMLBox useModelGeometry />;
+  return <HTMLBox className="jj-node" useModelGeometry />;
 }
 
 export default function App() {
   const [scale, setScale] = useState(1);
-  const [links, setLinks] = useState<LinkRecord[]>(() => buildLinks(scale));
+  const [links, setLinks] = useState<LinkRecord[]>(() => buildLinks(1));
 
   const cells = useMemo<readonly CellRecord[]>(() => [...initialElements, ...links], [links]);
 
-  const handleScaleChange = (newScale: number) => {
-    setScale(newScale);
-    setLinks(buildLinks(newScale));
-  };
-
-  const handleScaleInputChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => handleScaleChange(Number(event.target.value)),
-    []
-  );
+  const handleScaleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const nextScale = Number(event.target.value);
+    setScale(nextScale);
+    setLinks(buildLinks(nextScale));
+  }, []);
 
   return (
-    <div>
-      <div className="flex items-center gap-3 px-3 py-2 mt-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-sans select-none">
-        <label className="flex items-center gap-2 text-slate-600">
-          <span className="text-xs font-semibold">Scale</span>
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <label className="jj-field">
+          <span className="jj-label">Scale</span>
           <input
+            className="w-40"
             type="range"
             min={0.5}
             max={3}
             step={0.1}
             value={scale}
-            onChange={handleScaleInputChange}
-            className="w-40"
+            onChange={handleScaleChange}
           />
-          <span className="text-xs w-8">{scale.toFixed(1)}</span>
         </label>
+        <span className="jj-chip">{scale.toFixed(1)}×</span>
       </div>
       <GraphProvider cells={cells}>
-        <Paper style={{ width: '100%', height: 1400 }}
-          transform={'scale(1.7)'}
-          className={PAPER_CLASSNAME}
-          drawGrid={false}
-          renderElement={RenderElement}
-          linkRouting={SMOOTH_LINKS}
-        />
+        <Paper className="min-h-0 flex-1" renderElement={RenderElement} linkRouting={SMOOTH_LINKS} />
       </GraphProvider>
     </div>
   );

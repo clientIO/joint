@@ -1,26 +1,24 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import '../index.css';
+import { getAPILink } from '../../utils/get-api-documentation-link';
 import Code from './code';
-import RawCode from './code?raw';
+import codeRaw from './code?raw';
 
-export type Story = StoryObj<typeof Code>;
-
-export default {
+const meta = {
   title: 'Examples/Element Ports (Groups)',
   component: Code,
   tags: ['example'],
   parameters: {
-    docs: {
-      description: {
-        story:
-          'Demonstrates native JointJS port groups with the `elementPort()` preset. ' +
-          'Ports are defined via `ports` prop (not `portMap`) with `in` and `out` groups positioned left and right.',
-      },
-      source: {
-        code: RawCode,
-      },
+    showcase: {
+      description:
+        'Group inbound and outbound ports on elements with the elementPort() preset and connect links through named ports.',
+      apiUrl: getAPILink('elementPort', 'Presets'),
+      code: codeRaw,
     },
   },
 } satisfies Meta<typeof Code>;
+
+export default meta;
+
+export type Story = StoryObj<typeof Code>;
 
 export const Default: Story = {};

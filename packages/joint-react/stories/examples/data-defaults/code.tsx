@@ -1,10 +1,26 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useState, useCallback, useEffect } from 'react';
-import { type CellRecord, GraphProvider, useCell, Paper, useGraph, type ElementPort, type ElementRecord, type RenderElement, selectElementSize } from '@joint/react';
-import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import {
+  type CellRecord,
+  GraphProvider,
+  useCell,
+  Paper,
+  useGraph,
+  type ElementPort,
+  type ElementRecord,
+  type RenderElement,
+  selectElementSize,
+} from '@joint/react';
+
+const PRIMARY = '#ED2637';
+const SECONDARY = '#FF9505';
+const LIGHT = '#DDE6ED';
+const BG = '#131E29';
+const NODE_FILL = '#1c2836';
+
+type PortShape = 'ellipse' | 'rect';
 
 interface ElementData {
-  label: string;
+  readonly label: string;
 }
 
 const outPort: ElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
@@ -17,7 +33,7 @@ const portsByKind: Record<string, Record<string, ElementPort>> = {
   process: { in: inPort, out: outPort },
 };
 
-const getPortStyle = (color: string, shape: 'ellipse' | 'rect') => ({
+const getPortStyle = (color: string, shape: PortShape) => ({
   color,
   shape,
   width: 12,
@@ -37,17 +53,9 @@ const getLabelStyle = (color: string) => ({
   fontSize: 11,
   fontFamily: 'monospace',
   backgroundPadding: { horizontal: 10, vertical: 5 },
-  backgroundColor: '#1e293b',
+  backgroundColor: NODE_FILL,
   backgroundOutline: color,
 });
-
-
-const getDefaultLink = (color: string) => {
-  return () => ({
-    style: getLinkStyle(color),
-    labelStyle: getLabelStyle(color),
-  });
-};
 
 const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
   { id: 'a', type: 'element', kind: 'source', data: { label: 'Start' }, position: { x: 50, y: 140 }, size: ELEMENT_SIZE, portMap: portsByKind.source },
@@ -76,7 +84,7 @@ function Element({ label, color }: Readonly<{ label: string; color: string }>) {
   const { width, height } = useCell(selectElementSize);
   return (
     <>
-      <rect width={width} height={height} rx="6" fill="#1e293b" stroke={color} strokeWidth="2" />
+      <rect width={width} height={height} rx="6" fill={NODE_FILL} stroke={color} strokeWidth="2" />
       <text
         x={width / 2}
         y={height / 2}
@@ -93,14 +101,11 @@ function Element({ label, color }: Readonly<{ label: string; color: string }>) {
 }
 
 /**
- * Applies theme-dependent styling (port color/shape, link style) to all cells
- * when `color` or `portShape` changes. Uses `updateCells` to patch every cell
- * in one batch without removing anything else.
+ * Applies theme-dependent styling (port color/shape, link style) to every cell
+ * when `color` or `portShape` changes. `updateCells` patches each cell in one
+ * batch, leaving all other data untouched.
  */
-function ThemeUpdater({
-  color,
-  portShape,
-}: Readonly<{ color: string; portShape: 'ellipse' | 'rect' }>) {
+function ThemeUpdater({ color, portShape }: Readonly<{ color: string; portShape: PortShape }>) {
   const { updateCells, isElement, isLink } = useGraph<ElementRecord<ElementData>>();
 
   useEffect(() => {
@@ -127,50 +132,38 @@ function ThemeUpdater({
 function Diagram() {
   const [alternate, setAlternate] = useState(false);
   const color = alternate ? SECONDARY : PRIMARY;
-  const portShape = alternate ? ('rect' as const) : ('ellipse' as const);
+  const portShape: PortShape = alternate ? 'rect' : 'ellipse';
 
   const renderElement: RenderElement<ElementData> = useCallback(
     (data) => <Element label={data.label} color={color} />,
     [color]
   );
 
-  const changeDefaults = useCallback(() => setAlternate((v) => !v), []);
+  const toggleDefaults = useCallback(() => setAlternate((value) => !value), []);
+
+  // New links dragged from ports inherit the current theme's default styling.
+  const defaultLink = useMemo(
+    () => ({ style: getLinkStyle(color), labelStyle: getLabelStyle(color) }),
+    [color]
+  );
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={changeDefaults}
-        style={{
-          marginBottom: 8,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '5px 14px',
-          cursor: 'pointer',
-          borderRadius: 20,
-          border: 'none',
-          fontSize: 13,
-          fontWeight: 500,
-          background: alternate ? SECONDARY : PRIMARY,
-          color: LIGHT,
-          transition: 'background 0.2s',
-        }}
-      >
-        {alternate ? '■ Square ports' : '● Round ports'}
-      </button>
-      <GraphProvider initialCells={initialCells}>
-        <ThemeUpdater color={color} portShape={portShape} />
-        <Paper style={{ ...PAPER_STYLE, height: 340 }}
-          className={PAPER_CLASSNAME}
-          renderElement={renderElement}
-          defaultLink={getDefaultLink(color)}
-        />
-      </GraphProvider>
-    </>
+    <div className="flex size-full flex-col">
+      <div className="jj-controls m-3">
+        <button type="button" className="jj-btn jj-btn--primary" onClick={toggleDefaults}>
+          {alternate ? 'Square ports' : 'Round ports'}
+        </button>
+      </div>
+      <ThemeUpdater color={color} portShape={portShape} />
+      <Paper className="min-h-0 flex-1" renderElement={renderElement} defaultLink={defaultLink} />
+    </div>
   );
 }
 
 export default function App() {
-  return <Diagram />;
+  return (
+    <GraphProvider initialCells={initialCells}>
+      <Diagram />
+    </GraphProvider>
+  );
 }
