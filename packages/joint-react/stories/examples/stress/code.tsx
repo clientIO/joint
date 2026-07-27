@@ -1,5 +1,12 @@
 /* eslint-disable sonarjs/pseudo-random */
-import { HTMLBox, GraphProvider, Paper, type CellRecord, type ElementRecord, type LinkRecord } from '@joint/react';
+import {
+  HTMLBox,
+  GraphProvider,
+  Paper,
+  type CellRecord,
+  type ElementRecord,
+  type LinkRecord,
+} from '@joint/react';
 import { useCallback, useState, startTransition, type Dispatch, type SetStateAction } from 'react';
 
 const X_NODES = 15;
@@ -27,7 +34,10 @@ function RenderElement({ label }: Readonly<StressNodeData>) {
 }
 
 /** Build a grid of nodes chained together by links, to exercise rendering at scale. */
-function buildInitialCells(xNodes: number, yNodes: number): ReadonlyArray<CellRecord<StressNodeData>> {
+function buildInitialCells(
+  xNodes: number,
+  yNodes: number
+): ReadonlyArray<CellRecord<StressNodeData>> {
   const cells: Array<CellRecord<StressNodeData>> = [];
   let nodeId = 1;
   let edgeId = 1;

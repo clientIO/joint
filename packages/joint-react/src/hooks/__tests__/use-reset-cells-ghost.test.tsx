@@ -64,12 +64,12 @@ describe('resetCells reactive-container reconciliation', () => {
 
     act(() => result.current.setCell(extra));
     await waitFor(() => {
-      expect(result.current.store.graphProjection.cells.getAll()).toHaveLength(3);
+      expect(result.current.store.graphProjection.cells.getSnapshot()).toHaveLength(3);
     });
 
     act(() => result.current.resetCells(initial));
     await waitFor(() => {
-      const ids = result.current.store.graphProjection.cells.getAll().map((cell) => cell.id);
+      const ids = result.current.store.graphProjection.cells.getSnapshot().map((cell) => cell.id);
       expect(ids).toHaveLength(2);
       expect(ids).not.toContain('extra');
     });

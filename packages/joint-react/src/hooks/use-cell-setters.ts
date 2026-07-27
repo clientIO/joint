@@ -274,7 +274,7 @@ export function useResetCells<
       input: ArrayUpdate<Element | Link, CellInput<Element, Link>>,
       metadata?: Record<string, unknown>
     ) => {
-      const current = store.graphProjection.cells.getAll();
+      const current = store.graphProjection.cells.getSnapshot();
       const next = typeof input === 'function' ? input(current) : input;
       const models = next.map((cell) => cellInputToModel<Element, Link>(cell, graph));
       graph.resetCells(models, metadata);
@@ -302,7 +302,7 @@ export function useUpdateCells<
       updater: (previous: ReadonlyArray<Element | Link>) => ReadonlyArray<CellInput<Element, Link>>,
       metadata?: Record<string, unknown>
     ) => {
-      const current = store.graphProjection.cells.getAll();
+      const current = store.graphProjection.cells.getSnapshot();
       const next = updater(current);
       const cellRecords = next.map((cell) => cellInputToRecord<Element, Link>(cell));
       store.applyControlled(cellRecords, metadata);

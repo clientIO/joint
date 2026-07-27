@@ -176,7 +176,7 @@ export class GraphStore<
         // demand from the unified cells container — cold path, called only
         // when the ResizeObserver fires.
         const map = new Map<CellId, ElementJSONInit>();
-        for (const cell of this.graphProjection.cells.getAll()) {
+        for (const cell of this.graphProjection.cells.getSnapshot()) {
           if (cell.id === undefined) continue;
           if (this.isElement(cell)) {
             map.set(cell.id, cell);
@@ -265,12 +265,12 @@ export class GraphStore<
    * @param cells - new cells snapshot from the parent
    * @param metadata - extra options forwarded to the underlying `graph.syncCells` opt
    */
-  public applyControlled(
+  public applyControlled = (
     cells: ReadonlyArray<Element | Link>,
     metadata?: Record<string, unknown>
-  ) {
+  ) => {
     this.graphProjection.updateGraph({ cells, flag: 'updateFromReact', metadata });
-  }
+  };
 
   /**
    * Type guard: does this cell record resolve to an element?

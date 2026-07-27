@@ -1,18 +1,16 @@
 import {
-  useCallback,
   useLayoutEffect,
   useMemo,
-  useSyncExternalStore,
   type ComponentType,
   type CSSProperties,
 } from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
 import { useGraphStore } from '../../../hooks/use-graph-store';
+import { useCells } from '../../../hooks/use-cells';
 import { usePaper } from '../../../hooks/use-paper';
 import { useCellId } from '../../../hooks/use-cell-id';
-import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
-import type { CellId, ElementRecord } from '../../../types/cell.types';
+import type { ElementRecord } from '../../../types/cell.types';
 
 /**
  * Props for element item portal components.
@@ -34,59 +32,6 @@ export interface ElementItemProps {
 }
 
 /**
- * Subscribe only to the `data` slice of the current element. Returns the
- * same reference across unrelated cell updates (position / size / angle
- * changes preserve the `data` ref via `mergeElementRecord`), so React
- * skips the re-render unless `data` actually changed.
- * @param id - cell id to subscribe to
- * @returns current element's `data`, possibly undefined
- */
-function useElementDataSnapshot(id: CellId): Record<string, unknown> | undefined {
-  const store = useGraphStore();
-  const { cells } = store.graphProjection;
-  const subscribe = useCallback(
-    (listener: () => void) => cells.subscribe(id, listener),
-    [cells, id]
-  );
-  const getSnapshot = useCallback(
-    () => (cells.get(id) as ElementRecord | undefined)?.data as Record<string, unknown> | undefined,
-    [cells, id]
-  );
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-}
-
-/**
- * Subscribes to the cell by id and returns the raw (un-resolved)
- * {@link ElementRecord}. Returns a `{ id, type }` placeholder during the brief
- * window between `insertView` firing and the cell landing in the store, so
- * portal wrappers can mount a 0×0 container synchronously rather than
- * crashing. Callers must tolerate optional `position` / `size`.
- *
- * Contrast with the public {@link useCell}() hook, which returns the
- * `Computed<ElementRecord>` (position/size/angle/data required) and throws
- * when the cell is missing.
- * @param id - cell id to subscribe to
- * @returns current element record, or a `{ id, type }` placeholder when missing
- */
-function useUnresolvedElement(id: CellId): ElementRecord {
-  const store = useGraphStore();
-  const { cells } = store.graphProjection;
-  const subscribe = useCallback(
-    (listener: () => void) => cells.subscribe(id, listener),
-    [cells, id]
-  );
-  const getSnapshot = useCallback(() => cells.get(id), [cells, id]);
-  const cell = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  if (cell === undefined) {
-    // Placeholder when the cell is not (yet) in the store — only the id is
-    // truly known. The full ElementRecord shape is partially populated.
-    const placeholder: ElementRecord = { id, type: ELEMENT_MODEL_TYPE, data: undefined };
-    return placeholder;
-  }
-  return cell as ElementRecord;
-}
-
-/**
  * SVG element portal component. Subscribes only to the element's `data`
  * slice, position and size are handled by JointJS's view transform and
  * never cause a React re-render here. Clears cached views after
@@ -97,7 +42,11 @@ function useUnresolvedElement(id: CellId): ElementRecord {
 function SVGElementItemComponent(props: ElementItemProps) {
   const { renderElement: RenderElement, portalElement, areElementsMeasured } = props;
   const id = useCellId();
-  const data = useElementDataSnapshot(id);
+  // Subscribe to just this element's `data` slice (missing-tolerant — the portal
+  // can mount before the record lands in the store, and briefly after removal).
+  // `data`'s reference is stable across position/size/angle changes, so React
+  // skips the re-render unless `data` itself changed.
+  const data = useCells(id, (cell) => cell?.data);
   const graphStore = useGraphStore();
   const { paper } = usePaper();
   useLayoutEffect(() => {
@@ -134,12 +83,14 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
 function HTMLElementItemComponent(props: ElementItemProps) {
   const { renderElement: RenderElement, portalElement } = props;
   const id = useCellId();
-  const element = useUnresolvedElement(id);
+  // Subscribe to the whole element record (missing-tolerant — the portal can
+  // mount before the record lands in the store, and briefly after removal).
+  const element = useCells<ElementRecord>(id, (cell) => cell);
 
-  const x = element.position?.x ?? 0;
-  const y = element.position?.y ?? 0;
-  const width = element.size?.width ?? 0;
-  const height = element.size?.height ?? 0;
+  const x = element?.position?.x ?? 0;
+  const y = element?.position?.y ?? 0;
+  const width = element?.size?.width ?? 0;
+  const height = element?.size?.height ?? 0;
 
   const style = useMemo(
     (): CSSProperties => ({
@@ -160,7 +111,7 @@ function HTMLElementItemComponent(props: ElementItemProps) {
 
   // Render as JSX (not function call) so a `React.memo`-wrapped
   // `RenderElement` actually short-circuits on prop equality.
-  const dataProps = (element.data as Record<string, unknown> | undefined) ?? {};
+  const dataProps = element?.data ?? {};
 
   return createPortal(
     <div model-id={id} style={style}>
@@ -184,8 +135,8 @@ export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
  */
 export function ElementHitArea() {
   const id = useCellId();
-  const element = useUnresolvedElement(id);
-  const width = element.size?.width ?? 0;
-  const height = element.size?.height ?? 0;
+  const element = useCells<ElementRecord>(id, (cell) => cell);
+  const width = element?.size?.width ?? 0;
+  const height = element?.size?.height ?? 0;
   return <rect width={width} height={height} fill="transparent" />;
 }

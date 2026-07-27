@@ -1,5 +1,12 @@
 import { useCallback, useState, type MouseEvent } from 'react';
-import { type CellRecord, GraphProvider, Paper, selectElementSize, useCell, linkMarkerArrow } from '@joint/react';
+import {
+  type CellRecord,
+  GraphProvider,
+  Paper,
+  selectElementSize,
+  useCell,
+  linkMarkerArrow,
+} from '@joint/react';
 
 type NodeData = { readonly label: string };
 
