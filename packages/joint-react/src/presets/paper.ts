@@ -23,6 +23,7 @@ type ProtectedPaperPrototype = {
   readonly pointerup: (event: dia.Event) => void;
   readonly startListening: () => void;
   readonly guard: (event: dia.Event, view: dia.CellView) => boolean;
+  readonly guardExplicit: (event: dia.Event, view?: dia.CellView) => boolean | undefined;
 };
 
 const protectedProto = dia.Paper.prototype as unknown as ProtectedPaperPrototype;
@@ -224,6 +225,32 @@ export const Paper = dia.Paper.extend(
      */
     guard(this: dia.Paper, event: dia.Event, view: dia.CellView) {
       return protectedProto.guard.call(this, event, view) || wheelGuard(event);
+    },
+
+    /**
+     * Treat React content portaled into `paper.el` as off the paper's event surface.
+     *
+     * `<Paper>` children — an overlay, a popup, a toolbar — render into `paper.el` but
+     * outside its SVG. A press there must not open a blank interaction, and React alone
+     * cannot prevent one: React attaches its delegated listeners to the portal container,
+     * which IS `paper.el`, and the paper delegates on that same node and got there first,
+     * so a React `onMouseDown` runs after the paper has already reacted.
+     *
+     * joint-core leaves such a press alone for backwards compatibility, deciding it only
+     * from `guardExplicit`. Rejecting it here — after the caller's own `options.guard` —
+     * is what lets overlay content use plain React events with no interception of its own.
+     * @param event - Event delivered to the paper's dispatch.
+     * @param view - View resolved from the event target, if any.
+     * @returns `true` to guard, `false` to allow, `undefined` to leave it undecided.
+     */
+    guardExplicit(this: dia.Paper, event: dia.Event, view?: dia.CellView) {
+      const guarded = protectedProto.guardExplicit.call(this, event, view);
+      if (guarded !== undefined) return guarded;
+      const { target } = event;
+      const isPortaledContent =
+        target instanceof Node && !this.svg.contains(target) && this.el.contains(target);
+      // Anything else stays undecided, so the paper goes on to judge the target itself.
+      return isPortaledContent ? true : undefined;
     },
 
     /**
