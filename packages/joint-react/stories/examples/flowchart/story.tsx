@@ -4,16 +4,15 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Demos/Collaboration',
+  title: 'Examples/Flowchart',
   component: Code,
-  tags: ['demo'],
+  tags: ['example'],
   parameters: {
     showcase: {
+      canvasHeight: 620,
       description:
-        'Keeps a diagram in sync across peers in real time by broadcasting every added, changed, and removed cell from the onIncrementalCellsChange diff callback over a PeerJS connection.',
-      apiUrl: getAPILink('IncrementalCellsChange', 'Types'),
-      canvasHeight: 400,
-      plainCanvas: true,
+        'Wire auto-sized start, step, and decision shapes together with orthogonal links to build an interactive, themeable flowchart with hover highlights and editable anchors.',
+      apiUrl: getAPILink('linkRoutingOrthogonal', 'Presets'),
       code: codeRaw,
     },
   },

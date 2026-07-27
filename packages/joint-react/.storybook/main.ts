@@ -11,7 +11,6 @@ const __dirname = path.dirname(__filename);
 configureSort({
   storyOrder: {
     examples: null,
-    demos: null,
     components: null,
     utils: null,
     '**': { default: null },
@@ -50,7 +49,6 @@ const config: StorybookConfig = {
     component: {},
     hook: {},
     example: {},
-    demo: {},
     utils: {},
   },
 

@@ -223,8 +223,10 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
     return () => document.removeEventListener('mousedown', handler);
   }, [isEditing]);
 
-  // Inputs must swallow the pointer/mouse events so JointJS doesn't start a
-  // drag on the cell while the user is interacting with them.
+  // Inputs must swallow `mousedown` so JointJS doesn't start a drag on the cell while
+  // the user is interacting with them. It has to be `mousedown` (with `touchstart` for
+  // touch) — that is what the paper listens to, so stopping `pointerdown` would not
+  // prevent the drag.
   const swallowEditorEvent = useCallback((event: SyntheticEvent) => {
     event.stopPropagation();
   }, []);
@@ -262,7 +264,6 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
         <div
           ref={editorRef}
           onMouseDown={swallowEditorEvent}
-          onPointerDown={swallowEditorEvent}
           onClick={swallowEditorEvent}
         >
           <FieldLabel>Title</FieldLabel>
@@ -282,7 +283,7 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
           <button
             type="button"
             onClick={enterEdit}
-            onPointerDown={swallowEditorEvent}
+            onMouseDown={swallowEditorEvent}
             className="flex items-center justify-between w-full p-0 m-0 font-serif text-base font-semibold text-ink text-left bg-transparent border-0 cursor-text"
           >
             {title}

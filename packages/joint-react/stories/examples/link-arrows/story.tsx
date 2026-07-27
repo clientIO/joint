@@ -4,15 +4,16 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Demos/User Flow',
+  title: 'Examples/Link Arrows',
   component: Code,
-  tags: ['demo'],
+  tags: ['example'],
   parameters: {
     showcase: {
       description:
-        'Wire custom flow nodes whose input and output ports are connectable magnets, adding or removing output ports live.',
-      apiUrl: getAPILink('useMarkup'),
-      canvasHeight: 700,
+        'Builds a gallery of 50 custom link arrowhead markers, zooming from the overview to a single link and then to its arrowhead as you click.',
+      apiUrl: getAPILink('LinkMarker', 'Types'),
+      canvasHeight: 720,
+      plainCanvas: true,
       code: codeRaw,
     },
   },

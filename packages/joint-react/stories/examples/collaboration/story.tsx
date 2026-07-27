@@ -4,14 +4,16 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Demos/Pulsing Port',
+  title: 'Examples/Collaboration',
   component: Code,
-  tags: ['demo'],
+  tags: ['example'],
   parameters: {
     showcase: {
       description:
-        'Drag a connection from a node output port and watch the valid input ports pulse with a custom magnet-availability highlighter.',
-      apiUrl: getAPILink('Paper'),
+        'Keeps a diagram in sync across peers in real time by broadcasting every added, changed, and removed cell from the onIncrementalCellsChange diff callback over a PeerJS connection.',
+      apiUrl: getAPILink('IncrementalCellsChange', 'Types'),
+      canvasHeight: 400,
+      plainCanvas: true,
       code: codeRaw,
     },
   },

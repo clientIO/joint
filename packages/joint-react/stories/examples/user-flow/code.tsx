@@ -269,7 +269,10 @@ function RenderElementBase({
             className="port-button"
             cursor="pointer"
             transform={`translate(${PORT_PILL_WIDTH / 2 - PORT_PILL_RADIUS}, 0)`}
-            onPointerDown={(event) => {
+            // The button sits inside the port magnet, so the press must be stopped or it
+            // would start a link drag. `mousedown` is the event the paper listens to —
+            // stopping `pointerdown` would leave it untouched.
+            onMouseDown={(event) => {
               event.stopPropagation();
             }}
             onClick={() => {
@@ -290,7 +293,8 @@ function RenderElementBase({
         className="port-button"
         cursor="pointer"
         transform={`translate(${width - 20}, ${height - 20})`}
-        onPointerDown={(event) => {
+        // Stops the press from dragging the card; `mousedown`, not `pointerdown`.
+        onMouseDown={(event) => {
           event.stopPropagation();
         }}
         onClick={() => {

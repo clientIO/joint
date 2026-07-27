@@ -4,15 +4,15 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Demos/Automatic Layout & Storage',
+  title: 'Examples/Investment Calculator',
   component: Code,
-  tags: ['demo'],
+  tags: ['example'],
   parameters: {
     showcase: {
       description:
-        'Persists only the data field of each node to a JSON file, while HTMLHost measures node sizes and a tree layout recomputes positions on every measurement.',
-      apiUrl: getAPILink('useOnElementsMeasured'),
-      canvasHeight: 640,
+        'Edits HTML form inputs embedded in SVG nodes and derives each product’s value and ROI reactively from the graph topology.',
+      apiUrl: getAPILink('useCells'),
+      canvasHeight: 680,
       code: codeRaw,
     },
   },

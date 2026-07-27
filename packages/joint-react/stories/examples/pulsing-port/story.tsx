@@ -4,15 +4,14 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Demos/Flowchart',
+  title: 'Examples/Pulsing Port',
   component: Code,
-  tags: ['demo'],
+  tags: ['example'],
   parameters: {
     showcase: {
-      canvasHeight: 620,
       description:
-        'Wire auto-sized start, step, and decision shapes together with orthogonal links to build an interactive, themeable flowchart with hover highlights and editable anchors.',
-      apiUrl: getAPILink('linkRoutingOrthogonal', 'Presets'),
+        'Drag a connection from a node output port and watch the valid input ports pulse with a custom magnet-availability highlighter.',
+      apiUrl: getAPILink('Paper'),
       code: codeRaw,
     },
   },

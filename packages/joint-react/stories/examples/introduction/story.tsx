@@ -4,15 +4,15 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Demos/Investment Calculator',
+  title: 'Examples/Introduction',
   component: Code,
-  tags: ['demo'],
+  tags: ['example'],
   parameters: {
     showcase: {
       description:
-        'Edits HTML form inputs embedded in SVG nodes and derives each product’s value and ROI reactively from the graph topology.',
-      apiUrl: getAPILink('useCells'),
-      canvasHeight: 680,
+        'Renders fully custom React nodes — editable message cards and a table with output ports — on an interactive paper with a toolbar, minimap, selection highlighting, and hover-to-remove links.',
+      apiUrl: getAPILink('Paper'),
+      canvasHeight: 660,
       code: codeRaw,
     },
   },

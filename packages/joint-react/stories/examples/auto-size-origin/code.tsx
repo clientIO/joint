@@ -62,7 +62,10 @@ const inputStyle: CSSProperties = {
   cursor: 'text',
 };
 
-/** Keep clicks inside the input from starting a paper drag. */
+/**
+ * Keep clicks inside the input from starting a paper drag. `mousedown` is the event the
+ * paper listens to (stopping `pointerdown` would not prevent it).
+ */
 function stopDrag(event: SyntheticEvent) {
   event.stopPropagation();
 }
@@ -94,7 +97,6 @@ function EditableNode() {
           value={label}
           onChange={handleChange}
           onMouseDown={stopDrag}
-          onPointerDown={stopDrag}
           size={Math.max(label.length, 6)}
           style={inputStyle}
         />

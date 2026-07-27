@@ -4,16 +4,15 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Demos/SaaSflow',
+  title: 'Examples/User Flow',
   component: Code,
-  tags: ['demo'],
+  tags: ['example'],
   parameters: {
     showcase: {
       description:
-        'Renders a SaaS project-management flow of HTML nodes with connectable ports and orthogonal links, toggling the whole diagram between dark and light themes.',
-      apiUrl: getAPILink('HTMLHost'),
+        'Wire custom flow nodes whose input and output ports are connectable magnets, adding or removing output ports live.',
+      apiUrl: getAPILink('useMarkup'),
       canvasHeight: 700,
-      plainCanvas: true,
       code: codeRaw,
     },
   },

@@ -4,15 +4,15 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Demos/Introduction demo',
+  title: 'Examples/Automatic Layout & Storage',
   component: Code,
-  tags: ['demo'],
+  tags: ['example'],
   parameters: {
     showcase: {
       description:
-        'Renders fully custom React nodes — editable message cards and a table with output ports — on an interactive paper with a toolbar, minimap, selection highlighting, and hover-to-remove links.',
-      apiUrl: getAPILink('Paper'),
-      canvasHeight: 660,
+        'Persists only the data field of each node to a JSON file, while HTMLHost measures node sizes and a tree layout recomputes positions on every measurement.',
+      apiUrl: getAPILink('useOnElementsMeasured'),
+      canvasHeight: 640,
       code: codeRaw,
     },
   },

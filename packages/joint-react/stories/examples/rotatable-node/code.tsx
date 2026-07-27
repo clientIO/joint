@@ -74,7 +74,9 @@ function RotatableNode() {
 
   const handlePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
-      event.stopPropagation();
+      // `preventDefault` is what keeps the press off the paper: canceling `pointerdown`
+      // suppresses the compatibility `mousedown`, which is the event the paper listens
+      // to. So grabbing the handle rotates the node without also moving it.
       event.preventDefault();
       const node = event.currentTarget;
       node.setPointerCapture(event.pointerId);
@@ -94,7 +96,11 @@ function RotatableNode() {
 
   return (
     <HTMLHost className="jj-node">
-      <div style={HANDLE_STYLE} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
+      <div
+        style={HANDLE_STYLE}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+      >
         <div style={HANDLE_LINE_STYLE} />
       </div>
       {label}

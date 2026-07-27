@@ -4,15 +4,15 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Demos/Link Arrows',
+  title: 'Examples/SaaSflow',
   component: Code,
-  tags: ['demo'],
+  tags: ['example'],
   parameters: {
     showcase: {
       description:
-        'Builds a gallery of 50 custom link arrowhead markers, zooming from the overview to a single link and then to its arrowhead as you click.',
-      apiUrl: getAPILink('LinkMarker', 'Types'),
-      canvasHeight: 720,
+        'Renders a SaaS project-management flow of HTML nodes with connectable ports and orthogonal links, toggling the whole diagram between dark and light themes.',
+      apiUrl: getAPILink('HTMLHost'),
+      canvasHeight: 700,
       plainCanvas: true,
       code: codeRaw,
     },

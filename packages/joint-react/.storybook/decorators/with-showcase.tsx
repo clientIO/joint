@@ -32,7 +32,6 @@ interface ShowcaseParameters {
 
 const EYEBROWS: Record<string, string> = {
   Examples: 'Example',
-  Demos: 'Demo',
   Components: 'Component',
   Utils: 'Utility',
   Hooks: 'Hook',
