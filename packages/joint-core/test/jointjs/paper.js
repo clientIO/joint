@@ -1339,6 +1339,46 @@ QUnit.module('paper', function(hooks) {
             'the element moved when dragging from its body');
     });
 
+    QUnit.test('PREVENT_INTERACTION_TAG_NAMES is separate from FORM_CONTROL_TAG_NAMES', function(assert) {
+
+        // The two lists start out identical but answer different questions:
+        // FORM_CONTROL_TAG_NAMES keeps the browser's default action (no `preventDefault`),
+        // PREVENT_INTERACTION_TAG_NAMES blocks the paper's own interactions. Narrowing only
+        // the second one is what lets a <button> be clicked AND dragged - to move the
+        // element, or to start a link when it sits in a magnet.
+        assert.deepEqual(this.paper.PREVENT_INTERACTION_TAG_NAMES, this.paper.FORM_CONTROL_TAG_NAMES,
+            'the defaults match, so the split changes nothing on its own');
+        assert.notStrictEqual(this.paper.PREVENT_INTERACTION_TAG_NAMES, this.paper.FORM_CONTROL_TAG_NAMES,
+            'but they are distinct arrays, so overriding one leaves the other alone');
+
+        const element = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 },
+            markup: joint.util.svg`
+                <foreignObject @selector="fo" width="100" height="100">
+                    <button @selector="button" type="button">click me</button>
+                </foreignObject>
+            `
+        });
+        this.graph.addCell(element);
+
+        const elementView = this.paper.findViewByModel(element);
+        const buttonEl = elementView.findNode('button');
+
+        // Let a press on a <button> start an interaction, while it keeps its native default.
+        this.paper.PREVENT_INTERACTION_TAG_NAMES = ['TEXTAREA', 'INPUT', 'SELECT', 'OPTION'];
+
+        const positionBefore = element.position();
+        const mousedownEvt = simulate.mousedown({ el: buttonEl, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: buttonEl, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: buttonEl, clientX: 250, clientY: 250 });
+
+        assert.notDeepEqual(element.position(), positionBefore,
+            'the element now moves when dragging from a <button>');
+        assert.notOk(mousedownEvt.defaultPrevented,
+            'the button keeps its default action, so the native click and focus still work');
+    });
+
     QUnit.test('getContentArea()', function(assert) {
 
         assert.checkBboxApproximately(2/* +- */, this.paper.getContentArea(), {

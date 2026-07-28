@@ -1993,6 +1993,7 @@ export class Paper extends mvc.View<Graph> {
 
     GUARDED_TAG_NAMES: string[];
     FORM_CONTROL_TAG_NAMES: string[];
+    PREVENT_INTERACTION_TAG_NAMES: string[];
 
     matrix(): SVGMatrix;
     matrix(ctm: SVGMatrix | Vectorizer.Matrix, data?: any): this;

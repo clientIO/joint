@@ -42,6 +42,31 @@ function getPointerId(event: dia.Event): number | null {
   return typeof fromOriginal === 'number' ? fromOriginal : null;
 }
 
+/**
+ * Swallow the next native `click`, so a gesture that moved does not also click.
+ *
+ * joint-core already withholds its own `pointerclick` once the pointer travels past
+ * `clickThreshold`, but the browser still fires a DOM `click` whenever press and release
+ * share a target — which a drag does whenever the node follows the pointer, as when an
+ * element is moved by a button inside it. Without this, dragging a node by its button
+ * would run the button's `onClick` on release.
+ *
+ * Capture on `document` rather than `paper.el`: React attaches its listeners to the
+ * portal container, so a listener on `paper.el` could be ordered behind them.
+ */
+function swallowClick(event: Event): void {
+  event.stopPropagation();
+  event.preventDefault();
+}
+
+function swallowNextClick(): void {
+  document.addEventListener('click', swallowClick, { capture: true, once: true });
+  // A drag released off the pressed node fires no click at all; drop the listener so it
+  // cannot eat an unrelated one later. Re-adding the same function is a no-op, so
+  // overlapping gestures cannot stack listeners.
+  setTimeout(() => document.removeEventListener('click', swallowClick, true), 0);
+}
+
 const DEFAULT_CLICK_THRESHOLD = 5;
 const DEFAULT_GRID_SIZE = 10;
 const DEFAULT_SNAP_RADIUS = 15;
@@ -135,6 +160,8 @@ export const Paper = dia.Paper.extend(
     defaultTheme: '',
 
     documentEvents: POINTER_DOCUMENT_EVENTS,
+
+    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'SELECT', 'OPTION'] ,
 
     // Cell focus tracking. `focusin`/`focusout` bubble (unlike `focus`/`blur`),
     // so they delegate to `.joint-cell` and report which cell owns the focused
@@ -254,14 +281,33 @@ export const Paper = dia.Paper.extend(
     },
 
     /**
+     * Let a press on a `<button>` start a paper interaction — an element move, or a link
+     * when the button sits inside a magnet. joint-core blocks every form control here,
+     * which makes a button click-only; buttons are the one control whose whole purpose is
+     * a press, so a drag from one is unambiguous. `FORM_CONTROL_TAG_NAMES` is left alone,
+     * so the button keeps its native default action and stays focusable.
+     *
+     * A drag that moves does not also click: `pointerup` swallows the native click.
+     */
+    PREVENT_INTERACTION_TAG_NAMES: ['TEXTAREA', 'INPUT', 'SELECT', 'OPTION'],
+
+    /**
      * Run the upstream pointerup handler, then release capture. Also runs on
      * `pointercancel` (mapped to the same method via the events hash) so
      * OS-stolen pointers don't leave listeners attached.
+     *
+     * Also withholds the next native `click` when the gesture moved, so a drag started
+     * from a button does not fire its `onClick` on release.
      * @param event - The pointerup or pointercancel event.
      */
     pointerup(this: dia.Paper, event: dia.Event) {
       const pointerId = getPointerId(event);
-      const captureTarget = this.eventData(event).captureTarget as Element | undefined;
+      const { captureTarget, mousemoved = 0 } = this.eventData(event) as {
+        captureTarget?: Element;
+        mousemoved?: number;
+      };
+      // Read before the super call: it ends the gesture and resets this state.
+      if (mousemoved > (this.options.clickThreshold ?? 0)) swallowNextClick();
       protectedProto.pointerup.call(this, event);
       if (!captureTarget || pointerId === null) return;
       this.el.classList.remove(DRAGGING_CLASS_NAME);
