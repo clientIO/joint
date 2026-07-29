@@ -1240,13 +1240,13 @@ QUnit.module('paper', function(hooks) {
         assert.ok(diffX < 5 && diffY < 5, 'element should not have been moved');
     });
 
-    QUnit.test('pointerdown is guarded on blank areas too', function(assert) {
+    QUnit.test('a press on DOM content inside the paper can be guarded', function(assert) {
 
-        // A press on non-SVG content inside `paper.el` (an HTML overlay, popup or
-        // toolbar) must not start a blank interaction: `guard()` rejects such a target,
-        // and every other pointer handler honours that. `pointerdown` used to consult
-        // `guard()` only when a cell view was found, so `blank:pointerdown` fired for
-        // overlay content while the matching `blank:pointerclick` stayed guarded.
+        // `guard()` rejects a target that is not on the event surface, so an HTML overlay,
+        // popup or toolbar inside `paper.el` gets no `blank:pointerclick` and no hover
+        // events. A press on one has always opened a blank interaction regardless, and
+        // still does - but `pointerdown` now consults the `guard` option there too, so an
+        // overlay can opt out of it.
         const overlayEl = document.createElement('div');
         this.paper.el.appendChild(overlayEl);
 
@@ -1261,14 +1261,40 @@ QUnit.module('paper', function(hooks) {
         simulate.mousedown({ el: overlayEl, clientX: 10, clientY: 10 });
         simulate.mouseup({ el: overlayEl, clientX: 10, clientY: 10 });
 
-        assert.equal(blankPointerdownCount, 0,
-            'no blank:pointerdown for a press on HTML content inside the paper');
+        assert.equal(blankPointerdownCount, 1,
+            'a press on HTML content inside the paper opens a blank interaction');
 
-        // A genuine blank press (on the SVG) must still work.
+        // The `guard` option vetoes it.
+        this.paper.options.guard = function(evt) {
+            return overlayEl.contains(evt.target);
+        };
+
+        simulate.mousedown({ el: overlayEl, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: overlayEl, clientX: 10, clientY: 10 });
+
+        assert.equal(blankPointerdownCount, 1, 'the guard option prevents it');
+
+        // A genuine blank press (on the SVG) is unaffected by that guard.
         simulate.mousedown({ el: this.paper.svg, clientX: 10, clientY: 10 });
         simulate.mouseup({ el: this.paper.svg, clientX: 10, clientY: 10 });
 
-        assert.equal(blankPointerdownCount, 1, 'blank:pointerdown still fires on the SVG');
+        assert.equal(blankPointerdownCount, 2, 'blank:pointerdown still fires on the SVG');
+
+        // Only the `guard` option, `evt.data.guarded` and the right button speak for a
+        // press that hit no cell view. `GUARDED_TAG_NAMES` judges the target instead, and
+        // stays out of it: a <select> in an overlay opens a blank interaction like any
+        // other DOM content there, exactly as it always has.
+        this.paper.options.guard = null;
+        const selectEl = document.createElement('select');
+        overlayEl.appendChild(selectEl);
+
+        assert.equal(this.paper.guard({ type: 'mousedown', button: 0, target: selectEl }), true,
+            'guard() still rejects a <select>');
+
+        simulate.mousedown({ el: selectEl, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: selectEl, clientX: 10, clientY: 10 });
+
+        assert.equal(blankPointerdownCount, 3, 'a <select> in an overlay is not treated differently');
 
         overlayEl.remove();
     });

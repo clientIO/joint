@@ -3476,14 +3476,15 @@ export const Paper = View.extend({
         const view = this.findView(target);
         const isContextMenu = (button === 2);
 
-        // Guard before any interaction starts, on blank areas too. Every other pointer
-        // handler (`pointerclick`, `pointerdblclick`, `contextMenuTrigger`, `mouseover`, …)
-        // guards unconditionally; guarding only the `view` branch let a press on non-SVG
-        // content inside `el` (an HTML overlay, a popup, a toolbar) start a blank
-        // interaction even though `guard()` rejects that target — and the matching
-        // `blank:pointerclick` was then guarded, so the events came out asymmetric.
-        // `contextmenu` stays exempt: `contextMenuTrigger()` runs its own guard.
-        if (!isContextMenu && this.guard(evt, view)) return;
+        if (!isContextMenu) {
+            // A press that did not hit a cell view is guarded too, so that DOM content
+            // inside `el` (an overlay, a popup, a toolbar) can opt out of opening a blank
+            // interaction. Only an explicit veto counts there: the full `guard()` also
+            // rejects anything off the paper's event surface, and such a press has always
+            // opened a blank interaction.
+            // `contextmenu` is exempt: `contextMenuTrigger()` runs its own guard.
+            if (view ? this.guard(evt, view) : this.guardExplicit(evt, view)) return;
+        }
 
         if (view) {
 
@@ -3896,17 +3897,9 @@ export const Paper = View.extend({
     // Otherwise, it returns `false`.
     guard: function(evt, view) {
 
-        if (evt.type === 'mousedown' && evt.button === 2) {
-            // handled as `contextmenu` type
-            return true;
-        }
-
-        if (this.options.guard && this.options.guard(evt, view)) {
-            return true;
-        }
-
-        if (evt.data && evt.data.guarded !== undefined) {
-            return evt.data.guarded;
+        const guarded = this.guardExplicit(evt, view);
+        if (guarded !== undefined) {
+            return guarded;
         }
 
         const { target } = evt;
@@ -3924,6 +3917,31 @@ export const Paper = View.extend({
         }
 
         return true;    // Event guarded. Paper should not react on it in any way.
+    },
+
+    // The part of `guard()` that reflects a decision made about this very event: the right
+    // mouse button, the `guard` option, an `evt.data.guarded` flag. Returns a boolean when
+    // one of them has decided and `undefined` when none has, leaving the answer to the
+    // caller - `guard()` then goes on to judge the target itself (its tag name, its view,
+    // whether it is on the paper's event surface). `undefined` is the only non-boolean it
+    // returns, so a caller can tell "explicitly allowed" from "no opinion".
+    guardExplicit: function(evt, view) {
+
+        if (evt.type === 'mousedown' && evt.button === 2) {
+            // handled as `contextmenu` type
+            return true;
+        }
+
+        if (this.options.guard && this.options.guard(evt, view)) {
+            return true;
+        }
+
+        if (evt.data && evt.data.guarded !== undefined) {
+            // Set by the caller, so it can be any value. Only `undefined` means undecided.
+            return !!evt.data.guarded;
+        }
+
+        return undefined;
     },
 
     setGridSize: function(gridSize) {
