@@ -160,6 +160,16 @@ const paper = new joint.dia.Paper({
 
 paper.fitToContent({ padding: { top: 10  }, allowNewOrigin: false });
 
+const rulerEl = document.createElement('div');
+// `eventSurface` accepts a selector, an element, an array of elements or a predicate.
+const eventSurfaceOptions: joint.dia.Paper.Options[] = [
+    { eventSurface: '.ruler' },
+    { eventSurface: rulerEl },
+    { eventSurface: [rulerEl] },
+    { eventSurface: (target) => target.classList.contains('ruler') },
+    { eventSurface: null }
+];
+
 const cellView = graph.getCells()[0].findView(paper);
 cellView.vel.addClass('test-class');
 

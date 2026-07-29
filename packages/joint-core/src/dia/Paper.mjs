@@ -342,6 +342,16 @@ export const Paper = View.extend({
             return false;
         },
 
+        // Extra DOM content inside `el` that counts as part of the paper's interaction
+        // surface. By default only the paper element itself and the SVG document do, so a
+        // press on HTML rendered into `el` (an overlay, a popup, a toolbar) is guarded and
+        // gets no `blank:pointerclick` and no hover events. Opting a subtree back in makes
+        // every paper handler treat it as it treats a blank area.
+        // A CSS selector (matched with `closest`, so it may cover any number of subtrees),
+        // an element, an array of elements, or a `function(target) { return boolean; }`.
+        // `guard` is consulted first, so single events can still be vetoed within a surface.
+        eventSurface: null,
+
         highlighting: defaultHighlighting,
 
         // Prevent the default context menu from being displayed.
@@ -3912,11 +3922,32 @@ export const Paper = View.extend({
             return false;
         }
 
-        if (this.el === target || this.svg.contains(target)) {
+        if (this.el === target || this.svg.contains(target) || this.isEventSurface(target)) {
             return false;
         }
 
         return true;    // Event guarded. Paper should not react on it in any way.
+    },
+
+    // Is `target` part of the paper's interaction surface? The SVG document always is;
+    // other DOM content inside `el` is only when the `eventSurface` option says so.
+    isEventSurface: function(target) {
+
+        const { eventSurface } = this.options;
+        if (!eventSurface) return false;
+        // `target` is not guaranteed to be an element (e.g. the document).
+        if (!(target instanceof Element)) return false;
+
+        if (isFunction(eventSurface)) {
+            return !!eventSurface.call(this, target);
+        }
+
+        if (isString(eventSurface)) {
+            return !!target.closest(eventSurface);
+        }
+
+        const surfaces = Array.isArray(eventSurface) ? eventSurface : [eventSurface];
+        return surfaces.some((el) => el instanceof Element && el.contains(target));
     },
 
     setGridSize: function(gridSize) {
