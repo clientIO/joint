@@ -1240,6 +1240,97 @@ QUnit.module('paper', function(hooks) {
         assert.ok(diffX < 5 && diffY < 5, 'element should not have been moved');
     });
 
+    QUnit.test('eventSurface opts DOM content inside the paper back in', function(assert) {
+
+        // HTML rendered into `paper.el` - a ruler, a gutter, a toolbar - is only half
+        // interactive. A press on it opens a blank interaction, but every other handler
+        // runs `guard()`, which rejects a target that is not on the paper's event surface,
+        // so the same content gets no `blank:pointerclick` and no hover. `eventSurface`
+        // declares the subtree part of the surface and the paper then treats all of it as
+        // a blank area.
+        const rulerEl = document.createElement('div');
+        rulerEl.className = 'ruler';
+        const tickEl = document.createElement('span');
+        rulerEl.appendChild(tickEl);
+        this.paper.el.appendChild(rulerEl);
+
+        const events = [];
+        this.paper.on('blank:pointerdown', () => events.push('pointerdown'));
+        this.paper.on('blank:pointermove', () => events.push('pointermove'));
+        this.paper.on('blank:pointerup', () => events.push('pointerup'));
+        this.paper.on('blank:pointerclick', () => events.push('pointerclick'));
+        this.paper.on('blank:mouseover', () => events.push('mouseover'));
+
+        simulate.mouseover({ el: tickEl, clientX: 10, clientY: 10 });
+        simulate.mousedown({ el: tickEl, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: tickEl, clientX: 10, clientY: 10 });
+
+        assert.deepEqual(events, ['pointerdown', 'pointerup'],
+            'without eventSurface the gesture is missing its click and hover');
+
+        // Pressing a descendant works: the selector is matched with `closest()`.
+        events.length = 0;
+        this.paper.options.eventSurface = '.ruler';
+
+        simulate.mouseover({ el: tickEl, clientX: 10, clientY: 10 });
+        simulate.mousedown({ el: tickEl, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: tickEl, clientX: 10, clientY: 10 });
+
+        assert.deepEqual(events, ['mouseover', 'pointerdown', 'pointerup', 'pointerclick'],
+            'the surfaced content produces the complete blank gesture');
+
+        // A drag started on the ruler is tracked to completion.
+        events.length = 0;
+        simulate.mousedown({ el: tickEl, clientX: 10, clientY: 10 });
+        simulate.mousemove({ el: tickEl, clientX: 100, clientY: 100 });
+        simulate.mouseup({ el: tickEl, clientX: 100, clientY: 100 });
+
+        assert.deepEqual(events, ['pointerdown', 'pointermove', 'pointerup'],
+            'a drag from the surfaced content is tracked (and is not a click)');
+
+        rulerEl.remove();
+    });
+
+    QUnit.test('eventSurface accepts a selector, an element, an array or a predicate', function(assert) {
+
+        const rulerEl = document.createElement('div');
+        rulerEl.className = 'ruler';
+        const tickEl = document.createElement('span');
+        rulerEl.appendChild(tickEl);
+        this.paper.el.appendChild(rulerEl);
+
+        const otherEl = document.createElement('div');
+        this.paper.el.appendChild(otherEl);
+
+        const { paper } = this;
+        const isSurface = (el) => paper.isEventSurface(el);
+
+        paper.options.eventSurface = null;
+        assert.notOk(isSurface(tickEl), 'nothing is surfaced by default');
+
+        paper.options.eventSurface = '.ruler';
+        assert.ok(isSurface(tickEl), 'selector: matches a descendant');
+        assert.notOk(isSurface(otherEl), 'selector: does not match outside the subtree');
+
+        paper.options.eventSurface = rulerEl;
+        assert.ok(isSurface(tickEl), 'element: matches a descendant');
+        assert.notOk(isSurface(otherEl), 'element: does not match outside the subtree');
+
+        paper.options.eventSurface = [rulerEl, otherEl];
+        assert.ok(isSurface(tickEl) && isSurface(otherEl), 'array: matches either subtree');
+
+        paper.options.eventSurface = (target) => target === otherEl;
+        assert.ok(isSurface(otherEl), 'function: matches what it accepts');
+        assert.notOk(isSurface(tickEl), 'function: rejects the rest');
+
+        // `target` is not always an element - `document` must not throw.
+        paper.options.eventSurface = '.ruler';
+        assert.notOk(isSurface(document), 'a non-element target is never a surface');
+
+        rulerEl.remove();
+        otherEl.remove();
+    });
+
     QUnit.test('getContentArea()', function(assert) {
 
         assert.checkBboxApproximately(2/* +- */, this.paper.getContentArea(), {

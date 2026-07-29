@@ -1761,6 +1761,7 @@ export namespace Paper {
         allowLink?: ((linkView: LinkView, paper: Paper) => boolean) | null;
         // events
         guard?: (evt: Event, view: CellView) => boolean;
+        eventSurface?: string | DOMElement | DOMElement[] | ((target: DOMElement) => boolean) | null;
         preventContextMenu?: boolean;
         preventDefaultViewAction?: boolean;
         preventDefaultBlankAction?: boolean;
@@ -2334,6 +2335,8 @@ export class Paper extends mvc.View<Graph> {
     protected onlabel(evt: Event): void;
 
     protected guard(evt: Event, view: CellView): boolean;
+
+    protected isEventSurface(target: EventTarget | null): boolean;
 
     protected drawBackgroundImage(img: HTMLImageElement | null, opt?: { [key: string]: any }): void;
 
