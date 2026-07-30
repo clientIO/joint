@@ -4,6 +4,7 @@ import type { Avoid } from 'libavoid-js';
 export interface ProviderOptions {
     shapeBufferDistance?: number;
     idealNudgingDistance?: number;
+    debounceTime?: number;
 }
 
 export interface Pin {

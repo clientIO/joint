@@ -5,10 +5,14 @@ import type { Connector, Shape } from './Provider.mjs';
 import { Provider, type ProviderOptions } from './Provider.mjs';
 import type { WorkerRequest, WorkerResponse } from './Worker.mjs';
 
+export interface WorkerProviderOptions extends ProviderOptions {
+    debounceTime?: number;
+}
+
 export class WorkerProvider extends Provider {
     protected worker!: Worker;
 
-    async init(options: ProviderOptions): Promise<void> {
+    async init(options: WorkerProviderOptions): Promise<void> {
         const worker = new Worker(new URL('./Worker.mjs', import.meta.url), { type: 'module' });
         this.worker = worker;
 
@@ -40,24 +44,24 @@ export class WorkerProvider extends Provider {
         throw new Error('WorkerProvider does not expose the Avoid instance since it runs inside a Worker thread.');
     }
 
-    updateShape(shape: Shape, process: boolean = true): void {
-        this.postMessage({ type: 'updateShape', shape, process });
+    updateShape(shape: Shape): void {
+        this.postMessage({ type: 'updateShape', shape });
     }
 
-    updateConnector(connector: Connector, process: boolean = true): void {
-        this.postMessage({ type: 'updateConnector', connector, process });
+    updateConnector(connector: Connector): void {
+        this.postMessage({ type: 'updateConnector', connector });
     }
 
-    deleteShape(shapeId: dia.Cell.ID, process: boolean = true): void {
-        this.postMessage({ type: 'deleteShape', shapeId, process });
+    deleteShape(shapeId: dia.Cell.ID): void {
+        this.postMessage({ type: 'deleteShape', shapeId });
     }
 
-    deleteConnector(connectorId: dia.Cell.ID, process: boolean = true): void {
-        this.postMessage({ type: 'deleteConnector', connectorId, process });
+    deleteConnector(connectorId: dia.Cell.ID): void {
+        this.postMessage({ type: 'deleteConnector', connectorId });
     }
 
-    updateGraph(shapes: Shape[], connectors: Connector[], process: boolean = true): void {
-        this.postMessage({ type: 'updateGraph', shapes, connectors, process });
+    updateGraph(shapes: Shape[], connectors: Connector[]): void {
+        this.postMessage({ type: 'updateGraph', shapes, connectors });
     }
 
     protected postMessage(request: WorkerRequest): void {

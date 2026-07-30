@@ -12,32 +12,27 @@ export interface WorkerInitRequest {
 export interface WorkerUpdateShapeRequest {
     type: 'updateShape';
     shape: Shape;
-    process: boolean;
 }
 
 export interface WorkerUpdateConnectorRequest {
     type: 'updateConnector';
     connector: Connector;
-    process: boolean;
 }
 
 export interface WorkerDeleteShapeRequest {
     type: 'deleteShape';
     shapeId: dia.Cell.ID;
-    process: boolean;
 }
 
 export interface WorkerDeleteConnectorRequest {
     type: 'deleteConnector';
     connectorId: dia.Cell.ID;
-    process: boolean;
 }
 
 export interface WorkerUpdateGraphRequest {
     type: 'updateGraph';
     shapes: Shape[];
     connectors: Connector[];
-    process: boolean;
 }
 
 export type WorkerRequest =
@@ -53,8 +48,6 @@ export type WorkerRequest =
 // trigger their own `avoidRouter.processTransaction()` call.
 type QueueableWorkerRequest = Exclude<WorkerRequest, WorkerInitRequest>;
 
-const MESSAGE_DEBOUNCE_WAIT = 50;
-
 export interface WorkerReadyResponse {
     type: 'ready';
 }
@@ -69,6 +62,7 @@ export type WorkerResponse = WorkerReadyResponse | WorkerConnectorChangedRespons
 
 let avoidInstance: AvoidInstance;
 let avoidRouter: AvoidRouter;
+let debounceTime: number = 100;
 const shapeRefs: Record<string, ShapeRef> = {};
 const connectorRefs: Record<string, ConnRef> = {};
 const linksByPointer: Record<number, dia.Cell.ID> = {};
@@ -124,6 +118,7 @@ function handleInit(options: ProviderOptions): void {
         options.shapeBufferDistance ?? 0,
         options.idealNudgingDistance ?? 10
     );
+    debounceTime = options.debounceTime ?? 100;
 
     postResponse({ type: 'ready' });
 }
@@ -256,13 +251,10 @@ const flushMessageQueue = util.debounce(() => {
     const messages = messageQueue.splice(0, messageQueue.length);
     if (messages.length === 0) return;
 
-    const shouldProcess = messages.some((message) => message.process);
     messages.forEach(handleQueuedMessage);
 
-    if (shouldProcess) {
-        avoidRouter.processTransaction();
-    }
-}, MESSAGE_DEBOUNCE_WAIT);
+    avoidRouter.processTransaction();
+}, debounceTime);
 
 onmessage = async(evt: MessageEvent<WorkerRequest>) => {
     const message = evt.data;
@@ -273,6 +265,11 @@ onmessage = async(evt: MessageEvent<WorkerRequest>) => {
         return;
     }
 
-    messageQueue.push(message);
-    flushMessageQueue();
+    if (debounceTime === 0) {
+        handleQueuedMessage(message);
+        avoidRouter.processTransaction();
+    } else {
+        messageQueue.push(message);
+        flushMessageQueue();
+    }
 };

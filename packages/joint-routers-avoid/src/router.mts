@@ -4,46 +4,39 @@ import { RouterService } from './RouterService.mjs';
 // Caches the last computed source/target anchors per link so that they can
 // be reapplied when the router is invoked without a reroute (i.e. when
 // `__avoidRouter/reroute` is not `true`).
-const lastAnchors = new WeakMap<dia.Link, { sourceAnchor: g.Point, targetAnchor: g.Point }>();
+// const lastAnchors = new WeakMap<dia.Link, { sourceAnchor: g.Point, targetAnchor: g.Point }>();
 
-export function avoid(_vertices: dia.Point[], _args: unknown, linkView: dia.LinkView): dia.Point[] {
+export function avoid(vertices: dia.Point[], _args: unknown, linkView: dia.LinkView): dia.Point[] {
     const link = linkView.model;
 
-    const routerService = RouterService.getInstance(linkView.paper!);
-    const route: dia.Point[] = routerService?.getRoute(link.id) ?? [];
+    const routerService = RouterService.getInstance(link.graph as dia.Graph);
 
-    if (!route || !isRouteValid(route, linkView, routerService?.margin)) {
-        return routers.rightAngle(_vertices, {
+    if (!vertices || !isRouteValid(vertices, linkView, routerService?.margin)) {
+        return routers.rightAngle([], {
             margin: routerService?.margin,
             // @ts-expect-error not documented
             useModelMargin: true,
         }, linkView);
     }
 
-    if (link.prop('__avoidRouter/reroute') === true) {
-        return routers.rightAngle(_vertices, {
+    /*if (routerService?.getAttribute(link, 'pending') === true) {
+        return routers.rightAngle([], {
             margin: routerService?.margin,
             // @ts-expect-error not documented
             useModelMargin: true,
         }, linkView);
-        /*const cachedAnchors = lastAnchors.get(link);
-        if (cachedAnchors) {
-            linkView.sourceAnchor = cachedAnchors.sourceAnchor;
-            linkView.targetAnchor = cachedAnchors.targetAnchor;
-        }
-        return linkView.route;*/
-    }
+    }*/
 
-    const updatedRoute = getUpdatedRoute(route, linkView);
+    const updatedRoute = getUpdatedRoute(vertices, linkView);
 
     // temporarily set the anchors to the new positions so that the link is drawn correctly
     linkView.sourceAnchor = updatedRoute.sourceAnchor;
     linkView.targetAnchor = updatedRoute.targetAnchor;
 
-    lastAnchors.set(link, {
+    /*lastAnchors.set(link, {
         sourceAnchor: updatedRoute.sourceAnchor,
         targetAnchor: updatedRoute.targetAnchor,
-    });
+    });*/
 
     return updatedRoute.vertices;
 }
