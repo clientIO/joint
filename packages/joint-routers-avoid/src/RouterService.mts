@@ -95,7 +95,6 @@ export class RouterService {
         this.connectorRoutes[linkId] = points;
         this.setAttribute(link, 'pending', false);
         link.set('vertices', points, { avoidRouter: true });
-        this.updateLinkView(link);
     }
 
     private isAvoidRoutedLink(link: dia.Link): boolean {
@@ -124,7 +123,6 @@ export class RouterService {
         if ('source' in cell.changed || 'target' in cell.changed) {
             if (!cell.isLink() || !this.isAvoidRoutedLink(cell)) return;
             this.setAttribute(cell, 'pending', true);
-            this.updateLinkView(cell);
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
 
@@ -133,7 +131,6 @@ export class RouterService {
             this.graph.getConnectedLinks(cell).forEach((link) => {
                 if (this.isAvoidRoutedLink(link)) {
                     this.setAttribute(link, 'pending', true);
-                    this.updateLinkView(link);
                 }
             });
             this.provider.updateShape(this.getAvoidShape(cell));
@@ -234,12 +231,5 @@ export class RouterService {
 
     public getAttribute(cell: dia.Cell, attributeName: string): unknown {
         return cell.prop([this.propertyName, attributeName]);
-    }
-
-    private updateLinkView(_link: dia.Link): void {
-        /*const cellView = this.paper.getCellView(link);
-        if (cellView && this.paper.isCellVisible(link)) {
-            cellView.update();
-        }*/
     }
 }

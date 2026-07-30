@@ -28,8 +28,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -44,8 +44,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 500,
-        "y": 0
+        "x": -129,
+        "y": 200
       },
       "id": "xll4",
       "z": 2,
@@ -58,8 +58,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 760,
-        "height": 80
+        "width": 570,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -94,8 +94,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 500,
-        "y": 250
+        "x": -285,
+        "y": 400
       },
       "id": "7y6w",
       "z": 3,
@@ -108,8 +108,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -124,8 +124,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -485,
-        "y": 500
+        "x": -666,
+        "y": 600
       },
       "id": "owgz",
       "z": 4,
@@ -138,8 +138,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -158,8 +158,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1273,
-        "y": 750
+        "x": -1024,
+        "y": 800
       },
       "id": "g8sb",
       "z": 5,
@@ -172,8 +172,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -188,7 +188,7 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1470,
+        "x": -1203,
         "y": 1000
       },
       "id": "3t60",
@@ -202,8 +202,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -218,8 +218,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2258,
-        "y": 1250
+        "x": -1203,
+        "y": 1200
       },
       "id": "ckjl",
       "z": 7,
@@ -232,8 +232,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -248,8 +248,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1273,
-        "y": 1500
+        "x": -845,
+        "y": 1400
       },
       "id": "ohp6",
       "z": 8,
@@ -262,8 +262,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -278,7 +278,7 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1026,
+        "x": -845,
         "y": 1000
       },
       "id": "48p0",
@@ -292,8 +292,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -308,8 +308,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1814,
-        "y": 1250
+        "x": -845,
+        "y": 1200
       },
       "id": "ofqe",
       "z": 10,
@@ -322,8 +322,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -338,8 +338,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -829,
-        "y": 1500
+        "x": -487,
+        "y": 1400
       },
       "id": "bnhl",
       "z": 11,
@@ -352,8 +352,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -368,8 +368,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -485,
-        "y": 1750
+        "x": -666,
+        "y": 1600
       },
       "id": "9mx2",
       "z": 12,
@@ -382,8 +382,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -398,8 +398,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1470,
-        "y": 2000
+        "x": -845,
+        "y": 1800
       },
       "id": "uhz1",
       "z": 13,
@@ -412,8 +412,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -432,8 +432,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -41,
-        "y": 500
+        "x": -308,
+        "y": 600
       },
       "id": "ly8o",
       "z": 14,
@@ -446,8 +446,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -462,8 +462,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -829,
-        "y": 750
+        "x": -666,
+        "y": 800
       },
       "id": "pnsm",
       "z": 15,
@@ -476,8 +476,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -492,7 +492,7 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -582,
+        "x": -487,
         "y": 1000
       },
       "id": "08j3",
@@ -506,8 +506,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -522,8 +522,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -385,
-        "y": 750
+        "x": -308,
+        "y": 800
       },
       "id": "5iqv",
       "z": 17,
@@ -536,8 +536,8 @@ export const largeGraph = {
     {
       "type": "app.FlowchartStart",
       "size": {
-        "width": 48,
-        "height": 48
+        "width": 36,
+        "height": 36
       },
       "ports": {
         "items": [
@@ -548,8 +548,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 500,
-        "y": -160
+        "x": -18,
+        "y": 0
       },
       "id": "zja8",
       "z": 18,
@@ -562,8 +562,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -582,7 +582,7 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -138,
+        "x": -129,
         "y": 1000
       },
       "id": "yxr2",
@@ -596,8 +596,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -612,8 +612,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -926,
-        "y": 1250
+        "x": -487,
+        "y": 1200
       },
       "id": "jege",
       "z": 19,
@@ -626,8 +626,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -642,8 +642,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -385,
-        "y": 1500
+        "x": -129,
+        "y": 1400
       },
       "id": "kdgi",
       "z": 20,
@@ -656,8 +656,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -672,8 +672,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -482,
-        "y": 1250
+        "x": -129,
+        "y": 1200
       },
       "id": "5r5u",
       "z": 21,
@@ -686,8 +686,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -706,8 +706,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -41,
-        "y": 1750
+        "x": -308,
+        "y": 1600
       },
       "id": "cwbf",
       "z": 22,
@@ -720,8 +720,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -736,8 +736,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -582,
-        "y": 2000
+        "x": -129,
+        "y": 1800
       },
       "id": "9kwv",
       "z": 23,
@@ -750,8 +750,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -770,8 +770,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1026,
-        "y": 2000
+        "x": -487,
+        "y": 1800
       },
       "id": "aqvk",
       "z": 24,
@@ -784,8 +784,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -800,8 +800,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1026,
-        "y": 2250
+        "x": -666,
+        "y": 2000
       },
       "id": "x63c",
       "z": 25,
@@ -814,8 +814,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -834,8 +834,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -582,
-        "y": 2250
+        "x": -308,
+        "y": 2000
       },
       "id": "7src",
       "z": 26,
@@ -848,8 +848,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -868,8 +868,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1617,
-        "y": 2500
+        "x": -487,
+        "y": 2200
       },
       "id": "b1qx",
       "z": 27,
@@ -882,8 +882,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -898,8 +898,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2996,
-        "y": 2750
+        "x": -1203,
+        "y": 2400
       },
       "id": "k83t",
       "z": 28,
@@ -912,8 +912,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -928,8 +928,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2552,
-        "y": 2750
+        "x": -845,
+        "y": 2400
       },
       "id": "togn",
       "z": 29,
@@ -942,8 +942,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -958,8 +958,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3734,
-        "y": 3000
+        "x": -1382,
+        "y": 2600
       },
       "id": "e9vi",
       "z": 30,
@@ -972,8 +972,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -988,8 +988,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3684,
-        "y": 3250
+        "x": -1623,
+        "y": 2800
       },
       "id": "3rzs",
       "z": 31,
@@ -1002,8 +1002,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1018,8 +1018,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3878,
-        "y": 3500
+        "x": -1024,
+        "y": 3000
       },
       "id": "55j2",
       "z": 32,
@@ -1032,8 +1032,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1048,8 +1048,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -4178,
-        "y": 3000
+        "x": -1740,
+        "y": 2600
       },
       "id": "rftm",
       "z": 33,
@@ -1062,8 +1062,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1078,8 +1078,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -4128,
-        "y": 3250
+        "x": -1981,
+        "y": 2800
       },
       "id": "1b0z",
       "z": 34,
@@ -1092,8 +1092,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1112,8 +1112,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1173,
-        "y": 2500
+        "x": -129,
+        "y": 2200
       },
       "id": "v55p",
       "z": 35,
@@ -1126,8 +1126,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1146,8 +1146,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2108,
-        "y": 2750
+        "x": -487,
+        "y": 2400
       },
       "id": "44nl",
       "z": 36,
@@ -1160,8 +1160,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1180,8 +1180,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3290,
-        "y": 3000
+        "x": -1024,
+        "y": 2600
       },
       "id": "5py6",
       "z": 37,
@@ -1194,8 +1194,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1210,8 +1210,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3240,
-        "y": 3250
+        "x": -1265,
+        "y": 2800
       },
       "id": "i6fq",
       "z": 38,
@@ -1224,8 +1224,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1240,8 +1240,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3434,
-        "y": 3500
+        "x": -666,
+        "y": 3000
       },
       "id": "mvxp",
       "z": 39,
@@ -1254,8 +1254,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1274,8 +1274,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2796,
-        "y": 3250
+        "x": -907,
+        "y": 2800
       },
       "id": "9k9x",
       "z": 40,
@@ -1288,8 +1288,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1304,8 +1304,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2990,
-        "y": 3500
+        "x": -308,
+        "y": 3000
       },
       "id": "wwyz",
       "z": 41,
@@ -1318,8 +1318,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1334,8 +1334,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2893,
-        "y": 3750
+        "x": 587,
+        "y": 3200
       },
       "id": "0dk0",
       "z": 42,
@@ -1348,8 +1348,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1364,8 +1364,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2546,
-        "y": 3500
+        "x": 50,
+        "y": 3000
       },
       "id": "3r30",
       "z": 43,
@@ -1378,8 +1378,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1394,8 +1394,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2449,
-        "y": 3750
+        "x": 945,
+        "y": 3200
       },
       "id": "82n2",
       "z": 44,
@@ -1408,8 +1408,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1424,8 +1424,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2846,
-        "y": 3000
+        "x": -666,
+        "y": 2600
       },
       "id": "dia5",
       "z": 45,
@@ -1438,8 +1438,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1458,8 +1458,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1664,
-        "y": 2750
+        "x": -129,
+        "y": 2400
       },
       "id": "f8kr",
       "z": 46,
@@ -1472,8 +1472,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1492,8 +1492,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2402,
-        "y": 3000
+        "x": -308,
+        "y": 2600
       },
       "id": "ro8b",
       "z": 47,
@@ -1506,8 +1506,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1522,8 +1522,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2352,
-        "y": 3250
+        "x": -549,
+        "y": 2800
       },
       "id": "4qxx",
       "z": 48,
@@ -1536,8 +1536,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1552,8 +1552,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2102,
-        "y": 3500
+        "x": 408,
+        "y": 3000
       },
       "id": "hh5l",
       "z": 49,
@@ -1566,8 +1566,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1582,8 +1582,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1908,
-        "y": 3250
+        "x": -191,
+        "y": 2800
       },
       "id": "xaa2",
       "z": 50,
@@ -1596,8 +1596,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1616,8 +1616,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1958,
-        "y": 3000
+        "x": 50,
+        "y": 2600
       },
       "id": "2sds",
       "z": 51,
@@ -1630,8 +1630,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1650,8 +1650,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1464,
-        "y": 3250
+        "x": 167,
+        "y": 2800
       },
       "id": "6ccv",
       "z": 52,
@@ -1664,8 +1664,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1680,8 +1680,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1658,
-        "y": 3500
+        "x": 766,
+        "y": 3000
       },
       "id": "x1zh",
       "z": 53,
@@ -1694,8 +1694,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1710,8 +1710,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1561,
-        "y": 3750
+        "x": 1303,
+        "y": 3200
       },
       "id": "nf7c",
       "z": 54,
@@ -1724,8 +1724,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1740,8 +1740,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1214,
-        "y": 3500
+        "x": 1124,
+        "y": 3000
       },
       "id": "lemx",
       "z": 55,
@@ -1754,8 +1754,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1770,8 +1770,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1020,
-        "y": 3250
+        "x": 525,
+        "y": 2800
       },
       "id": "xid4",
       "z": 56,
@@ -1784,8 +1784,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1800,8 +1800,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -770,
-        "y": 3500
+        "x": 1482,
+        "y": 3000
       },
       "id": "xa73",
       "z": 57,
@@ -1814,8 +1814,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1830,8 +1830,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2061,
-        "y": 2500
+        "x": -845,
+        "y": 2200
       },
       "id": "ofwb",
       "z": 58,
@@ -1844,8 +1844,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1860,8 +1860,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3440,
-        "y": 2750
+        "x": -1561,
+        "y": 2400
       },
       "id": "dbfw",
       "z": 59,
@@ -1874,8 +1874,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1894,8 +1894,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -4622,
-        "y": 3000
+        "x": -2098,
+        "y": 2600
       },
       "id": "pkyr",
       "z": 60,
@@ -1908,8 +1908,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1924,8 +1924,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -4572,
-        "y": 3250
+        "x": -2339,
+        "y": 2800
       },
       "id": "gnzs",
       "z": 61,
@@ -1938,8 +1938,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -1954,8 +1954,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -4766,
-        "y": 3500
+        "x": -1382,
+        "y": 3000
       },
       "id": "uuzp",
       "z": 62,
@@ -1968,8 +1968,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 656,
-        "height": 80
+        "width": 492,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2000,8 +2000,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -5328,
-        "y": 3250
+        "x": -2931,
+        "y": 2800
       },
       "id": "4ivs",
       "z": 63,
@@ -2014,8 +2014,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2034,8 +2034,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -6986,
-        "y": 3500
+        "x": -3172,
+        "y": 3000
       },
       "id": "q7uw",
       "z": 64,
@@ -2048,8 +2048,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2064,8 +2064,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -6001,
-        "y": 3750
+        "x": -1561,
+        "y": 3200
       },
       "id": "c3c5",
       "z": 65,
@@ -2078,8 +2078,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2094,8 +2094,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -5557,
-        "y": 3750
+        "x": -1203,
+        "y": 3200
       },
       "id": "3xlr",
       "z": 66,
@@ -2108,8 +2108,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2124,8 +2124,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -5016,
-        "y": 4000
+        "x": -1382,
+        "y": 3400
       },
       "id": "ipps",
       "z": 67,
@@ -2138,8 +2138,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2158,8 +2158,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2901,
-        "y": 4250
+        "x": -845,
+        "y": 3600
       },
       "id": "cdyk",
       "z": 68,
@@ -2172,8 +2172,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2188,8 +2188,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2652,
-        "y": 4500
+        "x": -487,
+        "y": 3800
       },
       "id": "7ln2",
       "z": 69,
@@ -2202,8 +2202,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2218,8 +2218,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1273,
-        "y": 4750
+        "x": -308,
+        "y": 4000
       },
       "id": "nngh",
       "z": 70,
@@ -2232,8 +2232,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2248,8 +2248,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -485,
-        "y": 5000
+        "x": -129,
+        "y": 4200
       },
       "id": "45bm",
       "z": 71,
@@ -2262,8 +2262,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2278,8 +2278,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -485,
-        "y": 5250
+        "x": -129,
+        "y": 4400
       },
       "id": "poyi",
       "z": 72,
@@ -2292,8 +2292,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2308,8 +2308,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -6542,
-        "y": 3500
+        "x": -2814,
+        "y": 3000
       },
       "id": "4n89",
       "z": 73,
@@ -2322,8 +2322,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2342,8 +2342,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -5113,
-        "y": 3750
+        "x": -845,
+        "y": 3200
       },
       "id": "jx5t",
       "z": 74,
@@ -2356,8 +2356,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2372,8 +2372,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -4572,
-        "y": 4000
+        "x": -1024,
+        "y": 3400
       },
       "id": "mabs",
       "z": 75,
@@ -2386,8 +2386,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2402,8 +2402,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -4128,
-        "y": 4000
+        "x": -666,
+        "y": 3400
       },
       "id": "ek3z",
       "z": 76,
@@ -2416,8 +2416,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2432,8 +2432,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2457,
-        "y": 4250
+        "x": -487,
+        "y": 3600
       },
       "id": "0sek",
       "z": 77,
@@ -2446,8 +2446,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2462,8 +2462,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -6098,
-        "y": 3500
+        "x": -2456,
+        "y": 3000
       },
       "id": "asif",
       "z": 78,
@@ -2476,8 +2476,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2492,8 +2492,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -4669,
-        "y": 3750
+        "x": -487,
+        "y": 3200
       },
       "id": "ss9t",
       "z": 79,
@@ -2506,8 +2506,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2522,8 +2522,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3684,
-        "y": 4000
+        "x": -308,
+        "y": 3400
       },
       "id": "0w10",
       "z": 80,
@@ -2536,8 +2536,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2556,8 +2556,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2013,
-        "y": 4250
+        "x": -129,
+        "y": 3600
       },
       "id": "w3c1",
       "z": 81,
@@ -2570,8 +2570,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2586,8 +2586,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1764,
-        "y": 4500
+        "x": -129,
+        "y": 3800
       },
       "id": "m25l",
       "z": 82,
@@ -2600,8 +2600,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2616,8 +2616,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1320,
-        "y": 4500
+        "x": 229,
+        "y": 3800
       },
       "id": "r7s2",
       "z": 83,
@@ -2630,8 +2630,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2646,8 +2646,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -829,
-        "y": 4750
+        "x": 50,
+        "y": 4000
       },
       "id": "lvpy",
       "z": 84,
@@ -2660,8 +2660,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2676,8 +2676,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -5654,
-        "y": 3500
+        "x": -2098,
+        "y": 3000
       },
       "id": "cwn2",
       "z": 85,
@@ -2690,8 +2690,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2710,8 +2710,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -4225,
-        "y": 3750
+        "x": -129,
+        "y": 3200
       },
       "id": "nnuv",
       "z": 86,
@@ -2724,8 +2724,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2740,8 +2740,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3240,
-        "y": 4000
+        "x": 50,
+        "y": 3400
       },
       "id": "nujj",
       "z": 87,
@@ -2754,8 +2754,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2770,8 +2770,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2796,
-        "y": 4000
+        "x": 408,
+        "y": 3400
       },
       "id": "6qdy",
       "z": 88,
@@ -2784,8 +2784,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2800,8 +2800,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1569,
-        "y": 4250
+        "x": 229,
+        "y": 3600
       },
       "id": "7w2s",
       "z": 89,
@@ -2814,8 +2814,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2830,8 +2830,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -5210,
-        "y": 3500
+        "x": -1740,
+        "y": 3000
       },
       "id": "twdl",
       "z": 90,
@@ -2844,8 +2844,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2864,8 +2864,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -3781,
-        "y": 3750
+        "x": 229,
+        "y": 3200
       },
       "id": "qym5",
       "z": 91,
@@ -2878,8 +2878,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2894,8 +2894,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -2352,
-        "y": 4000
+        "x": 766,
+        "y": 3400
       },
       "id": "m764",
       "z": 92,
@@ -2908,8 +2908,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2924,8 +2924,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1908,
-        "y": 4000
+        "x": 1124,
+        "y": 3400
       },
       "id": "7fxz",
       "z": 93,
@@ -2938,8 +2938,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2954,8 +2954,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1125,
-        "y": 4250
+        "x": 587,
+        "y": 3600
       },
       "id": "x1ox",
       "z": 94,
@@ -2968,8 +2968,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -2984,8 +2984,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 403,
-        "y": 500
+        "x": 50,
+        "y": 600
       },
       "id": "ccpr",
       "z": 95,
@@ -2998,8 +2998,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3014,8 +3014,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 59,
-        "y": 750
+        "x": 50,
+        "y": 800
       },
       "id": "nulq",
       "z": 96,
@@ -3028,8 +3028,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3044,7 +3044,7 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 306,
+        "x": 229,
         "y": 1000
       },
       "id": "flul",
@@ -3058,8 +3058,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3074,8 +3074,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -38,
-        "y": 1250
+        "x": 229,
+        "y": 1200
       },
       "id": "8hmb",
       "z": 98,
@@ -3088,8 +3088,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3104,8 +3104,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 59,
-        "y": 1500
+        "x": 229,
+        "y": 1400
       },
       "id": "01no",
       "z": 99,
@@ -3118,8 +3118,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3134,8 +3134,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 403,
-        "y": 1750
+        "x": 50,
+        "y": 1600
       },
       "id": "ye9o",
       "z": 100,
@@ -3148,8 +3148,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3168,8 +3168,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 847,
-        "y": 500
+        "x": 408,
+        "y": 600
       },
       "id": "elrq",
       "z": 101,
@@ -3182,8 +3182,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3198,8 +3198,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 503,
-        "y": 750
+        "x": 408,
+        "y": 800
       },
       "id": "k3ny",
       "z": 102,
@@ -3212,8 +3212,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3228,7 +3228,7 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 750,
+        "x": 587,
         "y": 1000
       },
       "id": "21uz",
@@ -3242,8 +3242,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3258,8 +3258,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 947,
-        "y": 750
+        "x": 766,
+        "y": 800
       },
       "id": "8dal",
       "z": 104,
@@ -3272,8 +3272,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3292,7 +3292,7 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 1194,
+        "x": 945,
         "y": 1000
       },
       "id": "ehlx",
@@ -3306,8 +3306,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3322,8 +3322,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 850,
-        "y": 1250
+        "x": 587,
+        "y": 1200
       },
       "id": "iui9",
       "z": 106,
@@ -3336,8 +3336,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3352,8 +3352,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 503,
-        "y": 1500
+        "x": 587,
+        "y": 1400
       },
       "id": "jeyn",
       "z": 107,
@@ -3366,8 +3366,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3382,8 +3382,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 1294,
-        "y": 1250
+        "x": 945,
+        "y": 1200
       },
       "id": "pjrh",
       "z": 108,
@@ -3396,8 +3396,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3416,8 +3416,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 847,
-        "y": 1750
+        "x": 408,
+        "y": 1600
       },
       "id": "twbo",
       "z": 109,
@@ -3430,8 +3430,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3446,8 +3446,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 750,
-        "y": 2000
+        "x": 587,
+        "y": 1800
       },
       "id": "lx6d",
       "z": 110,
@@ -3460,8 +3460,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3480,8 +3480,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 306,
-        "y": 2000
+        "x": 229,
+        "y": 1800
       },
       "id": "79or",
       "z": 111,
@@ -3494,8 +3494,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3510,8 +3510,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -138,
-        "y": 2250
+        "x": 50,
+        "y": 2000
       },
       "id": "74qg",
       "z": 112,
@@ -3524,8 +3524,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3544,8 +3544,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 306,
-        "y": 2250
+        "x": 408,
+        "y": 2000
       },
       "id": "1g46",
       "z": 113,
@@ -3558,8 +3558,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3578,8 +3578,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -285,
-        "y": 2500
+        "x": 229,
+        "y": 2200
       },
       "id": "k0ax",
       "z": 114,
@@ -3592,8 +3592,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3608,8 +3608,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -776,
-        "y": 2750
+        "x": 229,
+        "y": 2400
       },
       "id": "whef",
       "z": 115,
@@ -3622,8 +3622,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3638,8 +3638,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -332,
-        "y": 2750
+        "x": 587,
+        "y": 2400
       },
       "id": "i15c",
       "z": 116,
@@ -3652,8 +3652,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3668,8 +3668,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -626,
-        "y": 3000
+        "x": 766,
+        "y": 2600
       },
       "id": "flse",
       "z": 117,
@@ -3682,8 +3682,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3698,8 +3698,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 1068,
-        "y": 3250
+        "x": 1241,
+        "y": 2800
       },
       "id": "cq30",
       "z": 118,
@@ -3712,8 +3712,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3728,8 +3728,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 2782,
-        "y": 3500
+        "x": 1840,
+        "y": 3000
       },
       "id": "7c7b",
       "z": 119,
@@ -3742,8 +3742,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3758,8 +3758,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -1070,
-        "y": 3000
+        "x": 408,
+        "y": 2600
       },
       "id": "56ny",
       "z": 120,
@@ -3772,8 +3772,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3788,8 +3788,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 624,
-        "y": 3250
+        "x": 883,
+        "y": 2800
       },
       "id": "iaak",
       "z": 121,
@@ -3802,8 +3802,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3822,8 +3822,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 159,
-        "y": 2500
+        "x": 587,
+        "y": 2200
       },
       "id": "0e3p",
       "z": 122,
@@ -3836,8 +3836,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3856,8 +3856,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 112,
-        "y": 2750
+        "x": 945,
+        "y": 2400
       },
       "id": "h5cs",
       "z": 123,
@@ -3870,8 +3870,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3886,8 +3886,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": -182,
-        "y": 3000
+        "x": 1124,
+        "y": 2600
       },
       "id": "c856",
       "z": 124,
@@ -3900,8 +3900,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3916,8 +3916,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 262,
-        "y": 3000
+        "x": 1482,
+        "y": 2600
       },
       "id": "ofn1",
       "z": 125,
@@ -3930,8 +3930,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3946,8 +3946,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 1956,
-        "y": 3250
+        "x": 1957,
+        "y": 2800
       },
       "id": "ueih",
       "z": 126,
@@ -3960,8 +3960,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -3976,8 +3976,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 3670,
-        "y": 3500
+        "x": 2556,
+        "y": 3000
       },
       "id": "v5g1",
       "z": 127,
@@ -3990,8 +3990,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -4006,8 +4006,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 1512,
-        "y": 3250
+        "x": 1599,
+        "y": 2800
       },
       "id": "8e9r",
       "z": 128,
@@ -4020,8 +4020,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -4036,8 +4036,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 3226,
-        "y": 3500
+        "x": 2198,
+        "y": 3000
       },
       "id": "mjsr",
       "z": 129,
@@ -4050,8 +4050,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -4070,8 +4070,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 556,
-        "y": 2750
+        "x": 1303,
+        "y": 2400
       },
       "id": "hfj7",
       "z": 130,
@@ -4084,8 +4084,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -4104,8 +4104,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 1150,
-        "y": 3000
+        "x": 1840,
+        "y": 2600
       },
       "id": "xrg2",
       "z": 131,
@@ -4118,8 +4118,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -4134,8 +4134,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 3288,
-        "y": 3250
+        "x": 2315,
+        "y": 2800
       },
       "id": "o4iz",
       "z": 132,
@@ -4148,8 +4148,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -4164,8 +4164,8 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 3732,
-        "y": 3250
+        "x": 2673,
+        "y": 2800
       },
       "id": "atat",
       "z": 133,
@@ -4178,8 +4178,8 @@ export const largeGraph = {
     {
       "type": "app.Message",
       "size": {
-        "width": 344,
-        "height": 80
+        "width": 258,
+        "height": 60
       },
       "ports": {
         "items": [
@@ -4194,7460 +4194,14 @@ export const largeGraph = {
         ]
       },
       "position": {
-        "x": 6334,
-        "y": 3500
+        "x": 2914,
+        "y": 3000
       },
       "id": "dfgs",
       "z": 134,
       "attrs": {
         "label": {
           "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "1dnt"
-          },
-          {
-            "group": "out",
-            "id": "cagr"
-          }
-        ]
-      },
-      "position": {
-        "x": 5543,
-        "y": 3750
-      },
-      "id": "y4x4",
-      "z": 135,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "dtbh"
-          },
-          {
-            "group": "out",
-            "id": "55rb"
-          },
-          {
-            "group": "out",
-            "id": "c76u"
-          }
-        ]
-      },
-      "position": {
-        "x": 5890,
-        "y": 3500
-      },
-      "id": "p2u4",
-      "z": 136,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "v1zo"
-          },
-          {
-            "group": "out",
-            "id": "cfi4"
-          }
-        ]
-      },
-      "position": {
-        "x": 5099,
-        "y": 3750
-      },
-      "id": "b7l8",
-      "z": 137,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "f90s"
-          },
-          {
-            "group": "out",
-            "id": "9bp4"
-          },
-          {
-            "group": "out",
-            "id": "m18o"
-          }
-        ]
-      },
-      "position": {
-        "x": 706,
-        "y": 3000
-      },
-      "id": "o6l1",
-      "z": 138,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "rm7p"
-          },
-          {
-            "group": "out",
-            "id": "yxdw"
-          },
-          {
-            "group": "out",
-            "id": "2zcf"
-          }
-        ]
-      },
-      "position": {
-        "x": 2400,
-        "y": 3250
-      },
-      "id": "1bj9",
-      "z": 139,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "dalm"
-          },
-          {
-            "group": "out",
-            "id": "jegq"
-          },
-          {
-            "group": "out",
-            "id": "toam"
-          }
-        ]
-      },
-      "position": {
-        "x": 4114,
-        "y": 3500
-      },
-      "id": "zw0l",
-      "z": 140,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "knd6"
-          },
-          {
-            "group": "out",
-            "id": "69ug"
-          },
-          {
-            "group": "out",
-            "id": "nekr"
-          }
-        ]
-      },
-      "position": {
-        "x": 1991,
-        "y": 3750
-      },
-      "id": "dvln",
-      "z": 141,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "cjiw"
-          },
-          {
-            "group": "out",
-            "id": "vhdk"
-          }
-        ]
-      },
-      "position": {
-        "x": 3420,
-        "y": 4000
-      },
-      "id": "cppr",
-      "z": 142,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "lm34"
-          },
-          {
-            "group": "out",
-            "id": "9el8"
-          }
-        ]
-      },
-      "position": {
-        "x": 2435,
-        "y": 3750
-      },
-      "id": "8lw2",
-      "z": 143,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "kzru"
-          },
-          {
-            "group": "out",
-            "id": "in3o"
-          },
-          {
-            "group": "out",
-            "id": "euvt"
-          }
-        ]
-      },
-      "position": {
-        "x": 4558,
-        "y": 3500
-      },
-      "id": "hl88",
-      "z": 144,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "zpky"
-          },
-          {
-            "group": "out",
-            "id": "32or"
-          }
-        ]
-      },
-      "position": {
-        "x": 2879,
-        "y": 3750
-      },
-      "id": "yt8q",
-      "z": 145,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "2c9r"
-          },
-          {
-            "group": "out",
-            "id": "os7y"
-          },
-          {
-            "group": "out",
-            "id": "t2m6"
-          }
-        ]
-      },
-      "position": {
-        "x": 2844,
-        "y": 3250
-      },
-      "id": "wixz",
-      "z": 146,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "xmxb"
-          },
-          {
-            "group": "out",
-            "id": "9yo1"
-          },
-          {
-            "group": "out",
-            "id": "8paj"
-          }
-        ]
-      },
-      "position": {
-        "x": 5002,
-        "y": 3500
-      },
-      "id": "twd1",
-      "z": 147,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "qo1v"
-          },
-          {
-            "group": "out",
-            "id": "smad"
-          },
-          {
-            "group": "out",
-            "id": "o8e7"
-          }
-        ]
-      },
-      "position": {
-        "x": 3323,
-        "y": 3750
-      },
-      "id": "ssuu",
-      "z": 148,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "rrpz"
-          },
-          {
-            "group": "out",
-            "id": "lk3e"
-          },
-          {
-            "group": "out",
-            "id": "4xyf"
-          }
-        ]
-      },
-      "position": {
-        "x": 4308,
-        "y": 4000
-      },
-      "id": "flqh",
-      "z": 149,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "u8io"
-          },
-          {
-            "group": "out",
-            "id": "gxpb"
-          }
-        ]
-      },
-      "position": {
-        "x": 1983,
-        "y": 4250
-      },
-      "id": "9igf",
-      "z": 150,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "zh13"
-          },
-          {
-            "group": "out",
-            "id": "cd5g"
-          }
-        ]
-      },
-      "position": {
-        "x": 4752,
-        "y": 4000
-      },
-      "id": "whvn",
-      "z": 151,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "sxvw"
-          },
-          {
-            "group": "out",
-            "id": "vm4w"
-          },
-          {
-            "group": "out",
-            "id": "3zkw"
-          }
-        ]
-      },
-      "position": {
-        "x": 3767,
-        "y": 3750
-      },
-      "id": "lqj5",
-      "z": 152,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "gysp"
-          },
-          {
-            "group": "out",
-            "id": "engw"
-          }
-        ]
-      },
-      "position": {
-        "x": 5196,
-        "y": 4000
-      },
-      "id": "deek",
-      "z": 153,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "rflq"
-          },
-          {
-            "group": "out",
-            "id": "bmae"
-          },
-          {
-            "group": "out",
-            "id": "38sr"
-          }
-        ]
-      },
-      "position": {
-        "x": 5446,
-        "y": 3500
-      },
-      "id": "yx9t",
-      "z": 154,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "cb1k"
-          },
-          {
-            "group": "out",
-            "id": "jtgq"
-          },
-          {
-            "group": "out",
-            "id": "01te"
-          }
-        ]
-      },
-      "position": {
-        "x": 4211,
-        "y": 3750
-      },
-      "id": "yo4r",
-      "z": 155,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "3bzt"
-          },
-          {
-            "group": "out",
-            "id": "9d31"
-          },
-          {
-            "group": "out",
-            "id": "k9qm"
-          }
-        ]
-      },
-      "position": {
-        "x": 5640,
-        "y": 4000
-      },
-      "id": "e13n",
-      "z": 156,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "i3vm"
-          },
-          {
-            "group": "out",
-            "id": "zwff"
-          },
-          {
-            "group": "out",
-            "id": "hhcm"
-          }
-        ]
-      },
-      "position": {
-        "x": 2871,
-        "y": 4250
-      },
-      "id": "3p91",
-      "z": 157,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "kj49"
-          },
-          {
-            "group": "out",
-            "id": "yd82"
-          }
-        ]
-      },
-      "position": {
-        "x": 2232,
-        "y": 4500
-      },
-      "id": "ktlz",
-      "z": 158,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "5iz3"
-          },
-          {
-            "group": "out",
-            "id": "1yru"
-          }
-        ]
-      },
-      "position": {
-        "x": 3315,
-        "y": 4250
-      },
-      "id": "795e",
-      "z": 159,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "5dsk"
-          },
-          {
-            "group": "out",
-            "id": "7n8l"
-          },
-          {
-            "group": "out",
-            "id": "a100"
-          }
-        ]
-      },
-      "position": {
-        "x": 6084,
-        "y": 4000
-      },
-      "id": "joqw",
-      "z": 160,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "thph"
-          },
-          {
-            "group": "out",
-            "id": "j3mu"
-          }
-        ]
-      },
-      "position": {
-        "x": 3759,
-        "y": 4250
-      },
-      "id": "qxmc",
-      "z": 161,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "bd2q"
-          },
-          {
-            "group": "out",
-            "id": "e4pa"
-          }
-        ]
-      },
-      "position": {
-        "x": 4655,
-        "y": 3750
-      },
-      "id": "urmy",
-      "z": 162,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "xf7j"
-          },
-          {
-            "group": "out",
-            "id": "xjn6"
-          }
-        ]
-      },
-      "position": {
-        "x": 6528,
-        "y": 4000
-      },
-      "id": "8hye",
-      "z": 163,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ixza"
-          },
-          {
-            "group": "out",
-            "id": "reiy"
-          }
-        ]
-      },
-      "position": {
-        "x": -729,
-        "y": 2500
-      },
-      "id": "fokz",
-      "z": 164,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "pecn"
-          },
-          {
-            "group": "out",
-            "id": "0dl5"
-          }
-        ]
-      },
-      "position": {
-        "x": -1220,
-        "y": 2750
-      },
-      "id": "az39",
-      "z": 165,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "9fta"
-          },
-          {
-            "group": "out",
-            "id": "xp0w"
-          },
-          {
-            "group": "out",
-            "id": "foy4"
-          }
-        ]
-      },
-      "position": {
-        "x": -1514,
-        "y": 3000
-      },
-      "id": "e11e",
-      "z": 166,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "n8lf"
-          },
-          {
-            "group": "out",
-            "id": "jdtv"
-          }
-        ]
-      },
-      "position": {
-        "x": 180,
-        "y": 3250
-      },
-      "id": "dd1v",
-      "z": 167,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "xkss"
-          },
-          {
-            "group": "out",
-            "id": "0kb6"
-          }
-        ]
-      },
-      "position": {
-        "x": 1894,
-        "y": 3500
-      },
-      "id": "v2y4",
-      "z": 168,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 656,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "vt99"
-          },
-          {
-            "group": "out",
-            "id": "7e4u"
-          },
-          {
-            "group": "out",
-            "id": "ny18"
-          },
-          {
-            "group": "out",
-            "id": "1acj"
-          },
-          {
-            "group": "out",
-            "id": "bc2s"
-          },
-          {
-            "group": "out",
-            "id": "wsoz"
-          }
-        ]
-      },
-      "position": {
-        "x": -576,
-        "y": 3250
-      },
-      "id": "8rer",
-      "z": 169,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "lsh3"
-          },
-          {
-            "group": "out",
-            "id": "tow4"
-          },
-          {
-            "group": "out",
-            "id": "ycz0"
-          }
-        ]
-      },
-      "position": {
-        "x": -326,
-        "y": 3500
-      },
-      "id": "ctwj",
-      "z": 170,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "qvl0"
-          },
-          {
-            "group": "out",
-            "id": "0ezz"
-          }
-        ]
-      },
-      "position": {
-        "x": -1117,
-        "y": 3750
-      },
-      "id": "4cdp",
-      "z": 171,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "zge2"
-          },
-          {
-            "group": "out",
-            "id": "j51b"
-          }
-        ]
-      },
-      "position": {
-        "x": -673,
-        "y": 3750
-      },
-      "id": "f8s2",
-      "z": 172,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ucqm"
-          },
-          {
-            "group": "out",
-            "id": "runj"
-          }
-        ]
-      },
-      "position": {
-        "x": -132,
-        "y": 4000
-      },
-      "id": "3jcz",
-      "z": 173,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "sb5i"
-          },
-          {
-            "group": "out",
-            "id": "qnf7"
-          },
-          {
-            "group": "out",
-            "id": "4t60"
-          }
-        ]
-      },
-      "position": {
-        "x": -681,
-        "y": 4250
-      },
-      "id": "du0i",
-      "z": 174,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "jcns"
-          },
-          {
-            "group": "out",
-            "id": "6g29"
-          }
-        ]
-      },
-      "position": {
-        "x": 12,
-        "y": 4500
-      },
-      "id": "ploz",
-      "z": 175,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "4lta"
-          },
-          {
-            "group": "out",
-            "id": "hukw"
-          }
-        ]
-      },
-      "position": {
-        "x": -385,
-        "y": 4750
-      },
-      "id": "8cqk",
-      "z": 176,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "h61i"
-          },
-          {
-            "group": "out",
-            "id": "aoim"
-          }
-        ]
-      },
-      "position": {
-        "x": 403,
-        "y": 5000
-      },
-      "id": "qvr1",
-      "z": 177,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "x40d"
-          },
-          {
-            "group": "out",
-            "id": "tirc"
-          }
-        ]
-      },
-      "position": {
-        "x": -41,
-        "y": 5250
-      },
-      "id": "458a",
-      "z": 178,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "6szn"
-          },
-          {
-            "group": "out",
-            "id": "9dde"
-          }
-        ]
-      },
-      "position": {
-        "x": 118,
-        "y": 3500
-      },
-      "id": "9zd7",
-      "z": 179,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "8ijl"
-          },
-          {
-            "group": "out",
-            "id": "2z0l"
-          },
-          {
-            "group": "out",
-            "id": "jch2"
-          }
-        ]
-      },
-      "position": {
-        "x": -229,
-        "y": 3750
-      },
-      "id": "3cup",
-      "z": 180,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ot8h"
-          },
-          {
-            "group": "out",
-            "id": "ljef"
-          }
-        ]
-      },
-      "position": {
-        "x": 312,
-        "y": 4000
-      },
-      "id": "vffq",
-      "z": 181,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "4ldi"
-          },
-          {
-            "group": "out",
-            "id": "msyj"
-          }
-        ]
-      },
-      "position": {
-        "x": 756,
-        "y": 4000
-      },
-      "id": "y3zb",
-      "z": 182,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "0iq2"
-          },
-          {
-            "group": "out",
-            "id": "fa39"
-          }
-        ]
-      },
-      "position": {
-        "x": -237,
-        "y": 4250
-      },
-      "id": "9boq",
-      "z": 183,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "xuj3"
-          },
-          {
-            "group": "out",
-            "id": "ac6p"
-          }
-        ]
-      },
-      "position": {
-        "x": 562,
-        "y": 3500
-      },
-      "id": "e3nw",
-      "z": 184,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "bqgu"
-          },
-          {
-            "group": "out",
-            "id": "3oby"
-          }
-        ]
-      },
-      "position": {
-        "x": 215,
-        "y": 3750
-      },
-      "id": "e63l",
-      "z": 185,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "5bwi"
-          },
-          {
-            "group": "out",
-            "id": "kotc"
-          },
-          {
-            "group": "out",
-            "id": "keh5"
-          }
-        ]
-      },
-      "position": {
-        "x": 1200,
-        "y": 4000
-      },
-      "id": "ghgk",
-      "z": 186,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "92mt"
-          },
-          {
-            "group": "out",
-            "id": "r6sn"
-          }
-        ]
-      },
-      "position": {
-        "x": 207,
-        "y": 4250
-      },
-      "id": "sw22",
-      "z": 187,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "2c9t"
-          },
-          {
-            "group": "out",
-            "id": "199d"
-          }
-        ]
-      },
-      "position": {
-        "x": 651,
-        "y": 4250
-      },
-      "id": "glh6",
-      "z": 188,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "c9h4"
-          },
-          {
-            "group": "out",
-            "id": "2m44"
-          }
-        ]
-      },
-      "position": {
-        "x": 900,
-        "y": 4500
-      },
-      "id": "xj37",
-      "z": 189,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "6bz8"
-          },
-          {
-            "group": "out",
-            "id": "uug9"
-          }
-        ]
-      },
-      "position": {
-        "x": 1006,
-        "y": 3500
-      },
-      "id": "gv3z",
-      "z": 190,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "dihs"
-          },
-          {
-            "group": "out",
-            "id": "a7he"
-          },
-          {
-            "group": "out",
-            "id": "z74l"
-          }
-        ]
-      },
-      "position": {
-        "x": 659,
-        "y": 3750
-      },
-      "id": "5rlr",
-      "z": 191,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "448n"
-          },
-          {
-            "group": "out",
-            "id": "7odk"
-          }
-        ]
-      },
-      "position": {
-        "x": 1644,
-        "y": 4000
-      },
-      "id": "av71",
-      "z": 192,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "8xg8"
-          },
-          {
-            "group": "out",
-            "id": "y72i"
-          }
-        ]
-      },
-      "position": {
-        "x": 2088,
-        "y": 4000
-      },
-      "id": "ef82",
-      "z": 193,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "e088"
-          },
-          {
-            "group": "out",
-            "id": "o98b"
-          }
-        ]
-      },
-      "position": {
-        "x": 1095,
-        "y": 4250
-      },
-      "id": "vgly",
-      "z": 194,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "u7f0"
-          },
-          {
-            "group": "out",
-            "id": "i9g5"
-          }
-        ]
-      },
-      "position": {
-        "x": 1450,
-        "y": 3500
-      },
-      "id": "v78h",
-      "z": 195,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "qjic"
-          },
-          {
-            "group": "out",
-            "id": "jdan"
-          },
-          {
-            "group": "out",
-            "id": "085r"
-          }
-        ]
-      },
-      "position": {
-        "x": 1103,
-        "y": 3750
-      },
-      "id": "dzx5",
-      "z": 196,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "5xyf"
-          },
-          {
-            "group": "out",
-            "id": "c4kl"
-          }
-        ]
-      },
-      "position": {
-        "x": 2532,
-        "y": 4000
-      },
-      "id": "ntdr",
-      "z": 197,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "0t6d"
-          },
-          {
-            "group": "out",
-            "id": "vwrb"
-          }
-        ]
-      },
-      "position": {
-        "x": 2976,
-        "y": 4000
-      },
-      "id": "8cgn",
-      "z": 198,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "dhgz"
-          },
-          {
-            "group": "out",
-            "id": "z0jk"
-          }
-        ]
-      },
-      "position": {
-        "x": 1539,
-        "y": 4250
-      },
-      "id": "7f6f",
-      "z": 199,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "fmpk"
-          },
-          {
-            "group": "out",
-            "id": "xvha"
-          },
-          {
-            "group": "out",
-            "id": "gkc4"
-          }
-        ]
-      },
-      "position": {
-        "x": 1291,
-        "y": 500
-      },
-      "id": "ibu4",
-      "z": 200,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "dtg5"
-          },
-          {
-            "group": "out",
-            "id": "nqjq"
-          }
-        ]
-      },
-      "position": {
-        "x": 1391,
-        "y": 750
-      },
-      "id": "lorx",
-      "z": 201,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ydmt"
-          },
-          {
-            "group": "out",
-            "id": "8vt4"
-          }
-        ]
-      },
-      "position": {
-        "x": 1638,
-        "y": 1000
-      },
-      "id": "ijc1",
-      "z": 202,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "r5rc"
-          },
-          {
-            "group": "out",
-            "id": "6zs6"
-          }
-        ]
-      },
-      "position": {
-        "x": 1835,
-        "y": 750
-      },
-      "id": "3pt5",
-      "z": 203,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "1g98"
-          },
-          {
-            "group": "out",
-            "id": "3ep9"
-          },
-          {
-            "group": "out",
-            "id": "p9w4"
-          }
-        ]
-      },
-      "position": {
-        "x": 2082,
-        "y": 1000
-      },
-      "id": "2ywe",
-      "z": 204,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "nolj"
-          },
-          {
-            "group": "out",
-            "id": "q52w"
-          }
-        ]
-      },
-      "position": {
-        "x": 2182,
-        "y": 1250
-      },
-      "id": "j66c",
-      "z": 205,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "v177"
-          },
-          {
-            "group": "out",
-            "id": "udkt"
-          }
-        ]
-      },
-      "position": {
-        "x": 947,
-        "y": 1500
-      },
-      "id": "spof",
-      "z": 206,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "vbjf"
-          },
-          {
-            "group": "out",
-            "id": "vyb6"
-          }
-        ]
-      },
-      "position": {
-        "x": 2626,
-        "y": 1250
-      },
-      "id": "monr",
-      "z": 207,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "6a3k"
-          },
-          {
-            "group": "out",
-            "id": "krzd"
-          },
-          {
-            "group": "out",
-            "id": "5e9p"
-          }
-        ]
-      },
-      "position": {
-        "x": 1291,
-        "y": 1750
-      },
-      "id": "li07",
-      "z": 208,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "gh30"
-          },
-          {
-            "group": "out",
-            "id": "153s"
-          }
-        ]
-      },
-      "position": {
-        "x": 1194,
-        "y": 2000
-      },
-      "id": "3jpx",
-      "z": 209,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "34iq"
-          },
-          {
-            "group": "out",
-            "id": "7zj3"
-          }
-        ]
-      },
-      "position": {
-        "x": 1638,
-        "y": 2000
-      },
-      "id": "45bg",
-      "z": 210,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "nvg5"
-          },
-          {
-            "group": "out",
-            "id": "vmf6"
-          }
-        ]
-      },
-      "position": {
-        "x": 750,
-        "y": 2250
-      },
-      "id": "sweb",
-      "z": 211,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "fu84"
-          },
-          {
-            "group": "out",
-            "id": "xyjo"
-          },
-          {
-            "group": "out",
-            "id": "a21a"
-          }
-        ]
-      },
-      "position": {
-        "x": 603,
-        "y": 2500
-      },
-      "id": "0ykn",
-      "z": 212,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "j2k8"
-          },
-          {
-            "group": "out",
-            "id": "xpnm"
-          }
-        ]
-      },
-      "position": {
-        "x": 1444,
-        "y": 2750
-      },
-      "id": "6xva",
-      "z": 213,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "odsx"
-          },
-          {
-            "group": "out",
-            "id": "4nxv"
-          }
-        ]
-      },
-      "position": {
-        "x": 2482,
-        "y": 3000
-      },
-      "id": "jqy3",
-      "z": 214,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "x5jz"
-          },
-          {
-            "group": "out",
-            "id": "6kf1"
-          }
-        ]
-      },
-      "position": {
-        "x": 4620,
-        "y": 3250
-      },
-      "id": "kdc9",
-      "z": 215,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "xyzx"
-          },
-          {
-            "group": "out",
-            "id": "9jpn"
-          },
-          {
-            "group": "out",
-            "id": "bzug"
-          }
-        ]
-      },
-      "position": {
-        "x": 1000,
-        "y": 2750
-      },
-      "id": "622v",
-      "z": 216,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "6ys4"
-          },
-          {
-            "group": "out",
-            "id": "45gd"
-          }
-        ]
-      },
-      "position": {
-        "x": 1594,
-        "y": 3000
-      },
-      "id": "0it2",
-      "z": 217,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "gymd"
-          },
-          {
-            "group": "out",
-            "id": "m0l2"
-          }
-        ]
-      },
-      "position": {
-        "x": 2038,
-        "y": 3000
-      },
-      "id": "ej31",
-      "z": 218,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "q5v7"
-          },
-          {
-            "group": "out",
-            "id": "c6s5"
-          }
-        ]
-      },
-      "position": {
-        "x": 4176,
-        "y": 3250
-      },
-      "id": "ljk4",
-      "z": 219,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ehou"
-          },
-          {
-            "group": "out",
-            "id": "6qlz"
-          }
-        ]
-      },
-      "position": {
-        "x": 6778,
-        "y": 3500
-      },
-      "id": "nkb4",
-      "z": 220,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "waj1"
-          },
-          {
-            "group": "out",
-            "id": "g1r1"
-          },
-          {
-            "group": "out",
-            "id": "dwwo"
-          }
-        ]
-      },
-      "position": {
-        "x": 1735,
-        "y": 500
-      },
-      "id": "2rwg",
-      "z": 221,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "nal3"
-          },
-          {
-            "group": "out",
-            "id": "gywi"
-          }
-        ]
-      },
-      "position": {
-        "x": 2279,
-        "y": 750
-      },
-      "id": "8nbh",
-      "z": 222,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "vg3k"
-          },
-          {
-            "group": "out",
-            "id": "k0vm"
-          }
-        ]
-      },
-      "position": {
-        "x": 2526,
-        "y": 1000
-      },
-      "id": "ymen",
-      "z": 223,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "mg87"
-          },
-          {
-            "group": "out",
-            "id": "oi0e"
-          }
-        ]
-      },
-      "position": {
-        "x": 2723,
-        "y": 750
-      },
-      "id": "59m6",
-      "z": 224,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "xb5j"
-          },
-          {
-            "group": "out",
-            "id": "tb9x"
-          },
-          {
-            "group": "out",
-            "id": "xayp"
-          }
-        ]
-      },
-      "position": {
-        "x": 2970,
-        "y": 1000
-      },
-      "id": "0vgn",
-      "z": 225,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "zwkx"
-          },
-          {
-            "group": "out",
-            "id": "xjve"
-          },
-          {
-            "group": "out",
-            "id": "3dze"
-          }
-        ]
-      },
-      "position": {
-        "x": 3514,
-        "y": 1250
-      },
-      "id": "ntrf",
-      "z": 226,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "jshz"
-          },
-          {
-            "group": "out",
-            "id": "kbrh"
-          }
-        ]
-      },
-      "position": {
-        "x": 1391,
-        "y": 1500
-      },
-      "id": "edhh",
-      "z": 227,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "64yf"
-          },
-          {
-            "group": "out",
-            "id": "ds0d"
-          }
-        ]
-      },
-      "position": {
-        "x": 1835,
-        "y": 1500
-      },
-      "id": "7lay",
-      "z": 228,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 448,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "qdgb"
-          },
-          {
-            "group": "out",
-            "id": "k2l0"
-          },
-          {
-            "group": "out",
-            "id": "d1b4"
-          },
-          {
-            "group": "out",
-            "id": "xgmp"
-          }
-        ]
-      },
-      "position": {
-        "x": 1735,
-        "y": 1750
-      },
-      "id": "ji9k",
-      "z": 229,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "go8j"
-          },
-          {
-            "group": "out",
-            "id": "n42x"
-          },
-          {
-            "group": "out",
-            "id": "2ezc"
-          }
-        ]
-      },
-      "position": {
-        "x": 2082,
-        "y": 2000
-      },
-      "id": "w5d3",
-      "z": 230,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "2ygn"
-          },
-          {
-            "group": "out",
-            "id": "mby4"
-          },
-          {
-            "group": "out",
-            "id": "9e7e"
-          }
-        ]
-      },
-      "position": {
-        "x": 1194,
-        "y": 2250
-      },
-      "id": "7fov",
-      "z": 231,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "zy1u"
-          },
-          {
-            "group": "out",
-            "id": "u9ym"
-          }
-        ]
-      },
-      "position": {
-        "x": 1047,
-        "y": 2500
-      },
-      "id": "objl",
-      "z": 232,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "imyn"
-          },
-          {
-            "group": "out",
-            "id": "4u9b"
-          }
-        ]
-      },
-      "position": {
-        "x": 1888,
-        "y": 2750
-      },
-      "id": "szdx",
-      "z": 233,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "5cri"
-          },
-          {
-            "group": "out",
-            "id": "8bix"
-          },
-          {
-            "group": "out",
-            "id": "oiq2"
-          }
-        ]
-      },
-      "position": {
-        "x": 1638,
-        "y": 2250
-      },
-      "id": "xf44",
-      "z": 234,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "rxdo"
-          },
-          {
-            "group": "out",
-            "id": "uadv"
-          },
-          {
-            "group": "out",
-            "id": "wksh"
-          }
-        ]
-      },
-      "position": {
-        "x": 1935,
-        "y": 2500
-      },
-      "id": "q4qe",
-      "z": 235,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "iquw"
-          },
-          {
-            "group": "out",
-            "id": "rxze"
-          },
-          {
-            "group": "out",
-            "id": "1hm3"
-          }
-        ]
-      },
-      "position": {
-        "x": 2776,
-        "y": 2750
-      },
-      "id": "y8nb",
-      "z": 236,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "bffz"
-          },
-          {
-            "group": "out",
-            "id": "zdvg"
-          }
-        ]
-      },
-      "position": {
-        "x": 4258,
-        "y": 3000
-      },
-      "id": "8ksz",
-      "z": 237,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "zdo7"
-          },
-          {
-            "group": "out",
-            "id": "4v1q"
-          }
-        ]
-      },
-      "position": {
-        "x": 5508,
-        "y": 3250
-      },
-      "id": "7oq2",
-      "z": 238,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "tb74"
-          },
-          {
-            "group": "out",
-            "id": "rs7g"
-          },
-          {
-            "group": "out",
-            "id": "u0en"
-          }
-        ]
-      },
-      "position": {
-        "x": 4702,
-        "y": 3000
-      },
-      "id": "x8er",
-      "z": 239,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "961j"
-          },
-          {
-            "group": "out",
-            "id": "88qe"
-          }
-        ]
-      },
-      "position": {
-        "x": 5952,
-        "y": 3250
-      },
-      "id": "v5sn",
-      "z": 240,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "z4z7"
-          },
-          {
-            "group": "out",
-            "id": "whwk"
-          }
-        ]
-      },
-      "position": {
-        "x": 8110,
-        "y": 3500
-      },
-      "id": "oz0k",
-      "z": 241,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "8syl"
-          },
-          {
-            "group": "out",
-            "id": "emru"
-          }
-        ]
-      },
-      "position": {
-        "x": 6396,
-        "y": 3250
-      },
-      "id": "my9x",
-      "z": 242,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "k43s"
-          },
-          {
-            "group": "out",
-            "id": "afyh"
-          }
-        ]
-      },
-      "position": {
-        "x": 8554,
-        "y": 3500
-      },
-      "id": "yp04",
-      "z": 243,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "4yk1"
-          },
-          {
-            "group": "out",
-            "id": "b3d5"
-          },
-          {
-            "group": "out",
-            "id": "050u"
-          }
-        ]
-      },
-      "position": {
-        "x": 2379,
-        "y": 2500
-      },
-      "id": "1fkj",
-      "z": 244,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "x7n8"
-          },
-          {
-            "group": "out",
-            "id": "9lta"
-          },
-          {
-            "group": "out",
-            "id": "jw25"
-          }
-        ]
-      },
-      "position": {
-        "x": 3220,
-        "y": 2750
-      },
-      "id": "i22k",
-      "z": 245,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "1tv1"
-          },
-          {
-            "group": "out",
-            "id": "8kgy"
-          },
-          {
-            "group": "out",
-            "id": "ggsn"
-          }
-        ]
-      },
-      "position": {
-        "x": 5146,
-        "y": 3000
-      },
-      "id": "36zx",
-      "z": 246,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "jlzf"
-          },
-          {
-            "group": "out",
-            "id": "flb7"
-          }
-        ]
-      },
-      "position": {
-        "x": 6840,
-        "y": 3250
-      },
-      "id": "puev",
-      "z": 247,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "m2lh"
-          },
-          {
-            "group": "out",
-            "id": "gcso"
-          }
-        ]
-      },
-      "position": {
-        "x": 8998,
-        "y": 3500
-      },
-      "id": "wxru",
-      "z": 248,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "lmh1"
-          },
-          {
-            "group": "out",
-            "id": "t939"
-          }
-        ]
-      },
-      "position": {
-        "x": 7284,
-        "y": 3250
-      },
-      "id": "tdhh",
-      "z": 249,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ww8y"
-          },
-          {
-            "group": "out",
-            "id": "l68n"
-          }
-        ]
-      },
-      "position": {
-        "x": 9442,
-        "y": 3500
-      },
-      "id": "ayq6",
-      "z": 250,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "n2qb"
-          },
-          {
-            "group": "out",
-            "id": "6gs8"
-          }
-        ]
-      },
-      "position": {
-        "x": 3664,
-        "y": 2750
-      },
-      "id": "tk63",
-      "z": 251,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "cy15"
-          },
-          {
-            "group": "out",
-            "id": "pdtz"
-          }
-        ]
-      },
-      "position": {
-        "x": 5590,
-        "y": 3000
-      },
-      "id": "g8ta",
-      "z": 252,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "0fql"
-          },
-          {
-            "group": "out",
-            "id": "db2u"
-          }
-        ]
-      },
-      "position": {
-        "x": 1491,
-        "y": 2500
-      },
-      "id": "91x7",
-      "z": 253,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "wpay"
-          },
-          {
-            "group": "out",
-            "id": "txw1"
-          },
-          {
-            "group": "out",
-            "id": "vzc7"
-          }
-        ]
-      },
-      "position": {
-        "x": 2526,
-        "y": 2000
-      },
-      "id": "uijn",
-      "z": 254,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "1pox"
-          },
-          {
-            "group": "out",
-            "id": "rteo"
-          },
-          {
-            "group": "out",
-            "id": "2t8f"
-          }
-        ]
-      },
-      "position": {
-        "x": 2082,
-        "y": 2250
-      },
-      "id": "d2kd",
-      "z": 255,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "n8tt"
-          },
-          {
-            "group": "out",
-            "id": "eavt"
-          },
-          {
-            "group": "out",
-            "id": "8k06"
-          }
-        ]
-      },
-      "position": {
-        "x": 2823,
-        "y": 2500
-      },
-      "id": "y620",
-      "z": 256,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "fh4g"
-          },
-          {
-            "group": "out",
-            "id": "g244"
-          },
-          {
-            "group": "out",
-            "id": "79qt"
-          }
-        ]
-      },
-      "position": {
-        "x": 4108,
-        "y": 2750
-      },
-      "id": "moxs",
-      "z": 257,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "rlex"
-          },
-          {
-            "group": "out",
-            "id": "dw6l"
-          }
-        ]
-      },
-      "position": {
-        "x": 6034,
-        "y": 3000
-      },
-      "id": "kcd0",
-      "z": 258,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "unlp"
-          },
-          {
-            "group": "out",
-            "id": "aih0"
-          }
-        ]
-      },
-      "position": {
-        "x": 7728,
-        "y": 3250
-      },
-      "id": "qwlv",
-      "z": 259,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "5qmk"
-          },
-          {
-            "group": "out",
-            "id": "tgv4"
-          }
-        ]
-      },
-      "position": {
-        "x": 9886,
-        "y": 3500
-      },
-      "id": "p4e0",
-      "z": 260,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "5cca"
-          },
-          {
-            "group": "out",
-            "id": "sbuo"
-          },
-          {
-            "group": "out",
-            "id": "v6tt"
-          }
-        ]
-      },
-      "position": {
-        "x": 2526,
-        "y": 2250
-      },
-      "id": "4ftj",
-      "z": 261,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "i10k"
-          },
-          {
-            "group": "out",
-            "id": "qsos"
-          }
-        ]
-      },
-      "position": {
-        "x": 3267,
-        "y": 2500
-      },
-      "id": "9q1n",
-      "z": 262,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "fsqg"
-          },
-          {
-            "group": "out",
-            "id": "8x80"
-          }
-        ]
-      },
-      "position": {
-        "x": 4552,
-        "y": 2750
-      },
-      "id": "x43w",
-      "z": 263,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "cnbh"
-          },
-          {
-            "group": "out",
-            "id": "6nqq"
-          },
-          {
-            "group": "out",
-            "id": "b9lz"
-          }
-        ]
-      },
-      "position": {
-        "x": 3711,
-        "y": 2500
-      },
-      "id": "rmhr",
-      "z": 264,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "tgxn"
-          },
-          {
-            "group": "out",
-            "id": "x4sn"
-          }
-        ]
-      },
-      "position": {
-        "x": 4996,
-        "y": 2750
-      },
-      "id": "s34j",
-      "z": 265,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "rrvs"
-          },
-          {
-            "group": "out",
-            "id": "ffcx"
-          }
-        ]
-      },
-      "position": {
-        "x": 6478,
-        "y": 3000
-      },
-      "id": "6sm5",
-      "z": 266,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ei3z"
-          },
-          {
-            "group": "out",
-            "id": "rrhf"
-          }
-        ]
-      },
-      "position": {
-        "x": 5440,
-        "y": 2750
-      },
-      "id": "hgnz",
-      "z": 267,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "fwbu"
-          },
-          {
-            "group": "out",
-            "id": "cjg8"
-          }
-        ]
-      },
-      "position": {
-        "x": 6922,
-        "y": 3000
-      },
-      "id": "4abu",
-      "z": 268,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "xkdq"
-          },
-          {
-            "group": "out",
-            "id": "95g3"
-          }
-        ]
-      },
-      "position": {
-        "x": 2970,
-        "y": 2000
-      },
-      "id": "vuaz",
-      "z": 269,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "xj0m"
-          },
-          {
-            "group": "out",
-            "id": "qvin"
-          }
-        ]
-      },
-      "position": {
-        "x": 2970,
-        "y": 2250
-      },
-      "id": "v23g",
-      "z": 270,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "pfdr"
-          },
-          {
-            "group": "out",
-            "id": "wb2s"
-          },
-          {
-            "group": "out",
-            "id": "erev"
-          }
-        ]
-      },
-      "position": {
-        "x": 3958,
-        "y": 1250
-      },
-      "id": "dh4s",
-      "z": 271,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "snbt"
-          },
-          {
-            "group": "out",
-            "id": "i22n"
-          }
-        ]
-      },
-      "position": {
-        "x": 2279,
-        "y": 1500
-      },
-      "id": "361x",
-      "z": 272,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "deri"
-          },
-          {
-            "group": "out",
-            "id": "4k5o"
-          }
-        ]
-      },
-      "position": {
-        "x": 2723,
-        "y": 1500
-      },
-      "id": "v01z",
-      "z": 273,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "eaxy"
-          },
-          {
-            "group": "out",
-            "id": "lnfx"
-          },
-          {
-            "group": "out",
-            "id": "j4pn"
-          }
-        ]
-      },
-      "position": {
-        "x": 2332,
-        "y": 2750
-      },
-      "id": "gz2u",
-      "z": 274,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "2rnt"
-          },
-          {
-            "group": "out",
-            "id": "jlmz"
-          }
-        ]
-      },
-      "position": {
-        "x": 3370,
-        "y": 3000
-      },
-      "id": "jy1o",
-      "z": 275,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "qzfh"
-          },
-          {
-            "group": "out",
-            "id": "omtz"
-          }
-        ]
-      },
-      "position": {
-        "x": 5064,
-        "y": 3250
-      },
-      "id": "04x0",
-      "z": 276,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "df7p"
-          },
-          {
-            "group": "out",
-            "id": "chcb"
-          }
-        ]
-      },
-      "position": {
-        "x": 3814,
-        "y": 3000
-      },
-      "id": "zf8a",
-      "z": 277,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "zv83"
-          },
-          {
-            "group": "out",
-            "id": "xphx"
-          }
-        ]
-      },
-      "position": {
-        "x": 7222,
-        "y": 3500
-      },
-      "id": "n9ws",
-      "z": 278,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "sigb"
-          },
-          {
-            "group": "out",
-            "id": "iaf9"
-          }
-        ]
-      },
-      "position": {
-        "x": 6431,
-        "y": 3750
-      },
-      "id": "2kbv",
-      "z": 279,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "s0cd"
-          },
-          {
-            "group": "out",
-            "id": "k36m"
-          },
-          {
-            "group": "out",
-            "id": "8jvh"
-          }
-        ]
-      },
-      "position": {
-        "x": 7416,
-        "y": 4000
-      },
-      "id": "2mov",
-      "z": 280,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "dck8"
-          },
-          {
-            "group": "out",
-            "id": "2853"
-          }
-        ]
-      },
-      "position": {
-        "x": 4751,
-        "y": 4250
-      },
-      "id": "7ujo",
-      "z": 281,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "118q"
-          },
-          {
-            "group": "out",
-            "id": "qvae"
-          }
-        ]
-      },
-      "position": {
-        "x": 4452,
-        "y": 4500
-      },
-      "id": "uy8u",
-      "z": 282,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 448,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "il8s"
-          },
-          {
-            "group": "out",
-            "id": "a3id"
-          },
-          {
-            "group": "out",
-            "id": "y3c7"
-          },
-          {
-            "group": "out",
-            "id": "rm6j"
-          }
-        ]
-      },
-      "position": {
-        "x": 4203,
-        "y": 4250
-      },
-      "id": "cw9y",
-      "z": 283,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "h05h"
-          },
-          {
-            "group": "out",
-            "id": "hiwf"
-          },
-          {
-            "group": "out",
-            "id": "d7yx"
-          }
-        ]
-      },
-      "position": {
-        "x": 3120,
-        "y": 4500
-      },
-      "id": "8y6r",
-      "z": 284,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "rwr9"
-          },
-          {
-            "group": "out",
-            "id": "65r9"
-          }
-        ]
-      },
-      "position": {
-        "x": 503,
-        "y": 4750
-      },
-      "id": "w1tb",
-      "z": 285,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "b2rt"
-          },
-          {
-            "group": "out",
-            "id": "soyg"
-          }
-        ]
-      },
-      "position": {
-        "x": 947,
-        "y": 4750
-      },
-      "id": "6khu",
-      "z": 286,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ahul"
-          },
-          {
-            "group": "out",
-            "id": "wjti"
-          }
-        ]
-      },
-      "position": {
-        "x": 847,
-        "y": 5000
-      },
-      "id": "9zqy",
-      "z": 287,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "hzn4"
-          },
-          {
-            "group": "out",
-            "id": "kgeu"
-          }
-        ]
-      },
-      "position": {
-        "x": 403,
-        "y": 5250
-      },
-      "id": "qwnr",
-      "z": 288,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "pnf8"
-          },
-          {
-            "group": "out",
-            "id": "f3gr"
-          },
-          {
-            "group": "out",
-            "id": "94sz"
-          }
-        ]
-      },
-      "position": {
-        "x": 3564,
-        "y": 4500
-      },
-      "id": "idji",
-      "z": 289,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "oyc3"
-          },
-          {
-            "group": "out",
-            "id": "rwqm"
-          }
-        ]
-      },
-      "position": {
-        "x": 1391,
-        "y": 4750
-      },
-      "id": "2kuu",
-      "z": 290,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ae58"
-          },
-          {
-            "group": "out",
-            "id": "huxg"
-          }
-        ]
-      },
-      "position": {
-        "x": 1835,
-        "y": 4750
-      },
-      "id": "mu7j",
-      "z": 291,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "06nk"
-          },
-          {
-            "group": "out",
-            "id": "wfg3"
-          }
-        ]
-      },
-      "position": {
-        "x": 1291,
-        "y": 5000
-      },
-      "id": "2myr",
-      "z": 292,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "cfil"
-          },
-          {
-            "group": "out",
-            "id": "kjxj"
-          }
-        ]
-      },
-      "position": {
-        "x": 847,
-        "y": 5250
-      },
-      "id": "mwu4",
-      "z": 293,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "8oga"
-          },
-          {
-            "group": "out",
-            "id": "0x7z"
-          },
-          {
-            "group": "out",
-            "id": "cgdc"
-          }
-        ]
-      },
-      "position": {
-        "x": 4008,
-        "y": 4500
-      },
-      "id": "q5nv",
-      "z": 294,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "1cjf"
-          },
-          {
-            "group": "out",
-            "id": "x5li"
-          }
-        ]
-      },
-      "position": {
-        "x": 2279,
-        "y": 4750
-      },
-      "id": "5tao",
-      "z": 295,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "bx4l"
-          },
-          {
-            "group": "out",
-            "id": "r9tj"
-          }
-        ]
-      },
-      "position": {
-        "x": 2723,
-        "y": 4750
-      },
-      "id": "kwe4",
-      "z": 296,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "vwwu"
-          },
-          {
-            "group": "out",
-            "id": "sxlm"
-          },
-          {
-            "group": "out",
-            "id": "t2pn"
-          }
-        ]
-      },
-      "position": {
-        "x": 1735,
-        "y": 5000
-      },
-      "id": "q8zg",
-      "z": 297,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "4mqa"
-          },
-          {
-            "group": "out",
-            "id": "78ra"
-          },
-          {
-            "group": "out",
-            "id": "pkia"
-          }
-        ]
-      },
-      "position": {
-        "x": 1291,
-        "y": 5250
-      },
-      "id": "jka3",
-      "z": 298,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "f0on"
-          },
-          {
-            "group": "out",
-            "id": "jpi1"
-          },
-          {
-            "group": "out",
-            "id": "63yk"
-          }
-        ]
-      },
-      "position": {
-        "x": 897,
-        "y": 5500
-      },
-      "id": "nouo",
-      "z": 299,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "gkww"
-          },
-          {
-            "group": "out",
-            "id": "jwga"
-          },
-          {
-            "group": "out",
-            "id": "btgd"
-          }
-        ]
-      },
-      "position": {
-        "x": -485,
-        "y": 5750
-      },
-      "id": "03o4",
-      "z": 300,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "frml"
-          },
-          {
-            "group": "out",
-            "id": "29q2"
-          }
-        ]
-      },
-      "position": {
-        "x": -682,
-        "y": 6000
-      },
-      "id": "jz0i",
-      "z": 301,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "1cqg"
-          },
-          {
-            "group": "out",
-            "id": "433e"
-          }
-        ]
-      },
-      "position": {
-        "x": -682,
-        "y": 6250
-      },
-      "id": "l48c",
-      "z": 302,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "0bq1"
-          },
-          {
-            "group": "out",
-            "id": "s9ry"
-          }
-        ]
-      },
-      "position": {
-        "x": -485,
-        "y": 6500
-      },
-      "id": "1i1p",
-      "z": 303,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "7sjw"
-          },
-          {
-            "group": "out",
-            "id": "h55h"
-          }
-        ]
-      },
-      "position": {
-        "x": -288,
-        "y": 6750
-      },
-      "id": "llwb",
-      "z": 304,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "je2a"
-          },
-          {
-            "group": "out",
-            "id": "b2rv"
-          }
-        ]
-      },
-      "position": {
-        "x": -238,
-        "y": 6000
-      },
-      "id": "ewlg",
-      "z": 305,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "w79w"
-          },
-          {
-            "group": "out",
-            "id": "cxz2"
-          },
-          {
-            "group": "out",
-            "id": "ei92"
-          }
-        ]
-      },
-      "position": {
-        "x": -238,
-        "y": 6250
-      },
-      "id": "ndfd",
-      "z": 306,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "yme6"
-          },
-          {
-            "group": "out",
-            "id": "rpkz"
-          }
-        ]
-      },
-      "position": {
-        "x": -41,
-        "y": 6500
-      },
-      "id": "12pg",
-      "z": 307,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "j36t"
-          },
-          {
-            "group": "out",
-            "id": "cfkj"
-          }
-        ]
-      },
-      "position": {
-        "x": 156,
-        "y": 6750
-      },
-      "id": "ggm0",
-      "z": 308,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ga41"
-          },
-          {
-            "group": "out",
-            "id": "izxt"
-          }
-        ]
-      },
-      "position": {
-        "x": 353,
-        "y": 7000
-      },
-      "id": "nawn",
-      "z": 309,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "wlxd"
-          },
-          {
-            "group": "out",
-            "id": "sc4e"
-          }
-        ]
-      },
-      "position": {
-        "x": 303,
-        "y": 7250
-      },
-      "id": "nsrt",
-      "z": 310,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "u4xs"
-          },
-          {
-            "group": "out",
-            "id": "zjnv"
-          }
-        ]
-      },
-      "position": {
-        "x": -41,
-        "y": 5750
-      },
-      "id": "5hrd",
-      "z": 311,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "6c2c"
-          },
-          {
-            "group": "out",
-            "id": "u7on"
-          }
-        ]
-      },
-      "position": {
-        "x": 206,
-        "y": 6000
-      },
-      "id": "c7hr",
-      "z": 312,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ck88"
-          },
-          {
-            "group": "out",
-            "id": "d0tg"
-          },
-          {
-            "group": "out",
-            "id": "siwg"
-          }
-        ]
-      },
-      "position": {
-        "x": 1341,
-        "y": 5500
-      },
-      "id": "z3jb",
-      "z": 313,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "mqx5"
-          },
-          {
-            "group": "out",
-            "id": "ggom"
-          }
-        ]
-      },
-      "position": {
-        "x": 403,
-        "y": 5750
-      },
-      "id": "0odw",
-      "z": 314,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "l9ln"
-          },
-          {
-            "group": "out",
-            "id": "1p0v"
-          }
-        ]
-      },
-      "position": {
-        "x": 650,
-        "y": 6000
-      },
-      "id": "f9pm",
-      "z": 315,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "j8qo"
-          },
-          {
-            "group": "out",
-            "id": "09vs"
-          }
-        ]
-      },
-      "position": {
-        "x": 650,
-        "y": 6250
-      },
-      "id": "uh17",
-      "z": 316,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "4a3y"
-          },
-          {
-            "group": "out",
-            "id": "jtu7"
-          }
-        ]
-      },
-      "position": {
-        "x": 403,
-        "y": 6500
-      },
-      "id": "9kkh",
-      "z": 317,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "nui3"
-          },
-          {
-            "group": "out",
-            "id": "do70"
-          }
-        ]
-      },
-      "position": {
-        "x": 847,
-        "y": 5750
-      },
-      "id": "fbme",
-      "z": 318,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "yu6v"
-          },
-          {
-            "group": "out",
-            "id": "k0uc"
-          },
-          {
-            "group": "out",
-            "id": "c1m3"
-          }
-        ]
-      },
-      "position": {
-        "x": 1094,
-        "y": 6000
-      },
-      "id": "02g3",
-      "z": 319,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "xva1"
-          },
-          {
-            "group": "out",
-            "id": "nkbt"
-          }
-        ]
-      },
-      "position": {
-        "x": 1094,
-        "y": 6250
-      },
-      "id": "o55i",
-      "z": 320,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "0oqv"
-          },
-          {
-            "group": "out",
-            "id": "shko"
-          }
-        ]
-      },
-      "position": {
-        "x": 847,
-        "y": 6500
-      },
-      "id": "fshb",
-      "z": 321,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ods1"
-          },
-          {
-            "group": "out",
-            "id": "eeur"
-          }
-        ]
-      },
-      "position": {
-        "x": 1044,
-        "y": 6750
-      },
-      "id": "ecub",
-      "z": 322,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ic1l"
-          },
-          {
-            "group": "out",
-            "id": "7dyp"
-          }
-        ]
-      },
-      "position": {
-        "x": 797,
-        "y": 7000
-      },
-      "id": "xhw0",
-      "z": 323,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "k9w9"
-          },
-          {
-            "group": "out",
-            "id": "pfb3"
-          },
-          {
-            "group": "out",
-            "id": "hn14"
-          }
-        ]
-      },
-      "position": {
-        "x": 1735,
-        "y": 5250
-      },
-      "id": "mlva",
-      "z": 324,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "53ay"
-          },
-          {
-            "group": "out",
-            "id": "eqah"
-          }
-        ]
-      },
-      "position": {
-        "x": 1785,
-        "y": 5500
-      },
-      "id": "eb87",
-      "z": 325,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "r0fz"
-          },
-          {
-            "group": "out",
-            "id": "auxb"
-          }
-        ]
-      },
-      "position": {
-        "x": 1291,
-        "y": 5750
-      },
-      "id": "thsj",
-      "z": 326,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "bxan"
-          },
-          {
-            "group": "out",
-            "id": "j4x5"
-          }
-        ]
-      },
-      "position": {
-        "x": 1538,
-        "y": 6000
-      },
-      "id": "gk2w",
-      "z": 327,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "n9dl"
-          },
-          {
-            "group": "out",
-            "id": "5tgs"
-          }
-        ]
-      },
-      "position": {
-        "x": 1538,
-        "y": 6250
-      },
-      "id": "a5xi",
-      "z": 328,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "tmof"
-          },
-          {
-            "group": "out",
-            "id": "mmwi"
-          }
-        ]
-      },
-      "position": {
-        "x": 2229,
-        "y": 5500
-      },
-      "id": "q7ai",
-      "z": 329,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "563b"
-          },
-          {
-            "group": "out",
-            "id": "tkf6"
-          },
-          {
-            "group": "out",
-            "id": "xdn8"
-          }
-        ]
-      },
-      "position": {
-        "x": 1735,
-        "y": 5750
-      },
-      "id": "9s3w",
-      "z": 330,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "f86l"
-          },
-          {
-            "group": "out",
-            "id": "thet"
-          }
-        ]
-      },
-      "position": {
-        "x": 1982,
-        "y": 6000
-      },
-      "id": "wwii",
-      "z": 331,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "se99"
-          },
-          {
-            "group": "out",
-            "id": "f77l"
-          }
-        ]
-      },
-      "position": {
-        "x": 1982,
-        "y": 6250
-      },
-      "id": "25lz",
-      "z": 332,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "5015"
-          },
-          {
-            "group": "out",
-            "id": "oop7"
-          }
-        ]
-      },
-      "position": {
-        "x": 1735,
-        "y": 6500
-      },
-      "id": "u8el",
-      "z": 333,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "dg1w"
-          },
-          {
-            "group": "out",
-            "id": "juii"
-          }
-        ]
-      },
-      "position": {
-        "x": 1488,
-        "y": 6750
-      },
-      "id": "67j2",
-      "z": 334,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "svzn"
-          }
-        ]
-      },
-      "position": {
-        "x": -1470,
-        "y": 2250
-      },
-      "id": "ymyr",
-      "z": 335,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "b1aj"
-          }
-        ]
-      },
-      "position": {
-        "x": -1370,
-        "y": 1250
-      },
-      "id": "4reg",
-      "z": 336,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "c795"
-          }
-        ]
-      },
-      "position": {
-        "x": -879,
-        "y": 5500
-      },
-      "id": "o091",
-      "z": 337,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ob0n"
-          }
-        ]
-      },
-      "position": {
-        "x": -2208,
-        "y": 4500
-      },
-      "id": "rlqi",
-      "z": 338,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "s52s"
-          }
-        ]
-      },
-      "position": {
-        "x": -41,
-        "y": 5000
-      },
-      "id": "lw0v",
-      "z": 339,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "so0u"
-          }
-        ]
-      },
-      "position": {
-        "x": -876,
-        "y": 4500
-      },
-      "id": "q3b9",
-      "z": 340,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ok3q"
-          }
-        ]
-      },
-      "position": {
-        "x": -138,
-        "y": 2000
-      },
-      "id": "swbk",
-      "z": 341,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "f3q0"
-          }
-        ]
-      },
-      "position": {
-        "x": 406,
-        "y": 1250
-      },
-      "id": "pwbs",
-      "z": 342,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "eoqg"
-          }
-        ]
-      },
-      "position": {
-        "x": -435,
-        "y": 5500
-      },
-      "id": "e27z",
-      "z": 343,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "jy62"
-          }
-        ]
-      },
-      "position": {
-        "x": 456,
-        "y": 4500
-      },
-      "id": "vzhq",
-      "z": 344,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "nsn2"
-          }
-        ]
-      },
-      "position": {
-        "x": 59,
-        "y": 4750
-      },
-      "id": "zeeq",
-      "z": 345,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "16ux"
-          }
-        ]
-      },
-      "position": {
-        "x": 1344,
-        "y": 4500
-      },
-      "id": "s8nn",
-      "z": 346,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "pl1q"
-          }
-        ]
-      },
-      "position": {
-        "x": 1738,
-        "y": 1250
-      },
-      "id": "f5gz",
-      "z": 347,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "wjq4"
-          }
-        ]
-      },
-      "position": {
-        "x": 5987,
-        "y": 3750
-      },
-      "id": "weeh",
-      "z": 348,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "vroc"
-          }
-        ]
-      },
-      "position": {
-        "x": 3070,
-        "y": 1250
-      },
-      "id": "ta5i",
-      "z": 349,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "u3bf"
-          }
-        ]
-      },
-      "position": {
-        "x": 7666,
-        "y": 3500
-      },
-      "id": "vitw",
-      "z": 350,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "4k7b"
-          }
-        ]
-      },
-      "position": {
-        "x": 6875,
-        "y": 3750
-      },
-      "id": "xb4y",
-      "z": 351,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "yv2g"
-          }
-        ]
-      },
-      "position": {
-        "x": 7319,
-        "y": 3750
-      },
-      "id": "pgyv",
-      "z": 352,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "knnc"
-          }
-        ]
-      },
-      "position": {
-        "x": 7763,
-        "y": 3750
-      },
-      "id": "qu7d",
-      "z": 353,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "zjss"
-          }
-        ]
-      },
-      "position": {
-        "x": 8207,
-        "y": 3750
-      },
-      "id": "ptke",
-      "z": 354,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "w9ry"
-          }
-        ]
-      },
-      "position": {
-        "x": 8651,
-        "y": 3750
-      },
-      "id": "zwd0",
-      "z": 355,
-      "attrs": {
-        "label": {
-          "text": "Gamma"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ls9m"
-          }
-        ]
-      },
-      "position": {
-        "x": 1788,
-        "y": 4500
-      },
-      "id": "79kv",
-      "z": 356,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "rgvz"
-          }
-        ]
-      },
-      "position": {
-        "x": -432,
-        "y": 4500
-      },
-      "id": "eusw",
-      "z": 357,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "e429"
-          }
-        ]
-      },
-      "position": {
-        "x": 2338,
-        "y": 3500
-      },
-      "id": "9aaw",
-      "z": 358,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ahk2"
-          }
-        ]
-      },
-      "position": {
-        "x": 1547,
-        "y": 3750
-      },
-      "id": "omuw",
-      "z": 359,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "ym0w"
-          }
-        ]
-      },
-      "position": {
-        "x": 6972,
-        "y": 4000
-      },
-      "id": "lsla",
-      "z": 360,
-      "attrs": {
-        "label": {
-          "text": "Foxtrot"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "y62x"
-          }
-        ]
-      },
-      "position": {
-        "x": 3864,
-        "y": 4000
-      },
-      "id": "bglm",
-      "z": 361,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "m2o0"
-          }
-        ]
-      },
-      "position": {
-        "x": 2427,
-        "y": 4250
-      },
-      "id": "rw6t",
-      "z": 362,
-      "attrs": {
-        "label": {
-          "text": "Jupiter"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "thy2"
-          }
-        ]
-      },
-      "position": {
-        "x": 2676,
-        "y": 4500
-      },
-      "id": "4k0l",
-      "z": 363,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "b9w4"
-          }
-        ]
-      },
-      "position": {
-        "x": -3337,
-        "y": 3750
-      },
-      "id": "5m8k",
-      "z": 364,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "1zlb"
-          }
-        ]
-      },
-      "position": {
-        "x": -1464,
-        "y": 4000
-      },
-      "id": "uov5",
-      "z": 365,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "8hke"
-          }
-        ]
-      },
-      "position": {
-        "x": -1020,
-        "y": 4000
-      },
-      "id": "oriq",
-      "z": 366,
-      "attrs": {
-        "label": {
-          "text": "Alpha"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "arsg"
-          }
-        ]
-      },
-      "position": {
-        "x": -2005,
-        "y": 3750
-      },
-      "id": "226p",
-      "z": 367,
-      "attrs": {
-        "label": {
-          "text": "Echo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "f537"
-          }
-        ]
-      },
-      "position": {
-        "x": -576,
-        "y": 4000
-      },
-      "id": "70s1",
-      "z": 368,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "zsa7"
-          }
-        ]
-      },
-      "position": {
-        "x": -4322,
-        "y": 3500
-      },
-      "id": "ye0q",
-      "z": 369,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "bsxl"
-          }
-        ]
-      },
-      "position": {
-        "x": 2926,
-        "y": 3000
-      },
-      "id": "yvdq",
-      "z": 370,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "gjlp"
-          }
-        ]
-      },
-      "position": {
-        "x": 9,
-        "y": 5500
-      },
-      "id": "ul6l",
-      "z": 371,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "wshm"
-          }
-        ]
-      },
-      "position": {
-        "x": 453,
-        "y": 5500
-      },
-      "id": "efja",
-      "z": 372,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "icwm"
-          }
-        ]
-      },
-      "position": {
-        "x": -91,
-        "y": 7000
-      },
-      "id": "lfzk",
-      "z": 373,
-      "attrs": {
-        "label": {
-          "text": "Bravo"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "dbpg"
-          }
-        ]
-      },
-      "position": {
-        "x": 500,
-        "y": 7500
-      },
-      "id": "peqy",
-      "z": 374,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "wl3z"
-          }
-        ]
-      },
-      "position": {
-        "x": 206,
-        "y": 6250
-      },
-      "id": "vv4z",
-      "z": 375,
-      "attrs": {
-        "label": {
-          "text": "Helix"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "qe37"
-          }
-        ]
-      },
-      "position": {
-        "x": 600,
-        "y": 6750
-      },
-      "id": "yt91",
-      "z": 376,
-      "attrs": {
-        "label": {
-          "text": "Charlie"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "qii4"
-          }
-        ]
-      },
-      "position": {
-        "x": 747,
-        "y": 7250
-      },
-      "id": "qqyz",
-      "z": 377,
-      "attrs": {
-        "label": {
-          "text": "Ion"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "x25q"
-          }
-        ]
-      },
-      "position": {
-        "x": 1291,
-        "y": 6500
-      },
-      "id": "w6oz",
-      "z": 378,
-      "attrs": {
-        "label": {
-          "text": "Delta"
-        }
-      }
-    },
-    {
-      "type": "app.Message",
-      "size": {
-        "width": 344,
-        "height": 80
-      },
-      "ports": {
-        "items": [
-          {
-            "group": "in",
-            "id": "g1ve"
-          }
-        ]
-      },
-      "position": {
-        "x": 1241,
-        "y": 7000
-      },
-      "id": "brmq",
-      "z": 379,
-      "attrs": {
-        "label": {
-          "text": "Ion"
         }
       }
     },
@@ -11782,56 +4336,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "7y6w",
-        "port": "yiha"
-      },
-      "target": {
-        "id": "ibu4",
-        "port": "fmpk"
-      },
-      "id": "ixc7",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "7y6w",
-        "port": "ir4c"
-      },
-      "target": {
-        "id": "2rwg",
-        "port": "waj1"
-      },
-      "id": "urvq",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Charlie"
             }
           },
@@ -11907,31 +4411,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "uhz1",
-        "port": "38da"
-      },
-      "target": {
-        "id": "ymyr",
-        "port": "svzn"
-      },
-      "id": "356w",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Bravo"
             }
           },
@@ -11999,31 +4478,6 @@ export const largeGraph = {
         "port": "trp0"
       },
       "id": "lu6k",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "08j3",
-        "port": "j43d"
-      },
-      "target": {
-        "id": "4reg",
-        "port": "b1aj"
-      },
-      "id": "7p9m",
       "z": 379
     },
     {
@@ -12707,31 +5161,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "poyi",
-        "port": "tl3q"
-      },
-      "target": {
-        "id": "o091",
-        "port": "c795"
-      },
-      "id": "ek4a",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Charlie"
             }
           },
@@ -12849,31 +5278,6 @@ export const largeGraph = {
         "port": "kbp2"
       },
       "id": "r91i",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "0sek",
-        "port": "qd6v"
-      },
-      "target": {
-        "id": "rlqi",
-        "port": "ob0n"
-      },
-      "id": "pwh0",
       "z": 379
     },
     {
@@ -13032,31 +5436,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "lvpy",
-        "port": "9j98"
-      },
-      "target": {
-        "id": "lw0v",
-        "port": "s52s"
-      },
-      "id": "8p74",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Foxtrot"
             }
           },
@@ -13174,31 +5553,6 @@ export const largeGraph = {
         "port": "ehe2"
       },
       "id": "addq",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "7w2s",
-        "port": "atn2"
-      },
-      "target": {
-        "id": "q3b9",
-        "port": "so0u"
-      },
-      "id": "hkga",
       "z": 379
     },
     {
@@ -13407,31 +5761,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ye9o",
-        "port": "hssb"
-      },
-      "target": {
-        "id": "swbk",
-        "port": "ok3q"
-      },
-      "id": "8jpr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Alpha"
             }
           },
@@ -13499,31 +5828,6 @@ export const largeGraph = {
         "port": "vgww"
       },
       "id": "6zdc",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "21uz",
-        "port": "4fyb"
-      },
-      "target": {
-        "id": "pwbs",
-        "port": "f3q0"
-      },
-      "id": "ujq6",
       "z": 379
     },
     {
@@ -13807,3481 +6111,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "74qg",
-        "port": "g02u"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "0fgz",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8rer",
-        "port": "7e4u"
-      },
-      "target": {
-        "id": "ctwj",
-        "port": "lsh3"
-      },
-      "id": "vrct",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8rer",
-        "port": "ny18"
-      },
-      "target": {
-        "id": "9zd7",
-        "port": "6szn"
-      },
-      "id": "lt4q",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8rer",
-        "port": "1acj"
-      },
-      "target": {
-        "id": "e3nw",
-        "port": "xuj3"
-      },
-      "id": "9bc2",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8rer",
-        "port": "bc2s"
-      },
-      "target": {
-        "id": "gv3z",
-        "port": "6bz8"
-      },
-      "id": "be3y",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8rer",
-        "port": "wsoz"
-      },
-      "target": {
-        "id": "v78h",
-        "port": "u7f0"
-      },
-      "id": "qy5f",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ctwj",
-        "port": "tow4"
-      },
-      "target": {
-        "id": "4cdp",
-        "port": "qvl0"
-      },
-      "id": "u7bf",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ctwj",
-        "port": "ycz0"
-      },
-      "target": {
-        "id": "f8s2",
-        "port": "zge2"
-      },
-      "id": "xq7b",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "4cdp",
-        "port": "0ezz"
-      },
-      "target": {
-        "id": "3jcz",
-        "port": "ucqm"
-      },
-      "id": "zegb",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "f8s2",
-        "port": "j51b"
-      },
-      "target": {
-        "id": "3jcz",
-        "port": "ucqm"
-      },
-      "id": "l2qg",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "3jcz",
-        "port": "runj"
-      },
-      "target": {
-        "id": "du0i",
-        "port": "sb5i"
-      },
-      "id": "v3dr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "du0i",
-        "port": "qnf7"
-      },
-      "target": {
-        "id": "ploz",
-        "port": "jcns"
-      },
-      "id": "2h2p",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "du0i",
-        "port": "4t60"
-      },
-      "target": {
-        "id": "8cqk",
-        "port": "4lta"
-      },
-      "id": "39yl",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ploz",
-        "port": "6g29"
-      },
-      "target": {
-        "id": "8cqk",
-        "port": "4lta"
-      },
-      "id": "9ue4",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8cqk",
-        "port": "hukw"
-      },
-      "target": {
-        "id": "qvr1",
-        "port": "h61i"
-      },
-      "id": "21vm",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "qvr1",
-        "port": "aoim"
-      },
-      "target": {
-        "id": "458a",
-        "port": "x40d"
-      },
-      "id": "efoz",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "458a",
-        "port": "tirc"
-      },
-      "target": {
-        "id": "e27z",
-        "port": "eoqg"
-      },
-      "id": "tp7b",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "9zd7",
-        "port": "9dde"
-      },
-      "target": {
-        "id": "3cup",
-        "port": "8ijl"
-      },
-      "id": "d4w1",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "3cup",
-        "port": "2z0l"
-      },
-      "target": {
-        "id": "vffq",
-        "port": "ot8h"
-      },
-      "id": "arag",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "3cup",
-        "port": "jch2"
-      },
-      "target": {
-        "id": "y3zb",
-        "port": "4ldi"
-      },
-      "id": "dx5o",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "vffq",
-        "port": "ljef"
-      },
-      "target": {
-        "id": "9boq",
-        "port": "0iq2"
-      },
-      "id": "31yh",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "y3zb",
-        "port": "msyj"
-      },
-      "target": {
-        "id": "9boq",
-        "port": "0iq2"
-      },
-      "id": "xso7",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "9boq",
-        "port": "fa39"
-      },
-      "target": {
-        "id": "vzhq",
-        "port": "jy62"
-      },
-      "id": "vbgr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "e3nw",
-        "port": "ac6p"
-      },
-      "target": {
-        "id": "e63l",
-        "port": "bqgu"
-      },
-      "id": "8w2m",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "e63l",
-        "port": "3oby"
-      },
-      "target": {
-        "id": "ghgk",
-        "port": "5bwi"
-      },
-      "id": "aiet",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ghgk",
-        "port": "kotc"
-      },
-      "target": {
-        "id": "sw22",
-        "port": "92mt"
-      },
-      "id": "dn1t",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ghgk",
-        "port": "keh5"
-      },
-      "target": {
-        "id": "glh6",
-        "port": "2c9t"
-      },
-      "id": "h1xj",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "sw22",
-        "port": "r6sn"
-      },
-      "target": {
-        "id": "xj37",
-        "port": "c9h4"
-      },
-      "id": "g2y8",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "glh6",
-        "port": "199d"
-      },
-      "target": {
-        "id": "xj37",
-        "port": "c9h4"
-      },
-      "id": "rgyb",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "xj37",
-        "port": "2m44"
-      },
-      "target": {
-        "id": "zeeq",
-        "port": "nsn2"
-      },
-      "id": "xkpm",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "gv3z",
-        "port": "uug9"
-      },
-      "target": {
-        "id": "5rlr",
-        "port": "dihs"
-      },
-      "id": "21b0",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "5rlr",
-        "port": "a7he"
-      },
-      "target": {
-        "id": "av71",
-        "port": "448n"
-      },
-      "id": "7g2r",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "5rlr",
-        "port": "z74l"
-      },
-      "target": {
-        "id": "ef82",
-        "port": "8xg8"
-      },
-      "id": "e6zv",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "av71",
-        "port": "7odk"
-      },
-      "target": {
-        "id": "vgly",
-        "port": "e088"
-      },
-      "id": "lhyl",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ef82",
-        "port": "y72i"
-      },
-      "target": {
-        "id": "vgly",
-        "port": "e088"
-      },
-      "id": "2ld0",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "vgly",
-        "port": "o98b"
-      },
-      "target": {
-        "id": "s8nn",
-        "port": "16ux"
-      },
-      "id": "5nhq",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "v78h",
-        "port": "i9g5"
-      },
-      "target": {
-        "id": "dzx5",
-        "port": "qjic"
-      },
-      "id": "r6f7",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "dzx5",
-        "port": "jdan"
-      },
-      "target": {
-        "id": "ntdr",
-        "port": "5xyf"
-      },
-      "id": "qnez",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "dzx5",
-        "port": "085r"
-      },
-      "target": {
-        "id": "8cgn",
-        "port": "0t6d"
-      },
-      "id": "w9he",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ntdr",
-        "port": "c4kl"
-      },
-      "target": {
-        "id": "7f6f",
-        "port": "dhgz"
-      },
-      "id": "yce4",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8cgn",
-        "port": "vwrb"
-      },
-      "target": {
-        "id": "7f6f",
-        "port": "dhgz"
-      },
-      "id": "qgm5",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ibu4",
-        "port": "xvha"
-      },
-      "target": {
-        "id": "lorx",
-        "port": "dtg5"
-      },
-      "id": "v2ww",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ibu4",
-        "port": "gkc4"
-      },
-      "target": {
-        "id": "3pt5",
-        "port": "r5rc"
-      },
-      "id": "g84d",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "lorx",
-        "port": "nqjq"
-      },
-      "target": {
-        "id": "ijc1",
-        "port": "ydmt"
-      },
-      "id": "4r9v",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ijc1",
-        "port": "8vt4"
-      },
-      "target": {
-        "id": "f5gz",
-        "port": "pl1q"
-      },
-      "id": "4k00",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "3pt5",
-        "port": "6zs6"
-      },
-      "target": {
-        "id": "2ywe",
-        "port": "1g98"
-      },
-      "id": "ilu6",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "2ywe",
-        "port": "3ep9"
-      },
-      "target": {
-        "id": "j66c",
-        "port": "nolj"
-      },
-      "id": "vfua",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "2ywe",
-        "port": "p9w4"
-      },
-      "target": {
-        "id": "monr",
-        "port": "vbjf"
-      },
-      "id": "9bq1",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "j66c",
-        "port": "q52w"
-      },
-      "target": {
-        "id": "spof",
-        "port": "v177"
-      },
-      "id": "btr2",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "spof",
-        "port": "udkt"
-      },
-      "target": {
-        "id": "li07",
-        "port": "6a3k"
-      },
-      "id": "3qiu",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "monr",
-        "port": "vyb6"
-      },
-      "target": {
-        "id": "li07",
-        "port": "6a3k"
-      },
-      "id": "a08e",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "li07",
-        "port": "krzd"
-      },
-      "target": {
-        "id": "3jpx",
-        "port": "gh30"
-      },
-      "id": "kxdr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "li07",
-        "port": "5e9p"
-      },
-      "target": {
-        "id": "45bg",
-        "port": "34iq"
-      },
-      "id": "kz40",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "622v",
-        "port": "9jpn"
-      },
-      "target": {
-        "id": "0it2",
-        "port": "6ys4"
-      },
-      "id": "aq15",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "622v",
-        "port": "bzug"
-      },
-      "target": {
-        "id": "ej31",
-        "port": "gymd"
-      },
-      "id": "o2nq",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "0it2",
-        "port": "45gd"
-      },
-      "target": {
-        "id": "ljk4",
-        "port": "q5v7"
-      },
-      "id": "w4c6",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ej31",
-        "port": "m0l2"
-      },
-      "target": {
-        "id": "ljk4",
-        "port": "q5v7"
-      },
-      "id": "lbpj",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ljk4",
-        "port": "c6s5"
-      },
-      "target": {
-        "id": "nkb4",
-        "port": "ehou"
-      },
-      "id": "8t22",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "nkb4",
-        "port": "6qlz"
-      },
-      "target": {
-        "id": "weeh",
-        "port": "wjq4"
-      },
-      "id": "c50b",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "2rwg",
-        "port": "g1r1"
-      },
-      "target": {
-        "id": "8nbh",
-        "port": "nal3"
-      },
-      "id": "8y5d",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "2rwg",
-        "port": "dwwo"
-      },
-      "target": {
-        "id": "59m6",
-        "port": "mg87"
-      },
-      "id": "nwng",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8nbh",
-        "port": "gywi"
-      },
-      "target": {
-        "id": "ymen",
-        "port": "vg3k"
-      },
-      "id": "uczh",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ymen",
-        "port": "k0vm"
-      },
-      "target": {
-        "id": "ta5i",
-        "port": "vroc"
-      },
-      "id": "9ier",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "59m6",
-        "port": "oi0e"
-      },
-      "target": {
-        "id": "0vgn",
-        "port": "xb5j"
-      },
-      "id": "7u8h",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "0vgn",
-        "port": "tb9x"
-      },
-      "target": {
-        "id": "ntrf",
-        "port": "zwkx"
-      },
-      "id": "0imj",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "0vgn",
-        "port": "xayp"
-      },
-      "target": {
-        "id": "dh4s",
-        "port": "pfdr"
-      },
-      "id": "yjcm",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ntrf",
-        "port": "xjve"
-      },
-      "target": {
-        "id": "edhh",
-        "port": "jshz"
-      },
-      "id": "rsez",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ntrf",
-        "port": "3dze"
-      },
-      "target": {
-        "id": "7lay",
-        "port": "64yf"
-      },
-      "id": "ytkw",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "edhh",
-        "port": "kbrh"
-      },
-      "target": {
-        "id": "ji9k",
-        "port": "qdgb"
-      },
-      "id": "2837",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "7lay",
-        "port": "ds0d"
-      },
-      "target": {
-        "id": "ji9k",
-        "port": "qdgb"
-      },
-      "id": "c6qc",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ji9k",
-        "port": "k2l0"
-      },
-      "target": {
-        "id": "w5d3",
-        "port": "go8j"
-      },
-      "id": "6k8d",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ji9k",
-        "port": "d1b4"
-      },
-      "target": {
-        "id": "uijn",
-        "port": "wpay"
-      },
-      "id": "jzr5",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ji9k",
-        "port": "xgmp"
-      },
-      "target": {
-        "id": "vuaz",
-        "port": "xkdq"
-      },
-      "id": "swk8",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "w5d3",
-        "port": "n42x"
-      },
-      "target": {
-        "id": "7fov",
-        "port": "2ygn"
-      },
-      "id": "temp",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "w5d3",
-        "port": "2ezc"
-      },
-      "target": {
-        "id": "xf44",
-        "port": "5cri"
-      },
-      "id": "xkc5",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "7fov",
-        "port": "mby4"
-      },
-      "target": {
-        "id": "objl",
-        "port": "zy1u"
-      },
-      "id": "i8xo",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "7fov",
-        "port": "9e7e"
-      },
-      "target": {
-        "id": "91x7",
-        "port": "0fql"
-      },
-      "id": "mxlv",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "objl",
-        "port": "u9ym"
-      },
-      "target": {
-        "id": "szdx",
-        "port": "imyn"
-      },
-      "id": "z4qk",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "xf44",
-        "port": "8bix"
-      },
-      "target": {
-        "id": "q4qe",
-        "port": "rxdo"
-      },
-      "id": "e2gj",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "xf44",
-        "port": "oiq2"
-      },
-      "target": {
-        "id": "1fkj",
-        "port": "4yk1"
-      },
-      "id": "r81b",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "q4qe",
-        "port": "uadv"
-      },
-      "target": {
-        "id": "y8nb",
-        "port": "iquw"
-      },
-      "id": "mqf7",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "q4qe",
-        "port": "wksh"
-      },
-      "target": {
-        "id": "91x7",
-        "port": "0fql"
-      },
-      "id": "zk94",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "y8nb",
-        "port": "rxze"
-      },
-      "target": {
-        "id": "8ksz",
-        "port": "bffz"
-      },
-      "id": "yxfi",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "y8nb",
-        "port": "1hm3"
-      },
-      "target": {
-        "id": "x8er",
-        "port": "tb74"
-      },
-      "id": "blej",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8ksz",
-        "port": "zdvg"
-      },
-      "target": {
-        "id": "7oq2",
-        "port": "zdo7"
-      },
-      "id": "gubl",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "7oq2",
-        "port": "4v1q"
-      },
-      "target": {
-        "id": "vitw",
-        "port": "u3bf"
-      },
-      "id": "mntf",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "x8er",
-        "port": "rs7g"
-      },
-      "target": {
-        "id": "v5sn",
-        "port": "961j"
-      },
-      "id": "k7or",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "x8er",
-        "port": "u0en"
-      },
-      "target": {
-        "id": "my9x",
-        "port": "8syl"
-      },
-      "id": "fqla",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "v5sn",
-        "port": "88qe"
-      },
-      "target": {
-        "id": "oz0k",
-        "port": "z4z7"
-      },
-      "id": "09lz",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "oz0k",
-        "port": "whwk"
-      },
-      "target": {
-        "id": "xb4y",
-        "port": "4k7b"
-      },
-      "id": "rk79",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "my9x",
-        "port": "emru"
-      },
-      "target": {
-        "id": "yp04",
-        "port": "k43s"
-      },
-      "id": "ufu6",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "yp04",
-        "port": "afyh"
-      },
-      "target": {
-        "id": "pgyv",
-        "port": "yv2g"
-      },
-      "id": "py06",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "1fkj",
-        "port": "b3d5"
-      },
-      "target": {
-        "id": "i22k",
-        "port": "x7n8"
-      },
-      "id": "ftlo",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "1fkj",
-        "port": "050u"
-      },
-      "target": {
-        "id": "tk63",
-        "port": "n2qb"
-      },
-      "id": "4qdb",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "i22k",
-        "port": "9lta"
-      },
-      "target": {
-        "id": "36zx",
-        "port": "1tv1"
-      },
-      "id": "xvh7",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "i22k",
-        "port": "jw25"
-      },
-      "target": {
-        "id": "91x7",
-        "port": "0fql"
-      },
-      "id": "katq",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "36zx",
-        "port": "8kgy"
-      },
-      "target": {
-        "id": "puev",
-        "port": "jlzf"
-      },
-      "id": "ydsh",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "36zx",
-        "port": "ggsn"
-      },
-      "target": {
-        "id": "tdhh",
-        "port": "lmh1"
-      },
-      "id": "lv76",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "puev",
-        "port": "flb7"
-      },
-      "target": {
-        "id": "wxru",
-        "port": "m2lh"
-      },
-      "id": "mf4n",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "wxru",
-        "port": "gcso"
-      },
-      "target": {
-        "id": "qu7d",
-        "port": "knnc"
-      },
-      "id": "nkm9",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "tdhh",
-        "port": "t939"
-      },
-      "target": {
-        "id": "ayq6",
-        "port": "ww8y"
-      },
-      "id": "5d0p",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ayq6",
-        "port": "l68n"
-      },
-      "target": {
-        "id": "ptke",
-        "port": "zjss"
-      },
-      "id": "92k3",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "tk63",
-        "port": "6gs8"
-      },
-      "target": {
-        "id": "g8ta",
-        "port": "cy15"
-      },
-      "id": "8p6f",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "g8ta",
-        "port": "pdtz"
-      },
-      "target": {
-        "id": "91x7",
-        "port": "0fql"
-      },
-      "id": "vdhr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "91x7",
-        "port": "db2u"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "59c8",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "uijn",
-        "port": "txw1"
-      },
-      "target": {
-        "id": "d2kd",
-        "port": "1pox"
-      },
-      "id": "1do6",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "uijn",
-        "port": "vzc7"
-      },
-      "target": {
-        "id": "4ftj",
-        "port": "5cca"
-      },
-      "id": "ouz1",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "d2kd",
-        "port": "rteo"
-      },
-      "target": {
-        "id": "y620",
-        "port": "n8tt"
-      },
-      "id": "egnt",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "d2kd",
-        "port": "2t8f"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "b34k",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "y620",
-        "port": "eavt"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "uqaa",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "y620",
-        "port": "8k06"
-      },
-      "target": {
-        "id": "moxs",
-        "port": "fh4g"
-      },
-      "id": "j84r",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "moxs",
-        "port": "g244"
-      },
-      "target": {
-        "id": "kcd0",
-        "port": "rlex"
-      },
-      "id": "x6pr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "moxs",
-        "port": "79qt"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "yiej",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "kcd0",
-        "port": "dw6l"
-      },
-      "target": {
-        "id": "qwlv",
-        "port": "unlp"
-      },
-      "id": "9c0u",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "qwlv",
-        "port": "aih0"
-      },
-      "target": {
-        "id": "p4e0",
-        "port": "5qmk"
-      },
-      "id": "u5wr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "p4e0",
-        "port": "tgv4"
-      },
-      "target": {
-        "id": "zwd0",
-        "port": "w9ry"
-      },
-      "id": "yesu",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "4ftj",
-        "port": "sbuo"
-      },
-      "target": {
-        "id": "9q1n",
-        "port": "i10k"
-      },
-      "id": "4fcl",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "4ftj",
-        "port": "v6tt"
-      },
-      "target": {
-        "id": "rmhr",
-        "port": "cnbh"
-      },
-      "id": "5efj",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "9q1n",
-        "port": "qsos"
-      },
-      "target": {
-        "id": "x43w",
-        "port": "fsqg"
-      },
-      "id": "p6mk",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "x43w",
-        "port": "8x80"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "t7s1",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "rmhr",
-        "port": "6nqq"
-      },
-      "target": {
-        "id": "s34j",
-        "port": "tgxn"
-      },
-      "id": "gd1t",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "rmhr",
-        "port": "b9lz"
-      },
-      "target": {
-        "id": "hgnz",
-        "port": "ei3z"
-      },
-      "id": "53yk",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "s34j",
-        "port": "x4sn"
-      },
-      "target": {
-        "id": "6sm5",
-        "port": "rrvs"
-      },
-      "id": "yydu",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "6sm5",
-        "port": "ffcx"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "3asn",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "hgnz",
-        "port": "rrhf"
-      },
-      "target": {
-        "id": "4abu",
-        "port": "fwbu"
-      },
-      "id": "rm6d",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "4abu",
-        "port": "cjg8"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "fhg6",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "vuaz",
-        "port": "95g3"
-      },
-      "target": {
-        "id": "v23g",
-        "port": "xj0m"
-      },
-      "id": "w3st",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "v23g",
-        "port": "qvin"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "t1eq",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "dh4s",
-        "port": "wb2s"
-      },
-      "target": {
-        "id": "361x",
-        "port": "snbt"
-      },
-      "id": "c37r",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "dh4s",
-        "port": "erev"
-      },
-      "target": {
-        "id": "v01z",
-        "port": "deri"
-      },
-      "id": "ln36",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "361x",
-        "port": "i22n"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "v1mz",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "v01z",
-        "port": "4k5o"
-      },
-      "target": {
-        "id": "gz2u",
-        "port": "eaxy"
-      },
-      "id": "b3i4",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "gz2u",
-        "port": "lnfx"
-      },
-      "target": {
-        "id": "jy1o",
-        "port": "2rnt"
-      },
-      "id": "fiee",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "gz2u",
-        "port": "j4pn"
-      },
-      "target": {
-        "id": "zf8a",
-        "port": "df7p"
-      },
-      "id": "cy2c",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "jy1o",
-        "port": "jlmz"
-      },
-      "target": {
-        "id": "04x0",
-        "port": "qzfh"
-      },
-      "id": "11bd",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "04x0",
-        "port": "omtz"
-      },
-      "target": {
-        "id": "n9ws",
-        "port": "zv83"
-      },
-      "id": "2sce",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "zf8a",
-        "port": "chcb"
-      },
-      "target": {
-        "id": "n9ws",
-        "port": "zv83"
-      },
-      "id": "jcy1",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "7f6f",
-        "port": "z0jk"
-      },
-      "target": {
-        "id": "79kv",
-        "port": "ls9m"
-      },
-      "id": "27h6",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "x1ox",
-        "port": "r2yk"
-      },
-      "target": {
-        "id": "eusw",
-        "port": "rgvz"
-      },
-      "id": "gmd4",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Delta"
             }
           },
@@ -17349,31 +6178,6 @@ export const largeGraph = {
         "port": "ytt3"
       },
       "id": "duah",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "iaak",
-        "port": "imj7"
-      },
-      "target": {
-        "id": "9aaw",
-        "port": "e429"
-      },
-      "id": "gk6t",
       "z": 379
     },
     {
@@ -17457,56 +6261,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "mjsr",
-        "port": "6nou"
-      },
-      "target": {
-        "id": "omuw",
-        "port": "ahk2"
-      },
-      "id": "hie9",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "hfj7",
-        "port": "n4rx"
-      },
-      "target": {
-        "id": "o6l1",
-        "port": "f90s"
-      },
-      "id": "ede1",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Alpha"
             }
           },
@@ -17524,1106 +6278,6 @@ export const largeGraph = {
         "port": "gzr7"
       },
       "id": "zubl",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "p2u4",
-        "port": "55rb"
-      },
-      "target": {
-        "id": "b7l8",
-        "port": "v1zo"
-      },
-      "id": "ekvl",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "p2u4",
-        "port": "c76u"
-      },
-      "target": {
-        "id": "o6l1",
-        "port": "f90s"
-      },
-      "id": "9ptk",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "b7l8",
-        "port": "cfi4"
-      },
-      "target": {
-        "id": "lsla",
-        "port": "ym0w"
-      },
-      "id": "4gc4",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "o6l1",
-        "port": "9bp4"
-      },
-      "target": {
-        "id": "1bj9",
-        "port": "rm7p"
-      },
-      "id": "ryg9",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "o6l1",
-        "port": "m18o"
-      },
-      "target": {
-        "id": "wixz",
-        "port": "2c9r"
-      },
-      "id": "rdpx",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "1bj9",
-        "port": "yxdw"
-      },
-      "target": {
-        "id": "zw0l",
-        "port": "dalm"
-      },
-      "id": "dfov",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "1bj9",
-        "port": "2zcf"
-      },
-      "target": {
-        "id": "hl88",
-        "port": "kzru"
-      },
-      "id": "d79c",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "zw0l",
-        "port": "jegq"
-      },
-      "target": {
-        "id": "dvln",
-        "port": "knd6"
-      },
-      "id": "9mv9",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "zw0l",
-        "port": "toam"
-      },
-      "target": {
-        "id": "8lw2",
-        "port": "lm34"
-      },
-      "id": "e40k",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "dvln",
-        "port": "69ug"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "zuj2",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "dvln",
-        "port": "nekr"
-      },
-      "target": {
-        "id": "cppr",
-        "port": "cjiw"
-      },
-      "id": "xorv",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "cppr",
-        "port": "vhdk"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "ork1",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8lw2",
-        "port": "9el8"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "djrw",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "hl88",
-        "port": "in3o"
-      },
-      "target": {
-        "id": "yt8q",
-        "port": "zpky"
-      },
-      "id": "edbc",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "hl88",
-        "port": "euvt"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "y8ny",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "yt8q",
-        "port": "32or"
-      },
-      "target": {
-        "id": "bglm",
-        "port": "y62x"
-      },
-      "id": "fwdc",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "wixz",
-        "port": "os7y"
-      },
-      "target": {
-        "id": "twd1",
-        "port": "xmxb"
-      },
-      "id": "112h",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "wixz",
-        "port": "t2m6"
-      },
-      "target": {
-        "id": "yx9t",
-        "port": "rflq"
-      },
-      "id": "xrjm",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "twd1",
-        "port": "9yo1"
-      },
-      "target": {
-        "id": "ssuu",
-        "port": "qo1v"
-      },
-      "id": "4t8b",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "twd1",
-        "port": "8paj"
-      },
-      "target": {
-        "id": "lqj5",
-        "port": "sxvw"
-      },
-      "id": "p6nl",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ssuu",
-        "port": "smad"
-      },
-      "target": {
-        "id": "flqh",
-        "port": "rrpz"
-      },
-      "id": "nqbu",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ssuu",
-        "port": "o8e7"
-      },
-      "target": {
-        "id": "whvn",
-        "port": "zh13"
-      },
-      "id": "4kzr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "flqh",
-        "port": "lk3e"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "ezrd",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "flqh",
-        "port": "4xyf"
-      },
-      "target": {
-        "id": "9igf",
-        "port": "u8io"
-      },
-      "id": "yxyu",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "9igf",
-        "port": "gxpb"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "r4so",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "whvn",
-        "port": "cd5g"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "r8wm",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "lqj5",
-        "port": "vm4w"
-      },
-      "target": {
-        "id": "deek",
-        "port": "gysp"
-      },
-      "id": "9lbb",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "lqj5",
-        "port": "3zkw"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "4m0a",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "deek",
-        "port": "engw"
-      },
-      "target": {
-        "id": "rw6t",
-        "port": "m2o0"
-      },
-      "id": "6mdm",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "yx9t",
-        "port": "bmae"
-      },
-      "target": {
-        "id": "yo4r",
-        "port": "cb1k"
-      },
-      "id": "mmxi",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "yx9t",
-        "port": "38sr"
-      },
-      "target": {
-        "id": "urmy",
-        "port": "bd2q"
-      },
-      "id": "xv6c",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "yo4r",
-        "port": "jtgq"
-      },
-      "target": {
-        "id": "e13n",
-        "port": "3bzt"
-      },
-      "id": "kmal",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "yo4r",
-        "port": "01te"
-      },
-      "target": {
-        "id": "joqw",
-        "port": "5dsk"
-      },
-      "id": "q5u6",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "e13n",
-        "port": "9d31"
-      },
-      "target": {
-        "id": "3p91",
-        "port": "i3vm"
-      },
-      "id": "jzv9",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "e13n",
-        "port": "k9qm"
-      },
-      "target": {
-        "id": "795e",
-        "port": "5iz3"
-      },
-      "id": "nou3",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "3p91",
-        "port": "zwff"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "dyms",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "3p91",
-        "port": "hhcm"
-      },
-      "target": {
-        "id": "ktlz",
-        "port": "kj49"
-      },
-      "id": "1mwn",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ktlz",
-        "port": "yd82"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "pr42",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "795e",
-        "port": "1yru"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "4tkb",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "joqw",
-        "port": "7n8l"
-      },
-      "target": {
-        "id": "qxmc",
-        "port": "thph"
-      },
-      "id": "9oi0",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "joqw",
-        "port": "a100"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "d4dm",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "qxmc",
-        "port": "j3mu"
-      },
-      "target": {
-        "id": "4k0l",
-        "port": "thy2"
-      },
-      "id": "c2rh",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "urmy",
-        "port": "e4pa"
-      },
-      "target": {
-        "id": "8hye",
-        "port": "xf7j"
-      },
-      "id": "2xk2",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8hye",
-        "port": "xjn6"
-      },
-      "target": {
-        "id": "fokz",
-        "port": "ixza"
-      },
-      "id": "ptho",
       "z": 379
     },
     {
@@ -18807,31 +6461,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "mvxp",
-        "port": "riuu"
-      },
-      "target": {
-        "id": "5m8k",
-        "port": "b9w4"
-      },
-      "id": "cho3",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Foxtrot"
             }
           },
@@ -18907,31 +6536,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "0dk0",
-        "port": "t63j"
-      },
-      "target": {
-        "id": "uov5",
-        "port": "1zlb"
-      },
-      "id": "bfej",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Helix"
             }
           },
@@ -18949,31 +6553,6 @@ export const largeGraph = {
         "port": "atqy"
       },
       "id": "2xg4",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "82n2",
-        "port": "yv37"
-      },
-      "target": {
-        "id": "oriq",
-        "port": "8hke"
-      },
-      "id": "8ra4",
       "z": 379
     },
     {
@@ -19132,31 +6711,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "hh5l",
-        "port": "fejg"
-      },
-      "target": {
-        "id": "226p",
-        "port": "arsg"
-      },
-      "id": "vo0i",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Alpha"
             }
           },
@@ -19299,31 +6853,6 @@ export const largeGraph = {
         "port": "3dd0"
       },
       "id": "8v4x",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "nf7c",
-        "port": "3uvu"
-      },
-      "target": {
-        "id": "70s1",
-        "port": "f537"
-      },
-      "id": "7y2i",
       "z": 379
     },
     {
@@ -19499,181 +7028,6 @@ export const largeGraph = {
         "port": "r5xq"
       },
       "id": "537q",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "3jpx",
-        "port": "153s"
-      },
-      "target": {
-        "id": "sweb",
-        "port": "nvg5"
-      },
-      "id": "o4z5",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "45bg",
-        "port": "7zj3"
-      },
-      "target": {
-        "id": "sweb",
-        "port": "nvg5"
-      },
-      "id": "33zs",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "sweb",
-        "port": "vmf6"
-      },
-      "target": {
-        "id": "0ykn",
-        "port": "fu84"
-      },
-      "id": "mv30",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "0ykn",
-        "port": "xyjo"
-      },
-      "target": {
-        "id": "622v",
-        "port": "xyzx"
-      },
-      "id": "qabx",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "0ykn",
-        "port": "a21a"
-      },
-      "target": {
-        "id": "6xva",
-        "port": "j2k8"
-      },
-      "id": "w2eo",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "6xva",
-        "port": "xpnm"
-      },
-      "target": {
-        "id": "jqy3",
-        "port": "odsx"
-      },
-      "id": "wlcf",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "jqy3",
-        "port": "4nxv"
-      },
-      "target": {
-        "id": "kdc9",
-        "port": "x5jz"
-      },
-      "id": "s831",
       "z": 379
     },
     {
@@ -20041,31 +7395,6 @@ export const largeGraph = {
         }
       ],
       "source": {
-        "id": "1b0z",
-        "port": "9rbs"
-      },
-      "target": {
-        "id": "ye0q",
-        "port": "zsa7"
-      },
-      "id": "w6ny",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
         "id": "asif",
         "port": "xd9c"
       },
@@ -20407,356 +7736,6 @@ export const largeGraph = {
         {
           "attrs": {
             "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "dfgs",
-        "port": "ou9i"
-      },
-      "target": {
-        "id": "y4x4",
-        "port": "1dnt"
-      },
-      "id": "x2bf",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "y4x4",
-        "port": "cagr"
-      },
-      "target": {
-        "id": "p2u4",
-        "port": "dtbh"
-      },
-      "id": "ibjz",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "fokz",
-        "port": "reiy"
-      },
-      "target": {
-        "id": "az39",
-        "port": "pecn"
-      },
-      "id": "p97b",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "az39",
-        "port": "0dl5"
-      },
-      "target": {
-        "id": "e11e",
-        "port": "9fta"
-      },
-      "id": "mzrr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "e11e",
-        "port": "xp0w"
-      },
-      "target": {
-        "id": "8rer",
-        "port": "vt99"
-      },
-      "id": "45ed",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "e11e",
-        "port": "foy4"
-      },
-      "target": {
-        "id": "dd1v",
-        "port": "n8lf"
-      },
-      "id": "5ggs",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "dd1v",
-        "port": "jdtv"
-      },
-      "target": {
-        "id": "v2y4",
-        "port": "xkss"
-      },
-      "id": "j6vv",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "v2y4",
-        "port": "0kb6"
-      },
-      "target": {
-        "id": "8rer",
-        "port": "vt99"
-      },
-      "id": "8suo",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "n9ws",
-        "port": "xphx"
-      },
-      "target": {
-        "id": "2kbv",
-        "port": "sigb"
-      },
-      "id": "c1y5",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "2kbv",
-        "port": "iaf9"
-      },
-      "target": {
-        "id": "2mov",
-        "port": "s0cd"
-      },
-      "id": "ayyo",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "2mov",
-        "port": "k36m"
-      },
-      "target": {
-        "id": "cw9y",
-        "port": "il8s"
-      },
-      "id": "v84f",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "2mov",
-        "port": "8jvh"
-      },
-      "target": {
-        "id": "7ujo",
-        "port": "dck8"
-      },
-      "id": "c3xq",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "7ujo",
-        "port": "2853"
-      },
-      "target": {
-        "id": "uy8u",
-        "port": "118q"
-      },
-      "id": "8va8",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "uy8u",
-        "port": "qvae"
-      },
-      "target": {
-        "id": "cw9y",
-        "port": "il8s"
-      },
-      "id": "x8l0",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
               "text": "Helix"
             }
           },
@@ -20799,31 +7778,6 @@ export const largeGraph = {
         "port": "ivh6"
       },
       "id": "bxlb",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "o4iz",
-        "port": "ywrr"
-      },
-      "target": {
-        "id": "p2u4",
-        "port": "dtbh"
-      },
-      "id": "c8no",
       "z": 379
     },
     {
@@ -20899,31 +7853,6 @@ export const largeGraph = {
         "port": "huds"
       },
       "id": "1xer",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "kdc9",
-        "port": "6kf1"
-      },
-      "target": {
-        "id": "622v",
-        "port": "xyzx"
-      },
-      "id": "p3ly",
       "z": 379
     },
     {
@@ -21050,1681 +7979,6 @@ export const largeGraph = {
       },
       "id": "qiyf",
       "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "szdx",
-        "port": "4u9b"
-      },
-      "target": {
-        "id": "yvdq",
-        "port": "bsxl"
-      },
-      "id": "rwsk",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "cw9y",
-        "port": "a3id"
-      },
-      "target": {
-        "id": "8y6r",
-        "port": "h05h"
-      },
-      "id": "p6rf",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "cw9y",
-        "port": "y3c7"
-      },
-      "target": {
-        "id": "idji",
-        "port": "pnf8"
-      },
-      "id": "e64s",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "cw9y",
-        "port": "rm6j"
-      },
-      "target": {
-        "id": "q5nv",
-        "port": "8oga"
-      },
-      "id": "kbcb",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8y6r",
-        "port": "hiwf"
-      },
-      "target": {
-        "id": "w1tb",
-        "port": "rwr9"
-      },
-      "id": "dpdx",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "8y6r",
-        "port": "d7yx"
-      },
-      "target": {
-        "id": "6khu",
-        "port": "b2rt"
-      },
-      "id": "ujjc",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "w1tb",
-        "port": "65r9"
-      },
-      "target": {
-        "id": "9zqy",
-        "port": "ahul"
-      },
-      "id": "sexg",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "6khu",
-        "port": "soyg"
-      },
-      "target": {
-        "id": "9zqy",
-        "port": "ahul"
-      },
-      "id": "goc5",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "9zqy",
-        "port": "wjti"
-      },
-      "target": {
-        "id": "qwnr",
-        "port": "hzn4"
-      },
-      "id": "kvqy",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "qwnr",
-        "port": "kgeu"
-      },
-      "target": {
-        "id": "ul6l",
-        "port": "gjlp"
-      },
-      "id": "wj85",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "idji",
-        "port": "f3gr"
-      },
-      "target": {
-        "id": "2kuu",
-        "port": "oyc3"
-      },
-      "id": "gg0v",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "idji",
-        "port": "94sz"
-      },
-      "target": {
-        "id": "mu7j",
-        "port": "ae58"
-      },
-      "id": "5dta",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "2kuu",
-        "port": "rwqm"
-      },
-      "target": {
-        "id": "2myr",
-        "port": "06nk"
-      },
-      "id": "egry",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "mu7j",
-        "port": "huxg"
-      },
-      "target": {
-        "id": "2myr",
-        "port": "06nk"
-      },
-      "id": "58vr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "2myr",
-        "port": "wfg3"
-      },
-      "target": {
-        "id": "mwu4",
-        "port": "cfil"
-      },
-      "id": "w9my",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "mwu4",
-        "port": "kjxj"
-      },
-      "target": {
-        "id": "efja",
-        "port": "wshm"
-      },
-      "id": "yoke",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "q5nv",
-        "port": "0x7z"
-      },
-      "target": {
-        "id": "5tao",
-        "port": "1cjf"
-      },
-      "id": "aea8",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "q5nv",
-        "port": "cgdc"
-      },
-      "target": {
-        "id": "kwe4",
-        "port": "bx4l"
-      },
-      "id": "4hxx",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "5tao",
-        "port": "x5li"
-      },
-      "target": {
-        "id": "q8zg",
-        "port": "vwwu"
-      },
-      "id": "pw2g",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "kwe4",
-        "port": "r9tj"
-      },
-      "target": {
-        "id": "q8zg",
-        "port": "vwwu"
-      },
-      "id": "kqra",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "q8zg",
-        "port": "sxlm"
-      },
-      "target": {
-        "id": "jka3",
-        "port": "4mqa"
-      },
-      "id": "ffz8",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "q8zg",
-        "port": "t2pn"
-      },
-      "target": {
-        "id": "mlva",
-        "port": "k9w9"
-      },
-      "id": "q4vh",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "jka3",
-        "port": "78ra"
-      },
-      "target": {
-        "id": "nouo",
-        "port": "f0on"
-      },
-      "id": "u4ba",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "jka3",
-        "port": "pkia"
-      },
-      "target": {
-        "id": "z3jb",
-        "port": "ck88"
-      },
-      "id": "wz94",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "nouo",
-        "port": "jpi1"
-      },
-      "target": {
-        "id": "03o4",
-        "port": "gkww"
-      },
-      "id": "0vtk",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "nouo",
-        "port": "63yk"
-      },
-      "target": {
-        "id": "5hrd",
-        "port": "u4xs"
-      },
-      "id": "rrvw",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "03o4",
-        "port": "jwga"
-      },
-      "target": {
-        "id": "jz0i",
-        "port": "frml"
-      },
-      "id": "y3rz",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "03o4",
-        "port": "btgd"
-      },
-      "target": {
-        "id": "ewlg",
-        "port": "je2a"
-      },
-      "id": "tplc",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "jz0i",
-        "port": "29q2"
-      },
-      "target": {
-        "id": "l48c",
-        "port": "1cqg"
-      },
-      "id": "6prr",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "l48c",
-        "port": "433e"
-      },
-      "target": {
-        "id": "1i1p",
-        "port": "0bq1"
-      },
-      "id": "7mza",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "1i1p",
-        "port": "s9ry"
-      },
-      "target": {
-        "id": "llwb",
-        "port": "7sjw"
-      },
-      "id": "kgmi",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "llwb",
-        "port": "h55h"
-      },
-      "target": {
-        "id": "lfzk",
-        "port": "icwm"
-      },
-      "id": "h6mv",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ewlg",
-        "port": "b2rv"
-      },
-      "target": {
-        "id": "ndfd",
-        "port": "w79w"
-      },
-      "id": "4xek",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ndfd",
-        "port": "cxz2"
-      },
-      "target": {
-        "id": "12pg",
-        "port": "yme6"
-      },
-      "id": "z83y",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ndfd",
-        "port": "ei92"
-      },
-      "target": {
-        "id": "ggm0",
-        "port": "j36t"
-      },
-      "id": "0224",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "12pg",
-        "port": "rpkz"
-      },
-      "target": {
-        "id": "ggm0",
-        "port": "j36t"
-      },
-      "id": "wk0y",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ggm0",
-        "port": "cfkj"
-      },
-      "target": {
-        "id": "nawn",
-        "port": "ga41"
-      },
-      "id": "ehvd",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "nawn",
-        "port": "izxt"
-      },
-      "target": {
-        "id": "nsrt",
-        "port": "wlxd"
-      },
-      "id": "o9kh",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "nsrt",
-        "port": "sc4e"
-      },
-      "target": {
-        "id": "peqy",
-        "port": "dbpg"
-      },
-      "id": "ba5m",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Delta"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "5hrd",
-        "port": "zjnv"
-      },
-      "target": {
-        "id": "c7hr",
-        "port": "6c2c"
-      },
-      "id": "f36b",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "c7hr",
-        "port": "u7on"
-      },
-      "target": {
-        "id": "vv4z",
-        "port": "wl3z"
-      },
-      "id": "cpwe",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Echo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "z3jb",
-        "port": "d0tg"
-      },
-      "target": {
-        "id": "0odw",
-        "port": "mqx5"
-      },
-      "id": "ijmm",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "z3jb",
-        "port": "siwg"
-      },
-      "target": {
-        "id": "fbme",
-        "port": "nui3"
-      },
-      "id": "b5jf",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "0odw",
-        "port": "ggom"
-      },
-      "target": {
-        "id": "f9pm",
-        "port": "l9ln"
-      },
-      "id": "ysyz",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "f9pm",
-        "port": "1p0v"
-      },
-      "target": {
-        "id": "uh17",
-        "port": "j8qo"
-      },
-      "id": "7pq4",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "uh17",
-        "port": "09vs"
-      },
-      "target": {
-        "id": "9kkh",
-        "port": "4a3y"
-      },
-      "id": "ddv2",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "9kkh",
-        "port": "jtu7"
-      },
-      "target": {
-        "id": "yt91",
-        "port": "qe37"
-      },
-      "id": "83bd",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "fbme",
-        "port": "do70"
-      },
-      "target": {
-        "id": "02g3",
-        "port": "yu6v"
-      },
-      "id": "w56f",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "02g3",
-        "port": "k0uc"
-      },
-      "target": {
-        "id": "o55i",
-        "port": "xva1"
-      },
-      "id": "kps0",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Gamma"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "02g3",
-        "port": "c1m3"
-      },
-      "target": {
-        "id": "fshb",
-        "port": "0oqv"
-      },
-      "id": "dxme",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "o55i",
-        "port": "nkbt"
-      },
-      "target": {
-        "id": "fshb",
-        "port": "0oqv"
-      },
-      "id": "4po1",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "fshb",
-        "port": "shko"
-      },
-      "target": {
-        "id": "ecub",
-        "port": "ods1"
-      },
-      "id": "i3ms",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "ecub",
-        "port": "eeur"
-      },
-      "target": {
-        "id": "xhw0",
-        "port": "ic1l"
-      },
-      "id": "dn1m",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "xhw0",
-        "port": "7dyp"
-      },
-      "target": {
-        "id": "qqyz",
-        "port": "qii4"
-      },
-      "id": "xf1p",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "mlva",
-        "port": "pfb3"
-      },
-      "target": {
-        "id": "eb87",
-        "port": "53ay"
-      },
-      "id": "i2oo",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "mlva",
-        "port": "hn14"
-      },
-      "target": {
-        "id": "q7ai",
-        "port": "tmof"
-      },
-      "id": "q42n",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "eb87",
-        "port": "eqah"
-      },
-      "target": {
-        "id": "thsj",
-        "port": "r0fz"
-      },
-      "id": "bfa3",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "thsj",
-        "port": "auxb"
-      },
-      "target": {
-        "id": "gk2w",
-        "port": "bxan"
-      },
-      "id": "7dl9",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "gk2w",
-        "port": "j4x5"
-      },
-      "target": {
-        "id": "a5xi",
-        "port": "n9dl"
-      },
-      "id": "fc1x",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "a5xi",
-        "port": "5tgs"
-      },
-      "target": {
-        "id": "w6oz",
-        "port": "x25q"
-      },
-      "id": "x6cw",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Alpha"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "q7ai",
-        "port": "mmwi"
-      },
-      "target": {
-        "id": "9s3w",
-        "port": "563b"
-      },
-      "id": "zxsk",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Ion"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "9s3w",
-        "port": "tkf6"
-      },
-      "target": {
-        "id": "wwii",
-        "port": "f86l"
-      },
-      "id": "oytk",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Foxtrot"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "9s3w",
-        "port": "xdn8"
-      },
-      "target": {
-        "id": "25lz",
-        "port": "se99"
-      },
-      "id": "06ak",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Jupiter"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "wwii",
-        "port": "thet"
-      },
-      "target": {
-        "id": "25lz",
-        "port": "se99"
-      },
-      "id": "t7zq",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Bravo"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "25lz",
-        "port": "f77l"
-      },
-      "target": {
-        "id": "u8el",
-        "port": "5015"
-      },
-      "id": "ht2x",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Helix"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "u8el",
-        "port": "oop7"
-      },
-      "target": {
-        "id": "67j2",
-        "port": "dg1w"
-      },
-      "id": "z52o",
-      "z": 379
-    },
-    {
-      "type": "app.Link",
-      "labels": [
-        {
-          "attrs": {
-            "labelText": {
-              "text": "Charlie"
-            }
-          },
-          "position": {
-            "distance": 0.25
-          }
-        }
-      ],
-      "source": {
-        "id": "67j2",
-        "port": "juii"
-      },
-      "target": {
-        "id": "brmq",
-        "port": "g1ve"
-      },
-      "id": "hkbm",
-      "z": 379
     }
   ]
-}
+};

@@ -39,6 +39,7 @@ function createPaper(canvasEl, paperOptions = {}) {
         background: { color: '#F3F7F6' },
         snapLinks: { radius: 30 },
         overflow: true,
+        interactive: { labelMove: false },
         defaultConnector: {
             name: 'straight',
             args: {
@@ -264,7 +265,7 @@ export const initLargeGraphExample = async (canvasEl) => {
     });
 
     await initAvoid({
-        paper,
+        graph,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
         useWorker: true
@@ -273,11 +274,14 @@ export const initLargeGraphExample = async (canvasEl) => {
     graph.resetCells(largeGraph.cells);
 
     paper.unfreeze();
-    paper.transformToFitContent({
-        useModelGeometry: true,
-        padding: 50,
-        minScale: 0.1,
-        maxScale: 1,
+
+    paper.on('render:done', () => {
+        paper.transformToFitContent({
+            useModelGeometry: true,
+            padding: 50,
+            minScale: 0.1,
+            maxScale: 1,
+        });
     });
 
     addLinkInteractionHandlers(paper);
