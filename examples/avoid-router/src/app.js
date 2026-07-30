@@ -120,10 +120,11 @@ export const initSimpleExample = async (canvasEl) => {
     });
 
     await initAvoid({
-        paper,
+        graph,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
-        useWorker: false,
+        useWorker: true,
+        debounceTime: 0
     });
 
     const c1 = new Node({
@@ -146,11 +147,6 @@ export const initSimpleExample = async (canvasEl) => {
                 {
                     group: 'left',
                     id: 'port4',
-                    // TODO: we need to redefine the port on element resize
-                    // The port is currently defined proportionally to the element size.
-                    // args: {
-                    //     dy: 30
-                    // }
                 },
             ],
         },
@@ -196,7 +192,20 @@ export const initSimpleExample = async (canvasEl) => {
         target: { id: c4.id },
     });
 
-    graph.resetCells([c1, c2, c3, c4, c5, l1 , l2, l3, l4]);
+    const l5 = new Edge({
+        source: { id: c5.id },
+        target: { id: c1.id },
+        router: { name: 'normal' },
+        connector: { name: 'curve' },
+        attrs: {
+            line: {
+                stroke: '#EA3C24',
+                strokeWidth: 2,
+            }
+        }
+    });
+
+    graph.resetCells([c1, c2, c3, c4, c5, l1 , l2, l3, l4, l5]);
 
     paper.unfreeze();
     paper.fitToContent({

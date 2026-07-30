@@ -11,24 +11,36 @@ async function load(): Promise<void> {
 export const DEFAULT_PIN_CLASS_ID = 1;
 
 export interface InitOptions {
-    paper: dia.Paper;
+    graph: dia.Graph;
     shapeBufferDistance?: number;
     idealNudgingDistance?: number;
     useWorker?: boolean;
+    propertyName?: string;
+    debounceTime?: number;
 }
 
 export async function init(options: InitOptions): Promise<void> {
     await load();
 
     const provider = options.useWorker ? new WorkerProvider() : new MainThreadProvider();
-    await provider.init({
-        shapeBufferDistance: options.shapeBufferDistance ?? 0,
-        idealNudgingDistance: options.idealNudgingDistance ?? 10
-    });
+
+    if (provider instanceof WorkerProvider) {
+        await provider.init({
+            shapeBufferDistance: options.shapeBufferDistance ?? 0,
+            idealNudgingDistance: options.idealNudgingDistance ?? 10,
+            debounceTime: options.debounceTime ?? 100,
+        });
+    } else {
+        await provider.init({
+            shapeBufferDistance: options.shapeBufferDistance ?? 0,
+            idealNudgingDistance: options.idealNudgingDistance ?? 10,
+        });
+    }
 
     RouterService.create({
-        paper: options.paper,
+        graph: options.graph,
         provider: provider,
         margin: options.shapeBufferDistance ?? 0,
+        propertyName: options.propertyName ?? 'avoidRouter'
     });
 }
