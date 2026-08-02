@@ -10,9 +10,9 @@ const meta = {
   parameters: {
     showcase: {
       description:
-        'A button inside a node is both clickable and draggable: press and release to click it, drag it to move the element or to start a link from its magnet. A gesture that moves never also clicks.',
+        'Three kinds of control inside a node: a button that both clicks and drags (moving the element, or starting a link from its magnet), a text field that keeps every gesture so it can select text, and a dropdown the paper ignores outright. A gesture that moves never also clicks.',
       apiUrl: getAPILink('useMarkup'),
-      canvasHeight: 280,
+      canvasHeight: 300,
       code: codeRaw,
     },
   },

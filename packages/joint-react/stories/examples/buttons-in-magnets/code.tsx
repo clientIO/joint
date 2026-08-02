@@ -19,7 +19,7 @@ const VALIDATE_CONNECTION: CanConnectOptions = { allowRootConnection: true };
 const HEADER_COLOR = '#243445';
 const MUTED_TEXT_COLOR = '#93A4B3';
 const BUTTON_COLOR = '#2F4459';
-const MAGNET_COUNT = 2;
+const MAGNET_COUNT = 3;
 
 interface NodeData {
   readonly kind: 'body' | 'magnets';
@@ -30,16 +30,16 @@ const initialCells: Array<CellRecord<NodeData>> = [
   {
     id: 'body',
     type: 'element',
-    data: { kind: 'body', name: 'button in the body' },
-    position: { x: 40, y: 56 },
-    size: { width: 215, height: 142 },
+    data: { kind: 'body', name: 'controls in the body' },
+    position: { x: 40, y: 40 },
+    size: { width: 235, height: 224 },
   },
   {
     id: 'magnets',
     type: 'element',
-    data: { kind: 'magnets', name: 'button in each magnet' },
+    data: { kind: 'magnets', name: 'a control in each magnet' },
     position: { x: 340, y: 34 },
-    size: { width: 235, height: 200 },
+    size: { width: 250, height: 250 },
   },
 ];
 
@@ -68,6 +68,22 @@ const bodyStyle: React.CSSProperties = {
   padding: '12px',
 };
 
+const selectStyle: React.CSSProperties = {
+  font: 'inherit',
+  fontSize: 11,
+  color: 'inherit',
+  background: 'rgba(0, 0, 0, 0.25)',
+  border: '1px solid rgba(128, 128, 128, 0.35)',
+  borderRadius: 4,
+  padding: '3px 6px',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
+const rowSelectStyle: React.CSSProperties = { ...selectStyle, width: 108 };
+
+const rowLabelStyle: React.CSSProperties = { whiteSpace: 'nowrap' };
+
 const rowStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
@@ -91,6 +107,22 @@ const buttonStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
+const inputStyle: React.CSSProperties = {
+  font: 'inherit',
+  fontSize: 11,
+  color: 'inherit',
+  background: 'rgba(0, 0, 0, 0.25)',
+  border: '1px solid rgba(128, 128, 128, 0.35)',
+  borderRadius: 4,
+  padding: '3px 8px',
+  boxSizing: 'border-box',
+  minWidth: 0,
+};
+
+const bodyInputStyle: React.CSSProperties = { ...inputStyle, width: '100%' };
+
+const rowInputStyle: React.CSSProperties = { ...inputStyle, width: 108 };
+
 const hintStyle: React.CSSProperties = {
   margin: 0,
   fontSize: 10,
@@ -98,15 +130,53 @@ const hintStyle: React.CSSProperties = {
   color: MUTED_TEXT_COLOR,
 };
 
-/** Button label that makes it obvious the native click still lands. */
+/**
+ * Button label that makes it obvious the native click still lands. The count sits in a
+ * `<span>`, so this also covers the case where the press target is inside the control
+ * rather than the control itself.
+ */
 function ClickCounter() {
   const [count, setCount] = useState(0);
   const handleClick = useCallback(() => setCount((value) => value + 1), []);
   return (
     <button type="button" style={buttonStyle} onClick={handleClick}>
-      clicked {count}×
+      <span>clicked {count}×</span>
     </button>
   );
+}
+
+const SELECT_OPTIONS = ['idle', 'running', 'done'];
+
+/** Dropdown: `SELECT` is in GUARDED_TAG_NAMES, so the paper ignores it outright. */
+function StatusSelect({ style }: Readonly<{ style: React.CSSProperties }>) {
+  const [value, setValue] = useState(SELECT_OPTIONS[0]);
+  const handleChange = useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>) => setValue(event.target.value),
+    []
+  );
+  return (
+    <select style={style} value={value} onChange={handleChange}>
+      {SELECT_OPTIONS.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+interface TextFieldProps {
+  readonly style: React.CSSProperties;
+}
+
+/** Text field: typeable and selectable, and never a drag handle. */
+function TextField({ style }: Readonly<TextFieldProps>) {
+  const [value, setValue] = useState('type here');
+  const handleChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => setValue(event.target.value),
+    []
+  );
+  return <input style={style} value={value} onChange={handleChange} />;
 }
 
 /** Card whose body holds a plain button — no magnet involved. */
@@ -116,9 +186,11 @@ function BodyButtonNode({ name }: Readonly<Partial<NodeData>>) {
       <div style={headerStyle}>{name}</div>
       <div style={bodyStyle}>
         <ClickCounter />
+        <TextField style={bodyInputStyle} />
+        <StatusSelect style={selectStyle} />
         <p style={hintStyle}>
-          Click the button to count. Drag it to move the element — the drag does not also count,
-          so one gesture is never both.
+          Drag the button to move the element; releasing it clicks it. The text field selects
+          text instead, and the paper ignores the dropdown outright.
         </p>
       </div>
     </HTMLBox>
@@ -129,13 +201,15 @@ interface MagnetRowProps {
   readonly index: number;
 }
 
-/** One magnet row with a button inside it. */
+/** One magnet row, each holding a different kind of control. */
 function MagnetRow({ index }: Readonly<MagnetRowProps>) {
   const { magnetRef } = useMarkup();
   return (
     <div ref={magnetRef(`port-${index}`)} style={rowStyle}>
-      <span>port-{index}</span>
-      <ClickCounter />
+      <span style={rowLabelStyle}>port-{index}</span>
+      {index === 0 && <ClickCounter />}
+      {index === 1 && <TextField style={rowInputStyle} />}
+      {index === 2 && <StatusSelect style={rowSelectStyle} />}
     </div>
   );
 }
@@ -150,8 +224,8 @@ function MagnetButtonsNode({ name }: Readonly<Partial<NodeData>>) {
       ))}
       <div style={bodyStyle}>
         <p style={hintStyle}>
-          Drag off a row — or off its button — to start a link. Releasing a button in place
-          clicks it instead.
+          Drag off a row, or off its button, to start a link. The text field starts none, and
+          the dropdown never reaches the paper at all.
         </p>
       </div>
     </HTMLBox>
