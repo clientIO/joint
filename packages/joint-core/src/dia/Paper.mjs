@@ -602,14 +602,17 @@ export const Paper = View.extend({
     UPDATE_DELAYING_BATCHES: ['translate'],
     // If you interact with these elements, the browser's own default action is kept
     // (the paper does not call `preventDefault()`), so a text input can be focused and
-    // its text selected, a checkbox can be ticked, a button can be pressed.
-    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT', 'OPTION'],
+    // its text selected, a checkbox can be ticked, a button can be pressed. Matched
+    // against the whole path up to the cell view, so a press on markup inside a control
+    // counts as a press on the control - `<option>` through its `<select>`, a label
+    // `<span>` through its `<button>`.
+    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT'],
     // If you interact with these elements, the default interaction such as `element move`
     // or starting a link from a magnet is prevented, i.e. a press is only ever a click.
     // The same members as above by default, but a separate decision: narrow this list to
     // let a control both be clicked and start a drag - dropping `BUTTON`, say, makes a
     // button inside a magnet draggable to create a link while it stays clickable.
-    PREVENT_INTERACTION_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT', 'OPTION'],
+    PREVENT_INTERACTION_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT'],
     // If you interact with these elements, the events are not propagated to the paper
     // i.e. paper events such as `element:pointerdown` are not triggered.
     GUARDED_TAG_NAMES: [

@@ -161,8 +161,6 @@ export const Paper = dia.Paper.extend(
 
     documentEvents: POINTER_DOCUMENT_EVENTS,
 
-    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'SELECT', 'OPTION'] ,
-
     // Cell focus tracking. `focusin`/`focusout` bubble (unlike `focus`/`blur`),
     // so they delegate to `.joint-cell` and report which cell owns the focused
     // node (e.g. a `tabindex` element) via the `cell:focus` / `cell:blur` paper
@@ -289,7 +287,7 @@ export const Paper = dia.Paper.extend(
      *
      * A drag that moves does not also click: `pointerup` swallows the native click.
      */
-    PREVENT_INTERACTION_TAG_NAMES: ['TEXTAREA', 'INPUT', 'SELECT', 'OPTION'],
+    PREVENT_INTERACTION_TAG_NAMES: ['TEXTAREA', 'INPUT', 'SELECT'],
 
     /**
      * Run the upstream pointerup handler, then release capture. Also runs on

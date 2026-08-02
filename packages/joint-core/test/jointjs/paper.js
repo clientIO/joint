@@ -1371,6 +1371,45 @@ QUnit.module('paper', function(hooks) {
             'the <button> keeps its default action, so it can still be focused');
     });
 
+    QUnit.test('an <option> counts through its <select>', function(assert) {
+
+        // `OPTION` is not listed: it can only exist inside a `<select>`, which is, and the
+        // lists are matched against the whole path. A `<select multiple>` renders its
+        // options inline, so they do receive real presses.
+        assert.notOk(this.paper.FORM_CONTROL_TAG_NAMES.includes('OPTION'),
+            'OPTION is not in FORM_CONTROL_TAG_NAMES');
+        assert.notOk(this.paper.PREVENT_INTERACTION_TAG_NAMES.includes('OPTION'),
+            'OPTION is not in PREVENT_INTERACTION_TAG_NAMES');
+
+        const element = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 },
+            markup: joint.util.svg`
+                <foreignObject @selector="fo" width="100" height="100">
+                    <select @selector="select" multiple="multiple">
+                        <option @selector="option" value="a">a</option>
+                        <option value="b">b</option>
+                    </select>
+                </foreignObject>
+            `
+        });
+        this.graph.addCell(element);
+
+        const elementView = this.paper.findViewByModel(element);
+        const optionEl = elementView.findNode('option');
+        assert.equal(optionEl.tagName, 'OPTION', 'the press target is the <option>');
+
+        const positionBefore = element.position();
+        const mousedownEvt = simulate.mousedown({ el: optionEl, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: optionEl, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: optionEl, clientX: 250, clientY: 250 });
+
+        assert.deepEqual(element.position(), positionBefore,
+            'the element did not move when dragging from an <option>');
+        assert.notOk(mousedownEvt.defaultPrevented,
+            'the <select> keeps its default action');
+    });
+
     QUnit.test('PREVENT_INTERACTION_TAG_NAMES is separate from FORM_CONTROL_TAG_NAMES', function(assert) {
 
         // The two lists start out identical but answer different questions:
