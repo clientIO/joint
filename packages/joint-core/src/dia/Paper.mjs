@@ -3503,7 +3503,11 @@ export const Paper = View.extend({
             // rejects anything off the paper's event surface, and such a press has always
             // opened a blank interaction.
             // `contextmenu` is exempt: `contextMenuTrigger()` runs its own guard.
-            if (view ? this.guard(evt, view) : this.guardExplicit(evt, view)) return;
+            const guarded = view
+                ? this.guard(evt, view)
+                : this.guardExplicit(evt, view);
+
+            if (guarded) return;
         }
 
         if (view) {
