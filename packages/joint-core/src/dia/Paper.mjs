@@ -307,10 +307,10 @@ const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 // target alone would tell us nothing about the control it belongs to.
 function hasTagNameInPath(target, tagNames, boundary) {
     let node = target;
-    while (node && node.nodeType === Node.ELEMENT_NODE) {
+    while (node) {
         if (tagNames.includes(node.tagName)) return true;
         if (node === boundary) return false;
-        node = node.parentNode;
+        node = node.parentElement;
     }
     return false;
 }
