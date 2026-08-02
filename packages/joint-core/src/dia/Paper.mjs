@@ -302,6 +302,19 @@ const backgroundPatterns = {
 
 const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 
+// Is `target`, or any of its ancestors up to and including `boundary`, one of `tagNames`?
+// The press target of `<button><span>Save</span></button>` is the SPAN, so testing the
+// target alone would tell us nothing about the control it belongs to.
+function hasTagNameInPath(target, tagNames, boundary) {
+    let node = target;
+    while (node && node.nodeType === Node.ELEMENT_NODE) {
+        if (tagNames.includes(node.tagName)) return true;
+        if (node === boundary) return false;
+        node = node.parentNode;
+    }
+    return false;
+}
+
 export const Paper = View.extend({
     className: 'paper',
 
@@ -3495,16 +3508,15 @@ export const Paper = View.extend({
 
         if (view) {
 
-            const { tagName } = target;
-
-            if (this.options.preventDefaultViewAction && !this.FORM_CONTROL_TAG_NAMES.includes(tagName)) {
+            if (this.options.preventDefaultViewAction &&
+                !hasTagNameInPath(target, this.FORM_CONTROL_TAG_NAMES, view.el)) {
                 // If the target is a form element, we do not want to prevent the default action.
                 // For example, we want to be able to select text in a text input or
                 // to be able to click on a checkbox.
                 evt.preventDefault();
             }
 
-            if (this.PREVENT_INTERACTION_TAG_NAMES.includes(tagName)) {
+            if (hasTagNameInPath(target, this.PREVENT_INTERACTION_TAG_NAMES, view.el)) {
                 // If the target is a form element, we do not want to start dragging the element.
                 // For example, we want to be able to select text by dragging the mouse.
                 view.preventDefaultInteraction(evt);

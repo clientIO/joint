@@ -1339,6 +1339,38 @@ QUnit.module('paper', function(hooks) {
             'the element moved when dragging from its body');
     });
 
+    QUnit.test('a press inside a form control counts as a press on it', function(assert) {
+
+        // Both tag-name lists are matched against the whole path up to the cell view, not
+        // against `evt.target` alone: the press target of `<button><span>text</span></button>`
+        // is the SPAN, so a control with any markup inside it - an icon, a label span -
+        // would otherwise behave the opposite way round from a bare one.
+        const element = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 },
+            markup: joint.util.svg`
+                <foreignObject @selector="fo" width="100" height="100">
+                    <button @selector="button" type="button"><span @selector="inner">click me</span></button>
+                </foreignObject>
+            `
+        });
+        this.graph.addCell(element);
+
+        const elementView = this.paper.findViewByModel(element);
+        const innerEl = elementView.findNode('inner');
+        assert.equal(innerEl.tagName, 'SPAN', 'the press target is the <span>, not the <button>');
+
+        const positionBefore = element.position();
+        const mousedownEvt = simulate.mousedown({ el: innerEl, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: innerEl, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: innerEl, clientX: 250, clientY: 250 });
+
+        assert.deepEqual(element.position(), positionBefore,
+            'the element did not move when dragging from inside a <button>');
+        assert.notOk(mousedownEvt.defaultPrevented,
+            'the <button> keeps its default action, so it can still be focused');
+    });
+
     QUnit.test('PREVENT_INTERACTION_TAG_NAMES is separate from FORM_CONTROL_TAG_NAMES', function(assert) {
 
         // The two lists start out identical but answer different questions:
