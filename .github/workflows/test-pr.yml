@@ -62,6 +62,13 @@ jobs:
         id: install-dependencies
         run: yarn install --immutable
 
+      # Ensure every PR declares version bumps for the packages it changes
+      # (deferred versioning: entries live in .yarn/versions/*.yml)
+      - name: Check version bumps
+        id: version-check
+        if: ${{ github.event_name == 'pull_request' }}
+        run: yarn version check
+
       # Build the joint project
       - name: Prepare joint
         id: prepare-joint
