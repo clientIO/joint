@@ -1,6 +1,6 @@
 import { linkTools, elementTools, dia, shapes, highlighters } from '@joint/core';
 import { init as initAvoid } from '@joint/routers-avoid';
-import { Node, Edge, TemporaryEdge } from './shapes';
+import { Node, Edge } from './shapes';
 import { Message, FlowchartStart, Link as AppLink } from './large-graph-shapes';
 import { largeGraph } from './large-graph-data';
 import ResizeTool from './resize-tool';
@@ -15,7 +15,6 @@ const cellNamespace = {
     ...shapes,
     Node,
     Edge,
-    TemporaryEdge,
     app: {
         Message,
         FlowchartStart,
@@ -273,16 +272,17 @@ export const initLargeGraphExample = async (canvasEl) => {
 
     graph.resetCells(largeGraph.cells);
 
-    paper.unfreeze();
-
     paper.on('render:done', () => {
         paper.transformToFitContent({
             useModelGeometry: true,
+            preserveAspectRatio: false,
             padding: 50,
             minScale: 0.1,
-            maxScale: 1,
+            maxScale: 3,
         });
     });
+
+    paper.unfreeze();
 
     addLinkInteractionHandlers(paper);
 };
