@@ -92,14 +92,9 @@ Pick a bump for each changed package and commit the file Yarn writes under `.yar
 - **minor** — a new backwards-compatible feature (`4.3.0` → `4.4.0`)
 - **major** — a breaking change (`4.3.0` → `5.0.0`)
 
-Your conventional-commit type is a good hint: `fix` → patch, `feat` → minor, a breaking change → major.
-When you bump a package, the prompt also lists the published packages that depend on it (e.g.
-bumping `@joint/core` lists `@joint/decorators`, `@joint/layout-*`, `@joint/shapes-*`,
-`@joint/react`, …); set those to the same bump so they track `@joint/core`, our ruling version.
-Yarn then rewrites their `workspace:` ranges for you at release. Private example apps under
-`examples/` have no version field and never appear. Changes to ignored paths (tests, docs,
-`examples/`) need no bump. CI runs
-`yarn version check` on every PR and will fail if a changed package is missing its version entry.
+Your conventional-commit type is a good hint: `fix` → patch, `feat` → minor, a breaking change → major. When you bump a package, the prompt lists its dependents and asks you to decide, for each, whether they should be bumped too. Even though Yarn flags them all, you should `decline` them when the new version of the modified package matches the published range. For example, patch bump in `@joint/core` needs no dependent bumps, while a minor bump in `@joint/core` needs none from `@joint/react` but does from the rest. Note that this is a one-way consideration — dependent packages (e.g. `@joint/react`) may be bumped independently of packages they depend on.
+
+Changes to ignored paths (tests, docs, `examples/`) need no bump. CI runs `yarn version check` on every PR and will fail if a changed package is missing its version entry.
 
 ### Commit Message Format
 
