@@ -12,6 +12,8 @@ export const DEFAULT_PIN_CLASS_ID = 1;
 
 export interface InitOptions {
     graph: dia.Graph;
+    filterLink?: (link: dia.Link) => boolean;
+    filterElement?: (element: dia.Element) => boolean;
     shapeBufferDistance?: number;
     idealNudgingDistance?: number;
     useWorker?: boolean;
@@ -19,7 +21,7 @@ export interface InitOptions {
     debounceTime?: number;
 }
 
-export async function init(options: InitOptions): Promise<void> {
+export async function init(options: InitOptions): Promise<RouterService> {
     await load();
 
     const provider = options.useWorker ? new WorkerProvider() : new MainThreadProvider();
@@ -37,10 +39,14 @@ export async function init(options: InitOptions): Promise<void> {
         });
     }
 
-    RouterService.create({
+    const routerService = RouterService.create({
         graph: options.graph,
         provider: provider,
         margin: options.shapeBufferDistance ?? 0,
-        propertyName: options.propertyName ?? 'avoidRouter'
+        propertyName: options.propertyName ?? 'avoidRouter',
+        filterLink: options.filterLink,
+        filterElement: options.filterElement
     });
+
+    return routerService;
 }

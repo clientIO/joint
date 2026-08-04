@@ -1,5 +1,4 @@
 import { shapes, util } from '@joint/core';
-import { avoid } from '@joint/routers-avoid';
 
 const portRadius = 8;
 const portAttrs = {
@@ -67,8 +66,7 @@ export class Edge extends shapes.standard.Link {
                     strokeWidth: 1,
                     targetMarker: { d: 'M 5 2.5 0 0 5 -2.5 Z' },
                 },
-            },
-            router: avoid
+            }
         }, super.defaults);
     }
 }

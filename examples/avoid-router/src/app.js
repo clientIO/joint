@@ -1,5 +1,5 @@
 import { linkTools, elementTools, dia, shapes, highlighters } from '@joint/core';
-import { init as initAvoid } from '@joint/routers-avoid';
+import { init as initAvoid } from '@joint/router-avoid';
 import { Node, Edge } from './shapes';
 import { Message, FlowchartStart, Link as AppLink } from './large-graph-shapes';
 import { largeGraph } from './large-graph-data';
@@ -124,7 +124,8 @@ export const initSimpleExample = async (canvasEl) => {
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
         useWorker: true,
-        debounceTime: 0
+        debounceTime: 0,
+        filterLink: (link) => !link.get('doNotRoute')
     });
 
     const c1 = new Node({
@@ -197,6 +198,7 @@ export const initSimpleExample = async (canvasEl) => {
         target: { id: c1.id },
         router: { name: 'normal' },
         connector: { name: 'curve' },
+        doNotRoute: true,
         attrs: {
             line: {
                 stroke: '#EA3C24',

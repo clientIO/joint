@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@joint/core": "workspace:^",
-    "@joint/routers-avoid": "workspace:^",
+    "@joint/router-avoid": "workspace:^",
     "libavoid-js": "^0.4.5"
   },
   "devDependencies": {

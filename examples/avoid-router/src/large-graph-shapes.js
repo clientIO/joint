@@ -1,5 +1,4 @@
 import { dia } from '@joint/core';
-import { avoid } from '@joint/routers-avoid';
 
 const PORT_RADIUS = 6;
 
@@ -118,7 +117,6 @@ export const FlowchartStart = dia.Element.define('app.FlowchartStart', {
 
 export const Link = dia.Link.define('app.Link', {
     z: 1,
-    router: avoid,
     attrs: {
         line: {
             fill: 'none',

@@ -5936,7 +5936,7 @@ __metadata:
   resolution: "@joint/demo-avoid-router@workspace:examples/avoid-router"
   dependencies:
     "@joint/core": "workspace:^"
-    "@joint/routers-avoid": "workspace:^"
+    "@joint/router-avoid": "workspace:^"
     copy-webpack-plugin: "npm:5.1.1"
     css-loader: "npm:3.5.3"
     file-loader: "npm:6.0.0"
@@ -6788,9 +6788,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/routers-avoid@workspace:^, @joint/routers-avoid@workspace:packages/joint-routers-avoid":
+"@joint/router-avoid@workspace:^, @joint/router-avoid@workspace:packages/joint-router-avoid":
   version: 0.0.0-use.local
-  resolution: "@joint/routers-avoid@workspace:packages/joint-routers-avoid"
+  resolution: "@joint/router-avoid@workspace:packages/joint-router-avoid"
   dependencies:
     "@joint/core": "workspace:~"
     "@joint/eslint-config": "workspace:*"
