@@ -31,4 +31,4 @@ document.querySelectorAll('.tab-button').forEach((button) => {
     button.addEventListener('click', () => activateTab(button.dataset.tab));
 });
 
-activateTab('large');
+activateTab('simple');

@@ -40,6 +40,14 @@ export class RouterService {
     private readonly filterLink: (link: dia.Link) => boolean;
     private readonly filterElement: (element: dia.Element) => boolean;
 
+    // Anchors of a link as they were before the router first modified them.
+    // Used as the base for delta calculations so that adjustments don't
+    // accumulate on top of anchors the router itself already changed.
+    private readonly originalAnchors: WeakMap<dia.Link, {
+        source: anchors.AnchorJSON | undefined;
+        target: anchors.AnchorJSON | undefined;
+    }> = new WeakMap();
+
     readonly margin: number;
 
     private nextPinId = 100000;
@@ -105,6 +113,7 @@ export class RouterService {
             this.provider.deleteShape(cell.id);
         } else if (cell.isLink() && this.filterLink(cell)) {
             this.provider.deleteConnector(cell.id);
+            this.originalAnchors.delete(cell);
         }
     }
 
@@ -121,6 +130,9 @@ export class RouterService {
 
         if ('source' in cell.changed || 'target' in cell.changed) {
             if (!cell.isLink() || !this.filterLink(cell)) return;
+            if (cell.changed.source?.anchor || cell.changed.target?.anchor) {
+                this.originalAnchors.delete(cell);
+            }
             this.setAttribute(cell, 'pending', true);
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
@@ -143,6 +155,7 @@ export class RouterService {
                     this.provider.deleteShape(cell.id, false);
                 } else if (cell.isLink() && this.filterLink(cell)) {
                     this.provider.deleteConnector(cell.id, false);
+                    this.originalAnchors.delete(cell);
                 }
             });
         }
@@ -230,59 +243,88 @@ export class RouterService {
         this.connectorRoutes[linkId] = points;
         this.setAttribute(link, 'pending', false);
         if (!points || !this.isRouteValid(points, link)) {
-            const sourcePoint = link.getSourcePoint();
-            const targetPoint = link.getTargetPoint();
+            const { source: originalSourceAnchor, target: originalTargetAnchor } = this.getOriginalLinkAnchors(link);
 
-            let sourceBBox = link.getSourceElement()?.getBBox();
-            if (!sourceBBox) {
-                sourceBBox = new g.Rect(sourcePoint.x, sourcePoint.y, 0, 0);
-            }
+            // Restore the original anchors before computing the fallback route,
+            // since it derives its points from the link's current anchors.
+            link.set({
+                source: {
+                    ...link.source(),
+                    anchor: originalSourceAnchor
+                },
+                target: {
+                    ...link.target(),
+                    anchor: originalTargetAnchor
+                }
+            }, { avoidRouter: true });
 
-            const sourceSide = sourceBBox.center().equals(sourcePoint)
-                ? sourceBBox.sideNearestToPoint(targetPoint)
-                : sourceBBox.sideNearestToPoint(sourcePoint);
-
-            const source = {
-                point: sourcePoint,
-                x0: sourceBBox.x,
-                y0: sourceBBox.y,
-                width: sourceBBox.width,
-                height: sourceBBox.height,
-                side: sourceSide,
-                margin: this.margin,
-            };
-
-            let targetBBox = link.getTargetElement()?.getBBox();
-            if (!targetBBox) {
-                targetBBox = new g.Rect(targetPoint.x, targetPoint.y, 0, 0);
-            }
-
-            const targetSide = targetBBox.center().equals(targetPoint)
-                ? targetBBox.sideNearestToPoint(sourcePoint)
-                : targetBBox.sideNearestToPoint(targetPoint);
-
-            const target = {
-                point: targetPoint,
-                x0: targetBBox?.x ?? targetPoint.x,
-                y0: targetBBox?.y ?? targetPoint.y,
-                width: targetBBox?.width ?? 0,
-                height: targetBBox?.height ?? 0,
-                side: targetSide,
-                margin: this.margin,
-            };
-
-            const rightAngleVertices = alg.rightAnglePath(source, target);
+            const rightAngleVertices = this.getFallbackRoute(link);
 
             link.set('vertices', rightAngleVertices, { avoidRouter: true });
+            return;
         }
 
         const updatedRoute = this.getUpdatedRoute(points, link);
 
-        // don't trigger change on anchor setters
-        link.set('source', { ...link.source(), anchor: updatedRoute.sourceAnchor }, { avoidRouter: true, silent: true });
-        link.set('target', { ...link.target(), anchor: updatedRoute.targetAnchor }, { avoidRouter: true, silent: true });
+        const linkAttributes = {
+            source: {
+                ...link.source(),
+                anchor: updatedRoute.sourceAnchor
+            },
+            target: {
+                ...link.target(),
+                anchor: updatedRoute.targetAnchor
+            },
+            vertices: updatedRoute.vertices
+        };
+
         // trigger change on vertices setter to update the link view
-        link.set('vertices', points, { avoidRouter: true });
+        link.set(linkAttributes, { avoidRouter: true });
+    }
+
+    private getFallbackRoute(link: dia.Link): dia.Point[] {
+        const sourcePoint = link.getSourcePoint();
+        const targetPoint = link.getTargetPoint();
+
+        let sourceBBox = link.getSourceElement()?.getBBox();
+        if (!sourceBBox) {
+            sourceBBox = new g.Rect(sourcePoint.x, sourcePoint.y, 0, 0);
+        }
+
+        const sourceSide = sourceBBox.center().equals(sourcePoint)
+            ? sourceBBox.sideNearestToPoint(targetPoint)
+            : sourceBBox.sideNearestToPoint(sourcePoint);
+
+        const source = {
+            point: sourcePoint,
+            x0: sourceBBox.x,
+            y0: sourceBBox.y,
+            width: sourceBBox.width,
+            height: sourceBBox.height,
+            side: sourceSide,
+            margin: this.margin,
+        };
+
+        let targetBBox = link.getTargetElement()?.getBBox();
+        if (!targetBBox) {
+            targetBBox = new g.Rect(targetPoint.x, targetPoint.y, 0, 0);
+        }
+
+        const targetSide = targetBBox.center().equals(targetPoint)
+            ? targetBBox.sideNearestToPoint(sourcePoint)
+            : targetBBox.sideNearestToPoint(targetPoint);
+
+        const target = {
+            point: targetPoint,
+            x0: targetBBox?.x ?? targetPoint.x,
+            y0: targetBBox?.y ?? targetPoint.y,
+            width: targetBBox?.width ?? 0,
+            height: targetBBox?.height ?? 0,
+            side: targetSide,
+            margin: this.margin,
+        };
+
+        return alg.rightAnglePath(source, target);
     }
 
     // Determines whether the avoid route should be used or whether to
@@ -334,9 +376,27 @@ export class RouterService {
     }
 
 
+    // Returns the anchors of the link as they were before the router first
+    // modified them, capturing them lazily on first access.
+    private getOriginalLinkAnchors(link: dia.Link): {
+        source: anchors.AnchorJSON | undefined;
+        target: anchors.AnchorJSON | undefined;
+    } {
+        let originalAnchors = this.originalAnchors.get(link);
+        if (!originalAnchors) {
+            originalAnchors = {
+                source: link.source().anchor,
+                target: link.target().anchor
+            };
+            this.originalAnchors.set(link, originalAnchors);
+        }
+        return originalAnchors;
+    }
+
     private getUpdatedRoute(route: dia.Point[], link: dia.Link): { sourceAnchor: anchors.AnchorJSON, targetAnchor: anchors.AnchorJSON, vertices: dia.Point[] } {
-        const { port: sourcePortId = null, anchor: baseSourceAnchor = null } = link.source();
-        const { port: targetPortId = null, anchor: baseTargetAnchor = null } = link.target();
+        const { port: sourcePortId = null } = link.source();
+        const { port: targetPortId = null } = link.target();
+        const { source: baseSourceAnchor, target: baseTargetAnchor } = this.getOriginalLinkAnchors(link);
 
         const sourceElement = link.getSourceElement() as dia.Element;
         const targetElement = link.getTargetElement() as dia.Element;
@@ -352,7 +412,7 @@ export class RouterService {
         let sourceAnchor;
         if (!baseSourceAnchor) {
             sourceAnchor = {
-                name: 'center',
+                name: 'modelCenter',
                 args: {
                     dx: sourceAnchorDelta.x,
                     dy: sourceAnchorDelta.y
@@ -370,7 +430,7 @@ export class RouterService {
         let targetAnchor;
         if (!baseTargetAnchor) {
             targetAnchor = {
-                name: 'center',
+                name: 'modelCenter',
                 args: {
                     dx: targetAnchorDelta.x,
                     dy: targetAnchorDelta.y
