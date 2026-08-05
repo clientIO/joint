@@ -1,0 +1,125 @@
+# Phase 2 of the release pipeline: publish, tag, release, and refresh `prod`.
+#
+# Fires when a release commit lands on `master` (the squash-merge of the PR opened
+# by release.yml, whose title starts with "Release v"). It:
+#   1. publishes every changed public package to npm with Yarn (NOT changeset publish),
+#   2. tags v<core-version> + cuts one aggregated GitHub Release — only when core changed
+#      (detected by the tag not existing yet),
+#   3. force-updates `prod` to the merged release commit — always.
+#
+# Channel: derived from the version suffix. A prerelease version (e.g. 4.4.0-beta.0,
+# produced by `changeset pre enter beta`) publishes under that dist-tag as a GitHub
+# prerelease; a plain version publishes under `latest`.
+#
+# Required repository secrets:
+#   NPM_TOKEN               — npm automation token (org 2FA must allow automation tokens)
+#   RELEASE_APP_ID          — GitHub App id (contents:write to push tags + prod)
+#   RELEASE_APP_PRIVATE_KEY — GitHub App private key
+name: Release (publish)
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: release-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Only run for release commits.
+    if: ${{ github.repository == 'clientIO/joint' && startsWith(github.event.head_commit.message, 'Release v') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          # Need tags to detect whether v<core-version> already exists.
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Setup Node.js v22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Cache Yarn
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # Derive the release facts from repository state (changesets are already
+      # consumed at this point, so we cannot re-run the release plan).
+      - name: Derive release facts
+        id: facts
+        run: |
+          CORE_VERSION=$(node -p "require('./packages/joint-core/package.json').version")
+          echo "core_version=$CORE_VERSION" >> "$GITHUB_OUTPUT"
+
+          # Channel: prerelease suffix -> that dist-tag; otherwise `latest`.
+          if [[ "$CORE_VERSION" == *-* ]]; then
+            PRE_ID="${CORE_VERSION#*-}"       # e.g. beta.0
+            DIST_TAG="${PRE_ID%%.*}"          # e.g. beta
+            IS_PRERELEASE=true
+          else
+            DIST_TAG="latest"
+            IS_PRERELEASE=false
+          fi
+          echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
+
+          # Core changed this release iff its tag does not exist yet.
+          if git rev-parse -q --verify "refs/tags/v$CORE_VERSION" >/dev/null; then
+            echo "core_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "core_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Publish with Yarn (resolves workspace: ranges; skips prepublishOnly guards;
+      # topological order; --no-private excludes examples; --tolerate-republish skips
+      # already-published versions).
+      - name: Publish to npm
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          yarn release:publish --tag "${{ steps.facts.outputs.dist_tag }}"
+
+      # Tag + one aggregated GitHub Release — only when core changed.
+      - name: Tag & GitHub Release
+        if: ${{ steps.facts.outputs.core_changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          CORE_VERSION="${{ steps.facts.outputs.core_version }}"
+          git tag "v$CORE_VERSION"
+          git push origin "v$CORE_VERSION"
+          NOTES_ARG=(--notes-file RELEASE_NOTES.md)
+          [ -s RELEASE_NOTES.md ] || NOTES_ARG=(--generate-notes)
+          if [ "${{ steps.facts.outputs.is_prerelease }}" = "true" ]; then
+            gh release create "v$CORE_VERSION" --title "Release v$CORE_VERSION" "${NOTES_ARG[@]}" --prerelease
+          else
+            gh release create "v$CORE_VERSION" --title "Release v$CORE_VERSION" "${NOTES_ARG[@]}" --latest
+          fi
+
+      # Refresh `prod` to the merged release commit — ALWAYS (even when core did
+      # not change) so JointJS+ trials/builds always track the latest master.
+      - name: Refresh prod branch
+        run: git push --force origin master:prod

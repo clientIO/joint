@@ -62,6 +62,17 @@ jobs:
         id: install-dependencies
         run: yarn install --immutable
 
+      # Enforce that a PR touching releasable code (see `changedFilePatterns`
+      # in .changeset/config.json) also adds a changeset. Docs/test/demo-only
+      # PRs are exempt automatically. The release PR (branch `release/*`) is
+      # exempt because it *consumes* changesets rather than adding them.
+      - name: Enforce changeset
+        id: changeset-status
+        if: ${{ github.event_name == 'pull_request' && !startsWith(github.head_ref, 'release/') }}
+        run: |
+          git fetch origin master:refs/remotes/origin/master || true
+          yarn changeset status --since=origin/master
+
       # Build the joint project
       - name: Prepare joint
         id: prepare-joint

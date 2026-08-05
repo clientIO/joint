@@ -24,7 +24,12 @@
     "test-e2e-all": "yarn workspaces foreach --all -tvv run test-e2e-all",
     "lint": "yarn workspaces foreach --all -tvv run lint",
     "lint-fix": "yarn workspaces foreach --all -tvv run lint-fix",
-    "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/core\" --include \"@joint/layout-directed-graph\" --include \"@joint/layout-msagl\" pack --out %s-%v.tgz"
+    "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/core\" --include \"@joint/layout-directed-graph\" --include \"@joint/layout-msagl\" pack --out %s-%v.tgz",
+    "changeset": "changeset",
+    "release:status": "changeset status --since=origin/master",
+    "release:changelog": "node scripts/changelog-from-changesets.mjs",
+    "release:version": "yarn release:changelog && changeset version",
+    "release:publish": "yarn workspaces foreach --all --no-private -t npm publish --access public --tolerate-republish"
   },
   "workspaces": [
     "./packages/*",
@@ -38,5 +43,8 @@
     "npm": "11.2.0",
     "yarn": "4.7.0"
   },
-  "packageManager": "yarn@4.7.0"
+  "packageManager": "yarn@4.7.0",
+  "devDependencies": {
+    "@changesets/cli": "2.31.1"
+  }
 }
