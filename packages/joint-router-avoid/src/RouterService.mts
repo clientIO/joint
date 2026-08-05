@@ -9,7 +9,6 @@ const DEFAULT_PIN_CLASS_ID = 1;
 export interface RouterServiceOptions {
     graph: dia.Graph;
     provider: Provider;
-    propertyName: string;
     filterLink?: (link: dia.Link) => boolean;
     filterElement?: (element: dia.Element) => boolean;
     margin?: number;
@@ -18,6 +17,13 @@ export interface RouterServiceOptions {
 export class RouterService {
 
     private static instances: Map<dia.Graph, RouterService> = new Map();
+
+    // Provided by the `mvc.Events` mixin applied below the class body.
+    // Allows `RouterService` instances to emit `pending`/`routed` events for
+    // their links. See `Keyboard` in `@joint/keyboard` for the same pattern.
+    declare on: mvc.Events_On<RouterService>;
+    declare off: mvc.Events_Off<RouterService>;
+    declare trigger: mvc.Events_Trigger<RouterService>;
 
     private readonly defaultFilterLink = (_link: dia.Link) => true;
     private readonly defaultFilterElement = (_element: dia.Element) => true;
@@ -34,7 +40,6 @@ export class RouterService {
 
     private readonly graph: dia.Graph;
     private readonly provider: Provider;
-    private readonly propertyName: string;
     private readonly pinIds: Record<string, number> = {};
     private readonly connectorRoutes: Record<dia.Cell.ID, dia.Point[]> = {};
     private readonly filterLink: (link: dia.Link) => boolean;
@@ -65,7 +70,6 @@ export class RouterService {
         this.graph = options.graph;
         this.margin = options.margin ?? 0;
         this.provider = options.provider;
-        this.propertyName = options.propertyName;
 
         this.filterLink = options.filterLink ?? this.defaultFilterLink;
         this.filterElement = options.filterElement ?? this.defaultFilterElement;
@@ -133,7 +137,7 @@ export class RouterService {
             if (cell.changed.source?.anchor || cell.changed.target?.anchor) {
                 this.originalAnchors.delete(cell);
             }
-            this.setAttribute(cell, 'pending', true);
+            this.trigger('pending', cell);
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
 
@@ -141,7 +145,7 @@ export class RouterService {
             if (!cell.isElement() || !this.filterElement(cell)) return;
             this.graph.getConnectedLinks(cell).forEach((link) => {
                 if (this.filterLink(link)) {
-                    this.setAttribute(link, 'pending', true);
+                    this.trigger('pending', link);
                 }
             });
             this.provider.updateShape(this.getAvoidShape(cell));
@@ -241,7 +245,7 @@ export class RouterService {
         const link = this.graph.getCell(linkId) as dia.Link | undefined;
         if (!link) return;
         this.connectorRoutes[linkId] = points;
-        this.setAttribute(link, 'pending', false);
+        this.trigger('routed', link);
         if (!points || !this.isRouteValid(points, link)) {
             const { source: originalSourceAnchor, target: originalTargetAnchor } = this.getOriginalLinkAnchors(link);
 
@@ -467,12 +471,6 @@ export class RouterService {
         }
         return new g.Point(point).difference(anchorPosition);
     }
-
-    private setAttribute(cell: dia.Cell, attributeName: string, value: unknown): void {
-        cell.prop([this.propertyName, attributeName], value, { avoidRouter: true });
-    }
-
-    public getAttribute(cell: dia.Cell, attributeName: string): unknown {
-        return cell.prop([this.propertyName, attributeName]);
-    }
 }
+
+Object.assign(RouterService.prototype, mvc.Events);
