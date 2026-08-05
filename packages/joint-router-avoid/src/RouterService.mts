@@ -124,7 +124,7 @@ export class RouterService {
     private onCellAdded(cell: dia.Cell): void {
         if (cell.isElement() && this.filterElement(cell)) {
             this.provider.updateShape(this.getAvoidShape(cell));
-        } else if (cell.isLink() && this.filterLink(cell)) {
+        } else if (cell.isLink() && this.isRouted(cell)) {
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
     }
@@ -133,7 +133,7 @@ export class RouterService {
         if (opt.avoidRouter) return;
 
         if ('source' in cell.changed || 'target' in cell.changed) {
-            if (!cell.isLink() || !this.filterLink(cell)) return;
+            if (!cell.isLink() || !this.isRouted(cell)) return;
             if (cell.changed.source?.anchor || cell.changed.target?.anchor) {
                 this.originalAnchors.delete(cell);
             }
@@ -144,7 +144,7 @@ export class RouterService {
         if ('position' in cell.changed || 'size' in cell.changed) {
             if (!cell.isElement() || !this.filterElement(cell)) return;
             this.graph.getConnectedLinks(cell).forEach((link) => {
-                if (this.filterLink(link)) {
+                if (this.isRouted(link)) {
                     this.trigger('pending', link);
                 }
             });
@@ -157,7 +157,7 @@ export class RouterService {
             previousModels.forEach((cell) => {
                 if (cell.isElement() && this.filterElement(cell)) {
                     this.provider.deleteShape(cell.id, false);
-                } else if (cell.isLink() && this.filterLink(cell)) {
+                } else if (cell.isLink() && this.isRouted(cell)) {
                     this.provider.deleteConnector(cell.id, false);
                     this.originalAnchors.delete(cell);
                 }
@@ -166,7 +166,7 @@ export class RouterService {
 
         this.provider.updateGraph(
             this.graph.getElements().filter(this.filterElement).map((element) => this.getAvoidShape(element)),
-            this.graph.getLinks().filter(this.filterLink).map((link) => this.getAvoidConnector(link))
+            this.graph.getLinks().filter((link) => this.isRouted(link)).map((link) => this.getAvoidConnector(link))
         );
     }
 
@@ -470,6 +470,16 @@ export class RouterService {
             anchorPosition = element.getBBox().center();
         }
         return new g.Point(point).difference(anchorPosition);
+    }
+
+    private isRouted(link: dia.Link): boolean {
+        return this.filterLink(link) && !this.hasPointEnd(link);
+    }
+
+    // A link cannot be routed by avoid when one of its ends is a loose
+    // point rather than being connected to an element.
+    private hasPointEnd(link: dia.Link): boolean {
+        return !link.source().id || !link.target().id;
     }
 }
 
