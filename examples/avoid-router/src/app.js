@@ -96,6 +96,18 @@ function addLinkInteractionHandlers(paper) {
     });
 }
 
+function addRouterStyling(routerService) {
+    // Dim links while the router is (re)computing their route, and restore
+    // their normal appearance once a route has been applied.
+    routerService.on('pending', (link) => {
+        link.attr('line/strokeDasharray', '5,5');
+    });
+
+    routerService.on('routed', (link) => {
+        link.attr('line/strokeDasharray', null);
+    });
+}
+
 export const initSimpleExample = async (canvasEl) => {
 
     const { graph, paper } = createPaper(canvasEl, {
@@ -119,7 +131,7 @@ export const initSimpleExample = async (canvasEl) => {
         },
     });
 
-    await initAvoid({
+    const routerService = await initAvoid({
         graph,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
@@ -127,6 +139,8 @@ export const initSimpleExample = async (canvasEl) => {
         debounceTime: 0,
         filterLink: (link) => !link.get('doNotRoute')
     });
+
+    addRouterStyling(routerService);
 
     const c1 = new Node({
         position: { x: 100, y: 100 },
@@ -265,12 +279,14 @@ export const initLargeGraphExample = async (canvasEl) => {
         defaultLink: () => new AppLink(),
     });
 
-    await initAvoid({
+    const routerService = await initAvoid({
         graph,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
         useWorker: true
     });
+
+    addRouterStyling(routerService);
 
     graph.resetCells(largeGraph.cells);
 

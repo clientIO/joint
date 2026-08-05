@@ -17,7 +17,6 @@ export interface InitOptions {
     shapeBufferDistance?: number;
     idealNudgingDistance?: number;
     useWorker?: boolean;
-    propertyName?: string;
     debounceTime?: number;
 }
 
@@ -43,7 +42,6 @@ export async function init(options: InitOptions): Promise<RouterService> {
         graph: options.graph,
         provider: provider,
         margin: options.shapeBufferDistance ?? 0,
-        propertyName: options.propertyName ?? 'avoidRouter',
         filterLink: options.filterLink,
         filterElement: options.filterElement
     });
