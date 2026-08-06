@@ -1,116 +1,19 @@
-import { linkTools, elementTools, dia, shapes, highlighters } from '@joint/core';
+import { dia, elementTools, shapes } from '@joint/core';
 import { init as initAvoid } from '@joint/router-avoid';
-import { Node, Edge } from './shapes';
-import { Message, FlowchartStart, Link as AppLink } from './large-shapes';
-import { largeGraph } from './large-data';
+import { createPaper, addLinkInteractionHandlers } from './common';
+import { Node, Edge, Note } from './shapes';
 import ResizeTool from './resize-tool';
-
-// Avoid Docs
-// https://www.adaptagrams.org/documentation/annotated.html
-
-// There is a bug in JointJS, that does not allow you to use port
-// ids that are numbers.
 
 const cellNamespace = {
     ...shapes,
     Node,
     Edge,
-    app: {
-        Message,
-        FlowchartStart,
-        Link: AppLink,
-    },
+    Note,
 };
-
-function createPaper(canvasEl, paperOptions = {}) {
-    const graph = new dia.Graph({}, { cellNamespace });
-
-    const paper = new dia.Paper({
-        model: graph,
-        cellViewNamespace: cellNamespace,
-        width: 1000,
-        height: 600,
-        gridSize: 10,
-        interactive: { linkMove: false },
-        linkPinning: false,
-        async: true,
-        frozen: true,
-        background: { color: '#F3F7F6' },
-        snapLinks: { radius: 30 },
-        overflow: true,
-        interactive: { labelMove: false },
-        defaultConnector: {
-            name: 'straight',
-            args: {
-                cornerType: 'cubic',
-                cornerRadius: 4,
-            },
-        },
-        highlighting: {
-            default: {
-                name: 'mask',
-                options: {
-                    padding: 2,
-                    attrs: {
-                        stroke: '#EA3C24',
-                        strokeWidth: 2,
-                    },
-                },
-            },
-        },
-        ...paperOptions,
-    });
-
-    canvasEl.appendChild(paper.el);
-
-    return { graph, paper };
-}
-
-function addLinkInteractionHandlers(paper) {
-    // Add a class to the links when they are being interacted with.
-    // See `styles.css` for the styles.
-
-    paper.on('link:mouseenter', (linkView) => {
-        linkView.addTools(
-            new dia.ToolsView({
-                tools: [
-                    new linkTools.Remove(),
-                    new linkTools.TargetArrowhead(),
-                ],
-            })
-        );
-    });
-
-    paper.on('link:mouseleave', (linkView) => {
-        linkView.removeTools();
-    });
-
-    paper.on('link:pointerdown', (linkView) => {
-        highlighters.addClass.add(linkView, 'line', 'active-link', {
-            className: 'active-link'
-        });
-    });
-
-    paper.on('link:pointerup', (linkView) => {
-        highlighters.addClass.remove(linkView);
-    });
-}
-
-function addRouterStyling(routerService) {
-    // Dim links while the router is (re)computing their route, and restore
-    // their normal appearance once a route has been applied.
-    routerService.on('pending', (link) => {
-        link.attr('line/strokeDasharray', '5,5');
-    });
-
-    routerService.on('routed', (link) => {
-        link.attr('line/strokeDasharray', null);
-    });
-}
 
 export const initSimpleExample = async (canvasEl) => {
 
-    const { graph, paper } = createPaper(canvasEl, {
+    const { graph, paper } = createPaper(canvasEl, cellNamespace, {
         defaultLink: () => new Edge(),
         validateConnection: (
             sourceView,
@@ -135,9 +38,9 @@ export const initSimpleExample = async (canvasEl) => {
         graph,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
-        useWorker: true,
-        debounceTime: 0,
-        filterLink: (link) => !link.get('doNotRoute')
+        filterLink: (link) => !link.get('doNotRoute'),
+        filterElement: (element) => !element.get('doNotRoute'),
+        //useWorker: true
     });
 
     const c1 = new Node({
@@ -219,7 +122,12 @@ export const initSimpleExample = async (canvasEl) => {
         }
     });
 
-    graph.resetCells([c1, c2, c3, c4, c5, l1 , l2, l3, l4, l5]);
+    const note = new Note({
+        position: { x: 220, y: 280 },
+        size: { width: 220, height: 260 },
+    });
+
+    graph.resetCells([c1, c2, c3, c4, c5, l1, l2, l3, l4, l5, note]);
 
     paper.unfreeze();
     paper.fitToContent({
@@ -228,10 +136,14 @@ export const initSimpleExample = async (canvasEl) => {
         allowNewOrigin: 'any',
     });
 
-    // Add tools to the elements.
-    graph.getElements().forEach((el) => addElementTools(el, paper));
+    // Add tools to the elements (the Note is a plain annotation, not a
+    // connectable node, so it gets none).
+    graph.getElements().forEach((el) => {
+        if (el instanceof Note) return;
+        addElementTools(el, paper);
+    });
     graph.on('add', (cell) => {
-        if (cell.isLink()) return;
+        if (cell.isLink() || cell instanceof Note) return;
         addElementTools(cell, paper);
     });
 
@@ -268,37 +180,5 @@ export const initSimpleExample = async (canvasEl) => {
     });
 
     // Add tools to the links.
-    addLinkInteractionHandlers(paper);
-};
-
-export const initLargeGraphExample = async (canvasEl) => {
-
-    const { graph, paper } = createPaper(canvasEl, {
-        defaultLink: () => new AppLink(),
-    });
-
-    const routerService = await initAvoid({
-        graph,
-        shapeBufferDistance: 20,
-        idealNudgingDistance: 10,
-        useWorker: true
-    });
-
-    addRouterStyling(routerService);
-
-    graph.resetCells(largeGraph.cells);
-
-    paper.on('render:done', () => {
-        paper.transformToFitContent({
-            useModelGeometry: true,
-            preserveAspectRatio: false,
-            padding: 50,
-            minScale: 0.1,
-            maxScale: 3,
-        });
-    });
-
-    paper.unfreeze();
-
     addLinkInteractionHandlers(paper);
 };

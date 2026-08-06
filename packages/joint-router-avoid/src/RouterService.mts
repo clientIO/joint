@@ -124,16 +124,33 @@ export class RouterService {
     private onCellAdded(cell: dia.Cell): void {
         if (cell.isElement() && this.filterElement(cell)) {
             this.provider.updateShape(this.getAvoidShape(cell));
-        } else if (cell.isLink() && this.isRouted(cell)) {
-            this.provider.updateConnector(this.getAvoidConnector(cell));
+            return;
         }
+
+        if (!cell.isLink() || !this.filterLink(cell)) return;
+
+        if (this.hasPointEnd(cell)) {
+            // In scope for the router, but avoid can't route a link that
+            // isn't connected to an element on both ends.
+            this.applyFallbackRoute(cell);
+            return;
+        }
+
+        this.provider.updateConnector(this.getAvoidConnector(cell));
     }
 
     private onCellChanged(cell: dia.Cell, opt: dia.Cell.Options & { avoidRouter?: boolean }): void {
         if (opt.avoidRouter) return;
 
         if ('source' in cell.changed || 'target' in cell.changed) {
-            if (!cell.isLink() || !this.isRouted(cell)) return;
+            if (!cell.isLink() || !this.filterLink(cell)) return;
+
+            this.applyFallbackRoute(cell);
+            if (this.hasPointEnd(cell)) {
+                this.provider.deleteConnector(cell.id);
+                return;
+            }
+
             if (cell.changed.source?.anchor || cell.changed.target?.anchor) {
                 this.originalAnchors.delete(cell);
             }
@@ -144,9 +161,10 @@ export class RouterService {
         if ('position' in cell.changed || 'size' in cell.changed) {
             if (!cell.isElement() || !this.filterElement(cell)) return;
             this.graph.getConnectedLinks(cell).forEach((link) => {
-                if (this.isRouted(link)) {
-                    this.trigger('pending', link);
-                }
+                if (!this.filterLink(link)) return;
+
+                this.applyFallbackRoute(link);
+                this.trigger('pending', link);
             });
             this.provider.updateShape(this.getAvoidShape(cell));
         }
@@ -157,16 +175,28 @@ export class RouterService {
             previousModels.forEach((cell) => {
                 if (cell.isElement() && this.filterElement(cell)) {
                     this.provider.deleteShape(cell.id, false);
-                } else if (cell.isLink() && this.isRouted(cell)) {
+                } else if (cell.isLink() && this.filterLink(cell)) {
                     this.provider.deleteConnector(cell.id, false);
                     this.originalAnchors.delete(cell);
                 }
             });
         }
 
+        const routableLinks: dia.Link[] = [];
+        this.graph.getLinks().forEach((link) => {
+            if (!this.filterLink(link)) return;
+
+            if (this.hasPointEnd(link)) {
+                this.applyFallbackRoute(link);
+                return;
+            }
+
+            routableLinks.push(link);
+        });
+
         this.provider.updateGraph(
             this.graph.getElements().filter(this.filterElement).map((element) => this.getAvoidShape(element)),
-            this.graph.getLinks().filter((link) => this.isRouted(link)).map((link) => this.getAvoidConnector(link))
+            routableLinks.map((link) => this.getAvoidConnector(link))
         );
     }
 
@@ -247,24 +277,7 @@ export class RouterService {
         this.connectorRoutes[linkId] = points;
         this.trigger('routed', link);
         if (!points || !this.isRouteValid(points, link)) {
-            const { source: originalSourceAnchor, target: originalTargetAnchor } = this.getOriginalLinkAnchors(link);
-
-            // Restore the original anchors before computing the fallback route,
-            // since it derives its points from the link's current anchors.
-            link.set({
-                source: {
-                    ...link.source(),
-                    anchor: originalSourceAnchor
-                },
-                target: {
-                    ...link.target(),
-                    anchor: originalTargetAnchor
-                }
-            }, { avoidRouter: true });
-
-            const rightAngleVertices = this.getFallbackRoute(link);
-
-            link.set('vertices', rightAngleVertices, { avoidRouter: true });
+            this.applyFallbackRoute(link);
             return;
         }
 
@@ -284,6 +297,30 @@ export class RouterService {
 
         // trigger change on vertices setter to update the link view
         link.set(linkAttributes, { avoidRouter: true });
+    }
+
+    // Applies the manual `rightAngle` route directly to the link, bypassing
+    // avoid. Used when a route computed by avoid should not be trusted, and
+    // when a link isn't routable by avoid at all (e.g. a loose end).
+    private applyFallbackRoute(link: dia.Link): void {
+        const { source: originalSourceAnchor, target: originalTargetAnchor } = this.getOriginalLinkAnchors(link);
+
+        // Restore the original anchors before computing the fallback route,
+        // since it derives its points from the link's current anchors.
+        link.set({
+            source: {
+                ...link.source(),
+                anchor: originalSourceAnchor
+            },
+            target: {
+                ...link.target(),
+                anchor: originalTargetAnchor
+            }
+        }, { avoidRouter: true });
+
+        const rightAngleVertices = this.getFallbackRoute(link);
+
+        link.set('vertices', rightAngleVertices, { avoidRouter: true });
     }
 
     private getFallbackRoute(link: dia.Link): dia.Point[] {
@@ -470,10 +507,6 @@ export class RouterService {
             anchorPosition = element.getBBox().center();
         }
         return new g.Point(point).difference(anchorPosition);
-    }
-
-    private isRouted(link: dia.Link): boolean {
-        return this.filterLink(link) && !this.hasPointEnd(link);
     }
 
     // A link cannot be routed by avoid when one of its ends is a loose
