@@ -55,6 +55,40 @@ export class Node extends shapes.standard.Rectangle {
     }
 }
 
+// A free-floating annotation. It is excluded from the avoid router via the
+// `doNotRoute` flag, so links are free to route straight through it.
+export class Note extends shapes.standard.Rectangle {
+    defaults() {
+        return util.defaultsDeep({
+            type: 'Note',
+            z: 0,
+            size: { width: 140, height: 70 },
+            doNotRoute: true,
+            attrs: {
+                body: {
+                    fill: '#FFF6BF',
+                    stroke: '#E0CC6B',
+                    strokeWidth: 1,
+                    strokeDasharray: '4,2',
+                    rx: 2,
+                    ry: 2,
+                },
+                label: {
+                    text: 'Note',
+                    fill: '#7A6B2E',
+                    fontFamily: 'sans-serif',
+                    fontSize: 12,
+                    fontStyle: 'italic',
+                    textWrap: {
+                        width: -10,
+                        height: -10,
+                    },
+                },
+            },
+        }, super.defaults);
+    }
+}
+
 export class Edge extends shapes.standard.Link {
     defaults() {
         return util.defaultsDeep({
