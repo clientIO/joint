@@ -3163,7 +3163,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@changesets/assemble-release-plan@npm:^6.0.10":
+"@changesets/assemble-release-plan@npm:6.0.10, @changesets/assemble-release-plan@npm:^6.0.10":
   version: 6.0.10
   resolution: "@changesets/assemble-release-plan@npm:6.0.10"
   dependencies:
@@ -3222,7 +3222,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@changesets/config@npm:^3.1.4":
+"@changesets/config@npm:3.1.4, @changesets/config@npm:^3.1.4":
   version: 3.1.4
   resolution: "@changesets/config@npm:3.1.4"
   dependencies:
@@ -3324,7 +3324,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@changesets/read@npm:^0.6.7":
+"@changesets/read@npm:0.6.7, @changesets/read@npm:^0.6.7":
   version: 0.6.7
   resolution: "@changesets/read@npm:0.6.7"
   dependencies:
@@ -7252,7 +7252,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@manypkg/get-packages@npm:^1.1.3":
+"@manypkg/get-packages@npm:1.1.3, @manypkg/get-packages@npm:^1.1.3":
   version: 1.1.3
   resolution: "@manypkg/get-packages@npm:1.1.3"
   dependencies:
@@ -21875,7 +21875,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "joint@workspace:."
   dependencies:
+    "@changesets/assemble-release-plan": "npm:6.0.10"
     "@changesets/cli": "npm:2.31.1"
+    "@changesets/config": "npm:3.1.4"
+    "@changesets/read": "npm:0.6.7"
+    "@manypkg/get-packages": "npm:1.1.3"
   languageName: unknown
   linkType: soft
 

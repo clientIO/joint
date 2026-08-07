@@ -1,5 +1,6 @@
 {
   "name": "@joint/shapes-general-tools",
+  "private": true,
   "title": "JointJS General Shapes Tools",
   "version": "4.3.1",
   "description": "General Shapes Tools module for JointJS",

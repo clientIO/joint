@@ -7,9 +7,9 @@
 #      (detected by the tag not existing yet),
 #   3. force-updates `prod` to the merged release commit — always.
 #
-# Channel: derived from the version suffix. A prerelease version (e.g. 4.4.0-beta.0,
-# produced by `changeset pre enter beta`) publishes under that dist-tag as a GitHub
-# prerelease; a plain version publishes under `latest`.
+# Channel: chosen in Phase 1 (release.yml `dist_tag` input) and carried here via the
+# committed RELEASE_CHANNEL file. `latest` publishes stable (npm `--tag latest`, GitHub
+# Release `--latest`); `alpha`/`beta` publish under that dist-tag as a `--prerelease`.
 #
 # Required repository secrets:
 #   NPM_TOKEN               — npm automation token (org 2FA must allow automation tokens)
@@ -73,17 +73,17 @@ jobs:
           CORE_VERSION=$(node -p "require('./packages/joint-core/package.json').version")
           echo "core_version=$CORE_VERSION" >> "$GITHUB_OUTPUT"
 
-          # Channel: prerelease suffix -> that dist-tag; otherwise `latest`.
-          if [[ "$CORE_VERSION" == *-* ]]; then
-            PRE_ID="${CORE_VERSION#*-}"       # e.g. beta.0
-            DIST_TAG="${PRE_ID%%.*}"          # e.g. beta
-            IS_PRERELEASE=true
-          else
-            DIST_TAG="latest"
-            IS_PRERELEASE=false
-          fi
+          # Channel is chosen in Phase 1 (dist_tag input) and carried in RELEASE_CHANNEL.
+          # `latest` = stable; anything else = prerelease. Default to latest if absent.
+          DIST_TAG="$(cat RELEASE_CHANNEL 2>/dev/null || echo latest)"
+          DIST_TAG="${DIST_TAG//[[:space:]]/}"
+          [ -n "$DIST_TAG" ] || DIST_TAG=latest
           echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
-          echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
+          if [ "$DIST_TAG" = "latest" ]; then
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          fi
 
           # Core changed this release iff its tag does not exist yet.
           if git rev-parse -q --verify "refs/tags/v$CORE_VERSION" >/dev/null; then

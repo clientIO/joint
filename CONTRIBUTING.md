@@ -115,15 +115,18 @@ automatically. See [`.changeset/README.md`](.changeset/README.md) for the full b
 
 Releases are automated in two phases; no manual npm/tag/GitHub-Release steps.
 
-1. **Prepare** — dispatch the **Release (prepare)** workflow (`release.yml`). It renders the root
-   `CHANGELOG` + `RELEASE_NOTES.md` from the pending changesets, applies the bumps
-   (`changeset version`), and opens an auto-merging `release/next` PR to `master`.
+1. **Prepare** — dispatch the **Release (prepare)** workflow (`release.yml`), choosing the `dist_tag`
+   (`latest` | `alpha` | `beta`). It renders the root `CHANGELOG` + `RELEASE_NOTES.md` from the pending
+   changesets, applies the bumps (`changeset version`), and opens an auto-merging `release/pending` PR to
+   `master`.
 2. **Publish** — merging that PR triggers **Release (publish)** (`publish.yml`), which publishes the
-   changed packages to npm (via Yarn), tags `vX.Y.Z` + cuts one GitHub Release when `@joint/core`
-   changed, and force-updates `prod` to the merged commit.
+   changed packages to npm under the chosen `dist_tag` (via Yarn), tags `vX.Y.Z` + cuts one GitHub
+   Release when `@joint/core` changed, and force-updates `prod` to the merged commit.
 
-For a `beta`/`next` release, run `yarn changeset pre enter <tag>` on `master` before step 1 (and
-`yarn changeset pre exit` to return to stable).
+The `dist_tag` input is the release channel: `latest` publishes a stable Release; `alpha`/`beta`
+publish a prerelease under that npm tag. To also get prerelease *version numbers* (`x.y.z-beta.N`),
+run `yarn changeset pre enter <tag>` on `master` before step 1 (and `yarn changeset pre exit` to
+return to stable) — that affects the numbering only, not the channel.
 
 ## Code Style
 

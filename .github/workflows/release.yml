@@ -2,15 +2,17 @@
 #
 # The maintainer's "release button": dispatch this workflow. It renders the root
 # CHANGELOG + RELEASE_NOTES.md from the pending changesets, applies the version
-# bumps (`changeset version`), commits the result to a `release/next` branch, and
+# bumps (`changeset version`), commits the result to a `release/pending` branch, and
 # opens an auto-merging PR to `master`. Merging that PR triggers Phase 2
 # (`publish.yml`), which publishes to npm, tags, cuts the GitHub Release, and
 # refreshes `prod` — all automatically.
 #
-# Pre-releases (beta/next): run `yarn changeset pre enter <beta|next>` on master
-# first so the versions carry a `-<tag>.N` suffix; Phase 2 detects the suffix and
-# publishes under that dist-tag as a prerelease. `yarn changeset pre exit` returns
-# to stable `latest` releases.
+# Release channel: pick the `dist_tag` input (latest | alpha | beta). It is the single
+# source of truth — carried to Phase 2 via the committed RELEASE_CHANNEL file, which
+# publishes under that npm dist-tag: `latest` as a stable GitHub Release, `alpha`/`beta`
+# as a prerelease. For prerelease *version numbers* (x.y.z-beta.N), additionally run
+# `yarn changeset pre enter <tag>` on master before dispatching (and `pre exit` to
+# leave pre mode) — that only affects the numbering, not the channel.
 #
 # Required repository secrets:
 #   RELEASE_APP_ID          — GitHub App id (App must have contents:write + pull-requests:write)
@@ -22,11 +24,11 @@ on:
   workflow_dispatch:
     inputs:
       dist_tag:
-        description: 'Release channel. For next/beta, first run `yarn changeset pre enter <tag>` on master.'
+        description: 'npm dist-tag / release channel. latest = stable Release; alpha/beta = prerelease.'
         type: choice
         options:
           - latest
-          - next
+          - alpha
           - beta
         default: latest
       dry_run:
@@ -117,7 +119,9 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           RELEASE_TITLE: ${{ steps.info.outputs.release_title }}
         run: |
-          BRANCH="release/next"
+          BRANCH="release/pending"
+          # Carry the chosen release channel to Phase 2 (publish.yml).
+          echo "${{ inputs.dist_tag }}" > RELEASE_CHANNEL
           git checkout -B "$BRANCH"
           git add -A
           git commit -m "$RELEASE_TITLE"
