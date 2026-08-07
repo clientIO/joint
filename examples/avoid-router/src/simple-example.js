@@ -40,7 +40,6 @@ export const initSimpleExample = async (canvasEl) => {
         idealNudgingDistance: 10,
         filterLink: (link) => !link.get('doNotRoute'),
         filterElement: (element) => !element.get('doNotRoute'),
-        //useWorker: true
     });
 
     const c1 = new Node({
