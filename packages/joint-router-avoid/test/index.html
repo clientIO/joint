@@ -11,7 +11,16 @@
 
     <script src="../node_modules/qunit/qunit/qunit.js"></script>
     <script src="../node_modules/@joint/core/build/joint.js"></script>
-    <script src="../dist/umd/index.js"></script>
-    <script src="./index.js"></script>
+    <!-- libavoid-js only ships an ES module build; it (and dist/umd/index.js,
+         which reads the `libavoidJs` global at evaluation time) must load as
+         modules so they run in order, after the loader below sets it.
+         Note: as a module, its wasm loader requests `/libavoid.wasm` from
+         the server root rather than a script-relative path - serve this
+         package's root and rewrite that path to
+         `node_modules/libavoid-js/dist/libavoid.wasm` (see karma.conf.js's
+         `proxies` for the equivalent karma-side fix). -->
+    <script type="module" src="./libavoid-loader.mjs"></script>
+    <script type="module" src="../dist/umd/index.js"></script>
+    <script type="module" src="./index.js"></script>
 </body>
 </html>

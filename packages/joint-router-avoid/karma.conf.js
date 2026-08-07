@@ -6,10 +6,21 @@ module.exports = function(config) {
         basePath: '.',
         files: [
             './node_modules/@joint/core/build/joint.js',
-            './dist/umd/index.js',
+            // libavoid-js only ships an ES module build, so it (and the wasm
+            // binary it loads) must be served and loaded as a module -
+            // see `test/libavoid-loader.mjs`.
+            { pattern: './node_modules/libavoid-js/dist/*', included: false, served: true, watched: false },
+            { pattern: './test/libavoid-loader.mjs', type: 'module' },
+            { pattern: './dist/umd/index.js', type: 'module' },
 
-            './test/index.js'
+            { pattern: './test/index.js', type: 'module' }
         ],
+        // The wasm loader resolves its binary relative to the document
+        // (module scripts don't set `document.currentScript`), so it always
+        // requests it from the server root.
+        proxies: {
+            '/libavoid.wasm': '/base/node_modules/libavoid-js/dist/libavoid.wasm'
+        },
         singleRun: true,
         frameworks: ['qunit'],
         plugins: [
@@ -18,7 +29,6 @@ module.exports = function(config) {
             'karma-chrome-launcher'
         ],
         reporters: ['progress', 'coverage'],
-        proxies: {},
         browsers: ['ChromeHeadless_custom'],
         customLaunchers: {
             ChromeHeadless_custom: {
