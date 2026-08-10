@@ -62,7 +62,7 @@ jobs:
         id: install-dependencies
         run: yarn install --immutable
 
-      # A PR touching releasable must add a changeset
+      # A PR touching releasable files must add a changeset
       # (See `.changeset/config.json`)
       # The release PR (branch `release/*`) is exempt - it consumes changesets
       - name: Enforce changeset
