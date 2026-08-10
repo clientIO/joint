@@ -1,10 +1,14 @@
 // These tests exercise `RouterService` end-to-end against the real
 // `MainThreadProvider` (and, through it, the actual libavoid WASM engine).
 //
-// IMPORTANT: `init()` must always be called before cells are added to the
-// graph (matching real usage). Referencing an element in a link before the
-// router has registered it as an avoid shape crashes the underlying WASM
-// module irrecoverably, failing every subsequent test in this file.
+// Note: within a single `addCell()`/`addCells()` call, list an element
+// before any link that references it. `onCellAdded` reacts to each cell as
+// it is added and never revisits a link once its elements are added later
+// in the same call, so such a link is left on its fallback route forever.
+// `resetCells()` doesn't have this restriction, since it re-derives shapes
+// and connectors from the graph's final state rather than from add-event
+// order - as does the initial sync `RouterService` performs on start-up
+// (see the "cells present before init()" module below).
 
 async function initRouterWithLink(sourcePosition, targetPosition, options) {
     const graph = new joint.dia.Graph();
@@ -89,7 +93,7 @@ QUnit.module('pending event & immediate fallback route', () => {
 
         // Elements must be registered with the router (via `add`/`reset`)
         // before a link can reference them.
-        const other = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 400 }, size: { width: 100, height: 100 } });
+        const other = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 400 }, size: { width: 100, height: 100 }});
         graph.addCell(other);
 
         const pendingLinks = [];
@@ -120,9 +124,9 @@ QUnit.module('routed event & getRoute', () => {
         const routedLinks = [];
         routerService.on('routed', (l) => routedLinks.push(l));
 
-        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 } });
-        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size: { width: 100, height: 100 } });
-        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id } });
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
+        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
         graph.resetCells([source, target, link]);
 
         assert.equal(routedLinks.length, 1, '"routed" fires once avoid computes the initial route');
@@ -144,8 +148,8 @@ QUnit.module('routed event & getRoute', () => {
         const graph = new joint.dia.Graph();
         const routerService = await joint.routers.avoid.init({ graph });
 
-        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 } });
-        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { x: 400, y: 400 } });
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { x: 400, y: 400 }});
         graph.resetCells([source, link]);
 
         // A point-ended link is never registered with avoid, so it never
@@ -164,8 +168,8 @@ QUnit.module('filterLink', () => {
             filterLink: (l) => !l.get('doNotRoute')
         });
 
-        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 } });
-        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size: { width: 100, height: 100 } });
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
+        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size: { width: 100, height: 100 }});
         const link = new joint.shapes.standard.Link({
             source: { id: source.id },
             target: { id: target.id },
@@ -254,7 +258,7 @@ QUnit.module('links with a loose end', () => {
         const graph = new joint.dia.Graph();
         const routerService = await joint.routers.avoid.init({ graph });
 
-        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 } });
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
         graph.addCell(source);
 
         const link = new joint.shapes.standard.Link({
@@ -283,6 +287,64 @@ QUnit.module('addGraphListeners / removeGraphListeners', () => {
         routerService.addGraphListeners();
         target.position(300, 500);
         assert.equal(pendingLinks.length, 1, 'reacts again once listeners are re-added');
+
+        routerService.removeGraphListeners();
+    });
+});
+
+QUnit.module('cells present before init() or listener (re)attachment', () => {
+    // `RouterService` used to only react to future graph changes. Elements
+    // and links already in the graph when `init()` was called (or added
+    // while `removeGraphListeners()`/`addGraphListeners()` had listeners
+    // detached) were never registered as avoid shapes/connectors.
+    // Referencing such an unregistered shape later - e.g. by rewiring a
+    // link - aborted the underlying WASM module irrecoverably.
+
+    QUnit.test('a link whose elements already existed before init() gets registered and can be safely rewired', async assert => {
+        const graph = new joint.dia.Graph();
+
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
+        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size: { width: 100, height: 100 }});
+        const other = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 400 }, size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+        graph.resetCells([source, target, other, link]);
+
+        // init() is called AFTER the cells already exist in the graph.
+        const routerService = await joint.routers.avoid.init({ graph });
+
+        const routedLinks = [];
+        routerService.on('routed', (l) => routedLinks.push(l));
+
+        link.source({ id: other.id });
+
+        assert.equal(routedLinks.length, 1, 'the pre-existing link is routed by avoid once rewired');
+        assert.ok(isOrthogonalPath(link));
+
+        routerService.removeGraphListeners();
+    });
+
+    QUnit.test('cells added while listeners are detached are synced once addGraphListeners() resumes', async assert => {
+        const { graph, routerService, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+
+        routerService.removeGraphListeners();
+
+        const other = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 400 }, size: { width: 100, height: 100 }});
+        graph.addCell(other);
+        // Rewired while detached: avoid never sees this change.
+        link.source({ id: other.id });
+
+        routerService.addGraphListeners();
+
+        const routedLinks = [];
+        routerService.on('routed', (l) => routedLinks.push(l));
+
+        // Nudging `other` forces avoid to (re)compute the route; this used
+        // to abort the module since neither `other`'s shape nor the link's
+        // connector had ever been registered while listeners were off.
+        other.position(0, 500);
+
+        assert.ok(routedLinks.length > 0, 'the connector was synced on resume and got routed');
+        assert.ok(isOrthogonalPath(link));
 
         routerService.removeGraphListeners();
     });

@@ -33,6 +33,9 @@ export class RouterService {
     }
 
     static create(options: RouterServiceOptions): RouterService {
+        // Replacing a still-running instance for the same graph would
+        // otherwise leak its listeners and provider (e.g. a Worker thread).
+        this.instances.get(options.graph)?.destroy();
         const instance =  new RouterService(options);
         this.instances.set(options.graph, instance);
         return instance;
@@ -57,6 +60,7 @@ export class RouterService {
 
     private nextPinId = 100000;
     private graphListener?: mvc.Listener<[]>;
+    private destroyed = false;
 
     private connectionDirections: {
         top: ConnDirFlags;
@@ -88,6 +92,10 @@ export class RouterService {
     }
 
     // Starts listening to graph changes and automatically updates the router.
+    // Also (re-)syncs any cells the graph already holds - e.g. cells added
+    // before `init()` was called, or while listeners were detached - since
+    // referencing an element that was never registered as an avoid shape
+    // aborts the underlying WASM module irrecoverably.
     addGraphListeners(): void {
         this.removeGraphListeners();
 
@@ -100,6 +108,8 @@ export class RouterService {
         });
 
         this.graphListener = listener;
+
+        this.onGraphReset();
     }
 
     // Stops listening to graph changes.
@@ -108,17 +118,46 @@ export class RouterService {
         this.graphListener = undefined;
     }
 
+    // Stops routing this graph and releases the resources held by this
+    // instance and its provider (e.g. terminates a Worker thread). The
+    // instance must not be used after calling this.
+    destroy(): void {
+        if (this.destroyed) return;
+        this.destroyed = true;
+
+        this.removeGraphListeners();
+        if (RouterService.instances.get(this.graph) === this) {
+            RouterService.instances.delete(this.graph);
+        }
+        this.provider.destroy();
+    }
+
     public getRoute(linkId: dia.Cell.ID): dia.Point[] | undefined {
         return this.connectorRoutes[linkId];
     }
 
     private onCellRemoved(cell: dia.Cell): void {
-        if (cell.isElement() && this.filterElement(cell)) {
-            this.provider.deleteShape(cell.id);
+        if (cell.isElement()) {
+            this.deletePinIds(cell.id);
+            if (this.filterElement(cell)) {
+                this.provider.deleteShape(cell.id);
+            }
         } else if (cell.isLink() && this.filterLink(cell)) {
             this.provider.deleteConnector(cell.id);
             this.originalAnchors.delete(cell);
         }
+    }
+
+    // Removes the pin ids allocated for the element's ports so `pinIds`
+    // does not grow unboundedly as elements are added and removed over
+    // the lifetime of the router.
+    private deletePinIds(elementId: dia.Cell.ID): void {
+        const prefix = `${elementId}:`;
+        Object.keys(this.pinIds).forEach((pinKey) => {
+            if (pinKey.startsWith(prefix)) {
+                delete this.pinIds[pinKey];
+            }
+        });
     }
 
     private onCellAdded(cell: dia.Cell): void {
@@ -174,7 +213,7 @@ export class RouterService {
         }
     }
 
-    private onGraphReset(previousModels: dia.Cell[]): void {
+    private onGraphReset(previousModels?: dia.Cell[]): void {
         if (previousModels) {
             previousModels.forEach((cell) => {
                 if (cell.isElement() && this.filterElement(cell)) {
@@ -361,10 +400,10 @@ export class RouterService {
 
         const target = {
             point: targetPoint,
-            x0: targetBBox?.x ?? targetPoint.x,
-            y0: targetBBox?.y ?? targetPoint.y,
-            width: targetBBox?.width ?? 0,
-            height: targetBBox?.height ?? 0,
+            x0: targetBBox.x,
+            y0: targetBBox.y,
+            width: targetBBox.width,
+            height: targetBBox.height,
             side: targetSide,
             margin: this.margin,
         };
@@ -389,7 +428,7 @@ export class RouterService {
             return false;
         }
 
-        const size = route.length; // +2 for source and target points
+        const size = route.length; // includes the source and target points
         if (size > 2) {
             // A route with more than two points is considered valid.
             return true;
