@@ -1,6 +1,6 @@
 import { dia, elementTools, shapes } from '@joint/core';
 import { init as initAvoid } from '@joint/router-avoid';
-import { createPaper, addLinkInteractionHandlers } from './common';
+import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from './common';
 import { Node, Edge, Note } from './shapes';
 import ResizeTool from './resize-tool';
 
@@ -180,4 +180,5 @@ export const initSimpleExample = async (canvasEl) => {
 
     // Add tools to the links.
     addLinkInteractionHandlers(paper);
+    addPaperZoomHandlers(paper);
 };

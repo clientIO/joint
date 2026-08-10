@@ -12,8 +12,8 @@ export function createPaper(canvasEl, cellNamespace, paperOptions = {}) {
     const paper = new dia.Paper({
         model: graph,
         cellViewNamespace: cellNamespace,
-        width: 1000,
-        height: 600,
+        width: '100%',
+        height: '100%',
         gridSize: 10,
         interactive: { linkMove: false },
         linkPinning: false,
@@ -47,6 +47,8 @@ export function createPaper(canvasEl, cellNamespace, paperOptions = {}) {
 
     canvasEl.appendChild(paper.el);
 
+
+
     return { graph, paper };
 }
 
@@ -77,6 +79,20 @@ export function addLinkInteractionHandlers(paper) {
 
     paper.on('link:pointerup', (linkView) => {
         highlighters.addClass.remove(linkView);
+    });
+}
+
+export function addPaperZoomHandlers(paper) {
+    const MIN_SCALE = 0.1;
+    const MAX_SCALE = 5;
+
+    // Trackpad pinch gestures are reported by the browser as a wheel event
+    // with `ctrlKey` set; the paper turns that into a `paper:pinch` event
+    // with the pointer position (in paper coordinates) and a scale delta.
+    paper.on('paper:pinch', (evt, x, y, scale) => {
+        const { sx: currentScale } = paper.scale();
+        const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, currentScale * scale));
+        paper.scaleUniformAtPoint(newScale, { x, y });
     });
 }
 
