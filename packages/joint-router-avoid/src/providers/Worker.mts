@@ -156,10 +156,7 @@ function handleUpdateShape(shape: Shape): void {
 
 function handleDeleteConnector(connectorId: dia.Cell.ID): void {
     const connRef = connectorRefs[connectorId];
-    if (!connRef) {
-        postResponse({ type: 'connectorChanged', connectorId: connectorId!, points: [] });
-        return;
-    };
+    if (!connRef) return;
     avoidRouter.deleteConnector(connRef);
     delete connectorRefs[connectorId];
 }

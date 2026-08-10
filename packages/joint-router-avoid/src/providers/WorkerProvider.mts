@@ -67,4 +67,8 @@ export class WorkerProvider extends Provider {
     protected postMessage(request: WorkerRequest): void {
         this.worker.postMessage(request);
     }
+
+    override destroy(): void {
+        this.worker.terminate();
+    }
 }

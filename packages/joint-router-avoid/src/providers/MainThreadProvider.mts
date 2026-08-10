@@ -189,4 +189,8 @@ export class MainThreadProvider extends Provider {
 
         return router;
     }
+
+    // Nothing to release: the router runs on the main thread and its
+    // resources are freed when the avoid WASM module itself is torn down.
+    override destroy(): void {}
 }

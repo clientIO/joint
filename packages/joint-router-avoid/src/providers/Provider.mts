@@ -45,4 +45,7 @@ export abstract class Provider {
     abstract updateGraph(shapes: Shape[], connectors: Connector[], process?: boolean): void;
 
     abstract getAvoidInstance(): Avoid;
+
+    // Releases any resources held by the provider (e.g. terminates a Worker thread).
+    abstract destroy(): void;
 }
