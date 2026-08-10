@@ -22,7 +22,7 @@ export const initLargeGraphExample = async (canvasEl) => {
     const routerService = await initAvoid({
         graph,
         shapeBufferDistance: 20,
-        idealNudgingDistance: 10,
+        idealNudgingDistance: 5,
         useWorker: true
     });
 

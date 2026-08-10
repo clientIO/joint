@@ -129,7 +129,7 @@ export class RouterService {
 
         if (!cell.isLink() || !this.filterLink(cell)) return;
 
-        if (this.hasPointEnd(cell)) {
+        if (!this.validateEnds(cell)) {
             // In scope for the router, but avoid can't route a link that
             // isn't connected to an element on both ends.
             this.applyFallbackRoute(cell);
@@ -146,7 +146,7 @@ export class RouterService {
             if (!cell.isLink() || !this.filterLink(cell)) return;
 
             this.applyFallbackRoute(cell);
-            if (this.hasPointEnd(cell)) {
+            if (!this.validateEnds(cell)) {
                 this.provider.deleteConnector(cell.id);
                 return;
             }
@@ -159,14 +159,18 @@ export class RouterService {
         }
 
         if ('position' in cell.changed || 'size' in cell.changed) {
-            if (!cell.isElement() || !this.filterElement(cell)) return;
+            if (!cell.isElement()) return;
             this.graph.getConnectedLinks(cell).forEach((link) => {
                 if (!this.filterLink(link)) return;
 
                 this.applyFallbackRoute(link);
-                this.trigger('pending', link);
+                if (this.validateEnds(link)) {
+                    this.trigger('pending', link);
+                }
             });
-            this.provider.updateShape(this.getAvoidShape(cell));
+            if (this.filterElement(cell)) {
+                this.provider.updateShape(this.getAvoidShape(cell));
+            }
         }
     }
 
@@ -186,7 +190,7 @@ export class RouterService {
         this.graph.getLinks().forEach((link) => {
             if (!this.filterLink(link)) return;
 
-            if (this.hasPointEnd(link)) {
+            if (!this.validateEnds(link)) {
                 this.applyFallbackRoute(link);
                 return;
             }
@@ -511,8 +515,19 @@ export class RouterService {
 
     // A link cannot be routed by avoid when one of its ends is a loose
     // point rather than being connected to an element.
-    private hasPointEnd(link: dia.Link): boolean {
-        return !link.source().id || !link.target().id;
+    private validateEnds(link: dia.Link): boolean {
+        const sourceElement = link.getSourceElement();
+        const targetElement = link.getTargetElement();
+
+        if (!sourceElement || !targetElement) {
+            return false;
+        }
+
+        if (!this.filterElement(sourceElement) || !this.filterElement(targetElement)) {
+            return false;
+        }
+
+        return true;
     }
 }
 
