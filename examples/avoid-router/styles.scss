@@ -18,6 +18,12 @@ body {
     flex: 0 0 auto;
 }
 
+.tab {
+    display: flex;
+    padding: 8px;
+    height: calc(100% - 42px);
+}
+
 .tab-button {
     padding: 8px 16px;
     border: 1px solid #E2E2E2;

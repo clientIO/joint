@@ -1,6 +1,6 @@
 import { shapes } from '@joint/core';
 import { init as initAvoid } from '@joint/router-avoid';
-import { createPaper, addLinkInteractionHandlers, addRouterStyling } from './common';
+import { createPaper, addLinkInteractionHandlers, addRouterStyling, addPaperZoomHandlers } from './common';
 import { Message, FlowchartStart, Link as AppLink } from './large-shapes';
 import { largeGraph } from './large-data';
 
@@ -30,17 +30,16 @@ export const initLargeGraphExample = async (canvasEl) => {
 
     graph.resetCells(largeGraph.cells);
 
-    paper.on('render:done', () => {
-        paper.transformToFitContent({
-            useModelGeometry: true,
-            preserveAspectRatio: false,
-            padding: 50,
-            minScale: 0.1,
-            maxScale: 3,
-        });
+    paper.transformToFitContent({
+        useModelGeometry: true,
+        preserveAspectRatio: false,
+        padding: 50,
+        minScale: 0.1,
+        maxScale: 3,
     });
 
     paper.unfreeze();
 
     addLinkInteractionHandlers(paper);
+    addPaperZoomHandlers(paper);
 };
