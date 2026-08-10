@@ -160,6 +160,61 @@ QUnit.module('routed event & getRoute', () => {
     });
 });
 
+QUnit.module('routed carries a fallback flag and never leaves a link stuck pending', () => {
+    QUnit.test('"routed" reports fallback: false for a route avoid actually computed', async assert => {
+        const { graph, routerService, source, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+
+        const other = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 400 }, size: { width: 100, height: 100 }});
+        graph.addCell(other);
+
+        const routedEvents = [];
+        routerService.on('routed', (l, opt) => routedEvents.push(opt));
+
+        link.target({ id: other.id });
+
+        assert.equal(routedEvents.length, 1);
+        assert.strictEqual(routedEvents[0].fallback, false, 'avoid computed this route, so it is not a fallback');
+        assert.notEqual(link.getTargetElement(), source, 'sanity: the rewire actually took effect');
+
+        routerService.removeGraphListeners();
+    });
+
+    // With `MainThreadProvider`, avoid responds synchronously within the
+    // same `provider.updateConnector()` call, so there's no natural gap
+    // between "pending" and avoid's answer to race a detach into. A
+    // `pending` listener that itself mutates the link (as application code
+    // reacting to `pending` well might) reproduces the same gap
+    // deterministically: the link is detached, from `RouterService`'s
+    // perspective, while its avoid computation is still outstanding -
+    // exactly what happens with a `useWorker: true` provider, whose
+    // response is genuinely asynchronous.
+    QUnit.test('detaching a link while its avoid computation is still outstanding closes the pending cycle via the fallback route', async assert => {
+        const { graph, routerService, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+
+        const other = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 400 }, size: { width: 100, height: 100 }});
+        graph.addCell(other);
+
+        const events = [];
+        routerService.on('pending', (l) => {
+            events.push({ type: 'pending', link: l });
+            link.target({ x: 500, y: 500 });
+        });
+        routerService.on('routed', (l, opt) => events.push({ type: 'routed', link: l, fallback: opt.fallback }));
+
+        link.target({ id: other.id });
+
+        assert.deepEqual(
+            events.map((e) => e.type),
+            ['pending', 'routed'],
+            'the pending cycle is closed, not left stuck'
+        );
+        assert.strictEqual(events[1].fallback, true, 'closed via the fallback route, not an avoid response');
+        assert.ok(isOrthogonalPath(link));
+
+        routerService.removeGraphListeners();
+    });
+});
+
 QUnit.module('filterLink', () => {
     QUnit.test('a filtered-out link never receives "pending"/"routed" or a route, regardless of endpoint moves', async assert => {
         const graph = new joint.dia.Graph();

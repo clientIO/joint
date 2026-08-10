@@ -56,6 +56,13 @@ export class RouterService {
         target: anchors.AnchorJSON | undefined;
     }> = new WeakMap();
 
+    // Links with an open `pending` cycle, i.e. `pending` was emitted for
+    // them and `routed` hasn't closed it out yet. Checked wherever avoid is
+    // definitively given up on for a change (rather than merely retried),
+    // so a link detached mid-flight - while avoid was still computing its
+    // route - gets its stranded cycle closed instead of staying stuck.
+    private readonly pendingLinks: WeakSet<dia.Link> = new WeakSet();
+
     readonly margin: number;
 
     private nextPinId = 100000;
@@ -186,6 +193,11 @@ export class RouterService {
 
             this.applyFallbackRoute(cell);
             if (!this.validateEnds(cell)) {
+                // Giving up on avoid for this change - definitively close
+                // out any pending cycle instead of leaving it stranded.
+                if (this.pendingLinks.has(cell)) {
+                    this.setRouted(cell, true);
+                }
                 this.provider.deleteConnector(cell.id);
                 return;
             }
@@ -193,7 +205,7 @@ export class RouterService {
             if (cell.changed.source?.anchor || cell.changed.target?.anchor) {
                 this.originalAnchors.delete(cell);
             }
-            this.trigger('pending', cell);
+            this.setPending(cell);
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
 
@@ -204,7 +216,9 @@ export class RouterService {
 
                 this.applyFallbackRoute(link);
                 if (this.validateEnds(link)) {
-                    this.trigger('pending', link);
+                    this.setPending(link);
+                } else if (this.pendingLinks.has(link)) {
+                    this.setRouted(link, true);
                 }
             });
             if (this.filterElement(cell)) {
@@ -314,12 +328,32 @@ export class RouterService {
         };
     }
 
+    // Marks `link` as having an in-flight routing computation and emits
+    // `pending`. Every call must be paired with a later `setRouted` call
+    // for the same link, closing the cycle - see `setRouted`.
+    private setPending(link: dia.Link): void {
+        this.pendingLinks.add(link);
+        this.trigger('pending', link);
+    }
+
+    // Closes `link`'s pending cycle, if one is open, and emits `routed`.
+    // `fallback` tells listeners whether the final route came from avoid
+    // (false) or from `applyFallbackRoute` (true) - e.g. because the link
+    // was detached while avoid was still computing its route.
+    private setRouted(link: dia.Link, fallback: boolean): void {
+        this.pendingLinks.delete(link);
+        this.trigger('routed', link, { fallback });
+    }
+
     private routeLink(linkId: dia.Cell.ID, points: dia.Point[]): void {
         const link = this.graph.getCell(linkId) as dia.Link | undefined;
         if (!link) return;
         this.connectorRoutes[linkId] = points;
-        this.trigger('routed', link);
-        if (!points || !this.isRouteValid(points, link)) {
+
+        const fallback = !points || !this.isRouteValid(points, link);
+        this.setRouted(link, fallback);
+
+        if (fallback) {
             this.applyFallbackRoute(link);
             return;
         }
@@ -345,6 +379,13 @@ export class RouterService {
     // Applies the manual `rightAngle` route directly to the link, bypassing
     // avoid. Used when a route computed by avoid should not be trusted, and
     // when a link isn't routable by avoid at all (e.g. a loose end).
+    //
+    // Also used as a temporary placeholder while a change is still being
+    // sent to avoid (source/target or a connected element's position/size
+    // changed), so it does NOT itself close a link's pending cycle - most
+    // calls are followed by immediately reopening one. Callers that are
+    // instead definitively giving up on avoid for this change close the
+    // cycle themselves right before calling this, if one is open.
     private applyFallbackRoute(link: dia.Link): void {
         const { source: originalSourceAnchor, target: originalTargetAnchor } = this.getOriginalLinkAnchors(link);
 
