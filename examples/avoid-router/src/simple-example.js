@@ -129,11 +129,6 @@ export const initSimpleExample = async (canvasEl) => {
     graph.resetCells([c1, c2, c3, c4, c5, l1, l2, l3, l4, l5, note]);
 
     paper.unfreeze();
-    paper.fitToContent({
-        useModelGeometry: true,
-        padding: 100,
-        allowNewOrigin: 'any',
-    });
 
     // Add tools to the elements (the Note is a plain annotation, not a
     // connectable node, so it gets none).
