@@ -1,5 +1,4 @@
 {
-  "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
   "changelog": false,
   "commit": false,
   "fixed": [],
@@ -7,9 +6,6 @@
   "access": "public",
   "baseBranch": "master",
   "updateInternalDependencies": "patch",
-  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
-    "updateInternalDependents": "out-of-range"
-  },
   "privatePackages": {
     "version": false,
     "tag": false

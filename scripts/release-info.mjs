@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Print release metadata derived from the pending `.changeset/*.md` files, for
-// the release workflow to build the commit/PR title. Run BEFORE `changeset version`.
+// Print release metadata derived from the pending `.changeset/*.md` files, for the
+// release workflow to build the commit/PR title. Invoked first by the `release-version`
+// script (`node scripts/release-info.mjs && node scripts/changelog-from-changesets.mjs && changeset version`),
+// so it always runs BEFORE `changeset version` consumes the changesets.
 //
 // Emits `KEY=VALUE` lines to stdout, and also appends them to $GITHUB_OUTPUT when set:
 //   core_version=<new @joint/core version>

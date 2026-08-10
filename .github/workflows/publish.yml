@@ -1,7 +1,9 @@
 # Phase 2 of the release pipeline: publish, tag, release, and refresh `prod`.
 #
-# Fires when a release commit lands on `master` (the squash-merge of the PR opened
-# by release.yml, whose title starts with "Release v"). It:
+# Fires when the release PR opened by release.yml (source branch `release/pending`) is
+# merged into `master`. It keys off the merged pull_request event + that branch name,
+# NOT the commit message, so legacy/manual "Release v…" commits (or releases on other
+# branches like `dev`) never trigger it. It:
 #   1. publishes every changed public package to npm with Yarn (NOT changeset publish),
 #   2. tags v<core-version> + cuts one aggregated GitHub Release — only when core changed
 #      (detected by the tag not existing yet),
@@ -18,7 +20,9 @@
 name: Release (publish)
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - master
 
@@ -28,8 +32,9 @@ concurrency:
 
 jobs:
   publish:
-    # Only run for release commits.
-    if: ${{ github.repository == 'clientIO/joint' && startsWith(github.event.head_commit.message, 'Release v') }}
+    # Only when our release PR (source branch release/pending, opened by release.yml)
+    # is actually merged into master (not just closed)
+    if: ${{ github.repository == 'clientIO/joint' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'release/pending' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -95,14 +100,14 @@ jobs:
       # Publish with Yarn (resolves workspace: ranges; skips prepublishOnly guards;
       # topological order; --no-private excludes examples; --tolerate-republish skips
       # already-published versions).
-      - name: Publish to npm
+      - name: Publish to NPM via Yarn
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          yarn release:publish --tag "${{ steps.facts.outputs.dist_tag }}"
+          yarn release-publish --tag "${{ steps.facts.outputs.dist_tag }}"
 
-      # Tag + one aggregated GitHub Release — only when core changed.
+      # Create tag + GitHub Release - only when @joint/core changed
       - name: Tag & GitHub Release
         if: ${{ steps.facts.outputs.core_changed == 'true' }}
         env:
@@ -119,7 +124,10 @@ jobs:
             gh release create "v$CORE_VERSION" --title "Release v$CORE_VERSION" "${NOTES_ARG[@]}" --latest
           fi
 
-      # Refresh `prod` to the merged release commit — ALWAYS (even when core did
-      # not change) so JointJS+ trials/builds always track the latest master.
+      # Refresh `prod` branch to the merged release commit
       - name: Refresh prod branch
         run: git push --force origin master:prod
+
+      # Delete `release/pending` branch
+      - name: Delete release branch
+        run: git push origin --delete release/pending || echo "release/pending already deleted"

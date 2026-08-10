@@ -11,7 +11,7 @@
 // Run this BEFORE `changeset version` (the changesets must still exist). It reads
 // the changesets, computes the resulting versions via Changesets' own release-plan
 // API (so the numbers match exactly what `changeset version` will write, including
-// the `updateInternalDependents: "out-of-range"` cascade), and prepends the entry
+// the out-of-range dependent-bump cascade — Changesets' default), and prepends the entry
 // to `CHANGELOG` / writes `RELEASE_NOTES.md`. It does NOT bump anything or delete
 // changesets — that is `changeset version`'s job, run right after.
 //
@@ -19,13 +19,15 @@
 //   node scripts/changelog-from-changesets.mjs [--dry-run] [--date DD-MM-YYYY]
 //        [--changelog CHANGELOG] [--release-notes RELEASE_NOTES.md] [--repo owner/name]
 //
-// Changeset body convention (see .changeset/README.md), one row per line:
+// Changeset body convention (see CONTRIBUTING.md -> Changesets), one row per line:
 //   <feat|fix>(<class>)[!]: <final row text>
 // e.g.
 //   feat(dia.Paper): add `originX` and `originY` options to `getFitToContentArea()`
-//   fix(routers.rightAngle): to allow zero-value margins and un-clamp `minPathMargin`
+//   fix(routers.rightAngle): allow zero-value margins and un-clamp `minPathMargin`
 //   feat(dia.Graph)!: drop the deprecated `cellNamespace` setter
 //   feat: packaging changes                 <- no class -> sorts first
+// `feat` rows render verbatim; `fix` rows are prefixed with `fix to ` (so the row
+// above renders as `routers.rightAngle - fix to allow zero-value margins …`).
 // Non feat/fix lines are ignored (they never reach the CHANGELOG).
 //
 // The GitHub Release notes (RELEASE_NOTES.md) automatically link each row to the
@@ -220,9 +222,11 @@ function compareRows(a, b) {
 }
 
 // Render one CHANGELOG row body (without the leading "  * ").
+// `fix` rows are prefixed with `fix to ` so the author writes the natural commit
+// form (`fix(scope): allow …`) and it reads `scope - fix to allow …`.
 function renderRowText(row) {
     const cls = row.className ? `${row.breaking ? '!' : ''}${row.className} - ` : '';
-    const verb = row.type === 'fix' ? 'fix ' : '';
+    const verb = row.type === 'fix' ? 'fix to ' : '';
     return `${cls}${verb}${row.text}`;
 }
 
@@ -316,7 +320,7 @@ async function main() {
             const rows = rowsByPackage.get(pkg).sort(compareRows);
             const lines = rows.map((r) => {
                 const cls = r.className ? `**${r.breaking ? '!' : ''}${r.className}** — ` : '';
-                const verb = r.type === 'fix' ? 'fix ' : '';
+                const verb = r.type === 'fix' ? 'fix to ' : '';
                 const link = r.commit
                     ? ` ([\`${r.commit.slice(0, 7)}\`](https://github.com/${args.repo}/commit/${r.commit}))`
                     : '';

@@ -25,11 +25,9 @@
     "lint": "yarn workspaces foreach --all -tvv run lint",
     "lint-fix": "yarn workspaces foreach --all -tvv run lint-fix",
     "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/core\" --include \"@joint/layout-directed-graph\" --include \"@joint/layout-msagl\" pack --out %s-%v.tgz",
-    "changeset": "changeset",
-    "release:status": "changeset status --since=origin/master",
-    "release:changelog": "node scripts/changelog-from-changesets.mjs",
-    "release:version": "yarn release:changelog && changeset version",
-    "release:publish": "yarn workspaces foreach --all --no-private -t npm publish --access public --tolerate-republish"
+    "release-status": "changeset status",
+    "release-version": "node scripts/release-info.mjs && node scripts/changelog-from-changesets.mjs && changeset version",
+    "release-publish": "yarn workspaces foreach --all --no-private -t npm publish --access public --tolerate-republish"
   },
   "workspaces": [
     "./packages/*",

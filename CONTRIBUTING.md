@@ -102,14 +102,18 @@ Pick the affected package(s) and bump type, then write the changelog line(s) in 
 "@joint/core": minor
 ---
 feat(dia.Paper): add `originX` and `originY` options to `getFitToContentArea()`
-fix(routers.rightAngle): to allow zero-value margins and un-clamp `minPathMargin`
+fix(routers.rightAngle): allow zero-value margins and un-clamp `minPathMargin`
 ```
 
 Commit the generated `.changeset/*.md` with your PR. CI (`changeset status`) fails a PR that
 changes releasable code without a changeset; docs-, test-, and demo-only PRs are exempt. Don't
 add PR/commit links by hand — the GitHub Release notes link each row to its `master` commit
-automatically. See [`.changeset/README.md`](.changeset/README.md) for the full body convention
-(feat/fix filtering, `!` for breaking changes, which packages appear in the CHANGELOG).
+automatically. `feat` rows render verbatim; `fix` rows are prefixed with `fix to ` (so
+`fix(routers.rightAngle): allow zero-value margins` becomes `routers.rightAngle - fix to allow
+zero-value margins`). Non-`feat`/`fix` lines are ignored by the changelog renderer, and `!`
+before the `:` marks a breaking change. Only `@joint/react`, `@joint/core`, `@joint/layout-directed-graph`,
+and `@joint/layout-msagl` appear in the root `CHANGELOG`; other packages are still versioned and
+published, just not listed there.
 
 ### Releasing (maintainers)
 

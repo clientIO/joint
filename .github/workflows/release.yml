@@ -92,22 +92,16 @@ jobs:
           fi
           echo "Found $count changeset(s)."
 
-      # Compute the commit/PR title from the release plan (before changesets are consumed).
-      - name: Compute release info
-        id: info
-        run: node scripts/release-info.mjs
-
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      # Render CHANGELOG + RELEASE_NOTES.md (while changesets exist), then apply
-      # bumps + workspace-range updates + dependent bumps and delete the changesets.
+      # Writes info values to $GITHUB_OUTPUT:
+      # steps.info.outputs.release_title / core_version / core_changed / released.
       - name: Version packages
-        run: |
-          yarn release:version
-          yarn install --mode update-lockfile
+        id: info
+        run: yarn release-version
 
       # Make sure the bumped repo still builds.
       - name: Sanity build
@@ -126,16 +120,24 @@ jobs:
           git add -A
           git commit -m "$RELEASE_TITLE"
           git push --force origin "$BRANCH"
-          # Open (or update) the PR and enable squash auto-merge.
-          if gh pr view "$BRANCH" --json number >/dev/null 2>&1; then
-            echo "PR already exists for $BRANCH; branch updated."
+          # Reuse an OPEN PR for this branch if one exists (refreshing its title/body,
+          # since the force-push just replaced the contents); otherwise open a new one.
+          # Restricting to `--state open` avoids matching a previous, already-merged
+          # release PR that still carries this head-ref name in history.
+          PR_NUMBER="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$PR_NUMBER" ]; then
+            echo "Reusing open PR #$PR_NUMBER for $BRANCH; refreshing title/body."
+            gh pr edit "$PR_NUMBER" --title "$RELEASE_TITLE" --body-file RELEASE_NOTES.md
           else
-            gh pr create --base master --head "$BRANCH" \
-              --title "$RELEASE_TITLE" \
-              --body-file RELEASE_NOTES.md \
-              --label release
+            PR_NUMBER="$(basename "$(gh pr create --base master --head "$BRANCH" \
+              --title "$RELEASE_TITLE" --body-file RELEASE_NOTES.md)")"
+            echo "Opened PR #$PR_NUMBER for $BRANCH."
           fi
-          gh pr merge "$BRANCH" --auto --squash
+          # Cosmetic label for humans only (NOT the publish trigger — publish.yml keys
+          # off the release/pending branch). Best-effort: skip if the label is absent.
+          gh pr edit "$PR_NUMBER" --add-label release 2>/dev/null \
+            || echo "note: 'release' label not applied (optional; create it in repo labels if wanted)"
+          gh pr merge "$PR_NUMBER" --auto --squash
 
       - name: Dry-run summary
         if: ${{ inputs.dry_run == true }}
