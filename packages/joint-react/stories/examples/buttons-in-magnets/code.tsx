@@ -189,8 +189,8 @@ function BodyButtonNode({ name }: Readonly<Partial<NodeData>>) {
         <TextField style={bodyInputStyle} />
         <StatusSelect style={selectStyle} />
         <p style={hintStyle}>
-          Drag the button to move the element; releasing it clicks it. The text field selects
-          text instead, and the paper ignores the dropdown outright.
+          Click the button to count; drag it to move the element without counting. The text
+          field selects text instead, and the paper ignores the dropdown outright.
         </p>
       </div>
     </HTMLBox>
@@ -214,7 +214,7 @@ function MagnetRow({ index }: Readonly<MagnetRowProps>) {
   );
 }
 
-/** Card with two magnets, each containing a button. */
+/** Card with three magnet rows, each holding a different control: a button, a text field, a select. */
 function MagnetButtonsNode({ name }: Readonly<Partial<NodeData>>) {
   return (
     <HTMLBox className="jj-node" useModelGeometry style={cardStyle}>

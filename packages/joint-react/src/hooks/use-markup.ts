@@ -68,12 +68,15 @@ export interface MarkupApi {
  * `mousedown` altogether.
  *
  * Keeping a control clickable while the rest of the element stays draggable usually
- * needs no wiring at all: JointJS refuses to start a link drag or an element move from a
- * form control (`<button>`, `<input>`, `<select>`, `<textarea>`, `<option>`), so a press
- * on one is always a click. For a non-form control that must both click and
- * drag-to-connect, set `magnetThreshold="onleave"` on the `<Paper>`: the link forms only
- * once the pointer leaves the magnet, so a drag releases away from the control and the
- * browser fires no click on it, while a press-and-release in place still clicks.
+ * needs no wiring at all. A form control (`<input>`, `<select>`, `<textarea>`) keeps its
+ * native default action, so a press selects text or opens the dropdown rather than moving
+ * the element or starting a link. A `<button>` does both: a press-and-release in place
+ * clicks it, while a drag moves the element (or, from a magnet, starts a link) and the
+ * preset withholds the trailing click so the gesture is not also counted as a click.
+ * For a non-form control that must both click and drag-to-connect, set
+ * `magnetThreshold="onleave"` on the `<Paper>`: the link forms only once the pointer
+ * leaves the magnet, so a drag releases away from the control and the browser fires no
+ * click on it, while a press-and-release in place still clicks.
  * @group Hooks
  * @returns The {@link MarkupApi}: a `selectorRef` factory that tags an SVG node
  * under a named selector so links and tools can target it, and a `magnetRef`
