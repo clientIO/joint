@@ -1760,7 +1760,9 @@ export namespace Paper {
         linkPinning?: boolean;
         allowLink?: ((linkView: LinkView, paper: Paper) => boolean) | null;
         // events
-        guard?: (evt: Event, view: CellView) => boolean;
+        // `view` is undefined when the event did not hit a cell view (a blank area,
+        // or DOM content inside the paper element).
+        guard?: (evt: Event, view?: CellView) => boolean;
         preventContextMenu?: boolean;
         preventDefaultViewAction?: boolean;
         preventDefaultBlankAction?: boolean;
@@ -1991,6 +1993,7 @@ export class Paper extends mvc.View<Graph> {
 
     GUARDED_TAG_NAMES: string[];
     FORM_CONTROL_TAG_NAMES: string[];
+    PREVENT_INTERACTION_TAG_NAMES: string[];
 
     matrix(): SVGMatrix;
     matrix(ctm: SVGMatrix | Vectorizer.Matrix, data?: any): this;
@@ -2333,7 +2336,9 @@ export class Paper extends mvc.View<Graph> {
 
     protected onlabel(evt: Event): void;
 
-    protected guard(evt: Event, view: CellView): boolean;
+    protected guard(evt: Event, view?: CellView): boolean;
+
+    protected guardExplicit(evt: Event, view?: CellView): boolean | undefined;
 
     protected drawBackgroundImage(img: HTMLImageElement | null, opt?: { [key: string]: any }): void;
 

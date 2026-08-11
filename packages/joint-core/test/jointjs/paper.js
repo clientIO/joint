@@ -1240,6 +1240,216 @@ QUnit.module('paper', function(hooks) {
         assert.ok(diffX < 5 && diffY < 5, 'element should not have been moved');
     });
 
+    QUnit.test('a press on DOM content inside the paper can be guarded', function(assert) {
+
+        // `guard()` rejects a target that is not on the event surface, so an HTML overlay,
+        // popup or toolbar inside `paper.el` gets no `blank:pointerclick` and no hover
+        // events. A press on one has always opened a blank interaction regardless, and
+        // still does - but `pointerdown` now consults the `guard` option there too, so an
+        // overlay can opt out of it.
+        const overlayEl = document.createElement('div');
+        this.paper.el.appendChild(overlayEl);
+
+        assert.equal(this.paper.guard({ type: 'mousedown', button: 0, target: overlayEl }), true,
+            'guard() rejects an HTML overlay target');
+
+        let blankPointerdownCount = 0;
+        this.paper.on('blank:pointerdown', function() {
+            blankPointerdownCount += 1;
+        });
+
+        simulate.mousedown({ el: overlayEl, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: overlayEl, clientX: 10, clientY: 10 });
+
+        assert.equal(blankPointerdownCount, 1,
+            'a press on HTML content inside the paper opens a blank interaction');
+
+        // The `guard` option vetoes it.
+        this.paper.options.guard = function(evt) {
+            return overlayEl.contains(evt.target);
+        };
+
+        simulate.mousedown({ el: overlayEl, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: overlayEl, clientX: 10, clientY: 10 });
+
+        assert.equal(blankPointerdownCount, 1, 'the guard option prevents it');
+
+        // A genuine blank press (on the SVG) is unaffected by that guard.
+        simulate.mousedown({ el: this.paper.svg, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: this.paper.svg, clientX: 10, clientY: 10 });
+
+        assert.equal(blankPointerdownCount, 2, 'blank:pointerdown still fires on the SVG');
+
+        // Only the `guard` option, `evt.data.guarded` and the right button speak for a
+        // press that hit no cell view. `GUARDED_TAG_NAMES` judges the target instead, and
+        // stays out of it: a <select> in an overlay opens a blank interaction like any
+        // other DOM content there, exactly as it always has.
+        this.paper.options.guard = null;
+        const selectEl = document.createElement('select');
+        overlayEl.appendChild(selectEl);
+
+        assert.equal(this.paper.guard({ type: 'mousedown', button: 0, target: selectEl }), true,
+            'guard() still rejects a <select>');
+
+        simulate.mousedown({ el: selectEl, clientX: 10, clientY: 10 });
+        simulate.mouseup({ el: selectEl, clientX: 10, clientY: 10 });
+
+        assert.equal(blankPointerdownCount, 3, 'a <select> in an overlay is not treated differently');
+
+        overlayEl.remove();
+    });
+
+    QUnit.test('a press on a form control does not drag the element', function(assert) {
+
+        // FORM_CONTROL_TAG_NAMES marks a press on a <button>/<input>/<select>/<textarea>/
+        // <option> as default-interaction-prevented, so neither an element move
+        // (`ElementView#dragStart`) nor a link drag (`ElementView#dragMagnetStart`) begins
+        // from one. That is what lets a clickable control live inside a draggable element.
+        const element = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 },
+            markup: joint.util.svg`
+                <foreignObject @selector="fo" width="100" height="100">
+                    <button @selector="button" type="button">click me</button>
+                </foreignObject>
+            `
+        });
+        this.graph.addCell(element);
+
+        const elementView = this.paper.findViewByModel(element);
+        const buttonEl = elementView.findNode('button');
+        assert.ok(buttonEl, 'the button is rendered');
+
+        const positionBefore = element.position();
+
+        simulate.mousedown({ el: buttonEl, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: buttonEl, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: buttonEl, clientX: 250, clientY: 250 });
+
+        assert.deepEqual(element.position(), positionBefore,
+            'the element did not move when dragging from a <button>');
+
+        // Control: the same gesture on the element body DOES move it, so the assertion
+        // above reflects the form-control gate and not an inert drag simulation.
+        simulate.mousedown({ el: elementView.el, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: elementView.el, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: elementView.el, clientX: 250, clientY: 250 });
+
+        assert.notDeepEqual(element.position(), positionBefore,
+            'the element moved when dragging from its body');
+    });
+
+    QUnit.test('a press inside a form control counts as a press on it', function(assert) {
+
+        // Both tag-name lists are matched against the whole path up to the cell view, not
+        // against `evt.target` alone: the press target of `<button><span>text</span></button>`
+        // is the SPAN, so a control with any markup inside it - an icon, a label span -
+        // would otherwise behave the opposite way round from a bare one.
+        const element = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 },
+            markup: joint.util.svg`
+                <foreignObject @selector="fo" width="100" height="100">
+                    <button @selector="button" type="button"><span @selector="inner">click me</span></button>
+                </foreignObject>
+            `
+        });
+        this.graph.addCell(element);
+
+        const elementView = this.paper.findViewByModel(element);
+        const innerEl = elementView.findNode('inner');
+        assert.equal(innerEl.tagName, 'SPAN', 'the press target is the <span>, not the <button>');
+
+        const positionBefore = element.position();
+        const mousedownEvt = simulate.mousedown({ el: innerEl, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: innerEl, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: innerEl, clientX: 250, clientY: 250 });
+
+        assert.deepEqual(element.position(), positionBefore,
+            'the element did not move when dragging from inside a <button>');
+        assert.notOk(mousedownEvt.defaultPrevented,
+            'the <button> keeps its default action, so it can still be focused');
+    });
+
+    QUnit.test('an <option> counts through its <select>', function(assert) {
+
+        // `OPTION` is not listed: it can only exist inside a `<select>`, which is, and the
+        // lists are matched against the whole path. A `<select multiple>` renders its
+        // options inline, so they do receive real presses.
+        assert.notOk(this.paper.FORM_CONTROL_TAG_NAMES.includes('OPTION'),
+            'OPTION is not in FORM_CONTROL_TAG_NAMES');
+        assert.notOk(this.paper.PREVENT_INTERACTION_TAG_NAMES.includes('OPTION'),
+            'OPTION is not in PREVENT_INTERACTION_TAG_NAMES');
+
+        const element = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 },
+            markup: joint.util.svg`
+                <foreignObject @selector="fo" width="100" height="100">
+                    <select @selector="select" multiple="multiple">
+                        <option @selector="option" value="a">a</option>
+                        <option value="b">b</option>
+                    </select>
+                </foreignObject>
+            `
+        });
+        this.graph.addCell(element);
+
+        const elementView = this.paper.findViewByModel(element);
+        const optionEl = elementView.findNode('option');
+        assert.equal(optionEl.tagName, 'OPTION', 'the press target is the <option>');
+
+        const positionBefore = element.position();
+        const mousedownEvt = simulate.mousedown({ el: optionEl, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: optionEl, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: optionEl, clientX: 250, clientY: 250 });
+
+        assert.deepEqual(element.position(), positionBefore,
+            'the element did not move when dragging from an <option>');
+        assert.notOk(mousedownEvt.defaultPrevented,
+            'the <select> keeps its default action');
+    });
+
+    QUnit.test('PREVENT_INTERACTION_TAG_NAMES is separate from FORM_CONTROL_TAG_NAMES', function(assert) {
+
+        // The two lists start out identical but answer different questions:
+        // FORM_CONTROL_TAG_NAMES keeps the browser's default action (no `preventDefault`),
+        // PREVENT_INTERACTION_TAG_NAMES blocks the paper's own interactions. Narrowing only
+        // the second one is what lets a <button> be clicked AND dragged - to move the
+        // element, or to start a link when it sits in a magnet.
+        assert.deepEqual(this.paper.PREVENT_INTERACTION_TAG_NAMES, this.paper.FORM_CONTROL_TAG_NAMES,
+            'the defaults match, so the split changes nothing on its own');
+        assert.notStrictEqual(this.paper.PREVENT_INTERACTION_TAG_NAMES, this.paper.FORM_CONTROL_TAG_NAMES,
+            'but they are distinct arrays, so overriding one leaves the other alone');
+
+        const element = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 },
+            markup: joint.util.svg`
+                <foreignObject @selector="fo" width="100" height="100">
+                    <button @selector="button" type="button">click me</button>
+                </foreignObject>
+            `
+        });
+        this.graph.addCell(element);
+
+        const elementView = this.paper.findViewByModel(element);
+        const buttonEl = elementView.findNode('button');
+
+        // Let a press on a <button> start an interaction, while it keeps its native default.
+        this.paper.PREVENT_INTERACTION_TAG_NAMES = ['TEXTAREA', 'INPUT', 'SELECT', 'OPTION'];
+
+        const positionBefore = element.position();
+        const mousedownEvt = simulate.mousedown({ el: buttonEl, clientX: 150, clientY: 150 });
+        simulate.mousemove({ el: buttonEl, clientX: 250, clientY: 250 });
+        simulate.mouseup({ el: buttonEl, clientX: 250, clientY: 250 });
+
+        assert.notDeepEqual(element.position(), positionBefore,
+            'the element now moves when dragging from a <button>');
+        assert.notOk(mousedownEvt.defaultPrevented,
+            'the button keeps its default action, so the native click and focus still work');
+    });
+
     QUnit.test('getContentArea()', function(assert) {
 
         assert.checkBboxApproximately(2/* +- */, this.paper.getContentArea(), {
