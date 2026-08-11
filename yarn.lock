@@ -5935,12 +5935,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/demo-avoid-router@workspace:examples/avoid-router"
   dependencies:
-    "@joint/core": "workspace:^"
-    "@joint/router-avoid": "workspace:^"
+    "@joint/core": "workspace:~"
+    "@joint/router-avoid": "workspace:~"
     copy-webpack-plugin: "npm:5.1.1"
     css-loader: "npm:3.5.3"
     file-loader: "npm:6.0.0"
-    libavoid-js: "npm:^0.4.5"
+    libavoid-js: "npm:0.4.5"
     sass: "npm:1.26.8"
     sass-loader: "npm:8.0.2"
     style-loader: "npm:1.2.1"
@@ -6788,7 +6788,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/router-avoid@workspace:^, @joint/router-avoid@workspace:packages/joint-router-avoid":
+"@joint/router-avoid@workspace:packages/joint-router-avoid, @joint/router-avoid@workspace:~":
   version: 0.0.0-use.local
   resolution: "@joint/router-avoid@workspace:packages/joint-router-avoid"
   dependencies:
@@ -6803,15 +6803,12 @@ __metadata:
     karma-chrome-launcher: "npm:^3.2.0"
     karma-coverage: "npm:^2.2.1"
     karma-qunit: "npm:^4.1.2"
-    libavoid-js: "npm:^0.4.5"
+    libavoid-js: "npm:0.4.5"
     puppeteer: "npm:24.22.0"
     qunit: "npm:^2.24.1"
     rollup: "npm:4.36.0"
     rollup-plugin-banner2: "npm:^1.2.2"
     typescript: "npm:^5.7.3"
-  peerDependencies:
-    "@joint/core": "workspace:~"
-    libavoid-js: ^0.4.5
   languageName: unknown
   linkType: soft
 
@@ -22446,7 +22443,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libavoid-js@npm:0.4.5, libavoid-js@npm:^0.4.5":
+"libavoid-js@npm:0.4.5":
   version: 0.4.5
   resolution: "libavoid-js@npm:0.4.5"
   checksum: 10/0fe733e6840db27557584060a6d0920e191d7d36b005720d3c39aa5ea01f0dae6e7f93a0e5279310be99754a82cd9eaf3c2b2dc96c44d5ae7d81b962cfc70b75

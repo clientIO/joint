@@ -4,24 +4,36 @@ import { RouterService } from './RouterService.mjs';
 import { MainThreadProvider } from './providers/MainThreadProvider.mjs';
 import { WorkerProvider } from './providers/WorkerProvider.mjs';
 
-async function load(): Promise<void> {
-    await AvoidLib.load();
+let loadAvoidPromise: Promise<void> | null = null;
+
+export function loadAvoid(filePath?: string): Promise<void> {
+    if (!loadAvoidPromise) {
+        loadAvoidPromise = AvoidLib.load(filePath).catch((error) => {
+            loadAvoidPromise = null;
+            throw error;
+        });
+    }
+    return loadAvoidPromise;
 }
 
 export const DEFAULT_PIN_CLASS_ID = 1;
 
-export interface InitOptions {
-    graph: dia.Graph;
+export interface InitAvoidOptions {
     filterLink?: (link: dia.Link) => boolean;
     filterElement?: (element: dia.Element) => boolean;
     shapeBufferDistance?: number;
     idealNudgingDistance?: number;
     useWorker?: boolean;
+    libraryFilePath?: string;
     debounceTime?: number;
 }
 
-export async function init(options: InitOptions): Promise<RouterService> {
-    await load();
+export async function initAvoid(graph: dia.Graph, options: InitAvoidOptions): Promise<RouterService> {
+    if (loadAvoidPromise) {
+        await loadAvoidPromise;
+    } else if (!AvoidLib.avoidLib) {
+        await loadAvoid(options.libraryFilePath);
+    }
 
     const provider = options.useWorker ? new WorkerProvider() : new MainThreadProvider();
 
@@ -30,6 +42,7 @@ export async function init(options: InitOptions): Promise<RouterService> {
             shapeBufferDistance: options.shapeBufferDistance ?? 0,
             idealNudgingDistance: options.idealNudgingDistance ?? 10,
             debounceTime: options.debounceTime ?? 100,
+            libraryFilePath: options.libraryFilePath
         });
     } else {
         await provider.init({
@@ -39,7 +52,7 @@ export async function init(options: InitOptions): Promise<RouterService> {
     }
 
     const routerService = RouterService.create({
-        graph: options.graph,
+        graph: graph,
         provider: provider,
         margin: options.shapeBufferDistance ?? 0,
         filterLink: options.filterLink,
