@@ -36,7 +36,7 @@ export class RouterService {
         // Replacing a still-running instance for the same graph would
         // otherwise leak its listeners and provider (e.g. a Worker thread).
         this.instances.get(options.graph)?.destroy();
-        const instance =  new RouterService(options);
+        const instance = new RouterService(options);
         this.instances.set(options.graph, instance);
         return instance;
     }
@@ -56,8 +56,8 @@ export class RouterService {
         target: anchors.AnchorJSON | undefined;
     }> = new WeakMap();
 
-    // Links with an open `pending` cycle, i.e. `pending` was emitted for
-    // them and `routed` hasn't closed it out yet. Checked wherever avoid is
+    // Links with an open `pending` cycle, i.e. `link:pending` was emitted for
+    // them and `link:routed` hasn't closed it out yet. Checked wherever avoid is
     // definitively given up on for a change (rather than merely retried),
     // so a link detached mid-flight - while avoid was still computing its
     // route - gets its stranded cycle closed instead of staying stuck.
@@ -329,20 +329,20 @@ export class RouterService {
     }
 
     // Marks `link` as having an in-flight routing computation and emits
-    // `pending`. Every call must be paired with a later `setRouted` call
+    // `link:pending`. Every call must be paired with a later `setRouted` call
     // for the same link, closing the cycle - see `setRouted`.
     private setPending(link: dia.Link): void {
         this.pendingLinks.add(link);
-        this.trigger('pending', link);
+        this.trigger('link:pending', link);
     }
 
-    // Closes `link`'s pending cycle, if one is open, and emits `routed`.
+    // Closes `link`'s pending cycle, if one is open, and emits `link:routed`.
     // `fallback` tells listeners whether the final route came from avoid
     // (false) or from `applyFallbackRoute` (true) - e.g. because the link
     // was detached while avoid was still computing its route.
     private setRouted(link: dia.Link, fallback: boolean): void {
         this.pendingLinks.delete(link);
-        this.trigger('routed', link, { fallback });
+        this.trigger('link:routed', link, { fallback });
     }
 
     private routeLink(linkId: dia.Cell.ID, points: dia.Point[]): void {
@@ -351,10 +351,10 @@ export class RouterService {
         this.connectorRoutes[linkId] = points;
 
         const fallback = !points || !this.isRouteValid(points, link);
-        this.setRouted(link, fallback);
 
         if (fallback) {
             this.applyFallbackRoute(link);
+            this.setRouted(link, fallback);
             return;
         }
 
@@ -374,6 +374,7 @@ export class RouterService {
 
         // trigger change on vertices setter to update the link view
         link.set(linkAttributes, { avoidRouter: true });
+        this.setRouted(link, fallback);
     }
 
     // Applies the manual `rightAngle` route directly to the link, bypassing

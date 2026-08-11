@@ -16,5 +16,4 @@ export interface RightAnglePathEnd {
     side: g.RectangleSide
 }
 
-
 export function rightAnglePath(source: RightAnglePathEnd, target: RightAnglePathEnd, options?: RightAnglePathOptions): dia.Point[];

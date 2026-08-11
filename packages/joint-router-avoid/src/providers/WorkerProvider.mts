@@ -7,6 +7,7 @@ import type { WorkerRequest, WorkerResponse } from './Worker.mjs';
 
 export interface WorkerProviderOptions extends ProviderOptions {
     debounceTime?: number;
+    libraryFilePath?: string;
 }
 
 export class WorkerProvider extends Provider {

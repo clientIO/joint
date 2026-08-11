@@ -1,12 +1,13 @@
-import type { dia } from '@joint/core';
 import { util } from '@joint/core';
-import type { Connector, ProviderOptions, Shape } from './Provider.mjs';
-import type { Avoid as AvoidInstance, Router as AvoidRouter, ConnRef, ShapeRef } from 'libavoid-js';
 import { AvoidLib } from 'libavoid-js';
+import type { dia } from '@joint/core';
+import type { Connector, Shape } from './Provider.mjs';
+import type { Avoid as AvoidInstance, Router as AvoidRouter, ConnRef, ShapeRef } from 'libavoid-js';
+import type { WorkerProviderOptions } from './WorkerProvider.mjs';
 
 export interface WorkerInitRequest {
     type: 'init';
-    options: ProviderOptions;
+    options: WorkerProviderOptions;
 }
 
 export interface WorkerUpdateShapeRequest {
@@ -111,7 +112,9 @@ function createAvoidRouter(Avoid: AvoidInstance, shapeBufferDistance: number, id
     return router;
 }
 
-function handleInit(options: ProviderOptions): void {
+async function handleInit(options: WorkerProviderOptions): Promise<void> {
+    await AvoidLib.load(options.libraryFilePath);
+
     avoidInstance = AvoidLib.getInstance();
     avoidRouter = createAvoidRouter(
         avoidInstance,
@@ -257,7 +260,6 @@ onmessage = async(evt: MessageEvent<WorkerRequest>) => {
     const message = evt.data;
 
     if (message.type === 'init') {
-        await AvoidLib.load();
         handleInit(message.options);
         return;
     }

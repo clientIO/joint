@@ -17,9 +17,9 @@
     "build": "webpack"
   },
   "dependencies": {
-    "@joint/core": "workspace:^",
-    "@joint/router-avoid": "workspace:^",
-    "libavoid-js": "^0.4.5"
+    "@joint/core": "workspace:~",
+    "@joint/router-avoid": "workspace:~",
+    "libavoid-js": "0.4.5"
   },
   "devDependencies": {
     "copy-webpack-plugin": "5.1.1",

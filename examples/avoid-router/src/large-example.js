@@ -1,5 +1,5 @@
 import { shapes } from '@joint/core';
-import { init as initAvoid } from '@joint/router-avoid';
+import { initAvoid } from '@joint/router-avoid';
 import { createPaper, addLinkInteractionHandlers, addRouterStyling, addPaperZoomHandlers } from './common';
 import { Message, FlowchartStart, Link as AppLink } from './large-shapes';
 import { largeGraph } from './large-data';
@@ -19,8 +19,7 @@ export const initLargeGraphExample = async (canvasEl) => {
         defaultLink: () => new AppLink(),
     });
 
-    const routerService = await initAvoid({
-        graph,
+    const routerService = await initAvoid(graph, {
         shapeBufferDistance: 20,
         idealNudgingDistance: 5,
         useWorker: true

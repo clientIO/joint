@@ -99,11 +99,11 @@ export function addPaperZoomHandlers(paper) {
 export function addRouterStyling(routerService) {
     // Dim links while the router is (re)computing their route, and restore
     // their normal appearance once a route has been applied.
-    routerService.on('pending', (link) => {
+    routerService.on('link:pending', (link) => {
         link.attr('line/strokeDasharray', '5,5');
     });
 
-    routerService.on('routed', (link) => {
+    routerService.on('link:routed', (link) => {
         link.attr('line/strokeDasharray', null);
     });
 }
