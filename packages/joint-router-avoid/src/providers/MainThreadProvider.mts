@@ -13,7 +13,7 @@ export class MainThreadProvider extends Provider {
     protected readonly linksByPointer: Record<number, dia.Cell.ID> = {};
     protected onAvoidConnectorChanged!: (connectorRefId: number) => void;
 
-    async init(options: ProviderOptions): Promise<void> {
+    override async init(options: ProviderOptions): Promise<void> {
         this.avoidInstance = AvoidLib.getInstance();
         this.avoidRouter = this.createAvoidRouter(
             this.avoidInstance,
@@ -43,7 +43,7 @@ export class MainThreadProvider extends Provider {
         return this.avoidInstance;
     }
 
-    updateShape(shape: Shape, process: boolean = true): void {
+    override updateShape(shape: Shape, process: boolean = true): void {
         const { shapeRefs, avoidRouter } = this;
         const { x, y, width, height } = shape.bbox;
         const shapeRect = new this.avoidInstance.Rectangle(
@@ -82,7 +82,7 @@ export class MainThreadProvider extends Provider {
         }
     }
 
-    updateConnector(connector: Connector, process: boolean = true) {
+    override updateConnector(connector: Connector, process: boolean = true) {
         const { shapeRefs, connectorRefs } = this;
         if (
             connector.sourceId === undefined || connector.sourcePinId === undefined ||
@@ -134,7 +134,7 @@ export class MainThreadProvider extends Provider {
         return;
     }
 
-    deleteShape(shapeId: dia.Cell.ID, process: boolean = true): void {
+    override deleteShape(shapeId: dia.Cell.ID, process: boolean = true): void {
         const shapeRef = this.shapeRefs[shapeId];
         if (!shapeRef) return;
         this.avoidRouter.deleteShape(shapeRef);
@@ -145,7 +145,7 @@ export class MainThreadProvider extends Provider {
         }
     }
 
-    deleteConnector(connectorId: dia.Cell.ID, process: boolean = true): void {
+    override deleteConnector(connectorId: dia.Cell.ID, process: boolean = true): void {
         const connRef = this.connectorRefs[connectorId];
         if (!connRef) return;
         this.avoidRouter.deleteConnector(connRef);
@@ -154,6 +154,14 @@ export class MainThreadProvider extends Provider {
         if (process) {
             this.avoidRouter.processTransaction();
         }
+    }
+
+    override hasConnector(connectorId: dia.Cell.ID): boolean {
+        return connectorId in this.connectorRefs;
+    }
+
+    override hasShape(shapeId: dia.Cell.ID): boolean {
+        return shapeId in this.shapeRefs;
     }
 
     updateGraph(shapes: Shape[], connectors: Connector[], process: boolean = true): void {

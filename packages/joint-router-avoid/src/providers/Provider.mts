@@ -46,6 +46,10 @@ export abstract class Provider {
 
     abstract getAvoidInstance(): Avoid;
 
+    abstract hasConnector(connectorId: dia.Cell.ID): boolean;
+
+    abstract hasShape(shapeId: dia.Cell.ID): boolean;
+
     // Releases any resources held by the provider (e.g. terminates a Worker thread).
     abstract destroy(): void;
 }

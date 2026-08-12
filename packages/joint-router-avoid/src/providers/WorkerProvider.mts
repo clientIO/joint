@@ -12,8 +12,10 @@ export interface WorkerProviderOptions extends ProviderOptions {
 
 export class WorkerProvider extends Provider {
     protected worker!: Worker;
+    protected readonly shapeIds = new Set<dia.Cell.ID>();
+    protected readonly connectorIds = new Set<dia.Cell.ID>();
 
-    async init(options: WorkerProviderOptions): Promise<void> {
+    override async init(options: WorkerProviderOptions): Promise<void> {
         const worker = new Worker(new URL('./Worker.mjs', import.meta.url), { type: 'module' });
         this.worker = worker;
 
@@ -41,32 +43,46 @@ export class WorkerProvider extends Provider {
         await ready;
     }
 
+    protected postMessage(request: WorkerRequest): void {
+        this.worker.postMessage(request);
+    }
+
     override getAvoidInstance(): AvoidInstance {
         throw new Error('WorkerProvider does not expose the Avoid instance since it runs inside a Worker thread.');
     }
 
-    updateShape(shape: Shape): void {
+    override updateShape(shape: Shape): void {
+        this.shapeIds.add(shape.id);
         this.postMessage({ type: 'updateShape', shape });
     }
 
-    updateConnector(connector: Connector): void {
+    override updateConnector(connector: Connector): void {
+        this.connectorIds.add(connector.id);
         this.postMessage({ type: 'updateConnector', connector });
     }
 
-    deleteShape(shapeId: dia.Cell.ID): void {
+    override deleteShape(shapeId: dia.Cell.ID): void {
+        this.shapeIds.delete(shapeId);
         this.postMessage({ type: 'deleteShape', shapeId });
     }
 
-    deleteConnector(connectorId: dia.Cell.ID): void {
+    override deleteConnector(connectorId: dia.Cell.ID): void {
+        this.connectorIds.delete(connectorId);
         this.postMessage({ type: 'deleteConnector', connectorId });
     }
 
-    updateGraph(shapes: Shape[], connectors: Connector[]): void {
+    override updateGraph(shapes: Shape[], connectors: Connector[]): void {
+        shapes.forEach((shape) => this.shapeIds.add(shape.id));
+        connectors.forEach((connector) => this.connectorIds.add(connector.id));
         this.postMessage({ type: 'updateGraph', shapes, connectors });
     }
 
-    protected postMessage(request: WorkerRequest): void {
-        this.worker.postMessage(request);
+    override hasConnector(connectorId: dia.Cell.ID): boolean {
+        return this.connectorIds.has(connectorId);
+    }
+
+    override hasShape(shapeId: dia.Cell.ID): boolean {
+        return this.shapeIds.has(shapeId);
     }
 
     override destroy(): void {
