@@ -22,7 +22,7 @@ export function createPaper(canvasEl, cellNamespace, paperOptions = {}) {
         background: { color: '#F3F7F6' },
         snapLinks: { radius: 30 },
         overflow: true,
-        interactive: { labelMove: false },
+        interactive: { labelMove: false, linkMove: false },
         defaultConnector: {
             name: 'straight',
             args: {
@@ -46,8 +46,6 @@ export function createPaper(canvasEl, cellNamespace, paperOptions = {}) {
     });
 
     canvasEl.appendChild(paper.el);
-
-
 
     return { graph, paper };
 }
@@ -93,17 +91,5 @@ export function addPaperZoomHandlers(paper) {
         const { sx: currentScale } = paper.scale();
         const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, currentScale * scale));
         paper.scaleUniformAtPoint(newScale, { x, y });
-    });
-}
-
-export function addRouterStyling(routerService) {
-    // Dim links while the router is (re)computing their route, and restore
-    // their normal appearance once a route has been applied.
-    routerService.on('link:pending', (link) => {
-        link.attr('line/strokeDasharray', '5,5');
-    });
-
-    routerService.on('link:routed', (link) => {
-        link.attr('line/strokeDasharray', null);
     });
 }

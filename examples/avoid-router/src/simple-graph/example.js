@@ -1,6 +1,6 @@
 import { dia, elementTools, shapes } from '@joint/core';
 import { initAvoid } from '@joint/router-avoid';
-import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from './common';
+import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from '../common';
 import { Node, Edge, Note } from './shapes';
 import ResizeTool from './resize-tool';
 

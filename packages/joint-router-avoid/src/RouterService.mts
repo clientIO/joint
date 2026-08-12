@@ -1,4 +1,4 @@
-import { g, mvc, util, alg } from '@joint/core';
+import { g, mvc, alg } from '@joint/core';
 
 import type { dia, anchors } from '@joint/core';
 import type { ConnDirFlags } from 'libavoid-js';
@@ -20,10 +20,17 @@ export type SkipLinkCallback = (link: dia.Link) => boolean;
 export type SkipElementCallback = (element: dia.Element) => boolean;
 export type SetRouteAttributesCallback = (link: dia.Link, attributes: RouteAttributes, options?: { fallback?: boolean }) => void;
 
+// 'unconnected' - one or both ends aren't connected to an element at all.
+// 'untracked-element' - both ends are connected, but at least one connected
+// element is excluded from the router via `skipElement`.
+export type UnroutableReason = 'unconnected' | 'untracked-element';
+export type UnroutableLinkCallback = (link: dia.Link, reason: UnroutableReason) => boolean;
+
 export interface RouterServiceOptions {
     skipLink?: SkipLinkCallback;
     skipElement?: SkipElementCallback;
     setRouteAttributes?: SetRouteAttributesCallback;
+    handleUnroutableLink?: UnroutableLinkCallback;
     // The margin to apply around elements when computing fallback route.
     elementMargin?: number;
     eventFlagName?: string;
@@ -38,8 +45,8 @@ export class RouterService {
     declare off: mvc.Events_Off<RouterService>;
     declare trigger: mvc.Events_Trigger<RouterService>;
 
-    private readonly defaultSkipLink = (_link: dia.Link) => true;
-    private readonly defaultSkipElement = (_element: dia.Element) => true;
+    private readonly defaultSkipLink = (_link: dia.Link) => false;
+    private readonly defaultSkipElement = (_element: dia.Element) => false;
 
     private readonly pinIds: Record<string, number> = {};
     private readonly connectorRoutes: Record<dia.Cell.ID, dia.Point[]> = {};
@@ -144,7 +151,7 @@ export class RouterService {
     private onCellRemoved(cell: dia.Cell): void {
         if (cell.isElement()) {
             this.deletePinIds(cell.id);
-            if (this.skipElement(cell)) {
+            if (!this.skipElement(cell)) {
                 this.provider.deleteShape(cell.id);
             }
         } else if (cell.isLink() && !this.skipLink(cell)) {
@@ -165,7 +172,7 @@ export class RouterService {
     }
 
     private onCellAdded(cell: dia.Cell): void {
-        if (cell.isElement() && this.skipElement(cell)) {
+        if (cell.isElement() && !this.skipElement(cell)) {
             this.provider.updateShape(this.getAvoidShape(cell));
             return;
         }
@@ -175,7 +182,7 @@ export class RouterService {
         if (!this.validateEnds(cell)) {
             // In scope for the router, but avoid can't route a link that
             // isn't connected to an element on both ends.
-            this.applyFallbackRoute(cell);
+            this.applyUnroutableFallback(cell);
             return;
         }
 
@@ -188,36 +195,42 @@ export class RouterService {
         if ('source' in cell.changed || 'target' in cell.changed) {
             if (!cell.isLink() || this.skipLink(cell)) return;
 
-            this.applyFallbackRoute(cell);
             if (!this.validateEnds(cell)) {
-                // Giving up on avoid for this change - definitively close
-                // out any pending cycle instead of leaving it stranded.
                 if (this.pendingLinks.has(cell)) {
-                    this.setRouted(cell, true);
+                    this.trigger(('link:pending:cancelled'), cell);
                 }
+
+                // Giving up on avoid for this change - hand off to the
+                // consumer via `handleUnroutableLink`, or fall back to the
+                // built-in rightAngle route.
+                this.applyUnroutableFallback(cell);
                 this.provider.deleteConnector(cell.id);
                 return;
             }
 
+            this.applyFallbackRoute(cell);
             this.setPending(cell);
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
 
         if ('position' in cell.changed || 'size' in cell.changed) {
             if (!cell.isElement()) return;
+
             this.graph.getConnectedLinks(cell).forEach((link) => {
                 if (this.skipLink(link)) return;
 
-                this.applyFallbackRoute(link);
-                if (this.validateEnds(link)) {
-                    this.setPending(link);
-                } else if (this.pendingLinks.has(link)) {
-                    this.setRouted(link, true);
+                if (!this.validateEnds(link)) {
+                    this.applyUnroutableFallback(link);
+                    return;
                 }
+
+                this.applyFallbackRoute(link);
+                this.setPending(link);
             });
-            if (this.skipElement(cell)) {
-                this.provider.updateShape(this.getAvoidShape(cell));
-            }
+
+            if (this.skipElement(cell)) return;
+
+            this.provider.updateShape(this.getAvoidShape(cell));
         }
     }
 
@@ -237,7 +250,7 @@ export class RouterService {
             if (this.skipLink(link)) return;
 
             if (!this.validateEnds(link)) {
-                this.applyFallbackRoute(link);
+                this.applyUnroutableFallback(link);
                 return;
             }
 
@@ -347,6 +360,7 @@ export class RouterService {
 
         if (fallback) {
             this.applyFallbackRoute(link);
+            this.setRouted(link, true);
             return;
         }
 
@@ -390,12 +404,10 @@ export class RouterService {
                 target: link.target(),
                 vertices: rightAngleVertices
             }, { fallback: true });
-            this.setRouted(link, true);
             return;
         }
 
         link.set('vertices', rightAngleVertices, { [this.options.eventFlagName!]: true });
-        this.setRouted(link, true);
     }
 
     private getFallbackRoute(link: dia.Link): dia.Point[] {
@@ -555,11 +567,37 @@ export class RouterService {
             return false;
         }
 
-        if (!this.skipElement(sourceElement) || !this.skipElement(targetElement)) {
+        if (this.skipElement(sourceElement) || this.skipElement(targetElement)) {
             return false;
         }
 
         return true;
+    }
+
+    // Determines why `validateEnds(link)` failed, for `handleUnroutableLink`.
+    // Only meaningful when `validateEnds` has already returned false.
+    private getUnroutableReason(link: dia.Link): UnroutableReason {
+        const sourceElement = link.getSourceElement();
+        const targetElement = link.getTargetElement();
+
+        if (!sourceElement || !targetElement) {
+            return 'unconnected';
+        }
+
+        return 'untracked-element';
+    }
+
+    // Gives the consumer first refusal on a link that failed `validateEnds`.
+    // If `handleUnroutableLink` claims it (returns true), the pending cycle
+    // is closed and the built-in rightAngle route is skipped entirely.
+    // Otherwise falls through to the built-in `applyFallbackRoute`.
+    private applyUnroutableFallback(link: dia.Link): void {
+        const { handleUnroutableLink } = this.options;
+        if (handleUnroutableLink && handleUnroutableLink(link, this.getUnroutableReason(link))) {
+            return;
+        }
+        this.applyFallbackRoute(link);
+        this.setRouted(link, true);
     }
 }
 
