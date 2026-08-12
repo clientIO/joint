@@ -32,13 +32,13 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@8.2.1
+        uses: sonarsource/sonarqube-scan-action@v8.2.1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
       - name: SonarQube Quality Gate check
-        uses: sonarsource/sonarqube-quality-gate-action@1.2.1
+        uses: sonarsource/sonarqube-quality-gate-action@v1.2.1
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
