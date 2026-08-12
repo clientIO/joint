@@ -10,9 +10,9 @@
 // order - as does the initial sync `RouterService` performs on start-up
 // (see the "cells present before init()" module below).
 
-async function initRouterWithLink(sourcePosition, targetPosition, options) {
+async function initRouterWithLink(sourcePosition, targetPosition, options = {}) {
     const graph = new joint.dia.Graph();
-    const routerService = await joint.routers.avoid.init(Object.assign({ graph }, options));
+    const routerService = await joint.routers.avoid.initAvoid(graph, options);
 
     const size = { width: 100, height: 100 };
     const source = new joint.shapes.standard.Rectangle({ position: sourcePosition, size });
@@ -41,7 +41,7 @@ function isOrthogonalPath(link) {
 QUnit.module('sanity', () => {
     QUnit.test('should load', assert => {
         assert.ok(typeof joint.routers.avoid !== 'undefined');
-        assert.ok(typeof joint.routers.avoid.init === 'function');
+        assert.ok(typeof joint.routers.avoid.initAvoid === 'function');
     });
 
     QUnit.test('init() resolves with the expected RouterService API', async assert => {
@@ -63,7 +63,7 @@ QUnit.module('pending event & immediate fallback route', () => {
         const { routerService, target, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
 
         const pendingLinks = [];
-        routerService.on('pending', (l) => pendingLinks.push(l));
+        routerService.on('link:pending', (l) => pendingLinks.push(l));
 
         target.position(300, 400);
 
@@ -78,7 +78,7 @@ QUnit.module('pending event & immediate fallback route', () => {
         const { routerService, target, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
 
         const pendingLinks = [];
-        routerService.on('pending', (l) => pendingLinks.push(l));
+        routerService.on('link:pending', (l) => pendingLinks.push(l));
 
         target.resize(50, 50);
 
@@ -97,7 +97,7 @@ QUnit.module('pending event & immediate fallback route', () => {
         graph.addCell(other);
 
         const pendingLinks = [];
-        routerService.on('pending', (l) => pendingLinks.push(l));
+        routerService.on('link:pending', (l) => pendingLinks.push(l));
 
         link.source({ id: other.id });
 
@@ -119,10 +119,10 @@ QUnit.module('pending event & immediate fallback route', () => {
 QUnit.module('routed event & getRoute', () => {
     QUnit.test('"routed" fires and getRoute() reflects avoid\'s raw route as cells are added and moved', async assert => {
         const graph = new joint.dia.Graph();
-        const routerService = await joint.routers.avoid.init({ graph });
+        const routerService = await joint.routers.avoid.initAvoid(graph, {});
 
         const routedLinks = [];
-        routerService.on('routed', (l) => routedLinks.push(l));
+        routerService.on('link:routed', (l) => routedLinks.push(l));
 
         const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
         const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size: { width: 100, height: 100 }});
@@ -137,7 +137,11 @@ QUnit.module('routed event & getRoute', () => {
 
         target.position(300, 400);
 
-        assert.equal(routedLinks.length, 2, '"routed" fires again once avoid recomputes the route');
+        // A position change fires "routed" twice more: once immediately for
+        // the interim rightAngle placeholder route (see the "pending event
+        // & immediate fallback route" module), then again once avoid
+        // recomputes the real route asynchronously.
+        assert.equal(routedLinks.length, 3, '"routed" fires for the interim placeholder and again for avoid\'s recomputed route');
         assert.ok(Array.isArray(routerService.getRoute(link.id)));
         assert.ok(isOrthogonalPath(link));
 
@@ -146,7 +150,7 @@ QUnit.module('routed event & getRoute', () => {
 
     QUnit.test('returns undefined for a link that has not been registered with avoid yet', async assert => {
         const graph = new joint.dia.Graph();
-        const routerService = await joint.routers.avoid.init({ graph });
+        const routerService = await joint.routers.avoid.initAvoid(graph, {});
 
         const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
         const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { x: 400, y: 400 }});
@@ -168,12 +172,16 @@ QUnit.module('routed carries a fallback flag and never leaves a link stuck pendi
         graph.addCell(other);
 
         const routedEvents = [];
-        routerService.on('routed', (l, opt) => routedEvents.push(opt));
+        routerService.on('link:routed', (l, opt) => routedEvents.push(opt));
 
         link.target({ id: other.id });
 
-        assert.equal(routedEvents.length, 1);
-        assert.strictEqual(routedEvents[0].fallback, false, 'avoid computed this route, so it is not a fallback');
+        // The rewire fires "routed" twice: once immediately for the interim
+        // rightAngle placeholder (fallback: true), then again once avoid
+        // computes the real route (fallback: false).
+        assert.equal(routedEvents.length, 2);
+        assert.strictEqual(routedEvents[0].fallback, true, 'the interim route is a fallback');
+        assert.notOk(routedEvents[1].fallback, 'avoid computed the final route, so it is not a fallback');
         assert.notEqual(link.getTargetElement(), source, 'sanity: the rewire actually took effect');
 
         routerService.removeGraphListeners();
@@ -195,32 +203,35 @@ QUnit.module('routed carries a fallback flag and never leaves a link stuck pendi
         graph.addCell(other);
 
         const events = [];
-        routerService.on('pending', (l) => {
+        routerService.on('link:pending', (l) => {
             events.push({ type: 'pending', link: l });
             link.target({ x: 500, y: 500 });
         });
-        routerService.on('routed', (l, opt) => events.push({ type: 'routed', link: l, fallback: opt.fallback }));
+        routerService.on('link:routed', (l, opt) => events.push({ type: 'routed', link: l, fallback: opt.fallback }));
 
         link.target({ id: other.id });
 
+        // The rewire fires an interim "routed" (fallback route) before
+        // "pending", same as any other source/target change. The detach
+        // happens inside the "pending" listener, closing the cycle with a
+        // second "routed" instead of leaving it stuck.
         assert.deepEqual(
             events.map((e) => e.type),
-            ['pending', 'routed'],
+            ['routed', 'pending', 'routed'],
             'the pending cycle is closed, not left stuck'
         );
-        assert.strictEqual(events[1].fallback, true, 'closed via the fallback route, not an avoid response');
+        assert.strictEqual(events[2].fallback, true, 'closed via the fallback route, not an avoid response');
         assert.ok(isOrthogonalPath(link));
 
         routerService.removeGraphListeners();
     });
 });
 
-QUnit.module('filterLink', () => {
-    QUnit.test('a filtered-out link never receives "pending"/"routed" or a route, regardless of endpoint moves', async assert => {
+QUnit.module('skipLink', () => {
+    QUnit.test('a skipped link never receives "pending"/"routed" or a route, regardless of endpoint moves', async assert => {
         const graph = new joint.dia.Graph();
-        const routerService = await joint.routers.avoid.init({
-            graph,
-            filterLink: (l) => !l.get('doNotRoute')
+        const routerService = await joint.routers.avoid.initAvoid(graph, {
+            skipLink: (l) => l.get('doNotRoute')
         });
 
         const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
@@ -234,8 +245,8 @@ QUnit.module('filterLink', () => {
 
         const pendingLinks = [];
         const routedLinks = [];
-        routerService.on('pending', (l) => pendingLinks.push(l));
-        routerService.on('routed', (l) => routedLinks.push(l));
+        routerService.on('link:pending', (l) => pendingLinks.push(l));
+        routerService.on('link:routed', (l) => routedLinks.push(l));
 
         target.position(300, 400);
         link.target({ x: 500, y: 500 });
@@ -251,20 +262,19 @@ QUnit.module('filterLink', () => {
     });
 });
 
-QUnit.module('filterElement', () => {
-    // Note: `filterElement` only controls whether an element is registered
+QUnit.module('skipElement', () => {
+    // Note: `skipElement` only controls whether an element is registered
     // as an avoid *shape* - it does not also exclude links between such
     // elements from being registered as avoid *connectors*, and a connector
     // referencing an unregistered shape crashes the underlying WASM engine.
-    // `filterLink` is set here too so this link is skipped entirely,
-    // sidestepping that crash while still exercising the `filterElement`
+    // `skipLink` is set here too so this link is skipped entirely,
+    // sidestepping that crash while still exercising the `skipElement`
     // guard on the position/size handler.
-    QUnit.test('moving a filtered-out element does not trigger "pending" for its connected links', async assert => {
+    QUnit.test('moving a skipped element does not trigger "pending" for its connected links', async assert => {
         const graph = new joint.dia.Graph();
-        const routerService = await joint.routers.avoid.init({
-            graph,
-            filterElement: (el) => !el.get('doNotRoute'),
-            filterLink: (l) => !l.get('doNotRoute')
+        const routerService = await joint.routers.avoid.initAvoid(graph, {
+            skipElement: (el) => el.get('doNotRoute'),
+            skipLink: (l) => l.get('doNotRoute')
         });
 
         const source = new joint.shapes.standard.Rectangle({
@@ -281,7 +291,7 @@ QUnit.module('filterElement', () => {
         graph.resetCells([source, target, link]);
 
         const pendingLinks = [];
-        routerService.on('pending', (l) => pendingLinks.push(l));
+        routerService.on('link:pending', (l) => pendingLinks.push(l));
 
         target.position(300, 400);
 
@@ -292,18 +302,19 @@ QUnit.module('filterElement', () => {
 });
 
 QUnit.module('links with a loose end', () => {
-    QUnit.test('changing a link\'s target to a loose point applies a fallback route but never "pending"/"routed"', async assert => {
+    QUnit.test('changing a link\'s target to a loose point applies a fallback route but never "pending", and "routed" carries fallback: true', async assert => {
         const { routerService, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
 
         const pendingLinks = [];
-        const routedLinks = [];
-        routerService.on('pending', (l) => pendingLinks.push(l));
-        routerService.on('routed', (l) => routedLinks.push(l));
+        const routedEvents = [];
+        routerService.on('link:pending', (l) => pendingLinks.push(l));
+        routerService.on('link:routed', (l, opt) => routedEvents.push(opt));
 
         link.target({ x: 500, y: 500 });
 
         assert.equal(pendingLinks.length, 0, 'a point-ended link is excluded from avoid, so it is never "pending"');
-        assert.equal(routedLinks.length, 0, 'and avoid never gets to compute a route for it either');
+        assert.equal(routedEvents.length, 1, 'the fallback route still closes out with "routed"');
+        assert.strictEqual(routedEvents[0].fallback, true, 'avoid never gets to compute a route for it - this is the fallback');
         assert.ok(isOrthogonalPath(link), 'it still gets a sane fallback route');
 
         routerService.removeGraphListeners();
@@ -311,7 +322,7 @@ QUnit.module('links with a loose end', () => {
 
     QUnit.test('a link added with a point end already set gets a fallback route immediately', async assert => {
         const graph = new joint.dia.Graph();
-        const routerService = await joint.routers.avoid.init({ graph });
+        const routerService = await joint.routers.avoid.initAvoid(graph, {});
 
         const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
         graph.addCell(source);
@@ -328,12 +339,96 @@ QUnit.module('links with a loose end', () => {
     });
 });
 
+QUnit.module('handleUnroutableLink', () => {
+    QUnit.test('is called with "unconnected" for a loose end and can suppress the built-in fallback route', async assert => {
+        const calls = [];
+        const { link, routerService } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 }, {
+            handleUnroutableLink: (l, reason) => {
+                calls.push(reason);
+                return true;
+            }
+        });
+
+        const routedEvents = [];
+        routerService.on('link:routed', (l, opt) => routedEvents.push(opt));
+
+        link.target({ x: 500, y: 500 });
+
+        assert.deepEqual(calls, ['unconnected']);
+        assert.deepEqual(link.vertices(), [], 'the built-in rightAngle fallback was skipped, so vertices are untouched');
+        assert.equal(routedEvents.length, 1, '"routed" still closes out the cycle');
+        assert.strictEqual(routedEvents[0].fallback, true);
+
+        routerService.removeGraphListeners();
+    });
+
+    QUnit.test('is called with "untracked-element" for a link into an element excluded via skipElement', async assert => {
+        const graph = new joint.dia.Graph();
+        const calls = [];
+        const routerService = await joint.routers.avoid.initAvoid(graph, {
+            skipElement: (el) => el.get('doNotRoute'),
+            handleUnroutableLink: (l, reason) => {
+                calls.push(reason);
+                return true;
+            }
+        });
+
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
+        const target = new joint.shapes.standard.Rectangle({
+            position: { x: 300, y: 0 }, size: { width: 100, height: 100 }, doNotRoute: true
+        });
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+        graph.resetCells([source, target, link]);
+
+        assert.deepEqual(calls, ['untracked-element']);
+
+        routerService.removeGraphListeners();
+    });
+
+    QUnit.test('returning false falls through to the built-in fallback route, unchanged from today\'s behavior', async assert => {
+        const calls = [];
+        const { link, routerService } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 }, {
+            handleUnroutableLink: (l, reason) => {
+                calls.push(reason);
+                return false;
+            }
+        });
+
+        link.target({ x: 500, y: 500 });
+
+        assert.deepEqual(calls, ['unconnected']);
+        assert.ok(isOrthogonalPath(link), 'the built-in rightAngle fallback still applies');
+
+        routerService.removeGraphListeners();
+    });
+
+    QUnit.test('is invoked again when a connected element moves while the link stays unroutable', async assert => {
+        const calls = [];
+        const { source, link, routerService } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 }, {
+            handleUnroutableLink: (l, reason) => {
+                calls.push(reason);
+                return true;
+            }
+        });
+
+        link.target({ x: 500, y: 500 });
+        assert.equal(calls.length, 1);
+
+        // The link's remaining end (source) is still connected, so moving it
+        // re-runs the position/size handler for this link.
+        source.position(0, 200);
+        assert.equal(calls.length, 2, 'moving the still-connected source element re-invokes the callback');
+
+        routerService.removeGraphListeners();
+    });
+});
+
 QUnit.module('addGraphListeners / removeGraphListeners', () => {
     QUnit.test('removeGraphListeners stops reacting to graph changes; addGraphListeners resumes it', async assert => {
         const { routerService, target } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
 
         const pendingLinks = [];
-        routerService.on('pending', (l) => pendingLinks.push(l));
+        routerService.on('link:pending', (l) => pendingLinks.push(l));
 
         routerService.removeGraphListeners();
         target.position(300, 400);
@@ -365,14 +460,16 @@ QUnit.module('cells present before init() or listener (re)attachment', () => {
         graph.resetCells([source, target, other, link]);
 
         // init() is called AFTER the cells already exist in the graph.
-        const routerService = await joint.routers.avoid.init({ graph });
+        const routerService = await joint.routers.avoid.initAvoid(graph, {});
 
         const routedLinks = [];
-        routerService.on('routed', (l) => routedLinks.push(l));
+        routerService.on('link:routed', (l) => routedLinks.push(l));
 
         link.source({ id: other.id });
 
-        assert.equal(routedLinks.length, 1, 'the pre-existing link is routed by avoid once rewired');
+        // The rewire fires "routed" twice: once for the interim rightAngle
+        // placeholder, then again once avoid computes the real route.
+        assert.equal(routedLinks.length, 2, 'the pre-existing link is routed by avoid once rewired');
         assert.ok(isOrthogonalPath(link));
 
         routerService.removeGraphListeners();
@@ -391,7 +488,7 @@ QUnit.module('cells present before init() or listener (re)attachment', () => {
         routerService.addGraphListeners();
 
         const routedLinks = [];
-        routerService.on('routed', (l) => routedLinks.push(l));
+        routerService.on('link:routed', (l) => routedLinks.push(l));
 
         // Nudging `other` forces avoid to (re)compute the route; this used
         // to abort the module since neither `other`'s shape nor the link's

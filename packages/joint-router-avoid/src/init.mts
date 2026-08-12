@@ -1,6 +1,7 @@
 import type { dia } from '@joint/core';
 import { AvoidLib } from 'libavoid-js';
 import { RouterService } from './RouterService.mjs';
+import type { UnroutableLinkCallback, SkipElementCallback, SkipLinkCallback } from './RouterService.mjs';
 import { MainThreadProvider } from './providers/MainThreadProvider.mjs';
 import { WorkerProvider } from './providers/WorkerProvider.mjs';
 
@@ -17,8 +18,9 @@ export function loadAvoid(filePath?: string): Promise<void> {
 }
 
 export interface InitAvoidOptions {
-    skipLink?: (link: dia.Link) => boolean;
-    skipElement?: (element: dia.Element) => boolean;
+    skipLink?: SkipLinkCallback;
+    skipElement?: SkipElementCallback;
+    handleUnroutableLink?: UnroutableLinkCallback;
     shapeBufferDistance?: number;
     idealNudgingDistance?: number;
     useWorker?: boolean;
@@ -52,7 +54,8 @@ export async function initAvoid(graph: dia.Graph, options: InitAvoidOptions): Pr
     const routerServiceOptions = {
         elementMargin: options.shapeBufferDistance ?? 0,
         skipLink: options.skipLink,
-        skipElement: options.skipElement
+        skipElement: options.skipElement,
+        handleUnroutableLink: options.handleUnroutableLink
     };
 
     const routerService = new RouterService(

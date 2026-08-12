@@ -1,15 +1,18 @@
 import '../styles.scss';
-import { initSimpleExample } from './simple-example';
-import { initLargeGraphExample } from './large-example';
+import { initSimpleExample } from './simple-graph/example';
+import { initLargeGraphExample } from './large-graph/example';
+import { initSimpleExample as initSimpleExampleExtra } from './simple-graph-extra/example';
 
 const panels = {
     simple: document.getElementById('canvas-simple'),
     large: document.getElementById('canvas-large'),
+    simpleExtra: document.getElementById('canvas-simple-extra'),
 };
 
 const initializers = {
     simple: initSimpleExample,
     large: initLargeGraphExample,
+    simpleExtra: initSimpleExampleExtra,
 };
 
 const initialized = {};
