@@ -1,0 +1,45 @@
+name: SonarQube Analysis
+
+# Trigger this workflow on:
+on:
+  push: # Primarily on push to master branch
+    branches:
+      - master
+  workflow_dispatch: {} # Also allow manual triggering
+
+jobs:
+  sonarqube:
+    if: ${{ github.repository == 'clientIO/joint' }} # Skip for forks
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      # Echo run information
+      - name: Information
+        id: information
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Run information
+          | | |
+          |---|---|
+          | **Triggered by** | `${{ github.event_name }}` |
+          | **Workflow branch** | `${{ github.ref_name }}` |
+          EOF
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@8.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: SonarQube Quality Gate check
+        uses: sonarsource/sonarqube-quality-gate-action@1.2.1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
