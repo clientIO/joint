@@ -353,9 +353,11 @@ export class RouterService {
 
     private routeLink(linkId: dia.Cell.ID, points: dia.Point[]): void {
         const link = this.graph.getCell(linkId) as dia.Link | undefined;
-        if (!link) return;
-        this.connectorRoutes[linkId] = points;
+        // The link may have been removed from the graph while avoid was still
+        // computing its route or became unroutable, so check for existence and validity before applying the route.
+        if (!link || !this.provider.hasConnector(linkId)) return;
 
+        this.connectorRoutes[linkId] = points;
         const fallback = !points || !this.isRouteValid(points, link);
 
         if (fallback) {
