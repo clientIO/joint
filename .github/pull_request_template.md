@@ -7,6 +7,7 @@ Please verify that:
 * [ ] If applicable, there are new or updated unit tests validating the change
 * [ ] If applicable, there are new or updated @types
 * [ ] If applicable, documentation has been updated
+* [ ] If the change is releasable, you've added a changeset (`yarn changeset`)
 -->
 
 ## Description
