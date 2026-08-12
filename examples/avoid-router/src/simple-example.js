@@ -37,8 +37,8 @@ export const initSimpleExample = async (canvasEl) => {
     await initAvoid(graph, {
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
-        filterLink: (link) => !link.get('doNotRoute'),
-        filterElement: (element) => !element.get('doNotRoute'),
+        skipLink: (link) => link.get('doNotRoute'),
+        skipElement: (element) => element.get('doNotRoute'),
     });
 
     const c1 = new Node({

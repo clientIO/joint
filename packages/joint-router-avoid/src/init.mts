@@ -16,11 +16,9 @@ export function loadAvoid(filePath?: string): Promise<void> {
     return loadAvoidPromise;
 }
 
-export const DEFAULT_PIN_CLASS_ID = 1;
-
 export interface InitAvoidOptions {
-    filterLink?: (link: dia.Link) => boolean;
-    filterElement?: (element: dia.Element) => boolean;
+    skipLink?: (link: dia.Link) => boolean;
+    skipElement?: (element: dia.Element) => boolean;
     shapeBufferDistance?: number;
     idealNudgingDistance?: number;
     useWorker?: boolean;
@@ -51,13 +49,17 @@ export async function initAvoid(graph: dia.Graph, options: InitAvoidOptions): Pr
         });
     }
 
-    const routerService = RouterService.create({
-        graph: graph,
-        provider: provider,
-        margin: options.shapeBufferDistance ?? 0,
-        filterLink: options.filterLink,
-        filterElement: options.filterElement
-    });
+    const routerServiceOptions = {
+        elementMargin: options.shapeBufferDistance ?? 0,
+        skipLink: options.skipLink,
+        skipElement: options.skipElement
+    };
+
+    const routerService = new RouterService(
+        graph,
+        provider,
+        routerServiceOptions
+    );
 
     return routerService;
 }
