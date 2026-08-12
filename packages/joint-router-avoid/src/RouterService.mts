@@ -6,17 +6,30 @@ import type { Connector, Provider, Shape } from './providers/Provider.mjs';
 
 const DEFAULT_PIN_CLASS_ID = 1;
 
+export interface FallbackRouteAttributes {
+    vertices: dia.Point[];
+}
+
+export interface RouteAttributes {
+    source: dia.Link.EndJSON;
+    target: dia.Link.EndJSON;
+    vertices: dia.Point[];
+}
+
+export type SkipLinkCallback = (link: dia.Link) => boolean;
+export type SkipElementCallback = (element: dia.Element) => boolean;
+export type SetRouteAttributesCallback = (link: dia.Link, attributes: RouteAttributes, options?: { fallback?: boolean }) => void;
+
 export interface RouterServiceOptions {
-    graph: dia.Graph;
-    provider: Provider;
-    filterLink?: (link: dia.Link) => boolean;
-    filterElement?: (element: dia.Element) => boolean;
-    margin?: number;
+    skipLink?: SkipLinkCallback;
+    skipElement?: SkipElementCallback;
+    setRouteAttributes?: SetRouteAttributesCallback;
+    // The margin to apply around elements when computing fallback route.
+    elementMargin?: number;
+    eventFlagName?: string;
 }
 
 export class RouterService {
-
-    private static instances: Map<dia.Graph, RouterService> = new Map();
 
     // Provided by the `mvc.Events` mixin applied below the class body.
     // Allows `RouterService` instances to emit `pending`/`routed` events for
@@ -25,36 +38,13 @@ export class RouterService {
     declare off: mvc.Events_Off<RouterService>;
     declare trigger: mvc.Events_Trigger<RouterService>;
 
-    private readonly defaultFilterLink = (_link: dia.Link) => true;
-    private readonly defaultFilterElement = (_element: dia.Element) => true;
+    private readonly defaultSkipLink = (_link: dia.Link) => true;
+    private readonly defaultSkipElement = (_element: dia.Element) => true;
 
-    static getInstance(graph: dia.Graph): RouterService | undefined {
-        return RouterService.instances.get(graph);
-    }
-
-    static create(options: RouterServiceOptions): RouterService {
-        // Replacing a still-running instance for the same graph would
-        // otherwise leak its listeners and provider (e.g. a Worker thread).
-        this.instances.get(options.graph)?.destroy();
-        const instance = new RouterService(options);
-        this.instances.set(options.graph, instance);
-        return instance;
-    }
-
-    private readonly graph: dia.Graph;
-    private readonly provider: Provider;
     private readonly pinIds: Record<string, number> = {};
     private readonly connectorRoutes: Record<dia.Cell.ID, dia.Point[]> = {};
-    private readonly filterLink: (link: dia.Link) => boolean;
-    private readonly filterElement: (element: dia.Element) => boolean;
-
-    // Anchors of a link as they were before the router first modified them.
-    // Used as the base for delta calculations so that adjustments don't
-    // accumulate on top of anchors the router itself already changed.
-    private readonly originalAnchors: WeakMap<dia.Link, {
-        source: anchors.AnchorJSON | undefined;
-        target: anchors.AnchorJSON | undefined;
-    }> = new WeakMap();
+    private readonly skipLink: (link: dia.Link) => boolean;
+    private readonly skipElement: (element: dia.Element) => boolean;
 
     // Links with an open `pending` cycle, i.e. `link:pending` was emitted for
     // them and `link:routed` hasn't closed it out yet. Checked wherever avoid is
@@ -62,8 +52,6 @@ export class RouterService {
     // so a link detached mid-flight - while avoid was still computing its
     // route - gets its stranded cycle closed instead of staying stuck.
     private readonly pendingLinks: WeakSet<dia.Link> = new WeakSet();
-
-    readonly margin: number;
 
     private nextPinId = 100000;
     private graphListener?: mvc.Listener<[]>;
@@ -77,14 +65,24 @@ export class RouterService {
         all: ConnDirFlags;
     };
 
-    private constructor(options: RouterServiceOptions) {
-        this.graph = options.graph;
-        this.margin = options.margin ?? 0;
-        this.provider = options.provider;
+    constructor(
+        private readonly graph: dia.Graph,
+        private readonly provider: Provider,
+        private readonly options: RouterServiceOptions = {}
+    ) {
+        if (this.options.elementMargin == null) {
+            this.options.elementMargin = 0;
+        }
+        if (this.options.eventFlagName == null) {
+            this.options.eventFlagName = 'avoidRouter';
+        }
 
-        this.filterLink = options.filterLink ?? this.defaultFilterLink;
-        this.filterElement = options.filterElement ?? this.defaultFilterElement;
+        this.skipLink = options.skipLink ?? this.defaultSkipLink;
+        this.skipElement = options.skipElement ?? this.defaultSkipElement;
 
+        // connection directions flags for avoid shapes' pins.
+        // The flags are used to indicate which directions a pin can connect to.
+        // The values are defined in the `ConnDirFlags` enum in `libavoid-js`.
         this.connectionDirections = {
             top: 1,
             right: 8,
@@ -125,6 +123,13 @@ export class RouterService {
         this.graphListener = undefined;
     }
 
+    // Returns the route computed by avoid for the link with the given id, or
+    // `undefined` if avoid has not computed a route for it yet. The route is
+    // an array of points including the source and target points.
+    getRoute(linkId: dia.Cell.ID): dia.Point[] | undefined {
+        return this.connectorRoutes[linkId];
+    }
+
     // Stops routing this graph and releases the resources held by this
     // instance and its provider (e.g. terminates a Worker thread). The
     // instance must not be used after calling this.
@@ -133,25 +138,17 @@ export class RouterService {
         this.destroyed = true;
 
         this.removeGraphListeners();
-        if (RouterService.instances.get(this.graph) === this) {
-            RouterService.instances.delete(this.graph);
-        }
         this.provider.destroy();
-    }
-
-    public getRoute(linkId: dia.Cell.ID): dia.Point[] | undefined {
-        return this.connectorRoutes[linkId];
     }
 
     private onCellRemoved(cell: dia.Cell): void {
         if (cell.isElement()) {
             this.deletePinIds(cell.id);
-            if (this.filterElement(cell)) {
+            if (this.skipElement(cell)) {
                 this.provider.deleteShape(cell.id);
             }
-        } else if (cell.isLink() && this.filterLink(cell)) {
+        } else if (cell.isLink() && !this.skipLink(cell)) {
             this.provider.deleteConnector(cell.id);
-            this.originalAnchors.delete(cell);
         }
     }
 
@@ -168,12 +165,12 @@ export class RouterService {
     }
 
     private onCellAdded(cell: dia.Cell): void {
-        if (cell.isElement() && this.filterElement(cell)) {
+        if (cell.isElement() && this.skipElement(cell)) {
             this.provider.updateShape(this.getAvoidShape(cell));
             return;
         }
 
-        if (!cell.isLink() || !this.filterLink(cell)) return;
+        if (!cell.isLink() || this.skipLink(cell)) return;
 
         if (!this.validateEnds(cell)) {
             // In scope for the router, but avoid can't route a link that
@@ -185,11 +182,11 @@ export class RouterService {
         this.provider.updateConnector(this.getAvoidConnector(cell));
     }
 
-    private onCellChanged(cell: dia.Cell, opt: dia.Cell.Options & { avoidRouter?: boolean }): void {
-        if (opt.avoidRouter) return;
+    private onCellChanged(cell: dia.Cell, opt: dia.Cell.Options = {}): void {
+        if (opt[this.options.eventFlagName!]) return;
 
         if ('source' in cell.changed || 'target' in cell.changed) {
-            if (!cell.isLink() || !this.filterLink(cell)) return;
+            if (!cell.isLink() || this.skipLink(cell)) return;
 
             this.applyFallbackRoute(cell);
             if (!this.validateEnds(cell)) {
@@ -202,9 +199,6 @@ export class RouterService {
                 return;
             }
 
-            if (cell.changed.source?.anchor || cell.changed.target?.anchor) {
-                this.originalAnchors.delete(cell);
-            }
             this.setPending(cell);
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
@@ -212,7 +206,7 @@ export class RouterService {
         if ('position' in cell.changed || 'size' in cell.changed) {
             if (!cell.isElement()) return;
             this.graph.getConnectedLinks(cell).forEach((link) => {
-                if (!this.filterLink(link)) return;
+                if (this.skipLink(link)) return;
 
                 this.applyFallbackRoute(link);
                 if (this.validateEnds(link)) {
@@ -221,7 +215,7 @@ export class RouterService {
                     this.setRouted(link, true);
                 }
             });
-            if (this.filterElement(cell)) {
+            if (this.skipElement(cell)) {
                 this.provider.updateShape(this.getAvoidShape(cell));
             }
         }
@@ -230,18 +224,17 @@ export class RouterService {
     private onGraphReset(previousModels?: dia.Cell[]): void {
         if (previousModels) {
             previousModels.forEach((cell) => {
-                if (cell.isElement() && this.filterElement(cell)) {
+                if (cell.isElement() && !this.skipElement(cell)) {
                     this.provider.deleteShape(cell.id, false);
-                } else if (cell.isLink() && this.filterLink(cell)) {
+                } else if (cell.isLink() && !this.skipLink(cell)) {
                     this.provider.deleteConnector(cell.id, false);
-                    this.originalAnchors.delete(cell);
                 }
             });
         }
 
         const routableLinks: dia.Link[] = [];
         this.graph.getLinks().forEach((link) => {
-            if (!this.filterLink(link)) return;
+            if (this.skipLink(link)) return;
 
             if (!this.validateEnds(link)) {
                 this.applyFallbackRoute(link);
@@ -252,7 +245,7 @@ export class RouterService {
         });
 
         this.provider.updateGraph(
-            this.graph.getElements().filter(this.filterElement).map((element) => this.getAvoidShape(element)),
+            this.graph.getElements().filter((element) => !this.skipElement(element)).map((element) => this.getAvoidShape(element)),
             routableLinks.map((link) => this.getAvoidConnector(link))
         );
     }
@@ -340,7 +333,7 @@ export class RouterService {
     // `fallback` tells listeners whether the final route came from avoid
     // (false) or from `applyFallbackRoute` (true) - e.g. because the link
     // was detached while avoid was still computing its route.
-    private setRouted(link: dia.Link, fallback: boolean): void {
+    private setRouted(link: dia.Link, fallback?: boolean): void {
         this.pendingLinks.delete(link);
         this.trigger('link:routed', link, { fallback });
     }
@@ -354,12 +347,15 @@ export class RouterService {
 
         if (fallback) {
             this.applyFallbackRoute(link);
-            this.setRouted(link, fallback);
             return;
         }
 
-        const updatedRoute = this.getUpdatedRoute(points, link);
+        this.applyRoute(link, points);
+    }
 
+    // Applies the route computed by avoid to the link, updating its source/target
+    private applyRoute(link: dia.Link, points: dia.Point[]): void {
+        const updatedRoute = this.getUpdatedRoute(points, link);
         const linkAttributes = {
             source: {
                 ...link.source(),
@@ -373,39 +369,33 @@ export class RouterService {
         };
 
         // trigger change on vertices setter to update the link view
-        link.set(linkAttributes, { avoidRouter: true });
-        this.setRouted(link, fallback);
+        if (this.options.setRouteAttributes) {
+            this.options.setRouteAttributes(link, linkAttributes);
+            this.setRouted(link);
+            return;
+        }
+
+        link.set(linkAttributes, { [this.options.eventFlagName!]: true });
+        this.setRouted(link);
     }
 
     // Applies the manual `rightAngle` route directly to the link, bypassing
-    // avoid. Used when a route computed by avoid should not be trusted, and
-    // when a link isn't routable by avoid at all (e.g. a loose end).
-    //
-    // Also used as a temporary placeholder while a change is still being
-    // sent to avoid (source/target or a connected element's position/size
-    // changed), so it does NOT itself close a link's pending cycle - most
-    // calls are followed by immediately reopening one. Callers that are
-    // instead definitively giving up on avoid for this change close the
-    // cycle themselves right before calling this, if one is open.
+    // avoid. Used when a route computed by avoid should not be trusted.
     private applyFallbackRoute(link: dia.Link): void {
-        const { source: originalSourceAnchor, target: originalTargetAnchor } = this.getOriginalLinkAnchors(link);
-
-        // Restore the original anchors before computing the fallback route,
-        // since it derives its points from the link's current anchors.
-        link.set({
-            source: {
-                ...link.source(),
-                anchor: originalSourceAnchor
-            },
-            target: {
-                ...link.target(),
-                anchor: originalTargetAnchor
-            }
-        }, { avoidRouter: true });
-
         const rightAngleVertices = this.getFallbackRoute(link);
 
-        link.set('vertices', rightAngleVertices, { avoidRouter: true });
+        if (this.options.setRouteAttributes) {
+            this.options.setRouteAttributes(link, {
+                source: link.source(),
+                target: link.target(),
+                vertices: rightAngleVertices
+            }, { fallback: true });
+            this.setRouted(link, true);
+            return;
+        }
+
+        link.set('vertices', rightAngleVertices, { [this.options.eventFlagName!]: true });
+        this.setRouted(link, true);
     }
 
     private getFallbackRoute(link: dia.Link): dia.Point[] {
@@ -428,7 +418,7 @@ export class RouterService {
             width: sourceBBox.width,
             height: sourceBBox.height,
             side: sourceSide,
-            margin: this.margin,
+            margin: this.options.elementMargin ?? 0,
         };
 
         let targetBBox = link.getTargetElement()?.getBBox();
@@ -447,7 +437,7 @@ export class RouterService {
             width: targetBBox.width,
             height: targetBBox.height,
             side: targetSide,
-            margin: this.margin,
+            margin: this.options.elementMargin ?? 0,
         };
 
         return alg.rightAnglePath(source, target);
@@ -488,12 +478,12 @@ export class RouterService {
             return false;
         }
 
-        if (sourcePortId && targetElement!.getBBox().inflate(this.margin).containsPoint(sourcePoint)) {
+        if (sourcePortId && targetElement!.getBBox().inflate(this.options.elementMargin).containsPoint(sourcePoint)) {
             // The source point is inside the target element.
             return false;
         }
 
-        if (targetPortId && sourceElement!.getBBox().inflate(this.margin).containsPoint(targetPoint)) {
+        if (targetPortId && sourceElement!.getBBox().inflate(this.options.elementMargin).containsPoint(targetPoint)) {
             // The target point is inside the source element.
             return false;
         }
@@ -501,28 +491,9 @@ export class RouterService {
         return true;
     }
 
-
-    // Returns the anchors of the link as they were before the router first
-    // modified them, capturing them lazily on first access.
-    private getOriginalLinkAnchors(link: dia.Link): {
-        source: anchors.AnchorJSON | undefined;
-        target: anchors.AnchorJSON | undefined;
-    } {
-        let originalAnchors = this.originalAnchors.get(link);
-        if (!originalAnchors) {
-            originalAnchors = {
-                source: link.source().anchor,
-                target: link.target().anchor
-            };
-            this.originalAnchors.set(link, originalAnchors);
-        }
-        return originalAnchors;
-    }
-
     private getUpdatedRoute(route: dia.Point[], link: dia.Link): { sourceAnchor: anchors.AnchorJSON, targetAnchor: anchors.AnchorJSON, vertices: dia.Point[] } {
         const { port: sourcePortId = null } = link.source();
         const { port: targetPortId = null } = link.target();
-        const { source: baseSourceAnchor, target: baseTargetAnchor } = this.getOriginalLinkAnchors(link);
 
         const sourceElement = link.getSourceElement() as dia.Element;
         const targetElement = link.getTargetElement() as dia.Element;
@@ -535,41 +506,21 @@ export class RouterService {
         const targetAnchorDelta = this.getLinkAnchorDelta(targetElement, targetPortId, targetPoint);
 
         // temporarily set the anchors to the new positions so that the link is drawn correctly
-        let sourceAnchor;
-        if (!baseSourceAnchor) {
-            sourceAnchor = {
-                name: 'modelCenter',
-                args: {
-                    dx: sourceAnchorDelta.x,
-                    dy: sourceAnchorDelta.y
-                }
-            };
-        } else {
-            sourceAnchor = util.cloneDeep(baseSourceAnchor);
-            if (!sourceAnchor.args) {
-                sourceAnchor.args = {};
+        const sourceAnchor = {
+            name: 'modelCenter',
+            args: {
+                dx: sourceAnchorDelta.x,
+                dy: sourceAnchorDelta.y
             }
-            sourceAnchor.args.dx = (sourceAnchor.args.dx ?? 0) + sourceAnchorDelta.x;
-            sourceAnchor.args.dy = (sourceAnchor.args.dy ?? 0) + sourceAnchorDelta.y;
-        }
+        };
 
-        let targetAnchor;
-        if (!baseTargetAnchor) {
-            targetAnchor = {
-                name: 'modelCenter',
-                args: {
-                    dx: targetAnchorDelta.x,
-                    dy: targetAnchorDelta.y
-                }
-            };
-        } else {
-            targetAnchor = util.cloneDeep(baseTargetAnchor);
-            if (!targetAnchor.args) {
-                targetAnchor.args = {};
+        const targetAnchor = {
+            name: 'modelCenter',
+            args: {
+                dx: targetAnchorDelta.x,
+                dy: targetAnchorDelta.y
             }
-            targetAnchor.args.dx = (targetAnchor.args.dx ?? 0) + targetAnchorDelta.x;
-            targetAnchor.args.dy = (targetAnchor.args.dy ?? 0) + targetAnchorDelta.y;
-        }
+        };
 
         return {
             sourceAnchor,
@@ -604,7 +555,7 @@ export class RouterService {
             return false;
         }
 
-        if (!this.filterElement(sourceElement) || !this.filterElement(targetElement)) {
+        if (!this.skipElement(sourceElement) || !this.skipElement(targetElement)) {
             return false;
         }
 
