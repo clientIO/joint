@@ -284,7 +284,7 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     }
 }
 
-function pointDataFromAnchor(view, anchor, bbox, direction, isPort, margin, useModelMargin) {
+function pointDataFromAnchor(view, anchor, bbox, direction, isPort, margin, useModelGeometry) {
     if (direction === Directions.AUTO) {
         direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
@@ -292,8 +292,8 @@ function pointDataFromAnchor(view, anchor, bbox, direction, isPort, margin, useM
     const isElement = view && view.model.isElement();
 
     let rect;
-    if (useModelMargin) {
-        rect = isElement ? view.model.getBBox() : anchor;
+    if (useModelGeometry) {
+        rect = isElement ? g.Rect.fromRectUnion(view.model.getBBox(), anchor) : anchor;
     } else {
         rect = isElement ? g.Rect.fromRectUnion(anchor, bbox, view.model.getBBox()) : anchor;
     }
@@ -433,13 +433,13 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     const useVertices = opt.useVertices || false;
 
-    const useModelMargin = opt.useModelMargin || false;
+    const useModelGeometry = opt.useModelGeometry || false;
 
     const isSourcePort = !!linkView.model.source().port;
-    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, sourceMargin, useModelMargin);
+    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, sourceMargin, useModelGeometry);
 
     const isTargetPort = !!linkView.model.target().port;
-    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, targetMargin, useModelMargin);
+    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, targetMargin, useModelGeometry);
     const resultVertices = [];
 
     if (!useVertices || vertices.length === 0) {
@@ -451,7 +451,7 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     const [resolvedSourceDirection] = resolveSides(sourcePoint, firstVertex);
     const isElement = sourcePoint.view && sourcePoint.view.model.isElement();
-    const sourceBBox = isElement ? moveAndExpandBBox(useModelMargin ? linkView.sourceView.model.getBBox() : linkView.sourceBBox, resolvedSourceDirection, sourceMargin) : null;
+    const sourceBBox = isElement ? moveAndExpandBBox(useModelGeometry ? linkView.sourceView.model.getBBox() : linkView.sourceBBox, resolvedSourceDirection, sourceMargin) : null;
     const isVertexInside = isElement ? sourceBBox.containsPoint(firstVertex.point) : false;
 
     if (isVertexInside) {
@@ -577,7 +577,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             const roundedLastSegmentAngle = Math.round(getSegmentAngle(lastSegment));
             const lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
 
-            const targetBBox = moveAndExpandBBox(useModelMargin ? linkView.targetView.model.getBBox() : linkView.targetBBox, resolvedTargetDirection, margin);
+            const targetBBox = moveAndExpandBBox(useModelGeometry ? linkView.targetView.model.getBBox() : linkView.targetBBox, resolvedTargetDirection, margin);
 
             const alignsVertically = lastVertex.point.x === targetPoint.point.x;
             const alignsHorizontally = lastVertex.point.y === targetPoint.point.y;
