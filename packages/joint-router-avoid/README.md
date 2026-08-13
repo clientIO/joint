@@ -4,30 +4,21 @@ A module that routes *[JointJS](https://www.jointjs.com)* links using [libavoid]
 
 This library fully depends on [JointJS](https://github.com/clientio/joint) (*>=4.0*), so please read its `README.md` before using this library.
 
-Unlike the built-in `@joint/core` routers (e.g. `manhattan`, `rightAngle`), which route one link at a time, libavoid maintains a single incremental router shared by the whole graph: it tracks every element as an obstacle and every link as a connector, and reroutes affected connectors whenever obstacles move.
-
-This package exposes that behavior as a [custom router](https://docs.jointjs.com/learn/features/diagram-basics/links/#custom-router), so it plugs into `@joint/core` the same way as any built-in router (`manhattan`, `rightAngle`, ...). See [`examples/libavoid-router`](https://github.com/clientIO/joint/tree/master/examples/libavoid-router) for a full demo.
+libavoid maintains a single incremental router shared by the whole graph: it tracks every element as an obstacle and every link as a connector, and reroutes affected connectors whenever obstacles move. This package wraps that behavior in a `RouterService` that listens to a `dia.Graph` and, whenever libavoid computes a new route for a link, applies it directly to that link's `vertices` and source/target anchors - there is no `router: { name: ... }` attribute to set on links; once a link is connected to two elements on a routed graph, it is routed automatically. See [`examples/avoid-router`](https://github.com/clientIO/joint/tree/master/examples/avoid-router) for a full demo.
 
 ## 🚀 Quick Start
 
 ### Installation
 
 ```bash
-npm install @joint/routers-avoid
+npm install @joint/router-avoid
 ```
 
 ### Basic Usage
 
-The underlying WebAssembly module must be loaded once, asynchronously, before an `AvoidRouter` instance is created. The `avoid` router is then registered like any other custom router:
-
 ```ts
-import { dia, shapes, routers } from '@joint/core';
-import { AvoidRouter, avoid } from '@joint/routers-avoid';
-
-await AvoidRouter.load();
-
-// Register the router under a name, so it can be referenced from links.
-routers.avoid = avoid;
+import { dia, shapes } from '@joint/core';
+import { initAvoid } from '@joint/router-avoid';
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
@@ -36,67 +27,79 @@ const paper = new dia.Paper({
     el: document.getElementById('paper'),
 });
 
-// ... add elements and links to the graph ...
-// Links routed by avoid must use the router by name:
-// new shapes.standard.Link({ router: { name: 'avoid' }, ... })
-
-// Create the manager that tracks elements/links as avoid
-// obstacles/connectors for this graph, and computes their routes.
-const avoidRouter = new AvoidRouter(graph, {
+// Loads the libavoid-js WebAssembly module (if not already loaded), then
+// registers every element/link currently in the graph as an avoid
+// obstacle/connector and keeps them in sync with future graph changes.
+const routerService = await initAvoid(graph, {
     shapeBufferDistance: 20,
     idealNudgingDistance: 10,
 });
 
-// Register every element and link currently in the graph, and route them.
-avoidRouter.routeAll();
+// ... add elements and links to the graph - links connected to two
+// elements are picked up and routed automatically, no `router`
+// attribute needed:
+// new shapes.standard.Link({ source: { id: a.id }, target: { id: b.id } });
 
-// Keep the router in sync with future graph changes.
-avoidRouter.addGraphListeners();
+// Stop routing this graph and release the underlying resources
+// (e.g. terminate a Worker thread) when they're no longer needed.
+// routerService.destroy();
 ```
 
-Alternatively, the router can be used without registering it globally, by passing the function directly: `link.router(avoid)`.
+`initAvoid()` resolves once the module is loaded and the current graph content has been registered with libavoid; the routes themselves are still computed asynchronously and applied as they come in - listen for the `link:routed` event to know when a specific link's route has settled (see below).
+
+Loaded as a script tag rather than via ESM, the same functions are available as `joint.routers.avoid.initAvoid` / `joint.routers.avoid.loadAvoid` on the UMD build.
 
 ## 📖 API Reference
 
-### `avoid(vertices, args, linkView): dia.Point[]`
+### `loadAvoid(filePath?): Promise<void>`
 
-The router function itself, following the [custom router](https://docs.jointjs.com/learn/features/diagram-basics/links/#custom-router) signature. It looks up the `AvoidRouter` instance registered for the link's graph and returns the route currently computed by the avoid router for that link. Falls back to the built-in `rightAngle` router when no `AvoidRouter` exists yet for the graph, or when the last computed avoid route is not valid (see Caveats below).
+Loads the `libavoid-js` WebAssembly module. `initAvoid()` calls this automatically if the module isn't loaded yet, so calling it directly is only needed to preload the module ahead of time. Accepts an optional path to the `libavoid.wasm` file if it is not served from its default location. Safe to call multiple times - later calls resolve once the first load completes.
 
-### `AvoidRouter.load(wasmPath?): Promise<void>`
+### `initAvoid(graph, options?): Promise<RouterService>`
 
-Loads the `libavoid-js` WebAssembly module. Must resolve before any `AvoidRouter` instance is created. Accepts an optional path to the `libavoid.wasm` file if it is not served from its default location.
-
-### `new AvoidRouter(graph, options?)`
-
-The manager responsible for keeping the avoid router's internal obstacle/connector graph in sync with a `dia.Graph`, and for computing the routes that the `avoid` router function reads.
+Loads the module (via `loadAvoid()`, if needed), creates a `RouterService` for `graph`, and registers every element/link currently in the graph as an avoid obstacle/connector.
 
 - `graph`: `dia.Graph` - the graph to route.
-- `options?`: `AvoidRouterOptions`
+- `options?`: `InitAvoidOptions`
 
 ```ts
-interface AvoidRouterOptions {
-    idealNudgingDistance?: number; // Default: 10
-    shapeBufferDistance?: number;  // Default: 0
-    portOverflow?: number;         // Default: 0
-    commitTransactions?: boolean;  // Default: true
+interface InitAvoidOptions {
+    shapeBufferDistance?: number;  // Default: 0 - spacing added around shapes when computing obstacles
+    idealNudgingDistance?: number; // Default: 10 - spacing used to nudge apart overlapping connector segments
+    useWorker?: boolean;           // Default: false - run libavoid inside a Web Worker instead of the main thread
+    debounceTime?: number;         // Default: 100 - worker only: ms between graph updates flushed to the worker
+    libraryFilePath?: string;      // Forwarded to loadAvoid()
+    skipLink?: (link: dia.Link) => boolean;         // Exclude a link from being tracked as an avoid connector
+    skipElement?: (element: dia.Element) => boolean; // Exclude an element from being tracked as an avoid obstacle
+    // First refusal on a link avoid can't route because one of its ends
+    // isn't connected to a tracked element ('unconnected') or is connected
+    // to an element excluded via `skipElement` ('untracked-element').
+    // Return true to take over routing that link yourself; otherwise the
+    // built-in `rightAngle`-based fallback route is applied.
+    handleUnroutableLink?: (link: dia.Link, reason: 'unconnected' | 'untracked-element') => boolean;
 }
 ```
 
-### Instance Methods
+### `RouterService` (returned by `initAvoid()`)
 
-- `routeAll()` - registers every element/link currently in the graph with the router and routes them.
-- `addGraphListeners()` / `removeGraphListeners()` - keep the router in sync with graph changes (added/removed cells, moved/resized elements, reconnected links).
-- `updateShape(element)` / `deleteShape(element)` - register/remove an obstacle.
-- `updateConnector(link)` / `deleteConnector(link)` - register/remove a connector.
-- `routeLink(link)` - recomputes and caches the avoid route for a single link, and updates its anchors accordingly.
-- `getRoute(link)` - the last route cached for a link (used by the `avoid` router function).
+The object responsible for keeping libavoid's internal obstacle/connector graph in sync with the `dia.Graph`, applying computed routes to links, and emitting routing events. It mixes in JointJS's `mvc.Events` (`on`/`off`/`trigger`).
+
+- `getRoute(linkId)` - the last route (an array of points, including source and target) computed for the link with that id, or `undefined` if none has been computed yet.
+- `addGraphListeners()` / `removeGraphListeners()` - start/stop listening to graph changes (added/removed cells, moved/resized elements, reconnected links). Listening starts automatically when `initAvoid()` resolves.
+- `destroy()` - stops routing the graph and releases the resources held by the service and its provider (e.g. terminates a Worker thread). Do not use the instance afterwards.
+
+**Events:**
+
+- `link:pending` `(link)` - emitted when a link's route is (re-)computing.
+- `link:routed` `(link, { fallback })` - emitted once a link's route has been applied. `fallback` is `true` when the applied route came from the built-in fallback rather than from libavoid.
+- `link:pending:cancelled` `(link)` - emitted when a link with an open `link:pending` cycle becomes unroutable (e.g. disconnected) before libavoid produced a route for it.
 
 ## ⚠️ Caveats & Known Limitations
 
-- **Asynchronous setup** - the WebAssembly module must be loaded with `AvoidRouter.load()` before use; this is asynchronous and must be awaited.
-- **Bundler configuration** - `libavoid-js` ships its logic and the `libavoid.wasm` binary as separate files. Consuming applications are responsible for ensuring `libavoid.wasm` is served alongside the rest of the bundle (e.g. via a copy plugin for your bundler of choice).
-- **Fallback routing** - libavoid does not expose a way to check whether a computed route is valid, so a heuristic is used. When the route is deemed invalid, the `avoid` router falls back to the `rightAngle` router.
-- **One `AvoidRouter` per graph** - constructing more than one `AvoidRouter` for the same `dia.Graph` replaces the instance used by the `avoid` router function.
+- **Asynchronous setup** - `initAvoid()` loads the WebAssembly module and performs the initial graph sync asynchronously; it must be awaited before the graph is considered routed.
+- **Bundler configuration** - `libavoid-js` ships its logic and the `libavoid.wasm` binary as separate files, and `useWorker: true` additionally loads this package's own worker script as a module. Consuming applications are responsible for ensuring both are served alongside the rest of the bundle (e.g. via a copy plugin for your bundler of choice).
+- **Fallback routing** - libavoid does not expose a way to check whether a computed route is valid, so a heuristic is used. When the route is deemed invalid, or when a link isn't connected to elements on both ends, the built-in `rightAngle`-based fallback route is applied instead (unless `handleUnroutableLink` takes over).
+- **One `RouterService` per graph** - constructing more than one `RouterService` for the same `dia.Graph` results in both instances applying routes to the same links; call `destroy()` on a previous instance before creating a new one for the same graph.
 - **Custom vertices (checkpoints)** are not currently supported.
 
 ## 📄 License
