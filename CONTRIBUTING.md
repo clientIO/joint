@@ -7,7 +7,7 @@ Thank you for your interest in contributing to JointJS! This document provides g
 ### Prerequisites
 
 - Node.js 22.14.0 (managed via [Volta](https://volta.sh/))
-- Yarn 4.7.0
+- Yarn 4.18.0
 
 ### Installation
 
