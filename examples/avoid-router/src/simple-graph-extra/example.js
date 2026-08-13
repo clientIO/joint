@@ -11,10 +11,27 @@ const cellNamespace = {
     Note,
 };
 
-export const initSimpleExample = async (canvasEl) => {
+// Cells tagged `group: 'b'` belong to the second subgraph, routed and
+// styled independently of everything else on the paper; cells with no
+// `group` (or any other value) belong to the first, default subgraph.
+const isGroupB = (cell) => cell.get('group') === 'b';
+
+const groupBLineAttrs = {
+    line: {
+        stroke: '#0B7A70',
+        strokeWidth: 2,
+    },
+};
+
+export const initSimpleExampleExtra = async (canvasEl) => {
 
     const { graph, paper } = createPaper(canvasEl, cellNamespace, {
-        defaultLink: () => new Edge(),
+        // A link dragged from a group B element belongs to group B too,
+        // so it's picked up by `routerServiceB` (and styled to match)
+        // instead of falling into the default group A subgraph.
+        defaultLink: (cellView) => isGroupB(cellView.model)
+            ? new Edge({ group: 'b', attrs: groupBLineAttrs })
+            : new Edge(),
         validateConnection: (
             sourceView,
             sourceMagnet,
@@ -34,11 +51,16 @@ export const initSimpleExample = async (canvasEl) => {
         },
     });
 
-    const routerService = await initAvoid(graph, {
+    // Two independent `RouterService` instances share the same graph, each
+    // with its own libavoid router underneath. `skipLink`/`skipElement`
+    // partition the graph's cells between them by their `group` attribute,
+    // so each instance only ever sees - and only ever routes around - its
+    // own subgraph's shapes and links, with its own routing settings.
+    const routerServiceA = await initAvoid(graph, {
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
-        skipLink: (link) => link.get('doNotRoute'),
-        skipElement: (element) => element.get('doNotRoute'),
+        skipLink: (link) => link.get('doNotRoute') || isGroupB(link),
+        skipElement: (element) => element.get('doNotRoute') || isGroupB(element),
         handleUnroutableLink: (link, reason) => {
             switch (reason) {
                 case 'unconnected': {
@@ -59,7 +81,7 @@ export const initSimpleExample = async (canvasEl) => {
         },
     });
 
-    routerService.on('link:routed', (link) => {
+    routerServiceA.on('link:routed', (link) => {
         if (link.get('isDragging')) {
             link.set({
                 router: { name: 'normal' },
@@ -67,6 +89,16 @@ export const initSimpleExample = async (canvasEl) => {
                 isDragging: false,
             });
         }
+    });
+
+    // A much larger buffer/nudging distance than group A's, so the two
+    // subgraphs are visibly routed differently. Nothing further to do with
+    // the returned `RouterService` in this demo, so it isn't kept around.
+    await initAvoid(graph, {
+        shapeBufferDistance: 30,
+        idealNudgingDistance: 20,
+        skipLink: (link) => link.get('doNotRoute') || !isGroupB(link),
+        skipElement: (element) => element.get('doNotRoute') || !isGroupB(element),
     });
 
     const c1 = new Node({
@@ -153,7 +185,56 @@ export const initSimpleExample = async (canvasEl) => {
         size: { width: 220, height: 260 },
     });
 
-    graph.resetCells([c1, c2, c3, c4, c5, l1, l2, l3, l4, l5, note]);
+    // Group B's own subgraph: a separate, disconnected set of shapes and
+    // links, tagged `group: 'b'` and styled in teal so it reads as
+    // distinct from group A (blue) at a glance. Routed by the second
+    // `initAvoid()` call above, unaware of group A's shapes and vice versa.
+    const groupBAttrs = {
+        body: {
+            fill: 'rgba(13,148,136,0.15)',
+            stroke: '#0D9488',
+        },
+    };
+
+    const b1 = new Node({
+        group: 'b',
+        position: { x: 150, y: 620 },
+        size: { width: 90, height: 90 },
+        attrs: groupBAttrs,
+    });
+
+    const b2 = b1.clone().set({
+        position: { x: 450, y: 780 },
+        size: { width: 90, height: 90 },
+    });
+
+    const b3 = b1.clone().set({
+        position: { x: 750, y: 620 },
+        size: { width: 90, height: 90 },
+    });
+
+    const bl1 = new Edge({
+        group: 'b',
+        source: { id: b1.id },
+        target: { id: b2.id },
+        attrs: groupBLineAttrs,
+    });
+
+    const bl2 = new Edge({
+        group: 'b',
+        source: { id: b2.id },
+        target: { id: b3.id },
+        attrs: groupBLineAttrs,
+    });
+
+    const bl3 = new Edge({
+        group: 'b',
+        source: { id: b3.id },
+        target: { id: b1.id },
+        attrs: groupBLineAttrs,
+    });
+
+    graph.resetCells([c1, c2, c3, c4, c5, l1, l2, l3, l4, l5, note, b1, b2, b3, bl1, bl2, bl3]);
 
     paper.unfreeze();
 

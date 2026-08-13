@@ -1,7 +1,7 @@
 import '../styles.scss';
 import { initSimpleExample } from './simple-graph/example';
 import { initLargeGraphExample } from './large-graph/example';
-import { initSimpleExample as initSimpleExampleExtra } from './simple-graph-extra/example';
+import { initSimpleExampleExtra } from './simple-graph-extra/example';
 
 const panels = {
     simple: document.getElementById('canvas-simple'),
