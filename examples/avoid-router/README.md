@@ -1,6 +1,11 @@
-# JointJS Libavoid Standalone Routing Demo
+# JointJS Avoid Router Demo
 
 <img width="709" alt="image" src="https://github.com/clientIO/joint/assets/3967880/acb322cb-8913-429b-aaa9-87322f3aad9a">
+
+A demo of `@joint/router-avoid`, showing three graphs, one per tab:
+
+- **Simple graph** / **Simple graph extra** - libavoid running on the main thread.
+- **Large graph** - libavoid running inside a Web Worker (`useWorker: true`), for a larger graph where routing off the main thread keeps the UI responsive.
 
 ## Setup
 
@@ -15,11 +20,6 @@ yarn run build
 Navigate to this directory, then run:
 ```bash
 yarn start
-```
-
-For web workers version, run:
-```bash
-yarn run start-web-worker
 ```
 
 ## License
