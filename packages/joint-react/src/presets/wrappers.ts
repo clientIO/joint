@@ -49,6 +49,26 @@ export function anchorWhenConnected(connected: anchors.Anchor, disconnected: anc
 }
 
 /**
+ * Wraps a connection point, uses `presetAnchor` when the link end takes the paper's
+ * default anchor, `customAnchor` when the end carries an anchor of its own.
+ *
+ * A preset whose anchor already accounts for the arrowhead (as `midSideAnchor` does)
+ * pairs it with a connection point that returns the anchor untouched. An end with its
+ * own `anchor` never runs that anchor, so a preset can use this to treat those ends
+ * differently without the two ever both being applied.
+ * @param presetAnchor - used when the end has no anchor of its own
+ * @param customAnchor - used when the end declares its own anchor
+ */
+export function connectionPointWhenAnchorIsDefault(presetAnchor: connectionPoints.ConnectionPoint, customAnchor: connectionPoints.ConnectionPoint): connectionPoints.ConnectionPoint {
+  return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
+    const link = linkView.model;
+    const end = endType === 'source' ? link.source() : link.target();
+    const connectionPoint = end?.anchor ? customAnchor : presetAnchor;
+    return connectionPoint(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
+  };
+}
+
+/**
  * Wraps a connection point, uses `connected` when both ends are attached, `disconnected` otherwise.
  * @param connected
  * @param disconnected
