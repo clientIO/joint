@@ -27,15 +27,13 @@ export const initLargeGraphExample = async (canvasEl) => {
             switch (reason) {
                 case 'unconnected': {
                     if (link.get('isDragging')) {
-                        return true;
+                        return false;
                     }
                     link.set({
-                        vertices: [],
-                        router: { name: 'normal' },
-                        connector: { name: 'curve' },
                         isDragging: true,
                     });
-                    return true;
+                    link.attr('line/stroke', 'red');
+                    return false;
                 }
                 default:
                     return false;
@@ -52,10 +50,9 @@ export const initLargeGraphExample = async (canvasEl) => {
 
         if (link.get('isDragging')) {
             link.set({
-                router: { name: 'normal' },
-                connector: null,
                 isDragging: false,
             });
+            link.attr('line/stroke', '#464454');
         }
     });
 
