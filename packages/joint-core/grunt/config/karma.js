@@ -6,7 +6,9 @@ module.exports = function(grunt) {
     process.env.CHROME_BIN = require('puppeteer').executablePath();
 
     function karmaPreprocessors(files) {
-        const preprocessors = ['coverage'];
+        // 'sourcemap' must run first: it attaches the bundle's map to the karma file,
+        // which is what lets karma-coverage remap the results onto src/
+        const preprocessors = ['sourcemap', 'coverage'];
         return files.reduce(function(files, file) {
             files[file] = preprocessors;
             return files;
@@ -69,22 +71,22 @@ module.exports = function(grunt) {
         geometry: {
             options: {
                 files: [
-                    modules.geometry.umd,
+                    modules.geometry.test,
                     'test/geometry/*.js'
                 ],
-                preprocessors: karmaPreprocessors([modules.geometry.umd]),
+                preprocessors: karmaPreprocessors([modules.geometry.test]),
                 coverageReporter: karmaCoverageReporters('geometry')
             },
         },
         vectorizer: {
             options: {
                 files: [
-                    modules.geometry.umd,
-                    modules.vectorizer.umd,
+                    modules.geometry.test,
+                    modules.vectorizer.test,
                     'test/geometry/*.js',
                     'test/vectorizer/*.js',
                 ],
-                preprocessors: karmaPreprocessors([modules.vectorizer.umd]),
+                preprocessors: karmaPreprocessors([modules.vectorizer.test]),
                 coverageReporter: karmaCoverageReporters('vectorizer')
             }
         },
@@ -92,8 +94,8 @@ module.exports = function(grunt) {
             options: {
                 files: [
                     dependencies,
-                    modules.geometry.umd,
-                    modules.vectorizer.umd,
+                    modules.geometry.test,
+                    modules.vectorizer.test,
                     modules.joint.noDependencies,
                     'test/utils.js',
                     'test/jointjs/**/*.js'

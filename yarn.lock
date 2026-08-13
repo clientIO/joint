@@ -5632,6 +5632,7 @@ __metadata:
     karma-coverage: "npm:2.2.1"
     karma-qunit: "npm:4.2.1"
     karma-sinon: "npm:1.0.5"
+    karma-sourcemap-loader: "npm:^0.4.0"
     load-grunt-config: "npm:4.0.1"
     lodash: "npm:~4.17.21"
     mocha: "npm:11.1.0"
@@ -19023,7 +19024,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graceful-fs@npm:^4.1.11, graceful-fs@npm:^4.1.15, graceful-fs@npm:^4.1.2, graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.11, graceful-fs@npm:^4.2.4, graceful-fs@npm:^4.2.6":
+"graceful-fs@npm:^4.1.11, graceful-fs@npm:^4.1.15, graceful-fs@npm:^4.1.2, graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.10, graceful-fs@npm:^4.2.11, graceful-fs@npm:^4.2.4, graceful-fs@npm:^4.2.6":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10/bf152d0ed1dc159239db1ba1f74fdbc40cb02f626770dcd5815c427ce0688c2635a06ed69af364396da4636d0408fcf7d4afdf7881724c3307e46aff30ca49e2
@@ -21882,6 +21883,15 @@ __metadata:
   dependencies:
     source-map-support: "npm:^0.5.5"
   checksum: 10/7a482bc836c70f8c1d9468382a9e1c887d032697f6ace97fac90b02e73d0523cb59fc0af8759356293e6bc4ce3a17bab59b331bad0560cab9dd77ac65b343de8
+  languageName: node
+  linkType: hard
+
+"karma-sourcemap-loader@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "karma-sourcemap-loader@npm:0.4.0"
+  dependencies:
+    graceful-fs: "npm:^4.2.10"
+  checksum: 10/6ef8b953d77a8134b359e4b4795b63808e91e6fcec106cb6fa4154effad2a824d2823572344b62d474b6863574b584826abb3a50ca458f115b038ff1d8250aa8
   languageName: node
   linkType: hard
 

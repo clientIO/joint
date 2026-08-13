@@ -67,7 +67,9 @@ jobs:
       # resolves them from the repository root. Reports are discovered rather than
       # listed, so a workspace that starts reporting coverage is picked up with no
       # change here: any <workspace>/coverage/**/*.lcov|lcov.info is prefixed with
-      # its own workspace path and added to the scanner's report list.
+      # its own workspace path and added to the scanner's report list. Only relative
+      # records are prefixed - a workspace whose tooling emits absolute paths, as
+      # source-map remapping can, already resolves on its own.
       - name: Prepare coverage reports
         id: prepare-coverage
         run: |
@@ -76,7 +78,7 @@ jobs:
           while read -r report; do
             report="${report#./}"
             workspace="${report%%/coverage/*}"
-            sed -i "s|^SF:|SF:${workspace}/|" "$report"
+            sed -i "s|^SF:\([^/]\)|SF:${workspace}/\1|" "$report"
             report_paths="${report_paths:+${report_paths},}${report}"
             echo "| \`${report}\` | $(grep -c '^SF:' "$report") files |" >> $GITHUB_STEP_SUMMARY
           done < <(find . -type d -name node_modules -prune -o \

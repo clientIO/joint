@@ -110,10 +110,22 @@ export const jointNoDependencies = {
         name: 'joint',
         footer: JOINT_FOOTER,
         freeze: false,
-        globals: Object.assign({}, G_REF, V_REF)
+        globals: Object.assign({}, G_REF, V_REF),
+        sourcemap: true
     }],
     plugins: plugins
 };
+
+// karma-coverage remaps coverage through these source maps, so the reports describe
+// src/ rather than the bundle. Only the test builds carry them - adding a source map
+// to a distributed bundle would leave it pointing at a .map file that is not shipped.
+const asTestBundle = (config, file) => ({
+    ...config,
+    output: config.output.map((output) => ({ ...output, file, sourcemap: true }))
+});
+
+export const geometryTest = asTestBundle(geometry, modules.geometry.test);
+export const vectorizerTest = asTestBundle(vectorizer, modules.vectorizer.test);
 
 export const version = {
     input: 'wrappers/version.wrapper.mjs',

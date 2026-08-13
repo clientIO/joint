@@ -12,6 +12,8 @@ const DIST = [
 ].concat(modules.jointPlugins);
 
 const TEST_BUNDLE = [
+    modules.geometryTest,
+    modules.vectorizerTest,
     modules.jointNoDependencies
 ];
 
