@@ -595,6 +595,7 @@ export class RouterService {
         if (handleUnroutableLink && handleUnroutableLink(link, this.getUnroutableReason(link))) {
             return;
         }
+
         this.applyFallbackRoute(link);
         this.setRouted(link, true);
     }

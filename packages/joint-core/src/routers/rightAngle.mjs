@@ -426,10 +426,10 @@ function routeBetweenPoints(sourcePoint, targetPoint, opt = {}) {
 
 function rightAngleRouter(vertices, opt, linkView) {
     const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, minPathMargin = null } = opt;
-    const margin = opt.margin || 20;
+    const margin = opt.margin ?? 20;
 
-    const sourceMargin = opt.sourceMargin || margin;
-    const targetMargin = opt.targetMargin || margin;
+    const sourceMargin = opt.sourceMargin ?? margin;
+    const targetMargin = opt.targetMargin ?? margin;
 
     const useVertices = opt.useVertices || false;
 

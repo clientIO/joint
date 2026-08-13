@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
-import { dia } from '@joint/core';
+import { dia, util } from '@joint/core';
 import {
   useDeferredValue,
   useEffect,
@@ -257,6 +257,12 @@ export function useCreatePortalPaper(
 
   const paperRef = useRef<PaperView | null>(null);
   const isReadyNotifiedRef = useRef(false);
+  // Last grid options pushed to the paper, so the visual grid is redrawn only
+  // when one of them actually changes (see the grid block in the update effect).
+  const gridSignatureRef = useRef<Pick<
+    dia.Paper.Options,
+    'drawGrid' | 'drawGridSize' | 'gridSize'
+  > | null>(null);
 
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
 
@@ -402,16 +408,26 @@ export function useCreatePortalPaper(
       ...escapeHatchOptions,
     });
 
-    const { drawGrid, gridSize } = paperOptions;
-
     paper.setInteractivity(interactiveValue);
 
-    if (drawGrid !== undefined) {
-      paper.setGrid(drawGrid);
+    // Redraw the visual grid whenever any grid-affecting option changes.
+    // `assignOptions` above already wrote drawGrid / drawGridSize / gridSize
+    // onto `paper.options`, and `setGrid` re-reads them (`drawGridSize ||
+    // gridSize`), so a single call keeps the rendered grid in sync for both the
+    // snap size and the visual spacing/style. This covers `drawGridSize` (which
+    // `paper.setGridSize` deliberately skips) and grid options set through the
+    // `options` escape hatch — the previous per-prop calls missed both. The
+    // equality guard keeps the grid from re-rendering on unrelated re-renders.
+    const nextGrid = {
+      drawGrid: paper.options.drawGrid,
+      drawGridSize: paper.options.drawGridSize,
+      gridSize: paper.options.gridSize,
+    };
+    if (!util.isEqual(gridSignatureRef.current, nextGrid)) {
+      gridSignatureRef.current = nextGrid;
+      paper.setGrid(paper.options.drawGrid);
     }
-    if (gridSize !== undefined) {
-      paper.setGridSize(gridSize);
-    }
+
     if (transform !== undefined) {
       paper.matrix(toSVGMatrix(transform));
     }
