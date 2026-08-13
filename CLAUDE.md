@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 JointJS is a JavaScript/TypeScript diagramming library for building visual and no-code/low-code applications. It's a Yarn workspace monorepo with multiple packages.
 
-**Stack:** Node 22.14.0, Yarn 4.7.0, TypeScript 5.8, Grunt (build), QUnit/Jest/Karma (testing)
+**Stack:** Node 22.14.0, Yarn 4.18.0, TypeScript 5.8, Grunt (build), QUnit/Jest/Karma (testing)
 
 ## Common Commands
 
