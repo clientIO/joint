@@ -87,8 +87,9 @@ Types: `feat`, `fix`, `style`, `refactor`, `test`, `chore`, `example`
 
 ## Changesets
 
-Versions and changelogs are managed by [Changesets](https://changesets.dev). Every package
-keeps its own `CHANGELOG.md`, and each package is versioned independently.
+Versions and changelogs are managed by [Changesets](https://changesets.dev).
+Every package keeps its own `CHANGELOG.md`, and each package is versioned
+independently.
 
 If your PR changes releasable code, add a changeset:
 
@@ -96,9 +97,11 @@ If your PR changes releasable code, add a changeset:
 yarn changeset
 ```
 
-Pick the affected package(s) and the bump type (`patch`, `minor`, `major`), then write a
-short summary. The summary is what ends up in the package's `CHANGELOG.md`, so write it for
-users of the package - we use the same `scope: description` style as commit messages:
+Pick the affected package and the bump type (`patch`, `minor`, `major`), then
+write a short summary. If your change affects multiple packages and you need
+each to be summarized differently, add a separate changeset for each package.
+The summary line(s) are what ends up in a package's `CHANGELOG.md`, so write
+them for users of the package - we a `scope - description` style:
 
 ```markdown
 ---
@@ -110,11 +113,11 @@ dia.Paper: add `originX` and `originY` options to `getFitToContentArea()`
 
 Commit the generated `.changeset/*.md` file with your PR.
 
-CI runs `changeset status --since=origin/master` and fails a PR that changes releasable
-code in a public package without a changeset. Test-, docs-, demo- and build-config-only
-changes are exempt - the exact list lives in `changedFilePatterns` in
-[.changeset/config.json](.changeset/config.json). If a PR touches releasable files but
-should not trigger a release, add an empty changeset:
+CI runs `changeset status --since=origin/master` and fails a PR that changes
+releasable code in a public package without a changeset. Test-, docs-, demo- and build-config-only changes are exempt - the exact list can be found in
+`changedFilePatterns` in [.changeset/config.json](.changeset/config.json). If a
+PR touches releasable files but should not trigger a release, add an empty
+changeset:
 
 ```bash
 yarn changeset add --empty
@@ -122,8 +125,9 @@ yarn changeset add --empty
 
 ## Releasing (maintainers)
 
-Releasing is automated by [.github/workflows/release.yml](.github/workflows/release.yml),
-which runs on every push to `master`:
+Releasing is automated by
+[.github/workflows/release.yml](.github/workflows/release.yml), which runs on
+every push to `master`:
 
 1. **Version** - while there are pending changesets, the workflow keeps a
    `changeset-release/master` PR ("Version Packages") up to date. That PR applies the
@@ -135,14 +139,20 @@ which runs on every push to `master`:
 
 Notes:
 
-- Private packages (`examples/*`, `@joint/shapes-general`, `@joint/shapes-general-tools`)
-  are never versioned or published.
-- Packages depending on `@joint/core` with a `workspace:~` range (`@joint/decorators`,
-  `@joint/layout-directed-graph`, `@joint/layout-msagl`) get an automatic patch release
-  whenever `@joint/core` gets a minor release, because their dependency range has to move.
-- Prereleases use the standard changesets pre mode: `yarn changeset pre enter beta` on
-  `master`, release as usual, then `yarn changeset pre exit`.
-- Snapshot releases: `yarn changeset version --snapshot` + `yarn changeset publish --tag`.
+- Private packages are never versioned or published.
+- Packages depending on `@joint/core` with a `workspace:~` range
+  (`@joint/layout-directed-graph`, `@joint/layout-msagl`) get an automatic
+  release whenever `@joint/core` gets a minor release, because their dependency
+  range has to move.
+- `@joint/core`, `@joint/layout-directed-graph` and `@joint/layout-msagl` are
+  **linked**, so any of them released together share one version (the highest
+  bump type in the run, applied to the group's highest current version). Every
+  other package versions independently.
+- Prereleases use the standard changesets pre mode:
+  `yarn changeset pre enter beta` on `master`, release as usual, then
+  `yarn changeset pre exit`.
+- Snapshot releases: `yarn changeset version --snapshot` +
+  `yarn changeset publish --tag`.
 
 ## Code Style
 

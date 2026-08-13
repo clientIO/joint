@@ -6,7 +6,13 @@
   "commit": false,
   "ignore": [],
   "fixed": [],
-  "linked": [],
+  "linked": [
+    [
+      "@joint/core",
+      "@joint/layout-directed-graph",
+      "@joint/layout-msagl"
+    ]
+  ],
   "updateInternalDependencies": "patch",
   "privatePackages": {
     "version": false,
