@@ -71,10 +71,13 @@ export class WorkerProvider extends Provider {
         this.postMessage({ type: 'deleteConnector', connectorId });
     }
 
-    override updateGraph(shapes: Shape[], connectors: Connector[]): void {
+    override resetGraph(shapes: Shape[], connectors: Connector[]): void {
+        this.shapeIds.clear();
+        this.connectorIds.clear();
+
         shapes.forEach((shape) => this.shapeIds.add(shape.id));
         connectors.forEach((connector) => this.connectorIds.add(connector.id));
-        this.postMessage({ type: 'updateGraph', shapes, connectors });
+        this.postMessage({ type: 'resetGraph', shapes, connectors });
     }
 
     override hasConnector(connectorId: dia.Cell.ID): boolean {

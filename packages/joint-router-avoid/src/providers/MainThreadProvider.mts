@@ -82,13 +82,13 @@ export class MainThreadProvider extends Provider {
         }
     }
 
-    override updateConnector(connector: Connector, process: boolean = true) {
+    override updateConnector(connector: Connector, process: boolean = true): void {
         const { shapeRefs, connectorRefs } = this;
         if (
             connector.sourceId === undefined || connector.sourcePinId === undefined ||
             connector.targetId === undefined || connector.targetPinId === undefined
         ) {
-            this.deleteConnector(connector.id, process);
+            this.deleteConnector(connector.id);
             return;
         }
 
@@ -150,6 +150,8 @@ export class MainThreadProvider extends Provider {
         if (!connRef) return;
         this.avoidRouter.deleteConnector(connRef);
         delete this.connectorRefs[connectorId];
+        // @ts-expect-error do not defined in the type definition, but it is present in the actual object
+        delete this.linksByPointer[connRef.g];
 
         if (process) {
             this.avoidRouter.processTransaction();
@@ -164,13 +166,18 @@ export class MainThreadProvider extends Provider {
         return shapeId in this.shapeRefs;
     }
 
-    updateGraph(shapes: Shape[], connectors: Connector[], process: boolean = true): void {
+    override resetGraph(shapes: Shape[], connectors: Connector[]): void {
+        Object.keys(this.connectorRefs).forEach((connectorId) => {
+            this.deleteConnector(connectorId, false);
+        });
+        Object.keys(this.shapeRefs).forEach((shapeId) => {
+            this.deleteShape(shapeId, false);
+        });
+
         shapes.forEach((shape) => this.updateShape(shape, false));
         connectors.forEach((connector) => this.updateConnector(connector, false));
 
-        if (process) {
-            this.avoidRouter.processTransaction();
-        }
+        this.avoidRouter.processTransaction();
     }
 
     protected createAvoidRouter(Avoid: AvoidInstance, shapeBufferDistance: number, idealNudgingDistance: number): AvoidRouter {
