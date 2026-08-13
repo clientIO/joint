@@ -47,36 +47,10 @@ export interface MarkupApi {
  * Register SVG sub-elements as JointJS selectors (and optionally magnets) on
  * the current element view, so links and tools can target named parts of a
  * React-rendered element. Must be used inside `renderElement`.
- * Interactive controls inside a magnet work with plain React events.
  *
- * To keep a press from reaching the paper, so it starts no link drag and no element
- * move, stop the React event. `onClick` is a separate native event and still fires:
- *
- * ```tsx
- * <g ref={magnetRef('row-0')}>
- *   <foreignObject width={80} height={24}>
- *     <button onMouseDown={(event) => event.stopPropagation()} onClick={toggle}>NN</button>
- *   </foreignObject>
- * </g>
- * ```
- *
- * Stop `onMouseDown` (and `onTouchStart` for touch) — those are the events the paper
- * listens to. Stopping `onPointerDown` does NOT work on its own: `pointerdown` is a
- * separate event, so the `mousedown` that drives the paper still gets through. If a
- * handler already owns the pointer (`setPointerCapture`), calling `preventDefault()` on
- * `pointerdown` also works, because canceling it suppresses the compatibility
- * `mousedown` altogether.
- *
- * Keeping a control clickable while the rest of the element stays draggable usually
- * needs no wiring at all. A form control (`<input>`, `<select>`, `<textarea>`) keeps its
- * native default action, so a press selects text or opens the dropdown rather than moving
- * the element or starting a link. A `<button>` does both: a press-and-release in place
- * clicks it, while a drag moves the element (or, from a magnet, starts a link) and the
- * preset withholds the trailing click so the gesture is not also counted as a click.
- * For a non-form control that must both click and drag-to-connect, set
- * `magnetThreshold="onleave"` on the `<Paper>`: the link forms only once the pointer
- * leaves the magnet, so a drag releases away from the control and the browser fires no
- * click on it, while a press-and-release in place still clicks.
+ * For nesting an interactive control (button, input) inside a `magnetRef` node
+ * without the press starting a link drag or element move, see the "Interactive
+ * controls inside magnets" note in the `Paper` preset (`presets/paper.ts`).
  * @group Hooks
  * @returns The {@link MarkupApi}: a `selectorRef` factory that tags an SVG node
  * under a named selector so links and tools can target it, and a `magnetRef`

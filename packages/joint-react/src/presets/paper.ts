@@ -18,6 +18,39 @@ const POINTER_DOCUMENT_EVENTS: Record<string, string> = {
   pointercancel: 'pointerup',
 };
 
+// ---------------------------------------------------------------------------
+// Interactive controls inside magnets
+// ---------------------------------------------------------------------------
+// A control nested in a connectable magnet (e.g. `magnetRef('row-0')` from
+// `useMarkup`) works with plain React events. To keep a press from reaching the
+// paper — so it starts no link drag and no element move — stop the React event.
+// `onClick` is a separate native event and still fires:
+//
+//   <g ref={magnetRef('row-0')}>
+//     <foreignObject width={80} height={24}>
+//       <button onMouseDown={(event) => event.stopPropagation()} onClick={toggle}>NN</button>
+//     </foreignObject>
+//   </g>
+//
+// Stop `onMouseDown` (and `onTouchStart` for touch) — those are the events the
+// paper listens to. Stopping `onPointerDown` does NOT work on its own:
+// `pointerdown` is a separate event, so the `mousedown` that drives the paper
+// still gets through. If a handler already owns the pointer (`setPointerCapture`),
+// calling `preventDefault()` on `pointerdown` also works, because canceling it
+// suppresses the compatibility `mousedown` altogether.
+//
+// Keeping a control clickable while the rest of the element stays draggable
+// usually needs no wiring at all. A form control (`<input>`, `<select>`,
+// `<textarea>`) keeps its native default action (see `PREVENT_INTERACTION_TAG_NAMES`),
+// so a press selects text or opens the dropdown rather than moving the element or
+// starting a link. A `<button>` does both: a press-and-release in place clicks it,
+// while a drag moves the element (or, from a magnet, starts a link) and the preset
+// withholds the trailing click (see `swallowNextClick`) so the gesture is not also
+// counted as a click. For a non-form control that must both click and
+// drag-to-connect, set `magnetThreshold="onleave"` on the `<Paper>`: the link forms
+// only once the pointer leaves the magnet, so a drag releases away from the control
+// and the browser fires no click on it, while a press-and-release in place still clicks.
+
 type ProtectedPaperPrototype = {
   readonly pointermove: (event: dia.Event) => void;
   readonly pointerup: (event: dia.Event) => void;
