@@ -48,6 +48,10 @@ export interface MarkupApi {
  * Register SVG sub-elements as JointJS selectors (and optionally magnets) on
  * the current element view, so links and tools can target named parts of a
  * React-rendered element. Must be used inside `renderElement`.
+ *
+ * For nesting an interactive control (button, input) inside a `magnetRef` node
+ * without the press starting a link drag or element move, see the "Interactive
+ * controls inside magnets" note in the `Paper` preset (`presets/paper.ts`).
  * @group Hooks
  * @returns The {@link MarkupApi}: a `selectorRef` factory that tags an SVG node
  * under a named selector so links and tools can target it, and a `magnetRef`

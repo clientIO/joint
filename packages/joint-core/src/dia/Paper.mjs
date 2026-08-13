@@ -302,6 +302,19 @@ const backgroundPatterns = {
 
 const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 
+// Is `target`, or any of its ancestors up to and including `boundary`, one of `tagNames`?
+// The press target of `<button><span>Save</span></button>` is the SPAN, so testing the
+// target alone would tell us nothing about the control it belongs to.
+function hasTagNameInPath(target, tagNames, boundary) {
+    let node = target;
+    while (node) {
+        if (tagNames.includes(node.tagName)) return true;
+        if (node === boundary) return false;
+        node = node.parentElement;
+    }
+    return false;
+}
+
 export const Paper = View.extend({
     className: 'paper',
 
@@ -587,9 +600,19 @@ export const Paper = View.extend({
     _layers: null,
 
     UPDATE_DELAYING_BATCHES: ['translate'],
-    // If you interact with these elements,
-    // the default interaction such as `element move` is prevented.
-    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT', 'OPTION'] ,
+    // If you interact with these elements, the browser's own default action is kept
+    // (the paper does not call `preventDefault()`), so a text input can be focused and
+    // its text selected, a checkbox can be ticked, a button can be pressed. Matched
+    // against the whole path up to the cell view, so a press on markup inside a control
+    // counts as a press on the control - `<option>` through its `<select>`, a label
+    // `<span>` through its `<button>`.
+    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT'],
+    // If you interact with these elements, the default interaction such as `element move`
+    // or starting a link from a magnet is prevented, i.e. a press is only ever a click.
+    // The same members as above by default, but a separate decision: narrow this list to
+    // let a control both be clicked and start a drag - dropping `BUTTON`, say, makes a
+    // button inside a magnet draggable to create a link while it stays clickable.
+    PREVENT_INTERACTION_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT'],
     // If you interact with these elements, the events are not propagated to the paper
     // i.e. paper events such as `element:pointerdown` are not triggered.
     GUARDED_TAG_NAMES: [
@@ -3476,20 +3499,31 @@ export const Paper = View.extend({
         const view = this.findView(target);
         const isContextMenu = (button === 2);
 
+        if (!isContextMenu) {
+            // A press that did not hit a cell view is guarded too, so that DOM content
+            // inside `el` (an overlay, a popup, a toolbar) can opt out of opening a blank
+            // interaction. Only an explicit veto counts there: the full `guard()` also
+            // rejects anything off the paper's event surface, and such a press has always
+            // opened a blank interaction.
+            // `contextmenu` is exempt: `contextMenuTrigger()` runs its own guard.
+            const guarded = view
+                ? this.guard(evt, view)
+                : this.guardExplicit(evt, view);
+
+            if (guarded) return;
+        }
+
         if (view) {
 
-            if (!isContextMenu && this.guard(evt, view)) return;
-
-            const isTargetFormNode = this.FORM_CONTROL_TAG_NAMES.includes(target.tagName);
-
-            if (this.options.preventDefaultViewAction && !isTargetFormNode) {
+            if (this.options.preventDefaultViewAction &&
+                !hasTagNameInPath(target, this.FORM_CONTROL_TAG_NAMES, view.el)) {
                 // If the target is a form element, we do not want to prevent the default action.
                 // For example, we want to be able to select text in a text input or
                 // to be able to click on a checkbox.
                 evt.preventDefault();
             }
 
-            if (isTargetFormNode) {
+            if (hasTagNameInPath(target, this.PREVENT_INTERACTION_TAG_NAMES, view.el)) {
                 // If the target is a form element, we do not want to start dragging the element.
                 // For example, we want to be able to select text by dragging the mouse.
                 view.preventDefaultInteraction(evt);
@@ -3889,17 +3923,9 @@ export const Paper = View.extend({
     // Otherwise, it returns `false`.
     guard: function(evt, view) {
 
-        if (evt.type === 'mousedown' && evt.button === 2) {
-            // handled as `contextmenu` type
-            return true;
-        }
-
-        if (this.options.guard && this.options.guard(evt, view)) {
-            return true;
-        }
-
-        if (evt.data && evt.data.guarded !== undefined) {
-            return evt.data.guarded;
+        const guarded = this.guardExplicit(evt, view);
+        if (guarded !== undefined) {
+            return guarded;
         }
 
         const { target } = evt;
@@ -3917,6 +3943,31 @@ export const Paper = View.extend({
         }
 
         return true;    // Event guarded. Paper should not react on it in any way.
+    },
+
+    // The part of `guard()` that reflects a decision made about this very event: the right
+    // mouse button, the `guard` option, an `evt.data.guarded` flag. Returns a boolean when
+    // one of them has decided and `undefined` when none has, leaving the answer to the
+    // caller - `guard()` then goes on to judge the target itself (its tag name, its view,
+    // whether it is on the paper's event surface). `undefined` is the only non-boolean it
+    // returns, so a caller can tell "explicitly allowed" from "no opinion".
+    guardExplicit: function(evt, view) {
+
+        if (evt.type === 'mousedown' && evt.button === 2) {
+            // handled as `contextmenu` type
+            return true;
+        }
+
+        if (this.options.guard && this.options.guard(evt, view)) {
+            return true;
+        }
+
+        if (evt.data && evt.data.guarded !== undefined) {
+            // Set by the caller, so it can be any value. Only `undefined` means undecided.
+            return !!evt.data.guarded;
+        }
+
+        return undefined;
     },
 
     setGridSize: function(gridSize) {
