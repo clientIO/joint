@@ -90,6 +90,7 @@ export interface RightAngleRouterArguments {
     sourceMargin?: number | null;
     targetMargin?: number | null;
     minPathMargin?: number | null;
+    useModelGeometry?: boolean;
     /** @experimental before version 4.0 */
     useVertices?: boolean;
     sourceDirection?: RightAngleDirections;
