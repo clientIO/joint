@@ -13,7 +13,7 @@ const Directions = {
 function getOutsidePoint(side, pointData) {
     const outsidePoint = pointData.endPoint.clone();
 
-    const { x0, y0, width, height } = pointData.bbox;
+    const { x: x0, y: y0, width, height } = pointData.bbox;
 
     switch (side) {
         case 'left':
@@ -44,9 +44,11 @@ function getHorizontalDistance(source, target) {
 
     const sx0 = sourceBBox.x;
     const sx1 = sourceBBox.x + sourceBBox.width;
+    const sy0 = sourceBBox.y;
 
     const tx0 = targetBBox.x;
     const tx1 = targetBBox.x + targetBBox.width;
+    const ty0 = targetBBox.y;
 
     // Furthest left boundary
     let leftBoundary = Math.min(sx0, tx0);
@@ -56,15 +58,14 @@ function getHorizontalDistance(source, target) {
     // If the source and target elements are on the same side, we need to figure out what shape defines the boundary.
     if (source.side === target.side) {
 
-        const aboveShape = source.y0 < target.y0 ? source : target;
-        const belowShape = aboveShape === source ? target : source;
+        const isSourceAbove = sy0 < ty0;
 
-        // The source and target anchors are on the top => then the `aboveShape` defines the boundary.
-        // The source and target anchors are on the bottom => then the `belowShape` defines the boundary.
-        const boundaryDefiningShape = source.side === Directions.TOP ? aboveShape : belowShape;
+        // The source and target anchors are on the top => then the shape above defines the boundary.
+        // The source and target anchors are on the bottom => then the shape below defines the boundary.
+        const useSourceAsBoundary = source.side === Directions.TOP ? isSourceAbove : !isSourceAbove;
 
-        leftBoundary = boundaryDefiningShape.x0;
-        rightBoundary = boundaryDefiningShape.x1;
+        leftBoundary = useSourceAsBoundary ? sx0 : tx0;
+        rightBoundary = useSourceAsBoundary ? sx1 : tx1;
     }
 
     const { x: sox } = sourcePoint;
@@ -91,9 +92,11 @@ function getVerticalDistance(source, target) {
     const sourceBBox = source.bbox;
     const targetBBox = target.bbox;
 
+    const sx0 = sourceBBox.x;
     const sy0 = sourceBBox.y;
     const sy1 = sourceBBox.y + sourceBBox.height;
 
+    const tx0 = targetBBox.x;
     const ty0 = targetBBox.y;
     const ty1 = targetBBox.y + targetBBox.height;
 
@@ -105,15 +108,14 @@ function getVerticalDistance(source, target) {
     // If the source and target elements are on the same side, we need to figure out what shape defines the boundary.
     if (source.side === target.side) {
 
-        const leftShape = source.x0 < target.x0 ? source : target;
-        const rightShape = leftShape === source ? target : source;
+        const isSourceLeft = sx0 < tx0;
 
-        // The source and target anchors are on the left => then the `leftShape` defines the boundary.
-        // The source and target anchors are on the right => then the `rightShape` defines the boundary.
-        const boundaryDefiningShape = source.side === Directions.LEFT ? leftShape : rightShape;
+        // The source and target anchors are on the left => then the shape on the left defines the boundary.
+        // The source and target anchors are on the right => then the shape on the right defines the boundary.
+        const useSourceAsBoundary = source.side === Directions.LEFT ? isSourceLeft : !isSourceLeft;
 
-        topBoundary = boundaryDefiningShape.y0;
-        bottomBoundary = boundaryDefiningShape.y1;
+        topBoundary = useSourceAsBoundary ? sy0 : ty0;
+        bottomBoundary = useSourceAsBoundary ? sy1 : ty1;
     }
 
     const { y: soy } = sourcePoint;
