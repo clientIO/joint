@@ -417,11 +417,8 @@ export class RouterService {
             : sourceBBox.sideNearestToPoint(sourcePoint);
 
         const source = {
-            point: sourcePoint,
-            x0: sourceBBox.x,
-            y0: sourceBBox.y,
-            width: sourceBBox.width,
-            height: sourceBBox.height,
+            endPoint: sourcePoint,
+            bbox: new g.Rect(sourceBBox.x, sourceBBox.y, sourceBBox.width, sourceBBox.height),
             side: sourceSide,
             margin: this.options.elementMargin ?? 0,
         };
@@ -436,11 +433,8 @@ export class RouterService {
             : targetBBox.sideNearestToPoint(targetPoint);
 
         const target = {
-            point: targetPoint,
-            x0: targetBBox.x,
-            y0: targetBBox.y,
-            width: targetBBox.width,
-            height: targetBBox.height,
+            endPoint: targetPoint,
+            bbox: new g.Rect(targetBBox.x, targetBBox.y, targetBBox.width, targetBBox.height),
             side: targetSide,
             margin: this.options.elementMargin ?? 0,
         };

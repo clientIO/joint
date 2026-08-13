@@ -10,23 +10,23 @@ const Directions = {
     MAGNET_SIDE: 'magnet-side'
 };
 
-function getOutsidePoint(side, pointData, margin) {
-    const outsidePoint = pointData.point.clone();
+function getOutsidePoint(side, pointData) {
+    const outsidePoint = pointData.endPoint.clone();
 
-    const { x0, y0, width, height } = pointData;
+    const { x0, y0, width, height } = pointData.bbox;
 
     switch (side) {
         case 'left':
-            outsidePoint.x = x0 - margin;
+            outsidePoint.x = x0 - pointData.margin;
             break;
         case 'right':
-            outsidePoint.x = x0 + width + margin;
+            outsidePoint.x = x0 + width + pointData.margin;
             break;
         case 'top':
-            outsidePoint.y = y0 - margin;
+            outsidePoint.y = y0 - pointData.margin;
             break;
         case 'bottom':
-            outsidePoint.y = y0 + height + margin;
+            outsidePoint.y = y0 + height + pointData.margin;
             break;
     }
 
@@ -36,8 +36,17 @@ function getOutsidePoint(side, pointData, margin) {
 // Calculates the distances along the horizontal axis for the left and right route.
 function getHorizontalDistance(source, target) {
 
-    const { x0: sx0, x1: sx1, outsidePoint: sourcePoint } = source;
-    const { x0: tx0, x1: tx1, outsidePoint: targetPoint } = target;
+    const { outsidePoint: sourcePoint } = source;
+    const { outsidePoint: targetPoint } = target;
+
+    const sourceBBox = source.bbox;
+    const targetBBox = target.bbox;
+
+    const sx0 = sourceBBox.x;
+    const sx1 = sourceBBox.x + sourceBBox.width;
+
+    const tx0 = targetBBox.x;
+    const tx1 = targetBBox.x + targetBBox.width;
 
     // Furthest left boundary
     let leftBoundary = Math.min(sx0, tx0);
@@ -45,14 +54,14 @@ function getHorizontalDistance(source, target) {
     let rightBoundary = Math.max(sx1, tx1);
 
     // If the source and target elements are on the same side, we need to figure out what shape defines the boundary.
-    if (source.direction === target.direction) {
+    if (source.side === target.side) {
 
         const aboveShape = source.y0 < target.y0 ? source : target;
         const belowShape = aboveShape === source ? target : source;
 
         // The source and target anchors are on the top => then the `aboveShape` defines the boundary.
         // The source and target anchors are on the bottom => then the `belowShape` defines the boundary.
-        const boundaryDefiningShape = source.direction === Directions.TOP ? aboveShape : belowShape;
+        const boundaryDefiningShape = source.side === Directions.TOP ? aboveShape : belowShape;
 
         leftBoundary = boundaryDefiningShape.x0;
         rightBoundary = boundaryDefiningShape.x1;
@@ -76,9 +85,17 @@ function getHorizontalDistance(source, target) {
 
 // Calculates the distances along the vertical axis for the top and bottom route.
 function getVerticalDistance(source, target) {
+    const { outsidePoint: sourcePoint } = source;
+    const { outsidePoint: targetPoint } = target;
 
-    const { y0: sy0, y1: sy1, outsidePoint: sourcePoint } = source;
-    const { y0: ty0, y1: ty1, outsidePoint: targetPoint } = target;
+    const sourceBBox = source.bbox;
+    const targetBBox = target.bbox;
+
+    const sy0 = sourceBBox.y;
+    const sy1 = sourceBBox.y + sourceBBox.height;
+
+    const ty0 = targetBBox.y;
+    const ty1 = targetBBox.y + targetBBox.height;
 
     // Furthest top boundary
     let topBoundary = Math.min(sy0, ty0);
@@ -86,14 +103,14 @@ function getVerticalDistance(source, target) {
     let bottomBoundary = Math.max(sy1, ty1);
 
     // If the source and target elements are on the same side, we need to figure out what shape defines the boundary.
-    if (source.direction === target.direction) {
+    if (source.side === target.side) {
 
         const leftShape = source.x0 < target.x0 ? source : target;
         const rightShape = leftShape === source ? target : source;
 
         // The source and target anchors are on the left => then the `leftShape` defines the boundary.
         // The source and target anchors are on the right => then the `rightShape` defines the boundary.
-        const boundaryDefiningShape = source.direction === Directions.LEFT ? leftShape : rightShape;
+        const boundaryDefiningShape = source.side === Directions.LEFT ? leftShape : rightShape;
 
         topBoundary = boundaryDefiningShape.y0;
         bottomBoundary = boundaryDefiningShape.y1;
@@ -117,28 +134,31 @@ function getVerticalDistance(source, target) {
 
 export function rightAnglePath(source, target, opt = {}) {
     const {
-        point: sourcePoint,
-        x0: sBoxX0,
-        y0: sBoxY0,
-        width: sourceWidth,
-        height: sourceHeight,
+        bbox: sourceBBox,
         margin: sourceMargin,
         side: sourceSide
     } = source;
     const {
-        point: targetPoint,
-        x0: tBoxX0,
-        y0: tBoxY0,
-        width: targetWidth,
-        height: targetHeight,
+        endPoint: targetPoint,
+        bbox: targetBBox,
         margin: targetMargin,
         side: targetSide
     } = target;
 
     const { targetInSourceBBox = false } = opt;
 
-    const minSourceMargin = opt.minPathMargin != null ? Math.min(opt.minPathMargin, sourceMargin) : sourceMargin;
-    const minTargetMargin = opt.minPathMargin != null ? Math.min(opt.minPathMargin, targetMargin) : targetMargin;
+    const sBoxX0 = sourceBBox.x;
+    const sBoxY0 = sourceBBox.y;
+    const tBoxX0 = targetBBox.x;
+    const tBoxY0 = targetBBox.y;
+
+    const sourceWidth = sourceBBox.width;
+    const targetWidth = targetBBox.width;
+    const sourceHeight = sourceBBox.height;
+    const targetHeight = targetBBox.height;
+
+    const minSourceMargin = opt.minPathMargin ?? sourceMargin;
+    const minTargetMargin = opt.minPathMargin ?? targetMargin;
 
     const tBoxX1 = tBoxX0 + targetWidth;
     const tBoxY1 = tBoxY0 + targetHeight;
@@ -165,8 +185,8 @@ export function rightAnglePath(source, target, opt = {}) {
     const tMinMarginY0 = tBoxY0 - minTargetMargin;
     const tMinMarginY1 = tBoxY1 + minTargetMargin;
 
-    const sourceOffsetPoint = getOutsidePoint(sourceSide, { point: sourcePoint, x0: sBoxX0, y0: sBoxY0, width: sourceWidth, height: sourceHeight }, sourceMargin);
-    const targetOffsetPoint = getOutsidePoint(targetSide, { point: targetPoint, x0: tBoxX0, y0: tBoxY0, width: targetWidth, height: targetHeight }, targetMargin);
+    const sourceOffsetPoint = getOutsidePoint(sourceSide, source);
+    const targetOffsetPoint = getOutsidePoint(targetSide, target);
 
     const { x: sOffsetX, y: sOffsetY } = sourceOffsetPoint;
     const { x: tOffsetX, y: tOffsetY } = targetOffsetPoint;
@@ -177,13 +197,11 @@ export function rightAnglePath(source, target, opt = {}) {
     const middleOfVerticalSides = (sCenterX < tCenterX ? (sBoxX1 + tBoxX0) : (tBoxX1 + sBoxX0)) / 2;
     const middleOfHorizontalSides = (sCenterY < tCenterY ? (sBoxY1 + tBoxY0) : (tBoxY1 + sBoxY0)) / 2;
 
-    const sourceBBox = new g.Rect(sBoxX0, sBoxY0, sourceWidth, sourceHeight);
-    const targetBBox = new g.Rect(tBoxX0, tBoxY0, targetWidth, targetHeight);
     const inflatedSourceBBox = sourceBBox.clone().inflate(sourceMargin);
     const inflatedTargetBBox = targetBBox.clone().inflate(targetMargin);
 
-    const sourceForDistance = Object.assign({}, source, { x1: sBoxX1, y1: sBoxY1, outsidePoint: sourceOffsetPoint, direction: sourceSide });
-    const targetForDistance = Object.assign({}, target, { x1: tBoxX1, y1: tBoxY1, outsidePoint: targetOffsetPoint, direction: targetSide });
+    const sourceForDistance = Object.assign({}, source, { outsidePoint: sourceOffsetPoint });
+    const targetForDistance = Object.assign({}, target, { outsidePoint: targetOffsetPoint });
 
     // Distances used to determine the shortest route along the connections on horizontal sides for
     // bottom => bottom
