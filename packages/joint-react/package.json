@@ -47,6 +47,7 @@
     "test": "yarn run typecheck && yarn run lint && yarn run knip && yarn run test:react19 && yarn run test:react18",
     "test:react19": "jest",
     "test:react18": "jest --config jest.react18.config.mjs",
+    "test-coverage-lcov": "jest --coverage --coverageReporters=lcovonly --coverageDirectory=coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{ts,tsx}\"",
     "lint-fix": "yarn run lint --fix",

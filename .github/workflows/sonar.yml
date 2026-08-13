@@ -31,8 +31,68 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
+      # Set up Node.js version for building
+      - name: Setup Node.js v22
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+
+      # Cache Yarn packages to speed up CI
+      - name: Cache Yarn
+        id: cache-yarn
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install --immutable
+
+      # Workspace tests run against built output, so build before testing
+      - name: Build joint
+        id: build-joint
+        run: yarn run dist
+
+      # Runs test-coverage-lcov in every workspace that defines it. Deliberately
+      # blocking: a failing suite or a workspace falling below its own coverage
+      # thresholds stops the run before anything is published to SonarQube
+      - name: Generate coverage
+        id: coverage
+        run: yarn run test-coverage-lcov
+
+      # Every workspace records coverage paths relative to itself, while Sonar
+      # resolves them from the repository root. Reports are discovered rather than
+      # listed, so a workspace that starts reporting coverage is picked up with no
+      # change here: any <workspace>/coverage/**/*.lcov|lcov.info is prefixed with
+      # its own workspace path and added to the scanner's report list.
+      - name: Prepare coverage reports
+        id: prepare-coverage
+        run: |
+          set -euo pipefail
+          report_paths=""
+          while read -r report; do
+            report="${report#./}"
+            workspace="${report%%/coverage/*}"
+            sed -i "s|^SF:|SF:${workspace}/|" "$report"
+            report_paths="${report_paths:+${report_paths},}${report}"
+            echo "| \`${report}\` | $(grep -c '^SF:' "$report") files |" >> $GITHUB_STEP_SUMMARY
+          done < <(find . -type d -name node_modules -prune -o \
+            -path '*/coverage/*' -type f \( -name '*.lcov' -o -name 'lcov.info' \) -print | sort)
+          if [ -z "$report_paths" ]; then
+            echo "::error::No coverage reports found - refusing to publish an analysis without coverage"
+            exit 1
+          fi
+          echo "report-paths=${report_paths}" >> $GITHUB_OUTPUT
+
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v8.2.1
+        with:
+          # Discovered above; the property is not in sonar-project.properties
+          # because report paths cannot be expressed there as a pattern
+          args: -Dsonar.javascript.lcov.reportPaths=${{ steps.prepare-coverage.outputs.report-paths }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
