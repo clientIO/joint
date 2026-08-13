@@ -116,7 +116,7 @@ export class RouterService {
             remove: (cell: dia.Cell) => this.onCellRemoved(cell),
             add: (cell: dia.Cell) => this.onCellAdded(cell),
             change: (cell: dia.Cell, opt: dia.Cell.Options) => this.onCellChanged(cell, opt),
-            reset: (_collection: unknown, opt: { previousModels: dia.Cell[] }) => this.onGraphReset(opt.previousModels),
+            reset: (_collection: unknown) => this.onGraphReset(),
         });
 
         this.graphListener = listener;
@@ -155,6 +155,10 @@ export class RouterService {
                 this.provider.deleteShape(cell.id);
             }
         } else if (cell.isLink() && !this.skipLink(cell)) {
+            if (this.pendingLinks.has(cell)) {
+                this.setPendingCanceled(cell);
+            }
+            delete this.connectorRoutes[cell.id];
             this.provider.deleteConnector(cell.id);
         }
     }
@@ -196,10 +200,6 @@ export class RouterService {
             if (!cell.isLink() || this.skipLink(cell)) return;
 
             if (!this.validateEnds(cell)) {
-                if (this.pendingLinks.has(cell)) {
-                    this.trigger(('link:pending:cancelled'), cell);
-                }
-
                 // Giving up on avoid for this change - hand off to the
                 // consumer via `handleUnroutableLink`, or fall back to the
                 // built-in rightAngle route.
@@ -216,9 +216,7 @@ export class RouterService {
         if ('position' in cell.changed || 'size' in cell.changed) {
             if (!cell.isElement()) return;
 
-            this.graph.getConnectedLinks(cell).forEach((link) => {
-                if (this.skipLink(link)) return;
-
+            this.graph.getConnectedLinks(cell).filter((link) => !this.skipLink(link)).forEach((link) => {
                 if (!this.validateEnds(link)) {
                     this.applyUnroutableFallback(link);
                     return;
@@ -234,21 +232,9 @@ export class RouterService {
         }
     }
 
-    private onGraphReset(previousModels?: dia.Cell[]): void {
-        if (previousModels) {
-            previousModels.forEach((cell) => {
-                if (cell.isElement() && !this.skipElement(cell)) {
-                    this.provider.deleteShape(cell.id, false);
-                } else if (cell.isLink() && !this.skipLink(cell)) {
-                    this.provider.deleteConnector(cell.id, false);
-                }
-            });
-        }
-
+    private onGraphReset(): void {
         const routableLinks: dia.Link[] = [];
-        this.graph.getLinks().forEach((link) => {
-            if (this.skipLink(link)) return;
-
+        this.graph.getLinks().filter((link) => !this.skipLink(link)).forEach((link) => {
             if (!this.validateEnds(link)) {
                 this.applyUnroutableFallback(link);
                 return;
@@ -257,7 +243,7 @@ export class RouterService {
             routableLinks.push(link);
         });
 
-        this.provider.updateGraph(
+        this.provider.resetGraph(
             this.graph.getElements().filter((element) => !this.skipElement(element)).map((element) => this.getAvoidShape(element)),
             routableLinks.map((link) => this.getAvoidConnector(link))
         );
@@ -349,6 +335,11 @@ export class RouterService {
     private setRouted(link: dia.Link, fallback?: boolean): void {
         this.pendingLinks.delete(link);
         this.trigger('link:routed', link, { fallback });
+    }
+
+    private setPendingCanceled(link: dia.Link): void {
+        this.pendingLinks.delete(link);
+        this.trigger('link:pending:cancelled', link);
     }
 
     private routeLink(linkId: dia.Cell.ID, points: dia.Point[]): void {
@@ -594,6 +585,12 @@ export class RouterService {
     // is closed and the built-in rightAngle route is skipped entirely.
     // Otherwise falls through to the built-in `applyFallbackRoute`.
     private applyUnroutableFallback(link: dia.Link): void {
+        if (this.pendingLinks.has(link)) {
+            this.setPendingCanceled(link);
+        }
+        // Clean up any route that may have been computed by avoid before the link became unroutable.
+        delete this.connectorRoutes[link.id];
+
         const { handleUnroutableLink } = this.options;
         if (handleUnroutableLink && handleUnroutableLink(link, this.getUnroutableReason(link))) {
             return;

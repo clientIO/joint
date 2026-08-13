@@ -34,15 +34,15 @@ export abstract class Provider {
 
     abstract init(options: ProviderOptions): Promise<void>;
 
-    abstract updateShape(shape: Shape, process?: boolean): void;
+    abstract updateShape(shape: Shape): void;
 
-    abstract updateConnector(connector: Connector, process?: boolean): void;
+    abstract updateConnector(connector: Connector): void;
 
-    abstract deleteShape(shapeId: dia.Cell.ID, process?: boolean): void;
+    abstract deleteShape(shapeId: dia.Cell.ID): void;
 
-    abstract deleteConnector(connectorId: dia.Cell.ID, process?: boolean): void;
+    abstract deleteConnector(connectorId: dia.Cell.ID): void;
 
-    abstract updateGraph(shapes: Shape[], connectors: Connector[], process?: boolean): void;
+    abstract resetGraph(shapes: Shape[], connectors: Connector[]): void;
 
     abstract getAvoidInstance(): Avoid;
 

@@ -30,8 +30,8 @@ export interface WorkerDeleteConnectorRequest {
     connectorId: dia.Cell.ID;
 }
 
-export interface WorkerUpdateGraphRequest {
-    type: 'updateGraph';
+export interface WorkerResetGraphRequest {
+    type: 'resetGraph';
     shapes: Shape[];
     connectors: Connector[];
 }
@@ -42,7 +42,7 @@ export type WorkerRequest =
     | WorkerUpdateConnectorRequest
     | WorkerDeleteShapeRequest
     | WorkerDeleteConnectorRequest
-    | WorkerUpdateGraphRequest;
+    | WorkerResetGraphRequest;
 
 // Requests other than `init` are queued and debounced so that bursts of
 // messages (e.g. shape updates while dragging an element) do not each
@@ -63,10 +63,22 @@ export type WorkerResponse = WorkerReadyResponse | WorkerConnectorChangedRespons
 
 let avoidInstance: AvoidInstance;
 let avoidRouter: AvoidRouter;
-let debounceTime: number = 100;
 const shapeRefs: Record<string, ShapeRef> = {};
 const connectorRefs: Record<string, ConnRef> = {};
 const linksByPointer: Record<number, dia.Cell.ID> = {};
+
+let debounceTime: number = 100;
+// Drains the queued messages, applying each of them, and runs
+// `processTransaction()` at most once for the whole batch.
+const flushMessageFunction = () => {
+    const messages = messageQueue.splice(0, messageQueue.length);
+    if (messages.length === 0) return;
+
+    messages.forEach(handleQueuedMessage);
+
+    avoidRouter.processTransaction();
+};
+let flushMessageQueue = util.debounce(flushMessageFunction, debounceTime);
 
 function postResponse(response: WorkerResponse): void {
     postMessage(response);
@@ -122,6 +134,7 @@ async function handleInit(options: WorkerProviderOptions): Promise<void> {
         options.idealNudgingDistance ?? 10
     );
     debounceTime = options.debounceTime ?? 100;
+    flushMessageQueue = util.debounce(flushMessageFunction, debounceTime);
 
     postResponse({ type: 'ready' });
 }
@@ -213,7 +226,14 @@ function handleDeleteShape(shapeId: dia.Cell.ID): void {
     delete shapeRefs[shapeId];
 }
 
-function handleUpdateGraph(shapes: Shape[], connectors: Connector[]): void {
+function handleResetGraph(shapes: Shape[], connectors: Connector[]): void {
+    Object.keys(connectorRefs).forEach((connectorId) => {
+        handleDeleteConnector(connectorId);
+    });
+    Object.keys(shapeRefs).forEach((shapeId) => {
+        handleDeleteShape(shapeId);
+    });
+
     shapes.forEach((shape) => handleUpdateShape(shape));
     connectors.forEach((connector) => handleUpdateConnector(connector));
 }
@@ -238,23 +258,12 @@ function handleQueuedMessage(message: QueueableWorkerRequest): void {
             handleDeleteConnector(message.connectorId);
             break;
         }
-        case 'updateGraph': {
-            handleUpdateGraph(message.shapes, message.connectors);
+        case 'resetGraph': {
+            handleResetGraph(message.shapes, message.connectors);
             break;
         }
     }
 }
-
-// Drains the queued messages, applying each of them, and runs
-// `processTransaction()` at most once for the whole batch.
-const flushMessageQueue = util.debounce(() => {
-    const messages = messageQueue.splice(0, messageQueue.length);
-    if (messages.length === 0) return;
-
-    messages.forEach(handleQueuedMessage);
-
-    avoidRouter.processTransaction();
-}, debounceTime);
 
 onmessage = async(evt: MessageEvent<WorkerRequest>) => {
     const message = evt.data;
