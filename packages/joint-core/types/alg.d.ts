@@ -7,11 +7,8 @@ export interface RightAnglePathOptions {
 }
 
 export interface RightAnglePathEnd {
-    point: g.Point,
-    x0: number,
-    y0: number,
-    width: number,
-    height: number,
+    endPoint: g.Point,
+    bbox: g.Rect,
     margin: number,
     side: g.RectangleSide
 }

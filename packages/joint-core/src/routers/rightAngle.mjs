@@ -415,13 +415,23 @@ function getLoopCoordinates(direction, angle, margin) {
     return { dx, dy };
 }
 
-function routeBetweenPoints(sourcePoint, targetPoint, opt = {}) {
-    const [sourceSide, targetSide] = resolveSides(sourcePoint, targetPoint);
+function routeBetweenPoints(source, target, opt = {}) {
+    const [sourceSide, targetSide] = resolveSides(source, target);
 
-    const source = { ...sourcePoint, side: sourceSide };
-    const target = { ...targetPoint, side: targetSide };
+    const sourceObject = {
+        endPoint: source.point,
+        bbox: new g.Rect(source.x0, source.y0, source.width, source.height),
+        margin: source.margin,
+        side: sourceSide
+    };
+    const targetObject = {
+        endPoint: target.point,
+        bbox: new g.Rect(target.x0, target.y0, target.width, target.height),
+        margin: target.margin,
+        side: targetSide
+    };
 
-    return rightAnglePath(source, target, opt);
+    return rightAnglePath(sourceObject, targetObject, opt);
 }
 
 function rightAngleRouter(vertices, opt, linkView) {
