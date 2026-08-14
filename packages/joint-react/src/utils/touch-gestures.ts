@@ -20,7 +20,7 @@ export interface TouchPointLike {
 export interface TouchGestureEvent {
   readonly type: string;
   /** All touches currently on the screen (`TouchEvent.touches`). */
-  readonly touches: Iterable<TouchPointLike>;
+  readonly touches: ArrayLike<TouchPointLike> | Iterable<TouchPointLike>;
   readonly preventDefault: () => void;
 }
 
@@ -221,7 +221,10 @@ export class TouchGestureRecognizer {
   }
 
   private eligibleTouches(event: TouchGestureEvent): TouchPointLike[] {
-    const touches = [...event.touches];
+    // `TouchList` is only array-like in some environments — `Array.from`
+    // handles both array-likes and iterables, a spread would need the latter.
+    // eslint-disable-next-line unicorn/prefer-spread
+    const touches = Array.from(event.touches);
     const { isEligibleTouch } = this.options;
     return isEligibleTouch ? touches.filter((touch) => isEligibleTouch(touch)) : touches;
   }
