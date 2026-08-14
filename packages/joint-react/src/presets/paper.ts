@@ -19,12 +19,46 @@ const POINTER_DOCUMENT_EVENTS: Record<string, string> = {
   pointercancel: 'pointerup',
 };
 
+// ---------------------------------------------------------------------------
+// Interactive controls inside magnets
+// ---------------------------------------------------------------------------
+// A control nested in a connectable magnet (e.g. `magnetRef('row-0')` from
+// `useMarkup`) works with plain React events. To keep a press from reaching the
+// paper — so it starts no link drag and no element move — stop the React event.
+// `onClick` is a separate native event and still fires:
+//
+//   <g ref={magnetRef('row-0')}>
+//     <foreignObject width={80} height={24}>
+//       <button onMouseDown={(event) => event.stopPropagation()} onClick={toggle}>NN</button>
+//     </foreignObject>
+//   </g>
+//
+// Stop `onMouseDown` (and `onTouchStart` for touch) — those are the events the
+// paper listens to. Stopping `onPointerDown` does NOT work on its own:
+// `pointerdown` is a separate event, so the `mousedown` that drives the paper
+// still gets through. If a handler already owns the pointer (`setPointerCapture`),
+// calling `preventDefault()` on `pointerdown` also works, because canceling it
+// suppresses the compatibility `mousedown` altogether.
+//
+// Keeping a control clickable while the rest of the element stays draggable
+// usually needs no wiring at all. A form control (`<input>`, `<select>`,
+// `<textarea>`) keeps its native default action (see `PREVENT_INTERACTION_TAG_NAMES`),
+// so a press selects text or opens the dropdown rather than moving the element or
+// starting a link. A `<button>` does both: a press-and-release in place clicks it,
+// while a drag moves the element (or, from a magnet, starts a link) and the preset
+// withholds the trailing click (see `swallowNextClick`) so the gesture is not also
+// counted as a click. For a non-form control that must both click and
+// drag-to-connect, set `magnetThreshold="onleave"` on the `<Paper>`: the link forms
+// only once the pointer leaves the magnet, so a drag releases away from the control
+// and the browser fires no click on it, while a press-and-release in place still clicks.
+
 type ProtectedPaperPrototype = {
   readonly pointermove: (event: dia.Event) => void;
   readonly pointerup: (event: dia.Event) => void;
   readonly startListening: () => void;
   readonly guard: (event: dia.Event, view: dia.CellView) => boolean;
   readonly onRemove: () => void;
+  readonly guardExplicit: (event: dia.Event, view?: dia.CellView) => boolean | undefined;
 };
 
 const protectedProto = dia.Paper.prototype as unknown as ProtectedPaperPrototype;
@@ -41,6 +75,31 @@ function getPointerId(event: dia.Event): number | null {
   const original = (event as unknown as { originalEvent?: { pointerId?: unknown } }).originalEvent;
   const fromOriginal = original?.pointerId;
   return typeof fromOriginal === 'number' ? fromOriginal : null;
+}
+
+/**
+ * Swallow the next native `click`, so a gesture that moved does not also click.
+ *
+ * joint-core already withholds its own `pointerclick` once the pointer travels past
+ * `clickThreshold`, but the browser still fires a DOM `click` whenever press and release
+ * share a target — which a drag does whenever the node follows the pointer, as when an
+ * element is moved by a button inside it. Without this, dragging a node by its button
+ * would run the button's `onClick` on release.
+ *
+ * Capture on `document` rather than `paper.el`: React attaches its listeners to the
+ * portal container, so a listener on `paper.el` could be ordered behind them.
+ */
+function swallowClick(event: Event): void {
+  event.stopPropagation();
+  event.preventDefault();
+}
+
+function swallowNextClick(): void {
+  document.addEventListener('click', swallowClick, { capture: true, once: true });
+  // A drag released off the pressed node fires no click at all; drop the listener so it
+  // cannot eat an unrelated one later. Re-adding the same function is a no-op, so
+  // overlapping gestures cannot stack listeners.
+  setTimeout(() => document.removeEventListener('click', swallowClick, true), 0);
 }
 
 const DEFAULT_CLICK_THRESHOLD = 5;
@@ -376,14 +435,59 @@ export const Paper = dia.Paper.extend(
     },
 
     /**
+     * Treat React content portaled into `paper.el` as off the paper's event surface.
+     *
+     * `<Paper>` children — an overlay, a popup, a toolbar — render into `paper.el` but
+     * outside its SVG. A press there must not open a blank interaction, and React alone
+     * cannot prevent one: React attaches its delegated listeners to the portal container,
+     * which IS `paper.el`, and the paper delegates on that same node and got there first,
+     * so a React `onMouseDown` runs after the paper has already reacted.
+     *
+     * joint-core leaves such a press alone for backwards compatibility, deciding it only
+     * from `guardExplicit`. Rejecting it here — after the caller's own `options.guard` —
+     * is what lets overlay content use plain React events with no interception of its own.
+     * @param event - Event delivered to the paper's dispatch.
+     * @param view - View resolved from the event target, if any.
+     * @returns `true` to guard, `false` to allow, `undefined` to leave it undecided.
+     */
+    guardExplicit(this: dia.Paper, event: dia.Event, view?: dia.CellView) {
+      const guarded = protectedProto.guardExplicit.call(this, event, view);
+      if (guarded !== undefined) return guarded;
+      const { target } = event;
+      const isPortaledContent =
+        target instanceof Node && !this.svg.contains(target) && this.el.contains(target);
+      // Anything else stays undecided, so the paper goes on to judge the target itself.
+      return isPortaledContent ? true : undefined;
+    },
+
+    /**
+     * Let a press on a `<button>` start a paper interaction — an element move, or a link
+     * when the button sits inside a magnet. joint-core blocks every form control here,
+     * which makes a button click-only; buttons are the one control whose whole purpose is
+     * a press, so a drag from one is unambiguous. `FORM_CONTROL_TAG_NAMES` is left alone,
+     * so the button keeps its native default action and stays focusable.
+     *
+     * A drag that moves does not also click: `pointerup` swallows the native click.
+     */
+    PREVENT_INTERACTION_TAG_NAMES: ['TEXTAREA', 'INPUT', 'SELECT'],
+
+    /**
      * Run the upstream pointerup handler, then release capture. Also runs on
      * `pointercancel` (mapped to the same method via the events hash) so
      * OS-stolen pointers don't leave listeners attached.
+     *
+     * Also withholds the next native `click` when the gesture moved, so a drag started
+     * from a button does not fire its `onClick` on release.
      * @param event - The pointerup or pointercancel event.
      */
     pointerup(this: dia.Paper, event: dia.Event) {
       const pointerId = getPointerId(event);
-      const captureTarget = this.eventData(event).captureTarget as Element | undefined;
+      const { captureTarget, mousemoved = 0 } = this.eventData(event) as {
+        captureTarget?: Element;
+        mousemoved?: number;
+      };
+      // Read before the super call: it ends the gesture and resets this state.
+      if (mousemoved > (this.options.clickThreshold ?? 0)) swallowNextClick();
       protectedProto.pointerup.call(this, event);
       if (!captureTarget || pointerId === null) return;
       this.el.classList.remove(DRAGGING_CLASS_NAME);
