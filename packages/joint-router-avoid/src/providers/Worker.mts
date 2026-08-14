@@ -233,6 +233,9 @@ function handleDeleteConnector(connectorId: dia.Cell.ID): void {
     if (!connRef) return;
     avoidRouter.deleteConnector(connRef);
     delete connectorRefs[connectorId];
+    // @ts-expect-error do not defined in the type definition, but it is present in the actual object
+    delete this.linksByPointer[connRef.g];
+
 }
 
 /**
