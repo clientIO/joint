@@ -13,8 +13,6 @@ const REPOSITORY_ROOT = '../..';
 module.exports = function(grunt) {
 
     function karmaPreprocessors(files) {
-        // 'sourcemap' must run first: it attaches the bundle's map to the karma file,
-        // which is what lets karma-coverage remap the results onto src/
         const preprocessors = ['sourcemap', 'coverage'];
         return files.reduce(function(files, file) {
             files[file] = preprocessors;
