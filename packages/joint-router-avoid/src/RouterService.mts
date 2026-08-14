@@ -2,7 +2,7 @@ import { g, mvc, alg } from '@joint/core';
 
 import type { dia, anchors } from '@joint/core';
 import type { ConnDirFlags } from 'libavoid-js';
-import type { Connector, Provider, Shape } from './providers/Provider.mjs';
+import type { Connector, Provider, ProviderEventMap, Shape } from './providers/Provider.mjs';
 
 const DEFAULT_PIN_CLASS_ID = 1;
 
@@ -12,43 +12,46 @@ export interface FallbackRouteAttributes {
     vertices: dia.Point[];
 }
 
-/** The route computed by avoid, to be applied to a link. */
+/** The route to apply to a link - computed by avoid, or by the built-in `rightAngle` fallback. */
 export interface RouteAttributes {
-    /** The link's new source end, including the anchor recomputed for the new route. */
+    /** The link's new source end, including the anchor to use for the new route. */
     source: dia.Link.EndJSON;
-    /** The link's new target end, including the anchor recomputed for the new route. */
+    /** The link's new target end, including the anchor to use for the new route. */
     target: dia.Link.EndJSON;
     /** The route's vertices, excluding the source and target points. */
     vertices: dia.Point[];
 }
 
-/** Parameters passed to a {@link SkipLinkCallback}. */
-export type SkipLinkCallbackParameters = {
+/** Parameters passed to a {@link TrackLinkCallback}. */
+export type TrackLinkCallbackParameters = {
     /** The link being considered. */
     link: dia.Link;
 }
 /**
- * Determines whether a link should be excluded from routing by this
+ * Determines whether a link should be tracked for routing by this
  * {@link RouterService} instance.
  *
  * @param params - The link being considered.
- * @returns `true` to exclude the link from routing.
+ * @returns `true` to track (route) the link, `false` to exclude it entirely.
  */
-export type SkipLinkCallback = (params: SkipLinkCallbackParameters) => boolean;
+export type TrackLinkCallback = (params: TrackLinkCallbackParameters) => boolean;
 
-/** Parameters passed to a {@link SkipElementCallback}. */
-export type SkipElementCallbackParameters = {
+/** Parameters passed to a {@link TrackElementCallback}. */
+export type TrackElementCallbackParameters = {
     /** The element being considered. */
     element: dia.Element;
 }
 /**
- * Determines whether an element should be excluded from routing by this
- * {@link RouterService} instance, i.e. not tracked as an avoid obstacle.
+ * Determines whether an element should be tracked as an avoid obstacle by
+ * this {@link RouterService} instance.
  *
  * @param params - The element being considered.
- * @returns `true` to exclude the element from routing.
+ * @returns `true` to track (route around) the element, `false` to exclude it entirely.
  */
-export type SkipElementCallback = (params: SkipElementCallbackParameters) => boolean;
+export type TrackElementCallback = (params: TrackElementCallbackParameters) => boolean;
+
+/** Where a route came from: computed by avoid, or the built-in `rightAngle` fallback. */
+export type RouteOrigin = 'avoid' | 'fallback';
 
 /** Parameters passed to a {@link SetRouteAttributesCallback}. */
 export type SetRouteAttributesCallbackParameters = {
@@ -56,8 +59,21 @@ export type SetRouteAttributesCallbackParameters = {
     link: dia.Link;
     /** The computed route attributes to apply to the link. */
     attributes: RouteAttributes;
-    /** Whether `attributes` came from the built-in fallback route rather than avoid. */
-    fallback?: boolean;
+    /** Where the route came from: computed by avoid, or the built-in `rightAngle` fallback. */
+    origin: RouteOrigin;
+    /**
+     * `true` when this route is provisional - avoid is still computing and
+     * another call for the same link follows (matches the `link:routing`
+     * event cycle). `false` when this is the link's final route for the
+     * current change.
+     */
+    routing?: boolean;
+    /**
+     * Why avoid could not route the link. Only set when the fallback route
+     * is applied because the link is unroutable (and the consumer did not
+     * claim it via `interceptUnroutableLink`).
+     */
+    unroutableReason?: UnroutableReason;
 }
 /**
  * Applies computed route attributes to a link, overriding the default
@@ -70,11 +86,12 @@ export type SetRouteAttributesCallback = (params: SetRouteAttributesCallbackPara
 
 /**
  * Why a link could not be routed by avoid:
- * - `'unconnected'` - one or both ends aren't connected to an element at all.
- * - `'untracked-element'` - both ends are connected, but at least one connected
- *   element is excluded from the router via `skipElement`.
+ * - `'unconnected'` - one or both ends aren't connected to a cell at all.
+ * - `'unsupported'` - one or both ends are connected to another link, which avoid cannot route to.
+ * - `'untracked'` - both ends are connected to an element, but at least
+ *   one of those elements is excluded from the router via `trackElement`.
  */
-export type UnroutableReason = 'unconnected' | 'untracked-element';
+export type UnroutableReason = 'unconnected' | 'untracked' | 'unsupported';
 
 /** Parameters passed to an {@link UnroutableLinkCallback}. */
 export type UnroutableLinkCallbackParameters = {
@@ -91,20 +108,69 @@ export type UnroutableLinkCallbackParameters = {
  */
 export type UnroutableLinkCallback = (params: UnroutableLinkCallbackParameters) => boolean;
 
+/**
+ * Outcome of a one-shot routing pass ({@link RouterService.routeAll} /
+ * {@link RouterService.routeSubgraph}): `'done'` when every route was
+ * applied, `'cancelled'` when the pass was interrupted by
+ * {@link RouterService.destroy} before completing.
+ */
+export interface RoutingResult {
+    status: 'done' | 'cancelled';
+}
+
 /** Options used to configure a {@link RouterService} instance. */
 export interface RouterServiceOptions {
-    /** Excludes links from routing. Defaults to routing every link. */
-    skipLink?: SkipLinkCallback;
-    /** Excludes elements from routing. Defaults to routing every element. */
-    skipElement?: SkipElementCallback;
+    /** Determines which links to track for routing. Defaults to tracking every link. */
+    trackLink?: TrackLinkCallback;
+    /** Determines which elements to track for routing. Defaults to tracking every element as obstacle. */
+    trackElement?: TrackElementCallback;
     /** Overrides how computed route attributes are applied to a link. Defaults to calling `link.set()` directly. */
     setRouteAttributes?: SetRouteAttributesCallback;
     /** Gives the consumer first refusal on links avoid cannot route. Defaults to always falling back to the built-in `rightAngle` route. */
     interceptUnroutableLink?: UnroutableLinkCallback;
     /** The margin to apply around elements when computing fallback route. */
-    elementMargin?: number;
+    shapeBufferDistance?: number;
     /** Name of the `opt` flag set on `link.set()` calls made by this instance, so its own changes can be told apart from the consumer's. Defaults to `'avoidRouter'`. */
-    eventFlagName?: string;
+    changeFlag?: string;
+}
+
+/** Events emitted by a {@link RouterService}. */
+export interface RouterServiceEventMap {
+    /**
+     * Emitted when a link's route is (re-)computing.
+     *
+     * @param link - The link entering a routing cycle.
+     */
+    'link:routing': (link: dia.Link) => void;
+    /**
+     * Emitted once a link's route has been applied.
+     *
+     * @param link - The link whose route was just applied.
+     * @param opt - Options describing the routing outcome.
+     */
+    'link:routed': (link: dia.Link, opt: { origin: RouteOrigin, reason?: UnroutableReason }) => void;
+    /**
+     * Emitted when a link with an open `link:routing` cycle becomes
+     * unroutable (e.g. disconnected) before avoid produced a route for it.
+     *
+     * @param link - The link whose open routing cycle was abandoned.
+     */
+    'link:routing:cancelled': (link: dia.Link) => void;
+    /**
+     * Emitted when there are no more pending routing cycles for any links in the graph.
+     */
+    'idle': () => void;
+}
+
+/** Typed `on()` for a {@link RouterService}, keyed to its {@link RouterServiceEventMap}. */
+export interface RouterServiceEvents_On<BaseT> {
+    <T extends BaseT, K extends keyof RouterServiceEventMap>(this: T, eventName: K, callback: RouterServiceEventMap[K], context?: unknown): T;
+    <T extends BaseT>(this: T, eventMap: Partial<RouterServiceEventMap>, context?: unknown): T;
+}
+
+/** Typed `trigger()` for a {@link RouterService}, keyed to its {@link RouterServiceEventMap}. */
+export interface RouterServiceEvents_Trigger<BaseT> {
+    <T extends BaseT, K extends keyof RouterServiceEventMap>(this: T, eventName: K, ...args: Parameters<RouterServiceEventMap[K]>): T;
 }
 
 /**
@@ -114,35 +180,48 @@ export interface RouterServiceOptions {
  * {@link Provider} (either on the main thread or inside a Worker).
  *
  * Instances are normally created via `initAvoidRouter()` rather than
- * directly. A `RouterService` listens to its graph for as long as it is
- * not {@link destroy}ed, and emits `link:pending`/`link:routed`/
- * `link:pending:cancelled` events as links are (re-)routed.
+ * directly, and are not started automatically. Call {@link start} to begin
+ * listening to the graph and keeping it continuously routed (until
+ * {@link stop} or {@link destroy}), or use {@link routeAll}/
+ * {@link routeSubgraph} for a one-shot routing pass with no graph listener.
+ * Emits the events in {@link RouterServiceEventMap} as links are (re-)routed.
  */
 export class RouterService {
 
     // Provided by the `mvc.Events` mixin applied below the class body.
-    // Allows `RouterService` instances to emit `pending`/`routed` events for
-    // their links. See `Keyboard` in `@joint/keyboard` for the same pattern.
-    declare on: mvc.Events_On<RouterService>;
+    // Allows `RouterService` instances to emit the events in
+    // `RouterServiceEventMap` (`link:routing`, `link:routed`,
+    // `link:routing:cancelled`, `idle`). See `Keyboard` in `@joint/keyboard`
+    // for the same pattern.
+    declare on: RouterServiceEvents_On<RouterService>;
     declare off: mvc.Events_Off<RouterService>;
-    declare trigger: mvc.Events_Trigger<RouterService>;
+    declare trigger: RouterServiceEvents_Trigger<RouterService>;
 
-    private readonly defaultSkipLink: SkipLinkCallback = () => false;
-    private readonly defaultSkipElement: SkipElementCallback = () => false;
+    private readonly defaultTrackLink: TrackLinkCallback = () => true;
+    private readonly defaultTrackElement: TrackElementCallback = () => true;
 
     /** Maps `${elementId}:${portId}` to the avoid pin id allocated for that port. */
     private readonly pinIds: Record<string, number> = {};
-    /** The last route avoid computed for each link, keyed by link id. */
-    private readonly connectorRoutes: Record<dia.Cell.ID, dia.Point[]> = {};
-    private readonly skipLink: SkipLinkCallback;
-    private readonly skipElement: SkipElementCallback;
+    private readonly trackLink: TrackLinkCallback;
+    private readonly trackElement: TrackElementCallback;
 
-    // Links with an open `pending` cycle, i.e. `link:pending` was emitted for
+    // Links with an open routing cycle, i.e. `link:routing` was emitted for
     // them and `link:routed` hasn't closed it out yet. Checked wherever avoid is
     // definitively given up on for a change (rather than merely retried),
     // so a link detached mid-flight - while avoid was still computing its
-    // route - gets its stranded cycle closed instead of staying stuck.
-    private readonly pendingLinks: WeakSet<dia.Link> = new WeakSet();
+    // route - gets its stranded cycle closed instead of staying stuck. Kept
+    // as a regular Set (not a WeakSet) so destroy() can enumerate and
+    // cancel every still-open cycle.
+    private readonly pendingLinks: Set<dia.Link> = new Set();
+
+    // Whether a route is currently being applied to a link.
+    // This is used to avoid re-entrant calls to `link.set()` when the router
+    // applies a new route to a link, which can trigger `change` events that would
+    // otherwise cause the router to try to apply a new route while it's still applying the previous one.
+    private applyingRoute = false;
+
+    // Serializes one-shot routing passes (see `route()`).
+    private routeChain: Promise<unknown> = Promise.resolve();
 
     private nextPinId = 100000;
     private graphListener?: mvc.Listener<[]>;
@@ -167,15 +246,15 @@ export class RouterService {
         private readonly provider: Provider,
         private readonly options: RouterServiceOptions = {}
     ) {
-        if (this.options.elementMargin == null) {
-            this.options.elementMargin = 0;
+        if (this.options.shapeBufferDistance == null) {
+            this.options.shapeBufferDistance = 0;
         }
-        if (this.options.eventFlagName == null) {
-            this.options.eventFlagName = 'avoidRouter';
+        if (this.options.changeFlag == null) {
+            this.options.changeFlag = 'avoidRouter';
         }
 
-        this.skipLink = options.skipLink ?? this.defaultSkipLink;
-        this.skipElement = options.skipElement ?? this.defaultSkipElement;
+        this.trackLink = options.trackLink ?? this.defaultTrackLink;
+        this.trackElement = options.trackElement ?? this.defaultTrackElement;
 
         // connection directions flags for avoid shapes' pins.
         // The flags are used to indicate which directions a pin can connect to.
@@ -188,63 +267,176 @@ export class RouterService {
             all: 15,
         };
 
-        this.provider.onConnectorChanged = (linkId, points) => this.routeLink(linkId, points);
+        this.provider.on('connector:changed', (linkId, points) => this.routeLink(linkId, points));
+        this.provider.on('processed', () => this.trigger('idle'));
+    }
 
-        this.addGraphListeners();
+    /**
+     * The `opt` flag name used to mark changes this instance makes to a
+     * link/element itself (via `link.set()`/`element.set()`), so
+     * `onCellChanged` can recognize and ignore its own writes instead of
+     * treating them as an external change to react to.
+    */
+    get changeFlag() {
+        return this.options.changeFlag!;
+    }
+
+    /**
+     * Whether the router is currently listening to its graph for changes,
+     * i.e. {@link start} has been called and not yet followed by
+     * {@link stop}. Must be `false` before calling {@link routeAll} or
+     * {@link routeSubgraph}: both fully reset the underlying avoid engine's
+     * state in one go, which would conflict with the incremental updates
+     * the graph listener applies while started.
+     */
+    get isStarted(): boolean {
+        return !!this.graphListener;
     }
 
     /**
      * Starts listening to graph changes and automatically updates the
-     * router. Also (re-)syncs any cells the graph already holds - e.g.
-     * cells added before `init()` was called, or while listeners were
-     * detached - since referencing an element that was never registered
-     * as an avoid shape aborts the underlying WASM module irrecoverably.
+     * router. Also (re-)syncs every cell the graph already holds - e.g.
+     * cells added before `start()` was called, or while stopped - since
+     * referencing an element that was never registered as an avoid shape
+     * aborts the underlying WASM module irrecoverably.
      */
-    addGraphListeners(): void {
-        this.removeGraphListeners();
+    start(): void {
+        this.stop();
 
         const listener = new mvc.Listener<[]>();
+        // Listens to the per-attribute `change:*` events, NOT the catch-all
+        // `change` event: `change:*` events fire synchronously inside
+        // `cell.set()`, while the catch-all `change` of a nested `set()` (one
+        // made from within a change listener, e.g. a `setRouteAttributes`
+        // callback) is deferred and delivered only after the outer `set()`
+        // finishes - by which point the `applyingRoute` guard has been
+        // released and the router would treat its own write as a consumer
+        // change (an infinite routing loop, when the callback does not pass
+        // the `changeFlag`).
         listener.listenTo(this.graph, {
             remove: (cell: dia.Cell) => this.onCellRemoved(cell),
             add: (cell: dia.Cell) => this.onCellAdded(cell),
-            change: (cell: dia.Cell, opt: dia.Cell.Options) => this.onCellChanged(cell, opt),
-            reset: (_collection: unknown) => this.onGraphReset(),
+            'change:source': (link: dia.Link, _end: unknown, opt: dia.Cell.Options) => this.onLinkEndChanged(link, opt),
+            'change:target': (link: dia.Link, _end: unknown, opt: dia.Cell.Options) => this.onLinkEndChanged(link, opt),
+            'change:position': (element: dia.Element, _position: unknown, opt: dia.Cell.Options) => this.onElementGeometryChanged(element, opt),
+            'change:size': (element: dia.Element, _size: unknown, opt: dia.Cell.Options) => this.onElementGeometryChanged(element, opt),
+            reset: () => this.backgroundSync(),
         });
 
         this.graphListener = listener;
 
-        this.onGraphReset();
+        this.backgroundSync();
+    }
+
+    /**
+     * Runs {@link sync} for the whole graph with no caller to await it
+     * (from {@link start} and the graph `reset` event), swallowing the
+     * rejection produced when {@link destroy} interrupts the sync so a
+     * normal teardown does not surface as an unhandled promise rejection.
+     * Unexpected errors are re-thrown and stay unhandled - there is no
+     * caller to propagate them to.
+     */
+    private backgroundSync(): void {
+        this.sync(this.graph.getCells()).catch((error) => {
+            if (this.destroyed) return;
+            throw error;
+        });
     }
 
     /** Stops listening to graph changes. */
-    removeGraphListeners(): void {
+    stop(): void {
         this.graphListener?.stopListening();
         this.graphListener = undefined;
     }
 
     /**
-     * Returns the route computed by avoid for the link with the given id.
-     * The route is an array of points including the source and target
-     * points.
-     *
-     * @param linkId - Id of the link to look up.
-     * @returns The link's current route, or `undefined` if avoid has not computed one yet.
-     */
-    getRoute(linkId: dia.Cell.ID): dia.Point[] | undefined {
-        return this.connectorRoutes[linkId];
-    }
-
-    /**
      * Stops routing this graph and releases the resources held by this
-     * instance and its provider (e.g. terminates a Worker thread). The
+     * instance and its provider (e.g. terminates a Worker thread). Any
+     * link with an open routing cycle - `link:routing` fired for it, but
+     * avoid never got to answer with `link:routed` - has that cycle closed
+     * via `link:routing:cancelled` instead of being left stuck. The
      * instance must not be used after calling this.
      */
     destroy(): void {
         if (this.destroyed) return;
         this.destroyed = true;
 
-        this.removeGraphListeners();
+        Array.from(this.pendingLinks).forEach((link) => this.setRoutingCanceled(link));
+
+        this.stop();
         this.provider.destroy();
+    }
+
+    /**
+     * Routes every cell currently in the graph in a single one-shot pass,
+     * resetting the underlying avoid engine's state to match exactly the
+     * graph's current cells. Unlike {@link start}, this attaches no graph
+     * listener - nothing keeps the graph routed as it changes afterwards.
+     *
+     * @returns The {@link RoutingResult} of the pass.
+     * @throws If the router is currently started (see {@link isStarted}) - call {@link stop} first.
+     */
+    routeAll(): Promise<RoutingResult> {
+        if (this.isStarted) {
+            throw new Error('RouterService is already started. Stop it before calling routeAll().');
+        }
+
+        return this.route(this.graph.getCells());
+    }
+
+    /**
+     * Routes only the given `cells` in a single one-shot pass, resetting
+     * the underlying avoid engine's state to contain exactly this subset.
+     * Cells outside `cells` are neither routed nor considered as obstacles
+     * for this pass, and any routes already applied to links outside
+     * `cells` are left untouched - useful for routing independent groups
+     * (e.g. each container's own content) in isolation from one another and
+     * from the rest of the graph. Like {@link routeAll}, this attaches no
+     * graph listener.
+     *
+     * @param cells - The cells to route; only the elements and links in this array are considered.
+     * @returns The {@link RoutingResult} of the pass.
+     * @throws If the router is currently started (see {@link isStarted}) - call {@link stop} first.
+     */
+    routeSubgraph(cells: dia.Cell[]): Promise<RoutingResult> {
+        if (this.isStarted) {
+            throw new Error('RouterService is already started. Stop it before calling routeSubgraph().');
+        }
+
+        return this.route(cells);
+    }
+
+    /**
+     * Runs a one-shot routing pass over `cells`. A pass interrupted by
+     * {@link destroy} - whether still queued or already waiting on the
+     * provider - resolves with `{ status: 'cancelled' }` instead of
+     * rejecting, so fire-and-forget callers are not left with unhandled
+     * rejections; provider errors unrelated to destruction still reject.
+     *
+     * Passes run strictly one after another: a pass invoked while another
+     * is still in flight waits for it, since each pass replaces the
+     * provider's entire content.
+     *
+     * @param cells - The cells to route.
+     * @returns The result of the pass.
+     */
+    private route(cells: dia.Cell[]): Promise<RoutingResult> {
+        const run = this.routeChain.then(() => this.performRoute(cells));
+        this.routeChain = run.catch(() => {});
+        return run;
+    }
+
+    private async performRoute(cells: dia.Cell[]): Promise<RoutingResult> {
+        if (this.destroyed) return { status: 'cancelled' };
+
+        try {
+            await this.sync(cells);
+        } catch (error) {
+            if (this.destroyed) return { status: 'cancelled' };
+            throw error;
+        }
+
+        return { status: 'done' };
     }
 
     /**
@@ -256,14 +448,13 @@ export class RouterService {
     private onCellRemoved(cell: dia.Cell): void {
         if (cell.isElement()) {
             this.deletePinIds(cell.id);
-            if (!this.skipElement({ element: cell })) {
+            if (this.trackElement({ element: cell })) {
                 this.provider.deleteShape(cell.id);
             }
-        } else if (cell.isLink() && !this.skipLink({ link: cell })) {
+        } else if (cell.isLink() && this.trackLink({ link: cell })) {
             if (this.pendingLinks.has(cell)) {
-                this.setPendingCanceled(cell);
+                this.setRoutingCanceled(cell);
             }
-            delete this.connectorRoutes[cell.id];
             this.provider.deleteConnector(cell.id);
         }
     }
@@ -292,12 +483,12 @@ export class RouterService {
      * @param cell - The cell that was added.
      */
     private onCellAdded(cell: dia.Cell): void {
-        if (cell.isElement() && !this.skipElement({ element: cell })) {
-            this.provider.updateShape(this.getAvoidShape(cell));
+        if (cell.isElement() && this.trackElement({ element: cell })) {
+            this.provider.setShape(this.getAvoidShape(cell));
             return;
         }
 
-        if (!cell.isLink() || this.skipLink({ link: cell })) return;
+        if (!cell.isLink() || !this.trackLink({ link: cell })) return;
 
         if (!this.validateEnds(cell)) {
             // In scope for the router, but avoid can't route a link that
@@ -306,72 +497,86 @@ export class RouterService {
             return;
         }
 
-        this.provider.updateConnector(this.getAvoidConnector(cell));
+        this.applyFallbackRoute(cell, { routing: true });
+        this.provider.setConnector(this.getAvoidConnector(cell));
     }
 
     /**
-     * Handles a cell's attributes changing: re-registers its avoid
-     * shape/connector, and re-routes any links affected by the change.
+     * Handles a link's source/target changing: re-registers its avoid
+     * connector and re-routes it.
      *
-     * @param cell - The cell that changed.
-     * @param opt - The options the change was made with; changes flagged with `options.eventFlagName` (this instance's own writes) are ignored.
+     * @param link - The link whose end changed.
+     * @param opt - The options the change was made with; changes flagged with {@link changeFlag} (this instance's own writes) are ignored.
      */
-    private onCellChanged(cell: dia.Cell, opt: dia.Cell.Options = {}): void {
-        if (opt[this.options.eventFlagName!]) return;
+    private onLinkEndChanged(link: dia.Link, opt: dia.Cell.Options = {}): void {
+        if (opt[this.changeFlag] || this.applyingRoute) return;
 
-        if ('source' in cell.changed || 'target' in cell.changed) {
-            if (!cell.isLink() || this.skipLink({ link: cell })) return;
+        if (!this.trackLink({ link })) return;
 
-            if (!this.validateEnds(cell)) {
-                // Giving up on avoid for this change - hand off to the
-                // consumer via `interceptUnroutableLink`, or fall back to the
-                // built-in rightAngle route.
-                this.resolveUnroutableLink(cell);
-                this.provider.deleteConnector(cell.id);
-                return;
-            }
-
-            this.applyFallbackRoute(cell);
-            this.setPending(cell);
-            this.provider.updateConnector(this.getAvoidConnector(cell));
+        if (!this.validateEnds(link)) {
+            // Giving up on avoid for this change - hand off to the
+            // consumer via `interceptUnroutableLink`, or fall back to the
+            // built-in rightAngle route.
+            this.resolveUnroutableLink(link);
+            this.provider.deleteConnector(link.id);
+            return;
         }
 
-        if ('position' in cell.changed || 'size' in cell.changed) {
-            if (!cell.isElement()) return;
-
-            this.graph.getConnectedLinks(cell).filter((link) => !this.skipLink({ link })).forEach((link) => {
-                if (!this.validateEnds(link)) {
-                    this.resolveUnroutableLink(link);
-                    return;
-                }
-
-                this.applyFallbackRoute(link);
-                this.setPending(link);
-            });
-
-            if (this.skipElement({ element: cell })) return;
-
-            this.provider.updateShape(this.getAvoidShape(cell));
-        }
+        this.applyFallbackRoute(link, { routing: true });
+        this.provider.setConnector(this.getAvoidConnector(link));
     }
 
     /**
-     * Handles the graph being reset: re-registers every element and
-     * routable link with the provider in a single transaction.
+     * Handles an element's position/size changing: re-registers its avoid
+     * shape, and re-routes the links connected to it.
+     *
+     * @param element - The element that changed.
+     * @param opt - The options the change was made with; changes flagged with {@link changeFlag} (this instance's own writes) are ignored.
      */
-    private onGraphReset(): void {
-        const routableLinks: dia.Link[] = [];
-        this.graph.getLinks().filter((link) => !this.skipLink({ link })).forEach((link) => {
+    private onElementGeometryChanged(element: dia.Element, opt: dia.Cell.Options = {}): void {
+        if (opt[this.changeFlag] || this.applyingRoute) return;
+
+        this.graph.getConnectedLinks(element).filter((link) => this.trackLink({ link })).forEach((link) => {
             if (!this.validateEnds(link)) {
                 this.resolveUnroutableLink(link);
                 return;
             }
 
+            this.applyFallbackRoute(link, { routing: true });
+        });
+
+        if (!this.trackElement({ element })) return;
+
+        this.provider.setShape(this.getAvoidShape(element));
+    }
+
+    /**
+     * Registers exactly `cells`' tracked elements and routable links with
+     * the provider in a single transaction, replacing whatever shapes and
+     * connectors the underlying avoid engine previously knew about. Also
+     * immediately applies a fallback route (firing `link:routing`) to each
+     * routable link, the same interim placeholder used for any other
+     * change, so every link has a sane route right away while avoid
+     * computes the real ones asynchronously. Shared by `start()`'s initial
+     * sync (and its reaction to a `reset` graph event), {@link routeAll},
+     * and {@link routeSubgraph}.
+     *
+     * @param cells - The cells to register; only the elements and links in this array are considered.
+     */
+    private async sync(cells: dia.Cell[]): Promise<void> {
+        const routableLinks: dia.Link[] = [];
+        cells.filter((cell) => cell.isLink()).filter((link) => this.trackLink({ link })).forEach((link) => {
+            if (!this.validateEnds(link)) {
+                this.resolveUnroutableLink(link);
+                return;
+            }
+
+            this.applyFallbackRoute(link, { routing: true });
             routableLinks.push(link);
         });
 
-        this.provider.resetGraph(
-            this.graph.getElements().filter((element) => !this.skipElement({ element })).map((element) => this.getAvoidShape(element)),
+        return this.provider.sync(
+            cells.filter((cell) => cell.isElement()).filter((element) => this.trackElement({ element })).map((element) => this.getAvoidShape(element)),
             routableLinks.map((link) => this.getAvoidConnector(link))
         );
     }
@@ -420,8 +625,11 @@ export class RouterService {
                 const side = rect.sideNearestToPoint({ x, y }) as keyof typeof this.connectionDirections;
                 pins.push({
                     id: this.getConnectionPinId(element.id, portId),
-                    x: x / width,
-                    y: y / height,
+                    // Guard against zero-size elements - dividing by a zero
+                    // dimension would feed NaN/Infinity pin coordinates into
+                    // the avoid WASM module.
+                    x: width ? x / width : 0,
+                    y: height ? y / height : 0,
                     connectionDirection: this.connectionDirections[side]
                 });
             });
@@ -470,43 +678,45 @@ export class RouterService {
 
     /**
      * Marks `link` as having an in-flight routing computation and emits
-     * `link:pending`. Every call must be paired with a later {@link setRouted}
-     * call for the same link, closing the cycle.
+     * `link:routing`. A no-op when the link's routing cycle is already
+     * open (e.g. repeated changes while dragging), so each `link:routing`
+     * is paired with exactly one later `link:routed`/
+     * `link:routing:cancelled` closing the cycle.
      *
-     * @param link - The link entering a pending routing cycle.
+     * @param link - The link entering a routing cycle.
      */
-    private setPending(link: dia.Link): void {
+    private setRouting(link: dia.Link): void {
+        if (this.pendingLinks.has(link)) return;
         this.pendingLinks.add(link);
-        this.trigger('link:pending', link);
+        this.trigger('link:routing', link);
     }
 
     /**
-     * Closes `link`'s pending cycle, if one is open, and emits `link:routed`.
+     * Closes `link`'s routing cycle, if one is open, and emits `link:routed`.
      *
      * @param link - The link whose route was just applied.
-     * @param fallback - Whether the final route came from avoid (`false`/omitted) or from {@link applyFallbackRoute} (`true`) - e.g. because the link was detached while avoid was still computing its route.
+     * @param options - Describes the routing outcome: `origin` is where the applied route came from, and `reason` is set when it's the fallback route for a link avoid could not route at all.
      */
-    private setRouted(link: dia.Link, fallback?: boolean): void {
+    private setRouted(link: dia.Link, options: { origin: RouteOrigin, reason?: UnroutableReason }): void {
         this.pendingLinks.delete(link);
-        this.trigger('link:routed', link, { fallback });
+        this.trigger('link:routed', link, options);
     }
 
     /**
-     * Closes `link`'s pending cycle without a route being applied, and
-     * emits `link:pending:cancelled`.
+     * Closes `link`'s routing cycle without a route being applied, and emits `link:routing:cancelled`.
      *
-     * @param link - The link whose pending routing cycle is being abandoned.
+     * @param link - The link whose open routing cycle is being abandoned.
      */
-    private setPendingCanceled(link: dia.Link): void {
+    private setRoutingCanceled(link: dia.Link): void {
         this.pendingLinks.delete(link);
-        this.trigger('link:pending:cancelled', link);
+        this.trigger('link:routing:cancelled', link);
     }
 
     /**
-     * Callback registered as {@link Provider.onConnectorChanged}, invoked
-     * whenever avoid recomputes a link's route. Applies the route if it is
-     * still valid for a still-existing link, otherwise falls back to the
-     * built-in `rightAngle` route.
+     * Callback registered for the provider's `connector:changed` event (see
+     * {@link ProviderEventMap}), invoked whenever avoid recomputes a link's
+     * route. Applies the route if it is still valid for a still-existing
+     * link, otherwise falls back to the built-in `rightAngle` route.
      *
      * @param linkId - Id of the link whose route changed.
      * @param points - The new route, including the source and target points.
@@ -517,12 +727,10 @@ export class RouterService {
         // computing its route or became unroutable, so check for existence and validity before applying the route.
         if (!link || !this.provider.hasConnector(linkId)) return;
 
-        this.connectorRoutes[linkId] = points;
         const fallback = !points || !this.isRouteValid(points, link);
 
         if (fallback) {
             this.applyFallbackRoute(link);
-            this.setRouted(link, true);
             return;
         }
 
@@ -531,7 +739,7 @@ export class RouterService {
 
     /**
      * Applies the route computed by avoid to the link, updating its
-     * source/target anchors and vertices, then closes its pending cycle.
+     * source/target anchors and vertices, then closes its routing cycle.
      *
      * @param link - The link to update.
      * @param points - The route computed by avoid, including the source and target points.
@@ -551,39 +759,93 @@ export class RouterService {
         };
 
         // trigger change on vertices setter to update the link view
-        if (this.options.setRouteAttributes) {
-            this.options.setRouteAttributes({ link, attributes });
-            this.setRouted(link);
-            return;
-        }
+        this.applySafely(link, () => {
+            if (this.options.setRouteAttributes) {
+                this.options.setRouteAttributes({
+                    link,
+                    attributes,
+                    origin: 'avoid',
+                    routing: false
+                });
+            } else {
+                link.set(attributes, { [this.changeFlag]: true });
+            }
+        });
 
-        link.set(attributes, { [this.options.eventFlagName!]: true });
-        this.setRouted(link);
+        this.setRouted(link, { origin: 'avoid' });
+    }
+
+    /**
+     * Runs `apply` (the consumer's `setRouteAttributes` callback, or a
+     * `link.set()` call whose `change` events consumer listeners may react
+     * to) with the {@link applyingRoute} re-entrancy guard held. If `apply`
+     * throws, any open routing cycle of `link` is closed via
+     * `link:routing:cancelled` before the error propagates, so a buggy
+     * consumer callback/listener cannot leave the link stuck "routing".
+     *
+     * @param link - The link the attributes are being applied to.
+     * @param apply - Applies the attributes.
+     */
+    private applySafely(link: dia.Link, apply: () => void): void {
+        let applied = false;
+        this.applyingRoute = true;
+        try {
+            apply();
+            applied = true;
+        } finally {
+            this.applyingRoute = false;
+            if (!applied && this.pendingLinks.has(link)) {
+                this.setRoutingCanceled(link);
+            }
+        }
     }
 
     /**
      * Applies the manual `rightAngle` route directly to the link, bypassing
-     * avoid. Used when a route computed by avoid should not be trusted.
+     * avoid. Used when a route computed by avoid should not be trusted, or
+     * when the link can't be routed by avoid at all.
      *
      * @param link - The link to update.
+     * @param options - `routing`, if `true`, applies the route as an interim placeholder and emits `link:routing` instead of closing the cycle with `link:routed`. `reason` is forwarded as the unroutable reason when this fallback is final (see {@link resolveUnroutableLink}).
      */
-    private applyFallbackRoute(link: dia.Link): void {
+    private applyFallbackRoute(link: dia.Link, options: { routing?: boolean, reason?: UnroutableReason } = {}): void {
         const rightAngleVertices = this.getFallbackRoute(link);
 
-        if (this.options.setRouteAttributes) {
-            this.options.setRouteAttributes({
-                link,
-                attributes: {
-                    source: link.source(),
-                    target: link.target(),
-                    vertices: rightAngleVertices
-                },
-                fallback: true
-            });
-            return;
-        }
+        const attributes = {
+            source: {
+                ...link.source(),
+                anchor: {
+                    name: 'modelCenter',
+                }
+            },
+            target: {
+                ...link.target(),
+                anchor: {
+                    name: 'modelCenter',
+                }
+            },
+            vertices: rightAngleVertices
+        };
 
-        link.set('vertices', rightAngleVertices, { [this.options.eventFlagName!]: true });
+        this.applySafely(link, () => {
+            if (this.options.setRouteAttributes) {
+                this.options.setRouteAttributes({
+                    link,
+                    attributes,
+                    origin: 'fallback',
+                    routing: !!options.routing,
+                    unroutableReason: options.reason,
+                });
+            } else {
+                link.set(attributes, { [this.changeFlag]: true });
+            }
+        });
+
+        if (options.routing) {
+            this.setRouting(link);
+        } else {
+            this.setRouted(link, { origin: 'fallback', reason: options.reason });
+        }
     }
 
     /**
@@ -611,7 +873,7 @@ export class RouterService {
             endPoint: sourcePoint,
             bbox: new g.Rect(sourceBBox.x, sourceBBox.y, sourceBBox.width, sourceBBox.height),
             side: sourceSide,
-            margin: this.options.elementMargin ?? 0,
+            margin: this.options.shapeBufferDistance ?? 0,
         };
 
         let targetBBox = link.getTargetElement()?.getBBox();
@@ -627,7 +889,7 @@ export class RouterService {
             endPoint: targetPoint,
             bbox: new g.Rect(targetBBox.x, targetBBox.y, targetBBox.width, targetBBox.height),
             side: targetSide,
-            margin: this.options.elementMargin ?? 0,
+            margin: this.options.shapeBufferDistance ?? 0,
         };
 
         return alg.rightAnglePath(source, target);
@@ -674,12 +936,12 @@ export class RouterService {
             return false;
         }
 
-        if (sourcePortId && targetElement!.getBBox().inflate(this.options.elementMargin).containsPoint(sourcePoint)) {
+        if (sourcePortId && targetElement!.getBBox().inflate(this.options.shapeBufferDistance).containsPoint(sourcePoint)) {
             // The source point is inside the target element.
             return false;
         }
 
-        if (targetPortId && sourceElement!.getBBox().inflate(this.options.elementMargin).containsPoint(targetPoint)) {
+        if (targetPortId && sourceElement!.getBBox().inflate(this.options.shapeBufferDistance).containsPoint(targetPoint)) {
             // The target point is inside the source element.
             return false;
         }
@@ -762,21 +1024,29 @@ export class RouterService {
 
     /**
      * A link cannot be routed by avoid when one of its ends is a loose
-     * point rather than being connected to an element, or when either
-     * connected element is excluded from routing via `skipElement`.
+     * point rather than being connected to a cell, when either end is
+     * connected to another link, or when either connected element is
+     * excluded from routing via `trackElement`.
      *
      * @param link - The link to validate.
      * @returns `true` if both ends are connected to a tracked element.
      */
     private validateEnds(link: dia.Link): boolean {
-        const sourceElement = link.getSourceElement();
-        const targetElement = link.getTargetElement();
+        const sourceCell = link.getSourceCell();
+        const targetCell = link.getTargetCell();
 
-        if (!sourceElement || !targetElement) {
+        // Avoid cannot route a link that is not connected to an element on both ends.
+        if (!sourceCell || !targetCell) {
             return false;
         }
 
-        if (this.skipElement({ element: sourceElement }) || this.skipElement({ element: targetElement })) {
+        // Avoid cannot route a link that is connected to another link on either end.
+        if (sourceCell?.isLink() || targetCell?.isLink()) {
+            return false;
+        }
+
+        // Avoid cannot route a link that is connected to an element that is excluded from routing.
+        if (!this.trackElement({ element: sourceCell as dia.Element }) || !this.trackElement({ element: targetCell as dia.Element })) {
             return false;
         }
 
@@ -792,41 +1062,47 @@ export class RouterService {
      * @returns Why the link could not be routed.
      */
     private getUnroutableReason(link: dia.Link): UnroutableReason {
-        const sourceElement = link.getSourceElement();
-        const targetElement = link.getTargetElement();
+        const sourceCell = link.getSourceCell();
+        const targetCell = link.getTargetCell();
 
-        if (!sourceElement || !targetElement) {
+        // Avoid cannot route a link that is not connected to a cell on both ends.
+        if (!sourceCell || !targetCell) {
             return 'unconnected';
         }
 
-        return 'untracked-element';
+        // Avoid cannot route a link that is connected to another link on either end.
+        if (sourceCell?.isLink() || targetCell?.isLink()) {
+            return 'unsupported';
+        }
+
+        // Avoid cannot route a link that is connected to an element that is excluded from routing.
+        return 'untracked';
     }
 
     /**
      * Gives the consumer first refusal on a link that failed
      * {@link validateEnds}. If `interceptUnroutableLink` claims it (returns
-     * `true`), the pending cycle is closed and the built-in `rightAngle`
-     * route is skipped entirely. Otherwise falls through to the built-in
-     * {@link applyFallbackRoute}.
+     * `true`), the open routing cycle (if any) is closed and the built-in
+     * `rightAngle` route is skipped entirely. Otherwise falls through to
+     * the built-in {@link applyFallbackRoute}.
      *
      * @param link - The unroutable link.
      */
     private resolveUnroutableLink(link: dia.Link): void {
         if (this.pendingLinks.has(link)) {
-            this.setPendingCanceled(link);
+            this.setRoutingCanceled(link);
         }
-        // Clean up any route that may have been computed by avoid before the link became unroutable.
-        delete this.connectorRoutes[link.id];
 
         const { interceptUnroutableLink } = this.options;
+        const reason = this.getUnroutableReason(link);
         if (interceptUnroutableLink && interceptUnroutableLink({
             link,
-            reason: this.getUnroutableReason(link)
+            reason
         })) {
             return;
         }
-        this.applyFallbackRoute(link);
-        this.setRouted(link, true);
+
+        this.applyFallbackRoute(link, { reason });
     }
 }
 

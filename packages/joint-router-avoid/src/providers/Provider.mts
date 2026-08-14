@@ -15,7 +15,7 @@ export interface ProviderOptions {
      * running a single `processTransaction()` call for the whole batch.
      * Only meaningful for providers that queue work (e.g. {@link WorkerProvider}).
      */
-    updateDebounceTime?: number;
+    workerUpdateDebounceTime?: number;
 }
 
 /**
