@@ -58,7 +58,7 @@ export interface InitAvoidOptions {
  * @param options - Configuration for the avoid router and the resulting {@link RouterService}.
  * @returns A promise resolving to the `RouterService` instance now routing `graph`.
  */
-export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOptions): Promise<RouterService> {
+export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOptions = {}): Promise<RouterService> {
     if (loadAvoidPromise) {
         await loadAvoidPromise;
     } else if (!AvoidLib.avoidLib) {
