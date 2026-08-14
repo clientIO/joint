@@ -78,5 +78,6 @@ export default {
   // Coverage baseline, recorded as the floor of what the suite currently reaches.
   // Only enforced when jest runs with --coverage, i.e. by `yarn test-coverage-lcov`.
   coverageThreshold,
-  coverageReporters: process.env.COVERAGE_REPORTER === 'lcov' ? ['lcovonly'] : ['text-summary'],
+  coverageReporters:
+    process.env.COVERAGE_REPORTER === 'lcov' ? ['lcovonly'] : ['html', 'text-summary'],
 };

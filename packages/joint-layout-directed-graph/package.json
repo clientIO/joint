@@ -37,7 +37,8 @@
     "dist": "rollup --config",
     "build": "rollup --config",
     "test": "mocha test/nodejs/nodejs.js && karma start karma.conf.js",
-    "test-coverage-lcov": "COVERAGE_REPORTER=lcov karma start karma.conf.js",
+    "test-coverage": "karma start karma.conf.js",
+    "test-coverage-lcov": "COVERAGE_REPORTER=lcov yarn run test-coverage",
     "lint": "eslint .",
     "lint-fix": "yarn run lint --fix"
   },
