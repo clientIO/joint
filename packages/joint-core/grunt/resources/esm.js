@@ -1,6 +1,5 @@
-// `test` builds are sourcemapped so that coverage maps back to src/ instead of the
-// bundle. They live in build/test/, which copy:dist excludes, so neither they nor
-// their .map files can ever reach dist/ and be published.
+// `test` builds are source-mapped - coverage reports must map tests to `src/`
+// `build/test/` is NOT distributed (`packages/joint-core/grunt/config/copy.js`)
 module.exports = {
     geometry: {
         src: 'src/g/index.mjs',
@@ -16,7 +15,7 @@ module.exports = {
         src: 'wrappers/joint.wrapper.mjs',
         umd: 'build/joint.js', // joint + plugins + vectorizer + geometry. no header. universal module
         iife: 'build/joint.nowrap.js',  // joint + plugins + vectorizer + geometry. browser-only version
-        noDependencies: 'build/test/joint.nodeps.js' // joint + plugins (for unit testing)
+        test: 'build/test/joint.nodeps.js' // joint + plugins, no vectorizer or geometry. for unit testing
     },
     plugins: {
         'joint.shapes.standard': { src: 'src/shapes/standard.mjs' }, // don't export this namespace to a separate file

@@ -54,12 +54,9 @@ export default [
             })
         ]
     },
-    // Sourcemapped bundle the unit tests run against, so that coverage is reported
-    // against src/*.mts instead of the bundle. It compiles the TypeScript directly
-    // rather than reusing dist/esm, because rollup does not follow the inline maps
-    // tsc leaves in that intermediate output. It is written to build/, which is
-    // outside the `files` allowlist in package.json and so can never be published;
-    // the distributed bundles above stay map-free.
+    // Source-mapped bundle for unit tests (see `karma.conf.js`)
+    // - Compiles TypeScript directly instead of reusing from `dist`/`esm`
+    // - (Because Rollup cannot follow inline maps left behind by `tsc`)
     {
         input: ['./src/index.mts'],
         external: [
@@ -86,7 +83,7 @@ export default [
             typescript({
                 tsconfig: './tsconfig.json',
                 compilerOptions: {
-                    // rollup writes the map itself; tsc's inline maps would win otherwise
+                    // Rollup writes its own source map
                     inlineSourceMap: false,
                     inlineSources: false,
                     sourceMap: true,

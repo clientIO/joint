@@ -1,11 +1,15 @@
-// Used for starting Chrome if using ChromeHeadless in Jenkins
-process.env.CHROME_BIN = require('puppeteer').executablePath();
-
-// Coverage is collected against the sourcemapped test bundle and remapped onto
-// src/*.mts, so the reports describe the source rather than the bundle.
-const TESTED_BUNDLE = './build/test/index.js';
-
+const puppeteer = require('puppeteer');
 const coverageThresholds = require('./coverage.json');
+
+// Used for starting Chrome if using ChromeHeadless in Jenkins
+process.env.CHROME_BIN = puppeteer.executablePath();
+
+// Coverage is collected for this and source-mapped to `src/*.mts`
+const TEST_BUNDLE = './build/test/index.js';
+
+// Which path should .lcov files record as root they are relative to?
+// - SonarQube (`.github/workflows/sonar.yml`) needs this to be the repo root
+const REPOSITORY_ROOT = '../..';
 
 module.exports = function(config) {
     config.set({
@@ -13,7 +17,7 @@ module.exports = function(config) {
         files: [
             './node_modules/@joint/core/build/joint.js',
             './node_modules/@msagl/core/dist.min.js',
-            TESTED_BUNDLE,
+            TEST_BUNDLE,
 
             './test/index.js'
         ],
@@ -42,23 +46,20 @@ module.exports = function(config) {
         },
         exclude: [],
         preprocessors: {
-            // 'sourcemap' must run first: it attaches the bundle's map to the karma
-            // file, which is what lets karma-coverage remap the results onto the source
-            [TESTED_BUNDLE]: ['sourcemap', 'coverage']
+            [TEST_BUNDLE]: ['sourcemap', 'coverage']
         },
         coverageReporter: {
             // specify a common output directory
             dir: 'coverage/',
-            // Coverage baseline, recorded as the floor of what the suite currently
-            // reaches. Falling below any of these fails the run.
+            // coverage baseline - falling below any of these fails the test
             check: coverageThresholds,
-            reporters: process.env.COVERAGE_REPORTER === 'lcov'
-                ? [{ type: 'lcovonly', subdir: '.', file: 'lcov.info' }]
+            reporters: ((process.env.COVERAGE_REPORTER === 'lcov')
+                ? [{ type: 'lcovonly', subdir: '.', file: 'lcov.info', projectRoot: REPOSITORY_ROOT }]
                 : [
                     // reporters not supporting the `file` property
                     { type: 'html', subdir: 'report-html' },
                     { type: 'text-summary' }
-                ]
+                ])
         }
     });
 };

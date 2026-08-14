@@ -1,9 +1,16 @@
+const puppeteer = require('puppeteer');
 const dependencies = require('../resources/dependencies');
 const modules = require('../resources/esm');
+const coverageThresholds = require('../../coverage.json');
+
+// Used for starting Chrome if using ChromeHeadless in Jenkins
+process.env.CHROME_BIN = puppeteer.executablePath();
+
+// Which path should .lcov files record as root they are relative to?
+// - SonarQube (`.github/workflows/sonar.yml`) needs this to be the repo root
+const REPOSITORY_ROOT = '../..';
 
 module.exports = function(grunt) {
-
-    process.env.CHROME_BIN = require('puppeteer').executablePath();
 
     function karmaPreprocessors(files) {
         // 'sourcemap' must run first: it attaches the bundle's map to the karma file,
@@ -23,7 +30,7 @@ module.exports = function(grunt) {
         }
         switch (reporter) {
             case 'lcov':
-                reporters = [{ type: 'lcovonly', subdir: '.', file: 'lcov.info' }];
+                reporters = [{ type: 'lcovonly', subdir: '.', file: 'lcov.info', projectRoot: REPOSITORY_ROOT }];
                 break;
             case 'html':
                 reporters = [{ type: 'html' }];
@@ -36,9 +43,7 @@ module.exports = function(grunt) {
                 process.exit(1);
                 return;
         }
-        // Every package keeps its coverage baseline in coverage.json
-        const check = grunt.file.readJSON('coverage.json')[name];
-        return { dir: `coverage/${name}`, reporters, check };
+        return { dir: `coverage/${name}`, reporters, check: coverageThresholds[name] };
     }
 
     return {
@@ -94,11 +99,11 @@ module.exports = function(grunt) {
                     dependencies,
                     modules.geometry.test,
                     modules.vectorizer.test,
-                    modules.joint.noDependencies,
+                    modules.joint.test,
                     'test/utils.js',
                     'test/jointjs/**/*.js'
                 ],
-                preprocessors: karmaPreprocessors([modules.joint.noDependencies]),
+                preprocessors: karmaPreprocessors([modules.joint.test]),
                 coverageReporter: karmaCoverageReporters('joint')
             }
         }

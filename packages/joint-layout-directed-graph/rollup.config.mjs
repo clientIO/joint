@@ -61,10 +61,7 @@ export default [
                     banner(() => bannerText)
                 ]
             },
-            // Sourcemapped bundle the unit tests run against, so that coverage is
-            // reported against DirectedGraph.mjs instead of the bundle. It is written
-            // to build/, which is outside the `files` allowlist in package.json and so
-            // can never be published; the distributed bundles above stay map-free.
+            // Source-mapped bundle for unit tests (see `karma.conf.js`)
             {
                 file: 'build/test/DirectedGraph.js',
                 format: 'umd',

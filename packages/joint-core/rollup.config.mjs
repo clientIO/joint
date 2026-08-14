@@ -14,7 +14,7 @@ const DIST = [
 const TEST_BUNDLE = [
     modules.geometryTest,
     modules.vectorizerTest,
-    modules.jointNoDependencies
+    modules.jointTest
 ];
 
 export default commandLineArgs => {
