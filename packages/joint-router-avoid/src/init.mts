@@ -67,26 +67,26 @@ export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOption
 
     const provider = options.useWorker ? new WorkerProvider() : new MainThreadProvider();
 
-    options.shapeBufferDistance = options.shapeBufferDistance ?? defaultShapeBufferDistance;
-    options.idealNudgingDistance = options.idealNudgingDistance ?? defaultIdealNudgingDistance;
-    options.updateDebounceTime = options.updateDebounceTime ?? defaultUpdateDebounceTime;
+    const shapeBufferDistance = options.shapeBufferDistance ?? defaultShapeBufferDistance;
+    const idealNudgingDistance = options.idealNudgingDistance ?? defaultIdealNudgingDistance;
+    const updateDebounceTime = options.updateDebounceTime ?? defaultUpdateDebounceTime;
 
     if (provider instanceof WorkerProvider) {
         await provider.init({
-            shapeBufferDistance: options.shapeBufferDistance,
-            idealNudgingDistance: options.idealNudgingDistance,
-            updateDebounceTime: options.updateDebounceTime,
+            shapeBufferDistance: shapeBufferDistance,
+            idealNudgingDistance: idealNudgingDistance,
+            updateDebounceTime: updateDebounceTime,
             libraryFilePath: options.libraryFilePath
         });
     } else {
         await provider.init({
-            shapeBufferDistance: options.shapeBufferDistance,
-            idealNudgingDistance: options.idealNudgingDistance,
+            shapeBufferDistance: shapeBufferDistance,
+            idealNudgingDistance: idealNudgingDistance,
         });
     }
 
     const routerServiceOptions = {
-        elementMargin: options.shapeBufferDistance,
+        elementMargin: shapeBufferDistance,
         skipLink: options.skipLink,
         skipElement: options.skipElement,
         interceptUnroutableLink: options.interceptUnroutableLink
