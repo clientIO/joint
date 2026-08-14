@@ -1,5 +1,5 @@
 import { dia, elementTools, shapes } from '@joint/core';
-import { initAvoid } from '@joint/router-avoid';
+import { initAvoidRouter } from '@joint/router-avoid';
 import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from '../common';
 import { Node, Edge, Note } from './shapes';
 import ResizeTool from './resize-tool';
@@ -34,11 +34,11 @@ export const initSimpleExample = async (canvasEl: HTMLElement): Promise<void> =>
         },
     });
 
-    await initAvoid(graph, {
+    await initAvoidRouter(graph, {
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
-        skipLink: (link) => link.get('doNotRoute'),
-        skipElement: (element) => element.get('doNotRoute'),
+        skipLink: ({ link }) => link.get('doNotRoute'),
+        skipElement: ({ element }) => element.get('doNotRoute'),
     });
 
     const c1 = new Node({

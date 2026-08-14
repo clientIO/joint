@@ -5,14 +5,30 @@ import { Provider, type ProviderOptions } from './Provider.mjs';
 import type { Avoid as AvoidInstance, Router as AvoidRouter, ConnRef, ShapeRef } from 'libavoid-js';
 import { AvoidLib } from 'libavoid-js';
 
+/**
+ * A {@link Provider} that runs the avoid WASM router directly on the main
+ * thread. Simpler than {@link WorkerProvider} but blocks the UI thread
+ * while routes are being computed, so it is best suited to smaller graphs.
+ */
 export class MainThreadProvider extends Provider {
+    /** The `Avoid` WASM module instance. */
     protected avoidInstance!: AvoidInstance;
+    /** The avoid router instance that owns all shapes and connectors created by this provider. */
     protected avoidRouter!: AvoidRouter;
+    /** Avoid shape references, keyed by JointJS element id. */
     protected readonly shapeRefs: Record<string, ShapeRef> = {};
+    /** Avoid connector references, keyed by JointJS link id. */
     protected readonly connectorRefs: Record<string, ConnRef> = {};
+    /** Maps an avoid connector's raw pointer (`connRef.g`) back to the JointJS link id that owns it. */
     protected readonly linksByPointer: Record<number, dia.Cell.ID> = {};
+    /** Callback registered with avoid connectors, translating a raw pointer id back to a route update. */
     protected onAvoidConnectorChanged!: (connectorRefId: number) => void;
 
+    /**
+     * Initializes the avoid router instance on the main thread.
+     *
+     * @param options - Configuration for the avoid router instance.
+     */
     override async init(options: ProviderOptions): Promise<void> {
         this.avoidInstance = AvoidLib.getInstance();
         this.avoidRouter = this.createAvoidRouter(
@@ -39,10 +55,21 @@ export class MainThreadProvider extends Provider {
         };
     }
 
+    /**
+     * Returns the underlying `Avoid` WASM module instance.
+     *
+     * @returns The avoid instance driving this provider.
+     */
     override getAvoidInstance(): AvoidInstance {
         return this.avoidInstance;
     }
 
+    /**
+     * Creates or updates the avoid shape for a JointJS element.
+     *
+     * @param shape - The shape to create or update.
+     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link resetGraph}.
+     */
     override updateShape(shape: Shape, process: boolean = true): void {
         const { shapeRefs, avoidRouter } = this;
         const { x, y, width, height } = shape.bbox;
@@ -82,6 +109,14 @@ export class MainThreadProvider extends Provider {
         }
     }
 
+    /**
+     * Creates or updates the avoid connector for a JointJS link. If either
+     * end is missing its shape/pin ids, the connector is deleted instead,
+     * since avoid cannot route a connector that isn't fully connected.
+     *
+     * @param connector - The connector to create or update.
+     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link resetGraph}.
+     */
     override updateConnector(connector: Connector, process: boolean = true): void {
         const { shapeRefs, connectorRefs } = this;
         if (
@@ -134,6 +169,12 @@ export class MainThreadProvider extends Provider {
         return;
     }
 
+    /**
+     * Removes the avoid shape for a JointJS element, if it exists.
+     *
+     * @param shapeId - Id of the shape to remove.
+     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link resetGraph}.
+     */
     override deleteShape(shapeId: dia.Cell.ID, process: boolean = true): void {
         const shapeRef = this.shapeRefs[shapeId];
         if (!shapeRef) return;
@@ -145,6 +186,12 @@ export class MainThreadProvider extends Provider {
         }
     }
 
+    /**
+     * Removes the avoid connector for a JointJS link, if it exists.
+     *
+     * @param connectorId - Id of the connector to remove.
+     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link resetGraph}.
+     */
     override deleteConnector(connectorId: dia.Cell.ID, process: boolean = true): void {
         const connRef = this.connectorRefs[connectorId];
         if (!connRef) return;
@@ -158,14 +205,34 @@ export class MainThreadProvider extends Provider {
         }
     }
 
+    /**
+     * Checks whether a connector with the given id currently exists.
+     *
+     * @param connectorId - Id of the connector to look up.
+     * @returns `true` if the connector exists.
+     */
     override hasConnector(connectorId: dia.Cell.ID): boolean {
         return connectorId in this.connectorRefs;
     }
 
+    /**
+     * Checks whether a shape with the given id currently exists.
+     *
+     * @param shapeId - Id of the shape to look up.
+     * @returns `true` if the shape exists.
+     */
     override hasShape(shapeId: dia.Cell.ID): boolean {
         return shapeId in this.shapeRefs;
     }
 
+    /**
+     * Replaces the entire set of shapes and connectors known to the avoid
+     * router in a single transaction: deletes everything currently tracked,
+     * recreates `shapes` and `connectors`, then processes once.
+     *
+     * @param shapes - The full set of shapes that should exist after the reset.
+     * @param connectors - The full set of connectors that should exist after the reset.
+     */
     override resetGraph(shapes: Shape[], connectors: Connector[]): void {
         Object.keys(this.connectorRefs).forEach((connectorId) => {
             this.deleteConnector(connectorId, false);
@@ -180,6 +247,14 @@ export class MainThreadProvider extends Provider {
         this.avoidRouter.processTransaction();
     }
 
+    /**
+     * Creates and configures a new avoid `Router` instance.
+     *
+     * @param Avoid - The `Avoid` WASM module instance.
+     * @param shapeBufferDistance - Spacing distance added to the sides of each shape when determining obstacle sizes for routing.
+     * @param idealNudgingDistance - Spacing distance used for nudging apart overlapping corners and line segments of connectors.
+     * @returns The configured avoid router.
+     */
     protected createAvoidRouter(Avoid: AvoidInstance, shapeBufferDistance: number, idealNudgingDistance: number): AvoidRouter {
         const router = new Avoid.Router(Avoid.OrthogonalRouting);
 
@@ -205,7 +280,6 @@ export class MainThreadProvider extends Provider {
         return router;
     }
 
-    // Nothing to release: the router runs on the main thread and its
-    // resources are freed when the avoid WASM module itself is torn down.
+    /** Nothing to release: the router runs on the main thread and its resources are freed when the avoid WASM module itself is torn down. */
     override destroy(): void {}
 }

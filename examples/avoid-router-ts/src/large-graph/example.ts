@@ -1,5 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import { initAvoid } from '@joint/router-avoid';
+import { initAvoidRouter } from '@joint/router-avoid';
 import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from '../common';
 import { Message, FlowchartStart, Link as AppLink } from './shapes';
 import { largeGraph } from './data';
@@ -19,11 +19,11 @@ export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void
         defaultLink: () => new AppLink(),
     });
 
-    const routerService = await initAvoid(graph, {
+    const routerService = await initAvoidRouter(graph, {
         shapeBufferDistance: 20,
         idealNudgingDistance: 5,
         useWorker: true,
-        handleUnroutableLink: (link, reason) => {
+        interceptUnroutableLink: ({ link, reason }) => {
             switch (reason) {
                 case 'unconnected': {
                     if (link.get('isDragging')) {

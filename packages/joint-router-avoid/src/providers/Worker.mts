@@ -5,37 +5,51 @@ import type { Connector, Shape } from './Provider.mjs';
 import type { Avoid as AvoidInstance, Router as AvoidRouter, ConnRef, ShapeRef } from 'libavoid-js';
 import type { WorkerProviderOptions } from './WorkerProvider.mjs';
 
+/** Request sent once, right after the Worker is spawned, to load and configure the avoid router. */
 export interface WorkerInitRequest {
     type: 'init';
+    /** Configuration for the avoid router instance. */
     options: WorkerProviderOptions;
 }
 
+/** Request to create or update the avoid shape for a JointJS element. */
 export interface WorkerUpdateShapeRequest {
     type: 'updateShape';
+    /** The shape to create or update. */
     shape: Shape;
 }
 
+/** Request to create or update the avoid connector for a JointJS link. */
 export interface WorkerUpdateConnectorRequest {
     type: 'updateConnector';
+    /** The connector to create or update. */
     connector: Connector;
 }
 
+/** Request to remove the avoid shape for a JointJS element. */
 export interface WorkerDeleteShapeRequest {
     type: 'deleteShape';
+    /** Id of the shape to remove. */
     shapeId: dia.Cell.ID;
 }
 
+/** Request to remove the avoid connector for a JointJS link. */
 export interface WorkerDeleteConnectorRequest {
     type: 'deleteConnector';
+    /** Id of the connector to remove. */
     connectorId: dia.Cell.ID;
 }
 
+/** Request to replace the entire set of shapes and connectors known to the avoid router. */
 export interface WorkerResetGraphRequest {
     type: 'resetGraph';
+    /** The full set of shapes that should exist after the reset. */
     shapes: Shape[];
+    /** The full set of connectors that should exist after the reset. */
     connectors: Connector[];
 }
 
+/** Any request a {@link WorkerProvider} may post to this Worker. */
 export type WorkerRequest =
     | WorkerInitRequest
     | WorkerUpdateShapeRequest
@@ -47,18 +61,24 @@ export type WorkerRequest =
 // Requests other than `init` are queued and debounced so that bursts of
 // messages (e.g. shape updates while dragging an element) do not each
 // trigger their own `avoidRouter.processTransaction()` call.
+/** Any {@link WorkerRequest} other than `init`, i.e. one that may be queued and debounced. */
 type QueueableWorkerRequest = Exclude<WorkerRequest, WorkerInitRequest>;
 
+/** Response posted once the Worker has finished handling an `init` request and is ready for further messages. */
 export interface WorkerReadyResponse {
     type: 'ready';
 }
 
+/** Response posted whenever avoid recomputes the route of a connector. */
 export interface WorkerConnectorChangedResponse {
     type: 'connectorChanged';
+    /** Id of the link whose route changed. */
     connectorId: dia.Cell.ID;
+    /** The new route, including the source and target points. */
     points: dia.Point[];
 }
 
+/** Any response this Worker may post back to its {@link WorkerProvider}. */
 export type WorkerResponse = WorkerReadyResponse | WorkerConnectorChangedResponse;
 
 let avoidInstance: AvoidInstance;
@@ -67,9 +87,10 @@ const shapeRefs: Record<string, ShapeRef> = {};
 const connectorRefs: Record<string, ConnRef> = {};
 const linksByPointer: Record<number, dia.Cell.ID> = {};
 
-let debounceTime: number = 100;
+let updateDebounceTime: number = 100;
 // Drains the queued messages, applying each of them, and runs
 // `processTransaction()` at most once for the whole batch.
+/** Applies every currently queued request, then runs a single `processTransaction()` for the whole batch. */
 const flushMessageFunction = () => {
     const messages = messageQueue.splice(0, messageQueue.length);
     if (messages.length === 0) return;
@@ -78,12 +99,25 @@ const flushMessageFunction = () => {
 
     avoidRouter.processTransaction();
 };
-let flushMessageQueue = util.debounce(flushMessageFunction, debounceTime);
+/** Debounced version of {@link flushMessageFunction}, re-created by {@link handleInit} once the configured `updateDebounceTime` is known. */
+let flushMessageQueue = util.debounce(flushMessageFunction, updateDebounceTime);
 
+/**
+ * Posts a response back to the {@link WorkerProvider} that owns this Worker.
+ *
+ * @param response - The response to send.
+ */
 function postResponse(response: WorkerResponse): void {
     postMessage(response);
 }
 
+/**
+ * Callback registered with avoid connectors. Translates a connector's raw
+ * pointer id back to its JointJS link id and posts the new route back to
+ * the main thread via {@link postResponse}.
+ *
+ * @param connectorRefId - Raw pointer id (`connRef.g`) of the connector whose route changed.
+ */
 function onAvoidConnectorChanged(connectorRefId: number): void {
     const connectorId = linksByPointer[connectorRefId];
     const connRef = connectorRefs[connectorId!];
@@ -99,6 +133,14 @@ function onAvoidConnectorChanged(connectorRefId: number): void {
     postResponse({ type: 'connectorChanged', connectorId: connectorId!, points });
 }
 
+/**
+ * Creates and configures a new avoid `Router` instance.
+ *
+ * @param Avoid - The `Avoid` WASM module instance.
+ * @param shapeBufferDistance - Spacing distance added to the sides of each shape when determining obstacle sizes for routing.
+ * @param idealNudgingDistance - Spacing distance used for nudging apart overlapping corners and line segments of connectors.
+ * @returns The configured avoid router.
+ */
 function createAvoidRouter(Avoid: AvoidInstance, shapeBufferDistance: number, idealNudgingDistance: number): AvoidRouter {
     const router = new Avoid.Router(Avoid.OrthogonalRouting);
 
@@ -124,6 +166,12 @@ function createAvoidRouter(Avoid: AvoidInstance, shapeBufferDistance: number, id
     return router;
 }
 
+/**
+ * Loads the avoid WASM module and creates the router instance used for the
+ * lifetime of this Worker, then posts a `ready` response.
+ *
+ * @param options - Configuration for the avoid router instance.
+ */
 async function handleInit(options: WorkerProviderOptions): Promise<void> {
     await AvoidLib.load(options.libraryFilePath);
 
@@ -133,12 +181,17 @@ async function handleInit(options: WorkerProviderOptions): Promise<void> {
         options.shapeBufferDistance ?? 0,
         options.idealNudgingDistance ?? 10
     );
-    debounceTime = options.debounceTime ?? 100;
-    flushMessageQueue = util.debounce(flushMessageFunction, debounceTime);
+    updateDebounceTime = options.updateDebounceTime ?? 100;
+    flushMessageQueue = util.debounce(flushMessageFunction, updateDebounceTime);
 
     postResponse({ type: 'ready' });
 }
 
+/**
+ * Creates or updates the avoid shape for a JointJS element.
+ *
+ * @param shape - The shape to create or update.
+ */
 function handleUpdateShape(shape: Shape): void {
     const { x, y, width, height } = shape.bbox;
     const shapeRect = new avoidInstance.Rectangle(
@@ -170,6 +223,11 @@ function handleUpdateShape(shape: Shape): void {
     });
 }
 
+/**
+ * Removes the avoid connector for a JointJS link, if it exists.
+ *
+ * @param connectorId - Id of the connector to remove.
+ */
 function handleDeleteConnector(connectorId: dia.Cell.ID): void {
     const connRef = connectorRefs[connectorId];
     if (!connRef) return;
@@ -177,6 +235,13 @@ function handleDeleteConnector(connectorId: dia.Cell.ID): void {
     delete connectorRefs[connectorId];
 }
 
+/**
+ * Creates or updates the avoid connector for a JointJS link. If either end
+ * is missing its shape/pin ids, the connector is deleted instead, since
+ * avoid cannot route a connector that isn't fully connected.
+ *
+ * @param connector - The connector to create or update.
+ */
 function handleUpdateConnector(connector: Connector): void {
     if (
         connector.sourceId === undefined || connector.sourcePinId === undefined ||
@@ -219,6 +284,11 @@ function handleUpdateConnector(connector: Connector): void {
     connRef.setCallback(onAvoidConnectorChanged, connRef);
 }
 
+/**
+ * Removes the avoid shape for a JointJS element, if it exists.
+ *
+ * @param shapeId - Id of the shape to remove.
+ */
 function handleDeleteShape(shapeId: dia.Cell.ID): void {
     const shapeRef = shapeRefs[shapeId];
     if (!shapeRef) return;
@@ -226,6 +296,14 @@ function handleDeleteShape(shapeId: dia.Cell.ID): void {
     delete shapeRefs[shapeId];
 }
 
+/**
+ * Replaces the entire set of shapes and connectors known to the avoid
+ * router: deletes everything currently tracked, then recreates `shapes`
+ * and `connectors`.
+ *
+ * @param shapes - The full set of shapes that should exist after the reset.
+ * @param connectors - The full set of connectors that should exist after the reset.
+ */
 function handleResetGraph(shapes: Shape[], connectors: Connector[]): void {
     Object.keys(connectorRefs).forEach((connectorId) => {
         handleDeleteConnector(connectorId);
@@ -240,6 +318,11 @@ function handleResetGraph(shapes: Shape[], connectors: Connector[]): void {
 
 const messageQueue: QueueableWorkerRequest[] = [];
 
+/**
+ * Dispatches a single queued request to its handler.
+ *
+ * @param message - The request to handle.
+ */
 function handleQueuedMessage(message: QueueableWorkerRequest): void {
     switch (message.type) {
         case 'updateShape': {
@@ -265,6 +348,14 @@ function handleQueuedMessage(message: QueueableWorkerRequest): void {
     }
 }
 
+/**
+ * Entry point for every message posted to this Worker by its
+ * {@link WorkerProvider}. `init` is handled immediately; every other
+ * request is queued and flushed via the debounced {@link flushMessageQueue},
+ * unless `debounceTime` is `0`, in which case it is applied immediately.
+ *
+ * @param evt - The message event carrying a {@link WorkerRequest}.
+ */
 onmessage = async(evt: MessageEvent<WorkerRequest>) => {
     const message = evt.data;
 
@@ -273,7 +364,7 @@ onmessage = async(evt: MessageEvent<WorkerRequest>) => {
         return;
     }
 
-    if (debounceTime === 0) {
+    if (updateDebounceTime === 0) {
         handleQueuedMessage(message);
         avoidRouter.processTransaction();
     } else {
