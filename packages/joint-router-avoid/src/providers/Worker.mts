@@ -41,11 +41,11 @@ export interface WorkerDeleteConnectorRequest {
 }
 
 /** Request to replace the entire set of shapes and connectors known to the avoid router. */
-export interface WorkerResetGraphRequest {
-    type: 'resetGraph';
-    /** The full set of shapes that should exist after the reset. */
+export interface WorkerSyncRequest {
+    type: 'sync';
+    /** The full set of shapes that should exist after the sync. */
     shapes: Shape[];
-    /** The full set of connectors that should exist after the reset. */
+    /** The full set of connectors that should exist after the sync. */
     connectors: Connector[];
 }
 
@@ -56,7 +56,7 @@ export type WorkerRequest =
     | WorkerUpdateConnectorRequest
     | WorkerDeleteShapeRequest
     | WorkerDeleteConnectorRequest
-    | WorkerResetGraphRequest;
+    | WorkerSyncRequest;
 
 // Requests other than `init` are queued and debounced so that bursts of
 // messages (e.g. shape updates while dragging an element) do not each
@@ -78,9 +78,12 @@ export interface WorkerConnectorChangedResponse {
     points: dia.Point[];
 }
 
-/** Any response this Worker may post back to its {@link WorkerProvider}. */
-export type WorkerResponse = WorkerReadyResponse | WorkerConnectorChangedResponse;
+export interface WorkerProcessedResponse {
+    type: 'processed';
+}
 
+/** Any response this Worker may post back to its {@link WorkerProvider}. */
+export type WorkerResponse = WorkerReadyResponse | WorkerConnectorChangedResponse | WorkerProcessedResponse;
 let avoidInstance: AvoidInstance;
 let avoidRouter: AvoidRouter;
 const shapeRefs: Record<string, ShapeRef> = {};
@@ -98,6 +101,7 @@ const flushMessageFunction = () => {
     messages.forEach(handleQueuedMessage);
 
     avoidRouter.processTransaction();
+    postResponse({ type: 'processed' });
 };
 /** Debounced version of {@link flushMessageFunction}, re-created by {@link handleInit} once the configured `updateDebounceTime` is known. */
 let flushMessageQueue = util.debounce(flushMessageFunction, updateDebounceTime);
@@ -234,7 +238,7 @@ function handleDeleteConnector(connectorId: dia.Cell.ID): void {
     avoidRouter.deleteConnector(connRef);
     delete connectorRefs[connectorId];
     // @ts-expect-error do not defined in the type definition, but it is present in the actual object
-    delete this.linksByPointer[connRef.g];
+    delete linksByPointer[connRef.g];
 
 }
 
@@ -304,10 +308,10 @@ function handleDeleteShape(shapeId: dia.Cell.ID): void {
  * router: deletes everything currently tracked, then recreates `shapes`
  * and `connectors`.
  *
- * @param shapes - The full set of shapes that should exist after the reset.
- * @param connectors - The full set of connectors that should exist after the reset.
+ * @param shapes - The full set of shapes that should exist after the sync.
+ * @param connectors - The full set of connectors that should exist after the sync.
  */
-function handleResetGraph(shapes: Shape[], connectors: Connector[]): void {
+function handleSync(shapes: Shape[], connectors: Connector[]): void {
     Object.keys(connectorRefs).forEach((connectorId) => {
         handleDeleteConnector(connectorId);
     });
@@ -344,8 +348,8 @@ function handleQueuedMessage(message: QueueableWorkerRequest): void {
             handleDeleteConnector(message.connectorId);
             break;
         }
-        case 'resetGraph': {
-            handleResetGraph(message.shapes, message.connectors);
+        case 'sync': {
+            handleSync(message.shapes, message.connectors);
             break;
         }
     }
@@ -370,6 +374,7 @@ onmessage = async(evt: MessageEvent<WorkerRequest>) => {
     if (updateDebounceTime === 0) {
         handleQueuedMessage(message);
         avoidRouter.processTransaction();
+        postResponse({ type: 'processed' });
     } else {
         messageQueue.push(message);
         flushMessageQueue();

@@ -46,10 +46,15 @@ export class WorkerProvider extends Provider {
                         break;
                     }
                     case 'connectorChanged': {
-                        this.onConnectorChanged?.(
+                        this.trigger(
+                            'connector:changed',
                             message.connectorId,
                             message.points.map((point) => new g.Point(point))
                         );
+                        break;
+                    }
+                    case 'processed': {
+                        this.trigger('processed');
                         break;
                     }
                 }
@@ -85,7 +90,7 @@ export class WorkerProvider extends Provider {
      *
      * @param shape - The shape to create or update.
      */
-    override updateShape(shape: Shape): void {
+    override setShape(shape: Shape): void {
         this.shapeIds.add(shape.id);
         this.postMessage({ type: 'updateShape', shape });
     }
@@ -95,7 +100,7 @@ export class WorkerProvider extends Provider {
      *
      * @param connector - The connector to create or update.
      */
-    override updateConnector(connector: Connector): void {
+    override setConnector(connector: Connector): void {
         this.connectorIds.add(connector.id);
         this.postMessage({ type: 'updateConnector', connector });
     }
@@ -122,18 +127,29 @@ export class WorkerProvider extends Provider {
 
     /**
      * Replaces the entire set of shapes and connectors known to the
-     * Worker's avoid router in a single message.
+     * Worker's avoid router in a single message. The returned promise
+     * resolves once the Worker reports the sync has been processed, via
+     * this provider's own `processed` event.
      *
-     * @param shapes - The full set of shapes that should exist after the reset.
-     * @param connectors - The full set of connectors that should exist after the reset.
+     * @param shapes - The full set of shapes that should exist after the sync.
+     * @param connectors - The full set of connectors that should exist after the sync.
      */
-    override resetGraph(shapes: Shape[], connectors: Connector[]): void {
+    override sync(shapes: Shape[], connectors: Connector[]): Promise<void> {
         this.shapeIds.clear();
         this.connectorIds.clear();
 
         shapes.forEach((shape) => this.shapeIds.add(shape.id));
         connectors.forEach((connector) => this.connectorIds.add(connector.id));
-        this.postMessage({ type: 'resetGraph', shapes, connectors });
+
+        return new Promise((resolve) => {
+            const onProcessed = () => {
+                this.off('processed', onProcessed);
+                resolve();
+            };
+            this.on('processed', onProcessed);
+
+            this.postMessage({ type: 'sync', shapes, connectors });
+        });
     }
 
     /**

@@ -49,9 +49,7 @@ export class MainThreadProvider extends Provider {
                 points.push(new g.Point({ x, y }));
             }
 
-            if (this.onConnectorChanged) {
-                this.onConnectorChanged(connectorId!, points);
-            }
+            this.trigger('connector:changed', connectorId!, points);
         };
     }
 
@@ -68,9 +66,9 @@ export class MainThreadProvider extends Provider {
      * Creates or updates the avoid shape for a JointJS element.
      *
      * @param shape - The shape to create or update.
-     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link resetGraph}.
+     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link sync}.
      */
-    override updateShape(shape: Shape, process: boolean = true): void {
+    override setShape(shape: Shape, process: boolean = true): void {
         const { shapeRefs, avoidRouter } = this;
         const { x, y, width, height } = shape.bbox;
         const shapeRect = new this.avoidInstance.Rectangle(
@@ -115,9 +113,9 @@ export class MainThreadProvider extends Provider {
      * since avoid cannot route a connector that isn't fully connected.
      *
      * @param connector - The connector to create or update.
-     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link resetGraph}.
+     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link sync}.
      */
-    override updateConnector(connector: Connector, process: boolean = true): void {
+    override setConnector(connector: Connector, process: boolean = true): void {
         const { shapeRefs, connectorRefs } = this;
         if (
             connector.sourceId === undefined || connector.sourcePinId === undefined ||
@@ -173,7 +171,7 @@ export class MainThreadProvider extends Provider {
      * Removes the avoid shape for a JointJS element, if it exists.
      *
      * @param shapeId - Id of the shape to remove.
-     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link resetGraph}.
+     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link sync}.
      */
     override deleteShape(shapeId: dia.Cell.ID, process: boolean = true): void {
         const shapeRef = this.shapeRefs[shapeId];
@@ -190,7 +188,7 @@ export class MainThreadProvider extends Provider {
      * Removes the avoid connector for a JointJS link, if it exists.
      *
      * @param connectorId - Id of the connector to remove.
-     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link resetGraph}.
+     * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link sync}.
      */
     override deleteConnector(connectorId: dia.Cell.ID, process: boolean = true): void {
         const connRef = this.connectorRefs[connectorId];
@@ -228,12 +226,14 @@ export class MainThreadProvider extends Provider {
     /**
      * Replaces the entire set of shapes and connectors known to the avoid
      * router in a single transaction: deletes everything currently tracked,
-     * recreates `shapes` and `connectors`, then processes once.
+     * recreates `shapes` and `connectors`, then processes once. The returned
+     * promise resolves once the transaction has been processed, signaled by
+     * this provider's own `processed` event.
      *
-     * @param shapes - The full set of shapes that should exist after the reset.
-     * @param connectors - The full set of connectors that should exist after the reset.
+     * @param shapes - The full set of shapes that should exist after the sync.
+     * @param connectors - The full set of connectors that should exist after the sync.
      */
-    override resetGraph(shapes: Shape[], connectors: Connector[]): void {
+    override async sync(shapes: Shape[], connectors: Connector[]): Promise<void> {
         Object.keys(this.connectorRefs).forEach((connectorId) => {
             this.deleteConnector(connectorId, false);
         });
@@ -241,10 +241,11 @@ export class MainThreadProvider extends Provider {
             this.deleteShape(shapeId, false);
         });
 
-        shapes.forEach((shape) => this.updateShape(shape, false));
-        connectors.forEach((connector) => this.updateConnector(connector, false));
+        shapes.forEach((shape) => this.setShape(shape, false));
+        connectors.forEach((connector) => this.setConnector(connector, false));
 
         this.avoidRouter.processTransaction();
+        this.trigger('processed');
     }
 
     /**

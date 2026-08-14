@@ -1,3 +1,4 @@
+import { mvc } from '@joint/core';
 import type { dia } from '@joint/core';
 import type { Avoid } from 'libavoid-js';
 
@@ -63,21 +64,42 @@ export interface Connector {
     targetPinId?: number;
 }
 
-/**
- * Abstracts the underlying avoid router so {@link RouterService} can drive
- * it the same way whether it runs on the main thread ({@link MainThreadProvider})
- * or inside a Worker ({@link WorkerProvider}).
- */
-export abstract class Provider {
-
+/** Events emitted by a {@link Provider}. */
+export interface ProviderEventMap {
     /**
-     * Set by {@link RouterService} to be notified whenever avoid recomputes
-     * the route of a connector.
+     * Emitted whenever avoid recomputes the route of a connector.
      *
      * @param connectorId - Id of the link whose route changed.
      * @param points - The new route, including the source and target points.
      */
-    onConnectorChanged?: (connectorId: dia.Cell.ID, points: dia.Point[]) => void;
+    'connector:changed': (connectorId: dia.Cell.ID, points: dia.Point[]) => void;
+    /** Emitted whenever the provider has finished processing current changes. */
+    'processed': () => void;
+}
+
+/** Typed `on()` for a {@link Provider}, keyed to its {@link ProviderEventMap}. */
+export interface ProviderEvents_On<BaseT> {
+    <T extends BaseT, K extends keyof ProviderEventMap>(this: T, eventName: K, callback: ProviderEventMap[K], context?: unknown): T;
+    <T extends BaseT>(this: T, eventMap: Partial<ProviderEventMap>, context?: unknown): T;
+}
+
+/** Typed `trigger()` for a {@link Provider}, keyed to its {@link ProviderEventMap}. */
+export interface ProviderEvents_Trigger<BaseT> {
+    <T extends BaseT, K extends keyof ProviderEventMap>(this: T, eventName: K, ...args: Parameters<ProviderEventMap[K]>): T;
+}
+
+/**
+ * Abstracts the underlying avoid router so {@link RouterService} can drive
+ * it the same way whether it runs on the main thread ({@link MainThreadProvider})
+ * or inside a Worker ({@link WorkerProvider}). Emits `connector:changed`
+ * (see {@link ProviderEventMap}) whenever avoid recomputes a connector's route.
+ */
+export abstract class Provider {
+
+    // Provided by the `mvc.Events` mixin applied below the class body.
+    declare on: ProviderEvents_On<Provider>;
+    declare off: mvc.Events_Off<Provider>;
+    declare trigger: ProviderEvents_Trigger<Provider>;
 
     /**
      * Initializes the underlying avoid router with the given options.
@@ -93,14 +115,14 @@ export abstract class Provider {
      *
      * @param shape - The shape to create or update.
      */
-    abstract updateShape(shape: Shape): void;
+    abstract setShape(shape: Shape): void;
 
     /**
      * Creates or updates the avoid connector for a JointJS link.
      *
      * @param connector - The connector to create or update.
      */
-    abstract updateConnector(connector: Connector): void;
+    abstract setConnector(connector: Connector): void;
 
     /**
      * Removes the avoid shape for a JointJS element.
@@ -120,10 +142,10 @@ export abstract class Provider {
      * Replaces the entire set of shapes and connectors known to the
      * underlying avoid router in a single transaction.
      *
-     * @param shapes - The full set of shapes that should exist after the reset.
-     * @param connectors - The full set of connectors that should exist after the reset.
+     * @param shapes - The full set of shapes that should exist after the sync.
+     * @param connectors - The full set of connectors that should exist after the sync.
      */
-    abstract resetGraph(shapes: Shape[], connectors: Connector[]): void;
+    abstract sync(shapes: Shape[], connectors: Connector[]): Promise<void>;
 
     /**
      * Returns the underlying `Avoid` WASM module instance.
@@ -152,3 +174,5 @@ export abstract class Provider {
     /** Releases any resources held by the provider (e.g. terminates a Worker thread). */
     abstract destroy(): void;
 }
+
+Object.assign(Provider.prototype, mvc.Events);
