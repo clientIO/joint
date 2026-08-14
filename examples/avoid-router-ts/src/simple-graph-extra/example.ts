@@ -1,5 +1,5 @@
 import { dia, elementTools, shapes } from '@joint/core';
-import { initAvoid } from '@joint/router-avoid';
+import { initAvoidRouter } from '@joint/router-avoid';
 import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from '../common';
 import { Node, Edge, Note } from './shapes';
 import ResizeTool from './resize-tool';
@@ -56,12 +56,12 @@ export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<voi
     // partition the graph's cells between them by their `group` attribute,
     // so each instance only ever sees - and only ever routes around - its
     // own subgraph's shapes and links, with its own routing settings.
-    const routerServiceA = await initAvoid(graph, {
+    const routerServiceA = await initAvoidRouter(graph, {
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
-        skipLink: (link) => link.get('doNotRoute') || isGroupB(link),
-        skipElement: (element) => element.get('doNotRoute') || isGroupB(element),
-        handleUnroutableLink: (link, reason) => {
+        skipLink: ({ link }) => link.get('doNotRoute') || isGroupB(link),
+        skipElement: ({ element }) => element.get('doNotRoute') || isGroupB(element),
+        interceptUnroutableLink: ({ link, reason }) => {
             switch (reason) {
                 case 'unconnected': {
                     if (link.get('isDragging')) {
@@ -94,11 +94,11 @@ export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<voi
     // A much larger buffer/nudging distance than group A's, so the two
     // subgraphs are visibly routed differently. Nothing further to do with
     // the returned `RouterService` in this demo, so it isn't kept around.
-    await initAvoid(graph, {
+    await initAvoidRouter(graph, {
         shapeBufferDistance: 30,
         idealNudgingDistance: 20,
-        skipLink: (link) => link.get('doNotRoute') || !isGroupB(link),
-        skipElement: (element) => element.get('doNotRoute') || !isGroupB(element),
+        skipLink: ({ link }) => link.get('doNotRoute') || !isGroupB(link),
+        skipElement: ({ element }) => element.get('doNotRoute') || !isGroupB(element),
     });
 
     const c1 = new Node({

@@ -7,7 +7,19 @@ import { WorkerProvider } from './providers/WorkerProvider.mjs';
 
 let loadAvoidPromise: Promise<void> | null = null;
 
-export function loadAvoid(filePath?: string): Promise<void> {
+const defaultShapeBufferDistance = 10;
+const defaultIdealNudgingDistance = 5;
+const defaultUpdateDebounceTime = 100;
+
+/**
+ * Loads the avoid WASM module on the main thread. Safe to call multiple
+ * times - subsequent calls return the same in-flight/resolved promise -
+ * and is also called automatically by {@link initAvoidRouter} if needed.
+ *
+ * @param filePath - Path to the avoid WASM binary. Defaults to the library's own resolution of the asset.
+ * @returns A promise that resolves once the module has loaded.
+ */
+export function loadAvoidRouter(filePath?: string): Promise<void> {
     if (!loadAvoidPromise) {
         loadAvoidPromise = AvoidLib.load(filePath).catch((error) => {
             loadAvoidPromise = null;
@@ -17,45 +29,67 @@ export function loadAvoid(filePath?: string): Promise<void> {
     return loadAvoidPromise;
 }
 
+/** Options used to configure {@link initAvoidRouter}. */
 export interface InitAvoidOptions {
+    /** Excludes links from routing. Defaults to routing every link. */
     skipLink?: SkipLinkCallback;
+    /** Excludes elements from routing. Defaults to routing using every element as obstacle. */
     skipElement?: SkipElementCallback;
-    handleUnroutableLink?: UnroutableLinkCallback;
+    /** Gives the consumer first refusal on links avoid cannot route. Defaults to always falling back to the built-in `rightAngle` route. */
+    interceptUnroutableLink?: UnroutableLinkCallback;
+    /** Spacing distance added to the sides of each shape when determining obstacle sizes for routing, and used as the {@link RouterService}'s fallback-route margin. Defaults to `10`. */
     shapeBufferDistance?: number;
+    /** Spacing distance used for nudging apart overlapping corners and line segments of connectors. Defaults to `5`. */
     idealNudgingDistance?: number;
+    /** Runs the avoid router inside a Worker thread instead of the main thread. Defaults to `false`. */
     useWorker?: boolean;
+    /** Milliseconds to debounce queued messages by when `useWorker` is `true`. Defaults to `100`. */
+    updateDebounceTime?: number;
+    /** Path to the avoid WASM binary. Defaults to the library's own resolution of the asset. */
     libraryFilePath?: string;
-    debounceTime?: number;
 }
 
-export async function initAvoid(graph: dia.Graph, options: InitAvoidOptions): Promise<RouterService> {
+/**
+ * Loads avoid (if needed) and creates a {@link RouterService} that keeps
+ * `graph`'s links routed via libavoid, using either a main-thread or
+ * Worker-based {@link Provider} depending on `options.useWorker`.
+ *
+ * @param graph - The graph to route.
+ * @param options - Configuration for the avoid router and the resulting {@link RouterService}.
+ * @returns A promise resolving to the `RouterService` instance now routing `graph`.
+ */
+export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOptions): Promise<RouterService> {
     if (loadAvoidPromise) {
         await loadAvoidPromise;
     } else if (!AvoidLib.avoidLib) {
-        await loadAvoid(options.libraryFilePath);
+        await loadAvoidRouter(options.libraryFilePath);
     }
 
     const provider = options.useWorker ? new WorkerProvider() : new MainThreadProvider();
 
+    options.shapeBufferDistance = options.shapeBufferDistance ?? defaultShapeBufferDistance;
+    options.idealNudgingDistance = options.idealNudgingDistance ?? defaultIdealNudgingDistance;
+    options.updateDebounceTime = options.updateDebounceTime ?? defaultUpdateDebounceTime;
+
     if (provider instanceof WorkerProvider) {
         await provider.init({
-            shapeBufferDistance: options.shapeBufferDistance ?? 0,
-            idealNudgingDistance: options.idealNudgingDistance ?? 10,
-            debounceTime: options.debounceTime ?? 100,
+            shapeBufferDistance: options.shapeBufferDistance,
+            idealNudgingDistance: options.idealNudgingDistance,
+            updateDebounceTime: options.updateDebounceTime,
             libraryFilePath: options.libraryFilePath
         });
     } else {
         await provider.init({
-            shapeBufferDistance: options.shapeBufferDistance ?? 0,
-            idealNudgingDistance: options.idealNudgingDistance ?? 10,
+            shapeBufferDistance: options.shapeBufferDistance,
+            idealNudgingDistance: options.idealNudgingDistance,
         });
     }
 
     const routerServiceOptions = {
-        elementMargin: options.shapeBufferDistance ?? 0,
+        elementMargin: options.shapeBufferDistance,
         skipLink: options.skipLink,
         skipElement: options.skipElement,
-        handleUnroutableLink: options.handleUnroutableLink
+        interceptUnroutableLink: options.interceptUnroutableLink
     };
 
     const routerService = new RouterService(
