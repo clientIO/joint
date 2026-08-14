@@ -72,8 +72,14 @@ const PAPER_STYLE = { width: 200, height: 200 } as const;
 // already gone. Before the fix, useCell's selector threw
 // `useCell(): no cell with id "b"`, unrecoverably taking the whole paper down.
 describe('useCell — controlled cell removal', () => {
+  // Restore the console.error spy even when an assertion throws mid-test, so
+  // the mock can never leak into other tests.
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('does not throw when a subscribed cell is removed from a controlled cells array', async () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
     caughtState.error = null;
 
     const { rerender, container } = render(
@@ -107,6 +113,5 @@ describe('useCell — controlled cell removal', () => {
       expect(container.querySelectorAll('.joint-cell.joint-element')).toHaveLength(2);
     });
     expect(caughtState.error).toBeNull();
-    consoleError.mockRestore();
   });
 });

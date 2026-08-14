@@ -28,7 +28,9 @@ export function setForwardRef<T>(ref: ForwardedRef<T> | undefined, value: T | nu
  * });
  */
 export function useCombinedRef<T>(ref?: ForwardedRef<T>): RefObject<T | null> {
-  const innerRef = useRef<T>(null);
+  // Explicitly nullable so `current` stays mutable under React 18's typings
+  // too — the proxy setter below assigns to it.
+  const innerRef = useRef<T | null>(null);
 
   // Assign the forwarded ref DURING COMMIT — when React writes to this object's
   // `current` — not in a passive effect. React attaches refs before layout effects
