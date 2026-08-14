@@ -39,6 +39,8 @@ export interface InitAvoidOptions {
     interceptUnroutableLink?: UnroutableLinkCallback;
     /** Overrides how computed route attributes are applied to a link. Defaults to calling `link.set()` directly. */
     setRouteAttributes?: SetRouteAttributesCallback;
+    /** Name of the `opt` flag set on `link.set()` calls made by this instance, so its own changes can be told apart from the consumer's. Defaults to `'avoidRouter'`. */
+    changeFlag?: string;
     /** Spacing distance added to the sides of each shape when determining obstacle sizes for routing, and used as the {@link RouterService}'s fallback-route margin. Defaults to `10`. */
     shapeBufferDistance?: number;
     /** Spacing distance used for nudging apart overlapping corners and line segments of connectors. Defaults to `5`. */
@@ -91,7 +93,9 @@ export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOption
         shapeBufferDistance,
         skipLink: options.skipLink,
         skipElement: options.skipElement,
-        interceptUnroutableLink: options.interceptUnroutableLink
+        interceptUnroutableLink: options.interceptUnroutableLink,
+        setRouteAttributes: options.setRouteAttributes,
+        changeFlag: options.changeFlag,
     };
 
     const routerService = new RouterService(

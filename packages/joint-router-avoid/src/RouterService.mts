@@ -145,8 +145,6 @@ export class RouterService {
 
     /** Maps `${elementId}:${portId}` to the avoid pin id allocated for that port. */
     private readonly pinIds: Record<string, number> = {};
-    /** The last route avoid computed for each link, keyed by link id. */
-    private readonly connectorRoutes: Record<dia.Cell.ID, dia.Point[]> = {};
     private readonly skipLink: SkipLinkCallback;
     private readonly skipElement: SkipElementCallback;
 
@@ -278,7 +276,6 @@ export class RouterService {
             if (this.pendingLinks.has(cell)) {
                 this.setPendingCanceled(cell);
             }
-            delete this.connectorRoutes[cell.id];
             this.provider.deleteConnector(cell.id);
         }
     }
@@ -530,7 +527,6 @@ export class RouterService {
         // computing its route or became unroutable, so check for existence and validity before applying the route.
         if (!link || !this.provider.hasConnector(linkId)) return;
 
-        this.connectorRoutes[linkId] = points;
         const fallback = !points || !this.isRouteValid(points, link);
 
         if (fallback) {
@@ -865,8 +861,6 @@ export class RouterService {
         if (this.pendingLinks.has(link)) {
             this.setPendingCanceled(link);
         }
-        // Clean up any route that may have been computed by avoid before the link became unroutable.
-        delete this.connectorRoutes[link.id];
 
         const { interceptUnroutableLink } = this.options;
         const reason = this.getUnroutableReason(link);
