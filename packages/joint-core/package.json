@@ -73,7 +73,7 @@
     "test-client": "grunt test:client",
     "test-ts": "grunt test:ts",
     "test-coverage": "grunt test:coverage",
-    "test-coverage-lcov": "yarn run test-coverage --reporter=lcov",
+    "test-coverage-lcov": "COVERAGE_REPORTER=lcov yarn run test-coverage",
     "test-bundles": "grunt test:bundles",
     "test-e2e": "grunt test:e2e",
     "test-e2e-all": "grunt test:e2e:all",

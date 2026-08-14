@@ -17,29 +17,27 @@ module.exports = function(grunt) {
 
     function karmaCoverageReporters(name) {
         let reporters;
-        let check;
-        let reporter = grunt.option('reporter') || '';
+        let reporter = process.env.COVERAGE_REPORTER || '';
         if (!reporter && grunt.cli.tasks.indexOf('test:coverage') !== -1) {
             reporter = 'html';
         }
         switch (reporter) {
             case 'lcov':
-                reporters = [{ type: 'lcovonly', subdir: '.', file: `${name}.lcov` }];
-                check = grunt.file.readJSON('coverage.json')[name];
+                reporters = [{ type: 'lcovonly', subdir: '.', file: 'lcov.info' }];
                 break;
             case 'html':
                 reporters = [{ type: 'html' }];
-                check = grunt.file.readJSON('coverage.json')[name];
                 break;
             case '':
                 reporters = [{ type: 'text-summary' }];
-                check = grunt.file.readJSON('coverage.json')[name];
                 break;
             default:
-                grunt.log.error(`Invalid reporter "${reporter}". Use "lcov" or "html".`);
+                grunt.log.error(`Invalid COVERAGE_REPORTER "${reporter}". Use "lcov" or "html".`);
                 process.exit(1);
                 return;
         }
+        // Every package keeps its coverage baseline in coverage.json
+        const check = grunt.file.readJSON('coverage.json')[name];
         return { dir: `coverage/${name}`, reporters, check };
     }
 

@@ -1,3 +1,5 @@
+import coverageThreshold from './coverage.json' with { type: 'json' };
+
 // Pattern marking the React Compiler behavioural suite. These files run ONLY
 // under the `react-compiler` project (compiled with babel-plugin-react-compiler)
 // and are excluded from the default `@swc/jest` project — their assertions
@@ -73,4 +75,8 @@ const reactCompilerProject = {
 
 export default {
   projects: [defaultProject, reactCompilerProject],
+  // Coverage baseline, recorded as the floor of what the suite currently reaches.
+  // Only enforced when jest runs with --coverage, i.e. by `yarn test-coverage-lcov`.
+  coverageThreshold,
+  coverageReporters: process.env.COVERAGE_REPORTER === 'lcov' ? ['lcovonly'] : ['text-summary'],
 };

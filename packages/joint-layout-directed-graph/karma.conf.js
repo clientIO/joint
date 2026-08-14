@@ -1,6 +1,12 @@
 // Used for starting Chrome if using ChromeHeadless in Jenkins
 process.env.CHROME_BIN = require('puppeteer').executablePath();
 
+// Coverage is collected against the sourcemapped test bundle and remapped onto
+// DirectedGraph.mjs, so the reports describe the source rather than the bundle.
+const TESTED_BUNDLE = './build/test/DirectedGraph.js';
+
+const coverageThresholds = require('./coverage.json');
+
 module.exports = function(config) {
     config.set({
         basePath: '.',
@@ -8,7 +14,7 @@ module.exports = function(config) {
             './node_modules/@dagrejs/graphlib/dist/graphlib.js',
             './node_modules/@dagrejs/dagre/dist/dagre.js',
             './node_modules/@joint/core/build/joint.js',
-            './dist/DirectedGraph.js',
+            TESTED_BUNDLE,
 
             './test/index.js'
         ],
@@ -17,6 +23,7 @@ module.exports = function(config) {
         plugins: [
             'karma-qunit',
             'karma-coverage',
+            'karma-sourcemap-loader',
             'karma-chrome-launcher'
         ],
         reporters: ['progress', 'coverage'],
@@ -36,16 +43,23 @@ module.exports = function(config) {
         },
         exclude: [],
         preprocessors: {
-            './dist/DirectedGraph.js': ['coverage']
+            // 'sourcemap' must run first: it attaches the bundle's map to the karma
+            // file, which is what lets karma-coverage remap the results onto the source
+            [TESTED_BUNDLE]: ['sourcemap', 'coverage']
         },
         coverageReporter: {
             // specify a common output directory
             dir: 'coverage/',
-            reporters: [
-                // reporters not supporting the `file` property
-                { type: 'html', subdir: 'report-html' },
-                { type: 'text-summary' }
-            ]
+            // Coverage baseline, recorded as the floor of what the suite currently
+            // reaches. Falling below any of these fails the run.
+            check: coverageThresholds,
+            reporters: process.env.COVERAGE_REPORTER === 'lcov'
+                ? [{ type: 'lcovonly', subdir: '.', file: 'lcov.info' }]
+                : [
+                    // reporters not supporting the `file` property
+                    { type: 'html', subdir: 'report-html' },
+                    { type: 'text-summary' }
+                ]
         }
     });
 };

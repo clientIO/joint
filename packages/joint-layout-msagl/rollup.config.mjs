@@ -2,6 +2,7 @@ import packageJson from './package.json' with { type: 'json' };
 import banner from 'rollup-plugin-banner2';
 import terser from '@rollup/plugin-terser';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 
 // JointJS banner.
 // - see `joint-core/grunt/resources/banner.js`
@@ -50,6 +51,48 @@ export default [
         plugins: [
             nodeResolve({
                 preferBuiltins: false
+            })
+        ]
+    },
+    // Sourcemapped bundle the unit tests run against, so that coverage is reported
+    // against src/*.mts instead of the bundle. It compiles the TypeScript directly
+    // rather than reusing dist/esm, because rollup does not follow the inline maps
+    // tsc leaves in that intermediate output. It is written to build/, which is
+    // outside the `files` allowlist in package.json and so can never be published;
+    // the distributed bundles above stay map-free.
+    {
+        input: ['./src/index.mts'],
+        external: [
+            '@joint/core',
+            '@msagl/core'
+        ],
+        output: [
+            {
+                file: 'build/test/index.js',
+                format: 'umd',
+                name: 'joint.layout.MSAGL',
+                extend: true,
+                globals: {
+                    '@joint/core': 'joint',
+                    '@msagl/core': 'msagl'
+                },
+                sourcemap: true
+            }
+        ],
+        plugins: [
+            nodeResolve({
+                preferBuiltins: false
+            }),
+            typescript({
+                tsconfig: './tsconfig.json',
+                compilerOptions: {
+                    // rollup writes the map itself; tsc's inline maps would win otherwise
+                    inlineSourceMap: false,
+                    inlineSources: false,
+                    sourceMap: true,
+                    declaration: false,
+                    declarationMap: false,
+                }
             })
         ]
     }
