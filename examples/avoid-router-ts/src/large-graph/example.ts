@@ -19,6 +19,8 @@ export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void
         defaultLink: () => new AppLink(),
     });
 
+    graph.resetCells(largeGraph.cells);
+
     const routerService = await initAvoidRouter(graph, {
         shapeBufferDistance: 20,
         idealNudgingDistance: 5,
@@ -45,7 +47,7 @@ export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void
         link.attr('line/strokeDasharray', null);
     });
 
-    routerService.on('link:pending', (link: dia.Link) => {
+    routerService.on('link:routing', (link: dia.Link) => {
         link.attr('line/strokeDasharray', '5,5');
 
         if (link.get('isDragging')) {
@@ -56,11 +58,11 @@ export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void
         }
     });
 
-    routerService.on('link:pending:cancelled', (link: dia.Link) => {
+    routerService.on('link:routing:cancelled', (link: dia.Link) => {
         link.attr('line/strokeDasharray', null);
     });
 
-    graph.resetCells(largeGraph.cells);
+    routerService.start();
 
     paper.transformToFitContent({
         useModelGeometry: true,

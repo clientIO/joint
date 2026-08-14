@@ -34,13 +34,6 @@ export const initSimpleExample = async (canvasEl: HTMLElement): Promise<void> =>
         },
     });
 
-    await initAvoidRouter(graph, {
-        shapeBufferDistance: 20,
-        idealNudgingDistance: 10,
-        skipLink: ({ link }) => link.get('doNotRoute'),
-        skipElement: ({ element }) => element.get('doNotRoute'),
-    });
-
     const c1 = new Node({
         position: { x: 100, y: 100 },
         size: { width: 100, height: 100 },
@@ -111,7 +104,7 @@ export const initSimpleExample = async (canvasEl: HTMLElement): Promise<void> =>
         target: { id: c1.id },
         router: { name: 'normal' },
         connector: { name: 'curve' },
-        doNotRoute: true,
+        skip: true,
         attrs: {
             line: {
                 stroke: '#EA3C24',
@@ -126,6 +119,15 @@ export const initSimpleExample = async (canvasEl: HTMLElement): Promise<void> =>
     });
 
     graph.resetCells([c1, c2, c3, c4, c5, l1, l2, l3, l4, l5, note]);
+
+    const routerService = await initAvoidRouter(graph, {
+        shapeBufferDistance: 20,
+        idealNudgingDistance: 10,
+        trackLink: ({ link }) => !link.get('skip'),
+        trackElement: ({ element }) => !element.get('skip'),
+    });
+
+    routerService.start();
 
     paper.unfreeze();
 

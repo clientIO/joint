@@ -51,56 +51,6 @@ export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<voi
         },
     });
 
-    // Two independent `RouterService` instances share the same graph, each
-    // with its own libavoid router underneath. `skipLink`/`skipElement`
-    // partition the graph's cells between them by their `group` attribute,
-    // so each instance only ever sees - and only ever routes around - its
-    // own subgraph's shapes and links, with its own routing settings.
-    const routerServiceA = await initAvoidRouter(graph, {
-        shapeBufferDistance: 20,
-        idealNudgingDistance: 10,
-        skipLink: ({ link }) => link.get('doNotRoute') || isGroupB(link),
-        skipElement: ({ element }) => element.get('doNotRoute') || isGroupB(element),
-        interceptUnroutableLink: ({ link, reason }) => {
-            switch (reason) {
-                case 'unconnected': {
-                    if (link.get('isDragging')) {
-                        return true;
-                    }
-                    link.set({
-                        vertices: [],
-                        router: { name: 'normal' },
-                        connector: { name: 'curve' },
-                        isDragging: true,
-                    });
-                    return true;
-                }
-                default:
-                    return false;
-            }
-        },
-    });
-
-    routerServiceA.on('link:routed', (link: dia.Link) => {
-        if (link.get('isDragging')) {
-            link.set({
-                router: { name: 'normal' },
-                connector: null,
-                isDragging: false,
-            });
-        }
-    });
-
-    // A much larger buffer/nudging distance than group A's, so the two
-    // subgraphs are visibly routed differently. Nothing further to do with
-    // the returned `RouterService` in this demo, so it isn't kept around.
-    await initAvoidRouter(graph, {
-        shapeBufferDistance: 30,
-        idealNudgingDistance: 20,
-        skipLink: ({ link }) => link.get('doNotRoute') || !isGroupB(link),
-        skipElement: ({ element }) => element.get('doNotRoute') || !isGroupB(element),
-    });
-
     const c1 = new Node({
         position: { x: 100, y: 100 },
         size: { width: 100, height: 100 },
@@ -171,7 +121,7 @@ export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<voi
         target: { id: c1.id },
         router: { name: 'normal' },
         connector: { name: 'curve' },
-        doNotRoute: true,
+        skip: true,
         attrs: {
             line: {
                 stroke: '#EA3C24',
@@ -235,6 +185,59 @@ export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<voi
     });
 
     graph.resetCells([c1, c2, c3, c4, c5, l1, l2, l3, l4, l5, note, b1, b2, b3, bl1, bl2, bl3]);
+
+    // Two independent `RouterService` instances share the same graph, each
+    // with its own libavoid router underneath. `skipLink`/`skipElement`
+    // partition the graph's cells between them by their `group` attribute,
+    // so each instance only ever sees - and only ever routes around - its
+    // own subgraph's shapes and links, with its own routing settings.
+    const routerServiceA = await initAvoidRouter(graph, {
+        shapeBufferDistance: 20,
+        idealNudgingDistance: 10,
+        trackLink: ({ link }) => !link.get('skip') && !isGroupB(link),
+        trackElement: ({ element }) => !element.get('skip') && !isGroupB(element),
+        interceptUnroutableLink: ({ link, reason }) => {
+            switch (reason) {
+                case 'unconnected': {
+                    if (link.get('isDragging')) {
+                        return true;
+                    }
+                    link.set({
+                        vertices: [],
+                        router: { name: 'normal' },
+                        connector: { name: 'curve' },
+                        isDragging: true,
+                    });
+                    return true;
+                }
+                default:
+                    return false;
+            }
+        },
+    });
+
+    routerServiceA.on('link:routed', (link: dia.Link) => {
+        if (link.get('isDragging')) {
+            link.set({
+                router: { name: 'normal' },
+                connector: null,
+                isDragging: false,
+            });
+        }
+    });
+
+    routerServiceA.start();
+
+    // A much larger buffer/nudging distance than group A's, so the two
+    // subgraphs are visibly routed differently. Nothing further to do with
+    // the returned `RouterService` in this demo, so it isn't kept around.
+    const routerServiceB = await initAvoidRouter(graph, {
+        shapeBufferDistance: 30,
+        idealNudgingDistance: 20,
+        trackLink: ({ link }) => !link.get('skip') && isGroupB(link),
+        trackElement: ({ element }) => !element.get('skip') && isGroupB(element),
+    });
+    routerServiceB.start();
 
     paper.unfreeze();
 

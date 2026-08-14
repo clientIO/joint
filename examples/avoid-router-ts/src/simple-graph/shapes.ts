@@ -56,14 +56,14 @@ export class Node extends shapes.standard.Rectangle {
 }
 
 // A free-floating annotation. It is excluded from the avoid router via the
-// `doNotRoute` flag, so links are free to route straight through it.
+// `skip` flag, so links are free to route straight through it.
 export class Note extends shapes.standard.Rectangle {
     defaults() {
         return util.defaultsDeep({
             type: 'Note',
             z: 0,
             size: { width: 140, height: 70 },
-            doNotRoute: true,
+            skip: true,
             attrs: {
                 body: {
                     fill: '#FFF6BF',

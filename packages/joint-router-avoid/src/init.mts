@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { AvoidLib } from 'libavoid-js';
 import { RouterService } from './RouterService.mjs';
-import type { UnroutableLinkCallback, SkipElementCallback, SkipLinkCallback, SetRouteAttributesCallback } from './RouterService.mjs';
+import type { UnroutableLinkCallback, TrackElementCallback, TrackLinkCallback, SetRouteAttributesCallback, RouterServiceOptions } from './RouterService.mjs';
 import { MainThreadProvider } from './providers/MainThreadProvider.mjs';
 import { WorkerProvider } from './providers/WorkerProvider.mjs';
 
@@ -31,10 +31,10 @@ export function loadAvoidRouter(filePath?: string): Promise<void> {
 
 /** Options used to configure {@link initAvoidRouter}. */
 export interface InitAvoidOptions {
-    /** Excludes links from routing. Defaults to routing every link. */
-    skipLink?: SkipLinkCallback;
-    /** Excludes elements from routing. Defaults to routing using every element as obstacle. */
-    skipElement?: SkipElementCallback;
+    /** Determines which links to track for routing. Defaults to tracking every link. */
+    trackLink?: TrackLinkCallback;
+    /** Determines which elements to track for routing. Defaults to tracking every element as obstacle. */
+    trackElement?: TrackElementCallback;
     /** Gives the consumer first refusal on links avoid cannot route. Defaults to always falling back to the built-in `rightAngle` route. */
     interceptUnroutableLink?: UnroutableLinkCallback;
     /** Overrides how computed route attributes are applied to a link. Defaults to calling `link.set()` directly. */
@@ -89,10 +89,10 @@ export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOption
         });
     }
 
-    const routerServiceOptions = {
+    const routerServiceOptions: RouterServiceOptions = {
         shapeBufferDistance,
-        skipLink: options.skipLink,
-        skipElement: options.skipElement,
+        trackLink: options.trackLink,
+        trackElement: options.trackElement,
         interceptUnroutableLink: options.interceptUnroutableLink,
         setRouteAttributes: options.setRouteAttributes,
         changeFlag: options.changeFlag,
