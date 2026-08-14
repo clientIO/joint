@@ -11,7 +11,7 @@ const cellNamespace = {
     Note,
 };
 
-export const initSimpleExample = async (canvasEl) => {
+export const initSimpleExample = async (canvasEl: HTMLElement): Promise<void> => {
 
     const { graph, paper } = createPaper(canvasEl, cellNamespace, {
         defaultLink: () => new Edge(),
@@ -24,7 +24,7 @@ export const initSimpleExample = async (canvasEl) => {
         ) => {
             const source = sourceView.model;
             const target = targetView.model;
-            if (source.isLink() || target.isLink()) return false;
+            if (!source.isElement() || !target.isElement()) return false;
             if (targetMagnet === sourceMagnet) return false;
             if (end === 'target' ? targetMagnet : sourceMagnet) {
                 return true;
@@ -136,12 +136,12 @@ export const initSimpleExample = async (canvasEl) => {
         addElementTools(el, paper);
     });
     graph.on('add', (cell) => {
-        if (cell.isLink() || cell instanceof Note) return;
+        if (!cell.isElement() || cell instanceof Note) return;
         addElementTools(cell, paper);
     });
 
-    function addElementTools(el, paper) {
-        const tools = [
+    function addElementTools(el: dia.Element, paper: dia.Paper) {
+        const tools: dia.ToolView[] = [
             new ResizeTool({
                 selector: 'body',
             }),

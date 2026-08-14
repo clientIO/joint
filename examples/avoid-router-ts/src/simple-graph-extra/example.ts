@@ -14,7 +14,7 @@ const cellNamespace = {
 // Cells tagged `group: 'b'` belong to the second subgraph, routed and
 // styled independently of everything else on the paper; cells with no
 // `group` (or any other value) belong to the first, default subgraph.
-const isGroupB = (cell) => cell.get('group') === 'b';
+const isGroupB = (cell: dia.Cell): boolean => cell.get('group') === 'b';
 
 const groupBLineAttrs = {
     line: {
@@ -23,7 +23,7 @@ const groupBLineAttrs = {
     },
 };
 
-export const initSimpleExampleExtra = async (canvasEl) => {
+export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<void> => {
 
     const { graph, paper } = createPaper(canvasEl, cellNamespace, {
         // A link dragged from a group B element belongs to group B too,
@@ -41,7 +41,7 @@ export const initSimpleExampleExtra = async (canvasEl) => {
         ) => {
             const source = sourceView.model;
             const target = targetView.model;
-            if (source.isLink() || target.isLink()) return false;
+            if (!source.isElement() || !target.isElement()) return false;
             if (targetMagnet === sourceMagnet) return false;
             if (end === 'target' ? targetMagnet : sourceMagnet) {
                 return true;
@@ -81,7 +81,7 @@ export const initSimpleExampleExtra = async (canvasEl) => {
         },
     });
 
-    routerServiceA.on('link:routed', (link) => {
+    routerServiceA.on('link:routed', (link: dia.Link) => {
         if (link.get('isDragging')) {
             link.set({
                 router: { name: 'normal' },
@@ -245,12 +245,12 @@ export const initSimpleExampleExtra = async (canvasEl) => {
         addElementTools(el, paper);
     });
     graph.on('add', (cell) => {
-        if (cell.isLink() || cell instanceof Note) return;
+        if (!cell.isElement() || cell instanceof Note) return;
         addElementTools(cell, paper);
     });
 
-    function addElementTools(el, paper) {
-        const tools = [
+    function addElementTools(el: dia.Element, paper: dia.Paper) {
+        const tools: dia.ToolView[] = [
             new ResizeTool({
                 selector: 'body',
             }),

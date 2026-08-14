@@ -2,7 +2,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const path = process.cwd() + '/dist';
 
 module.exports = {
-    entry: `./src/index.js`,
+    entry: `./src/index.ts`,
     mode: 'development',
     target: 'web',
     output: {
@@ -10,7 +10,7 @@ module.exports = {
         filename: 'bundle.js',
     },
     resolve: {
-        extensions: ['.js'],
+        extensions: ['.ts', '.js'],
     },
     devtool: 'source-map',
     devServer: {
@@ -24,6 +24,7 @@ module.exports = {
     },
     module: {
         rules: [
+            { test: /\.ts$/, loader: 'ts-loader' },
             {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],

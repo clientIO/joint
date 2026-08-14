@@ -1,4 +1,4 @@
-import { shapes } from '@joint/core';
+import { dia, shapes } from '@joint/core';
 import { initAvoid } from '@joint/router-avoid';
 import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from '../common';
 import { Message, FlowchartStart, Link as AppLink } from './shapes';
@@ -13,7 +13,7 @@ const cellNamespace = {
     },
 };
 
-export const initLargeGraphExample = async (canvasEl) => {
+export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void> => {
 
     const { graph, paper } = createPaper(canvasEl, cellNamespace, {
         defaultLink: () => new AppLink(),
@@ -41,11 +41,11 @@ export const initLargeGraphExample = async (canvasEl) => {
         },
     });
 
-    routerService.on('link:routed', (link) => {
+    routerService.on('link:routed', (link: dia.Link) => {
         link.attr('line/strokeDasharray', null);
     });
 
-    routerService.on('link:pending', (link) => {
+    routerService.on('link:pending', (link: dia.Link) => {
         link.attr('line/strokeDasharray', '5,5');
 
         if (link.get('isDragging')) {
@@ -56,7 +56,7 @@ export const initLargeGraphExample = async (canvasEl) => {
         }
     });
 
-    routerService.on('link:pending:cancelled', (link) => {
+    routerService.on('link:pending:cancelled', (link: dia.Link) => {
         link.attr('line/strokeDasharray', null);
     });
 
