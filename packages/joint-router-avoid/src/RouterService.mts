@@ -635,8 +635,18 @@ export class RouterService {
         const rightAngleVertices = this.getFallbackRoute(link);
 
         const attributes = {
-            source: link.source(),
-            target: link.target(),
+            source: {
+                ...link.source(),
+                anchor: {
+                    name: 'modelCenter',
+                }
+            },
+            target: {
+                ...link.target(),
+                anchor: {
+                    name: 'modelCenter',
+                }
+            },
             vertices: rightAngleVertices
         };
 
@@ -651,7 +661,7 @@ export class RouterService {
             return;
         }
 
-        link.set('vertices', attributes, { [this.changeFlag]: true });
+        link.set(attributes, { [this.changeFlag]: true });
 
         if (options.routing) {
             this.setRouting(link);
