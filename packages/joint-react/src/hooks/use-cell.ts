@@ -1,4 +1,4 @@
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, useRef } from 'react';
 import { CellIdContext } from '../context';
 import { useCells } from './use-cells';
 import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.types';
@@ -124,16 +124,40 @@ export function useCell<Cell extends AnyCellRecord = CellRecord, Selected = Comp
     );
   }
 
+  // Remembers the last value this hook resolved and the id it belonged to, so the
+  // selector can tolerate the removed-mid-render window below. One ref mutated in
+  // place (never reassigned) — no per-render allocation on the hot path. Tagging
+  // by id means a changed id never returns a stale value from a different cell.
+  const lastResolvedRef = useRef<{
+    id: CellId | undefined;
+    value: Computed<Cell> | Selected | undefined;
+  }>({ id: undefined, value: undefined });
+
   // Always run through the (id, selector, isEqual?) form so React only sees
-  // one stable hook call shape across all overloads. The selector throws on
-  // missing cells; the identity case re-uses the cell record reference, so
-  // isEqual=Object.is bails out on data-only commits.
+  // one stable hook call shape across all overloads. The identity case re-uses
+  // the cell record reference, so isEqual=Object.is bails out on data-only commits.
   const selector = useMemo(() => {
     return (cell: Computed<Cell> | undefined): Computed<Cell> | Selected => {
+      const lastResolved = lastResolvedRef.current;
       if (cell === undefined) {
+        // The subscribed cell was removed while this subtree is still mounted: a
+        // controlled `cells` update fires the cell's per-id listener synchronously
+        // (inside GraphProvider's applyControlled commit) one step before <Paper>
+        // unmounts the portal, so the selector re-runs against a cell that is
+        // already gone. Return the last value resolved for THIS id — the doomed
+        // subtree renders once more with stale data (equal to the cached value, so
+        // it does not even re-render) and unmounts on the next commit, instead of
+        // throwing and taking the whole paper down. A cell that never resolved is
+        // genuine misuse (bad id / outside a render context) and still throws.
+        if (lastResolved.id === id) {
+          return lastResolved.value as Computed<Cell> | Selected;
+        }
         throw new Error(`useCell(): no cell with id "${String(id)}"`);
       }
-      return userSelector ? userSelector(cell) : cell;
+      const value = userSelector ? userSelector(cell) : cell;
+      lastResolved.id = id;
+      lastResolved.value = value;
+      return value;
     };
     // userSelector is captured by reference; React's referential equality on
     // the closure is enough here because `useCells` keeps its own selectorRef.
