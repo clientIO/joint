@@ -1,4 +1,4 @@
-import { useRef, useEffect, type RefObject, type ForwardedRef } from 'react';
+import { useRef, useMemo, type RefObject, type ForwardedRef } from 'react';
 
 /**
  * Sets the value of a forwarded ref, handling both function refs and object refs.
@@ -28,11 +28,30 @@ export function setForwardRef<T>(ref: ForwardedRef<T> | undefined, value: T | nu
  * });
  */
 export function useCombinedRef<T>(ref?: ForwardedRef<T>): RefObject<T | null> {
-  const innerRef = useRef<T>(null);
+  // Explicitly nullable so `current` stays mutable under React 18's typings
+  // too — the proxy setter below assigns to it.
+  const innerRef = useRef<T | null>(null);
 
-  useEffect(() => {
-    setForwardRef(ref, innerRef.current);
-  }, [ref]);
-
-  return innerRef;
+  // Assign the forwarded ref DURING COMMIT — when React writes to this object's
+  // `current` — not in a passive effect. React attaches refs before layout effects
+  // run, and consumers rely on that: a parent that reads the forwarded ref in its own
+  // `useLayoutEffect` would see `null` if the assignment were deferred to a passive
+  // effect (parent layout effects run first). `useMeasureElement` is exactly such a
+  // consumer — it bails on a null node and never re-registers, leaving the element
+  // 0x0 in production (StrictMode's remount masks it in dev/tests). A proxy whose
+  // setter forwards keeps the `RefObject` read interface (`.current`) callers depend
+  // on, which a plain callback ref could not. Keyed on `ref` so a changed forwarded
+  // ref re-attaches and receives the current node.
+  return useMemo<RefObject<T | null>>(
+    () => ({
+      get current() {
+        return innerRef.current;
+      },
+      set current(value: T | null) {
+        innerRef.current = value;
+        setForwardRef(ref, value);
+      },
+    }),
+    [ref]
+  );
 }
