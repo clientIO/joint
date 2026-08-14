@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { AvoidLib } from 'libavoid-js';
 import { RouterService } from './RouterService.mjs';
-import type { UnroutableLinkCallback, SkipElementCallback, SkipLinkCallback } from './RouterService.mjs';
+import type { UnroutableLinkCallback, SkipElementCallback, SkipLinkCallback, SetRouteAttributesCallback } from './RouterService.mjs';
 import { MainThreadProvider } from './providers/MainThreadProvider.mjs';
 import { WorkerProvider } from './providers/WorkerProvider.mjs';
 
@@ -37,6 +37,8 @@ export interface InitAvoidOptions {
     skipElement?: SkipElementCallback;
     /** Gives the consumer first refusal on links avoid cannot route. Defaults to always falling back to the built-in `rightAngle` route. */
     interceptUnroutableLink?: UnroutableLinkCallback;
+    /** Overrides how computed route attributes are applied to a link. Defaults to calling `link.set()` directly. */
+    setRouteAttributes?: SetRouteAttributesCallback;
     /** Spacing distance added to the sides of each shape when determining obstacle sizes for routing, and used as the {@link RouterService}'s fallback-route margin. Defaults to `10`. */
     shapeBufferDistance?: number;
     /** Spacing distance used for nudging apart overlapping corners and line segments of connectors. Defaults to `5`. */
@@ -44,9 +46,9 @@ export interface InitAvoidOptions {
     /** Runs the avoid router inside a Worker thread instead of the main thread. Defaults to `false`. */
     useWorker?: boolean;
     /** Milliseconds to debounce queued messages by when `useWorker` is `true`. Defaults to `100`. */
-    updateDebounceTime?: number;
+    workerUpdateDebounceTime?: number;
     /** Path to the avoid WASM binary. Defaults to the library's own resolution of the asset. */
-    libraryFilePath?: string;
+    libavoidFilePath?: string;
 }
 
 /**
@@ -62,21 +64,21 @@ export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOption
     if (loadAvoidPromise) {
         await loadAvoidPromise;
     } else if (!AvoidLib.avoidLib) {
-        await loadAvoidRouter(options.libraryFilePath);
+        await loadAvoidRouter(options.libavoidFilePath);
     }
 
     const provider = options.useWorker ? new WorkerProvider() : new MainThreadProvider();
 
     const shapeBufferDistance = options.shapeBufferDistance ?? defaultShapeBufferDistance;
     const idealNudgingDistance = options.idealNudgingDistance ?? defaultIdealNudgingDistance;
-    const updateDebounceTime = options.updateDebounceTime ?? defaultUpdateDebounceTime;
+    const updateDebounceTime = options.workerUpdateDebounceTime ?? defaultUpdateDebounceTime;
 
     if (provider instanceof WorkerProvider) {
         await provider.init({
             shapeBufferDistance: shapeBufferDistance,
             idealNudgingDistance: idealNudgingDistance,
-            updateDebounceTime: updateDebounceTime,
-            libraryFilePath: options.libraryFilePath
+            workerUpdateDebounceTime: updateDebounceTime,
+            libavoidFilePath: options.libavoidFilePath
         });
     } else {
         await provider.init({
@@ -86,7 +88,7 @@ export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOption
     }
 
     const routerServiceOptions = {
-        elementMargin: shapeBufferDistance,
+        shapeBufferDistance,
         skipLink: options.skipLink,
         skipElement: options.skipElement,
         interceptUnroutableLink: options.interceptUnroutableLink

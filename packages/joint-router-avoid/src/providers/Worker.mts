@@ -173,7 +173,7 @@ function createAvoidRouter(Avoid: AvoidInstance, shapeBufferDistance: number, id
  * @param options - Configuration for the avoid router instance.
  */
 async function handleInit(options: WorkerProviderOptions): Promise<void> {
-    await AvoidLib.load(options.libraryFilePath);
+    await AvoidLib.load(options.libavoidFilePath);
 
     avoidInstance = AvoidLib.getInstance();
     avoidRouter = createAvoidRouter(
@@ -181,7 +181,7 @@ async function handleInit(options: WorkerProviderOptions): Promise<void> {
         options.shapeBufferDistance ?? 0,
         options.idealNudgingDistance ?? 10
     );
-    updateDebounceTime = options.updateDebounceTime ?? 100;
+    updateDebounceTime = options.workerUpdateDebounceTime ?? 100;
     flushMessageQueue = util.debounce(flushMessageFunction, updateDebounceTime);
 
     postResponse({ type: 'ready' });

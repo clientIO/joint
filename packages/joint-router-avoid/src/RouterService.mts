@@ -52,12 +52,25 @@ export type SkipElementCallback = (params: SkipElementCallbackParameters) => boo
 
 /** Parameters passed to a {@link SetRouteAttributesCallback}. */
 export type SetRouteAttributesCallbackParameters = {
-    /** The link the route applies to. */
+/** The link the route applies to. */
     link: dia.Link;
     /** The computed route attributes to apply to the link. */
     attributes: RouteAttributes;
-    /** Whether `attributes` came from the built-in fallback route rather than avoid. */
-    fallback?: boolean;
+    /** Where the route came from: computed by avoid, or the built-in `rightAngle` fallback. */
+    origin: 'avoid' | 'fallback';
+    /**
+     * `true` when this route is provisional - avoid is still computing and
+     * another call for the same link follows (matches the `link:pending`
+     * event cycle). `false` when this is the link's final route for the
+     * current change.
+     */
+    pending?: boolean;
+    /**
+     * Why avoid could not route the link. Only set when the fallback route
+     * is applied because the link is unroutable (and the consumer did not
+     * claim it via `interceptUnroutableLink`).
+     */
+    unroutableReason?: UnroutableReason;
 }
 /**
  * Applies computed route attributes to a link, overriding the default
@@ -74,7 +87,7 @@ export type SetRouteAttributesCallback = (params: SetRouteAttributesCallbackPara
  * - `'untracked-element'` - both ends are connected, but at least one connected
  *   element is excluded from the router via `skipElement`.
  */
-export type UnroutableReason = 'unconnected' | 'untracked-element';
+export type UnroutableReason = 'unconnected' | 'untracked-element' | 'unsupported';
 
 /** Parameters passed to an {@link UnroutableLinkCallback}. */
 export type UnroutableLinkCallbackParameters = {
@@ -102,9 +115,9 @@ export interface RouterServiceOptions {
     /** Gives the consumer first refusal on links avoid cannot route. Defaults to always falling back to the built-in `rightAngle` route. */
     interceptUnroutableLink?: UnroutableLinkCallback;
     /** The margin to apply around elements when computing fallback route. */
-    elementMargin?: number;
+    shapeBufferDistance?: number;
     /** Name of the `opt` flag set on `link.set()` calls made by this instance, so its own changes can be told apart from the consumer's. Defaults to `'avoidRouter'`. */
-    eventFlagName?: string;
+    changeFlag?: string;
 }
 
 /**
@@ -144,6 +157,12 @@ export class RouterService {
     // route - gets its stranded cycle closed instead of staying stuck.
     private readonly pendingLinks: WeakSet<dia.Link> = new WeakSet();
 
+    // Whether a route is currently being applied to a link.
+    // This is used to avoid re-entrant calls to `link.set()` when the router
+    // applies a new route to a link, which can trigger `change` events that would
+    // otherwise cause the router to try to apply a new route while it's still applying the previous one.
+    private applyingRoute = false;
+
     private nextPinId = 100000;
     private graphListener?: mvc.Listener<[]>;
     private destroyed = false;
@@ -167,11 +186,11 @@ export class RouterService {
         private readonly provider: Provider,
         private readonly options: RouterServiceOptions = {}
     ) {
-        if (this.options.elementMargin == null) {
-            this.options.elementMargin = 0;
+        if (this.options.shapeBufferDistance == null) {
+            this.options.shapeBufferDistance = 0;
         }
-        if (this.options.eventFlagName == null) {
-            this.options.eventFlagName = 'avoidRouter';
+        if (this.options.changeFlag == null) {
+            this.options.changeFlag = 'avoidRouter';
         }
 
         this.skipLink = options.skipLink ?? this.defaultSkipLink;
@@ -191,6 +210,14 @@ export class RouterService {
         this.provider.onConnectorChanged = (linkId, points) => this.routeLink(linkId, points);
 
         this.addGraphListeners();
+    }
+
+    /**
+     * Returns change flag which prevents
+     * `onCellChanged` from being processed
+    */
+    get changeFlag() {
+        return this.options.changeFlag!;
     }
 
     /**
@@ -220,18 +247,6 @@ export class RouterService {
     removeGraphListeners(): void {
         this.graphListener?.stopListening();
         this.graphListener = undefined;
-    }
-
-    /**
-     * Returns the route computed by avoid for the link with the given id.
-     * The route is an array of points including the source and target
-     * points.
-     *
-     * @param linkId - Id of the link to look up.
-     * @returns The link's current route, or `undefined` if avoid has not computed one yet.
-     */
-    getRoute(linkId: dia.Cell.ID): dia.Point[] | undefined {
-        return this.connectorRoutes[linkId];
     }
 
     /**
@@ -317,7 +332,7 @@ export class RouterService {
      * @param opt - The options the change was made with; changes flagged with `options.eventFlagName` (this instance's own writes) are ignored.
      */
     private onCellChanged(cell: dia.Cell, opt: dia.Cell.Options = {}): void {
-        if (opt[this.options.eventFlagName!]) return;
+        if (opt[this.changeFlag] || this.applyingRoute) return;
 
         if ('source' in cell.changed || 'target' in cell.changed) {
             if (!cell.isLink() || this.skipLink({ link: cell })) return;
@@ -331,8 +346,7 @@ export class RouterService {
                 return;
             }
 
-            this.applyFallbackRoute(cell);
-            this.setPending(cell);
+            this.applyFallbackRoute(cell, { pending: true });
             this.provider.updateConnector(this.getAvoidConnector(cell));
         }
 
@@ -345,8 +359,7 @@ export class RouterService {
                     return;
                 }
 
-                this.applyFallbackRoute(link);
-                this.setPending(link);
+                this.applyFallbackRoute(link, { pending: true });
             });
 
             if (this.skipElement({ element: cell })) return;
@@ -522,7 +535,6 @@ export class RouterService {
 
         if (fallback) {
             this.applyFallbackRoute(link);
-            this.setRouted(link, true);
             return;
         }
 
@@ -550,14 +562,28 @@ export class RouterService {
             vertices: updatedRoute.vertices
         };
 
+        this.applyingRoute = true;
         // trigger change on vertices setter to update the link view
         if (this.options.setRouteAttributes) {
-            this.options.setRouteAttributes({ link, attributes });
+            try {
+                this.options.setRouteAttributes({
+                    link,
+                    attributes,
+                    origin: 'avoid'
+                });
+            } finally {
+                this.applyingRoute = false;
+            }
             this.setRouted(link);
             return;
         }
 
-        link.set(attributes, { [this.options.eventFlagName!]: true });
+        try {
+            link.set(attributes, { [this.changeFlag]: true });
+        } finally {
+            this.applyingRoute = false;
+        }
+
         this.setRouted(link);
     }
 
@@ -567,23 +593,33 @@ export class RouterService {
      *
      * @param link - The link to update.
      */
-    private applyFallbackRoute(link: dia.Link): void {
+    private applyFallbackRoute(link: dia.Link, options: { pending?: boolean, reason?: UnroutableReason } = {}): void {
         const rightAngleVertices = this.getFallbackRoute(link);
+
+        const attributes = {
+            source: link.source(),
+            target: link.target(),
+            vertices: rightAngleVertices
+        };
 
         if (this.options.setRouteAttributes) {
             this.options.setRouteAttributes({
                 link,
-                attributes: {
-                    source: link.source(),
-                    target: link.target(),
-                    vertices: rightAngleVertices
-                },
-                fallback: true
+                attributes,
+                origin: 'fallback',
+                pending: !!options.pending,
+                unroutableReason: options.reason,
             });
             return;
         }
 
-        link.set('vertices', rightAngleVertices, { [this.options.eventFlagName!]: true });
+        link.set('vertices', attributes, { [this.changeFlag]: true });
+
+        if (options.pending) {
+            this.setRouted(link, true);
+        } else {
+            this.setPending(link);
+        }
     }
 
     /**
@@ -611,7 +647,7 @@ export class RouterService {
             endPoint: sourcePoint,
             bbox: new g.Rect(sourceBBox.x, sourceBBox.y, sourceBBox.width, sourceBBox.height),
             side: sourceSide,
-            margin: this.options.elementMargin ?? 0,
+            margin: this.options.shapeBufferDistance ?? 0,
         };
 
         let targetBBox = link.getTargetElement()?.getBBox();
@@ -627,7 +663,7 @@ export class RouterService {
             endPoint: targetPoint,
             bbox: new g.Rect(targetBBox.x, targetBBox.y, targetBBox.width, targetBBox.height),
             side: targetSide,
-            margin: this.options.elementMargin ?? 0,
+            margin: this.options.shapeBufferDistance ?? 0,
         };
 
         return alg.rightAnglePath(source, target);
@@ -674,12 +710,12 @@ export class RouterService {
             return false;
         }
 
-        if (sourcePortId && targetElement!.getBBox().inflate(this.options.elementMargin).containsPoint(sourcePoint)) {
+        if (sourcePortId && targetElement!.getBBox().inflate(this.options.shapeBufferDistance).containsPoint(sourcePoint)) {
             // The source point is inside the target element.
             return false;
         }
 
-        if (targetPortId && sourceElement!.getBBox().inflate(this.options.elementMargin).containsPoint(targetPoint)) {
+        if (targetPortId && sourceElement!.getBBox().inflate(this.options.shapeBufferDistance).containsPoint(targetPoint)) {
             // The target point is inside the source element.
             return false;
         }
@@ -769,14 +805,21 @@ export class RouterService {
      * @returns `true` if both ends are connected to a tracked element.
      */
     private validateEnds(link: dia.Link): boolean {
-        const sourceElement = link.getSourceElement();
-        const targetElement = link.getTargetElement();
+        const sourceCell = link.getSourceCell();
+        const targetCell = link.getTargetCell();
 
-        if (!sourceElement || !targetElement) {
+        // Avoid cannot route a link that is not connected to an element on both ends.
+        if (!sourceCell || !targetCell) {
             return false;
         }
 
-        if (this.skipElement({ element: sourceElement }) || this.skipElement({ element: targetElement })) {
+        // Avoid cannot route a link that is connected to another link on either end.
+        if (sourceCell?.isLink() || targetCell?.isLink()) {
+            return false;
+        }
+
+        // Avoid cannot route a link that is connected to an element that is excluded from routing.
+        if (this.skipElement({ element: sourceCell as dia.Element }) || this.skipElement({ element: targetCell as dia.Element })) {
             return false;
         }
 
@@ -792,13 +835,20 @@ export class RouterService {
      * @returns Why the link could not be routed.
      */
     private getUnroutableReason(link: dia.Link): UnroutableReason {
-        const sourceElement = link.getSourceElement();
-        const targetElement = link.getTargetElement();
+        const sourceCell = link.getSourceCell();
+        const targetCell = link.getTargetCell();
 
-        if (!sourceElement || !targetElement) {
+        // Avoid cannot route a link that is not connected to a cell on both ends.
+        if (!sourceCell || !targetCell) {
             return 'unconnected';
         }
 
+        // Avoid cannot route a link that is connected to another link on either end.
+        if (sourceCell?.isLink() || targetCell?.isLink()) {
+            return 'unsupported';
+        }
+
+        // Avoid cannot route a link that is connected to an element that is excluded from routing.
         return 'untracked-element';
     }
 
@@ -819,15 +869,15 @@ export class RouterService {
         delete this.connectorRoutes[link.id];
 
         const { interceptUnroutableLink } = this.options;
+        const reason = this.getUnroutableReason(link);
         if (interceptUnroutableLink && interceptUnroutableLink({
             link,
-            reason: this.getUnroutableReason(link)
+            reason
         })) {
             return;
         }
 
-        this.applyFallbackRoute(link);
-        this.setRouted(link, true);
+        this.applyFallbackRoute(link, { reason });
     }
 }
 

@@ -8,9 +8,9 @@ import type { WorkerRequest, WorkerResponse } from './Worker.mjs';
 /** Options used to initialize a {@link WorkerProvider}. */
 export interface WorkerProviderOptions extends ProviderOptions {
     /** Milliseconds to debounce queued messages by inside the Worker before applying them in a single batch. */
-    updateDebounceTime?: number;
+    workerUpdateDebounceTime?: number;
     /** Path to the avoid WASM binary, forwarded to `AvoidLib.load()` inside the Worker. */
-    libraryFilePath?: string;
+    libavoidFilePath?: string;
 }
 
 /**
