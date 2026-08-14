@@ -5727,9 +5727,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-avoid-router@workspace:examples/avoid-router":
+"@joint/demo-avoid-router-ts@workspace:examples/avoid-router-ts":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-avoid-router@workspace:examples/avoid-router"
+  resolution: "@joint/demo-avoid-router-ts@workspace:examples/avoid-router-ts"
   dependencies:
     "@joint/core": "workspace:~"
     "@joint/router-avoid": "workspace:~"
@@ -5740,6 +5740,8 @@ __metadata:
     sass: "npm:1.26.8"
     sass-loader: "npm:8.0.2"
     style-loader: "npm:1.2.1"
+    ts-loader: "npm:^9.2.5"
+    typescript: "npm:^5.7.3"
     webpack: "npm:5.98.0"
     webpack-cli: "npm:6.0.1"
     webpack-dev-server: "npm:5.2.0"

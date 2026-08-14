@@ -6,7 +6,16 @@ import { dia, linkTools, highlighters } from '@joint/core';
 // There is a bug in JointJS, that does not allow you to use port
 // ids that are numbers.
 
-export function createPaper(canvasEl, cellNamespace, paperOptions = {}) {
+export interface CreatePaperResult {
+    graph: dia.Graph;
+    paper: dia.Paper;
+}
+
+export function createPaper(
+    canvasEl: HTMLElement,
+    cellNamespace: Record<string, unknown>,
+    paperOptions: Partial<dia.Paper.Options> = {}
+): CreatePaperResult {
     const graph = new dia.Graph({}, { cellNamespace });
 
     const paper = new dia.Paper({
@@ -15,7 +24,6 @@ export function createPaper(canvasEl, cellNamespace, paperOptions = {}) {
         width: '100%',
         height: '100%',
         gridSize: 10,
-        interactive: { linkMove: false },
         linkPinning: false,
         async: true,
         frozen: true,
@@ -50,7 +58,7 @@ export function createPaper(canvasEl, cellNamespace, paperOptions = {}) {
     return { graph, paper };
 }
 
-export function addLinkInteractionHandlers(paper) {
+export function addLinkInteractionHandlers(paper: dia.Paper): void {
     // Add a class to the links when they are being interacted with.
     // See `styles.css` for the styles.
 
@@ -80,7 +88,7 @@ export function addLinkInteractionHandlers(paper) {
     });
 }
 
-export function addPaperZoomHandlers(paper) {
+export function addPaperZoomHandlers(paper: dia.Paper): void {
     const MIN_SCALE = 0.1;
     const MAX_SCALE = 5;
 

@@ -1,4 +1,6 @@
-export const largeGraph = {
+import { dia } from '@joint/core';
+
+export const largeGraph: dia.Graph.JSON = {
   "cells": [
     {
       "type": "app.Link",
