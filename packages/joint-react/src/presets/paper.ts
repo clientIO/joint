@@ -1,9 +1,14 @@
-import { dia, highlighters, util } from '@joint/core';
+import { dia, highlighters, mvc, util } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
 import { MagnetHighlighter, MAGNET_HIGHLIGHTER_NAME } from './magnet-highlighter';
-import { wheelGuard } from '../utils/wheel-guard';
+import { isInsideScrollableRegion, wheelGuard } from '../utils/wheel-guard';
+import {
+  isMultiTouchEvent,
+  TouchGestureRecognizer,
+  type TouchGestureEvent,
+} from '../utils/touch-gestures';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -56,6 +61,7 @@ type ProtectedPaperPrototype = {
   readonly pointerup: (event: dia.Event) => void;
   readonly startListening: () => void;
   readonly guard: (event: dia.Event, view: dia.CellView) => boolean;
+  readonly onRemove: () => void;
   readonly guardExplicit: (event: dia.Event, view?: dia.CellView) => boolean | undefined;
 };
 
@@ -103,6 +109,172 @@ function swallowNextClick(): void {
 const DEFAULT_CLICK_THRESHOLD = 5;
 const DEFAULT_GRID_SIZE = 10;
 const DEFAULT_SNAP_RADIUS = 15;
+
+// ---------------------------------------------------------------------------
+// Touch gestures (pinch-to-zoom / two-finger pan)
+// ---------------------------------------------------------------------------
+// Joint-core models multi-touch nowhere: a second `touchstart` re-enters
+// `pointerdown` and garbles the drag, and `paper:pinch` fires only from the
+// touchpad's ctrl+wheel. This layer follows the structure of the official
+// JointJS+ touch demo: single-pointer interactions are neutralized via the
+// sanctioned APIs when a second finger lands (`preventDefaultInteraction` +
+// `paper.pointerup`, see `stopInteractionIfGestureDetected`), and an
+// in-library recognizer (the demo uses interact.js) turns the two-finger
+// stream into the very same `paper:pinch` / `paper:pan` events core fires for
+// touchpad gestures — so wheel and touch share one consumer pipeline.
+
+/** Per-paper touch-gesture teardown, run from `onRemove`. */
+const touchGestureCleanup = new WeakMap<dia.Paper, () => void>();
+
+/** Per-paper recognizer, consulted by the `pointermove` override during drags. */
+const touchGestureRecognizers = new WeakMap<dia.Paper, TouchGestureRecognizer>();
+
+/** Access to the paper's own `pointerup` dispatch (not part of the public typings). */
+type PaperPointerHandlers = { readonly pointerup: (event: dia.Event) => void };
+
+/**
+ * The official JointJS touch pattern (mirrors the JointJS+ touch demo): when a
+ * second finger lands during a single-pointer interaction, the interaction is
+ * neutralized through the sanctioned APIs — `cellView.preventDefaultInteraction`
+ * keeps a cell (or magnet/link) drag from starting, and `paper.pointerup` ends
+ * whatever single-pointer interaction had already started (drag document
+ * events undelegate, pointer capture releases). Wired to every drag-start
+ * notification: `cell:pointerdown`, `blank:pointerdown`, and
+ * `element:magnet:pointerdown` (a magnet press stops propagation inside
+ * `dragMagnetStart`, so the cell events never fire for it — the magnet
+ * notification precedes that and its drag honors `preventDefaultInteraction`).
+ * Drag MOVES are neutralized in the preset's `pointermove` override instead,
+ * which runs for every drag action.
+ * @param paper - The paper whose interaction should stop.
+ * @param cellView - The view under the pointer, or `null` for a blank interaction.
+ * @param event - The paper-delivered event.
+ */
+function stopInteractionIfGestureDetected(
+  paper: dia.Paper,
+  cellView: dia.CellView | null,
+  event: dia.Event
+): void {
+  if (!isMultiTouchEvent(event)) return;
+  if (cellView) cellView.preventDefaultInteraction(event);
+  // The neutralizing pointerup must not synthesize a `pointerclick` for the
+  // second finger — `pointerup` skips the click for propagation-stopped events.
+  event.stopPropagation();
+  (paper as unknown as PaperPointerHandlers).pointerup(event);
+}
+
+/**
+ * Safari's proprietary gesture pipeline — prevented as belt-and-braces next to
+ * the touch-level preventDefault (a no-op everywhere else).
+ * @param event - The `gesturestart` event.
+ */
+const preventNativeGesture = (event: Event) => event.preventDefault();
+
+/**
+ * Attach the two-finger gesture layer to a paper, following the official
+ * JointJS touch demo structure: (1) `stopInteractionIfGestureDetected`
+ * subscribed to the cell / blank `pointerdown` + `pointermove` events, and
+ * (2) a gesture recognizer on `paper.el` (the in-library replacement for the
+ * demo's interact.js `gesturable`) that re-emits two-finger pinch / pan as the
+ * very same `paper:pinch` / `paper:pan` events core fires for touchpad
+ * (ctrl+wheel) gestures. Listeners are capture-phase and `passive: false` so
+ * `preventDefault` reliably stops the browser's own pinch-zoom / scroll.
+ * Gestures starting on a natively scrollable region (`[data-jj-scrollable]` /
+ * `<textarea>` with overflow) are left alone — the same opt-out the wheel
+ * guard honors.
+ * @param paper - The paper to attach the gesture layer to.
+ */
+function attachTouchGestures(paper: dia.Paper): void {
+  const host = paper.el;
+  // Emissions must honor the `dia.Event` contract of `paper:pinch` /
+  // `paper:pan` (core always passes a normalized wrapper with `originalEvent`,
+  // `data`, `isPropagationStopped()`, …) — wrap the raw TouchEvent exactly as
+  // core's own dispatch would.
+  // `mvc.$` is exported at runtime (mvc/index.mjs) but missing from the type
+  // declarations — cast to reach the wrapper constructor.
+  const DomEvent = (mvc as unknown as { $: { Event: new (event: Event) => dia.Event } }).$.Event;
+  const toPaperEvent = (event: TouchGestureEvent): dia.Event =>
+    util.normalizeEvent(new DomEvent(event as unknown as Event)) as dia.Event;
+  const recognizer = new TouchGestureRecognizer({
+    isEligibleTouch: (touchPoint) =>
+      touchPoint.target instanceof Node && host.contains(touchPoint.target),
+    shouldSkipGesture: (touches) =>
+      touches.some((touchPoint) => isInsideScrollableRegion(touchPoint.target)),
+    onGestureStart: (event, midpoint) => {
+      const local = paper.clientToLocalPoint(midpoint.x, midpoint.y);
+      // A scale-1 pinch announces the gesture immediately, so consumers (e.g.
+      // a paper scroller) can stop a pan the first finger may have started.
+      paper.trigger('paper:pinch', toPaperEvent(event), local.x, local.y, 1);
+    },
+    onGestureUpdate: ({ event, clientX, clientY, scale, deltaX, deltaY }) => {
+      const paperEvent = toPaperEvent(event);
+      if (deltaX !== 0 || deltaY !== 0) {
+        paper.trigger('paper:pan', paperEvent, deltaX, deltaY);
+      }
+      if (scale !== 1) {
+        const local = paper.clientToLocalPoint(clientX, clientY);
+        paper.trigger('paper:pinch', paperEvent, local.x, local.y, scale);
+      }
+    },
+  });
+  touchGestureRecognizers.set(paper, recognizer);
+  paper.on('cell:pointerdown', (cellView: dia.CellView, event: dia.Event) =>
+    stopInteractionIfGestureDetected(paper, cellView, event)
+  );
+  paper.on('element:magnet:pointerdown', (cellView: dia.CellView, event: dia.Event) =>
+    stopInteractionIfGestureDetected(paper, cellView, event)
+  );
+  paper.on('blank:pointerdown', (event: dia.Event) =>
+    stopInteractionIfGestureDetected(paper, null, event)
+  );
+  // Real touch events always carry `touches`; the guard skips synthetic
+  // `Event('touch*')` dispatches that lack a touch payload.
+  const handleTouchStart = (event: TouchEvent) => {
+    if (event.touches) recognizer.handleTouchStart(event);
+  };
+  const handleTouchMove = (event: TouchEvent) => {
+    if (event.touches) recognizer.handleTouchMove(event);
+  };
+  // The end listeners live on `document` (see below), so they also see touches
+  // that never belonged to this paper — e.g. a toolbar tap outside the canvas
+  // while a finger still rests on it. Those must not be processed (the
+  // recognizer would `preventDefault` them, killing their click). An end event
+  // is the gesture's own when a changed touch sits inside the host, or when
+  // its target is detached — the view-disposal case the document listeners
+  // exist for in the first place.
+  const isGestureRelatedEnd = (event: TouchEvent): boolean => {
+    const changed = event.changedTouches;
+    if (!changed) return true; // no payload to scope by — err on processing
+    // eslint-disable-next-line unicorn/prefer-spread
+    return Array.from(changed).some(({ target }) => {
+      if (!(target instanceof Node)) return true;
+      return !target.isConnected || host.contains(target);
+    });
+  };
+  const handleTouchEnd = (event: TouchEvent) => {
+    if (event.touches && isGestureRelatedEnd(event)) recognizer.handleTouchEnd(event);
+  };
+  const listenerOptions: AddEventListenerOptions = { capture: true, passive: false };
+  host.addEventListener('touchstart', handleTouchStart, listenerOptions);
+  host.addEventListener('touchmove', handleTouchMove, listenerOptions);
+  // End events live on `document`: a touch's events dispatch to the target
+  // captured at touchstart, and if that node left the DOM (view disposal,
+  // re-render) they never bubble through `paper.el` — the gesture would stay
+  // active forever. Eligibility still scopes them to this paper's touches; the
+  // recognizer's staleness watchdog covers browsers that stop delivering
+  // events for detached targets altogether.
+  document.addEventListener('touchend', handleTouchEnd, listenerOptions);
+  document.addEventListener('touchcancel', handleTouchEnd, listenerOptions);
+  host.addEventListener('gesturestart', preventNativeGesture, listenerOptions);
+  touchGestureCleanup.set(paper, () => {
+    recognizer.dispose();
+    touchGestureRecognizers.delete(paper);
+    host.removeEventListener('touchstart', handleTouchStart, listenerOptions);
+    host.removeEventListener('touchmove', handleTouchMove, listenerOptions);
+    document.removeEventListener('touchend', handleTouchEnd, listenerOptions);
+    document.removeEventListener('touchcancel', handleTouchEnd, listenerOptions);
+    host.removeEventListener('gesturestart', preventNativeGesture, listenerOptions);
+  });
+}
 
 /** Applied to magnets highlighted as available link targets. */
 const MAGNET_AVAILABLE_CLASS_NAME = 'jj-is-magnet-available';
@@ -244,6 +416,16 @@ export const Paper = dia.Paper.extend(
         'cell:pointerdown': storePointerTarget,
         'element:magnet:pointerdown': storePointerTarget,
       });
+      attachTouchGestures(this);
+    },
+
+    /**
+     * Detach the touch-gesture listeners, then run the upstream teardown.
+     */
+    onRemove(this: dia.Paper) {
+      touchGestureCleanup.get(this)?.();
+      touchGestureCleanup.delete(this);
+      protectedProto.onRemove.call(this);
     },
 
     /**
@@ -254,6 +436,21 @@ export const Paper = dia.Paper.extend(
      * @param event - The pointermove event from document delegation.
      */
     pointermove(this: dia.Paper, event: dia.Event) {
+      // Drag moves during an active two-finger gesture: the paper re-delegates
+      // drag events on every `pointerdown`, so the first move after a
+      // neutralization lands here — for EVERY drag action (element, blank,
+      // magnet/link), before it processes. End it the official way instead.
+      const recognizer = touchGestureRecognizers.get(this);
+      if (
+        recognizer?.isActive() &&
+        (event.originalEvent as Partial<PointerEvent> | undefined)?.pointerType === 'touch'
+      ) {
+        // No `pointerclick` from the neutralizing pointerup (see
+        // stopInteractionIfGestureDetected).
+        event.stopPropagation();
+        (this as unknown as PaperPointerHandlers).pointerup(event);
+        return;
+      }
       protectedProto.pointermove.call(this, event);
       const data = this.eventData(event);
       if (data.captureTarget) return;
