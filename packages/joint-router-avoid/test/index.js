@@ -56,6 +56,8 @@ QUnit.module('sanity', () => {
         assert.equal(typeof routerService.stop, 'function');
         assert.equal(typeof routerService.destroy, 'function');
         assert.equal(typeof routerService.routeAll, 'function');
+        assert.equal(typeof routerService.routeSubgraph, 'function');
+        assert.equal(typeof routerService.isStarted, 'boolean');
 
         routerService.stop();
     });
@@ -163,9 +165,9 @@ QUnit.module('routed carries a fallback flag and never leaves a link stuck routi
 
         // The rewire applies an interim fallback route silently (see the
         // "routing event & immediate fallback route" module), then "routed"
-        // fires once avoid computes the real route (fallback: false).
+        // fires once avoid computes the real route (origin: 'avoid').
         assert.equal(routedEvents.length, 1);
-        assert.notOk(routedEvents[0].fallback, 'avoid computed the final route, so it is not a fallback');
+        assert.strictEqual(routedEvents[0].origin, 'avoid', 'avoid computed the final route, so its origin is "avoid"');
         assert.notEqual(link.getTargetElement(), source, 'sanity: the rewire actually took effect');
 
         routerService.stop();
@@ -191,7 +193,7 @@ QUnit.module('routed carries a fallback flag and never leaves a link stuck routi
             events.push({ type: 'routing', link: l });
             link.target({ x: 500, y: 500 });
         });
-        routerService.on('link:routed', (l, opt) => events.push({ type: 'routed', link: l, fallback: opt.fallback }));
+        routerService.on('link:routed', (l, opt) => events.push({ type: 'routed', link: l, origin: opt.origin }));
 
         link.target({ id: other.id });
 
@@ -204,7 +206,7 @@ QUnit.module('routed carries a fallback flag and never leaves a link stuck routi
             ['routing', 'routed'],
             'the routing cycle is closed, not left stuck'
         );
-        assert.strictEqual(events[1].fallback, true, 'closed via the fallback route, not an avoid response');
+        assert.strictEqual(events[1].origin, 'fallback', 'closed via the fallback route, not an avoid response');
         assert.ok(isOrthogonalPath(link));
 
         routerService.stop();
@@ -287,7 +289,7 @@ QUnit.module('trackElement', () => {
 });
 
 QUnit.module('links with a loose end', () => {
-    QUnit.test('changing a link\'s target to a loose point applies a fallback route but never "routing", and "routed" carries fallback: true', async assert => {
+    QUnit.test('changing a link\'s target to a loose point applies a fallback route but never "routing", and "routed" carries origin: "fallback"', async assert => {
         const { routerService, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
 
         const routingLinks = [];
@@ -299,7 +301,7 @@ QUnit.module('links with a loose end', () => {
 
         assert.equal(routingLinks.length, 0, 'a point-ended link is excluded from avoid, so it never enters a "routing" cycle');
         assert.equal(routedEvents.length, 1, 'the fallback route still closes out with "routed"');
-        assert.strictEqual(routedEvents[0].fallback, true, 'avoid never gets to compute a route for it - this is the fallback');
+        assert.strictEqual(routedEvents[0].origin, 'fallback', 'avoid never gets to compute a route for it - this is the fallback');
         assert.ok(isOrthogonalPath(link), 'it still gets a sane fallback route');
 
         routerService.stop();
@@ -441,8 +443,13 @@ QUnit.module('start / stop', () => {
         assert.equal(routingLinks.length, 0, 'no longer reacts once stopped');
 
         routerService.start();
+        // start() re-syncs the graph, which immediately applies a fallback
+        // route (and fires "routing") for every routable link, not just
+        // ones that changed since the last sync.
+        assert.equal(routingLinks.length, 1, 'the resync on start() fires "routing" for the existing link');
+
         target.position(300, 500);
-        assert.equal(routingLinks.length, 1, 'reacts again once started');
+        assert.equal(routingLinks.length, 2, 'reacts again once started');
 
         routerService.stop();
     });
@@ -515,10 +522,93 @@ QUnit.module('idle event', () => {
         let idleCount = 0;
         routerService.on('idle', () => idleCount++);
 
+        // routeAll()/routeSubgraph() require the router to be stopped first.
+        routerService.stop();
         await routerService.routeAll();
 
         assert.equal(idleCount, 1);
+    });
+});
+
+QUnit.module('routeSubgraph()', () => {
+    // Two entirely independent source/target/link triples, so a subgraph
+    // built from one of them shares nothing with the other.
+    function createPair(sourcePosition, targetPosition) {
+        const size = { width: 100, height: 100 };
+        const source = new joint.shapes.standard.Rectangle({ position: sourcePosition, size });
+        const target = new joint.shapes.standard.Rectangle({ position: targetPosition, size });
+        const link = new joint.shapes.standard.Link({
+            source: { id: source.id },
+            target: { id: target.id }
+        });
+        return { source, target, link, cells: [source, target, link] };
+    }
+
+    QUnit.test('throws if the router is currently started', async assert => {
+        const { routerService } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+
+        let error;
+        try {
+            await routerService.routeSubgraph([]);
+        } catch (e) {
+            error = e;
+        }
+
+        assert.ok(error instanceof Error, 'routeSubgraph() rejects while the router is started');
+        assert.ok(/already started/i.test(error.message), 'the error explains why');
 
         routerService.stop();
+    });
+
+    QUnit.test('does not throw once the router has been stopped', async assert => {
+        const { routerService, source, target, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+
+        routerService.stop();
+
+        await routerService.routeSubgraph([source, target, link]);
+
+        assert.ok(true, 'routeSubgraph() resolved without throwing');
+    });
+
+    QUnit.test('routes only the given cells, leaving the rest of the graph untouched', async assert => {
+        const graph = new joint.dia.Graph();
+
+        const pairA = createPair({ x: 0, y: 0 }, { x: 300, y: 200 });
+        const pairB = createPair({ x: 0, y: 400 }, { x: 300, y: 600 });
+        graph.resetCells([...pairA.cells, ...pairB.cells]);
+
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+
+        const routedLinks = [];
+        routerService.on('link:routed', (l) => routedLinks.push(l));
+
+        await routerService.routeSubgraph(pairA.cells);
+
+        assert.deepEqual(routedLinks, [pairA.link], 'only the given subgraph\'s link was routed');
+        assert.ok(isOrthogonalPath(pairA.link), 'the routed link gets a sane route');
+        assert.deepEqual(pairB.link.vertices(), [], 'the link outside the subgraph is left exactly as it was');
+    });
+
+    QUnit.test('a later call for a different subgraph does not undo an earlier one\'s routes', async assert => {
+        const graph = new joint.dia.Graph();
+
+        const pairA = createPair({ x: 0, y: 0 }, { x: 300, y: 200 });
+        const pairB = createPair({ x: 0, y: 400 }, { x: 300, y: 600 });
+        graph.resetCells([...pairA.cells, ...pairB.cells]);
+
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+
+        await routerService.routeSubgraph(pairA.cells);
+        assert.ok(isOrthogonalPath(pairA.link), 'the first subgraph is routed');
+        const verticesAfterFirstCall = pairA.link.vertices();
+
+        await routerService.routeSubgraph(pairB.cells);
+        assert.ok(isOrthogonalPath(pairB.link), 'the second subgraph is routed independently');
+
+        assert.deepEqual(
+            pairA.link.vertices(),
+            verticesAfterFirstCall,
+            'routing the second subgraph left the first subgraph\'s already-applied route untouched'
+        );
     });
 });
