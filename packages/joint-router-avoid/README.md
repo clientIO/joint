@@ -57,7 +57,7 @@ Loads the `libavoid-js` WebAssembly module. `initAvoidRouter()` calls this autom
 
 ### `initAvoidRouter(graph, options?): Promise<RouterService>`
 
-Loads the module (via `loadAvoidRouter()`, if needed), creates a `RouterService` for `graph`, and registers every element/link currently in the graph as an avoid obstacle/connector.
+Loads the module (via `loadAvoidRouter()`, if needed) and creates a `RouterService` for `graph`. The returned service is not started - call `start()` to keep the graph continuously routed, or `routeAll()`/`routeSubgraph()` for a one-shot routing pass.
 
 - `graph`: `dia.Graph` - the graph to route.
 - `options?`: `InitAvoidOptions`
@@ -66,17 +66,25 @@ Loads the module (via `loadAvoidRouter()`, if needed), creates a `RouterService`
 interface InitAvoidOptions {
     shapeBufferDistance?: number;  // Default: 10 - spacing added around shapes when computing obstacles, and used as the fallback route's margin around elements
     idealNudgingDistance?: number; // Default: 5 - spacing used to nudge apart overlapping connector segments
-    useWorker?: boolean;           // Default: false - run libavoid inside a Web Worker instead of the main thread
-    updateDebounceTime?: number;   // Default: 100 - worker only: ms to debounce queued graph updates by before flushing them to the worker
-    libraryFilePath?: string;      // Forwarded to loadAvoidRouter()
-    skipLink?: (params: { link: dia.Link }) => boolean;         // Exclude a link from being tracked as an avoid connector
-    skipElement?: (params: { element: dia.Element }) => boolean; // Exclude an element from being tracked as an avoid obstacle
+    worker?: boolean | WorkerOptions; // Default: false - run libavoid inside a Web Worker instead of the main thread; pass an object to configure the Worker
+    libavoidFilePath?: string;     // Forwarded to loadAvoidRouter()
+    trackLink?: (params: { link: dia.Link }) => boolean;          // Which links to route; return false to exclude one. Default: all
+    trackElement?: (params: { element: dia.Element }) => boolean; // Which elements to track as avoid obstacles; return false to exclude one. Default: all
     // First refusal on a link avoid can't route because one of its ends
-    // isn't connected to a tracked element ('unconnected') or is connected
-    // to an element excluded via `skipElement` ('untracked-element').
-    // Return true to take over routing that link yourself; otherwise the
-    // built-in `rightAngle`-based fallback route is applied.
-    interceptUnroutableLink?: (params: { link: dia.Link, reason: 'unconnected' | 'untracked-element' }) => boolean;
+    // isn't connected to a cell ('unconnected'), is connected to another
+    // link ('unsupported'), or is connected to an element excluded via
+    // `trackElement` ('untracked'). Return true to take over routing that
+    // link yourself; otherwise the built-in `rightAngle`-based fallback
+    // route is applied.
+    interceptUnroutableLink?: (params: { link: dia.Link, reason: 'unconnected' | 'untracked' | 'unsupported' }) => boolean;
+    // Override how computed route attributes are applied to a link, e.g. to
+    // route the update through a command manager. Default: link.set()
+    setRouteAttributes?: (params: { link, attributes, origin, routing, unroutableReason }) => void;
+    changeFlag?: string;           // Default: 'avoidRouter' - name of the opt flag marking this router's own link.set() calls
+}
+
+interface WorkerOptions {
+    debounceTime?: number; // Default: 100 - ms the Worker waits after the last received change before recomputing routes in a single batch; 0 applies every change immediately
 }
 ```
 
@@ -84,20 +92,24 @@ interface InitAvoidOptions {
 
 The object responsible for keeping libavoid's internal obstacle/connector graph in sync with the `dia.Graph`, applying computed routes to links, and emitting routing events. It mixes in JointJS's `mvc.Events` (`on`/`off`/`trigger`).
 
-- `getRoute(linkId)` - the last route (an array of points, including source and target) computed for the link with that id, or `undefined` if none has been computed yet.
-- `addGraphListeners()` / `removeGraphListeners()` - start/stop listening to graph changes (added/removed cells, moved/resized elements, reconnected links). Listening starts automatically when `initAvoidRouter()` resolves.
-- `destroy()` - stops routing the graph and releases the resources held by the service and its provider (e.g. terminates a Worker thread). Do not use the instance afterwards.
+- `start()` / `stop()` - start/stop listening to graph changes (added/removed cells, moved/resized elements, reconnected links). `start()` also syncs every cell the graph already holds.
+- `isStarted` - whether the service is currently listening to its graph.
+- `routeAll()` - one-shot: routes every cell currently in the graph, resolving once all routes are applied. No graph listener is attached. Throws while started.
+- `routeSubgraph(cells)` - one-shot: routes only `cells`, independently of the rest of the graph (cells outside the array are neither routed nor obstacles). Throws while started.
+- `changeFlag` - the `opt` flag name marking this router's own `link.set()` calls, for filtering them out of your own `change` listeners.
+- `destroy()` - stops routing the graph, cancels open routing cycles, and releases the resources held by the service and its provider (e.g. terminates a Worker thread). Do not use the instance afterwards.
 
 **Events:**
 
-- `link:pending` `(link)` - emitted when a link's route is (re-)computing.
-- `link:routed` `(link, { fallback })` - emitted once a link's route has been applied. `fallback` is `true` when the applied route came from the built-in fallback rather than from libavoid.
-- `link:pending:cancelled` `(link)` - emitted when a link with an open `link:pending` cycle becomes unroutable (e.g. disconnected) before libavoid produced a route for it.
+- `link:routing` `(link)` - emitted when a link's route is (re-)computing.
+- `link:routed` `(link, { origin, reason })` - emitted once a link's route has been applied. `origin` is `'avoid'` or `'fallback'`; `reason` is set when the fallback route was applied because the link was unroutable.
+- `link:routing:cancelled` `(link)` - emitted when a link with an open `link:routing` cycle becomes unroutable (e.g. disconnected) before libavoid produced a route for it.
+- `idle` `()` - emitted when there are no more open routing cycles.
 
 ## ⚠️ Caveats & Known Limitations
 
 - **Asynchronous setup** - `initAvoidRouter()` loads the WebAssembly module and performs the initial graph sync asynchronously; it must be awaited before the graph is considered routed.
-- **Bundler configuration** - `libavoid-js` ships its logic and the `libavoid.wasm` binary as separate files, and `useWorker: true` additionally loads this package's own worker script as a module. Consuming applications are responsible for ensuring both are served alongside the rest of the bundle (e.g. via a copy plugin for your bundler of choice).
+- **Bundler configuration** - `libavoid-js` ships its logic and the `libavoid.wasm` binary as separate files, and `worker: true` additionally loads this package's own worker script as a module. Consuming applications are responsible for ensuring both are served alongside the rest of the bundle (e.g. via a copy plugin for your bundler of choice).
 - **Fallback routing** - libavoid does not expose a way to check whether a computed route is valid, so a heuristic is used. When the route is deemed invalid, or when a link isn't connected to elements on both ends, the built-in `rightAngle`-based fallback route is applied instead (unless `interceptUnroutableLink` takes over).
 - **One `RouterService` per graph** - constructing more than one `RouterService` for the same `dia.Graph` results in both instances applying routes to the same links; call `destroy()` on a previous instance before creating a new one for the same graph.
 - **Custom vertices (checkpoints)** are not currently supported.

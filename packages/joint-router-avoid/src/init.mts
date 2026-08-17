@@ -29,6 +29,17 @@ export function loadAvoidRouter(filePath?: string): Promise<void> {
     return loadAvoidPromise;
 }
 
+/** Options for the Worker-based provider, passed as `worker` to {@link initAvoidRouter}. */
+export interface WorkerOptions {
+    /**
+     * Milliseconds the Worker waits after the last received graph change
+     * before applying the queued changes to avoid and recomputing routes.
+     * Changes arriving within this window are batched into a single routing
+     * pass. Set to `0` to apply every change immediately. Defaults to `100`.
+     */
+    debounceTime?: number;
+}
+
 /** Options used to configure {@link initAvoidRouter}. */
 export interface InitAvoidOptions {
     /** Determines which links to track for routing. Defaults to tracking every link. */
@@ -45,10 +56,8 @@ export interface InitAvoidOptions {
     shapeBufferDistance?: number;
     /** Spacing distance used for nudging apart overlapping corners and line segments of connectors. Defaults to `5`. */
     idealNudgingDistance?: number;
-    /** Runs the avoid router inside a Worker thread instead of the main thread. Defaults to `false`. */
-    useWorker?: boolean;
-    /** Milliseconds to debounce queued messages by when `useWorker` is `true`. Defaults to `100`. */
-    workerUpdateDebounceTime?: number;
+    /** Runs the avoid router inside a Worker thread instead of the main thread. Pass `true` for the defaults, or a {@link WorkerOptions} object to configure the Worker. Defaults to `false`. */
+    worker?: boolean | WorkerOptions;
     /** Path to the avoid WASM binary. Defaults to the library's own resolution of the asset. */
     libavoidFilePath?: string;
 }
@@ -56,7 +65,7 @@ export interface InitAvoidOptions {
 /**
  * Loads avoid (if needed) and creates a {@link RouterService} for `graph`,
  * using either a main-thread or Worker-based {@link Provider} depending on
- * `options.useWorker`. The returned `RouterService` is not started - call
+ * `options.worker`. The returned `RouterService` is not started - call
  * its `start()` to begin keeping `graph`'s links continuously routed via
  * libavoid, or use `routeAll()`/`routeSubgraph()` for a one-shot routing
  * pass instead.
@@ -72,17 +81,18 @@ export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOption
         await loadAvoidRouter(options.libavoidFilePath);
     }
 
-    const provider = options.useWorker ? new WorkerProvider() : new MainThreadProvider();
+    const provider = options.worker ? new WorkerProvider() : new MainThreadProvider();
 
     const shapeBufferDistance = options.shapeBufferDistance ?? defaultShapeBufferDistance;
     const idealNudgingDistance = options.idealNudgingDistance ?? defaultIdealNudgingDistance;
-    const updateDebounceTime = options.workerUpdateDebounceTime ?? defaultUpdateDebounceTime;
+    const workerOptions = typeof options.worker === 'object' ? options.worker : {};
+    const updateDebounceTime = workerOptions.debounceTime ?? defaultUpdateDebounceTime;
 
     if (provider instanceof WorkerProvider) {
         await provider.init({
             shapeBufferDistance: shapeBufferDistance,
             idealNudgingDistance: idealNudgingDistance,
-            workerUpdateDebounceTime: updateDebounceTime,
+            updateDebounceTime: updateDebounceTime,
             libavoidFilePath: options.libavoidFilePath
         });
     } else {

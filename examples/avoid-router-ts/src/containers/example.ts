@@ -76,7 +76,7 @@ export const initContainersExample = async (canvasEl: HTMLElement): Promise<void
     const routerService = await initAvoidRouter(graph, {
         shapeBufferDistance: 16,
         idealNudgingDistance: 8,
-        useWorker: true,
+        worker: true,
     });
 
     routerService.on('idle', () => {

@@ -24,7 +24,7 @@ export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void
     const routerService = await initAvoidRouter(graph, {
         shapeBufferDistance: 20,
         idealNudgingDistance: 5,
-        useWorker: true,
+        worker: true,
         interceptUnroutableLink: ({ link, reason }) => {
             switch (reason) {
                 case 'unconnected': {

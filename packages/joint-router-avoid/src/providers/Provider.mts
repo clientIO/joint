@@ -11,12 +11,6 @@ export interface ProviderOptions {
     shapeBufferDistance?: number;
     /** Spacing distance used for nudging apart overlapping corners and line segments of connectors. */
     idealNudgingDistance?: number;
-    /**
-     * Milliseconds to debounce queued messages by before applying them and
-     * running a single `processTransaction()` call for the whole batch.
-     * Only meaningful for providers that queue work (e.g. {@link WorkerProvider}).
-     */
-    workerUpdateDebounceTime?: number;
 }
 
 /**

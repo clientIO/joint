@@ -182,10 +182,10 @@ async function handleInit(options: WorkerProviderOptions): Promise<void> {
     avoidInstance = AvoidLib.getInstance();
     avoidRouter = createAvoidRouter(
         avoidInstance,
-        options.shapeBufferDistance ?? 0,
-        options.idealNudgingDistance ?? 10
+        options.shapeBufferDistance ?? 10,
+        options.idealNudgingDistance ?? 5
     );
-    updateDebounceTime = options.workerUpdateDebounceTime ?? 100;
+    updateDebounceTime = options.updateDebounceTime ?? 100;
     flushMessageQueue = util.debounce(flushMessageFunction, updateDebounceTime);
 
     postResponse({ type: 'ready' });

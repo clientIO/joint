@@ -7,8 +7,12 @@ import type { WorkerRequest, WorkerResponse } from './Worker.mjs';
 
 /** Options used to initialize a {@link WorkerProvider}. */
 export interface WorkerProviderOptions extends ProviderOptions {
-    /** Milliseconds to debounce queued messages by inside the Worker before applying them in a single batch. */
-    workerUpdateDebounceTime?: number;
+    /**
+     * Milliseconds the Worker waits after the last received message before
+     * applying the queued messages and running a single
+     * `processTransaction()` call for the whole batch.
+     */
+    updateDebounceTime?: number;
     /** Path to the avoid WASM binary, forwarded to `AvoidLib.load()` inside the Worker. */
     libavoidFilePath?: string;
 }
@@ -185,6 +189,13 @@ export class WorkerProvider extends Provider {
         connectors.forEach((connector) => this.connectorIds.add(connector.id));
 
         return new Promise((resolve, reject) => {
+            // Resolves on the first `processed` response after posting,
+            // without correlating it to this particular `sync` request. Safe
+            // only because `sync` never runs concurrently with incremental
+            // updates (`RouterService` route calls require the service to be
+            // stopped) and {@link sync}'s queue serializes overlapping calls.
+            // If `sync` is ever allowed while update messages are in flight,
+            // requests need ids echoed back in the `processed` response.
             const onProcessed = () => {
                 this.off('processed', onProcessed);
                 this.pendingSyncRejections.delete(reject);

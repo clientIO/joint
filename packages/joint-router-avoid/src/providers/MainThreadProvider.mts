@@ -33,8 +33,8 @@ export class MainThreadProvider extends Provider {
         this.avoidInstance = AvoidLib.getInstance();
         this.avoidRouter = this.createAvoidRouter(
             this.avoidInstance,
-            options.shapeBufferDistance ?? 0,
-            options.idealNudgingDistance ?? 10
+            options.shapeBufferDistance ?? 10,
+            options.idealNudgingDistance ?? 5
         );
 
         this.onAvoidConnectorChanged = (connectorRefId: number) => {
