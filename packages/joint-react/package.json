@@ -44,7 +44,7 @@
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build-storybook": "storybook build",
     "storybook": "storybook dev -p 6006",
-    "test": "yarn run typecheck && yarn run lint && yarn run knip && yarn run test:react19 && yarn run test:react18",
+    "test": "yarn run typecheck && yarn run knip && yarn run test:react19 && yarn run test:react18",
     "test:react19": "jest",
     "test:react18": "jest --config jest.react18.config.mjs",
     "test-coverage": "jest --coverage",

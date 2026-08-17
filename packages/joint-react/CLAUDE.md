@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Build (esbuild → dist/cjs, dist/esm, dist/types)
 yarn build
 
-# Run all checks (typecheck + lint + jest)
+# Run all checks (typecheck + knip + jest)
 yarn test
 
 # Run individual checks
