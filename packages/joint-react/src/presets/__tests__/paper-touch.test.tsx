@@ -40,16 +40,22 @@ interface TouchStub {
   readonly target?: Element;
 }
 
-function dispatchTouch(target: Element, type: string, touches: readonly TouchStub[]): Event {
+function dispatchTouch(
+  target: Element,
+  type: string,
+  touches: readonly TouchStub[],
+  changedTouches?: readonly TouchStub[]
+): Event {
   const event = new Event(type, { bubbles: true, cancelable: true });
-  const touchList = touches.map((touch) => ({
+  const toTouch = (touch: TouchStub) => ({
     clientX: touch.x,
     clientY: touch.y,
     target: touch.target ?? target,
-  }));
+  });
+  const touchList = touches.map(toTouch);
   Object.assign(event, {
     touches: touchList,
-    changedTouches: touchList,
+    changedTouches: changedTouches ? changedTouches.map(toTouch) : touchList,
     clientX: touches[0]?.x ?? 0,
     clientY: touches[0]?.y ?? 0,
   });
@@ -258,6 +264,70 @@ describe('paper preset touch gestures', () => {
     ]);
     expect(onPinch).not.toHaveBeenCalled();
     expect(start.defaultPrevented).toBe(false); // the region keeps native scrolling
+  });
+
+  it('leaves touch ends of unrelated page UI alone while a gesture is active', async () => {
+    const { paper, cellNode } = await renderTouchPaper();
+    paper.on('paper:pinch', jest.fn());
+
+    // Two fingers pinch on the paper; a third finger taps a button OUTSIDE it.
+    dispatchTouch(cellNode, 'touchstart', [
+      { x: 100, y: 100 },
+      { x: 200, y: 100 },
+    ]);
+    const outsideButton = document.createElement('button');
+    document.body.append(outsideButton);
+    // The outside tap lifts: the two paper fingers remain in `touches`, only
+    // the outside finger is in `changedTouches`. Its touchend reaches the
+    // document-level listener but must NOT be prevented — that would kill the
+    // button's click.
+    const outsideEnd = dispatchTouch(
+      outsideButton,
+      'touchend',
+      [
+        { x: 100, y: 100, target: cellNode },
+        { x: 200, y: 100, target: cellNode },
+      ],
+      [{ x: 400, y: 400, target: outsideButton }]
+    );
+    expect(outsideEnd.defaultPrevented).toBe(false);
+
+    // The gesture itself is untouched: its own end event is still processed.
+    const gestureEnd = dispatchTouch(cellNode, 'touchend', [{ x: 100, y: 100 }]);
+    expect(gestureEnd.defaultPrevented).toBe(true);
+    outsideButton.remove();
+  });
+
+  it('still ends the gesture when the touch target was removed from the DOM', async () => {
+    const { paper, cellNode, container } = await renderTouchPaper();
+    const onBlankPointerDown = jest.fn();
+    paper.on('blank:pointerdown', onBlankPointerDown);
+    paper.on('paper:pinch', jest.fn());
+
+    dispatchTouch(cellNode, 'touchstart', [
+      { x: 100, y: 100 },
+      { x: 200, y: 100 },
+    ]);
+    // The pinched cell unmounts mid-gesture (view disposal / re-render). The
+    // fingers lift, but their touch events now target a detached node — they
+    // only reach the document-level listener, which must still process them.
+    cellNode.remove();
+    const detachedEnd = new Event('touchend', { bubbles: true, cancelable: true });
+    Object.assign(detachedEnd, {
+      touches: [],
+      changedTouches: [
+        { clientX: 100, clientY: 100, target: cellNode },
+        { clientX: 200, clientY: 100, target: cellNode },
+      ],
+    });
+    document.dispatchEvent(detachedEnd);
+
+    // Gesture over — a fresh single-finger touch flows to core again.
+    const svg = container.querySelector('svg');
+    if (!svg) throw new Error('Paper svg not rendered.');
+    const fresh = dispatchTouch(svg, 'touchstart', [{ x: 50, y: 50 }]);
+    expect(fresh.defaultPrevented).toBe(false); // recognizer is idle, not consuming
+    expect(onBlankPointerDown).toHaveBeenCalled();
   });
 
   it('drains the remaining finger after the gesture ends (no phantom interactions)', async () => {

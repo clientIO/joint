@@ -234,8 +234,24 @@ function attachTouchGestures(paper: dia.Paper): void {
   const handleTouchMove = (event: TouchEvent) => {
     if (event.touches) recognizer.handleTouchMove(event);
   };
+  // The end listeners live on `document` (see below), so they also see touches
+  // that never belonged to this paper — e.g. a toolbar tap outside the canvas
+  // while a finger still rests on it. Those must not be processed (the
+  // recognizer would `preventDefault` them, killing their click). An end event
+  // is the gesture's own when a changed touch sits inside the host, or when
+  // its target is detached — the view-disposal case the document listeners
+  // exist for in the first place.
+  const isGestureRelatedEnd = (event: TouchEvent): boolean => {
+    const changed = event.changedTouches;
+    if (!changed) return true; // no payload to scope by — err on processing
+    // eslint-disable-next-line unicorn/prefer-spread
+    return Array.from(changed).some(({ target }) => {
+      if (!(target instanceof Node)) return true;
+      return !target.isConnected || host.contains(target);
+    });
+  };
   const handleTouchEnd = (event: TouchEvent) => {
-    if (event.touches) recognizer.handleTouchEnd(event);
+    if (event.touches && isGestureRelatedEnd(event)) recognizer.handleTouchEnd(event);
   };
   const listenerOptions: AddEventListenerOptions = { capture: true, passive: false };
   host.addEventListener('touchstart', handleTouchStart, listenerOptions);
