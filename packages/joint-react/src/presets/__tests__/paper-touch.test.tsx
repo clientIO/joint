@@ -176,19 +176,53 @@ describe('paper preset touch gestures', () => {
     ]);
 
     // Drag moves arrive as pointer events under this preset. The first one is
-    // caught by the pointermove leg of the detector and ends the drag — at
-    // most one garbled move leaks (same as the official demo).
+    // caught by the preset's `pointermove` override and ends the drag before
+    // it processes — no garbled move ever reaches consumers.
     const pointerMove = new Event('pointermove', { bubbles: true });
     Object.assign(pointerMove, { pointerType: 'touch', clientX: 60, clientY: 60 });
     document.dispatchEvent(pointerMove);
-    expect(onCellPointerMove).toHaveBeenCalledTimes(1);
+    expect(onCellPointerMove).not.toHaveBeenCalled();
     expect(onCellPointerUp).toHaveBeenCalledTimes(1);
     // The neutralizing pointerup must not synthesize a click.
     expect(onCellPointerClick).not.toHaveBeenCalled();
 
     // The drag is gone — further moves reach nothing.
     document.dispatchEvent(pointerMove);
-    expect(onCellPointerMove).toHaveBeenCalledTimes(1);
+    expect(onCellPointerMove).not.toHaveBeenCalled();
+  });
+
+  it('neutralizes a magnet press too (magnet drags bypass the cell events)', async () => {
+    const { paper, cellNode } = await renderTouchPaper();
+    const onMagnetPointerDown = jest.fn();
+    const onCellPointerClick = jest.fn();
+    paper.on('element:magnet:pointerdown', onMagnetPointerDown);
+    paper.on('cell:pointerclick', onCellPointerClick);
+    paper.on('paper:pinch', jest.fn());
+
+    // Make a node inside the cell a connectable magnet — a press on it routes
+    // through `onmagnet` / `dragMagnetStart`, which stops propagation and
+    // never fires the cell:pointer* events.
+    const magnetNode = document.createElement('div');
+    magnetNode.setAttribute('magnet', 'true');
+    cellNode.append(magnetNode);
+
+    dispatchTouch(magnetNode, 'touchstart', [{ x: 50, y: 50 }]);
+    expect(onMagnetPointerDown).toHaveBeenCalledTimes(1);
+
+    // Finger 2 lands on the magnet: the magnet leg of the detector prevents
+    // the magnet/link drag from arming and ends the single-pointer sequence.
+    dispatchTouch(magnetNode, 'touchstart', [
+      { x: 50, y: 50 },
+      { x: 150, y: 50 },
+    ]);
+    expect(onMagnetPointerDown).toHaveBeenCalledTimes(2);
+
+    // The pinch owns the sequence: moves start no link and click nothing.
+    const pointerMove = new Event('pointermove', { bubbles: true });
+    Object.assign(pointerMove, { pointerType: 'touch', clientX: 80, clientY: 60 });
+    document.dispatchEvent(pointerMove);
+    expect(paper.model.getLinks()).toHaveLength(0);
+    expect(onCellPointerClick).not.toHaveBeenCalled();
   });
 
   it('keeps single-finger touches on core untouched', async () => {

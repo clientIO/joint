@@ -1,10 +1,14 @@
-import { dia, highlighters, util } from '@joint/core';
+import { dia, highlighters, mvc, util } from '@joint/core';
 import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
 import { MagnetHighlighter, MAGNET_HIGHLIGHTER_NAME } from './magnet-highlighter';
 import { isInsideScrollableRegion, wheelGuard } from '../utils/wheel-guard';
-import { isMultiTouchEvent, TouchGestureRecognizer } from '../utils/touch-gestures';
+import {
+  isMultiTouchEvent,
+  TouchGestureRecognizer,
+  type TouchGestureEvent,
+} from '../utils/touch-gestures';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -122,6 +126,9 @@ const DEFAULT_SNAP_RADIUS = 15;
 /** Per-paper touch-gesture teardown, run from `onRemove`. */
 const touchGestureCleanup = new WeakMap<dia.Paper, () => void>();
 
+/** Per-paper recognizer, consulted by the `pointermove` override during drags. */
+const touchGestureRecognizers = new WeakMap<dia.Paper, TouchGestureRecognizer>();
+
 /** Access to the paper's own `pointerup` dispatch (not part of the public typings). */
 type PaperPointerHandlers = { readonly pointerup: (event: dia.Event) => void };
 
@@ -129,30 +136,25 @@ type PaperPointerHandlers = { readonly pointerup: (event: dia.Event) => void };
  * The official JointJS touch pattern (mirrors the JointJS+ touch demo): when a
  * second finger lands during a single-pointer interaction, the interaction is
  * neutralized through the sanctioned APIs — `cellView.preventDefaultInteraction`
- * keeps a cell drag from starting, and `paper.pointerup` ends whatever
- * single-pointer interaction had already started (drag document events
- * undelegate, pointer capture releases). Wired to `pointerdown` AND
- * `pointermove` because the paper re-delegates drag events on every
- * `pointerdown` — the first drag move after that re-delegation is caught here.
+ * keeps a cell (or magnet/link) drag from starting, and `paper.pointerup` ends
+ * whatever single-pointer interaction had already started (drag document
+ * events undelegate, pointer capture releases). Wired to every drag-start
+ * notification: `cell:pointerdown`, `blank:pointerdown`, and
+ * `element:magnet:pointerdown` (a magnet press stops propagation inside
+ * `dragMagnetStart`, so the cell events never fire for it — the magnet
+ * notification precedes that and its drag honors `preventDefaultInteraction`).
+ * Drag MOVES are neutralized in the preset's `pointermove` override instead,
+ * which runs for every drag action.
  * @param paper - The paper whose interaction should stop.
- * @param recognizer - The gesture recognizer (its phase identifies touch-driven pointer moves).
  * @param cellView - The view under the pointer, or `null` for a blank interaction.
  * @param event - The paper-delivered event.
  */
 function stopInteractionIfGestureDetected(
   paper: dia.Paper,
-  recognizer: TouchGestureRecognizer,
   cellView: dia.CellView | null,
   event: dia.Event
 ): void {
-  // With this preset's PointerEvents `documentEvents`, drag moves arrive as
-  // `pointermove` events that carry no `touches` list — the recognizer's
-  // active phase stands in for the official `touches.length` check there.
-  const isTouchDrivenPointerMove =
-    event.type === 'pointermove' &&
-    (event.originalEvent as Partial<PointerEvent> | undefined)?.pointerType === 'touch' &&
-    recognizer.isActive();
-  if (!isMultiTouchEvent(event) && !isTouchDrivenPointerMove) return;
+  if (!isMultiTouchEvent(event)) return;
   if (cellView) cellView.preventDefaultInteraction(event);
   // The neutralizing pointerup must not synthesize a `pointerclick` for the
   // second finger — `pointerup` skips the click for propagation-stopped events.
@@ -183,6 +185,15 @@ const preventNativeGesture = (event: Event) => event.preventDefault();
  */
 function attachTouchGestures(paper: dia.Paper): void {
   const host = paper.el;
+  // Emissions must honor the `dia.Event` contract of `paper:pinch` /
+  // `paper:pan` (core always passes a normalized wrapper with `originalEvent`,
+  // `data`, `isPropagationStopped()`, …) — wrap the raw TouchEvent exactly as
+  // core's own dispatch would.
+  // `mvc.$` is exported at runtime (mvc/index.mjs) but missing from the type
+  // declarations — cast to reach the wrapper constructor.
+  const DomEvent = (mvc as unknown as { $: { Event: new (event: Event) => dia.Event } }).$.Event;
+  const toPaperEvent = (event: TouchGestureEvent): dia.Event =>
+    util.normalizeEvent(new DomEvent(event as unknown as Event)) as dia.Event;
   const recognizer = new TouchGestureRecognizer({
     isEligibleTouch: (touchPoint) =>
       touchPoint.target instanceof Node && host.contains(touchPoint.target),
@@ -192,29 +203,28 @@ function attachTouchGestures(paper: dia.Paper): void {
       const local = paper.clientToLocalPoint(midpoint.x, midpoint.y);
       // A scale-1 pinch announces the gesture immediately, so consumers (e.g.
       // a paper scroller) can stop a pan the first finger may have started.
-      paper.trigger('paper:pinch', event, local.x, local.y, 1);
+      paper.trigger('paper:pinch', toPaperEvent(event), local.x, local.y, 1);
     },
     onGestureUpdate: ({ event, clientX, clientY, scale, deltaX, deltaY }) => {
+      const paperEvent = toPaperEvent(event);
       if (deltaX !== 0 || deltaY !== 0) {
-        paper.trigger('paper:pan', event, deltaX, deltaY);
+        paper.trigger('paper:pan', paperEvent, deltaX, deltaY);
       }
       if (scale !== 1) {
         const local = paper.clientToLocalPoint(clientX, clientY);
-        paper.trigger('paper:pinch', event, local.x, local.y, scale);
+        paper.trigger('paper:pinch', paperEvent, local.x, local.y, scale);
       }
     },
   });
+  touchGestureRecognizers.set(paper, recognizer);
   paper.on('cell:pointerdown', (cellView: dia.CellView, event: dia.Event) =>
-    stopInteractionIfGestureDetected(paper, recognizer, cellView, event)
+    stopInteractionIfGestureDetected(paper, cellView, event)
   );
-  paper.on('cell:pointermove', (cellView: dia.CellView, event: dia.Event) =>
-    stopInteractionIfGestureDetected(paper, recognizer, cellView, event)
+  paper.on('element:magnet:pointerdown', (cellView: dia.CellView, event: dia.Event) =>
+    stopInteractionIfGestureDetected(paper, cellView, event)
   );
   paper.on('blank:pointerdown', (event: dia.Event) =>
-    stopInteractionIfGestureDetected(paper, recognizer, null, event)
-  );
-  paper.on('blank:pointermove', (event: dia.Event) =>
-    stopInteractionIfGestureDetected(paper, recognizer, null, event)
+    stopInteractionIfGestureDetected(paper, null, event)
   );
   // Real touch events always carry `touches`; the guard skips synthetic
   // `Event('touch*')` dispatches that lack a touch payload.
@@ -230,15 +240,22 @@ function attachTouchGestures(paper: dia.Paper): void {
   const listenerOptions: AddEventListenerOptions = { capture: true, passive: false };
   host.addEventListener('touchstart', handleTouchStart, listenerOptions);
   host.addEventListener('touchmove', handleTouchMove, listenerOptions);
-  host.addEventListener('touchend', handleTouchEnd, listenerOptions);
-  host.addEventListener('touchcancel', handleTouchEnd, listenerOptions);
+  // End events live on `document`: a touch's events dispatch to the target
+  // captured at touchstart, and if that node left the DOM (view disposal,
+  // re-render) they never bubble through `paper.el` — the gesture would stay
+  // active forever. Eligibility still scopes them to this paper's touches; the
+  // recognizer's staleness watchdog covers browsers that stop delivering
+  // events for detached targets altogether.
+  document.addEventListener('touchend', handleTouchEnd, listenerOptions);
+  document.addEventListener('touchcancel', handleTouchEnd, listenerOptions);
   host.addEventListener('gesturestart', preventNativeGesture, listenerOptions);
   touchGestureCleanup.set(paper, () => {
     recognizer.dispose();
+    touchGestureRecognizers.delete(paper);
     host.removeEventListener('touchstart', handleTouchStart, listenerOptions);
     host.removeEventListener('touchmove', handleTouchMove, listenerOptions);
-    host.removeEventListener('touchend', handleTouchEnd, listenerOptions);
-    host.removeEventListener('touchcancel', handleTouchEnd, listenerOptions);
+    document.removeEventListener('touchend', handleTouchEnd, listenerOptions);
+    document.removeEventListener('touchcancel', handleTouchEnd, listenerOptions);
     host.removeEventListener('gesturestart', preventNativeGesture, listenerOptions);
   });
 }
@@ -403,6 +420,21 @@ export const Paper = dia.Paper.extend(
      * @param event - The pointermove event from document delegation.
      */
     pointermove(this: dia.Paper, event: dia.Event) {
+      // Drag moves during an active two-finger gesture: the paper re-delegates
+      // drag events on every `pointerdown`, so the first move after a
+      // neutralization lands here — for EVERY drag action (element, blank,
+      // magnet/link), before it processes. End it the official way instead.
+      const recognizer = touchGestureRecognizers.get(this);
+      if (
+        recognizer?.isActive() &&
+        (event.originalEvent as Partial<PointerEvent> | undefined)?.pointerType === 'touch'
+      ) {
+        // No `pointerclick` from the neutralizing pointerup (see
+        // stopInteractionIfGestureDetected).
+        event.stopPropagation();
+        (this as unknown as PaperPointerHandlers).pointerup(event);
+        return;
+      }
       protectedProto.pointermove.call(this, event);
       const data = this.eventData(event);
       if (data.captureTarget) return;

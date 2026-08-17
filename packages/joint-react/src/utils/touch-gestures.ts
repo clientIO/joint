@@ -21,6 +21,8 @@ export interface TouchGestureEvent {
   readonly type: string;
   /** All touches currently on the screen (`TouchEvent.touches`). */
   readonly touches: ArrayLike<TouchPointLike> | Iterable<TouchPointLike>;
+  /** Touches that changed in this event (`TouchEvent.changedTouches`). */
+  readonly changedTouches?: ArrayLike<TouchPointLike> | Iterable<TouchPointLike>;
   readonly preventDefault: () => void;
 }
 
@@ -69,8 +71,6 @@ export interface TouchGestureOptions {
   readonly onGestureStart: (event: TouchGestureEvent, midpoint: { x: number; y: number }) => void;
   /** A coalesced pinch / pan sample is ready. */
   readonly onGestureUpdate: (update: TouchGestureUpdate) => void;
-  /** The gesture dropped below two fingers (fired once per gesture). */
-  readonly onGestureEnd?: () => void;
   /**
    * Restrict which touches belong to the gesture — e.g. only touches whose
    * target sits inside the paper host. Defaults to accepting every touch.
@@ -144,10 +144,20 @@ export class TouchGestureRecognizer {
   /** Feed a `touchstart`. Consumed (and possibly starts a gesture) unless idle single-touch. */
   handleTouchStart(event: TouchGestureEvent): void {
     if (this.phase !== 'idle') {
-      // An extra finger joined mid-gesture (or while draining): swallow it so
-      // the paper never starts a competing drag; keep tracking the first two.
-      this.consume(event);
-      return;
+      // Staleness watchdog: browsers stop delivering touch events once the
+      // original target leaves the DOM (see the touchmove note in core's
+      // LinkView), so a gesture whose targets were disposed mid-pinch never
+      // sees its touchend. When a new touchstart reports that EVERY current
+      // screen touch is brand new, every previous finger must have lifted
+      // unseen — reset and process the event as a fresh sequence.
+      if (this.isStaleSequence(event)) {
+        this.dispose();
+      } else {
+        // An extra finger joined mid-gesture (or while draining): consume it
+        // and keep tracking the first two.
+        this.consume(event);
+        return;
+      }
     }
     const touches = this.eligibleTouches(event);
     if (touches.length < 2) return;
@@ -196,7 +206,6 @@ export class TouchGestureRecognizer {
         return;
       }
       this.flush();
-      this.options.onGestureEnd?.();
       this.phase = touches.length > 0 ? 'draining' : 'idle';
       return;
     }
@@ -218,6 +227,16 @@ export class TouchGestureRecognizer {
 
   private consume(event: TouchGestureEvent): void {
     event.preventDefault();
+  }
+
+  /** Every current screen touch is new in this event — no tracked finger survived. */
+  private isStaleSequence(event: TouchGestureEvent): boolean {
+    if (!event.changedTouches) return false;
+    // eslint-disable-next-line unicorn/prefer-spread
+    const total = Array.from(event.touches).length;
+    // eslint-disable-next-line unicorn/prefer-spread
+    const changed = Array.from(event.changedTouches).length;
+    return total > 0 && total === changed;
   }
 
   private eligibleTouches(event: TouchGestureEvent): TouchPointLike[] {

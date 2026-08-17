@@ -31,7 +31,6 @@ function overflows(element: Element): boolean {
  * input kinds honor the same opt-out.
  * @param target - event target to test
  * @returns `true` when a scrollable region owns the input
- * @group Utils
  */
 export function isInsideScrollableRegion(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return false;

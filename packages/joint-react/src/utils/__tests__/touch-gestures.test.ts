@@ -15,10 +15,15 @@ interface MockTouchEvent extends TouchGestureEvent {
   readonly preventDefault: jest.Mock;
 }
 
-function touchEvent(type: string, touches: readonly TouchPointLike[]): MockTouchEvent {
+function touchEvent(
+  type: string,
+  touches: readonly TouchPointLike[],
+  changedTouches?: readonly TouchPointLike[]
+): MockTouchEvent {
   return {
     type,
     touches,
+    changedTouches,
     preventDefault: jest.fn(),
   };
 }
@@ -43,15 +48,13 @@ function createRecognizer(overrides: Partial<TouchGestureOptions> = {}) {
   const scheduler = createManualScheduler();
   const onGestureStart = jest.fn();
   const onGestureUpdate = jest.fn();
-  const onGestureEnd = jest.fn();
   const recognizer = new TouchGestureRecognizer({
     onGestureStart,
     onGestureUpdate,
-    onGestureEnd,
     schedule: scheduler.schedule,
     ...overrides,
   });
-  return { recognizer, scheduler, onGestureStart, onGestureUpdate, onGestureEnd };
+  return { recognizer, scheduler, onGestureStart, onGestureUpdate };
 }
 
 function lastUpdate(onGestureUpdate: jest.Mock): TouchGestureUpdate {
@@ -178,16 +181,15 @@ describe('TouchGestureRecognizer', () => {
   });
 
   it('flushes pending sample and ends the gesture when dropping below two fingers', () => {
-    const { recognizer, scheduler, onGestureUpdate, onGestureEnd } = createRecognizer();
+    const { recognizer, scheduler, onGestureUpdate } = createRecognizer();
     recognizer.handleTouchStart(touchEvent('touchstart', [touch(0, 0), touch(100, 0)]));
     recognizer.handleTouchMove(touchEvent('touchmove', [touch(0, 0), touch(300, 0)]));
     const end = touchEvent('touchend', [touch(0, 0)]);
     recognizer.handleTouchEnd(end);
 
-    // Pending sample delivered synchronously on gesture end, before onGestureEnd.
+    // Pending sample delivered synchronously on gesture end.
     expect(onGestureUpdate).toHaveBeenCalledTimes(1);
     expect(lastUpdate(onGestureUpdate).scale).toBe(3);
-    expect(onGestureEnd).toHaveBeenCalledTimes(1);
     expect(end.preventDefault).toHaveBeenCalled();
     // The already-scheduled flush later becomes a no-op.
     expect(() => scheduler.runNext()).not.toThrow();
@@ -195,10 +197,10 @@ describe('TouchGestureRecognizer', () => {
   });
 
   it('drains the leftover finger: consumes its events without emitting', () => {
-    const { recognizer, onGestureUpdate, onGestureEnd } = createRecognizer();
+    const { recognizer, onGestureUpdate } = createRecognizer();
     recognizer.handleTouchStart(touchEvent('touchstart', [touch(0, 0), touch(100, 0)]));
     recognizer.handleTouchEnd(touchEvent('touchend', [touch(0, 0)]));
-    expect(onGestureEnd).toHaveBeenCalledTimes(1);
+    expect(recognizer.isActive()).toBe(true); // draining still owns the sequence
 
     const drainMove = touchEvent('touchmove', [touch(30, 30)]);
     recognizer.handleTouchMove(drainMove);
@@ -207,16 +209,17 @@ describe('TouchGestureRecognizer', () => {
 
     // Last finger lifts → idle again; a fresh gesture can start.
     recognizer.handleTouchEnd(touchEvent('touchend', []));
+    expect(recognizer.isActive()).toBe(false);
     const restart = touchEvent('touchstart', [touch(0, 0), touch(50, 0)]);
     recognizer.handleTouchStart(restart);
     expect(restart.preventDefault).toHaveBeenCalled();
   });
 
   it('returns to idle directly when both fingers lift at once', () => {
-    const { recognizer, onGestureEnd } = createRecognizer();
+    const { recognizer } = createRecognizer();
     recognizer.handleTouchStart(touchEvent('touchstart', [touch(0, 0), touch(100, 0)]));
     recognizer.handleTouchEnd(touchEvent('touchcancel', []));
-    expect(onGestureEnd).toHaveBeenCalledTimes(1);
+    expect(recognizer.isActive()).toBe(false);
 
     // Next single-finger touch flows through untouched — recognizer is idle.
     const single = touchEvent('touchstart', [touch(5, 5)]);
@@ -225,20 +228,46 @@ describe('TouchGestureRecognizer', () => {
   });
 
   it('swallows a third finger and re-baselines when it lifts', () => {
-    const { recognizer, scheduler, onGestureUpdate, onGestureEnd } = createRecognizer();
+    const { recognizer, scheduler, onGestureUpdate } = createRecognizer();
     recognizer.handleTouchStart(touchEvent('touchstart', [touch(0, 0), touch(100, 0)]));
     const third = touchEvent('touchstart', [touch(0, 0), touch(100, 0), touch(500, 500)]);
     recognizer.handleTouchStart(third);
     expect(third.preventDefault).toHaveBeenCalled();
 
-    // The third finger lifts — tracked pair unchanged, no jump emitted.
+    // The third finger lifts — tracked pair unchanged, gesture stays active.
     recognizer.handleTouchEnd(touchEvent('touchend', [touch(0, 0), touch(100, 0)]));
-    expect(onGestureEnd).not.toHaveBeenCalled();
+    expect(recognizer.isActive()).toBe(true);
 
     // Gesture continues from the re-baselined pair.
     recognizer.handleTouchMove(touchEvent('touchmove', [touch(0, 0), touch(150, 0)]));
     scheduler.runNext();
     expect(lastUpdate(onGestureUpdate).scale).toBe(1.5);
+  });
+
+  it('resets a stale sequence when a fresh touchstart proves every old finger left unseen', () => {
+    const { recognizer, onGestureStart } = createRecognizer();
+    recognizer.handleTouchStart(touchEvent('touchstart', [touch(0, 0), touch(100, 0)]));
+    expect(recognizer.isActive()).toBe(true);
+
+    // Both fingers lift while their targets are detached — the recognizer
+    // never sees a touchend and would stay active forever. The next fresh
+    // touchstart reports all-new touches (touches === changedTouches) and
+    // resets the state machine before processing.
+    const fresh = touchEvent('touchstart', [touch(10, 10)], [touch(10, 10)]);
+    recognizer.handleTouchStart(fresh);
+    expect(recognizer.isActive()).toBe(false); // idle again — single touch flows to the paper
+    expect(fresh.preventDefault).not.toHaveBeenCalled();
+
+    // And a fresh two-finger start after a stale sequence begins a new gesture.
+    const freshPinch = touchEvent(
+      'touchstart',
+      [touch(0, 0), touch(80, 0)],
+      [touch(0, 0), touch(80, 0)]
+    );
+    recognizer.handleTouchStart(touchEvent('touchstart', [touch(0, 0), touch(100, 0)]));
+    recognizer.handleTouchStart(freshPinch);
+    expect(recognizer.isActive()).toBe(true);
+    expect(onGestureStart).toHaveBeenCalledTimes(3);
   });
 
   it('dispose cancels a scheduled flush', () => {
