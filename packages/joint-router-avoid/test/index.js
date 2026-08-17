@@ -347,7 +347,7 @@ QUnit.module('interceptUnroutableLink', () => {
         routerService.stop();
     });
 
-    QUnit.test('is called with "untracked-element" for a link into an element excluded via trackElement', async assert => {
+    QUnit.test('is called with "untracked" for a link into an element excluded via trackElement', async assert => {
         const graph = new joint.dia.Graph();
         const calls = [];
         const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
@@ -366,7 +366,7 @@ QUnit.module('interceptUnroutableLink', () => {
         });
         routerService.start();
 
-        assert.deepEqual(calls, ['untracked-element']);
+        assert.deepEqual(calls, ['untracked']);
 
         routerService.stop();
     });
