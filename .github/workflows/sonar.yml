@@ -62,7 +62,7 @@ jobs:
       # Evaluate test coverage in the joint project
       # NOTE: Falling below local coverage thresholds aborts the workflow
       - name: Test joint coverage
-        id: test-coverage-joint
+        id: test-coverage
         run: yarn run test-coverage-lcov
 
       # Start SonarQube analysis

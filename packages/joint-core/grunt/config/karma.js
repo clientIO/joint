@@ -31,7 +31,7 @@ module.exports = function(grunt) {
                 reporters = [{ type: 'lcovonly', subdir: '.', file: 'lcov.info', projectRoot: REPOSITORY_ROOT }];
                 break;
             case 'html':
-                reporters = [{ type: 'html' }];
+                reporters = [{ type: 'html', subdir: '.' }];
                 break;
             case '':
                 reporters = [{ type: 'text-summary' }];

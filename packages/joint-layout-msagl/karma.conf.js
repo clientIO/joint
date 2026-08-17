@@ -56,8 +56,7 @@ module.exports = function(config) {
             reporters: ((process.env.COVERAGE_REPORTER === 'lcov')
                 ? [{ type: 'lcovonly', subdir: '.', file: 'lcov.info', projectRoot: REPOSITORY_ROOT }]
                 : [
-                    // reporters not supporting the `file` property
-                    { type: 'html', subdir: 'report-html' },
+                    { type: 'html', subdir: '.' },
                     { type: 'text-summary' }
                 ])
         }
