@@ -101,16 +101,31 @@ export const joint = {
     treeshake: false
 };
 
-export const jointNoDependencies = {
+// Redirects a distributed bundle to `file` and gives it a source map
+// - Karma remaps coverage through that map, so reports can reference `src/`
+// NOTE: Only supports single-output configs
+// - A config declaring several `output` entries would have bundles overwriting
+const bundleWithSourceMap = (config, file) => ({
+    ...config,
+    output: config.output.map((output) => ({ ...output, file, sourcemap: true }))
+});
+
+export const geometryTest = bundleWithSourceMap(geometry, modules.geometry.test);
+export const vectorizerTest = bundleWithSourceMap(vectorizer, modules.vectorizer.test);
+
+// Unlike the two bundles above, this is not "distributed bundle + source map"
+// - It leaves out geometry and vectorizer, which Karma loads as separate files
+export const jointTest = {
     input: modules.joint.src,
     external: [].concat(Object.keys(G_REF)).concat(Object.keys(V_REF)),
     output: [{
-        file: modules.joint.noDependencies,
+        file: modules.joint.test,
         format: 'iife',
         name: 'joint',
         footer: JOINT_FOOTER,
         freeze: false,
-        globals: Object.assign({}, G_REF, V_REF)
+        globals: Object.assign({}, G_REF, V_REF),
+        sourcemap: true
     }],
     plugins: plugins
 };

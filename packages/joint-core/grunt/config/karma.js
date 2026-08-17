@@ -1,12 +1,19 @@
+const puppeteer = require('puppeteer');
 const dependencies = require('../resources/dependencies');
 const modules = require('../resources/esm');
+const coverageThresholds = require('../../coverage.json');
+
+// Used for starting Chrome if using ChromeHeadless in Jenkins
+process.env.CHROME_BIN = puppeteer.executablePath();
+
+// Which path should .lcov files record as root they are relative to?
+// - SonarQube (`.github/workflows/sonar.yml`) needs this to be the repo root
+const REPOSITORY_ROOT = '../..';
 
 module.exports = function(grunt) {
 
-    process.env.CHROME_BIN = require('puppeteer').executablePath();
-
     function karmaPreprocessors(files) {
-        const preprocessors = ['coverage'];
+        const preprocessors = ['sourcemap', 'coverage'];
         return files.reduce(function(files, file) {
             files[file] = preprocessors;
             return files;
@@ -15,30 +22,26 @@ module.exports = function(grunt) {
 
     function karmaCoverageReporters(name) {
         let reporters;
-        let check;
-        let reporter = grunt.option('reporter') || '';
+        let reporter = process.env.COVERAGE_REPORTER || '';
         if (!reporter && grunt.cli.tasks.indexOf('test:coverage') !== -1) {
             reporter = 'html';
         }
         switch (reporter) {
             case 'lcov':
-                reporters = [{ type: 'lcovonly', subdir: '.', file: `${name}.lcov` }];
-                check = grunt.file.readJSON('coverage.json')[name];
+                reporters = [{ type: 'lcovonly', subdir: '.', file: 'lcov.info', projectRoot: REPOSITORY_ROOT }];
                 break;
             case 'html':
-                reporters = [{ type: 'html' }];
-                check = grunt.file.readJSON('coverage.json')[name];
+                reporters = [{ type: 'html', subdir: '.' }];
                 break;
             case '':
                 reporters = [{ type: 'text-summary' }];
-                check = grunt.file.readJSON('coverage.json')[name];
                 break;
             default:
-                grunt.log.error(`Invalid reporter "${reporter}". Use "lcov" or "html".`);
+                grunt.log.error(`Invalid COVERAGE_REPORTER "${reporter}". Use "lcov" or "html".`);
                 process.exit(1);
                 return;
         }
-        return { dir: `coverage/${name}`, reporters, check };
+        return { dir: `coverage/${name}`, reporters, check: coverageThresholds[name] };
     }
 
     return {
@@ -69,22 +72,22 @@ module.exports = function(grunt) {
         geometry: {
             options: {
                 files: [
-                    modules.geometry.umd,
+                    modules.geometry.test,
                     'test/geometry/*.js'
                 ],
-                preprocessors: karmaPreprocessors([modules.geometry.umd]),
+                preprocessors: karmaPreprocessors([modules.geometry.test]),
                 coverageReporter: karmaCoverageReporters('geometry')
             },
         },
         vectorizer: {
             options: {
                 files: [
-                    modules.geometry.umd,
-                    modules.vectorizer.umd,
+                    modules.geometry.test,
+                    modules.vectorizer.test,
                     'test/geometry/*.js',
                     'test/vectorizer/*.js',
                 ],
-                preprocessors: karmaPreprocessors([modules.vectorizer.umd]),
+                preprocessors: karmaPreprocessors([modules.vectorizer.test]),
                 coverageReporter: karmaCoverageReporters('vectorizer')
             }
         },
@@ -92,13 +95,13 @@ module.exports = function(grunt) {
             options: {
                 files: [
                     dependencies,
-                    modules.geometry.umd,
-                    modules.vectorizer.umd,
-                    modules.joint.noDependencies,
+                    modules.geometry.test,
+                    modules.vectorizer.test,
+                    modules.joint.test,
                     'test/utils.js',
                     'test/jointjs/**/*.js'
                 ],
-                preprocessors: karmaPreprocessors([modules.joint.noDependencies]),
+                preprocessors: karmaPreprocessors([modules.joint.test]),
                 coverageReporter: karmaCoverageReporters('joint')
             }
         }

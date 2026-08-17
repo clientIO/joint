@@ -2,6 +2,7 @@ import packageJson from './package.json' with { type: 'json' };
 import banner from 'rollup-plugin-banner2';
 import terser from '@rollup/plugin-terser';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 
 // JointJS banner.
 // - see `joint-core/grunt/resources/banner.js`
@@ -50,6 +51,45 @@ export default [
         plugins: [
             nodeResolve({
                 preferBuiltins: false
+            })
+        ]
+    },
+    // Source-mapped bundle for unit tests (see `karma.conf.js`)
+    // - Compiles TypeScript directly instead of reusing from `dist`/`esm`
+    // - (Because Rollup cannot follow inline maps left behind by `tsc`)
+    {
+        input: ['./src/index.mts'],
+        external: [
+            '@joint/core',
+            '@msagl/core'
+        ],
+        output: [
+            {
+                file: 'build/test/index.js',
+                format: 'umd',
+                name: 'joint.layout.MSAGL',
+                extend: true,
+                globals: {
+                    '@joint/core': 'joint',
+                    '@msagl/core': 'msagl'
+                },
+                sourcemap: true
+            }
+        ],
+        plugins: [
+            nodeResolve({
+                preferBuiltins: false
+            }),
+            typescript({
+                tsconfig: './tsconfig.json',
+                compilerOptions: {
+                    // Rollup writes its own source map
+                    inlineSourceMap: false,
+                    inlineSources: false,
+                    sourceMap: true,
+                    declaration: false,
+                    declarationMap: false,
+                }
             })
         ]
     }

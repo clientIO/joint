@@ -61,6 +61,19 @@ export default [
                     banner(() => bannerText)
                 ]
             },
+            // Source-mapped bundle for unit tests (see `karma.conf.js`)
+            {
+                file: 'build/test/DirectedGraph.js',
+                format: 'umd',
+                name: 'joint.layout',
+                extend: true,
+                globals: {
+                    '@dagrejs/dagre': 'dagre',
+                    '@dagrejs/graphlib': 'graphlib',
+                    '@joint/core': 'joint'
+                },
+                sourcemap: true
+            },
         ],
         plugins: [
             nodeResolve()

@@ -10,7 +10,7 @@
     "vectorizer": {
         "global": {
             "statements": 82,
-            "branches": 75,
+            "branches": 74,
             "functions": 79,
             "lines": 83
         }
@@ -18,7 +18,7 @@
     "geometry": {
         "global": {
             "statements": 85,
-            "branches": 80,
+            "branches": 78,
             "functions": 79,
             "lines": 86
         }

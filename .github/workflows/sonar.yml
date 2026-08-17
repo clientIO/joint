@@ -26,18 +26,56 @@ jobs:
           | **Workflow branch** | `${{ github.ref_name }}` |
           EOF
 
+      # Checkout contents of joint repo
       - name: Checkout code
+        id: checkout-joint
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
 
+      # Set up Node.js version for building
+      - name: Setup Node.js v22
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+
+      # Cache Yarn packages to speed up CI
+      - name: Cache Yarn
+        id: cache-yarn
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      # Install all dependencies from the joint repo
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install --immutable
+
+      # Build the joint project (needed for tests)
+      - name: Prepare joint
+        id: prepare-joint
+        run: yarn run dist
+
+      # Evaluate test coverage in the joint project
+      # NOTE: Falling below local coverage thresholds aborts the workflow
+      - name: Test joint coverage
+        id: test-coverage
+        run: yarn run test-coverage-lcov
+
+      # Start SonarQube analysis
       - name: SonarQube Scan
+        id: sonar-scan
         uses: sonarsource/sonarqube-scan-action@v8.2.1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
+      # Poll SonarQube for analysis results
       - name: SonarQube Quality Gate check
+        id: sonar-quality-gate
         uses: sonarsource/sonarqube-quality-gate-action@v1.2.1
         timeout-minutes: 5
         env:

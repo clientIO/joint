@@ -1,5 +1,15 @@
+const puppeteer = require('puppeteer');
+const coverageThresholds = require('./coverage.json');
+
 // Used for starting Chrome if using ChromeHeadless in Jenkins
-process.env.CHROME_BIN = require('puppeteer').executablePath();
+process.env.CHROME_BIN = puppeteer.executablePath();
+
+// Coverage is collected for this and source-mapped to `DirectedGraph.mjs`
+const TEST_BUNDLE = './build/test/DirectedGraph.js';
+
+// Which path should .lcov files record as root they are relative to?
+// - SonarQube (`.github/workflows/sonar.yml`) needs this to be the repo root
+const REPOSITORY_ROOT = '../..';
 
 module.exports = function(config) {
     config.set({
@@ -8,7 +18,7 @@ module.exports = function(config) {
             './node_modules/@dagrejs/graphlib/dist/graphlib.js',
             './node_modules/@dagrejs/dagre/dist/dagre.js',
             './node_modules/@joint/core/build/joint.js',
-            './dist/DirectedGraph.js',
+            TEST_BUNDLE,
 
             './test/index.js'
         ],
@@ -17,6 +27,7 @@ module.exports = function(config) {
         plugins: [
             'karma-qunit',
             'karma-coverage',
+            'karma-sourcemap-loader',
             'karma-chrome-launcher'
         ],
         reporters: ['progress', 'coverage'],
@@ -36,16 +47,19 @@ module.exports = function(config) {
         },
         exclude: [],
         preprocessors: {
-            './dist/DirectedGraph.js': ['coverage']
+            [TEST_BUNDLE]: ['sourcemap', 'coverage']
         },
         coverageReporter: {
             // specify a common output directory
             dir: 'coverage/',
-            reporters: [
-                // reporters not supporting the `file` property
-                { type: 'html', subdir: 'report-html' },
-                { type: 'text-summary' }
-            ]
+            // coverage baseline - falling below any of these fails the test
+            check: coverageThresholds,
+            reporters: ((process.env.COVERAGE_REPORTER === 'lcov')
+                ? [{ type: 'lcovonly', subdir: '.', file: 'lcov.info', projectRoot: REPOSITORY_ROOT }]
+                : [
+                    { type: 'html', subdir: '.' },
+                    { type: 'text-summary' }
+                ])
         }
     });
 };
