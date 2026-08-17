@@ -54,13 +54,16 @@ export interface InitAvoidOptions {
 }
 
 /**
- * Loads avoid (if needed) and creates a {@link RouterService} that keeps
- * `graph`'s links routed via libavoid, using either a main-thread or
- * Worker-based {@link Provider} depending on `options.useWorker`.
+ * Loads avoid (if needed) and creates a {@link RouterService} for `graph`,
+ * using either a main-thread or Worker-based {@link Provider} depending on
+ * `options.useWorker`. The returned `RouterService` is not started - call
+ * its `start()` to begin keeping `graph`'s links continuously routed via
+ * libavoid, or use `routeAll()`/`routeSubgraph()` for a one-shot routing
+ * pass instead.
  *
  * @param graph - The graph to route.
  * @param options - Configuration for the avoid router and the resulting {@link RouterService}.
- * @returns A promise resolving to the `RouterService` instance now routing `graph`.
+ * @returns A promise resolving to the `RouterService` instance for `graph`.
  */
 export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOptions = {}): Promise<RouterService> {
     if (loadAvoidPromise) {
