@@ -259,6 +259,15 @@ export class RouterService {
     }
 
     /**
+     * Whether the router is currently listening to its graph for changes.
+     * When using routeAll() or routeSubgraph(), the router should be stopped
+     * because these function change avoid library context and the router should not listen to graph changes during that time.
+     */
+    get isStarted(): boolean {
+        return !!this.graphListener;
+    }
+
+    /**
      * Starts listening to graph changes and automatically updates the
      * router. Also (re-)syncs any cells the graph already holds - e.g.
      * cells added before `init()` was called, or while listeners were
@@ -301,7 +310,19 @@ export class RouterService {
     }
 
     async routeAll(): Promise<void> {
+        if (this.isStarted) {
+            throw new Error('RouterService is already started. Stop it before calling routeAll().');
+        }
+
         await this.sync(this.graph.getCells());
+    }
+
+    async routeSubgraph(cells: dia.Cell[]): Promise<void> {
+        if (this.isStarted) {
+            throw new Error('RouterService is already started. Stop it before calling routeSubgraph().');
+        }
+
+        await this.sync(cells);
     }
 
     /**
@@ -362,6 +383,7 @@ export class RouterService {
             return;
         }
 
+        this.applyFallbackRoute(cell, { routing: true });
         this.provider.setConnector(this.getAvoidConnector(cell));
     }
 
@@ -421,6 +443,7 @@ export class RouterService {
                 return;
             }
 
+            this.applyFallbackRoute(link, { routing: true });
             routableLinks.push(link);
         });
 
