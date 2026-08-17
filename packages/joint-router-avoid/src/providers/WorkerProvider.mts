@@ -32,6 +32,16 @@ export class WorkerProvider extends Provider {
      * hanging forever if the provider is destroyed before the Worker replies.
      */
     protected readonly pendingSyncRejections = new Set<(error: Error) => void>();
+    /**
+     * Tail of the sync queue: resolves once every {@link sync} call
+     * requested so far has settled, in order. Chaining onto this (rather
+     * than posting a `sync` message immediately) ensures a new `sync()`
+     * call waits for the previous one to finish before the Worker's shape
+     * and connector state is reset again.
+     */
+    protected syncQueue: Promise<void> = Promise.resolve();
+    /** Set by {@link destroy}; queued {@link sync} calls check this instead of messaging an already-terminated Worker. */
+    protected destroyed = false;
 
     /**
      * Spawns the Worker, initializes its avoid router, and resolves once
@@ -133,15 +143,41 @@ export class WorkerProvider extends Provider {
 
     /**
      * Replaces the entire set of shapes and connectors known to the
-     * Worker's avoid router in a single message. The returned promise
-     * resolves once the Worker reports the sync has been processed, via
-     * this provider's own `processed` event - or rejects if the provider
-     * is destroyed first (see {@link destroy}).
+     * Worker's avoid router in a single message. If a previous {@link sync}
+     * call is still waiting on its own `processed` response, this call
+     * queues behind it instead of messaging the Worker right away - two
+     * overlapping `sync` messages could otherwise be coalesced into a
+     * single batch by the Worker's debouncing (see `Worker.mts`), in which
+     * case only one `processed` response would come back for both, and it
+     * would be ambiguous which call's shapes/connectors actually "won".
+     * The returned promise resolves once this call's own `sync` has been
+     * processed, or rejects if the provider is destroyed first (see
+     * {@link destroy}), whether while queued or while waiting on the Worker.
      *
      * @param shapes - The full set of shapes that should exist after the sync.
      * @param connectors - The full set of connectors that should exist after the sync.
      */
     override sync(shapes: Shape[], connectors: Connector[]): Promise<void> {
+        // Wait for the previous call in the queue, regardless of whether it
+        // settled successfully, so one failed/rejected sync doesn't block
+        // every sync queued after it.
+        const result = this.syncQueue.catch(() => {}).then(() => this.performSync(shapes, connectors));
+        this.syncQueue = result.catch(() => {});
+        return result;
+    }
+
+    /**
+     * Does the actual work of {@link sync}: posts a `sync` message to the
+     * Worker and resolves once its `processed` response comes back.
+     *
+     * @param shapes - The full set of shapes that should exist after the sync.
+     * @param connectors - The full set of connectors that should exist after the sync.
+     */
+    private performSync(shapes: Shape[], connectors: Connector[]): Promise<void> {
+        if (this.destroyed) {
+            throw new Error('WorkerProvider was destroyed before the sync completed.');
+        }
+
         this.shapeIds.clear();
         this.connectorIds.clear();
 
@@ -190,9 +226,13 @@ export class WorkerProvider extends Provider {
     /**
      * Terminates the Worker thread and releases its resources. Any
      * {@link sync} call still waiting on a `processed` response is
-     * rejected instead of being left to hang forever.
+     * rejected instead of being left to hang forever, and any call still
+     * queued behind it is rejected too, once its turn comes up, instead of
+     * messaging the now-terminated Worker.
      */
     override destroy(): void {
+        this.destroyed = true;
+
         this.pendingSyncRejections.forEach((reject) => {
             reject(new Error('WorkerProvider was destroyed before the sync completed.'));
         });

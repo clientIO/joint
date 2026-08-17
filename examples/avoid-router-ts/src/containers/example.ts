@@ -76,6 +76,11 @@ export const initContainersExample = async (canvasEl: HTMLElement): Promise<void
     const routerService = await initAvoidRouter(graph, {
         shapeBufferDistance: 16,
         idealNudgingDistance: 8,
+        useWorker: true,
+    });
+
+    routerService.on('idle', () => {
+        console.log('All routing computations complete.');
     });
 
     // Route each container's content in isolation: `routeSubgraph()` only
