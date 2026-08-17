@@ -50,6 +50,8 @@ export type TrackElementCallbackParameters = {
  */
 export type TrackElementCallback = (params: TrackElementCallbackParameters) => boolean;
 
+export type RouteOrigin = 'avoid' | 'fallback';
+
 /** Parameters passed to a {@link SetRouteAttributesCallback}. */
 export type SetRouteAttributesCallbackParameters = {
 /** The link the route applies to. */
@@ -57,7 +59,7 @@ export type SetRouteAttributesCallbackParameters = {
     /** The computed route attributes to apply to the link. */
     attributes: RouteAttributes;
     /** Where the route came from: computed by avoid, or the built-in `rightAngle` fallback. */
-    origin: 'avoid' | 'fallback';
+    origin: RouteOrigin;
     /**
      * `true` when this route is provisional - avoid is still computing and
      * another call for the same link follows (matches the `link:routing`
@@ -132,9 +134,9 @@ export interface RouterServiceEventMap {
      * Emitted once a link's route has been applied.
      *
      * @param link - The link whose route was just applied.
-     * @param opt - `fallback` is `true` when the applied route came from the built-in fallback rather than from avoid.
+     * @param opt - Options describing the routing outcome.
      */
-    'link:routed': (link: dia.Link, opt: { fallback?: boolean }) => void;
+    'link:routed': (link: dia.Link, opt: { origin: RouteOrigin, reason?: UnroutableReason }) => void;
     /**
      * Emitted when a link with an open `link:routing` cycle becomes
      * unroutable (e.g. disconnected) before avoid produced a route for it.
@@ -536,16 +538,15 @@ export class RouterService {
      * Closes `link`'s pending cycle, if one is open, and emits `link:routed`.
      *
      * @param link - The link whose route was just applied.
-     * @param fallback - Whether the final route came from avoid (`false`/omitted) or from {@link applyFallbackRoute} (`true`) - e.g. because the link was detached while avoid was still computing its route.
+     * @param options - Options describing the routing outcome.
      */
-    private setRouted(link: dia.Link, fallback?: boolean): void {
+    private setRouted(link: dia.Link, options: { origin: RouteOrigin, reason?: UnroutableReason }): void {
         this.pendingLinks.delete(link);
-        this.trigger('link:routed', link, { fallback });
+        this.trigger('link:routed', link, options);
     }
 
     /**
-     * Closes `link`'s routing cycle without a route being applied, and
-     * emits `link:routing:cancelled`.
+     * Closes `link`'s routing cycle without a route being applied, and emits `link:routing:cancelled`.
      *
      * @param link - The link whose pending routing cycle is being abandoned.
      */
@@ -612,7 +613,7 @@ export class RouterService {
             } finally {
                 this.applyingRoute = false;
             }
-            this.setRouted(link);
+            this.setRouted(link, { origin: 'avoid' });
             return;
         }
 
@@ -622,7 +623,7 @@ export class RouterService {
             this.applyingRoute = false;
         }
 
-        this.setRouted(link);
+        this.setRouted(link, { origin: 'avoid' });
     }
 
     /**
@@ -650,23 +651,39 @@ export class RouterService {
             vertices: rightAngleVertices
         };
 
+        this.applyingRoute = true;
+
         if (this.options.setRouteAttributes) {
-            this.options.setRouteAttributes({
-                link,
-                attributes,
-                origin: 'fallback',
-                routing: !!options.routing,
-                unroutableReason: options.reason,
-            });
+            try {
+                this.options.setRouteAttributes({
+                    link,
+                    attributes,
+                    origin: 'fallback',
+                    routing: !!options.routing,
+                    unroutableReason: options.reason,
+                });
+            } finally {
+                this.applyingRoute = false;
+            }
+            if (options.routing) {
+                this.setRouting(link);
+            } else {
+                this.setRouted(link, { origin: 'fallback', reason: options.reason });
+            }
+
             return;
         }
 
-        link.set(attributes, { [this.changeFlag]: true });
+        try {
+            link.set(attributes, { [this.changeFlag]: true });
+        } finally {
+            this.applyingRoute = false;
+        }
 
         if (options.routing) {
             this.setRouting(link);
         } else {
-            this.setRouted(link, true);
+            this.setRouted(link, { origin: 'fallback', reason: options.reason });
         }
     }
 
