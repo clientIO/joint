@@ -26,6 +26,12 @@ export class WorkerProvider extends Provider {
     protected readonly shapeIds = new Set<dia.Cell.ID>();
     /** Ids of the connectors currently known to the Worker's avoid router. */
     protected readonly connectorIds = new Set<dia.Cell.ID>();
+    /**
+     * Reject callbacks of {@link sync} calls still waiting on the Worker's
+     * `processed` response, so they can be settled with an error instead of
+     * hanging forever if the provider is destroyed before the Worker replies.
+     */
+    protected readonly pendingSyncRejections = new Set<(error: Error) => void>();
 
     /**
      * Spawns the Worker, initializes its avoid router, and resolves once
@@ -129,7 +135,8 @@ export class WorkerProvider extends Provider {
      * Replaces the entire set of shapes and connectors known to the
      * Worker's avoid router in a single message. The returned promise
      * resolves once the Worker reports the sync has been processed, via
-     * this provider's own `processed` event.
+     * this provider's own `processed` event - or rejects if the provider
+     * is destroyed first (see {@link destroy}).
      *
      * @param shapes - The full set of shapes that should exist after the sync.
      * @param connectors - The full set of connectors that should exist after the sync.
@@ -141,12 +148,14 @@ export class WorkerProvider extends Provider {
         shapes.forEach((shape) => this.shapeIds.add(shape.id));
         connectors.forEach((connector) => this.connectorIds.add(connector.id));
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const onProcessed = () => {
                 this.off('processed', onProcessed);
+                this.pendingSyncRejections.delete(reject);
                 resolve();
             };
             this.on('processed', onProcessed);
+            this.pendingSyncRejections.add(reject);
 
             this.postMessage({ type: 'sync', shapes, connectors });
         });
@@ -178,8 +187,19 @@ export class WorkerProvider extends Provider {
         return this.shapeIds.has(shapeId);
     }
 
-    /** Terminates the Worker thread and releases its resources. */
+    /**
+     * Terminates the Worker thread and releases its resources. Any
+     * {@link sync} call still waiting on a `processed` response is
+     * rejected instead of being left to hang forever.
+     */
     override destroy(): void {
+        this.pendingSyncRejections.forEach((reject) => {
+            reject(new Error('WorkerProvider was destroyed before the sync completed.'));
+        });
+        this.pendingSyncRejections.clear();
+        // Drop any `onProcessed` listeners left behind by the rejected syncs above.
+        this.off('processed');
+
         this.worker.terminate();
     }
 }
