@@ -199,8 +199,10 @@ export class RouterService {
     // them and `link:routed` hasn't closed it out yet. Checked wherever avoid is
     // definitively given up on for a change (rather than merely retried),
     // so a link detached mid-flight - while avoid was still computing its
-    // route - gets its stranded cycle closed instead of staying stuck.
-    private readonly pendingLinks: WeakSet<dia.Link> = new WeakSet();
+    // route - gets its stranded cycle closed instead of staying stuck. Kept
+    // as a regular Set (not a WeakSet) so destroy() can enumerate and
+    // cancel every still-open cycle.
+    private readonly pendingLinks: Set<dia.Link> = new Set();
 
     // Whether a route is currently being applied to a link.
     // This is used to avoid re-entrant calls to `link.set()` when the router
@@ -309,12 +311,17 @@ export class RouterService {
 
     /**
      * Stops routing this graph and releases the resources held by this
-     * instance and its provider (e.g. terminates a Worker thread). The
+     * instance and its provider (e.g. terminates a Worker thread). Any
+     * link with an open routing cycle - `link:routing` fired for it, but
+     * avoid never got to answer with `link:routed` - has that cycle closed
+     * via `link:routing:cancelled` instead of being left stuck. The
      * instance must not be used after calling this.
      */
     destroy(): void {
         if (this.destroyed) return;
         this.destroyed = true;
+
+        Array.from(this.pendingLinks).forEach((link) => this.setRoutingCanceled(link));
 
         this.stop();
         this.provider.destroy();

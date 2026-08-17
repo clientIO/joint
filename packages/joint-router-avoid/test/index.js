@@ -612,3 +612,45 @@ QUnit.module('routeSubgraph()', () => {
         );
     });
 });
+
+QUnit.module('destroy()', () => {
+    // With `MainThreadProvider`, avoid answers synchronously, so a link's
+    // routing cycle only stays open for the moment between `link:routing`
+    // firing and avoid's answer arriving - there's no window left for a
+    // normal, top-level `destroy()` call to observe it still open. Calling
+    // `destroy()` from within the `link:routing` handler itself reproduces
+    // that window deterministically (and is a realistic pattern in its own
+    // right - e.g. a "cancel routing" action wired to the same event).
+    QUnit.test('cancels any link with an open routing cycle instead of leaving it stuck', async assert => {
+        const graph = new joint.dia.Graph();
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 100, height: 100 }});
+        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+        graph.resetCells([source, target, link]);
+
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+
+        const cancelledLinks = [];
+        routerService.on('link:routing:cancelled', (l) => cancelledLinks.push(l));
+        routerService.on('link:routing', () => {
+            routerService.destroy();
+        });
+
+        routerService.start();
+
+        assert.deepEqual(cancelledLinks, [link], 'the still-routing link is cancelled by destroy()');
+    });
+
+    QUnit.test('does nothing if there are no links with an open routing cycle', async assert => {
+        const { routerService } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+
+        const cancelledLinks = [];
+        routerService.on('link:routing:cancelled', (l) => cancelledLinks.push(l));
+
+        // By the time start() returns, MainThreadProvider has already
+        // resolved every link's routing cycle synchronously.
+        routerService.destroy();
+
+        assert.deepEqual(cancelledLinks, []);
+    });
+});
