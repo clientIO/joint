@@ -116,7 +116,9 @@ The object responsible for keeping libavoid's internal obstacle/connector graph 
 
 ## 📄 License
 
-The code in this package is licensed under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/).
+The code in this package is licensed under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/), same as the rest of JointJS.
+
+It depends on [`libavoid-js`](https://www.npmjs.com/package/libavoid-js), a WebAssembly build of [libavoid](https://github.com/mjwybrow/adaptagrams), which is licensed under the **GNU LGPL 2.1 or later** - applications shipping this package also ship the `libavoid.wasm` binary under that license. Keep the binary a separately served file (as described under bundler configuration above); don't configure your bundler to inline it into your application bundle.
 
 Copyright © 2013-2026 client IO
 
