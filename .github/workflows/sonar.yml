@@ -29,21 +29,36 @@ jobs:
       # Checkout contents of joint repo
       - name: Checkout code
         id: checkout-joint
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      # Install environment packages
+      # Fonts - util.breakText - international characters
+      - name: Install environment packages
+        id: install-environment-packages
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: |
+            fonts-arphic-ukai \
+            fonts-arphic-uming \
+            fonts-ipafont-mincho \
+            fonts-ipafont-gothic \
+            fonts-unfonts-core \
+            fonts-noto-core
+          version: 1.0
 
       # Set up Node.js version for building
       - name: Setup Node.js v22
         id: setup-node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.14.0
 
       # Cache Yarn packages to speed up CI
       - name: Cache Yarn
         id: cache-yarn
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .yarn/cache
