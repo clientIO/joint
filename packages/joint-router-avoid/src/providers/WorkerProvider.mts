@@ -57,12 +57,26 @@ export class WorkerProvider extends Provider {
         const worker = new Worker(new URL('./Worker.mjs', import.meta.url), { type: 'module' });
         this.worker = worker;
 
-        const ready = new Promise<void>((resolve) => {
+        const ready = new Promise<void>((resolve, reject) => {
+            // Reject instead of hanging forever when the Worker itself fails
+            // to load (network error, syntax error) or its initialization
+            // fails inside the Worker (e.g. the avoid WASM module cannot be
+            // loaded, reported via the `error` response).
+            worker.onerror = (evt: ErrorEvent) => {
+                reject(new Error(evt.message || 'The avoid router Worker failed to load.'));
+            };
+            worker.onmessageerror = () => {
+                reject(new Error('A message from the avoid router Worker could not be deserialized.'));
+            };
             worker.onmessage = (evt: MessageEvent<WorkerResponse>) => {
                 const message = evt.data;
                 switch (message.type) {
                     case 'ready': {
                         resolve();
+                        break;
+                    }
+                    case 'error': {
+                        reject(new Error(message.message));
                         break;
                     }
                     case 'connectorChanged': {

@@ -82,8 +82,15 @@ export interface WorkerProcessedResponse {
     type: 'processed';
 }
 
+/** Response posted when the Worker fails to initialize (e.g. the avoid WASM module cannot be loaded). */
+export interface WorkerErrorResponse {
+    type: 'error';
+    /** Description of the failure. */
+    message: string;
+}
+
 /** Any response this Worker may post back to its {@link WorkerProvider}. */
-export type WorkerResponse = WorkerReadyResponse | WorkerConnectorChangedResponse | WorkerProcessedResponse;
+export type WorkerResponse = WorkerReadyResponse | WorkerConnectorChangedResponse | WorkerProcessedResponse | WorkerErrorResponse;
 let avoidInstance: AvoidInstance;
 let avoidRouter: AvoidRouter;
 const shapeRefs: Record<string, ShapeRef> = {};
@@ -367,7 +374,12 @@ onmessage = async(evt: MessageEvent<WorkerRequest>) => {
     const message = evt.data;
 
     if (message.type === 'init') {
-        handleInit(message.options);
+        handleInit(message.options).catch((error) => {
+            postResponse({
+                type: 'error',
+                message: error instanceof Error ? error.message : String(error)
+            });
+        });
         return;
     }
 

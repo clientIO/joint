@@ -75,13 +75,18 @@ export interface InitAvoidOptions {
  * @returns A promise resolving to the `RouterService` instance for `graph`.
  */
 export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOptions = {}): Promise<RouterService> {
-    if (loadAvoidPromise) {
-        await loadAvoidPromise;
-    } else if (!AvoidLib.avoidLib) {
-        await loadAvoidRouter(options.libavoidFilePath);
-    }
-
     const provider = options.worker ? new WorkerProvider() : new MainThreadProvider();
+
+    // The Worker loads its own copy of the avoid WASM module inside the
+    // Worker thread; loading it on the main thread too would only waste
+    // memory and startup time.
+    if (provider instanceof MainThreadProvider) {
+        if (loadAvoidPromise) {
+            await loadAvoidPromise;
+        } else if (!AvoidLib.avoidLib) {
+            await loadAvoidRouter(options.libavoidFilePath);
+        }
+    }
 
     const shapeBufferDistance = options.shapeBufferDistance ?? defaultShapeBufferDistance;
     const idealNudgingDistance = options.idealNudgingDistance ?? defaultIdealNudgingDistance;
