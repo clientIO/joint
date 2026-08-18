@@ -80,10 +80,17 @@ jobs:
         id: test-coverage
         run: yarn run test-coverage-lcov
 
+      # Resolve the version to report to SonarQube
+      - name: Resolve project version
+        id: resolve-project-version
+        run: echo "SONAR_PROJECT_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
       # Start SonarQube analysis
       - name: SonarQube Scan
         id: sonar-scan
         uses: sonarsource/sonarqube-scan-action@v8.2.1
+        with:
+          args: -Dsonar.projectVersion=${{ env.SONAR_PROJECT_VERSION }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
