@@ -244,7 +244,7 @@ function handleDeleteConnector(connectorId: dia.Cell.ID): void {
     if (!connRef) return;
     avoidRouter.deleteConnector(connRef);
     delete connectorRefs[connectorId];
-    // @ts-expect-error do not defined in the type definition, but it is present in the actual object
+    // @ts-expect-error not defined in the type definition, but it is present in the actual object
     delete linksByPointer[connRef.g];
 
 }
@@ -293,7 +293,7 @@ function handleUpdateConnector(connector: Connector): void {
     // added-removed-added with the same `id`. Instead, we keep track
     // of the mapping using the connRef's raw pointer (`connRef.g`).
     connectorRefs[connector.id] = connRef;
-    // @ts-expect-error do not defined in the type definition, but it is present in the actual object
+    // @ts-expect-error not defined in the type definition, but it is present in the actual object
     linksByPointer[connRef.g] = connector.id;
     connRef.setCallback(onAvoidConnectorChanged, connRef);
 }

@@ -156,7 +156,7 @@ export class MainThreadProvider extends Provider {
         // added-removed-added with the same `id`. Instead, we keep track
         // of the mapping using the connRef's raw pointer (`connRef.g`).
         connectorRefs[connector.id] = connRef;
-        // @ts-expect-error do not defined in the type definition, but it is present in the actual object
+        // @ts-expect-error not defined in the type definition, but it is present in the actual object
         this.linksByPointer[connRef.g] = connector.id;
         connRef.setCallback(this.onAvoidConnectorChanged, connRef);
 
@@ -195,7 +195,7 @@ export class MainThreadProvider extends Provider {
         if (!connRef) return;
         this.avoidRouter.deleteConnector(connRef);
         delete this.connectorRefs[connectorId];
-        // @ts-expect-error do not defined in the type definition, but it is present in the actual object
+        // @ts-expect-error not defined in the type definition, but it is present in the actual object
         delete this.linksByPointer[connRef.g];
 
         if (process) {
