@@ -39,17 +39,17 @@ jobs:
 
     steps:
       # Checkout the repo contents
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Set up Node.js version for building
       - name: Use Node.js 22.14.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22.14.0'
 
       # Cache Yarn packages to speed up CI
       - name: Cache Yarn
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .yarn/cache
@@ -87,7 +87,7 @@ jobs:
 
       # Upload the built docs as an artifact for GitHub Pages deployment
       - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./packages/joint-react/docs
 
@@ -103,9 +103,9 @@ jobs:
     steps:
       # Setup GitHub Pages deployment environment
       - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       # Deploy the uploaded artifact to GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
