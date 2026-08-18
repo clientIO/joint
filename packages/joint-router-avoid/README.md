@@ -94,8 +94,8 @@ The object responsible for keeping libavoid's internal obstacle/connector graph 
 
 - `start()` / `stop()` - start/stop listening to graph changes (added/removed cells, moved/resized elements, reconnected links). `start()` also syncs every cell the graph already holds.
 - `isStarted` - whether the service is currently listening to its graph.
-- `routeAll()` - one-shot: routes every cell currently in the graph, resolving once all routes are applied. No graph listener is attached. Throws while started.
-- `routeSubgraph(cells)` - one-shot: routes only `cells`, independently of the rest of the graph (cells outside the array are neither routed nor obstacles). Throws while started.
+- `routeAll()` - one-shot: routes every cell currently in the graph, resolving once all routes are applied. No graph listener is attached. Throws while started. Resolves with a `RoutingResult` - `{ status: 'done' }`, or `{ status: 'cancelled' }` if the pass was interrupted by `destroy()`. Overlapping calls are queued and run one after another.
+- `routeSubgraph(cells)` - one-shot: routes only `cells`, independently of the rest of the graph (cells outside the array are neither routed nor obstacles). Throws while started. Resolves with the same `RoutingResult` as `routeAll()`.
 - `changeFlag` - the `opt` flag name marking this router's own `link.set()` calls, for filtering them out of your own `change` listeners.
 - `destroy()` - stops routing the graph, cancels open routing cycles, and releases the resources held by the service and its provider (e.g. terminates a Worker thread). Do not use the instance afterwards.
 

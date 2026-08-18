@@ -7,5 +7,6 @@ export type {
     UnroutableReason,
     SetRouteAttributesCallback,
     RouteOrigin,
+    RoutingResult,
     RouterService
 } from './RouterService.mjs';
