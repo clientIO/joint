@@ -147,6 +147,10 @@ export function rightAnglePath(source, target, opt = {}) {
         side: targetSide
     } = target;
 
+    // Temporary `rightAngle` router internal (see `RightAnglePathOptions`):
+    // forces the U-shaped detour in the same-side branches, where a
+    // zero-size (point) target inside the source bbox escapes the overlap
+    // checks below. To be removed once deduced here instead.
     const { targetInSourceBBox = false } = opt;
 
     const sBoxX0 = sourceBBox.x;

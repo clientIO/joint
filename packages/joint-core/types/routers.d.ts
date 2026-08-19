@@ -90,6 +90,13 @@ export interface RightAngleRouterArguments {
     sourceMargin?: number | null;
     targetMargin?: number | null;
     minPathMargin?: number | null;
+    /**
+     * Reads the source/target geometry from the models instead of the
+     * rendered views.
+     *
+     * @internal Not part of the public API yet - added for
+     * `@joint/router-avoid`'s demos and subject to change.
+     */
     useModelGeometry?: boolean;
     /** @experimental before version 4.0 */
     useVertices?: boolean;
