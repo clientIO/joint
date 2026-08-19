@@ -5862,7 +5862,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/decorators@workspace:packages/joint-decorators"
   dependencies:
-    "@joint/core": "workspace:~"
+    "@joint/core": "workspace:^"
     "@joint/eslint-config": "workspace:*"
     eslint: "npm:9.39.2"
     typescript: "npm:5.8.2"
