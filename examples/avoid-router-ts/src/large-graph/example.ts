@@ -1,4 +1,4 @@
-import { dia, shapes } from '@joint/core';
+import { dia, highlighters, shapes, V } from '@joint/core';
 import { initAvoidRouter } from '@joint/router-avoid';
 import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from '../common';
 import { Message, FlowchartStart, Link as AppLink } from './shapes';
@@ -31,22 +31,38 @@ export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void
         },
     });
 
+    paper.defs.prepend(V.createSVGStyle(`
+        .pending [joint-selector="line"] {
+            stroke: #b6b6b6;
+            stroke-dasharray: 5,5;
+        }
+        .dragging [joint-selector="line"] {
+            stroke: #4665E5;
+            stroke-width: 2;
+        }
+    `));
+
     graph.resetCells(largeGraph.cells);
 
     const routerService = await initAvoidRouter(graph, {
         shapeBufferDistance: 20,
         idealNudgingDistance: 5,
         worker: true,
+        setRouteAttributes: ({ link, attributes, routing, unroutableReason }) => {
+            if (!routing) {
+                highlighters.addClass.remove(link.findView(paper), 'pending');
+            }
+            if (unroutableReason !== 'unconnected') {
+                highlighters.addClass.remove(link.findView(paper), 'dragging');
+            }
+            link.set(attributes);
+        },
         interceptUnroutableLink: ({ link, reason }) => {
             switch (reason) {
                 case 'unconnected': {
-                    if (link.get('isDragging')) {
-                        return false;
-                    }
-                    link.set({
-                        isDragging: true,
+                    highlighters.addClass.add(link.findView(paper), 'root', 'dragging', {
+                        className: 'dragging',
                     });
-                    link.attr('line/stroke', 'red');
                     return false;
                 }
                 default:
@@ -55,23 +71,14 @@ export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void
         },
     });
 
-    routerService.on('link:routed', (link: dia.Link) => {
-        link.attr('line/strokeDasharray', null);
-    });
-
     routerService.on('link:routing', (link: dia.Link) => {
-        link.attr('line/strokeDasharray', '5,5');
-
-        if (link.get('isDragging')) {
-            link.set({
-                isDragging: false,
-            });
-            link.attr('line/stroke', '#464454');
-        }
+        highlighters.addClass.add(link.findView(paper), 'root', 'pending', {
+            className: 'pending',
+        });
     });
 
     routerService.on('link:routing:cancelled', (link: dia.Link) => {
-        link.attr('line/strokeDasharray', null);
+        highlighters.addClass.remove(link.findView(paper), 'pending');
     });
 
     routerService.start();
