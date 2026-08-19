@@ -56,6 +56,29 @@ describe('useContainerKeys', () => {
     expect(result.current).toBe(first);
   });
 
+  it('updates keys when one id is swapped for another in a single commit', async () => {
+    const container = createContainer<TestItem>();
+    const readOnly = asReadonlyContainer(container);
+    container.set('a', { id: 'a', value: 1, type: 'item' });
+    container.commitChanges();
+    await flush();
+
+    const { result } = renderHook(() => useContainerKeys(readOnly));
+    expect(result.current).toEqual(['a']);
+
+    // Remove 'a' and add 'b' in ONE commit — the count is unchanged but the
+    // key set is not. This is the shape of a stencil drop (temp cell swap) or
+    // an undo that replaces a cell in the same tick.
+    await act(async () => {
+      container.delete('a');
+      container.set('b', { id: 'b', value: 2, type: 'item' });
+      container.commitChanges();
+      await flush();
+    });
+
+    expect(result.current).toEqual(['b']);
+  });
+
   it('updates the array when a key is added or removed', async () => {
     const container = createContainer<TestItem>();
     const readOnly = asReadonlyContainer(container);

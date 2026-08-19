@@ -32,6 +32,7 @@ export interface ReadonlyContainer<Cell extends AnyCellRecord> {
   has: (id: CellId) => boolean;
   getSize: () => number;
   subscribe: (id: CellId, listener: () => void) => () => void;
+  /** Notifies on membership changes (ids added / removed), even when the net count is unchanged. */
   subscribeToSize: (listener: () => void) => () => void;
   subscribeToAll: (listener: () => void) => () => void;
 }
@@ -82,7 +83,11 @@ export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
   // because `Set.add` is measurably slower than `Array.push` when many
   // unique ids accumulate between commits (each add does a hash lookup).
   let changes: CellId[] = [];
-  let previousSize = 0;
+  // True when the id SET changed since the last commit (add/remove/reset), not
+  // just a value. Gating size-listener notifications on a net count change
+  // would miss same-count membership swaps (remove A + add B in one commit,
+  // same-count reset), leaving key-list subscribers stale.
+  let hasMembershipChanged = false;
   let version = 0;
   return {
     get(id: CellId): Cell | undefined {
@@ -108,6 +113,7 @@ export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
       if (index === undefined) {
         indexById.set(id, items.length);
         items.push(value);
+        hasMembershipChanged = true;
       } else {
         items[index] = value;
       }
@@ -130,6 +136,7 @@ export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
       items.pop();
       indexById.delete(id);
       changes.push(id);
+      hasMembershipChanged = true;
       version++;
     },
     reset(next: readonly Cell[]) {
@@ -145,6 +152,9 @@ export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
         changes.push(item.id as CellId);
         index++;
       }
+      // Reset is a cold path — always flag it. Even when the id set happens to
+      // be identical, key-list subscribers bail out on the stable keys array.
+      hasMembershipChanged = true;
       version++;
     },
     getVersion() {
@@ -169,8 +179,8 @@ export function createContainer<Cell extends AnyCellRecord>(): Container<Cell> {
           listener();
         }
       }
-      if (previousSize !== items.length) {
-        previousSize = items.length;
+      if (hasMembershipChanged) {
+        hasMembershipChanged = false;
         for (const listener of sizeListeners) {
           listener();
         }

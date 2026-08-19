@@ -433,6 +433,46 @@ describe('createContainer', () => {
       expect(listener).not.toHaveBeenCalled();
     });
 
+    it('notifies when membership changes but the count stays the same (swap in one commit)', async () => {
+      const container = setup();
+      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
+      container.commitChanges();
+      await flush();
+
+      const listener = jest.fn();
+      container.subscribeToSize(listener);
+
+      // One coalesced commit: remove 'a' + add 'b' → net size unchanged, but
+      // the key set changed. Subscribers building id lists must be notified.
+      container.delete('a');
+      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
+      container.commitChanges();
+      await flush();
+
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('notifies on reset to the same count with different ids', async () => {
+      const container = setup();
+      container.set('a', { id: 'a', x: 1, y: 2, type: 'item' });
+      container.set('b', { id: 'b', x: 3, y: 4, type: 'item' });
+      container.commitChanges();
+      await flush();
+
+      const listener = jest.fn();
+      container.subscribeToSize(listener);
+
+      // Same count, entirely new ids (e.g. graph.fromJSON reload).
+      container.reset([
+        { id: 'c', x: 5, y: 6, type: 'item' },
+        { id: 'd', x: 7, y: 8, type: 'item' },
+      ]);
+      container.commitChanges();
+      await flush();
+
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
     it('returns an unsubscribe function', async () => {
       const container = setup();
       const listener = jest.fn();
