@@ -45,16 +45,19 @@ jobs:
       mode: ${{ steps.select-mode.outputs.mode }}
     steps:
       - name: Checkout joint
+        id: checkout-joint
         uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Node.js v22
+        id: setup-node
         uses: actions/setup-node@v7
         with:
           node-version: 22.14.0
 
       - name: Cache Yarn
+        id: cache-yarn
         uses: actions/cache@v6
         with:
           path: |
@@ -62,6 +65,7 @@ jobs:
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
       - name: Install dependencies
+        id: install-dependencies
         run: yarn install --immutable
 
       - name: Select Changesets mode
@@ -78,16 +82,19 @@ jobs:
       pull-requests: write # open the release PR
     steps:
       - name: Checkout joint
+        id: checkout-joint
         uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Node.js v22
+        id: setup-node
         uses: actions/setup-node@v7
         with:
           node-version: 22.14.0
 
       - name: Cache Yarn
+        id: cache-yarn
         uses: actions/cache@v6
         with:
           path: |
@@ -95,10 +102,12 @@ jobs:
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
       - name: Install dependencies
+        id: install-dependencies
         run: yarn install --immutable
 
       # Runs `changeset version` and pushes the result to `changeset-release/master`.
       - name: Version packages
+        id: version-packages
         uses: changesets/action/version@v2
 
   # Release PR merged: build and publish everything that is not on npm yet.
@@ -110,16 +119,18 @@ jobs:
       contents: write # push git tags and create GitHub Releases
     steps:
       - name: Checkout joint
+        id: checkout-joint
         uses: actions/checkout@v7
 
-
       - name: Setup Node.js v22
+        id: setup-node
         uses: actions/setup-node@v7
         with:
           node-version: 22.14.0
           # No `registry-url` on purpose (not used by Yarn)
 
       - name: Cache Yarn
+        id: cache-yarn
         uses: actions/cache@v6
         with:
           path: |
@@ -127,14 +138,17 @@ jobs:
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
       - name: Install dependencies
+        id: install-dependencies
         run: yarn install --immutable
 
       - name: Build packages
+        id: build-packages
         run: yarn dist
 
       # Runs `changeset publish`, which publishes through `yarn npm publish` (Yarn Berry
       # is auto-detected), then tags each published package and cuts a GitHub Release.
       - name: Publish packages
+        id: publish-packages
         uses: changesets/action/publish@v2
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
