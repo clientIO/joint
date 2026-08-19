@@ -62,6 +62,18 @@ jobs:
         id: install-dependencies
         run: yarn install --immutable
 
+      # Changing releasable code in a public package must provide a changeset
+      # (Releasable files are configured in `.changeset/config.json`)
+      # (Call `yarn changeset add --empty` to opt out of a release)
+      - name: Check changeset
+        id: check-changeset
+        # Release PR is skipped - it consumes all changesets instead
+        if: ${{ github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/') }}
+        # Compare PR to current committed master
+        run: |
+          git fetch --no-tags origin '+refs/heads/master:refs/remotes/origin/master'
+          yarn changeset status --since=origin/master
+
       # Build the joint project
       - name: Prepare joint
         id: prepare-joint

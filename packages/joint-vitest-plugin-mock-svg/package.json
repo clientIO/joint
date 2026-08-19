@@ -42,7 +42,8 @@
     "mocks/",
     "./LICENSE",
     "./README.md",
-    "./SECURITY.md"
+    "./SECURITY.md",
+    "./CHANGELOG.md"
   ],
   "exports": {
     ".": {
