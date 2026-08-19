@@ -123,7 +123,7 @@ describe('GraphProvider — imperative external-graph churn', () => {
     });
   });
 
-  it('survives delete + undo-style re-add above the deferred-rendering threshold (>100 cells)', async () => {
+  it('survives delete + undo-style re-add at scale (120 cells)', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     caughtState.error = null;
 
@@ -147,8 +147,8 @@ describe('GraphProvider — imperative external-graph churn', () => {
 
     const removedJSON = graph.getCell('el-115').toJSON();
 
-    // Delete — above the threshold the portal tree renders once more from the
-    // deferred (stale) id list while the store no longer has the cell.
+    // Delete at scale — regression for the historical `useCell(): no cell with
+    // id` crash, where a stale render pass hit the already-removed cell.
     await act(async () => {
       graph.removeCells([graph.getCell('el-115')]);
     });
