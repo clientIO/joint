@@ -98,6 +98,35 @@ const connectorRefs: Record<string, ConnRef> = {};
 const linksByPointer: Record<number, dia.Cell.ID> = {};
 
 let updateDebounceTime: number = 100;
+/**
+ * Drops every `updateConnector` request that is followed by a
+ * `deleteConnector` for the same connector later in the batch. Besides
+ * being dead work, applying such an update would make libavoid warn on the
+ * deletion ("ConnEnd set but Router::processTransaction has not yet been
+ * called") - the update sets the connector's endpoints, and the whole
+ * batch shares a single `processTransaction()` call that only runs
+ * afterwards. Common while dragging a link end: every pointermove queues
+ * an update or delete for the same connector.
+ *
+ * @param messages - The batch to compact, in arrival order.
+ * @returns The batch without the superseded updates.
+ */
+function compactMessages(messages: QueueableWorkerRequest[]): QueueableWorkerRequest[] {
+    const lastDeleteIndex = new Map<dia.Cell.ID, number>();
+    messages.forEach((message, index) => {
+        if (message.type === 'deleteConnector') {
+            lastDeleteIndex.set(message.connectorId, index);
+        }
+    });
+    if (lastDeleteIndex.size === 0) return messages;
+
+    return messages.filter((message, index) => {
+        if (message.type !== 'updateConnector') return true;
+        const deleteIndex = lastDeleteIndex.get(message.connector.id);
+        return deleteIndex === undefined || index > deleteIndex;
+    });
+}
+
 // Drains the queued messages, applying each of them, and runs
 // `processTransaction()` at most once for the whole batch.
 /** Applies every currently queued request, then runs a single `processTransaction()` for the whole batch. */
@@ -105,7 +134,7 @@ const flushMessageFunction = () => {
     const messages = messageQueue.splice(0, messageQueue.length);
     if (messages.length === 0) return;
 
-    messages.forEach(handleQueuedMessage);
+    compactMessages(messages).forEach(handleQueuedMessage);
 
     avoidRouter.processTransaction();
     postResponse({ type: 'processed' });
