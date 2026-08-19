@@ -38,7 +38,7 @@
     "./CHANGELOG.md"
   ],
   "dependencies": {
-    "@joint/core": "workspace:~"
+    "@joint/core": "workspace:^"
   },
   "devDependencies": {
     "@joint/eslint-config": "workspace:*",
