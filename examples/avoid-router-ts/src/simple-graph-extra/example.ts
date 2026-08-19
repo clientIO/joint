@@ -196,17 +196,16 @@ export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<voi
         idealNudgingDistance: 10,
         trackLink: ({ link }) => !link.get('skip') && !isGroupB(link),
         trackElement: ({ element }) => !element.get('skip') && !isGroupB(element),
+        setRouteAttributes: ({ link, attributes }) => {
+            link.unset('connector');
+            link.set(attributes);
+        },
         interceptUnroutableLink: ({ link, reason }) => {
             switch (reason) {
                 case 'unconnected': {
-                    if (link.get('isDragging')) {
-                        return true;
-                    }
                     link.set({
                         vertices: [],
-                        router: { name: 'normal' },
                         connector: { name: 'curve' },
-                        isDragging: true,
                     });
                     return true;
                 }
@@ -214,16 +213,6 @@ export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<voi
                     return false;
             }
         },
-    });
-
-    routerServiceA.on('link:routed', (link: dia.Link) => {
-        if (link.get('isDragging')) {
-            link.set({
-                router: { name: 'normal' },
-                connector: null,
-                isDragging: false,
-            });
-        }
     });
 
     routerServiceA.start();
