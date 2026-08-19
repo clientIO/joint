@@ -64,7 +64,7 @@ jobs:
 
       # Changing releasable code in a public package must provide a changeset
       # (Releasable files are configured in `.changeset/config.json`)
-      # (Call `yarn changeset --empty` for a PR without releasable code)
+      # (Call `yarn changeset add --empty` to opt out of a release)
       - name: Check changeset
         id: check-changeset
         # Release PR is skipped - it consumes all changesets instead
