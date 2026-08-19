@@ -2,4 +2,4 @@
 "@joint/core": patch
 ---
 
-routers - fix stale bbox property references breaking the `rightAngle` router and extract its path-finding into the internal `alg.rightAnglePath`
+No user-facing changes - version bump required by the new `@joint/router-avoid` package
