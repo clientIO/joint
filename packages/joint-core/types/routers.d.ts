@@ -98,7 +98,6 @@ export interface RightAngleRouterArguments {
      * `@joint/router-avoid`'s demos and subject to change.
      */
     useModelGeometry?: boolean;
-    /** @experimental before version 4.0 */
     useVertices?: boolean;
     sourceDirection?: RightAngleDirections;
     targetDirection?: RightAngleDirections;
