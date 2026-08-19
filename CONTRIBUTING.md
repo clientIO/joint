@@ -39,10 +39,6 @@ yarn test-server       # Server-side tests (Node.js/Mocha)
 yarn test-client       # Client-side tests (Browser/Karma/QUnit)
 yarn test-ts           # TypeScript type definition tests
 yarn test-e2e          # End-to-end tests (Puppeteer)
-
-# Run tests for a specific file (joint-core)
-cd packages/joint-core
-npm run test-client -- --file=test/jointjs/graph.js
 ```
 
 ## Linting
@@ -230,12 +226,13 @@ Notes:
 
 - Private packages are never versioned or published.
 - A package is only dragged into a release by a dependency when the new version
-  falls **outside** its declared range. `workspace:~` expands to
-  `~<core's current version>`, so `@joint/layout-directed-graph`,
-  `@joint/layout-msagl` and `@joint/decorators` get an automatic patch release
-  on a `@joint/core` **minor** or major, but not on a `@joint/core` patch -
-  `4.3.2` still satisfies `~4.3.1`. `@joint/react` uses `workspace:^`, so it
-  only rides along on a `@joint/core` **major**.
+  falls **outside** its declared range, and only through a runtime dependency -
+  a `devDependencies` entry never causes one. `workspace:~` expands to
+  `~<core's current version>`, so `@joint/layout-directed-graph` and
+  `@joint/layout-msagl` get an automatic patch release on a `@joint/core`
+  **minor** or major, but not on a `@joint/core` patch - `4.3.2` still satisfies
+  `~4.3.1`. `@joint/decorators` and `@joint/react` use `workspace:^`, so they
+  only ride along on a `@joint/core` **major**.
 - `@joint/core`, `@joint/layout-directed-graph` and `@joint/layout-msagl` are
   **linked**, so any of them released together share one version (the highest
   bump type in the run, applied to the group's highest current version).
@@ -251,7 +248,7 @@ Notes:
 
 ## Code Style
 
-- TypeScript strict mode is enabled
+- TypeScript strict mode is enabled; its settings are per package, not repo-wide
 - ESLint flat config (v9) via `@joint/eslint-config`
 - Run `yarn lint-fix` before committing
 

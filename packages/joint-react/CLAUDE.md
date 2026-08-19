@@ -9,17 +9,18 @@ code in this repository.
 components and hooks for building diagramming applications with JointJS,
 rendering diagram elements as React components via SVG foreignObject portals.
 
-**Stack:** TypeScript 5.9, React 19 (peer: >=18 <20), esbuild (build), Vite
+**Stack:** TypeScript 5.9, React 19 (peer: >=18), Rollup + esbuild (build), Vite
 (storybook/dev), Jest 30 + @testing-library/react (testing), ESLint 9 flat
 config, Storybook 10
 
 ## Common Commands
 
 ```bash
-# Build (esbuild → dist/cjs, dist/esm, dist/types)
+# Build (Rollup + esbuild → dist/cjs, dist/esm, dist/types)
 yarn build
 
-# Run all checks (typecheck + knip + jest)
+# Run all checks (typecheck + knip + jest, once against React 19 and once
+# against React 18)
 yarn test
 
 # Run individual checks
@@ -29,7 +30,7 @@ yarn lint-fix               # ESLint with auto-fix
 yarn jest                   # Jest tests only
 
 # Run a single test file
-yarn jest --testPathPattern="use-elements"
+yarn jest --testPathPatterns="use-elements"
 
 # Run tests in watch mode
 yarn jest --watch

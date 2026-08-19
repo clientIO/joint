@@ -9,8 +9,8 @@ JointJS is a JavaScript/TypeScript diagramming library for building visual and
 no-code/low-code applications. It's a Yarn workspace monorepo with multiple
 packages.
 
-**Stack:** Node 22.14.0, Yarn 4.18.0, TypeScript 5.8, Grunt (build),
-QUnit/Jest/Karma (testing)
+**Stack:** Node 22.14.0, Yarn 4.18.0, TypeScript 5.8 (5.9 in `joint-react`),
+Grunt (build), QUnit/Karma/Mocha/Jest (testing)
 
 ## Common Commands
 
@@ -41,16 +41,10 @@ yarn build-bundles
 
 ### Running Single Tests
 
-For joint-core QUnit tests, use Grunt directly:
-```bash
-cd packages/joint-core
-grunt test:server --file=test/jointjs/paper.js  # Single test file
-```
-
 For joint-react Jest tests:
 ```bash
 cd packages/joint-react
-yarn test -- --testPathPattern="ComponentName"
+yarn jest --testPathPatterns="ComponentName"
 ```
 
 ## Architecture
@@ -58,7 +52,7 @@ yarn test -- --testPathPattern="ComponentName"
 ### Monorepo Packages (`/packages`)
 
 - **@joint/core** - Main diagramming library (MVC architecture, SVG rendering)
-- **@joint/react** - React bindings and hooks (Vite + Storybook)
+- **@joint/react** - React bindings and hooks (Rollup + esbuild, Storybook)
 - **@joint/layout-directed-graph** - Graph layout algorithms
 - **@joint/layout-msagl** - Microsoft MSAGL layout integration
 - **@joint/shapes-general** - General-purpose diagram shapes
@@ -81,24 +75,30 @@ The library follows an MVC pattern:
 - **`anchors/`** - Connection point anchors on elements
 - **`highlighters/`** - Visual highlighting mechanisms
 - **`linkTools/`**, **`elementTools/`** - Interactive manipulation tools
+- **`shapes/`** - Built-in shapes (standard)
+- **`layout/`** - Built-in layouts (port, port label)
 - **`alg/`** - Graph algorithms (DFS, BFS, shortest path)
 
 ### Main Export (`/packages/joint-core/src/core.mjs`)
 
 ```javascript
-export { anchors, linkAnchors, connectionPoints, connectionStrategies,
-         connectors, dia, highlighters, mvc, routers, util,
-         linkTools, elementTools, V, g };
+export { anchors, linkAnchors, config, connectionPoints, connectionStrategies,
+         connectors, dia, env, highlighters, layout, mvc, routers, setTheme,
+         util, version, linkTools, elementTools, V, Vectorizer, g };
 ```
 
 ## Test Organization
 
 - **`/packages/joint-core/test/jointjs/`** - QUnit tests for core functionality
+- **`/packages/joint-core/test/jointjs-nodejs/`** - Mocha tests run by
+  `test-server`
 - **`/packages/joint-core/test/geometry/`** - Geometry library tests
 - **`/packages/joint-core/test/vectorizer/`** - SVG vectorizer tests
-- **`/packages/joint-core/test/ts/`** - TypeScript definition validation
+- **`/packages/joint-core/test/ts/`**, **`test/ts-exports/`** - TypeScript
+  definition validation
 - **`/packages/joint-core/test/e2e/`** - Puppeteer E2E tests
-- **`/packages/joint-react/`** - Jest tests with @testing-library/react
+- **`/packages/joint-react/src/`** - Jest tests with @testing-library/react,
+  colocated in `__tests__` folders
 
 ## Changesets
 
@@ -113,6 +113,9 @@ frontmatter, the `scope - description` changelog style (`dia.Paper`, `anchors`,
   only when ID actually changes
 - **Workspace commands:** Use `yarn workspaces foreach --all -tvv run <cmd>`
   for cross-package operations
-- **TypeScript:** Strict mode enabled with `noUnusedLocals`,
-  `noUnusedParameters`, `noImplicitReturns`
+- **TypeScript:** Strict mode enabled; the settings are per package, not
+  repo-wide. `tsconfig.common.json` adds `noUnusedLocals`,
+  `noUnusedParameters` and `noImplicitReturns`, and is used by `joint-cli`,
+  `joint-decorators` and the `shapes-general` packages - `joint-core` and
+  `joint-react` each have their own
 - **ESLint:** Uses flat config format (v9) via `@joint/eslint-config`

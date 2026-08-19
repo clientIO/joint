@@ -4,7 +4,8 @@ This folder holds pending changesets. Versions, `CHANGELOG.md` files and npm
 publishing are driven from them by
 [`@changesets/cli`](https://github.com/changesets/changesets)
 - see [CONTRIBUTING.md](../CONTRIBUTING.md#changesets) for the full workflow and
-[Changeset format](../CONTRIBUTING.md#changeset-format) for the rules this project expects.
+  [Changeset format](../CONTRIBUTING.md#changeset-format) for the rules this
+  project expects.
 
 Add one with `yarn changeset`, or write the file by hand:
 
@@ -27,9 +28,9 @@ The short version of the format:
   and add another changeset file for each further changelog line.
 - **Scope** - usually `namespace.Class` (`dia.Paper`, `elementTools.Control`,
   `mvc.View`, `layout.MSAGL`), or the component/hook for `@joint/react`
-  (`<Paper />`, `useCreateFeature`). A bare `namespace` (`anchors`,
-  `connectionPoints`) when the change covers all of it; no scope at all for
-  package-wide, architectural changes.
+  (`<Paper />`, `useCells`). A bare `namespace` (`anchors`, `connectionPoints`)
+  when the change covers all of it; no scope at all for package-wide,
+  architectural changes.
 - **Description** - less than ~100 characters, lowercase, no trailing period,
   verb first. Code artifacts in backticks (`` `changeId` ``,
   `` `batch:start` ``, `` `initializeUnmounted: true` ``); functions and

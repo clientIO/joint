@@ -106,7 +106,7 @@ Make sure you have the following dependencies installed on your system:
 - [git](https://git-scm.com/)
 - [yarn](https://yarnpkg.com/getting-started/install)
 
-The installation requires Node version >= 20.19.3, to avoid syntax errors during installation.
+The installation requires Node version 22.14.0, to avoid syntax errors during installation.
 
 Make sure that you are using Yarn version >= 2.0.0, so that you have access to [Yarn workspace ranges](https://yarnpkg.com/features/workspaces#workspace-ranges-workspace) functionality. If you are using [Volta](https://volta.sh/), it will automatically read this restriction from `package.json`.
 
