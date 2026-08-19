@@ -291,6 +291,10 @@ function pointDataFromAnchor(view, anchor, bbox, direction, isPort, margin, useM
 
     const isElement = view && view.model.isElement();
 
+    // Find the union of:
+    // - the element bbox
+    // - the ports may overlap the element body
+    // - the anchor point may be outside the element body and port
     let rect;
     if (useModelGeometry) {
         rect = isElement ? g.Rect.fromRectUnion(view.model.getBBox(), anchor) : anchor;
