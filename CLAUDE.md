@@ -1,12 +1,16 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## Project Overview
 
-JointJS is a JavaScript/TypeScript diagramming library for building visual and no-code/low-code applications. It's a Yarn workspace monorepo with multiple packages.
+JointJS is a JavaScript/TypeScript diagramming library for building visual and
+no-code/low-code applications. It's a Yarn workspace monorepo with multiple
+packages.
 
-**Stack:** Node 22.14.0, Yarn 4.18.0, TypeScript 5.8, Grunt (build), QUnit/Jest/Karma (testing)
+**Stack:** Node 22.14.0, Yarn 4.18.0, TypeScript 5.8, Grunt (build),
+QUnit/Jest/Karma (testing)
 
 ## Common Commands
 
@@ -96,9 +100,19 @@ export { anchors, linkAnchors, connectionPoints, connectionStrategies,
 - **`/packages/joint-core/test/e2e/`** - Puppeteer E2E tests
 - **`/packages/joint-react/`** - Jest tests with @testing-library/react
 
+## Changesets
+
+Releasable changes need a changeset in `/.changeset`. Before writing one, read
+the **Changeset format** section of `CONTRIBUTING.md` - it defines the required
+frontmatter, the `scope - description` changelog style (`dia.Paper`, `anchors`,
+`<Paper />`, ...), and the backtick/`()` conventions - and follow it exactly.
+
 ## Key Patterns
 
-- **Change tracking:** Models emit `change:*` events; `changeId` event triggers only when ID actually changes
-- **Workspace commands:** Use `yarn workspaces foreach --all -tvv run <cmd>` for cross-package operations
-- **TypeScript:** Strict mode enabled with `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`
+- **Change tracking:** Models emit `change:*` events; `changeId` event triggers
+  only when ID actually changes
+- **Workspace commands:** Use `yarn workspaces foreach --all -tvv run <cmd>`
+  for cross-package operations
+- **TypeScript:** Strict mode enabled with `noUnusedLocals`,
+  `noUnusedParameters`, `noImplicitReturns`
 - **ESLint:** Uses flat config format (v9) via `@joint/eslint-config`
