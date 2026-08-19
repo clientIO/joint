@@ -45,17 +45,17 @@ jobs:
       mode: ${{ steps.select-mode.outputs.mode }}
     steps:
       - name: Checkout joint
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Node.js v22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.14.0
 
       - name: Cache Yarn
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .yarn/cache
@@ -78,17 +78,17 @@ jobs:
       pull-requests: write # open the release PR
     steps:
       - name: Checkout joint
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Node.js v22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.14.0
 
       - name: Cache Yarn
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .yarn/cache
@@ -110,17 +110,17 @@ jobs:
       contents: write # push git tags and create GitHub Releases
     steps:
       - name: Checkout joint
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
 
       - name: Setup Node.js v22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.14.0
           # No `registry-url` on purpose (not used by Yarn)
 
       - name: Cache Yarn
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .yarn/cache
