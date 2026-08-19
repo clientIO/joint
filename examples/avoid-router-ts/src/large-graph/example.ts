@@ -17,6 +17,18 @@ export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void
 
     const { graph, paper } = createPaper(canvasEl, cellNamespace, {
         defaultLink: () => new AppLink(),
+        // Only allow connections to ports, not to the element body.
+        validateConnection: (
+            sourceView: dia.CellView,
+            sourceMagnet: SVGElement,
+            targetView: dia.CellView,
+            targetMagnet: SVGElement,
+            end: dia.LinkEnd
+        ) => {
+            if (!sourceView.model.isElement() || !targetView.model.isElement()) return false;
+            if (sourceView === targetView) return false;
+            return !!(end === 'target' ? targetMagnet : sourceMagnet);
+        },
     });
 
     graph.resetCells(largeGraph.cells);
