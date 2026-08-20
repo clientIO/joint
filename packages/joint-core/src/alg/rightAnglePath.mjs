@@ -35,7 +35,6 @@ function getOutsidePoint(side, pointData) {
 
 // Calculates the distances along the horizontal axis for the left and right route.
 function getHorizontalDistance(source, target) {
-
     const { outsidePoint: sourcePoint } = source;
     const { outsidePoint: targetPoint } = target;
 
@@ -134,6 +133,453 @@ function getVerticalDistance(source, target) {
     return [topD, bottomD];
 }
 
+// Builds the S-shaped connection for the sides facing each other on the horizontal axis
+// (`left => right` and `right => left`).
+// `isSourcePastTargetMargin` tells whether the source offset point already lies beyond the
+// boundary the target route leaves through - if so, both ends share a single vertical segment.
+function getHorizontalSShapePoints(sourcePoint, targetPoint, isSourcePastTargetMargin) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+    const middleY = (sOffsetY + tOffsetY) / 2;
+
+    if (isSourcePastTargetMargin) {
+        const middleX = (sOffsetX + tOffsetX) / 2;
+        return [
+            { x: middleX, y: sOffsetY },
+            { x: middleX, y: middleY },
+            { x: middleX, y: middleY },
+            { x: middleX, y: tOffsetY }
+        ];
+    }
+
+    return [
+        { x: sOffsetX, y: sOffsetY },
+        { x: sOffsetX, y: middleY },
+        { x: tOffsetX, y: middleY },
+        { x: tOffsetX, y: tOffsetY }
+    ];
+}
+
+// Builds the S-shaped connection for the sides facing each other on the vertical axis
+// (`top => bottom` and `bottom => top`) - the counterpart of `getHorizontalSShapePoints()`.
+// `isSourcePastTargetMargin` tells whether the source offset point already lies beyond the
+// boundary the target route leaves through - if so, both ends share a single horizontal segment.
+function getVerticalSShapePoints(sourcePoint, targetPoint, isSourcePastTargetMargin) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+    const middleX = (sOffsetX + tOffsetX) / 2;
+
+    if (isSourcePastTargetMargin) {
+        const middleY = (sOffsetY + tOffsetY) / 2;
+        return [
+            { x: sOffsetX, y: middleY },
+            { x: middleX, y: middleY },
+            { x: middleX, y: middleY },
+            { x: tOffsetX, y: middleY }
+        ];
+    }
+
+    return [
+        { x: sOffsetX, y: sOffsetY },
+        { x: middleX, y: sOffsetY },
+        { x: middleX, y: tOffsetY },
+        { x: tOffsetX, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route between the sides lying on the horizontal axis
+// (`left => right` and `right => left`).
+// `bends` is the pair of vertical segments the route bends at (`x1` and `x2`), joined by a
+// horizontal one at `y`, with `isUpwardsShorter` telling whether the shorter way around
+// the elements is the one upwards. Without it, the two offset points are joined by a
+// single vertical segment halfway between them.
+function getHorizontalRoutePoints(sourceBBox, targetBBox, sourcePoint, targetPoint, bends = null) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+
+    if (!bends) {
+        const x = (sOffsetX + tOffsetX) / 2;
+        return [
+            { x, y: sOffsetY },
+            { x, y: tOffsetY }
+        ];
+    }
+
+    const { y, isUpwardsShorter } = bends;
+    let { x1, x2 } = bends;
+
+    const sBoxY0 = sourceBBox.y;
+    const sBoxY1 = sBoxY0 + sourceBBox.height;
+    const tBoxY0 = targetBBox.y;
+    const tBoxY1 = tBoxY0 + targetBBox.height;
+
+    // This is an edge case when the source and target intersect and
+    if ((isUpwardsShorter && sOffsetY < tBoxY0) || (!isUpwardsShorter && sOffsetY > tBoxY1)) {
+        // the path should no longer rely on the target boundary in `x1`
+        x1 = sOffsetX;
+    } else if ((isUpwardsShorter && tOffsetY < sBoxY0) || (!isUpwardsShorter && tOffsetY > sBoxY1)) {
+        // the path should no longer rely on the source boundary in `x2`
+        x2 = tOffsetX;
+    }
+
+    return [
+        { x: x1, y: sOffsetY },
+        { x: x1, y },
+        { x: x2, y },
+        { x: x2, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route between the sides lying on the vertical axis
+// (`top => bottom` and `bottom => top`) - the counterpart of `getHorizontalRoutePoints()`.
+// `bends` is the pair of horizontal segments the route bends at (`y1` and `y2`), joined by
+// a vertical one at `x`, with `isLeftShorter` telling whether the shorter way around the
+// elements is the one to the left. Without it, the two offset points are joined by a
+// single horizontal segment halfway between them.
+function getVerticalRoutePoints(sourceBBox, targetBBox, sourcePoint, targetPoint, bends = null) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+
+    if (!bends) {
+        const y = (sOffsetY + tOffsetY) / 2;
+        return [
+            { x: sOffsetX, y },
+            { x: tOffsetX, y }
+        ];
+    }
+
+    const { x, isLeftShorter } = bends;
+    let { y1, y2 } = bends;
+
+    const sBoxX0 = sourceBBox.x;
+    const sBoxX1 = sBoxX0 + sourceBBox.width;
+    const tBoxX0 = targetBBox.x;
+    const tBoxX1 = tBoxX0 + targetBBox.width;
+
+    // This is an edge case when the source and target intersect and
+    if ((isLeftShorter && sOffsetX < tBoxX0) || (!isLeftShorter && sOffsetX > tBoxX1)) {
+        // the path should no longer rely on the target boundary in `y1`
+        y1 = sOffsetY;
+    } else if ((isLeftShorter && tOffsetX < sBoxX0) || (!isLeftShorter && tOffsetX > sBoxX1)) {
+        // the path should no longer rely on the source boundary in `y2`
+        y2 = tOffsetY;
+    }
+
+    return [
+        { x: sOffsetX, y: y1 },
+        { x, y: y1 },
+        { x, y: y2 },
+        { x: tOffsetX, y: y2 }
+    ];
+}
+
+// Assembles the points of the route between the sides facing the same way on the horizontal
+// axis (`left => left` and `right => right`). The route leaves both sides and joins them with
+// a horizontal segment at `y`, reaching it along `x2` on the source end and `x1` on the target
+// one.
+// `isSourceFurtherOut` tells whether it is the source side that lies further out - the route
+// then has to clear the source element, otherwise the target one - and `isUpwardsShorter`
+// whether clearing it above the elements is shorter than below.
+function getHorizontalSameSideRoutePoints(source, target, sourcePoint, targetPoint, bends) {
+    const { y: sOffsetY } = sourcePoint;
+    const { y: tOffsetY } = targetPoint;
+    const { x1, x2, isSourceFurtherOut, isUpwardsShorter } = bends;
+
+    // The route has to clear the element lying further out and reach the offset point of the other one.
+    const { bbox, margin } = isSourceFurtherOut ? source : target;
+    const offsetY = isSourceFurtherOut ? tOffsetY : sOffsetY;
+
+    const y = isUpwardsShorter
+        ? Math.min(bbox.y - margin, offsetY)
+        : Math.max(bbox.y + bbox.height + margin, offsetY);
+
+    return [
+        { x: x2, y: sOffsetY },
+        { x: x2, y },
+        { x: x1, y },
+        { x: x1, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route between the sides facing the same way on the vertical
+// axis (`top => top` and `bottom => bottom`) - the transposed counterpart of
+// `getHorizontalSameSideRoutePoints()`. The route leaves both sides and joins them with a
+// vertical segment at `x`, reaching it along `y2` on the source end and `y1` on the target one.
+// `isSourceFurtherOut` tells whether it is the source side that lies further out - the route
+// then has to clear the source element, otherwise the target one - and `isLeftShorter`
+// whether clearing it to the left of the elements is shorter than to the right.
+function getVerticalSameSideRoutePoints(source, target, sourcePoint, targetPoint, bends) {
+    const { x: sOffsetX } = sourcePoint;
+    const { x: tOffsetX } = targetPoint;
+    const { y1, y2, isSourceFurtherOut, isLeftShorter } = bends;
+
+    // The route has to clear the element lying further out and reach the offset point of the other one.
+    const { bbox, margin } = isSourceFurtherOut ? source : target;
+    const offsetX = isSourceFurtherOut ? tOffsetX : sOffsetX;
+
+    const x = isLeftShorter
+        ? Math.min(bbox.x - margin, offsetX)
+        : Math.max(bbox.x + bbox.width + margin, offsetX);
+
+    return [
+        { x: sOffsetX, y: y2 },
+        { x, y: y2 },
+        { x, y: y1 },
+        { x: tOffsetX, y: y1 }
+    ];
+}
+
+// Assembles the points of the route from the `left` or `right` source side to the `bottom`
+// target side, when the target lies beyond that source side (`left => bottom` and
+// `right => bottom`).
+// `x` is the vertical segment the route bends at, `canTurnAtSource` tells whether the route
+// may turn towards the target right after leaving the source side instead.
+function getSideToBottomPoints(targetBBox, sourcePoint, targetPoint, sourceMargin, x, canTurnAtSource) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+
+    // The source offset point already lies below the target offset point.
+    if (sOffsetY >= tOffsetY) {
+        return [{ x: tOffsetX, y: sOffsetY }];
+    }
+
+    if (canTurnAtSource) {
+        const tBoxY1 = targetBBox.y + targetBBox.height;
+
+        // The turn would end up below the bottom side of the target element,
+        // so head straight for the target instead.
+        if (sOffsetY + sourceMargin > tBoxY1) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y: tOffsetY },
+                { x: tOffsetX, y: tOffsetY }
+            ];
+        }
+
+        return [
+            { x: sOffsetX, y: sOffsetY },
+            { x: sOffsetX, y: sOffsetY + sourceMargin },
+            { x, y: sOffsetY + sourceMargin },
+            { x, y: tOffsetY },
+            { x: tOffsetX, y: tOffsetY }
+        ];
+    }
+
+    return [
+        { x, y: sOffsetY },
+        { x, y: tOffsetY },
+        { x: tOffsetX, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route from the `left` or `right` source side to the `top`
+// target side, when the target lies beyond that source side (`left => top` and
+// `right => top`) - the counterpart of `getSideToBottomPoints()`.
+function getSideToTopPoints(targetBBox, sourcePoint, targetPoint, sourceMargin, x, canTurnAtSource) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+
+    // The source offset point already lies above the target offset point.
+    if (sOffsetY <= tOffsetY) {
+        return [{ x: tOffsetX, y: sOffsetY }];
+    }
+
+    if (canTurnAtSource) {
+        const tBoxY0 = targetBBox.y;
+
+        // The turn would end up above the top side of the target element,
+        // so head straight for the target instead.
+        if (sOffsetY - sourceMargin < tBoxY0) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x: sOffsetX, y: tOffsetY },
+                { x: tOffsetX, y: tOffsetY }
+            ];
+        }
+
+        return [
+            { x: sOffsetX, y: sOffsetY },
+            { x: sOffsetX, y: sOffsetY - sourceMargin },
+            { x, y: sOffsetY - sourceMargin },
+            { x, y: tOffsetY },
+            { x: tOffsetX, y: tOffsetY }
+        ];
+    }
+
+    return [
+        { x, y: sOffsetY },
+        { x, y: tOffsetY },
+        { x: tOffsetX, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route from the `top` or `bottom` source side to the `left`
+// target side, when the target lies beyond that source side (`top => left` and
+// `bottom => left`) - the transposed counterpart of `getSideToBottomPoints()`.
+// `y` is the horizontal segment the route bends at, `canTurnAtSource` tells whether the route
+// may turn towards the target right after leaving the source side instead.
+function getSideToLeftPoints(targetBBox, sourcePoint, targetPoint, sourceMargin, y, canTurnAtSource) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+
+    // The source offset point already lies to the left of the target offset point.
+    if (sOffsetX <= tOffsetX) {
+        return [{ x: sOffsetX, y: tOffsetY }];
+    }
+
+    if (canTurnAtSource) {
+        const tBoxX0 = targetBBox.x;
+
+        // The turn would end up beyond the left side of the target element,
+        // so head straight for the target instead.
+        if (sOffsetX - sourceMargin < tBoxX0) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x: tOffsetX, y: sOffsetY },
+                { x: tOffsetX, y: tOffsetY }
+            ];
+        }
+
+        return [
+            { x: sOffsetX, y: sOffsetY },
+            { x: sOffsetX - sourceMargin, y: sOffsetY },
+            { x: sOffsetX - sourceMargin, y },
+            { x: tOffsetX, y },
+            { x: tOffsetX, y: tOffsetY }
+        ];
+    }
+
+    return [
+        { x: sOffsetX, y },
+        { x: tOffsetX, y },
+        { x: tOffsetX, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route from the `top` or `bottom` source side to the `right`
+// target side, when the target lies beyond that source side (`top => right` and
+// `bottom => right`) - the mirror of `getSideToLeftPoints()`.
+function getSideToRightPoints(targetBBox, sourcePoint, targetPoint, sourceMargin, y, canTurnAtSource) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+
+    // The source offset point already lies to the right of the target offset point.
+    if (sOffsetX >= tOffsetX) {
+        return [{ x: sOffsetX, y: tOffsetY }];
+    }
+
+    if (canTurnAtSource) {
+        const tBoxX1 = targetBBox.x + targetBBox.width;
+
+        // The turn would end up beyond the right side of the target element,
+        // so head straight for the target instead.
+        if (sOffsetX + sourceMargin > tBoxX1) {
+            return [
+                { x: sOffsetX, y: sOffsetY },
+                { x: tOffsetX, y: sOffsetY },
+                { x: tOffsetX, y: tOffsetY }
+            ];
+        }
+
+        return [
+            { x: sOffsetX, y: sOffsetY },
+            { x: sOffsetX + sourceMargin, y: sOffsetY },
+            { x: sOffsetX + sourceMargin, y },
+            { x: tOffsetX, y },
+            { x: tOffsetX, y: tOffsetY }
+        ];
+    }
+
+    return [
+        { x: sOffsetX, y },
+        { x: tOffsetX, y },
+        { x: tOffsetX, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route from the `left` or `right` source side to the `top` or
+// `bottom` target side, when the target does not lie beyond that source side. The route
+// leaves the source side and bends at `y`.
+// `needsTargetApproach` tells whether it then has to come at the target sideways - through
+// `approachX` - instead of reaching it right at the bend.
+function getSideToTopOrBottomPoints(sourcePoint, targetPoint, y, approachX, needsTargetApproach) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+
+    if (needsTargetApproach) {
+        return [
+            { x: sOffsetX, y: sOffsetY },
+            { x: sOffsetX, y },
+            { x: approachX, y },
+            { x: approachX, y: tOffsetY },
+            { x: tOffsetX, y: tOffsetY }
+        ];
+    }
+
+    return [
+        { x: sOffsetX, y: sOffsetY },
+        { x: sOffsetX, y },
+        { x: tOffsetX, y }
+    ];
+}
+
+// Assembles the points of the route from the `top` or `bottom` source side to the `left` or
+// `right` target side, when the target does not lie beyond that source side - the transposed
+// counterpart of `getSideToTopOrBottomPoints()`. The route leaves the source side and bends
+// at `x`.
+// `needsTargetApproach` tells whether it then has to come at the target sideways - through
+// `approachY` - instead of reaching it right at the bend.
+function getSideToLeftOrRightPoints(sourcePoint, targetPoint, x, approachY, needsTargetApproach) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+
+    if (needsTargetApproach) {
+        return [
+            { x: sOffsetX, y: sOffsetY },
+            { x, y: sOffsetY },
+            { x, y: approachY },
+            { x: tOffsetX, y: approachY },
+            { x: tOffsetX, y: tOffsetY }
+        ];
+    }
+
+    return [
+        { x: sOffsetX, y: sOffsetY },
+        { x, y: sOffsetY },
+        { x, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route crossing halfway between the two offset points, along the
+// vertical segment at their middle `x`. The `top` and `bottom` source branches fall back to it
+// when the target point lies inside the source element and there is no room to route around it.
+function getMiddleXPoints(sourcePoint, targetPoint) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+    const middleX = (sOffsetX + tOffsetX) / 2;
+
+    return [
+        { x: sOffsetX, y: sOffsetY },
+        { x: middleX, y: sOffsetY },
+        { x: middleX, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route crossing halfway between the two offset points, along the
+// horizontal segment at their middle `y`. The `left` and `right` source branches fall back to it
+// when the target point lies inside the source element and there is no room to route around it.
+function getMiddleYPoints(sourcePoint, targetPoint) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+    const middleY = (sOffsetY + tOffsetY) / 2;
+
+    return [
+        { x: sOffsetX, y: sOffsetY },
+        { x: sOffsetX, y: middleY },
+        { x: tOffsetX, y: middleY }
+    ];
+}
+
 export function rightAnglePath(source, target, opt = {}) {
     const {
         bbox: sourceBBox,
@@ -230,24 +676,7 @@ export function rightAnglePath(source, target, opt = {}) {
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleY = (sOffsetY + tOffsetY) / 2;
-
-            if (sOffsetX < tMinMarginX1) {
-                return [
-                    { x: sOffsetX, y: sOffsetY },
-                    { x: sOffsetX, y: middleY },
-                    { x: tOffsetX, y: middleY },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
-            } else {
-                const middleX = (sOffsetX + tOffsetX) / 2;
-                return [
-                    { x: middleX, y: sOffsetY },
-                    { x: middleX, y: middleY },
-                    { x: middleX, y: middleY },
-                    { x: middleX, y: tOffsetY }
-                ];
-            }
+            return getHorizontalSShapePoints(sourceOffsetPoint, targetOffsetPoint, sOffsetX >= tMinMarginX1);
         }
 
         if (sOffsetX < tOffsetX) {
@@ -281,54 +710,24 @@ export function rightAnglePath(source, target, opt = {}) {
                 // the case when the source is to the left of the target element.
                 x1 = Math.min(sOffsetX, tBoxX0 - targetMargin);
                 x2 = Math.max(tOffsetX, sBoxX1 + sourceMargin);
-
-                // This is an edge case when the source and target intersect and
-                if ((isUpwardsShorter && sOffsetY < tBoxY0) || (!isUpwardsShorter && sOffsetY > tBoxY1)) {
-                    // the path should no longer rely on minimal x boundary in `x1`
-                    x1 = sOffsetX;
-                } else if ((isUpwardsShorter && tOffsetY < sBoxY0) || (!isUpwardsShorter && tOffsetY > sBoxY1)) {
-                    // the path should no longer rely on maximal x boundary in `x2`
-                    x2 = tOffsetX;
-                }
             }
 
-            return [
-                { x: x1, y: sOffsetY },
-                { x: x1, y },
-                { x: x2, y },
-                { x: x2, y: tOffsetY }
-            ];
+            return getHorizontalRoutePoints(sourceBBox, targetBBox, sourceOffsetPoint, targetOffsetPoint, {
+                x1,
+                x2,
+                y,
+                isUpwardsShorter
+            });
         }
 
-        const x = (sOffsetX + tOffsetX) / 2;
-        return [
-            { x, y: sOffsetY },
-            { x, y: tOffsetY },
-        ];
+        return getHorizontalRoutePoints(sourceBBox, targetBBox, sourceOffsetPoint, targetOffsetPoint);
     } else if (sourceSide === 'right' && targetSide === 'left') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOffsetPoint);
         const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOffsetPoint);
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleY = (sOffsetY + tOffsetY) / 2;
-
-            if (sOffsetX > tMinMarginX0) {
-                return [
-                    { x: sOffsetX, y: sOffsetY },
-                    { x: sOffsetX, y: middleY },
-                    { x: tOffsetX, y: middleY },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
-            } else {
-                const middleX = (sOffsetX + tOffsetX) / 2;
-                return [
-                    { x: middleX, y: sOffsetY },
-                    { x: middleX, y: middleY },
-                    { x: middleX, y: middleY },
-                    { x: middleX, y: tOffsetY }
-                ];
-            }
+            return getHorizontalSShapePoints(sourceOffsetPoint, targetOffsetPoint, sOffsetX <= tMinMarginX0);
         }
 
         if (sOffsetX > tOffsetX) {
@@ -361,54 +760,24 @@ export function rightAnglePath(source, target, opt = {}) {
                 // the case when the source is to the left of the target element.
                 x1 = Math.max(sOffsetX, tBoxX1 + targetMargin);
                 x2 = Math.min(tOffsetX, sBoxX0 - sourceMargin);
-
-                // This is an edge case when the source and target intersect and
-                if ((isUpwardsShorter && sOffsetY < tBoxY0) || (!isUpwardsShorter && sOffsetY > tBoxY1)) {
-                    // the path should no longer rely on maximal x boundary in `x1`
-                    x1 = sOffsetX;
-                } else if ((isUpwardsShorter && tOffsetY < sBoxY0) || (!isUpwardsShorter && tOffsetY > sBoxY1)) {
-                    // the path should no longer rely on minimal x boundary in `x2`
-                    x2 = tOffsetX;
-                }
             }
 
-            return [
-                { x: x1, y: sOffsetY },
-                { x: x1, y },
-                { x: x2, y },
-                { x: x2, y: tOffsetY }
-            ];
+            return getHorizontalRoutePoints(sourceBBox, targetBBox, sourceOffsetPoint, targetOffsetPoint, {
+                x1,
+                x2,
+                y,
+                isUpwardsShorter
+            });
         }
 
-        const x = (sOffsetX + tOffsetX) / 2;
-        return [
-            { x, y: sOffsetY },
-            { x, y: tOffsetY }
-        ];
+        return getHorizontalRoutePoints(sourceBBox, targetBBox, sourceOffsetPoint, targetOffsetPoint);
     } else if (sourceSide === 'top' && targetSide === 'bottom') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOffsetPoint);
         const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOffsetPoint);
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleX = (sOffsetX + tOffsetX) / 2;
-
-            if (sOffsetY < tMinMarginY1) {
-                return [
-                    { x: sOffsetX, y: sOffsetY },
-                    { x: middleX, y: sOffsetY },
-                    { x: middleX, y: tOffsetY },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
-            } else {
-                const middleY = (sOffsetY + tOffsetY) / 2;
-                return [
-                    { x: sOffsetX, y: middleY },
-                    { x: middleX, y: middleY },
-                    { x: middleX, y: middleY },
-                    { x: tOffsetX, y: middleY }
-                ];
-            }
+            return getVerticalSShapePoints(sourceOffsetPoint, targetOffsetPoint, sOffsetY >= tMinMarginY1);
         }
 
         if (sMarginY0 < tOffsetY) {
@@ -441,54 +810,24 @@ export function rightAnglePath(source, target, opt = {}) {
                 // the case when the source is to the left of the target element.
                 y1 = Math.min(sOffsetY, tBoxY0 - targetMargin);
                 y2 = Math.max(tOffsetY, sBoxY1 + sourceMargin);
-
-                // This is an edge case when the source and target intersect and
-                if ((isLeftShorter && sOffsetX < tBoxX0) || (!isLeftShorter && sOffsetX > tBoxX1)) {
-                    // the path should no longer rely on minimal y boundary in `y1`
-                    y1 = sOffsetY;
-                } else if ((isLeftShorter && tOffsetX < sBoxX0) || (!isLeftShorter && tOffsetX > sBoxX1)) {
-                    // the path should no longer rely on maximal y boundary in `y2`
-                    y2 = tOffsetY;
-                }
             }
 
-            return [
-                { x: sOffsetX, y: y1 },
-                { x, y: y1 },
-                { x, y: y2 },
-                { x: tOffsetX, y: y2 }
-            ];
+            return getVerticalRoutePoints(sourceBBox, targetBBox, sourceOffsetPoint, targetOffsetPoint, {
+                y1,
+                y2,
+                x,
+                isLeftShorter
+            });
         }
 
-        const y = (sOffsetY + tOffsetY) / 2;
-        return [
-            { x: sOffsetX, y },
-            { x: tOffsetX, y }
-        ];
+        return getVerticalRoutePoints(sourceBBox, targetBBox, sourceOffsetPoint, targetOffsetPoint);
     } else if (sourceSide === 'bottom' && targetSide === 'top') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOffsetPoint);
         const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOffsetPoint);
 
         // Use S-shaped connection
         if (isPointInsideSource || isPointInsideTarget) {
-            const middleX = (sOffsetX + tOffsetX) / 2;
-
-            if (sOffsetY > tMinMarginY0) {
-                return [
-                    { x: sOffsetX, y: sOffsetY },
-                    { x: middleX, y: sOffsetY },
-                    { x: middleX, y: tOffsetY },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
-            } else {
-                const middleY = (sOffsetY + tOffsetY) / 2;
-                return [
-                    { x: sOffsetX, y: middleY },
-                    { x: middleX, y: middleY },
-                    { x: middleX, y: middleY },
-                    { x: tOffsetX, y: middleY }
-                ];
-            }
+            return getVerticalSShapePoints(sourceOffsetPoint, targetOffsetPoint, sOffsetY <= tMinMarginY0);
         }
 
         if (sMarginY1 > tOffsetY) {
@@ -521,30 +860,17 @@ export function rightAnglePath(source, target, opt = {}) {
                 // the case when the source is to the left of the target element.
                 y1 = Math.max(sOffsetY, tBoxY1 + targetMargin);
                 y2 = Math.min(tOffsetY, sBoxY0 - sourceMargin);
-
-                // This is an edge case when the source and target intersect and
-                if ((isLeftShorter && sOffsetX < tBoxX0) || (!isLeftShorter && sOffsetX > tBoxX1)) {
-                    // the path should no longer rely on maximal y boundary in `y1`
-                    y1 = sOffsetY;
-                } else if ((isLeftShorter && tOffsetX < sBoxX0) || (!isLeftShorter && tOffsetX > sBoxX1)) {
-                    // the path should no longer rely on minimal y boundary in `y2`
-                    y2 = tOffsetY;
-                }
             }
 
-            return [
-                { x: sOffsetX, y: y1 },
-                { x, y: y1 },
-                { x, y: y2 },
-                { x: tOffsetX, y: y2 }
-            ];
+            return getVerticalRoutePoints(sourceBBox, targetBBox, sourceOffsetPoint, targetOffsetPoint, {
+                y1,
+                y2,
+                x,
+                isLeftShorter
+            });
         }
 
-        const y = (sOffsetY + tOffsetY) / 2;
-        return [
-            { x: sOffsetX, y },
-            { x: tOffsetX, y }
-        ];
+        return getVerticalRoutePoints(sourceBBox, targetBBox, sourceOffsetPoint, targetOffsetPoint);
     } else if (sourceSide === 'top' && targetSide === 'top') {
         const useUShapeConnection =
             targetInSourceBBox ||
@@ -560,31 +886,16 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        let x;
         const y1 = Math.min((sBoxY1 + tBoxY0) / 2, tOffsetY);
         const y2 = Math.min((sBoxY0 + tBoxY1) / 2, sOffsetY);
 
-        if (tOffsetY < sOffsetY) {
-            // Use the shortest path along the connections on horizontal sides
-            if (rightDistance > leftDistance) {
-                x = Math.min(sOffsetX, tMarginX0);
-            } else {
-                x = Math.max(sOffsetX, tMarginX1);
-            }
-        } else {
-            if (rightDistance > leftDistance) {
-                x = Math.min(tOffsetX, sMarginX0);
-            } else {
-                x = Math.max(tOffsetX, sMarginX1);
-            }
-        }
+        return getVerticalSameSideRoutePoints(source, target, sourceOffsetPoint, targetOffsetPoint, {
+            y1,
+            y2,
+            isSourceFurtherOut: tOffsetY >= sOffsetY,
+            isLeftShorter: leftDistance < rightDistance
+        });
 
-        return [
-            { x: sOffsetX, y: y2 },
-            { x, y: y2 },
-            { x, y: y1 },
-            { x: tOffsetX, y: y1 }
-        ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
         const useUShapeConnection =
             targetInSourceBBox ||
@@ -600,31 +911,16 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        let x;
         const y1 = Math.max((sBoxY0 + tBoxY1) / 2, tOffsetY);
         const y2 = Math.max((sBoxY1 + tBoxY0) / 2, sOffsetY);
 
-        if (tOffsetY > sOffsetY) {
-            // Use the shortest path along the connections on horizontal sides
-            if (rightDistance > leftDistance) {
-                x = Math.min(sOffsetX, tMarginX0);
-            } else {
-                x = Math.max(sOffsetX, tMarginX1);
-            }
-        } else {
-            if (rightDistance > leftDistance) {
-                x = Math.min(tOffsetX, sMarginX0);
-            } else {
-                x = Math.max(tOffsetX, sMarginX1);
-            }
-        }
+        return getVerticalSameSideRoutePoints(source, target, sourceOffsetPoint, targetOffsetPoint, {
+            y1,
+            y2,
+            isSourceFurtherOut: tOffsetY <= sOffsetY,
+            isLeftShorter: leftDistance < rightDistance
+        });
 
-        return [
-            { x: sOffsetX, y: y2 },
-            { x, y: y2 },
-            { x, y: y1 },
-            { x: tOffsetX, y: y1 }
-        ];
     } else if (sourceSide === 'left' && targetSide === 'left') {
         const useUShapeConnection =
             targetInSourceBBox ||
@@ -640,30 +936,16 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        let y;
         const x1 = Math.min((sBoxX1 + tBoxX0) / 2, tOffsetX);
         const x2 = Math.min((sBoxX0 + tBoxX1) / 2, sOffsetX);
 
-        if (tOffsetX > sOffsetX) {
-            if (topDistance <= bottomDistance) {
-                y = Math.min(sMarginY0, tOffsetY);
-            } else {
-                y = Math.max(sMarginY1, tOffsetY);
-            }
-        } else {
-            if (topDistance <= bottomDistance) {
-                y = Math.min(tMarginY0, sOffsetY);
-            } else {
-                y = Math.max(tMarginY1, sOffsetY);
-            }
-        }
+        return getHorizontalSameSideRoutePoints(source, target, sourceOffsetPoint, targetOffsetPoint, {
+            x1,
+            x2,
+            isSourceFurtherOut: tOffsetX > sOffsetX,
+            isUpwardsShorter: topDistance <= bottomDistance
+        });
 
-        return [
-            { x: x2, y: sOffsetY },
-            { x: x2, y },
-            { x: x1, y },
-            { x: x1, y: tOffsetY }
-        ];
     } else if (sourceSide === 'right' && targetSide === 'right') {
         const useUShapeConnection =
             targetInSourceBBox ||
@@ -679,35 +961,22 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        let y;
         const x1 = Math.max((sBoxX0 + tBoxX1) / 2, tOffsetX);
         const x2 = Math.max((sBoxX1 + tBoxX0) / 2, sOffsetX);
 
-        if (tOffsetX <= sOffsetX) {
-            if (topDistance <= bottomDistance) {
-                y = Math.min(sMarginY0, tOffsetY);
-            } else {
-                y = Math.max(sMarginY1, tOffsetY);
-            }
-        } else {
-            if (topDistance <= bottomDistance) {
-                y = Math.min(tMarginY0, sOffsetY);
-            } else {
-                y = Math.max(tMarginY1, sOffsetY);
-            }
-        }
+        return getHorizontalSameSideRoutePoints(source, target, sourceOffsetPoint, targetOffsetPoint, {
+            x1,
+            x2,
+            isSourceFurtherOut: tOffsetX <= sOffsetX,
+            isUpwardsShorter: topDistance <= bottomDistance
+        });
 
-        return [
-            { x: x2, y: sOffsetY },
-            { x: x2, y },
-            { x: x1, y },
-            { x: x1, y: tOffsetY }
-        ];
     } else if (sourceSide === 'top' && targetSide === 'right') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
+            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
             if (sOffsetX <= tOffsetX - sourceMargin) {
                 const x = Math.max(sMarginX1, tOffsetX);
                 const y = Math.min(sMarginY0, tMarginY0);
@@ -721,52 +990,19 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is on the left side of the source anchor
-            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
-            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: anchorMiddleX, y: sOffsetY },
-                { x: anchorMiddleX, y: tOffsetY }
-            ];
+            return getMiddleXPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginY0 > tOffsetY) {
-            if (sOffsetX < tOffsetX) {
-                let y = tMarginY0;
+            let y = tMarginY0;
+            let canTurnAtSource = false;
 
-                if (tMinMarginY1 <= sMinMarginY0 && tMarginX1 >= sOffsetX) {
-                    y = middleOfHorizontalSides;
-
-                    if (sOffsetY < tMinMarginY1) {
-
-                        if (sOffsetX + sourceMargin > tBoxX1) {
-
-                            return [
-                                { x: sOffsetX, y: sOffsetY },
-                                { x: tOffsetX, y: sOffsetY },
-                                { x: tOffsetX, y: tOffsetY }
-                            ];
-                        }
-
-                        return [
-                            { x: sOffsetX, y: sOffsetY },
-                            { x: sOffsetX + sourceMargin, y: sOffsetY },
-                            { x: sOffsetX + sourceMargin, y },
-                            { x: tOffsetX, y },
-                            { x: tOffsetX, y: tOffsetY }
-                        ];
-                    }
-                }
-
-                return [
-                    { x: sOffsetX, y },
-                    { x: tOffsetX, y },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
+            if (tMinMarginY1 <= sMinMarginY0 && tMarginX1 >= sOffsetX) {
+                y = middleOfHorizontalSides;
+                canTurnAtSource = sOffsetY < tMinMarginY1;
             }
 
-            return [{ x: sOffsetX, y: tOffsetY }];
+            return getSideToRightPoints(targetBBox, sourceOffsetPoint, targetOffsetPoint, sourceMargin, y, canTurnAtSource);
         }
 
         const x = Math.max(middleOfVerticalSides, tMinMarginX1);
@@ -789,26 +1025,14 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        if (tOffsetX > sMinMarginX0) {
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x, y: sOffsetY },
-                { x, y: tOffsetY - targetMargin },
-                { x: tOffsetX, y: tOffsetY - targetMargin },
-                { x: tOffsetX, y: tOffsetY }
-            ];
-        }
+        return getSideToLeftOrRightPoints(sourceOffsetPoint, targetOffsetPoint, x, tOffsetY - targetMargin, tOffsetX > sMinMarginX0);
 
-        return [
-            { x: sOffsetX, y: sOffsetY },
-            { x, y: sOffsetY },
-            { x, y: tOffsetY }
-        ];
     } else if (sourceSide === 'top' && targetSide === 'left') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
+            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
             if (sOffsetX >= tOffsetX + sourceMargin) {
                 const x = Math.min(sMarginX0, tOffsetX);
                 const y = Math.min(sMarginY0, tMarginY0);
@@ -822,52 +1046,19 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is on the right side of the source anchor
-            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
-            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: anchorMiddleX, y: sOffsetY },
-                { x: anchorMiddleX, y: tOffsetY }
-            ];
+            return getMiddleXPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginY0 > tOffsetY) {
-            if (sOffsetX > tOffsetX) {
-                let y = tMarginY0;
+            let y = tMarginY0;
+            let canTurnAtSource = false;
 
-                if (tMinMarginY1 <= sMinMarginY0 && tMarginX0 <= sOffsetX) {
-                    y = middleOfHorizontalSides;
-
-                    if (sOffsetY < tMinMarginY1) {
-
-                        if (sOffsetX - sourceMargin < tBoxX0) {
-
-                            return [
-                                { x: sOffsetX, y: sOffsetY },
-                                { x: tOffsetX, y: sOffsetY },
-                                { x: tOffsetX, y: tOffsetY }
-                            ];
-                        }
-
-                        return [
-                            { x: sOffsetX, y: sOffsetY },
-                            { x: sOffsetX - sourceMargin, y: sOffsetY },
-                            { x: sOffsetX - sourceMargin, y },
-                            { x: tOffsetX, y },
-                            { x: tOffsetX, y: tOffsetY }
-                        ];
-                    }
-                }
-
-                return [
-                    { x: sOffsetX, y },
-                    { x: tOffsetX, y },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
+            if (tMinMarginY1 <= sMinMarginY0 && tMarginX0 <= sOffsetX) {
+                y = middleOfHorizontalSides;
+                canTurnAtSource = sOffsetY < tMinMarginY1;
             }
 
-            return [{ x: sOffsetX, y: tOffsetY }];
+            return getSideToLeftPoints(targetBBox, sourceOffsetPoint, targetOffsetPoint, sourceMargin, y, canTurnAtSource);
         }
 
         const x = Math.min(tMinMarginX0, middleOfVerticalSides);
@@ -889,26 +1080,14 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        if (tOffsetX < sMinMarginX1) {
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x, y: sOffsetY },
-                { x, y: tOffsetY - targetMargin },
-                { x: tOffsetX, y: tOffsetY - targetMargin },
-                { x: tOffsetX, y: tOffsetY }
-            ];
-        }
+        return getSideToLeftOrRightPoints(sourceOffsetPoint, targetOffsetPoint, x, tOffsetY - targetMargin, tOffsetX < sMinMarginX1);
 
-        return [
-            { x: sOffsetX, y: sOffsetY },
-            { x, y: sOffsetY },
-            { x, y: tOffsetY }
-        ];
     } else if (sourceSide === 'bottom' && targetSide === 'right') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
+            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
             if (sOffsetX <= tOffsetX - sourceMargin) {
                 const x = Math.max(sMarginX1, tOffsetX);
                 const y = Math.max(sMarginY1, tMarginY1);
@@ -922,53 +1101,19 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is on the left side of the source anchor
-            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
-            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: anchorMiddleX, y: sOffsetY },
-                { x: anchorMiddleX, y: tOffsetY }
-            ];
+            return getMiddleXPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginY1 < tOffsetY) {
-            if (sOffsetX < tOffsetX) {
-                let y = tMarginY1;
+            let y = tMarginY1;
+            let canTurnAtSource = false;
 
-                if (tMinMarginY0 >= sMinMarginY1 && tMarginX1 >= sOffsetX) {
-                    y = middleOfHorizontalSides;
-
-                    if (sOffsetY > tMinMarginY0) {
-
-                        if (sOffsetX + sourceMargin > tBoxX1) {
-
-                            return [
-                                { x: sOffsetX, y: sOffsetY },
-                                { x: tOffsetX, y: sOffsetY },
-                                { x: tOffsetX, y: tOffsetY }
-                            ];
-                        }
-
-                        return [
-                            { x: sOffsetX, y: sOffsetY },
-                            { x: sOffsetX + sourceMargin, y: sOffsetY },
-                            { x: sOffsetX + sourceMargin, y },
-                            { x: tOffsetX, y },
-                            { x: tOffsetX, y: tOffsetY }
-                        ];
-                    }
-
-                }
-
-                return [
-                    { x: sOffsetX, y },
-                    { x: tOffsetX, y },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
+            if (tMinMarginY0 >= sMinMarginY1 && tMarginX1 >= sOffsetX) {
+                y = middleOfHorizontalSides;
+                canTurnAtSource = sOffsetY > tMinMarginY0;
             }
 
-            return [{ x: sOffsetX, y: tOffsetY }];
+            return getSideToRightPoints(targetBBox, sourceOffsetPoint, targetOffsetPoint, sourceMargin, y, canTurnAtSource);
         }
 
         const x = Math.max(middleOfVerticalSides, tMinMarginX1);
@@ -991,26 +1136,14 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        if (tOffsetX > sMinMarginX0) {
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x, y: sOffsetY },
-                { x, y: tOffsetY + targetMargin },
-                { x: tOffsetX, y: tOffsetY + targetMargin },
-                { x: tOffsetX, y: tOffsetY }
-            ];
-        }
+        return getSideToLeftOrRightPoints(sourceOffsetPoint, targetOffsetPoint, x, tOffsetY + targetMargin, tOffsetX > sMinMarginX0);
 
-        return [
-            { x: sOffsetX, y: sOffsetY },
-            { x, y: sOffsetY },
-            { x, y: tOffsetY }
-        ];
     } else if (sourceSide === 'bottom' && targetSide === 'left') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
         // The target point is inside the source element
         if (isPointInsideSource) {
+            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
             if (sOffsetX >= tOffsetX + sourceMargin) {
                 const x = Math.min(sOffsetX - sourceMargin, tOffsetX);
                 const y = Math.max(sMarginY1, tMarginY1);
@@ -1024,52 +1157,19 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is on the right side of the source anchor
-            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
-            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: anchorMiddleX, y: sOffsetY },
-                { x: anchorMiddleX, y: tOffsetY }
-            ];
+            return getMiddleXPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginY1 < tOffsetY) {
-            if (sOffsetX > tOffsetX) {
-                let y = tMarginY1;
+            let y = tMarginY1;
+            let canTurnAtSource = false;
 
-                if (tMinMarginY0 >= sMinMarginY1 && tMarginX0 <= sOffsetX) {
-                    y = middleOfHorizontalSides;
-
-                    if (sOffsetY > tMinMarginY0) {
-
-                        if (sOffsetX - sourceMargin < tBoxX0) {
-
-                            return [
-                                { x: sOffsetX, y: sOffsetY },
-                                { x: tOffsetX, y: sOffsetY },
-                                { x: tOffsetX, y: tOffsetY }
-                            ];
-                        }
-
-                        return [
-                            { x: sOffsetX, y: sOffsetY },
-                            { x: sOffsetX - sourceMargin, y: sOffsetY },
-                            { x: sOffsetX - sourceMargin, y },
-                            { x: tOffsetX, y },
-                            { x: tOffsetX, y: tOffsetY }
-                        ];
-                    }
-                }
-
-                return [
-                    { x: sOffsetX, y },
-                    { x: tOffsetX, y },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
+            if (tMinMarginY0 >= sMinMarginY1 && tMarginX0 <= sOffsetX) {
+                y = middleOfHorizontalSides;
+                canTurnAtSource = sOffsetY > tMinMarginY0;
             }
 
-            return [{ x: sOffsetX, y: tOffsetY }];
+            return getSideToLeftPoints(targetBBox, sourceOffsetPoint, targetOffsetPoint, sourceMargin, y, canTurnAtSource);
         }
 
         const x = Math.min(tMinMarginX0, middleOfVerticalSides);
@@ -1092,21 +1192,8 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        if (tOffsetX < sMinMarginX1) {
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x, y: sOffsetY },
-                { x, y: tOffsetY + targetMargin },
-                { x: tOffsetX, y: tOffsetY + targetMargin },
-                { x: tOffsetX, y: tOffsetY }
-            ];
-        }
+        return getSideToLeftOrRightPoints(sourceOffsetPoint, targetOffsetPoint, x, tOffsetY + targetMargin, tOffsetX < sMinMarginX1);
 
-        return [
-            { x: sOffsetX, y: sOffsetY },
-            { x, y: sOffsetY },
-            { x, y: tOffsetY }
-        ];
     } else if (sourceSide === 'left' && targetSide === 'bottom') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
@@ -1124,52 +1211,19 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is above the source anchor
-            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y: anchorMiddleY },
-                { x: tOffsetX, y: anchorMiddleY }
-            ];
+            return getMiddleYPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginX0 > tOffsetX) {
-            if (sOffsetY < tOffsetY) {
-                let x = tMarginX0;
+            let x = tMarginX0;
+            let canTurnAtSource = false;
 
-                if (tMinMarginX1 <= sMinMarginX0 && tMarginY1 >= sOffsetY) {
-                    x = middleOfVerticalSides;
-
-                    if (sOffsetX < tMinMarginX1) {
-
-                        if (sOffsetY + sourceMargin > tBoxY1) {
-
-                            return [
-                                { x: sOffsetX, y: sOffsetY },
-                                { x: sOffsetX, y: tOffsetY },
-                                { x: tOffsetX, y: tOffsetY }
-                            ];
-                        }
-
-                        return [
-                            { x: sOffsetX, y: sOffsetY },
-                            { x: sOffsetX, y: sOffsetY + sourceMargin },
-                            { x, y: sOffsetY + sourceMargin },
-                            { x, y: tOffsetY },
-                            { x: tOffsetX, y: tOffsetY }
-                        ];
-                    }
-
-                }
-
-                return [
-                    { x, y: sOffsetY },
-                    { x, y: tOffsetY },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
+            if (tMinMarginX1 <= sMinMarginX0 && tMarginY1 >= sOffsetY) {
+                x = middleOfVerticalSides;
+                canTurnAtSource = sOffsetX < tMinMarginX1;
             }
 
-            return [{ x: tOffsetX, y: sOffsetY }];
+            return getSideToBottomPoints(targetBBox, sourceOffsetPoint, targetOffsetPoint, sourceMargin, x, canTurnAtSource);
         }
 
         const y = Math.max(tMinMarginY1, middleOfHorizontalSides);
@@ -1193,21 +1247,8 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        if (tOffsetY > sMinMarginY0) {
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y },
-                { x: tOffsetX - sourceMargin, y },
-                { x: tOffsetX - sourceMargin, y: tOffsetY },
-                { x: tOffsetX, y: tOffsetY }
-            ];
-        }
+        return getSideToTopOrBottomPoints(sourceOffsetPoint, targetOffsetPoint, y, tOffsetX - sourceMargin, tOffsetY > sMinMarginY0);
 
-        return [
-            { x: sOffsetX, y: sOffsetY },
-            { x: sOffsetX, y },
-            { x: tOffsetX, y }
-        ];
     } else if (sourceSide === 'left' && targetSide === 'top') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
@@ -1226,52 +1267,19 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is below the source anchor
-            // Add the `sourceMargin` since the source anchor is above the target anchor
-            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y: anchorMiddleY },
-                { x: tOffsetX, y: anchorMiddleY }
-            ];
+            return getMiddleYPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginX0 > tOffsetX) {
-            if (sOffsetY > tOffsetY) {
-                let x = tMarginX0;
+            let x = tMarginX0;
+            let canTurnAtSource = false;
 
-                if (tMinMarginX1 <= sMinMarginX0 && tMarginY0 <= sOffsetY) {
-                    x = middleOfVerticalSides;
-
-                    if (sOffsetX < tMinMarginX1) {
-
-                        if (sOffsetY - sourceMargin < tBoxY0) {
-
-                            return [
-                                { x: sOffsetX, y: sOffsetY },
-                                { x: sOffsetX, y: tOffsetY },
-                                { x: tOffsetX, y: tOffsetY }
-                            ];
-                        }
-
-                        return [
-                            { x: sOffsetX, y: sOffsetY },
-                            { x: sOffsetX, y: sOffsetY - sourceMargin },
-                            { x, y: sOffsetY - sourceMargin },
-                            { x, y: tOffsetY },
-                            { x: tOffsetX, y: tOffsetY }
-                        ];
-                    }
-                }
-
-                return [
-                    { x, y: sOffsetY },
-                    { x, y: tOffsetY },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
+            if (tMinMarginX1 <= sMinMarginX0 && tMarginY0 <= sOffsetY) {
+                x = middleOfVerticalSides;
+                canTurnAtSource = sOffsetX < tMinMarginX1;
             }
 
-            return [{ x: tOffsetX, y: sOffsetY }];
+            return getSideToTopPoints(targetBBox, sourceOffsetPoint, targetOffsetPoint, sourceMargin, x, canTurnAtSource);
         }
 
         const y = Math.min(tMinMarginY0, middleOfHorizontalSides);
@@ -1293,21 +1301,8 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        if (tOffsetY < sMinMarginY1) {
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y },
-                { x: tOffsetX - sourceMargin, y },
-                { x: tOffsetX - sourceMargin, y: tOffsetY },
-                { x: tOffsetX, y: tOffsetY }
-            ];
-        }
+        return getSideToTopOrBottomPoints(sourceOffsetPoint, targetOffsetPoint, y, tOffsetX - sourceMargin, tOffsetY < sMinMarginY1);
 
-        return [
-            { x: sOffsetX, y: sOffsetY },
-            { x: sOffsetX, y },
-            { x: tOffsetX, y }
-        ];
     } else if (sourceSide === 'right' && targetSide === 'top') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
@@ -1326,52 +1321,19 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is below the source anchor
-            // Adjust sourceMargin calculation since the source anchor is now on the right
-            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y: anchorMiddleY },
-                { x: tOffsetX, y: anchorMiddleY }
-            ];
+            return getMiddleYPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginX1 < tOffsetX) {
-            if (sOffsetY > tOffsetY) {
-                let x = tMarginX1;
+            let x = tMarginX1;
+            let canTurnAtSource = false;
 
-                if (tMinMarginX0 >= sMinMarginX1 && tMarginY0 <= sOffsetY) {
-                    x = middleOfVerticalSides;
-
-                    if (sOffsetX > tMinMarginX0) {
-
-                        if (sOffsetY - sourceMargin < tBoxY0) {
-
-                            return [
-                                { x: sOffsetX, y: sOffsetY },
-                                { x: sOffsetX, y: tOffsetY },
-                                { x: tOffsetX, y: tOffsetY }
-                            ];
-                        }
-
-                        return [
-                            { x: sOffsetX, y: sOffsetY },
-                            { x: sOffsetX, y: sOffsetY - sourceMargin },
-                            { x, y: sOffsetY - sourceMargin },
-                            { x, y: tOffsetY },
-                            { x: tOffsetX, y: tOffsetY }
-                        ];
-                    }
-                }
-
-                return [
-                    { x, y: sOffsetY },
-                    { x, y: tOffsetY },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
+            if (tMinMarginX0 >= sMinMarginX1 && tMarginY0 <= sOffsetY) {
+                x = middleOfVerticalSides;
+                canTurnAtSource = sOffsetX > tMinMarginX0;
             }
 
-            return [{ x: tOffsetX, y: sOffsetY }];
+            return getSideToTopPoints(targetBBox, sourceOffsetPoint, targetOffsetPoint, sourceMargin, x, canTurnAtSource);
         }
 
         const y = Math.min(tMinMarginY0, middleOfHorizontalSides);
@@ -1394,21 +1356,8 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        if (tOffsetY < sMinMarginY1) {
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y },
-                { x: tOffsetX + sourceMargin, y },
-                { x: tOffsetX + sourceMargin, y: tOffsetY },
-                { x: tOffsetX, y: tOffsetY }
-            ];
-        }
+        return getSideToTopOrBottomPoints(sourceOffsetPoint, targetOffsetPoint, y, tOffsetX + sourceMargin, tOffsetY < sMinMarginY1);
 
-        return [
-            { x: sOffsetX, y: sOffsetY },
-            { x: sOffsetX, y },
-            { x: tOffsetX, y }
-        ];
     } else if (sourceSide === 'right' && targetSide === 'bottom') {
         const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
@@ -1426,52 +1375,19 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is above the source anchor
-            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y: anchorMiddleY },
-                { x: tOffsetX, y: anchorMiddleY }
-            ];
+            return getMiddleYPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginX1 < tOffsetX) {
-            if (sOffsetY < tOffsetY) {
-                let x = tMarginX1;
+            let x = tMarginX1;
+            let canTurnAtSource = false;
 
-                if (tMinMarginX0 >= sMinMarginX1 && tMarginY1 >= sOffsetY) {
-                    x = middleOfVerticalSides;
-
-                    if (sOffsetX > tMinMarginX0) {
-
-                        if (sOffsetY + sourceMargin > tBoxY1) {
-
-                            return [
-                                { x: sOffsetX, y: sOffsetY },
-                                { x: sOffsetX, y: tOffsetY },
-                                { x: tOffsetX, y: tOffsetY }
-                            ];
-                        }
-
-                        return [
-                            { x: sOffsetX, y: sOffsetY },
-                            { x: sOffsetX, y: sOffsetY + sourceMargin },
-                            { x, y: sOffsetY + sourceMargin },
-                            { x, y: tOffsetY },
-                            { x: tOffsetX, y: tOffsetY }
-                        ];
-                    }
-
-                }
-
-                return [
-                    { x, y: sOffsetY },
-                    { x, y: tOffsetY },
-                    { x: tOffsetX, y: tOffsetY }
-                ];
+            if (tMinMarginX0 >= sMinMarginX1 && tMarginY1 >= sOffsetY) {
+                x = middleOfVerticalSides;
+                canTurnAtSource = sOffsetX > tMinMarginX0;
             }
 
-            return [{ x: tOffsetX, y: sOffsetY }];
+            return getSideToBottomPoints(targetBBox, sourceOffsetPoint, targetOffsetPoint, sourceMargin, x, canTurnAtSource);
         }
 
         const y = Math.max(tMinMarginY1, middleOfHorizontalSides);
@@ -1495,20 +1411,6 @@ export function rightAnglePath(source, target, opt = {}) {
             ];
         }
 
-        if (tOffsetY > sMinMarginY0) {
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y },
-                { x: tOffsetX + sourceMargin, y },
-                { x: tOffsetX + sourceMargin, y: tOffsetY },
-                { x: tOffsetX, y: tOffsetY }
-            ];
-        }
-
-        return [
-            { x: sOffsetX, y: sOffsetY },
-            { x: sOffsetX, y },
-            { x: tOffsetX, y }
-        ];
+        return getSideToTopOrBottomPoints(sourceOffsetPoint, targetOffsetPoint, y, tOffsetX + sourceMargin, tOffsetY > sMinMarginY0);
     }
 }
