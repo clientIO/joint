@@ -35,7 +35,6 @@ function getOutsidePoint(side, pointData) {
 
 // Calculates the distances along the horizontal axis for the left and right route.
 function getHorizontalDistance(source, target) {
-
     const { outsidePoint: sourcePoint } = source;
     const { outsidePoint: targetPoint } = target;
 
