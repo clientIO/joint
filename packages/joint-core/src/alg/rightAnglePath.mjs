@@ -551,6 +551,36 @@ function getSideToLeftOrRightPoints(sourcePoint, targetPoint, x, approachY, need
     ];
 }
 
+// Assembles the points of the route crossing halfway between the two offset points, along the
+// vertical segment at their middle `x`. The `top` and `bottom` source branches fall back to it
+// when the target point lies inside the source element and there is no room to route around it.
+function getMiddleXPoints(sourcePoint, targetPoint) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+    const middleX = (sOffsetX + tOffsetX) / 2;
+
+    return [
+        { x: sOffsetX, y: sOffsetY },
+        { x: middleX, y: sOffsetY },
+        { x: middleX, y: tOffsetY }
+    ];
+}
+
+// Assembles the points of the route crossing halfway between the two offset points, along the
+// horizontal segment at their middle `y`. The `left` and `right` source branches fall back to it
+// when the target point lies inside the source element and there is no room to route around it.
+function getMiddleYPoints(sourcePoint, targetPoint) {
+    const { x: sOffsetX, y: sOffsetY } = sourcePoint;
+    const { x: tOffsetX, y: tOffsetY } = targetPoint;
+    const middleY = (sOffsetY + tOffsetY) / 2;
+
+    return [
+        { x: sOffsetX, y: sOffsetY },
+        { x: sOffsetX, y: middleY },
+        { x: tOffsetX, y: middleY }
+    ];
+}
+
 export function rightAnglePath(source, target, opt = {}) {
     const {
         bbox: sourceBBox,
@@ -947,6 +977,7 @@ export function rightAnglePath(source, target, opt = {}) {
 
         // The target point is inside the source element
         if (isPointInsideSource) {
+            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
             if (sOffsetX <= tOffsetX - sourceMargin) {
                 const x = Math.max(sMarginX1, tOffsetX);
                 const y = Math.min(sMarginY0, tMarginY0);
@@ -960,14 +991,7 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is on the left side of the source anchor
-            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
-            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: anchorMiddleX, y: sOffsetY },
-                { x: anchorMiddleX, y: tOffsetY }
-            ];
+            return getMiddleXPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginY0 > tOffsetY) {
@@ -1009,6 +1033,7 @@ export function rightAnglePath(source, target, opt = {}) {
 
         // The target point is inside the source element
         if (isPointInsideSource) {
+            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
             if (sOffsetX >= tOffsetX + sourceMargin) {
                 const x = Math.min(sMarginX0, tOffsetX);
                 const y = Math.min(sMarginY0, tMarginY0);
@@ -1022,14 +1047,7 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is on the right side of the source anchor
-            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
-            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: anchorMiddleX, y: sOffsetY },
-                { x: anchorMiddleX, y: tOffsetY }
-            ];
+            return getMiddleXPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginY0 > tOffsetY) {
@@ -1070,6 +1088,7 @@ export function rightAnglePath(source, target, opt = {}) {
 
         // The target point is inside the source element
         if (isPointInsideSource) {
+            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
             if (sOffsetX <= tOffsetX - sourceMargin) {
                 const x = Math.max(sMarginX1, tOffsetX);
                 const y = Math.max(sMarginY1, tMarginY1);
@@ -1083,14 +1102,7 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is on the left side of the source anchor
-            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
-            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: anchorMiddleX, y: sOffsetY },
-                { x: anchorMiddleX, y: tOffsetY }
-            ];
+            return getMiddleXPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginY1 < tOffsetY) {
@@ -1132,6 +1144,7 @@ export function rightAnglePath(source, target, opt = {}) {
 
         // The target point is inside the source element
         if (isPointInsideSource) {
+            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
             if (sOffsetX >= tOffsetX + sourceMargin) {
                 const x = Math.min(sOffsetX - sourceMargin, tOffsetX);
                 const y = Math.max(sMarginY1, tMarginY1);
@@ -1145,14 +1158,7 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is on the right side of the source anchor
-            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
-            const anchorMiddleX = (sOffsetX + tOffsetX) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: anchorMiddleX, y: sOffsetY },
-                { x: anchorMiddleX, y: tOffsetY }
-            ];
+            return getMiddleXPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginY1 < tOffsetY) {
@@ -1206,13 +1212,7 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is above the source anchor
-            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y: anchorMiddleY },
-                { x: tOffsetX, y: anchorMiddleY }
-            ];
+            return getMiddleYPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginX0 > tOffsetX) {
@@ -1268,14 +1268,7 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is below the source anchor
-            // Add the `sourceMargin` since the source anchor is above the target anchor
-            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y: anchorMiddleY },
-                { x: tOffsetX, y: anchorMiddleY }
-            ];
+            return getMiddleYPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginX0 > tOffsetX) {
@@ -1329,14 +1322,7 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is below the source anchor
-            // Adjust sourceMargin calculation since the source anchor is now on the right
-            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y: anchorMiddleY },
-                { x: tOffsetX, y: anchorMiddleY }
-            ];
+            return getMiddleYPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginX1 < tOffsetX) {
@@ -1390,13 +1376,7 @@ export function rightAnglePath(source, target, opt = {}) {
             }
 
             // Target anchor is above the source anchor
-            const anchorMiddleY = (sOffsetY + tOffsetY) / 2;
-
-            return [
-                { x: sOffsetX, y: sOffsetY },
-                { x: sOffsetX, y: anchorMiddleY },
-                { x: tOffsetX, y: anchorMiddleY }
-            ];
+            return getMiddleYPoints(sourceOffsetPoint, targetOffsetPoint);
         }
 
         if (sMarginX1 < tOffsetX) {
