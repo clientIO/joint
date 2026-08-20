@@ -34,7 +34,8 @@
     "./examples/*"
   ],
   "resolutions": {
-    "grunt-contrib-qunit/puppeteer": "24.22.0"
+    "grunt-contrib-qunit/puppeteer": "24.22.0",
+    "basic-ftp": "5.3.1"
   },
   "volta": {
     "node": "22.14.0",
