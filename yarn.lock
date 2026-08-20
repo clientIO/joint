@@ -5931,6 +5931,27 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-avoid-router-ts@workspace:examples/avoid-router-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-avoid-router-ts@workspace:examples/avoid-router-ts"
+  dependencies:
+    "@joint/core": "workspace:~"
+    "@joint/router-avoid": "workspace:~"
+    copy-webpack-plugin: "npm:5.1.1"
+    css-loader: "npm:3.5.3"
+    file-loader: "npm:6.0.0"
+    libavoid-js: "npm:0.4.5"
+    sass: "npm:1.26.8"
+    sass-loader: "npm:8.0.2"
+    style-loader: "npm:1.2.1"
+    ts-loader: "npm:^9.2.5"
+    typescript: "npm:^5.7.3"
+    webpack: "npm:5.98.0"
+    webpack-cli: "npm:6.0.1"
+    webpack-dev-server: "npm:5.2.0"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-bezier-js@workspace:examples/bezier-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-bezier-js@workspace:examples/bezier-js"
@@ -6766,6 +6787,30 @@ __metadata:
   peerDependencies:
     react: ">=18"
     react-dom: ">=18"
+  languageName: unknown
+  linkType: soft
+
+"@joint/router-avoid@workspace:packages/joint-router-avoid, @joint/router-avoid@workspace:~":
+  version: 0.0.0-use.local
+  resolution: "@joint/router-avoid@workspace:packages/joint-router-avoid"
+  dependencies:
+    "@joint/core": "workspace:~"
+    "@joint/eslint-config": "workspace:*"
+    "@rollup/plugin-node-resolve": "npm:^16.0.1"
+    "@rollup/plugin-terser": "npm:^0.4.4"
+    "@rollup/plugin-typescript": "npm:^12.1.1"
+    concurrently: "npm:^9.2.0"
+    eslint: "npm:9.39.2"
+    karma: "npm:^6.4.2"
+    karma-chrome-launcher: "npm:^3.2.0"
+    karma-coverage: "npm:^2.2.1"
+    karma-qunit: "npm:^4.1.2"
+    libavoid-js: "npm:0.4.5"
+    puppeteer: "npm:24.22.0"
+    qunit: "npm:^2.24.1"
+    rollup: "npm:4.36.0"
+    rollup-plugin-banner2: "npm:^1.2.2"
+    typescript: "npm:^5.7.3"
   languageName: unknown
   linkType: soft
 

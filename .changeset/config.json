@@ -10,7 +10,8 @@
     [
       "@joint/core",
       "@joint/layout-directed-graph",
-      "@joint/layout-msagl"
+      "@joint/layout-msagl",
+      "@joint/router-avoid"
     ]
   ],
   "updateInternalDependencies": "patch",
