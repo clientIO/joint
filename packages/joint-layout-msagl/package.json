@@ -48,8 +48,8 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/esm/index.mjs",
       "types": "./dist/esm/index.d.mts",
+      "import": "./dist/esm/index.mjs",
       "default": "./dist/esm/index.mjs"
     }
   },
