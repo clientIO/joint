@@ -43,6 +43,7 @@ jobs:
       contents: read
     outputs:
       mode: ${{ steps.select-mode.outputs.mode }}
+
     steps:
       - name: Checkout joint
         id: checkout-joint
@@ -80,6 +81,7 @@ jobs:
     permissions:
       contents: write # commit the version bumps
       pull-requests: write # open the release PR
+
     steps:
       - name: Checkout joint
         id: checkout-joint
@@ -117,10 +119,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # push git tags and create GitHub Releases
+
     steps:
       - name: Checkout joint
         id: checkout-joint
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js v22
         id: setup-node
