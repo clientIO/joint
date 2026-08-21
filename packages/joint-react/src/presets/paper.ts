@@ -266,6 +266,12 @@ export const Paper = dia.Paper.extend(
      * joint-core leaves such a press alone for backwards compatibility, deciding it only
      * from `guardExplicit`. Rejecting it here — after the caller's own `options.guard` —
      * is what lets overlay content use plain React events with no interception of its own.
+     *
+     * `paper.el` itself is not portaled content: joint-core's `guard()` documents the root
+     * element as part of the paper's event surface (`this.el === target` returns `false`
+     * there), and code replays synthetic events onto it precisely to reach the paper's
+     * pipeline. `Node.contains()` is true for the node itself, so it needs excluding
+     * explicitly — otherwise those events are silently dropped.
      * @param event - Event delivered to the paper's dispatch.
      * @param view - View resolved from the event target, if any.
      * @returns `true` to guard, `false` to allow, `undefined` to leave it undecided.
@@ -275,7 +281,10 @@ export const Paper = dia.Paper.extend(
       if (guarded !== undefined) return guarded;
       const { target } = event;
       const isPortaledContent =
-        target instanceof Node && !this.svg.contains(target) && this.el.contains(target);
+        target instanceof Node &&
+        target !== this.el &&
+        !this.svg.contains(target) &&
+        this.el.contains(target);
       // Anything else stays undecided, so the paper goes on to judge the target itself.
       return isPortaledContent ? true : undefined;
     },
