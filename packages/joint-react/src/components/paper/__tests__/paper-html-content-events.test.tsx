@@ -1,5 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback } from 'react';
+import type { dia } from '@joint/core';
 import { render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../../components';
 import { usePaper } from '../../../hooks/use-paper';
@@ -57,6 +58,12 @@ function OverlayProbe({ onButtonMouseDown }: Readonly<OverlayProbeProps>) {
 }
 
 const renderElement = () => <rect width={50} height={50} />;
+
+/** The guard pair, reachable from a test: both are `protected` on `dia.Paper`. */
+interface GuardProbe {
+  readonly guard: (event: dia.Event, view?: dia.CellView) => boolean;
+  readonly guardExplicit: (event: dia.Event, view?: dia.CellView) => boolean | undefined;
+}
 
 const readPaper = (): PaperView | null => capturedPaper;
 const readButton = (): HTMLButtonElement | null => capturedButton;
@@ -123,5 +130,33 @@ describe('HTML content inside the paper container', () => {
 
     expect(blankPointerdown).toHaveBeenCalledTimes(1);
     document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+  });
+
+  // `paper.el` is the container the portaled content lives in, not portaled content
+  // itself. joint-core documents it as part of the paper's event surface (`guard()`:
+  // `if (this.el === target || …) return false`), which is what makes replaying a
+  // synthetic event onto it a way to reach the paper's pipeline. `guardExplicit` must
+  // stay undecided there — `Node.contains()` is true for the node itself, so the
+  // portaled-content check would otherwise claim it and drop the event.
+  it('does not guard an event targeting the paper container itself', async () => {
+    const paper = await renderPaperWithOverlay(() => {});
+    // `guardExplicit` is protected on `dia.Paper`; the contract it implements is public.
+    const { guard, guardExplicit } = paper as unknown as GuardProbe;
+    const event = { type: 'wheel', target: paper.el } as unknown as dia.Event;
+
+    expect(guardExplicit.call(paper, event)).toBeUndefined();
+    expect(guard.call(paper, event)).toBe(false);
+  });
+
+  it('pans the paper for a wheel replayed onto the paper container', async () => {
+    const paper = await renderPaperWithOverlay(() => {});
+    const pan = jest.fn();
+    paper.on('paper:pan', pan);
+
+    paper.el.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true })
+    );
+
+    expect(pan).toHaveBeenCalledTimes(1);
   });
 });
