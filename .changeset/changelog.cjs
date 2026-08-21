@@ -28,13 +28,22 @@ module.exports = {
 
     getDependencyReleaseLine: async (changesets, dependenciesUpdated) => {
         if (dependenciesUpdated.length === 0) return '';
-        const changesetLinks = changesets.map(
-            (changeset) =>
-                `- Updated dependencies${changeset.commit ? ` [${changeset.commit.slice(0, SHA_LENGTH)}]` : ''}`
-        );
-        const updatedDependenciesList = dependenciesUpdated.map(
-            (dependency) => `  - ${dependency.name}@${dependency.newVersion}`
-        );
-        return [...changesetLinks, ...updatedDependenciesList].join('\n');
+        // One line for all contributing commits, not one line per changeset.
+        // Changesets that are not committed yet contribute no SHA, and a single
+        // commit adding several changesets is only listed once.
+        const shas = [
+            ...new Set(
+                changesets
+                    .filter((changeset) => changeset.commit)
+                    .map((changeset) => changeset.commit.slice(0, SHA_LENGTH))
+            ),
+        ];
+        const suffix = shas.length > 0 ? ` (${shas.join(', ')})` : '';
+        return [
+            `- Updated dependencies${suffix}`,
+            ...dependenciesUpdated.map(
+                (dependency) => `  - ${dependency.name}@${dependency.newVersion}`
+            ),
+        ].join('\n');
     },
 };
