@@ -1,5 +1,13 @@
 # @joint/core
 
+## 4.3.2
+
+### Patch Changes
+
+- 0a2991b: alg.rightAnglePath: refactor to consolidate duplicate code into helpers
+- 68a4758: dia.Paper - the `guard` option can now veto blank pointerdowns; its `view` argument is `undefined` when the event did not hit a cell view
+- 54d9800: routers.rightAngle - refactor the path-finding algorithm into a separate utility
+
 ## 4.3.1
 
 ### Patch Changes
