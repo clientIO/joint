@@ -99,7 +99,6 @@ export function clearConnectedLinkViews(
     linkView._sourceMagnet = null;
     // @ts-expect-error we use private jointjs api method
     linkView._targetMagnet = null;
-    // @ts-expect-error we use private jointjs api method
     linkView.requestConnectionUpdate({ async: true });
     changes.set(String(link.id), { type: 'change', data: link });
   }
