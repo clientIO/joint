@@ -31,7 +31,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          # Nothing here pushes; the `master` fetch below is anonymous (public repo)
           persist-credentials: false
 
       # Install environment packages
@@ -78,6 +77,8 @@ jobs:
         # Release PR is skipped - it consumes all changesets instead
         if: ${{ github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/') }}
         # Compare PR to current committed master
+        # NOTE: the checkout sets `persist-credentials: false`, so this fetch is
+        # unauthenticated - it only works while the repository stays public
         run: |
           git fetch --no-tags origin '+refs/heads/master:refs/remotes/origin/master'
           yarn changeset status --since=origin/master
