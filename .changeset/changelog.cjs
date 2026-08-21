@@ -7,8 +7,10 @@
 // `undefined` when the changeset file has not been committed yet (a local
 // `changeset version` run), in which case the suffix is omitted.
 //
-// `getDependencyReleaseLine` is a verbatim port of the default implementation,
-// so "Updated dependencies" blocks are unchanged.
+// "Updated dependencies" blocks follow the same `(<short sha>)` convention. The
+// default implementation emits one `- Updated dependencies [<short sha>]` line
+// per changeset, which repeats the line when several changesets share a commit;
+// this one emits a single line listing every contributing commit instead.
 const SHA_LENGTH = 7;
 
 module.exports = {
@@ -38,7 +40,7 @@ module.exports = {
                     .map((changeset) => changeset.commit.slice(0, SHA_LENGTH))
             ),
         ];
-        const suffix = shas.length > 0 ? ` (${shas.join(', ')})` : '';
+        const suffix = shas.length > 0 ? ` [${shas.join(', ')}]` : '';
         return [
             `- Updated dependencies${suffix}`,
             ...dependenciesUpdated.map(
