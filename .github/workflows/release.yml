@@ -8,8 +8,8 @@
 #     PR titled "Version Packages".
 #   * `publish` - the release PR has been merged, so the versions in `master`
 #     are ahead of what is on npm. The workflow builds the workspace, publishes
-#     every changed public package, and creates a git tag + GitHub Release per
-#     published package.
+#     every changed public package, creates a git tag + GitHub Release per
+#     published package, and finally resets `prod` to the released commit.
 #
 # Nothing is published until the release PR is merged by a maintainer.
 #
@@ -153,3 +153,13 @@ jobs:
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           # No `NODE_AUTH_TOKEN` on purpose (must use Yarn)
+
+      # Mirror the released commit onto `prod`.
+      - name: Update `prod` branch
+        id: update-prod
+        if: ${{ steps.publish-packages.outputs.published == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X PATCH "repos/${{ github.repository }}/git/refs/heads/prod" \
+            -f sha='${{ github.sha }}' -F force=true
