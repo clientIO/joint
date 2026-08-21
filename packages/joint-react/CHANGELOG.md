@@ -1,5 +1,11 @@
 # @joint/react
 
+## 4.3.4
+
+### Patch Changes
+
+- 20aa3e2: <Paper /> - fix events dispatched at the paper container itself being guarded as portaled content
+
 ## 4.3.3
 
 ### Patch Changes
