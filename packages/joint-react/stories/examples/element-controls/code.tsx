@@ -740,7 +740,7 @@ function addElementControls(paper: dia.Paper) {
     const factory = controlMap[type];
     if (!factory) continue;
     const toolsView = new dia.ToolsView({ tools: [factory()] });
-    element.findView(paper).addTools(toolsView);
+    element.findView(paper)?.addTools(toolsView);
   }
 }
 
