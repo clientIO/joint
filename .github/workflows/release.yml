@@ -158,4 +158,8 @@ jobs:
       - name: Update `prod` branch
         id: update-prod
         if: ${{ steps.publish-packages.outputs.published == 'true' }}
-        run: git push --force origin HEAD:refs/heads/prod
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X PATCH "repos/${{ github.repository }}/git/refs/heads/prod" \
+            -f sha='${{ github.sha }}' -F force=true
