@@ -12,7 +12,9 @@ const DIST = [
 ].concat(modules.jointPlugins);
 
 const TEST_BUNDLE = [
-    modules.jointNoDependencies
+    modules.geometryTest,
+    modules.vectorizerTest,
+    modules.jointTest
 ];
 
 export default commandLineArgs => {

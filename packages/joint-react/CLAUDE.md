@@ -1,20 +1,26 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## Project Overview
 
-`@joint/react` is the React bindings library for JointJS. It provides React components and hooks for building diagramming applications with JointJS, rendering diagram elements as React components via SVG foreignObject portals.
+`@joint/react` is the React bindings library for JointJS. It provides React
+components and hooks for building diagramming applications with JointJS,
+rendering diagram elements as React components via SVG foreignObject portals.
 
-**Stack:** TypeScript 5.9, React 19 (peer: >=18 <20), esbuild (build), Vite (storybook/dev), Jest 30 + @testing-library/react (testing), ESLint 9 flat config, Storybook 10
+**Stack:** TypeScript 5.9, React 19 (peer: >=18), Rollup + esbuild (build), Vite
+(storybook/dev), Jest 30 + @testing-library/react (testing), ESLint 9 flat
+config, Storybook 10
 
 ## Common Commands
 
 ```bash
-# Build (esbuild → dist/cjs, dist/esm, dist/types)
+# Build (Rollup + esbuild → dist/cjs, dist/esm, dist/types)
 yarn build
 
-# Run all checks (typecheck + lint + jest)
+# Run all checks (typecheck + knip + jest, once against React 19 and once
+# against React 18)
 yarn test
 
 # Run individual checks
@@ -24,7 +30,7 @@ yarn lint-fix               # ESLint with auto-fix
 yarn jest                   # Jest tests only
 
 # Run a single test file
-yarn jest --testPathPattern="use-elements"
+yarn jest --testPathPatterns="use-elements"
 
 # Run tests in watch mode
 yarn jest --watch
@@ -36,13 +42,33 @@ yarn storybook
 yarn build-storybook
 ```
 
+## Changesets
+
+Releasable changes need a changeset - the format is defined in the **Changeset
+format** section of the repository's `CONTRIBUTING.md`. Two things are specific
+to this package:
+
+- The changelog scope is the exported component or hook rather than a JointJS
+  namespace - components as JSX tags, hooks by name:
+
+  ```markdown
+  <Paper /> - fix the visual grid to redraw reactively when `drawGrid` changes
+  useCells - fix ghost cells reported after `resetCells()`
+  ```
+
+- `@joint/react` is versioned independently. It is not part of the
+  `@joint/core` linked group, and because it depends on core via `workspace:^`,
+  a `@joint/core` minor release does not drag it along - only a major does.
+
 # Clean Code & Style Guidelines
 
 ## General
 
 - Prefer clear, explicit code over clever one-liners. Maintainability > brevity.
-- When editing existing code, preserve the existing style unless I explicitly ask for a refactor.
-- Leave code cleaner than you found it. Continuously refactor small things instead of accumulating technical debt.
+- When editing existing code, preserve the existing style unless I explicitly
+  ask for a refactor.
+- Leave code cleaner than you found it. Continuously refactor small things
+  instead of accumulating technical debt.
 
 ## Constants Over Magic Numbers
 
@@ -54,9 +80,11 @@ yarn build-storybook
 
 - Variables, functions, and classes should reveal their purpose.
 - Names should explain **why** something exists and **how** it is used.
-- Avoid abbreviations unless they are truly universal (e.g. `id`, `URL`, `HTML`).
+- Avoid abbreviations unless they are truly universal (e.g. `id`, `URL`,
+  `HTML`).
 - Boolean names must be self-descriptive and read like conditions:
-  - Use prefixes: `is`, `has`, `should`, `can`, `must`, `needs` (e.g. `isOpen`, `hasError`, `shouldRetry`).
+  - Use prefixes: `is`, `has`, `should`, `can`, `must`, `needs` (e.g. `isOpen`,
+    `hasError`, `shouldRetry`).
   - Avoid generic names like `flag`, `ok`, `state`, `enabled` without context.
 - Function names should describe behavior, not implementation details.
 
@@ -70,7 +98,8 @@ yarn build-storybook
 
 ## Smart Comments
 
-- Do **not** comment on what the code does if the code can be made self-explanatory instead.
+- Do **not** comment on what the code does if the code can be made
+  self-explanatory instead.
 - Prefer to improve the code so it reads clearly without comments.
 - Use comments to explain:
   - Why something is done in a non-obvious way.
@@ -82,14 +111,16 @@ yarn build-storybook
 
 - Each function should do exactly one thing.
 - Functions should be small and focused.
-- If a function needs a long comment to explain what it does, consider splitting it into smaller functions.
+- If a function needs a long comment to explain what it does, consider
+  splitting it into smaller functions.
 - JSDoc is mandatory for all exported functions.
 
 ## DRY (Don't Repeat Yourself)
 
 - Extract repeated code into reusable functions or utilities.
 - Share common logic through proper abstractions.
-- Maintain single sources of truth for configuration, constants, and shared logic.
+- Maintain single sources of truth for configuration, constants, and shared
+  logic.
 
 ## Clean Structure
 
@@ -108,23 +139,32 @@ yarn build-storybook
 
 - Never use `any` in new code:
   - Prefer proper types, generics, unions, or `unknown` + narrowing.
-  - If `any` is unavoidable at a boundary (e.g. 3rd-party library), isolate it and add a clear `TODO` explaining why.
+  - If `any` is unavoidable at a boundary (e.g. 3rd-party library), isolate it
+    and add a clear `TODO` explaining why.
 - Write `strict`-friendly code:
   - No implicit `any`.
   - Avoid sloppy or unnecessary `as` casts.
-  - Avoid `as any` and non-null assertions (`!`) unless absolutely necessary; justify them with a short comment.
+  - Avoid `as any` and non-null assertions (`!`) unless absolutely necessary;
+    justify them with a short comment.
 - Use `interface`/`type` aliases for data structures instead of loose objects.
-- Keep function signatures explicit and well-typed, especially for exported functions and public APIs.
-- Prefer readonly/immutable data where reasonable (e.g. `readonly` props, avoid mutating function arguments).
+- Keep function signatures explicit and well-typed, especially for exported
+  functions and public APIs.
+- Prefer readonly/immutable data where reasonable (e.g. `readonly` props, avoid
+  mutating function arguments).
 
 ## Performance Mindset
 
 - Avoid unnecessary allocations and copies:
-  - No pointless spreading (`{ ...obj }`) or `JSON.parse(JSON.stringify(...))` in hot paths.
-- Avoid creating new functions/objects inside tight loops or very frequently rendered components unless memoized.
-- Use `useMemo` / `useCallback` **only** when they prevent real, recurring work or re-renders, not everywhere by default.
-- Be careful not to introduce extra re-renders by changing prop shapes unnecessarily.
-- Prefer algorithmic improvements and proper data structures over micro-optimizations when performance is a concern.
+  - No pointless spreading (`{ ...obj }`) or `JSON.parse(JSON.stringify(...))`
+    in hot paths.
+- Avoid creating new functions/objects inside tight loops or very frequently
+  rendered components unless memoized.
+- Use `useMemo` / `useCallback` **only** when they prevent real, recurring work
+  or re-renders, not everywhere by default.
+- Be careful not to introduce extra re-renders by changing prop shapes
+  unnecessarily.
+- Prefer algorithmic improvements and proper data structures over
+  micro-optimizations when performance is a concern.
 
 ## Code Quality Maintenance
 

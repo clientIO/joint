@@ -128,11 +128,18 @@ export class PaperView extends Paper {
   /**
    * Check whether a link end can be rendered immediately.
    * @param end - The link end JSON descriptor.
-   * @returns True if the link end's target element is ready.
+   * @returns True if the link end's target cell is ready.
    */
   private isLinkEndReady(end: dia.Link.EndJSON): boolean {
-    if (!end.id) return true;
-    return this.isElementReady(end.id as CellId);
+    const endId = end.id;
+    if (!endId) return true;
+
+    // Only elements can render asynchronously (their React portal content
+    // mounts after the view) — a link end never needs to be waited for.
+    const cell = this.model.getCell(endId);
+    if (cell?.isLink()) return true;
+
+    return this.isElementReady(endId);
   }
 
   /**

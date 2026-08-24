@@ -1,7 +1,7 @@
 {
   "name": "@joint/core",
   "title": "JointJS",
-  "version": "4.3.0",
+  "version": "4.3.2",
   "description": "JavaScript diagramming library",
   "sideEffects": false,
   "main": "./dist/joint.min.js",
@@ -73,7 +73,7 @@
     "test-client": "grunt test:client",
     "test-ts": "grunt test:ts",
     "test-coverage": "grunt test:coverage",
-    "test-coverage-lcov": "yarn run test-coverage --reporter=lcov",
+    "test-coverage-lcov": "COVERAGE_REPORTER=lcov yarn run test-coverage",
     "test-bundles": "grunt test:bundles",
     "test-e2e": "grunt test:e2e",
     "test-e2e-all": "grunt test:e2e:all",
@@ -87,7 +87,8 @@
     "./index.js",
     "./joint.mjs",
     "./LICENSE",
-    "./README.md"
+    "./README.md",
+    "./CHANGELOG.md"
   ],
   "devDependencies": {
     "@babel/core": "7.26.10",
@@ -125,6 +126,7 @@
     "karma-coverage": "2.2.1",
     "karma-qunit": "4.2.1",
     "karma-sinon": "1.0.5",
+    "karma-sourcemap-loader": "^0.4.0",
     "load-grunt-config": "4.0.1",
     "lodash": "~4.17.21",
     "mocha": "11.1.0",
@@ -148,7 +150,7 @@
   "volta": {
     "node": "22.14.0",
     "npm": "11.2.0",
-    "yarn": "4.7.0"
+    "yarn": "4.18.0"
   },
   "keywords": [
     "joint",

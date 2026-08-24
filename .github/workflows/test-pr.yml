@@ -22,7 +22,7 @@ jobs:
       # Checkout contents of joint repo
       - name: Checkout joint
         id: checkout-joint
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -44,14 +44,14 @@ jobs:
       # Set up Node.js version for building
       - name: Setup Node.js v22
         id: setup-node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.14.0
 
       # Cache Yarn packages to speed up CI
       - name: Cache Yarn
         id: cache-yarn
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .yarn/cache
@@ -61,6 +61,18 @@ jobs:
       - name: Install dependencies
         id: install-dependencies
         run: yarn install --immutable
+
+      # Changing releasable code in a public package must provide a changeset
+      # (Releasable files are configured in `.changeset/config.json`)
+      # (Call `yarn changeset add --empty` to opt out of a release)
+      - name: Check changeset
+        id: check-changeset
+        # Release PR is skipped - it consumes all changesets instead
+        if: ${{ github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/') }}
+        # Compare PR to current committed master
+        run: |
+          git fetch --no-tags origin '+refs/heads/master:refs/remotes/origin/master'
+          yarn changeset status --since=origin/master
 
       # Build the joint project
       - name: Prepare joint

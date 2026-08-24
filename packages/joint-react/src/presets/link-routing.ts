@@ -8,6 +8,7 @@ import {
   straightRouterUntilConnected,
   straightConnectorUntilConnected,
   anchorWhenConnected,
+  connectionPointWhenAnchorIsDefault,
   connectionPointWhenConnected,
 } from './wrappers';
 
@@ -39,6 +40,31 @@ interface BaseLinkOptions {
   readonly straightWhenDisconnected?: boolean;
   /** The attrs selector that holds the marker definitions. @default 'line' */
   readonly markerSelector?: string;
+}
+
+/**
+ * The connection point for a preset whose anchor already accounts for the arrowhead.
+ *
+ * `midSideAnchor` sits where the arrowhead's tail belongs — the arrowhead length plus
+ * the per-end offset — so an end that takes it needs its anchor returned untouched.
+ * An end carrying its own anchor never runs it, so the same two are applied here for
+ * those ends instead, leaving the position the anchor chose otherwise intact. Applied
+ * in one place or the other, never both.
+ * @param presetPoint - the point used for ends taking the preset's own anchor
+ * @param sourceOffset
+ * @param targetOffset
+ * @param markerSelector
+ */
+function withCustomAnchorOffsets(
+  presetPoint: connectionPoints.ConnectionPoint,
+  sourceOffset: number,
+  targetOffset: number,
+  markerSelector?: string
+): connectionPoints.ConnectionPoint {
+  return connectionPointWhenAnchorIsDefault(
+    presetPoint,
+    withOffsets(presetPoint, sourceOffset, targetOffset, markerSelector)
+  );
 }
 
 /**
@@ -156,7 +182,7 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
         centerAnchor
       ),
       defaultConnectionPoint: connectionPointWhenConnected(
-        anchorPoint,
+        withCustomAnchorOffsets(anchorPoint, sourceOffset, targetOffset, markerSelector),
         withOffsets(boundaryPoint, sourceOffset, targetOffset, markerSelector)
       ),
     };
@@ -169,7 +195,12 @@ export function linkRoutingOrthogonal(options: LinkRoutingOrthogonalOptions = {}
       args: { cornerType, cornerRadius, cornerPreserveAspectRatio: true },
     },
     defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset, markerSelector),
-    defaultConnectionPoint: anchorPoint,
+    defaultConnectionPoint: withCustomAnchorOffsets(
+      anchorPoint,
+      sourceOffset,
+      targetOffset,
+      markerSelector
+    ),
   };
 }
 
@@ -213,7 +244,12 @@ export function linkRoutingSmooth(options: LinkRoutingSmoothOptions = {}): LinkR
         centerAnchor
       ),
       defaultConnectionPoint: connectionPointWhenConnected(
-        connectionPoints.anchor as connectionPoints.ConnectionPoint,
+        withCustomAnchorOffsets(
+          connectionPoints.anchor as connectionPoints.ConnectionPoint,
+          sourceOffset,
+          targetOffset,
+          markerSelector
+        ),
         withOffsets(boundaryPoint, sourceOffset, targetOffset, markerSelector)
       ),
     };
@@ -223,6 +259,11 @@ export function linkRoutingSmooth(options: LinkRoutingSmoothOptions = {}): LinkR
     defaultRouter: { name: 'normal' },
     defaultConnector: outwardsCurveConnector,
     defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset, markerSelector),
-    defaultConnectionPoint: { name: 'anchor' },
+    defaultConnectionPoint: withCustomAnchorOffsets(
+      connectionPoints.anchor as connectionPoints.ConnectionPoint,
+      sourceOffset,
+      targetOffset,
+      markerSelector
+    ),
   };
 }

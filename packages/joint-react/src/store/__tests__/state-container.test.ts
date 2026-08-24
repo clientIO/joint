@@ -368,6 +368,49 @@ describe('createContainer', () => {
       expect(container.getIds()).toEqual(['a', 'b']);
     });
 
+    it('getIds invalidates when membership changes but the count stays the same (swap in one batch)', () => {
+      const container = setup();
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' });
+      const ids = container.getIds();
+      const listener = jest.fn();
+      container.subscribe(listener);
+
+      // One batch: remove 'a' + add 'b' → net size unchanged, but the key set
+      // changed. Subscribers building id lists must be notified.
+      container.batchSet({
+        added: new Map([['b', { id: 'b', x: 3, y: 4, type: 'item' }]]),
+        changed: new Map(),
+        removed: new Set(['a']),
+      });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(container.getIds()).not.toBe(ids);
+      expect(container.getIds()).toEqual(['b']);
+    });
+
+    it('getIds invalidates on a replace-all to the same count with different ids', () => {
+      const container = setup();
+      add(
+        container,
+        { id: 'a', x: 1, y: 2, type: 'item' },
+        { id: 'b', x: 3, y: 4, type: 'item' }
+      );
+      const ids = container.getIds();
+
+      // Same count, entirely new ids (e.g. graph.fromJSON reload).
+      container.batchSet({
+        added: new Map([
+          ['c', { id: 'c', x: 5, y: 6, type: 'item' }],
+          ['d', { id: 'd', x: 7, y: 8, type: 'item' }],
+        ]),
+        changed: new Map(),
+        removed: new Set(['a', 'b']),
+      });
+
+      expect(container.getIds()).not.toBe(ids);
+      expect(container.getIds()).toEqual(['c', 'd']);
+    });
+
     it('getIds invalidates when a NEW id arrives via the changed bucket', () => {
       const container = setup();
       add(container, { id: 'a', x: 1, y: 2, type: 'item' });

@@ -1,0 +1,105 @@
+name: SonarQube Analysis
+
+# Trigger this workflow on:
+on:
+  push: # Primarily on push to master branch
+    branches:
+      - master
+  workflow_dispatch: {} # Also allow manual triggering
+
+jobs:
+  sonarqube:
+    if: ${{ github.repository == 'clientIO/joint' }} # Skip for forks
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      # Echo run information
+      - name: Information
+        id: information
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Run information
+          | | |
+          |---|---|
+          | **Triggered by** | `${{ github.event_name }}` |
+          | **Workflow branch** | `${{ github.ref_name }}` |
+          EOF
+
+      # Checkout contents of joint repo
+      - name: Checkout code
+        id: checkout-joint
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Install environment packages
+      # Fonts - util.breakText - international characters
+      - name: Install environment packages
+        id: install-environment-packages
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: |
+            fonts-arphic-ukai \
+            fonts-arphic-uming \
+            fonts-ipafont-mincho \
+            fonts-ipafont-gothic \
+            fonts-unfonts-core \
+            fonts-noto-core
+          version: 1.0
+
+      # Set up Node.js version for building
+      - name: Setup Node.js v22
+        id: setup-node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.14.0
+
+      # Cache Yarn packages to speed up CI
+      - name: Cache Yarn
+        id: cache-yarn
+        uses: actions/cache@v6
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      # Install all dependencies from the joint repo
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install --immutable
+
+      # Build the joint project (needed for tests)
+      - name: Prepare joint
+        id: prepare-joint
+        run: yarn run dist
+
+      # Evaluate test coverage in the joint project
+      # NOTE: Falling below local coverage thresholds aborts the workflow
+      - name: Test joint coverage
+        id: test-coverage
+        run: yarn run test-coverage-lcov
+
+      # Resolve the version to report to SonarQube
+      - name: Resolve project version
+        id: resolve-project-version
+        run: echo "SONAR_PROJECT_VERSION=$(node -p 'require("./package.json").version')" >> $GITHUB_ENV
+
+      # Start SonarQube analysis
+      - name: SonarQube Scan
+        id: sonar-scan
+        uses: sonarsource/sonarqube-scan-action@v8.2.1
+        with:
+          args: -Dsonar.projectVersion=${{ env.SONAR_PROJECT_VERSION }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      # Poll SonarQube for analysis results
+      - name: SonarQube Quality Gate check
+        id: sonar-quality-gate
+        uses: sonarsource/sonarqube-quality-gate-action@v1.2.1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

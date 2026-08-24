@@ -3,6 +3,7 @@ import {
   straightRouterUntilConnected,
   straightConnectorUntilConnected,
   anchorWhenConnected,
+  connectionPointWhenAnchorIsDefault,
   connectionPointWhenConnected,
 } from '../wrappers';
 
@@ -151,5 +152,59 @@ describe('presets / wrappers / connectionPointWhenConnected', () => {
     );
     expect(result).toBe('C');
     expect(disconnected).not.toHaveBeenCalled();
+  });
+});
+
+function makeLinkViewWithEnds(sourceEnd?: unknown, targetEnd?: unknown) {
+  const model = {
+    getSourceCell: jest.fn(() => ({ id: 's' })),
+    getTargetCell: jest.fn(() => ({ id: 't' })),
+    source: jest.fn(() => sourceEnd),
+    target: jest.fn(() => targetEnd),
+  };
+  return { model } as any;
+}
+
+describe('presets / wrappers / connectionPointWhenAnchorIsDefault', () => {
+  it('uses the preset connection point when the end takes the default anchor', () => {
+    const presetAnchor = jest.fn(() => 'P');
+    const customAnchor = jest.fn(() => 'C');
+    const wrapped = connectionPointWhenAnchorIsDefault(presetAnchor as any, customAnchor as any);
+    const linkView = makeLinkViewWithEnds({ id: 's' }, { id: 't' });
+    const result = wrapped({} as any, {} as any, {} as any, {}, 'target', linkView);
+    expect(result).toBe('P');
+    expect(customAnchor).not.toHaveBeenCalled();
+  });
+
+  it('uses the custom connection point when the end declares its own anchor', () => {
+    const presetAnchor = jest.fn(() => 'P');
+    const customAnchor = jest.fn(() => 'C');
+    const wrapped = connectionPointWhenAnchorIsDefault(presetAnchor as any, customAnchor as any);
+    const linkView = makeLinkViewWithEnds(
+      { id: 's' },
+      { id: 't', anchor: { name: 'modelCenter', args: { dx: 0, dy: -20 }}}
+    );
+    const result = wrapped({} as any, {} as any, {} as any, {}, 'target', linkView);
+    expect(result).toBe('C');
+    expect(presetAnchor).not.toHaveBeenCalled();
+  });
+
+  it('decides per end, so one custom anchor does not affect the other end', () => {
+    const presetAnchor = jest.fn(() => 'P');
+    const customAnchor = jest.fn(() => 'C');
+    const wrapped = connectionPointWhenAnchorIsDefault(presetAnchor as any, customAnchor as any);
+    const linkView = makeLinkViewWithEnds({ id: 's', anchor: { name: 'center' }}, { id: 't' });
+    expect(wrapped({} as any, {} as any, {} as any, {}, 'source', linkView)).toBe('C');
+    expect(wrapped({} as any, {} as any, {} as any, {}, 'target', linkView)).toBe('P');
+  });
+
+  it('treats an end with no definition as taking the default anchor', () => {
+    const presetAnchor = jest.fn(() => 'P');
+    const customAnchor = jest.fn(() => 'C');
+    const wrapped = connectionPointWhenAnchorIsDefault(presetAnchor as any, customAnchor as any);
+    const linkView = makeLinkViewWithEnds();
+    const result = wrapped({} as any, {} as any, {} as any, {}, 'source', linkView);
+    expect(result).toBe('P');
+    expect(customAnchor).not.toHaveBeenCalled();
   });
 });

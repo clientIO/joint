@@ -1,7 +1,7 @@
 {
     "name": "@joint/demo-microsoft-adaptive-cards-js",
     "private": true,
-    "version": "4.3.0",
+    "version": "4.3.1",
     "type": "module",
     "scripts": {
         "dev": "vite",

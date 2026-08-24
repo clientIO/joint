@@ -41,13 +41,15 @@
     "build:umd": "rollup --config",
     "watch": "yarn build && concurrently \"tsc --project tsconfig.esm.json --watch\" \"rollup --config --watch\"",
     "test": "yarn build && karma start karma.conf.js",
+    "test-coverage": "karma start karma.conf.js",
+    "test-coverage-lcov": "COVERAGE_REPORTER=lcov yarn run test-coverage",
     "lint": "eslint .",
     "lint-fix": "yarn run lint --fix"
   },
   "exports": {
     ".": {
-      "import": "./dist/esm/index.mjs",
       "types": "./dist/esm/index.d.mts",
+      "import": "./dist/esm/index.mjs",
       "default": "./dist/esm/index.mjs"
     }
   },
@@ -55,7 +57,8 @@
     "dist",
     "SECURITY.md",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "dependencies": {
     "@joint/core": "workspace:~",
@@ -72,6 +75,7 @@
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",
     "karma-qunit": "^4.1.2",
+    "karma-sourcemap-loader": "^0.4.0",
     "puppeteer": "24.22.0",
     "qunit": "^2.24.1",
     "rollup": "4.36.0",
@@ -81,7 +85,7 @@
   "volta": {
     "node": "22.14.0",
     "npm": "11.2.0",
-    "yarn": "4.7.0"
+    "yarn": "4.18.0"
   },
   "keywords": [
     "jointjs",

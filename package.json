@@ -1,6 +1,6 @@
 {
   "name": "joint",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "sideEffects": false,
   "homepage": "https://jointjs.com",
   "author": {
@@ -24,7 +24,10 @@
     "test-e2e-all": "yarn workspaces foreach --all -tvv run test-e2e-all",
     "lint": "yarn workspaces foreach --all -tvv run lint",
     "lint-fix": "yarn workspaces foreach --all -tvv run lint-fix",
-    "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/core\" --include \"@joint/layout-directed-graph\" --include \"@joint/layout-msagl\" pack --out %s-%v.tgz"
+    "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/core\" --include \"@joint/layout-directed-graph\" --include \"@joint/layout-msagl\" --include \"@joint/router-avoid\" pack --out %s-%v.tgz"
+  },
+  "devDependencies": {
+    "@changesets/cli": "3.0.0"
   },
   "workspaces": [
     "./packages/*",
@@ -36,7 +39,7 @@
   "volta": {
     "node": "22.14.0",
     "npm": "11.2.0",
-    "yarn": "4.7.0"
+    "yarn": "4.18.0"
   },
-  "packageManager": "yarn@4.7.0"
+  "packageManager": "yarn@4.18.0"
 }

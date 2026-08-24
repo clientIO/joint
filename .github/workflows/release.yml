@@ -1,0 +1,155 @@
+# Release pipeline, driven by Changesets (https://changesets.dev).
+#
+# On every push to `master` this workflow decides between two modes:
+#
+#   * `version` - there are pending changesets in `.changeset/`. The workflow
+#     applies the version bumps + per-package `CHANGELOG.md` entries, deletes
+#     the consumed changesets and opens (or updates) `changeset-release/master`
+#     PR titled "Version Packages".
+#   * `publish` - the release PR has been merged, so the versions in `master`
+#     are ahead of what is on npm. The workflow builds the workspace, publishes
+#     every changed public package, and creates a git tag + GitHub Release per
+#     published package.
+#
+# Nothing is published until the release PR is merged by a maintainer.
+#
+# Repository setup:
+#   * Settings > Actions > General > "Allow GitHub Actions to create and approve
+#     pull requests" must be enabled (needed to open the release PR).
+#   * Secret `NPM_TOKEN` - an npm automation token that bypasses 2FA.
+#
+# Note: the release PR is opened by `github-actions[bot]`, so `test-pr.yml` does
+# not run on it.
+name: Release
+
+on:
+  push:
+    branches: [ "master" ]
+
+# Reset permissions and grant them explicitly per job.
+permissions: {}
+
+# Never release twice at the same time.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # Decide whether this push should version or publish.
+  select-mode:
+    if: ${{ github.repository == 'clientIO/joint' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.select-mode.outputs.mode }}
+    steps:
+      - name: Checkout joint
+        id: checkout-joint
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js v22
+        id: setup-node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.14.0
+
+      - name: Cache Yarn
+        id: cache-yarn
+        uses: actions/cache@v6
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install --immutable
+
+      - name: Select Changesets mode
+        id: select-mode
+        uses: changesets/action/select-mode@v2
+
+  # Pending changesets: open/update the "Version Packages" PR.
+  version:
+    needs: select-mode
+    if: ${{ needs.select-mode.outputs.mode == 'version' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # commit the version bumps
+      pull-requests: write # open the release PR
+    steps:
+      - name: Checkout joint
+        id: checkout-joint
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js v22
+        id: setup-node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.14.0
+
+      - name: Cache Yarn
+        id: cache-yarn
+        uses: actions/cache@v6
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install --immutable
+
+      # Runs `changeset version` and pushes the result to `changeset-release/master`.
+      - name: Version packages
+        id: version-packages
+        uses: changesets/action/version@v2
+
+  # Release PR merged: build and publish everything that is not on npm yet.
+  publish:
+    needs: select-mode
+    if: ${{ needs.select-mode.outputs.mode == 'publish' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push git tags and create GitHub Releases
+    steps:
+      - name: Checkout joint
+        id: checkout-joint
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js v22
+        id: setup-node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.14.0
+          # No `registry-url` on purpose (not used by Yarn)
+
+      - name: Cache Yarn
+        id: cache-yarn
+        uses: actions/cache@v6
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install --immutable
+
+      - name: Build packages
+        id: build-packages
+        run: yarn dist
+
+      # Runs `changeset publish`, which publishes through `yarn npm publish` (Yarn Berry
+      # is auto-detected), then tags each published package and cuts a GitHub Release.
+      - name: Publish packages
+        id: publish-packages
+        uses: changesets/action/publish@v2
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # No `NODE_AUTH_TOKEN` on purpose (must use Yarn)
