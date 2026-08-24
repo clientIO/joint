@@ -148,6 +148,49 @@ describe('PaperView / portalSelector overrides', () => {
       expect(linkView).toBeDefined();
     });
 
+    it('does not keep a link-to-link connection hidden', () => {
+      const noPortalSelector: undefined = undefined;
+      paper = createPaper(noPortalSelector);
+
+      const a = new shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 50, height: 50 } });
+      const b = new shapes.standard.Rectangle({ position: { x: 200, y: 0 }, size: { width: 50, height: 50 } });
+      const flow = new shapes.standard.Link({ source: { id: a.id }, target: { id: b.id } });
+      const commentLink = new shapes.standard.Link({ source: { x: 100, y: 100 }, target: { id: flow.id } });
+      graphStore.graph.addCells([a, b, flow, commentLink]);
+
+      const commentLinkView = paper.findViewByModel(commentLink)!;
+      expect(commentLinkView.el.style.visibility).not.toBe('hidden');
+    });
+
+    it('does not hide a chain of link-to-link connections', () => {
+      const noPortalSelector: undefined = undefined;
+      paper = createPaper(noPortalSelector);
+
+      const a = new shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 50, height: 50 } });
+      const b = new shapes.standard.Rectangle({ position: { x: 200, y: 0 }, size: { width: 50, height: 50 } });
+      const flow = new shapes.standard.Link({ source: { id: a.id }, target: { id: b.id } });
+      const first = new shapes.standard.Link({ source: { x: 0, y: 100 }, target: { id: flow.id } });
+      const second = new shapes.standard.Link({ source: { x: 0, y: 200 }, target: { id: first.id } });
+      graphStore.graph.addCells([a, b, flow, first, second]);
+
+      const firstView = paper.findViewByModel(first)!;
+      const secondView = paper.findViewByModel(second)!;
+      expect(firstView.el.style.visibility).not.toBe('hidden');
+      expect(secondView.el.style.visibility).not.toBe('hidden');
+    });
+
+    it('does not hide links between portal-less elements', () => {
+      const noPortalSelector: undefined = undefined;
+      paper = createPaper(noPortalSelector);
+
+      const a = new shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 50, height: 50 } });
+      const link = new shapes.standard.Link({ source: { id: a.id }, target: { x: 200, y: 100 } });
+      graphStore.graph.addCells([a, link]);
+
+      const linkView = paper.findViewByModel(link)!;
+      expect(linkView.el.style.visibility).not.toBe('hidden');
+    });
+
     it('treats link end with no view as not ready (private isElementReady)', () => {
       const noPortalSelector: undefined = undefined;
       paper = createPaper(noPortalSelector);
