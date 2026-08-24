@@ -42,7 +42,8 @@
     "mocks/",
     "./LICENSE",
     "./README.md",
-    "./SECURITY.md"
+    "./SECURITY.md",
+    "./CHANGELOG.md"
   ],
   "exports": {
     ".": {
@@ -83,7 +84,7 @@
   "volta": {
     "node": "22.14.0",
     "npm": "11.2.0",
-    "yarn": "4.7.0"
+    "yarn": "4.18.0"
   },
   "keywords": [
     "jointjs",

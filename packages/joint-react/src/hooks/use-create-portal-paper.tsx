@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { dia, util } from '@joint/core';
 import {
-  useDeferredValue,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -231,13 +230,7 @@ export function useCreatePortalPaper(
     return { elementIds: elements, linkIds: links };
   }, [allCellIds, graphStore]);
 
-  const deferredElementIdsRaw = useDeferredValue(elementIds);
-  const deferredLinkIdsRaw = useDeferredValue(linkIds);
-  const shouldDefer = elementIds.length > 100 || linkIds.length > 100;
   const featuresContext = useContext(PaperFeaturesContext);
-
-  const deferredElementIds = shouldDefer ? deferredElementIdsRaw : elementIds;
-  const deferredLinkIds = shouldDefer ? deferredLinkIdsRaw : linkIds;
 
   const selectPaperVersion = useMemo(() => createSelectPaperVersion(id), [id]);
 
@@ -455,7 +448,7 @@ export function useCreatePortalPaper(
     if (!hasRenderElement) {
       return null;
     }
-    return deferredElementIds.map((elementId) => {
+    return elementIds.map((elementId) => {
       const elementView = paperStore?.getElementView(elementId);
       if (!elementView?.paper) {
         return null;
@@ -500,7 +493,7 @@ export function useCreatePortalPaper(
     version,
     HTMLRendererContainer,
     areElementsMeasured,
-    deferredElementIds,
+    elementIds,
     hasRenderElement,
     paperStore,
     renderElement,
@@ -512,7 +505,7 @@ export function useCreatePortalPaper(
       return null;
     }
 
-    return deferredLinkIds.map((linkId) => {
+    return linkIds.map((linkId) => {
       const linkView = paperStore?.getLinkView(linkId);
       if (!linkView?.paper) {
         return null;
@@ -534,7 +527,7 @@ export function useCreatePortalPaper(
       );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deferredLinkIds, version, hasRenderLink, paperStore, renderLink]);
+  }, [linkIds, version, hasRenderLink, paperStore, renderLink]);
 
   const content = useMemo(
     () => (

@@ -5,7 +5,6 @@ import {
   Paper,
   useCell,
   jsx,
-  resolveLinkMarker,
   selectElementSize,
   linkRoutingOrthogonal,
 } from '@joint/react';
@@ -28,9 +27,6 @@ const ORTHOGONAL_LINKS = linkRoutingOrthogonal({
   cornerRadius: 5,
   margin: 40,
 });
-
-/** Distance (px) to shift the dropped link-end away from the shape edge. */
-const ANCHOR_MARGIN = resolveLinkMarker('arrow')?.length ?? 0;
 
 const DEFAULT_LINK_STYLE: LinkStyle = { color: LINK_COLOR, width: 2, targetMarker: 'arrow' };
 const DEFAULT_LINK = { style: DEFAULT_LINK_STYLE };
@@ -139,7 +135,7 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
     target: {
       id: 'square2',
-      anchor: { name: 'modelCenter', args: { dx: -40 - ANCHOR_MARGIN, dy: -20 } },
+      anchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } },
     },
     ...DEFAULT_LINK,
   },
@@ -147,7 +143,7 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
     id: 'link2',
     type: 'link',
     source: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
-    target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -100, dy: -30 } } },
+    target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -100, dy: -20 } } },
     ...DEFAULT_LINK,
   },
   {
@@ -156,7 +152,7 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
     source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 100, dy: -20 } } },
     target: {
       id: 'ellipse1',
-      anchor: { name: 'modelCenter', args: { dx: 40 + ANCHOR_MARGIN, dy: 0 } },
+      anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
     },
     ...DEFAULT_LINK,
   },
@@ -166,7 +162,7 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } } },
     target: {
       id: 'ellipse1',
-      anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 - ANCHOR_MARGIN } },
+      anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 } },
     },
     ...DEFAULT_LINK,
   },
@@ -176,7 +172,7 @@ const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: {
       id: 'square1',
-      anchor: { name: 'modelCenter', args: { dx: 40 + ANCHOR_MARGIN, dy: 0 } },
+      anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
     },
     ...DEFAULT_LINK,
   },
@@ -330,12 +326,11 @@ function getLinkTools(): dia.ToolView[] {
 }
 
 /** Snap a dropped link end to the fixed anchor nearest the drop point. */
-const connectionStrategy: ConnectionStrategy = ({ end, model, dropPoint, endType }) => {
+const connectionStrategy: ConnectionStrategy = ({ end, model, dropPoint }) => {
   const element = model as dia.Element;
   const { width, height } = element.size();
   const shapeType = element.prop('data/shapeType') as ShapeType;
-  const margin = endType === 'target' ? ANCHOR_MARGIN : 0;
-  const anchors = getAnchors(shapeType, width, height, margin);
+  const anchors = getAnchors(shapeType, width, height);
   const relativePoint = element.getRelativePointFromAbsolute(dropPoint);
   const anchor = findClosestAnchor(anchors, relativePoint);
   return {

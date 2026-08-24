@@ -1,4 +1,5 @@
 import { dia, shapes, linkTools, elementTools } from '@joint/core';
+
 import './styles.css';
 
 class ResizeTool extends elementTools.Control {
@@ -20,78 +21,81 @@ class ResizeTool extends elementTools.Control {
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 
 const paper = new dia.Paper({
-    el: document.getElementById('paper-container'),
-    width: '100%',
-    height: '100%',
-    gridSize: 10,
-    async: true,
-    frozen: true,
+    el: document.getElementById('paper'),
+    width: 800,
+    height: 800,
     model: graph,
     cellViewNamespace: shapes,
-    defaultRouter: { name: 'rightAngle', args: {
-        useVertices: true,
-        margin: 40,
-        minPathMargin: 10,
-        //sourceMargin: 40,
-        //targetMargin: 30
-    }},
-    defaultConnector: { name: 'rounded' },
-    background: {
-        color: '#151D29'
-    },
-    defaultLinkAnchor: {
-        name: 'connectionRatio',
-        args: {
-            ratio: 0.25
-        }
-    }
+    async: true,
+    frozen: true,
+    defaultAnchor: { name: 'midSide', args: { mode: 'right-left' } },
+    defaultConnector: { name: 'rounded', args: { radius: 8 } }
 });
 
-paper.setGrid({ name: 'dot'});
+// Router options, tuned live from the toolbar.
+const options = { sourceMargin: 20, targetMargin: 20, minPathMargin: 20 };
 
-const rect = new shapes.standard.Rectangle({
-    position: { x: 120, y: 120 },
-    size: { width: 220, height: 60 },
+// A rectangle with an extra rect behind the body that visualises its routing
+// margin: the band's stroke width is half the margin (margin = strokeWidth * 2).
+const MarginRectangle = shapes.standard.Rectangle.define('demo.MarginRectangle', {
     attrs: {
-        body: {
-            stroke: 'none',
-            fill: '#DF423D',
-            rx: 10,
-            ry: 10,
-        }
+        margin: {
+            x: 0,
+            y: 0,
+            width: 'calc(w)',
+            height: 'calc(h)',
+            rx: 8,
+            ry: 8,
+            fill: 'none',
+            stroke: '#226CE0',
+            strokeOpacity: 0.15,
+            pointerEvents: 'none'
+        },
+        body: { rx: 8, ry: 8, stroke: '#226CE0', fill: '#eef4ff' }
     }
+}, {
+    markup: [
+        { tagName: 'rect', selector: 'margin' },
+        { tagName: 'rect', selector: 'body' },
+        { tagName: 'text', selector: 'label' }
+    ]
 });
 
-const rect2 = rect.clone();
+const el1 = new MarginRectangle({
+    position: { x: 200, y: 50 },
+    size: { width: 110, height: 44 },
+    attrs: { label: { text: 'Source', fontSize: 12 } }
+});
 
-rect2.resize(60, 220);
-rect2.position(300, 250);
+const el2 = new MarginRectangle({
+    position: { x: 220, y: 120 },
+    size: { width: 110, height: 44 },
+    attrs: { label: { text: 'Target', fontSize: 12 } }
+});
 
 const link = new shapes.standard.Link({
+    source: { id: el1.id },
+    target: { id: el2.id },
+    // The rightAngle router is set explicitly on the link.
+    router: { name: 'rightAngle', args: { ...options } },
     attrs: {
         line: {
-            stroke: 'white'
+            stroke: '#f43f5e',
+            strokeWidth: 3,
+            targetMarker: { fill: '#f43f5e' }
+        },
+        // The wrapper band visualises the minPathMargin corridor.
+        wrapper: {
+            stroke: '#f43f5e',
+            strokeOpacity: 0.2,
+            strokeLinecap: 'butt'
         }
     }
 });
 
-link.source({ id: rect.id, anchor: { name: 'top' }});
-link.target({ id: rect2.id, anchor: { name: 'right' }});
+graph.addCells([el1, el2, link]);
 
-graph.addCells([rect, rect2, link]);
-
-rect.findView(paper).addTools(
-    new dia.ToolsView({
-        tools: [
-            new ResizeTool({
-                selector: 'body',
-
-            })
-        ]
-    })
-);
-
-rect2.findView(paper).addTools(
+el1.findView(paper).addTools(
     new dia.ToolsView({
         tools: [
             new ResizeTool({
@@ -101,37 +105,58 @@ rect2.findView(paper).addTools(
     })
 );
 
-const linkToolsView = new dia.ToolsView({
-    tools: [
-        new linkTools.Vertices({
-            focusOpacity: 0.5,
-        }),
-        new linkTools.TargetAnchor({
-            focusOpacity: 0.5,
-            scale: 1.2
-        }),
-        new linkTools.SourceAnchor({
-            focusOpacity: 0.5,
-            scale: 1.2
-        }),
-    ]
-});
+el2.findView(paper).addTools(
+    new dia.ToolsView({
+        tools: [
+            new ResizeTool({
+                selector: 'body'
+            })
+        ]
+    })
+);
 
-link.findView(paper).addTools(linkToolsView);
+link.findView(paper).addTools(
+    new dia.ToolsView({
+        tools: [
+            new linkTools.Vertices({
+                focusOpacity: 0.5
+            }),
+            new linkTools.TargetAnchor({
+                focusOpacity: 0.5,
+                scale: 1.2
+            }),
+            new linkTools.SourceAnchor({
+                focusOpacity: 0.5,
+                scale: 1.2
+            })
+        ]
+    })
+);
 
-function scaleToFit() {
-    const graphBBox = graph.getBBox();
-    paper.transformToFitContent({
-        contentArea: graphBBox.clone().inflate(0, 100)
-    });
-    const { sy } = paper.scale();
-    const area = paper.getArea();
-    const yTop = area.height / 2 - graphBBox.y - graphBBox.height / 2;
-    const xLeft = area.width / 2 - graphBBox.x - graphBBox.width / 2;
-    paper.translate(xLeft * sy, yTop * sy);
+function render() {
+    // The band straddles the element edge, so a strokeWidth of margin * 2
+    // extends the margin distance outward on every side.
+    el1.attr('margin/strokeWidth', options.sourceMargin * 2);
+    el2.attr('margin/strokeWidth', options.targetMargin * 2);
+    link.attr('wrapper/strokeWidth', options.minPathMargin * 2);
+    link.router('rightAngle', { ...options });
 }
 
-window.addEventListener('resize', () => scaleToFit());
-scaleToFit();
+function bind(id, key) {
+    const input = document.getElementById(id);
+    const output = document.getElementById(`${id}-val`);
+    input.value = options[key];
+    output.textContent = options[key];
+    input.addEventListener('input', () => {
+        options[key] = Number(input.value);
+        output.textContent = options[key];
+        render();
+    });
+}
 
+bind('source-margin', 'sourceMargin');
+bind('target-margin', 'targetMargin');
+bind('min-path-margin', 'minPathMargin');
+
+render();
 paper.unfreeze();

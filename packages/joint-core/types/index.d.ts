@@ -18,6 +18,7 @@ export * as connectors from './connectors';
 export * as routers from './routers';
 export * as mvc from './mvc';
 export * as util from './util';
+export * as alg from './alg';
 export {
     V,
     Vectorizer,

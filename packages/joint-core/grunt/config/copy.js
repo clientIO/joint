@@ -12,6 +12,7 @@ module.exports = function(grunt) {
                     '*',
                     '!dts-generator',
                     '!min',
+                    '!test', // source-mapped unit-test bundles
                     '!joint.browserify-bundle.js',
                     '!joint.webpack-bundle.js'
                 ],

@@ -15,6 +15,7 @@ export * as connectors from './connectors/index.mjs';
 export * as routers from './routers/index.mjs';
 export * as mvc from './mvc/index.mjs';
 export * as util from './util/index.mjs';
+export * as alg from './alg/index.mjs';
 export {
     default as V,
     default as Vectorizer
