@@ -355,6 +355,46 @@ QUnit.module('paper', function(hooks) {
         assert.ok(blankContextmenuCallback.called, 'blank:contextmenu triggered');
     });
 
+    QUnit.test('focusin & focusout', function(assert) {
+
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 150, y: 50 }, size: { width: 20, height: 20 }});
+        var l1 = new joint.shapes.standard.Link({ source: { id: r1.id }, target: { id: r2.id }});
+        this.graph.resetCells([r1, r2, l1]);
+
+        var events = [];
+        this.paper.on('all', function(name) {
+            if (name.indexOf('focus') > -1) events.push(name);
+        });
+
+        // The test `$.fn.trigger` does not dispatch bubbling events —
+        // dispatch native focus events instead.
+        var focus = function(el, type) {
+            el.dispatchEvent(new FocusEvent(type, { bubbles: true }));
+        };
+
+        var r1View = this.paper.findViewByModel(r1);
+        focus(r1View.el, 'focusin');
+        assert.deepEqual(events, ['cell:focusin', 'element:focusin'], 'cell:focusin precedes element:focusin');
+
+        events = [];
+        focus(r1View.el, 'focusout');
+        assert.deepEqual(events, ['cell:focusout', 'element:focusout'], 'cell:focusout precedes element:focusout');
+
+        events = [];
+        var l1View = this.paper.findViewByModel(l1);
+        focus(l1View.el, 'focusin');
+        assert.deepEqual(events, ['cell:focusin', 'link:focusin'], 'cell:focusin precedes link:focusin');
+
+        events = [];
+        focus(this.paper.svg, 'focusin');
+        assert.deepEqual(events, ['blank:focusin'], 'blank:focusin triggered');
+
+        events = [];
+        focus(this.paper.svg, 'focusout');
+        assert.deepEqual(events, ['blank:focusout'], 'blank:focusout triggered');
+    });
+
     QUnit.test('paper.getArea()', function(assert) {
 
         this.paper.translate(0, 0);

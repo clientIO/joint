@@ -1299,6 +1299,16 @@ export const CellView = View.extend({
         this.notify('cell:mouseout', evt);
     },
 
+    focusin: function(evt) {
+
+        this.notify('cell:focusin', evt);
+    },
+
+    focusout: function(evt) {
+
+        this.notify('cell:focusout', evt);
+    },
+
     mouseenter: function(evt) {
 
         this.notify('cell:mouseenter', evt);
