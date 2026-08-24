@@ -131,7 +131,7 @@ export class PaperView extends Paper {
    * @returns True if the link end's target cell is ready.
    */
   private isLinkEndReady(end: dia.Link.EndJSON): boolean {
-    const endId = end.id as CellId | undefined;
+    const endId = end.id;
     if (!endId) return true;
 
     // Only elements can render asynchronously (their React portal content
