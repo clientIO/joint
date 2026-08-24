@@ -1,5 +1,11 @@
 # @joint/react
 
+## 4.3.5
+
+### Patch Changes
+
+- 22422ef: <Paper /> - fix links connected to other links staying permanently hidden (the link-end readiness check only looked the end up among the elements)
+
 ## 4.3.4
 
 ### Patch Changes
