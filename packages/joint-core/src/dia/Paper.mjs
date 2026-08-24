@@ -3681,13 +3681,7 @@ export const Paper = View.extend({
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
-        if (view) {
-            view.focusin(evt);
-
-        } else {
-            if (this.el === evt.target) return; // prevent border of paper from triggering this
-            this.trigger('blank:focusin', evt);
-        }
+        if (view) view.focusin(evt);
     },
 
     focusout: function(evt) {
@@ -3695,13 +3689,7 @@ export const Paper = View.extend({
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
-        if (view) {
-            view.focusout(evt);
-
-        } else {
-            if (this.el === evt.target) return; // prevent border of paper from triggering this
-            this.trigger('blank:focusout', evt);
-        }
+        if (view) view.focusout(evt);
     },
 
     mouseenter: function(evt) {

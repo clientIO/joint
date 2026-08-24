@@ -388,11 +388,7 @@ QUnit.module('paper', function(hooks) {
 
         events = [];
         focus(this.paper.svg, 'focusin');
-        assert.deepEqual(events, ['blank:focusin'], 'blank:focusin triggered');
-
-        events = [];
-        focus(this.paper.svg, 'focusout');
-        assert.deepEqual(events, ['blank:focusout'], 'blank:focusout triggered');
+        assert.deepEqual(events, [], 'no event for a focusin outside of a cell view');
     });
 
     QUnit.test('paper.getArea()', function(assert) {
