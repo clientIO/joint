@@ -19,7 +19,8 @@ import { useCells } from './use-cells';
 import { useCellIds } from './use-cell-ids';
 import type { LinkRecord } from '../types/cell.types';
 import type { PaperStore } from '../store';
-import { PaperView } from '../mvc/paper';
+import { isPaperView } from '../mvc/paper';
+import type { PaperView } from '../mvc/paper';
 import type { DefaultLink, PaperProps, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 
@@ -356,9 +357,15 @@ export function useCreatePortalPaper(
 
       remove();
     };
-    // We intentionally create paper store only once.
+    // Create the paper store once per (graph store, paper id): the remaining
+    // options are intentionally captured only on (re-)registration. `addPaper`
+    // is an instance method of the graph store, so its identity changes when a
+    // GraphProvider re-creates its store while this Paper stays mounted (e.g.
+    // a Fast Refresh / dev-server HMR re-runs the provider's mount effect) —
+    // without this dependency the paper would stay registered on the
+    // destroyed store and the canvas would go blank.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [addPaper, id]);
 
   useLayoutEffect(() => {
     if (!paper) {
@@ -453,7 +460,7 @@ export function useCreatePortalPaper(
       if (!elementView?.paper) {
         return null;
       }
-      if (!(elementView.paper instanceof PaperView)) {
+      if (!isPaperView(elementView.paper)) {
         return null;
       }
 
@@ -511,7 +518,7 @@ export function useCreatePortalPaper(
         return null;
       }
 
-      if (!(linkView.paper instanceof PaperView)) {
+      if (!isPaperView(linkView.paper)) {
         return;
       }
 
