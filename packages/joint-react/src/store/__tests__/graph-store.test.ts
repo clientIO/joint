@@ -340,4 +340,115 @@ describe('GraphStore', () => {
       store.destroy(false);
     });
   });
+
+  describe('auto-size reassertion after external size writes', () => {
+    // The race this covers: the measurement pipeline writes sizes on its own
+    // (ResizeObserver) schedule, so an external size write (controlled-mode
+    // sync, `cell.resize`) landing between measurements would stick while the
+    // DOM disagrees — the observer does not re-fire when the DOM did not
+    // change, and its dedup memory would swallow a delivery repeating the
+    // last-measured numbers. Observed under rapid collapse/expand toggling of
+    // a measured card, where it left the model at a stale measured size.
+    interface ObserverInstance {
+      readonly observe: jest.Mock;
+      readonly unobserve: jest.Mock;
+      readonly disconnect: jest.Mock;
+    }
+
+    // Hoisted so `setup`'s inner helpers stay within the nesting limit.
+    const noop = () => {};
+
+    const makeEntry = (target: Element, width: number, height: number): ResizeObserverEntry =>
+      ({
+        target,
+        borderBoxSize: [{ inlineSize: width, blockSize: height }],
+        contentBoxSize: [{ inlineSize: width, blockSize: height }],
+        devicePixelContentBoxSize: [{ inlineSize: width, blockSize: height }],
+        contentRect: {} as DOMRectReadOnly,
+      }) as ResizeObserverEntry;
+
+    const setup = async () => {
+      const store = new GraphStore({});
+      const element = new shapes.standard.Rectangle({
+        id: 'measured',
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 40 },
+      });
+      store.graph.addCell(element);
+      // The projection's cells container (read by the measurement pipeline's
+      // getElements) syncs on a microtask — flush before delivering entries.
+      await flush();
+      const node = document.createElement('div');
+      document.body.append(node);
+      store.setMeasuredNode({ id: 'measured', node });
+
+      // The global ResizeObserver is re-mocked in jest-setup's beforeEach, so
+      // the mock has seen exactly one construction: this store's observer.
+      // Assert that, so the test fails loudly if GraphStore ever grows more.
+      const resizeObserverMock = globalThis.ResizeObserver as unknown as jest.Mock;
+      expect(resizeObserverMock).toHaveBeenCalledTimes(1);
+      const callback = resizeObserverMock.mock.calls[0][0] as ResizeObserverCallback;
+      const instance = resizeObserverMock.mock.results[0].value as ObserverInstance;
+
+      const deliver = (width: number, height: number) =>
+        callback([makeEntry(node, width, height)], instance as unknown as ResizeObserver);
+      const resizeExternally = (width: number, height: number) => {
+        // Silence the dev-only "resized while in auto-size mode" warning.
+        const warn = jest.spyOn(console, 'warn').mockImplementation(noop);
+        element.resize(width, height);
+        warn.mockRestore();
+      };
+      const cleanup = () => {
+        node.remove();
+        store.destroy(false);
+      };
+      return { element, node, instance, deliver, resizeExternally, cleanup };
+    };
+
+    it('honors the re-measured content size after an external resize', async () => {
+      const { element, deliver, resizeExternally, cleanup } = await setup();
+
+      deliver(300, 200);
+      expect(element.size()).toEqual({ width: 300, height: 200 });
+
+      resizeExternally(520, 400);
+
+      // The content did not change, so the fresh (re-observed) measurement
+      // reports the same 300x200 — it must overwrite the external size, as
+      // documented ("the measured content size overrides the resize"). The
+      // stale dedup memory from before the resize must not swallow it.
+      deliver(300, 200);
+      expect(element.size()).toEqual({ width: 300, height: 200 });
+      cleanup();
+    });
+
+    it('re-observes the measured node on an external resize to force a fresh delivery', async () => {
+      const { node, instance, deliver, resizeExternally, cleanup } = await setup();
+
+      deliver(300, 200);
+      instance.unobserve.mockClear();
+      instance.observe.mockClear();
+
+      resizeExternally(520, 400);
+
+      // Real ResizeObserver semantics: unobserve() resets the last-reported
+      // size, so the following observe() forces a fresh delivery of the
+      // current layout even though the DOM did not change (observe() alone is
+      // a spec no-op for an already-observed target).
+      expect(instance.unobserve).toHaveBeenCalledWith(node);
+      expect(instance.observe).toHaveBeenCalledWith(node, expect.anything());
+      cleanup();
+    });
+
+    it('does not re-observe for measurement-pipeline (autoSize) writes', async () => {
+      const { element, instance, deliver, cleanup } = await setup();
+
+      deliver(300, 200);
+      instance.unobserve.mockClear();
+
+      element.set('size', { width: 310, height: 210 }, { autoSize: true });
+      expect(instance.unobserve).not.toHaveBeenCalled();
+      cleanup();
+    });
+  });
 });
