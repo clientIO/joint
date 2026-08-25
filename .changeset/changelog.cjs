@@ -1,4 +1,4 @@
-const SHA_LENGTH = 7;
+const SHA_LENGTH = 8;
 
 // NOTE: Returns `null` if the changeset has no commit yet (e.g. local)
 const shortSha = (changeset) => {
