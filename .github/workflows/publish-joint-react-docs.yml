@@ -13,11 +13,8 @@ on:
       - '.github/workflows/**'              # (optional) include changes to the workflow itself
   workflow_call:
 
-# Permissions needed to write to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# Reset permissions and grant them explicitly per job.
+permissions: {}
 
 # Prevent concurrent runs of this workflow
 concurrency:
@@ -29,10 +26,11 @@ jobs:
   build-joint-react-docs:
     if: ${{ github.repository == 'clientIO/joint' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # the built docs leave as an artifact
     defaults:
       run:
         working-directory: ./packages/joint-react
-
     outputs:
       # Save the docs output path for the next job
       pages_path: ${{ steps.prepare.outputs.pages_path }}
@@ -40,6 +38,8 @@ jobs:
     steps:
       # Checkout the repo contents
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       # Set up Node.js version for building
       - name: Use Node.js 22.14.0
@@ -96,6 +96,9 @@ jobs:
     needs: build-joint-react-docs
     if: ${{ github.repository == 'clientIO/joint' }}
     runs-on: ubuntu-latest
+    permissions:
+      pages: write # publish the artifact to GitHub Pages
+      id-token: write # OIDC token the Pages deployment is verified with
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

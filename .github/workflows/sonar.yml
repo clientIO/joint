@@ -7,11 +7,16 @@ on:
       - master
   workflow_dispatch: {} # Also allow manual triggering
 
+# Reset permissions and grant them explicitly per job.
+permissions: {}
+
 jobs:
   sonarqube:
     if: ${{ github.repository == 'clientIO/joint' }} # Skip for forks
     name: SonarQube Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout only - results go to SonarQube, not to GitHub
 
     steps:
       # Echo run information
@@ -31,7 +36,9 @@ jobs:
         id: checkout-joint
         uses: actions/checkout@v7
         with:
+          # Full history for SonarQube blame/SCM attribution (read from the local clone)
           fetch-depth: 0
+          persist-credentials: false
 
       # Install environment packages
       # Fonts - util.breakText - international characters
