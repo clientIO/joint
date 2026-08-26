@@ -47,6 +47,7 @@ import { useAreElementsMeasured } from './use-are-elements-measured';
 import { LINK_MODEL_TYPE } from '../mvc/link-model';
 import { subscribeToPaperEvents } from './use-on-paper-events';
 import { useOnEvents } from './use-on-events';
+import { usePinchZoom } from './use-pinch-zoom';
 import type { CellId } from '../types/cell.types';
 import { extractEventsFromPaperProps } from '../presets/paper-events';
 
@@ -192,6 +193,7 @@ export function useCreatePortalPaper(
     transform,
     portalSelector,
     linkRouting,
+    zoomOnPinch,
     options: escapeHatchOptions,
     // These are React host props and must not be forwarded to dia.Paper options.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -303,6 +305,7 @@ export function useCreatePortalPaper(
 
   const eventHandlers = useMemo(() => extractEventsFromPaperProps(paperOptions), [paperOptions]);
   useOnEvents(paperStore, eventHandlers, subscribeToPaperEvents);
+  usePinchZoom(paperStore, zoomOnPinch);
 
   useLayoutEffect(() => {
     const hostElementForCreation = nodeRef?.current;
