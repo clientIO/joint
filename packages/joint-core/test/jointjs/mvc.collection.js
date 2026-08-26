@@ -71,6 +71,20 @@ QUnit.module('joint.mvc.Collection', function(hooks) {
         assert.equal(col.get(col.first().cid), col.first());
     });
 
+    QUnit.test('get: a model id colliding with another model\'s cid', function(assert) {
+        assert.expect(5);
+        var a = new joint.mvc.Model();
+        var b = new joint.mvc.Model();
+        a.set('id', b.cid);
+        var collection = new joint.mvc.Collection([a, b]);
+        assert.equal(collection.get(a.id), a, 'the model with the real id wins the string lookup');
+        assert.equal(collection.get(a), a, 'the id-holder is reachable by model reference');
+        assert.equal(collection.get(b), b, 'the cid-colliding model is reachable by model reference');
+        collection.remove(a);
+        assert.equal(collection.get(b.cid), b, 'with the id-holder gone, the cid string lookup finds the other model');
+        assert.equal(collection.get(b), b, 'removing the id-holder does not sever the other model');
+    });
+
     QUnit.test('get with non-default ids', function(assert) {
         assert.expect(5);
         var MongoModel = joint.mvc.Model.extend({ idAttribute: '_id' });
@@ -1045,7 +1059,7 @@ QUnit.module('joint.mvc.Collection', function(hooks) {
                 joint.mvc.Collection.prototype._addReference.apply(this, arguments);
                 calls.add++;
                 assert.equal(model, this._byId.get(model.id));
-                assert.equal(model, this._byId.get(model.cid));
+                assert.equal(model, this._byCid.get(model.cid));
                 assert.equal(model._events.all.length, 1);
             },
 
@@ -1053,7 +1067,7 @@ QUnit.module('joint.mvc.Collection', function(hooks) {
                 joint.mvc.Collection.prototype._removeReference.apply(this, arguments);
                 calls.remove++;
                 assert.equal(this._byId.get(model.id), void 0);
-                assert.equal(this._byId.get(model.cid), void 0);
+                assert.equal(this._byCid.get(model.cid), void 0);
                 assert.equal(model.collection, void 0);
             }
 

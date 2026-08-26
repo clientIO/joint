@@ -255,11 +255,15 @@ assign(Collection.prototype, Events, {
 
     // Get a model from the set by id, cid, model object with id or cid
     // properties, or an attributes object that is transformed through modelId.
+    // Ids and cids live in separate maps so that a model id in the cid
+    // namespace (e.g. 'c12') can never be shadowed by another model's cid;
+    // a real id always wins the string lookup.
     get: function(obj) {
         if (obj == null) return void 0;
         return this._byId.get(obj) ||
             this._byId.get(this.modelId(this._isModel(obj) ? obj.attributes : obj, obj.idAttribute)) ||
-            obj.cid && this._byId.get(obj.cid);
+            obj.cid && this._byCid.get(obj.cid) ||
+            this._byCid.get(obj);
     },
 
     // Returns `true` if the model is in the collection.
@@ -376,6 +380,7 @@ assign(Collection.prototype, Events, {
         this.length = 0;
         this.models = [];
         this._byId  = new Map();
+        this._byCid = new Map();
     },
 
     // Prepare a hash of attributes (or other model) to be added to this
@@ -414,7 +419,7 @@ assign(Collection.prototype, Events, {
 
             // Remove references before triggering 'remove' event to prevent an
             // infinite loop. #3693
-            this._byId.delete(model.cid);
+            this._byCid.delete(model.cid);
             var id = this.modelId(model.attributes, model.idAttribute);
             if (id != null)this._byId.delete(id);
 
@@ -438,7 +443,7 @@ assign(Collection.prototype, Events, {
 
     // Internal method to create a model's ties to a collection.
     _addReference: function(model, options) {
-        this._byId.set(model.cid, model);
+        this._byCid.set(model.cid, model);
         var id = this.modelId(model.attributes, model.idAttribute);
         if (id != null) this._byId.set(id, model);
         model.on('all', this._onModelEvent, this);
@@ -446,7 +451,7 @@ assign(Collection.prototype, Events, {
 
     // Internal method to sever a model's ties to a collection.
     _removeReference: function(model, options) {
-        this._byId.delete(model.cid);
+        this._byCid.delete(model.cid);
         var id = this.modelId(model.attributes, model.idAttribute);
         if (id != null) this._byId.delete(id);
         if (!options.dry && this === model.collection) delete model.collection;
