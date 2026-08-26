@@ -60,8 +60,12 @@ type PointerLinkEventParams = WithPointer<LinkEventParams>;
 /** Pointer-style blank-area payload — event + coords on empty paper area. */
 type PointerBlankEventParams = WithPointer<BaseContext>;
 
-/** Focus-style cell-level payload (focusin/focusout) — cell context + event. */
+/** Focus-style cell-level payload (focus/blur) — cell context + event. */
 type FocusCellEventParams = WithHover<CellEventParams>;
+/** Focus-style element-level payload. */
+type FocusElementEventParams = WithHover<ElementEventParams>;
+/** Focus-style link-level payload. */
+type FocusLinkEventParams = WithHover<LinkEventParams>;
 
 /** Hover-style cell-level payload (mouseenter/leave/over/out). */
 type HoverCellEventParams = WithHover<CellEventParams>;
@@ -183,14 +187,17 @@ const POINTER_CELL_MAP = {
 } as const;
 
 // Focus enters/leaves a cell when a focusable node inside it (e.g. a `tabindex`
-// element) gains/loses focus. `onCellFocus`/`onCellBlur` map to the paper's
-// `cell:focus` / `cell:blur` events, which are driven by the bubbling
-// `focusin`/`focusout` DOM events — plain `focus`/`blur` do not bubble and so
-// cannot be delegated to cells (the same reason React's own onFocus/onBlur use
-// focusin/focusout under the hood).
+// element) gains/loses focus. The paper's `cell:focus` / `cell:blur` events are
+// driven by the bubbling `focusin`/`focusout` DOM events — plain `focus`/`blur`
+// do not bubble and so cannot be delegated to cells (the same reason React's
+// own onFocus/onBlur use focusin/focusout under the hood).
 const FOCUS_CELL_MAP = {
   onCellFocus: 'cell:focus',
   onCellBlur: 'cell:blur',
+  onElementFocus: 'element:focus',
+  onElementBlur: 'element:blur',
+  onLinkFocus: 'link:focus',
+  onLinkBlur: 'link:blur',
 } as const;
 
 const HOVER_CELL_MAP = {
@@ -332,10 +339,14 @@ export interface PaperEventHandlers {
   readonly onCellPointerClick?: (params: PointerCellEventParams) => void;
   readonly onCellPointerDblClick?: (params: PointerCellEventParams) => void;
   readonly onCellContextMenu?: (params: PointerCellEventParams) => void;
-  // focus (cell — fires when a focusable node inside any cell gains/loses focus,
+  // focus (fires when a focusable node inside a cell gains/loses focus,
   // driven by the bubbling focusin/focusout DOM events).
   readonly onCellFocus?: (params: FocusCellEventParams) => void;
   readonly onCellBlur?: (params: FocusCellEventParams) => void;
+  readonly onElementFocus?: (params: FocusElementEventParams) => void;
+  readonly onElementBlur?: (params: FocusElementEventParams) => void;
+  readonly onLinkFocus?: (params: FocusLinkEventParams) => void;
+  readonly onLinkBlur?: (params: FocusLinkEventParams) => void;
   // pointer (element)
   readonly onElementPointerDown?: (params: PointerElementEventParams) => void;
   readonly onElementPointerMove?: (params: PointerElementEventParams) => void;
