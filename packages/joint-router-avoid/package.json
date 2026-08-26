@@ -45,6 +45,11 @@
       "types": "./dist/esm/index.d.mts",
       "import": "./dist/esm/index.mjs",
       "default": "./dist/esm/index.mjs"
+    },
+    "./worker": {
+      "types": "./dist/esm/providers/Worker.d.mts",
+      "import": "./dist/esm/providers/Worker.mjs",
+      "default": "./dist/esm/providers/Worker.mjs"
     }
   },
   "files": [
