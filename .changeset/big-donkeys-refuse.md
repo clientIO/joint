@@ -2,4 +2,4 @@
 "@joint/core": minor
 ---
 
-dia.Paper - add `focusin` and `focusout` events (`cell:`, `element:`, `link:` variants)
+dia.Paper - add `focus` and `blur` events (`cell:`, `element:`, `link:` variants), driven by the bubbling `focusin`/`focusout` DOM events

@@ -1301,12 +1301,12 @@ export const CellView = View.extend({
 
     focusin: function(evt) {
 
-        this.notify('cell:focusin', evt);
+        this.notify('cell:focus', evt);
     },
 
     focusout: function(evt) {
 
-        this.notify('cell:focusout', evt);
+        this.notify('cell:blur', evt);
     },
 
     mouseenter: function(evt) {

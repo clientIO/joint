@@ -1564,13 +1564,13 @@ export const LinkView = CellView.extend({
     focusin: function(evt) {
 
         CellView.prototype.focusin.apply(this, arguments);
-        this.notify('link:focusin', evt);
+        this.notify('link:focus', evt);
     },
 
     focusout: function(evt) {
 
         CellView.prototype.focusout.apply(this, arguments);
-        this.notify('link:focusout', evt);
+        this.notify('link:blur', evt);
     },
 
     mouseenter: function(evt) {

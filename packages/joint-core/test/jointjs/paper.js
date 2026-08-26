@@ -355,7 +355,7 @@ QUnit.module('paper', function(hooks) {
         assert.ok(blankContextmenuCallback.called, 'blank:contextmenu triggered');
     });
 
-    QUnit.test('focusin & focusout', function(assert) {
+    QUnit.test('focus & blur', function(assert) {
 
         var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
         var r2 = new joint.shapes.standard.Rectangle({ position: { x: 150, y: 50 }, size: { width: 20, height: 20 }});
@@ -364,7 +364,7 @@ QUnit.module('paper', function(hooks) {
 
         var events = [];
         this.paper.on('all', function(name) {
-            if (name.indexOf('focus') > -1) events.push(name);
+            if (/focus|blur/.test(name)) events.push(name);
         });
 
         // The test `$.fn.trigger` does not dispatch bubbling events —
@@ -375,16 +375,16 @@ QUnit.module('paper', function(hooks) {
 
         var r1View = this.paper.findViewByModel(r1);
         focus(r1View.el, 'focusin');
-        assert.deepEqual(events, ['cell:focusin', 'element:focusin'], 'cell:focusin precedes element:focusin');
+        assert.deepEqual(events, ['cell:focus', 'element:focus'], 'cell:focus precedes element:focus');
 
         events = [];
         focus(r1View.el, 'focusout');
-        assert.deepEqual(events, ['cell:focusout', 'element:focusout'], 'cell:focusout precedes element:focusout');
+        assert.deepEqual(events, ['cell:blur', 'element:blur'], 'cell:blur precedes element:blur');
 
         events = [];
         var l1View = this.paper.findViewByModel(l1);
         focus(l1View.el, 'focusin');
-        assert.deepEqual(events, ['cell:focusin', 'link:focusin'], 'cell:focusin precedes link:focusin');
+        assert.deepEqual(events, ['cell:focus', 'link:focus'], 'cell:focus precedes link:focus');
 
         events = [];
         focus(this.paper.svg, 'focusin');

@@ -1895,14 +1895,14 @@ export namespace Paper {
         'element:mouseout': (elementView: ElementView, evt: Event) => void;
         'link:mouseout': (linkView: LinkView, evt: Event) => void;
         'blank:mouseout': (evt: Event) => void;
-        // focusin
-        'cell:focusin': (cellView: CellView, evt: Event) => void;
-        'element:focusin': (elementView: ElementView, evt: Event) => void;
-        'link:focusin': (linkView: LinkView, evt: Event) => void;
-        // focusout
-        'cell:focusout': (cellView: CellView, evt: Event) => void;
-        'element:focusout': (elementView: ElementView, evt: Event) => void;
-        'link:focusout': (linkView: LinkView, evt: Event) => void;
+        // focus (driven by the bubbling focusin DOM event)
+        'cell:focus': (cellView: CellView, evt: Event) => void;
+        'element:focus': (elementView: ElementView, evt: Event) => void;
+        'link:focus': (linkView: LinkView, evt: Event) => void;
+        // blur (driven by the bubbling focusout DOM event)
+        'cell:blur': (cellView: CellView, evt: Event) => void;
+        'element:blur': (elementView: ElementView, evt: Event) => void;
+        'link:blur': (linkView: LinkView, evt: Event) => void;
         // mouseenter
         'cell:mouseenter': (cellView: CellView, evt: Event) => void;
         'element:mouseenter': (elementView: ElementView, evt: Event) => void;
