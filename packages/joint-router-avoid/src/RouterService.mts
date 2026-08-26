@@ -335,6 +335,7 @@ export class RouterService {
      * normal teardown does not surface as an unhandled promise rejection.
      * Unexpected errors are re-thrown and stay unhandled - there is no
      * caller to propagate them to.
+     *
      */
     private backgroundSync(): void {
         this.sync(this.graph.getCells()).catch((error) => {
@@ -373,7 +374,7 @@ export class RouterService {
      * graph's current cells. Unlike {@link start}, this attaches no graph
      * listener - nothing keeps the graph routed as it changes afterwards.
      *
-     * @returns The {@link RoutingResult} of the pass.
+     * @returns The {@link RoutingResult} of the pass - `{ status: 'cancelled' }` if {@link start} or {@link destroy} is called before the queued pass runs.
      * @throws If the router is currently started (see {@link isStarted}) - call {@link stop} first.
      */
     routeAll(): Promise<RoutingResult> {
@@ -395,7 +396,7 @@ export class RouterService {
      * graph listener.
      *
      * @param cells - The cells to route; only the elements and links in this array are considered.
-     * @returns The {@link RoutingResult} of the pass.
+     * @returns The {@link RoutingResult} of the pass - `{ status: 'cancelled' }` if {@link start} or {@link destroy} is called before the queued pass runs.
      * @throws If the router is currently started (see {@link isStarted}) - call {@link stop} first.
      */
     routeSubgraph(cells: dia.Cell[]): Promise<RoutingResult> {
@@ -412,6 +413,9 @@ export class RouterService {
      * provider - resolves with `{ status: 'cancelled' }` instead of
      * rejecting, so fire-and-forget callers are not left with unhandled
      * rejections; provider errors unrelated to destruction still reject.
+     * A pass superseded by {@link start} while still queued resolves with
+     * `{ status: 'cancelled' }` too - `start()`'s own full-graph sync
+     * replaces whatever the pass would have produced.
      *
      * Passes run strictly one after another: a pass invoked while another
      * is still in flight waits for it, since each pass replaces the
@@ -428,6 +432,13 @@ export class RouterService {
 
     private async performRoute(cells: dia.Cell[]): Promise<RoutingResult> {
         if (this.destroyed) return { status: 'cancelled' };
+        // Superseded by `start()`: the pass was queued while stopped, but by
+        // the time it runs a graph listener is live and `start()`'s own full
+        // sync has already replaced the engine's content. Running this pass
+        // now would reset the engine to just `cells` under the live
+        // listener - and the listener then referencing an element the
+        // engine no longer holds aborts the WASM module irrecoverably.
+        if (this.isStarted) return { status: 'cancelled' };
 
         try {
             await this.sync(cells);
