@@ -654,3 +654,112 @@ QUnit.module('destroy()', () => {
         assert.deepEqual(cancelledLinks, []);
     });
 });
+
+QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
+    async function initStopped() {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 200 }, size });
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+        graph.resetCells([source, target, link]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+        return { graph, routerService, source, target, link };
+    }
+
+    QUnit.test('routeAllSync() applies the routes and returns the result during the call', async assert => {
+        const { routerService, link } = await initStopped();
+
+        const routedLinks = [];
+        routerService.on('link:routed', (l) => routedLinks.push(l));
+
+        const result = routerService.routeAllSync();
+
+        assert.strictEqual(result, undefined, 'nothing to return - the pass either completed or threw');
+        assert.deepEqual(routedLinks, [link], 'the link was routed during the call');
+        assert.ok(isOrthogonalPath(link));
+    });
+
+    QUnit.test('routeSubgraphSync() routes exactly the given cells during the call', async assert => {
+        const { graph, routerService, source, target, link } = await initStopped();
+
+        const other = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 400 }, size: { width: 100, height: 100 }});
+        const otherLink = new joint.shapes.standard.Link({ source: { id: other.id }, target: { id: target.id }});
+        graph.addCells([other, otherLink]);
+
+        const routedLinks = [];
+        routerService.on('link:routed', (l) => routedLinks.push(l));
+
+        routerService.routeSubgraphSync([source, target, link]);
+
+        assert.deepEqual(routedLinks, [link], 'only the link inside the subset was routed');
+    });
+
+    QUnit.test('routeAll() stays asynchronous: routes land only once the promise resolves', async assert => {
+        const { routerService, link } = await initStopped();
+
+        const routedLinks = [];
+        routerService.on('link:routed', (l) => routedLinks.push(l));
+
+        const pass = routerService.routeAll();
+        assert.deepEqual(routedLinks, [], 'nothing routed yet when the call returns');
+
+        const result = await pass;
+        assert.equal(result.status, 'done');
+        assert.deepEqual(routedLinks, [link], 'routed once the promise resolved');
+    });
+
+    QUnit.test('a synchronous pass refuses to run while an asynchronous one is in flight', async assert => {
+        const { routerService } = await initStopped();
+
+        const pass = routerService.routeAll();
+
+        assert.throws(
+            () => routerService.routeAllSync(),
+            /still in flight/,
+            'running synchronously now would have the queued pass silently override the result a microtask later'
+        );
+
+        await pass;
+        routerService.routeAllSync();
+        assert.ok(true, 'allowed again once the queued pass settled');
+    });
+
+    QUnit.test('a throwing consumer callback escapes routeAllSync() as a synchronous throw', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 200 }, size });
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+        graph.resetCells([source, target, link]);
+
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            setRouteAttributes: () => { throw new Error('consumer callback boom'); }
+        });
+
+        assert.throws(() => routerService.routeAllSync(), /consumer callback boom/);
+    });
+
+    QUnit.test('the same consumer error rejects the asynchronous routeAll()', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 200 }, size });
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+        graph.resetCells([source, target, link]);
+
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            setRouteAttributes: () => { throw new Error('consumer callback boom'); }
+        });
+
+        await assert.rejects(routerService.routeAll(), /consumer callback boom/);
+    });
+});
+
+QUnit.module('isSynchronous', () => {
+    QUnit.test('reports true for the main-thread provider', async assert => {
+        const { routerService } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+        assert.strictEqual(routerService.isSynchronous, true);
+        routerService.destroy();
+    });
+});

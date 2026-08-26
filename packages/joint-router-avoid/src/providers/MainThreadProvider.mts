@@ -11,6 +11,8 @@ import { AvoidLib } from 'libavoid-js';
  * while routes are being computed, so it is best suited to smaller graphs.
  */
 export class MainThreadProvider extends Provider {
+    override readonly isSynchronous = true;
+
     /** The `Avoid` WASM module instance. */
     protected avoidInstance!: AvoidInstance;
     /** The avoid router instance that owns all shapes and connectors created by this provider. */
@@ -233,7 +235,12 @@ export class MainThreadProvider extends Provider {
      * @param shapes - The full set of shapes that should exist after the sync.
      * @param connectors - The full set of connectors that should exist after the sync.
      */
-    override async sync(shapes: Shape[], connectors: Connector[]): Promise<void> {
+    // Deliberately NOT `async`: the whole body is synchronous WASM work, and
+    // an `async` wrapper would turn every synchronous throw (a consumer
+    // callback, a WASM abort) into a rejection. Kept non-async, errors
+    // escape to the caller synchronously; the resolved promise only
+    // satisfies the provider-agnostic signature.
+    override sync(shapes: Shape[], connectors: Connector[]): Promise<void> {
         Object.keys(this.connectorRefs).forEach((connectorId) => {
             this.deleteConnector(connectorId, false);
         });
@@ -246,6 +253,7 @@ export class MainThreadProvider extends Provider {
 
         this.avoidRouter.processTransaction();
         this.trigger('processed');
+        return Promise.resolve();
     }
 
     /**
