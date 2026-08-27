@@ -45,7 +45,7 @@ const routerService = await initAvoidRouter(graph, {
 // routerService.destroy();
 ```
 
-`initAvoidRouter()` resolves once the module is loaded and the current graph content has been registered with libavoid; the routes themselves are still computed asynchronously and applied as they come in - listen for the `link:routed` event to know when a specific link's route has settled (see below).
+`initAvoidRouter()` resolves once the module is loaded and the current graph content has been registered with libavoid; with `start()` and the promise-based one-shot passes the routes are applied as they come in - listen for the `link:routed` event to know when a specific link's route has settled (see below). With the main-thread provider, `routeAllSync()`/`routeSubgraphSync()` route synchronously instead: every route is on its link when they return.
 
 Loaded as a script tag rather than via ESM, the same functions are available as `joint.routers.avoid.initAvoidRouter` / `joint.routers.avoid.loadAvoidRouter` on the UMD build.
 
@@ -57,7 +57,7 @@ Loads the `libavoid-js` WebAssembly module. `initAvoidRouter()` calls this autom
 
 ### `initAvoidRouter(graph, options?): Promise<RouterService>`
 
-Loads the module (via `loadAvoidRouter()`, if needed) and creates a `RouterService` for `graph`. The returned service is not started - call `start()` to keep the graph continuously routed, or `routeAll()`/`routeSubgraph()` for a one-shot routing pass.
+Loads the module (via `loadAvoidRouter()`, if needed) and creates a `RouterService` for `graph`. The returned service is not started - call `start()` to keep the graph continuously routed, or `routeAll()`/`routeSubgraph()` (or their synchronous counterparts, see below) for a one-shot routing pass.
 
 - `graph`: `dia.Graph` - the graph to route.
 - `options?`: `InitAvoidOptions`
@@ -94,8 +94,10 @@ The object responsible for keeping libavoid's internal obstacle/connector graph 
 
 - `start()` / `stop()` - start/stop listening to graph changes (added/removed cells, moved/resized elements, reconnected links). `start()` also syncs every cell the graph already holds.
 - `isStarted` - whether the service is currently listening to its graph.
+- `isSynchronous` - whether the service routes on the main thread (`worker: false`), i.e. whether `routeAllSync()`/`routeSubgraphSync()` are available.
 - `routeAll()` - one-shot: routes every cell currently in the graph, resolving once all routes are applied. No graph listener is attached. Throws while started. Resolves with a `RoutingResult` - `{ status: 'done' }`, or `{ status: 'cancelled' }` if the pass was interrupted by `destroy()`. Overlapping calls are queued and run one after another.
 - `routeSubgraph(cells)` - one-shot: routes only `cells`, independently of the rest of the graph (cells outside the array are neither routed nor obstacles). Throws while started. Resolves with the same `RoutingResult` as `routeAll()`.
+- `routeAllSync()` / `routeSubgraphSync(cells)` - synchronous counterparts for the main-thread provider: every route is on its link by the time they return, and errors throw out of the call. Throw with a Worker provider, while started, after `destroy()`, or while a `routeAll()`/`routeSubgraph()` pass is still in flight (`await` it first). Return nothing - the pass either completed or threw.
 - `changeFlag` - the `opt` flag name marking this router's own `link.set()` calls, for filtering them out of your own `change` listeners.
 - `destroy()` - stops routing the graph, cancels open routing cycles, and releases the resources held by the service and its provider (e.g. terminates a Worker thread). Do not use the instance afterwards.
 

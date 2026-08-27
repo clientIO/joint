@@ -286,14 +286,6 @@ export class RouterService {
     }
 
     /**
-     * Whether the router is currently listening to its graph for changes,
-     * i.e. {@link start} has been called and not yet followed by
-     * {@link stop}. Must be `false` before calling {@link routeAll} or
-     * {@link routeSubgraph}: both fully reset the underlying avoid engine's
-     * state in one go, which would conflict with the incremental updates
-     * the graph listener applies while started.
-     */
-    /**
      * Whether this instance can route synchronously: `true` with the
      * main-thread provider (`worker: false`), where {@link routeAllSync} /
      * {@link routeSubgraphSync} are available, `false` with a Worker
@@ -304,6 +296,14 @@ export class RouterService {
         return this.provider.isSynchronous;
     }
 
+    /**
+     * Whether the router is currently listening to its graph for changes,
+     * i.e. {@link start} has been called and not yet followed by
+     * {@link stop}. Must be `false` before calling {@link routeAll} or
+     * {@link routeSubgraph}: both fully reset the underlying avoid engine's
+     * state in one go, which would conflict with the incremental updates
+     * the graph listener applies while started.
+     */
     get isStarted(): boolean {
         return !!this.graphListener;
     }
@@ -314,6 +314,8 @@ export class RouterService {
      * cells added before `start()` was called, or while stopped - since
      * referencing an element that was never registered as an avoid shape
      * aborts the underlying WASM module irrecoverably.
+     *
+     * @throws With the main-thread provider, if the initial sync fails inside this call (a throwing consumer callback, a WASM abort) - the router is left stopped, so the call can be retried.
      */
     start(): void {
         this.stop();
@@ -340,32 +342,45 @@ export class RouterService {
 
         this.graphListener = listener;
 
-        this.backgroundSync();
+        let initialSync: Promise<void>;
+        try {
+            initialSync = this.sync(this.graph.getCells());
+        } catch (error) {
+            // Main-thread provider: the sync failed inside this call. Do not
+            // stay started over a partially populated engine.
+            this.stop();
+            throw error;
+        }
+        initialSync.catch((error) => this.rethrowUnlessDestroyed(error));
     }
 
     /**
-     * Runs {@link sync} for the whole graph with no caller to await it
-     * (from {@link start} and the graph `reset` event), swallowing the
-     * rejection produced when {@link destroy} interrupts the sync so a
-     * normal teardown does not surface as an unhandled promise rejection.
-     * Unexpected errors are re-thrown and stay unhandled - there is no
-     * caller to propagate them to.
+     * Swallows the rejection produced when {@link destroy} interrupts a
+     * background sync, so a normal teardown does not surface as an unhandled
+     * promise rejection. Anything else is re-thrown and stays unhandled -
+     * there is no caller to propagate it to.
+     */
+    private rethrowUnlessDestroyed(error: unknown): void {
+        if (this.destroyed) return;
+        throw error;
+    }
+
+    /**
+     * Runs {@link sync} for the whole graph in reaction to the graph's
+     * `reset` event. There is no caller to report to, and a synchronous
+     * throw from inside the graph's event dispatch would also skip the
+     * graph's later `reset` listeners (`mvc.Events` does not guard them), so
+     * a synchronous failure is reported the same way as an asynchronous
+     * one: as a rejection, swallowed only when {@link destroy} caused it.
      */
     private backgroundSync(): void {
-        const rethrowUnlessDestroyed = (error: unknown) => {
-            if (this.destroyed) return;
-            throw error;
-        };
-        // A synchronous provider throws out of `sync()` itself (and so out of
-        // `start()`), an asynchronous one rejects - cover both.
         let run: Promise<void>;
         try {
             run = this.sync(this.graph.getCells());
         } catch (error) {
-            rethrowUnlessDestroyed(error);
-            return;
+            run = Promise.reject(error);
         }
-        run.catch(rethrowUnlessDestroyed);
+        run.catch((error) => this.rethrowUnlessDestroyed(error));
     }
 
     /** Stops listening to graph changes. */
@@ -520,18 +535,10 @@ export class RouterService {
             throw new Error('RouterService has been destroyed.');
         }
 
-        try {
-            // A synchronous provider completes the whole pass inside this
-            // call; the promise it returns is already resolved and carries
-            // nothing (see `MainThreadProvider.sync`).
-            void this.sync(cells);
-        } catch (error) {
-            // `destroy()` called from a callback mid-pass tears the engine
-            // down under the pass - the caller did that deliberately, so
-            // there is nothing to report.
-            if (this.destroyed) return;
-            throw error;
-        }
+        // A synchronous provider completes the whole pass inside this call;
+        // the promise it returns is already resolved and carries nothing
+        // (see `MainThreadProvider.sync`).
+        void this.sync(cells);
     }
 
     private async performRoute(cells: dia.Cell[]): Promise<RoutingResult> {
@@ -661,19 +668,20 @@ export class RouterService {
     /**
      * Registers exactly `cells`' tracked elements and routable links with
      * the provider in a single transaction, replacing whatever shapes and
-     * connectors the underlying avoid engine previously knew about. Also
-     * immediately applies a fallback route (firing `link:routing`) to each
-     * routable link, the same interim placeholder used for any other
-     * change, so every link has a sane route right away while avoid
-     * computes the real ones asynchronously. Shared by `start()`'s initial
-     * sync (and its reaction to a `reset` graph event), {@link routeAll},
-     * and {@link routeSubgraph}.
+     * connectors the underlying avoid engine previously knew about. Opens
+     * a routing cycle (`link:routing`) for each routable link; with an
+     * asynchronous provider it also applies the interim fallback route, the
+     * same placeholder used for any other change, so every link has a sane
+     * route while avoid computes the real ones. Shared by `start()`'s
+     * initial sync (and its reaction to a `reset` graph event),
+     * {@link routeAll}, {@link routeSubgraph} and their synchronous
+     * counterparts.
+     *
+     * NOT `async` - see {@link routeSync}: errors must escape this frame
+     * synchronously.
      *
      * @param cells - The cells to register; only the elements and links in this array are considered.
      */
-    // NOT `async` - see `route()`: with a synchronous provider, errors from
-    // this method (consumer callbacks, WASM aborts) must escape the calling
-    // stack frame synchronously rather than as rejections.
     private sync(cells: dia.Cell[]): Promise<void> {
         const routableLinks: dia.Link[] = [];
         cells.filter((cell) => cell.isLink()).filter((link) => this.trackLink({ link })).forEach((link) => {
@@ -682,7 +690,14 @@ export class RouterService {
                 return;
             }
 
-            this.applyFallbackRoute(link, { routing: true });
+            if (this.provider.isSynchronous) {
+                // The real route lands within this same call - an interim
+                // fallback route could never be observed; it would only cost
+                // a `rightAngle` computation and a second write per link.
+                this.setRouting(link);
+            } else {
+                this.applyFallbackRoute(link, { routing: true });
+            }
             routableLinks.push(link);
         });
 
@@ -833,6 +848,11 @@ export class RouterService {
      * @param points - The new route, including the source and target points.
      */
     private routeLink(linkId: dia.Cell.ID, points: dia.Point[]): void {
+        // `destroy()` may have been called from a consumer callback while the
+        // pass that produced this route was still running (the main-thread
+        // provider's `destroy()` does not stop the engine mid-transaction);
+        // `destroy()` already reported those links as `link:routing:cancelled`.
+        if (this.destroyed) return;
         const link = this.graph.getCell(linkId) as dia.Link | undefined;
         // The link may have been removed from the graph while avoid was still
         // computing its route or became unroutable, so check for existence and validity before applying the route.

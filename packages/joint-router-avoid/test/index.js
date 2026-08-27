@@ -58,6 +58,9 @@ QUnit.module('sanity', () => {
         assert.equal(typeof routerService.routeAll, 'function');
         assert.equal(typeof routerService.routeSubgraph, 'function');
         assert.equal(typeof routerService.isStarted, 'boolean');
+        assert.equal(typeof routerService.isSynchronous, 'boolean');
+        assert.equal(typeof routerService.routeAllSync, 'function');
+        assert.equal(typeof routerService.routeSubgraphSync, 'function');
 
         routerService.stop();
     });
@@ -656,18 +659,18 @@ QUnit.module('destroy()', () => {
 });
 
 QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
-    async function initStopped() {
+    async function initStopped(options = {}) {
         const graph = new joint.dia.Graph();
         const size = { width: 100, height: 100 };
         const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
         const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 200 }, size });
         const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
         graph.resetCells([source, target, link]);
-        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, options);
         return { graph, routerService, source, target, link };
     }
 
-    QUnit.test('routeAllSync() applies the routes and returns the result during the call', async assert => {
+    QUnit.test('routeAllSync() applies the routes during the call and returns nothing', async assert => {
         const { routerService, link } = await initStopped();
 
         const routedLinks = [];
@@ -675,9 +678,11 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
 
         const result = routerService.routeAllSync();
 
-        assert.strictEqual(result, undefined, 'nothing to return - the pass either completed or threw');
+        assert.strictEqual(result, undefined, 'the pass either completed or threw - nothing to return');
         assert.deepEqual(routedLinks, [link], 'the link was routed during the call');
         assert.ok(isOrthogonalPath(link));
+
+        routerService.destroy();
     });
 
     QUnit.test('routeSubgraphSync() routes exactly the given cells during the call', async assert => {
@@ -693,6 +698,28 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
         routerService.routeSubgraphSync([source, target, link]);
 
         assert.deepEqual(routedLinks, [link], 'only the link inside the subset was routed');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('on the main thread a synchronous pass writes each link once, with the avoid route', async assert => {
+        const applied = [];
+        const { routerService } = await initStopped({
+            setRouteAttributes: ({ link, attributes, origin }) => {
+                applied.push(origin);
+                link.set(attributes, { avoidRouter: true });
+            }
+        });
+
+        const routedEvents = [];
+        routerService.on('link:routed', (l, opt) => routedEvents.push(opt.origin));
+
+        routerService.routeAllSync();
+
+        assert.deepEqual(applied, ['avoid'], 'no interim fallback write - the real route lands within the call');
+        assert.deepEqual(routedEvents, ['avoid']);
+
+        routerService.destroy();
     });
 
     QUnit.test('routeAll() stays asynchronous: routes land only once the promise resolves', async assert => {
@@ -707,40 +734,79 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
         const result = await pass;
         assert.equal(result.status, 'done');
         assert.deepEqual(routedLinks, [link], 'routed once the promise resolved');
+
+        routerService.destroy();
     });
 
     QUnit.test('a synchronous pass refuses to run while an asynchronous one is in flight', async assert => {
-        const { routerService } = await initStopped();
+        const { routerService, source, target, link } = await initStopped();
+
+        const routedLinks = [];
+        routerService.on('link:routed', (l) => routedLinks.push(l));
 
         const pass = routerService.routeAll();
 
-        assert.throws(
-            () => routerService.routeAllSync(),
-            /still in flight/,
-            'running synchronously now would have the queued pass silently override the result a microtask later'
-        );
+        assert.throws(() => routerService.routeAllSync(), /still in flight/);
+        assert.throws(() => routerService.routeSubgraphSync([source, target, link]), /still in flight/);
+        assert.deepEqual(routedLinks, [], 'the refused calls did not touch the graph');
 
         await pass;
+        assert.equal(routedLinks.length, 1, 'the queued pass settled');
+
         routerService.routeAllSync();
-        assert.ok(true, 'allowed again once the queued pass settled');
+        assert.equal(routedLinks.length, 2, 'allowed again once the queued pass settled');
+
+        routerService.destroy();
     });
 
-    QUnit.test('a throwing consumer callback escapes routeAllSync() as a synchronous throw', async assert => {
-        const graph = new joint.dia.Graph();
-        const size = { width: 100, height: 100 };
-        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
-        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 200 }, size });
-        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
-        graph.resetCells([source, target, link]);
+    QUnit.test('a synchronous pass throws while started', async assert => {
+        const { routerService, source, target, link } = await initStopped();
+        routerService.start();
 
-        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
-            setRouteAttributes: () => { throw new Error('consumer callback boom'); }
+        assert.throws(() => routerService.routeAllSync(), /already started/);
+        assert.throws(() => routerService.routeSubgraphSync([source, target, link]), /already started/);
+
+        routerService.destroy();
+    });
+
+    QUnit.test('a synchronous pass throws after destroy()', async assert => {
+        const { routerService, source, target, link } = await initStopped();
+        routerService.destroy();
+
+        assert.throws(() => routerService.routeAllSync(), /destroyed/);
+        assert.throws(() => routerService.routeSubgraphSync([source, target, link]), /destroyed/);
+    });
+
+    QUnit.test('a consumer callback throwing on the avoid route escapes routeAllSync() synchronously', async assert => {
+        // Throw only for the avoid-computed route: that write happens inside
+        // `MainThreadProvider.sync()` -> `processTransaction()`, so this pins
+        // that the provider's own path is not laundered into a rejection.
+        const { routerService } = await initStopped({
+            setRouteAttributes: ({ origin }) => {
+                if (origin === 'avoid') throw new Error('consumer callback boom');
+            }
         });
 
         assert.throws(() => routerService.routeAllSync(), /consumer callback boom/);
+
+        routerService.destroy();
     });
 
     QUnit.test('the same consumer error rejects the asynchronous routeAll()', async assert => {
+        const { routerService } = await initStopped({
+            setRouteAttributes: ({ origin }) => {
+                if (origin === 'avoid') throw new Error('consumer callback boom');
+            }
+        });
+
+        await assert.rejects(routerService.routeAll(), /consumer callback boom/);
+
+        routerService.destroy();
+    });
+});
+
+QUnit.module('start() with a failing initial sync (main thread)', () => {
+    QUnit.test('throws out of start() and leaves the router stopped', async assert => {
         const graph = new joint.dia.Graph();
         const size = { width: 100, height: 100 };
         const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
@@ -752,7 +818,10 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
             setRouteAttributes: () => { throw new Error('consumer callback boom'); }
         });
 
-        await assert.rejects(routerService.routeAll(), /consumer callback boom/);
+        assert.throws(() => routerService.start(), /consumer callback boom/);
+        assert.strictEqual(routerService.isStarted, false, 'not left started over a partially populated engine');
+
+        routerService.destroy();
     });
 });
 
@@ -760,6 +829,34 @@ QUnit.module('isSynchronous', () => {
     QUnit.test('reports true for the main-thread provider', async assert => {
         const { routerService } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
         assert.strictEqual(routerService.isSynchronous, true);
+        routerService.destroy();
+    });
+});
+
+QUnit.module('a consumer callback throwing inside an avoid callback (main thread)', () => {
+    // avoid invokes the connector callbacks from inside `processTransaction()`;
+    // a JS exception unwinding through those WASM frames aborts the module
+    // for the rest of the page. The provider holds the error back and
+    // rethrows it once the WASM call has returned.
+    QUnit.test('surfaces the error and leaves the engine usable', async assert => {
+        let shouldThrow = false;
+        const { routerService, target, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 }, {
+            setRouteAttributes: ({ link, attributes, origin }) => {
+                if (shouldThrow && origin === 'avoid') throw new Error('consumer callback boom');
+                link.set(attributes, { avoidRouter: true });
+            }
+        });
+
+        shouldThrow = true;
+        assert.throws(() => target.position(300, 400), /consumer callback boom/, 'the error escapes the originating set()');
+
+        shouldThrow = false;
+        const routedLinks = [];
+        routerService.on('link:routed', (l) => routedLinks.push(l));
+        target.position(300, 500);
+        assert.deepEqual(routedLinks, [link], 'the engine still routes afterwards');
+        assert.ok(isOrthogonalPath(link));
+
         routerService.destroy();
     });
 });

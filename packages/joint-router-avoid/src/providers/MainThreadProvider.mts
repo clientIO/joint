@@ -25,6 +25,14 @@ export class MainThreadProvider extends Provider {
     protected readonly linksByPointer: Record<number, dia.Cell.ID> = {};
     /** Callback registered with avoid connectors, translating a raw pointer id back to a route update. */
     protected onAvoidConnectorChanged!: (connectorRefId: number) => void;
+    /**
+     * The first error a `connector:changed` listener threw while avoid was
+     * invoking connector callbacks from inside `processTransaction()`. A JS
+     * exception unwinding through the WASM frames that invoked the callback
+     * aborts the module irrecoverably, so it is held here and rethrown once
+     * the WASM call has returned (see {@link processTransaction}).
+     */
+    protected deferredCallbackError: { error: unknown } | null = null;
 
     /**
      * Initializes the avoid router instance on the main thread.
@@ -51,8 +59,27 @@ export class MainThreadProvider extends Provider {
                 points.push(new g.Point({ x, y }));
             }
 
-            this.trigger('connector:changed', connectorId!, points);
+            try {
+                this.trigger('connector:changed', connectorId!, points);
+            } catch (error) {
+                if (!this.deferredCallbackError) this.deferredCallbackError = { error };
+            }
         };
+    }
+
+    /**
+     * Runs a routing pass over the pending avoid changes. Every processing
+     * path must go through here: it rethrows an error a `connector:changed`
+     * listener raised during the pass, which the callback had to hold back
+     * to keep it from unwinding through WASM (see {@link deferredCallbackError}).
+     */
+    protected processTransaction(): void {
+        this.avoidRouter.processTransaction();
+        const deferred = this.deferredCallbackError;
+        if (deferred) {
+            this.deferredCallbackError = null;
+            throw deferred.error;
+        }
     }
 
     /**
@@ -83,7 +110,7 @@ export class MainThreadProvider extends Provider {
             // Only update the position and size of the shape.
             avoidRouter.moveShape(existingShapeRef, shapeRect);
             if (process) {
-                avoidRouter.processTransaction();
+                this.processTransaction();
             }
             return;
         }
@@ -105,7 +132,7 @@ export class MainThreadProvider extends Provider {
         });
 
         if (process) {
-            avoidRouter.processTransaction();
+            this.processTransaction();
         }
     }
 
@@ -148,7 +175,7 @@ export class MainThreadProvider extends Provider {
         if (existingConnRef) {
             // It was already created, we just updated the endpoints.
             if (process) {
-                this.avoidRouter.processTransaction();
+                this.processTransaction();
             }
             return;
         }
@@ -163,7 +190,7 @@ export class MainThreadProvider extends Provider {
         connRef.setCallback(this.onAvoidConnectorChanged, connRef);
 
         if (process) {
-            this.avoidRouter.processTransaction();
+            this.processTransaction();
         }
 
         return;
@@ -182,7 +209,7 @@ export class MainThreadProvider extends Provider {
         delete this.shapeRefs[shapeId];
 
         if (process) {
-            this.avoidRouter.processTransaction();
+            this.processTransaction();
         }
     }
 
@@ -201,7 +228,7 @@ export class MainThreadProvider extends Provider {
         delete this.linksByPointer[connRef.g];
 
         if (process) {
-            this.avoidRouter.processTransaction();
+            this.processTransaction();
         }
     }
 
@@ -235,11 +262,8 @@ export class MainThreadProvider extends Provider {
      * @param shapes - The full set of shapes that should exist after the sync.
      * @param connectors - The full set of connectors that should exist after the sync.
      */
-    // Deliberately NOT `async`: the whole body is synchronous WASM work, and
-    // an `async` wrapper would turn every synchronous throw (a consumer
-    // callback, a WASM abort) into a rejection. Kept non-async, errors
-    // escape to the caller synchronously; the resolved promise only
-    // satisfies the provider-agnostic signature.
+    // NOT `async` - see `RouterService.routeSync()`. The resolved promise
+    // only satisfies the provider-agnostic signature.
     override sync(shapes: Shape[], connectors: Connector[]): Promise<void> {
         Object.keys(this.connectorRefs).forEach((connectorId) => {
             this.deleteConnector(connectorId, false);
@@ -251,7 +275,7 @@ export class MainThreadProvider extends Provider {
         shapes.forEach((shape) => this.setShape(shape, false));
         connectors.forEach((connector) => this.setConnector(connector, false));
 
-        this.avoidRouter.processTransaction();
+        this.processTransaction();
         this.trigger('processed');
         return Promise.resolve();
     }
