@@ -655,6 +655,64 @@ QUnit.module('destroy()', () => {
     });
 });
 
+QUnit.module('start() during an in-flight one-shot pass', () => {
+    // Regression: a queued `routeSubgraph()` pass used to run AFTER
+    // `start()`'s full-graph sync and replaced the engine's content with
+    // only the subgraph - leaving the live graph listener working against
+    // an engine that no longer held the rest of the graph (a listener
+    // referencing an element the engine does not hold aborts the WASM
+    // module irrecoverably). The queued pass is now superseded: it resolves
+    // as cancelled and the engine keeps holding the full graph.
+    QUnit.test('a queued routeSubgraph() pass is superseded by start(), leaving the engine holding the full graph', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size });
+        const linkAB = new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: b.id }});
+        const c = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 400 }, size });
+        const d = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 400 }, size });
+        const linkCD = new joint.shapes.standard.Link({ source: { id: c.id }, target: { id: d.id }});
+        graph.resetCells([a, b, linkAB, c, d, linkCD]);
+
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+
+        const subgraphPass = routerService.routeSubgraph([a, b, linkAB]);
+        routerService.start();
+        const result = await subgraphPass;
+        assert.equal(result.status, 'cancelled', 'the queued one-shot pass reports it was superseded');
+
+        const routedLinks = [];
+        routerService.on('link:routed', (l) => routedLinks.push(l));
+
+        c.position(0, 800);
+
+        assert.ok(routedLinks.includes(linkCD), 'a link outside the one-shot subset is still routed while started');
+        assert.ok(isOrthogonalPath(linkCD), 'and its route is a real avoid route');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('start() with no pass in flight still applies routes synchronously (main thread)', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const source = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const target = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size });
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+        graph.resetCells([source, target, link]);
+
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+
+        const routedLinks = [];
+        routerService.on('link:routed', (l) => routedLinks.push(l));
+
+        routerService.start();
+
+        assert.equal(routedLinks.length, 1, 'the initial sync ran during start(), not a microtask later');
+
+        routerService.destroy();
+    });
+});
+
 QUnit.module('idle after incremental changes (main thread)', () => {
     // `MainThreadProvider` routes synchronously, so `idle` (driven by the
     // provider's `processed`) must fire during the originating graph change,
