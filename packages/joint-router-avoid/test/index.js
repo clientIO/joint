@@ -746,7 +746,7 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
         assert.deepEqual(routedLinks, [], 'nothing routed yet when the call returns');
 
         const result = await pass;
-        assert.equal(result.status, 'done');
+        assert.deepEqual(result, { status: 'done', routedLinks: [{ link, origin: 'avoid' }] }, 'the result lists the routed links like the sync variant does');
         assert.deepEqual(routedLinks, [link], 'routed once the promise resolved');
 
         routerService.destroy();

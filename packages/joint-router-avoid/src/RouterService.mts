@@ -126,12 +126,17 @@ export interface RoutedLink {
 /**
  * Outcome of a one-shot routing pass ({@link RouterService.routeAll} /
  * {@link RouterService.routeSubgraph}): `'done'` when every route was
- * applied, `'cancelled'` when the pass was interrupted by
+ * applied - with the routed links, the same information the `link:routed`
+ * events carried - or `'cancelled'` when the pass was interrupted by
  * {@link RouterService.destroy} before completing.
  */
-export interface RoutingResult {
-    status: 'done' | 'cancelled';
-}
+export type RoutingResult =
+    | {
+        status: 'done';
+        /** The links whose route was applied, in application order; links claimed via `interceptUnroutableLink` are not included. */
+        routedLinks: RoutedLink[];
+    }
+    | { status: 'cancelled' };
 
 /** Options used to configure a {@link RouterService} instance. */
 export interface RouterServiceOptions {
@@ -242,13 +247,14 @@ export class RouterService {
     // synchronous passes (see `routeSync()`) refuse to run behind one.
     private pendingPasses = 0;
 
-    // Non-null while a synchronous one-shot pass runs (see `routeSync()`).
-    // The routing-cycle events describe an asynchronous gap - a link whose
-    // route is pending, the moment nothing is pending any more - and a
-    // synchronous pass has no such gap: the call returning is the
-    // completion signal, a throw the failure signal. What `link:routed`
-    // would have reported is collected here and returned instead.
-    private quietRouted: RoutedLink[] | null = null;
+    // Non-null while a one-shot pass runs. Every route applied during the
+    // pass is collected into `routedLinks`, which the pass returns. A
+    // synchronous pass (see `routeSync()`) is also `quiet`: the routing-cycle
+    // events describe an asynchronous gap - a link whose route is pending,
+    // the moment nothing is pending any more - and a synchronous pass has no
+    // such gap; the call returning is the completion signal, a throw the
+    // failure signal, and the collected links replace `link:routed`.
+    private pass: { quiet: boolean; routedLinks: RoutedLink[] } | null = null;
 
     private nextPinId = 100000;
     private graphListener?: mvc.Listener<[]>;
@@ -296,7 +302,7 @@ export class RouterService {
 
         this.provider.on('connector:changed', (linkId, points) => this.routeLink(linkId, points));
         this.provider.on('processed', () => {
-            if (!this.quietRouted) this.trigger('idle');
+            if (!this.pass?.quiet) this.trigger('idle');
         });
     }
 
@@ -439,9 +445,10 @@ export class RouterService {
      * listener - nothing keeps the graph routed as it changes afterwards.
      *
      * The pass is queued and runs asynchronously on every provider - the
-     * routes are on the links once the returned promise resolves. With the
-     * main-thread provider (`worker: false`), {@link routeAllSync} routes
-     * synchronously instead.
+     * routes are on the links once the returned promise resolves, and the
+     * result lists them with their `origin`/`reason` (the same information
+     * the `link:routed` events carry). With the main-thread provider
+     * (`worker: false`), {@link routeAllSync} routes synchronously instead.
      *
      * @returns The {@link RoutingResult} of the pass.
      * @throws If the router is currently started (see {@link isStarted}) - call {@link stop} first.
@@ -556,7 +563,7 @@ export class RouterService {
      * of the asynchronous passes only exists to report a `destroy()` that
      * interrupted a queued pass without rejecting. Emits no routing events
      * either; what `link:routed` would have reported is returned instead
-     * (see {@link quietRouted}).
+     * (see {@link pass}).
      *
      * @param cells - The cells to route.
      * @returns The links whose route was applied, in application order.
@@ -572,30 +579,37 @@ export class RouterService {
             throw new Error('RouterService has been destroyed.');
         }
 
-        const routed: RoutedLink[] = [];
-        this.quietRouted = routed;
+        const pass = { quiet: true, routedLinks: [] };
+        this.pass = pass;
         try {
             // A synchronous provider completes the whole pass inside this
             // call; the promise it returns is already resolved and carries
             // nothing (see `MainThreadProvider.sync`).
             void this.sync(cells);
         } finally {
-            this.quietRouted = null;
+            this.pass = null;
         }
-        return routed;
+        return pass.routedLinks;
     }
 
     private async performRoute(cells: dia.Cell[]): Promise<RoutingResult> {
         if (this.destroyed) return { status: 'cancelled' };
 
+        // Passes are serialized (see `route()`) and cannot run while started,
+        // so every route applied until the provider reports the pass as
+        // processed belongs to this pass.
+        const pass = { quiet: false, routedLinks: [] };
+        this.pass = pass;
         try {
             await this.sync(cells);
         } catch (error) {
             if (this.destroyed) return { status: 'cancelled' };
             throw error;
+        } finally {
+            this.pass = null;
         }
 
-        return { status: 'done' };
+        return { status: 'done', routedLinks: pass.routedLinks };
     }
 
     /**
@@ -856,7 +870,7 @@ export class RouterService {
      * @param link - The link entering a routing cycle.
      */
     private setRouting(link: dia.Link): void {
-        if (this.quietRouted) return;
+        if (this.pass?.quiet) return;
         if (this.pendingLinks.has(link)) return;
         this.pendingLinks.add(link);
         this.trigger('link:routing', link);
@@ -869,10 +883,8 @@ export class RouterService {
      * @param options - Describes the routing outcome: `origin` is where the applied route came from, and `reason` is set when it's the fallback route for a link avoid could not route at all.
      */
     private setRouted(link: dia.Link, options: { origin: RouteOrigin, reason?: UnroutableReason }): void {
-        if (this.quietRouted) {
-            this.quietRouted.push({ link, ...options });
-            return;
-        }
+        this.pass?.routedLinks.push({ link, ...options });
+        if (this.pass?.quiet) return;
         this.pendingLinks.delete(link);
         this.trigger('link:routed', link, options);
     }
@@ -883,7 +895,7 @@ export class RouterService {
      * @param link - The link whose open routing cycle is being abandoned.
      */
     private setRoutingCanceled(link: dia.Link): void {
-        if (this.quietRouted) return;
+        if (this.pass?.quiet) return;
         this.pendingLinks.delete(link);
         this.trigger('link:routing:cancelled', link);
     }
