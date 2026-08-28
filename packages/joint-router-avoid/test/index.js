@@ -712,3 +712,28 @@ QUnit.module('start() during an in-flight one-shot pass', () => {
         routerService.destroy();
     });
 });
+
+QUnit.module('idle after incremental changes (main thread)', () => {
+    // `MainThreadProvider` routes synchronously, so `idle` (driven by the
+    // provider's `processed`) must fire during the originating graph change,
+    // not only after `start()`'s initial sync / `routeAll()`.
+    QUnit.test('an element move fires idle', async assert => {
+        const { routerService, source } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+
+        let idleCount = 0;
+        routerService.on('idle', () => idleCount++);
+
+        source.position(50, 50);
+        assert.equal(idleCount, 1, 'idle fired for the element move');
+    });
+
+    QUnit.test('a link removal fires idle', async assert => {
+        const { routerService, link } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+
+        let idleCount = 0;
+        routerService.on('idle', () => idleCount++);
+
+        link.remove();
+        assert.equal(idleCount, 1, 'idle fired for the link removal');
+    });
+});
