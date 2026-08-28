@@ -63,6 +63,18 @@ export class MainThreadProvider extends Provider {
     }
 
     /**
+     * Runs a routing pass over the pending avoid changes and announces its
+     * completion. Every processing path must go through here - `processed`
+     * drives the `RouterService`'s `idle` event, and the Worker provider
+     * fires it after every batch, so the incremental main-thread paths
+     * (not just {@link sync}) have to fire it too for parity.
+     */
+    protected processTransaction(): void {
+        this.avoidRouter.processTransaction();
+        this.trigger('processed');
+    }
+
+    /**
      * Creates or updates the avoid shape for a JointJS element.
      *
      * @param shape - The shape to create or update.
@@ -81,7 +93,7 @@ export class MainThreadProvider extends Provider {
             // Only update the position and size of the shape.
             avoidRouter.moveShape(existingShapeRef, shapeRect);
             if (process) {
-                avoidRouter.processTransaction();
+                this.processTransaction();
             }
             return;
         }
@@ -103,7 +115,7 @@ export class MainThreadProvider extends Provider {
         });
 
         if (process) {
-            avoidRouter.processTransaction();
+            this.processTransaction();
         }
     }
 
@@ -121,7 +133,9 @@ export class MainThreadProvider extends Provider {
             connector.sourceId === undefined || connector.sourcePinId === undefined ||
             connector.targetId === undefined || connector.targetPinId === undefined
         ) {
-            this.deleteConnector(connector.id);
+            // Forward `process`: inside a batched sync() the deletion must not
+            // process (and announce) a transaction of its own mid-batch.
+            this.deleteConnector(connector.id, process);
             return;
         }
 
@@ -146,7 +160,7 @@ export class MainThreadProvider extends Provider {
         if (existingConnRef) {
             // It was already created, we just updated the endpoints.
             if (process) {
-                this.avoidRouter.processTransaction();
+                this.processTransaction();
             }
             return;
         }
@@ -161,7 +175,7 @@ export class MainThreadProvider extends Provider {
         connRef.setCallback(this.onAvoidConnectorChanged, connRef);
 
         if (process) {
-            this.avoidRouter.processTransaction();
+            this.processTransaction();
         }
 
         return;
@@ -180,7 +194,7 @@ export class MainThreadProvider extends Provider {
         delete this.shapeRefs[shapeId];
 
         if (process) {
-            this.avoidRouter.processTransaction();
+            this.processTransaction();
         }
     }
 
@@ -199,7 +213,7 @@ export class MainThreadProvider extends Provider {
         delete this.linksByPointer[connRef.g];
 
         if (process) {
-            this.avoidRouter.processTransaction();
+            this.processTransaction();
         }
     }
 
@@ -244,8 +258,7 @@ export class MainThreadProvider extends Provider {
         shapes.forEach((shape) => this.setShape(shape, false));
         connectors.forEach((connector) => this.setConnector(connector, false));
 
-        this.avoidRouter.processTransaction();
-        this.trigger('processed');
+        this.processTransaction();
     }
 
     /**
