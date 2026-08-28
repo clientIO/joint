@@ -558,12 +558,12 @@ export class RouterService {
      * callback throws out of the originating `cell.set()` while started.
      * Refuses to run while a queued asynchronous pass is in flight: that
      * pass would otherwise replace this one's result a microtask later,
-     * silently reversing the call order. Returns nothing - the pass either
-     * completed (every route is on its link) or threw; the `RoutingResult`
-     * of the asynchronous passes only exists to report a `destroy()` that
-     * interrupted a queued pass without rejecting. Emits no routing events
-     * either; what `link:routed` would have reported is returned instead
-     * (see {@link pass}).
+     * silently reversing the call order. Emits no routing events - the pass
+     * either completed (every route is on its link) or threw - and returns
+     * what `link:routed` would have reported (see {@link pass}). No
+     * `RoutingResult` wrapper: the asynchronous passes need it only to
+     * report a `destroy()` that interrupted a queued pass without
+     * rejecting, which cannot happen to a pass that runs inside the call.
      *
      * @param cells - The cells to route.
      * @returns The links whose route was applied, in application order.
@@ -572,11 +572,11 @@ export class RouterService {
         if (!this.provider.isSynchronous) {
             throw new Error('Synchronous routing requires the main-thread provider (worker: false). Use routeAll()/routeSubgraph() instead.');
         }
-        if (this.pendingPasses > 0) {
-            throw new Error('A routeAll()/routeSubgraph() pass is still in flight. Await it before routing synchronously.');
-        }
         if (this.destroyed) {
             throw new Error('RouterService has been destroyed.');
+        }
+        if (this.pendingPasses > 0) {
+            throw new Error('A routeAll()/routeSubgraph() pass is still in flight. Await it before routing synchronously.');
         }
 
         const pass = { quiet: true, routedLinks: [] };

@@ -670,7 +670,7 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
         return { graph, routerService, source, target, link };
     }
 
-    QUnit.test('routeAllSync() applies the routes during the call and returns nothing', async assert => {
+    QUnit.test('routeAllSync() applies the routes during the call and returns the routed links', async assert => {
         const { routerService, link } = await initStopped();
 
         const events = [];
