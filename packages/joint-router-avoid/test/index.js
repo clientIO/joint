@@ -676,10 +676,10 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
         const events = [];
         routerService.on('all', (name) => events.push(name));
 
-        const result = routerService.routeAllSync();
+        const routed = routerService.routeAllSync();
 
-        assert.strictEqual(result, undefined, 'the pass either completed or threw - nothing to return');
         assert.deepEqual(events, [], 'no routing events - a synchronous pass has no pending state to report');
+        assert.deepEqual(routed, [{ link, origin: 'avoid' }], 'what link:routed would have reported is returned instead');
         assert.ok(link.vertices().length > 0, 'the link was routed during the call');
         assert.ok(isOrthogonalPath(link));
 
@@ -693,9 +693,9 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
         const otherLink = new joint.shapes.standard.Link({ source: { id: other.id }, target: { id: target.id }});
         graph.addCells([other, otherLink]);
 
-        routerService.routeSubgraphSync([source, target, link]);
+        const routed = routerService.routeSubgraphSync([source, target, link]);
 
-        assert.ok(link.vertices().length > 0, 'the link inside the subset was routed');
+        assert.deepEqual(routed.map((r) => r.link), [link], 'only the link inside the subset was routed');
         assert.deepEqual(otherLink.vertices(), [], 'the link outside the subset was left alone');
 
         routerService.destroy();
@@ -713,6 +713,25 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
         routerService.routeAllSync();
 
         assert.deepEqual(applied, ['avoid'], 'no interim fallback write - the real route lands within the call');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('the result reports fallback routes with their unroutable reason, and omits intercepted links', async assert => {
+        const { graph, routerService, source, link } = await initStopped({
+            interceptUnroutableLink: ({ link }) => link.id === 'claimed'
+        });
+        const loose = new joint.shapes.standard.Link({ id: 'loose', source: { id: source.id }, target: { x: 500, y: 500 }});
+        const claimed = new joint.shapes.standard.Link({ id: 'claimed', source: { id: source.id }, target: { x: 600, y: 600 }});
+        graph.addCells([loose, claimed]);
+
+        const routed = routerService.routeAllSync();
+
+        assert.deepEqual(
+            routed.map(({ link, origin, reason }) => [link.id, origin, reason]),
+            [['loose', 'fallback', 'unconnected'], [link.id, 'avoid', undefined]],
+            'fallback routes carry the reason; the link the consumer claimed is not reported'
+        );
 
         routerService.destroy();
     });
