@@ -673,13 +673,14 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
     QUnit.test('routeAllSync() applies the routes during the call and returns nothing', async assert => {
         const { routerService, link } = await initStopped();
 
-        const routedLinks = [];
-        routerService.on('link:routed', (l) => routedLinks.push(l));
+        const events = [];
+        routerService.on('all', (name) => events.push(name));
 
         const result = routerService.routeAllSync();
 
         assert.strictEqual(result, undefined, 'the pass either completed or threw - nothing to return');
-        assert.deepEqual(routedLinks, [link], 'the link was routed during the call');
+        assert.deepEqual(events, [], 'no routing events - a synchronous pass has no pending state to report');
+        assert.ok(link.vertices().length > 0, 'the link was routed during the call');
         assert.ok(isOrthogonalPath(link));
 
         routerService.destroy();
@@ -692,12 +693,10 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
         const otherLink = new joint.shapes.standard.Link({ source: { id: other.id }, target: { id: target.id }});
         graph.addCells([other, otherLink]);
 
-        const routedLinks = [];
-        routerService.on('link:routed', (l) => routedLinks.push(l));
-
         routerService.routeSubgraphSync([source, target, link]);
 
-        assert.deepEqual(routedLinks, [link], 'only the link inside the subset was routed');
+        assert.ok(link.vertices().length > 0, 'the link inside the subset was routed');
+        assert.deepEqual(otherLink.vertices(), [], 'the link outside the subset was left alone');
 
         routerService.destroy();
     });
@@ -711,13 +710,9 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
             }
         });
 
-        const routedEvents = [];
-        routerService.on('link:routed', (l, opt) => routedEvents.push(opt.origin));
-
         routerService.routeAllSync();
 
         assert.deepEqual(applied, ['avoid'], 'no interim fallback write - the real route lands within the call');
-        assert.deepEqual(routedEvents, ['avoid']);
 
         routerService.destroy();
     });
@@ -739,7 +734,13 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
     });
 
     QUnit.test('a synchronous pass refuses to run while an asynchronous one is in flight', async assert => {
-        const { routerService, source, target, link } = await initStopped();
+        const applied = [];
+        const { routerService, source, target, link } = await initStopped({
+            setRouteAttributes: ({ link, attributes }) => {
+                applied.push(link);
+                link.set(attributes, { avoidRouter: true });
+            }
+        });
 
         const routedLinks = [];
         routerService.on('link:routed', (l) => routedLinks.push(l));
@@ -748,13 +749,14 @@ QUnit.module('routeAllSync() / routeSubgraphSync()', () => {
 
         assert.throws(() => routerService.routeAllSync(), /still in flight/);
         assert.throws(() => routerService.routeSubgraphSync([source, target, link]), /still in flight/);
-        assert.deepEqual(routedLinks, [], 'the refused calls did not touch the graph');
+        assert.deepEqual(applied, [], 'the refused calls did not touch the graph');
 
         await pass;
         assert.equal(routedLinks.length, 1, 'the queued pass settled');
+        assert.equal(applied.length, 1);
 
         routerService.routeAllSync();
-        assert.equal(routedLinks.length, 2, 'allowed again once the queued pass settled');
+        assert.equal(applied.length, 2, 'allowed again once the queued pass settled');
 
         routerService.destroy();
     });

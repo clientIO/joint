@@ -227,6 +227,13 @@ export class RouterService {
     // synchronous passes (see `routeSync()`) refuse to run behind one.
     private pendingPasses = 0;
 
+    // Set while a synchronous one-shot pass runs (see `routeSync()`). The
+    // routing-cycle events describe an asynchronous gap - a link whose
+    // route is pending, the moment nothing is pending any more - and a
+    // synchronous pass has no such gap: the call returning is the
+    // completion signal, a throw the failure signal.
+    private quiet = false;
+
     private nextPinId = 100000;
     private graphListener?: mvc.Listener<[]>;
     private destroyed = false;
@@ -272,7 +279,9 @@ export class RouterService {
         };
 
         this.provider.on('connector:changed', (linkId, points) => this.routeLink(linkId, points));
-        this.provider.on('processed', () => this.trigger('idle'));
+        this.provider.on('processed', () => {
+            if (!this.quiet) this.trigger('idle');
+        });
     }
 
     /**
@@ -432,8 +441,13 @@ export class RouterService {
      * link by the time the method returns - for synchronous export,
      * headless pipelines, fixtures and tests, with no promise plumbing.
      * Errors raised during the pass (a throwing consumer callback, a WASM
-     * abort) throw out of this call. Requires the main-thread provider;
-     * check {@link isSynchronous} when the code must work with either.
+     * abort) throw out of this call. Emits none of the routing events
+     * (`link:routing`, `link:routed`, `link:routing:cancelled`, `idle`) -
+     * they describe an asynchronous gap a synchronous pass does not have;
+     * use `setRouteAttributes` / `interceptUnroutableLink` for per-link
+     * hooks, or {@link routeAll} if you rely on the events. Requires the
+     * main-thread provider; check {@link isSynchronous} when the code must
+     * work with either.
      *
      * @throws If a Worker provider is in use (`worker: true`) - use {@link routeAll} instead.
      * @throws If a {@link routeAll}/{@link routeSubgraph} pass is still in flight - `await` it first.
@@ -468,8 +482,8 @@ export class RouterService {
     /**
      * Synchronous counterpart of {@link routeSubgraph}: routes exactly
      * `cells` during this call, so their routes are on the links by the
-     * time the method returns. Same requirements and error behaviour as
-     * {@link routeAllSync}.
+     * time the method returns. Same requirements, error behaviour and
+     * (absence of) events as {@link routeAllSync}.
      *
      * @param cells - The cells to route; only the elements and links in this array are considered.
      * @throws If a Worker provider is in use (`worker: true`) - use {@link routeSubgraph} instead.
@@ -520,7 +534,8 @@ export class RouterService {
      * silently reversing the call order. Returns nothing - the pass either
      * completed (every route is on its link) or threw; the `RoutingResult`
      * of the asynchronous passes only exists to report a `destroy()` that
-     * interrupted a queued pass without rejecting.
+     * interrupted a queued pass without rejecting. Emits no routing events
+     * either (see {@link quiet}).
      *
      * @param cells - The cells to route.
      */
@@ -535,10 +550,15 @@ export class RouterService {
             throw new Error('RouterService has been destroyed.');
         }
 
-        // A synchronous provider completes the whole pass inside this call;
-        // the promise it returns is already resolved and carries nothing
-        // (see `MainThreadProvider.sync`).
-        void this.sync(cells);
+        this.quiet = true;
+        try {
+            // A synchronous provider completes the whole pass inside this
+            // call; the promise it returns is already resolved and carries
+            // nothing (see `MainThreadProvider.sync`).
+            void this.sync(cells);
+        } finally {
+            this.quiet = false;
+        }
     }
 
     private async performRoute(cells: dia.Cell[]): Promise<RoutingResult> {
@@ -812,6 +832,7 @@ export class RouterService {
      * @param link - The link entering a routing cycle.
      */
     private setRouting(link: dia.Link): void {
+        if (this.quiet) return;
         if (this.pendingLinks.has(link)) return;
         this.pendingLinks.add(link);
         this.trigger('link:routing', link);
@@ -824,6 +845,7 @@ export class RouterService {
      * @param options - Describes the routing outcome: `origin` is where the applied route came from, and `reason` is set when it's the fallback route for a link avoid could not route at all.
      */
     private setRouted(link: dia.Link, options: { origin: RouteOrigin, reason?: UnroutableReason }): void {
+        if (this.quiet) return;
         this.pendingLinks.delete(link);
         this.trigger('link:routed', link, options);
     }
@@ -834,6 +856,7 @@ export class RouterService {
      * @param link - The link whose open routing cycle is being abandoned.
      */
     private setRoutingCanceled(link: dia.Link): void {
+        if (this.quiet) return;
         this.pendingLinks.delete(link);
         this.trigger('link:routing:cancelled', link);
     }
