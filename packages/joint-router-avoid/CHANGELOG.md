@@ -4,8 +4,6 @@
 
 ### Patch Changes
 
-- 54d9800: Initial release - automatic obstacle-avoiding orthogonal link routing via libavoid (WASM), with main-thread and Web Worker providers
-- Updated dependencies [0a2991b]
-- Updated dependencies [68a4758]
-- Updated dependencies [54d9800]
+- Initial release - automatic obstacle-avoiding orthogonal link routing via libavoid (WASM), with main-thread and Web Worker providers (54d98005)
+- Updated dependencies [0a2991b6, 68a47586, 54d98005]
   - @joint/core@4.3.2
