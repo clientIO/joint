@@ -125,8 +125,8 @@ export function graphProjection<
     graph,
     onElementsSizeChange,
     onChanges: ({ changes, isInsideBatch, deferCommit, isReset }) => {
-      // Elements removed in this batch — swept ONCE after the loop for link
-      // records they may have stranded (see the sweep below).
+      // Elements removed in this batch — swept once after the loop for link
+      // records they may have stranded.
       let removedElementIds: Set<CellId> | undefined;
 
       for (const [id, change] of changes) {
@@ -134,17 +134,14 @@ export function graphProjection<
         switch (type) {
           case 'add':
           case 'change': {
-            // An entry can outlive its cell: `layout:update` batches (paper
-            // view-mount re-broadcasts, app layout pipelines applying async
-            // results) hold direct cell references, and a removal can land
-            // in between. Writing such an entry would RESURRECT the removed
-            // cell's record — the container would disagree with the graph
-            // forever, and a later re-add of the byte-identical cell
-            // (CommandManager undo) would merge into the stale record with
-            // no membership/version notification, leaving the cell
-            // unrendered. Gate on graph membership; repair the container
-            // when a stale record is present.
-            if (!graph.getCell(id)) {
+            // An entry can outlive its cell: `layout:update` batches hold
+            // direct cell references, and a removal (or a remove + re-add of
+            // the same id) can land before the entry processes. Writing the
+            // entry's detached model would resurrect or overwrite the record
+            // with stale state, so always snapshot the graph's CURRENT model
+            // — and repair a lingering record when the cell is gone.
+            const cell = graph.getCell(id);
+            if (!cell) {
               if (currentRecord(id) !== undefined) {
                 stageRemove(id);
                 if (trackChanges) removed!.add(id);
@@ -152,7 +149,7 @@ export function graphProjection<
               continue;
             }
             const isAdd = type === 'add';
-            stageWrite(data, isAdd);
+            stageWrite(cell, isAdd);
             if (trackChanges) {
               // Report every primary add/change in the incremental delta using
               // the final staged record — NOT gated on whether this stageWrite
@@ -170,16 +167,15 @@ export function graphProjection<
             // or resized — its links' routes need re-snapshotting). Swept links
             // go to the container only, not the incremental callback — matching
             // the previous behaviour.
-            if (!isAdd && data.isElement()) {
-              for (const link of graph.getConnectedLinks(data)) stageWrite(link, false);
+            if (!isAdd && cell.isElement()) {
+              for (const link of graph.getConnectedLinks(cell)) stageWrite(link, false);
             }
             break;
           }
           case 'remove': {
-            // A `remove` entry is only a graph removal when the cell is
-            // actually gone — paper view-unmount notifications re-broadcast
-            // through `layout:update` (carrying no cell reference) can name
-            // a cell the paper merely unmounted, e.g. viewport culling.
+            // Only a graph removal when the cell is actually gone — a paper
+            // view-unmount notification (no cell reference) can name a cell
+            // the paper merely unmounted, e.g. viewport culling.
             if (graph.getCell(id)) continue;
             stageRemove(id);
             if (trackChanges) removed!.add(id);
@@ -192,15 +188,11 @@ export function graphProjection<
         }
       }
 
-      // Connected links are removed by JointJS alongside their element and
-      // normally arrive as their own `remove` entries. The elements are
-      // already OUT of the graph by the time their entries process, so
-      // `graph.getConnectedLinks` can no longer name their links (it reads
-      // graph adjacency) — instead, sweep the container (committed snapshot
-      // + pending stages) once per batch for link records that reference a
-      // removed element and whose link the graph no longer holds, so a
-      // missed link removal can never strand a record. The graph check also
-      // protects links legitimately re-added within the same batch.
+      // Connected links normally arrive as their own `remove` entries, but a
+      // missed one must not strand a record — the element is already out of
+      // the graph adjacency, so `getConnectedLinks` cannot name its links.
+      // One pass per removal batch over the committed snapshot + pending
+      // stages; links the graph still holds are kept.
       if (removedElementIds !== undefined) {
         const elementIds = removedElementIds;
         const referencesRemoved = (end: LinkJSONInit['source']): boolean =>

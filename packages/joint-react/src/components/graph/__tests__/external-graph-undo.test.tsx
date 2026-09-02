@@ -50,9 +50,9 @@ function createExternalGraph(): dia.Graph {
  * which is exactly what makes `mergeCellRecord` hit its identity fast-path
  * if a stale record survived the delete.
  */
-function undoDelete(graph: dia.Graph, cells: readonly dia.Cell.JSON[]): void {
+function undoDelete(graph: dia.Graph, cells: dia.Cell.JSON[]): void {
   graph.startBatch('undo');
-  graph.addCells(cells as dia.Cell.JSON[]);
+  graph.addCells(cells);
   graph.stopBatch('undo');
 }
 
@@ -120,6 +120,35 @@ describe('external graph — undo of a delete (element with a link)', () => {
     expect(projection.cells.has('e1')).toBe(false);
     expect(projection.cells.has('l1')).toBe(false);
     expect(projection.cells.getSize()).toBe(1);
+    projection.destroy();
+  });
+
+  it('a delayed entry holding the OLD model cannot overwrite a re-added replacement', async () => {
+    // After undo installs a replacement model under the same id, a delayed
+    // `layout:update` entry may still reference the old detached model with
+    // stale attributes. The projection must snapshot the graph's CURRENT
+    // model, never the entry's reference.
+    const graph = createExternalGraph();
+    const projection = graphProjection({ graph });
+    graph.addCells([elementJSON('e1'), elementJSON('e2', 100, 0)]);
+    await act(async () => {});
+    projection.syncFromGraph();
+
+    const oldModel = graph.getCell('e1');
+    oldModel.remove();
+    await act(async () => {});
+
+    // Undo-style re-add: a NEW model under the same id, moved elsewhere.
+    graph.addCell(elementJSON('e1', 300, 300));
+    await act(async () => {});
+
+    graph.trigger('layout:update', {
+      changes: new Map([['e1', { type: 'change', data: oldModel }]]),
+    });
+    await act(async () => {});
+
+    const record = projection.cells.get('e1') as { position?: { x: number; y: number } };
+    expect(record?.position).toEqual({ x: 300, y: 300 });
     projection.destroy();
   });
 

@@ -500,21 +500,12 @@ export function useCreatePortalPaper(
     useHTMLOverlay,
   ]);
 
-  // A link whose endpoint's React content has not painted yet is parked in
-  // `pendingLinks` with `visibility: hidden` by `insertView`. The recheck used
-  // to run only from `insertView` and joint's `afterRender` — but an
-  // endpoint's PORTAL content mounts in a REACT commit, which triggers
-  // neither, so a link could stay hidden permanently once its endpoint
-  // painted (a fixed-size element never re-enters a joint render cycle).
-  //
-  // Recheck after every commit that (re)rendered the element portals:
-  // effects flush after portal children are in the DOM, so `isElementReady`
-  // sees them. `elements` is the precise dependency — it recomputes exactly
-  // when the portal set could have (re)mounted content (ids, paper version,
-  // measurement gate) and NOT on cell data/position changes, so this never
-  // runs on drag frames. When nothing is parked, `checkPendingLinks` returns
-  // on its first line (`pendingLinks.size === 0`), making the steady-state
-  // cost of this effect a single property read per portal commit.
+  // Links parked hidden by `insertView` (endpoint content not painted yet)
+  // are only rechecked from `insertView` / joint's `afterRender` — a React
+  // commit that mounts portal content triggers neither, leaving such links
+  // hidden forever. Recheck after each element-portal commit; `elements`
+  // does not change on cell data/position updates (no drag-frame runs), and
+  // `checkPendingLinks` is O(1) while nothing is parked.
   useEffect(() => {
     const paper = paperStore?.paper;
     if (paper instanceof PaperView) paper.checkPendingLinks();
