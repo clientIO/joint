@@ -1,0 +1,95 @@
+{
+  "name": "@joint/layout-elk",
+  "title": "JointJS ELK Layout",
+  "version": "0.1.0",
+  "description": "ELK Layout module for JointJS",
+  "sideEffects": false,
+  "main": "./dist/esm/index.mjs",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/esm/index.d.mts",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-layout-elk"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MPL-2.0",
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
+    "prepack": "yarn build",
+    "dist": "yarn build",
+    "build": "yarn clean && yarn build:esm && yarn build:umd",
+    "clean": "rm -rf dist",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:umd": "rollup --config",
+    "watch": "yarn build && concurrently \"tsc --project tsconfig.esm.json --watch\" \"rollup --config --watch\"",
+    "test": "yarn build && karma start karma.conf.js",
+    "test-coverage": "karma start karma.conf.js",
+    "test-coverage-lcov": "COVERAGE_REPORTER=lcov yarn run test-coverage",
+    "lint": "eslint .",
+    "lint-fix": "yarn run lint --fix"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.mts",
+      "import": "./dist/esm/index.mjs",
+      "default": "./dist/esm/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "SECURITY.md",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "dependencies": {
+    "@joint/core": "workspace:~"
+  },
+  "peerDependencies": {
+    "elkjs": "^0.11.0"
+  },
+  "devDependencies": {
+    "@joint/eslint-config": "workspace:*",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "concurrently": "^9.2.0",
+    "elkjs": "^0.11.0",
+    "eslint": "9.39.2",
+    "karma": "^6.4.2",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.1",
+    "karma-qunit": "^4.1.2",
+    "karma-sourcemap-loader": "^0.4.0",
+    "puppeteer": "24.22.0",
+    "qunit": "^2.24.1",
+    "rollup": "4.36.0",
+    "rollup-plugin-banner2": "^1.2.2",
+    "typescript": "^5.7.3"
+  },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.18.0"
+  },
+  "keywords": [
+    "jointjs",
+    "layout",
+    "elk",
+    "elkjs"
+  ]
+}
