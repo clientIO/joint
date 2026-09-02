@@ -355,6 +355,42 @@ QUnit.module('paper', function(hooks) {
         assert.ok(blankContextmenuCallback.called, 'blank:contextmenu triggered');
     });
 
+    QUnit.test('focus & blur', function(assert) {
+
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 150, y: 50 }, size: { width: 20, height: 20 }});
+        var l1 = new joint.shapes.standard.Link({ source: { id: r1.id }, target: { id: r2.id }});
+        this.graph.resetCells([r1, r2, l1]);
+
+        var events = [];
+        this.paper.on('all', function(name) {
+            if (/focus|blur/.test(name)) events.push(name);
+        });
+
+        // The test `$.fn.trigger` does not dispatch bubbling events —
+        // dispatch native focus events instead.
+        var focus = function(el, type) {
+            el.dispatchEvent(new FocusEvent(type, { bubbles: true }));
+        };
+
+        var r1View = this.paper.findViewByModel(r1);
+        focus(r1View.el, 'focusin');
+        assert.deepEqual(events, ['cell:focus', 'element:focus'], 'cell:focus precedes element:focus');
+
+        events = [];
+        focus(r1View.el, 'focusout');
+        assert.deepEqual(events, ['cell:blur', 'element:blur'], 'cell:blur precedes element:blur');
+
+        events = [];
+        var l1View = this.paper.findViewByModel(l1);
+        focus(l1View.el, 'focusin');
+        assert.deepEqual(events, ['cell:focus', 'link:focus'], 'cell:focus precedes link:focus');
+
+        events = [];
+        focus(this.paper.svg, 'focusin');
+        assert.deepEqual(events, [], 'no event for a focusin outside of a cell view');
+    });
+
     QUnit.test('paper.getArea()', function(assert) {
 
         this.paper.translate(0, 0);
