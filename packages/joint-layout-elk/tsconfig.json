@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "importHelpers": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "inlineSources": true,
+    "inlineSourceMap": true,
+    "lib": [
+      "ES2019",
+      "dom"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "**/dist"
+  ],
+  "include": [
+    "./src/**/*.mts"
+  ]
+}
