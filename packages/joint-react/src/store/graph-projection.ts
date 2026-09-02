@@ -125,11 +125,32 @@ export function graphProjection<
     graph,
     onElementsSizeChange,
     onChanges: ({ changes, isInsideBatch, deferCommit, isReset }) => {
+      // Elements removed in this batch — swept ONCE after the loop for link
+      // records they may have stranded (see the sweep below).
+      let removedElementIds: Set<CellId> | undefined;
+
       for (const [id, change] of changes) {
         const { data, type } = change;
         switch (type) {
           case 'add':
           case 'change': {
+            // An entry can outlive its cell: `layout:update` batches (paper
+            // view-mount re-broadcasts, app layout pipelines applying async
+            // results) hold direct cell references, and a removal can land
+            // in between. Writing such an entry would RESURRECT the removed
+            // cell's record — the container would disagree with the graph
+            // forever, and a later re-add of the byte-identical cell
+            // (CommandManager undo) would merge into the stale record with
+            // no membership/version notification, leaving the cell
+            // unrendered. Gate on graph membership; repair the container
+            // when a stale record is present.
+            if (!graph.getCell(id)) {
+              if (currentRecord(id) !== undefined) {
+                stageRemove(id);
+                if (trackChanges) removed!.add(id);
+              }
+              continue;
+            }
             const isAdd = type === 'add';
             stageWrite(data, isAdd);
             if (trackChanges) {
@@ -155,18 +176,47 @@ export function graphProjection<
             break;
           }
           case 'remove': {
-            if (!data) continue;
+            // A `remove` entry is only a graph removal when the cell is
+            // actually gone — paper view-unmount notifications re-broadcast
+            // through `layout:update` (carrying no cell reference) can name
+            // a cell the paper merely unmounted, e.g. viewport culling.
+            if (graph.getCell(id)) continue;
             stageRemove(id);
             if (trackChanges) removed!.add(id);
-            if (data.isElement()) {
-              // Connected links are also removed by JointJS — mirror that.
-              for (const link of graph.getConnectedLinks(data)) {
-                stageRemove(link.id);
-                if (trackChanges) removed!.add(link.id);
-              }
+            if (data?.isElement()) {
+              removedElementIds ??= new Set();
+              removedElementIds.add(id);
             }
             break;
           }
+        }
+      }
+
+      // Connected links are removed by JointJS alongside their element and
+      // normally arrive as their own `remove` entries. The elements are
+      // already OUT of the graph by the time their entries process, so
+      // `graph.getConnectedLinks` can no longer name their links (it reads
+      // graph adjacency) — instead, sweep the container (committed snapshot
+      // + pending stages) once per batch for link records that reference a
+      // removed element and whose link the graph no longer holds, so a
+      // missed link removal can never strand a record. The graph check also
+      // protects links legitimately re-added within the same batch.
+      if (removedElementIds !== undefined) {
+        const elementIds = removedElementIds;
+        const referencesRemoved = (end: LinkJSONInit['source']): boolean =>
+          typeof end === 'object' && end?.id !== undefined && elementIds.has(end.id);
+        const staleLinkIds: CellId[] = [];
+        const collectStaleLink = (item: Element | Link): void => {
+          const { id: linkId, source, target } = item as LinkJSONInit;
+          if (linkId === undefined || graph.getCell(linkId)) return;
+          if (referencesRemoved(source) || referencesRemoved(target)) staleLinkIds.push(linkId);
+        };
+        for (const item of cells.getSnapshot()) collectStaleLink(item);
+        for (const item of pendingAdded.values()) collectStaleLink(item);
+        for (const item of pendingChanged.values()) collectStaleLink(item);
+        for (const linkId of staleLinkIds) {
+          stageRemove(linkId);
+          if (trackChanges) removed!.add(linkId);
         }
       }
 
