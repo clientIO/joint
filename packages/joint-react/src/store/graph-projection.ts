@@ -69,11 +69,35 @@ export function graphProjection<
     graph,
     onElementsSizeChange,
     onChanges: ({ changes, isInsideBatch, deferCommit, isReset }) => {
+      // Elements removed in this batch — swept ONCE after the loop for link
+      // records they may have stranded (see `sweepOrphanedLinkRecords`).
+      let removedElementIds: Set<CellId> | undefined;
+
+      /** Drop a record and report it removed to the incremental delta. */
+      const removeRecord = (id: CellId): void => {
+        cells.delete(id);
+        if (trackChanges) removed!.add(id);
+      };
+
       for (const [id, change] of changes) {
         const { data, type } = change;
         switch (type) {
           case 'add':
           case 'change': {
+            // An entry can outlive its cell: `layout:update` batches (paper
+            // view-mount re-broadcasts, app layout pipelines applying async
+            // results) hold direct cell references, and a removal can land
+            // in between. Writing such an entry would RESURRECT the removed
+            // cell's record — the container would disagree with the graph
+            // forever, and a later re-add of the byte-identical cell
+            // (CommandManager undo) would merge into the stale record with
+            // no membership/version notification, leaving the cell
+            // unrendered. Gate on graph membership; repair the container
+            // when a stale record is present.
+            if (!graph.getCell(id)) {
+              if (cells.has(id)) removeRecord(id);
+              continue;
+            }
             const isAdd = type === 'add';
             const record = writeCellToContainer(cells, data);
             if (trackChanges) {
@@ -92,20 +116,42 @@ export function graphProjection<
             break;
           }
           case 'remove': {
-            if (!data) continue;
-            cells.delete(id);
-            if (trackChanges) removed!.add(id);
-            if (data.isElement()) {
-              // Connected links are also removed by JointJS — mirror that.
-              for (const link of graph.getConnectedLinks(data)) {
-                const linkId = link.id;
-                cells.delete(linkId);
-                if (trackChanges) removed!.add(linkId);
-              }
+            // A `remove` entry is only a graph removal when the cell is
+            // actually gone — paper view-unmount notifications re-broadcast
+            // through `layout:update` (carrying no cell reference) can name
+            // a cell the paper merely unmounted, e.g. viewport culling.
+            if (graph.getCell(id)) continue;
+            removeRecord(id);
+            if (data?.isElement()) {
+              removedElementIds ??= new Set();
+              removedElementIds.add(id);
             }
             break;
           }
         }
+      }
+
+      // Connected links are removed by JointJS alongside their element and
+      // normally arrive as their own `remove` entries. The elements are
+      // already OUT of the graph by the time their entries process, so
+      // `graph.getConnectedLinks` can no longer name their links (it reads
+      // graph adjacency) — instead, sweep the container once per batch for
+      // link records that reference a removed element and whose link the
+      // graph no longer holds, so a missed link removal can never strand a
+      // record. The graph check also protects links legitimately re-added
+      // within the same batch.
+      if (removedElementIds !== undefined) {
+        const referencesRemoved = (end: LinkJSONInit['source']): boolean =>
+          typeof end === 'object' && end?.id !== undefined && removedElementIds!.has(end.id);
+        // Snapshot ids first — `cells.delete` swap-pops the live array, so
+        // deleting while iterating `getAll()` would skip entries.
+        const staleLinkIds: CellId[] = [];
+        for (const item of cells.getAll()) {
+          const { id: linkId, source, target } = item as LinkJSONInit;
+          if (linkId === undefined || graph.getCell(linkId)) continue;
+          if (referencesRemoved(source) || referencesRemoved(target)) staleLinkIds.push(linkId);
+        }
+        for (const linkId of staleLinkIds) removeRecord(linkId);
       }
 
       // A bulk `reset` sends only `add`s for the surviving cells and no per-cell
