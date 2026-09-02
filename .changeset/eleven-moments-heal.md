@@ -2,4 +2,4 @@
 "@joint/react": patch
 ---
 
-Fixed a permanent render loss with externally-owned graphs: a `layout:update` entry naming a cell that had just been removed (paper view-mount re-broadcasts, layout pipelines applying async results) resurrected the removed cell's record in the cells container. The container then disagreed with the graph forever, and a later re-add of the byte-identical cell (CommandManager undo of a delete) merged into the stale record without any membership or version notification — `renderElement` was never called again and the restored links stayed `visibility: hidden`. Change entries are now gated on graph membership (with container repair when a stale record is found), `remove` entries only apply when the cell has actually left the graph (so paper view-unmount notifications can no longer delete live cells' records), an element removal now sweeps the container for orphaned link records in one pass per batch, and parked hidden links are rechecked after every React commit that mounts element portal content.
+<GraphProvider /> - fix removed cells' records being resurrected by stale `layout:update` batches, breaking undo of a delete
