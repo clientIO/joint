@@ -26,6 +26,11 @@ export class PaperView extends Paper {
   private readonly shouldPreserveHostElementOnRemove: boolean;
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();
+  // Portal nodes of parked links' not-ready endpoints. React mounts portal
+  // content outside joint's render cycle (child state, Suspense), so a DOM
+  // mutation is the only reliable "content painted" signal.
+  private portalObserver: MutationObserver | null = null;
+  private observedPortalNodes: Set<Node> = new Set();
 
   constructor(options: PaperViewOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;
@@ -143,6 +148,33 @@ export class PaperView extends Paper {
   }
 
   /**
+   * Observe the portal nodes of every parked link's endpoints, so content
+   * mounted by a child-only React update still triggers a recheck.
+   */
+  private observePendingLinkEndpoints(): void {
+    for (const linkId of this.pendingLinks) {
+      const link = this.getLinkView(linkId)?.model;
+      if (!link) continue;
+      for (const end of [link.source(), link.target()]) {
+        const endId = end.id;
+        if (!endId) continue;
+        const elementView = this.getElementView(endId);
+        if (!elementView?.el) continue;
+        const portalNode = this.getCellViewPortalNode(elementView);
+        if (!portalNode || this.observedPortalNodes.has(portalNode)) continue;
+        this.portalObserver ??= new MutationObserver(() => this.checkPendingLinks());
+        this.portalObserver.observe(portalNode, { childList: true });
+        this.observedPortalNodes.add(portalNode);
+      }
+    }
+  }
+
+  private disconnectPortalObserver(): void {
+    this.portalObserver?.disconnect();
+    this.observedPortalNodes.clear();
+  }
+
+  /**
    * Check pending links and show them if their source/target are ready.
    */
   public checkPendingLinks(): void {
@@ -170,6 +202,8 @@ export class PaperView extends Paper {
         linkView.el.style.visibility = '';
       }
     }
+
+    if (this.pendingLinks.size === 0) this.disconnectPortalObserver();
   }
 
   public onViewMountChangeFlush() {
@@ -197,6 +231,7 @@ export class PaperView extends Paper {
 
     if (cell.isLink()) {
       this.pendingLinks.delete(cellId);
+      if (this.pendingLinks.size === 0) this.disconnectPortalObserver();
       this.viewChanges.set(cellId, { type: 'remove' });
       this.onViewMountChangeFlush();
     }
@@ -216,6 +251,8 @@ export class PaperView extends Paper {
       this.viewChanges.set(cellId, { type: 'add', data: view.model });
       this.onViewMountChangeFlush();
       this.checkPendingLinks();
+      // Links can park before this endpoint's view existed — observe now.
+      this.observePendingLinkEndpoints();
       return;
     }
 
@@ -228,6 +265,7 @@ export class PaperView extends Paper {
       if (!isSourceReady || !isTargetReady) {
         view.el.style.visibility = 'hidden';
         this.pendingLinks.add(cellId);
+        this.observePendingLinkEndpoints();
       }
 
       this.viewChanges.set(cellId, { type: 'add', data: view.model });
@@ -246,6 +284,7 @@ export class PaperView extends Paper {
   }
 
   public remove() {
+    this.disconnectPortalObserver();
     // call CLEANUP_EVENT_NAME for any listeners that need to clean up before the paper is removed
     this.trigger(CLEANUP_EVENT_NAME);
     super.remove();
