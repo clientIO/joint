@@ -28,7 +28,7 @@ module.exports = {
     },
 
     // Changelog dependency bump format:
-    // - Updated dependencies [<short SHA>, ...]
+    // - Updated dependencies (<short SHA>, ...)
     //   - <dependency@version>
     //   - <...>
     getDependencyReleaseLine: async (changesets, dependenciesUpdated) => {
@@ -41,7 +41,7 @@ module.exports = {
         // List each commit at most once
         const shas = [...new Set(filteredShas)];
         // Omit SHA suffix if there are no commits left after the above logic
-        const suffix = ((shas.length) > 0 ? ` [${shas.join(', ')}]` : '');
+        const suffix = ((shas.length) > 0 ? ` (${shas.join(', ')})` : '');
 
         return [
             `- Updated dependencies${suffix}`,

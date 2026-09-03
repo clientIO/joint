@@ -4,27 +4,25 @@
 
 ### Patch Changes
 
-- 22422ef: <Paper /> - fix links connected to other links staying permanently hidden (the link-end readiness check only looked the end up among the elements)
+- <Paper /> - fix links connected to other links staying permanently hidden (the link-end readiness check only looked the end up among the elements) (22422ef3)
 
 ## 4.3.4
 
 ### Patch Changes
 
-- 20aa3e2: <Paper /> - fix events dispatched at the paper container itself being guarded as portaled content
+- <Paper /> - fix events dispatched at the paper container itself being guarded as portaled content (20aa3e23)
 
 ## 4.3.3
 
 ### Patch Changes
 
-- 634fb9f: fix stale cell keys when a single commit swaps ids without changing the count (membership changes now notify key-list subscribers, and large-graph rendering no longer defers id updates)
-- 68a4758: link routing - account for the arrowhead when a custom link anchor is used
-- 68a4758: <Paper /> - support interactive controls (buttons, inputs) nested inside magnets without the press starting a link drag or an element move
-- 68a4758: useCell - tolerate a cell removed from the graph mid-render
-- 68a4758: useCombinedRef - assign the forwarded ref during the commit phase
-- 68a4758: useMarkup - tolerate a cell view whose markup has not been rendered yet (synchronous rendering in development)
-- Updated dependencies [0a2991b]
-- Updated dependencies [68a4758]
-- Updated dependencies [54d9800]
+- fix stale cell keys when a single commit swaps ids without changing the count (membership changes now notify key-list subscribers, and large-graph rendering no longer defers id updates) (634fb9f1)
+- link routing - account for the arrowhead when a custom link anchor is used (68a47586)
+- <Paper /> - support interactive controls (buttons, inputs) nested inside magnets without the press starting a link drag or an element move (68a47586)
+- useCell - tolerate a cell removed from the graph mid-render (68a47586)
+- useCombinedRef - assign the forwarded ref during the commit phase (68a47586)
+- useMarkup - tolerate a cell view whose markup has not been rendered yet (synchronous rendering in development) (68a47586)
+- Updated dependencies (0a2991b6, 68a47586, 54d98005)
   - @joint/core@4.3.2
 
 ## 4.3.2
