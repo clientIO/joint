@@ -654,3 +654,44 @@ QUnit.module('destroy()', () => {
         assert.deepEqual(cancelledLinks, []);
     });
 });
+
+QUnit.module('worker.createWorker', () => {
+    // A stand-in for the routing Worker: answers `init` with `ready` so the
+    // provider's handshake completes without loading any script.
+    function createFakeWorker(messages) {
+        return {
+            onmessage: null,
+            onerror: null,
+            onmessageerror: null,
+            postMessage(message) {
+                messages.push(message);
+                if (message.type === 'init') {
+                    Promise.resolve().then(() => this.onmessage({ data: { type: 'ready' }}));
+                }
+            },
+            terminate() {}
+        };
+    }
+
+    QUnit.test('overrides how the routing Worker is spawned', async assert => {
+        const graph = new joint.dia.Graph();
+        const messages = [];
+        let created = 0;
+
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            worker: {
+                createWorker: () => {
+                    created++;
+                    return createFakeWorker(messages);
+                }
+            }
+        });
+
+        assert.equal(created, 1, 'the factory was used to spawn the Worker');
+        assert.equal(messages.length, 1, 'the provider talked to the factory-created Worker');
+        assert.equal(messages[0].type, 'init', 'the first message initializes the Worker');
+        assert.equal(typeof messages[0].options.updateDebounceTime, 'number', 'worker options are forwarded');
+
+        routerService.destroy();
+    });
+});
