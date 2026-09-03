@@ -93,8 +93,9 @@ export interface InitAvoidOptions {
  * using either a main-thread or Worker-based {@link Provider} depending on
  * `options.worker`. The returned `RouterService` is not started - call
  * its `start()` to begin keeping `graph`'s links continuously routed via
- * libavoid, or use `routeAll()`/`routeSubgraph()` for a one-shot routing
- * pass instead.
+ * libavoid, or use `routeAll()`/`routeSubgraph()` (or, with the
+ * main-thread provider, `routeAllSync()`/`routeSubgraphSync()`) for a
+ * one-shot routing pass instead.
  *
  * @param graph - The graph to route.
  * @param options - Configuration for the avoid router and the resulting {@link RouterService}.

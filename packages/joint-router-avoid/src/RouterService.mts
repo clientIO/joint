@@ -109,14 +109,34 @@ export type UnroutableLinkCallbackParameters = {
 export type UnroutableLinkCallback = (params: UnroutableLinkCallbackParameters) => boolean;
 
 /**
+ * A link whose route was applied, and where the route came from - the
+ * payload of the `link:routed` event, returned as a value by the
+ * synchronous passes ({@link RouterService.routeAllSync} /
+ * {@link RouterService.routeSubgraphSync}).
+ */
+export interface RoutedLink {
+    /** The link whose route was applied. */
+    link: dia.Link;
+    /** Where the route came from: computed by avoid, or the built-in `rightAngle` fallback. */
+    origin: RouteOrigin;
+    /** Why avoid could not route the link; set only when the fallback route was applied because the link is unroutable. */
+    reason?: UnroutableReason;
+}
+
+/**
  * Outcome of a one-shot routing pass ({@link RouterService.routeAll} /
  * {@link RouterService.routeSubgraph}): `'done'` when every route was
- * applied, `'cancelled'` when the pass was interrupted by
+ * applied - with the routed links, the same information the `link:routed`
+ * events carried - or `'cancelled'` when the pass was interrupted by
  * {@link RouterService.destroy} before completing.
  */
-export interface RoutingResult {
-    status: 'done' | 'cancelled';
-}
+export type RoutingResult =
+    | {
+        status: 'done';
+        /** The links whose route was applied, in application order; links claimed via `interceptUnroutableLink` are not included. */
+        routedLinks: RoutedLink[];
+    }
+    | { status: 'cancelled' };
 
 /** Options used to configure a {@link RouterService} instance. */
 export interface RouterServiceOptions {
@@ -223,6 +243,19 @@ export class RouterService {
     // Serializes one-shot routing passes (see `route()`).
     private routeChain: Promise<unknown> = Promise.resolve();
 
+    // Queued one-shot passes (see `route()`) not yet settled. Lets the
+    // synchronous passes (see `routeSync()`) refuse to run behind one.
+    private pendingPasses = 0;
+
+    // Non-null while a one-shot pass runs. Every route applied during the
+    // pass is collected into `routedLinks`, which the pass returns. A
+    // synchronous pass (see `routeSync()`) is also `quiet`: the routing-cycle
+    // events describe an asynchronous gap - a link whose route is pending,
+    // the moment nothing is pending any more - and a synchronous pass has no
+    // such gap; the call returning is the completion signal, a throw the
+    // failure signal, and the collected links replace `link:routed`.
+    private pass: { quiet: boolean; routedLinks: RoutedLink[] } | null = null;
+
     private nextPinId = 100000;
     private graphListener?: mvc.Listener<[]>;
     private destroyed = false;
@@ -268,7 +301,9 @@ export class RouterService {
         };
 
         this.provider.on('connector:changed', (linkId, points) => this.routeLink(linkId, points));
-        this.provider.on('processed', () => this.trigger('idle'));
+        this.provider.on('processed', () => {
+            if (!this.pass?.quiet) this.trigger('idle');
+        });
     }
 
     /**
@@ -279,6 +314,17 @@ export class RouterService {
     */
     get changeFlag() {
         return this.options.changeFlag!;
+    }
+
+    /**
+     * Whether this instance can route synchronously: `true` with the
+     * main-thread provider (`worker: false`), where {@link routeAllSync} /
+     * {@link routeSubgraphSync} are available, `false` with a Worker
+     * provider, where they throw. Check it when the code must work with
+     * either provider.
+     */
+    get isSynchronous(): boolean {
+        return this.provider.isSynchronous;
     }
 
     /**
@@ -299,6 +345,8 @@ export class RouterService {
      * cells added before `start()` was called, or while stopped - since
      * referencing an element that was never registered as an avoid shape
      * aborts the underlying WASM module irrecoverably.
+     *
+     * @throws With the main-thread provider, if the initial sync fails inside this call (a throwing consumer callback, a WASM abort) - the router is left stopped, so the call can be retried.
      */
     start(): void {
         this.stop();
@@ -325,22 +373,45 @@ export class RouterService {
 
         this.graphListener = listener;
 
-        this.backgroundSync();
+        let initialSync: Promise<void>;
+        try {
+            initialSync = this.sync(this.graph.getCells());
+        } catch (error) {
+            // Main-thread provider: the sync failed inside this call. Do not
+            // stay started over a partially populated engine.
+            this.stop();
+            throw error;
+        }
+        initialSync.catch((error) => this.rethrowUnlessDestroyed(error));
     }
 
     /**
-     * Runs {@link sync} for the whole graph with no caller to await it
-     * (from {@link start} and the graph `reset` event), swallowing the
-     * rejection produced when {@link destroy} interrupts the sync so a
-     * normal teardown does not surface as an unhandled promise rejection.
-     * Unexpected errors are re-thrown and stay unhandled - there is no
-     * caller to propagate them to.
+     * Swallows the rejection produced when {@link destroy} interrupts a
+     * background sync, so a normal teardown does not surface as an unhandled
+     * promise rejection. Anything else is re-thrown and stays unhandled -
+     * there is no caller to propagate it to.
+     */
+    private rethrowUnlessDestroyed(error: unknown): void {
+        if (this.destroyed) return;
+        throw error;
+    }
+
+    /**
+     * Runs {@link sync} for the whole graph in reaction to the graph's
+     * `reset` event. There is no caller to report to, and a synchronous
+     * throw from inside the graph's event dispatch would also skip the
+     * graph's later `reset` listeners (`mvc.Events` does not guard them), so
+     * a synchronous failure is reported the same way as an asynchronous
+     * one: as a rejection, swallowed only when {@link destroy} caused it.
      */
     private backgroundSync(): void {
-        this.sync(this.graph.getCells()).catch((error) => {
-            if (this.destroyed) return;
-            throw error;
-        });
+        let run: Promise<void>;
+        try {
+            run = this.sync(this.graph.getCells());
+        } catch (error) {
+            run = Promise.reject(error);
+        }
+        run.catch((error) => this.rethrowUnlessDestroyed(error));
     }
 
     /** Stops listening to graph changes. */
@@ -373,15 +444,45 @@ export class RouterService {
      * graph's current cells. Unlike {@link start}, this attaches no graph
      * listener - nothing keeps the graph routed as it changes afterwards.
      *
+     * The pass is queued and runs asynchronously on every provider - the
+     * routes are on the links once the returned promise resolves, and the
+     * result lists them with their `origin`/`reason` (the same information
+     * the `link:routed` events carry). With the main-thread provider
+     * (`worker: false`), {@link routeAllSync} routes synchronously instead.
+     *
      * @returns The {@link RoutingResult} of the pass.
      * @throws If the router is currently started (see {@link isStarted}) - call {@link stop} first.
      */
     routeAll(): Promise<RoutingResult> {
-        if (this.isStarted) {
-            throw new Error('RouterService is already started. Stop it before calling routeAll().');
-        }
-
+        this.assertStopped('routeAll');
         return this.route(this.graph.getCells());
+    }
+
+    /**
+     * Synchronous counterpart of {@link routeAll}: routes every cell
+     * currently in the graph during this call, so every route is on its
+     * link by the time the method returns - for synchronous export,
+     * headless pipelines, fixtures and tests, with no promise plumbing.
+     * Errors raised during the pass (a throwing consumer callback, a WASM
+     * abort) throw out of this call. Emits none of the routing events
+     * (`link:routing`, `link:routed`, `link:routing:cancelled`, `idle`) -
+     * they describe an asynchronous gap a synchronous pass does not have.
+     * What `link:routed` would have reported is returned instead: one
+     * {@link RoutedLink} per link whose route was applied, with its
+     * `origin` and, for unroutable links, the `reason`. Links claimed via
+     * `interceptUnroutableLink` are not included (nothing was applied to
+     * them). Requires the main-thread provider; check {@link isSynchronous}
+     * when the code must work with either.
+     *
+     * @returns The links whose route was applied, in application order.
+     * @throws If a Worker provider is in use (`worker: true`) - use {@link routeAll} instead.
+     * @throws If a {@link routeAll}/{@link routeSubgraph} pass is still in flight - `await` it first.
+     * @throws If the router is currently started (see {@link isStarted}) - call {@link stop} first.
+     * @throws If the router has been destroyed (see {@link destroy}).
+     */
+    routeAllSync(): RoutedLink[] {
+        this.assertStopped('routeAllSync');
+        return this.routeSync(this.graph.getCells());
     }
 
     /**
@@ -392,18 +493,40 @@ export class RouterService {
      * `cells` are left untouched - useful for routing independent groups
      * (e.g. each container's own content) in isolation from one another and
      * from the rest of the graph. Like {@link routeAll}, this attaches no
-     * graph listener.
+     * graph listener, and the pass is queued and runs asynchronously; see
+     * {@link routeSubgraphSync} for the synchronous counterpart.
      *
      * @param cells - The cells to route; only the elements and links in this array are considered.
      * @returns The {@link RoutingResult} of the pass.
      * @throws If the router is currently started (see {@link isStarted}) - call {@link stop} first.
      */
     routeSubgraph(cells: dia.Cell[]): Promise<RoutingResult> {
-        if (this.isStarted) {
-            throw new Error('RouterService is already started. Stop it before calling routeSubgraph().');
-        }
-
+        this.assertStopped('routeSubgraph');
         return this.route(cells);
+    }
+
+    /**
+     * Synchronous counterpart of {@link routeSubgraph}: routes exactly
+     * `cells` during this call, so their routes are on the links by the
+     * time the method returns. Same requirements, error behaviour, return
+     * value and (absence of) events as {@link routeAllSync}.
+     *
+     * @param cells - The cells to route; only the elements and links in this array are considered.
+     * @returns The links whose route was applied, in application order.
+     * @throws If a Worker provider is in use (`worker: true`) - use {@link routeSubgraph} instead.
+     * @throws If a {@link routeAll}/{@link routeSubgraph} pass is still in flight - `await` it first.
+     * @throws If the router is currently started (see {@link isStarted}) - call {@link stop} first.
+     * @throws If the router has been destroyed (see {@link destroy}).
+     */
+    routeSubgraphSync(cells: dia.Cell[]): RoutedLink[] {
+        this.assertStopped('routeSubgraphSync');
+        return this.routeSync(cells);
+    }
+
+    private assertStopped(method: string): void {
+        if (this.isStarted) {
+            throw new Error(`RouterService is already started. Stop it before calling ${method}().`);
+        }
     }
 
     /**
@@ -422,21 +545,71 @@ export class RouterService {
      */
     private route(cells: dia.Cell[]): Promise<RoutingResult> {
         const run = this.routeChain.then(() => this.performRoute(cells));
-        this.routeChain = run.catch(() => {});
+        this.pendingPasses++;
+        const settled = () => { this.pendingPasses--; };
+        this.routeChain = run.then(settled, settled);
         return run;
+    }
+
+    /**
+     * Runs a one-shot routing pass over `cells` synchronously. No `async`
+     * wrapper anywhere on this path, so an error (a consumer callback, a
+     * WASM abort) throws out of the calling frame - the same way a failing
+     * callback throws out of the originating `cell.set()` while started.
+     * Refuses to run while a queued asynchronous pass is in flight: that
+     * pass would otherwise replace this one's result a microtask later,
+     * silently reversing the call order. Emits no routing events - the pass
+     * either completed (every route is on its link) or threw - and returns
+     * what `link:routed` would have reported (see {@link pass}). No
+     * `RoutingResult` wrapper: the asynchronous passes need it only to
+     * report a `destroy()` that interrupted a queued pass without
+     * rejecting, which cannot happen to a pass that runs inside the call.
+     *
+     * @param cells - The cells to route.
+     * @returns The links whose route was applied, in application order.
+     */
+    private routeSync(cells: dia.Cell[]): RoutedLink[] {
+        if (!this.provider.isSynchronous) {
+            throw new Error('Synchronous routing requires the main-thread provider (worker: false). Use routeAll()/routeSubgraph() instead.');
+        }
+        if (this.destroyed) {
+            throw new Error('RouterService has been destroyed.');
+        }
+        if (this.pendingPasses > 0) {
+            throw new Error('A routeAll()/routeSubgraph() pass is still in flight. Await it before routing synchronously.');
+        }
+
+        const pass = { quiet: true, routedLinks: [] };
+        this.pass = pass;
+        try {
+            // A synchronous provider completes the whole pass inside this
+            // call; the promise it returns is already resolved and carries
+            // nothing (see `MainThreadProvider.sync`).
+            void this.sync(cells);
+        } finally {
+            this.pass = null;
+        }
+        return pass.routedLinks;
     }
 
     private async performRoute(cells: dia.Cell[]): Promise<RoutingResult> {
         if (this.destroyed) return { status: 'cancelled' };
 
+        // Passes are serialized (see `route()`) and cannot run while started,
+        // so every route applied until the provider reports the pass as
+        // processed belongs to this pass.
+        const pass = { quiet: false, routedLinks: [] };
+        this.pass = pass;
         try {
             await this.sync(cells);
         } catch (error) {
             if (this.destroyed) return { status: 'cancelled' };
             throw error;
+        } finally {
+            this.pass = null;
         }
 
-        return { status: 'done' };
+        return { status: 'done', routedLinks: pass.routedLinks };
     }
 
     /**
@@ -553,17 +726,21 @@ export class RouterService {
     /**
      * Registers exactly `cells`' tracked elements and routable links with
      * the provider in a single transaction, replacing whatever shapes and
-     * connectors the underlying avoid engine previously knew about. Also
-     * immediately applies a fallback route (firing `link:routing`) to each
-     * routable link, the same interim placeholder used for any other
-     * change, so every link has a sane route right away while avoid
-     * computes the real ones asynchronously. Shared by `start()`'s initial
-     * sync (and its reaction to a `reset` graph event), {@link routeAll},
-     * and {@link routeSubgraph}.
+     * connectors the underlying avoid engine previously knew about. Opens
+     * a routing cycle (`link:routing`) for each routable link; with an
+     * asynchronous provider it also applies the interim fallback route, the
+     * same placeholder used for any other change, so every link has a sane
+     * route while avoid computes the real ones. Shared by `start()`'s
+     * initial sync (and its reaction to a `reset` graph event),
+     * {@link routeAll}, {@link routeSubgraph} and their synchronous
+     * counterparts.
+     *
+     * NOT `async` - see {@link routeSync}: errors must escape this frame
+     * synchronously.
      *
      * @param cells - The cells to register; only the elements and links in this array are considered.
      */
-    private async sync(cells: dia.Cell[]): Promise<void> {
+    private sync(cells: dia.Cell[]): Promise<void> {
         const routableLinks: dia.Link[] = [];
         cells.filter((cell) => cell.isLink()).filter((link) => this.trackLink({ link })).forEach((link) => {
             if (!this.validateEnds(link)) {
@@ -571,7 +748,14 @@ export class RouterService {
                 return;
             }
 
-            this.applyFallbackRoute(link, { routing: true });
+            if (this.provider.isSynchronous) {
+                // The real route lands within this same call - an interim
+                // fallback route could never be observed; it would only cost
+                // a `rightAngle` computation and a second write per link.
+                this.setRouting(link);
+            } else {
+                this.applyFallbackRoute(link, { routing: true });
+            }
             routableLinks.push(link);
         });
 
@@ -686,6 +870,7 @@ export class RouterService {
      * @param link - The link entering a routing cycle.
      */
     private setRouting(link: dia.Link): void {
+        if (this.pass?.quiet) return;
         if (this.pendingLinks.has(link)) return;
         this.pendingLinks.add(link);
         this.trigger('link:routing', link);
@@ -698,6 +883,8 @@ export class RouterService {
      * @param options - Describes the routing outcome: `origin` is where the applied route came from, and `reason` is set when it's the fallback route for a link avoid could not route at all.
      */
     private setRouted(link: dia.Link, options: { origin: RouteOrigin, reason?: UnroutableReason }): void {
+        this.pass?.routedLinks.push({ link, ...options });
+        if (this.pass?.quiet) return;
         this.pendingLinks.delete(link);
         this.trigger('link:routed', link, options);
     }
@@ -708,6 +895,7 @@ export class RouterService {
      * @param link - The link whose open routing cycle is being abandoned.
      */
     private setRoutingCanceled(link: dia.Link): void {
+        if (this.pass?.quiet) return;
         this.pendingLinks.delete(link);
         this.trigger('link:routing:cancelled', link);
     }
@@ -722,6 +910,11 @@ export class RouterService {
      * @param points - The new route, including the source and target points.
      */
     private routeLink(linkId: dia.Cell.ID, points: dia.Point[]): void {
+        // `destroy()` may have been called from a consumer callback while the
+        // pass that produced this route was still running (the main-thread
+        // provider's `destroy()` does not stop the engine mid-transaction);
+        // `destroy()` already reported those links as `link:routing:cancelled`.
+        if (this.destroyed) return;
         const link = this.graph.getCell(linkId) as dia.Link | undefined;
         // The link may have been removed from the graph while avoid was still
         // computing its route or became unroutable, so check for existence and validity before applying the route.

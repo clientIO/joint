@@ -96,6 +96,16 @@ export abstract class Provider {
     declare trigger: ProviderEvents_Trigger<Provider>;
 
     /**
+     * Whether every routing operation completes before the method that
+     * requested it returns. `true` for {@link MainThreadProvider} (the WASM
+     * engine runs on the calling thread), `false` for {@link WorkerProvider}
+     * (results arrive via `postMessage`). When `true`, consumers need no
+     * cross-call serialization: by the time an operation can be requested,
+     * every previous one has already completed.
+     */
+    abstract readonly isSynchronous: boolean;
+
+    /**
      * Initializes the underlying avoid router with the given options.
      * Must be called, and its returned promise awaited, before any other
      * method on this provider is used.

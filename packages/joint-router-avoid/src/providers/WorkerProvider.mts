@@ -31,6 +31,8 @@ export interface WorkerProviderOptions extends ProviderOptions {
  * messaging overhead, so it is best suited to larger graphs.
  */
 export class WorkerProvider extends Provider {
+    override readonly isSynchronous = false;
+
     /** The underlying Worker instance running the avoid router. */
     protected worker!: Worker;
     /** Ids of the shapes currently known to the Worker's avoid router. */
