@@ -22,7 +22,7 @@
 - useCell - tolerate a cell removed from the graph mid-render (68a47586)
 - useCombinedRef - assign the forwarded ref during the commit phase (68a47586)
 - useMarkup - tolerate a cell view whose markup has not been rendered yet (synchronous rendering in development) (68a47586)
-- Updated dependencies [0a2991b6, 68a47586, 54d98005]
+- Updated dependencies (0a2991b6, 68a47586, 54d98005)
   - @joint/core@4.3.2
 
 ## 4.3.2
