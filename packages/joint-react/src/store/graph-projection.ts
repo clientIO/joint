@@ -175,8 +175,11 @@ export function graphProjection<
           case 'remove': {
             // Only a graph removal when the cell is actually gone — a paper
             // view-unmount notification (no cell reference) can name a cell
-            // the paper merely unmounted, e.g. viewport culling.
+            // the paper merely unmounted, e.g. viewport culling. A cell with
+            // no record left (already removed) reports nothing — re-reporting
+            // ids in later deltas would feed consumers stale removals.
             if (graph.getCell(id)) continue;
+            if (currentRecord(id) === undefined) continue;
             stageRemove(id);
             if (trackChanges) removed!.add(id);
             if (data?.isElement()) {
@@ -200,8 +203,11 @@ export function graphProjection<
         const staleLinkIds: CellId[] = [];
         const collectStaleLink = (item: Element | Link): void => {
           const { id: linkId, source, target } = item as LinkJSONInit;
-          if (linkId === undefined || graph.getCell(linkId)) return;
-          if (referencesRemoved(source) || referencesRemoved(target)) staleLinkIds.push(linkId);
+          if (linkId === undefined) return;
+          // Cheap Set checks first — `getCell` only runs for real candidates.
+          if (!referencesRemoved(source) && !referencesRemoved(target)) return;
+          if (graph.getCell(linkId)) return;
+          staleLinkIds.push(linkId);
         };
         for (const item of cells.getSnapshot()) collectStaleLink(item);
         for (const item of pendingAdded.values()) collectStaleLink(item);
