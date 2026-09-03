@@ -508,17 +508,6 @@ export function useCreatePortalPaper(
     useHTMLOverlay,
   ]);
 
-  // Links parked hidden by `insertView` (endpoint content not painted yet)
-  // are only rechecked from `insertView` / joint's `afterRender` — a React
-  // commit that mounts portal content triggers neither, leaving such links
-  // hidden forever. Recheck after each element-portal commit; `elements`
-  // does not change on cell data/position updates (no drag-frame runs), and
-  // `checkPendingLinks` is O(1) while nothing is parked.
-  useEffect(() => {
-    const paper = paperStore?.paper;
-    if (paper instanceof PaperView) paper.checkPendingLinks();
-  }, [elements, paperStore]);
-
   const renderedLinks = useMemo(() => {
     if (!hasRenderLink || !renderLink) {
       return null;
