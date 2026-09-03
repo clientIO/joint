@@ -152,6 +152,39 @@ describe('external graph — undo of a delete (element with a link)', () => {
     projection.destroy();
   });
 
+  it('a data-less remove entry for an already-removed cell adds no phantom id to the delta', async () => {
+    // The paper's view-unmount notification for a deleted cell arrives in a
+    // later `layout:update` batch, after the graph removal already reported
+    // the id. Removing "again" must not re-report the id in whatever
+    // incremental delta flushes next — consumers mirroring an external store
+    // would receive stale removals in unrelated batches.
+    const graph = createExternalGraph();
+    const deltas: string[][] = [];
+    const projection = graphProjection({
+      graph,
+      onIncrementalCellsChange: ({ removed }) => deltas.push([...removed].map(String)),
+    });
+    graph.addCells([elementJSON('e1'), elementJSON('e2', 100, 0)]);
+    await act(async () => {});
+    projection.syncFromGraph();
+
+    graph.getCell('e1').remove();
+    await act(async () => {});
+    expect(deltas.pop()).toContain('e1');
+
+    // View-unmount re-broadcast for the deleted cell (no data, inside batch),
+    // then an unrelated move that flushes the next delta.
+    graph.trigger('layout:update', {
+      changes: new Map([['e1', { type: 'remove' }]]),
+    });
+    (graph.getCell('e2') as dia.Element).position(120, 0);
+    await act(async () => {});
+
+    const flushed = deltas.flat();
+    expect(flushed).not.toContain('e1');
+    projection.destroy();
+  });
+
   it('a data-less remove entry for a LIVE cell (view unmount) keeps its record', async () => {
     // Paper view-unmount notifications re-broadcast through `layout:update`
     // carry `{ type: 'remove' }` with no cell reference — and can name a cell

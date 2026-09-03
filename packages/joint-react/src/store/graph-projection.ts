@@ -65,8 +65,13 @@ export function graphProjection<
   const changed = trackChanges ? new Map<CellId, Element | Link>() : undefined;
   const removed = trackChanges ? new Set<CellId>() : undefined;
 
-  /** Drop a record and report it removed to the incremental delta. */
+  /**
+   * Drop a record and report it removed to the incremental delta. A cell with
+   * no record (already removed, or never written) reports nothing —
+   * re-reporting ids in later deltas would feed consumers stale removals.
+   */
   function removeRecord(id: CellId): void {
+    if (!cells.has(id)) return;
     cells.delete(id);
     if (trackChanges) removed!.add(id);
   }
@@ -92,7 +97,7 @@ export function graphProjection<
             // — and repair a lingering record when the cell is gone.
             const cell = graph.getCell(id);
             if (!cell) {
-              if (cells.has(id)) removeRecord(id);
+              removeRecord(id);
               continue;
             }
             const isAdd = type === 'add';
@@ -140,8 +145,11 @@ export function graphProjection<
         const staleLinkIds: CellId[] = [];
         for (const item of cells.getAll()) {
           const { id: linkId, source, target } = item as LinkJSONInit;
-          if (linkId === undefined || graph.getCell(linkId)) continue;
-          if (referencesRemoved(source) || referencesRemoved(target)) staleLinkIds.push(linkId);
+          if (linkId === undefined) continue;
+          // Cheap Set checks first — `getCell` only runs for real candidates.
+          if (!referencesRemoved(source) && !referencesRemoved(target)) continue;
+          if (graph.getCell(linkId)) continue;
+          staleLinkIds.push(linkId);
         }
         for (const linkId of staleLinkIds) removeRecord(linkId);
       }
