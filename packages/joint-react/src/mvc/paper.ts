@@ -31,6 +31,10 @@ export class PaperView extends Paper {
   // mutation is the only reliable "content painted" signal.
   private portalObserver: MutationObserver | null = null;
   private observedPortalNodes: Set<Node> = new Set();
+  // Element id → number of parked links waiting on it. Lets a park and an
+  // element mount each do O(1) observation work instead of re-walking every
+  // pending link (which made a mount of N parked links O(N²)).
+  private pendingEndpointIds: Map<CellId, number> = new Map();
 
   constructor(options: PaperViewOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;
@@ -147,31 +151,33 @@ export class PaperView extends Paper {
     return this.isElementReady(endId);
   }
 
+  private bumpPendingEndpoint(endId: CellId | undefined, delta: 1 | -1): void {
+    if (!endId) return;
+    const count = (this.pendingEndpointIds.get(endId) ?? 0) + delta;
+    if (count <= 0) this.pendingEndpointIds.delete(endId);
+    else this.pendingEndpointIds.set(endId, count);
+  }
+
   /**
-   * Observe the portal nodes of every parked link's endpoints, so content
-   * mounted by a child-only React update still triggers a recheck.
+   * Observe one parked endpoint's portal node, so content mounted by a
+   * child-only React update still triggers a recheck. O(1) per call — a
+   * park observes its own two endpoints, an element mount observes itself.
    */
-  private observePendingLinkEndpoints(): void {
-    for (const linkId of this.pendingLinks) {
-      const link = this.getLinkView(linkId)?.model;
-      if (!link) continue;
-      for (const end of [link.source(), link.target()]) {
-        const endId = end.id;
-        if (!endId) continue;
-        const elementView = this.getElementView(endId);
-        if (!elementView?.el) continue;
-        const portalNode = this.getCellViewPortalNode(elementView);
-        if (!portalNode || this.observedPortalNodes.has(portalNode)) continue;
-        this.portalObserver ??= new MutationObserver(() => this.checkPendingLinks());
-        this.portalObserver.observe(portalNode, { childList: true });
-        this.observedPortalNodes.add(portalNode);
-      }
-    }
+  private observeEndpoint(endId: CellId | undefined): void {
+    if (!endId) return;
+    const elementView = this.getElementView(endId);
+    if (!elementView?.el) return;
+    const portalNode = this.getCellViewPortalNode(elementView);
+    if (!portalNode || this.observedPortalNodes.has(portalNode)) return;
+    this.portalObserver ??= new MutationObserver(() => this.checkPendingLinks());
+    this.portalObserver.observe(portalNode, { childList: true });
+    this.observedPortalNodes.add(portalNode);
   }
 
   private disconnectPortalObserver(): void {
     this.portalObserver?.disconnect();
     this.observedPortalNodes.clear();
+    this.pendingEndpointIds.clear();
   }
 
   /**
@@ -201,6 +207,9 @@ export class PaperView extends Paper {
       if (linkView?.el) {
         linkView.el.style.visibility = '';
       }
+      const link = linkView?.model;
+      this.bumpPendingEndpoint(link?.source().id, -1);
+      this.bumpPendingEndpoint(link?.target().id, -1);
     }
 
     if (this.pendingLinks.size === 0) this.disconnectPortalObserver();
@@ -230,8 +239,12 @@ export class PaperView extends Paper {
     }
 
     if (cell.isLink()) {
-      this.pendingLinks.delete(cellId);
-      if (this.pendingLinks.size === 0) this.disconnectPortalObserver();
+      if (this.pendingLinks.delete(cellId)) {
+        const link = cell as dia.Link;
+        this.bumpPendingEndpoint(link.source().id, -1);
+        this.bumpPendingEndpoint(link.target().id, -1);
+        if (this.pendingLinks.size === 0) this.disconnectPortalObserver();
+      }
       this.viewChanges.set(cellId, { type: 'remove' });
       this.onViewMountChangeFlush();
     }
@@ -250,9 +263,12 @@ export class PaperView extends Paper {
     if (view.model.isElement()) {
       this.viewChanges.set(cellId, { type: 'add', data: view.model });
       this.onViewMountChangeFlush();
-      this.checkPendingLinks();
-      // Links can park before this endpoint's view existed — observe now.
-      this.observePendingLinkEndpoints();
+      // Only when parked links wait on THIS element (a link can park before
+      // its endpoint's view exists) — keeps unrelated element mounts O(1).
+      if (this.pendingEndpointIds.has(cellId)) {
+        this.checkPendingLinks();
+        if (this.pendingEndpointIds.has(cellId)) this.observeEndpoint(cellId);
+      }
       return;
     }
 
@@ -264,8 +280,15 @@ export class PaperView extends Paper {
 
       if (!isSourceReady || !isTargetReady) {
         view.el.style.visibility = 'hidden';
-        this.pendingLinks.add(cellId);
-        this.observePendingLinkEndpoints();
+        if (!this.pendingLinks.has(cellId)) {
+          this.pendingLinks.add(cellId);
+          const sourceId = link.source().id;
+          const targetId = link.target().id;
+          this.bumpPendingEndpoint(sourceId, 1);
+          this.bumpPendingEndpoint(targetId, 1);
+          this.observeEndpoint(sourceId);
+          this.observeEndpoint(targetId);
+        }
       }
 
       this.viewChanges.set(cellId, { type: 'add', data: view.model });
