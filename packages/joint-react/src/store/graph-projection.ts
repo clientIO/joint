@@ -125,13 +125,31 @@ export function graphProjection<
     graph,
     onElementsSizeChange,
     onChanges: ({ changes, isInsideBatch, deferCommit, isReset }) => {
+      // Elements removed in this batch — swept once after the loop for link
+      // records they may have stranded.
+      let removedElementIds: Set<CellId> | undefined;
+
       for (const [id, change] of changes) {
         const { data, type } = change;
         switch (type) {
           case 'add':
           case 'change': {
+            // An entry can outlive its cell: `layout:update` batches hold
+            // direct cell references, and a removal (or a remove + re-add of
+            // the same id) can land before the entry processes. Writing the
+            // entry's detached model would resurrect or overwrite the record
+            // with stale state, so always snapshot the graph's CURRENT model
+            // — and repair a lingering record when the cell is gone.
+            const cell = graph.getCell(id);
+            if (!cell) {
+              if (currentRecord(id) !== undefined) {
+                stageRemove(id);
+                if (trackChanges) removed!.add(id);
+              }
+              continue;
+            }
             const isAdd = type === 'add';
-            stageWrite(data, isAdd);
+            stageWrite(cell, isAdd);
             if (trackChanges) {
               // Report every primary add/change in the incremental delta using
               // the final staged record — NOT gated on whether this stageWrite
@@ -149,24 +167,54 @@ export function graphProjection<
             // or resized — its links' routes need re-snapshotting). Swept links
             // go to the container only, not the incremental callback — matching
             // the previous behaviour.
-            if (!isAdd && data.isElement()) {
-              for (const link of graph.getConnectedLinks(data)) stageWrite(link, false);
+            if (!isAdd && cell.isElement()) {
+              for (const link of graph.getConnectedLinks(cell)) stageWrite(link, false);
             }
             break;
           }
           case 'remove': {
-            if (!data) continue;
+            // Only a graph removal when the cell is actually gone — a paper
+            // view-unmount notification (no cell reference) can name a cell
+            // the paper merely unmounted, e.g. viewport culling. A cell with
+            // no record left (already removed) reports nothing — re-reporting
+            // ids in later deltas would feed consumers stale removals.
+            if (graph.getCell(id)) continue;
+            if (currentRecord(id) === undefined) continue;
             stageRemove(id);
             if (trackChanges) removed!.add(id);
-            if (data.isElement()) {
-              // Connected links are also removed by JointJS — mirror that.
-              for (const link of graph.getConnectedLinks(data)) {
-                stageRemove(link.id);
-                if (trackChanges) removed!.add(link.id);
-              }
+            if (data?.isElement()) {
+              removedElementIds ??= new Set();
+              removedElementIds.add(id);
             }
             break;
           }
+        }
+      }
+
+      // Connected links normally arrive as their own `remove` entries, but a
+      // missed one must not strand a record — the element is already out of
+      // the graph adjacency, so `getConnectedLinks` cannot name its links.
+      // One pass per removal batch over the committed snapshot + pending
+      // stages; links the graph still holds are kept.
+      if (removedElementIds !== undefined) {
+        const elementIds = removedElementIds;
+        const referencesRemoved = (end: LinkJSONInit['source']): boolean =>
+          typeof end === 'object' && end?.id !== undefined && elementIds.has(end.id);
+        const staleLinkIds: CellId[] = [];
+        const collectStaleLink = (item: Element | Link): void => {
+          const { id: linkId, source, target } = item as LinkJSONInit;
+          if (linkId === undefined) return;
+          // Cheap Set checks first — `getCell` only runs for real candidates.
+          if (!referencesRemoved(source) && !referencesRemoved(target)) return;
+          if (graph.getCell(linkId)) return;
+          staleLinkIds.push(linkId);
+        };
+        for (const item of cells.getSnapshot()) collectStaleLink(item);
+        for (const item of pendingAdded.values()) collectStaleLink(item);
+        for (const item of pendingChanged.values()) collectStaleLink(item);
+        for (const linkId of staleLinkIds) {
+          stageRemove(linkId);
+          if (trackChanges) removed!.add(linkId);
         }
       }
 
