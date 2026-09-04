@@ -1,5 +1,14 @@
 # @joint/react
 
+## 4.3.6
+
+### Patch Changes
+
+- <GraphProvider /> - fix removed cells' records being resurrected by stale `layout:update` batches, breaking undo of a delete (27f2bcb5)
+- <Paper /> - fix links parked with `visibility: hidden` staying invisible after their endpoint's React content mounts (27f2bcb5)
+- Updated dependencies (f7455fd9)
+  - @joint/core@4.3.3
+
 ## 4.3.5
 
 ### Patch Changes
