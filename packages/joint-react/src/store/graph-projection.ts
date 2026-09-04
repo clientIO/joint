@@ -65,17 +65,43 @@ export function graphProjection<
   const changed = trackChanges ? new Map<CellId, Element | Link>() : undefined;
   const removed = trackChanges ? new Set<CellId>() : undefined;
 
+  /**
+   * Drop a record and report it removed to the incremental delta. A cell with
+   * no record (already removed, or never written) reports nothing —
+   * re-reporting ids in later deltas would feed consumers stale removals.
+   */
+  function removeRecord(id: CellId): void {
+    if (!cells.has(id)) return;
+    cells.delete(id);
+    if (trackChanges) removed!.add(id);
+  }
+
   const graphChangesController = graphChanges({
     graph,
     onElementsSizeChange,
     onChanges: ({ changes, isInsideBatch, deferCommit, isReset }) => {
+      // Elements removed in this batch — swept once after the loop for link
+      // records they may have stranded.
+      let removedElementIds: Set<CellId> | undefined;
+
       for (const [id, change] of changes) {
         const { data, type } = change;
         switch (type) {
           case 'add':
           case 'change': {
+            // An entry can outlive its cell: `layout:update` batches hold
+            // direct cell references, and a removal (or a remove + re-add of
+            // the same id) can land before the entry processes. Writing the
+            // entry's detached model would resurrect or overwrite the record
+            // with stale state, so always snapshot the graph's CURRENT model
+            // — and repair a lingering record when the cell is gone.
+            const cell = graph.getCell(id);
+            if (!cell) {
+              removeRecord(id);
+              continue;
+            }
             const isAdd = type === 'add';
-            const record = writeCellToContainer(cells, data);
+            const record = writeCellToContainer(cells, cell);
             if (trackChanges) {
               if (isAdd) added!.set(id, record);
               else changed!.set(id, record);
@@ -84,28 +110,48 @@ export function graphProjection<
             // moved or resized — its links' routes need re-snapshotting).
             // On `add`, the link gets its own change-set entry from JointJS
             // and will be written in this loop without re-ordering issues.
-            if (!isAdd && data.isElement()) {
-              for (const link of graph.getConnectedLinks(data)) {
+            if (!isAdd && cell.isElement()) {
+              for (const link of graph.getConnectedLinks(cell)) {
                 writeCellToContainer(cells, link);
               }
             }
             break;
           }
           case 'remove': {
-            if (!data) continue;
-            cells.delete(id);
-            if (trackChanges) removed!.add(id);
-            if (data.isElement()) {
-              // Connected links are also removed by JointJS — mirror that.
-              for (const link of graph.getConnectedLinks(data)) {
-                const linkId = link.id;
-                cells.delete(linkId);
-                if (trackChanges) removed!.add(linkId);
-              }
+            // Only a graph removal when the cell is actually gone — a paper
+            // view-unmount notification (no cell reference) can name a cell
+            // the paper merely unmounted, e.g. viewport culling.
+            if (graph.getCell(id)) continue;
+            removeRecord(id);
+            if (data?.isElement()) {
+              removedElementIds ??= new Set();
+              removedElementIds.add(id);
             }
             break;
           }
         }
+      }
+
+      // Connected links normally arrive as their own `remove` entries, but a
+      // missed one must not strand a record — the element is already out of
+      // the graph adjacency, so `getConnectedLinks` cannot name its links.
+      // One pass per removal batch; links the graph still holds are kept.
+      if (removedElementIds !== undefined) {
+        const elementIds = removedElementIds;
+        const referencesRemoved = (end: LinkJSONInit['source']): boolean =>
+          typeof end === 'object' && end?.id !== undefined && elementIds.has(end.id);
+        // Snapshot ids first — `cells.delete` swap-pops the live array, so
+        // deleting while iterating `getAll()` would skip entries.
+        const staleLinkIds: CellId[] = [];
+        for (const item of cells.getAll()) {
+          const { id: linkId, source, target } = item as LinkJSONInit;
+          if (linkId === undefined) continue;
+          // Cheap Set checks first — `getCell` only runs for real candidates.
+          if (!referencesRemoved(source) && !referencesRemoved(target)) continue;
+          if (graph.getCell(linkId)) continue;
+          staleLinkIds.push(linkId);
+        }
+        for (const linkId of staleLinkIds) removeRecord(linkId);
       }
 
       // A bulk `reset` sends only `add`s for the surviving cells and no per-cell
@@ -121,10 +167,7 @@ export function graphProjection<
         for (const item of cells.getAll()) {
           if (item.id !== undefined && !survivingIds.has(item.id)) staleIds.push(item.id);
         }
-        for (const staleId of staleIds) {
-          cells.delete(staleId);
-          if (trackChanges) removed!.add(staleId);
-        }
+        for (const staleId of staleIds) removeRecord(staleId);
       }
 
       // Two commit modes, decided by `deferCommit` (see graph-changes):
