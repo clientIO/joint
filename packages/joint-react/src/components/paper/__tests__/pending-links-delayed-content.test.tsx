@@ -3,6 +3,7 @@ import { act, render, waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
 import { GraphProvider, Paper } from '../../..';
 import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
+import { PaperView } from '../../../mvc/paper';
 import { DEFAULT_CELL_NAMESPACE } from '../../../store/graph-store';
 
 const PAPER_STYLE = { width: 400, height: 400 } as const;
@@ -66,5 +67,40 @@ describe('pending links — endpoint content mounting after a delay', () => {
       const linkNode = container.querySelector('[model-id="l1"]') as HTMLElement | null;
       expect(linkNode!.style.visibility).not.toBe('hidden');
     });
+  });
+
+  it('parking many links stays linear in portal lookups', async () => {
+    // Regression guard for the O(N²) shape: observing endpoints must not
+    // re-walk every already-parked link (each walk pays portal lookups per
+    // link). With N chained links, linear bookkeeping needs a few lookups
+    // per link; the quadratic walk needs ~N²/2 and blows the budget.
+    reveals.length = 0;
+    const LINKS = 300;
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+    const cells: dia.Cell.JSON[] = [];
+    for (let index = 0; index <= LINKS; index += 1) cells.push(elementJSON(`e${index}`, index * 30));
+    for (let index = 0; index < LINKS; index += 1) {
+      cells.push({
+        id: `l${index}`,
+        type: 'standard.Link',
+        source: { id: `e${index}` },
+        target: { id: `e${index + 1}` },
+      });
+    }
+    graph.addCells(cells);
+
+    const spy = jest.spyOn(PaperView.prototype, 'getCellViewPortalNode');
+    const { container } = render(
+      <GraphProvider graph={graph}>
+        <Paper style={PAPER_STYLE} id="linear-park-paper" renderElement={renderDelayed} />
+      </GraphProvider>
+    );
+    await waitFor(() => {
+      const linkNode = container.querySelector('[model-id="l0"]') as HTMLElement | null;
+      expect(linkNode!.style.visibility).toBe('hidden');
+    });
+
+    expect(spy.mock.calls.length).toBeLessThan(LINKS * 20);
+    spy.mockRestore();
   });
 });
