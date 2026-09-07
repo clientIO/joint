@@ -1,0 +1,253 @@
+import type { dia } from '@joint/core';
+import type {
+    ElkNode,
+    ElkPort,
+    LayoutOptions as ElkLayoutOptions,
+    ElkExtendedEdge,
+    ElkLabel
+} from 'elkjs';
+
+export const DEFAULT_LABEL_SIZE: dia.Size = {
+    width: 50,
+    height: 20
+};
+
+// ELK ignores labels with no text.
+const ELK_LABEL_TEXT = '-';
+const ELK_INLINE_LABEL_OPTIONS = { 'edgeLabels.inline': 'true' };
+// Ports are positioned by JointJS (via the element's port groups), not by ELK -
+// this tells ELK to treat the coordinates we give it as final.
+const ELK_FIXED_PORTS_OPTIONS = { 'elk.portConstraints': 'FIXED_POS' };
+// With `positionPorts`, ELK is free to reposition (and reorder) ports itself.
+const ELK_FREE_PORTS_OPTIONS = { 'elk.portConstraints': 'FREE' };
+
+type GetSizeCallback = (element: dia.Element) => dia.Size;
+type NodeOptionsCallback = (element: dia.Element) => ElkLayoutOptions | undefined;
+type PortOptionsCallback = (port: dia.Element.Port, element: dia.Element) => ElkLayoutOptions | undefined;
+type EdgeOptionsCallback = (link: dia.Link) => ElkLayoutOptions | undefined;
+
+export interface ElkGraphPort {
+    element: dia.Element;
+    portId: string;
+}
+
+export interface ElkGraphData {
+    elkGraph: ElkNode;
+    elementsById: Map<string, dia.Element>;
+    linksById: Map<string, dia.Link>;
+    portsById: Map<string, ElkGraphPort>;
+}
+
+export interface ExportGraphOptions {
+    /**
+     * Specify custom logic to determine the element's size used during layout
+     * instead of the default `element.size()`. Not called for elements that
+     * have embedded elements - their size is computed by ELK to fit their content.
+     */
+    getSize?: GetSizeCallback;
+    /**
+     * Per-element ELK layout options, merged into the generated ELK node.
+     * @example
+     * nodeOptions: (element) => ({ 'partitioning.partition': element.get('layer') })
+     */
+    nodeOptions?: NodeOptionsCallback;
+    /**
+     * Per-port ELK layout options, merged into the generated ELK port.
+     * @example
+     * portOptions: (port) => ({ 'port.side': port.group === 'in' ? 'WEST' : 'EAST' })
+     */
+    portOptions?: PortOptionsCallback;
+    /**
+     * Per-link ELK layout options, merged into the generated ELK edge.
+     */
+    edgeOptions?: EdgeOptionsCallback;
+    /**
+     * Whether to account for link labels during layout and position them
+     * along the routed link afterwards.
+     * @defaultValue true
+     */
+    edgeLabels?: boolean;
+    /**
+     * Whether to let ELK reposition (and reorder) ports along their element,
+     * instead of keeping them at the position JointJS itself already computed
+     * for them. The new positions are written back onto the graph - see the
+     * `positionPorts` option in `ImportLayoutOptions`.
+     * @defaultValue false
+     */
+    positionPorts?: boolean;
+}
+
+const getSize: GetSizeCallback = (element) => {
+    return element.size();
+};
+
+const nodeOptions: NodeOptionsCallback = (_element) => {
+    return undefined;
+};
+
+const portOptions: PortOptionsCallback = (_port, _element) => {
+    return undefined;
+};
+
+const edgeOptions: EdgeOptionsCallback = (_link) => {
+    return undefined;
+};
+
+/**
+ * Builds the ELK ports for an element's JointJS ports, starting out at the
+ * position JointJS itself has already computed for them (via the element's
+ * port groups). Whether ELK is free to move them from there, or has to treat
+ * that position as final, is controlled by the node's own `elk.portConstraints`
+ * (see `ELK_FIXED_PORTS_OPTIONS`/`ELK_FREE_PORTS_OPTIONS` in `buildElkNode`).
+ */
+function buildPorts(
+    element: dia.Element,
+    portOptionsFn: PortOptionsCallback,
+    portsById: Map<string, ElkGraphPort>
+): ElkPort[] | undefined {
+    if (!element.hasPorts()) return undefined;
+
+    return element.getPorts().map((port): ElkPort => {
+        const portId = `${port.id}`;
+        const elkPortId = `${element.id}:${portId}`;
+        portsById.set(elkPortId, { element, portId });
+
+        const { x, y, width, height } = element.getPortRelativeRect(portId);
+        return {
+            id: elkPortId,
+            x,
+            y,
+            width,
+            height,
+            layoutOptions: portOptionsFn(port, element)
+        };
+    });
+}
+
+/**
+ * Converts a JointJS graph (elements, their embedded elements, ports and the
+ * links between them) to an ELK graph structure.
+ */
+export function exportGraph(
+    graph: dia.Graph,
+    options: ExportGraphOptions,
+    layoutOptions: ElkLayoutOptions
+): ElkGraphData {
+
+    const getSizeFn = options.getSize ?? getSize;
+    const nodeOptionsFn = options.nodeOptions ?? nodeOptions;
+    const portOptionsFn = options.portOptions ?? portOptions;
+    const edgeOptionsFn = options.edgeOptions ?? edgeOptions;
+    const portConstraintsOptions = (options.positionPorts) ? ELK_FREE_PORTS_OPTIONS : ELK_FIXED_PORTS_OPTIONS;
+
+    const elementsById = new Map<string, dia.Element>();
+    const linksById = new Map<string, dia.Link>();
+    const portsById = new Map<string, ElkGraphPort>();
+    // Every container node (plus the root), keyed by element id (`undefined` for the root) -
+    // used to file each edge under the lowest common ancestor of its source and target.
+    const edgeContainersById = new Map<string | undefined, ElkExtendedEdge[]>();
+
+    function buildElkNode(element: dia.Element): ElkNode {
+        const id = `${element.id}`;
+        elementsById.set(id, element);
+
+        const ports = buildPorts(element, portOptionsFn, portsById);
+        const customOptions = nodeOptionsFn(element);
+
+        const embeds = element.getEmbeddedCells()
+            .filter((cell): cell is dia.Element => cell.isElement());
+
+        if (embeds.length > 0) {
+            // A container - its size is computed by ELK to fit its (recursively laid out) content.
+            const children = embeds.map(buildElkNode);
+            const node: ElkNode = { id, children, ports, layoutOptions: customOptions };
+            edgeContainersById.set(id, node.edges = []);
+            return node;
+        }
+
+        const { width, height } = getSizeFn(element);
+        return {
+            id,
+            width,
+            height,
+            ports,
+            layoutOptions: (ports) ? { ...portConstraintsOptions, ...customOptions } : customOptions
+        };
+    }
+
+    const children: ElkNode[] = graph.getElements()
+        .filter((element) => !element.parent())
+        .map(buildElkNode);
+
+    const elkGraph: ElkNode = {
+        id: 'root',
+        layoutOptions,
+        children,
+        edges: []
+    };
+    edgeContainersById.set(undefined, elkGraph.edges as ElkExtendedEdge[]);
+
+    // The lowest common ancestor of an element and itself/an ancestor is the element's parent chain -
+    // this returns that chain, ordered from the outermost ancestor to the immediate parent.
+    function getAncestorPath(element: dia.Element): string[] {
+        return element.getAncestors().reverse().map((cell) => `${cell.id}`);
+    }
+
+    function getLowestCommonAncestorId(sourcePath: string[], targetPath: string[]): string | undefined {
+        let commonId: string | undefined;
+        const length = Math.min(sourcePath.length, targetPath.length);
+        for (let i = 0; i < length; i++) {
+            if (sourcePath[i] !== targetPath[i]) break;
+            commonId = sourcePath[i];
+        }
+        return commonId;
+    }
+
+    graph.getLinks().forEach((link) => {
+        const sourceElement = link.getSourceElement();
+        const targetElement = link.getTargetElement();
+        // Links not connected to two elements (e.g. connected to a point or
+        // to another link) are not part of the layout.
+        if (!sourceElement || !targetElement) return;
+        if (!elementsById.has(`${sourceElement.id}`) || !elementsById.has(`${targetElement.id}`)) return;
+
+        const id = `${link.id}`;
+        linksById.set(id, link);
+
+        const sourcePort = link.source().port;
+        const targetPort = link.target().port;
+
+        const edge: ElkExtendedEdge = {
+            id,
+            sources: [(sourcePort) ? `${sourceElement.id}:${sourcePort}` : `${sourceElement.id}`],
+            targets: [(targetPort) ? `${targetElement.id}:${targetPort}` : `${targetElement.id}`],
+            layoutOptions: edgeOptionsFn(link)
+        };
+
+        if (options.edgeLabels) {
+            const labels = link.labels();
+            if (labels.length > 0) {
+                edge.labels = labels.map((label): ElkLabel => {
+                    const { width, height } = label.size || DEFAULT_LABEL_SIZE;
+                    return {
+                        // Some text is required, otherwise ELK ignores the label.
+                        text: ELK_LABEL_TEXT,
+                        width,
+                        height,
+                        // Place the label directly on the edge (and allocate space for it).
+                        layoutOptions: ELK_INLINE_LABEL_OPTIONS
+                    };
+                });
+            }
+        }
+
+        const lcaId = getLowestCommonAncestorId(getAncestorPath(sourceElement), getAncestorPath(targetElement));
+        const edges = edgeContainersById.get(lcaId);
+        // `edges` is always defined - `lcaId` is either `undefined` (the root) or the id of
+        // one of `sourceElement`/`targetElement`'s ancestors, and every ancestor is a container
+        // that has already been registered in `edgeContainersById` by the time links are processed.
+        (edges as ElkExtendedEdge[]).push(edge);
+    });
+
+    return { elkGraph, elementsById, linksById, portsById };
+}

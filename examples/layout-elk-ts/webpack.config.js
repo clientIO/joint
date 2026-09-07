@@ -13,6 +13,12 @@ module.exports = {
     mode: 'development',
     module: {
         rules: [
+            {
+                test: /\.m?js/,
+                resolve: {
+                    fullySpecified: false,
+                },
+            },
             { test: /\.ts$/, loader: 'ts-loader' },
             {
                 test: /\.s[ac]ss$/i,
