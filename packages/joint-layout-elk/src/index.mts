@@ -1,2 +1,1 @@
-export { layout } from './layout.mjs';
-export type { Options, LayoutResult } from './types.mjs';
+export { layout, Options, LayoutResult } from './layout.mjs';

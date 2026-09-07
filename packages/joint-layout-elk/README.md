@@ -11,10 +11,8 @@ This library fully depends on [JointJS](https://github.com/clientio/joint) (*>=4
 ### Installation
 
 ```bash
-npm install @joint/layout-elk elkjs
+npm install @joint/layout-elk
 ```
-
-`elkjs` is a peer dependency - install it alongside this package.
 
 ### Basic Usage
 
@@ -48,7 +46,7 @@ const { bbox } = await layout(graph, {
 
 ### `layout(graph, options?): Promise<LayoutResult>`
 
-- `graph`: `dia.Graph` - the graph to lay out. Only top-level elements (elements that are not embedded in another element) are laid out; embedded elements and ports are not supported yet (see Caveats below).
+- `graph`: `dia.Graph` - the graph to lay out. Elements embedded in another element are laid out as a container - the parent is resized (and positioned) by ELK to fit its content, at any nesting depth. By default, ports are laid out at the position JointJS itself already computes for them (via the element's port groups) - ELK only uses that position to route edges to/from them; pass `positionPorts: true` to let ELK reposition them instead (see below).
 - `options?`: `Options` - Layout configuration (see below)
 
 ```ts
@@ -67,7 +65,9 @@ type SetVerticesCallback = (link: dia.Link, vertices: dia.Point[]) => void;
 type SetAnchorCallback = (link: dia.Link, element: dia.Element, point: dia.Point, endType: 'source' | 'target') => void;
 type SetLabelsCallback = (link: dia.Link, labelBBox: dia.BBox, points: dia.Point[], labelIndex: number) => void;
 type NodeOptionsCallback = (element: dia.Element) => ElkLayoutOptions | undefined;
+type PortOptionsCallback = (port: dia.Element.Port, element: dia.Element) => ElkLayoutOptions | undefined;
 type EdgeOptionsCallback = (link: dia.Link) => ElkLayoutOptions | undefined;
+type SetPortPositionCallback = (element: dia.Element, portId: string, position: dia.Point) => void;
 
 interface Options {
     // A custom ELK instance, e.g. one configured to run inside a Web Worker.
@@ -76,6 +76,9 @@ interface Options {
     layoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered' }
     // Whether to account for link labels during layout and position them afterwards.
     edgeLabels?: boolean; // Default: true
+    // Whether to let ELK reposition (and reorder) ports itself, instead of keeping
+    // them at their JointJS-computed position - see "Letting ELK position ports" below.
+    positionPorts?: boolean | { setPortPosition?: SetPortPositionCallback }; // Default: false
     // Element sizing callback
     getSize?: GetSizeCallback; // Default: element.size()
     // Callbacks for customizing how the layout is applied
@@ -85,6 +88,7 @@ interface Options {
     setLabels?: boolean | SetLabelsCallback; // Default: true
     // Per-cell escape hatches into ELK's option space
     nodeOptions?: NodeOptionsCallback;
+    portOptions?: PortOptionsCallback;
     edgeOptions?: EdgeOptionsCallback;
 }
 ```
@@ -124,6 +128,24 @@ layout(graph, {
 });
 ```
 
+### Letting ELK position ports
+
+By default, ports stay exactly where JointJS's own port groups already place them - ELK only uses that position to route edges. Pass `positionPorts: true` to let ELK freely reposition (and reorder) ports along their element instead, e.g. to minimize edge crossings:
+
+```ts
+layout(graph, { positionPorts: true });
+```
+
+This only takes visible effect for a port whose group renders it at a plain `x`/`y` (the `'absolute'` position) - `layout()` switches every port-bearing group to that position for you (its `attrs`/`markup`/`label` are left untouched), so this works regardless of how the group was originally configured (`'left'`, `'right'`, a custom callback, ...). To customize how a computed position is applied instead of the default `element.portProp(portId, ['position', 'args'], position)`, pass an object:
+
+```ts
+layout(graph, {
+    positionPorts: {
+        setPortPosition: (element, portId, position) => element.portProp(portId, ['position', 'args'], position)
+    }
+});
+```
+
 ### Animated transitions
 
 ```ts
@@ -142,8 +164,8 @@ layout(graph, {
 
 ## ⚠️ Caveats & Known Limitations
 
-- **Flat graphs only** - embedded elements (clusters) and ports are not supported yet. Elements that are embedded in another element are skipped by the layout; links connected to a port are treated as connected to the port's element.
 - **Node labels are not supported** - ELK's node-label placement assumes labels are layout participants, whereas JointJS labels are attrs inside the shape. Link labels are supported (behind `edgeLabels`).
+- **Ports keep their JointJS-computed position by default** - `layout()` only tells ELK where they already are (`elk.portConstraints: FIXED_POS`), so edges route to/from the exact spot the element's port groups place them at. Opt into ELK repositioning them with `positionPorts` (see above).
 - **Asynchronous** - unlike `@joint/layout-directed-graph`, `layout()` returns a `Promise`, since `elkjs` computes layouts asynchronously (and, optionally, inside a Web Worker).
 - **ID handling** - ELK requires string ids; element and link ids are converted with `` `${id}` `` internally, but never written back to the graph.
 
@@ -151,6 +173,6 @@ layout(graph, {
 
 [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)
 
-This package depends on [`elkjs`](https://github.com/kieler/elkjs), which is licensed under the [Eclipse Public License 2.0](https://github.com/kieler/elkjs/blob/master/LICENSE.md). It is kept as a peer dependency and is never bundled with this package.
+This package depends on [`elkjs`](https://github.com/kieler/elkjs), which is licensed under the [Eclipse Public License 2.0](https://github.com/kieler/elkjs/blob/master/LICENSE.md). It is installed automatically as a regular dependency, but is kept external to (never inlined into) this package's own UMD build.
 
 Copyright © 2013-2026 client IO

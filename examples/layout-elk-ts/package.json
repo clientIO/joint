@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@joint/core": "workspace:^",
-    "elkjs": "^0.11.0"
+    "@joint/layout-elk": "workspace:^",
+    "elkjs": "0.12.0"
   },
   "devDependencies": {
     "css-loader": "3.5.3",
