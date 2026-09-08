@@ -4,7 +4,7 @@ import { importLayout } from './import.mjs';
 import { exportGraph } from './export.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
-import type { EdgeLabelsOptions, ImportLayoutOptions, PortPositionsOptions } from './import.mjs';
+import type { EdgeLabelsOptions, ImportLayoutOptions, PortPositionsOptions, PortLabelPositionsOptions } from './import.mjs';
 import type { dia } from '@joint/core';
 import type { ELK, ElkNode, LayoutOptions as ElkLayoutOptions } from 'elkjs';
 
@@ -17,7 +17,10 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
     // Lay out embedded elements (containers) as part of the same pass as their
     // parent, so that edges crossing a container's boundary are routed and
     // accounted for correctly, instead of only being considered afterwards.
-    'elk.hierarchyHandling': 'INCLUDE_CHILDREN'
+    'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+    // Keep the order of ports on a node consistent with the order of their
+    // `ports.items` array, instead of reordering them to reduce edge crossings.
+    'elk.layered.considerModelOrder.portModelOrder': 'true',
 };
 
 const DEFAULT_OPTIONS: Options = {
@@ -30,7 +33,7 @@ let defaultElk: ELK | undefined;
 /**
  * Layout configuration options.
  */
-export interface Options extends Omit<ImportLayoutOptions, 'edgeLabels' | 'positionPorts'>, Omit<ExportGraphOptions, 'edgeLabels' | 'positionPorts'> {
+export interface Options extends Omit<ImportLayoutOptions, 'edgeLabels' | 'positionPorts' | 'positionPortLabels'>, Omit<ExportGraphOptions, 'edgeLabels' | 'positionPorts' | 'positionPortLabels'> {
     /**
      * A custom ELK instance, e.g. one configured to run inside a Web Worker.
      * The instance is not terminated by the package - call `elk.terminateWorker()`
@@ -63,6 +66,15 @@ export interface Options extends Omit<ImportLayoutOptions, 'edgeLabels' | 'posit
      * @defaultValue false
      */
     positionPorts?: boolean | PortPositionsOptions;
+    /**
+     * Whether to let ELK reposition port labels along their port, instead of keeping
+     * them at the position JointJS itself already computed for them (via the port
+     * group's `label`). When enabled, every port's owning group's label is switched
+     * to a `'manual'` position (preserving its `attrs`/`markup`) so the position ELK
+     * computed for it can be applied.
+     * @defaultValue false
+     */
+    positionPortLabels?: boolean | PortLabelPositionsOptions;
     /**
      * A name for the layout batch, which can be used to group multiple layout operations together.
      * @defaultValue 'layout'

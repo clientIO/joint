@@ -106,20 +106,16 @@ const init = () => {
     layout(graph, {
         elk,
         elkLayoutOptions,
-        // Let ELK reposition ports for the "hub" nodes only (see `nodeOptions`
-        // below, which opts every other node back out on a per-node basis).
+        // Let ELK reposition (and reorder) every port in the diagram, instead
+        // of keeping them where JointJS's own port groups first placed them.
         positionPorts: true,
+        positionPortLabels: true,
         nodeOptions: (element) => {
             // Reserve extra top padding inside containers, so children don't
             // overlap the container's title label.
             if (element.getEmbeddedCells().length > 0) {
                 return { 'elk.padding': CONTAINER_PADDING };
             }
-            if (!(element instanceof HubService)) {
-                // Keep this node's ports exactly where JointJS placed them.
-                return { 'elk.portConstraints': 'FIXED_POS' };
-            }
-            // Leave unset - the `positionPorts` default (`FREE`) applies.
             return undefined;
         }
     }).then(() => {

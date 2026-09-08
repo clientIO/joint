@@ -2,18 +2,48 @@ import { shapes, util } from '@joint/core';
 
 const PORT_SIZE = { width: 12, height: 12 };
 const PORT_ATTRS = {
-    circle: { r: 6, fill: '#FFFFFF', stroke: '#333', strokeWidth: 2 },
-    text: { fontSize: 10, fill: '#555' }
+    circle: {
+        r: 6,
+        cx: 6,
+        cy: 6,
+        fill: '#FFFFFF',
+        stroke: '#333',
+        strokeWidth: 2
+    },
+    text: {
+        fontSize: 10,
+        fill: '#555'
+    }
 };
-// 'top' (rather than 'left'/'right') keeps a port's label clear of the link
-// labels routed horizontally between closely-spaced ports.
+
 const PORT_LABEL = {
     position: {
-        name: 'outside',
-        args: {
-            offset: 4,
-            y: 10
-        },
+        name: 'outside'
+    },
+    size: {
+        width: 15,
+        height: 10
+    },
+};
+
+// Square ports (rather than `PORT_ATTRS`' circles) set `HubService` apart as
+// a hub with several ports fanning in/out on the same side.
+const HUB_PORT_SIZE = { width: 14, height: 14 };
+const HUB_PORT_MARKUP = [{
+    tagName: 'rect',
+    selector: 'rect'
+}];
+const HUB_PORT_ATTRS = {
+    rect: {
+        width: HUB_PORT_SIZE.width,
+        height: HUB_PORT_SIZE.height,
+        fill: '#FFFFFF',
+        stroke: '#B85C38',
+        strokeWidth: 2
+    },
+    text: {
+        fontSize: 10,
+        fill: '#555'
     }
 };
 
@@ -101,9 +131,8 @@ export class Service extends shapes.standard.Rectangle {
 /**
  * A service with a custom (per-instance) number of ports - `ports.items`
  * always comes from the instance, replacing `Service`'s fixed pair. Also
- * highlighted with a thicker, colored stroke to signal that it's one of the
- * few nodes whose ports ELK is free to reposition (`positionPorts`), instead
- * of keeping them where JointJS placed them.
+ * highlighted with a thicker, colored stroke, to stand out as a hub with
+ * several ports fanning in/out on the same side.
  */
 export class HubService extends Service {
     defaults() {
@@ -116,6 +145,20 @@ export class HubService extends Service {
                 body: {
                     stroke: '#B85C38',
                     strokeWidth: 3
+                }
+            },
+            ports: {
+                groups: {
+                    in: {
+                        markup: HUB_PORT_MARKUP,
+                        size: HUB_PORT_SIZE,
+                        attrs: HUB_PORT_ATTRS
+                    },
+                    out: {
+                        markup: HUB_PORT_MARKUP,
+                        size: HUB_PORT_SIZE,
+                        attrs: HUB_PORT_ATTRS
+                    }
                 }
             }
         }, super.defaults());
