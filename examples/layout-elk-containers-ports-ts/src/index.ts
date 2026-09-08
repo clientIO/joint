@@ -1,6 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import { ElkLayoutOptions, layout } from '@joint/layout-elk';
-import ELK from 'elkjs/lib/elk-api.js';
+import { ElkLayoutOptions, ElkLayoutController } from '@joint/layout-elk';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
 import './styles.scss';
@@ -51,11 +50,6 @@ const init = () => {
     // index, instead of the default behavior of replacing them outright.
     graph.fromJSON(graphJSON, { mergeArrays: true });
 
-    // Run ELK in a Web Worker, via the `@joint/layout-elk` package
-    const elk = new ELK({
-        workerUrl: '../node_modules/elkjs/lib/elk-worker.js',
-    });
-
     const elkLayoutOptions: ElkLayoutOptions = {
         /**
          * Overall direction of the layout.
@@ -103,9 +97,9 @@ const init = () => {
         'elk.layered.wrapping.strategy': 'MULTI_EDGE',
     }
 
-    layout(graph, {
-        elk,
-        elkLayoutOptions,
+    const layoutController = new ElkLayoutController({
+        graph,
+        workerUrl: '../node_modules/elkjs/lib/elk-worker.js',
         // Let ELK reposition (and reorder) every port in the diagram, instead
         // of keeping them where JointJS's own port groups first placed them.
         positionPorts: true,
@@ -117,8 +111,11 @@ const init = () => {
                 return { 'elk.padding': CONTAINER_PADDING };
             }
             return undefined;
-        }
-    }).then(() => {
+        },
+        elkLayoutOptions
+    });
+
+    layoutController.layout().then(() => {
         paper.unfreeze();
         zoom(paper, 1);
 
