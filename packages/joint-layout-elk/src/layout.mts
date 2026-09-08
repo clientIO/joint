@@ -8,6 +8,8 @@ import type { EdgeLabelsOptions, ImportLayoutOptions, PortPositionsOptions } fro
 import type { dia } from '@joint/core';
 import type { ELK, ElkNode, LayoutOptions as ElkLayoutOptions } from 'elkjs';
 
+export { ElkLayoutOptions };
+
 const LAYOUT_BATCH_NAME = 'layout';
 
 const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
@@ -45,7 +47,7 @@ export interface Options extends Omit<ImportLayoutOptions, 'edgeLabels' | 'posit
      * @see https://eclipse.dev/elk/reference/options.html
      * @defaultValue `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN' }`
      */
-    layoutOptions?: ElkLayoutOptions;
+    elkLayoutOptions?: ElkLayoutOptions;
     /**
      * Whether to account for link labels during layout and position them
      * along the routed link afterwards.
@@ -85,7 +87,7 @@ function getDefaultElk(): ELK {
 /**
  * Tight bounding box of the top-level nodes in an ELK layout result.
  */
-export function getBBox(elkGraph: ElkNode): g.Rect {
+function getBBox(elkGraph: ElkNode): g.Rect {
     const rects = (elkGraph.children || []).map((node) => new g.Rect(node.x || 0, node.y || 0, node.width || 0, node.height || 0));
     return g.Rect.fromRectUnion(...rects) || new g.Rect(0, 0, 0, 0);
 }
@@ -93,10 +95,10 @@ export function getBBox(elkGraph: ElkNode): g.Rect {
 export async function layout(graph: dia.Graph, opt?: Options): Promise<LayoutResult> {
 
     const options = util.defaults({}, opt || {}, DEFAULT_OPTIONS) as Options;
-    const layoutOptions = util.defaults({}, opt?.layoutOptions || {}, DEFAULT_LAYOUT_OPTIONS) as ElkLayoutOptions;
+    const elkLayoutOptions = util.defaults({}, opt?.elkLayoutOptions || {}, DEFAULT_LAYOUT_OPTIONS) as ElkLayoutOptions;
     const elk = opt?.elk || getDefaultElk();
 
-    const { elkGraph, elementsById, linksById, portsById } = exportGraph(graph, options as ExportGraphOptions, layoutOptions);
+    const { elkGraph, elementsById, linksById, portsById } = exportGraph(graph, options as ExportGraphOptions, elkLayoutOptions);
 
     const result = await elk.layout(elkGraph) as ElkNode;
 
