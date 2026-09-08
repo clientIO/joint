@@ -169,7 +169,7 @@ export class InteractionLink extends shapes.standard.Link {
     defaults() {
         return util.defaultsDeep({
             type: 'example.InteractionLink',
-            labels: [{
+            defaultLabel: {
                 size: { width: 80, height: 20 },
                 attrs: {
                     text: {
@@ -189,7 +189,7 @@ export class InteractionLink extends shapes.standard.Link {
                     }
                 },
                 position: 0.5
-            }]
+            }
         }, super.defaults);
     }
 }
