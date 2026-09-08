@@ -131,7 +131,7 @@ function buildPorts(
 export function exportGraph(
     graph: dia.Graph,
     options: ExportGraphOptions,
-    layoutOptions: ElkLayoutOptions
+    elkLayoutOptions: ElkLayoutOptions
 ): ElkGraphData {
 
     const getSizeFn = options.getSize ?? getSize;
@@ -181,7 +181,7 @@ export function exportGraph(
 
     const elkGraph: ElkNode = {
         id: 'root',
-        layoutOptions,
+        layoutOptions: elkLayoutOptions,
         children,
         edges: []
     };
