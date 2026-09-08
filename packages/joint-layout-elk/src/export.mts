@@ -19,7 +19,7 @@ const ELK_INLINE_LABEL_OPTIONS = { 'edgeLabels.inline': 'true' };
 // this tells ELK to treat the coordinates we give it as final.
 const ELK_FIXED_PORTS_OPTIONS = { 'elk.portConstraints': 'FIXED_POS' };
 // With `positionPorts`, ELK is free to reposition (and reorder) ports itself.
-const ELK_FREE_PORTS_OPTIONS = { 'elk.portConstraints': 'FREE' };
+const ELK_FREE_PORTS_OPTIONS = { 'elk.portConstraints': 'FIXED_SIDE' };
 
 type GetSizeCallback = (element: dia.Element) => dia.Size;
 type NodeOptionsCallback = (element: dia.Element) => ElkLayoutOptions | undefined;
@@ -75,6 +75,14 @@ export interface ExportGraphOptions {
      * @defaultValue false
      */
     positionPorts?: boolean;
+    /**
+     * Whether to let ELK reposition port labels along their port, instead of keeping
+     * them at the position JointJS itself already computed for them. The new
+     * positions are written back onto the graph - see the `positionPortLabels`
+     * option in `ImportLayoutOptions`.
+     * @defaultValue false
+     */
+    positionPortLabels?: boolean;
 }
 
 const getSize: GetSizeCallback = (element) => {
@@ -103,7 +111,8 @@ const edgeOptions: EdgeOptionsCallback = (_link) => {
 function buildPorts(
     element: dia.Element,
     portOptionsFn: PortOptionsCallback,
-    portsById: Map<string, ElkGraphPort>
+    portsById: Map<string, ElkGraphPort>,
+    positionPortLabels: boolean
 ): ElkPort[] | undefined {
     if (!element.hasPorts()) return undefined;
 
@@ -112,15 +121,45 @@ function buildPorts(
         const elkPortId = `${element.id}:${portId}`;
         portsById.set(elkPortId, { element, portId });
 
-        const { x, y, width, height } = element.getPortRelativeRect(portId);
-        return {
+        const portLayoutOptions: ElkPort = {
             id: elkPortId,
-            x,
-            y,
-            width,
-            height,
-            layoutOptions: portOptionsFn(port, element)
+            layoutOptions: portOptionsFn(port, element) || {}
         };
+
+        if (port.group) {
+            const groupDef = element.prop(`ports/groups/${port.group}`);
+            if (groupDef && groupDef.position) {
+                // ELK's `port.side` is a string, not a number, so we have to map JointJS's
+                // numeric group positions to the corresponding string values.
+                const side = (groupDef.position === 'left') ? 'WEST'
+                    : (groupDef.position === 'right') ? 'EAST'
+                        : (groupDef.position === 'top') ? 'NORTH'
+                            : (groupDef.position === 'bottom') ? 'SOUTH'
+                                : undefined;
+                if (side) {
+                    portLayoutOptions.layoutOptions!['port.side'] = side;
+                }
+            }
+            if (positionPortLabels && groupDef?.label) {
+                const { width, height } = groupDef.label.size || DEFAULT_LABEL_SIZE;
+                portLayoutOptions.labels = [{
+                    // Some text is required, otherwise ELK ignores the label.
+                    text: ELK_LABEL_TEXT,
+                    width,
+                    height,
+                    layoutOptions: {}
+                }];
+            }
+        }
+
+        const { x, y, width, height } = element.getPortRelativeRect(portId);
+        portLayoutOptions.x = x;
+        portLayoutOptions.y = y;
+        portLayoutOptions.width = width;
+        portLayoutOptions.height = height;
+        portLayoutOptions.layoutOptions!['port.borderOffset'] = (-width / 2).toString();
+
+        return portLayoutOptions;
     });
 }
 
@@ -151,7 +190,7 @@ export function exportGraph(
         const id = `${element.id}`;
         elementsById.set(id, element);
 
-        const ports = buildPorts(element, portOptionsFn, portsById);
+        const ports = buildPorts(element, portOptionsFn, portsById, !!options.positionPortLabels);
         const customOptions = nodeOptionsFn(element);
 
         const embeds = element.getEmbeddedCells()
@@ -171,7 +210,11 @@ export function exportGraph(
             width,
             height,
             ports,
-            layoutOptions: (ports) ? { ...portConstraintsOptions, ...customOptions } : customOptions
+            layoutOptions: (ports) ? {
+                ...portConstraintsOptions,
+                'portLabels.placement': 'OUTSIDE',
+                ...customOptions
+            } : customOptions
         };
     }
 

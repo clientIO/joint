@@ -7,6 +7,7 @@ type SetVerticesCallback = (link: dia.Link, vertices: dia.Point[]) => void;
 type SetAnchorCallback = (link: dia.Link, element: dia.Element, point: dia.Point, endType: 'source' | 'target') => void;
 type SetLabelsCallback = (link: dia.Link, labelBBox: dia.BBox, points: dia.Point[], labelIndex: number) => void;
 type SetPortPositionCallback = (element: dia.Element, portId: string, position: dia.Point) => void;
+type SetPortLabelPositionCallback = (element: dia.Element, portId: string, position: dia.Point) => void;
 
 export interface EdgeLabelsOptions {
     /**
@@ -28,6 +29,16 @@ export interface PortPositionsOptions {
      * setPortPosition: (element, portId, position) => element.portProp(portId, ['position', 'args'], position)
      */
     setPortPosition?: SetPortPositionCallback;
+}
+
+export interface PortLabelPositionsOptions {
+    /**
+     * Sets a port label's position, based on the ELK port label's layout result.
+     * Only takes effect when `positionPortLabels` is enabled.
+     * @example
+     * setPortLabelPosition: (element, portId, position) => element.portProp(portId, ['label', 'position', 'args'], position)
+     */
+    setPortLabelPosition?: SetPortLabelPositionCallback;
 }
 
 export interface ImportLayoutOptions {
@@ -78,6 +89,15 @@ export interface ImportLayoutOptions {
      * @defaultValue false
      */
     positionPorts?: boolean | PortPositionsOptions;
+    /**
+     * Whether to let ELK reposition port labels along their port, instead of keeping
+     * them at the position JointJS itself already computed for them (via the port
+     * group's `label`). When enabled, every port's owning group's label is switched
+     * to a `'manual'` position (preserving its `attrs`/`markup`) so the position ELK
+     * computed for it can be applied.
+     * @defaultValue false
+     */
+    positionPortLabels?: boolean | PortLabelPositionsOptions;
 }
 
 const defaultSetPosition = (element: dia.Element, position: dia.Point) => {
@@ -109,6 +129,18 @@ const defaultSetPortPosition = (element: dia.Element, portId: string, position: 
         element.prop(['ports', 'groups', group, 'position'], { name: 'absolute' });
     }
     element.portProp(portId, ['position', 'args'], position);
+};
+
+const defaultSetPortLabelPosition = (element: dia.Element, portId: string, position: dia.Point) => {
+    const { group } = element.getPort(portId);
+    if (group !== undefined) {
+        // Every positioned port label ends up with a computed position (only ports whose
+        // group defines a `label` are exported, but all of those are), so switching the
+        // whole group's label to `'manual'` is safe here - it only replaces the group
+        // label's `position`, leaving its `attrs`/`markup` intact.
+        element.prop(['ports', 'groups', group, 'label', 'position'], { name: 'manual' });
+    }
+    element.portProp(portId, ['label', 'position', 'args'], position);
 };
 
 const defaultSetLabels = (link: dia.Link, labelBBox: dia.BBox, points: dia.Point[], labelIndex: number) => {
@@ -148,8 +180,27 @@ export function importLayout(
     let setPortPositionFn: SetPortPositionCallback | undefined;
     if (options.positionPorts) {
         setPortPositionFn = defaultSetPortPosition;
+
         if (typeof options.positionPorts === 'object') {
             setPortPositionFn = options.positionPorts.setPortPosition ?? defaultSetPortPosition;
+        }
+    }
+
+    let setPortLabelPositionFn: SetPortLabelPositionCallback | undefined;
+    if (options.positionPortLabels) {
+        setPortLabelPositionFn = defaultSetPortLabelPosition;
+
+        if (typeof options.positionPortLabels === 'object') {
+            setPortLabelPositionFn = options.positionPortLabels.setPortLabelPosition ?? defaultSetPortLabelPosition;
+        }
+    }
+
+    let setLabelsFn: SetLabelsCallback | undefined;
+    if (options.edgeLabels) {
+        setLabelsFn = defaultSetLabels;
+
+        if (typeof options.edgeLabels === 'object') {
+            setLabelsFn = options.edgeLabels.setLabels ?? defaultSetLabels;
         }
     }
 
@@ -185,18 +236,12 @@ export function importLayout(
                 setAnchorFn(link, targetElement, toAbsolute(endPoint, containerX, containerY), 'target');
             }
 
-            if (options.edgeLabels && edge.labels && edge.labels.length > 0) {
-                let setLabelsFn = defaultSetLabels;
-
-                if (typeof options.edgeLabels === 'object') {
-                    setLabelsFn = options.edgeLabels.setLabels ?? defaultSetLabels;
-                }
-
+            if (setLabelsFn && edge.labels && edge.labels.length > 0) {
                 const points = [startPoint, ...bendPoints, endPoint]
                     .map((point) => toAbsolute(point, containerX, containerY));
                 edge.labels.forEach((label, labelIndex) => {
                     const { x = 0, y = 0, width = 0, height = 0 } = label;
-                    setLabelsFn(link, { x: containerX + x, y: containerY + y, width, height }, points, labelIndex);
+                    setLabelsFn?.(link, { x: containerX + x, y: containerY + y, width, height }, points, labelIndex);
                 });
             }
         });
@@ -215,16 +260,27 @@ export function importLayout(
             }
         }
 
-        if (setPortPositionFn && node.ports) {
+        if ((setPortPositionFn || setPortLabelPositionFn) && node.ports) {
             node.ports.forEach((port) => {
                 const found = portsById.get(port.id);
                 if (!found) return;
 
-                // A port's position is relative to its own element, same as `node.x`/`node.y`
-                // above - it does not need the `containerX`/`containerY` offset.
-                const centerX = (port.x || 0) + (port.width || 0) / 2;
-                const centerY = (port.y || 0) + (port.height || 0) / 2;
-                setPortPositionFn(found.element, found.portId, { x: centerX, y: centerY });
+                if (setPortPositionFn) {
+                    setPortPositionFn(found.element, found.portId, {
+                        x: port.x || 0,
+                        y: port.y || 0
+                    });
+                }
+
+                if (setPortLabelPositionFn) {
+                    const [label] = port.labels || [];
+                    if (label) {
+                        setPortLabelPositionFn(found.element, found.portId, {
+                            x: label.x || 0,
+                            y: label.y || 0
+                        });
+                    }
+                }
             });
         }
 
