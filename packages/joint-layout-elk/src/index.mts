@@ -1,4 +1,5 @@
-export * from './layout.mjs';
+export * from './ElkLayoutController.mjs';
 export * from './import.mjs';
 export * from './export.mjs';
-export * from './elkOptions.mjs';
+
+export type * from './elkOptions.mjs';
