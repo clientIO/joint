@@ -2,10 +2,14 @@ import type { dia } from '@joint/core';
 import type {
     ElkNode,
     ElkPort,
-    LayoutOptions as ElkLayoutOptions,
     ElkExtendedEdge,
-    ElkLabel
-} from 'elkjs';
+    ElkLabel,
+    ElkLayoutOptions,
+    NodeElkLayoutOptions,
+    PortElkLayoutOptions,
+    EdgeElkLayoutOptions,
+    LabelElkLayoutOptions
+} from './elkOptions.mjs';
 
 export const DEFAULT_LABEL_SIZE: dia.Size = {
     width: 50,
@@ -14,17 +18,17 @@ export const DEFAULT_LABEL_SIZE: dia.Size = {
 
 // ELK ignores labels with no text.
 const ELK_LABEL_TEXT = '-';
-const ELK_INLINE_LABEL_OPTIONS = { 'edgeLabels.inline': 'true' };
+const ELK_INLINE_LABEL_OPTIONS: LabelElkLayoutOptions = { 'edgeLabels.inline': 'true' };
 // Ports are positioned by JointJS (via the element's port groups), not by ELK -
 // this tells ELK to treat the coordinates we give it as final.
-const ELK_FIXED_PORTS_OPTIONS = { 'elk.portConstraints': 'FIXED_POS' };
+const ELK_FIXED_PORTS_OPTIONS: NodeElkLayoutOptions = { 'elk.portConstraints': 'FIXED_POS' };
 // With `positionPorts`, ELK is free to reposition (and reorder) ports itself.
-const ELK_FREE_PORTS_OPTIONS = { 'elk.portConstraints': 'FIXED_SIDE' };
+const ELK_FREE_PORTS_OPTIONS: NodeElkLayoutOptions = { 'elk.portConstraints': 'FIXED_SIDE' };
 
 type GetSizeCallback = (element: dia.Element) => dia.Size;
-type NodeOptionsCallback = (element: dia.Element) => ElkLayoutOptions | undefined;
-type PortOptionsCallback = (port: dia.Element.Port, element: dia.Element) => ElkLayoutOptions | undefined;
-type EdgeOptionsCallback = (link: dia.Link) => ElkLayoutOptions | undefined;
+type NodeOptionsCallback = (element: dia.Element) => NodeElkLayoutOptions | undefined;
+type PortOptionsCallback = (port: dia.Element.Port, element: dia.Element) => PortElkLayoutOptions | undefined;
+type EdgeOptionsCallback = (link: dia.Link) => EdgeElkLayoutOptions | undefined;
 
 export interface ElkGraphPort {
     element: dia.Element;

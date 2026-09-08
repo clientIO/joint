@@ -5,10 +5,9 @@ import { exportGraph } from './export.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
 import type { EdgeLabelsOptions, ImportLayoutOptions, PortPositionsOptions, PortLabelPositionsOptions } from './import.mjs';
+import type { ElkLayoutOptions, ElkNode } from './elkOptions.mjs';
 import type { dia } from '@joint/core';
-import type { ELK, ElkNode, LayoutOptions as ElkLayoutOptions } from 'elkjs';
-
-export { ElkLayoutOptions };
+import type { ELK, ElkNode as RawElkNode } from 'elkjs';
 
 const LAYOUT_BATCH_NAME = 'layout';
 
@@ -112,7 +111,7 @@ export async function layout(graph: dia.Graph, opt?: Options): Promise<LayoutRes
 
     const { elkGraph, elementsById, linksById, portsById } = exportGraph(graph, options as ExportGraphOptions, elkLayoutOptions);
 
-    const result = await elk.layout(elkGraph) as ElkNode;
+    const result = await elk.layout(elkGraph as unknown as RawElkNode) as ElkNode;
 
     graph.startBatch(LAYOUT_BATCH_NAME);
     importLayout(result, elementsById, linksById, portsById, options);
