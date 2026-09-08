@@ -19,11 +19,7 @@ const PORT_ATTRS = {
 const PORT_LABEL = {
     position: {
         name: 'outside'
-    },
-    size: {
-        width: 15,
-        height: 10
-    },
+    }
 };
 
 // Square ports (rather than `PORT_ATTRS`' circles) set `HubService` apart as

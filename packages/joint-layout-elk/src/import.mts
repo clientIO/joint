@@ -1,5 +1,6 @@
 import { type dia, g } from '@joint/core';
-import type { ElkNode, ElkExtendedEdge, ElkPoint } from 'elkjs';
+import type { ElkPoint } from 'elkjs';
+import type { ElkNode, ElkExtendedEdge } from './elkOptions.mjs';
 import type { ElkGraphPort } from './export.mjs';
 
 type SetPositionCallback = (element: dia.Element, position: dia.Point) => void;
