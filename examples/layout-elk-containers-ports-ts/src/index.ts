@@ -68,6 +68,7 @@ const init = () => {
          * A number value as a string.
          */
         'elk.layered.spacing.nodeNodeBetweenLayers': '40',
+        'elk.edgeLabels.inline': 'true',
 
         /**
          * Edge routing style.
@@ -76,25 +77,19 @@ const init = () => {
         'elk.edgeRouting': 'ORTHOGONAL',
 
         /**
-         * Distance between edge labels and the edge itself.
-         * A number value as a string.
-         */
-        'elk.spacing.edgeLabel': '4',
-
-        /**
          * Desired width-to-height ratio of the drawing - ELK's wrapping
          * strategy (below) targets this to decide how many rows to wrap
          * onto. Tuned, together with the spacing above, to keep this
          * particular graph within `ELK_MAX_WIDTH` (see the check below).
          */
-        'elk.aspectRatio': '1.2',
-
+        'elk.aspectRatio': '1.4',
         /**
          * Wraps layers onto additional rows, connected by dedicated
          * "wrap" edges, instead of growing a single row indefinitely.
          * 'NONE' | 'SINGLE_EDGE' | 'MULTI_EDGE'
          */
         'elk.layered.wrapping.strategy': 'MULTI_EDGE',
+        'elk.layered.priority.direction': '40'
     }
 
     const layoutController = new ElkLayoutController({
