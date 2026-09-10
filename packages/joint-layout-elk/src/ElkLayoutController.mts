@@ -23,6 +23,25 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
     // Keep the order of ports on a node consistent with the order of their
     // `ports.items` array, instead of reordering them to reduce edge crossings.
     'elk.layered.considerModelOrder.portModelOrder': 'true',
+    // JointJS positions an element by its top-left corner - match that as the point
+    // `interactive` (see below) compares against an element's previous position.
+    'elk.layered.interactiveReferencePoint': 'TOP_LEFT'
+};
+
+// Applied on top of `DEFAULT_LAYOUT_OPTIONS` (but under the caller's own `elkLayoutOptions`)
+// when `interactive` is enabled - see its doc on `ElkLayoutControllerOptions`.
+const INTERACTIVE_LAYOUT_OPTIONS: ElkLayoutOptions = {
+    // Generic hint, respected by every algorithm - see e.g. ELK Force/Stress, which use it to
+    // skip generating a fresh initial layout and relax from each element's current position
+    // instead. Not `'layered'`'s primary lever (below), but harmless to set alongside it.
+    'elk.interactive': 'true',
+    // `'layered'`'s own interactivity is per-phase - each of these reads the corresponding
+    // aspect (edge direction, x/y) straight off an element's current position instead of
+    // computing it from scratch, so the four are meant to be used together.
+    'elk.layered.cycleBreaking.strategy': 'INTERACTIVE',
+    'elk.layered.layering.strategy': 'INTERACTIVE',
+    'elk.layered.crossingMinimization.strategy': 'INTERACTIVE',
+    'elk.layered.nodePlacement.strategy': 'INTERACTIVE',
 };
 
 export interface LayoutResult {
@@ -85,6 +104,23 @@ export interface ElkLayoutControllerOptions extends
      * @defaultValue 'layout'
      */
     batchName?: string;
+    /**
+     * Whether to let ELK treat elements' current positions (as already reflected on the
+     * graph, e.g. from a previous `layout()` call) as a starting point, and try to change
+     * the layout as little as possible from there - instead of computing a fresh layout
+     * from scratch every time. Useful for laying out a graph incrementally, e.g. so that
+     * adding one element and calling `layout()` again only affects that new element,
+     * leaving the rest roughly where they already are.
+     *
+     * This approximates, rather than guarantees, the previous layout - e.g. a layer's own
+     * position can still shift to fit its (possibly changed) content - so already laid out
+     * elements may still move slightly. Applies `elk.interactive` plus, for the default
+     * `'layered'` algorithm, its own per-phase interactive strategies; give an
+     * `elkLayoutOptions` of your own to override/turn off any of them individually.
+     * @defaultValue false
+     * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-interactive.html
+     */
+    interactive?: boolean;
 }
 
 /**
@@ -133,6 +169,7 @@ export class ElkLayoutController {
         const elkLayoutOptions = util.defaults(
             {},
             runOptions.elkLayoutOptions || {},
+            (runOptions.interactive) ? INTERACTIVE_LAYOUT_OPTIONS : {},
             DEFAULT_LAYOUT_OPTIONS
         ) as ElkLayoutOptions;
         const elk = this.elkInstance;

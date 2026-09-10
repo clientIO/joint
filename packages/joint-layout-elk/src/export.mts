@@ -255,20 +255,28 @@ export function exportGraph(
     // used to file each edge under the lowest common ancestor of its source and target.
     const edgeContainersById = new Map<string | undefined, ElkExtendedEdge[]>();
 
-    function buildElkNode(element: dia.Element): ElkNode {
+    // ELK positions a node's children (and routes a node's own edges) relative to that
+    // node's own origin (see `toAbsolute` in `importLayout`) - `containerX`/`containerY`
+    // convert an element's own graph-absolute `position()` into that frame, so that an
+    // element's exported `x`/`y` is always a usable hint of where it currently is, e.g.
+    // for `interactive` (see `ElkLayoutControllerOptions`) to pick up.
+    function buildElkNode(element: dia.Element, containerX = 0, containerY = 0): ElkNode {
         const id = `${element.id}`;
         elementsById.set(id, element);
 
         const ports = buildPorts(element, portOptionsFn, getPortLabelSizeFn, portsById, !!options.positionPortLabels);
         const customOptions = nodeOptionsFn(element);
+        const { x: absoluteX, y: absoluteY } = element.position();
+        const x = absoluteX - containerX;
+        const y = absoluteY - containerY;
 
         const embeds = element.getEmbeddedCells()
             .filter((cell): cell is dia.Element => cell.isElement());
 
         if (embeds.length > 0) {
             // A container - its size is computed by ELK to fit its (recursively laid out) content.
-            const children = embeds.map(buildElkNode);
-            const node: ElkNode = { id, children, ports, layoutOptions: customOptions };
+            const children = embeds.map((embed) => buildElkNode(embed, absoluteX, absoluteY));
+            const node: ElkNode = { id, x, y, children, ports, layoutOptions: customOptions };
             edgeContainersById.set(id, node.edges = []);
             return node;
         }
@@ -276,6 +284,8 @@ export function exportGraph(
         const { width, height } = getSizeFn(element);
         return {
             id,
+            x,
+            y,
             width,
             height,
             ports,
@@ -289,7 +299,7 @@ export function exportGraph(
 
     const children: ElkNode[] = graph.getElements()
         .filter((element) => !element.parent())
-        .map(buildElkNode);
+        .map((element) => buildElkNode(element));
 
     const elkGraph: ElkNode = {
         id: 'root',

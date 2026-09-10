@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "module": "ES6",
+        "moduleResolution": "node",
+        "target": "es6",
+        "noImplicitAny": false,
+        "sourceMap": false,
+        "outDir": "./build",
+        "resolveJsonModule": true,
+        "esModuleInterop": true
+    }
+}
