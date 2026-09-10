@@ -4,7 +4,7 @@ import { util, g } from '@joint/core';
 import type { dia } from '@joint/core';
 import type { ELK, LayoutOptions, ElkNode as RawElkNode } from 'elkjs';
 import type { ElkLayoutOptions, ElkNode } from './elkOptions.mjs';
-import type { EdgeLabelsOptions, ImportLayoutOptions, PortLabelPositionsOptions, PortPositionsOptions } from './import.mjs';
+import type { EdgeLabelsOptions, ImportLayoutOptions, PortLabelPositionsOptions, PortPositionsMode, PortPositionsOptions } from './import.mjs';
 import { exportGraph, importLayout, type ExportGraphOptions } from './index.mjs';
 
 const LAYOUT_BATCH_NAME = 'layout';
@@ -62,14 +62,15 @@ export interface ElkLayoutControllerOptions extends
      */
     edgeLabels?: boolean | EdgeLabelsOptions;
     /**
-     * Whether to let ELK reposition (and reorder) ports along their element,
+     * How freely ELK may reposition (and reorder) ports along their element,
      * instead of keeping them at the position JointJS itself already computed
-     * for them. When enabled, every port's owning group is switched to an
-     * `'absolute'` position (preserving its `attrs`/`markup`/`label`) so the
-     * position ELK computed for it can be applied.
-     * @defaultValue false
+     * for them - see `PortPositionsMode`. When set to anything other than
+     * `'fixed'`, every port's owning group is switched to an `'absolute'`
+     * position (preserving its `attrs`/`markup`/`label`) so the position ELK
+     * computed for it can be applied.
+     * @defaultValue 'fixed'
      */
-    positionPorts?: boolean | PortPositionsOptions;
+    positionPorts?: PortPositionsMode | PortPositionsOptions;
     /**
      * Whether to let ELK reposition port labels along their port, instead of keeping
      * them at the position JointJS itself already computed for them (via the port

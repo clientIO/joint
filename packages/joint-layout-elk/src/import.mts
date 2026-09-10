@@ -22,14 +22,42 @@ export interface EdgeLabelsOptions {
     setLabels?: SetLabelsCallback;
 }
 
+/**
+ * Controls how freely ELK may reposition a port along its element - maps directly
+ * onto ELK's own `elk.portConstraints` (see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portConstraints.html):
+ * - `'fixed'` (default) - the port stays exactly where JointJS's own port groups
+ *   already place it; ELK only uses that position to route edges to/from it
+ *   (`FIXED_POS`).
+ * - `'fixed-side'` - ELK may reposition (and reorder) the port along the side its
+ *   group already assigns it to, e.g. to minimize edge crossings (`FIXED_SIDE`).
+ * - `'free'` - ELK may reposition the port anywhere around its element, including
+ *   onto a different side than its group's (`FREE`).
+ */
+export type PortPositionsMode = 'fixed' | 'fixed-side' | 'free';
+
 export interface PortPositionsOptions {
     /**
+     * How freely ELK may reposition the port.
+     * @defaultValue 'fixed'
+     */
+    mode?: PortPositionsMode;
+    /**
      * Sets a port's position, based on the ELK port's layout result.
-     * Only takes effect when `positionPorts` is enabled.
+     * Only takes effect when `mode` is not `'fixed'`.
      * @example
      * setPortPosition: (element, portId, position) => element.portProp(portId, ['position', 'args'], position)
      */
     setPortPosition?: SetPortPositionCallback;
+}
+
+/**
+ * Resolves the effective `PortPositionsMode` for a `positionPorts` option - a plain
+ * mode string, an options object with an optional `mode` (defaulting to `'fixed'`),
+ * or `undefined` (also `'fixed'`).
+ */
+export function getPortPositionsMode(positionPorts: PortPositionsMode | PortPositionsOptions | undefined): PortPositionsMode {
+    if (typeof positionPorts === 'string') return positionPorts;
+    return positionPorts?.mode ?? 'fixed';
 }
 
 export interface PortLabelPositionsOptions {
@@ -82,14 +110,15 @@ export interface ImportLayoutOptions {
      */
     edgeLabels?: boolean | EdgeLabelsOptions;
     /**
-     * Whether to let ELK reposition (and reorder) ports along their element,
+     * How freely ELK may reposition (and reorder) ports along their element,
      * instead of keeping them at the position JointJS itself already computed
-     * for them. When enabled, every port's owning group is switched to an
-     * `'absolute'` position (preserving its `attrs`/`markup`/`label`) so the
-     * position ELK computed for it can be applied.
-     * @defaultValue false
+     * for them - see `PortPositionsMode`. When set to anything other than
+     * `'fixed'`, every port's owning group is switched to an `'absolute'`
+     * position (preserving its `attrs`/`markup`/`label`) so the position ELK
+     * computed for it can be applied.
+     * @defaultValue 'fixed'
      */
-    positionPorts?: boolean | PortPositionsOptions;
+    positionPorts?: PortPositionsMode | PortPositionsOptions;
     /**
      * Whether to let ELK reposition port labels along their port, instead of keeping
      * them at the position JointJS itself already computed for them (via the port
@@ -179,7 +208,7 @@ export function importLayout(
     const setAnchorFn = options.setAnchor ?? defaultSetAnchor;
 
     let setPortPositionFn: SetPortPositionCallback | undefined;
-    if (options.positionPorts) {
+    if (getPortPositionsMode(options.positionPorts) !== 'fixed') {
         setPortPositionFn = defaultSetPortPosition;
 
         if (typeof options.positionPorts === 'object') {

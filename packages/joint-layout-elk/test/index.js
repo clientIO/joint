@@ -249,7 +249,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout(graph, { positionPorts: true });
+        await joint.layout.ELK.layout(graph, { positionPorts: 'fixed-side' });
 
         // The group's position is switched to 'absolute' so the ELK-computed position applies.
         assert.equal(el1.prop(['ports', 'groups', 'out', 'position', 'name']), 'absolute');

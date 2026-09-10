@@ -11,7 +11,6 @@ module.exports = {
         publicPath: '/dist/',
     },
     mode: 'development',
-    devtool: 'source-map',
     module: {
         rules: [
             {
