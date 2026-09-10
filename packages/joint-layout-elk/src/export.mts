@@ -259,7 +259,7 @@ export function exportGraph(
     // node's own origin (see `toAbsolute` in `importLayout`) - `containerX`/`containerY`
     // convert an element's own graph-absolute `position()` into that frame, so that an
     // element's exported `x`/`y` is always a usable hint of where it currently is, e.g.
-    // for `interactive` (see `ElkLayoutControllerOptions`) to pick up.
+    // for `interactive` (see `Options` in `layout.mts`) to pick up.
     function buildElkNode(element: dia.Element, containerX = 0, containerY = 0): ElkNode {
         const id = `${element.id}`;
         elementsById.set(id, element);
