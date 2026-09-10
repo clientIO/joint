@@ -1,5 +1,5 @@
 import { dia, shapes, g } from '@joint/core';
-import { ElkLayoutOptions, ElkLayoutController } from '@joint/layout-elk';
+import { ElkLayoutOptions, layout } from '@joint/layout-elk';
 import './styles.scss';
 
 const ELK_DIRECTION = 'RIGHT';
@@ -54,11 +54,6 @@ const init = () => {
         'elk.edgeRouting': 'ORTHOGONAL',
     };
 
-    const layoutController = new ElkLayoutController({
-        graph,
-        elkLayoutOptions
-    });
-
     // Seed the graph with a small, already laid out tree.
     const cells: dia.Cell[] = [];
     SEED_LINKS.forEach(([sourceId, targetId]) => {
@@ -72,7 +67,7 @@ const init = () => {
 
     // The very first layout always computes the whole graph from scratch - there is
     // nothing to be "interactive" about yet, since no element has a position at all.
-    layoutController.layout().then(() => {
+    layout(graph, { elkLayoutOptions }).then(() => {
         paper.unfreeze();
         zoom(paper, zoomLevel);
     }).catch((error) => {
@@ -109,7 +104,7 @@ const init = () => {
         // itself. Uncheck "Interactive layout" to see the whole graph get reshuffled by
         // a from-scratch layout instead. Either way, re-fit the viewport afterwards so
         // the (possibly larger) diagram stays fully visible.
-        layoutController.layout({ interactive: interactiveToggle.checked }).then(() => {
+        layout(graph, { elkLayoutOptions, interactive: interactiveToggle.checked }).then(() => {
             paper.unfreeze();
             zoom(paper, zoomLevel);
         }).catch((error) => {

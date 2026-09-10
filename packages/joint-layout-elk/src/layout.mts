@@ -1,18 +1,15 @@
-import ElkConstructor from 'elkjs/lib/elk.bundled.js';
 import { util, g } from '@joint/core';
+import ElkConstructor from 'elkjs/lib/elk.bundled.js';
+import { importLayout } from './import.mjs';
+import { exportGraph } from './export.mjs';
 
-import type { dia } from '@joint/core';
-import type { ELK, LayoutOptions, ElkNode as RawElkNode } from 'elkjs';
+import type { ExportGraphOptions } from './export.mjs';
+import type { EdgeLabelsOptions, ImportLayoutOptions, PortPositionsMode, PortPositionsOptions, PortLabelPositionsOptions } from './import.mjs';
 import type { ElkLayoutOptions, ElkNode } from './elkOptions.mjs';
-import type { EdgeLabelsOptions, ImportLayoutOptions, PortLabelPositionsOptions, PortPositionsMode, PortPositionsOptions } from './import.mjs';
-import { exportGraph, importLayout, type ExportGraphOptions } from './index.mjs';
+import type { dia } from '@joint/core';
+import type { ELK, ElkNode as RawElkNode } from 'elkjs';
 
 const LAYOUT_BATCH_NAME = 'layout';
-
-const DEFAULT_OPTIONS: Partial<ElkLayoutControllerOptions> = {
-    edgeLabels: true,
-    batchName: LAYOUT_BATCH_NAME,
-};
 
 const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
     'elk.algorithm': 'layered',
@@ -29,7 +26,7 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
 };
 
 // Applied on top of `DEFAULT_LAYOUT_OPTIONS` (but under the caller's own `elkLayoutOptions`)
-// when `interactive` is enabled - see its doc on `ElkLayoutControllerOptions`.
+// when `interactive` is enabled - see its doc on `Options`.
 const INTERACTIVE_LAYOUT_OPTIONS: ElkLayoutOptions = {
     // Generic hint, respected by every algorithm - see e.g. ELK Force/Stress, which use it to
     // skip generating a fresh initial layout and relax from each element's current position
@@ -44,30 +41,31 @@ const INTERACTIVE_LAYOUT_OPTIONS: ElkLayoutOptions = {
     'elk.layered.nodePlacement.strategy': 'INTERACTIVE',
 };
 
-export interface LayoutResult {
-    /** Tight bounding box of the laid out graph. */
-    bbox: g.Rect;
-    /** The raw ELK layout result, for anything not mapped back onto the graph (e.g. junction points). */
-    elkGraph: ElkNode;
-}
+const DEFAULT_OPTIONS: Options = {
+    edgeLabels: true,
+    batchName: LAYOUT_BATCH_NAME,
+};
 
-export interface ElkLayoutControllerOptions extends
+let defaultElk: ELK | undefined;
+
+/**
+ * Layout configuration options.
+ */
+export interface Options extends
     Omit<ImportLayoutOptions, 'edgeLabels' | 'positionPorts' | 'positionPortLabels'>,
     Omit<ExportGraphOptions, 'edgeLabels' | 'positionPorts' | 'positionPortLabels'> {
 
     /**
-     * The graph to lay out. Fixed for the controller's lifetime.
-     */
-    graph: dia.Graph;
-    /**
-     * A URL for `elkjs`'s Web Worker script, to run layout off the main thread.
-     * Fixed for the controller's lifetime - the underlying ELK instance is only
-     * ever created once, in the constructor.
+     * A custom ELK instance, e.g. one configured to run inside a Web Worker.
+     * The instance is not terminated by the package - call `elk.terminateWorker()`
+     * yourself when it is no longer needed.
+     * @defaultValue a shared, main-thread instance (`elkjs/lib/elk.bundled.js`)
      * @example
-     * new ElkLayoutController({ graph, workerUrl: new URL('elkjs/lib/elk-worker.min.js', import.meta.url).href });
+     * import ELK from 'elkjs/lib/elk-api.js';
+     * const elk = new ELK({ workerUrl: new URL('elkjs/lib/elk-worker.min.js', import.meta.url).href });
+     * layout(graph, { elk });
      */
-    workerUrl?: string;
-
+    elk?: ELK;
     /**
      * ELK layout options, passed through to ELK unmodified.
      * @see https://eclipse.dev/elk/reference/options.html
@@ -123,70 +121,50 @@ export interface ElkLayoutControllerOptions extends
     interactive?: boolean;
 }
 
+export interface LayoutResult {
+    /** Tight bounding box of the laid out graph. */
+    bbox: g.Rect;
+    /** The raw ELK layout result, for anything not mapped back onto the graph (e.g. junction points). */
+    elkGraph: ElkNode;
+}
+
+function getDefaultElk(): ELK {
+    if (!defaultElk) {
+        defaultElk = new ElkConstructor();
+    }
+    return defaultElk;
+}
+
 /**
- * Options that can be supplied to a single `layout()` call, supplementing (not
- * replacing) the controller's own options - see `ElkLayoutControllerOptions` -
- * for just that one run. Everything except `graph`/`workerUrl` (fixed for the
- * controller's lifetime - see their docs) can be overridden this way; `elkLayoutOptions`
- * given here is merged on top of the controller's own, rather than replacing it outright.
+ * Tight bounding box of the top-level nodes in an ELK layout result.
  */
-export type ElkLayoutRunOptions = Omit<ElkLayoutControllerOptions, 'graph' | 'workerUrl'>;
+function getBBox(elkGraph: ElkNode): g.Rect {
+    const rects = (elkGraph.children || []).map((node) => new g.Rect(node.x || 0, node.y || 0, node.width || 0, node.height || 0));
+    return g.Rect.fromRectUnion(...rects) || new g.Rect(0, 0, 0, 0);
+}
 
-export class ElkLayoutController {
+export async function layout(graph: dia.Graph, opt?: Options): Promise<LayoutResult> {
 
-    private elkInstance: ELK;
-    private graph: dia.Graph;
-    private options: ElkLayoutControllerOptions;
+    const options = util.defaults({}, opt || {}, DEFAULT_OPTIONS) as Options;
+    const elkLayoutOptions = util.defaults(
+        {},
+        opt?.elkLayoutOptions || {},
+        (opt?.interactive) ? INTERACTIVE_LAYOUT_OPTIONS : {},
+        DEFAULT_LAYOUT_OPTIONS
+    ) as ElkLayoutOptions;
+    const elk = opt?.elk || getDefaultElk();
+    const batchName = options.batchName || LAYOUT_BATCH_NAME;
 
-    constructor(options: ElkLayoutControllerOptions) {
-        if (options.workerUrl) {
-            this.elkInstance = new ElkConstructor({
-                workerUrl: options.workerUrl,
-                algorithms: ['layered'],
-                defaultLayoutOptions: DEFAULT_LAYOUT_OPTIONS as LayoutOptions
-            });
-        } else {
-            this.elkInstance = new ElkConstructor({
-                algorithms: ['layered'],
-                defaultLayoutOptions: DEFAULT_LAYOUT_OPTIONS as LayoutOptions
-            });
-        }
+    const { elkGraph, elementsById, linksById, portsById } = exportGraph(graph, options as ExportGraphOptions, elkLayoutOptions);
 
-        this.graph = options.graph;
+    const result = await elk.layout(elkGraph as unknown as RawElkNode) as ElkNode;
 
-        this.options = util.defaults({}, options || {}, DEFAULT_OPTIONS) as ElkLayoutControllerOptions;
-    }
+    graph.startBatch(batchName);
+    importLayout(result, elementsById, linksById, portsById, options);
+    graph.stopBatch(batchName);
 
-    private getBBox(elkGraph: ElkNode): g.Rect {
-        const rects = (elkGraph.children || []).map((node) => new g.Rect(node.x || 0, node.y || 0, node.width || 0, node.height || 0));
-        return g.Rect.fromRectUnion(...rects) || new g.Rect(0, 0, 0, 0);
-    }
-
-    public async layout(options?: ElkLayoutRunOptions): Promise<LayoutResult> {
-        // Options given here supplement (rather than replace) the controller's own for
-        // this run only - `this.options` itself is left untouched for the next call.
-        const runOptions = util.defaults({}, options || {}, this.options) as ElkLayoutRunOptions;
-        const elkLayoutOptions = util.defaults(
-            {},
-            runOptions.elkLayoutOptions || {},
-            (runOptions.interactive) ? INTERACTIVE_LAYOUT_OPTIONS : {},
-            DEFAULT_LAYOUT_OPTIONS
-        ) as ElkLayoutOptions;
-        const elk = this.elkInstance;
-        const batchName = runOptions.batchName || LAYOUT_BATCH_NAME;
-
-        const { elkGraph, elementsById, linksById, portsById } = exportGraph(this.graph, runOptions as ExportGraphOptions, elkLayoutOptions);
-
-        const result = await elk.layout(elkGraph as unknown as RawElkNode) as ElkNode;
-
-        this.graph.startBatch(batchName);
-        importLayout(result, elementsById, linksById, portsById, runOptions);
-        this.graph.stopBatch(batchName);
-
-        return {
-            bbox: this.getBBox(result),
-            elkGraph: result
-        };
-    }
-
+    return {
+        bbox: getBBox(result),
+        elkGraph: result
+    };
 }
