@@ -162,7 +162,7 @@ export const graphJSON: dia.Graph.JSON = {
             type: 'example.InteractionLink',
             source: { id: 'auth', port: 'out2' },
             target: { id: 'logger', port: 'in2' },
-            labels: [{ attrs: { text: { text: 'log' } } }]
+            //labels: [{ attrs: { text: { text: 'log' } } }]
         },
         {
             id: 'l8',

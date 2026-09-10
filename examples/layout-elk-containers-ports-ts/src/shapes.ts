@@ -11,7 +11,7 @@ const PORT_ATTRS = {
         strokeWidth: 2
     },
     text: {
-        fontSize: 10,
+        fontSize: 14,
         fill: '#555'
     }
 };
@@ -38,7 +38,7 @@ const HUB_PORT_ATTRS = {
         strokeWidth: 2
     },
     text: {
-        fontSize: 10,
+        fontSize: 14,
         fill: '#555'
     }
 };

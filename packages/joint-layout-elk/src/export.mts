@@ -1,4 +1,6 @@
 import type { dia } from '@joint/core';
+import { getPortPositionsMode, type PortPositionsMode, type PortPositionsOptions } from './import.mjs';
+
 import type {
     ElkNode,
     ElkPort,
@@ -25,11 +27,13 @@ const AVERAGE_CHAR_WIDTH_RATIO = 0.6;
 const LINE_HEIGHT_RATIO = 1.2;
 
 const ELK_INLINE_LABEL_OPTIONS: LabelElkLayoutOptions = { 'edgeLabels.inline': 'true' };
-// Ports are positioned by JointJS (via the element's port groups), not by ELK -
-// this tells ELK to treat the coordinates we give it as final.
-const ELK_FIXED_PORTS_OPTIONS: NodeElkLayoutOptions = { 'elk.portConstraints': 'FIXED_POS' };
-// With `positionPorts`, ELK is free to reposition (and reorder) ports itself.
-const ELK_FREE_PORTS_OPTIONS: NodeElkLayoutOptions = { 'elk.portConstraints': 'FIXED_SIDE' };
+// Maps a `PortPositionsMode` onto the corresponding `elk.portConstraints` value -
+// see `PortPositionsMode` for what each mode means.
+const ELK_PORT_CONSTRAINTS_BY_MODE: Record<PortPositionsMode, NodeElkLayoutOptions> = {
+    'fixed': { 'elk.portConstraints': 'FIXED_POS' },
+    'fixed-side': { 'elk.portConstraints': 'FIXED_SIDE' },
+    'free': { 'elk.portConstraints': 'FREE' },
+};
 
 type GetSizeCallback = (element: dia.Element) => dia.Size;
 type GetPortLabelSizeCallback = (port: dia.Element.Port, element: dia.Element) => dia.Size;
@@ -87,13 +91,13 @@ export interface ExportGraphOptions {
      */
     edgeLabels?: boolean;
     /**
-     * Whether to let ELK reposition (and reorder) ports along their element,
+     * How freely ELK may reposition (and reorder) ports along their element,
      * instead of keeping them at the position JointJS itself already computed
-     * for them. The new positions are written back onto the graph - see the
-     * `positionPorts` option in `ImportLayoutOptions`.
-     * @defaultValue false
+     * for them - see `PortPositionsMode`. Any new positions are written back
+     * onto the graph - see the `positionPorts` option in `ImportLayoutOptions`.
+     * @defaultValue 'fixed'
      */
-    positionPorts?: boolean;
+    positionPorts?: PortPositionsMode | PortPositionsOptions;
     /**
      * Whether to let ELK reposition port labels along their port, instead of keeping
      * them at the position JointJS itself already computed for them. The new
@@ -163,7 +167,7 @@ const edgeOptions: EdgeOptionsCallback = (_link) => {
  * position JointJS itself has already computed for them (via the element's
  * port groups). Whether ELK is free to move them from there, or has to treat
  * that position as final, is controlled by the node's own `elk.portConstraints`
- * (see `ELK_FIXED_PORTS_OPTIONS`/`ELK_FREE_PORTS_OPTIONS` in `buildElkNode`).
+ * (see `ELK_PORT_CONSTRAINTS_BY_MODE` in `buildElkNode`).
  */
 function buildPorts(
     element: dia.Element,
@@ -242,7 +246,7 @@ export function exportGraph(
     const nodeOptionsFn = options.nodeOptions ?? nodeOptions;
     const portOptionsFn = options.portOptions ?? portOptions;
     const edgeOptionsFn = options.edgeOptions ?? edgeOptions;
-    const portConstraintsOptions = (options.positionPorts) ? ELK_FREE_PORTS_OPTIONS : ELK_FIXED_PORTS_OPTIONS;
+    const portConstraintsOptions = ELK_PORT_CONSTRAINTS_BY_MODE[getPortPositionsMode(options.positionPorts)];
 
     const elementsById = new Map<string, dia.Element>();
     const linksById = new Map<string, dia.Link>();

@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2019",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "module": "ESNext",
     "declaration": true,
     "declarationMap": true,
     "strict": true,

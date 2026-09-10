@@ -6,10 +6,6 @@ import './styles.scss';
 
 const ELK_DIRECTION = 'RIGHT';
 const CONTAINER_PADDING = '[top=40,left=20,bottom=20,right=20]';
-// Soft cap on the overall drawing width - ELK wraps layers onto additional
-// rows (rather than growing ever wider) once it would otherwise be exceeded.
-// It is a target for ELK's wrapping heuristic, not a hard guarantee.
-const ELK_MAX_WIDTH = 1000;
 
 const cellNamespace = {
     ...shapes,
@@ -68,7 +64,6 @@ const init = () => {
          * A number value as a string.
          */
         'elk.layered.spacing.nodeNodeBetweenLayers': '40',
-        'elk.edgeLabels.inline': 'true',
 
         /**
          * Edge routing style.
@@ -82,7 +77,7 @@ const init = () => {
          * onto. Tuned, together with the spacing above, to keep this
          * particular graph within `ELK_MAX_WIDTH` (see the check below).
          */
-        'elk.aspectRatio': '1.4',
+        'elk.aspectRatio': '1.2',
         /**
          * Wraps layers onto additional rows, connected by dedicated
          * "wrap" edges, instead of growing a single row indefinitely.
@@ -94,10 +89,10 @@ const init = () => {
 
     const layoutController = new ElkLayoutController({
         graph,
-        workerUrl: '../node_modules/elkjs/lib/elk-worker.js',
+        workerUrl: '../node_modules/elkjs/lib/elk-worker.js' ,
         // Let ELK reposition (and reorder) every port in the diagram, instead
         // of keeping them where JointJS's own port groups first placed them.
-        positionPorts: true,
+        positionPorts: 'fixed-side',
         positionPortLabels: true,
         nodeOptions: (element) => {
             // Reserve extra top padding inside containers, so children don't
@@ -114,14 +109,6 @@ const init = () => {
         paper.unfreeze();
         zoom(paper, 1);
 
-        // `elk.aspectRatio` only targets the placement of nodes - the drawing's
-        // actual width (checked here on the rendered content, wrap-around
-        // routing included) is a target for ELK's wrapping heuristic, not a
-        // hard guarantee, so flag it during development if it is ever missed.
-        const contentWidth = paper.getContentBBox({ useModelGeometry: true }).width;
-        if (contentWidth > ELK_MAX_WIDTH) {
-            console.warn(`ELK layout is ${contentWidth} units wide, over the ${ELK_MAX_WIDTH} unit target.`);
-        }
     }).catch((error) => {
         console.error('ELK layout error:', error.message);
     });
