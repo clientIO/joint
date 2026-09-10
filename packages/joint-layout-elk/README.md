@@ -83,6 +83,10 @@ interface Options {
     // How freely ELK may reposition (and reorder) ports itself, instead of keeping
     // them at their JointJS-computed position - see "Letting ELK position ports" below.
     positionPorts?: PortPositionsMode | { mode?: PortPositionsMode; setPortPosition?: SetPortPositionCallback }; // Default: 'fixed'
+    // Whether to treat elements' current positions as a starting point and change the
+    // layout as little as possible from there, instead of computing it from scratch -
+    // see "Incremental/interactive layout" below.
+    interactive?: boolean; // Default: false
     // Element sizing callback
     getSize?: GetSizeCallback; // Default: element.size()
     // Callbacks for customizing how the layout is applied
@@ -151,6 +155,20 @@ layout(graph, {
 });
 ```
 
+### Incremental/interactive layout
+
+By default, every `layout()` call computes the whole graph's layout from scratch. Pass `interactive: true` to instead let ELK treat elements' current positions - already reflected on the graph, e.g. from an earlier `layout()` call - as a starting point, and change the layout as little as possible from there:
+
+```ts
+// Initial layout.
+await layout(graph);
+
+// ... later, after adding one new element/link to the already laid out graph:
+await layout(graph, { interactive: true });
+```
+
+This is useful for laying out a graph incrementally - e.g. adding one element to an already laid out graph and re-running `layout({ interactive: true })` only positions that new element, instead of reshuffling the whole diagram. It's an approximation, not a guarantee, of the previous layout though - e.g. a layer's own position can still shift to fit its (possibly changed) content - so already laid out elements may still move slightly.
+
 ### Animated transitions
 
 ```ts
@@ -171,6 +189,7 @@ layout(graph, {
 
 - **Node labels are not supported** - ELK's node-label placement assumes labels are layout participants, whereas JointJS labels are attrs inside the shape. Link labels are supported (behind `edgeLabels`).
 - **Ports keep their JointJS-computed position by default** (`positionPorts: 'fixed'`) - `layout()` only tells ELK where they already are (`elk.portConstraints: FIXED_POS`), so edges route to/from the exact spot the element's port groups place them at. Opt into ELK repositioning them with `positionPorts: 'fixed-side'`/`'free'` (see above).
+- **`interactive` approximates the previous layout, it doesn't freeze it** - already laid out elements are not guaranteed to keep their exact position (see "Incremental/interactive layout" above).
 - **Asynchronous** - unlike `@joint/layout-directed-graph`, `layout()` returns a `Promise`, since `elkjs` computes layouts asynchronously (and, optionally, inside a Web Worker).
 - **ID handling** - ELK requires string ids; element and link ids are converted with `` `${id}` `` internally, but never written back to the graph.
 

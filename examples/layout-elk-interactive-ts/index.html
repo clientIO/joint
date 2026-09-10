@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="An incremental/interactive automatic layout demo, using JointJS and ELK: adding an element to an already laid out graph only positions that new element, instead of recomputing the whole layout from scratch.">
+    <title>ELK Interactive Layout | JointJS</title>
+</head>
+
+<body>
+    <div class="toolbar">
+        <span id="zoom-out" class="toolbar-button">Zoom Out</span>
+        <span id="zoom-in" class="toolbar-button">Zoom In</span>
+        <span id="add-element" class="toolbar-button">+ Add Element</span>
+        <label id="interactive-toggle-label" class="toolbar-button toolbar-toggle">
+            <input type="checkbox" id="interactive-toggle" checked>
+            Interactive layout
+        </label>
+    </div>
+    <div id="canvas" class="canvas"></div>
+    <script src="dist/bundle.js"></script>
+
+</body>
+
+</html>
