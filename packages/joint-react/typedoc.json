@@ -1,5 +1,7 @@
 {
-  "entryPoints": ["src/index.ts"],
+  "entryPoints": [
+    "src/index.ts"
+  ],
   "out": "docs/api",
   "readme": "none",
   "name": "@joint/react",
@@ -7,10 +9,21 @@
   "excludeProtected": true,
   "excludeExternals": true,
   "excludeNotDocumented": false,
-  "groupOrder": ["Components", "Hooks", "Selectors", "Presets", "MVC", "Types", "Utils", "*"],
+  "groupOrder": [
+    "Components",
+    "Hooks",
+    "Selectors",
+    "Presets",
+    "MVC",
+    "Types",
+    "Utils",
+    "*"
+  ],
   "gitRevision": "master",
   "customCss": "typedoc.css",
-  "plugin": ["typedoc-github-theme"],
+  "plugin": [
+    "typedoc-github-theme"
+  ],
   "intentionallyNotExported": [
     "InternalElementRecord",
     "InternalLinkRecord",
@@ -58,6 +71,8 @@
     "TranslateEventParams",
     "ScaleEventParams",
     "ResizeEventParams",
-    "TransformEventParams"
+    "TransformEventParams",
+    "CellsSelector",
+    "SelectedEqual"
   ]
 }

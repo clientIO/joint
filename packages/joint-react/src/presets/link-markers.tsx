@@ -48,19 +48,75 @@ const FILL = 'inherit';
 const STROKE = 'inherit';
 /** Default stroke width for markers. */
 const SW = 2;
+/** Fill value of open (stroke-only) shapes. */
+const NO_FILL = 'none';
+
+/** Presentation attributes shared by every node a marker is drawn with. */
+interface MarkerStyle {
+  readonly fill: string;
+  readonly stroke: string;
+  readonly strokeWidth: number;
+  readonly className?: string;
+}
 
 /**
- * Helper function to apply default options for link markers.
+ * Resolves {@link LinkMarkerOptions} against the defaults: the geometry inputs
+ * (`scale`, `strokeWidth`) plus the presentation `style` handed to
+ * {@link markerPath} / {@link markerCircle}.
  */
 function defaults(options: LinkMarkerOptions = {}) {
-  const {
-    scale = 1,
-    fill = FILL,
-    stroke = STROKE,
-    strokeWidth = SW,
-    className
-  } = options;
-  return { scale, fill, stroke, strokeWidth, className };
+  const { scale = 1, fill = FILL, stroke = STROKE, strokeWidth = SW, className } = options;
+  return { scale, strokeWidth, style: { fill, stroke, strokeWidth, className } };
+}
+
+/**
+ * A `<path>` carrying the marker's shared presentation attributes. `fill`
+ * defaults to the resolved marker fill; pass {@link NO_FILL} for open shapes.
+ */
+function markerPath(d: string, style: MarkerStyle, fill: string = style.fill) {
+  return (
+    <path
+      d={d}
+      fill={fill}
+      stroke={style.stroke}
+      stroke-width={style.strokeWidth}
+      className={style.className}
+    />
+  );
+}
+
+/** A `<circle>` on the link axis carrying the marker's shared presentation attributes. */
+function markerCircle(cx: number, r: number, style: MarkerStyle, fill: string = style.fill) {
+  return (
+    <circle
+      cx={cx}
+      r={r}
+      fill={fill}
+      stroke={style.stroke}
+      stroke-width={style.strokeWidth}
+      className={style.className}
+    />
+  );
+}
+
+/** Scaled geometry of the 6×3 triangle shared by the arrow, fork, and crow's-foot markers. */
+function arrowSize(scale: number) {
+  return { w: 6 * scale, h: 3 * scale };
+}
+
+/** Closed triangle with its tip at the origin, opening away from the link end. */
+function forkPath(w: number, h: number): string {
+  return `M ${-w} ${-h} L 0 0 L ${-w} ${h} z`;
+}
+
+/** Open crow's foot (chevron plus center line) with its tip at `x`. */
+function crowsFootPath(w: number, h: number, x = 0): string {
+  return `M ${x - w} ${-h} L ${x} 0 L ${x - w} ${h} M ${x - w} 0 L ${x} 0`;
+}
+
+/** Vertical bar of half-height `h` crossing the link axis at `x`. */
+function barPath(h: number, x = 0): string {
+  return `M ${x} ${-h} V ${h}`;
 }
 
 /**
@@ -75,13 +131,10 @@ function defaults(options: LinkMarkerOptions = {}) {
  * @group Presets
  */
 export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   return {
-    markup: jsx(
-      <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
-    ),
+    markup: jsx(markerPath(`M 0 ${-h} L ${-w} 0 L 0 ${h} z`, style)),
     // the mitered join can extend beyond the path, so add 1px of padding
     length: w + strokeWidth + 1,
   };
@@ -93,13 +146,10 @@ export function linkMarkerArrow(options?: LinkMarkerOptions): LinkMarkerRecord {
  * @group Presets
  */
 export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   return {
-    markup: jsx(
-      <path d={`M ${w} ${-h} L 0 0 L ${w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
-    ),
+    markup: jsx(markerPath(`M ${w} ${-h} L 0 0 L ${w} ${h}`, style, NO_FILL)),
     // the mitered join can extend beyond the path, so add 1px of padding
     length: strokeWidth + 1,
   };
@@ -111,13 +161,12 @@ export function linkMarkerArrowOpen(options?: LinkMarkerOptions): LinkMarkerReco
  * @group Presets
  */
 export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   const indent = 2 * scale;
   return {
     markup: jsx(
-      <path d={`M ${indent} ${-h} L ${indent - w} 0 L ${indent} ${h} L 0 0 z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
+      markerPath(`M ${indent} ${-h} L ${indent - w} 0 L ${indent} ${h} L 0 0 z`, style)
     ),
     length: w - indent + strokeWidth + 1,
   };
@@ -129,21 +178,18 @@ export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRe
  * @group Presets
  */
 export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   const indent = 2 * scale;
-  return {
-    markup: jsx(
-      <path d={`
+  const d = `
         M ${indent} ${-h}
         H ${2 * indent - w}
         L ${indent - w} 0
         L ${2 * indent - w} ${h}
         H ${indent}
-        L 0 0 z`
-      } fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
-    ),
+        L 0 0 z`;
+  return {
+    markup: jsx(markerPath(d, style)),
     length: w - indent + strokeWidth,
   };
 }
@@ -154,15 +200,14 @@ export function linkMarkerArrowQuill(options?: LinkMarkerOptions): LinkMarkerRec
  * @group Presets
  */
 export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   const gap = 7 * scale;
   return {
     markup: jsx(
       <>
-        <path d={`M ${-gap} ${-h} L ${-(w + gap)} 0 L ${-gap} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
-        <path d={`M 0 ${-h} L ${-w} 0 L 0 ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
+        {markerPath(`M ${-gap} ${-h} L ${-(w + gap)} 0 L ${-gap} ${h} z`, style)}
+        {markerPath(`M 0 ${-h} L ${-w} 0 L 0 ${h} z`, style)}
       </>
     ),
     length: w + gap + strokeWidth + 1,
@@ -174,12 +219,10 @@ export function linkMarkerArrowDouble(options?: LinkMarkerOptions): LinkMarkerRe
  * @group Presets
  */
 export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
+  const { scale, strokeWidth, style } = defaults(options);
   const r = 4 * scale;
   return {
-    markup: jsx(
-      <circle cx={-r} r={r} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
-    ),
+    markup: jsx(markerCircle(-r, r, style)),
     length: r * 2 + strokeWidth,
   };
 }
@@ -190,13 +233,11 @@ export function linkMarkerCircle(options?: LinkMarkerOptions): LinkMarkerRecord 
  * @group Presets
  */
 export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
+  const { scale, strokeWidth, style } = defaults(options);
   const w = 4 * scale;
   const h = 4 * scale;
   return {
-    markup: jsx(
-      <path d={`M 0 0 L ${-w} ${-h} L ${-w * 2} 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
-    ),
+    markup: jsx(markerPath(`M 0 0 L ${-w} ${-h} L ${-w * 2} 0 L ${-w} ${h} z`, style)),
     length: w * 2 + strokeWidth,
   };
 }
@@ -207,12 +248,10 @@ export function linkMarkerDiamond(options?: LinkMarkerOptions): LinkMarkerRecord
  * @group Presets
  */
 export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth, className } = defaults(options);
+  const { scale, strokeWidth, style } = defaults(options);
   const h = 5 * scale;
   return {
-    markup: jsx(
-      <path d={`M 0 ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
-    ),
+    markup: jsx(markerPath(barPath(h), style, NO_FILL)),
     length: strokeWidth,
   };
 }
@@ -223,12 +262,10 @@ export function linkMarkerLine(options?: LinkMarkerOptions): LinkMarkerRecord {
  * @group Presets
  */
 export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth, className } = defaults(options);
+  const { scale, strokeWidth, style } = defaults(options);
   const d = 4 * scale;
   return {
-    markup: jsx(
-      <path d={`M ${-d} ${-d} L ${d} ${d} M ${-d} ${d} L ${d} ${-d}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
-    ),
+    markup: jsx(markerPath(`M ${-d} ${-d} L ${d} ${d} M ${-d} ${d} L ${d} ${-d}`, style, NO_FILL)),
     length: d + strokeWidth,
   };
 }
@@ -238,13 +275,10 @@ export function linkMarkerCross(options?: LinkMarkerOptions): LinkMarkerRecord {
  * @group Presets
  */
 export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   return {
-    markup: jsx(
-      <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
-    ),
+    markup: jsx(markerPath(forkPath(w, h), style)),
     length: w + strokeWidth,
   };
 }
@@ -255,14 +289,13 @@ export function linkMarkerFork(options?: LinkMarkerOptions): LinkMarkerRecord {
  * @group Presets
  */
 export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, fill, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   return {
     markup: jsx(
       <>
-        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} z`} fill={fill} stroke={stroke} stroke-width={strokeWidth} className={className} />
-        <path d={`M 0 ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
+        {markerPath(forkPath(w, h), style)}
+        {markerPath(barPath(h), style, NO_FILL)}
       </>
     ),
     length: w + strokeWidth,
@@ -275,16 +308,10 @@ export function linkMarkerForkClose(options?: LinkMarkerOptions): LinkMarkerReco
  * @group Presets
  */
 export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   return {
-    markup: jsx(
-      <>
-        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h}`} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
-        <path d={`M ${-w} 0 L 0 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
-      </>
-    ),
+    markup: jsx(markerPath(crowsFootPath(w, h), style, NO_FILL)),
     length: w + strokeWidth - 1,
   };
 }
@@ -295,16 +322,22 @@ export function linkMarkerMany(options?: LinkMarkerOptions): LinkMarkerRecord {
  * @group Presets
  */
 export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   const r = 3 * scale;
   const crowX = -(r * 2);
   return {
     markup: jsx(
       <>
-        <circle cx={-r} r={r} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
-        <path d={`M ${crowX - w} ${-h} L ${crowX} 0 L ${crowX - w} ${h} M ${crowX - w} 0 L ${crowX} 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} stroke-linejoin="bevel" className={className} />
+        {markerCircle(-r, r, style, NO_FILL)}
+        <path
+          d={crowsFootPath(w, h, crowX)}
+          fill={NO_FILL}
+          stroke={style.stroke}
+          stroke-width={style.strokeWidth}
+          stroke-linejoin="bevel"
+          className={style.className}
+        />
       </>
     ),
     length: w - crowX + strokeWidth - 1,
@@ -316,15 +349,11 @@ export function linkMarkerManyOptional(options?: LinkMarkerOptions): LinkMarkerR
  * @group Presets
  */
 export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth, className } = defaults(options);
+  const { scale, style } = defaults(options);
   const h = 4 * scale;
   return {
-    markup: jsx(
-      <>
-        <path d={`M ${h} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
-      </>
-    ),
-    length: 0
+    markup: jsx(markerPath(barPath(h, h), style, NO_FILL)),
+    length: 0,
   };
 }
 
@@ -334,15 +363,15 @@ export function linkMarkerOne(options?: LinkMarkerOptions): LinkMarkerRecord {
  * @group Presets
  */
 export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth, className } = defaults(options);
+  const { scale, strokeWidth, style } = defaults(options);
   const h = 4 * scale;
   const r = 3 * scale;
   const circleX = -r;
   return {
     markup: jsx(
       <>
-        <path d={`M ${h} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
-        <circle cx={circleX} r={r} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
+        {markerPath(barPath(h, h), style, NO_FILL)}
+        {markerCircle(circleX, r, style, NO_FILL)}
       </>
     ),
     length: r - circleX + strokeWidth,
@@ -355,14 +384,13 @@ export function linkMarkerOneOptional(options?: LinkMarkerOptions): LinkMarkerRe
  * @group Presets
  */
 export function linkMarkerOneOrMany(options?: LinkMarkerOptions): LinkMarkerRecord {
-  const { scale, stroke, strokeWidth, className } = defaults(options);
-  const w = 6 * scale;
-  const h = 3 * scale;
+  const { scale, strokeWidth, style } = defaults(options);
+  const { w, h } = arrowSize(scale);
   return {
     markup: jsx(
       <>
-        <path d={`M ${-w} ${-h} L 0 0 L ${-w} ${h} M ${-w} 0 L 0 0`} fill="none" stroke={stroke} stroke-width={strokeWidth} className={className} />
-        <path d={`M ${0} ${-h} V ${h}`} stroke={stroke} stroke-width={strokeWidth} className={className} />
+        {markerPath(crowsFootPath(w, h), style, NO_FILL)}
+        {markerPath(barPath(h), style, NO_FILL)}
       </>
     ),
     length: w + strokeWidth - 1,
