@@ -288,6 +288,8 @@ export function importLayout(
                 // A container - ELK computed its size to fit its (recursively laid out) content.
                 element.resize(node.width || 0, node.height || 0);
             }
+
+            element.unset('new'); // remove the "new" flag, if any, so it doesn't stay styled differently
         }
 
         if ((setPortPositionFn || setPortLabelPositionFn) && node.ports) {
