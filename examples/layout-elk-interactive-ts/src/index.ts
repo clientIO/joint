@@ -55,13 +55,11 @@ const init = () => {
     };
 
     // Seed the graph with a small, already laid out tree.
-    const cells: dia.Cell[] = [];
     SEED_LINKS.forEach(([sourceId, targetId]) => {
-        if (!graph.getCell(sourceId)) cells.push(createElement(sourceId));
-        if (!graph.getCell(targetId)) cells.push(createElement(targetId));
-        cells.push(createLink(sourceId, targetId));
+        if (!graph.getCell(sourceId)) graph.addCell(createElement(sourceId));
+        if (!graph.getCell(targetId)) graph.addCell(createElement(targetId));
+        graph.addCell(createLink(sourceId, targetId));
     });
-    graph.resetCells(cells);
 
     const interactiveToggle = document.getElementById('interactive-toggle') as HTMLInputElement;
 
@@ -94,7 +92,8 @@ const init = () => {
         // Starting it off one layer to the right of its parent (`ELK_DIRECTION`) instead
         // gives interactive layout a sensible hint, so only `element` itself (not its
         // parent's whole layer) needs to move.
-        element.position(parent.position().x + NODE_SIZE.width + 60, parent.position().y);
+        // element.position(parent.position().x + NODE_SIZE.width + 60, parent.position().y);
+        element.set('new', true);
 
         paper.freeze();
         graph.addCells([element, createLink(`${parent.id}`, `${element.id}`)]);

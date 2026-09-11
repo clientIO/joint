@@ -19,10 +19,7 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
     'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
     // Keep the order of ports on a node consistent with the order of their
     // `ports.items` array, instead of reordering them to reduce edge crossings.
-    'elk.layered.considerModelOrder.portModelOrder': 'true',
-    // JointJS positions an element by its top-left corner - match that as the point
-    // `interactive` (see below) compares against an element's previous position.
-    'elk.layered.interactiveReferencePoint': 'TOP_LEFT'
+    'elk.layered.considerModelOrder.portModelOrder': 'true'
 };
 
 // Applied on top of `DEFAULT_LAYOUT_OPTIONS` (but under the caller's own `elkLayoutOptions`)
@@ -32,13 +29,24 @@ const INTERACTIVE_LAYOUT_OPTIONS: ElkLayoutOptions = {
     // skip generating a fresh initial layout and relax from each element's current position
     // instead. Not `'layered'`'s primary lever (below), but harmless to set alongside it.
     'elk.interactive': 'true',
+    'elk.interactiveLayout': 'true',
     // `'layered'`'s own interactivity is per-phase - each of these reads the corresponding
     // aspect (edge direction, x/y) straight off an element's current position instead of
     // computing it from scratch, so the four are meant to be used together.
-    'elk.layered.cycleBreaking.strategy': 'INTERACTIVE',
+    // 'elk.layered.cycleBreaking.strategy': 'INTERACTIVE',
     'elk.layered.layering.strategy': 'INTERACTIVE',
-    'elk.layered.crossingMinimization.strategy': 'INTERACTIVE',
+    // NOT `crossingMinimization.strategy: 'INTERACTIVE'` - that variant doesn't minimize
+    // crossings at all, it just sorts each layer by previous y and calls it done (see
+    // `InteractiveCrossingMinimizer` upstream). `semiInteractive` instead keeps the real
+    // crossing-minimizing strategy (`LAYER_SWEEP`, the default) running, and only adds
+    // *soft* ordering constraints between pairs of already-positioned nodes (read from the
+    // `elk.position` layout option - see `buildElkNode` in `export.mts`) - so genuinely new
+    // nodes still get placed to reduce crossings, while nodes that already had a position
+    // keep their relative order unless the topology actually requires otherwise.
+    'elk.layered.crossingMinimization.semiInteractive': 'true',
     'elk.layered.nodePlacement.strategy': 'INTERACTIVE',
+    'elk.layered.interactiveReferencePoint': 'TOP_LEFT',
+    'elk.layered.mergeEdges': 'true',
 };
 
 const DEFAULT_OPTIONS: Options = {

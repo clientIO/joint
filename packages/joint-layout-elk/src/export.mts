@@ -282,10 +282,8 @@ export function exportGraph(
         }
 
         const { width, height } = getSizeFn(element);
-        return {
+        const elkNode: ElkNode = {
             id,
-            x,
-            y,
             width,
             height,
             ports,
@@ -295,6 +293,26 @@ export function exportGraph(
                 ...customOptions
             } : customOptions
         };
+
+        if (!element.get('new')) {
+            // An already laid out element - give ELK a hint of where it currently is, so
+            // that `interactive` (see `Options` in `layout.mts`) can try to keep it there.
+            elkNode.x = x;
+            elkNode.y = y;
+            // Also expose it as the `elk.position` layout option - a distinct property from
+            // the plain `x`/`y` above, read specifically by
+            // `elk.layered.crossingMinimization.semiInteractive` to derive a *soft* ordering
+            // constraint between pairs of already-positioned nodes in the same layer, on top
+            // of whatever crossing-minimizing strategy is otherwise in effect. A node with no
+            // `elk.position` (e.g. one still marked `new`) is left out of that constraint, so
+            // it's free to be placed wherever reduces crossings.
+            elkNode.layoutOptions = {
+                ...elkNode.layoutOptions,
+                'elk.position': `(${x},${y})`
+            };
+        }
+
+        return elkNode;
     }
 
     const children: ElkNode[] = graph.getElements()
