@@ -3,6 +3,15 @@ import { CELL_MARKER } from './symbols.mjs';
 
 const POINTER_DOWN = 'pointerdown';
 const POINTER_UP = 'pointerup';
+const CONNECTION = 'connection';
+
+const isPrimary = (evt, type) => evt.type === type && evt.button === 0;
+
+const finishPredicates = {
+    [POINTER_UP]: (evt) => isPrimary(evt, POINTER_UP),
+    [POINTER_DOWN]: (evt) => isPrimary(evt, POINTER_DOWN),
+    [CONNECTION]: (evt, drag) => isPrimary(evt, POINTER_DOWN) && drag.getConnectionCandidate() !== null
+};
 
 /**
  * @class
@@ -115,6 +124,26 @@ export class LinkDrag {
 
     /**
      * @public
+     * @description Returns the magnet the end would connect to if the drag
+     * finished now: the magnet under the last point (or the closest one with
+     * `snapLinks`), provided `validateConnection` accepted it.
+     * @return {{ cellView: dia.CellView, magnet: SVGElement }|null} `null` when
+     * there is no valid magnet or the drag is over.
+     */
+    getConnectionCandidate() {
+        if (!this._active) return null;
+        const { closestView, closestMagnet, viewUnderPointer, magnetUnderPointer } = this._data;
+        if (closestView && closestMagnet) {
+            return { cellView: closestView, magnet: closestMagnet };
+        }
+        if (viewUnderPointer && magnetUnderPointer) {
+            return { cellView: viewUnderPointer, magnet: magnetUnderPointer };
+        }
+        return null;
+    }
+
+    /**
+     * @public
      * @description Aborts the drag: removes the highlighters, restores the link
      * and puts the end back where it was (or removes the link, depending on
      * `whenNotAllowed`). No `link:connect` / `link:disconnect` is triggered.
@@ -130,18 +159,22 @@ export class LinkDrag {
     /**
      * @public
      * @description Lets the pointer drive the drag. Listens on the document for
-     * `pointermove` (moves the end), the finish event with the primary button
-     * (`pointerup` by default, or `pointerdown` for click-move-click), the Escape
-     * key and `contextmenu` (both cancel; the native context menu is prevented).
-     * The paper's own pointer events are suspended in the meantime. Calling it
-     * again returns the same promise; on a finished drag it resolves at once.
-     * To keep receiving the events when the pointer leaves the window or enters
-     * an iframe, capture the pointer in the handler that starts the drag
-     * (`evt.target.setPointerCapture(evt.pointerId)`); captured events are
-     * handled.
+     * `pointermove` (moves the end), `pointerdown` / `pointerup` (finish the drag
+     * according to `finishOn`), the Escape key and `contextmenu` (both cancel;
+     * the native context menu is prevented). The paper's own pointer events are
+     * suspended in the meantime. Calling it again returns the same promise; on a
+     * finished drag it resolves at once. To keep receiving the events when the
+     * pointer leaves the window or enters an iframe, capture the pointer in the
+     * handler that starts the drag (`evt.target.setPointerCapture(evt.pointerId)`);
+     * captured events are handled.
      * @param {Object} [opt]
-     * @param {'pointerup'|'pointerdown'} [opt.finishOn='pointerup'] - The event
-     * that finishes the drag.
+     * @param {'pointerup'|'pointerdown'|'connection'|function(Event, dia.LinkDrag): boolean} [opt.finishOn='pointerup']
+     * When the drag finishes: `'pointerup'` - the primary button is released
+     * (press-drag-release); `'pointerdown'` - the primary button is pressed
+     * (click-move-click); `'connection'` - the primary button is pressed over a
+     * valid magnet (see `getConnectionCandidate()`), other clicks are ignored;
+     * a function - called with every `pointerdown` and `pointerup` event and the
+     * handle, finishes when it returns `true`.
      * @return {Promise<{ cancelled: boolean, linkView: dia.LinkView }>} Resolved
      * when the drag is over, whichever way it ended (`finish()`, `cancel()`, the
      * pointer, the keyboard or the removal of the link).
@@ -158,18 +191,25 @@ export class LinkDrag {
             return pointer.promise;
         }
         const { finishOn = POINTER_UP } = opt;
-        const finishEventType = (finishOn === POINTER_DOWN) ? POINTER_DOWN : POINTER_UP;
+        const shouldFinish = (typeof finishOn === 'function') ? finishOn : finishPredicates[finishOn];
+        if (!shouldFinish) {
+            throw new Error(`dia.LinkDrag: unknown finishOn value "${finishOn}".`);
+        }
+        const onFinishCandidate = (evt) => {
+            // Update the end and the connection candidate to the event position first.
+            this.move(evt);
+            if (this._active && shouldFinish(evt, this)) this.finish(evt);
+        };
         const listeners = {
             pointermove: (evt) => this.move(evt),
+            pointerdown: onFinishCandidate,
+            pointerup: onFinishCandidate,
             keydown: (evt) => {
                 if (evt.key === 'Escape') this.cancel();
             },
             contextmenu: (evt) => {
                 evt.preventDefault();
                 this.cancel();
-            },
-            [finishEventType]: (evt) => {
-                if (evt.button === 0) this.finish(evt);
             }
         };
         for (const type in listeners) {

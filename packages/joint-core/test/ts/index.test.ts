@@ -328,6 +328,15 @@ myElementView.model.test();
         const cancelled: boolean = result.cancelled;
         const resultView: joint.dia.LinkView = result.linkView;
     });
+    dragPaper.startLinkDrag(draggedLink).followPointer({ finishOn: 'connection' });
+    dragPaper.startLinkDrag(draggedLink).followPointer({
+        finishOn: (evt, linkDrag) => evt.type === 'pointerdown' && linkDrag.getConnectionCandidate() !== null
+    });
+    const candidate: joint.dia.LinkDrag.ConnectionCandidate | null = drag.getConnectionCandidate();
+    if (candidate) {
+        const candidateView: joint.dia.CellView = candidate.cellView;
+        const candidateMagnet: SVGElement = candidate.magnet;
+    }
     const linkViewFromMagnet: joint.dia.LinkView = drag.linkView.addLinkFromMagnet(drag.linkView.el, 0, 0);
     const linkFromMagnet: joint.dia.Link = drag.linkView.createLinkFromMagnet(drag.linkView.el, 0, 0);
     dragPaper.startLinkDrag(linkFromMagnet, { ui: true, tool: 'x' });

@@ -127,6 +127,34 @@ QUnit.module('dia.Paper.startLinkDrag()', function(hooks) {
             assert.equal(HighlighterView.getAll(paper).length, 0);
         });
 
+        QUnit.test('getConnectionCandidate()', function(assert) {
+            const drag = paper.startLinkDrag(link);
+            assert.equal(drag.getConnectionCandidate(), null, 'nothing before the first move');
+            drag.move(300, 300);
+            assert.deepEqual(drag.getConnectionCandidate(), { cellView: r2View, magnet: r2View.el });
+            drag.move(150, 150);
+            assert.equal(drag.getConnectionCandidate(), null, 'nothing over a blank area');
+            paper.options.validateConnection = () => false;
+            drag.move(300, 300);
+            assert.equal(drag.getConnectionCandidate(), null, 'nothing when the connection is not valid');
+            paper.options.validateConnection = () => true;
+            drag.move(150, 150);
+            drag.move(310, 310);
+            assert.ok(drag.getConnectionCandidate());
+            drag.finish(310, 310);
+            assert.equal(drag.getConnectionCandidate(), null, 'nothing once the drag is over');
+        });
+
+        QUnit.test('getConnectionCandidate() with snapLinks', function(assert) {
+            paper.options.snapLinks = { radius: 80 };
+            const drag = paper.startLinkDrag(link);
+            drag.move(200, 200);
+            assert.deepEqual(drag.getConnectionCandidate(), { cellView: r2View, magnet: r2View.el }, 'the closest magnet');
+            drag.move(150, 390);
+            assert.equal(drag.getConnectionCandidate(), null, 'nothing within the radius');
+            drag.cancel();
+        });
+
         QUnit.test('methods are no-ops once the drag is over', function(assert) {
             const drag = paper.startLinkDrag(link);
             drag.finish(150, 150);
@@ -339,6 +367,77 @@ QUnit.module('dia.Paper.startLinkDrag()', function(hooks) {
             const { cancelled } = await promise;
             assert.notOk(cancelled);
             assert.equal(link.target().id, r2.id);
+        });
+
+        QUnit.test('finishOn: "connection" finishes only on a click over a valid magnet', async function(assert) {
+            const drag = paper.startLinkDrag(link);
+            const promise = drag.followPointer({ finishOn: 'connection' });
+            dispatchPointerEvent('pointermove', paper.el, 200, 200);
+            dispatchPointerEvent('pointerdown', paper.el, 200, 200);
+            dispatchPointerEvent('pointerup', paper.el, 200, 200);
+            assert.ok(drag.isActive(), 'a click on a blank area is ignored');
+            assert.deepEqual(link.target(), { x: 200, y: 200 }, 'the end follows the click position');
+            paper.options.validateConnection = (sourceView, sourceMagnet, targetView) => targetView !== r2View;
+            dispatchPointerEvent('pointerdown', r2View.el, 300, 300);
+            assert.ok(drag.isActive(), 'a click on an element that fails validateConnection is ignored');
+            paper.options.validateConnection = () => true;
+            dispatchPointerEvent('pointermove', paper.el, 200, 200);
+            dispatchPointerEvent('pointerdown', r2View.el, 300, 300, { button: 2 });
+            assert.ok(drag.isActive(), 'a secondary button is ignored');
+            dispatchPointerEvent('pointerdown', r2View.el, 300, 300);
+            const { cancelled } = await promise;
+            assert.notOk(cancelled);
+            assert.equal(link.target().id, r2.id);
+        });
+
+        QUnit.test('finishOn: "connection" finishes on a click without a preceding pointermove', async function(assert) {
+            const drag = paper.startLinkDrag(link);
+            const promise = drag.followPointer({ finishOn: 'connection' });
+            dispatchPointerEvent('pointerdown', r2View.el, 300, 300);
+            const { cancelled } = await promise;
+            assert.notOk(cancelled);
+            assert.equal(link.target().id, r2.id);
+        });
+
+        QUnit.test('finishOn as a function decides on every pointerdown and pointerup', async function(assert) {
+            const drag = paper.startLinkDrag(link);
+            const finishOn = sinon.spy((evt) => evt.type === 'pointerup' && evt.button === 1);
+            const promise = drag.followPointer({ finishOn });
+            dispatchPointerEvent('pointerdown', r2View.el, 300, 300);
+            dispatchPointerEvent('pointerup', r2View.el, 300, 300);
+            assert.ok(drag.isActive());
+            assert.equal(finishOn.callCount, 2);
+            assert.equal(finishOn.firstCall.args[0].type, 'pointerdown');
+            assert.equal(finishOn.firstCall.args[1], drag);
+            dispatchPointerEvent('pointerup', r2View.el, 300, 300, { button: 1 });
+            const { cancelled } = await promise;
+            assert.notOk(cancelled);
+            assert.equal(link.target().id, r2.id);
+        });
+
+        QUnit.test('finishOn as a function can add vertices on blank clicks', async function(assert) {
+            const drag = paper.startLinkDrag(link);
+            const promise = drag.followPointer({
+                finishOn: (evt) => {
+                    if (evt.type !== 'pointerdown' || evt.button !== 0) return false;
+                    if (drag.getConnectionCandidate()) return true;
+                    link.insertVertex(link.vertices().length, paper.snapToGrid(evt.clientX, evt.clientY));
+                    return false;
+                }
+            });
+            dispatchPointerEvent('pointerdown', paper.el, 200, 100);
+            dispatchPointerEvent('pointerdown', paper.el, 200, 200);
+            assert.deepEqual(link.vertices(), [{ x: 200, y: 100 }, { x: 200, y: 200 }]);
+            dispatchPointerEvent('pointerdown', r2View.el, 300, 300);
+            await promise;
+            assert.equal(link.target().id, r2.id);
+            assert.equal(link.vertices().length, 2);
+        });
+
+        QUnit.test('throws on an unknown finishOn value', function(assert) {
+            const drag = paper.startLinkDrag(link);
+            assert.throws(() => drag.followPointer({ finishOn: 'click' }));
+            drag.cancel();
         });
 
         QUnit.test('Escape cancels', async function(assert) {

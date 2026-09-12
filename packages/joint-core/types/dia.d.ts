@@ -1588,13 +1588,20 @@ export namespace LinkDrag {
         whenNotAllowed?: 'revert' | 'remove';
     }
 
+    type FinishOn = 'pointerup' | 'pointerdown' | 'connection' | ((evt: globalThis.PointerEvent, linkDrag: LinkDrag) => boolean);
+
     interface FollowPointerOptions {
-        finishOn?: 'pointerup' | 'pointerdown';
+        finishOn?: FinishOn;
     }
 
     interface Result {
         cancelled: boolean;
         linkView: LinkView;
+    }
+
+    interface ConnectionCandidate {
+        cellView: CellView;
+        magnet: SVGElement;
     }
 }
 
@@ -1618,6 +1625,8 @@ export class LinkDrag {
     finish(x: number, y: number): void;
 
     cancel(): void;
+
+    getConnectionCandidate(): LinkDrag.ConnectionCandidate | null;
 
     followPointer(opt?: LinkDrag.FollowPointerOptions): Promise<LinkDrag.Result>;
 }
