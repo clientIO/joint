@@ -1309,6 +1309,8 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
 
+    createLinkFromMagnet(magnet: SVGElement, x: number, y: number): Link;
+
     protected nodeCache(magnet: SVGElement): CellView.NodeMetrics;
 
     protected getNodeData(magnet: SVGElement): CellView.NodeData;
@@ -1577,7 +1579,7 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 
 export namespace LinkDrag {
 
-    interface Options {
+    interface Options extends Graph.Options {
         end?: LinkEnd;
         whenNotAllowed?: 'revert' | 'remove';
     }
@@ -1594,6 +1596,8 @@ export namespace LinkDrag {
 
 export class LinkDrag {
 
+    constructor(paper: Paper, link: Link, opt?: LinkDrag.Options);
+
     readonly paper: Paper;
     readonly link: Link;
     readonly linkView: LinkView;
@@ -1602,9 +1606,11 @@ export class LinkDrag {
     isActive(): boolean;
 
     move(evt: Event | globalThis.MouseEvent): void;
+    move(evt: Event | globalThis.MouseEvent, x: number, y: number): void;
     move(x: number, y: number): void;
 
     finish(evt: Event | globalThis.MouseEvent): void;
+    finish(evt: Event | globalThis.MouseEvent, x: number, y: number): void;
     finish(x: number, y: number): void;
 
     cancel(): void;
@@ -2181,7 +2187,7 @@ export class Paper extends mvc.View<Graph> {
 
     getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
 
-    startLinkDrag(link: Link | LinkView, opt?: LinkDrag.Options): LinkDrag;
+    startLinkDrag(link: Link, opt?: LinkDrag.Options): LinkDrag;
 
     getModelById(id: Graph.CellRef): Cell;
 

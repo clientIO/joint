@@ -3327,31 +3327,8 @@ export const Paper = View.extend({
         return true;
     },
 
-    startLinkDrag: function(link, opt = {}) {
-
-        const model = (link instanceof CellView) ? link.model : link;
-        if (!model || typeof model.isLink !== 'function' || !model.isLink()) {
-            throw new Error('dia.Paper: startLinkDrag() expects a link or a link view.');
-        }
-        const graph = this.model;
-        const { end } = opt;
-        let { whenNotAllowed } = opt;
-        let batchName;
-        if (model.graph === graph) {
-            batchName = 'arrowhead-move';
-            graph.startBatch(batchName);
-        } else {
-            batchName = 'add-link';
-            whenNotAllowed = whenNotAllowed || 'remove';
-            graph.startBatch(batchName);
-            model.addTo(graph, { ui: true, async: false });
-        }
-        const linkView = this.requireView(model);
-        if (!linkView) {
-            graph.stopBatch(batchName);
-            throw new Error('dia.Paper: startLinkDrag() could not find the view of the link.');
-        }
-        return new LinkDrag(this, linkView, { end, whenNotAllowed, batchName });
+    startLinkDrag: function(link, opt) {
+        return new LinkDrag(this, link, opt);
     },
 
     getDefaultLink: function(cellView, magnet) {

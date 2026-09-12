@@ -417,19 +417,25 @@ export const CellView = View.extend({
 
     addLinkFromMagnet: function(magnet, x, y) {
 
-        var paper = this.paper;
-        var graph = paper.model;
-
-        var link = paper.getDefaultLink(this, magnet);
-        link.set({
-            source: this.getLinkEnd(magnet, x, y, link, 'source'),
-            target: { x: x, y: y }
-        }).addTo(graph, {
+        const { paper } = this;
+        const link = this.createLinkFromMagnet(magnet, x, y);
+        link.addTo(paper.model, {
             async: false,
             ui: true
         });
 
         return link.findView(paper);
+    },
+
+    createLinkFromMagnet: function(magnet, x, y) {
+
+        const link = this.paper.getDefaultLink(this, magnet);
+        link.set({
+            source: this.getLinkEnd(magnet, x, y, link, 'source'),
+            target: { x, y }
+        });
+
+        return link;
     },
 
     getLinkEnd: function(magnet, ...args) {
@@ -492,25 +498,27 @@ export const CellView = View.extend({
     },
 
     dragLinkStart: function(evt, magnet, x, y) {
-        this.model.startBatch('add-link');
-        const linkView = this.addLinkFromMagnet(magnet, x, y);
+        const { paper } = this;
+        const linkDrag = paper.startLinkDrag(this.createLinkFromMagnet(magnet, x, y));
+        const { linkView } = linkDrag;
         // backwards compatibility events
         linkView.notifyPointerdown(evt, x, y);
-        linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
-        this.eventData(evt, { linkView });
-        this.paper.setDragging(evt);
+        this.eventData(evt, { linkView, linkDrag });
+        paper.setDragging(evt);
     },
 
     dragLink: function(evt, x, y) {
-        var data = this.eventData(evt);
-        var linkView = data.linkView;
-        if (linkView) {
-            linkView.pointermove(evt, x, y);
+        const data = this.eventData(evt);
+        const { linkDrag } = data;
+        if (linkDrag) {
+            linkDrag.move(evt, x, y);
+            // backwards compatibility events
+            linkDrag.linkView.notifyPointermove(evt, x, y);
         } else {
-            var paper = this.paper;
-            var magnetThreshold = paper.options.magnetThreshold;
-            var currentTarget = this.getEventTarget(evt);
-            var targetMagnet = data.targetMagnet;
+            const { paper } = this;
+            const { magnetThreshold } = paper.options;
+            const currentTarget = this.getEventTarget(evt);
+            const { targetMagnet } = data;
             if (magnetThreshold === 'onleave') {
                 // magnetThreshold when the pointer leaves the magnet
                 if (targetMagnet === currentTarget || V(targetMagnet).contains(currentTarget)) return;
@@ -523,11 +531,13 @@ export const CellView = View.extend({
     },
 
     dragLinkEnd: function(evt, x, y) {
-        var data = this.eventData(evt);
-        var linkView = data.linkView;
-        if (!linkView) return;
-        linkView.pointerup(evt, x, y);
-        this.model.stopBatch('add-link');
+        const { linkDrag } = this.eventData(evt);
+        if (!linkDrag) return;
+        const { linkView } = linkDrag;
+        linkDrag.finish(evt, x, y);
+        // backwards compatibility events
+        linkView.notifyPointerup(evt, x, y);
+        linkView.checkMouseleave(evt);
     },
 
     getAttributeDefinition: function(attrName) {

@@ -9,13 +9,34 @@ const POINTER_UP = 'pointerup';
 // (`followPointer()`).
 export class LinkDrag {
 
-    constructor(paper, linkView, opt = {}) {
-        const { end = 'target', whenNotAllowed, batchName = null } = opt;
+    constructor(paper, link, opt = {}) {
+        if (!link || typeof link.isLink !== 'function' || !link.isLink()) {
+            throw new Error('dia.LinkDrag: expects a link.');
+        }
+        const graph = paper.model;
+        const { end = 'target', whenNotAllowed: whenNotAllowedOption, ...batchData } = opt;
+        let whenNotAllowed = whenNotAllowedOption;
+        let batchName;
+        if (link.graph === graph) {
+            batchName = 'arrowhead-move';
+            graph.startBatch(batchName, batchData);
+        } else {
+            batchName = 'add-link';
+            whenNotAllowed = whenNotAllowed || 'remove';
+            graph.startBatch(batchName, batchData);
+            link.addTo(graph, { ui: true, async: false });
+        }
+        const linkView = paper.requireView(link);
+        if (!linkView) {
+            graph.stopBatch(batchName, batchData);
+            throw new Error('dia.LinkDrag: could not find the view of the link.');
+        }
         this.paper = paper;
+        this.link = link;
         this.linkView = linkView;
-        this.link = linkView.model;
         this.end = end;
         this._batchName = batchName;
+        this._batchData = batchData;
         this._active = true;
         this._result = null;
         this._pointer = null;
@@ -25,22 +46,24 @@ export class LinkDrag {
             whenNotAllowed
         });
         this._onLinkRemove = this._onLinkRemove.bind(this);
-        this.link.on('remove', this._onLinkRemove);
+        link.on('remove', this._onLinkRemove);
     }
 
     isActive() {
         return this._active;
     }
 
-    move(x, y) {
+    // move(evt) | move(evt, x, y) | move(x, y)
+    move(...args) {
         if (!this._active) return;
-        const [evt, localX, localY] = this._resolvePointer('pointermove', x, y);
+        const [evt, localX, localY] = this._resolvePointer('pointermove', args);
         this.linkView.dragArrowhead(evt, localX, localY);
     }
 
-    finish(x, y) {
+    // finish(evt) | finish(evt, x, y) | finish(x, y)
+    finish(...args) {
         if (!this._active) return;
-        const [evt, localX, localY] = this._resolvePointer(POINTER_UP, x, y);
+        const [evt, localX, localY] = this._resolvePointer(POINTER_UP, args);
         this._deactivate();
         this.linkView.dragArrowheadEnd(evt, localX, localY);
         this._settle(false);
@@ -87,22 +110,24 @@ export class LinkDrag {
         return pointer.promise;
     }
 
-    _resolvePointer(type, x, y) {
+    _resolvePointer(type, [evtOrX, xOrY, y]) {
         const { paper } = this;
         let evt;
         let localPoint;
-        if (typeof x === 'number') {
-            const clientPoint = paper.localToClientPoint(x, y);
+        if (typeof evtOrX === 'number') {
+            const clientPoint = paper.localToClientPoint(evtOrX, xOrY);
             evt = {
                 type,
                 clientX: clientPoint.x,
                 clientY: clientPoint.y,
                 target: document.elementFromPoint(clientPoint.x, clientPoint.y) || paper.el
             };
-            localPoint = { x, y };
+            localPoint = { x: evtOrX, y: xOrY };
         } else {
-            evt = normalizeEvent(x);
-            localPoint = paper.snapToGrid(evt.clientX, evt.clientY);
+            evt = normalizeEvent(evtOrX);
+            localPoint = (typeof xOrY === 'number')
+                ? { x: xOrY, y }
+                : paper.snapToGrid(evt.clientX, evt.clientY);
         }
         const data = evt.data || (evt.data = {});
         data[this._eventDataKey] = this._data;
@@ -121,9 +146,9 @@ export class LinkDrag {
     }
 
     _settle(cancelled) {
-        const { paper, linkView, _batchName: batchName, _pointer: pointer } = this;
+        const { paper, linkView, _batchName: batchName, _batchData: batchData, _pointer: pointer } = this;
         this._result = { cancelled, linkView };
-        if (batchName) paper.model.stopBatch(batchName);
+        if (batchName) paper.model.stopBatch(batchName, batchData);
         if (pointer && pointer.listeners) {
             for (const type in pointer.listeners) {
                 document.removeEventListener(type, pointer.listeners[type]);

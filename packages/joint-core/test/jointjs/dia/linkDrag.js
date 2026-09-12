@@ -147,6 +147,29 @@ QUnit.module('dia.Paper.startLinkDrag()', function(hooks) {
             assert.deepEqual(link.target(), { x: 120, y: 180 });
         });
 
+        QUnit.test('move() and finish() with an event and explicit local coordinates', function(assert) {
+            const drag = paper.startLinkDrag(link);
+            const evt = { type: 'pointermove', target: r2View.el };
+            drag.move(evt, 300, 300);
+            assert.deepEqual(link.target(), { x: 300, y: 300 });
+            assert.ok(HighlighterView.has(r2View));
+            drag.finish({ type: 'pointerup', target: r2View.el }, 300, 300);
+            assert.equal(link.target().id, r2.id);
+        });
+
+        QUnit.test('extra options are passed as the batch data', function(assert) {
+            const log = [];
+            graph.on('batch:start', (data) => log.push(data));
+            graph.on('batch:stop', (data) => log.push(data));
+            const drag = paper.startLinkDrag(link, { end: 'target', whenNotAllowed: 'revert', ui: true, tool: 'test' });
+            drag.cancel();
+            const batches = log.filter((data) => data.batchName === 'arrowhead-move');
+            assert.equal(batches.length, 2);
+            batches.forEach((data) => {
+                assert.deepEqual(data, { batchName: 'arrowhead-move', ui: true, tool: 'test' });
+            });
+        });
+
         QUnit.test('the drag is wrapped in an "arrowhead-move" batch', function(assert) {
             const log = [];
             graph.on('batch:start', (data) => log.push('start:' + data.batchName));
@@ -196,17 +219,20 @@ QUnit.module('dia.Paper.startLinkDrag()', function(hooks) {
             assert.deepEqual(added.target(), { x: 20, y: 20 });
         });
 
-        QUnit.test('accepts a link view', function(assert) {
-            const linkView = link.findView(paper);
-            const drag = paper.startLinkDrag(linkView);
-            assert.equal(drag.linkView, linkView);
+        QUnit.test('can be constructed directly', function(assert) {
+            const drag = new joint.dia.LinkDrag(paper, link, { end: 'source' });
+            assert.equal(drag.paper, paper);
+            assert.equal(drag.linkView, link.findView(paper));
+            assert.equal(drag.end, 'source');
             drag.cancel();
         });
 
-        QUnit.test('throws unless given a link or a link view', function(assert) {
+        QUnit.test('throws unless given a link', function(assert) {
             assert.throws(() => paper.startLinkDrag(r1));
-            assert.throws(() => paper.startLinkDrag(r1.findView(paper)));
+            assert.throws(() => paper.startLinkDrag(link.findView(paper)));
             assert.throws(() => paper.startLinkDrag(null));
+            assert.notOk(graph.hasActiveBatch('arrowhead-move'));
+            assert.notOk(graph.hasActiveBatch('add-link'));
         });
 
         QUnit.test('renders the view synchronously on an async paper', function(assert) {
@@ -232,17 +258,37 @@ QUnit.module('dia.Paper.startLinkDrag()', function(hooks) {
         QUnit.test('addLinkFromMagnet() + startLinkDrag() from an element', function(assert) {
             const r1View = r1.findView(paper);
             const linkView = r1View.addLinkFromMagnet(r1View.el, 50, 50);
-            const drag = paper.startLinkDrag(linkView, { whenNotAllowed: 'remove' });
+            const drag = paper.startLinkDrag(linkView.model, { whenNotAllowed: 'remove' });
             drag.move(300, 300);
             drag.finish(300, 300);
             assert.equal(linkView.model.source().id, r1.id);
             assert.equal(linkView.model.target().id, r2.id);
         });
 
+        QUnit.test('createLinkFromMagnet() + startLinkDrag() adds the link inside the "add-link" batch', function(assert) {
+            const log = [];
+            graph.on('batch:start', (data) => log.push('start:' + data.batchName));
+            graph.on('batch:stop', (data) => log.push('stop:' + data.batchName));
+            graph.on('add', () => log.push('add'));
+            const r1View = r1.findView(paper);
+            const created = r1View.createLinkFromMagnet(r1View.el, 50, 50);
+            assert.notOk(created.graph, 'the link is not added to the graph');
+            assert.equal(created.source().id, r1.id);
+            assert.deepEqual(created.target(), { x: 50, y: 50 });
+            const drag = paper.startLinkDrag(created);
+            drag.move(300, 300);
+            drag.finish(300, 300);
+            assert.equal(created.target().id, r2.id);
+            assert.deepEqual(
+                log.filter((entry) => entry === 'add' || entry.endsWith(':add-link')),
+                ['start:add-link', 'add', 'stop:add-link']
+            );
+        });
+
         QUnit.test('addLinkFromMagnet() + startLinkDrag() from a link', function(assert) {
             const linkView = link.findView(paper);
             const newLinkView = linkView.addLinkFromMagnet(linkView.el, 150, 150);
-            const drag = paper.startLinkDrag(newLinkView);
+            const drag = paper.startLinkDrag(newLinkView.model);
             drag.move(300, 300);
             drag.finish(300, 300);
             assert.equal(newLinkView.model.source().id, link.id);
