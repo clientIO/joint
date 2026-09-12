@@ -47,9 +47,9 @@ QUnit.module('point', function() {
         QUnit.module('chooseClosestIndex(points)', function() {
 
             QUnit.test('returns the index of the closest point', function(assert) {
-                var a = new g.Point(10, 10);
-                var b = { x: 20, y: 20 };
-                var c = { x: 30, y: 30 };
+                const a = new g.Point(10, 10);
+                const b = { x: 20, y: 20 };
+                const c = { x: 30, y: 30 };
                 assert.equal(a.chooseClosestIndex([]), -1);
                 assert.equal(a.chooseClosestIndex([b]), 0);
                 assert.equal(a.chooseClosestIndex([new g.Point(b)]), 0);
@@ -61,9 +61,9 @@ QUnit.module('point', function() {
             });
 
             QUnit.test('returns the first index when several points are equally close', function(assert) {
-                var a = new g.Point(10, 10);
-                var b = { x: 20, y: 10 };
-                var c = { x: 10, y: 20 };
+                const a = new g.Point(10, 10);
+                const b = { x: 20, y: 10 };
+                const c = { x: 10, y: 20 };
                 assert.equal(a.chooseClosestIndex([b, c]), 0);
                 assert.equal(a.chooseClosestIndex([c, b]), 0);
             });
@@ -373,7 +373,7 @@ QUnit.module('point', function() {
 
             QUnit.test('changes the values of x and y with string arg', function(assert) {
 
-                var point = new g.Point(2, 15);
+                const point = new g.Point(2, 15);
                 point.update('10 20');
                 assert.equal(point.toString(), '10@20');
                 point.update('30@40');
