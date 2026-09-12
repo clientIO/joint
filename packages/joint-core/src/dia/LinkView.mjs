@@ -2170,6 +2170,14 @@ export const LinkView = CellView.extend({
         return data;
     },
 
+    /**
+     * @public
+     * @description Aborts an arrowhead move started with `startArrowheadMove()`:
+     * removes the connection highlighters, restores the link and, unless the
+     * link has been removed from the graph, puts the end back to its initial
+     * value or removes the link according to `whenNotAllowed`.
+     * @param {Object} data - The data returned by `startArrowheadMove()`.
+     */
     cancelArrowheadMove: function(data) {
 
         const { paper, model } = this;

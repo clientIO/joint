@@ -427,6 +427,16 @@ export const CellView = View.extend({
         return link.findView(paper);
     },
 
+    /**
+     * @public
+     * @description Creates the paper's default link with its source set to
+     * the given magnet of this view (going through `connectionStrategy`) and
+     * its target set to the given point. The link is not added to the graph.
+     * @param {SVGElement} magnet - The magnet the link starts from.
+     * @param {number} x - The local x coordinate of the target end.
+     * @param {number} y - The local y coordinate of the target end.
+     * @return {dia.Link} The new link.
+     */
     createLinkFromMagnet: function(magnet, x, y) {
 
         const link = this.paper.getDefaultLink(this, magnet);

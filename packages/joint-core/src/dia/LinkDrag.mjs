@@ -3,12 +3,30 @@ import { normalizeEvent } from '../util/util.mjs';
 const POINTER_DOWN = 'pointerdown';
 const POINTER_UP = 'pointerup';
 
-// A handle for dragging one end of a link, created by `paper.startLinkDrag()`.
-// The drag is active from the moment the handle is created: the caller either
-// drives it (`move()`, `finish()`, `cancel()`) or hands it to the pointer
-// (`followPointer()`).
+/**
+ * @class
+ * @description A handle for dragging one end of a link. The drag is active
+ * from the moment the handle is created: the caller either drives it with
+ * `move()`, `finish()` and `cancel()`, or hands it to the pointer with
+ * `followPointer()`. Usually created via `paper.startLinkDrag()`.
+ */
 export class LinkDrag {
 
+    /**
+     * @param {dia.Paper} paper - The paper the link is (or will be) rendered in.
+     * @param {dia.Link} link - The link to drag. A link that is not in the paper's
+     * graph yet is added to it inside an `add-link` batch; a link already in the
+     * graph is dragged inside an `arrowhead-move` batch.
+     * @param {Object} [opt]
+     * @param {'source'|'target'} [opt.end='target'] - The end of the link to drag.
+     * @param {'revert'|'remove'} [opt.whenNotAllowed] - What to do with the link
+     * when the drag is cancelled or the new connection is not allowed. Defaults to
+     * `'remove'` for a link added by the handle and to `'revert'` otherwise.
+     * @param {...*} [opt.*] - Any other option is passed as the batch data
+     * (e.g. `{ ui: true, tool: cid }`).
+     * @throws {Error} if `link` is not a `dia.Link`
+     * @throws {Error} if the view of the link cannot be found in the paper
+     */
     constructor(paper, link, opt = {}) {
         if (!link || typeof link.isLink !== 'function' || !link.isLink()) {
             throw new Error('dia.LinkDrag: expects a link.');
@@ -49,18 +67,44 @@ export class LinkDrag {
         link.on('remove', this._onLinkRemove);
     }
 
+    /**
+     * @public
+     * @description Checks whether the drag is still in progress.
+     * @return {boolean} `false` once `finish()` or `cancel()` ran or the link was removed.
+     */
     isActive() {
         return this._active;
     }
 
-    // move(evt) | move(evt, x, y) | move(x, y)
+    /**
+     * @public
+     * @description Moves the dragged end. Highlights the magnet under the point
+     * and, with `snapLinks` enabled, snaps to the closest one. Accepts a pointer
+     * event (`move(evt)`; the point is taken from the client coordinates and
+     * snapped to the grid), an event with explicit paper local coordinates
+     * (`move(evt, x, y)`) or local coordinates only (`move(x, y)`; the element
+     * under the point is looked up in the document).
+     * @param {Event|number} evtOrX - The pointer event or the local x coordinate.
+     * @param {number} [xOrY] - The local x coordinate (with an event) or the local y coordinate.
+     * @param {number} [y] - The local y coordinate (with an event).
+     */
     move(...args) {
         if (!this._active) return;
         const [evt, localX, localY] = this._resolvePointer('pointermove', args);
         this.linkView.dragArrowhead(evt, localX, localY);
     }
 
-    // finish(evt) | finish(evt, x, y) | finish(x, y)
+    /**
+     * @public
+     * @description Ends the drag at the given point: connects the end to the
+     * magnet under it (or leaves it at the point), validates the link and reverts
+     * or removes it when not allowed, triggers `link:connect` / `link:disconnect`
+     * and restores the link. Same argument forms as `move()`. No-op when the drag
+     * is not active.
+     * @param {Event|number} evtOrX - The pointer event or the local x coordinate.
+     * @param {number} [xOrY] - The local x coordinate (with an event) or the local y coordinate.
+     * @param {number} [y] - The local y coordinate (with an event).
+     */
     finish(...args) {
         if (!this._active) return;
         const [evt, localX, localY] = this._resolvePointer(POINTER_UP, args);
@@ -69,6 +113,13 @@ export class LinkDrag {
         this._settle(false);
     }
 
+    /**
+     * @public
+     * @description Aborts the drag: removes the highlighters, restores the link
+     * and puts the end back where it was (or removes the link, depending on
+     * `whenNotAllowed`). No `link:connect` / `link:disconnect` is triggered.
+     * No-op when the drag is not active.
+     */
     cancel() {
         if (!this._active) return;
         this._deactivate();
@@ -76,6 +127,21 @@ export class LinkDrag {
         this._settle(true);
     }
 
+    /**
+     * @public
+     * @description Lets the pointer drive the drag. Listens on the document for
+     * `pointermove` (moves the end), the finish event with the primary button
+     * (`pointerup` by default, or `pointerdown` for click-move-click), the Escape
+     * key and `contextmenu` (both cancel; the native context menu is prevented).
+     * The paper's own pointer events are suspended in the meantime. Calling it
+     * again returns the same promise; on a finished drag it resolves at once.
+     * @param {Object} [opt]
+     * @param {'pointerup'|'pointerdown'} [opt.finishOn='pointerup'] - The event
+     * that finishes the drag.
+     * @return {Promise<{ cancelled: boolean, linkView: dia.LinkView }>} Resolved
+     * when the drag is over, whichever way it ended (`finish()`, `cancel()`, the
+     * pointer, the keyboard or the removal of the link).
+     */
     followPointer(opt = {}) {
         if (this._pointer) return this._pointer.promise;
         const pointer = {};
