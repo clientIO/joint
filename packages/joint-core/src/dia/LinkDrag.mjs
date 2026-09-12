@@ -59,7 +59,6 @@ export class LinkDrag {
         this._active = true;
         this._result = null;
         this._pointer = null;
-        this._eventDataKey = `__${linkView.cid}__`;
         this._data = linkView.startArrowheadMove(end, {
             ignoreBackwardsCompatibility: true,
             whenNotAllowed
@@ -92,7 +91,7 @@ export class LinkDrag {
     move(...args) {
         if (!this._active) return;
         const [evt, localX, localY] = this._resolvePointer('pointermove', args);
-        this.linkView.dragArrowhead(evt, localX, localY);
+        this.linkView.updateArrowheadMove(this._data, evt, localX, localY);
     }
 
     /**
@@ -110,7 +109,7 @@ export class LinkDrag {
         if (!this._active) return;
         const [evt, localX, localY] = this._resolvePointer(POINTER_UP, args);
         this._deactivate();
-        this.linkView.dragArrowheadEnd(evt, localX, localY);
+        this.linkView.finishArrowheadMove(this._data, evt, localX, localY);
         this._settle(false);
     }
 
@@ -196,8 +195,6 @@ export class LinkDrag {
                 ? { x: xOrY, y }
                 : paper.snapToGrid(evt.clientX, evt.clientY);
         }
-        const data = evt.data || (evt.data = {});
-        data[this._eventDataKey] = this._data;
         return [evt, localPoint.x, localPoint.y];
     }
 

@@ -1524,6 +1524,10 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 
     startArrowheadMove(end: LinkEnd, options?: any): unknown;
 
+    updateArrowheadMove(data: unknown, evt: Event, x: number, y: number): void;
+
+    finishArrowheadMove(data: unknown, evt: Event, x: number, y: number): void;
+
     cancelArrowheadMove(data: unknown): void;
 
     protected updateRoute(): void;

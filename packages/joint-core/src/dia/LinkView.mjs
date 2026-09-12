@@ -1695,18 +1695,7 @@ export const LinkView = CellView.extend({
     },
 
     dragArrowhead: function(evt, x, y) {
-        if (this.paper.options.snapLinks) {
-            const isSnapped = this._snapArrowhead(evt, x, y);
-            if (!isSnapped && this.paper.options.snapLinksSelf) {
-                this._snapArrowheadSelf(evt, x, y);
-            }
-        } else {
-            if (this.paper.options.snapLinksSelf) {
-                this._snapArrowheadSelf(evt, x, y);
-            } else {
-                this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
-            }
-        }
+        this.updateArrowheadMove(this.eventData(evt), evt, x, y);
     },
 
     drag: function(evt, x, y) {
@@ -1726,25 +1715,7 @@ export const LinkView = CellView.extend({
     },
 
     dragArrowheadEnd: function(evt, x, y) {
-
-        var data = this.eventData(evt);
-        var paper = this.paper;
-
-        if (paper.options.snapLinks) {
-            this._snapArrowheadEnd(data);
-        } else {
-            this._connectArrowheadEnd(data, x, y);
-        }
-
-        if (!paper.linkAllowed(this)) {
-            // If the changed link is not allowed, revert to its previous state.
-            this._disallow(data);
-        } else {
-            this._finishEmbedding(data);
-            this._notifyConnectEvent(data, evt);
-        }
-
-        this._afterArrowheadMove(data);
+        this.finishArrowheadMove(this.eventData(evt), evt, x, y);
     },
 
     dragEnd: function() {
@@ -1826,11 +1797,10 @@ export const LinkView = CellView.extend({
         return { x, y };
     },
 
-    _snapArrowheadSelf: function(evt, x, y) {
+    _snapArrowheadSelf: function(data, evt, x, y) {
 
         const { paper, model } = this;
         const { snapLinksSelf } = paper.options;
-        const data = this.eventData(evt);
         const radius = snapLinksSelf.radius || 20;
 
         const anchor = this.getEndAnchor(data.arrowhead === 'source' ? 'target' : 'source');
@@ -1840,14 +1810,13 @@ export const LinkView = CellView.extend({
         const snapPoint = this._snapToPoints({ x: x, y: y }, points, radius);
 
         const point = paper.localToClientPoint(snapPoint);
-        this._connectArrowhead(document.elementFromPoint(point.x, point.y), snapPoint.x, snapPoint.y, this.eventData(evt));
+        this._connectArrowhead(document.elementFromPoint(point.x, point.y), snapPoint.x, snapPoint.y, data);
     },
 
-    _snapArrowhead: function(evt, x, y) {
+    _snapArrowhead: function(data, evt, x, y) {
 
         const { paper } = this;
         const { snapLinks, connectionStrategy } = paper.options;
-        const data = this.eventData(evt);
         let isSnapped = false;
         // checking view in close area of the pointer
 
@@ -2168,6 +2137,63 @@ export const LinkView = CellView.extend({
         }
 
         return data;
+    },
+
+    /**
+     * @public
+     * @description Moves the arrowhead of an arrowhead move started with
+     * `startArrowheadMove()` to the given point: highlights the magnet under
+     * the point and, with `snapLinks` / `snapLinksSelf` enabled, snaps to it.
+     * @param {Object} data - The data returned by `startArrowheadMove()`.
+     * @param {Event} evt - The pointer event (its target is the element under the point).
+     * @param {number} x - The local x coordinate.
+     * @param {number} y - The local y coordinate.
+     */
+    updateArrowheadMove: function(data, evt, x, y) {
+
+        const { snapLinks, snapLinksSelf } = this.paper.options;
+        if (snapLinks) {
+            const isSnapped = this._snapArrowhead(data, evt, x, y);
+            if (!isSnapped && snapLinksSelf) {
+                this._snapArrowheadSelf(data, evt, x, y);
+            }
+        } else if (snapLinksSelf) {
+            this._snapArrowheadSelf(data, evt, x, y);
+        } else {
+            this._connectArrowhead(this.getEventTarget(evt), x, y, data);
+        }
+    },
+
+    /**
+     * @public
+     * @description Ends an arrowhead move started with `startArrowheadMove()`
+     * at the given point: connects the end to the magnet under it, reverts or
+     * removes the link when it is not allowed, triggers `link:connect` /
+     * `link:disconnect` and restores the link.
+     * @param {Object} data - The data returned by `startArrowheadMove()`.
+     * @param {Event} evt - The pointer event.
+     * @param {number} x - The local x coordinate.
+     * @param {number} y - The local y coordinate.
+     */
+    finishArrowheadMove: function(data, evt, x, y) {
+
+        const { paper } = this;
+
+        if (paper.options.snapLinks) {
+            this._snapArrowheadEnd(data);
+        } else {
+            this._connectArrowheadEnd(data, x, y);
+        }
+
+        if (!paper.linkAllowed(this)) {
+            // If the changed link is not allowed, revert to its previous state.
+            this._disallow(data);
+        } else {
+            this._finishEmbedding(data);
+            this._notifyConnectEvent(data, evt);
+        }
+
+        this._afterArrowheadMove(data);
     },
 
     /**

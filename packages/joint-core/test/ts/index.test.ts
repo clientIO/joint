@@ -332,5 +332,9 @@ myElementView.model.test();
     const linkFromMagnet: joint.dia.Link = drag.linkView.createLinkFromMagnet(drag.linkView.el, 0, 0);
     dragPaper.startLinkDrag(linkFromMagnet, { ui: true, tool: 'x' });
     const linkEnd: joint.dia.Link.EndJSON = drag.linkView.getLinkEnd(drag.linkView.el, 0, 0, draggedLink, 'target');
-    drag.linkView.cancelArrowheadMove(drag.linkView.startArrowheadMove('target'));
+    const arrowheadMoveData = drag.linkView.startArrowheadMove('target');
+    const arrowheadMoveEvent = {} as joint.dia.Event;
+    drag.linkView.updateArrowheadMove(arrowheadMoveData, arrowheadMoveEvent, 0, 0);
+    drag.linkView.finishArrowheadMove(arrowheadMoveData, arrowheadMoveEvent, 0, 0);
+    drag.linkView.cancelArrowheadMove(arrowheadMoveData);
 }
