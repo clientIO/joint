@@ -88,16 +88,7 @@ function getAnchors(shapeType: ShapeType, width: number, height: number, margin 
 
 /** Pick the anchor nearest to a point expressed in the shape's local space. */
 function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.Point {
-  let minDistance = Infinity;
-  let [closest] = anchors;
-  for (const anchor of anchors) {
-    const distance = new g.Point(relativePoint).squaredDistance(anchor);
-    if (distance < minDistance) {
-      minDistance = distance;
-      closest = anchor;
-    }
-  }
-  return closest;
+  return anchors[new g.Point(relativePoint).chooseClosestIndex(anchors)];
 }
 
 const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
