@@ -438,7 +438,7 @@ QUnit.module('line', function() {
 
             QUnit.test('returns true for lines on the same infinite line', function(assert) {
 
-                var line = new g.Line('0 0', '100 0');
+                const line = new g.Line('0 0', '100 0');
                 assert.ok(line.isCollinear(new g.Line('80 0', '120 0')), 'partial overlap');
                 assert.ok(line.isCollinear(new g.Line('20 0', '30 0')), 'containment');
                 assert.ok(line.isCollinear(new g.Line('0 0', '100 0')), 'identical');
@@ -450,7 +450,7 @@ QUnit.module('line', function() {
 
             QUnit.test('returns false for lines that are not collinear', function(assert) {
 
-                var line = new g.Line('0 0', '100 0');
+                const line = new g.Line('0 0', '100 0');
                 assert.notOk(line.isCollinear(new g.Line('0 5', '100 5')), 'parallel offset');
                 assert.notOk(line.isCollinear(new g.Line('50 -50', '50 50')), 'crossing');
                 assert.notOk(line.isCollinear(new g.Line('50 0', '50 50')), 'perpendicular ending on the line');
@@ -459,9 +459,9 @@ QUnit.module('line', function() {
 
             QUnit.test('handles zero-length lines', function(assert) {
 
-                var line = new g.Line('0 0', '10 0');
-                var pointOnLine = new g.Line('5 0', '5 0');
-                var pointOffLine = new g.Line('5 2', '5 2');
+                const line = new g.Line('0 0', '10 0');
+                const pointOnLine = new g.Line('5 0', '5 0');
+                const pointOffLine = new g.Line('5 2', '5 2');
                 assert.ok(line.isCollinear(pointOnLine));
                 assert.ok(pointOnLine.isCollinear(line));
                 assert.notOk(line.isCollinear(pointOffLine));
