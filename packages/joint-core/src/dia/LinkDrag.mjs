@@ -135,6 +135,10 @@ export class LinkDrag {
      * key and `contextmenu` (both cancel; the native context menu is prevented).
      * The paper's own pointer events are suspended in the meantime. Calling it
      * again returns the same promise; on a finished drag it resolves at once.
+     * To keep receiving the events when the pointer leaves the window or enters
+     * an iframe, capture the pointer in the handler that starts the drag
+     * (`evt.target.setPointerCapture(evt.pointerId)`); captured events are
+     * handled.
      * @param {Object} [opt]
      * @param {'pointerup'|'pointerdown'} [opt.finishOn='pointerup'] - The event
      * that finishes the drag.
