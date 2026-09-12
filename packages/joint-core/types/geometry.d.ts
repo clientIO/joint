@@ -206,6 +206,8 @@ export class Curve {
 
     isDifferentiable(): boolean;
 
+    isLine(): boolean;
+
     length(opt?: SubdivisionsOpt): number;
 
     lengthAtT(t: number, opt?: PrecisionOpt): number;
