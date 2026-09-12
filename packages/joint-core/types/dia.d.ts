@@ -1301,13 +1301,13 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     protected onmagnet(evt: Event, x: number, y: number): void;
 
-    protected getLinkEnd(magnet: SVGElement, x: number, y: number, link: Link, endType: LinkEnd): Link.EndJSON;
+    getLinkEnd(magnet: SVGElement, x: number, y: number, link: Link, endType: LinkEnd): Link.EndJSON;
 
     protected getMagnetFromLinkEnd(end: Link.EndJSON): SVGElement;
 
     protected customizeLinkEnd(end: Link.EndJSON, magnet: SVGElement, x: number, y: number, link: Link, endType: LinkEnd): Link.EndJSON;
 
-    protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
+    addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
 
     protected nodeCache(magnet: SVGElement): CellView.NodeMetrics;
 
@@ -1522,6 +1522,8 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 
     startArrowheadMove(end: LinkEnd, options?: any): unknown;
 
+    cancelArrowheadMove(data: unknown): void;
+
     protected updateRoute(): void;
 
     protected updatePath(): void;
@@ -1572,6 +1574,43 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 }
 
 // dia.Paper
+
+export namespace LinkDrag {
+
+    interface Options {
+        end?: LinkEnd;
+        whenNotAllowed?: 'revert' | 'remove';
+    }
+
+    interface FollowPointerOptions {
+        finishOn?: 'pointerup' | 'pointerdown';
+    }
+
+    interface Result {
+        cancelled: boolean;
+        linkView: LinkView;
+    }
+}
+
+export class LinkDrag {
+
+    readonly paper: Paper;
+    readonly link: Link;
+    readonly linkView: LinkView;
+    readonly end: LinkEnd;
+
+    isActive(): boolean;
+
+    move(evt: Event | globalThis.MouseEvent): void;
+    move(x: number, y: number): void;
+
+    finish(evt: Event | globalThis.MouseEvent): void;
+    finish(x: number, y: number): void;
+
+    cancel(): void;
+
+    followPointer(opt?: LinkDrag.FollowPointerOptions): Promise<LinkDrag.Result>;
+}
 
 export namespace Paper {
 
@@ -2141,6 +2180,8 @@ export class Paper extends mvc.View<Graph> {
     drawBackground(opt?: Paper.BackgroundOptions): this;
 
     getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
+
+    startLinkDrag(link: Link | LinkView, opt?: LinkDrag.Options): LinkDrag;
 
     getModelById(id: Graph.CellRef): Cell;
 

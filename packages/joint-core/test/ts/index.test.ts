@@ -307,3 +307,26 @@ myElementView.model.test();
 // TODO: Fix 'MyElement' is assignable to the constraint of type 'E', but 'E'
 // could be instantiated with a different subtype of constraint 'Element<Attributes, ModelSetOptions>'.
 // const ElementView1: typeof joint.dia.ElementView = CustomElementView;
+
+// dia.Paper.startLinkDrag() / dia.LinkDrag
+{
+    const dragPaper = new joint.dia.Paper({ model: graph });
+    const draggedLink = new joint.shapes.standard.Link();
+    const drag: joint.dia.LinkDrag = dragPaper.startLinkDrag(draggedLink, { end: 'source', whenNotAllowed: 'remove' });
+    const dragFromView: joint.dia.LinkDrag = dragPaper.startLinkDrag(drag.linkView);
+    const isLinkView: AssertExtends<typeof drag.linkView, joint.dia.LinkView> = true;
+    const isLink: AssertExtends<typeof drag.link, joint.dia.Link> = true;
+    const end: joint.dia.LinkEnd = drag.end;
+    drag.move(10, 20);
+    drag.move(new MouseEvent('pointermove'));
+    drag.finish(10, 20);
+    dragFromView.cancel();
+    const active: boolean = dragFromView.isActive();
+    dragPaper.startLinkDrag(draggedLink).followPointer({ finishOn: 'pointerdown' }).then((result) => {
+        const cancelled: boolean = result.cancelled;
+        const resultView: joint.dia.LinkView = result.linkView;
+    });
+    const linkViewFromMagnet: joint.dia.LinkView = drag.linkView.addLinkFromMagnet(drag.linkView.el, 0, 0);
+    const linkEnd: joint.dia.Link.EndJSON = drag.linkView.getLinkEnd(drag.linkView.el, 0, 0, draggedLink, 'target');
+    drag.linkView.cancelArrowheadMove(drag.linkView.startArrowheadMove('target'));
+}

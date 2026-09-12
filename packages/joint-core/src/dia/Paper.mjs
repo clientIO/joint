@@ -38,6 +38,7 @@ import { View, views as viewsRegistry } from '../mvc/index.mjs';
 import { CellView } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
+import { LinkDrag } from './LinkDrag.mjs';
 import { Graph } from './Graph.mjs';
 import { LayerView } from './LayerView.mjs';
 import { GraphLayerView } from './GraphLayerView.mjs';
@@ -3324,6 +3325,33 @@ export const Paper = View.extend({
         }
 
         return true;
+    },
+
+    startLinkDrag: function(link, opt = {}) {
+
+        const model = (link instanceof CellView) ? link.model : link;
+        if (!model || typeof model.isLink !== 'function' || !model.isLink()) {
+            throw new Error('dia.Paper: startLinkDrag() expects a link or a link view.');
+        }
+        const graph = this.model;
+        const { end } = opt;
+        let { whenNotAllowed } = opt;
+        let batchName;
+        if (model.graph === graph) {
+            batchName = 'arrowhead-move';
+            graph.startBatch(batchName);
+        } else {
+            batchName = 'add-link';
+            whenNotAllowed = whenNotAllowed || 'remove';
+            graph.startBatch(batchName);
+            model.addTo(graph, { ui: true, async: false });
+        }
+        const linkView = this.requireView(model);
+        if (!linkView) {
+            graph.stopBatch(batchName);
+            throw new Error('dia.Paper: startLinkDrag() could not find the view of the link.');
+        }
+        return new LinkDrag(this, linkView, { end, whenNotAllowed, batchName });
     },
 
     getDefaultLink: function(cellView, magnet) {

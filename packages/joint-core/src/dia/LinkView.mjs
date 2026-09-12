@@ -2170,6 +2170,20 @@ export const LinkView = CellView.extend({
         return data;
     },
 
+    cancelArrowheadMove: function(data) {
+
+        const { paper, model } = this;
+        if (paper.options.snapLinks) {
+            this._snapArrowheadEnd(data);
+        } else if (data.magnetProxy && data.viewUnderPointer) {
+            data.viewUnderPointer.unhighlight(data.magnetProxy, { connecting: true });
+        }
+        if (paper.model.getCell(model.id) === model) {
+            this._disallow(data);
+        }
+        this._afterArrowheadMove(data);
+    },
+
     // Lifecycle methods
 
     onMount: function() {
