@@ -27,7 +27,7 @@ const {
 } = Math;
 
 function parsePointString(str) {
-    var xy = str.split(str.indexOf('@') === -1 ? ' ' : '@');
+    const xy = str.split(str.indexOf('@') === -1 ? ' ' : '@');
     return [parseFloat(xy[0]), parseFloat(xy[1])];
 }
 
@@ -38,9 +38,7 @@ export const Point = function(x, y) {
     }
 
     if (typeof x === 'string') {
-        var xy = parsePointString(x);
-        x = xy[0];
-        y = xy[1];
+        [x, y] = parsePointString(x);
 
     } else if (Object(x) === x) {
         y = x.y;
@@ -88,20 +86,20 @@ Point.prototype = {
 
     chooseClosest: function(points) {
 
-        var index = this.chooseClosestIndex(points);
+        const index = this.chooseClosestIndex(points);
         if (index === -1) return null;
         return new Point(points[index]);
     },
 
     chooseClosestIndex: function(points) {
 
-        var n = points.length;
-        var closestIndex = -1;
-        var minSqrDistance = Infinity;
-        var candidate = new Point();
-        for (var i = 0; i < n; i++) {
+        const n = points.length;
+        let closestIndex = -1;
+        let minSqrDistance = Infinity;
+        const candidate = new Point();
+        for (let i = 0; i < n; i++) {
             candidate.update(points[i]);
-            var sqrDistance = this.squaredDistance(candidate);
+            const sqrDistance = this.squaredDistance(candidate);
             if (sqrDistance < minSqrDistance) {
                 closestIndex = i;
                 minSqrDistance = sqrDistance;
@@ -363,9 +361,7 @@ Point.prototype = {
     update: function(x, y) {
 
         if (typeof x === 'string') {
-            var xy = parsePointString(x);
-            x = xy[0];
-            y = xy[1];
+            [x, y] = parsePointString(x);
 
         } else if (Object(x) === x) {
             y = x.y;
