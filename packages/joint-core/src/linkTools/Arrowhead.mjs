@@ -1,6 +1,5 @@
 import * as g from '../g/index.mjs';
 import V from '../V/index.mjs';
-import * as util from '../util/index.mjs';
 import { ToolView } from '../dia/ToolView.mjs';
 
 // End Markers
@@ -47,10 +46,12 @@ const Arrowhead = ToolView.extend({
         if (this.guard(evt)) return;
         evt.stopPropagation();
         evt.preventDefault();
-        var relatedView = this.relatedView;
-        var paper = relatedView.paper;
-        relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
-        relatedView.startArrowheadMove(this.arrowheadType);
+        const { relatedView, paper } = this;
+        this.linkDrag = paper.startLinkDrag(relatedView.model, {
+            end: this.arrowheadType,
+            ui: true,
+            tool: this.cid
+        });
         const data = evt.data || (evt.data = {});
         this.delegateDocumentEvents(null, data);
         paper.undelegateEvents();
@@ -59,21 +60,21 @@ const Arrowhead = ToolView.extend({
         relatedView.notifyPointerdown(...paper.getPointerArgs(evt));
     },
     onPointerMove: function(evt) {
-        var normalizedEvent = util.normalizeEvent(evt);
-        var coords = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-        this.relatedView.pointermove(normalizedEvent, coords.x, coords.y);
+        const [normalizedEvent, x, y] = this.paper.getPointerArgs(evt);
+        this.linkDrag.move(normalizedEvent, x, y);
+        this.relatedView.notifyPointermove(normalizedEvent, x, y);
     },
     onPointerUp: function(evt) {
         this.undelegateDocumentEvents();
-        var relatedView = this.relatedView;
-        var paper = relatedView.paper;
-        var normalizedEvent = util.normalizeEvent(evt);
-        var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-        relatedView.pointerup(normalizedEvent, coords.x, coords.y);
+        const { relatedView, paper } = this;
+        const [normalizedEvent, x, y] = paper.getPointerArgs(evt);
+        this.linkDrag.finish(normalizedEvent, x, y);
+        this.linkDrag = null;
+        relatedView.notifyPointerup(normalizedEvent, x, y);
+        relatedView.checkMouseleave(normalizedEvent);
         paper.delegateEvents();
         this.blur();
         this.el.style.pointerEvents = '';
-        relatedView.model.stopBatch('arrowhead-move', { ui: true, tool: this.cid });
     }
 });
 

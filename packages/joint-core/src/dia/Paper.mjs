@@ -38,6 +38,7 @@ import { View, views as viewsRegistry } from '../mvc/index.mjs';
 import { CellView } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
+import { LinkDrag } from './LinkDrag.mjs';
 import { Graph } from './Graph.mjs';
 import { LayerView } from './LayerView.mjs';
 import { GraphLayerView } from './GraphLayerView.mjs';
@@ -3324,6 +3325,20 @@ export const Paper = View.extend({
         }
 
         return true;
+    },
+
+    /**
+     * @public
+     * @description Starts dragging one end of the given link and returns a
+     * handle to drive the drag, either manually (`move()`, `finish()`,
+     * `cancel()`) or with the pointer (`followPointer()`). The link does not
+     * have to be in the graph nor rendered yet. See `dia.LinkDrag`.
+     * @param {dia.Link} link - The link to drag.
+     * @param {Object} [opt] - See the `dia.LinkDrag` constructor options.
+     * @return {dia.LinkDrag} The drag handle.
+     */
+    startLinkDrag: function(link, opt) {
+        return new LinkDrag(this, link, opt);
     },
 
     getDefaultLink: function(cellView, magnet) {
