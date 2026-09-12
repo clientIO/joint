@@ -1,4 +1,5 @@
 import { normalizeEvent } from '../util/util.mjs';
+import { CELL_MARKER } from './symbols.mjs';
 
 const POINTER_DOWN = 'pointerdown';
 const POINTER_UP = 'pointerup';
@@ -28,7 +29,7 @@ export class LinkDrag {
      * @throws {Error} if the view of the link cannot be found in the paper
      */
     constructor(paper, link, opt = {}) {
-        if (!link || typeof link.isLink !== 'function' || !link.isLink()) {
+        if (!link || !link[CELL_MARKER] || !link.isLink()) {
             throw new Error('dia.LinkDrag: expects a link.');
         }
         const graph = paper.model;
