@@ -87,8 +87,8 @@ function getAnchors(shapeType: ShapeType, width: number, height: number, margin 
 }
 
 /** Pick the anchor nearest to a point expressed in the shape's local space. */
-function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.Point {
-  return anchors[new g.Point(relativePoint).chooseClosestIndex(anchors)];
+function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.Point | null {
+  return new g.Point(relativePoint).chooseClosest(anchors);
 }
 
 const initialCells: ReadonlyArray<CellRecord<ShapeData>> = [
@@ -323,7 +323,7 @@ const connectionStrategy: ConnectionStrategy = ({ end, model, dropPoint }) => {
   const shapeType = element.prop('data/shapeType') as ShapeType;
   const anchors = getAnchors(shapeType, width, height);
   const relativePoint = element.getRelativePointFromAbsolute(dropPoint);
-  const anchor = findClosestAnchor(anchors, relativePoint);
+  const anchor = findClosestAnchor(anchors, relativePoint) ?? relativePoint;
   return {
     id: end.id,
     anchor: {
