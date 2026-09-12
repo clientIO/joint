@@ -189,10 +189,8 @@ Line.prototype = {
     // @return {boolean} true if `line` lies on the same infinite line as this line
     isCollinear: function(line) {
 
-        var start = this.start;
-        var end = this.end;
-        var otherStart = line.start;
-        var otherEnd = line.end;
+        const { start, end } = this;
+        const { start: otherStart, end: otherEnd } = line;
         // checked in both directions so a zero-length line does not pass trivially
         return start.cross(otherStart, end) === 0
             && start.cross(otherEnd, end) === 0
