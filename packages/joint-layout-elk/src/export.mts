@@ -9,7 +9,6 @@ import type {
     ElkLayoutOptions,
     NodeElkLayoutOptions,
     PortElkLayoutOptions,
-    EdgeElkLayoutOptions,
     LabelElkLayoutOptions
 } from './elkOptions.mjs';
 
@@ -37,9 +36,27 @@ const ELK_PORT_CONSTRAINTS_BY_MODE: Record<PortPositionsMode, NodeElkLayoutOptio
 
 type GetSizeCallback = (element: dia.Element) => dia.Size;
 type GetPortLabelSizeCallback = (port: dia.Element.Port, element: dia.Element) => dia.Size;
-type NodeOptionsCallback = (element: dia.Element) => NodeElkLayoutOptions | undefined;
-type PortOptionsCallback = (port: dia.Element.Port, element: dia.Element) => PortElkLayoutOptions | undefined;
-type EdgeOptionsCallback = (link: dia.Link) => EdgeElkLayoutOptions | undefined;
+
+/**
+ * The ELK node properties `nodeOptions` can inspect and adjust - everything about a node
+ * this package itself computes, except `id` (structural) and `ports`/`children` (built
+ * separately, from the element's JointJS ports/embeds).
+ */
+export type NodeLayoutProperties = Pick<ElkNode, 'x' | 'y' | 'width' | 'height' | 'layoutOptions'>;
+/**
+ * The ELK port properties `portOptions` can inspect and adjust - everything about a port
+ * this package itself computes, except `id` (structural).
+ */
+export type PortLayoutProperties = Pick<ElkPort, 'x' | 'y' | 'width' | 'height' | 'layoutOptions' | 'labels'>;
+/**
+ * The ELK edge properties `edgeOptions` can inspect and adjust - everything about an edge
+ * this package itself computes, except `id`/`sources`/`targets` (structural).
+ */
+export type EdgeLayoutProperties = Pick<ElkExtendedEdge, 'layoutOptions' | 'labels'>;
+
+type NodeOptionsCallback = (element: dia.Element, computed: NodeLayoutProperties) => NodeLayoutProperties | undefined;
+type PortOptionsCallback = (port: dia.Element.Port, element: dia.Element, computed: PortLayoutProperties) => PortLayoutProperties | undefined;
+type EdgeOptionsCallback = (link: dia.Link, computed: EdgeLayoutProperties) => EdgeLayoutProperties | undefined;
 
 export interface ElkGraphPort {
     element: dia.Element;
@@ -150,15 +167,15 @@ const getPortLabelSize: GetPortLabelSizeCallback = (port, element) => {
     return DEFAULT_LABEL_SIZE;
 };
 
-const nodeOptions: NodeOptionsCallback = (_element) => {
+const nodeOptions: NodeOptionsCallback = (_element, _computed) => {
     return undefined;
 };
 
-const portOptions: PortOptionsCallback = (_port, _element) => {
+const portOptions: PortOptionsCallback = (_port, _element, _computed) => {
     return undefined;
 };
 
-const edgeOptions: EdgeOptionsCallback = (_link) => {
+const edgeOptions: EdgeOptionsCallback = (_link, _computed) => {
     return undefined;
 };
 
@@ -183,12 +200,8 @@ function buildPorts(
         const elkPortId = `${element.id}:${portId}`;
         portsById.set(elkPortId, { element, portId });
 
-        const portLayoutOptions: ElkPort = {
-            id: elkPortId,
-            layoutOptions: portOptionsFn(port, element) || {}
-        };
-
         const groupDef = port.group && element.prop(`ports/groups/${port.group}`);
+        const layoutOptions: PortElkLayoutOptions = {};
 
         // A port's side is always determined by its group - JointJS has no way for an
         // individual port to sit on a different side than the rest of its group - so a
@@ -203,31 +216,29 @@ function buildPorts(
                     : (positionName === 'bottom') ? 'SOUTH'
                         : undefined;
         if (side) {
-            portLayoutOptions.layoutOptions!['port.side'] = side;
+            layoutOptions['port.side'] = side;
         }
 
         // A port's own `label` (if it has one) always takes precedence over its group's -
         // same as JointJS itself resolves it (see `getPortLabelSizeFn`) - so either one is
         // enough to warrant reserving/positioning a label for this port.
+        let labels: ElkLabel[] | undefined;
         if (positionPortLabels && (port.label || groupDef?.label)) {
-            const { width, height } = getPortLabelSizeFn(port, element);
-            portLayoutOptions.labels = [{
+            const { width: labelWidth, height: labelHeight } = getPortLabelSizeFn(port, element);
+            labels = [{
                 // Some text is required, otherwise ELK ignores the label.
                 text: ELK_LABEL_TEXT,
-                width,
-                height,
+                width: labelWidth,
+                height: labelHeight,
                 layoutOptions: {}
             }];
         }
 
         const { x, y, width, height } = element.getPortRelativeRect(portId);
-        portLayoutOptions.x = x;
-        portLayoutOptions.y = y;
-        portLayoutOptions.width = width;
-        portLayoutOptions.height = height;
-        portLayoutOptions.layoutOptions!['port.borderOffset'] = (-width / 2).toString();
+        layoutOptions['port.borderOffset'] = (-width / 2).toString();
 
-        return portLayoutOptions;
+        const computed: PortLayoutProperties = { x, y, width, height, layoutOptions, labels };
+        return { id: elkPortId, ...(portOptionsFn(port, element, computed) ?? computed) };
     });
 }
 
@@ -257,62 +268,47 @@ export function exportGraph(
 
     // ELK positions a node's children (and routes a node's own edges) relative to that
     // node's own origin (see `toAbsolute` in `importLayout`) - `containerX`/`containerY`
-    // convert an element's own graph-absolute `position()` into that frame, so that an
-    // element's exported `x`/`y` is always a usable hint of where it currently is, e.g.
-    // for `interactive` (see `Options` in `layout.mts`) to pick up.
+    // convert an element's own graph-absolute `position()` into that frame, so that the
+    // `x`/`y` handed to `nodeOptions` is always a usable hint of where the element
+    // currently is.
     function buildElkNode(element: dia.Element, containerX = 0, containerY = 0): ElkNode {
         const id = `${element.id}`;
         elementsById.set(id, element);
 
         const ports = buildPorts(element, portOptionsFn, getPortLabelSizeFn, portsById, !!options.positionPortLabels);
-        const customOptions = nodeOptionsFn(element);
         const { x: absoluteX, y: absoluteY } = element.position();
         const x = absoluteX - containerX;
         const y = absoluteY - containerY;
+
+        const layoutOptions: NodeElkLayoutOptions = (ports) ? {
+            ...portConstraintsOptions,
+            'portLabels.placement': 'OUTSIDE'
+        } : {};
+        // A hint of the element's current position - read directly (as the plain `x`/`y`
+        // below) by ELK's `interactive` strategies (see `layout.mts`), and via this distinct
+        // option by `elk.layered.crossingMinimization.semiInteractive`. A brand new element
+        // has no meaningful position yet - strip this (and `x`/`y`) via `nodeOptions` (e.g.
+        // based on your own "is this new" convention) to let ELK place it freely instead of
+        // anchoring it here.
+        layoutOptions['elk.position'] = `(${x},${y})`;
 
         const embeds = element.getEmbeddedCells()
             .filter((cell): cell is dia.Element => cell.isElement());
 
         if (embeds.length > 0) {
-            // A container - its size is computed by ELK to fit its (recursively laid out) content.
+            // A container - its size is computed by ELK to fit its (recursively laid out)
+            // content, so `width`/`height` are left for `nodeOptions` to see as `undefined`
+            // rather than computed here.
             const children = embeds.map((embed) => buildElkNode(embed, absoluteX, absoluteY));
-            const node: ElkNode = { id, x, y, children, ports, layoutOptions: customOptions };
+            const computed: NodeLayoutProperties = { x, y, layoutOptions };
+            const node: ElkNode = { id, children, ports, ...(nodeOptionsFn(element, computed) ?? computed) };
             edgeContainersById.set(id, node.edges = []);
             return node;
         }
 
         const { width, height } = getSizeFn(element);
-        const elkNode: ElkNode = {
-            id,
-            width,
-            height,
-            ports,
-            layoutOptions: (ports) ? {
-                ...portConstraintsOptions,
-                'portLabels.placement': 'OUTSIDE',
-                ...customOptions
-            } : customOptions
-        };
-
-        if (!element.get('new')) {
-            // An already laid out element - give ELK a hint of where it currently is, so
-            // that `interactive` (see `Options` in `layout.mts`) can try to keep it there.
-            elkNode.x = x;
-            elkNode.y = y;
-            // Also expose it as the `elk.position` layout option - a distinct property from
-            // the plain `x`/`y` above, read specifically by
-            // `elk.layered.crossingMinimization.semiInteractive` to derive a *soft* ordering
-            // constraint between pairs of already-positioned nodes in the same layer, on top
-            // of whatever crossing-minimizing strategy is otherwise in effect. A node with no
-            // `elk.position` (e.g. one still marked `new`) is left out of that constraint, so
-            // it's free to be placed wherever reduces crossings.
-            elkNode.layoutOptions = {
-                ...elkNode.layoutOptions,
-                'elk.position': `(${x},${y})`
-            };
-        }
-
-        return elkNode;
+        const computed: NodeLayoutProperties = { x, y, width, height, layoutOptions };
+        return { id, ports, ...(nodeOptionsFn(element, computed) ?? computed) };
     }
 
     const children: ElkNode[] = graph.getElements()
@@ -357,17 +353,11 @@ export function exportGraph(
         const sourcePort = link.source().port;
         const targetPort = link.target().port;
 
-        const edge: ElkExtendedEdge = {
-            id,
-            sources: [(sourcePort) ? `${sourceElement.id}:${sourcePort}` : `${sourceElement.id}`],
-            targets: [(targetPort) ? `${targetElement.id}:${targetPort}` : `${targetElement.id}`],
-            layoutOptions: edgeOptionsFn(link)
-        };
-
+        let labels: ElkLabel[] | undefined;
         if (options.edgeLabels) {
-            const labels = link.labels();
-            if (labels.length > 0) {
-                edge.labels = labels.map((label): ElkLabel => {
+            const linkLabels = link.labels();
+            if (linkLabels.length > 0) {
+                labels = linkLabels.map((label): ElkLabel => {
                     const { width, height } = label.size || DEFAULT_LABEL_SIZE;
                     return {
                         // Some text is required, otherwise ELK ignores the label.
@@ -380,6 +370,14 @@ export function exportGraph(
                 });
             }
         }
+
+        const computed: EdgeLayoutProperties = { layoutOptions: undefined, labels };
+        const edge: ElkExtendedEdge = {
+            id,
+            sources: [(sourcePort) ? `${sourceElement.id}:${sourcePort}` : `${sourceElement.id}`],
+            targets: [(targetPort) ? `${targetElement.id}:${targetPort}` : `${targetElement.id}`],
+            ...(edgeOptionsFn(link, computed) ?? computed)
+        };
 
         const lcaId = getLowestCommonAncestorId(getAncestorPath(sourceElement), getAncestorPath(targetElement));
         const edges = edgeContainersById.get(lcaId);

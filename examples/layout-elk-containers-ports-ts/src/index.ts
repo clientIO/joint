@@ -99,13 +99,14 @@ const init = () => {
         // of keeping them where JointJS's own port groups first placed them.
         positionPorts: 'fixed-side',
         positionPortLabels: true,
-        nodeOptions: (element) => {
+        nodeOptions: (element, computed) => {
             // Reserve extra top padding inside containers, so children don't
             // overlap the container's title label.
-            if (element.getEmbeddedCells().length > 0) {
-                return { 'elk.padding': CONTAINER_PADDING };
-            }
-            return undefined;
+            if (element.getEmbeddedCells().length === 0) return undefined;
+            return {
+                ...computed,
+                layoutOptions: { ...computed.layoutOptions, 'elk.padding': CONTAINER_PADDING }
+            };
         },
         elkLayoutOptions
     }).then(() => {
