@@ -34,7 +34,7 @@ const link = new shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }
 graph.addCells([rect1, rect2, link]);
 
 const { bbox } = await layout(graph, {
-    layoutOptions: {
+    elkLayoutOptions: {
         'elk.algorithm': 'layered',
         'elk.direction': 'RIGHT',
         'elk.edgeRouting': 'ORTHOGONAL'
@@ -64,20 +64,28 @@ type SetPositionCallback = (element: dia.Element, position: dia.Point) => void;
 type SetVerticesCallback = (link: dia.Link, vertices: dia.Point[]) => void;
 type SetAnchorCallback = (link: dia.Link, element: dia.Element, point: dia.Point, endType: 'source' | 'target') => void;
 type SetLabelsCallback = (link: dia.Link, labelBBox: dia.BBox, points: dia.Point[], labelIndex: number) => void;
-type NodeOptionsCallback = (element: dia.Element) => ElkLayoutOptions | undefined;
-type PortOptionsCallback = (port: dia.Element.Port, element: dia.Element) => ElkLayoutOptions | undefined;
-type EdgeOptionsCallback = (link: dia.Link) => ElkLayoutOptions | undefined;
 type SetPortPositionCallback = (element: dia.Element, portId: string, position: dia.Point) => void;
 // - 'fixed': ports stay exactly where JointJS's own port groups place them (`FIXED_POS`).
 // - 'fixed-side': ELK may reposition/reorder ports along their group's assigned side (`FIXED_SIDE`).
 // - 'free': ELK may reposition ports anywhere around their element (`FREE`).
 type PortPositionsMode = 'fixed' | 'fixed-side' | 'free';
 
+// What this package itself would compute for a node/port/edge, and what `nodeOptions`/
+// `portOptions`/`edgeOptions` (see "Adjusting computed node/port/edge properties" below)
+// get to inspect and adjust - everything except structural fields (`id`, `sources`/
+// `targets`, `ports`/`children`, which are handled separately).
+type NodeLayoutProperties = Pick<ElkNode, 'x' | 'y' | 'width' | 'height' | 'layoutOptions'>;
+type PortLayoutProperties = Pick<ElkPort, 'x' | 'y' | 'width' | 'height' | 'layoutOptions' | 'labels'>;
+type EdgeLayoutProperties = Pick<ElkExtendedEdge, 'layoutOptions' | 'labels'>;
+type NodeOptionsCallback = (element: dia.Element, computed: NodeLayoutProperties) => NodeLayoutProperties | undefined;
+type PortOptionsCallback = (port: dia.Element.Port, element: dia.Element, computed: PortLayoutProperties) => PortLayoutProperties | undefined;
+type EdgeOptionsCallback = (link: dia.Link, computed: EdgeLayoutProperties) => EdgeLayoutProperties | undefined;
+
 interface Options {
     // A custom ELK instance, e.g. one configured to run inside a Web Worker.
     elk?: ELK; // Default: a shared, main-thread instance (`elkjs/lib/elk.bundled.js`)
     // ELK layout options, passed through to ELK unmodified.
-    layoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered' }
+    elkLayoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered' }
     // Whether to account for link labels during layout and position them afterwards.
     edgeLabels?: boolean; // Default: true
     // How freely ELK may reposition (and reorder) ports itself, instead of keeping
@@ -94,7 +102,8 @@ interface Options {
     setVertices?: boolean | SetVerticesCallback; // Default: true
     setAnchor?: boolean | SetAnchorCallback; // Default: true
     setLabels?: boolean | SetLabelsCallback; // Default: true
-    // Per-cell escape hatches into ELK's option space
+    // Escape hatches into ELK's per-node/port/edge option space - see "Adjusting computed
+    // node/port/edge properties" below.
     nodeOptions?: NodeOptionsCallback;
     portOptions?: PortOptionsCallback;
     edgeOptions?: EdgeOptionsCallback;
@@ -124,14 +133,34 @@ elk.terminateWorker();
 
 With no `elk` option, the package creates a default instance running on the main thread (`elkjs/lib/elk.bundled.js`). The public API is identical in both modes.
 
-### Per-cell ELK options
+### Adjusting computed node/port/edge properties
+
+`nodeOptions`/`portOptions`/`edgeOptions` are called with everything this package itself would use for that node/port/edge (its `x`/`y`/`width`/`height` and `layoutOptions`, or `labels` for a port/edge) - not just the element/port/link, so you can build on what's already computed instead of writing it all from scratch. Return `undefined` to leave it as computed; return a value to use that instead (spread the given one and adjust the parts you care about, since **whatever you return replaces the computed value outright** - it isn't merged with it):
 
 ```ts
 layout(graph, {
-    nodeOptions: (element) => ({ 'partitioning.partition': `${element.get('layer')}` }),
-    layoutOptions: {
+    nodeOptions: (element, computed) => ({
+        ...computed,
+        layoutOptions: { ...computed.layoutOptions, 'partitioning.partition': `${element.get('layer')}` }
+    }),
+    elkLayoutOptions: {
         'elk.algorithm': 'layered',
         'elk.partitioning.activate': 'true'
+    }
+});
+```
+
+Because the callback sees the computed value, it can also *remove* something this package would otherwise set - e.g. every node's `x`/`y` (and the `elk.position` layout option, used by `elk.layered.crossingMinimization.semiInteractive`) reflect the element's current position, which only makes sense once it actually has one. For a freshly created element (flagged here however you like, e.g. a `new` attribute you set yourself) you'd typically want ELK to place it wherever fits, not anchor it at `(0, 0)`:
+
+```ts
+layout(graph, {
+    nodeOptions: (element, computed) => {
+        if (!element.get('new')) return undefined;
+        // Actually omit `x`/`y` (not just set them to `undefined`) - elkjs treats a
+        // present-but-`undefined` coordinate differently from an absent one.
+        const { x: _x, y: _y, width, height, layoutOptions: computedLayoutOptions } = computed;
+        const { 'elk.position': _elkPosition, ...layoutOptions } = computedLayoutOptions ?? {};
+        return { width, height, layoutOptions };
     }
 });
 ```
