@@ -1,7 +1,7 @@
 {
-  "name": "@joint/demo-layout-elk-ts",
+  "name": "@joint/demo-layout-elk-interactive-ts",
   "version": "4.3.1",
-  "description": "JointJS - ELK Layout Demo",
+  "description": "JointJS - ELK Interactive Layout Demo",
   "main": "dist/bundle.js",
   "homepage": "https://jointjs.com",
   "author": {

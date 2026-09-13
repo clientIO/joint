@@ -1,11 +1,8 @@
-import { dia, shapes, util, g } from '@joint/core';
+import { dia, shapes, g } from '@joint/core';
+import { layout } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
-import type { ElkNode, ElkExtendedEdge, ElkLabel } from 'elkjs/lib/elk-api.d.ts';
 import dependenciesJSON from './dependencies.json';
 import './styles.scss';
-
-type Require<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-type ElkGraph = Require<ElkNode, 'children' | 'edges'>;
 
 const colors = ['#F8FCDA', '#E3E9C2', '#F9FBB2', '#C89F9C'];
 const ELK_DIRECTION = 'RIGHT';
@@ -42,12 +39,64 @@ const init = () => {
     // Generate JointJS cells from example data
     generateCells(dependenciesJSON, graph);
 
-    // Perform ELK layout
+    // Run ELK in a Web Worker, via the `@joint/layout-elk` package
     const elk = new ELK({
         workerUrl: '../node_modules/elkjs/lib/elk-worker.js',
     });
-    elk.layout(getElkGraph(graph)).then((elkGraph: ElkGraph) => {
-        updateGraph(elkGraph, graph);
+
+    layout(graph, {
+        elk,
+        layoutOptions: {
+            /**
+             * Overall direction of the layout.
+             * 'UP' | 'DOWN' | 'LEFT' | 'RIGHT'
+             */
+            'elk.direction': ELK_DIRECTION,
+
+            /**
+             * Spacing between nodes (siblings).
+             * A number value as a string.
+             */
+            'elk.spacing.nodeNode': '20',
+
+            /**
+             * Spacing between layers (for layered algorithm).
+             * A number value as a string.
+             */
+            'elk.layered.spacing.nodeNodeBetweenLayers': '50',
+
+            /**
+             * Edge routing style.
+             * 'ORTHOGONAL' | 'SPLINES' | 'POLYLINE'
+             */
+            'elk.edgeRouting': 'ORTHOGONAL',
+
+            /**
+             * Node placement strategy for layered layout.
+             * 'SIMPLE' | 'BRANDES_KOEPF' | 'INTERACTIVE' | 'LINEAR_SEGMENTS' | 'NETWORK_SIMPLEX'
+             */
+            'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
+
+            /**
+             * Merging edges that share the same source and target nodes into a single edge.
+             * 'true' | 'false'
+             */
+            'elk.layered.mergeEdges': 'false',
+
+            /**
+             * Distance between edge labels and the edge itself.
+             * A number value as a string.
+             */
+            'elk.spacing.edgeLabel': '3',
+
+            /**
+             * Enable partitioning i.e., assigning nodes to layers. You need to add
+             * `partitioning.partition` attribute to nodes for this to take effect.
+             * 'true' | 'false'
+             */
+            'elk.partitioning.activate': 'false',
+        }
+    }).then(() => {
         paper.unfreeze();
         zoom(paper, 1);
         // Scroll into a busy area of the example
@@ -204,217 +253,6 @@ function generateCells(
         element.size({ [dimension]: count * 10 });
     });
     graph.resetCells(cells);
-}
-
-/**
- * Converts JointJS graph to ELK graph structure.
- * @param {dia.Graph} graph
- * @returns {Object} ELK graph structure
- */
-function getElkGraph(graph: dia.Graph): ElkGraph {
-    const elkGraph: ElkGraph = {
-        id: 'root',
-        layoutOptions: {
-            /**
-             * Layout algorithm to use.
-             * 'box' | 'layered' | 'mrtree' | 'radial' | 'force'
-             */
-            'elk.algorithm': 'layered',
-
-            /**
-             * Overall direction of the layout.
-             * 'UP' | 'DOWN' | 'LEFT' | 'RIGHT'
-             */
-            'elk.direction': ELK_DIRECTION,
-
-            /**
-             * Spacing between nodes (siblings).
-             * A number value as a string.
-             */
-            'elk.spacing.nodeNode': '20',
-
-            /**
-             * Spacing between layers (for layered algorithm).
-             * A number value as a string.
-             */
-            'elk.layered.spacing.nodeNodeBetweenLayers': '50',
-
-            /**
-             * Edge routing style.
-             * 'ORTHOGONAL' | 'SPLINES' | 'POLYLINE'
-             */
-            'elk.edgeRouting': 'ORTHOGONAL',
-
-            /**
-             * Node placement strategy for layered layout.
-             * 'SIMPLE' | 'BRANDES_KOEPF' | 'INTERACTIVE' | 'LINEAR_SEGMENTS' | 'NETWORK_SIMPLEX'
-             */
-            'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
-
-            /**
-             * Merging edges that share the same source and target nodes into a single edge.
-             * 'true' | 'false'
-             */
-            'elk.layered.mergeEdges': 'false',
-
-            /**
-             * Distance between edge labels and the edge itself.
-             * A number value as a string.
-             */
-            'elk.spacing.edgeLabel': '3',
-
-            /**
-             * Enable partitioning i.e., assigning nodes to layers. You need to add
-             * `partitioning.partition` attribute to nodes for this to take effect.
-             * 'true' | 'false'
-             */
-            'elk.partitioning.activate': 'false',
-
-            // Does not seem to work as expected:
-            // 'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'HEAD_LAYER',
-            // 'elk.edgeLabels.placement': 'TAIL'
-        },
-        children: [],
-        edges: []
-    };
-
-    graph.getElements().forEach((element) => {
-        const size = element.size();
-        const elkNode: ElkNode = {
-            id: `${element.id}`,
-            width: size.width,
-            height: size.height,
-            ports: [],
-            children: []
-        };
-        elkGraph.children.push(elkNode);
-    });
-
-    graph.getLinks().forEach((link) => {
-        const sourceId = `${link.source().id}`;
-        const targetId = `${link.target().id}`;
-        if (!sourceId || !targetId) {
-            return; // Skip if source or target is not defined
-        }
-        elkGraph.edges.push({
-            id: `${link.id}`,
-            sources: [sourceId],
-            targets: [targetId],
-            labels: link.labels().map((label) => ({
-                text: '-', // some text is required (ELK ignores empty labels)
-                width: label.size?.width || DEFAULT_LABEL_WIDTH,
-                height: label.size?.height || DEFAULT_LABEL_HEIGHT,
-                layoutOptions: {
-                    // Place label directly on the edge.
-                    'edgeLabels.inline': 'true',
-
-                    // This works, but does not allocate space for the label
-                    // 'edgeLabels.placement': 'HEAD' // 'CENTER' | 'HEAD' | 'TAIL'
-                }
-            }))
-        });
-    });
-
-    return elkGraph;
-}
-
-/**
- * Update JointJS graph based on ELK layout result.
- */
-function updateGraph(elkGraph: ElkGraph, graph: dia.Graph): void {
-    updateElements(elkGraph.children, graph);
-    updateLinks(elkGraph.edges, graph);
-}
-
-/**
- * Update JointJS elements based on ELK node layout.
- */
-function updateElements(nodes: ElkNode[], graph: dia.Graph): void {
-    for (const node of nodes) {
-        const el = graph.getCell(node.id) as dia.Element;
-        el.position(node.x, node.y);
-    }
-}
-
-/**
- * Update JointJS links based on ELK edge layout.
- */
-function updateLinks(edges: ElkExtendedEdge[], graph: dia.Graph): void {
-    for (const edge of edges) {
-        const { sections, labels: edgeLabels } = edge;
-        if (!sections) continue;
-        const linkAttributes: dia.Link.Attributes = {};
-        const [{ bendPoints = [], endPoint, startPoint }] = sections;
-        // Update link vertices (bend points)
-        linkAttributes.vertices = bendPoints;
-        // Update link source and target anchors (startPoint, endPoint)
-        const link = graph.getCell(edge.id) as dia.Link;
-        linkAttributes.source = getLinkEnd(link.getSourceElement(), startPoint);
-        linkAttributes.target = getLinkEnd(link.getTargetElement(), endPoint);
-        // Update link labels positions
-        if (edgeLabels) {
-            const polyline = new g.Polyline([startPoint, ...bendPoints, endPoint]);
-            linkAttributes.labels = getLinkLabels(link, edgeLabels, polyline);
-        }
-        // Apply the updated attributes to the link
-        link.set(linkAttributes);
-    }
-}
-
-/**
- * Convert absolute label position to relative position on the link polyline.
- */
-function getLinkLabelPosition(
-    polyline: g.Polyline,
-    edgeLabel: ElkLabel
-): dia.Link.LabelPosition {
-    const labelPosition = {
-        x: edgeLabel.x + edgeLabel.width / 2,
-        y: edgeLabel.y + edgeLabel.height / 2
-    };
-    const length = polyline.closestPointLength(labelPosition);
-    const closestPoint = polyline.pointAtLength(length);
-    const distance = (length / polyline.length());
-    const offset = new g.Point(labelPosition).difference(closestPoint).toJSON();
-    return {
-        distance: distance,
-        offset: offset
-    };
-}
-
-/**
- * Get link end definition for given element and absolute end point.
- */
-function getLinkEnd(
-    endElement: dia.Element,
-    endPoint: dia.Point
-): dia.Link.EndJSON {
-    const delta = endElement.getRelativePointFromAbsolute(endPoint);
-    return {
-        id: endElement.id,
-        anchor: {
-            name: 'topLeft',
-            args: {
-                dx: delta.x,
-                dy: delta.y,
-                useModelGeometry: true
-            }
-        }
-    };
-}
-
-function getLinkLabels(
-    link: dia.Link,
-    edgeLabels: ElkLabel[],
-    polyline: g.Polyline
-): dia.Link.Label[] {
-    const labels = util.cloneDeep(link.labels());
-    edgeLabels.forEach((edgeLabel, index) => {
-        // Note: If the diagram is meant to stay static,
-        // we could also create JointJS elements instead of using link labels.
-        labels[index].position = getLinkLabelPosition(polyline, edgeLabel);
-    });
-    return labels;
 }
 
 init();
