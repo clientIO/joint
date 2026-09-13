@@ -1,5 +1,5 @@
 import { dia, shapes, g } from '@joint/core';
-import { ElkLayoutOptions, layout } from '@joint/layout-elk';
+import { ElkLayoutOptions, layout, NodeLayoutProperties } from '@joint/layout-elk';
 import './styles.scss';
 
 const ELK_DIRECTION = 'RIGHT';
@@ -19,6 +19,21 @@ const SEED_LINKS: Array<[string, string]> = [
 const SEED_NODE_IDS = new Set(SEED_LINKS.flat());
 let nextId = SEED_NODE_IDS.size + 1;
 let zoomLevel = 1;
+
+/**
+ * A brand new element (see the "Add Element" handler below) has no meaningful position yet -
+ * strip the position hints `@joint/layout-elk` would otherwise give it, so ELK's interactive
+ * layering/placement is free to place it based on topology, instead of anchoring it near the
+ * (0, 0) `element.position()` defaults to.
+ */
+function nodeOptions(element: dia.Element, computed: NodeLayoutProperties): NodeLayoutProperties | undefined {
+    if (!element.get('new')) return undefined;
+    // Actually omit `x`/`y` (not just set them to `undefined`) - elkjs chokes on a
+    // present-but-`undefined` coordinate instead of treating it as absent.
+    const { x: _x, y: _y, width, height, layoutOptions: computedLayoutOptions } = computed;
+    const { 'elk.position': _elkPosition, ...layoutOptions } = computedLayoutOptions ?? {};
+    return { width, height, layoutOptions };
+}
 
 const init = () => {
 
@@ -65,7 +80,7 @@ const init = () => {
 
     // The very first layout always computes the whole graph from scratch - there is
     // nothing to be "interactive" about yet, since no element has a position at all.
-    layout(graph, { elkLayoutOptions }).then(() => {
+    layout(graph, { elkLayoutOptions, nodeOptions }).then(() => {
         paper.unfreeze();
         zoom(paper, zoomLevel);
     }).catch((error) => {
@@ -86,13 +101,8 @@ const init = () => {
         const elements = graph.getElements();
         const parent = elements[g.random(0, elements.length - 1)];
         const element = createElement(`n${nextId++}`);
-        // ELK's interactive strategies use an element's *current* position as a hint of
-        // where to keep it - a brand new element defaults to (0, 0), which reads as "put
-        // this in the very first layer" and forces everything else to make room for it.
-        // Starting it off one layer to the right of its parent (`ELK_DIRECTION`) instead
-        // gives interactive layout a sensible hint, so only `element` itself (not its
-        // parent's whole layer) needs to move.
-        // element.position(parent.position().x + NODE_SIZE.width + 60, parent.position().y);
+        // Marks it for `nodeOptions` (above) to strip position hints from, so ELK is free
+        // to place it based on topology instead of anchoring it near (0, 0).
         element.set('new', true);
 
         paper.freeze();
@@ -103,7 +113,9 @@ const init = () => {
         // itself. Uncheck "Interactive layout" to see the whole graph get reshuffled by
         // a from-scratch layout instead. Either way, re-fit the viewport afterwards so
         // the (possibly larger) diagram stays fully visible.
-        layout(graph, { elkLayoutOptions, interactive: interactiveToggle.checked }).then(() => {
+        layout(graph, { elkLayoutOptions, interactive: interactiveToggle.checked, nodeOptions }).then(() => {
+            // Layout succeeded - `element` now has a real position, so it's no longer "new".
+            element.unset('new');
             paper.unfreeze();
             zoom(paper, zoomLevel);
         }).catch((error) => {

@@ -56,7 +56,7 @@ QUnit.module('layout()', () => {
         const { graph } = createGraph();
 
         await joint.layout.ELK.layout(graph, {
-            layoutOptions: {
+            elkLayoutOptions: {
                 'elk.algorithm': 'layered',
                 'elk.direction': 'RIGHT',
                 'elk.edgeRouting': 'ORTHOGONAL'
