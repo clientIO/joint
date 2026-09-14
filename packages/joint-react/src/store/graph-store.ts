@@ -3,6 +3,10 @@ import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types'
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
+import type { LayerPatch, LayerRecord } from '../types/layer.types';
+import { reconcileLayers, withLayerPatch } from './layers';
+import { isUpdater } from '../utils/is';
+import type { ArrayUpdate } from './state-container';
 import {
   createElementsSizeObserver,
   type GraphStoreObserver,
@@ -97,6 +101,8 @@ export interface GraphStoreOptions<
    */
   readonly autoSizeOrigin?: AutoSizeOrigin;
   readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
+  /** Layers to declare once at construction, in paint order. See {@link LayerRecord}. */
+  readonly initialLayers?: readonly LayerRecord[];
 }
 
 /**
@@ -126,6 +132,7 @@ export class GraphStore<
       graph,
       autoSizeOrigin = 'top-left',
       initialCells,
+      initialLayers,
     } = config;
     this.autoSizeOrigin = autoSizeOrigin;
 
@@ -226,6 +233,14 @@ export class GraphStore<
       },
     });
 
+    // Layers before cells: a seed cell may name a layer declared here, and
+    // joint-core throws on a cell whose layer does not exist yet.
+    if (initialLayers && initialLayers.length > 0) {
+      // Tagged so the layer listeners skip it; the projection is read once, here.
+      reconcileLayers(this.graph, initialLayers, { isUpdateFromReact: true });
+      this.graphProjection.syncLayersFromGraph();
+    }
+
     if (initialCells && initialCells.length > 0) {
       // Replace existing graph state with the seed cells. The graph-changes
       // listener handles `reset` synchronously and populates the cells
@@ -264,12 +279,35 @@ export class GraphStore<
    * with the react-origin flag set.
    * @param cells - new cells snapshot from the parent
    * @param metadata - extra options forwarded to the underlying `graph.syncCells` opt
+   * @param layers - controlled layers, applied in the same commit: added before
+   *   the cells (a cell may name a new layer) and pruned after them (a layer
+   *   emptied by this sync is removed now, not next time)
    */
   public applyControlled = (
     cells: ReadonlyArray<Element | Link>,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
+    layers?: readonly LayerRecord[]
   ) => {
-    this.graphProjection.updateGraph({ cells, flag: 'updateFromReact', metadata });
+    this.graphProjection.updateGraph({ cells, layers, flag: 'updateFromReact', metadata });
+  };
+
+  /**
+   * Apply a layers snapshot from React (the controlled `layers` prop or an
+   * imperative setter). Adds, reorders, updates, and removes now-empty layers.
+   * @param layers - declared layers in paint order, or an updater of the current ones
+   */
+  public applyLayers = (layers: ArrayUpdate<LayerRecord>) => {
+    const next = isUpdater(layers) ? layers(this.graphProjection.layers.getSnapshot()) : layers;
+    this.graphProjection.updateGraph({ layers: next, flag: 'updateFromReact' });
+  };
+
+  /**
+   * Merge attributes into one layer, adding it on top when it does not exist.
+   * @param id - the layer to patch
+   * @param patch - attributes to merge
+   */
+  public applyLayer = (id: string, patch: LayerPatch) => {
+    this.applyLayers(withLayerPatch(this.graphProjection.layers.getSnapshot(), id, patch));
   };
 
   /**

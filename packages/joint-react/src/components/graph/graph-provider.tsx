@@ -1,11 +1,14 @@
 import type { dia } from '@joint/core';
-import React, { memo, useLayoutEffect } from 'react';
+import React, { memo, useLayoutEffect, useRef } from 'react';
+import { useLatestRef } from '../../hooks/use-latest-ref';
+import { simpleScheduler } from '../../utils/scheduler';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { AutoSizeOrigin } from '../../store/graph-store';
 import type { OnIncrementalCellsChange } from '../../store/graph-projection';
 import type { ElementJSONInit, LinkJSONInit, CellInput } from '../../types/cell.types';
+import type { LayerRecord } from '../../types/layer.types';
 
 /** Cells array accepted by GraphProvider. */
 type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> = ReadonlyArray<
@@ -17,12 +20,15 @@ type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> =
  * instance, initial cells, or a controlled cells array) and subscribe to changes.
  * @template Element - Shape of the element cells stored in the graph.
  * @template Link - Shape of the link cells stored in the graph.
+ * @template LayerId - Union of the layer ids the diagram uses. Include the
+ *   default `'cells'` layer: it always exists and `onLayersChange` reports it.
  * @expand
  * @group Types
  */
 export interface GraphProviderProps<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
+  LayerId extends string = string,
 > {
   /**
    * Pre-existing JointJS graph instance to use. If omitted, GraphProvider
@@ -89,6 +95,36 @@ export interface GraphProviderProps<
    * @see {@link IncrementalCellsChange}
    */
   readonly onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
+
+  /**
+   * Layers to declare once, at mount, in paint order (index 0 is painted at the
+   * bottom). Cells join a layer through their `layer` field. The default
+   * `cells` layer always exists: omit it and it sits at the bottom, name it to
+   * position it. Later changes to this array are not applied; use `layers`
+   * for that, or `setLayers` / `setLayer` from {@link useGraph}.
+   *
+   * A cell must name a layer that exists — declared here, in `layers`, or
+   * added through the graph — or joint-core throws when the cell is synced.
+   * The membership field is always `layer`; a custom `config.layerAttribute`
+   * is not supported by the React records.
+   * @see {@link LayerRecord}
+   */
+  readonly initialLayers?: ReadonlyArray<LayerRecord<LayerId>>;
+  /**
+   * Controlled layers array, in paint order. Whenever this array changes the
+   * graph's layers are reconciled to match it — added, reordered, updated, and
+   * removed once empty; a layer that still holds cells is kept and a dev warning
+   * names them. A new array with the same content is diffed and leaves the graph
+   * untouched; passing the same reference does not re-run the diff. Pair it
+   * with `onLayersChange`.
+   */
+  readonly layers?: ReadonlyArray<LayerRecord<LayerId>>;
+  /**
+   * Fires after any layer change with the full, ordered layers array —
+   * including the default `cells` layer. Notification only; it writes nothing
+   * back into the graph.
+   */
+  readonly onLayersChange?: (layers: ReadonlyArray<LayerRecord<LayerId>>) => void;
 }
 
 /**
@@ -122,9 +158,23 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     autoSizeOrigin,
     initialCells,
     cells,
+    initialLayers,
+    layers,
+    onLayersChange,
   } = props;
 
   const isControlled = !!cells;
+  const hasControlledLayers = !!layers;
+  const onLayersChangeRef = useLatestRef(onLayersChange);
+  const layersRef = useLatestRef(layers);
+  // Set for the duration of a React-origin layers apply so the subscription
+  // below can tell an echo from a graph-origin change.
+  const isApplyingLayersRef = useRef(false);
+  const lastAppliedCellsRef = useRef<typeof cells>(undefined);
+  // Layers are re-reconciled only when their reference changes, so a drag frame
+  // in controlled mode does zero layer work. Cleared on a graph-origin change so
+  // a parent that ignores it still gets its array re-applied on the next commit.
+  const lastAppliedLayersRef = useRef<typeof layers>(undefined);
 
   const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>>(
     {
@@ -136,6 +186,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
             cellNamespace,
             cellModel,
             initialCells: cells ?? initialCells ?? [],
+            initialLayers: layers ?? initialLayers,
             autoSizeOrigin,
           });
         return {
@@ -153,6 +204,9 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
   useLayoutEffect(() => {
     if (!isReady) return;
     const { setOnIncrementalCellsChange, applyControlled, graphProjection } = ref.current;
+    /** The controlled layers, or `undefined` when the same reference was already applied. */
+    const layersToApply = () =>
+      hasControlledLayers && layers !== lastAppliedLayersRef.current ? layers : undefined;
     setOnIncrementalCellsChange((changeSet) => {
       onIncrementalCellsChange?.(changeSet);
       if (onCellsChange) {
@@ -160,13 +214,79 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
         return;
       }
       if (isControlled) {
-        applyControlled(cells);
+        applyControlled(cells, undefined, layersToApply());
       }
     });
+    // Controlled layers ride along with controlled cells in ONE commit: joint-core
+    // throws on a cell naming a layer that does not exist yet, and refuses to
+    // remove a layer until its cells are gone — so the two cannot be applied by
+    // separate effects. When the cells reference is unchanged nothing can have
+    // left a layer, so a layers-only change skips the O(n) cells diff.
     if (isControlled) {
-      applyControlled(cells ?? []);
+      const nextLayers = layersToApply();
+      isApplyingLayersRef.current = true;
+      if (cells === lastAppliedCellsRef.current) {
+        if (nextLayers) ref.current.applyLayers(nextLayers);
+      } else {
+        applyControlled(cells ?? [], undefined, nextLayers);
+      }
+      isApplyingLayersRef.current = false;
+      lastAppliedCellsRef.current = cells;
+      lastAppliedLayersRef.current = layers;
     }
-  }, [isReady, onIncrementalCellsChange, onCellsChange, ref, isControlled, cells]);
+  }, [
+    isReady,
+    onIncrementalCellsChange,
+    onCellsChange,
+    ref,
+    isControlled,
+    hasControlledLayers,
+    cells,
+    layers,
+  ]);
+
+  // With uncontrolled cells nothing else applies controlled layers, so do it here.
+  useLayoutEffect(() => {
+    if (!isReady || isControlled || !hasControlledLayers) return;
+    isApplyingLayersRef.current = true;
+    ref.current.applyLayers(layers);
+    isApplyingLayersRef.current = false;
+    lastAppliedLayersRef.current = layers;
+  }, [isReady, ref, isControlled, hasControlledLayers, layers]);
+
+  // Subscribe once; the handler and the controlled array are read through refs
+  // so an inline `onLayersChange` never re-subscribes.
+  useLayoutEffect(() => {
+    if (!isReady) return;
+    const { applyLayers, graphProjection } = ref.current;
+    // One closure for the life of the subscription: `simpleScheduler` dedupes
+    // by identity, so a burst of graph-origin events reverts once, not per event.
+    const revert = () => {
+      const controlledLayers = layersRef.current;
+      if (!controlledLayers) return;
+      // A React-origin apply like the effects': its store re-read is an echo.
+      isApplyingLayersRef.current = true;
+      applyLayers(controlledLayers);
+      isApplyingLayersRef.current = false;
+    };
+    return graphProjection.layers.subscribe(() => {
+      // A React-origin apply re-reads the store synchronously; that is the
+      // parent's own array coming back, not a change to report or revert.
+      if (isApplyingLayersRef.current) return;
+      // A graph-origin change: whatever the parent decides, its array must be
+      // reconciled again on the next commit even if the reference is unchanged.
+      lastAppliedLayersRef.current = undefined;
+      const handler = onLayersChangeRef.current;
+      if (handler) {
+        handler(graphProjection.layers.getSnapshot());
+        return;
+      }
+      // Controlled without a change handler: the parent's array is the truth,
+      // so an imperative change is reverted — same contract as `cells`. Deferred
+      // so the revert does not re-enter the notification loop that is running.
+      simpleScheduler(revert);
+    });
+  }, [isReady, ref, layersRef, onLayersChangeRef]);
 
   if (!isReady) {
     return null;
@@ -221,12 +341,29 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
  *   <Paper />
  * </GraphProvider>
  * ```
+ * @example Layers — declare paint order once, or control it from state
+ * ```tsx
+ * import { useState } from 'react';
+ * import { GraphProvider, Paper, type LayerRecord } from '@joint/react';
+ *
+ * type LayerId = 'background' | 'cells' | 'notes';
+ * const [layers, setLayers] = useState<ReadonlyArray<LayerRecord<LayerId>>>([
+ *   { id: 'background' },
+ *   { id: 'cells' },
+ *   { id: 'notes', visible: false },
+ * ]);
+ * // Cells join a layer through their `layer` field: { id: 'n1', type: 'element', layer: 'notes' }
+ * <GraphProvider layers={layers} onLayersChange={setLayers} initialCells={cells}>
+ *   <Paper />
+ * </GraphProvider>
+ * ```
  * @see {@link GraphProviderProps} for the full list of props.
  * @group Components
  */
 export const GraphProvider = memo(GraphBase) as <
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
+  LayerId extends string = string,
 >(
-  props: GraphProviderProps<Element, Link>
+  props: GraphProviderProps<Element, Link, LayerId>
 ) => ReturnType<typeof GraphBase>;
