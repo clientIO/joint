@@ -20,6 +20,23 @@ export const DEFAULT_PAPER_ID = 'default-paper';
  * - Emitting view mount/unmount callbacks for graph-store snapshot sync
  * - Hiding links until their source/target elements have rendered
  */
+/**
+ * Type guard: is this paper a {@link PaperView}?
+ *
+ * Checks the {@link PaperView.getCellViewPortalNode} capability instead of
+ * `instanceof`: a dev-server hot reload (HMR) can re-evaluate this module and
+ * create a new `PaperView` class identity while live paper instances still
+ * come from the previous evaluation — `instanceof` would reject those and
+ * blank the canvas.
+ * @param paper - The paper instance to check (nullish tolerated).
+ * @returns `true` when the paper exposes the `PaperView` portal contract.
+ */
+export function isPaperView(paper: dia.Paper | null | undefined): paper is PaperView {
+  return (
+    !!paper && 'getCellViewPortalNode' in paper && typeof paper.getCellViewPortalNode === 'function'
+  );
+}
+
 export class PaperView extends Paper {
   public viewChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
   public onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;

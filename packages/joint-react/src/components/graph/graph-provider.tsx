@@ -126,7 +126,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
 
   const isControlled = !!cells;
 
-  const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>>(
+  const { instance } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>>(
     {
       onLoad() {
         const graphStore =
@@ -150,9 +150,13 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     []
   );
 
+  // Keyed on the store INSTANCE (not a ready boolean): when the store is
+  // re-created while mounted (e.g. a Fast Refresh re-runs the mount effect),
+  // the fresh instance must be re-wired and, in controlled mode, re-seeded
+  // from the current `cells`.
   useLayoutEffect(() => {
-    if (!isReady) return;
-    const { setOnIncrementalCellsChange, applyControlled, graphProjection } = ref.current;
+    if (!instance) return;
+    const { setOnIncrementalCellsChange, applyControlled, graphProjection } = instance;
     setOnIncrementalCellsChange((changeSet) => {
       onIncrementalCellsChange?.(changeSet);
       if (onCellsChange) {
@@ -166,13 +170,13 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     if (isControlled) {
       applyControlled(cells ?? []);
     }
-  }, [isReady, onIncrementalCellsChange, onCellsChange, ref, isControlled, cells]);
+  }, [instance, onIncrementalCellsChange, onCellsChange, isControlled, cells]);
 
-  if (!isReady) {
+  if (!instance) {
     return null;
   }
 
-  return <GraphStoreContext.Provider value={ref.current}>{children}</GraphStoreContext.Provider>;
+  return <GraphStoreContext.Provider value={instance}>{children}</GraphStoreContext.Provider>;
 }
 
 /**

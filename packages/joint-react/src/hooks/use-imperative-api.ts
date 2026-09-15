@@ -59,16 +59,25 @@ export interface ImperativeApiOptions<Instance, InstanceSelector = Instance> {
 interface ResultBase<Instance> {
   readonly ref: RefObject<Instance | null>;
   readonly isReady: boolean;
+  /**
+   * The current instance as React state. Unlike `ref.current`, its identity is
+   * safe to use in render and effect dependencies: when the instance is
+   * re-created (e.g. a Fast Refresh re-runs the mount effect), consumers
+   * re-render and re-fire instead of staying bound to the destroyed instance.
+   */
+  readonly instance: Instance | null;
 }
 
 interface ResultReady<Instance> extends ResultBase<Instance> {
   readonly ref: RefObject<Instance>;
   readonly isReady: true;
+  readonly instance: Instance;
 }
 
 interface ResultNotReady<Instance> extends ResultBase<Instance> {
   readonly ref: RefObject<null>;
   readonly isReady: false;
+  readonly instance: null;
 }
 
 /**
@@ -100,13 +109,20 @@ export function useImperativeApi<Instance, InstanceSelector = Instance>(
   dependencies: DependencyList
 ): ImperativeStateResult<Instance> {
   const { onLoad, onUpdate, onReadyChange, instanceSelector, isDisabled, forwardedRef } = options;
-  const [isReady, setIsReady] = useState(false);
+  // The instance is kept in state (not just the ref) so that RE-creating it
+  // notifies consumers: a boolean ready flag would bail out of the re-render
+  // when a fresh instance replaces a live one (`true` → `true`), leaving
+  // context consumers bound to the destroyed instance. This is exactly what a
+  // Fast Refresh (dev-server HMR) does — it re-runs the mount effect below
+  // with its dependencies ignored, destroying and re-creating the instance
+  // while the component stays mounted.
+  const [instanceState, setInstanceState] = useState<Instance | null>(null);
   const instanceRef = useRef<Instance | null>(null);
   const instanceCleanupRef = useRef<(() => void) | null>(null);
   const previousDependenciesRef = useRef<DependencyList | null>(null);
 
   const notifyReadyState = (nextIsReady: boolean, instance: Instance | null) => {
-    setIsReady(nextIsReady);
+    setInstanceState(nextIsReady ? instance : null);
     onReadyChange?.(nextIsReady, instance);
   };
 
@@ -176,7 +192,8 @@ export function useImperativeApi<Instance, InstanceSelector = Instance>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies);
 
-  // Expose the instance via the forwarded ref, if there is one
+  // Expose the instance via the forwarded ref, if there is one. Keyed on the
+  // instance identity so a re-created instance is re-exposed.
   useImperativeHandle(
     forwardedRef,
     () => {
@@ -186,8 +203,12 @@ export function useImperativeApi<Instance, InstanceSelector = Instance>(
         : (instanceRef.current as InstanceSelector);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [instanceRef, isReady]
+    [instanceState]
   );
 
-  return { ref: instanceRef, isReady } as ImperativeStateResult<Instance>;
+  return {
+    ref: instanceRef,
+    isReady: instanceState !== null,
+    instance: instanceState,
+  } as ImperativeStateResult<Instance>;
 }
