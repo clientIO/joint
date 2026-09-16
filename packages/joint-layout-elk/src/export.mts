@@ -151,10 +151,10 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         // port's own raw, unmerged JSON, so they can't be used here.
         let labels: ElkLabel[] | undefined;
         if (exportGraphOptions.positionPortLabels) {
-            // `label` isn't part of the officially typed `dia.Element.Port` shape, but
-            // JointJS reads it off (both the port's own and, merged in, its group's) at
-            // render time if present.
-            const { width: labelWidth, height: labelHeight } = (port.label as { size?: dia.Size } | undefined)?.size ?? DEFAULT_LABEL_SIZE;
+            // @ts-expect-error `getPortMetrics` isn't officially typed
+            const portMetrics = element.getPortMetrics(portId);
+
+            const { width: labelWidth, height: labelHeight } = portMetrics.labelSize ?? DEFAULT_LABEL_SIZE;
             labels = [{
                 // Some text is required, otherwise ELK ignores the label.
                 text: ELK_LABEL_TEXT,
