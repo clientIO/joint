@@ -324,6 +324,8 @@ export class Line {
 
     intersectionWithLine(l: Line): Point[] | null;
 
+    isCollinear(line: Line): boolean;
+
     isDifferentiable(): boolean;
 
     length(): number;
