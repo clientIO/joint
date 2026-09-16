@@ -381,15 +381,12 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
             // don't intersection with itself
             if (link !== thisModel) {
 
-                const linkLinesToTest = linkLines[i].slice();
-                // A segment of the other link lies along `thisLine` and ends on it:
-                // the following segment starts on `thisLine`, so it must not produce a jump.
-                const overlapIndex = linkLinesToTest.findIndex((line) => {
-                    return thisLine.isCollinear(line) && thisLine.containsPoint(line.end);
-                });
-                if (overlapIndex > -1) {
-                    linkLinesToTest.splice(overlapIndex + 1, 1);
-                }
+                // A segment next to one that runs along `thisLine` can only touch
+                // `thisLine` at their shared vertex, where the two links merge or
+                // split. That is not a crossing, so leave it out.
+                const lines = linkLines[i];
+                const collinear = lines.map((line) => thisLine.isCollinear(line));
+                const linkLinesToTest = lines.filter((_, index) => !collinear[index - 1] && !collinear[index + 1]);
                 const lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
                 res.push.apply(res, lineIntersections);
             }
