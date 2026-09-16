@@ -392,4 +392,66 @@ QUnit.module('connectors', function(hooks) {
         // The link consists of two straight lines - no jumps
         assert.checkDataPath(pathData, 'M 25 300 L 25 75 L 50 75');
     });
+
+    QUnit.module('jumpover connector - merge and split points', function(hooks) {
+
+        // Link A is a single vertical segment. Each test draws another link B
+        // that shares a stretch with A and asserts the path of A.
+        hooks.beforeEach(function() {
+            this.renderStackedLinks = (vertices, source, target) => {
+                const linkA = new joint.shapes.standard.Link({
+                    source: { x: 25, y: 300 },
+                    target: { x: 25, y: 75 },
+                    connector: { name: 'jumpover' },
+                    z: 2
+                });
+                const linkB = new joint.shapes.standard.Link({
+                    source,
+                    target,
+                    vertices,
+                    connector: { name: 'jumpover' },
+                    z: 1
+                });
+                this.graph.addCells([linkB, linkA]);
+                return linkA.findView(this.paper).metrics.data;
+            };
+        });
+
+        QUnit.test('a link merging onto a stacked stretch does not cause a jump', function(assert) {
+            // The same shape as "stacked links do not cause jumps", traversed the other way:
+            // B arrives perpendicular at 25@175 and then runs along A.
+            const pathData = this.renderStackedLinks([{ x: 25, y: 175 }], { x: 50, y: 175 }, { x: 25, y: 300 });
+            assert.checkDataPath(pathData, 'M 25 300 L 25 75');
+        });
+
+        QUnit.test('a link that joins, runs along and leaves does not cause jumps', function(assert) {
+            const pathData = this.renderStackedLinks(
+                [{ x: 25, y: 250 }, { x: 25, y: 150 }],
+                { x: 100, y: 250 },
+                { x: 100, y: 150 }
+            );
+            assert.checkDataPath(pathData, 'M 25 300 L 25 75', 'joins at 25@250, leaves at 25@150');
+
+            const reversedPathData = this.renderStackedLinks(
+                [{ x: 25, y: 150 }, { x: 25, y: 250 }],
+                { x: 100, y: 150 },
+                { x: 100, y: 250 }
+            );
+            assert.checkDataPath(reversedPathData, 'M 25 300 L 25 75', 'joins at 25@150, leaves at 25@250');
+        });
+
+        QUnit.test('only a genuine crossing causes a jump when the link also runs along', function(assert) {
+            // B crosses A at 25@275, then joins A at 25@250 and leaves it at 25@150.
+            const pathData = this.renderStackedLinks(
+                [{ x: 100, y: 275 }, { x: 100, y: 250 }, { x: 25, y: 250 }, { x: 25, y: 150 }],
+                { x: 0, y: 275 },
+                { x: 100, y: 150 }
+            );
+            const segments = pathData.split(/\s(?=[MLC])/);
+            assert.equal(segments.filter((segment) => segment.startsWith('C')).length, 2, 'a single jump (two arcs)');
+            assert.equal(segments[0], 'M 25 300');
+            assert.equal(segments[1], 'L 25 280', 'the jump starts 5 units before the crossing');
+            assert.equal(segments[segments.length - 1], 'L 25 75', 'no jump at the merge or split point');
+        });
+    });
 });
