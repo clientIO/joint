@@ -26,6 +26,11 @@ const {
     PI
 } = Math;
 
+function parsePointString(str) {
+    const xy = str.split(str.indexOf('@') === -1 ? ' ' : '@');
+    return [parseFloat(xy[0]), parseFloat(xy[1])];
+}
+
 export const Point = function(x, y) {
 
     if (!(this instanceof Point)) {
@@ -33,9 +38,7 @@ export const Point = function(x, y) {
     }
 
     if (typeof x === 'string') {
-        var xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
-        x = parseFloat(xy[0]);
-        y = parseFloat(xy[1]);
+        [x, y] = parsePointString(x);
 
     } else if (Object(x) === x) {
         y = x.y;
@@ -83,19 +86,26 @@ Point.prototype = {
 
     chooseClosest: function(points) {
 
-        var n = points.length;
-        if (n === 1) return new Point(points[0]);
-        var closest = null;
-        var minSqrDistance = Infinity;
-        for (var i = 0; i < n; i++) {
-            var p = new Point(points[i]);
-            var sqrDistance = this.squaredDistance(p);
+        const index = this.chooseClosestIndex(points);
+        if (index === -1) return null;
+        return new Point(points[index]);
+    },
+
+    chooseClosestIndex: function(points) {
+
+        const n = points.length;
+        let closestIndex = -1;
+        let minSqrDistance = Infinity;
+        const candidate = new Point();
+        for (let i = 0; i < n; i++) {
+            candidate.update(points[i]);
+            const sqrDistance = this.squaredDistance(candidate);
             if (sqrDistance < minSqrDistance) {
-                closest = p;
+                closestIndex = i;
                 minSqrDistance = sqrDistance;
             }
         }
-        return closest;
+        return closestIndex;
     },
 
     // If point lies outside rectangle `r`, return the nearest point on the boundary of rect `r`,
@@ -350,7 +360,10 @@ Point.prototype = {
 
     update: function(x, y) {
 
-        if ((Object(x) === x)) {
+        if (typeof x === 'string') {
+            [x, y] = parsePointString(x);
+
+        } else if (Object(x) === x) {
             y = x.y;
             x = x.x;
         }

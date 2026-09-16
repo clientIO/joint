@@ -44,6 +44,31 @@ QUnit.module('point', function() {
             });
         });
 
+        QUnit.module('chooseClosestIndex(points)', function() {
+
+            QUnit.test('returns the index of the closest point', function(assert) {
+                const a = new g.Point(10, 10);
+                const b = { x: 20, y: 20 };
+                const c = { x: 30, y: 30 };
+                assert.equal(a.chooseClosestIndex([]), -1);
+                assert.equal(a.chooseClosestIndex([b]), 0);
+                assert.equal(a.chooseClosestIndex([new g.Point(b)]), 0);
+                assert.equal(a.chooseClosestIndex(['30 30', '20 20']), 1);
+                assert.equal(a.chooseClosestIndex([c, { x: 12 }]), 1);
+                assert.equal(new g.Point(10, 0).chooseClosestIndex([{ x: 10, y: 50 }, { x: 10 }]), 1);
+                assert.equal(a.chooseClosestIndex([b, c]), 0);
+                assert.equal(a.chooseClosestIndex([c, b]), 1);
+            });
+
+            QUnit.test('returns the first index when several points are equally close', function(assert) {
+                const a = new g.Point(10, 10);
+                const b = { x: 20, y: 10 };
+                const c = { x: 10, y: 20 };
+                assert.equal(a.chooseClosestIndex([b, c]), 0);
+                assert.equal(a.chooseClosestIndex([c, b]), 0);
+            });
+        });
+
         QUnit.module('adhereToRect(rect)', function() {
             // TODO: implement
         });
@@ -344,6 +369,15 @@ QUnit.module('point', function() {
                 var point = new g.Point(4, 17);
                 point.update(16, 24);
                 assert.equal(point.toString(), '16@24');
+            });
+
+            QUnit.test('changes the values of x and y with string arg', function(assert) {
+
+                const point = new g.Point(2, 15);
+                point.update('10 20');
+                assert.equal(point.toString(), '10@20');
+                point.update('30@40');
+                assert.equal(point.toString(), '30@40');
             });
 
             QUnit.test('changes the values of x and y with object arg', function(assert) {

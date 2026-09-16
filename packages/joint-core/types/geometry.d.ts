@@ -480,6 +480,8 @@ export class Point implements PlainPoint {
 
     chooseClosest(points: PointInit[]): Point | null;
 
+    chooseClosestIndex(points: PointInit[]): number;
+
     adhereToRect(r: Rect): this;
 
     angleBetween(p1: PlainPoint, p2: PlainPoint): number;
@@ -540,7 +542,7 @@ export class Point implements PlainPoint {
     translate(tx: PlainPoint): this;
 
     update(x?: number, y?: number): this;
-    update(p: PlainPoint): this;
+    update(p: PointInit): this;
 
     vectorAngle(p: PlainPoint): number;
 
