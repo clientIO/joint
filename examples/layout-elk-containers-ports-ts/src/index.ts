@@ -1,5 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters } from '@joint/layout-elk';
+import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters, type PortProperties, type PortPropertiesCallbackParameters } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
@@ -105,8 +105,14 @@ const init = () => {
             if (element.getEmbeddedCells().length === 0) return computedProperties;
             return {
                 ...computedProperties,
-                layoutOptions: { ...computedProperties.layoutOptions, 'elk.padding': CONTAINER_PADDING }
+                layoutOptions: {
+                    ...computedProperties.layoutOptions,
+                    'elk.padding': CONTAINER_PADDING
+                }
             };
+        },
+        portProperties: ({ port, element, computedProperties }: PortPropertiesCallbackParameters): PortProperties => {
+            return computedProperties;
         },
         elkLayoutOptions
     }).then(() => {
