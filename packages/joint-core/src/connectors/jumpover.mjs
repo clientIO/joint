@@ -381,9 +381,11 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
             // don't intersection with itself
             if (link !== thisModel) {
 
-                // A segment next to one that runs along `thisLine` can only touch
-                // `thisLine` at their shared vertex, where the two links merge or
-                // split. That is not a crossing, so leave it out.
+                // A segment next to one collinear with `thisLine` can meet the
+                // infinite line of `thisLine` only at their shared vertex. If that
+                // vertex is on `thisLine`, the two links merge or split there;
+                // otherwise they do not touch at all. Neither is a crossing, so
+                // leave such segments out.
                 const lines = linkLines[i];
                 const collinear = lines.map((line) => thisLine.isCollinear(line));
                 const linkLinesToTest = lines.filter((_, index) => !collinear[index - 1] && !collinear[index + 1]);

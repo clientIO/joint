@@ -187,11 +187,14 @@ Line.prototype = {
     },
 
     // @return {boolean} true if `line` lies on the same infinite line as this line
+    // A zero-length line is collinear when its point lies on the other line.
+    // Two zero-length lines are always collinear.
     isCollinear: function(line) {
 
         const { start, end } = this;
         const { start: otherStart, end: otherEnd } = line;
-        // checked in both directions so a zero-length line does not pass trivially
+        // Checked in both directions so a zero-length line does not pass trivially
+        // and the result is the same whichever line the method is called on.
         return start.cross(otherStart, end) === 0
             && start.cross(otherEnd, end) === 0
             && otherStart.cross(start, otherEnd) === 0
