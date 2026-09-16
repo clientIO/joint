@@ -549,6 +549,8 @@ export const Paper = View.extend({
         'touchstart': 'pointerdown',
         'mouseover': 'mouseover',
         'mouseout': 'mouseout',
+        'focusin': 'focusin',
+        'focusout': 'focusout',
         'mouseenter': 'mouseenter',
         'mouseleave': 'mouseleave',
         'wheel': 'mousewheel',
@@ -3672,6 +3674,22 @@ export const Paper = View.extend({
             if (this.el === evt.target) return; // prevent border of paper from triggering this
             this.trigger('blank:mouseout', evt);
         }
+    },
+
+    focusin: function(evt) {
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        if (view) view.focusin(evt);
+    },
+
+    focusout: function(evt) {
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        if (view) view.focusout(evt);
     },
 
     mouseenter: function(evt) {

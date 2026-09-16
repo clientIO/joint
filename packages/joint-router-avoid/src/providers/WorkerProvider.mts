@@ -15,6 +15,13 @@ export interface WorkerProviderOptions extends ProviderOptions {
     updateDebounceTime?: number;
     /** Path to the avoid WASM binary, forwarded to `AvoidLib.load()` inside the Worker. */
     libavoidFilePath?: string;
+    /**
+     * Overrides how the routing Worker is created. Required with bundlers
+     * that do not transform `new Worker(new URL(...))` spawns inside
+     * dependencies (e.g. the Angular CLI esbuild builder) - spawn the
+     * `@joint/router-avoid/worker` entry from application code instead.
+     */
+    createWorker?: () => Worker;
 }
 
 /**
@@ -24,6 +31,8 @@ export interface WorkerProviderOptions extends ProviderOptions {
  * messaging overhead, so it is best suited to larger graphs.
  */
 export class WorkerProvider extends Provider {
+    override readonly isSynchronous = false;
+
     /** The underlying Worker instance running the avoid router. */
     protected worker!: Worker;
     /** Ids of the shapes currently known to the Worker's avoid router. */
@@ -54,7 +63,10 @@ export class WorkerProvider extends Provider {
      * @param options - Configuration for the avoid router instance, forwarded to the Worker.
      */
     override async init(options: WorkerProviderOptions): Promise<void> {
-        const worker = new Worker(new URL('./Worker.mjs', import.meta.url), { type: 'module' });
+        const { createWorker, ...workerInitOptions } = options;
+        const worker = createWorker
+            ? createWorker()
+            : new Worker(new URL('./Worker.mjs', import.meta.url), { type: 'module' });
         this.worker = worker;
 
         const ready = new Promise<void>((resolve, reject) => {
@@ -95,7 +107,9 @@ export class WorkerProvider extends Provider {
             };
         });
 
-        this.postMessage({ type: 'init', options });
+        // `createWorker` is stripped: a function cannot be structured-cloned
+        // into the Worker (and the Worker has no use for it).
+        this.postMessage({ type: 'init', options: workerInitOptions });
 
         await ready;
     }

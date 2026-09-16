@@ -4,11 +4,18 @@ import { Paper } from '../paper';
 import { GraphProvider } from '../../graph/graph-provider';
 import { useOnPaperEvents } from '../../../hooks/use-on-paper-events';
 import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
+import { LINK_MODEL_TYPE } from '../../../mvc/link-model';
 import type { CellRecord } from '../../../types/cell.types';
 
 const CELLS = [
   { id: 'n1', type: ELEMENT_MODEL_TYPE, size: { width: 50, height: 50 } },
 ] satisfies readonly CellRecord[];
+
+const LINKED_CELLS = [
+  { id: 'n1', type: ELEMENT_MODEL_TYPE, size: { width: 50, height: 50 } },
+  { id: 'n2', type: ELEMENT_MODEL_TYPE, position: { x: 100, y: 0 }, size: { width: 50, height: 50 } },
+  { id: 'l1', type: LINK_MODEL_TYPE, source: { id: 'n1' }, target: { id: 'n2' } } as CellRecord,
+];
 
 const renderRect = () => <rect />;
 
@@ -42,6 +49,40 @@ describe('Paper focus events', () => {
     await waitFor(() => {
       expect(focus).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }));
       expect(blur).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }));
+    });
+  });
+
+  it('fires the element and link variants with the cell id', async () => {
+    const elementFocus = jest.fn();
+    const elementBlur = jest.fn();
+    const linkFocus = jest.fn();
+    const linkBlur = jest.fn();
+    const { container } = render(
+      <GraphProvider initialCells={LINKED_CELLS}>
+        <Paper
+          style={{ width: 200, height: 200 }}
+          renderElement={renderRect}
+          onElementFocus={elementFocus}
+          onElementBlur={elementBlur}
+          onLinkFocus={linkFocus}
+          onLinkBlur={linkBlur}
+        />
+      </GraphProvider>
+    );
+    await waitFor(() => expect(container.querySelector('.joint-link')).toBeTruthy());
+
+    fireEvent.focusIn(focusableInCell(container));
+    fireEvent.focusOut(focusableInCell(container));
+
+    const link = container.querySelector('.joint-link') as Element;
+    fireEvent.focusIn(link);
+    fireEvent.focusOut(link);
+
+    await waitFor(() => {
+      expect(elementFocus).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }));
+      expect(elementBlur).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }));
+      expect(linkFocus).toHaveBeenCalledWith(expect.objectContaining({ id: 'l1' }));
+      expect(linkBlur).toHaveBeenCalledWith(expect.objectContaining({ id: 'l1' }));
     });
   });
 

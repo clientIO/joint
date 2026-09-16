@@ -687,6 +687,18 @@ export const ElementView = CellView.extend({
         this.notify('element:mouseout', evt);
     },
 
+    focusin: function(evt) {
+
+        CellView.prototype.focusin.apply(this, arguments);
+        this.notify('element:focus', evt);
+    },
+
+    focusout: function(evt) {
+
+        CellView.prototype.focusout.apply(this, arguments);
+        this.notify('element:blur', evt);
+    },
+
     mouseenter: function(evt) {
 
         CellView.prototype.mouseenter.apply(this, arguments);

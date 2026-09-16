@@ -38,6 +38,32 @@ export interface WorkerOptions {
      * pass. Set to `0` to apply every change immediately. Defaults to `100`.
      */
     debounceTime?: number;
+    /**
+     * Overrides how the routing Worker is created. Required with bundlers
+     * that do not transform `new Worker(new URL(...))` spawns inside
+     * dependencies (e.g. the Angular CLI esbuild builder).
+     *
+     * Add a worker-entry file to your application's sources whose only
+     * content is a side-effect import of the routing Worker's runtime:
+     *
+     * ```ts
+     * // src/my-avoid.worker.ts
+     * import '@joint/router-avoid/worker';
+     * ```
+     *
+     * Then spawn that file - the `new Worker(new URL(...))` call now sits
+     * in your own sources, where the bundler's Worker handling applies:
+     *
+     * ```ts
+     * // src/diagram.ts
+     * initAvoidRouter(graph, {
+     *     worker: {
+     *         createWorker: () => new Worker(new URL('./my-avoid.worker', import.meta.url), { type: 'module' })
+     *     }
+     * });
+     * ```
+     */
+    createWorker?: () => Worker;
 }
 
 /** Options used to configure {@link initAvoidRouter}. */
@@ -67,8 +93,9 @@ export interface InitAvoidOptions {
  * using either a main-thread or Worker-based {@link Provider} depending on
  * `options.worker`. The returned `RouterService` is not started - call
  * its `start()` to begin keeping `graph`'s links continuously routed via
- * libavoid, or use `routeAll()`/`routeSubgraph()` for a one-shot routing
- * pass instead.
+ * libavoid, or use `routeAll()`/`routeSubgraph()` (or, with the
+ * main-thread provider, `routeAllSync()`/`routeSubgraphSync()`) for a
+ * one-shot routing pass instead.
  *
  * @param graph - The graph to route.
  * @param options - Configuration for the avoid router and the resulting {@link RouterService}.
@@ -98,7 +125,8 @@ export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOption
             shapeBufferDistance: shapeBufferDistance,
             idealNudgingDistance: idealNudgingDistance,
             updateDebounceTime: updateDebounceTime,
-            libavoidFilePath: options.libavoidFilePath
+            libavoidFilePath: options.libavoidFilePath,
+            createWorker: workerOptions.createWorker
         });
     } else {
         await provider.init({

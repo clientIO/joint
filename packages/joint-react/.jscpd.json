@@ -1,0 +1,5 @@
+{
+  "threshold": 0,
+  "ignore": ["**/__tests__/**", "**/*.test.*"],
+  "gitignore": true
+}
