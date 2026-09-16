@@ -1,5 +1,5 @@
 import { dia, shapes, g } from '@joint/core';
-import { ElkLayoutOptions, layout, NodeLayoutProperties } from '@joint/layout-elk';
+import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters } from '@joint/layout-elk';
 import './styles.scss';
 
 const ELK_DIRECTION = 'RIGHT';
@@ -26,11 +26,11 @@ let zoomLevel = 1;
  * layering/placement is free to place it based on topology, instead of anchoring it near the
  * (0, 0) `element.position()` defaults to.
  */
-function nodeOptions(element: dia.Element, computed: NodeLayoutProperties): NodeLayoutProperties | undefined {
-    if (!element.get('new')) return undefined;
+function nodeProperties({ element, computedProperties }: NodePropertiesCallbackParameters): NodeProperties {
+    if (!element.get('new')) return computedProperties;
     // Actually omit `x`/`y` (not just set them to `undefined`) - elkjs chokes on a
     // present-but-`undefined` coordinate instead of treating it as absent.
-    const { x: _x, y: _y, width, height, layoutOptions: computedLayoutOptions } = computed;
+    const { width, height, layoutOptions: computedLayoutOptions } = computedProperties;
     const { 'elk.position': _elkPosition, ...layoutOptions } = computedLayoutOptions ?? {};
     return { width, height, layoutOptions };
 }
@@ -80,7 +80,7 @@ const init = () => {
 
     // The very first layout always computes the whole graph from scratch - there is
     // nothing to be "interactive" about yet, since no element has a position at all.
-    layout(graph, { elkLayoutOptions, nodeOptions }).then(() => {
+    layout(graph, { elkLayoutOptions, nodeProperties }).then(() => {
         paper.unfreeze();
         zoom(paper, zoomLevel);
     }).catch((error) => {
@@ -101,7 +101,7 @@ const init = () => {
         const elements = graph.getElements();
         const parent = elements[g.random(0, elements.length - 1)];
         const element = createElement(`n${nextId++}`);
-        // Marks it for `nodeOptions` (above) to strip position hints from, so ELK is free
+        // Marks it for `nodeProperties` (above) to strip position hints from, so ELK is free
         // to place it based on topology instead of anchoring it near (0, 0).
         element.set('new', true);
 
@@ -113,7 +113,11 @@ const init = () => {
         // itself. Uncheck "Interactive layout" to see the whole graph get reshuffled by
         // a from-scratch layout instead. Either way, re-fit the viewport afterwards so
         // the (possibly larger) diagram stays fully visible.
-        layout(graph, { elkLayoutOptions, interactive: interactiveToggle.checked, nodeOptions }).then(() => {
+        layout(graph, {
+            elkLayoutOptions,
+            interactive: interactiveToggle.checked,
+            nodeProperties
+        }).then(() => {
             // Layout succeeded - `element` now has a real position, so it's no longer "new".
             element.unset('new');
             paper.unfreeze();
@@ -162,8 +166,8 @@ function addZoomAndPanListeners(paper: dia.Paper): void {
 
     paper.on('blank:pointermove', (evt) => {
         window.scroll(
-            evt.data.scrollX + (evt.data.clientX - evt.clientX),
-            evt.data.scrollY + (evt.data.clientY - evt.clientY)
+            evt.data.scrollX + (evt.data.clientX - evt.clientX!),
+            evt.data.scrollY + (evt.data.clientY - evt.clientY!)
         );
     });
 }

@@ -1,5 +1,5 @@
 import { dia, shapes } from '@joint/core';
-import { ElkLayoutOptions, layout } from '@joint/layout-elk';
+import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
@@ -97,15 +97,15 @@ const init = () => {
         elk,
         // Let ELK reposition (and reorder) every port in the diagram, instead
         // of keeping them where JointJS's own port groups first placed them.
-        positionPorts: 'fixed-side',
+        portsPosition: 'fixed-side',
         positionPortLabels: true,
-        nodeOptions: (element, computed) => {
+        nodeProperties: ({ element, computedProperties }: NodePropertiesCallbackParameters): NodeProperties => {
             // Reserve extra top padding inside containers, so children don't
             // overlap the container's title label.
-            if (element.getEmbeddedCells().length === 0) return undefined;
+            if (element.getEmbeddedCells().length === 0) return computedProperties;
             return {
-                ...computed,
-                layoutOptions: { ...computed.layoutOptions, 'elk.padding': CONTAINER_PADDING }
+                ...computedProperties,
+                layoutOptions: { ...computedProperties.layoutOptions, 'elk.padding': CONTAINER_PADDING }
             };
         },
         elkLayoutOptions
@@ -155,8 +155,8 @@ function addZoomAndPanListeners(paper: dia.Paper): void {
 
     paper.on('blank:pointermove', (evt) => {
         window.scroll(
-            evt.data.scrollX + (evt.data.clientX - evt.clientX),
-            evt.data.scrollY + (evt.data.clientY - evt.clientY)
+            evt.data.scrollX + (evt.data.clientX - evt.clientX!),
+            evt.data.scrollY + (evt.data.clientY - evt.clientY!)
         );
     });
 }

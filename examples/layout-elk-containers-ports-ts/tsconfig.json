@@ -1,11 +1,17 @@
 {
     "compilerOptions": {
         "module": "ES6",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "target": "es6",
+        "lib": [
+            "es2022",
+            "dom"
+        ],
         "noImplicitAny": false,
         "sourceMap": false,
+        "rootDir": "./src",
         "outDir": "./build",
+        "noUncheckedSideEffectImports": false,
         "resolveJsonModule": true,
         "esModuleInterop": true
     }

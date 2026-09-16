@@ -46,7 +46,7 @@ const init = () => {
 
     layout(graph, {
         elk,
-        layoutOptions: {
+        elkLayoutOptions: {
             /**
              * Overall direction of the layout.
              * 'UP' | 'DOWN' | 'LEFT' | 'RIGHT'
@@ -143,8 +143,8 @@ function addZoomAndPanListeners(paper: dia.Paper): void {
 
     paper.on('blank:pointermove', (evt) => {
         window.scroll(
-            evt.data.scrollX + (evt.data.clientX - evt.clientX),
-            evt.data.scrollY + (evt.data.clientY - evt.clientY)
+            evt.data.scrollX + (evt.data.clientX - evt.clientX!),
+            evt.data.scrollY + (evt.data.clientY - evt.clientY!)
         );
     });
 }
@@ -218,7 +218,7 @@ function generateCells(
     graph: dia.Graph
 ): void {
     const elementMap = new Map();
-    const cells = [];
+    const cells: dia.Cell[] = [];
     dependencies.forEach((dep) => {
         // The ELK graph uses string IDs
         const sourceId = `${dep.source}`;
