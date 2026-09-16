@@ -1,4 +1,4 @@
-import { shapes, util } from '@joint/core';
+import { dia, shapes, util } from '@joint/core';
 
 const PORT_SIZE = { width: 12, height: 12 };
 const PORT_ATTRS = {
@@ -19,12 +19,23 @@ const PORT_ATTRS = {
 const PORT_LABEL = {
     position: {
         name: 'outside'
-    },
-    // Generous enough for every port label text in this example ('in', 'in1', 'in2',
-    // 'out', 'out1', 'out2') - `@joint/layout-elk` reads this size directly (via
-    // `positionPortLabels`) rather than measuring the rendered text itself.
-    size: { width: 34, height: 18 }
+    }
 };
+
+// `@joint/layout-elk` reads a port label's `size` directly (via `positionPortLabels`)
+// rather than measuring the rendered text itself, so it has to be estimated from the
+// label text up front. `Service` (below) computes and assigns it for every port as
+// soon as the port is added, from that port's own label text length.
+const PORT_LABEL_AVERAGE_CHAR_WIDTH = PORT_ATTRS.text.fontSize * 0.4;
+const PORT_LABEL_HORIZONTAL_PADDING = 6;
+const PORT_LABEL_HEIGHT = PORT_ATTRS.text.fontSize + 4;
+
+function estimatePortLabelSize(text: string): dia.Size {
+    return {
+        width: Math.ceil(text.length * PORT_LABEL_AVERAGE_CHAR_WIDTH) + PORT_LABEL_HORIZONTAL_PADDING,
+        height: PORT_LABEL_HEIGHT
+    };
+}
 
 // Square ports (rather than `PORT_ATTRS`' circles) set `HubService` apart as
 // a hub with several ports fanning in/out on the same side.
@@ -125,6 +136,25 @@ export class Service extends shapes.standard.Rectangle {
                 ]
             }
         }, super.defaults);
+    }
+
+    initialize(...args: any[]) {
+        super.initialize(...args);
+
+        // Ports present from the start don't go through `ports:add` (it only fires for
+        // ports added after the element already exists), so size them here too.
+        this._sizePortLabels(this.getPorts());
+        this.on('ports:add', (_element: this, addedPorts: dia.Element.Port[]) => {
+            this._sizePortLabels(addedPorts);
+        });
+    }
+
+    private _sizePortLabels(ports: dia.Element.Port[]) {
+        ports.forEach((port) => {
+            const text = port.attrs?.text?.text;
+            if (!port.id || typeof text !== 'string') return;
+            this.portProp(port.id, 'label/size', estimatePortLabelSize(text));
+        });
     }
 }
 

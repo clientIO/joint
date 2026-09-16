@@ -1,12 +1,15 @@
 import { dia } from '@joint/core';
 
-// A fixed (non-random) system diagram: three containers grouping eight
-// services that communicate over ports, including links that cross container
-// boundaries. Every plain `example.Service` has exactly one 'in' and one
-// 'out' port; the four "hub" services (Load Balancer, API Gateway, Auth
-// Service, Logger) are `example.HubService` instead, with a custom number of
-// ports - highlighted, and the only ones that opt into `portsPosition` so
-// ELK orders their ports to minimize crossings (see `index.ts`).
+// A fixed (non-random) system diagram: three top-level containers, two of
+// them with a nested container of their own, grouping eight services that
+// communicate over ports - plus a couple of links that connect two
+// containers directly, rather than a pair of ports, including one that
+// crosses container boundaries. Every plain `example.Service` has exactly
+// one 'in' and one 'out' port; the four "hub" services (Load Balancer, API
+// Gateway, Auth Service, Logger) are `example.HubService` instead, with a
+// custom number of ports - highlighted, and the only ones that opt into
+// `portsPosition` so ELK orders their ports to minimize crossings (see
+// `index.ts`).
 export const graphJSON: dia.Graph.JSON = {
     cells: [
         // Containers
@@ -14,13 +17,27 @@ export const graphJSON: dia.Graph.JSON = {
             id: 'frontend',
             type: 'example.Container',
             attrs: { label: { text: 'Frontend' } },
-            embeds: ['webui', 'mobileui', 'lb', 'gateway']
+            embeds: ['webui', 'mobileui', 'edge']
+        },
+        {
+            id: 'edge',
+            type: 'example.Container',
+            parent: 'frontend',
+            attrs: { label: { text: 'Edge' } },
+            embeds: ['lb', 'gateway']
         },
         {
             id: 'backend',
             type: 'example.Container',
             attrs: { label: { text: 'Backend' } },
-            embeds: ['auth', 'cache', 'db']
+            embeds: ['auth', 'storage']
+        },
+        {
+            id: 'storage',
+            type: 'example.Container',
+            parent: 'backend',
+            attrs: { label: { text: 'Storage' } },
+            embeds: ['cache', 'db']
         },
         {
             id: 'observability',
@@ -45,7 +62,7 @@ export const graphJSON: dia.Graph.JSON = {
         {
             id: 'lb',
             type: 'example.HubService',
-            parent: 'frontend',
+            parent: 'edge',
             size: { width: 130, height: 80 },
             attrs: { body: { fill: '#E3E9C2' }, label: { text: 'Load Balancer' } },
             ports: {
@@ -59,7 +76,7 @@ export const graphJSON: dia.Graph.JSON = {
         {
             id: 'gateway',
             type: 'example.HubService',
-            parent: 'frontend',
+            parent: 'edge',
             size: { width: 130, height: 80 },
             attrs: { body: { fill: '#E3E9C2' }, label: { text: 'API Gateway' } },
             ports: {
@@ -89,13 +106,13 @@ export const graphJSON: dia.Graph.JSON = {
         {
             id: 'cache',
             type: 'example.Service',
-            parent: 'backend',
+            parent: 'storage',
             attrs: { body: { fill: '#F9FBB2' }, label: { text: 'Cache' } }
         },
         {
             id: 'db',
             type: 'example.Service',
-            parent: 'backend',
+            parent: 'storage',
             attrs: { body: { fill: '#C89F9C' }, label: { text: 'Database' } }
         },
 
@@ -170,6 +187,24 @@ export const graphJSON: dia.Graph.JSON = {
             source: { id: 'cache', port: 'out' },
             target: { id: 'db', port: 'in' },
             labels: [{ attrs: { text: { text: 'query' } } }]
+        },
+
+        // Container-to-container links - connected to a `example.Container` cell
+        // itself rather than to one of its ports, aggregating what the individual
+        // service-to-service links above already carry.
+        {
+            id: 'l9',
+            type: 'example.InteractionLink',
+            source: { id: 'backend' },
+            target: { id: 'observability' },
+            labels: [{ attrs: { text: { text: 'metrics' } } }]
+        },
+        {
+            id: 'l10',
+            type: 'example.InteractionLink',
+            source: { id: 'frontend' },
+            target: { id: 'observability' },
+            labels: [{ attrs: { text: { text: 'analytics' } } }]
         }
     ]
 };
