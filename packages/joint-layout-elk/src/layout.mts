@@ -4,8 +4,8 @@ import { importLayout } from './import.mjs';
 import { exportGraph } from './export.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
-import type { EdgeLabelsOptions, ImportLayoutOptions, PortPositionsMode, PortPositionsOptions, PortLabelPositionsOptions } from './import.mjs';
-import type { ElkLayoutOptions, ElkNode } from './elkOptions.mjs';
+import type { ImportLayoutOptions, PortsPositionMode } from './import.mjs';
+import type { ElkLayoutOptions, ElkNode } from './types/index.mjs';
 import type { dia } from '@joint/core';
 import type { ELK, ElkNode as RawElkNode } from 'elkjs';
 
@@ -33,8 +33,7 @@ const INTERACTIVE_LAYOUT_OPTIONS: ElkLayoutOptions = {
     // `'layered'`'s own interactivity is per-phase - each of these reads the corresponding
     // aspect (edge direction, x/y) straight off an element's current position instead of
     // computing it from scratch, so the four are meant to be used together.
-    // 'elk.layered.cycleBreaking.strategy': 'INTERACTIVE',
-    'elk.layered.layering.strategy': 'INTERACTIVE',
+    // 'elk.layered.layering.strategy': 'INTERACTIVE',
     // NOT `crossingMinimization.strategy: 'INTERACTIVE'` - that variant doesn't minimize
     // crossings at all, it just sorts each layer by previous y and calls it done (see
     // `InteractiveCrossingMinimizer` upstream). `semiInteractive` instead keeps the real
@@ -85,7 +84,7 @@ export interface Options extends
      * along the routed link afterwards.
      * @defaultValue true
      */
-    edgeLabels?: boolean | EdgeLabelsOptions;
+    edgeLabels?: boolean;
     /**
      * How freely ELK may reposition (and reorder) ports along their element,
      * instead of keeping them at the position JointJS itself already computed
@@ -95,7 +94,7 @@ export interface Options extends
      * computed for it can be applied.
      * @defaultValue 'fixed'
      */
-    positionPorts?: PortPositionsMode | PortPositionsOptions;
+    portsPosition?: PortsPositionMode;
     /**
      * Whether to let ELK reposition port labels along their port, instead of keeping
      * them at the position JointJS itself already computed for them (via the port
@@ -104,7 +103,7 @@ export interface Options extends
      * computed for it can be applied.
      * @defaultValue false
      */
-    positionPortLabels?: boolean | PortLabelPositionsOptions;
+    positionPortLabels?: boolean;
     /**
      * A name for the layout batch, which can be used to group multiple layout operations together.
      * @defaultValue 'layout'
