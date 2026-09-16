@@ -122,7 +122,9 @@ export function useImperativeApi<Instance, InstanceSelector = Instance>(
   const previousDependenciesRef = useRef<DependencyList | null>(null);
 
   const notifyReadyState = (nextIsReady: boolean, instance: Instance | null) => {
-    setInstanceState(nextIsReady ? instance : null);
+    // Updater form: `Instance` is unconstrained, and a callable instance
+    // passed directly would be invoked as an updater.
+    setInstanceState(() => (nextIsReady ? instance : null));
     onReadyChange?.(nextIsReady, instance);
   };
 

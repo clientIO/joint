@@ -237,7 +237,6 @@ export function useCreatePortalPaper(
 
   // Subscribe to paper version to trigger re-renders on view mount/unmount changes
   const version = useInternalData(selectPaperVersion);
-  const { addPaper } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
@@ -308,7 +307,7 @@ export function useCreatePortalPaper(
   useLayoutEffect(() => {
     const hostElementForCreation = nodeRef?.current;
 
-    const { paperStore, remove } = addPaper(id, {
+    const { paperStore, remove } = graphStore.addPaper(id, {
       paperOptions: {
         ...paperOptions,
         id,
@@ -357,15 +356,13 @@ export function useCreatePortalPaper(
 
       remove();
     };
-    // Create the paper store once per (graph store, paper id): the remaining
-    // options are intentionally captured only on (re-)registration. `addPaper`
-    // is an instance method of the graph store, so its identity changes when a
-    // GraphProvider re-creates its store while this Paper stays mounted (e.g.
-    // a Fast Refresh / dev-server HMR re-runs the provider's mount effect) —
-    // without this dependency the paper would stay registered on the
-    // destroyed store and the canvas would go blank.
+    // One paper store per (graph store, paper id); the remaining options are
+    // intentionally captured only on (re-)registration and pushed later by the
+    // update effect below. Keyed on the store itself: a Paper that stays mounted
+    // while its GraphProvider re-creates the store (a dev-server Fast Refresh)
+    // must re-register on the new one or the canvas goes blank.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addPaper, id]);
+  }, [graphStore, id]);
 
   useLayoutEffect(() => {
     if (!paper) {

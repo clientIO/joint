@@ -14,13 +14,6 @@ const noopViewMountChange = (): void => {
 export const DEFAULT_PAPER_ID = 'default-paper';
 
 /**
- * Extended Paper class that manages React view lifecycle.
- *
- * PaperView centralizes view management by:
- * - Emitting view mount/unmount callbacks for graph-store snapshot sync
- * - Hiding links until their source/target elements have rendered
- */
-/**
  * Type guard: is this paper a {@link PaperView}?
  *
  * Checks the {@link PaperView.getCellViewPortalNode} capability instead of
@@ -37,6 +30,13 @@ export function isPaperView(paper: dia.Paper | null | undefined): paper is Paper
   );
 }
 
+/**
+ * Extended Paper class that manages React view lifecycle.
+ *
+ * PaperView centralizes view management by:
+ * - Emitting view mount/unmount callbacks for graph-store snapshot sync
+ * - Hiding links until their source/target elements have rendered
+ */
 export class PaperView extends Paper {
   public viewChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
   public onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;

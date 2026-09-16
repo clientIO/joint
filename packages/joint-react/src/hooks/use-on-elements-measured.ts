@@ -97,6 +97,10 @@ export function useOnElementsMeasured(
   useLayoutEffect(() => {
     if (!paperStore) return;
     const { paper } = paperStore;
+    // A new paper (or graph store) starts its own measurement history, so its
+    // first pass reports `isInitial: true` again — e.g. after a dev-server hot
+    // reload re-created the store, `transformToFitContent()` callers re-fit.
+    wasMeasuredRef.current = false;
 
     function handleChanges() {
       const value = measureState.get();

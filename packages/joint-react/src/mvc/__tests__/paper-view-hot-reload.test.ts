@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * A dev-server hot reload (HMR) re-evaluates `mvc/paper.ts`, producing a NEW
  * `PaperView` class identity while live paper instances still come from the
