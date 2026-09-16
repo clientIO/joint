@@ -19,7 +19,11 @@ const PORT_ATTRS = {
 const PORT_LABEL = {
     position: {
         name: 'outside'
-    }
+    },
+    // Generous enough for every port label text in this example ('in', 'in1', 'in2',
+    // 'out', 'out1', 'out2') - `@joint/layout-elk` reads this size directly (via
+    // `positionPortLabels`) rather than measuring the rendered text itself.
+    size: { width: 34, height: 18 }
 };
 
 // Square ports (rather than `PORT_ATTRS`' circles) set `HubService` apart as

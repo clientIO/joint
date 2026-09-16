@@ -5,7 +5,7 @@ import { dia } from '@joint/core';
 // boundaries. Every plain `example.Service` has exactly one 'in' and one
 // 'out' port; the four "hub" services (Load Balancer, API Gateway, Auth
 // Service, Logger) are `example.HubService` instead, with a custom number of
-// ports - highlighted, and the only ones that opt into `positionPorts` so
+// ports - highlighted, and the only ones that opt into `portsPosition` so
 // ELK orders their ports to minimize crossings (see `index.ts`).
 export const graphJSON: dia.Graph.JSON = {
     cells: [
