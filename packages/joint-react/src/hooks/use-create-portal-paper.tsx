@@ -353,6 +353,8 @@ export function useCreatePortalPaper(
 
     return () => {
       paperRef.current = null;
+      // A re-registered paper is a new instance: `onReady` fires for it again.
+      isReadyNotifiedRef.current = false;
 
       remove();
     };
@@ -370,11 +372,16 @@ export function useCreatePortalPaper(
       return;
     }
 
+    // In the commit that re-registers the paper (a Fast Refresh of <Paper>),
+    // `paper` is still the removed one — its store snapshot lands next render —
+    // while `paperRef` already holds the replacement. Unfreezing a removed
+    // paper throws, so act on the live one; the re-render runs this again.
+    const livePaper = paperRef.current ?? paper;
     if (onReady && !isReadyNotifiedRef.current) {
       isReadyNotifiedRef.current = true;
-      onReady(paper);
+      onReady(livePaper);
     }
-    paper.unfreeze();
+    livePaper.unfreeze();
   }, [nodeRef, onReady, paper]);
 
   useEffect(() => {

@@ -63,13 +63,40 @@ export class PaperView extends Paper {
   }
 
   /**
-   * Preserves externally managed host elements (e.g. React refs) on cleanup.
+   * Preserves externally managed host elements (e.g. React refs) on cleanup:
+   * only the paper's own top-level nodes (background, svg) leave the host, so
+   * a paper re-created on the same host (a Fast Refresh of `<Paper>`) starts
+   * from a host that still holds React's children and nothing of ours.
    */
   protected _removeElement(): void {
-    if (this.shouldPreserveHostElementOnRemove) {
+    if (!this.shouldPreserveHostElementOnRemove) {
+      super._removeElement();
       return;
     }
-    super._removeElement();
+    for (const node of Object.values(this.childNodes ?? {})) {
+      if (node.parentNode === this.el) {
+        node.remove();
+      }
+    }
+  }
+
+  /**
+   * `mvc.View.renderChildren()` empties the element before appending the
+   * paper's markup. On a React-owned host that would also drop React's own
+   * children (the HTML overlay rendered into the host) when the paper is
+   * re-created there, so they are kept and re-appended after the paper's nodes.
+   *
+   * Runs from `dia.Paper`'s constructor, before this class's fields are
+   * assigned — so it cannot consult `shouldPreserveHostElementOnRemove` and
+   * preserves unconditionally (a paper-created element is empty here anyway).
+   * @param children - Markup to render (defaults to the paper's `children`).
+   * @returns The same PaperView instance for chaining.
+   */
+  renderChildren(children?: dia.MarkupJSON): this {
+    const preservedNodes = [...this.el.childNodes];
+    super.renderChildren(children);
+    this.el.append(...preservedNodes);
+    return this;
   }
 
   public getElementView(id: CellId): dia.ElementView | undefined {

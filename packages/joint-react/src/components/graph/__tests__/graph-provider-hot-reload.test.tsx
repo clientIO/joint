@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 /**
  * Reproduces a dev-server hot reload (Vite/webpack Fast Refresh) of
- * `graph-provider.tsx` — clientIO/joint#3483: "diagram becomes broken or
- * empty after HMR".
+ * `graph-provider.tsx` and of `paper.tsx` — clientIO/joint#3483: "diagram
+ * becomes broken or empty after HMR".
  *
  * When an edit invalidates the graph-provider module, react-refresh re-renders
  * `<GraphProvider>` with the re-evaluated implementation and React re-runs ALL
@@ -12,11 +12,14 @@
  * publish it (not bail out on an unchanged `isReady` boolean), every mounted
  * `<Paper>` must re-register against it, an external `graph` must be adopted
  * without being re-seeded, and measurement hooks must start over on the new
- * paper — otherwise the canvas goes blank until a full page reload.
+ * paper — otherwise the canvas goes blank until a full page reload. A refresh
+ * of `paper.tsx` re-runs `<Paper>`'s effects the same way: the paper is
+ * re-registered on the same host element, and neither the removed paper nor
+ * React's own children inside the host may be touched in the process.
  *
  * The suite drives the REAL react-refresh runtime against the real react-dom:
  * inject the refresh hook before react-dom loads, render, re-evaluate ONLY the
- * graph-provider module (its dependencies stay shared, exactly like Vite HMR),
+ * edited module (its dependencies stay shared, exactly like Vite HMR),
  * register both versions into the same family, and performReactRefresh().
  *
  * No JSX and no top-level value imports in this file: the refresh hook must
@@ -31,11 +34,14 @@ import type { dia } from '@joint/core';
 import type { GraphStore as GraphStoreType } from '../../../store';
 import type { PaperProps } from '../../paper/paper.types';
 import type * as ReactModule from 'react';
+import type * as ReactDomModule from 'react-dom';
 import type * as RTLModule from '@testing-library/react';
 import type * as CoreModule from '@joint/core';
 import type * as ContextModule from '../../../context';
 import type * as StoreModule from '../../../store';
 import type * as ImperativeApiModule from '../../../hooks/use-imperative-api';
+import type * as PortalPaperHookModule from '../../../hooks/use-create-portal-paper';
+import type * as MvcPaperModule from '../../../mvc/paper';
 import type * as ElementModelModule from '../../../mvc/element-model';
 import type * as LinkModelModule from '../../../mvc/link-model';
 import type * as UseGraphStoreModule from '../../../hooks/use-graph-store';
@@ -59,6 +65,7 @@ refreshRuntime.injectIntoGlobalHook(globalThis);
 
 const React: typeof ReactModule = require('react');
 const jsxRuntime: unknown = require('react/jsx-runtime');
+const reactDom: typeof ReactDomModule = require('react-dom');
 const rtl: typeof RTLModule = require('@testing-library/react');
 // Deliberately NOT StrictMode: React's strict double-render replay resets
 // `ignorePreviousDependencies`, so a Fast Refresh under StrictMode does not
@@ -66,13 +73,15 @@ const rtl: typeof RTLModule = require('@testing-library/react');
 // and lets the refresh exercise the destroy/re-create path this bug lives in.
 rtl.configure({ reactStrictMode: false });
 
-// Shared dependencies of graph-provider.tsx, captured once. The re-evaluated
+// Shared dependencies of the refreshed modules, captured once. The re-evaluated
 // module must get the SAME instances — exactly like Vite HMR, which re-runs
 // only the edited module and serves its imports from cache.
 const core: typeof CoreModule = require('@joint/core');
 const contextModule: typeof ContextModule = require('../../../context');
 const storeModule: typeof StoreModule = require('../../../store');
 const imperativeApiModule: typeof ImperativeApiModule = require('../../../hooks/use-imperative-api');
+const portalPaperHookModule: typeof PortalPaperHookModule = require('../../../hooks/use-create-portal-paper');
+const mvcPaperModule: typeof MvcPaperModule = require('../../../mvc/paper');
 
 const elementModelModule: typeof ElementModelModule = require('../../../mvc/element-model');
 const linkModelModule: typeof LinkModelModule = require('../../../mvc/link-model');
@@ -83,30 +92,51 @@ const {
 }: typeof UseOnElementsMeasuredModule = require('../../../hooks/use-on-elements-measured');
 
 const graphProviderV1: typeof GraphProviderModule = require('../graph-provider');
-const { Paper }: typeof PaperModule = require('../../paper/paper');
+const paperV1: typeof PaperModule = require('../../paper/paper');
+const { Paper } = paperV1;
 
 const h = React.createElement;
 
-/** Re-evaluates graph-provider.tsx only, with all its deps shared (Vite HMR). */
-function requireGraphProviderV2(): typeof GraphProviderModule {
+/** Re-evaluates one module only, with the given dependencies served from cache (Vite HMR). */
+function reevaluateModule<Module>(
+  modulePath: string,
+  sharedDependencies: Readonly<Record<string, unknown>>
+): Module {
   jest.doMock('react', () => React);
   jest.doMock('react/jsx-runtime', () => jsxRuntime);
-  jest.doMock('../../../context', () => contextModule);
-  jest.doMock('../../../store', () => storeModule);
-  jest.doMock('../../../hooks/use-imperative-api', () => imperativeApiModule);
-  let moduleV2: typeof GraphProviderModule | null = null;
+  for (const [dependencyPath, dependency] of Object.entries(sharedDependencies)) {
+    jest.doMock(dependencyPath, () => dependency);
+  }
+  let reevaluated: Module | null = null;
   jest.isolateModules(() => {
-    moduleV2 = require('../graph-provider');
+    reevaluated = require(modulePath);
   });
   jest.dontMock('react');
   jest.dontMock('react/jsx-runtime');
-  jest.dontMock('../../../context');
-  jest.dontMock('../../../store');
-  jest.dontMock('../../../hooks/use-imperative-api');
-  if (!moduleV2) {
-    throw new Error('graph-provider re-evaluation failed');
+  for (const dependencyPath of Object.keys(sharedDependencies)) {
+    jest.dontMock(dependencyPath);
   }
-  return moduleV2;
+  if (!reevaluated) {
+    throw new Error(`${modulePath} re-evaluation failed`);
+  }
+  return reevaluated;
+}
+
+function requireGraphProviderV2(): typeof GraphProviderModule {
+  return reevaluateModule('../graph-provider', {
+    '../../../context': contextModule,
+    '../../../store': storeModule,
+    '../../../hooks/use-imperative-api': imperativeApiModule,
+  });
+}
+
+function requirePaperV2(): typeof PaperModule {
+  return reevaluateModule('../../paper/paper', {
+    'react-dom': reactDom,
+    '../../../context': contextModule,
+    '../../../hooks/use-create-portal-paper': portalPaperHookModule,
+    '../../../mvc/paper': mvcPaperModule,
+  });
 }
 
 type ProviderCells = NonNullable<GraphProviderModule.GraphProviderProps['initialCells']>;
@@ -290,8 +320,50 @@ describe('GraphProvider — Fast Refresh (HMR) of graph-provider.tsx', () => {
     });
   });
 
-  // Known gap (see the `react-hmr-paper-view-guard` changeset): a refresh of
-  // paper.tsx re-runs <Paper>'s effects, which unfreezes the already removed
-  // paper and throws. Not covered by this PR.
-  it.todo('keeps the canvas rendered after a hot reload of paper.tsx');
+  // Regression: re-running <Paper>'s effects unfroze the render-time (already
+  // removed) paper — "dia.Paper: can not unfreeze the paper after it was
+  // removed" — and the replacement PaperView emptied the host element, taking
+  // React's own HTML overlay with it.
+  it('keeps the canvas rendered after a hot reload of paper.tsx (HTML overlay)', async () => {
+    const overlayProps: PaperProps = {
+      ...paperProps,
+      useHTMLOverlay: true,
+      renderElement: () => h('div', { 'data-testid': 'node' }),
+    };
+    function App() {
+      return h(
+        graphProviderV1.GraphProvider,
+        { initialCells },
+        h(paperV1.Paper, overlayProps),
+        h(Probe)
+      );
+    }
+    refreshRuntime.register(paperV1.Paper, 'Paper');
+
+    const { container } = await renderDiagram(App);
+
+    const paperV2 = requirePaperV2();
+    expect(paperV2.Paper).not.toBe(paperV1.Paper);
+    refreshRuntime.register(paperV2.Paper, 'Paper');
+    rtl.act(() => {
+      refreshRuntime.performReactRefresh();
+    });
+
+    // The refresh re-registered the paper on the same host: the canvas and
+    // React's overlay content are back in the document…
+    await rtl.waitFor(() => {
+      expect(container.querySelector('svg')).toBeTruthy();
+      expect(countNodes(container)).toBe(2);
+      expect(textOf(container, 'cell-count')).toBe('3');
+    });
+
+    // …and the new paper is live: an imperative edit paints a new element.
+    rtl.act(() => {
+      requireCapturedStore().graph.addCell(extraCell);
+    });
+    await rtl.waitFor(() => {
+      expect(countNodes(container)).toBe(3);
+      expect(textOf(container, 'cell-count')).toBe('4');
+    });
+  });
 });
