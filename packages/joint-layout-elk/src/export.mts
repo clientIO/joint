@@ -367,5 +367,7 @@ export function exportGraph(
 
     graph.getLinks().forEach(buildEdge);
 
+    console.log(elkGraph);
+
     return { elkGraph, elementsById, linksById, portsById };
 }
