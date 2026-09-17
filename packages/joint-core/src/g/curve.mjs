@@ -12,6 +12,9 @@ const {
     pow
 } = Math;
 
+// see `isLine()`
+const LINE_TOLERANCE = 1e-9;
+
 export const Curve = function(p1, p2, p3, p4) {
 
     if (!(this instanceof Curve)) {
@@ -596,8 +599,7 @@ Curve.prototype = {
         // special case #3: straight-line curves have the same observed length in all iterations
         // - this causes observed precision ratio to always be 0 (= lower than `precisionRatio`, which is our exit condition)
         // - we enforce the expected number of iterations = 2 * precision
-        var isLine = ((control1.cross(start, end) === 0) && (control2.cross(start, end) === 0));
-        if (isLine) {
+        if (this.isLine()) {
             minIterations = (2 * precision);
         }
 
@@ -651,6 +653,20 @@ Curve.prototype = {
         var end = this.end;
 
         return !(start.equals(control1) && control1.equals(control2) && control2.equals(end));
+    },
+
+    // Returns true if both control points lie on the chord between `start` and `end`,
+    // i.e. the curve is a straight line (possibly overshooting the chord).
+    // Point-like curves and loops (`start` equal to `end`) are not lines.
+    isLine: function() {
+
+        const { start, controlPoint1, controlPoint2, end } = this;
+        if (start.equals(end)) return false;
+        // cross product = chord length * distance of the control point from the chord,
+        // so comparing it against the squared chord length makes the tolerance scale-independent
+        const tolerance = LINE_TOLERANCE * start.squaredDistance(end);
+        return abs(controlPoint1.cross(start, end)) <= tolerance
+            && abs(controlPoint2.cross(start, end)) <= tolerance;
     },
 
     // Returns flattened length of the curve with precision better than `opt.precision`; or using `opt.subdivisions` provided.
