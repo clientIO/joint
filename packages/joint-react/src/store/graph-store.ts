@@ -118,6 +118,13 @@ export class GraphStore<
   private onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
   // dev-only `change:size` listener that warns about resizing auto-sized elements.
   private warnAutoSizeResize?: (cell: dia.Cell, size: dia.Size, opt?: AutoSizeOptions) => void;
+  // `change:size` listener that discards stale measurement state when an
+  // observed element's size is written from outside the measurement pipeline.
+  private invalidateMeasurementOnResize: (
+    cell: dia.Cell,
+    size: dia.Size,
+    opt?: AutoSizeOptions
+  ) => void;
 
   constructor(public readonly config: GraphStoreOptions<Element, Link>) {
     const {
@@ -240,6 +247,19 @@ export class GraphStore<
       this.graphProjection.syncFromGraph();
     }
 
+    // An external size write (controlled-mode sync, `cell.resize`) on an
+    // observed element would leave the model silently diverged from the DOM:
+    // the measurement pipeline does not re-fire on its own (the DOM did not
+    // change) and its dedup memory would swallow a delivery repeating the
+    // last-measured numbers. Invalidate the cell's measurement state so the
+    // pipeline re-asserts the measured size from the current layout.
+    // Our own measurement writes are marked with `autoSize` and skipped.
+    this.invalidateMeasurementOnResize = (cell, _size, opt) => {
+      if (opt?.[AUTO_SIZE_OPTION]) return;
+      this.observer.invalidate(cell.id);
+    };
+    this.graph.on('change:size', this.invalidateMeasurementOnResize);
+
     // dev only — warn when an auto-sized element (registered with the size
     // observer because it renders without `useModelGeometry`) is resized by
     // something other than the measurement pipeline. Such resizes are
@@ -318,6 +338,7 @@ export class GraphStore<
     this.graphProjection.destroy();
     this.internalState.clean();
     this.observer.clean();
+    this.graph.off('change:size', this.invalidateMeasurementOnResize);
     if (this.warnAutoSizeResize) {
       this.graph.off('change:size', this.warnAutoSizeResize);
     }
