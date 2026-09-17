@@ -1,4 +1,4 @@
-import { dia, shapes } from '@joint/core';
+import { dia, shapes, util } from '@joint/core';
 import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters, type PortProperties, type PortPropertiesCallbackParameters } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
@@ -103,13 +103,11 @@ const init = () => {
             // Reserve extra top padding inside containers, so children don't
             // overlap the container's title label.
             if (element.getEmbeddedCells().length === 0) return computedProperties;
-            return {
-                ...computedProperties,
+            return util.defaultsDeep({}, computedProperties, {
                 layoutOptions: {
-                    ...computedProperties.layoutOptions,
                     'elk.padding': CONTAINER_PADDING
                 }
-            };
+            });
         },
         portProperties: ({ port, element, computedProperties }: PortPropertiesCallbackParameters): PortProperties => {
             return computedProperties;
