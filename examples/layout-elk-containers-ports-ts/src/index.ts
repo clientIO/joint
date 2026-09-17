@@ -1,5 +1,5 @@
 import { dia, shapes, util } from '@joint/core';
-import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters, type PortProperties, type PortPropertiesCallbackParameters } from '@joint/layout-elk';
+import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters, type Options as LayoutOptions, type PortProperties, type PortPropertiesCallbackParameters } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
@@ -28,7 +28,10 @@ const init = () => {
         width: 1200,
         height: 700,
         gridSize: 1,
-        interactive: false,
+        // Elements can be dragged around; every other interaction (links,
+        // vertices, resizing, ...) stays disabled, matching this example's
+        // otherwise read-only diagram.
+        interactive: { elementMove: true },
         async: true,
         frozen: true,
         defaultConnector: {
@@ -93,32 +96,61 @@ const init = () => {
         workerUrl: '../node_modules/elkjs/lib/elk-worker.js'
     });
 
-    layout(graph, {
-        elk,
-        // Let ELK reposition (and reorder) every port in the diagram, instead
-        // of keeping them where JointJS's own port groups first placed them.
-        portsPosition: 'fixed-side',
-        positionPortLabels: true,
-        nodeProperties: ({ element, computedProperties }: NodePropertiesCallbackParameters): NodeProperties => {
-            // Reserve extra top padding inside containers, so children don't
-            // overlap the container's title label.
-            if (element.getEmbeddedCells().length === 0) return computedProperties;
-            return util.defaultsDeep({}, computedProperties, {
-                layoutOptions: {
-                    'elk.padding': CONTAINER_PADDING
-                }
-            });
-        },
-        portProperties: ({ port, element, computedProperties }: PortPropertiesCallbackParameters): PortProperties => {
-            return computedProperties;
-        },
-        elkLayoutOptions
-    }).then(() => {
-        paper.unfreeze();
-        zoom(paper, 1);
+    // Wraps every `layout()` call the example makes - freezing the paper for its
+    // (async) duration, so nothing renders mid-layout, and reporting any error the
+    // same way regardless of which caller triggered the layout.
+    const runLayout = (options?: Partial<LayoutOptions>): Promise<void> => {
+        paper.freeze();
+        return layout(graph, {
+            elk,
+            // Let ELK reposition (and reorder) every port in the diagram, instead
+            // of keeping them where JointJS's own port groups first placed them.
+            portsPosition: 'fixed-side',
+            positionPortLabels: true,
+            nodeProperties: ({ element, computedProperties }: NodePropertiesCallbackParameters): NodeProperties => {
+                // Reserve extra top padding inside containers, so children don't
+                // overlap the container's title label.
+                if (element.getEmbeddedCells().length === 0) return computedProperties;
+                return util.defaultsDeep({}, computedProperties, {
+                    layoutOptions: {
+                        'elk.padding': CONTAINER_PADDING
+                    }
+                });
+            },
+            portProperties: ({ port, element, computedProperties }: PortPropertiesCallbackParameters): PortProperties => {
+                return computedProperties;
+            },
+            elkLayoutOptions,
+            ...options
+        }).then(() => {
+            paper.unfreeze();
+        }).catch((error) => {
+            paper.unfreeze();
+            console.error('ELK layout error:', error.message);
+        });
+    };
 
-    }).catch((error) => {
-        console.error('ELK layout error:', error.message);
+    // Initial layout of the fixed example data, fit to the paper's viewport.
+    runLayout().then(() => zoom(paper, 1));
+
+    // Re-run the layout, with `interactive: true`, whenever the user finishes
+    // dragging an element. Note what this does and doesn't do: ELK's `layered`
+    // algorithm assigns each node's layer (i.e. column, since `elk.direction:
+    // 'RIGHT'`) from the graph's topology alone, every time, from scratch - so a
+    // drag that only reorders nodes within their existing layer sticks, but one
+    // that tries to move a node to a different layer typically doesn't, and the
+    // node snaps back close to where it was. `interactive: true` is really aimed
+    // at a different scenario - keeping the rest of an already laid out diagram
+    // stable when the *graph itself* changes (e.g. a node/edge is added), rather
+    // than at freely relocating an existing node by hand.
+    paper.on('element:pointerup', () => {
+        runLayout({ interactive: true }).then(() => zoom(paper, 1));
+    });
+
+    // "Layout" toolbar button - lays out the whole graph from scratch, ignoring
+    // elements' current positions, same as the initial layout above.
+    document.getElementById('layout')!.addEventListener('click', () => {
+        runLayout().then(() => zoom(paper, 1));
     });
 };
 
