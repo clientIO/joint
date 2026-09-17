@@ -33,7 +33,7 @@ const INTERACTIVE_LAYOUT_OPTIONS: ElkLayoutOptions = {
     // `'layered'`'s own interactivity is per-phase - each of these reads the corresponding
     // aspect (edge direction, x/y) straight off an element's current position instead of
     // computing it from scratch, so the four are meant to be used together.
-    // 'elk.layered.layering.strategy': 'INTERACTIVE',
+    'elk.layered.layering.strategy': 'INTERACTIVE',
     // NOT `crossingMinimization.strategy: 'INTERACTIVE'` - that variant doesn't minimize
     // crossings at all, it just sorts each layer by previous y and calls it done (see
     // `InteractiveCrossingMinimizer` upstream). `semiInteractive` instead keeps the real
