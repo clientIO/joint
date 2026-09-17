@@ -144,6 +144,26 @@ describe('reconcileLayers', () => {
     });
   });
 
+  // Regression: a dropped override of an attribute the layer class defaults was
+  // left in place, so the graph no longer matched the declared record.
+  it('restores the class default when a record drops an overridden attribute', () => {
+    class TintLayer extends dia.GraphLayer {
+      defaults() {
+        return { ...super.defaults(), type: 'TintLayer', opacity: 1 };
+      }
+    }
+    const graph = new dia.Graph(
+      {},
+      { cellNamespace: DEFAULT_CELL_NAMESPACE, layerNamespace: { TintLayer } }
+    );
+    reconcileLayers(graph, [{ id: 'tint', type: 'TintLayer', opacity: 0.5 }]);
+    expect(graph.getLayer('tint').get('opacity')).toBe(0.5);
+
+    reconcileLayers(graph, [{ id: 'tint', type: 'TintLayer' }]);
+
+    expect(graph.getLayer('tint').get('opacity')).toBe(1);
+  });
+
   // Regression: an empty declaration returned early, so attributes given to the
   // default layer earlier (e.g. `visible: false`) and its position were kept.
   it('reconciles the default layer on an empty declaration', () => {

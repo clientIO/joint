@@ -147,15 +147,19 @@ function updateLayerAttributes(
     if (!RESERVED_KEYS.has(key)) attributes[key] = record[key];
   }
   layer.set(attributes, options);
-  // Unset only attributes the record dropped that the layer class does not
-  // provide as a default — a custom `dia.GraphLayer` subclass keeps its own.
-  // `defaults()` allocates; fetch it only once an attribute is actually missing.
+  // An attribute the record dropped goes back to the layer class's default when
+  // it provides one (a custom `dia.GraphLayer` subclass keeps its own), and is
+  // unset otherwise. `defaults()` allocates; fetch it only once an attribute is
+  // actually missing.
   let classDefaults: Record<string, unknown> | null = null;
   for (const key in layer.attributes) {
     if (RESERVED_KEYS.has(key) || key in record) continue;
     classDefaults ??= layer.defaults();
-    if (key in classDefaults) continue;
-    layer.unset(key, options);
+    if (key in classDefaults) {
+      layer.set(key, classDefaults[key], options);
+    } else {
+      layer.unset(key, options);
+    }
   }
 }
 

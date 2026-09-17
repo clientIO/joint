@@ -93,6 +93,29 @@ function isReactOrigin(eventOptions: unknown): boolean {
 }
 
 /**
+ * Throws when a cell names a layer that neither the graph nor the declared
+ * `layers` provide. O(n) property reads; the layer lookup is a Map hit.
+ * @param graph - The target graph.
+ * @param cells - The records about to be synced.
+ * @param layers - Layers declared in the same commit, if any.
+ */
+function assertLayersExist(
+  graph: dia.Graph,
+  cells: ReadonlyArray<ElementJSONInit | LinkJSONInit>,
+  layers: readonly LayerRecord[] | undefined
+): void {
+  for (const cell of cells) {
+    const { layer } = cell;
+    if (layer == null || graph.hasLayer(layer)) continue;
+    if (layers?.some((record) => record.id === layer)) continue;
+    throw new Error(
+      `GraphProvider: cell "${String(cell.id)}" names layer "${layer}", which does not exist. ` +
+        'Declare it in `layers` / `initialLayers`, or add it to the graph first.'
+    );
+  }
+}
+
+/**
  * Sets up listeners for JointJS graph mutations and translates them into incremental change events.
  * Batching is always on: layout changes are immediate, data changes fire on batch:stop.
  * @param options - Graph listener configuration.
@@ -304,6 +327,11 @@ export function graphChanges(options: Options) {
 
       // Tagged batch: every event inside it carries the React-origin flag, so
       // `batch:stop` schedules no redundant (empty) change pass for it.
+      // Reject before any batch opens: joint-core throws on a cell naming a
+      // layer that does not exist, and a throw inside the batch would leave the
+      // graph reported as "inside a batch" for every later change.
+      if (cells) assertLayersExist(graph, cells, layers);
+
       graph.startBatch('updateFromReact', syncOptions);
       // Layers first: a cell may name a layer declared in this same commit.
       if (layers) reconcileLayers(graph, layers, syncOptions);
