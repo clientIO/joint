@@ -87,8 +87,9 @@ export function readLayerRecords(
  * {@link removeEmptyLayers} once the cells are synced, because joint-core
  * refuses to remove a non-empty layer.
  *
- * The default layer always exists and is never removed; omit it and it stays
- * at the bottom, name it to position it.
+ * The default layer always exists and is never removed; omit it and it is
+ * reconciled as a bare `{ id }` at the bottom (so attributes it was given
+ * earlier are unset), name it to position it.
  * @param graph - The graph to reconcile.
  * @param next - Declared layers in paint order.
  * @param options - Forwarded into every graph event this raises (tag React writes here).
@@ -99,7 +100,6 @@ export function reconcileLayers(
   next: readonly LayerRecord[],
   options: Record<string, unknown> = {}
 ): void {
-  if (next.length === 0) return;
   const defaultId = graph.getDefaultLayer().id;
   const target = next.some((record) => record.id === defaultId)
     ? next
@@ -109,7 +109,10 @@ export function reconcileLayers(
     if (graph.hasLayer(record.id)) {
       updateLayerAttributes(graph.getLayer(record.id), record, options);
     } else {
-      graph.addLayer({ ...record }, options);
+      // `isDefault` is derived from the graph, never an attribute to store.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { isDefault, ...layerInit } = record;
+      graph.addLayer(layerInit, options);
     }
   }
 

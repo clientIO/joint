@@ -496,6 +496,44 @@ QUnit.module('Layers', function(hooks) {
         assert.ok(afterPaperRefSetSpy.calledOnce, 'afterPaperReferenceSet should still be called only once');
     });
 
+    QUnit.test('re-adding a layer while its view removal is pending (async paper)', (assert) => {
+        const paperEl = document.createElement('div');
+        fixtures.getElement().appendChild(paperEl);
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const paper = new joint.dia.Paper({
+            el: paperEl,
+            model: graph,
+            cellViewNamespace: joint.shapes,
+            async: true,
+            autoFreeze: false
+        });
+
+        graph.addLayer({ id: 'layer1' });
+        paper.updateViews();
+        // The view removal is deferred to the next update; the re-add lands before it.
+        graph.removeLayer('layer1');
+        graph.addLayer({ id: 'layer1' });
+        paper.updateViews();
+
+        assert.ok(paper.hasLayerView('layer1'), 'The re-added layer has a view after the update');
+        assert.equal(paper.getLayerView('layer1').model, graph.getLayer('layer1'), 'The view is bound to the re-added layer');
+
+        const rect1 = new joint.shapes.standard.Rectangle({ id: 'rect1', layer: 'layer1', z: 2 });
+        const rect2 = new joint.shapes.standard.Rectangle({ id: 'rect2', layer: 'layer1', z: 1 });
+        graph.addCells([rect1, rect2]);
+        paper.updateViews();
+        const layerViewEl = paper.getLayerView('layer1').el;
+        assert.ok(layerViewEl.contains(paper.findViewByModel(rect1).el), 'A cell added to the re-added layer renders in its view');
+
+        // The view listens to the re-added layer: a z change re-sorts its cell views.
+        rect2.set('z', 3);
+        paper.updateViews();
+        const order = Array.from(layerViewEl.children).map((node) => node.getAttribute('model-id'));
+        assert.deepEqual(order, ['rect1', 'rect2'], 'A later z change re-sorts the cell views');
+
+        paper.remove();
+    });
+
     QUnit.test('removing layer with cells', (assert) => {
         const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });
         this.graph.addLayer(layer1);

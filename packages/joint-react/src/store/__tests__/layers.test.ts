@@ -144,6 +144,28 @@ describe('reconcileLayers', () => {
     });
   });
 
+  // Regression: an empty declaration returned early, so attributes given to the
+  // default layer earlier (e.g. `visible: false`) and its position were kept.
+  it('reconciles the default layer on an empty declaration', () => {
+    const graph = createGraph();
+    reconcileLayers(graph, [{ id: 'layer1' }, { id: 'cells', visible: false }]);
+    expect(layerIds(graph)).toEqual(['layer1', 'cells']);
+
+    reconcileLayers(graph, EMPTY_LAYERS);
+
+    expect(graph.getDefaultLayer().has('visible')).toBe(false);
+    expect(layerIds(graph)).toEqual(['cells', 'layer1']);
+  });
+
+  // Regression: the add path copied a record's `isDefault` into the new layer,
+  // so it was stored, exported, and projected back as if the layer were default.
+  it('never stores isDefault on a newly added layer', () => {
+    const graph = createGraph();
+    reconcileLayers(graph, [{ id: 'layer1', isDefault: true }]);
+    expect(graph.getLayer('layer1').has('isDefault')).toBe(false);
+    expect(readLayerRecords(graph, EMPTY_LAYERS)[1]).toEqual({ id: 'layer1' });
+  });
+
   it('never exits legacy mode until a layer is actually declared', () => {
     const graph = createGraph();
     reconcileLayers(graph, EMPTY_LAYERS);

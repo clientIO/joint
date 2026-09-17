@@ -792,7 +792,17 @@ export const Paper = View.extend({
     * @description When a new layer is added to the graph, we create a new layer view
     **/
     onGraphLayerAdd: function(layer, _, opt) {
-        if (this.hasLayerView(layer.id)) return;
+        if (this.hasLayerView(layer.id)) {
+            const existingLayerView = this.getLayerView(layer.id);
+            if (existingLayerView.model === layer) return;
+            // A layer with this id was removed within the current update cycle and
+            // the removal of its view is still pending (`onGraphLayerRemove` defers
+            // it so that the cell views leave first). The new layer would be left
+            // without a view once that removal runs, so drop the pending removal
+            // together with the stale view now and render a view for the new layer.
+            this._dumpLayerViewUpdate(existingLayerView);
+            this._removeLayerView(existingLayerView);
+        }
 
         const layerView = this.createLayerView({
             id: layer.id,
@@ -1018,6 +1028,20 @@ export const Paper = View.extend({
      */
     getLayerNode(layerId) {
         return this.getLayerView(layerId).el;
+    },
+
+    /**
+     * @protected
+     * @description Discards the update scheduled for the given layer view, if any.
+     * @param {dia.LayerView} layerView - The layer view whose pending update is dropped.
+     */
+    _dumpLayerViewUpdate(layerView) {
+        const { _updates: updates } = this;
+        const { cid, UPDATE_PRIORITY } = layerView;
+        const priorityUpdates = updates.priorities[UPDATE_PRIORITY];
+        if (!priorityUpdates || !(cid in priorityUpdates)) return;
+        delete priorityUpdates[cid];
+        updates.count--;
     },
 
     /**

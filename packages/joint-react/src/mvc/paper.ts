@@ -53,35 +53,6 @@ export class PaperView extends Paper {
   }
 
   /**
-   * Keeps a layer view alive when its layer is dropped and re-declared within
-   * one frame. Core defers the view's removal to the next update pass but
-   * early-returns on a re-add while that removal is still pending, which
-   * orphans the layer — the next cell placed on it would throw `Unknown layer
-   * view` from the async update loop. Requesting an insert cancels the pending
-   * removal (core clears `FLAG_REMOVE` when `FLAG_INSERT` arrives), and the
-   * sort pass puts the kept view back in paint order.
-   * @param layer - The re-added graph layer.
-   * @param collection - The graph's layer collection.
-   * @param opt - Options of the originating `addLayer` call.
-   */
-  protected onGraphLayerAdd(
-    layer: dia.GraphLayer,
-    collection: mvc.Collection<dia.GraphLayer>,
-    opt: dia.Graph.Options
-  ): void {
-    if (!this.hasLayerView(layer.id)) {
-      super.onGraphLayerAdd(layer, collection, opt);
-      return;
-    }
-    const layerView = this.getLayerView(layer.id);
-    // `FLAG_INSERT` is a paper constant core's typings omit; widen and narrow.
-    const { FLAG_INSERT }: { readonly FLAG_INSERT?: unknown } = this;
-    if (typeof FLAG_INSERT !== 'number') return;
-    this.requestViewUpdate(layerView, FLAG_INSERT, layerView.UPDATE_PRIORITY, opt);
-    this.onGraphLayerCollectionSort(collection);
-  }
-
-  /**
    * Every layer group passes through here — initial render, a late
    * `addLayer`, and each reorder — so the visibility is applied once, here.
    * @param layerView - The layer view being inserted.

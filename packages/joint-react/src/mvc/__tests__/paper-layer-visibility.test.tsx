@@ -75,12 +75,13 @@ describe('layer visibility on <Paper>', () => {
   });
 });
 
-// Regression: core's Paper defers a layer view removal but early-returns on a
-// re-add while that removal is still pending, so dropping and re-declaring a
-// layer within one frame orphaned it — the next cell placed on it threw
+// Regression (fixed in joint-core's `dia.Paper.onGraphLayerAdd`): the paper
+// defers a layer view removal but early-returned on a re-add while that
+// removal was still pending, so dropping and re-declaring a layer within one
+// frame left it without a view — the next cell placed on it threw
 // `Unknown layer view` from the async update loop and never rendered.
 describe('re-declaring a layer within one frame', () => {
-  it('keeps a live layer view and renders a cell added to it afterwards', async () => {
+  it('gets a view bound to the new layer and renders a cell added to it afterwards', async () => {
     const { result, paper } = await mountPaper('vis-readd');
 
     await commit(() => {
@@ -88,8 +89,10 @@ describe('re-declaring a layer within one frame', () => {
       result.current.api.setLayers([{ id: 'cells' }, { id: 'notes' }, { id: 'overlay' }]);
     });
     paper.updateViews();
-    expect(result.current.store.graph.hasLayer('overlay')).toBe(true);
+    const { graph } = result.current.store;
+    expect(graph.hasLayer('overlay')).toBe(true);
     expect(paper.hasLayerView('overlay')).toBe(true);
+    expect(paper.getLayerView('overlay').model).toBe(graph.getLayer('overlay'));
 
     await commit(() => {
       result.current.api.setCell({ id: 'late', type: 'element', layer: 'overlay' });
