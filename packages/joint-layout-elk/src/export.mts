@@ -145,7 +145,6 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
 
         const properties = element.portProp(portId, 'elkLayout');
 
-
         // `port` (from `element.getPorts()`) already carries the fully resolved label -
         // a port's own `label` (if it has one) merged over its group's, same as JointJS
         // itself resolves it. `element.portProp`/`getPort`, by contrast, only ever see the
@@ -242,17 +241,9 @@ function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 
         ...ELK_PORT_CONSTRAINTS_BY_MODE[exportGraphOptions.portsPosition ?? 'fixed'],
         'portLabels.placement': 'OUTSIDE'
     } : {};
-    // A hint of the element's current position - read directly (as the plain `x`/`y`
-    // below) by ELK's `interactive` strategies (see `layout.mts`), and via this distinct
-    // option by `elk.layered.crossingMinimization.semiInteractive`. A brand new element
-    // has no meaningful position yet - strip this (and `x`/`y`) via `nodeOptions` (e.g.
-    // based on your own "is this new" convention) to let ELK place it freely instead of
-    // anchoring it here.
-    layoutOptions['elk.position'] = `(${x},${y})`;
 
     const embeds = element.getEmbeddedCells()
         .filter((cell): cell is dia.Element => cell.isElement());
-
 
     let children: ElkNode[] | undefined;
     let edges: ElkExtendedEdge[] | undefined;
