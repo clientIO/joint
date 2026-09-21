@@ -348,6 +348,25 @@ PortData.prototype = {
     }
 };
 
+// Group properties this module already merges into a port itself, at render time
+// (see `PortData.prototype._evaluatePort`) - excluded from `portProp`'s own group
+// fallback below so that behavior (raw, port-only data) stays exactly as it was.
+const PORT_OWN_GROUP_PROPERTIES = ['position', 'label', 'markup', 'attrs', 'size', 'z'];
+
+// A port's own `value` for some `portProp` path, merged with its group's `value` for
+// that same path - `value` wins on conflicts, same as `attrs`/`label`/... already do
+// (see `PortData.prototype._evaluatePort`): a plain object merges recursively (so a
+// port only needs to override the parts of a group-level object it cares about), while
+// anything else (including a completely absent `value`) is just replaced outright.
+function mergeWithPortGroupValue(value, groupValue) {
+    if (groupValue === undefined) return value;
+    if (value === undefined) return util.cloneDeep(groupValue);
+    if (util.isPlainObject(value) && util.isPlainObject(groupValue)) {
+        return util.merge({}, groupValue, value);
+    }
+    return value;
+}
+
 export const elementPortPrototype = {
 
     _initializePorts: function(options) {
@@ -617,12 +636,23 @@ export const elementPortPrototype = {
         }
 
         var args = Array.prototype.slice.call(arguments, 1);
+        // A get (no `value` to set) whose `path` targets a property this module does
+        // not already merge into the port itself (see `PORT_OWN_GROUP_PROPERTIES`) is
+        // merged here instead with the port's group's own value at that same path - so
+        // e.g. custom metadata set once on a group (a consumer's own `elkLayout`, say)
+        // is still visible on every one of that group's ports, without repeating it on
+        // each one - see `mergeWithPortGroupValue`.
+        var isGet = (value === undefined) && !util.isPlainObject(path);
+        var pathArray = null;
+
         if (Array.isArray(path)) {
+            pathArray = path;
             args[0] = ['ports', 'items', index].concat(path);
         } else if (util.isString(path)) {
 
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
+            pathArray = path.split('/');
             args[0] = ['ports/items/', index, '/', path].join('');
 
         } else {
@@ -634,7 +664,15 @@ export const elementPortPrototype = {
             }
         }
 
-        return this.prop.apply(this, args);
+        var result = this.prop.apply(this, args);
+
+        if (isGet && pathArray && PORT_OWN_GROUP_PROPERTIES.indexOf(pathArray[0]) === -1) {
+            var group = util.toArray(this.prop('ports/items'))[index].group;
+            var groupValue = (group === undefined) ? undefined : util.getByPath(this.prop(['ports', 'groups', group]), pathArray);
+            result = mergeWithPortGroupValue(result, groupValue);
+        }
+
+        return result;
     },
 
     _validatePorts: function() {

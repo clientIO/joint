@@ -143,7 +143,8 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         const elkPortId = `${element.id}:${portId}`;
         portsById.set(elkPortId, { element, portId });
 
-        const layoutOptions: PortElkLayoutOptions = {};
+        const properties = element.portProp(portId, 'elkLayout');
+
 
         // `port` (from `element.getPorts()`) already carries the fully resolved label -
         // a port's own `label` (if it has one) merged over its group's, same as JointJS
@@ -151,10 +152,8 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         // port's own raw, unmerged JSON, so they can't be used here.
         let labels: ElkLabel[] | undefined;
         if (exportGraphOptions.positionPortLabels) {
-            // @ts-expect-error `getPortMetrics` isn't officially typed
-            const portMetrics = element.getPortMetrics(portId);
 
-            const { width: labelWidth, height: labelHeight } = portMetrics.labelSize ?? DEFAULT_LABEL_SIZE;
+            const { width: labelWidth, height: labelHeight } = properties?.labelSize ?? DEFAULT_LABEL_SIZE;
             labels = [{
                 // Some text is required, otherwise ELK ignores the label.
                 text: ELK_LABEL_TEXT,
@@ -164,17 +163,46 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             }];
         }
 
-        const { x, y, width, height } = element.getPortRelativeRect(portId);
-        layoutOptions['port.borderOffset'] = (-width / 2).toString();
+        let portProperties: PortProperties = {};
+        const layoutOptions: PortElkLayoutOptions = {};
+        const { x, y } = element.getPortRelativePosition(portId);
+        const { width, height } = element.getPortRelativeRect(portId);
 
-        let portProperties: PortProperties = {
-            x,
-            y,
+        if (!exportGraphOptions.portsPosition || exportGraphOptions.portsPosition === 'fixed') {
+            portProperties.x = x;
+            portProperties.y = y;
+        }
+
+        if (exportGraphOptions.portsPosition === 'fixed-side') {
+            switch (properties?.side) {
+                case 'WEST':
+                    layoutOptions['elk.port.side'] = 'WEST';
+                    break;
+                case 'EAST':
+                    layoutOptions['elk.port.side'] = 'EAST';
+                    break;
+                case 'SOUTH':
+                    layoutOptions['elk.port.side'] = 'SOUTH';
+                    break;
+                case 'NORTH':
+                    layoutOptions['elk.port.side'] = 'NORTH';
+                    break;
+                default:
+            }
+        }
+
+        if (exportGraphOptions.portsPosition === 'fixed-side' || exportGraphOptions.portsPosition === 'free') {
+            layoutOptions['elk.port.borderOffset'] = `${-width / 2}`;
+        }
+
+        portProperties = {
             width,
             height,
             labels,
-            ...layoutOptions
+            layoutOptions,
+            ...portProperties
         };
+
         if (exportGraphOptions.portProperties) {
             portProperties = exportGraphOptions.portProperties({
                 port,
