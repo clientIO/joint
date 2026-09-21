@@ -1,5 +1,5 @@
 import { dia, shapes, util } from '@joint/core';
-import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters, type Options as LayoutOptions, type PortProperties, type PortPropertiesCallbackParameters } from '@joint/layout-elk';
+import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters, type PortProperties, type PortPropertiesCallbackParameters } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
@@ -28,10 +28,7 @@ const init = () => {
         width: 1200,
         height: 700,
         gridSize: 1,
-        // Elements can be dragged around; every other interaction (links,
-        // vertices, resizing, ...) stays disabled, matching this example's
-        // otherwise read-only diagram.
-        interactive: { elementMove: true },
+        interactive: false,
         async: true,
         frozen: true,
         defaultConnector: {
@@ -99,7 +96,7 @@ const init = () => {
     // Wraps every `layout()` call the example makes - freezing the paper for its
     // (async) duration, so nothing renders mid-layout, and reporting any error the
     // same way regardless of which caller triggered the layout.
-    const runLayout = (options?: Partial<LayoutOptions>): Promise<void> => {
+    const runLayout = (): Promise<void> => {
         paper.freeze();
         return layout(graph, {
             elk,
@@ -117,11 +114,7 @@ const init = () => {
                     }
                 });
             },
-            portProperties: ({ port, element, computedProperties }: PortPropertiesCallbackParameters): PortProperties => {
-                return computedProperties;
-            },
-            elkLayoutOptions,
-            ...options
+            elkLayoutOptions
         }).then(() => {
             paper.unfreeze();
         }).catch((error) => {
@@ -133,22 +126,10 @@ const init = () => {
     // Initial layout of the fixed example data, fit to the paper's viewport.
     runLayout().then(() => zoom(paper, 1));
 
-    // Re-run the layout, with `interactive: true`, whenever the user finishes
-    // dragging an element. Note what this does and doesn't do: ELK's `layered`
-    // algorithm assigns each node's layer (i.e. column, since `elk.direction:
-    // 'RIGHT'`) from the graph's topology alone, every time, from scratch - so a
-    // drag that only reorders nodes within their existing layer sticks, but one
-    // that tries to move a node to a different layer typically doesn't, and the
-    // node snaps back close to where it was. `interactive: true` is really aimed
-    // at a different scenario - keeping the rest of an already laid out diagram
-    // stable when the *graph itself* changes (e.g. a node/edge is added), rather
-    // than at freely relocating an existing node by hand.
-    paper.on('element:pointerup', () => {
-        runLayout({ interactive: true }).then(() => zoom(paper, 1));
-    });
-
-    // "Layout" toolbar button - lays out the whole graph from scratch, ignoring
-    // elements' current positions, same as the initial layout above.
+    // "Layout" toolbar button - re-runs the same from-scratch layout on the
+    // unchanged graph. Every run is independent (no `interactive: true`), so
+    // clicking it repeatedly is a quick way to check that `layout()` is
+    // idempotent - each run should settle on the same result as the last.
     document.getElementById('layout')!.addEventListener('click', () => {
         runLayout().then(() => zoom(paper, 1));
     });

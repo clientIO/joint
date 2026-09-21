@@ -110,13 +110,20 @@ const defaultSetElementAttributes: SetElementAttributesCallback = ({ element, at
 
 const defaultSetPortAttributes: SetPortAttributesCallback = ({ element, portId, attributes }) => {
     const { group } = element.getPort(portId);
-    if (group !== undefined) {
-        // Every port ends up with a computed position (all of an element's ports are
-        // exported), so switching the whole group to `'absolute'` is safe here - it
-        // only replaces the group's `position`, leaving its `attrs`/`markup`/`label` intact.
-        element.prop(['ports', 'groups', group, 'position'], { name: 'absolute' });
+
+    // With `portsPosition` 'fixed' (the default), a port already stays exactly where
+    // JointJS's own port groups place it - ELK was only told where that is, not asked
+    // to move it - so there is nothing to apply back, and the group keeps its own
+    // position type (e.g. 'left') instead of being replaced with a fixed 'absolute' one.
+    if ((importLayoutOptions.portsPosition ?? 'fixed') !== 'fixed') {
+        if (group !== undefined) {
+            // Every port ends up with a computed position (all of an element's ports are
+            // exported), so switching the whole group to `'absolute'` is safe here - it
+            // only replaces the group's `position`, leaving its `attrs`/`markup`/`label` intact.
+            element.prop(['ports', 'groups', group, 'position'], { name: 'absolute' });
+        }
+        element.portProp(portId, ['position', 'args'], attributes.position);
     }
-    element.portProp(portId, ['position', 'args'], attributes.position);
 
     if (attributes.labelPosition) {
         if (group !== undefined) {
@@ -260,10 +267,21 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
                 }
             }
 
+            // Like a node's, ELK's own `x`/`y` for a port is the top-left corner of its
+            // bounding box - but the 'absolute' port position (which `layout()` switches
+            // every port-bearing group to, see `defaultSetPortAttributes` below) takes its
+            // `args.x`/`args.y` to be the port's *center* (`dia.Element#getPortRelativeRect`
+            // derives the port's rect by subtracting half its size from that same position).
+            // Without this, every `layout()` call would shift each port half its own size
+            // off from where the previous call left it - compounding on every further call.
+            const width = port.width || 0;
+            const height = port.height || 0;
+            const position: dia.Point = { x: (port.x || 0) + width / 2, y: (port.y || 0) + height / 2 };
+
             setPortAttributes({
                 element: found.element,
                 portId: found.portId,
-                attributes: { position: { x: port.x || 0, y: port.y || 0 }, labelPosition }
+                attributes: { position, labelPosition }
             });
         });
     }
