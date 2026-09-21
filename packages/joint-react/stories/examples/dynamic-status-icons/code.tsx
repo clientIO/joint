@@ -228,9 +228,7 @@ function Main() {
   useOnElementsMeasured(({ isInitial, paper }) => {
     if (!isInitial) return;
     for (const element of graph.getElements()) {
-      const elementView = element.findView(paper);
-      if (!elementView) continue;
-      StatusList.add(elementView, 'root', 'status', {
+      StatusList.add(element.findView(paper), 'root', 'status', {
         attribute: 'status',
         position: 'top-right',
         margin: { right: 5, top: 5 },

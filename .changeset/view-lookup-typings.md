@@ -2,4 +2,4 @@
 "@joint/core": patch
 ---
 
-types - view lookups (`cell.findView()`, `paper.findViewByModel()`, `paper.getCellView()`) now infer the view type from the model and include the absent-view case in the return type
+types - `cell.findView()` returns `ElementView` for `dia.Element` and `LinkView` for `dia.Link`; `paper.getCellView()` infers the view type from the model

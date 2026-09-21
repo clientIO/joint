@@ -219,7 +219,6 @@ function Selection({ selectedId }: { selectedId: CellId | null }) {
     if (!cell) return;
 
     const view = paper.findViewByModel(cell);
-    if (!view) return;
     highlighters.mask.add(view, 'root', 'selection', {
       padding: 8,
       layer: dia.Paper.Layers.FRONT,

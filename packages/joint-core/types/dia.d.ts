@@ -752,7 +752,7 @@ export class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSet
 
     addTo(graph: Graph, opt?: Graph.Options): this;
 
-    findView(paper: Paper): CellView | undefined;
+    findView(paper: Paper): CellView;
 
     isLink(): this is Link;
 
@@ -918,7 +918,7 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     constructor(attributes?: DeepPartial<A>, opt?: Element.ConstructorOptions);
 
-    findView(paper: Paper): ElementView | undefined;
+    findView(paper: Paper): ElementView;
 
     translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -1055,7 +1055,7 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
      */
     labelMarkup?: string | MarkupJSON; // default label markup
 
-    findView(paper: Paper): LinkView | undefined;
+    findView(paper: Paper): LinkView;
 
     disconnect(): this;
 
@@ -2074,11 +2074,7 @@ export class Paper extends mvc.View<Graph> {
 
     findView<T extends ElementView | LinkView>(element: mvc.$SVGElement): T;
 
-    findViewByModel(model: Element): ElementView | undefined;
-    findViewByModel(model: Link): LinkView | undefined;
-    findViewByModel(model: Cell | Cell.ID): CellView | undefined;
-    /** @deprecated Pass the model and let the view type be inferred. */
-    findViewByModel<T extends ElementView | LinkView>(model: Graph.CellRef): T | undefined;
+    findViewByModel<T extends ElementView | LinkView>(model: Graph.CellRef): T;
 
     getCellView(model: Element): ElementView | null;
     getCellView(model: Link): LinkView | null;
