@@ -918,6 +918,8 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     constructor(attributes?: DeepPartial<A>, opt?: Element.ConstructorOptions);
 
+    findView(paper: Paper): ElementView;
+
     translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
     position(opt?: Element.PositionOptions): g.Point;
@@ -1052,6 +1054,8 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
      * @deprecated use `defaultLabel.markup` instead
      */
     labelMarkup?: string | MarkupJSON; // default label markup
+
+    findView(paper: Paper): LinkView;
 
     disconnect(): this;
 
@@ -2072,6 +2076,10 @@ export class Paper extends mvc.View<Graph> {
 
     findViewByModel<T extends ElementView | LinkView>(model: Graph.CellRef): T;
 
+    getCellView(model: Element): ElementView | null;
+    getCellView(model: Link): LinkView | null;
+    getCellView(model: Cell | Cell.ID): CellView | null;
+    /** @deprecated Pass the model and let the view type be inferred. */
     getCellView<T extends ElementView | LinkView>(model: Graph.CellRef): T | null;
 
     /**
