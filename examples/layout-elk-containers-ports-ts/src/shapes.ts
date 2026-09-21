@@ -16,12 +16,6 @@ const PORT_ATTRS = {
     }
 };
 
-const PORT_LABEL = {
-    position: {
-        name: 'outside'
-    }
-};
-
 // `@joint/layout-elk` reads a port label's `size` directly (via `positionPortLabels`)
 // rather than measuring the rendered text itself, so it has to be estimated from the
 // label text up front. `Service` (below) computes and assigns it for every port as
@@ -118,16 +112,18 @@ export class Service extends shapes.standard.Rectangle {
             ports: {
                 groups: {
                     in: {
-                        position: 'left',
                         size: PORT_SIZE,
                         attrs: PORT_ATTRS,
-                        label: PORT_LABEL
+                        elkLayout: {
+                            side: 'WEST'
+                        }
                     },
                     out: {
-                        position: 'right',
                         size: PORT_SIZE,
                         attrs: PORT_ATTRS,
-                        label: PORT_LABEL
+                        elkLayout: {
+                            side: 'EAST'
+                        }
                     }
                 },
                 items: [
@@ -153,7 +149,7 @@ export class Service extends shapes.standard.Rectangle {
         ports.forEach((port) => {
             const text = port.attrs?.text?.text;
             if (!port.id || typeof text !== 'string') return;
-            this.portProp(port.id, 'label/size', estimatePortLabelSize(text));
+            this.portProp(port.id, 'elkLayout/labelSize', estimatePortLabelSize(text));
         });
     }
 }
