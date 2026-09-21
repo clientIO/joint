@@ -4,8 +4,6 @@ const PORT_SIZE = { width: 12, height: 12 };
 const PORT_ATTRS = {
     circle: {
         r: 6,
-        cx: 6,
-        cy: 6,
         fill: '#FFFFFF',
         stroke: '#333',
         strokeWidth: 2
@@ -40,6 +38,8 @@ const HUB_PORT_MARKUP = [{
 }];
 const HUB_PORT_ATTRS = {
     rect: {
+        x: -HUB_PORT_SIZE.width / 2,
+        y: -HUB_PORT_SIZE.height / 2,
         width: HUB_PORT_SIZE.width,
         height: HUB_PORT_SIZE.height,
         fill: '#FFFFFF',

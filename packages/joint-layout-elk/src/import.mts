@@ -270,7 +270,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             setPortAttributes({
                 element: found.element,
                 portId: found.portId,
-                attributes: { position: { x: port.x || 0, y: port.y || 0 }, labelPosition }
+                attributes: { position: { x: port.x! + port.width! / 2 || 0, y: port.y! + port.height! / 2 || 0 }, labelPosition }
             });
         });
     }
