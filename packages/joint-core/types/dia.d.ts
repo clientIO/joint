@@ -979,6 +979,8 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     portProp(portId: string, path: Path): any;
 
+    portProp(portId: string, object: DeepPartial<Element.Port>, opt?: S): Element;
+
     portProp(portId: string, path: Path, value?: any, opt?: S): Element;
 
     protected generatePortId(): string | number;

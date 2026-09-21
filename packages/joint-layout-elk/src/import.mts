@@ -18,31 +18,39 @@ export type SetPortAttributesCallback = (params: SetPortAttributesCallbackParame
 export type SetPortAttributesCallbackParameters = {
     element: dia.Element;
     portId: string;
+    // Shaped to be handed straight to `element.portProp(portId, attributes)` - a plain,
+    // deep merge onto the port's own (raw) JSON, same as its `attrs`/`markup`/`size` -
+    // see `dia.Element.Port`. Only carries the port's own `position.args`/`label.position.args`
+    // (a group's `position`/`label.position` decides which layout *function* actually reads
+    // them - switching that is handled separately, once per group, see `importNode`).
     attributes: {
-        position: dia.Point;
+        // Present only when `portsPosition` is not 'fixed' - a 'fixed' port already stays
+        // exactly where JointJS's own port groups place it, so there's nothing to apply.
+        position?: { args: dia.Point };
         // Present only when `positionPortLabels` is enabled and the port has a label.
-        labelPosition?: dia.Point;
+        label?: { position: { args: dia.Point } };
     };
 };
 
 export type SetLinkAttributesCallback = (params: SetLinkAttributesCallbackParameters) => void;
 export type SetLinkAttributesCallbackParameters = {
     link: dia.Link;
+    // Shaped to be handed straight to `link.set(attributes)`.
     attributes: {
         vertices: dia.Point[];
         // Present only for an end not already connected to a port - a port-connected
         // end already has the anchor JointJS itself computed for that port (the same
-        // position ELK was told to route to), so it does not need overriding.
-        sourceAnchor?: dia.Point;
-        targetAnchor?: dia.Point;
-        // Present only when `edgeLabels` is enabled and the link has labels.
-        labels?: SetLinkAttributesLabelParameters[];
+        // position ELK was told to route to), so it does not need overriding. Carries
+        // the end's own existing `id`/`port`/... (see `dia.Link.EndJSON`) alongside the
+        // new `anchor`, since `link.set('source', ...)` replaces the whole `source` outright.
+        source?: dia.Link.EndJSON;
+        target?: dia.Link.EndJSON;
+        // Present only when `edgeLabels` is enabled and the link has labels - the link's
+        // whole current `labels` array, each routed label's own `position` replaced (its
+        // `attrs`/`markup`/`size` untouched), since `link.set('labels', ...)` replaces the
+        // whole array outright.
+        labels?: dia.Link.Label[];
     };
-};
-export type SetLinkAttributesLabelParameters = {
-    index: number;
-    bbox: dia.BBox;
-    points: dia.Point[];
 };
 
 /**
@@ -89,81 +97,31 @@ export interface ImportLayoutOptions {
     positionPortLabels?: boolean;
 }
 
-function setLinkAnchor(link: dia.Link, element: dia.Element, point: dia.Point, endType: 'source' | 'target'): void {
+// The anchor for a link end not connected to a port - relative to `element`, same as
+// JointJS itself already computes for a port-connected end (see `importEdges`), so
+// both keep behaving the same way if `element` later moves or is resized.
+function getPortlessEndAnchor(element: dia.Element, point: dia.Point): NonNullable<dia.Link.EndCellArgs['anchor']> {
     const delta = element.getRelativePointFromAbsolute(point);
-    link.prop(`${endType}/anchor`, {
+    return {
         name: 'topLeft',
         args: {
             dx: delta.x,
             dy: delta.y,
             useModelGeometry: true
         }
-    });
+    };
 }
 
 const defaultSetElementAttributes: SetElementAttributesCallback = ({ element, attributes }) => {
-    element.position(attributes.position.x, attributes.position.y);
-    if (attributes.size) {
-        element.resize(attributes.size.width, attributes.size.height);
-    }
+    element.set(attributes);
 };
 
 const defaultSetPortAttributes: SetPortAttributesCallback = ({ element, portId, attributes }) => {
-    const { group } = element.getPort(portId);
-
-    // With `portsPosition` 'fixed' (the default), a port already stays exactly where
-    // JointJS's own port groups place it - ELK was only told where that is, not asked
-    // to move it - so there is nothing to apply back, and the group keeps its own
-    // position type (e.g. 'left') instead of being replaced with a fixed 'absolute' one.
-    if ((importLayoutOptions.portsPosition ?? 'fixed') !== 'fixed') {
-        if (group !== undefined) {
-            // Every port ends up with a computed position (all of an element's ports are
-            // exported), so switching the whole group to `'absolute'` is safe here - it
-            // only replaces the group's `position`, leaving its `attrs`/`markup`/`label` intact.
-            element.prop(['ports', 'groups', group, 'position'], { name: 'absolute' });
-        }
-        element.portProp(portId, ['position', 'args'], attributes.position);
-    }
-
-    if (attributes.labelPosition) {
-        if (group !== undefined) {
-            // Every positioned port label ends up with a computed position (only ports whose
-            // group defines a `label` are exported, but all of those are), so switching the
-            // whole group's label to `'manual'` is safe here - it only replaces the group
-            // label's `position`, leaving its `attrs`/`markup` intact.
-            element.prop(['ports', 'groups', group, 'label', 'position'], { name: 'manual' });
-        }
-        element.portProp(portId, ['label', 'position', 'args'], attributes.labelPosition);
-    }
+    element.portProp(portId, attributes);
 };
 
 const defaultSetLinkAttributes: SetLinkAttributesCallback = ({ link, attributes }) => {
-    link.vertices(attributes.vertices);
-
-    if (attributes.sourceAnchor) {
-        setLinkAnchor(link, link.getSourceElement() as dia.Element, attributes.sourceAnchor, 'source');
-    }
-    if (attributes.targetAnchor) {
-        setLinkAnchor(link, link.getTargetElement() as dia.Element, attributes.targetAnchor, 'target');
-    }
-
-    attributes.labels?.forEach(({ index, bbox, points }) => {
-        const polyline = new g.Polyline(points);
-
-        const { x, y, width, height } = bbox;
-        const center = new g.Point(x + width / 2, y + height / 2);
-
-        const distance = polyline.closestPointLength(center);
-        // Get the tangent at the closest point to calculate the offset
-        const tangent = polyline.tangentAtLength(distance);
-
-        link.label(index, {
-            position: {
-                distance,
-                offset: tangent ? tangent.pointOffset(center) : 0
-            }
-        });
-    });
+    link.set(attributes);
 };
 
 let importLayoutOptions: ImportLayoutOptions;
@@ -215,24 +173,51 @@ function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: di
 
         // A port-connected end already has the anchor JointJS itself computed for that
         // port (the same position ELK was told to route to) - it does not need overriding.
-        const sourceAnchor = (link.source().port) ? undefined : toAbsolute(startPoint, containerPosition);
-        const targetAnchor = (link.target().port) ? undefined : toAbsolute(endPoint, containerPosition);
+        // The end's own existing `id`/`port`/... is carried over alongside the new
+        // `anchor`, since `attributes.source`/`target` replace the whole end outright.
+        const currentSource = link.source();
+        const source = (currentSource.port) ? undefined : {
+            ...currentSource,
+            anchor: getPortlessEndAnchor(link.getSourceElement() as dia.Element, toAbsolute(startPoint, containerPosition))
+        };
+        const currentTarget = link.target();
+        const target = (currentTarget.port) ? undefined : {
+            ...currentTarget,
+            anchor: getPortlessEndAnchor(link.getTargetElement() as dia.Element, toAbsolute(endPoint, containerPosition))
+        };
 
-        let labels: SetLinkAttributesLabelParameters[] | undefined;
+        let labels: dia.Link.Label[] | undefined;
         if (importLayoutOptions.edgeLabels && edge.labels && edge.labels.length > 0) {
             const points = [startPoint, ...bendPoints, endPoint]
                 .map((point) => toAbsolute(point, containerPosition));
-            labels = edge.labels.map((label, index) => {
+            const polyline = new g.Polyline(points);
+            const currentLabels = link.labels();
+            labels = currentLabels.slice();
+            edge.labels.forEach((label, index) => {
                 const { x = 0, y = 0, width = 0, height = 0 } = label;
-                return {
-                    index,
-                    bbox: { x: containerPosition.x + x, y: containerPosition.y + y, width, height },
-                    points
+                const center = new g.Point(containerPosition.x + x + width / 2, containerPosition.y + y + height / 2);
+                const distance = polyline.closestPointLength(center);
+                // Get the tangent at the closest point to calculate the offset
+                const tangent = polyline.tangentAtLength(distance);
+                labels![index] = {
+                    ...currentLabels[index],
+                    position: {
+                        distance,
+                        offset: tangent ? tangent.pointOffset(center) : 0
+                    }
                 };
             });
         }
 
-        setLinkAttributes({ link, attributes: { vertices, sourceAnchor, targetAnchor, labels }});
+        setLinkAttributes({
+            link,
+            attributes: {
+                vertices,
+                ...(source ? { source } : {}),
+                ...(target ? { target } : {}),
+                ...(labels ? { labels } : {})
+            }
+        });
     });
 }
 
@@ -247,17 +232,26 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             element,
             attributes: {
                 position,
-                // A container's size is computed by ELK to fit its (recursively laid out) content.
-                size: (isContainer) ? { width: node.width || 0, height: node.height || 0 } : undefined
+                // A container's size is computed by ELK to fit its (recursively laid out)
+                // content - omitted entirely for a leaf element (not just left `undefined`),
+                // since `attributes` is handed straight to `element.set(...)`, which would
+                // otherwise overwrite its existing size with `undefined`.
+                ...(isContainer ? { size: { width: node.width || 0, height: node.height || 0 }} : {})
             }
         });
     }
 
     if (node.ports) {
         const setPortAttributes = importLayoutOptions.setPortAttributes ?? defaultSetPortAttributes;
+        // A 'fixed' port (the default) already stays exactly where JointJS's own port
+        // groups place it - ELK was only told where that is, not asked to move it - so
+        // there is nothing to apply back.
+        const positionPorts = (importLayoutOptions.portsPosition ?? 'fixed') !== 'fixed';
+
         node.ports.forEach((port) => {
             const found = portsById.get(port.id);
             if (!found) return;
+            const { element, portId } = found;
 
             let labelPosition: dia.Point | undefined;
             if (importLayoutOptions.positionPortLabels) {
@@ -270,15 +264,45 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
                 }
             }
 
+            if (!positionPorts && !labelPosition) return;
+
+            // A computed position/label position only has visible effect once the port's
+            // group is switched to the layout type that reads it ('absolute' for position,
+            // 'manual' for labels) - which layout function actually renders a port/label is
+            // entirely a group-level setting; a port's own `position`/`label.position` only
+            // ever supplies the *args* to whichever function the group is already using
+            // (see `PortData#_evaluatePortPositionProperty` in `@joint/core`).
+            const { group } = element.getPort(portId);
+            if (group !== undefined) {
+                if (positionPorts) {
+                    // Every port ends up with a computed position (all of an element's ports
+                    // are exported), so switching the whole group to `'absolute'` is safe here
+                    // - it only replaces the group's `position`, leaving its `attrs`/`markup`/
+                    // `label` intact.
+                    element.prop(['ports', 'groups', group, 'position'], { name: 'absolute' });
+                }
+                if (labelPosition) {
+                    // Every positioned port label ends up with a computed position (only ports
+                    // whose group defines a `label` are exported, but all of those are), so
+                    // switching the whole group's label to `'manual'` is safe here - it only
+                    // replaces the group label's `position`, leaving its `attrs`/`markup` intact.
+                    element.prop(['ports', 'groups', group, 'label', 'position'], { name: 'manual' });
+                }
+            }
+
             setPortAttributes({
-                element: found.element,
-                portId: found.portId,
+                element,
+                portId,
                 attributes: {
-                    position: {
-                        x: (port.x || 0) + (port.width || 0) / 2,
-                        y: (port.y || 0) + (port.height || 0) / 2
-                    },
-                    labelPosition
+                    ...(positionPorts ? {
+                        position: {
+                            args: {
+                                x: (port.x || 0) + (port.width || 0) / 2,
+                                y: (port.y || 0) + (port.height || 0) / 2
+                            }
+                        }
+                    } : {}),
+                    ...(labelPosition ? { label: { position: { args: labelPosition }}} : {})
                 }
             });
         });
