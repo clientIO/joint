@@ -168,7 +168,7 @@ QUnit.module('layout()', () => {
         assert.ok(Array.isArray(link.vertices()));
     });
 
-    QUnit.test('should call portOptions for each port', async(assert) => {
+    QUnit.test('should call portProperties for each port', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({
@@ -188,9 +188,9 @@ QUnit.module('layout()', () => {
 
         const seen = [];
         await joint.layout.ELK.layout(graph, {
-            portOptions: (port, element) => {
+            portProperties: ({ port, element, computedProperties }) => {
                 seen.push([port.id, element.id]);
-                return undefined;
+                return computedProperties;
             }
         });
 
@@ -219,7 +219,7 @@ QUnit.module('layout()', () => {
         assert.equal(el1.prop(['ports', 'groups', 'out', 'position']), 'right');
     });
 
-    QUnit.test('should let ELK position ports when `positionPorts` is enabled', async(assert) => {
+    QUnit.test('should let ELK position ports when `portsPosition` is enabled', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({
@@ -249,7 +249,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout(graph, { positionPorts: 'fixed-side' });
+        await joint.layout.ELK.layout(graph, { portsPosition: 'fixed-side' });
 
         // The group's position is switched to 'absolute' so the ELK-computed position applies.
         assert.equal(el1.prop(['ports', 'groups', 'out', 'position', 'name']), 'absolute');
@@ -263,5 +263,49 @@ QUnit.module('layout()', () => {
         const relativePosition = el1.getPortRelativePosition('out1');
         assert.equal(relativePosition.x, position.x);
         assert.equal(relativePosition.y, position.y);
+    });
+
+    QUnit.test('should keep a port\'s rendered position stable across repeated `layout()` calls', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        // A non-zero port `size` is essential here - it's what the center/top-left mismatch
+        // this test guards against gets applied to (a zero-sized port can't reveal it).
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: {
+                groups: {
+                    out: { position: 'right', size: { width: 12, height: 12 } }
+                },
+                items: [{ id: 'out1', group: 'out' }]
+            }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({
+            id: 'b',
+            size: { width: 100, height: 100 },
+            ports: {
+                groups: {
+                    in: { position: 'left', size: { width: 12, height: 12 } }
+                },
+                items: [{ id: 'in1', group: 'in' }]
+            }
+        });
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a', port: 'out1' },
+            target: { id: 'b', port: 'in1' }
+        });
+
+        graph.resetCells([el1, el2, link]);
+
+        await joint.layout.ELK.layout(graph);
+        const firstPosition = el1.getPortRelativePosition('out1');
+
+        // Laying out the same, already laid out graph again should not move the
+        // port any further - each call is independent, not cumulative.
+        await joint.layout.ELK.layout(graph);
+        const secondPosition = el1.getPortRelativePosition('out1');
+
+        assert.equal(secondPosition.x, firstPosition.x);
+        assert.equal(secondPosition.y, firstPosition.y);
     });
 });
