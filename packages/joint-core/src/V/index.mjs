@@ -1280,15 +1280,19 @@ const V = (function() {
         }
 
         const trueName = attributeNames[name];
+        const stringValue = '' + value;
 
-        const { ns } = V.qualifyAttr(trueName);
+        const { ns, local } = V.qualifyAttr(trueName);
         if (ns) {
             // Attribute names can be namespaced. E.g. `image` elements
             // have a `xlink:href` attribute to set the source of the image.
+            if (el.getAttributeNS(ns, local) === stringValue) return this;
             el.setAttributeNS(ns, trueName, value);
         } else if (trueName === 'id') {
+            if (el.id === stringValue) return this;
             el.id = value;
         } else {
+            if (el.getAttribute(trueName) === stringValue) return this;
             el.setAttribute(trueName, value);
         }
 
