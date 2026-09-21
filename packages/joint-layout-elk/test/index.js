@@ -275,7 +275,7 @@ QUnit.module('layout()', () => {
             size: { width: 100, height: 100 },
             ports: {
                 groups: {
-                    out: { position: 'right', size: { width: 12, height: 12 } }
+                    out: { position: 'right', size: { width: 12, height: 12 }}
                 },
                 items: [{ id: 'out1', group: 'out' }]
             }
@@ -285,7 +285,7 @@ QUnit.module('layout()', () => {
             size: { width: 100, height: 100 },
             ports: {
                 groups: {
-                    in: { position: 'left', size: { width: 12, height: 12 } }
+                    in: { position: 'left', size: { width: 12, height: 12 }}
                 },
                 items: [{ id: 'in1', group: 'in' }]
             }
