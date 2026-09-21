@@ -263,14 +263,23 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             if (importLayoutOptions.positionPortLabels) {
                 const [label] = port.labels || [];
                 if (label) {
-                    labelPosition = { x: label.x || 0, y: label.y || 0 };
+                    labelPosition = {
+                        x: (label.x || 0) - (port.width || 0) / 2,
+                        y: (label.y || 0) - (port.height || 0) / 2
+                    };
                 }
             }
 
             setPortAttributes({
                 element: found.element,
                 portId: found.portId,
-                attributes: { position: { x: port.x! + port.width! / 2 || 0, y: port.y! + port.height! / 2 || 0 }, labelPosition }
+                attributes: {
+                    position: {
+                        x: (port.x || 0) + (port.width || 0) / 2,
+                        y: (port.y || 0) + (port.height || 0) / 2
+                    },
+                    labelPosition
+                }
             });
         });
     }
