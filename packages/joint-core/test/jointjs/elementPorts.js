@@ -2877,6 +2877,38 @@ QUnit.module('element ports', function() {
             assert.ok(_.isPlainObject(shape.portProp('one', 'object')));
             assert.equal(shape.portProp('one', 'object/20'), 'object property');
         });
+
+        QUnit.test('should merge a group\'s own custom properties into its ports', function(assert) {
+
+            var shape = create({
+                groups: {
+                    in: {
+                        attrs: { '.body': { fill: 'red' }},
+                        elkLayout: { side: 'WEST', spacing: 5 }
+                    }
+                },
+                items: [
+                    { id: 'one', group: 'in' },
+                    { id: 'two', group: 'in', elkLayout: { spacing: 10 }},
+                    { id: 'three' }
+                ]
+            });
+
+            // A port with no `elkLayout` of its own inherits the group's.
+            assert.deepEqual(shape.portProp('one', 'elkLayout'), { side: 'WEST', spacing: 5 });
+            assert.equal(shape.portProp('one', 'elkLayout/side'), 'WEST');
+
+            // A port's own (partial) value is deep-merged on top of the group's.
+            assert.deepEqual(shape.portProp('two', 'elkLayout'), { side: 'WEST', spacing: 10 });
+
+            // A port with no group at all is unaffected.
+            assert.equal(shape.portProp('three', 'elkLayout'), undefined);
+
+            // Properties this module already merges elsewhere (e.g. `attrs` - see
+            // `PortData#_evaluatePort`) are untouched by this - `portProp` still only
+            // ever returns the port's own, unmerged JSON for them.
+            assert.equal(shape.portProp('one', 'attrs'), undefined);
+        });
     });
 
     QUnit.module('event ports:add and ports:remove', function(hooks) {

@@ -267,21 +267,10 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
                 }
             }
 
-            // Like a node's, ELK's own `x`/`y` for a port is the top-left corner of its
-            // bounding box - but the 'absolute' port position (which `layout()` switches
-            // every port-bearing group to, see `defaultSetPortAttributes` below) takes its
-            // `args.x`/`args.y` to be the port's *center* (`dia.Element#getPortRelativeRect`
-            // derives the port's rect by subtracting half its size from that same position).
-            // Without this, every `layout()` call would shift each port half its own size
-            // off from where the previous call left it - compounding on every further call.
-            const width = port.width || 0;
-            const height = port.height || 0;
-            const position: dia.Point = { x: (port.x || 0) + width / 2, y: (port.y || 0) + height / 2 };
-
             setPortAttributes({
                 element: found.element,
                 portId: found.portId,
-                attributes: { position, labelPosition }
+                attributes: { position: { x: port.x || 0, y: port.y || 0 }, labelPosition }
             });
         });
     }
