@@ -14,20 +14,26 @@ const noopViewMountChange = (): void => {
 export const DEFAULT_PAPER_ID = 'default-paper';
 
 /**
+ * Marks every {@link PaperView} instance for {@link isPaperView} — the same
+ * pattern as joint-core's `GRAPH_LAYER_MARKER`. Taken from the global symbol
+ * registry on purpose: a dev-server hot reload (HMR) re-evaluates this module,
+ * and a plain `Symbol()` would then differ between the class that created the
+ * live papers and the class doing the check, the very hazard `instanceof` has.
+ */
+const PAPER_VIEW_MARKER: unique symbol = Symbol.for('joint.react.paperViewMarker');
+
+/**
  * Type guard: is this paper a {@link PaperView}?
  *
- * Checks the {@link PaperView.getCellViewPortalNode} capability instead of
- * `instanceof`: a dev-server hot reload (HMR) can re-evaluate this module and
- * create a new `PaperView` class identity while live paper instances still
- * come from the previous evaluation — `instanceof` would reject those and
- * blank the canvas.
+ * Checks the {@link PaperView} marker instead of `instanceof`: a dev-server hot
+ * reload (HMR) can re-evaluate this module and create a new `PaperView` class
+ * identity while live paper instances still come from the previous evaluation
+ * — `instanceof` would reject those and blank the canvas.
  * @param paper - The paper instance to check (nullish tolerated).
- * @returns `true` when the paper exposes the `PaperView` portal contract.
+ * @returns `true` when the paper is a `PaperView` from any evaluation of this module.
  */
 export function isPaperView(paper: dia.Paper | null | undefined): paper is PaperView {
-  return (
-    !!paper && 'getCellViewPortalNode' in paper && typeof paper.getCellViewPortalNode === 'function'
-  );
+  return !!paper && PAPER_VIEW_MARKER in paper;
 }
 
 /**
@@ -38,6 +44,7 @@ export function isPaperView(paper: dia.Paper | null | undefined): paper is Paper
  * - Hiding links until their source/target elements have rendered
  */
 export class PaperView extends Paper {
+  readonly [PAPER_VIEW_MARKER] = true;
   public viewChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
   public onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
