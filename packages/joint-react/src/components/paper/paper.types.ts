@@ -27,6 +27,68 @@ import type { PaperEventHandlers } from '../../presets/paper-events';
 export type PaperTransform = string | DOMMatrix;
 
 /**
+ * Which changes re-run `<Paper>`'s `fitToContent` after the first fit.
+ *
+ * - `'once'` — fit after the initial measurement pass, then stay put.
+ * - `'resize'` — also re-fit whenever the paper's host element changes size.
+ * - `'always'` — also re-fit on graph content changes and later measurement passes.
+ *
+ * This governs the automatic triggers only. Changing the `fitToContent` prop
+ * itself always re-fits, under every policy — a prop is expected to take effect
+ * when it changes. Passing an equal (but newly allocated) options object does
+ * not, so an inline `fitToContent={{ padding: 24 }}` is safe.
+ * @group Types
+ */
+export type FitToContentRefit = 'once' | 'resize' | 'always';
+
+/**
+ * Options for `<Paper>`'s `fitToContent` in its default zoom mode: the content
+ * is scaled and translated so the whole graph sits inside the viewport, and the
+ * paper element keeps its CSS size. Every
+ * [`transformToFitContent`](https://docs.jointjs.com/api/dia/Paper#transformtofitcontent)
+ * option is accepted.
+ * @group Types
+ * @expand
+ */
+export interface FitToContentZoomOptions extends Readonly<dia.Paper.TransformToFitContentOptions> {
+  /**
+   * Scale and translate the content to fit the viewport.
+   * @default 'zoom'
+   */
+  readonly mode?: 'zoom';
+  /**
+   * How often the fit re-runs.
+   * @default 'resize'
+   */
+  readonly refit?: FitToContentRefit;
+}
+
+/**
+ * Options for `<Paper>`'s `fitToContent` in resize mode: the paper element grows
+ * or shrinks to wrap the content instead of scaling it. Use it with a scrolling
+ * host. Every [`fitToContent`](https://docs.jointjs.com/api/dia/Paper#fittocontent)
+ * option is accepted.
+ * @group Types
+ * @expand
+ */
+export interface FitToContentResizeOptions extends Readonly<dia.Paper.FitToContentOptions> {
+  /** Resize the paper element to wrap the content. */
+  readonly mode: 'resize';
+  /**
+   * How often the fit re-runs.
+   * @default 'resize'
+   */
+  readonly refit?: FitToContentRefit;
+}
+
+/**
+ * Options accepted by `<Paper>`'s `fitToContent` prop and by
+ * `usePaper().fitToContent()`. `mode` picks the behaviour.
+ * @group Types
+ */
+export type FitToContentOptions = FitToContentZoomOptions | FitToContentResizeOptions;
+
+/**
  * Context handed to a {@link DefaultLink} factory while the user drags a new
  * connection from a port or element.
  * @expand
@@ -473,6 +535,25 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
    * ```
    */
   readonly transform?: PaperTransform;
+
+  /**
+   * Frames the diagram automatically, so you no longer write the
+   * measure-then-fit effect by hand. Pass `true` for centred zoom-to-fit that
+   * re-runs when the host resizes, or an options object to tune it.
+   *
+   * Waits for element measurement, so it is safe with React-rendered elements
+   * whose size is not known until they paint. Ignored when `transform` is also
+   * set — both write the viewport matrix, and the result would be a race.
+   * @default undefined
+   * @example
+   * ```tsx
+   * <Paper fitToContent />
+   * <Paper fitToContent={{ padding: 40, refit: 'once' }} />
+   * <Paper fitToContent={{ mode: 'resize', allowNewOrigin: 'any' }} />
+   * ```
+   * @see {@link FitToContentOptions}
+   */
+  readonly fitToContent?: boolean | FitToContentOptions;
 
   /**
    * Maximum pointer travel (in px) still treated as a click rather than a drag.
