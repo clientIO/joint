@@ -188,13 +188,52 @@ QUnit.module('layout()', () => {
 
         const seen = [];
         await joint.layout.ELK.layout(graph, {
-            portProperties: ({ port, element, computedProperties }) => {
+            portProperties: ({ port, element }) => {
                 seen.push([port.id, element.id]);
-                return computedProperties;
+                return {};
             }
         });
 
         assert.deepEqual(seen, [['out1', 'a']]);
+    });
+
+    QUnit.test('should merge a nodeProperties/portProperties/edgeProperties return value onto what was computed', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: {
+                groups: {
+                    out: { position: 'right' }
+                },
+                items: [{ id: 'out1', group: 'out' }]
+            }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a', port: 'out1' }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            portsPosition: 'fixed-side',
+            // Each returns only a new `layoutOptions` key - what this package itself
+            // computed (e.g. `elk.portConstraints`, `elk.hierarchyHandling`) must survive.
+            nodeProperties: () => ({ layoutOptions: { 'elk.custom': 'node' }}),
+            portProperties: () => ({ layoutOptions: { 'elk.custom': 'port' }}),
+            edgeProperties: () => ({ layoutOptions: { 'elk.custom': 'edge' }})
+        });
+
+        const elkNode = elkGraph.children.find((node) => node.id === 'a');
+        assert.equal(elkNode.layoutOptions['elk.custom'], 'node');
+        assert.equal(elkNode.layoutOptions['elk.portConstraints'], 'FIXED_SIDE');
+
+        const elkPort = elkNode.ports.find((port) => port.id === 'a:out1');
+        assert.equal(elkPort.layoutOptions['elk.custom'], 'port');
+        assert.equal(typeof elkPort.width, 'number');
+
+        const [elkEdge] = elkGraph.edges;
+        assert.equal(elkEdge.layoutOptions['elk.custom'], 'edge');
     });
 
     QUnit.test('should keep ports at their JointJS-computed position by default', async(assert) => {

@@ -1,4 +1,4 @@
-import type { dia } from '@joint/core';
+import { util, type dia } from '@joint/core';
 import type { PortsPositionMode } from './import.mjs';
 
 import type {
@@ -25,37 +25,30 @@ const ELK_PORT_CONSTRAINTS_BY_MODE: Record<PortsPositionMode, NodeElkLayoutOptio
     'free': { 'elk.portConstraints': 'FREE' },
 };
 
-/**
- * The ELK node properties `nodeOptions` can inspect and adjust - everything about a node
- * this package itself computes, except `id` (structural) and `ports`/`children` (built
- * separately, from the element's JointJS ports/embeds).
- */
+/** Everything about a node this package computes, for `nodeProperties` to adjust - except `id`/`ports`/`children` (structural). */
 export type NodeProperties = Omit<ElkNode, 'id' | 'ports' | 'children'>;
-/**
- * The ELK port properties `portOptions` can inspect and adjust - everything about a port
- * this package itself computes, except `id` (structural).
- */
+/** Everything about a port this package computes, for `portProperties` to adjust - except `id` (structural). */
 export type PortProperties = Omit<ElkPort, 'id'>;
-/**
- * The ELK edge properties `edgeOptions` can inspect and adjust - everything about an edge
- * this package itself computes, except `id`/`sources`/`targets` (structural).
- */
+/** Everything about an edge this package computes, for `edgeProperties` to adjust - except `id`/`sources`/`targets` (structural). */
 export type EdgeProperties = Omit<ElkExtendedEdge, 'id' | 'sources' | 'targets' | 'container'>;
 
-export type NodePropertiesCallback = (params: NodePropertiesCallbackParameters) => NodeProperties;
+// A callback's return value is merged onto its `computedProperties` (see `mergeProperties`) -
+// only what it actually returns overrides the computed value, so e.g. returning `{}` (or
+// omitting a key) keeps that part of `computedProperties` as-is.
+export type NodePropertiesCallback = (params: NodePropertiesCallbackParameters) => Partial<NodeProperties>;
 export type NodePropertiesCallbackParameters = {
     element: dia.Element;
     computedProperties: NodeProperties;
 }
 
-export type PortPropertiesCallback = (params: PortPropertiesCallbackParameters) => PortProperties;
+export type PortPropertiesCallback = (params: PortPropertiesCallbackParameters) => Partial<PortProperties>;
 export type PortPropertiesCallbackParameters = {
     port: dia.Element.Port;
     element: dia.Element;
     computedProperties: PortProperties;
 };
 
-export type EdgePropertiesCallback = (params: EdgePropertiesCallbackParameters) => EdgeProperties;
+export type EdgePropertiesCallback = (params: EdgePropertiesCallbackParameters) => Partial<EdgeProperties>;
 export type EdgePropertiesCallbackParameters = {
     link: dia.Link;
     computedProperties: EdgeProperties;
@@ -78,24 +71,19 @@ export interface ExportGraphOptions {
     portProperties?: PortPropertiesCallback;
     edgeProperties?: EdgePropertiesCallback;
     /**
-     * Whether to account for link labels during layout and position them
-     * along the routed link afterwards.
+     * Whether to account for link labels during layout and position them afterwards.
      * @defaultValue true
      */
     edgeLabels?: boolean;
     /**
-     * How freely ELK may reposition (and reorder) ports along their element,
-     * instead of keeping them at the position JointJS itself already computed
-     * for them - see `PortsPositionMode`. Any new positions are written back
-     * onto the graph - see the `portsPosition` option in `ImportLayoutOptions`.
+     * How freely ELK may reposition (and reorder) ports, instead of keeping them
+     * where JointJS's port groups place them - see `PortsPositionMode`.
      * @defaultValue 'fixed'
      */
     portsPosition?: PortsPositionMode;
     /**
-     * Whether to let ELK reposition port labels along their port, instead of keeping
-     * them at the position JointJS itself already computed for them. The new
-     * positions are written back onto the graph - see the `positionPortLabels`
-     * option in `ImportLayoutOptions`.
+     * Whether to let ELK reposition port labels along their port, instead of
+     * keeping them where JointJS's port groups place them.
      * @defaultValue false
      */
     positionPortLabels?: boolean;
@@ -105,6 +93,13 @@ export const DEFAULT_LABEL_SIZE: dia.Size = {
     width: 50,
     height: 20
 };
+
+// Deep-merges a `nodeProperties`/`portProperties`/`edgeProperties` callback's return value
+// onto what this package itself computed - the override wins on conflicts (including into
+// nested objects like `layoutOptions`), `computed` fills in anything the override didn't set.
+function mergeProperties<T extends object>(overrides: Partial<T>, computed: T): T {
+    return util.defaultsDeep({}, overrides, computed) as T;
+}
 
 let exportGraphOptions: ExportGraphOptions;
 
@@ -129,11 +124,9 @@ function init(options: ExportGraphOptions): void {
 }
 
 /**
- * Builds the ELK ports for an element's JointJS ports, starting out at the
- * position JointJS itself has already computed for them (via the element's
- * port groups). Whether ELK is free to move them from there, or has to treat
- * that position as final, is controlled by the node's own `elk.portConstraints`
- * (see `ELK_PORT_CONSTRAINTS_BY_MODE` in `buildElkNode`).
+ * Builds a node's ELK ports, starting from the position JointJS already computed
+ * for them - `elk.portConstraints` (see `ELK_PORT_CONSTRAINTS_BY_MODE`) decides
+ * whether ELK can move them from there.
  */
 function buildPorts(element: dia.Element): ElkPort[] | undefined {
     if (!element.hasPorts()) return undefined;
@@ -143,12 +136,12 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         const elkPortId = `${element.id}:${portId}`;
         portsById.set(elkPortId, { element, portId });
 
+        // Optional per-port/group metadata (`side`, `labelSize`) a consumer can set under
+        // a group's/port's own `elkLayout` key - merged onto the port by `@joint/core`.
         const properties = element.portProp(portId, 'elkLayout');
 
-        // `port` (from `element.getPorts()`) already carries the fully resolved label -
-        // a port's own `label` (if it has one) merged over its group's, same as JointJS
-        // itself resolves it. `element.portProp`/`getPort`, by contrast, only ever see the
-        // port's own raw, unmerged JSON, so they can't be used here.
+        // `element.getPorts()` gives the fully resolved label (merged with the group's) -
+        // `portProp`/`getPort` only ever see the port's own raw JSON.
         let labels: ElkLabel[] | undefined;
         if (exportGraphOptions.positionPortLabels) {
 
@@ -167,11 +160,14 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         const { x, y } = element.getPortRelativePosition(portId);
         const { width, height } = element.getPortRelativeRect(portId);
 
+        // In 'fixed' mode ELK must use the exact current position; other modes let it
+        // compute a new one, so sending one would only anchor/bias it needlessly.
         if (!exportGraphOptions.portsPosition || exportGraphOptions.portsPosition === 'fixed') {
             portProperties.x = x;
             portProperties.y = y;
         }
 
+        // Only 'fixed-side' pins the side - 'free' lets ELK choose it on its own.
         if (exportGraphOptions.portsPosition === 'fixed-side') {
             switch (properties?.side) {
                 case 'WEST':
@@ -190,6 +186,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             }
         }
 
+        // Negative offset moves the port inward from the node border, centering it there.
         if (exportGraphOptions.portsPosition === 'fixed-side' || exportGraphOptions.portsPosition === 'free') {
             layoutOptions['elk.port.borderOffset'] = `${-width / 2}`;
         }
@@ -203,11 +200,12 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         };
 
         if (exportGraphOptions.portProperties) {
-            portProperties = exportGraphOptions.portProperties({
+            const overrides = exportGraphOptions.portProperties({
                 port,
                 element,
                 computedProperties: portProperties
             });
+            portProperties = mergeProperties(overrides, portProperties);
         }
 
         return {
@@ -218,11 +216,8 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
 }
 
 /**
- * ELK positions a node's children (and routes a node's own edges) relative to that
- * node's own origin (see `toAbsolute` in `importLayout`) - `containerX`/`containerY`
- * convert an element's own graph-absolute `position()` into that frame, so that the
- * `x`/`y` handed to `nodeOptions` is always a usable hint of where the element
- * currently is.
+ * ELK positions a node's children/edges relative to its own origin - `containerPosition`
+ * converts an element's graph-absolute position into that frame as we recurse down.
  */
 function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 0, y: 0 }): ElkNode {
     const id = `${element.id}`;
@@ -237,6 +232,7 @@ function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 
     const y = absoluteY - containerPosition.y;
 
 
+    // Only relevant for a node that has ports - see `ELK_PORT_CONSTRAINTS_BY_MODE`.
     const layoutOptions: NodeElkLayoutOptions = (ports) ? {
         ...ELK_PORT_CONSTRAINTS_BY_MODE[exportGraphOptions.portsPosition ?? 'fixed'],
         'portLabels.placement': 'OUTSIDE'
@@ -247,10 +243,8 @@ function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 
 
     let children: ElkNode[] | undefined;
     let edges: ElkExtendedEdge[] | undefined;
-    // A container's real size is computed by ELK to fit its (recursively laid out)
-    // content - `0` is only a placeholder starting point here (elkjs errors out on a
-    // hierarchical node with no numeric width/height at all), not the final size
-    // `nodeProperties` sees.
+    // A container's real size is computed by ELK to fit its content - `0` is just a
+    // placeholder (elkjs needs a numeric size upfront for a hierarchical node).
     let width = 0;
     let height = 0;
     if (embeds.length > 0) {
@@ -265,10 +259,11 @@ function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 
 
     let nodeProperties: NodeProperties = { x, y, width, height, layoutOptions };
     if (exportGraphOptions.nodeProperties) {
-        nodeProperties = exportGraphOptions.nodeProperties({
+        const overrides = exportGraphOptions.nodeProperties({
             element,
             computedProperties: nodeProperties
         });
+        nodeProperties = mergeProperties(overrides, nodeProperties);
     }
     const node: ElkNode = {
         id,
@@ -337,10 +332,11 @@ function buildEdge(link: dia.Link): void {
         labels
     };
     if (exportGraphOptions.edgeProperties) {
-        edgeProperties = exportGraphOptions.edgeProperties({
+        const overrides = exportGraphOptions.edgeProperties({
             link,
             computedProperties: edgeProperties
         });
+        edgeProperties = mergeProperties(overrides, edgeProperties);
     }
 
     const edge: ElkExtendedEdge = {

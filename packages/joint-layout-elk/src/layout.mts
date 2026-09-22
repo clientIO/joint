@@ -54,27 +54,19 @@ export interface Options extends
      */
     elkLayoutOptions?: ElkLayoutOptions;
     /**
-     * Whether to account for link labels during layout and position them
-     * along the routed link afterwards.
+     * Whether to account for link labels during layout and position them afterwards.
      * @defaultValue true
      */
     edgeLabels?: boolean;
     /**
-     * How freely ELK may reposition (and reorder) ports along their element,
-     * instead of keeping them at the position JointJS itself already computed
-     * for them - see `PortPositionsMode`. When set to anything other than
-     * `'fixed'`, every port's owning group is switched to an `'absolute'`
-     * position (preserving its `attrs`/`markup`/`label`) so the position ELK
-     * computed for it can be applied.
+     * How freely ELK may reposition (and reorder) ports, instead of keeping them
+     * where JointJS's port groups place them - see `PortsPositionMode`.
      * @defaultValue 'fixed'
      */
     portsPosition?: PortsPositionMode;
     /**
-     * Whether to let ELK reposition port labels along their port, instead of keeping
-     * them at the position JointJS itself already computed for them (via the port
-     * group's `label`). When enabled, every port's owning group's label is switched
-     * to a `'manual'` position (preserving its `attrs`/`markup`) so the position ELK
-     * computed for it can be applied.
+     * Whether to let ELK reposition port labels along their port, instead of
+     * keeping them where JointJS's port groups place them.
      * @defaultValue false
      */
     positionPortLabels?: boolean;
@@ -122,6 +114,8 @@ export async function layout(graph: dia.Graph, opt?: Options): Promise<LayoutRes
 
     const result = await elk.layout(elkGraph as unknown as RawElkNode) as ElkNode;
 
+    // Wraps the import in a single batch, so it emits one combined change instead of
+    // one per element/port/link.
     graph.startBatch(batchName);
     importLayout(result, elementsById, linksById, portsById, options);
     graph.stopBatch(batchName);
