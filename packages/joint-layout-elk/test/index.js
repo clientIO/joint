@@ -347,4 +347,45 @@ QUnit.module('layout()', () => {
         assert.equal(secondPosition.x, firstPosition.x);
         assert.equal(secondPosition.y, firstPosition.y);
     });
+
+    QUnit.test('should merge a node\'s own `elkLayout` into its computed layoutOptions, without a nodeProperties callback', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const parent = new joint.shapes.standard.Rectangle({
+            id: 'parent',
+            size: { width: 10, height: 10 },
+            elkLayout: { 'elk.padding': '[top=40,left=20,bottom=20,right=20]' }
+        });
+        const child = new joint.shapes.standard.Rectangle({ id: 'child', size: { width: 50, height: 50 }});
+        parent.embed(child);
+
+        graph.resetCells([parent, child]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
+
+        const parentNode = elkGraph.children.find((node) => node.id === 'parent');
+        assert.equal(parentNode.layoutOptions['elk.padding'], '[top=40,left=20,bottom=20,right=20]');
+    });
+
+    QUnit.test('should merge a link label\'s own `elkLayout` into its computed layoutOptions, without an edgeProperties callback', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a' },
+            target: { id: 'b' },
+            labels: [{ size: { width: 40, height: 20 }, elkLayout: { 'edgeLabels.inline': 'false' }}]
+        });
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
+
+        const [elkEdge] = elkGraph.edges;
+        assert.equal(elkEdge.labels[0].layoutOptions['edgeLabels.inline'], 'false');
+
+        // The label's own raw JSON is unaffected - `elkLayout` isn't baked into it.
+        assert.deepEqual(link.get('labels')[0].elkLayout, { 'edgeLabels.inline': 'false' });
+    });
 });

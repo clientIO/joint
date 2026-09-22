@@ -1,12 +1,11 @@
 import { dia, shapes } from '@joint/core';
-import { ElkLayoutOptions, layout, type NodeProperties, type NodePropertiesCallbackParameters } from '@joint/layout-elk';
+import { ElkLayoutOptions, layout } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
 import './styles.scss';
 
 const ELK_DIRECTION = 'RIGHT';
-const CONTAINER_PADDING = '[top=40,left=20,bottom=20,right=20]';
 
 const cellNamespace = {
     ...shapes,
@@ -104,14 +103,6 @@ const init = () => {
             // of keeping them where JointJS's own port groups first placed them.
             portsPosition: 'fixed-side',
             positionPortLabels: true,
-            nodeProperties: ({ element }: NodePropertiesCallbackParameters): Partial<NodeProperties> => {
-                // Reserve extra top padding inside containers, so children don't
-                // overlap the container's title label. Everything else this package
-                // itself computes (position, size, port layout options, ...) is left
-                // as-is - the package merges this onto it, rather than replacing it.
-                if (element.getEmbeddedCells().length === 0) return {};
-                return { layoutOptions: { 'elk.padding': CONTAINER_PADDING } };
-            },
             elkLayoutOptions
         }).then(() => {
             paper.unfreeze();
