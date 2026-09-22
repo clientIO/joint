@@ -1,5 +1,5 @@
-import { dia, shapes, util } from '@joint/core';
-import { ElkLayoutOptions, layout, NodeProperties, NodePropertiesCallbackParameters, type PortProperties, type PortPropertiesCallbackParameters } from '@joint/layout-elk';
+import { dia, shapes } from '@joint/core';
+import { ElkLayoutOptions, layout, type NodeProperties, type NodePropertiesCallbackParameters } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
@@ -104,15 +104,13 @@ const init = () => {
             // of keeping them where JointJS's own port groups first placed them.
             portsPosition: 'fixed-side',
             positionPortLabels: true,
-            nodeProperties: ({ element, computedProperties }: NodePropertiesCallbackParameters): NodeProperties => {
+            nodeProperties: ({ element }: NodePropertiesCallbackParameters): Partial<NodeProperties> => {
                 // Reserve extra top padding inside containers, so children don't
-                // overlap the container's title label.
-                if (element.getEmbeddedCells().length === 0) return computedProperties;
-                return util.defaultsDeep({}, computedProperties, {
-                    layoutOptions: {
-                        'elk.padding': CONTAINER_PADDING
-                    }
-                });
+                // overlap the container's title label. Everything else this package
+                // itself computes (position, size, port layout options, ...) is left
+                // as-is - the package merges this onto it, rather than replacing it.
+                if (element.getEmbeddedCells().length === 0) return {};
+                return { layoutOptions: { 'elk.padding': CONTAINER_PADDING } };
             },
             elkLayoutOptions
         }).then(() => {
