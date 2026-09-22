@@ -1288,12 +1288,16 @@ const V = (function() {
             // have a `xlink:href` attribute to set the source of the image.
             if (el.getAttributeNS(ns, local) === stringValue) return this;
             el.setAttributeNS(ns, trueName, value);
-        } else if (trueName === 'id') {
-            if (el.id === stringValue) return this;
-            el.id = value;
         } else {
+            // Note: `el.id` reads as an empty string when there is no `id`
+            // attribute, so the attribute itself is the only way to tell an
+            // absent `id` from a present empty one.
             if (el.getAttribute(trueName) === stringValue) return this;
-            el.setAttribute(trueName, value);
+            if (trueName === 'id') {
+                el.id = value;
+            } else {
+                el.setAttribute(trueName, value);
+            }
         }
 
         return this;
