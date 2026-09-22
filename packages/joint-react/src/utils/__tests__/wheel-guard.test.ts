@@ -1,4 +1,4 @@
-import { SCROLLABLE_ATTRIBUTE, wheelGuard } from '../wheel-guard';
+import { SCROLLABLE_ATTRIBUTE, touchGuard, wheelGuard } from '../wheel-guard';
 
 interface FakeEvent {
   readonly type: string;
@@ -129,5 +129,33 @@ describe('wheelGuard', () => {
     Object.defineProperty(div, 'clientWidth', { value: 100, configurable: true });
     mount(div);
     expect(wheelGuard(fakeWheel(div))).toBe(true);
+  });
+});
+
+describe('touchGuard', () => {
+  test('returns false for non-touch events', () => {
+    const div = makeOverflowingDiv();
+    mount(div);
+    expect(touchGuard({ type: 'wheel', target: div })).toBe(false);
+    expect(touchGuard({ type: 'pointerdown', target: div })).toBe(false);
+  });
+
+  test('returns true for a touch inside an overflowing marked div', () => {
+    const div = makeOverflowingDiv();
+    mount(div);
+    expect(touchGuard({ type: 'touchstart', target: div })).toBe(true);
+    // Only `touchstart` reaches `guard()`.
+    expect(touchGuard({ type: 'touchmove', target: div })).toBe(false);
+  });
+
+  test('returns false for a touch inside a non-overflowing marked div', () => {
+    const div = makeFlatDiv();
+    mount(div);
+    expect(touchGuard({ type: 'touchstart', target: div })).toBe(false);
+  });
+
+  test('returns false when the target is not an element', () => {
+    expect(touchGuard({ type: 'touchstart', target: null })).toBe(false);
+    expect(touchGuard({ type: 'touchstart', target: document })).toBe(false);
   });
 });
