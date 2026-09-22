@@ -233,10 +233,17 @@ function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 
 
 
     // Only relevant for a node that has ports - see `ELK_PORT_CONSTRAINTS_BY_MODE`.
-    const layoutOptions: NodeElkLayoutOptions = (ports) ? {
+    const computedLayoutOptions: NodeElkLayoutOptions = (ports) ? {
         ...ELK_PORT_CONSTRAINTS_BY_MODE[exportGraphOptions.portsPosition ?? 'fixed'],
         'portLabels.placement': 'OUTSIDE'
     } : {};
+
+    // Optional `elk.*` layoutOptions a consumer can set directly on the element's own
+    // `elkLayout` property (see the same-named property `buildPorts` reads per port/group
+    // below), merged onto what this package itself computes - so e.g. a container's
+    // `elk.padding` can be declared once, on the shape, without a `nodeProperties` callback.
+    const elkLayout = element.prop('elkLayout') as NodeElkLayoutOptions | undefined;
+    const layoutOptions = elkLayout ? mergeProperties(elkLayout, computedLayoutOptions) : computedLayoutOptions;
 
     const embeds = element.getEmbeddedCells()
         .filter((cell): cell is dia.Element => cell.isElement());
@@ -307,17 +314,24 @@ function buildEdge(link: dia.Link): void {
 
     let labels: ElkLabel[] | undefined;
     if (exportGraphOptions.edgeLabels) {
-        const linkLabels = link.labels();
+        // Raw (not `link.labels()`) - a custom `elkLayout` property (read below) isn't
+        // part of the resolved label `@joint/core` returns (see `Link#_getResolvedLabel`).
+        const linkLabels = (link.get('labels') as dia.Link.Label[] | undefined) || [];
         if (linkLabels.length > 0) {
             labels = linkLabels.map((label): ElkLabel => {
                 const { width, height } = label.size || DEFAULT_LABEL_SIZE;
+                // Optional `elk.*` layoutOptions a consumer can set directly on the label's
+                // own `elkLayout` property (see `buildElkNode`'s node-level equivalent above).
+                const elkLayout = (label as { elkLayout?: LabelElkLayoutOptions }).elkLayout;
+                const layoutOptions = elkLayout ? mergeProperties(elkLayout, ELK_INLINE_LABEL_OPTIONS) : ELK_INLINE_LABEL_OPTIONS;
                 return {
                     // Some text is required, otherwise ELK ignores the label.
                     text: ELK_LABEL_TEXT,
                     width,
                     height,
-                    // Place the label directly on the edge (and allocate space for it).
-                    layoutOptions: ELK_INLINE_LABEL_OPTIONS
+                    // Place the label directly on the edge (and allocate space for it),
+                    // unless `elkLayout` overrides that.
+                    layoutOptions
                 };
             });
         }
