@@ -18,14 +18,11 @@ export type SetPortAttributesCallback = (params: SetPortAttributesCallbackParame
 export type SetPortAttributesCallbackParameters = {
     element: dia.Element;
     portId: string;
-    // Shaped to be handed straight to `element.portProp(portId, attributes)` - a plain,
-    // deep merge onto the port's own (raw) JSON, same as its `attrs`/`markup`/`size` -
-    // see `dia.Element.Port`. Only carries the port's own `position.args`/`label.position.args`
-    // (a group's `position`/`label.position` decides which layout *function* actually reads
-    // them - switching that is handled separately, once per group, see `importNode`).
+    // Shaped for `element.portProp(portId, attributes)` - only the port's own
+    // `position.args`/`label.position.args` (a group's `position`/`label.position`
+    // decides which layout function reads them - handled separately, see `importNode`).
     attributes: {
-        // Present only when `portsPosition` is not 'fixed' - a 'fixed' port already stays
-        // exactly where JointJS's own port groups place it, so there's nothing to apply.
+        // Present only when `portsPosition` is not 'fixed' - nothing to apply otherwise.
         position?: { args: dia.Point };
         // Present only when `positionPortLabels` is enabled and the port has a label.
         label?: { position: { args: dia.Point } };
@@ -35,34 +32,25 @@ export type SetPortAttributesCallbackParameters = {
 export type SetLinkAttributesCallback = (params: SetLinkAttributesCallbackParameters) => void;
 export type SetLinkAttributesCallbackParameters = {
     link: dia.Link;
-    // Shaped to be handed straight to `link.set(attributes)`.
+    // Shaped for `link.set(attributes)`.
     attributes: {
         vertices: dia.Point[];
-        // Present only for an end not already connected to a port - a port-connected
-        // end already has the anchor JointJS itself computed for that port (the same
-        // position ELK was told to route to), so it does not need overriding. Carries
-        // the end's own existing `id`/`port`/... (see `dia.Link.EndJSON`) alongside the
-        // new `anchor`, since `link.set('source', ...)` replaces the whole `source` outright.
+        // Present only for an end not already connected to a port - carries the end's
+        // existing `id`/`port`/... alongside the new `anchor`, since `link.set(...)`
+        // replaces `source`/`target` outright rather than merging into them.
         source?: dia.Link.EndJSON;
         target?: dia.Link.EndJSON;
-        // Present only when `edgeLabels` is enabled and the link has labels - the link's
-        // whole current `labels` array, each routed label's own `position` replaced (its
-        // `attrs`/`markup`/`size` untouched), since `link.set('labels', ...)` replaces the
-        // whole array outright.
+        // Present only when `edgeLabels` is enabled and the link has labels - the whole
+        // current `labels` array, with each routed label's `position` replaced.
         labels?: dia.Link.Label[];
     };
 };
 
 /**
- * Controls how freely ELK may reposition a port along its element - maps directly
- * onto ELK's own `elk.portConstraints` (see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portConstraints.html):
- * - `'fixed'` (default) - the port stays exactly where JointJS's own port groups
- *   already place it; ELK only uses that position to route edges to/from it
- *   (`FIXED_POS`).
- * - `'fixed-side'` - ELK may reposition (and reorder) the port along the side its
- *   group already assigns it to, e.g. to minimize edge crossings (`FIXED_SIDE`).
- * - `'free'` - ELK may reposition the port anywhere around its element, including
- *   onto a different side than its group's (`FREE`).
+ * How freely ELK may reposition a port - maps to `elk.portConstraints`:
+ * - `'fixed'` (default): stays at JointJS's computed position (`FIXED_POS`).
+ * - `'fixed-side'`: may move/reorder along its group's side (`FIXED_SIDE`).
+ * - `'free'`: may move anywhere, including onto a different side (`FREE`).
  */
 export type PortsPositionMode = 'fixed' | 'fixed-side' | 'free';
 
@@ -71,35 +59,26 @@ export interface ImportLayoutOptions {
     setLinkAttributes?: SetLinkAttributesCallback;
     setPortAttributes?: SetPortAttributesCallback;
     /**
-     * Whether to account for link labels during layout and position them
-     * along the routed link afterwards.
+     * Whether to account for link labels during layout and position them afterwards.
      * @defaultValue true
      */
     edgeLabels?: boolean;
     /**
-     * How freely ELK may reposition (and reorder) ports along their element,
-     * instead of keeping them at the position JointJS itself already computed
-     * for them - see `PortsPositionMode`. When set to anything other than
-     * `'fixed'`, every port's owning group is switched to an `'absolute'`
-     * position (preserving its `attrs`/`markup`/`label`) so the position ELK
-     * computed for it can be applied.
+     * How freely ELK may reposition (and reorder) ports, instead of keeping them
+     * where JointJS's port groups place them - see `PortsPositionMode`.
      * @defaultValue 'fixed'
      */
     portsPosition?: PortsPositionMode;
     /**
-     * Whether to let ELK reposition port labels along their port, instead of keeping
-     * them at the position JointJS itself already computed for them (via the port
-     * group's `label`). When enabled, every port's owning group's label is switched
-     * to a `'manual'` position (preserving its `attrs`/`markup`) so the position ELK
-     * computed for it can be applied.
+     * Whether to let ELK reposition port labels along their port, instead of
+     * keeping them where JointJS's port groups place them.
      * @defaultValue false
      */
     positionPortLabels?: boolean;
 }
 
-// The anchor for a link end not connected to a port - relative to `element`, same as
-// JointJS itself already computes for a port-connected end (see `importEdges`), so
-// both keep behaving the same way if `element` later moves or is resized.
+// The anchor for a link end not connected to a port - computed the same way JointJS
+// computes one for a port-connected end, so both react the same way to future moves.
 function getPortlessEndAnchor(element: dia.Element, point: dia.Point): NonNullable<dia.Link.EndCellArgs['anchor']> {
     const delta = element.getRelativePointFromAbsolute(point);
     return {
@@ -171,10 +150,8 @@ function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: di
 
         const vertices = bendPoints.map((point) => toAbsolute(point, containerPosition));
 
-        // A port-connected end already has the anchor JointJS itself computed for that
-        // port (the same position ELK was told to route to) - it does not need overriding.
-        // The end's own existing `id`/`port`/... is carried over alongside the new
-        // `anchor`, since `attributes.source`/`target` replace the whole end outright.
+        // A port-connected end already has its anchor computed by JointJS - no override
+        // needed. The end's existing `id`/`port` is kept, since `.set()` replaces it outright.
         const currentSource = link.source();
         const source = (currentSource.port) ? undefined : {
             ...currentSource,
@@ -232,10 +209,8 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             element,
             attributes: {
                 position,
-                // A container's size is computed by ELK to fit its (recursively laid out)
-                // content - omitted entirely for a leaf element (not just left `undefined`),
-                // since `attributes` is handed straight to `element.set(...)`, which would
-                // otherwise overwrite its existing size with `undefined`.
+                // Omitted entirely for a leaf (not just `undefined`) - `attributes` goes
+                // straight to `element.set(...)`, which would otherwise wipe its size.
                 ...(isContainer ? { size: { width: node.width || 0, height: node.height || 0 }} : {})
             }
         });
@@ -243,9 +218,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
 
     if (node.ports) {
         const setPortAttributes = importLayoutOptions.setPortAttributes ?? defaultSetPortAttributes;
-        // A 'fixed' port (the default) already stays exactly where JointJS's own port
-        // groups place it - ELK was only told where that is, not asked to move it - so
-        // there is nothing to apply back.
+        // A 'fixed' port (the default) already stays put - nothing to apply back.
         const positionPorts = (importLayoutOptions.portsPosition ?? 'fixed') !== 'fixed';
 
         node.ports.forEach((port) => {
@@ -257,6 +230,8 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             if (importLayoutOptions.positionPortLabels) {
                 const [label] = port.labels || [];
                 if (label) {
+                    // ELK's `label.x`/`y` are relative to the port's top-left corner, but
+                    // 'manual' label position expects an offset from the port's *center*.
                     labelPosition = {
                         x: (label.x || 0) - (port.width || 0) / 2,
                         y: (label.y || 0) - (port.height || 0) / 2
@@ -266,26 +241,18 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
 
             if (!positionPorts && !labelPosition) return;
 
-            // A computed position/label position only has visible effect once the port's
-            // group is switched to the layout type that reads it ('absolute' for position,
-            // 'manual' for labels) - which layout function actually renders a port/label is
-            // entirely a group-level setting; a port's own `position`/`label.position` only
-            // ever supplies the *args* to whichever function the group is already using
-            // (see `PortData#_evaluatePortPositionProperty` in `@joint/core`).
+            // A port's own `position`/`label.position` only ever supplies *args* - which
+            // layout function reads them ('absolute'/'manual' vs. e.g. 'left') is a
+            // group-level setting, so that has to be switched too (see `@joint/core`'s
+            // `PortData#_evaluatePortPositionProperty`).
             const { group } = element.getPort(portId);
             if (group !== undefined) {
+                // Safe to replace outright - only `position`/`label.position` change,
+                // `attrs`/`markup`/`label` stay intact.
                 if (positionPorts) {
-                    // Every port ends up with a computed position (all of an element's ports
-                    // are exported), so switching the whole group to `'absolute'` is safe here
-                    // - it only replaces the group's `position`, leaving its `attrs`/`markup`/
-                    // `label` intact.
                     element.prop(['ports', 'groups', group, 'position'], { name: 'absolute' });
                 }
                 if (labelPosition) {
-                    // Every positioned port label ends up with a computed position (only ports
-                    // whose group defines a `label` are exported, but all of those are), so
-                    // switching the whole group's label to `'manual'` is safe here - it only
-                    // replaces the group label's `position`, leaving its `attrs`/`markup` intact.
                     element.prop(['ports', 'groups', group, 'label', 'position'], { name: 'manual' });
                 }
             }
@@ -294,6 +261,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
                 element,
                 portId,
                 attributes: {
+                    // Same top-left-to-center conversion as the label above, for 'absolute' position.
                     ...(positionPorts ? {
                         position: {
                             args: {
