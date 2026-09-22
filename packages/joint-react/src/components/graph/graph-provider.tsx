@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import React, { memo, useLayoutEffect } from 'react';
+import React, { memo, useLayoutEffect, useRef } from 'react';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
@@ -126,16 +126,25 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
 
   const isControlled = !!cells;
 
-  const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>>(
+  // `initialCells` seed the graph once. A dev-server Fast Refresh re-runs the
+  // mount effect below (destroying and re-creating the store) while this ref
+  // survives, so an external `graph` is adopted as it is instead of being
+  // re-seeded — the user's runtime edits stay. An internally created graph was
+  // cleared by `destroy()` and has to be seeded again.
+  const hasSeededExternalGraphRef = useRef(false);
+
+  const { instance, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>>(
     {
       onLoad() {
+        const shouldSeed = !graph || !hasSeededExternalGraphRef.current;
+        hasSeededExternalGraphRef.current = !!graph;
         const graphStore =
           store ??
           new GraphStore<ElementJSONInit, LinkJSONInit>({
             graph,
             cellNamespace,
             cellModel,
-            initialCells: cells ?? initialCells ?? [],
+            initialCells: shouldSeed ? (cells ?? initialCells ?? []) : undefined,
             autoSizeOrigin,
           });
         return {
@@ -150,9 +159,16 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     []
   );
 
+  // Keyed on the store INSTANCE (not a ready boolean): when the store is
+  // re-created while mounted (e.g. a Fast Refresh re-runs the mount effect),
+  // the fresh instance must be re-wired and, in controlled mode, re-seeded
+  // from the current `cells`.
   useLayoutEffect(() => {
-    if (!isReady) return;
-    const { setOnIncrementalCellsChange, applyControlled, graphProjection } = ref.current;
+    // In the commit that re-creates the store, `instance` is still the
+    // destroyed one (its state lands next render) while `ref` already holds the
+    // new one: skip, the re-render wires the live store.
+    if (!instance || instance !== ref.current) return;
+    const { setOnIncrementalCellsChange, applyControlled, graphProjection } = instance;
     setOnIncrementalCellsChange((changeSet) => {
       onIncrementalCellsChange?.(changeSet);
       if (onCellsChange) {
@@ -166,13 +182,13 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     if (isControlled) {
       applyControlled(cells ?? []);
     }
-  }, [isReady, onIncrementalCellsChange, onCellsChange, ref, isControlled, cells]);
+  }, [instance, ref, onIncrementalCellsChange, onCellsChange, isControlled, cells]);
 
-  if (!isReady) {
+  if (!instance) {
     return null;
   }
 
-  return <GraphStoreContext.Provider value={ref.current}>{children}</GraphStoreContext.Provider>;
+  return <GraphStoreContext.Provider value={instance}>{children}</GraphStoreContext.Provider>;
 }
 
 /**
