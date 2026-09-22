@@ -331,7 +331,9 @@ export const LinkView = CellView.extend({
         var labelCache = this._labelCache = {};
         var labelSelectors = this._labelSelectors = {};
         var model = this.model;
-        var labels = model.attributes.labels || [];
+        // Resolved (see `Link#labels`) - `label.markup` is always set (falls back all the
+        // way to the built-in default), so there's no need to resolve it again here.
+        var labels = model.labels();
         var labelsCount = labels.length;
 
         if (labelsCount === 0) {
@@ -355,24 +357,8 @@ export const LinkView = CellView.extend({
 
             var label = labels[i];
             var labelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(label.markup));
-            var labelNode;
-            var selectors;
-            if (labelMarkup) {
-
-                labelNode = labelMarkup.node;
-                selectors = labelMarkup.selectors;
-
-            } else {
-
-                var builtinDefaultLabel =  model._builtins.defaultLabel;
-                var builtinDefaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(builtinDefaultLabel.markup));
-                var defaultLabel = model._getDefaultLabel();
-                var defaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(defaultLabel.markup));
-                var defaultMarkup = defaultLabelMarkup || builtinDefaultLabelMarkup;
-
-                labelNode = defaultMarkup.node;
-                selectors = defaultMarkup.selectors;
-            }
+            var labelNode = labelMarkup.node;
+            var selectors = labelMarkup.selectors;
 
             labelNode.setAttribute('label-idx', i); // assign label-idx
             vLabels.append(labelNode);
@@ -428,44 +414,6 @@ export const LinkView = CellView.extend({
         return node;
     },
 
-    // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
-    // keep `undefined` or `null` because `{}` means something else
-    _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
-
-        if (labelAttrs === null) return null;
-        if (labelAttrs === undefined) {
-
-            if (defaultLabelAttrs === null) return null;
-            if (defaultLabelAttrs === undefined) {
-
-                if (hasCustomMarkup) return undefined;
-                return builtinDefaultLabelAttrs;
-            }
-
-            if (hasCustomMarkup) return defaultLabelAttrs;
-            return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs);
-        }
-
-        if (hasCustomMarkup) return merge({}, defaultLabelAttrs, labelAttrs);
-        return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
-    },
-
-    // merge default label size into label size (no built-in default)
-    // keep `undefined` or `null` because `{}` means something else
-    _mergeLabelSize: function(labelSize, defaultLabelSize) {
-
-        if (labelSize === null) return null;
-        if (labelSize === undefined) {
-
-            if (defaultLabelSize === null) return null;
-            if (defaultLabelSize === undefined) return undefined;
-
-            return defaultLabelSize;
-        }
-
-        return merge({}, defaultLabelSize, labelSize);
-    },
-
     updateLabels: function() {
 
         if (!this._V.labels) return this;
@@ -477,17 +425,10 @@ export const LinkView = CellView.extend({
             this.cleanNodeCache(this.el);
         }
 
-        var model = this.model;
-        var labels = model.get('labels') || [];
+        // Resolved (see `Link#labels`) - `attrs`/`size` are already merged with
+        // `defaultLabel`/the built-in default.
+        var labels = this.model.labels();
         var canLabelMove = this.can('labelMove');
-
-        var builtinDefaultLabel = model._builtins.defaultLabel;
-        var builtinDefaultLabelAttrs = builtinDefaultLabel.attrs;
-
-        var defaultLabel = model._getDefaultLabel();
-        var defaultLabelMarkup = defaultLabel.markup;
-        var defaultLabelAttrs = defaultLabel.attrs;
-        var defaultLabelSize = defaultLabel.size;
 
         for (var i = 0, n = labels.length; i < n; i++) {
 
@@ -495,26 +436,10 @@ export const LinkView = CellView.extend({
             labelNode.setAttribute('cursor', (canLabelMove ? 'move' : 'default'));
 
             var selectors = this._labelSelectors[i];
-
             var label = labels[i];
-            var labelMarkup = label.markup;
-            var labelAttrs = label.attrs;
-            var labelSize = label.size;
 
-            var attrs = this._mergeLabelAttrs(
-                (labelMarkup || defaultLabelMarkup),
-                labelAttrs,
-                defaultLabelAttrs,
-                builtinDefaultLabelAttrs
-            );
-
-            var size = this._mergeLabelSize(
-                labelSize,
-                defaultLabelSize
-            );
-
-            this.updateDOMSubtreeAttributes(labelNode, attrs, {
-                rootBBox: new Rect(size),
+            this.updateDOMSubtreeAttributes(labelNode, label.attrs, {
+                rootBBox: new Rect(label.size),
                 selectors: selectors
             });
         }
@@ -860,42 +785,6 @@ export const LinkView = CellView.extend({
         return this.isIntersecting(area);
     },
 
-    // combine default label position with built-in default label position
-    _getDefaultLabelPositionProperty: function() {
-
-        var model = this.model;
-
-        var builtinDefaultLabel = model._builtins.defaultLabel;
-        var builtinDefaultLabelPosition = builtinDefaultLabel.position;
-
-        var defaultLabel = model._getDefaultLabel();
-        var defaultLabelPosition = this._normalizeLabelPosition(defaultLabel.position);
-
-        return merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
-    },
-
-    // if label position is a number, normalize it to a position object
-    // this makes sure that label positions can be merged properly
-    _normalizeLabelPosition: function(labelPosition) {
-
-        if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, angle: 0, args: null };
-        return labelPosition;
-    },
-
-    // expects normalized position properties
-    // e.g. `this._normalizeLabelPosition(labelPosition)` and `this._getDefaultLabelPositionProperty()`
-    _mergeLabelPositionProperty: function(normalizedLabelPosition, normalizedDefaultLabelPosition) {
-
-        if (normalizedLabelPosition === null) return null;
-        if (normalizedLabelPosition === undefined) {
-
-            if (normalizedDefaultLabelPosition === null) return null;
-            return normalizedDefaultLabelPosition;
-        }
-
-        return merge({}, normalizedDefaultLabelPosition, normalizedLabelPosition);
-    },
-
     updateLabelPositions: function() {
 
         if (!this._V.labels) return this;
@@ -906,18 +795,15 @@ export const LinkView = CellView.extend({
         // This method assumes all the label nodes are stored in the `this._labelCache` hash table
         // by their indices in the `this.get('labels')` array. This is done in the `renderLabels()` method.
 
-        var model = this.model;
-        var labels = model.get('labels') || [];
+        // Resolved (see `Link#labels`) - `position` is already merged with `defaultLabel`/
+        // the built-in default.
+        var labels = this.model.labels();
         if (!labels.length) return this;
-
-        var defaultLabelPosition = this._getDefaultLabelPositionProperty();
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
             var labelNode = this._labelCache[idx];
             if (!labelNode) continue;
-            var label = labels[idx];
-            var labelPosition = this._normalizeLabelPosition(label.position);
-            var position = this._mergeLabelPositionProperty(labelPosition, defaultLabelPosition);
+            var position = labels[idx].position;
             var transformationMatrix = this._getLabelTransformationMatrix(position);
             labelNode.setAttribute('transform', V.matrixToTransformString(transformationMatrix));
             this._cleanLabelMatrices(idx);
@@ -947,23 +833,8 @@ export const LinkView = CellView.extend({
         }
     },
 
-    _getLabelPositionProperty: function(idx) {
-
-        return (this.model.label(idx).position || {});
-    },
-
-    _getLabelPositionAngle: function(idx) {
-
-        var labelPosition = this._getLabelPositionProperty(idx);
-        return (labelPosition.angle || 0);
-    },
-
-    _getLabelPositionArgs: function(idx) {
-
-        var labelPosition = this._getLabelPositionProperty(idx);
-        return labelPosition.args;
-    },
-
+    // Used by `addLabel` below, for a not-yet-existing label - unlike `_getResolvedLabel`,
+    // does not need the built-in default (which never has `position.args`).
     _getDefaultLabelPositionArgs: function() {
 
         var defaultLabel = this.model._getDefaultLabel();
@@ -1602,26 +1473,20 @@ export const LinkView = CellView.extend({
             var labelNode = evt.currentTarget;
             var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
-            var defaultLabelPosition = this._getDefaultLabelPositionProperty();
-            var initialLabelPosition = this._normalizeLabelPosition(this._getLabelPositionProperty(labelIdx));
-            var position = this._mergeLabelPositionProperty(initialLabelPosition, defaultLabelPosition);
+            // Resolved (see `Link#labels`) - already merged with `defaultLabel`/the built-in default.
+            var position = this.model.label(labelIdx).position || {};
 
             var coords = this.getLabelCoordinates(position);
             var dx = coords.x - x; // how much needs to be added to cursor x to get to label x
             var dy = coords.y - y; // how much needs to be added to cursor y to get to label y
-
-            var positionAngle = this._getLabelPositionAngle(labelIdx);
-            var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
-            var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
-            var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
 
             this.eventData(evt, {
                 action: 'label-move',
                 labelIdx: labelIdx,
                 dx: dx,
                 dy: dy,
-                positionAngle: positionAngle,
-                positionArgs: positionArgs,
+                positionAngle: position.angle || 0,
+                positionArgs: position.args,
                 stopPropagation: true
             });
 
