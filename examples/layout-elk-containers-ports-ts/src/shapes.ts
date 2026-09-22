@@ -52,6 +52,8 @@ const HUB_PORT_ATTRS = {
     }
 };
 
+const CONTAINER_PADDING = '[top=40,left=20,bottom=20,right=20]';
+
 /**
  * A dashed, semi-transparent container - its final size and position are
  * computed by ELK to fit whatever gets embedded into it. Its label sits in
@@ -62,6 +64,12 @@ export class Container extends shapes.standard.Rectangle {
         return util.defaultsDeep({
             type: 'example.Container',
             size: { width: 100, height: 100 },
+            // Extra top padding, so embedded children don't overlap this container's own
+            // title label - read directly by `@joint/layout-elk` (`elkLayout` merges onto
+            // whatever it itself computes for a node), no `nodeProperties` callback needed.
+            elkLayout: {
+                'elk.padding': CONTAINER_PADDING
+            },
             attrs: {
                 body: {
                     fill: '#EEF3F1',
