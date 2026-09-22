@@ -1,7 +1,8 @@
-import { dia } from '@joint/core';
+import { dia, util } from '@joint/core';
 import type { LayerPatch, LayerRecord } from '../types/layer.types';
 import { forgetLayerNotEmptyWarning, warnLayerNotEmpty } from '../utils/dev-warnings';
 import { isShallowEqual } from '../utils/selector-utils';
+import { isRecord } from '../utils/is';
 
 /** `type` joint-core gives a plain layer — read from core, not restated — and left out of records. */
 const DEFAULT_GRAPH_LAYER_TYPE: unknown = dia.GraphLayer.prototype.defaults().type;
@@ -78,6 +79,41 @@ export function readLayerRecords(
     index += 1;
   }
   return next ?? previous;
+}
+
+/**
+ * Whether the graph can construct a layer of `type` — the constructor is
+ * registered in its `layerNamespace` (a dotted path, like a cell type).
+ * @param graph - The graph whose namespace is consulted.
+ * @param type - The layer `type` attribute.
+ */
+function isRegisteredLayerType(graph: dia.Graph, type: string): boolean {
+  const namespace: unknown = graph.layerCollection.layerNamespace;
+  return isRecord(namespace) && typeof util.getByPath(namespace, type, '.') === 'function';
+}
+
+/**
+ * Throws on a layer list joint-core would reject or silently collapse: an
+ * empty id, an id declared twice (layers are keyed by id, so the graph could
+ * never match the array), or a `type` with no constructor in the graph's
+ * `layerNamespace`. Runs before any write, so a bad array leaves the graph —
+ * and any open batch — untouched.
+ * @param graph - The target graph.
+ * @param layers - The declared layers.
+ * @internal
+ */
+export function assertLayerRecords(graph: dia.Graph, layers: readonly LayerRecord[]): void {
+  const seen = new Set<string>();
+  for (const { id, type } of layers) {
+    if (!id) throw new Error('GraphProvider: a layer needs a non-empty id, got an empty layer id.');
+    if (seen.has(id)) throw new Error(`GraphProvider: layer id "${id}" is declared twice.`);
+    seen.add(id);
+    if (typeof type === 'string' && !isRegisteredLayerType(graph, type)) {
+      throw new Error(
+        `GraphProvider: layer "${id}" has type "${type}", which is not in the graph's \`layerNamespace\`.`
+      );
+    }
+  }
 }
 
 /**

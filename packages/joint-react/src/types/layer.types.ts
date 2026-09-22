@@ -59,6 +59,10 @@ export interface LayerRecord<LayerId extends string = string> {
  * ```
  */
 export interface LayerPatch {
+  /** Not patchable: the id names the layer to patch. */
+  readonly id?: never;
+  /** Not patchable: derived from the graph, see {@link LayerRecord.isDefault}. */
+  readonly isDefault?: never;
   /** See {@link LayerRecord.visible}. */
   readonly visible?: boolean;
   readonly [attribute: string]: unknown;

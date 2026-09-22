@@ -423,3 +423,26 @@ describe('apply order (React way of core\'s throw cases)', () => {
     expect(graph.getLayers().map((layer) => layer.id)).toEqual(['cells']);
   });
 });
+
+// Regression: on a graph-origin `reset` (`fromJSON`) the cells were published
+// before the layer snapshot was refreshed, so a controlled provider without
+// handlers re-applied its cells while its layers were still marked as applied
+// — and a cell naming the reset-away layer threw.
+describe('controlled cells + layers on an imperative fromJSON()', () => {
+  it('re-applies the layers together with the cells', async () => {
+    const LAYERS: readonly LayerRecord[] = [{ id: 'x' }];
+    const CELLS_ON_X: readonly CellRecord[] = [
+      { id: 'c', type: 'element', layer: 'x' } as CellRecord,
+    ];
+    await mountBoth({ layers: LAYERS, cells: CELLS_ON_X });
+    const { graph } = storeRef!;
+
+    await commit(() => {
+      graph.fromJSON({ cells: [], layers: [{ id: 'cells' }], defaultLayer: 'cells' });
+    });
+
+    // The parent's arrays are the truth: both are back, in one apply.
+    expect(graph.getLayers().map((layer) => layer.id)).toEqual(['cells', 'x']);
+    expect(graph.getCell('c').layer()).toBe('x');
+  });
+});

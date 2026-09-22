@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
-import { readLayerRecords, reconcileLayers, removeEmptyLayers } from '../layers';
+import { assertLayerRecords, readLayerRecords, reconcileLayers, removeEmptyLayers } from '../layers';
 import type { LayerRecord } from '../../types/layer.types';
 
 const EMPTY_LAYERS: readonly LayerRecord[] = [];
@@ -242,5 +242,37 @@ describe('removeEmptyLayers', () => {
 
     expect(layerIds(graph)).toEqual(['cells']);
     warn.mockRestore();
+  });
+});
+
+// Regression: duplicate ids, an empty id and an unregistered `type` went into
+// the graph unchecked — one silently collapsed to a single layer, the others
+// threw from joint-core halfway through the apply.
+describe('assertLayerRecords', () => {
+  it('rejects duplicate ids', () => {
+    expect(() => assertLayerRecords(createGraph(), [{ id: 'a' }, { id: 'a' }])).toThrow(
+      /layer id "a" is declared twice/
+    );
+  });
+
+  it('rejects an empty id', () => {
+    expect(() => assertLayerRecords(createGraph(), [{ id: '' }])).toThrow(/empty layer id/);
+  });
+
+  it('rejects a type missing from the graph layerNamespace', () => {
+    expect(() => assertLayerRecords(createGraph(), [{ id: 'a', type: 'Nope' }])).toThrow(
+      /layer "a" has type "Nope"/
+    );
+  });
+
+  it('accepts unique ids and registered types', () => {
+    class TintLayer extends dia.GraphLayer {}
+    const graph = new dia.Graph(
+      {},
+      { cellNamespace: DEFAULT_CELL_NAMESPACE, layerNamespace: { TintLayer } }
+    );
+    expect(() =>
+      assertLayerRecords(graph, [{ id: 'a' }, { id: 'b', type: 'TintLayer' }, { id: 'cells' }])
+    ).not.toThrow();
   });
 });

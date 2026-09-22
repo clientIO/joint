@@ -4,7 +4,7 @@ import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
 import type { LayerPatch, LayerRecord } from '../types/layer.types';
-import { reconcileLayers, withLayerPatch } from './layers';
+import { assertLayerRecords, reconcileLayers, withLayerPatch } from './layers';
 import { isUpdater } from '../utils/is';
 import type { ArrayUpdate } from './state-container';
 import {
@@ -237,6 +237,7 @@ export class GraphStore<
     // joint-core throws on a cell whose layer does not exist yet.
     if (initialLayers && initialLayers.length > 0) {
       // Tagged so the layer listeners skip it; the projection is read once, here.
+      assertLayerRecords(this.graph, initialLayers);
       reconcileLayers(this.graph, initialLayers, { isUpdateFromReact: true });
       this.graphProjection.syncLayersFromGraph();
     }

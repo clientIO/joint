@@ -74,6 +74,11 @@ function typeChecks() {
   expectType<boolean | undefined>(patch.visible);
   // @ts-expect-error -- visible must be a boolean on a patch too
   const badPatch: LayerPatch = { visible: 'yes' };
+  // The reserved fields are not patchable, index signature or not.
+  // @ts-expect-error -- a layer cannot be renamed through a patch
+  const renamePatch: LayerPatch = { id: 'b' };
+  // @ts-expect-error -- isDefault is derived from the graph
+  const defaultPatch: LayerPatch = { isDefault: true };
 
   // Controlled mode with a typed union: the provider is generic over LayerId.
   const controlled: GraphProviderProps<never, never, DiagramLayerId> = {
@@ -82,7 +87,7 @@ function typeChecks() {
   };
   // @ts-expect-error -- 'nope' is not a DiagramLayerId
   const badControlled: GraphProviderProps<never, never, DiagramLayerId> = { layers: [{ id: 'nope' }] };
-  return [bad, badPatch, controlled, badControlled];
+  return [bad, badPatch, renamePatch, defaultPatch, controlled, badControlled];
 }
 
 describe('useLayer types', () => {

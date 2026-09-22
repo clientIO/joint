@@ -81,6 +81,28 @@ describe('updateGraph — a cell naming an undeclared layer', () => {
     expect(lastCall).toMatchObject({ isInsideBatch: false });
   });
 
+  // Regression: `reconcileLayers` could throw from joint-core after the batch
+  // had opened (an empty id, an unregistered `type`), leaking the batch.
+  it('throws before any batch opens on an invalid layer record', () => {
+    const { graph, controller } = setup();
+    const onBatchStart = jest.fn();
+    graph.on('batch:start', onBatchStart);
+
+    expect(() =>
+      controller.updateGraph({ layers: [{ id: '' }], flag: 'updateFromReact' })
+    ).toThrow(/empty layer id/);
+    expect(() =>
+      controller.updateGraph({ layers: [{ id: 'a', type: 'Nope' }], flag: 'updateFromReact' })
+    ).toThrow(/type "Nope"/);
+    expect(() =>
+      controller.updateGraph({ layers: [{ id: 'a' }, { id: 'a' }], flag: 'updateFromReact' })
+    ).toThrow(/declared twice/);
+
+    expect(onBatchStart).not.toHaveBeenCalled();
+    expect(graph.hasActiveBatch('updateFromReact')).toBe(false);
+    expect(graph.getLayers().map((layer) => layer.id)).toEqual(['cells']);
+  });
+
   it('accepts a layer declared in the same commit', () => {
     const { graph, controller } = setup();
     controller.updateGraph({

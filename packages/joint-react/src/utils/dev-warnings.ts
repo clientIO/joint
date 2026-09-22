@@ -165,7 +165,8 @@ export function warnLayerNotEmpty(layerId: string, getCellIds: () => readonly di
       `[GraphProvider] Layer "${layerId}" was dropped from \`layers\` but still holds ` +
       `${cellIds.length} cell(s): ${cellIds.map(String).join(', ')}. ` +
       'It is kept until they are moved or removed.\n\n' +
-      'Fix: reassign them first — setCell({ id, layer: \'other\' }) — or remove them.'
+      'Fix: reassign them first — setCell(id, (previous) => ({ ...previous, layer: \'other\' })) — ' +
+      'or remove them.'
     );
   });
 }

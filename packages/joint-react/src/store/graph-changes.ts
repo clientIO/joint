@@ -4,7 +4,7 @@ import { simpleScheduler } from '../utils/scheduler';
 import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
 import { mapCellToAttributes } from '../state/data-mapping';
 import type { LayerRecord } from '../types/layer.types';
-import { reconcileLayers, removeEmptyLayers } from './layers';
+import { assertLayerRecords, reconcileLayers, removeEmptyLayers } from './layers';
 import { isRecord } from '../utils/is';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
@@ -252,6 +252,12 @@ export function graphChanges(options: Options) {
           onElementsSizeChange(cell.id, (cell as dia.Element).size());
         }
       }
+      // `fromJSON` resets layers too, and joint-core does not forward
+      // `layers:reset` to the graph — the cell `reset` is the only signal.
+      // Layers first: publishing the cells notifies a controlled provider,
+      // which re-applies its arrays at once; it must already know the layers
+      // changed, or it re-applies cells onto layers the reset took away.
+      onLayersChange?.();
       // Bypass the simpleScheduler wrapper used for normal cell events.
       // `reset` is a one-shot bulk operation and callers (e.g. GraphStore
       // constructor) expect the cells container to be observable
@@ -262,9 +268,6 @@ export function graphChanges(options: Options) {
         deferCommit: isDeferring(),
         isReset: true,
       });
-      // `fromJSON` resets layers too, and joint-core does not forward
-      // `layers:reset` to the graph — the cell `reset` is the only signal.
-      onLayersChange?.();
     }
   );
 
@@ -327,9 +330,11 @@ export function graphChanges(options: Options) {
 
       // Tagged batch: every event inside it carries the React-origin flag, so
       // `batch:stop` schedules no redundant (empty) change pass for it.
-      // Reject before any batch opens: joint-core throws on a cell naming a
-      // layer that does not exist, and a throw inside the batch would leave the
-      // graph reported as "inside a batch" for every later change.
+      // Reject before any batch opens: joint-core throws on an invalid layer
+      // record and on a cell naming a layer that does not exist, and a throw
+      // inside the batch would leave the graph reported as "inside a batch" for
+      // every later change.
+      if (layers) assertLayerRecords(graph, layers);
       if (cells) assertLayersExist(graph, cells, layers);
 
       graph.startBatch('updateFromReact', syncOptions);
