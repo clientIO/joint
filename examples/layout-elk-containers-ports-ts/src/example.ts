@@ -197,14 +197,17 @@ export const graphJSON: dia.Graph.JSON = {
             type: 'example.InteractionLink',
             source: { id: 'backend' },
             target: { id: 'observability' },
-            labels: [{ attrs: { text: { text: 'metrics' } } }]
+            // Overrides `InteractionLink.defaultLabel`'s `elkLayoutOptions` (own value wins -
+            // see `Link#labels`) - floated beside the edge instead of centered directly on it,
+            // so it doesn't obscure a long aggregate link's whole path.
+            labels: [{ attrs: { text: { text: 'metrics' } }, elkLayoutOptions: { 'elk.edgeLabels.inline': 'false' } }]
         },
         {
             id: 'l10',
             type: 'example.InteractionLink',
             source: { id: 'frontend' },
             target: { id: 'observability' },
-            labels: [{ attrs: { text: { text: 'analytics' } } }]
+            labels: [{ attrs: { text: { text: 'analytics' } }, elkLayoutOptions: { 'elk.edgeLabels.inline': 'false' } }]
         }
     ]
 };
