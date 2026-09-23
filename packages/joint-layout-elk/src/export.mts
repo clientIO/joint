@@ -15,7 +15,10 @@ import type {
 // ELK ignores labels with no text.
 const ELK_LABEL_TEXT = '-';
 
-const ELK_INLINE_LABEL_OPTIONS: LabelElkLayoutOptions = { 'edgeLabels.inline': 'true' };
+// Default for `ExportGraphOptions.elkLayoutOptionsProperty` - the name of the property an
+// element/port/group/link label can set to declare custom `elk.*` layoutOptions (see
+// `getElkLayoutOptionsProperty` below).
+const DEFAULT_ELK_LAYOUT_OPTIONS_PROPERTY = 'elkLayoutOptions';
 
 // Maps a `PortsPositionMode` onto the corresponding `elk.portConstraints` value -
 // see `PortsPositionMode` for what each mode means.
@@ -87,6 +90,15 @@ export interface ExportGraphOptions {
      * @defaultValue false
      */
     positionPortLabels?: boolean;
+    /**
+     * The name of the property an element, port/port group, or link label can set to
+     * declare custom `elk.*` layoutOptions for it, merged onto what this package itself
+     * computes (see "Declaring custom ELK layout options" in the README) - without a
+     * `nodeProperties`/`portProperties`/`edgeProperties` callback. Not to be confused with
+     * `elkLayoutOptions` (`layout()`'s own option, the ELK options for the whole graph).
+     * @defaultValue 'elkLayoutOptions'
+     */
+    elkLayoutOptionsProperty?: string;
 }
 
 export const DEFAULT_LABEL_SIZE: dia.Size = {
@@ -99,6 +111,12 @@ export const DEFAULT_LABEL_SIZE: dia.Size = {
 // nested objects like `layoutOptions`), `computed` fills in anything the override didn't set.
 function mergeProperties<T extends object>(overrides: Partial<T>, computed: T): T {
     return util.defaultsDeep({}, overrides, computed) as T;
+}
+
+// The name of the property to read custom `elk.*` layoutOptions from (see
+// `ExportGraphOptions.elkLayoutOptionsProperty`).
+function getElkLayoutOptionsProperty(): string {
+    return exportGraphOptions.elkLayoutOptionsProperty || DEFAULT_ELK_LAYOUT_OPTIONS_PROPERTY;
 }
 
 let exportGraphOptions: ExportGraphOptions;
@@ -136,16 +154,17 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         const elkPortId = `${element.id}:${portId}`;
         portsById.set(elkPortId, { element, portId });
 
-        // Optional per-port/group metadata (`side`, `labelSize`) a consumer can set under
-        // a group's/port's own `elkLayout` key - merged onto the port by `@joint/core`.
-        const properties = element.portProp(portId, 'elkLayout');
+        // Optional `elk.*` layoutOptions a consumer can set directly under a port's/group's
+        // own `elkLayoutOptionsProperty` key (see `buildElkNode`'s node-level equivalent),
+        // merged onto what this package itself computes below - `@joint/core` merges a
+        // group's own value onto each of its ports for `portProp` reads.
+        const elkLayout = element.portProp(portId, getElkLayoutOptionsProperty()) as PortElkLayoutOptions | undefined;
 
-        // `element.getPorts()` gives the fully resolved label (merged with the group's) -
-        // `portProp`/`getPort` only ever see the port's own raw JSON.
+        // `getPortMetrics` resolves a port's `label.size` against its group's, unlike
+        // `element.getPorts()`/`portProp`, which only ever see the port's own raw JSON.
         let labels: ElkLabel[] | undefined;
         if (exportGraphOptions.positionPortLabels) {
-
-            const { width: labelWidth, height: labelHeight } = properties?.labelSize ?? DEFAULT_LABEL_SIZE;
+            const { width: labelWidth, height: labelHeight } = element.getPortMetrics(portId).labelSize ?? DEFAULT_LABEL_SIZE;
             labels = [{
                 // Some text is required, otherwise ELK ignores the label.
                 text: ELK_LABEL_TEXT,
@@ -156,7 +175,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         }
 
         let portProperties: PortProperties = {};
-        const layoutOptions: PortElkLayoutOptions = {};
+        const computedLayoutOptions: PortElkLayoutOptions = {};
         const { x, y } = element.getPortRelativePosition(portId);
         const { width, height } = element.getPortRelativeRect(portId);
 
@@ -167,29 +186,14 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             portProperties.y = y;
         }
 
-        // Only 'fixed-side' pins the side - 'free' lets ELK choose it on its own.
-        if (exportGraphOptions.portsPosition === 'fixed-side') {
-            switch (properties?.side) {
-                case 'WEST':
-                    layoutOptions['elk.port.side'] = 'WEST';
-                    break;
-                case 'EAST':
-                    layoutOptions['elk.port.side'] = 'EAST';
-                    break;
-                case 'SOUTH':
-                    layoutOptions['elk.port.side'] = 'SOUTH';
-                    break;
-                case 'NORTH':
-                    layoutOptions['elk.port.side'] = 'NORTH';
-                    break;
-                default:
-            }
-        }
-
         // Negative offset moves the port inward from the node border, centering it there.
         if (exportGraphOptions.portsPosition === 'fixed-side' || exportGraphOptions.portsPosition === 'free') {
-            layoutOptions['elk.port.borderOffset'] = `${-width / 2}`;
+            computedLayoutOptions['elk.port.borderOffset'] = `${-width / 2}`;
         }
+
+        // `elkLayout` (e.g. `{ 'elk.port.side': 'WEST' }`) maps directly onto ELK's own
+        // layoutOptions - merged onto what this package computed above (see `mergeProperties`).
+        const layoutOptions = elkLayout ? mergeProperties(elkLayout, computedLayoutOptions) : computedLayoutOptions;
 
         portProperties = {
             width,
@@ -239,10 +243,11 @@ function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 
     } : {};
 
     // Optional `elk.*` layoutOptions a consumer can set directly on the element's own
-    // `elkLayout` property (see the same-named property `buildPorts` reads per port/group
-    // below), merged onto what this package itself computes - so e.g. a container's
-    // `elk.padding` can be declared once, on the shape, without a `nodeProperties` callback.
-    const elkLayout = element.prop('elkLayout') as NodeElkLayoutOptions | undefined;
+    // `elkLayoutOptionsProperty` property (see the same one `buildPorts` reads per
+    // port/group below), merged onto what this package itself computes - so e.g. a
+    // container's `elk.padding` can be declared once, on the shape, without a
+    // `nodeProperties` callback.
+    const elkLayout = element.prop(getElkLayoutOptionsProperty()) as NodeElkLayoutOptions | undefined;
     const layoutOptions = elkLayout ? mergeProperties(elkLayout, computedLayoutOptions) : computedLayoutOptions;
 
     const embeds = element.getEmbeddedCells()
@@ -314,23 +319,30 @@ function buildEdge(link: dia.Link): void {
 
     let labels: ElkLabel[] | undefined;
     if (exportGraphOptions.edgeLabels) {
-        // Raw (not `link.labels()`) - a custom `elkLayout` property (read below) isn't
-        // part of the resolved label `@joint/core` returns (see `Link#_getResolvedLabel`).
-        const linkLabels = (link.get('labels') as dia.Link.Label[] | undefined) || [];
-        if (linkLabels.length > 0) {
-            labels = linkLabels.map((label): ElkLabel => {
+        // Resolved (`link.labels()`) - `size` falls back through `defaultLabel`/the built-in
+        // default the same way `@joint/core` itself resolves it for rendering, and a custom
+        // `elkLayoutOptionsProperty` property passes through too (whether set on the label
+        // itself or on `defaultLabel` - see `Link#_getResolvedLabel`), so it can be read
+        // directly here instead of from the label's raw JSON.
+        const resolvedLabels = link.labels();
+        if (resolvedLabels.length > 0) {
+            const elkLayoutOptionsProperty = getElkLayoutOptionsProperty();
+            labels = resolvedLabels.map((label): ElkLabel => {
                 const { width, height } = label.size || DEFAULT_LABEL_SIZE;
                 // Optional `elk.*` layoutOptions a consumer can set directly on the label's
-                // own `elkLayout` property (see `buildElkNode`'s node-level equivalent above).
-                const elkLayout = (label as { elkLayout?: LabelElkLayoutOptions }).elkLayout;
-                const layoutOptions = elkLayout ? mergeProperties(elkLayout, ELK_INLINE_LABEL_OPTIONS) : ELK_INLINE_LABEL_OPTIONS;
+                // own (or `defaultLabel`'s) `elkLayoutOptionsProperty` property (see
+                // `buildElkNode`'s node-level equivalent above). Not inline by default - a
+                // consumer wanting the old default back sets e.g.
+                // `elkLayoutOptions: { 'elk.edgeLabels.inline': 'true' }` explicitly.
+                const elkLayout = (label as Record<string, LabelElkLayoutOptions | undefined>)[elkLayoutOptionsProperty];
+                // Cloned (not a direct reference into the label's own storage), same as
+                // `buildElkNode`/`buildPorts` - `elk.layout()` shouldn't mutate a consumer's data.
+                const layoutOptions = elkLayout ? mergeProperties(elkLayout, {}) : {};
                 return {
                     // Some text is required, otherwise ELK ignores the label.
                     text: ELK_LABEL_TEXT,
                     width,
                     height,
-                    // Place the label directly on the edge (and allocate space for it),
-                    // unless `elkLayout` overrides that.
                     layoutOptions
                 };
             });

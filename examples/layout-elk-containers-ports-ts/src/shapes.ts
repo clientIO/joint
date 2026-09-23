@@ -65,9 +65,9 @@ export class Container extends shapes.standard.Rectangle {
             type: 'example.Container',
             size: { width: 100, height: 100 },
             // Extra top padding, so embedded children don't overlap this container's own
-            // title label - read directly by `@joint/layout-elk` (`elkLayout` merges onto
-            // whatever it itself computes for a node), no `nodeProperties` callback needed.
-            elkLayout: {
+            // title label - read directly by `@joint/layout-elk` (`elkLayoutOptions` merges
+            // onto whatever it itself computes for a node), no `nodeProperties` callback needed.
+            elkLayoutOptions: {
                 'elk.padding': CONTAINER_PADDING
             },
             attrs: {
@@ -122,15 +122,15 @@ export class Service extends shapes.standard.Rectangle {
                     in: {
                         size: PORT_SIZE,
                         attrs: PORT_ATTRS,
-                        elkLayout: {
-                            side: 'WEST'
+                        elkLayoutOptions: {
+                            'elk.port.side': 'WEST'
                         }
                     },
                     out: {
                         size: PORT_SIZE,
                         attrs: PORT_ATTRS,
-                        elkLayout: {
-                            side: 'EAST'
+                        elkLayoutOptions: {
+                            'elk.port.side': 'EAST'
                         }
                     }
                 },
@@ -157,7 +157,7 @@ export class Service extends shapes.standard.Rectangle {
         ports.forEach((port) => {
             const text = port.attrs?.text?.text;
             if (!port.id || typeof text !== 'string') return;
-            this.portProp(port.id, 'elkLayout/labelSize', estimatePortLabelSize(text));
+            this.portProp(port.id, 'label/size', estimatePortLabelSize(text));
         });
     }
 }
@@ -209,6 +209,11 @@ export class InteractionLink extends shapes.standard.Link {
             type: 'example.InteractionLink',
             defaultLabel: {
                 size: { width: 80, height: 20 },
+                // `@joint/layout-elk` doesn't place link labels inline by default - opt every
+                // label using this `defaultLabel` back into it explicitly. Read from
+                // `defaultLabel` (not repeated per label) since `Link#labels`/`label` passes
+                // it through to any label that doesn't set its own `elkLayoutOptions`.
+                elkLayoutOptions: { 'elk.edgeLabels.inline': 'true' },
                 attrs: {
                     text: {
                         fontSize: 11,
