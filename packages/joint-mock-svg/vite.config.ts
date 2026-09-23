@@ -5,12 +5,15 @@ export default defineConfig({
     build: {
         lib: {
             entry: {
-                index: './index.ts',
+                index: './src/index.ts',
             },
         },
+        // Kept readable: this is a short module that people read when a mock
+        // does not behave the way their test needs.
         minify: false,
         rollupOptions: {
-            external: ['@joint/mock-svg'],
+            // Nothing to externalize - the whole point of this package is that
+            // it depends on no test runner.
             output: [
                 {
                     esModule: true,
