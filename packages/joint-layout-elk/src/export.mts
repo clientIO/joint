@@ -160,11 +160,11 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         // group's own value onto each of its ports for `portProp` reads.
         const elkLayout = element.portProp(portId, getElkLayoutOptionsProperty()) as PortElkLayoutOptions | undefined;
 
-        // `getPortMetrics` resolves a port's `label.size` against its group's, unlike
-        // `element.getPorts()`/`portProp`, which only ever see the port's own raw JSON.
         let labels: ElkLabel[] | undefined;
         if (exportGraphOptions.positionPortLabels) {
-            const { width: labelWidth, height: labelHeight } = element.getPortMetrics(portId).labelSize ?? DEFAULT_LABEL_SIZE;
+            const labelSize = element.portProp(portId, 'label/size');
+
+            const { width: labelWidth, height: labelHeight } = labelSize ?? DEFAULT_LABEL_SIZE;
             labels = [{
                 // Some text is required, otherwise ELK ignores the label.
                 text: ELK_LABEL_TEXT,
