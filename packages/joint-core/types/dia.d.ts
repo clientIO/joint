@@ -878,16 +878,6 @@ export namespace Element {
         angle: number;
     }
 
-    interface PortMetrics {
-        index: number;
-        portId: string;
-        portTransformation: PortPosition;
-        labelTransformation: Point | null;
-        portAttrs?: Cell.Selectors;
-        portSize?: Size;
-        labelSize?: Size;
-    }
-
     interface TranslateOptions extends Cell.Options {
         restrictedArea?: BBox | Paper.PointConstraintCallback;
         transition?: Cell.TransitionOptions;
@@ -978,8 +968,6 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
     getPortRelativePosition(portId: string): Element.PortPosition;
 
     getPortRelativeRect(portId: string): Element.PortRect;
-
-    getPortMetrics(portId: string): Element.PortMetrics;
 
     getPortCenter(portId: string): g.Point;
 
