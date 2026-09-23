@@ -878,6 +878,16 @@ export namespace Element {
         angle: number;
     }
 
+    interface PortMetrics {
+        index: number;
+        portId: string;
+        portTransformation: PortPosition;
+        labelTransformation: Point | null;
+        portAttrs?: Cell.Selectors;
+        portSize?: Size;
+        labelSize?: Size;
+    }
+
     interface TranslateOptions extends Cell.Options {
         restrictedArea?: BBox | Paper.PointConstraintCallback;
         transition?: Cell.TransitionOptions;
@@ -969,6 +979,8 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     getPortRelativeRect(portId: string): Element.PortRect;
 
+    getPortMetrics(portId: string): Element.PortMetrics;
+
     getPortCenter(portId: string): g.Point;
 
     getPortBBox(portId: string, opt?: Element.RotateOptions): g.Rect;
@@ -1036,6 +1048,10 @@ export namespace Link {
         position?: LabelPosition | number; // optional for default labels
         attrs?: Cell.Selectors;
         size?: Size;
+        // Any other custom property (e.g. a `@joint/layout-elk` `elkLayoutOptions`) - passed
+        // through as-is by `Link#labels`/`Link#label`, whether set on the label itself or
+        // on `defaultLabel` (the label's own value wins).
+        [key: string]: any;
     }
 
     interface Vertex extends Point {

@@ -1,5 +1,5 @@
 import { Cell } from './Cell.mjs';
-import { clone, isPlainObject, isFunction, isString, isNumber, merge } from '../util/index.mjs';
+import { clone, isPlainObject, isFunction, isString, isNumber, merge, assign } from '../util/index.mjs';
 import { Point, Polyline } from '../g/index.mjs';
 
 // Link base model.
@@ -556,12 +556,14 @@ export const Link = Cell.extend({
         return !!ancestor && (ancestor.id === cellId || ancestor.isEmbeddedIn(cellId));
     },
 
-    // Get resolved default label.
+    // Get resolved default label. Kept as-is (including any custom property, e.g. a
+    // `@joint/layout-elk` `elkLayoutOptions`) - not just the known `markup`/`attrs`/
+    // `size`/`position` - so `_getResolvedLabel` below can pass it through too.
     _getDefaultLabel: function() {
 
         var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
 
-        var label = {};
+        var label = assign({}, defaultLabel);
         label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
         label.position = defaultLabel.position;
         label.attrs = defaultLabel.attrs;
@@ -574,6 +576,8 @@ export const Link = Cell.extend({
     // resolved against `defaultLabel` and the built-in default - the same resolution
     // `LinkView` used to do at render time (see `_mergeLabelAttrs`/`_mergeLabelSize`/
     // `_mergeLabelPositionProperty` below). Passing `{}` resolves to the pure default.
+    // Any other (custom) property on the label or `defaultLabel` passes through unresolved -
+    // the label's own value wins over `defaultLabel`'s.
     _getResolvedLabel: function(label) {
 
         label = label || {};
@@ -586,7 +590,7 @@ export const Link = Cell.extend({
         // built-in markup, so they don't apply once a custom one is in play.
         var hasCustomMarkup = !!(label.markup || defaultLabel.markup);
 
-        return {
+        return assign({}, defaultLabel, label, {
             markup: label.markup || defaultLabel.markup || builtinDefaultLabel.markup,
             attrs: this._mergeLabelAttrs(hasCustomMarkup, label.attrs, defaultLabel.attrs, builtinDefaultLabel.attrs),
             size: this._mergeLabelSize(label.size, defaultLabel.size),
@@ -594,7 +598,7 @@ export const Link = Cell.extend({
                 this._normalizeLabelPosition(label.position),
                 this._getDefaultLabelPositionProperty()
             )
-        };
+        });
     },
 
     // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)

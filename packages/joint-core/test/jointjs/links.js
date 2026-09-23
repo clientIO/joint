@@ -1937,6 +1937,29 @@ QUnit.module('links', function(hooks) {
             });
         });
 
+        QUnit.module('custom properties', function() {
+
+            QUnit.test('pass through on `label`/`labels`, own value winning over `defaultLabel`\'s', function(assert) {
+                var link = new joint.shapes.standard.Link({
+                    defaultLabel: { custom: 'default', onlyOnDefault: 'd' },
+                    labels: [
+                        { custom: 'own', position: 0 },
+                        { position: 0 }
+                    ]
+                });
+
+                assert.equal(link.label(0).custom, 'own');
+                assert.equal(link.label(0).onlyOnDefault, 'd');
+                assert.equal(link.label(1).custom, 'default');
+
+                assert.equal(link.labels()[0].custom, 'own');
+                assert.equal(link.labels()[1].custom, 'default');
+
+                // Raw storage is unaffected - `defaultLabel`'s value isn't baked into it.
+                assert.equal(link.get('labels')[1].custom, undefined);
+            });
+        });
+
         QUnit.module('insertLabel', function() {
 
             QUnit.test('sanity', function(assert) {

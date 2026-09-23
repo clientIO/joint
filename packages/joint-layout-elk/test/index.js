@@ -89,6 +89,28 @@ QUnit.module('layout()', () => {
         assert.ok(label.position && typeof label.position.distance === 'number');
     });
 
+    QUnit.test('should size a link label from `defaultLabel` when the label\'s own `size` is not set', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({
+            source: { id: el1.id },
+            target: { id: el2.id },
+            defaultLabel: { size: { width: 80, height: 20 }},
+            // No own `size` - resolved only through `defaultLabel` (see `Link#labels`).
+            labels: [{}]
+        });
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
+
+        const [elkEdge] = elkGraph.edges;
+        assert.equal(elkEdge.labels[0].width, 80);
+        assert.equal(elkEdge.labels[0].height, 20);
+    });
+
     QUnit.test('should lay out embedded elements (containers) and resize their parent to fit them', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
@@ -348,13 +370,13 @@ QUnit.module('layout()', () => {
         assert.equal(secondPosition.y, firstPosition.y);
     });
 
-    QUnit.test('should merge a node\'s own `elkLayout` into its computed layoutOptions, without a nodeProperties callback', async(assert) => {
+    QUnit.test('should merge a node\'s own `elkLayoutOptions` into its computed layoutOptions, without a nodeProperties callback', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const parent = new joint.shapes.standard.Rectangle({
             id: 'parent',
             size: { width: 10, height: 10 },
-            elkLayout: { 'elk.padding': '[top=40,left=20,bottom=20,right=20]' }
+            elkLayoutOptions: { 'elk.padding': '[top=40,left=20,bottom=20,right=20]' }
         });
         const child = new joint.shapes.standard.Rectangle({ id: 'child', size: { width: 50, height: 50 }});
         parent.embed(child);
@@ -367,7 +389,7 @@ QUnit.module('layout()', () => {
         assert.equal(parentNode.layoutOptions['elk.padding'], '[top=40,left=20,bottom=20,right=20]');
     });
 
-    QUnit.test('should merge a link label\'s own `elkLayout` into its computed layoutOptions, without an edgeProperties callback', async(assert) => {
+    QUnit.test('should merge a link label\'s own `elkLayoutOptions` into its computed layoutOptions, without an edgeProperties callback', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
@@ -375,7 +397,7 @@ QUnit.module('layout()', () => {
         const link = new joint.shapes.standard.Link({
             source: { id: 'a' },
             target: { id: 'b' },
-            labels: [{ size: { width: 40, height: 20 }, elkLayout: { 'edgeLabels.inline': 'false' }}]
+            labels: [{ size: { width: 40, height: 20 }, elkLayoutOptions: { 'elk.edgeLabels.inline': 'true' }}]
         });
 
         graph.resetCells([el1, el2, link]);
@@ -383,9 +405,133 @@ QUnit.module('layout()', () => {
         const { elkGraph } = await joint.layout.ELK.layout(graph);
 
         const [elkEdge] = elkGraph.edges;
-        assert.equal(elkEdge.labels[0].layoutOptions['edgeLabels.inline'], 'false');
+        assert.equal(elkEdge.labels[0].layoutOptions['elk.edgeLabels.inline'], 'true');
 
-        // The label's own raw JSON is unaffected - `elkLayout` isn't baked into it.
-        assert.deepEqual(link.get('labels')[0].elkLayout, { 'edgeLabels.inline': 'false' });
+        // The label's own raw JSON is unaffected - `elkLayoutOptions` isn't baked into it.
+        assert.deepEqual(link.get('labels')[0].elkLayoutOptions, { 'elk.edgeLabels.inline': 'true' });
+    });
+
+    QUnit.test('should not place a link label inline by default - it is opt-in via `elkLayoutOptions`', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a' },
+            target: { id: 'b' },
+            labels: [{ size: { width: 40, height: 20 }}]
+        });
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
+
+        const [elkEdge] = elkGraph.edges;
+        assert.notOk('elk.edgeLabels.inline' in elkEdge.labels[0].layoutOptions);
+    });
+
+    QUnit.test('should merge a link\'s `defaultLabel.elkLayoutOptions` into every label\'s computed layoutOptions', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a' },
+            target: { id: 'b' },
+            defaultLabel: {
+                size: { width: 40, height: 20 },
+                elkLayoutOptions: { 'elk.edgeLabels.inline': 'true' }
+            },
+            // Neither label sets its own `elkLayoutOptions` - both fall back to `defaultLabel`'s.
+            labels: [{}, {}]
+        });
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
+
+        const [elkEdge] = elkGraph.edges;
+        assert.equal(elkEdge.labels[0].layoutOptions['elk.edgeLabels.inline'], 'true');
+        assert.equal(elkEdge.labels[1].layoutOptions['elk.edgeLabels.inline'], 'true');
+    });
+
+    QUnit.test('should read the custom `elk.*` layoutOptions property under a different name when `elkLayoutOptionsProperty` is set', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const parent = new joint.shapes.standard.Rectangle({
+            id: 'parent',
+            size: { width: 10, height: 10 },
+            // Under the default name too - should be ignored, since a custom name is configured.
+            elkLayoutOptions: { 'elk.padding': 'should be ignored' },
+            myElkOptions: { 'elk.padding': '[top=40,left=20,bottom=20,right=20]' }
+        });
+        const child = new joint.shapes.standard.Rectangle({ id: 'child', size: { width: 50, height: 50 }});
+        parent.embed(child);
+
+        graph.resetCells([parent, child]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, { elkLayoutOptionsProperty: 'myElkOptions' });
+
+        const parentNode = elkGraph.children.find((node) => node.id === 'parent');
+        assert.equal(parentNode.layoutOptions['elk.padding'], '[top=40,left=20,bottom=20,right=20]');
+    });
+
+    QUnit.test('should merge a port group\'s own `elkLayoutOptions` into its computed layoutOptions, without a portProperties callback', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: {
+                groups: {
+                    out: { position: 'right', elkLayoutOptions: { 'elk.port.side': 'WEST' }}
+                },
+                items: [{ id: 'out1', group: 'out' }]
+            }
+        });
+
+        graph.resetCells([el1]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, { portsPosition: 'fixed-side' });
+
+        const elkNode = elkGraph.children.find((node) => node.id === 'a');
+        const elkPort = elkNode.ports.find((port) => port.id === 'a:out1');
+        // The group's own `elk.port.side` wins over what `right` would otherwise compute.
+        assert.equal(elkPort.layoutOptions['elk.port.side'], 'WEST');
+        // What this package itself computes (e.g. `elk.port.borderOffset`) still survives.
+        assert.equal(typeof elkPort.layoutOptions['elk.port.borderOffset'], 'string');
+    });
+
+    QUnit.test('should size a port label from the port\'s (or its group\'s) `label.size`, not from `elkLayoutOptions`', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: {
+                groups: {
+                    out: { position: 'right', label: { size: { width: 99, height: 22 }}}
+                },
+                items: [
+                    { id: 'out1', group: 'out' },
+                    { id: 'out2', group: 'out', label: { size: { width: 55, height: 11 }}}
+                ]
+            }
+        });
+
+        graph.resetCells([el1]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, { positionPortLabels: true });
+
+        const elkNode = elkGraph.children.find((node) => node.id === 'a');
+        const [out1Label] = elkNode.ports.find((port) => port.id === 'a:out1').labels;
+        const [out2Label] = elkNode.ports.find((port) => port.id === 'a:out2').labels;
+
+        // `out1` has no `label.size` of its own - falls back to its group's.
+        assert.equal(out1Label.width, 99);
+        assert.equal(out1Label.height, 22);
+        // `out2`'s own `label.size` overrides its group's.
+        assert.equal(out2Label.width, 55);
+        assert.equal(out2Label.height, 11);
     });
 });
