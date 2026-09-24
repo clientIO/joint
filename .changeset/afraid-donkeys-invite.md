@@ -2,4 +2,4 @@
 '@joint/vitest-plugin-mock-svg': minor
 ---
 
-import mocks from `@joint/mock-svg` as plain functions
+use `@joint/mock-svg` as the source of plain-function mocks
