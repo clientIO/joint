@@ -297,6 +297,10 @@ describe('useOnElementsMeasured — a graph reset starts a new measurement histo
   });
 });
 
+// A size written by the application never produces an event. Either the
+// element is settled already, in which case nothing about readiness changed, or
+// it is waiting to be measured, in which case the measurement is still owed and
+// will overwrite the write anyway.
 describe('useOnElementsMeasured — sizes written by the application', () => {
   // #3514: a layout that resizes cells must not re-enter its own callback.
   // Nothing was outstanding before the write and nothing is after it.
@@ -312,9 +316,12 @@ describe('useOnElementsMeasured — sizes written by the application', () => {
     expect(harness.events).toHaveLength(0);
   });
 
-  // The element was waiting to be measured, so the event was owed from the add.
-  // Whoever supplies the size discharges it, the observer or application code.
-  it('delivers one event when the application sizes an element that was waiting', async () => {
+  // A resize does not discharge a pending measurement. The element is still
+  // registered, the measured size will overwrite this one, and the library
+  // already warns about it (`warnResizeOnAutoSizedElement`). So the element is
+  // outstanding until it is measured, whatever size it happens to hold: what
+  // the hook waits on is the measurement, not the presence of a size.
+  it('delivers no event when the application sizes an element that is waiting', async () => {
     const harness = renderGraph([plain('a')]);
     await settleAndClear(harness);
 
@@ -327,6 +334,11 @@ describe('useOnElementsMeasured — sizes written by the application', () => {
     act(() => {
       (harness.graph.getCell('b') as dia.Element).resize(120, 40);
     });
+    await flush();
+
+    expect(harness.events).toHaveLength(0);
+
+    reportMeasurement(harness.graph, 'b');
     await flush();
 
     expect(harness.events).toHaveLength(1);
