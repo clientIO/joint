@@ -24,7 +24,6 @@ import { useOnElementsMeasured } from '../use-on-elements-measured';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { AUTO_SIZE_OPTION } from '../../store/graph-store';
-import type { ElementsMeasuredParams } from '../use-on-elements-measured';
 import type { CellRecord } from '../../types/cell.types';
 import type { dia } from '@joint/core';
 
@@ -47,21 +46,29 @@ const sized = (id: string): CellRecord =>
 const unsized = (id: string): CellRecord =>
   ({ id, type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 } }) as CellRecord;
 
+/**
+ * One delivered event, reduced to what these tests assert on. Keeping the full
+ * payload would print the whole `paper` on any failure.
+ */
+interface RecordedEvent {
+  readonly isInitial: boolean;
+}
+
 interface Harness {
   readonly graph: dia.Graph;
-  readonly events: ElementsMeasuredParams[];
+  readonly events: RecordedEvent[];
 }
 
 /** Renders a graph with one hook instance mounted beside the paper. */
 function renderGraph(initialCells: CellRecord[]): Harness {
-  const events: ElementsMeasuredParams[] = [];
+  const events: RecordedEvent[] = [];
   let graph: dia.Graph | undefined;
 
   function Probe() {
     const { graph: currentGraph } = useGraphStore();
     graph = currentGraph;
-    useOnElementsMeasured(PAPER_ID, (params) => {
-      events.push(params);
+    useOnElementsMeasured(PAPER_ID, ({ isInitial }) => {
+      events.push({ isInitial });
     });
     return null;
   }
@@ -204,6 +211,59 @@ describe('useOnElementsMeasured — one event per settled change', () => {
 
     act(() => {
       harness.graph.addCell(sized('c') as never);
+    });
+    await flush();
+
+    const initial = harness.events.filter((event) => event.isInitial);
+    expect(initial).toHaveLength(1);
+    expect(harness.events[0].isInitial).toBe(true);
+  });
+});
+
+describe('useOnElementsMeasured — a graph reset starts a new measurement history', () => {
+  // Resetting the graph replaces the diagram, so the next pass is that
+  // diagram's first one: a consumer that fits the paper on `isInitial` has a
+  // new set of contents to fit.
+  it('reports isInitial again after the graph is reset with sized elements', async () => {
+    const harness = renderGraph([sized('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.resetCells([sized('x'), sized('y')] as never);
+    });
+    await flush();
+
+    expect(harness.events).toHaveLength(1);
+    expect(harness.events[0].isInitial).toBe(true);
+  });
+
+  it('reports isInitial again after a reset, once the new elements are measured', async () => {
+    const harness = renderGraph([sized('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.resetCells([unsized('x'), unsized('y')] as never);
+    });
+    await flush();
+    expect(harness.events).toHaveLength(0);
+
+    measure(harness.graph, 'x', 'y');
+    await flush();
+
+    expect(harness.events).toHaveLength(1);
+    expect(harness.events[0].isInitial).toBe(true);
+  });
+
+  it('reports isInitial once per reset, not on later changes', async () => {
+    const harness = renderGraph([sized('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.resetCells([sized('x')] as never);
+    });
+    await flush();
+    act(() => {
+      harness.graph.addCell(sized('y') as never);
     });
     await flush();
 
