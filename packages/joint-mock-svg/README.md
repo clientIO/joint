@@ -1,6 +1,6 @@
 # JointJS Mock SVG
 
-Mocks of those SVG globals that JSDOM does not implement but *[JointJS](https://www.jointjs.com/)* relies on, including `SVGAngle`, `createSVGMatrix()`, `getBBox()`, and `transform.baseVal()`.
+Mocks of those SVG globals that JSDOM does not implement but *[JointJS](https://www.jointjs.com/)* relies on, including `SVGAngle`, `createSVGMatrix()`, `getBBox()`, and `transform.baseVal`.
 
 This package is **test-runner agnostic**: it depends on no test runner and uses no spies, so it can be consumed from any of them.
 
@@ -12,7 +12,7 @@ Import it once, before your tests run, in a DOM environment:
 import '@joint/mock-svg';
 ```
 
-The import is side-effectful: it installs the mocks on `globalThis` and exports nothing. It throws if there is no DOM, since the mocks are meaningless without one.
+The import is side-effectful: it installs the mocks on `globalThis` and exports nothing. Note that a DOM is required - without it the import fails.
 
 Where that import belongs depends on your runner - it needs to run before any test file touches the SVG globals, which usually means a setup-file option rather than an import in the test itself.
 

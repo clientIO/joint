@@ -1,4 +1,4 @@
-# JointJS Mock SVG
+# JointJS Mock SVG plugin for Vitest
 
 A Vitest plugin to mock SVG methods not implemented in JSDOM used by *[JointJS](https://www.jointjs.com/)*.
 
