@@ -2,4 +2,4 @@
 "@joint/core": patch
 ---
 
-V - skip `setAttribute()` when the attribute already has the given value to avoid redundant style and layout invalidation
+Vectorizer - `attr()` skips the write when the attribute already has the given value, avoiding redundant style and layout invalidation
