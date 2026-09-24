@@ -4,7 +4,7 @@ import { importLayout } from './import.mjs';
 import { exportGraph } from './export.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
-import type { ImportLayoutOptions, PortsPositionMode } from './import.mjs';
+import type { ImportLayoutOptions } from './import.mjs';
 import type { ElkLayoutOptions, ElkNode } from './types/index.mjs';
 import type { dia } from '@joint/core';
 import type { ELK, ElkNode as RawElkNode } from 'elkjs';
@@ -23,7 +23,6 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
 };
 
 const DEFAULT_OPTIONS: Options = {
-    edgeLabels: true,
     batchName: LAYOUT_BATCH_NAME,
 };
 
@@ -32,9 +31,7 @@ let defaultElk: ELK | undefined;
 /**
  * Layout configuration options.
  */
-export interface Options extends
-    Omit<ImportLayoutOptions, 'edgeLabels' | 'positionPorts' | 'positionPortLabels'>,
-    Omit<ExportGraphOptions, 'edgeLabels' | 'positionPorts' | 'positionPortLabels'> {
+export interface Options extends ImportLayoutOptions, ExportGraphOptions {
 
     /**
      * A custom ELK instance, e.g. one configured to run inside a Web Worker.
@@ -53,23 +50,6 @@ export interface Options extends
      * @defaultValue `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN' }`
      */
     elkLayoutOptions?: ElkLayoutOptions;
-    /**
-     * Whether to account for link labels during layout and position them afterwards.
-     * @defaultValue true
-     */
-    edgeLabels?: boolean;
-    /**
-     * How freely ELK may reposition (and reorder) ports, instead of keeping them
-     * where JointJS's port groups place them - see `PortsPositionMode`.
-     * @defaultValue 'fixed'
-     */
-    portsPosition?: PortsPositionMode;
-    /**
-     * Whether to let ELK reposition port labels along their port, instead of
-     * keeping them where JointJS's port groups place them.
-     * @defaultValue false
-     */
-    positionPortLabels?: boolean;
     /**
      * A name for the layout batch, which can be used to group multiple layout operations together.
      * @defaultValue 'layout'

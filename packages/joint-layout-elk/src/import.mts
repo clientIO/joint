@@ -46,35 +46,10 @@ export type SetLinkAttributesCallbackParameters = {
     };
 };
 
-/**
- * How freely ELK may reposition a port - maps to `elk.portConstraints`:
- * - `'fixed'` (default): stays at JointJS's computed position (`FIXED_POS`).
- * - `'fixed-side'`: may move/reorder along its group's side (`FIXED_SIDE`).
- * - `'free'`: may move anywhere, including onto a different side (`FREE`).
- */
-export type PortsPositionMode = 'fixed' | 'fixed-side' | 'free';
-
 export interface ImportLayoutOptions {
     setElementAttributes?: SetElementAttributesCallback;
     setLinkAttributes?: SetLinkAttributesCallback;
     setPortAttributes?: SetPortAttributesCallback;
-    /**
-     * Whether to account for link labels during layout and position them afterwards.
-     * @defaultValue true
-     */
-    edgeLabels?: boolean;
-    /**
-     * How freely ELK may reposition (and reorder) ports, instead of keeping them
-     * where JointJS's port groups place them - see `PortsPositionMode`.
-     * @defaultValue 'fixed'
-     */
-    portsPosition?: PortsPositionMode;
-    /**
-     * Whether to let ELK reposition port labels along their port, instead of
-     * keeping them where JointJS's port groups place them.
-     * @defaultValue false
-     */
-    positionPortLabels?: boolean;
 }
 
 // The anchor for a link end not connected to a port - computed the same way JointJS
@@ -164,7 +139,7 @@ function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: di
         };
 
         let labels: dia.Link.Label[] | undefined;
-        if (importLayoutOptions.edgeLabels && edge.labels && edge.labels.length > 0) {
+        if (edge.labels && edge.labels.length > 0) {
             const points = [startPoint, ...bendPoints, endPoint]
                 .map((point) => toAbsolute(point, containerPosition));
             const polyline = new g.Polyline(points);
@@ -222,8 +197,6 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
 
     if (node.ports) {
         const setPortAttributes = importLayoutOptions.setPortAttributes ?? defaultSetPortAttributes;
-        // A 'fixed' port (the default) already stays put - nothing to apply back.
-        const positionPorts = (importLayoutOptions.portsPosition ?? 'fixed') !== 'fixed';
 
         node.ports.forEach((port) => {
             const found = portsById.get(port.id);
@@ -231,50 +204,33 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             const { element, portId } = found;
 
             let labelPosition: dia.Point | undefined;
-            if (importLayoutOptions.positionPortLabels) {
-                const [label] = port.labels || [];
-                if (label) {
-                    // ELK's `label.x`/`y` are relative to the port's top-left corner, but
-                    // 'manual' label position expects an offset from the port's *center*.
-                    labelPosition = {
-                        x: (label.x || 0) - (port.width || 0) / 2,
-                        y: (label.y || 0) - (port.height || 0) / 2
-                    };
-                }
-            }
-
-            if (!positionPorts && !labelPosition) return;
-
-            // A port's own `position`/`label.position` only ever supplies *args* - which
-            // layout function reads them ('absolute'/'manual' vs. e.g. 'left') is a
-            // group-level setting, so that has to be switched too (see `@joint/core`'s
-            // `PortData#_evaluatePortPositionProperty`).
-            const { group } = element.getPort(portId);
-            if (group !== undefined) {
-                // Safe to replace outright - only `position`/`label.position` change,
-                // `attrs`/`markup`/`label` stay intact.
-                if (positionPorts) {
-                    element.prop(['ports', 'groups', group, 'position'], { name: 'absolute' });
-                }
-                if (labelPosition) {
-                    element.prop(['ports', 'groups', group, 'label', 'position'], { name: 'manual' });
-                }
+            const [label] = port.labels || [];
+            if (label) {
+                // ELK's `label.x`/`y` are relative to the port's top-left corner, but
+                // 'manual' label position expects an offset from the port's *center*.
+                labelPosition = {
+                    x: (label.x || 0) - (port.width || 0) / 2,
+                    y: (label.y || 0) - (port.height || 0) / 2
+                };
             }
 
             setPortAttributes({
                 element,
                 portId,
                 attributes: {
-                    // Same top-left-to-center conversion as the label above, for 'absolute' position.
-                    ...(positionPorts ? {
-                        position: {
-                            args: {
-                                x: (port.x || 0) + (port.width || 0) / 2,
-                                y: (port.y || 0) + (port.height || 0) / 2
+                    position: {
+                        args: {
+                            x: (port.x || 0) + (port.width || 0) / 2,
+                            y: (port.y || 0) + (port.height || 0) / 2
+                        }
+                    },
+                    ...(labelPosition ? {
+                        label: {
+                            position: {
+                                args: labelPosition
                             }
                         }
-                    } : {}),
-                    ...(labelPosition ? { label: { position: { args: labelPosition }}} : {})
+                    } : {})
                 }
             });
         });
