@@ -160,12 +160,21 @@ export class GraphStore<
       onIncrementalCellsChange: (changes) => {
         this.onIncrementalCellsChange?.(changes);
       },
-      onElementsSizeChange: (id, size) => {
+      onElementsSizeChange: (id, size, changeOptions) => {
+        const wasAnyElementMeasured = elementsMeasured.size > 0;
+        // Bookkeeping follows every size change: `isInitial` and
+        // `useAreElementsMeasured` rest on it, whatever wrote the size.
         if (size.width > 0 && size.height > 0) {
           elementsMeasured.add(id);
         } else {
           elementsMeasured.delete(id);
         }
+        // Waking the subscribers does not (#3514): an application's own resize
+        // is not a measurement, so only measurement writes (`autoSize`), sizes
+        // arriving with the cell (`add` / `reset`) and the first element to get
+        // a size bump `measureState`.
+        const isApplicationResize = changeOptions !== undefined && !changeOptions[AUTO_SIZE_OPTION];
+        if (isApplicationResize && wasAnyElementMeasured) return;
         simpleScheduler(onElementSizeChange);
       },
     });

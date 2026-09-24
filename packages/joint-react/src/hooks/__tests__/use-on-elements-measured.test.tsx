@@ -126,4 +126,50 @@ describe('useOnElementsMeasured', () => {
     await waitFor(() => expect(callback).toHaveBeenCalled());
     expect(callback.mock.calls[0][0].isInitial).toBe(true);
   });
+
+  // Regression (#3514): the store's `change:size` listener dropped the event
+  // options, so an application's own resize bumped `measureState` like a
+  // measurement write and woke every subscriber.
+  describe('application resizes vs measurement writes', () => {
+    function renderMeasuredProbe(callback: jest.Mock) {
+      let graphRef: dia.Graph | undefined;
+      function Probe() {
+        const store = useGraphStore();
+        graphRef = store.graph;
+        useOnElementsMeasured('measured-effect-paper', callback);
+        return null;
+      }
+      renderHook(() => Probe(), { wrapper });
+      return () => graphRef!.getCell('a') as dia.Element;
+    }
+
+    it('does not fire when the application resizes an element', async () => {
+      const callback = jest.fn();
+      const getElement = renderMeasuredProbe(callback);
+      await waitFor(() => expect(callback).toHaveBeenCalled());
+      callback.mockClear();
+
+      act(() => {
+        getElement().resize(80, 80);
+      });
+      await act(async () => flush());
+      await act(async () => flush());
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('fires with isInitial=false for a measurement write', async () => {
+      const callback = jest.fn();
+      const getElement = renderMeasuredProbe(callback);
+      await waitFor(() => expect(callback).toHaveBeenCalled());
+      callback.mockClear();
+
+      act(() => {
+        getElement().set('size', { width: 80, height: 80 }, { autoSize: true });
+      });
+
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      expect(callback.mock.calls[0][0].isInitial).toBe(false);
+    });
+  });
 });

@@ -63,7 +63,15 @@ interface OnChangeOptions {
 interface Options {
   readonly graph: dia.Graph;
   readonly onChanges: (options: OnChangeOptions) => void;
-  readonly onElementsSizeChange?: (id: CellId, size: { width: number; height: number }) => void;
+  /**
+   * An element got a size. `changeOptions` are the options of the `change:size`
+   * event; `undefined` when the size arrives with the cell (`add` / `reset`).
+   */
+  readonly onElementsSizeChange?: (
+    id: CellId,
+    size: { width: number; height: number },
+    changeOptions?: dia.Cell.Options
+  ) => void;
 }
 
 interface JointJSEventOptions {
@@ -203,10 +211,14 @@ export function graphChanges(options: Options) {
     onChanges({ changes: layoutChanges, isInsideBatch: true, deferCommit: isDeferring() });
   });
 
-  controller.listenTo(graph, 'change:size', (cell: dia.Cell, newSize: dia.Size) => {
-    if (!onElementsSizeChange) return;
-    onElementsSizeChange(cell.id, newSize);
-  });
+  controller.listenTo(
+    graph,
+    'change:size',
+    (cell: dia.Cell, newSize: dia.Size, changeOptions: dia.Cell.Options = {}) => {
+      if (!onElementsSizeChange) return;
+      onElementsSizeChange(cell.id, newSize, changeOptions);
+    }
+  );
 
   // Always-on batch tracking. A batch flagged with DEFER_COMMIT_BATCH_OPTION
   // defers its container commits until it closes, so a burst of edits (sync or

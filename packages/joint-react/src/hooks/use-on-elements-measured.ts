@@ -31,7 +31,10 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  * Calls a callback when element sizes are measured or re-measured.
  *
  * Fires on the first measurement pass (at least one element has been sized)
- * and again whenever an element is resized.
+ * and again whenever an element is re-measured to a different size. A size the
+ * application writes itself (`cell.resize()`, controlled `cells` sync) is not a
+ * measurement and does not fire it; listen to `change:size` with
+ * {@link useOnGraphEvents} to hear every size change.
  *
  * The callback receives {@link ElementsMeasuredParams}; check `isInitial` to
  * distinguish the first measurement from later ones.
