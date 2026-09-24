@@ -39,7 +39,12 @@ interface GraphProjectionState<
 > {
   readonly graph: dia.Graph;
   readonly onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
-  readonly onElementsSizeChange?: (id: CellId, size: dia.Size) => void;
+  /** See `graphChanges`: `changeOptions` is `undefined` for sizes arriving with an `add` / `reset`. */
+  readonly onElementsSizeChange?: (
+    id: CellId,
+    size: dia.Size,
+    changeOptions?: dia.Cell.Options
+  ) => void;
 }
 
 /* eslint-disable sonarjs/cognitive-complexity -- graph→container projection

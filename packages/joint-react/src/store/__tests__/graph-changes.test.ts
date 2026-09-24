@@ -432,7 +432,13 @@ describe('graphChanges', () => {
       const cell = graph.getCell('a') as dia.Element;
       cell.set('size', { width: 120, height: 60 }, { fromMeasure: true } as object);
 
-      expect(onElementsSizeChange).toHaveBeenCalledWith('a', { width: 120, height: 60 });
+      // The `change:size` options are forwarded so the store can tell a
+      // measurement write from an application resize (#3514).
+      expect(onElementsSizeChange).toHaveBeenCalledWith(
+        'a',
+        { width: 120, height: 60 },
+        expect.objectContaining({ fromMeasure: true })
+      );
     });
 
     it('does not fire for links on reset', () => {
