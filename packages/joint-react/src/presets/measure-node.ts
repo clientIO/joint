@@ -9,7 +9,6 @@ import { g } from '@joint/core';
  * @returns A rectangle representing the measured bounds of the node.
  */
 export const measureNode: dia.Paper.MeasureNodeCallback = (node, view): g.Rect => {
-
   // For the root node of an element, we can use the model's bounding box,
   // which is more performant and works even if the element is not visible
   // or attached to the DOM.

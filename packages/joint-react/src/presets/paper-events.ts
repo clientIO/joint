@@ -9,28 +9,39 @@ import { type ConnectionEnd, toConnectionEnd } from './can-connect';
 
 // Paper + graph references shared by every event context.
 interface BaseContext {
+  /** The paper the event fired on. */
   readonly paper: dia.Paper;
+  /** The graph rendered by the paper (`paper.model`). */
   readonly graph: dia.Graph;
 }
 
 // Cell-level identifying payload (fires for any cell — element or link).
 interface CellContext {
+  /** Id of the cell the event fired on. */
   readonly id: dia.Cell.ID;
+  /** The cell model the event fired on. */
   readonly model: dia.Cell;
+  /** The cell view the event fired on. */
   readonly view: dia.CellView;
 }
 
 // Element-level cell payload — `model` / `view` narrowed to element types.
 interface ElementContext {
+  /** Id of the element the event fired on. */
   readonly id: dia.Cell.ID;
+  /** The element model the event fired on. */
   readonly model: dia.Element;
+  /** The element view the event fired on. */
   readonly view: dia.ElementView;
 }
 
 // Link-level cell payload — `model` / `view` narrowed to link types.
 interface LinkContext {
+  /** Id of the link the event fired on. */
   readonly id: dia.Cell.ID;
+  /** The link model the event fired on. */
   readonly model: dia.Link;
+  /** The link view the event fired on. */
   readonly view: dia.LinkView;
 }
 
@@ -40,53 +51,126 @@ type ElementEventParams = BaseContext & ElementContext;
 type LinkEventParams = BaseContext & LinkContext;
 
 type WithPointer<Params> = Params & {
+  /** The native DOM event. */
   readonly event: dia.Event;
+  /** Pointer x, in paper coordinates. */
   readonly x: number;
+  /** Pointer y, in paper coordinates. */
   readonly y: number;
 };
-type WithHover<Params> = Params & { readonly event: dia.Event };
-type WithWheel<Params> = WithPointer<Params> & { readonly delta: number };
+type WithHover<Params> = Params & {
+  /** The native DOM event. */
+  readonly event: dia.Event;
+};
+type WithWheel<Params> = WithPointer<Params> & {
+  /** Wheel delta, as reported by the paper `mousewheel` event. */
+  readonly delta: number;
+};
 
 // ============================================================================
 // Pointer / hover / wheel context aliases
 // ============================================================================
 
-/** Pointer-style cell-level payload (down/move/up/click/dblclick/contextmenu). */
-type PointerCellEventParams = WithPointer<CellEventParams>;
-/** Pointer-style element-level payload. */
-type PointerElementEventParams = WithPointer<ElementEventParams>;
-/** Pointer-style link-level payload. */
-type PointerLinkEventParams = WithPointer<LinkEventParams>;
-/** Pointer-style blank-area payload — event + coords on empty paper area. */
-type PointerBlankEventParams = WithPointer<BaseContext>;
+/**
+ * Pointer-style cell-level payload (down/move/up/click/dblclick/contextmenu).
+ * @interface
+ * @group Types
+ */
+export type PointerCellEventParams = WithPointer<CellEventParams>;
+/**
+ * Pointer-style element-level payload.
+ * @interface
+ * @group Types
+ */
+export type PointerElementEventParams = WithPointer<ElementEventParams>;
+/**
+ * Pointer-style link-level payload.
+ * @interface
+ * @group Types
+ */
+export type PointerLinkEventParams = WithPointer<LinkEventParams>;
+/**
+ * Pointer-style blank-area payload — event + coords on empty paper area.
+ * @interface
+ * @group Types
+ */
+export type PointerBlankEventParams = WithPointer<BaseContext>;
 
-/** Focus-style cell-level payload (focus/blur) — cell context + event. */
-type FocusCellEventParams = WithHover<CellEventParams>;
-/** Focus-style element-level payload. */
-type FocusElementEventParams = WithHover<ElementEventParams>;
-/** Focus-style link-level payload. */
-type FocusLinkEventParams = WithHover<LinkEventParams>;
+/**
+ * Focus-style cell-level payload (focus/blur) — cell context + event.
+ * @interface
+ * @group Types
+ */
+export type FocusCellEventParams = WithHover<CellEventParams>;
+/**
+ * Focus-style element-level payload.
+ * @interface
+ * @group Types
+ */
+export type FocusElementEventParams = WithHover<ElementEventParams>;
+/**
+ * Focus-style link-level payload.
+ * @interface
+ * @group Types
+ */
+export type FocusLinkEventParams = WithHover<LinkEventParams>;
 
-/** Hover-style cell-level payload (mouseenter/leave/over/out). */
-type HoverCellEventParams = WithHover<CellEventParams>;
-/** Hover-style element-level payload. */
-type HoverElementEventParams = WithHover<ElementEventParams>;
-/** Hover-style link-level payload. */
-type HoverLinkEventParams = WithHover<LinkEventParams>;
-/** Hover-style blank-area payload — event only on empty paper area. */
-type HoverBlankEventParams = WithHover<BaseContext>;
+/**
+ * Hover-style cell-level payload (mouseenter/leave/over/out).
+ * @interface
+ * @group Types
+ */
+export type HoverCellEventParams = WithHover<CellEventParams>;
+/**
+ * Hover-style element-level payload.
+ * @interface
+ * @group Types
+ */
+export type HoverElementEventParams = WithHover<ElementEventParams>;
+/**
+ * Hover-style link-level payload.
+ * @interface
+ * @group Types
+ */
+export type HoverLinkEventParams = WithHover<LinkEventParams>;
+/**
+ * Hover-style blank-area payload — event only on empty paper area.
+ * @interface
+ * @group Types
+ */
+export type HoverBlankEventParams = WithHover<BaseContext>;
 
-/** Wheel cell-level payload (mousewheel) — pointer + delta. */
-type WheelCellEventParams = WithWheel<CellEventParams>;
-/** Wheel element-level payload. */
-type WheelElementEventParams = WithWheel<ElementEventParams>;
-/** Wheel link-level payload. */
-type WheelLinkEventParams = WithWheel<LinkEventParams>;
-/** Wheel blank-area payload — pointer + delta on empty paper area. */
-type WheelBlankEventParams = WithWheel<BaseContext>;
+/**
+ * Wheel cell-level payload (mousewheel) — pointer + delta.
+ * @interface
+ * @group Types
+ */
+export type WheelCellEventParams = WithWheel<CellEventParams>;
+/**
+ * Wheel element-level payload.
+ * @interface
+ * @group Types
+ */
+export type WheelElementEventParams = WithWheel<ElementEventParams>;
+/**
+ * Wheel link-level payload.
+ * @interface
+ * @group Types
+ */
+export type WheelLinkEventParams = WithWheel<LinkEventParams>;
+/**
+ * Wheel blank-area payload — pointer + delta on empty paper area.
+ * @interface
+ * @group Types
+ */
+export type WheelBlankEventParams = WithWheel<BaseContext>;
 
-/** Magnet payload — element-only, pointer + magnet SVG node + port/selector. */
-type MagnetEventParams = WithPointer<ElementEventParams> & {
+/**
+ * Magnet payload — element-only, pointer + magnet SVG node + port/selector.
+ * @interface
+ * @group Types
+ */
+export type MagnetEventParams = WithPointer<ElementEventParams> & {
   readonly magnet: DOMElement;
   /** The port ID, or `null` if the magnet is not on a port. */
   readonly port: string | null;
@@ -98,47 +182,75 @@ type MagnetEventParams = WithPointer<ElementEventParams> & {
 // Paper-level contexts
 // ============================================================================
 
-/** Paper-edge hover payload (`paper:mouseenter` / `paper:mouseleave`). */
-type PaperHoverEventParams = BaseContext & { readonly event: dia.Event };
+/**
+ * Paper-edge hover payload (`paper:mouseenter` / `paper:mouseleave`).
+ * @interface
+ * @group Types
+ */
+export type PaperHoverEventParams = BaseContext & { readonly event: dia.Event };
 
-/** Paper-level pan payload — `paper:pan` from touchpad / wheel pan. */
-type PaperPanEventParams = BaseContext & {
+/**
+ * Paper-level pan payload — `paper:pan` from touchpad / wheel pan.
+ * @interface
+ * @group Types
+ */
+export type PaperPanEventParams = BaseContext & {
   readonly event: dia.Event;
   readonly deltaX: number;
   readonly deltaY: number;
 };
 
-/** Paper-level pinch payload — `paper:pinch` from touchpad pinch gesture. */
-type PaperPinchEventParams = BaseContext & {
+/**
+ * Paper-level pinch payload — `paper:pinch` from touchpad pinch gesture.
+ * @interface
+ * @group Types
+ */
+export type PaperPinchEventParams = BaseContext & {
   readonly event: dia.Event;
   readonly x: number;
   readonly y: number;
   readonly scale: number;
 };
 
-/** `translate` payload — paper translation. */
-type TranslateEventParams = BaseContext & {
+/**
+ * `translate` payload — paper translation.
+ * @interface
+ * @group Types
+ */
+export type TranslateEventParams = BaseContext & {
   readonly translateX: number;
   readonly translateY: number;
   readonly options: unknown;
 };
 
-/** `scale` payload — paper scale. */
-type ScaleEventParams = BaseContext & {
+/**
+ * `scale` payload — paper scale.
+ * @interface
+ * @group Types
+ */
+export type ScaleEventParams = BaseContext & {
   readonly scaleX: number;
   readonly scaleY: number;
   readonly options: unknown;
 };
 
-/** `resize` payload — paper dimensions. */
-type ResizeEventParams = BaseContext & {
+/**
+ * `resize` payload — paper dimensions.
+ * @interface
+ * @group Types
+ */
+export type ResizeEventParams = BaseContext & {
   readonly width: number;
   readonly height: number;
   readonly options: unknown;
 };
 
-/** `transform` payload — paper SVG transform matrix. */
-type TransformEventParams = BaseContext & {
+/**
+ * `transform` payload — paper SVG transform matrix.
+ * @interface
+ * @group Types
+ */
+export type TransformEventParams = BaseContext & {
   readonly matrix: SVGMatrix;
   readonly options: unknown;
 };
@@ -151,15 +263,16 @@ type TransformEventParams = BaseContext & {
  * `link:connect` / `link:disconnect` payload, the link + the cell at the
  * (dis)connected end as a {@link ConnectionEnd} (same shape used by
  * `validateConnection`, so the two stay symmetric).
+ * @interface
  * @group Types
  */
-interface LinkConnectEventParams extends LinkEventParams {
+export type LinkConnectEventParams = LinkEventParams & {
   readonly event: dia.Event;
   /** Which end of the link was (dis)connected. */
   readonly end: 'source' | 'target';
   /** Cell at the (dis)connected end. Always present, these events fire only on actual cells. */
   readonly endCell: ConnectionEnd;
-}
+};
 
 // ============================================================================
 // CamelCase → native event-name maps

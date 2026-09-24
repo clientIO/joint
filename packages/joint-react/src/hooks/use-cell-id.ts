@@ -3,8 +3,8 @@ import { CellIdContext } from '../context';
 import type { CellId } from '../types/cell.types';
 
 /**
- * Read the current cell id from the nearest `CellIdContext`. Populated by
- * `<Paper />` around every `renderElement` / `renderLink` invocation.
+ * Read the id of the cell being rendered, provided by `<Paper />` around
+ * every `renderElement` / `renderLink` invocation.
  *
  * Use this inside a render callback (or any component mounted from one) when
  * you only need the id, it's cheaper than {@link useCell}() since

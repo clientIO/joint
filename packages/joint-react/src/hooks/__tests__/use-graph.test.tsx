@@ -54,10 +54,7 @@ interface NodeLabel {
 // `prev.label` type-checks. `tsc` fails if the inference regresses. Hoisted to
 // keep the inline updater shallow for the nested-function lint, and called from
 // a test below so it also runs.
-function appendBangToLabel(
-  api: GraphApi<ElementRecord<NodeLabel>>,
-  id: CellId
-): void {
+function appendBangToLabel(api: GraphApi<ElementRecord<NodeLabel>>, id: CellId): void {
   api.setCellData(id, (previous) => ({ ...previous, label: `${previous.label}!` }));
 }
 
@@ -256,7 +253,6 @@ describe('useGraph', () => {
       };
       expect(cellE?.attrs?.text?.textWrap).toEqual({});
     });
-
 
     it('with `includeDefaults: true` keeps every attribute', async () => {
       const { result } = renderHook(() => useGraph(), { wrapper });

@@ -165,9 +165,7 @@ export function linkMarkerArrowSunken(options?: LinkMarkerOptions): LinkMarkerRe
   const { w, h } = arrowSize(scale);
   const indent = 2 * scale;
   return {
-    markup: jsx(
-      markerPath(`M ${indent} ${-h} L ${indent - w} 0 L ${indent} ${h} L 0 0 z`, style)
-    ),
+    markup: jsx(markerPath(`M ${indent} ${-h} L ${indent - w} 0 L ${indent} ${h} L 0 0 z`, style)),
     length: w - indent + strokeWidth + 1,
   };
 }

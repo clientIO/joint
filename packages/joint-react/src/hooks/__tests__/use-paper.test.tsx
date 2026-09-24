@@ -3,10 +3,7 @@ import { render, renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import type { dia } from '@joint/core';
 import { GraphProvider, Paper } from '../../components';
-import {
-  graphProviderWrapper,
-  paperRenderElementWrapper,
-} from '../../utils/test-wrappers';
+import { graphProviderWrapper, paperRenderElementWrapper } from '../../utils/test-wrappers';
 import { useResolvePaperId, usePaper } from '../use-paper';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import type { CellRecord } from '../../types/cell.types';

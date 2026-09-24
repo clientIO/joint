@@ -67,7 +67,10 @@ export type ValidateConnection = (context: ValidateConnectionParams) => boolean;
  * @param cellView
  * @param magnet
  */
-export function toConnectionEnd(cellView: dia.CellView, magnet: Element | undefined): ConnectionEnd {
+export function toConnectionEnd(
+  cellView: dia.CellView,
+  magnet: Element | undefined
+): ConnectionEnd {
   return {
     id: cellView.model.id,
     model: cellView.model,
@@ -86,7 +89,7 @@ export function toConnectionEnd(cellView: dia.CellView, magnet: Element | undefi
 function isRootBlocked(
   cellView: dia.CellView,
   magnet: SVGElement | undefined,
-  mode: boolean | 'auto',
+  mode: boolean | 'auto'
 ): boolean {
   if (magnet) return false;
   if (mode === true) return false;
@@ -122,7 +125,7 @@ function getEndMagnetSelector(magnet: SVGElement | undefined): string | null {
 function endMatches(
   existing: dia.Link.EndJSON,
   port: string | null,
-  magnet: string | null,
+  magnet: string | null
 ): boolean {
   const existingPort = existing.port ?? null;
   if (port !== null || existingPort !== null) return existingPort === port;
@@ -145,10 +148,12 @@ function endMatches(
  * @param singlePerPair - also match the reverse-direction link
  */
 function hasDuplicateLink(
-  sourceView: dia.CellView, sourceNode: SVGElement | undefined,
-  targetView: dia.CellView, targetNode: SVGElement | undefined,
+  sourceView: dia.CellView,
+  sourceNode: SVGElement | undefined,
+  targetView: dia.CellView,
+  targetNode: SVGElement | undefined,
   linkView: dia.LinkView,
-  singlePerPair: boolean,
+  singlePerPair: boolean
 ): boolean {
   const sourceId = sourceView.model.id;
   const targetId = targetView.model.id;
@@ -164,13 +169,15 @@ function hasDuplicateLink(
     const ls = link.source();
     const lt = link.target();
     const forward =
-      ls.id === sourceId && lt.id === targetId &&
+      ls.id === sourceId &&
+      lt.id === targetId &&
       endMatches(ls, sourcePort, sourceMagnet) &&
       endMatches(lt, targetPort, targetMagnet);
     if (forward) return true;
     if (singlePerPair) {
       const reverse =
-        ls.id === targetId && lt.id === sourceId &&
+        ls.id === targetId &&
+        lt.id === sourceId &&
         endMatches(ls, targetPort, targetMagnet) &&
         endMatches(lt, sourcePort, sourceMagnet);
       if (reverse) return true;
@@ -250,17 +257,28 @@ export function canConnect(options: CanConnectOptions = {}) {
 
   return (
     // Note: JointJS passes `undefined` for magnet when the target is the root element
-    sourceView: dia.CellView, sourceNode: SVGElement | undefined,
-    targetView: dia.CellView, targetNode: SVGElement | undefined,
-    end: dia.LinkEnd, linkView: dia.LinkView,
+    sourceView: dia.CellView,
+    sourceNode: SVGElement | undefined,
+    targetView: dia.CellView,
+    targetNode: SVGElement | undefined,
+    end: dia.LinkEnd,
+    linkView: dia.LinkView
   ): boolean => {
     if (!allowSelfLoops && sourceView === targetView) return false;
-    if (!allowLinkToLink && (!sourceView.model.isElement() || !targetView.model.isElement())) return false;
+    if (!allowLinkToLink && (!sourceView.model.isElement() || !targetView.model.isElement()))
+      return false;
     if (isRootBlocked(sourceView, sourceNode, allowRootConnection)) return false;
     if (isRootBlocked(targetView, targetNode, allowRootConnection)) return false;
     if (
       linkLimit !== 'none' &&
-      hasDuplicateLink(sourceView, sourceNode, targetView, targetNode, linkView, linkLimit === 'one-per-pair')
+      hasDuplicateLink(
+        sourceView,
+        sourceNode,
+        targetView,
+        targetNode,
+        linkView,
+        linkLimit === 'one-per-pair'
+      )
     ) {
       return false;
     }

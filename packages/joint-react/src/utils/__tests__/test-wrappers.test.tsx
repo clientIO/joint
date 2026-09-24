@@ -19,7 +19,7 @@ describe('test-wrappers', () => {
     const { container } = render(
       <Wrapper>
         <div data-testid="child">child</div>
-      </Wrapper>,
+      </Wrapper>
     );
     expect(container.querySelector('[data-testid="child"]')).not.toBeNull();
   });
@@ -31,7 +31,7 @@ describe('test-wrappers', () => {
     const { container } = render(
       <Wrapper>
         <rect width={10} height={10} />
-      </Wrapper>,
+      </Wrapper>
     );
     expect(container).toBeDefined();
   });
@@ -43,7 +43,7 @@ describe('test-wrappers', () => {
     const { container } = render(
       <Wrapper>
         <g data-testid="link" />
-      </Wrapper>,
+      </Wrapper>
     );
     expect(container).toBeDefined();
   });
@@ -54,7 +54,7 @@ describe('test-wrappers', () => {
     const { container } = render(
       <Wrapper>
         <rect width={10} height={10} />
-      </Wrapper>,
+      </Wrapper>
     );
     expect(container).toBeDefined();
   });

@@ -111,9 +111,7 @@ function StaticHTMLFrame({ style, hostRef, ...rest }: Readonly<FrameVariantProps
     () => ({ width, height, ...style }),
     [width, height, style]
   );
-  return (
-    <HTMLFrame nodeRef={divRef} width={width} height={height} style={mergedStyle} {...rest} />
-  );
+  return <HTMLFrame nodeRef={divRef} width={width} height={height} style={mergedStyle} {...rest} />;
 }
 
 /**

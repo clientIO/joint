@@ -7,11 +7,7 @@ import {
   selectCellType,
   selectCellParent,
 } from '../cell-selectors';
-import type {
-  CellRecord,
-  Computed,
-  ElementRecord,
-} from '../../types/cell.types';
+import type { CellRecord, Computed, ElementRecord } from '../../types/cell.types';
 
 describe('cell-selectors', () => {
   const element: Computed<ElementRecord<{ label: string }>> = {

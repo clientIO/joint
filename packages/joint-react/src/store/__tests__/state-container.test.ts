@@ -84,22 +84,14 @@ describe('createContainer', () => {
 
     it('delete preserves the order of the remaining items', () => {
       const container = setup();
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
       remove(container, 'b');
       expect(container.getSnapshot().map((item) => item.id)).toEqual(['a']);
     });
 
     it('tracks size correctly through add and delete', () => {
       const container = setup();
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
       expect(container.getSnapshot().length).toBe(2);
 
       remove(container, 'a');
@@ -110,11 +102,7 @@ describe('createContainer', () => {
   describe('replace-all (remove + add in one batch)', () => {
     it('replaces all items', () => {
       const container = setup();
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
 
       container.batchSet({
         added: new Map([
@@ -238,11 +226,7 @@ describe('createContainer', () => {
       const all = jest.fn();
       container.subscribe(all);
 
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
       expect(all).toHaveBeenCalledTimes(1);
     });
 
@@ -273,11 +257,7 @@ describe('createContainer', () => {
   describe('immutable snapshot', () => {
     it('produces a new reference on a data-only update, leaving the old one intact', () => {
       const container = setup();
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
       const ref1 = container.getSnapshot();
 
       update(container, { id: 'a', x: 999, y: 999, type: 'item' });
@@ -288,11 +268,7 @@ describe('createContainer', () => {
 
     it('produces a new reference on delete, leaving the old one intact', () => {
       const container = setup();
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
       const ref1 = container.getSnapshot();
 
       remove(container, 'a');
@@ -304,11 +280,7 @@ describe('createContainer', () => {
   describe('lazy snapshot & id list — memoisation + multi-consumer consistency', () => {
     it('getSnapshot returns the SAME reference to concurrent readers within a commit', () => {
       const container = setup();
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
       // Two independent readers after one commit see the identical array (built
       // once, memoised), so React cannot tear across subscribers.
       const readerA = container.getSnapshot();
@@ -336,11 +308,7 @@ describe('createContainer', () => {
 
     it('getSize is correct and O(1) (does not depend on materialising the snapshot)', () => {
       const container = setup();
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
       expect(container.getSize()).toBe(2);
       remove(container, 'a');
       expect(container.getSize()).toBe(1);
@@ -348,11 +316,7 @@ describe('createContainer', () => {
 
     it('getIds stays the SAME reference across data-only commits (the key to O(1) drags)', () => {
       const container = setup();
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
       const ids = container.getIds();
       expect(ids).toEqual(['a', 'b']);
       update(container, { id: 'a', x: 9, y: 9, type: 'item' }); // data-only
@@ -390,11 +354,7 @@ describe('createContainer', () => {
 
     it('getIds invalidates on a replace-all to the same count with different ids', () => {
       const container = setup();
-      add(
-        container,
-        { id: 'a', x: 1, y: 2, type: 'item' },
-        { id: 'b', x: 3, y: 4, type: 'item' }
-      );
+      add(container, { id: 'a', x: 1, y: 2, type: 'item' }, { id: 'b', x: 3, y: 4, type: 'item' });
       const ids = container.getIds();
 
       // Same count, entirely new ids (e.g. graph.fromJSON reload).
@@ -448,7 +408,11 @@ describe('createContainer', () => {
           const value: Item = { id, x: counter++, y: counter, type: 'item' };
           // A single-item `changed` set covers both insert and update: patchSlot
           // appends an unknown id and overwrites a known one.
-          container.batchSet({ added: new Map(), changed: new Map([[id, value]]), removed: new Set() });
+          container.batchSet({
+            added: new Map(),
+            changed: new Map([[id, value]]),
+            removed: new Set(),
+          });
           oracle.set(id, value);
         } else {
           container.batchSet({ added: new Map(), changed: new Map(), removed: new Set([id]) });

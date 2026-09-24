@@ -1,10 +1,9 @@
- 
 /* eslint-disable react-perf/jsx-no-new-object-as-prop -- the memoization probe
    intentionally passes a fresh object every render to prove the compiler
    stabilizes it. */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop -- same: an inline
    handler the compiler is expected to memoize. */
- 
+
 /**
  * React Compiler behavioural contract.
  *
@@ -86,7 +85,12 @@ describe('React Compiler — auto-memoization is active', () => {
 // ── Part 2: the library behaves identically when compiled ───────────────────
 
 const makeElement = (id: string, x = 0): CellRecord =>
-  ({ id, type: ELEMENT_MODEL_TYPE, position: { x, y: 0 }, size: { width: 10, height: 10 } }) as CellRecord;
+  ({
+    id,
+    type: ELEMENT_MODEL_TYPE,
+    position: { x, y: 0 },
+    size: { width: 10, height: 10 },
+  }) as CellRecord;
 
 const initialCells: readonly CellRecord[] = [makeElement('a', 0), makeElement('b', 50)];
 

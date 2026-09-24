@@ -54,10 +54,12 @@ export function HTMLBox(props: Readonly<HTMLBoxProps> = {}): ReactNode {
   const mergedClassName = className ? `jj-box ${className}` : 'jj-box';
   const baseStyle = useModelGeometry ? BASE_STYLE : { ...BASE_STYLE, ...AUTO_SIZE_STYLE };
   const mergedStyle = style ? { ...baseStyle, ...style } : baseStyle;
-  return <HTMLHost
-    {...rest}
-    useModelGeometry={useModelGeometry}
-    className={mergedClassName}
-    style={mergedStyle}
-  />;
+  return (
+    <HTMLHost
+      {...rest}
+      useModelGeometry={useModelGeometry}
+      className={mergedClassName}
+      style={mergedStyle}
+    />
+  );
 }

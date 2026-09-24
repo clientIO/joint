@@ -13,7 +13,12 @@ const CELLS = [
 
 const LINKED_CELLS = [
   { id: 'n1', type: ELEMENT_MODEL_TYPE, size: { width: 50, height: 50 } },
-  { id: 'n2', type: ELEMENT_MODEL_TYPE, position: { x: 100, y: 0 }, size: { width: 50, height: 50 } },
+  {
+    id: 'n2',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 100, y: 0 },
+    size: { width: 50, height: 50 },
+  },
   { id: 'l1', type: LINK_MODEL_TYPE, source: { id: 'n1' }, target: { id: 'n2' } } as CellRecord,
 ];
 
@@ -102,8 +107,6 @@ describe('Paper focus events', () => {
 
     fireEvent.focusIn(focusableInCell(container));
 
-    await waitFor(() =>
-      expect(focus).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }))
-    );
+    await waitFor(() => expect(focus).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' })));
   });
 });

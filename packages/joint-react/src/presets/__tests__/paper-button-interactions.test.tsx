@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
 import { usePaper } from '../../hooks/use-paper';
-import type { PaperView } from '../../mvc/paper';
+import type { dia } from '@joint/core';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import type { CellRecord } from '../../types/cell.types';
 
@@ -31,7 +31,7 @@ const initialCells: readonly CellRecord[] = [
   } as CellRecord,
 ];
 
-let capturedPaper: PaperView | null = null;
+let capturedPaper: dia.Paper | null = null;
 let capturedButton: HTMLButtonElement | null = null;
 
 function Capture() {
@@ -69,7 +69,7 @@ const renderElement = () => <NodeWithButton />;
  */
 async function renderNodeWithButton(
   clickSpy: () => void
-): Promise<{ paper: PaperView; button: HTMLButtonElement }> {
+): Promise<{ paper: dia.Paper; button: HTMLButtonElement }> {
   capturedPaper = null;
   capturedButton = null;
   onButtonClick = clickSpy;

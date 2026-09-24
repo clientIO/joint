@@ -2,7 +2,7 @@ import type { dia } from '@joint/core';
 
 export const MODEL_GEOMETRY_OPTIONS = {
   useModelGeometry: true,
-  rotate: true
+  rotate: true,
 } as const;
 
 export const EMPTY_OPTIONS = {} as const;
@@ -22,7 +22,11 @@ export const BOUNDARY_OPTIONS = {
  * @param endType
  * @param selector
  */
-export function getMarkerLength(linkView: dia.LinkView, endType: dia.LinkEnd, selector = 'line'): number {
+export function getMarkerLength(
+  linkView: dia.LinkView,
+  endType: dia.LinkEnd,
+  selector = 'line'
+): number {
   const cacheKey = `--jj-$${endType}-marker-length`;
   // @ts-expect-error - `metrics` is reset by `CellView` on every update; not exposed in d.ts.
   const { metrics } = linkView;
@@ -31,8 +35,9 @@ export function getMarkerLength(linkView: dia.LinkView, endType: dia.LinkEnd, se
   const selectorAttributes = linkView.model.attributes?.attrs?.[selector];
   let length = 0;
   if (selectorAttributes) {
-    const marker = endType === 'source' ? selectorAttributes.sourceMarker : selectorAttributes.targetMarker;
-    length = (marker as Record<string, unknown>)?.length as number ?? 0;
+    const marker =
+      endType === 'source' ? selectorAttributes.sourceMarker : selectorAttributes.targetMarker;
+    length = ((marker as Record<string, unknown>)?.length as number) ?? 0;
   }
   if (metrics) metrics[cacheKey] = length;
   return length;

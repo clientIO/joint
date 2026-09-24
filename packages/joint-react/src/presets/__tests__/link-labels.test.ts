@@ -86,19 +86,13 @@ describe('presets / link-labels / linkLabels', () => {
   });
 
   it('merges label style into each label', () => {
-    const out = linkLabels(
-      { a: { text: 'A' } },
-      { color: '#fff' }
-    );
+    const out = linkLabels({ a: { text: 'A' } }, { color: '#fff' });
     const attributes = out[0].attrs as { label: { style: { fill: string } } };
     expect(attributes.label.style.fill).toBe('#fff');
   });
 
   it('per-label fields override label style', () => {
-    const out = linkLabels(
-      { a: { text: 'A', color: '#000' } },
-      { color: '#fff' }
-    );
+    const out = linkLabels({ a: { text: 'A', color: '#000' } }, { color: '#fff' });
     const attributes = out[0].attrs as { label: { style: { fill: string } } };
     expect(attributes.label.style.fill).toBe('#000');
   });

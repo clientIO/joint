@@ -13,11 +13,15 @@ export function rightAngleRouter(margin: number, minPathMargin: number): routers
     const targetMarkerLength = getMarkerLength(linkView!, 'target');
     const effectiveSourceMargin = Math.max(margin - sourceMarkerLength, 0);
     const effectiveTargetMargin = Math.max(margin - targetMarkerLength, 0);
-    return routerFns.rightAngle(vertices, {
-      useVertices: true,
-      sourceMargin: effectiveSourceMargin,
-      targetMargin: effectiveTargetMargin,
-      minPathMargin,
-    }, linkView);
+    return routerFns.rightAngle(
+      vertices,
+      {
+        useVertices: true,
+        sourceMargin: effectiveSourceMargin,
+        targetMargin: effectiveTargetMargin,
+        minPathMargin,
+      },
+      linkView
+    );
   };
 }

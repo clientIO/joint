@@ -28,9 +28,6 @@ import type {
  */
 export type GraphJSON = dia.Graph.JSON;
 
-/** Drops an untyped (`unknown`) `data` side so it doesn't collapse a union. */
-type TypedData<Data> = unknown extends Data ? never : Data;
-
 /**
  * `data` type for the GraphApi's `setCellData`, derived from {@link useGraph}'s
  * `Element` / `Link` generics by reusing each record's `['data']`:
@@ -41,12 +38,20 @@ type TypedData<Data> = unknown extends Data ? never : Data;
  *
  * A cell id is opaque at the type level, so this cannot narrow element-vs-link
  * per call, it exposes the data shapes {@link useGraph} was told about.
+ * @template Element - element record shape
+ * @template Link - link record shape
+ * @group Types
  */
-type HandleCellData<Element extends ElementJSONInit, Link extends LinkJSONInit> = [
-  TypedData<Element['data']> | TypedData<Link['data']>,
-] extends [never]
-  ? Record<string, unknown>
-  : TypedData<Element['data']> | TypedData<Link['data']>;
+export type GraphCellData<
+  Element extends ElementJSONInit,
+  Link extends LinkJSONInit,
+> = unknown extends Element['data']
+  ? unknown extends Link['data']
+    ? Record<string, unknown>
+    : Link['data']
+  : unknown extends Link['data']
+    ? Element['data']
+    : Element['data'] | Link['data'];
 
 /**
  * Imperative API returned by {@link useGraph}.
@@ -86,7 +91,7 @@ export interface GraphApi<
    * at the type level, so when both are typed the updater sees their union.
    * Narrow inside it, or fix the `data` shape via `useGraph<ElementRecord<MyData>>()`.
    */
-  readonly setCellData: SetCellData<HandleCellData<Element, Link>>;
+  readonly setCellData: SetCellData<GraphCellData<Element, Link>>;
   /**
    * Remove a cell by id or dia.Cell reference. A nullish reference warns in dev
    * and no-ops; a reference that resolves to no cell is a silent no-op. The
@@ -100,10 +105,7 @@ export interface GraphApi<
    * are silently skipped. The optional `metadata` is forwarded as the
    * `graph.removeCells` event opt.
    */
-  readonly removeCells: (
-    cellRefs?: CellRefList | null,
-    metadata?: Record<string, unknown>
-  ) => void;
+  readonly removeCells: (cellRefs?: CellRefList | null, metadata?: Record<string, unknown>) => void;
   /**
    * Atomically replace the cell set. Accepts an array (dia.Cell instances
    * alongside records), a JointJS cell collection, or an updater receiving the
@@ -231,7 +233,7 @@ export function useGraph<
   const { graph } = store;
 
   const setCell = useSetCell<Element, Link>();
-  const setCellData = useSetCellData<HandleCellData<Element, Link>>();
+  const setCellData = useSetCellData<GraphCellData<Element, Link>>();
   const removeCell = useRemoveCell();
   const removeCells = useRemoveCells();
   const resetCells = useResetCells<Element, Link>();

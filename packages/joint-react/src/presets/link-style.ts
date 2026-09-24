@@ -1,5 +1,4 @@
 import type { attributes } from '@joint/core';
-import type { Nullable, LiteralUnion } from '../types';
 import { resolveLinkMarker, type LinkMarker } from '../theme/named-link-markers';
 
 /**
@@ -22,9 +21,9 @@ export interface LinkStyle {
   /** Dash pattern in SVG `stroke-dasharray` syntax, e.g. `'5,5'` for a dashed line. @default '' */
   dasharray?: string;
   /** Stroke line cap of the line ends. @default '' */
-  linecap?: LiteralUnion<'butt' | 'round' | 'square'>;
+  linecap?: 'butt' | 'round' | 'square' | (string & Record<never, never>);
   /** Stroke line join at the line's corners. @default '' */
-  linejoin?: LiteralUnion<'miter' | 'round' | 'bevel'>;
+  linejoin?: 'miter' | 'round' | 'bevel' | (string & Record<never, never>);
   /** Stroke width, in px, of the transparent wrapper that widens the pointer hit area. @default 10 */
   wrapperWidth?: number;
   /** Stroke color of the wrapper. Usually transparent, set it to make the hit area visible while debugging. @default 'transparent' */
@@ -66,7 +65,7 @@ const defaultLinkStyle: Readonly<Required<LinkStyle>> = {
  * ```
  * @group Presets
  */
-export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {
+export function linkStyleLine(style: LinkStyle = {}): attributes.SVGAttributes {
   const {
     color = defaultLinkStyle.color,
     width = defaultLinkStyle.width,
@@ -78,7 +77,7 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
     linejoin = defaultLinkStyle.linejoin,
   } = style;
 
-  const lineAttributes: Nullable<attributes.SVGAttributes> = {
+  const lineAttributes: attributes.SVGAttributes = {
     connection: true,
     style: {
       stroke: color,
@@ -96,7 +95,7 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
         stroke: color || 'var(--jj-link-color)',
         fill: color || 'var(--jj-link-color)',
       },
-      ...resolveLinkMarker(sourceMarker)
+      ...resolveLinkMarker(sourceMarker),
     };
   }
 
@@ -107,7 +106,7 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
         stroke: color || 'var(--jj-link-color)',
         fill: color || 'var(--jj-link-color)',
       },
-      ...resolveLinkMarker(targetMarker)
+      ...resolveLinkMarker(targetMarker),
     };
   }
 
@@ -135,7 +134,7 @@ export function linkStyleLine(style: LinkStyle = {}): Nullable<attributes.SVGAtt
  * ```
  * @group Presets
  */
-export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVGAttributes> {
+export function linkStyleWrapper(style: LinkStyle = {}): attributes.SVGAttributes {
   const {
     linecap = defaultLinkStyle.linecap,
     linejoin = defaultLinkStyle.linejoin,
@@ -174,7 +173,7 @@ export function linkStyleWrapper(style: LinkStyle = {}): Nullable<attributes.SVG
  * ```
  * @group Presets
  */
-export function linkStyle(style: LinkStyle = {}): Record<string, Nullable<attributes.SVGAttributes>> {
+export function linkStyle(style: LinkStyle = {}): Record<string, attributes.SVGAttributes> {
   return {
     line: linkStyleLine(style),
     wrapper: linkStyleWrapper(style),

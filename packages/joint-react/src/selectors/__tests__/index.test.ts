@@ -1,8 +1,4 @@
-import {
-  selectResetVersion,
-  createSelectPaperVersion,
-  selectGraphFeaturesVersion,
-} from '../index';
+import { selectResetVersion, createSelectPaperVersion, selectGraphFeaturesVersion } from '../index';
 import type { GraphStoreInternalSnapshot } from '../../store/graph-store';
 
 describe('selectors/index', () => {

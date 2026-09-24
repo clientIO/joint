@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { g } from '@joint/core';
 import type { LinkRouting } from '../link-routing';
-import {
-  linkRoutingStraight,
-  linkRoutingOrthogonal,
-  linkRoutingSmooth,
-} from '../link-routing';
+import { linkRoutingStraight, linkRoutingOrthogonal, linkRoutingSmooth } from '../link-routing';
 
 describe('presets / link-routing / linkRoutingStraight', () => {
   it('returns a routing bundle with default options', () => {
@@ -101,7 +97,7 @@ function makeLinkView(targetAnchor?: object) {
     getTargetCell: () => ({ id: 't' }),
     source: () => makeEnd(),
     target: () => makeEnd(targetAnchor),
-    attributes: { attrs: { line: { targetMarker: { length: MARKER_LENGTH }}}},
+    attributes: { attrs: { line: { targetMarker: { length: MARKER_LENGTH } } } },
   };
   return { model, metrics: {} } as any;
 }
@@ -129,7 +125,7 @@ function targetPointY(routing: LinkRouting, targetAnchor?: object) {
   ).y;
 }
 
-const CUSTOM_ANCHOR = { name: 'modelCenter', args: { dx: 0, dy: -20 }};
+const CUSTOM_ANCHOR = { name: 'modelCenter', args: { dx: 0, dy: -20 } };
 
 describe('presets / link-routing / arrowhead inset', () => {
   it('accounts for the arrowhead on an end that carries its own anchor', () => {
@@ -156,8 +152,9 @@ describe('presets / link-routing / arrowhead inset', () => {
 
   it('applies to the smooth preset as well', () => {
     expect(targetPointY(linkRoutingSmooth(), CUSTOM_ANCHOR)).toBe(260 - MARKER_LENGTH);
-    expect(targetPointY(linkRoutingSmooth({ straightWhenDisconnected: false }), CUSTOM_ANCHOR))
-      .toBe(260 - MARKER_LENGTH);
+    expect(
+      targetPointY(linkRoutingSmooth({ straightWhenDisconnected: false }), CUSTOM_ANCHOR)
+    ).toBe(260 - MARKER_LENGTH);
     expect(targetPointY(linkRoutingSmooth())).toBe(260);
   });
 });

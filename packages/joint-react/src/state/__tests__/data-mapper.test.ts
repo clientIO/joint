@@ -175,7 +175,11 @@ describe('dataMapper', () => {
   describe('link round-trip', () => {
     it('should convert link data to JointJS and back', () => {
       const id = 'link-1';
-      const link: LinkRecord = { type: LINK_MODEL_TYPE, source: { id: 'el-1' }, target: { id: 'el-2' } };
+      const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
+        source: { id: 'el-1' },
+        target: { id: 'el-2' },
+      };
 
       const cellJson = mapLinkToAttributes(link);
       expect(cellJson.source).toEqual({ id: 'el-1' });
@@ -191,7 +195,12 @@ describe('dataMapper', () => {
     });
 
     it('should apply theme defaults', () => {
-      const link: LinkRecord = { type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' }, style: {} };
+      const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
+        source: { id: 'a' },
+        target: { id: 'b' },
+        style: {},
+      };
 
       const cellJson = mapLinkToAttributes(link);
       expect(cellJson.attrs?.line?.style?.stroke).toBe('');
@@ -217,7 +226,12 @@ describe('dataMapper', () => {
     });
 
     it('should store user data in cell.data', () => {
-      const link: LinkRecord = { type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
+      const link: LinkRecord = {
+        type: LINK_MODEL_TYPE,
+        source: { id: 'a' },
+        target: { id: 'b' },
+        data: { weight: 5 },
+      };
 
       const cellJson = mapLinkToAttributes(link);
       expect(cellJson.data?.weight).toBe(5);

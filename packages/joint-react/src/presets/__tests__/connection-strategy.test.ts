@@ -4,7 +4,7 @@ import { connectionStrategy, type ConnectionStrategyPin } from '../connection-st
 describe('connectionStrategy', () => {
   it('throws on unknown pin value', () => {
     expect(() => connectionStrategy({ pin: 'bogus' as ConnectionStrategyPin })).toThrow(
-      /connectionStrategy: unknown pin 'bogus'/,
+      /connectionStrategy: unknown pin 'bogus'/
     );
   });
 

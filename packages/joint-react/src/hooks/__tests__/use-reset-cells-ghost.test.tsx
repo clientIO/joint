@@ -10,8 +10,18 @@ import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import type { CellRecord } from '../../types/cell.types';
 
 const initial: readonly CellRecord[] = [
-  { id: 'a', type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } } as CellRecord,
-  { id: 'b', type: ELEMENT_MODEL_TYPE, position: { x: 50, y: 0 }, size: { width: 10, height: 10 } } as CellRecord,
+  {
+    id: 'a',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 0, y: 0 },
+    size: { width: 10, height: 10 },
+  } as CellRecord,
+  {
+    id: 'b',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 50, y: 0 },
+    size: { width: 10, height: 10 },
+  } as CellRecord,
 ];
 
 const extra: CellRecord = {
@@ -34,8 +44,12 @@ describe('resetCells reactive-container reconciliation', () => {
       return (
         <div>
           <span data-testid="count">{count}</span>
-          <button data-testid="add" onClick={() => setCell(extra)}>add</button>
-          <button data-testid="reset" onClick={() => resetCells(initial)}>reset</button>
+          <button data-testid="add" onClick={() => setCell(extra)}>
+            add
+          </button>
+          <button data-testid="reset" onClick={() => resetCells(initial)}>
+            reset
+          </button>
         </div>
       );
     }

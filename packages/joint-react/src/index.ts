@@ -14,7 +14,7 @@ export type { GraphProviderProps } from './components/graph/graph-provider';
 /** @group Types */
 export type { AutoSizeOrigin } from './store/graph-store';
 /** @group Types */
-export type { IncrementalCellsChange } from './store/graph-projection';
+export type { IncrementalCellsChange, OnIncrementalCellsChange } from './store/graph-projection';
 
 /**
  * <Paper/>
@@ -25,6 +25,7 @@ export { Paper } from './components/paper/paper';
 export type {
   PaperProps,
   PaperOptions,
+  PaperSupportedOptions,
   PaperTransform,
   RenderElement,
   RenderLink,
@@ -50,6 +51,7 @@ export type {
   CellVisibility,
   CellVisibilityParams,
   CellInteractivity,
+  CellInteractivityCallback,
   CellInteractivityParams,
 } from './presets';
 
@@ -86,7 +88,16 @@ export type { HTMLBoxProps } from './components/html-box';
  */
 export { useGraph } from './hooks/use-graph';
 /** @group Types */
-export type { GraphApi, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
+export type { GraphApi, GraphCellData, GraphJSON, ExportToJSONOptions } from './hooks/use-graph';
+/** @group Types */
+export type {
+  SetCell,
+  SetCellUpdater,
+  SetCellData,
+  SetCellDataUpdater,
+} from './hooks/use-cell-setters';
+/** @group Types */
+export type { ArrayUpdate } from './store/state-container';
 
 /** @group Types */
 export type { Transaction, TransactionOptions } from './hooks/use-graph-transaction';
@@ -111,6 +122,8 @@ export { DEFAULT_PAPER_ID } from './mvc/paper';
  * @group Hooks
  */
 export { useCells } from './hooks/use-cells';
+/** @group Types */
+export type { CellsSelector, SelectedEqual } from './hooks/use-cells';
 
 /**
  * useCell()
@@ -151,7 +164,35 @@ export type { ElementsMeasuredParams, OnElementsMeasured } from './hooks/use-on-
  */
 export { useOnPaperEvents } from './hooks/use-on-paper-events';
 /** @group Types */
-export type { PaperEventMap, PaperEventHandler } from './presets';
+export type {
+  PaperEventMap,
+  PaperEventHandler,
+  PaperEventHandlers,
+  PointerCellEventParams,
+  PointerElementEventParams,
+  PointerLinkEventParams,
+  PointerBlankEventParams,
+  FocusCellEventParams,
+  FocusElementEventParams,
+  FocusLinkEventParams,
+  HoverCellEventParams,
+  HoverElementEventParams,
+  HoverLinkEventParams,
+  HoverBlankEventParams,
+  WheelCellEventParams,
+  WheelElementEventParams,
+  WheelLinkEventParams,
+  WheelBlankEventParams,
+  MagnetEventParams,
+  LinkConnectEventParams,
+  PaperHoverEventParams,
+  PaperPanEventParams,
+  PaperPinchEventParams,
+  TranslateEventParams,
+  ScaleEventParams,
+  ResizeEventParams,
+  TransformEventParams,
+} from './presets';
 
 /**
  * useOnGraphEvents()
@@ -167,7 +208,11 @@ export type { GraphEventMap } from './hooks/use-on-graph-events';
  */
 export { useCellDrag } from './hooks/use-cell-drag';
 /** @group Types */
-export type { CellDragState } from './hooks/use-cell-drag';
+export type {
+  CellDragState,
+  CellDragStateDragging,
+  CellDragStateIdle,
+} from './hooks/use-cell-drag';
 
 /**
  * useMarkup()
@@ -212,6 +257,10 @@ export type {
   CellRecord,
   AnyCellRecord,
   Computed,
+  ComputedElementRecord,
+  ComputedLinkRecord,
+  ElementJSONInit,
+  LinkJSONInit,
 } from './types/cell.types';
 
 /**
@@ -221,6 +270,13 @@ export type {
 export type { InferElement } from './utils/create';
 /** @group Presets */
 export { elementPort, elementPorts, elementAttributes } from './presets';
+/** @group Types */
+export type {
+  ElementAttributes,
+  ElementPresetAttributes,
+  LinkAttributes,
+  LinkPresetAttributes,
+} from './presets';
 /** @group Types */
 export type { ElementRecord, ElementPosition, ElementSize } from './types/cell.types';
 /** @group Types */
@@ -273,6 +329,8 @@ export type {
   LinkRoutingStraightOptions,
   LinkRoutingOrthogonalOptions,
   LinkRoutingSmoothOptions,
+  LinkRouting,
+  BaseLinkOptions,
 } from './presets';
 /** @group Types */
 export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';

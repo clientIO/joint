@@ -8,25 +8,33 @@ import {
   type LinkMarkerRecord,
 } from '../presets/link-markers';
 
-/**
- * Built-in marker shapes for links.
- */
-export const namedLinkMarkers = {
-  'none': null,
-  'arrow': linkMarkerArrow(),
-  'arrow-open': linkMarkerArrowOpen(),
-  'arrow-sunken': linkMarkerArrowSunken(),
-  'circle': linkMarkerCircle(),
-  'diamond': linkMarkerDiamond(),
-} as const satisfies Record<string, LinkMarkerRecord | null>;
-
+// Spelled out (not `keyof typeof namedLinkMarkers`) so the API docs show the
+// names; the `satisfies` below keeps the two in sync.
 /**
  * The names of the built-in link markers you can pass to a {@link LinkStyle}:
  * `'arrow'`, `'arrow-open'`, `'arrow-sunken'`, `'circle'`, `'diamond'`, or
  * `'none'`.
  * @group Types
  */
-export type LinkMarkerName = keyof typeof namedLinkMarkers;
+export type LinkMarkerName =
+  | 'none'
+  | 'arrow'
+  | 'arrow-open'
+  | 'arrow-sunken'
+  | 'circle'
+  | 'diamond';
+
+/**
+ * Built-in marker shapes for links.
+ */
+export const namedLinkMarkers = {
+  none: null,
+  arrow: linkMarkerArrow(),
+  'arrow-open': linkMarkerArrowOpen(),
+  'arrow-sunken': linkMarkerArrowSunken(),
+  circle: linkMarkerCircle(),
+  diamond: linkMarkerDiamond(),
+} as const satisfies Record<LinkMarkerName, LinkMarkerRecord | null>;
 
 /**
  * A link endpoint marker, either a built-in {@link LinkMarkerName} or a custom
@@ -53,9 +61,7 @@ export type LinkMarker = LinkMarkerName | LinkMarkerRecord;
  */
 export function resolveLinkMarker(marker: LinkMarker | undefined): LinkMarkerRecord | null {
   if (marker === undefined || marker === 'none') return null;
-  const resolvedMarker = isString(marker)
-    ? namedLinkMarkers[marker as keyof typeof namedLinkMarkers]
-    : marker;
+  const resolvedMarker = isString(marker) ? namedLinkMarkers[marker] : marker;
   if (!resolvedMarker) return null;
   return resolvedMarker;
 }

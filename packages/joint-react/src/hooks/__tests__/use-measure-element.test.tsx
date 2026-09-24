@@ -135,7 +135,8 @@ describe('useMeasureElement', () => {
     expect(() =>
       render(
         <GraphProvider initialCells={initialCells}>
-          <Paper style={{ width: 100, height: 100 }}
+          <Paper
+            style={{ width: 100, height: 100 }}
             id="measure-throw-paper"
             renderElement={renderNullElement}
           >
@@ -172,7 +173,11 @@ describe('useMeasureElement', () => {
     }
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper style={{ width: 100, height: 100 }} id="measure-link-paper" renderElement={renderLinkProbe} />
+        <Paper
+          style={{ width: 100, height: 100 }}
+          id="measure-link-paper"
+          renderElement={renderLinkProbe}
+        />
       </GraphProvider>
     );
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -184,7 +189,11 @@ describe('useMeasureElement', () => {
   it('returns size record without registering when ref.current is null at mount', async () => {
     const { container } = render(
       <GraphProvider initialCells={initialCells}>
-        <Paper style={{ width: 100, height: 100 }} id="measure-null-paper" renderElement={renderNoNodeProbe} />
+        <Paper
+          style={{ width: 100, height: 100 }}
+          id="measure-null-paper"
+          renderElement={renderNoNodeProbe}
+        />
       </GraphProvider>
     );
     await waitFor(() => {

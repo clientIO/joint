@@ -29,7 +29,7 @@ export function mapCellToAttributes<
   Link extends LinkJSONInit = LinkJSONInit,
 >(cell: Element | Link, graph: dia.Graph): dia.Cell.JSONInit {
   // `ElementAttributes` / `LinkAttributes` only declare `id`; the discriminator
-  // `type` lives on `WithType` (which `ElementRecord` / `LinkRecord` extend).
+  // `type` is added by `ElementRecord` / `LinkRecord`.
   // Read it through a narrow cast so the index signature
   // (`[key: string]: unknown`) doesn't widen `cell.type` to `unknown`.
   const cellType = cell.type;

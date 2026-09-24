@@ -94,9 +94,7 @@ export function useGraphTransaction(): Transaction {
       const snapshot = rollbackOnError === true ? graphProjection.cells.getSnapshot() : null;
       // Opt-in: defer paint on every bound paper so the whole transaction repaints once, on close.
       const papers =
-        deferPaint === true
-          ? [...paperStores.values()].map((paperStore) => paperStore.paper)
-          : [];
+        deferPaint === true ? [...paperStores.values()].map((paperStore) => paperStore.paper) : [];
 
       for (const paper of papers) paper.freeze({ key: TRANSACTION_FREEZE_KEY });
       // The DEFERRED_BATCH flag opts this batch into commit-deferral, so every

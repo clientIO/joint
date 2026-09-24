@@ -31,9 +31,10 @@ const defaultLinkStyle: dia.Link.Attributes['attrs'] = linkStyle();
  * });
  * ```
  */
-export class LinkModel<
-  Attributes extends dia.Link.Attributes = dia.Link.Attributes
-> extends dia.Link<Attributes> implements PortalHostCell {
+export class LinkModel<Attributes extends dia.Link.Attributes = dia.Link.Attributes>
+  extends dia.Link<Attributes>
+  implements PortalHostCell
+{
   /**
    * Selector of the node in this cell's view where `@joint/react` mounts React
    * content, the link's root `<g>` (`'root'`). The markup keeps no dedicated
