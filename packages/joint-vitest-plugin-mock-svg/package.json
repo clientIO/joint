@@ -26,6 +26,7 @@
   },
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
+    "prepack": "yarn run dist",
     "dist": "yarn run build",
     "build": "yarn run build:core && yarn run build:mocks && yarn run build:types",
     "build:core": "vite build",
