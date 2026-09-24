@@ -272,3 +272,47 @@ describe('useOnElementsMeasured — a graph reset starts a new measurement histo
     expect(harness.events[0].isInitial).toBe(true);
   });
 });
+
+describe('useOnElementsMeasured — sizes written by the application', () => {
+  // An application may size elements itself rather than leave it to the
+  // measurement pipeline, for instance by measuring its own text and calling
+  // `resize()`. Whether such a write is worth an event depends on what it does
+  // to the graph, not on who wrote it.
+
+  // #3514: a layout that resizes cells must not re-enter its own callback. The
+  // graph was settled before the write and is settled after it, so nothing
+  // about readiness changed.
+  it('delivers no event when the application resizes an element that already has a size', async () => {
+    const harness = renderGraph([sized('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      (harness.graph.getCell('a') as dia.Element).resize(70, 70);
+    });
+    await flush();
+
+    expect(harness.events).toHaveLength(0);
+  });
+
+  // The mirror image: this write is what makes the graph settled, so it is the
+  // event a consumer is waiting for. Suppressing every application resize
+  // loses it, and the graph is then fully sized with nobody told.
+  it('delivers one event when the application sizes an element that had none', async () => {
+    const harness = renderGraph([sized('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.addCell(unsized('b') as never);
+    });
+    await flush();
+    expect(harness.events).toHaveLength(0);
+
+    harness.events.length = 0;
+    act(() => {
+      (harness.graph.getCell('b') as dia.Element).resize(120, 40);
+    });
+    await flush();
+
+    expect(harness.events).toHaveLength(1);
+  });
+});
