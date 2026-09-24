@@ -1280,16 +1280,28 @@ const V = (function() {
         }
 
         const trueName = attributeNames[name];
+        // The DOM converts the value with `String()` semantics, which differ
+        // from `'' + value` for an object defining both `toString()` and
+        // `valueOf()`. Convert once and write that exact string, so the value
+        // compared is always the value stored.
+        const stringValue = String(value);
 
-        const { ns } = V.qualifyAttr(trueName);
+        const { ns, local } = V.qualifyAttr(trueName);
         if (ns) {
             // Attribute names can be namespaced. E.g. `image` elements
             // have a `xlink:href` attribute to set the source of the image.
-            el.setAttributeNS(ns, trueName, value);
-        } else if (trueName === 'id') {
-            el.id = value;
+            if (el.getAttributeNS(ns, local) === stringValue) return this;
+            el.setAttributeNS(ns, trueName, stringValue);
         } else {
-            el.setAttribute(trueName, value);
+            // Note: `el.id` reads as an empty string when there is no `id`
+            // attribute, so the attribute itself is the only way to tell an
+            // absent `id` from a present empty one.
+            if (el.getAttribute(trueName) === stringValue) return this;
+            if (trueName === 'id') {
+                el.id = stringValue;
+            } else {
+                el.setAttribute(trueName, stringValue);
+            }
         }
 
         return this;
