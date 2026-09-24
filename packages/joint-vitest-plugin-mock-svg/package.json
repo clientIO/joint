@@ -57,6 +57,9 @@
       "import": "./mocks/dist/index.js"
     }
   },
+    "dependencies": {
+    "@joint/mock-svg": "workspace:~"
+  },
   "devDependencies": {
     "@joint/core": "workspace:~",
     "@joint/eslint-config": "workspace:*",
@@ -93,8 +96,5 @@
     "plugin",
     "mock",
     "svg"
-  ],
-  "dependencies": {
-    "@joint/mock-svg": "workspace:~"
-  }
+  ]
 }
