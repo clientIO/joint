@@ -1,4 +1,4 @@
-import type { dia, mvc } from '@joint/core';
+import { dia, type mvc } from '@joint/core';
 import type { CellId } from '../types/cell.types';
 import type { PortalHostCell, PortalSelector, PaperViewOptions } from './paper.types';
 import type { IncrementalChange } from '../state/incremental.types';
@@ -67,6 +67,36 @@ export class PaperView extends Paper {
     this.onViewMountChange = onViewMountChange ?? noopViewMountChange;
     this.shouldPreserveHostElementOnRemove = !!paperOptions.el;
     this.portalSelector = portalSelector;
+    // A layer's `visible` attribute is one `display` toggle on its group, so
+    // hiding a layer never unmounts or re-evaluates its cell views.
+    this.listenTo(this.model, 'layer:change:visible', this.applyLayerVisibility);
+  }
+
+  /**
+   * Mirrors a layer's `visible` attribute onto its group element.
+   *
+   * A prototype method, not a class field: `dia.Paper`'s constructor renders
+   * the layer views — and so calls `insertLayerView` below — before `super()`
+   * returns, when class fields do not exist yet.
+   * @param layer - The graph layer whose visibility changed.
+   */
+  private applyLayerVisibility(layer: dia.GraphLayer): void {
+    if (!this.hasLayerView(layer.id)) return;
+    this.getLayerView(layer.id).el.style.display = layer.get('visible') === false ? 'none' : '';
+  }
+
+  /**
+   * Every layer group passes through here — initial render, a late
+   * `addLayer`, and each reorder — so the visibility is applied once, here.
+   * @param layerView - The layer view being inserted.
+   * @param beforeLayerView - The sibling to insert before, if any.
+   */
+  protected insertLayerView(layerView: dia.LayerView, beforeLayerView?: dia.LayerView): void {
+    super.insertLayerView(layerView, beforeLayerView);
+    // The base `LayerView` types `model` as `undefined`; only a graph layer's
+    // view carries a `GraphLayer`, so widen and narrow at runtime, not by cast.
+    const { model }: { readonly model?: unknown } = layerView;
+    if (model instanceof dia.GraphLayer) this.applyLayerVisibility(model);
   }
 
   /**

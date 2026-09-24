@@ -1,17 +1,16 @@
-import { dia, shapes } from '@joint/core';
 import {
   type CellRecord,
-  type CellVisibility,
+  type LayerRecord,
   GraphProvider,
-  useCell,
-  Paper,
-  ElementModel,
-  LinkModel,
   HTMLHost,
+  Paper,
+  useCell,
+  useGraph,
+  useLayer,
+  useLayers,
   selectElementSize,
-  usePaper,
 } from '@joint/react';
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useMemo } from 'react';
 import './styles.css';
 
 // Colors — unified dark diagram palette.
@@ -22,9 +21,15 @@ const BACKGROUND_LAYER_STROKE = '#2f4053';
 const TEXT_COLOR = '#DDE6ED';
 const MUTED_TEXT_COLOR = '#93A4B3';
 
-const PAPER_ID = 'layers-paper';
-/** Render order: first added draws behind, last draws in front. */
-const LAYERS = ['background', 'main', 'foreground'] as const;
+/** Autocomplete and narrowing for every layer id in this diagram. */
+type DiagramLayerId = 'background' | 'cells' | 'foreground';
+
+/** Paint order: index 0 draws at the bottom, the last entry on top. */
+const initialLayers: ReadonlyArray<LayerRecord<DiagramLayerId>> = [
+  { id: 'background' },
+  { id: 'cells' },
+  { id: 'foreground' },
+];
 
 interface LayeredElementData {
   readonly [key: string]: unknown;
@@ -55,14 +60,12 @@ const initialCells: ReadonlyArray<CellRecord<LayeredElementData>> = [
     type: 'element',
     data: { label: 'Main 1', color: PRIMARY },
     position: { x: 50, y: 50 },
-    layer: 'main',
   },
   {
     id: 'main-2',
     type: 'element',
     data: { label: 'Main 2', color: PRIMARY },
     position: { x: 280, y: 50 },
-    layer: 'main',
   },
   {
     id: 'fg-1',
@@ -77,7 +80,6 @@ const initialCells: ReadonlyArray<CellRecord<LayeredElementData>> = [
     source: { id: 'main-1' },
     target: { id: 'main-2' },
     style: { color: PRIMARY, className: 'fade-in' },
-    layer: 'main',
   },
   {
     id: 'link-2',
@@ -122,79 +124,62 @@ function RenderElement(data: Readonly<LayeredElementData>) {
   return data.isBackground ? <BackgroundNode {...data} /> : <ElementNode {...data} />;
 }
 
-function Main() {
-  const [hiddenLayers, setHiddenLayers] = useState<ReadonlySet<string>>(() => new Set());
-  const { wakeUp } = usePaper(PAPER_ID);
+const selectVisible = (layer: LayerRecord) => layer.visible !== false;
 
-  const toggleLayer = useCallback(
-    (event: MouseEvent<HTMLButtonElement>) => {
-      const layerId = event.currentTarget.dataset.layer;
-      if (!layerId) return;
-      setHiddenLayers((previous) => {
-        const next = new Set(previous);
-        if (next.has(layerId)) {
-          next.delete(layerId);
-        } else {
-          next.add(layerId);
-        }
-        return next;
-      });
-      // Refresh the paper so hidden/shown cells are re-evaluated immediately.
-      wakeUp();
-    },
-    [wakeUp]
+/** One row of the layers panel; subscribes to its own layer only. */
+function LayerRow({ id }: Readonly<{ id: DiagramLayerId }>) {
+  // `LayerId` infers from the typed `id`, `Selected` from the selector — no generics needed.
+  const isVisible = useLayer(id, selectVisible) ?? true;
+  const { setLayer } = useGraph();
+  const toggle = useCallback(() => setLayer(id, { visible: !isVisible }), [id, isVisible, setLayer]);
+  return (
+    <button
+      type="button"
+      className={isVisible ? 'jj-btn jj-btn--primary' : 'jj-btn'}
+      onClick={toggle}
+    >
+      {isVisible ? 'Hide' : 'Show'} {id}
+    </button>
+  );
+}
+
+function Main() {
+  const layers = useLayers<DiagramLayerId>();
+  const { setLayers, setCell } = useGraph();
+
+  // Reverse the paint order: the array IS the order, so reorder the array.
+  const flipOrder = useCallback(
+    () => setLayers((previous) => previous.toReversed()),
+    [setLayers]
   );
 
-  const cellVisibility = useCallback<CellVisibility>(
-    ({ model }) => {
-      const cellLayer = model.layer();
-      return !cellLayer || !hiddenLayers.has(cellLayer);
-    },
-    [hiddenLayers]
+  // Membership lives on the cell: move it by writing its `layer`.
+  const liftMain = useCallback(
+    () => setCell('main-1', (previous) => ({ ...previous, layer: 'foreground' })),
+    [setCell]
   );
 
   return (
     <div className="flex size-full flex-col">
       <div className="jj-controls m-3">
-        {LAYERS.map((layerId) => {
-          const isHidden = hiddenLayers.has(layerId);
-          return (
-            <button
-              key={layerId}
-              type="button"
-              data-layer={layerId}
-              className={isHidden ? 'jj-btn' : 'jj-btn jj-btn--primary'}
-              onClick={toggleLayer}
-            >
-              {isHidden ? 'Show' : 'Hide'} {layerId}
-            </button>
-          );
-        })}
+        {layers.map((layer) => (
+          <LayerRow key={layer.id} id={layer.id} />
+        ))}
+        <button type="button" className="jj-btn" onClick={flipOrder}>
+          Flip order
+        </button>
+        <button type="button" className="jj-btn" onClick={liftMain}>
+          Move "Main 1" to foreground
+        </button>
       </div>
-      <Paper
-        id={PAPER_ID}
-        className="min-h-0 flex-1"
-        renderElement={RenderElement}
-        cellVisibility={cellVisibility}
-      />
+      <Paper className="min-h-0 flex-1" renderElement={RenderElement} />
     </div>
   );
 }
 
 export default function App() {
-  const graph = useMemo(() => {
-    const nextGraph = new dia.Graph(
-      {},
-      { cellNamespace: { ...shapes, element: ElementModel, link: LinkModel } }
-    );
-    for (const id of LAYERS) {
-      nextGraph.addLayer({ id });
-    }
-    return nextGraph;
-  }, []);
-
   return (
-    <GraphProvider graph={graph} initialCells={initialCells}>
+    <GraphProvider initialLayers={initialLayers} initialCells={initialCells}>
       <Main />
     </GraphProvider>
   );

@@ -5,6 +5,28 @@ import type { CellId } from '../types/cell.types';
 const WARNED = new Set<string>();
 
 /**
+ * Emits a dev-only warning once per `key`; later calls with the same key are
+ * silent until {@link forgetWarning} clears it. The message is built lazily so
+ * a suppressed call does no string work.
+ * @param key - Deduplication key.
+ * @param buildMessage - Produces the warning text.
+ */
+function warnOnce(key: string, buildMessage: () => string): void {
+  if (process.env.NODE_ENV === 'production') return;
+  if (WARNED.has(key)) return;
+  WARNED.add(key);
+  console.warn(buildMessage());
+}
+
+/**
+ * Re-arms a {@link warnOnce} key so the next occurrence warns afresh.
+ * @param key - The key to clear.
+ */
+function forgetWarning(key: string): void {
+  WARNED.delete(key);
+}
+
+/**
  * Warns (dev-only, tree-shaken in production) when a cell setter is called for
  * a target that cannot be resolved, a nullish id, or an id with no matching
  * cell on the graph. The setter then no-ops instead of throwing, so a transient
@@ -124,4 +146,36 @@ export function warnResizeOnAutoSizedElement(cellId: dia.Cell.ID): void {
       'overrides the resize, so it has no effect. Pass `useModelGeometry` to honor an ' +
       'explicit size (e.g. from FreeTransform / Halo).'
   );
+}
+
+/**
+ * Warns once per layer when a `layers` array drops a layer that still holds
+ * cells. The layer is kept rather than removed: joint-core refuses to remove a
+ * non-empty layer, and moving its cells would rewrite user data. Keyed by
+ * layer id so a controlled commit stream (every drag frame) warns once, not
+ * per frame; {@link forgetLayerNotEmptyWarning} re-arms it once the layer is
+ * gone. The cell ids are listed only when the warning actually prints. Dev-only.
+ * @param layerId - The layer the array no longer declares.
+ * @param getCellIds - Lazily lists the cells still assigned to it.
+ */
+export function warnLayerNotEmpty(layerId: string, getCellIds: () => readonly dia.Cell.ID[]): void {
+  warnOnce(`layer-not-empty:${layerId}`, () => {
+    const cellIds = getCellIds();
+    return (
+      `[GraphProvider] Layer "${layerId}" was dropped from \`layers\` but still holds ` +
+      `${cellIds.length} cell(s): ${cellIds.map(String).join(', ')}. ` +
+      'It is kept until they are moved or removed.\n\n' +
+      'Fix: reassign them first — setCell(id, (previous) => ({ ...previous, layer: \'other\' })) — ' +
+      'or remove them.'
+    );
+  });
+}
+
+/**
+ * Re-arms {@link warnLayerNotEmpty} for a layer id, called once the layer is
+ * actually removed so a later re-declaration warns afresh.
+ * @param layerId - The removed layer.
+ */
+export function forgetLayerNotEmptyWarning(layerId: string): void {
+  forgetWarning(`layer-not-empty:${layerId}`);
 }
