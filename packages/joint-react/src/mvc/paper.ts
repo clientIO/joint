@@ -14,6 +14,29 @@ const noopViewMountChange = (): void => {
 export const DEFAULT_PAPER_ID = 'default-paper';
 
 /**
+ * Marks every {@link PaperView} instance for {@link isPaperView} — the same
+ * pattern as joint-core's `GRAPH_LAYER_MARKER`. Taken from the global symbol
+ * registry on purpose: a dev-server hot reload (HMR) re-evaluates this module,
+ * and a plain `Symbol()` would then differ between the class that created the
+ * live papers and the class doing the check, the very hazard `instanceof` has.
+ */
+const PAPER_VIEW_MARKER: unique symbol = Symbol.for('joint.react.paperViewMarker');
+
+/**
+ * Type guard: is this paper a {@link PaperView}?
+ *
+ * Checks the {@link PaperView} marker instead of `instanceof`: a dev-server hot
+ * reload (HMR) can re-evaluate this module and create a new `PaperView` class
+ * identity while live paper instances still come from the previous evaluation
+ * — `instanceof` would reject those and blank the canvas.
+ * @param paper - The paper instance to check (nullish tolerated).
+ * @returns `true` when the paper is a `PaperView` from any evaluation of this module.
+ */
+export function isPaperView(paper: dia.Paper | null | undefined): paper is PaperView {
+  return !!paper && PAPER_VIEW_MARKER in paper;
+}
+
+/**
  * Extended Paper class that manages React view lifecycle.
  *
  * PaperView centralizes view management by:
@@ -21,6 +44,7 @@ export const DEFAULT_PAPER_ID = 'default-paper';
  * - Hiding links until their source/target elements have rendered
  */
 export class PaperView extends Paper {
+  readonly [PAPER_VIEW_MARKER] = true;
   public viewChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
   public onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
@@ -76,13 +100,40 @@ export class PaperView extends Paper {
   }
 
   /**
-   * Preserves externally managed host elements (e.g. React refs) on cleanup.
+   * Preserves externally managed host elements (e.g. React refs) on cleanup:
+   * only the paper's own top-level nodes (background, svg) leave the host, so
+   * a paper re-created on the same host (a Fast Refresh of `<Paper>`) starts
+   * from a host that still holds React's children and nothing of ours.
    */
   protected _removeElement(): void {
-    if (this.shouldPreserveHostElementOnRemove) {
+    if (!this.shouldPreserveHostElementOnRemove) {
+      super._removeElement();
       return;
     }
-    super._removeElement();
+    for (const node of Object.values(this.childNodes ?? {})) {
+      if (node.parentNode === this.el) {
+        node.remove();
+      }
+    }
+  }
+
+  /**
+   * `mvc.View.renderChildren()` empties the element before appending the
+   * paper's markup. On a React-owned host that would also drop React's own
+   * children (the HTML overlay rendered into the host) when the paper is
+   * re-created there, so they are kept and re-appended after the paper's nodes.
+   *
+   * Runs from `dia.Paper`'s constructor, before this class's fields are
+   * assigned — so it cannot consult `shouldPreserveHostElementOnRemove` and
+   * preserves unconditionally (a paper-created element is empty here anyway).
+   * @param children - Markup to render (defaults to the paper's `children`).
+   * @returns The same PaperView instance for chaining.
+   */
+  renderChildren(children?: dia.MarkupJSON): this {
+    const preservedNodes = [...this.el.childNodes];
+    super.renderChildren(children);
+    this.el.append(...preservedNodes);
+    return this;
   }
 
   public getElementView(id: CellId): dia.ElementView | undefined {

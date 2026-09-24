@@ -175,18 +175,29 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
   // in controlled mode does zero layer work. Cleared on a graph-origin change so
   // a parent that ignores it still gets its array re-applied on the next commit.
   const lastAppliedLayersRef = useRef<typeof layers>(undefined);
+  // The store the two refs above describe; a new store invalidates them.
+  const appliedStoreRef = useRef<GraphStore<ElementJSONInit, LinkJSONInit> | null>(null);
 
-  const { isReady, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>>(
+  // `initialCells` seed the graph once. A dev-server Fast Refresh re-runs the
+  // mount effect below (destroying and re-creating the store) while this ref
+  // survives, so an external `graph` is adopted as it is instead of being
+  // re-seeded — the user's runtime edits stay. An internally created graph was
+  // cleared by `destroy()` and has to be seeded again.
+  const hasSeededExternalGraphRef = useRef(false);
+
+  const { instance, ref } = useImperativeApi<GraphStore<ElementJSONInit, LinkJSONInit>>(
     {
       onLoad() {
+        const shouldSeed = !graph || !hasSeededExternalGraphRef.current;
+        hasSeededExternalGraphRef.current = !!graph;
         const graphStore =
           store ??
           new GraphStore<ElementJSONInit, LinkJSONInit>({
             graph,
             cellNamespace,
             cellModel,
-            initialCells: cells ?? initialCells ?? [],
-            initialLayers: layers ?? initialLayers,
+            initialCells: shouldSeed ? (cells ?? initialCells ?? []) : undefined,
+            initialLayers: shouldSeed ? (layers ?? initialLayers) : undefined,
             autoSizeOrigin,
           });
         return {
@@ -201,9 +212,22 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     []
   );
 
+  // Keyed on the store INSTANCE (not a ready boolean): when the store is
+  // re-created while mounted (e.g. a Fast Refresh re-runs the mount effect),
+  // the fresh instance must be re-wired and, in controlled mode, re-seeded
+  // from the current `cells`.
   useLayoutEffect(() => {
-    if (!isReady) return;
-    const { setOnIncrementalCellsChange, applyControlled, graphProjection } = ref.current;
+    // In the commit that re-creates the store, `instance` is still the
+    // destroyed one (its state lands next render) while `ref` already holds the
+    // new one: skip, the re-render wires the live store.
+    if (!instance || instance !== ref.current) return;
+    const { setOnIncrementalCellsChange, applyControlled, applyLayers, graphProjection } = instance;
+    // A re-created store has seen none of the controlled arrays: re-seed it in full.
+    if (appliedStoreRef.current !== instance) {
+      appliedStoreRef.current = instance;
+      lastAppliedCellsRef.current = undefined;
+      lastAppliedLayersRef.current = undefined;
+    }
     /** The controlled layers, or `undefined` when the same reference was already applied. */
     const layersToApply = () =>
       hasControlledLayers && layers !== lastAppliedLayersRef.current ? layers : undefined;
@@ -226,7 +250,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
       const nextLayers = layersToApply();
       isApplyingLayersRef.current = true;
       if (cells === lastAppliedCellsRef.current) {
-        if (nextLayers) ref.current.applyLayers(nextLayers);
+        if (nextLayers) applyLayers(nextLayers);
       } else {
         applyControlled(cells ?? [], undefined, nextLayers);
       }
@@ -235,7 +259,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
       lastAppliedLayersRef.current = layers;
     }
   }, [
-    isReady,
+    instance,
     onIncrementalCellsChange,
     onCellsChange,
     ref,
@@ -247,18 +271,18 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
 
   // With uncontrolled cells nothing else applies controlled layers, so do it here.
   useLayoutEffect(() => {
-    if (!isReady || isControlled || !hasControlledLayers) return;
+    if (!instance || instance !== ref.current || isControlled || !hasControlledLayers) return;
     isApplyingLayersRef.current = true;
-    ref.current.applyLayers(layers);
+    instance.applyLayers(layers);
     isApplyingLayersRef.current = false;
     lastAppliedLayersRef.current = layers;
-  }, [isReady, ref, isControlled, hasControlledLayers, layers]);
+  }, [instance, ref, isControlled, hasControlledLayers, layers]);
 
   // Subscribe once; the handler and the controlled array are read through refs
   // so an inline `onLayersChange` never re-subscribes.
   useLayoutEffect(() => {
-    if (!isReady) return;
-    const { applyLayers, graphProjection } = ref.current;
+    if (!instance || instance !== ref.current) return;
+    const { applyLayers, graphProjection } = instance;
     // One closure for the life of the subscription: `simpleScheduler` dedupes
     // by identity, so a burst of graph-origin events reverts once, not per event.
     const revert = () => {
@@ -286,13 +310,13 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
       // so the revert does not re-enter the notification loop that is running.
       simpleScheduler(revert);
     });
-  }, [isReady, ref, layersRef, onLayersChangeRef]);
+  }, [instance, ref, layersRef, onLayersChangeRef]);
 
-  if (!isReady) {
+  if (!instance) {
     return null;
   }
 
-  return <GraphStoreContext.Provider value={ref.current}>{children}</GraphStoreContext.Provider>;
+  return <GraphStoreContext.Provider value={instance}>{children}</GraphStoreContext.Provider>;
 }
 
 /**

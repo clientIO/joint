@@ -19,7 +19,8 @@ import { useCells } from './use-cells';
 import { useCellIds } from './use-cell-ids';
 import type { LinkRecord } from '../types/cell.types';
 import type { PaperStore } from '../store';
-import { PaperView } from '../mvc/paper';
+import { isPaperView } from '../mvc/paper';
+import type { PaperView } from '../mvc/paper';
 import type { DefaultLink, PaperProps, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 
@@ -236,7 +237,6 @@ export function useCreatePortalPaper(
 
   // Subscribe to paper version to trigger re-renders on view mount/unmount changes
   const version = useInternalData(selectPaperVersion);
-  const { addPaper } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
@@ -307,7 +307,7 @@ export function useCreatePortalPaper(
   useLayoutEffect(() => {
     const hostElementForCreation = nodeRef?.current;
 
-    const { paperStore, remove } = addPaper(id, {
+    const { paperStore, remove } = graphStore.addPaper(id, {
       paperOptions: {
         ...paperOptions,
         id,
@@ -353,12 +353,18 @@ export function useCreatePortalPaper(
 
     return () => {
       paperRef.current = null;
+      // A re-registered paper is a new instance: `onReady` fires for it again.
+      isReadyNotifiedRef.current = false;
 
       remove();
     };
-    // We intentionally create paper store only once.
+    // One paper store per (graph store, paper id); the remaining options are
+    // intentionally captured only on (re-)registration and pushed later by the
+    // update effect below. Keyed on the store itself: a Paper that stays mounted
+    // while its GraphProvider re-creates the store (a dev-server Fast Refresh)
+    // must re-register on the new one or the canvas goes blank.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [graphStore, id]);
 
   useLayoutEffect(() => {
     if (!paper) {
@@ -366,11 +372,16 @@ export function useCreatePortalPaper(
       return;
     }
 
+    // In the commit that re-registers the paper (a Fast Refresh of <Paper>),
+    // `paper` is still the removed one — its store snapshot lands next render —
+    // while `paperRef` already holds the replacement. Unfreezing a removed
+    // paper throws, so act on the live one; the re-render runs this again.
+    const livePaper = paperRef.current ?? paper;
     if (onReady && !isReadyNotifiedRef.current) {
       isReadyNotifiedRef.current = true;
-      onReady(paper);
+      onReady(livePaper);
     }
-    paper.unfreeze();
+    livePaper.unfreeze();
   }, [nodeRef, onReady, paper]);
 
   useEffect(() => {
@@ -453,7 +464,7 @@ export function useCreatePortalPaper(
       if (!elementView?.paper) {
         return null;
       }
-      if (!(elementView.paper instanceof PaperView)) {
+      if (!isPaperView(elementView.paper)) {
         return null;
       }
 
@@ -511,7 +522,7 @@ export function useCreatePortalPaper(
         return null;
       }
 
-      if (!(linkView.paper instanceof PaperView)) {
+      if (!isPaperView(linkView.paper)) {
         return;
       }
 
