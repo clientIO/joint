@@ -1,11 +1,54 @@
 import { dia, shapes } from '@joint/core';
-import { ElkLayoutOptions, layout } from '@joint/layout-elk';
+import {
+    ElkLayoutOptions,
+    ExportElementCallback,
+    ExportPortCallback,
+    ExportEdgeCallback,
+    NodeElkLayoutOptions,
+    PortElkLayoutOptions,
+    layout
+} from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
 import './styles.scss';
 
 const ELK_DIRECTION = 'RIGHT';
+
+// `@joint/layout-elk` no longer reads a cell's `elkLayoutOptions` (or a port's, or a
+// link label's) automatically - these three callbacks apply the ones this example's
+// shapes still declare declaratively (see `shapes.ts`), merging them onto whatever
+// this package itself computed for that node/port/edge label.
+
+// Every node with ports gets ELK's `FIXED_SIDE` port constraint, so ELK may reorder
+// (but not move to a different side) ports already placed on their JointJS-assigned
+// side - e.g. to reduce crossings on `HubService`'s several same-side ports.
+const exportElement: ExportElementCallback = ({ element, elkNode }) => {
+    if (element.hasPorts()) {
+        elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
+    }
+    const elkLayoutOptions = element.prop('elkLayoutOptions') as NodeElkLayoutOptions | undefined;
+    if (elkLayoutOptions) Object.assign(elkNode.layoutOptions, elkLayoutOptions);
+};
+
+const exportPort: ExportPortCallback = ({ port, element, elkPort }) => {
+    const portId = `${port.id}`;
+    const elkLayoutOptions = element.portProp(portId, 'elkLayoutOptions') as PortElkLayoutOptions | undefined;
+    if (elkLayoutOptions) Object.assign(elkPort.layoutOptions, elkLayoutOptions);
+};
+
+// A label's `elkLayoutOptions` (own, or `defaultLabel`'s - `link.labels()` already
+// resolves that, see `Link#labels`) applies to *that label's* own `layoutOptions`
+// (e.g. `elk.edgeLabels.inline`), not the edge's.
+const exportEdge: ExportEdgeCallback = ({ link, elkEdge }) => {
+    link.labels().forEach((label, index) => {
+        const elkLayoutOptions = label.elkLayoutOptions as Record<string, string> | undefined;
+        const elkLabel = elkEdge.labels?.[index];
+        if (elkLayoutOptions && elkLabel) {
+            elkLabel.layoutOptions = { ...elkLabel.layoutOptions, ...elkLayoutOptions };
+        }
+    });
+};
 
 const cellNamespace = {
     ...shapes,
@@ -99,10 +142,9 @@ const init = () => {
         paper.freeze();
         return layout(graph, {
             elk,
-            // Let ELK reposition (and reorder) every port in the diagram, instead
-            // of keeping them where JointJS's own port groups first placed them.
-            portsPosition: 'fixed-side',
-            positionPortLabels: true,
+            exportElement,
+            exportPort,
+            exportEdge,
             elkLayoutOptions
         }).then(() => {
             paper.unfreeze();

@@ -14,10 +14,10 @@ const PORT_ATTRS = {
     }
 };
 
-// `@joint/layout-elk` reads a port label's `size` directly (via `positionPortLabels`)
-// rather than measuring the rendered text itself, so it has to be estimated from the
-// label text up front. `Service` (below) computes and assigns it for every port as
-// soon as the port is added, from that port's own label text length.
+// `@joint/layout-elk` reads a port label's `size` directly rather than measuring the
+// rendered text itself, so it has to be estimated from the label text up front.
+// `Service` (below) computes and assigns it for every port as soon as the port is
+// added, from that port's own label text length.
 const PORT_LABEL_AVERAGE_CHAR_WIDTH = PORT_ATTRS.text.fontSize * 0.4;
 const PORT_LABEL_HORIZONTAL_PADDING = 6;
 const PORT_LABEL_HEIGHT = PORT_ATTRS.text.fontSize + 4;
@@ -65,8 +65,9 @@ export class Container extends shapes.standard.Rectangle {
             type: 'example.Container',
             size: { width: 100, height: 100 },
             // Extra top padding, so embedded children don't overlap this container's own
-            // title label - read directly by `@joint/layout-elk` (`elkLayoutOptions` merges
-            // onto whatever it itself computes for a node), no `nodeProperties` callback needed.
+            // title label - a plain custom property, applied by this example's own
+            // `exportElement` callback in `index.ts` (`@joint/layout-elk` no longer reads
+            // a cell's `elkLayoutOptions` automatically).
             elkLayoutOptions: {
                 'elk.padding': CONTAINER_PADDING
             },
@@ -118,6 +119,8 @@ export class Service extends shapes.standard.Rectangle {
                 }
             },
             ports: {
+                // `elkLayoutOptions` here is a plain custom property too, applied by this
+                // example's `exportPort` callback in `index.ts` (see `Container` above).
                 groups: {
                     in: {
                         size: PORT_SIZE,
@@ -209,10 +212,11 @@ export class InteractionLink extends shapes.standard.Link {
             type: 'example.InteractionLink',
             defaultLabel: {
                 size: { width: 80, height: 20 },
-                // `@joint/layout-elk` doesn't place link labels inline by default - opt every
-                // label using this `defaultLabel` back into it explicitly. Read from
-                // `defaultLabel` (not repeated per label) since `Link#labels`/`label` passes
-                // it through to any label that doesn't set its own `elkLayoutOptions`.
+                // ELK doesn't place edge labels inline by default - opt every label using
+                // this `defaultLabel` back into it explicitly. Read from `defaultLabel` (not
+                // repeated per label) since `Link#labels`/`label` passes it through to any
+                // label that doesn't set its own `elkLayoutOptions` (see `Link#_getResolvedLabel`),
+                // and applied by this example's `exportEdge` callback in `index.ts`.
                 elkLayoutOptions: { 'elk.edgeLabels.inline': 'true' },
                 attrs: {
                     text: {
