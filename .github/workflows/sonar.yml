@@ -7,11 +7,16 @@ on:
       - master
   workflow_dispatch: {} # Also allow manual triggering
 
+# Reset permissions and grant them explicitly per job.
+permissions: {}
+
 jobs:
   sonarqube:
     if: ${{ github.repository == 'clientIO/joint' }} # Skip for forks
     name: SonarQube Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout only - results go to SonarQube, not to GitHub
 
     steps:
       # Echo run information
@@ -31,7 +36,9 @@ jobs:
         id: checkout-joint
         uses: actions/checkout@v7
         with:
+          # Full history for SonarQube blame/SCM attribution (read from the local clone)
           fetch-depth: 0
+          persist-credentials: false
 
       # Install environment packages
       # Fonts - util.breakText - international characters
@@ -65,9 +72,32 @@ jobs:
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
       # Install all dependencies from the joint repo
+      #
+      # `PUPPETEER_SKIP_DOWNLOAD` is what keeps this step green. Four packages
+      # depend on `puppeteer`, the `node-modules` linker gives each one a copy
+      # of its own, and Yarn runs every copy's `postinstall` concurrently - all
+      # four into the one shared `~/.cache/puppeteer`. `@puppeteer/browsers`
+      # downloads a browser to a fixed archive path, unpacks it and then deletes
+      # it, with no locking, so whichever process gets there first deletes the
+      # archive the others are still unpacking and they die on `ENOENT`. The
+      # step below installs the same browsers once instead.
       - name: Install dependencies
         id: install-dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
         run: yarn install --immutable
+
+      # The browsers the `postinstall` above would have downloaded, installed
+      # once rather than once per package. Naming a browser explicitly is what
+      # makes this step ignore `PUPPETEER_SKIP_DOWNLOAD`, and leaving the
+      # version off installs the build `puppeteer` itself pins - so this is the
+      # same pair, at the same versions, in the same `~/.cache/puppeteer` that
+      # `puppeteer.executablePath()` reads (`CHROME_BIN` in the karma configs)
+      - name: Install Puppeteer browsers
+        id: install-puppeteer-browsers
+        run: |
+          yarn workspace @joint/core exec puppeteer browsers install chrome
+          yarn workspace @joint/core exec puppeteer browsers install chrome-headless-shell
 
       # Build the joint project (needed for tests)
       - name: Prepare joint
