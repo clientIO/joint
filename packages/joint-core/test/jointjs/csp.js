@@ -130,6 +130,27 @@ QUnit.module('Content Security Policy', function(hooks) {
             'no violation while rendering elements, a link and a link label');
     });
 
+    // One sheet per document however many papers share the stylesheet: a
+    // canvas and its minimap must not adopt one each.
+    QUnit.test('adopts a single stylesheet per document', async function(assert) {
+
+        const graph = new joint.dia.Graph;
+        paper = createPaper(graph);
+        const second = createPaper(graph);
+
+        const adopted = [...document.adoptedStyleSheets].filter(function(sheet) {
+            return [...sheet.cssRules].some(function(rule) {
+                return rule.cssText.includes('non-scaling-stroke');
+            });
+        });
+        second.remove();
+
+        assert.strictEqual(adopted.length, 1, 'the paper stylesheet is adopted once');
+
+        const reported = describe(await collect());
+        assert.deepEqual(reported, [], 'no violation from adopting it');
+    });
+
     QUnit.test('the `style` presentation attribute needs no inline style', async function(assert) {
 
         const graph = new joint.dia.Graph;
