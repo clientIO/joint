@@ -1036,7 +1036,7 @@ export namespace Link {
         position?: LabelPosition | number; // optional for default labels
         attrs?: Cell.Selectors;
         size?: Size;
-        // Any other custom property (e.g. a `@joint/layout-elk` `elkLayoutOptions`) - passed
+        // Any other custom property - passed
         // through as-is by `Link#labels`/`Link#label`, whether set on the label itself or
         // on `defaultLabel` (the label's own value wins).
         [key: string]: any;

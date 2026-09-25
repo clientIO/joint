@@ -6,7 +6,9 @@ import {
     ExportEdgeCallback,
     NodeElkLayoutOptions,
     PortElkLayoutOptions,
-    layout
+    layout,
+    ExportEdgeLabelCallback,
+    ExportPortLabelCallback
 } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
@@ -14,41 +16,6 @@ import { Container, HubService, InteractionLink, Service } from './shapes';
 import './styles.scss';
 
 const ELK_DIRECTION = 'RIGHT';
-
-// `@joint/layout-elk` no longer reads a cell's `elkLayoutOptions` (or a port's, or a
-// link label's) automatically - these three callbacks apply the ones this example's
-// shapes still declare declaratively (see `shapes.ts`), merging them onto whatever
-// this package itself computed for that node/port/edge label.
-
-// Every node with ports gets ELK's `FIXED_SIDE` port constraint, so ELK may reorder
-// (but not move to a different side) ports already placed on their JointJS-assigned
-// side - e.g. to reduce crossings on `HubService`'s several same-side ports.
-const exportElement: ExportElementCallback = ({ element, elkNode }) => {
-    if (element.hasPorts()) {
-        elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
-    }
-    const elkLayoutOptions = element.prop('elkLayoutOptions') as NodeElkLayoutOptions | undefined;
-    if (elkLayoutOptions) Object.assign(elkNode.layoutOptions, elkLayoutOptions);
-};
-
-const exportPort: ExportPortCallback = ({ port, element, elkPort }) => {
-    const portId = `${port.id}`;
-    const elkLayoutOptions = element.portProp(portId, 'elkLayoutOptions') as PortElkLayoutOptions | undefined;
-    if (elkLayoutOptions) Object.assign(elkPort.layoutOptions, elkLayoutOptions);
-};
-
-// A label's `elkLayoutOptions` (own, or `defaultLabel`'s - `link.labels()` already
-// resolves that, see `Link#labels`) applies to *that label's* own `layoutOptions`
-// (e.g. `elk.edgeLabels.inline`), not the edge's.
-const exportEdge: ExportEdgeCallback = ({ link, elkEdge }) => {
-    link.labels().forEach((label, index) => {
-        const elkLayoutOptions = label.elkLayoutOptions as Record<string, string> | undefined;
-        const elkLabel = elkEdge.labels?.[index];
-        if (elkLayoutOptions && elkLabel) {
-            elkLabel.layoutOptions = { ...elkLabel.layoutOptions, ...elkLayoutOptions };
-        }
-    });
-};
 
 const cellNamespace = {
     ...shapes,
@@ -135,6 +102,40 @@ const init = () => {
         workerUrl: '../node_modules/elkjs/lib/elk-worker.js'
     });
 
+    const exportElement: ExportElementCallback = ({ element, elkNode }) => {
+        if (element.hasPorts()) {
+            elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
+        }
+
+        const padding = element.get('padding');
+        if (padding) {
+            elkNode.layoutOptions['elk.padding'] = padding;
+        }
+    };
+
+    const exportPort: ExportPortCallback = ({ port, elkPort }) => {
+        switch (port.group) {
+            case 'in':
+                elkPort.layoutOptions['elk.port.side'] = 'WEST';
+                break;
+            case 'out':
+                elkPort.layoutOptions['elk.port.side'] = 'EAST';
+                break;
+        }
+    };
+
+    const exportPortLabel: ExportPortLabelCallback = ({ port, element, elkPortLabel }) => {
+        const portId = `${port.id}`;
+        const { width, height} = element.portProp(portId, 'label/size');
+        elkPortLabel.width = width;
+        elkPortLabel.height = height;
+    };
+
+    const exportEdgeLabel: ExportEdgeLabelCallback = ({ label, elkEdgeLabel }) => {
+        const inline = label['inline'];
+        elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = inline ? 'true' : 'false';
+    };
+
     // Wraps every `layout()` call the example makes - freezing the paper for its
     // (async) duration, so nothing renders mid-layout, and reporting any error the
     // same way regardless of which caller triggered the layout.
@@ -144,7 +145,8 @@ const init = () => {
             elk,
             exportElement,
             exportPort,
-            exportEdge,
+            exportPortLabel,
+            exportEdgeLabel,
             elkLayoutOptions
         }).then(() => {
             paper.unfreeze();

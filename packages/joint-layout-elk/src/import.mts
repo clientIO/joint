@@ -1,6 +1,6 @@
 import { type dia, g } from '@joint/core';
 import type { ElkPoint } from 'elkjs';
-import type { ElkNode, ElkExtendedEdge } from './types/index.mjs';
+import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
 import type { ElkGraphPort } from './export.mjs';
 
 export type SetElementAttributesCallback = (params: SetElementAttributesCallbackParameters) => void;
@@ -12,6 +12,7 @@ export type SetElementAttributesCallbackParameters = {
         // (recursively laid out) content; a leaf element keeps its existing size.
         size?: dia.Size;
     };
+    elkNode: ElkNode
 };
 
 export type SetPortAttributesCallback = (params: SetPortAttributesCallbackParameters) => void;
@@ -27,6 +28,7 @@ export type SetPortAttributesCallbackParameters = {
         // Present only when `positionPortLabels` is enabled and the port has a label.
         label?: { position: { args: dia.Point } };
     };
+    elkPort: ElkPort
 };
 
 export type SetLinkAttributesCallback = (params: SetLinkAttributesCallbackParameters) => void;
@@ -44,6 +46,7 @@ export type SetLinkAttributesCallbackParameters = {
         // current `labels` array, with each routed label's `position` replaced.
         labels?: dia.Link.Label[];
     };
+    elkEdge: ElkExtendedEdge
 };
 
 export interface ImportLayoutOptions {
@@ -172,7 +175,8 @@ function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: di
                 ...(source ? { source } : {}),
                 ...(target ? { target } : {}),
                 ...(labels ? { labels } : {})
-            }
+            },
+            elkEdge: edge
         });
     });
 }
@@ -191,7 +195,8 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
                 // Omitted entirely for a leaf (not just `undefined`) - `attributes` goes
                 // straight to `element.set(...)`, which would otherwise wipe its size.
                 ...(isContainer ? { size: { width: node.width || 0, height: node.height || 0 }} : {})
-            }
+            },
+            elkNode: node
         });
     }
 
@@ -231,7 +236,8 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
                             }
                         }
                     } : {})
-                }
+                },
+                elkPort: port
             });
         });
     }
