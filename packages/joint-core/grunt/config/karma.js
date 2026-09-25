@@ -103,7 +103,18 @@ module.exports = function(grunt) {
                 customHeaders: [{
                     match: 'context\\.html$',
                     name: 'Content-Security-Policy',
-                    value: 'style-src \'self\' \'report-sample\''
+                    value: [
+                        // Everything the library might reach for is same-origin
+                        // or nothing at all: no network, no fonts, no media.
+                        'default-src \'self\'',
+                        // Karma's own bootstrap in `context.html` is inline, and
+                        // its instrumentation evaluates code.
+                        'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\'',
+                        // A paper background can be a data URI, which most
+                        // policies allow for images.
+                        'img-src \'self\' data:',
+                        'style-src \'self\' \'report-sample\''
+                    ].join('; ')
                 }],
                 files: [
                     dependencies,
