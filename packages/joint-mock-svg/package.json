@@ -34,6 +34,7 @@
     "build:types": "yarn run typecheck",
     "typecheck": "yarn run tsc",
     "tsc": "tsc",
+    "test": "jest -c ./test/jest/jest.config.cjs",
     "lint": "eslint .",
     "lint-fix": "yarn run lint --fix"
   },
@@ -53,10 +54,17 @@
     }
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
+    "@joint/core": "workspace:~",
     "@joint/eslint-config": "workspace:*",
     "@tsconfig/node22": "22.0.5",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.2.0",
+    "babel-jest": "30.1.2",
     "eslint": "9.39.2",
+    "jest": "30.1.2",
+    "jest-environment-jsdom": "30.1.2",
     "typescript": "5.8.2",
     "vite": "^5.0.2"
   },

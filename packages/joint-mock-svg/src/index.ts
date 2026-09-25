@@ -119,6 +119,7 @@ Object.defineProperty(globalThis, 'SVGAngle', {
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGSVGElement/createSVGMatrix
+ * @description Needed for JointJS's `paper.scale()` method.
  */
 Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGMatrix', {
     writable: true,
@@ -126,7 +127,8 @@ Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGMatrix', {
 });
 
 /**
- * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGTransform
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGSVGElement/createSVGTransform
+ * @description Needed for JointJS's `V.transform()` method.
  */
 Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGTransform', {
     writable: true,
@@ -134,7 +136,8 @@ Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGTransform', 
 });
 
 /**
- * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGPoint
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGSVGElement/createSVGPoint
+ * @description Needed for JointJS's `V.transformPoint()` method.
  */
 Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGPoint', {
     writable: true,
@@ -142,8 +145,11 @@ Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGPoint', {
 });
 
 /**
- * @description used in `util.breakText()` method
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGTextContentElement/getComputedTextLength
+ * @description According to `lib.DOM`, this belongs on SVGTextContentElement.
+ * But in JSDOM, `<text>` are SVGElements, not SVGTextContentElements.
+ * So we need to mock the function on SVGElement.
+ * Needed for JointJS's `util.breakText()` method.
  */
 Object.defineProperty(globalThis.SVGElement.prototype, 'getComputedTextLength', {
     writable: true,
@@ -152,8 +158,10 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'getComputedTextLength', 
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement/getScreenCTM
- * Note: JSDOM SVGGraphicsElement does not encompass all SVG elements that might be needed,
- * whereas SVGElement provides broader compatibility.
+ * @description According to `lib.DOM`, this belongs on SVGGraphicsElement.
+ * But in JSDOM, not all SVG elements (e.g. `<rect>`) are SVGGraphicsElements.
+ * So we need to mock the function on SVGElement, the common denominator.
+ * Needed for JointJS's `paper.clientToLocalPoint()` method.
  */
 Object.defineProperty(globalThis.SVGElement.prototype, 'getScreenCTM', {
     writable: true,
@@ -161,8 +169,11 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'getScreenCTM', {
 });
 
 /**
- * @description used in `util.breakText()` method
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement/getBBox
+ * @description According to `lib.DOM`, this belongs on SVGGraphicsElement.
+ * But in JSDOM, not all SVG elements (e.g. `<rect>`) are SVGGraphicsElements.
+ * So we need to mock the function on SVGElement, the common denominator.
+ * Needed for JointJS's `util.breakText()` method.
  */
 Object.defineProperty(globalThis.SVGElement.prototype, 'getBBox', {
     writable: true,
@@ -172,8 +183,11 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'getBBox', {
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/checkVisibility
  * @see https://github.com/jsdom/jsdom/issues/3695
- * @description This method is not implemented in JSDOM yet.
- * We are adding it only to SVGElement.
+ * @description According to `lib.DOM`, this belongs on Element.
+ * But in JSDOM, it is not implemented.
+ * We only need it on SVGElement, so we only mock it there.
+ * So this mock is covered by `lib.DOM` types.
+ * Needed for JointJS's `cellView.getNodeBBox()` and `util.breakText()` methods.
  */
 Object.defineProperty(globalThis.SVGElement.prototype, 'checkVisibility', {
     writable: true,
@@ -184,8 +198,15 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'checkVisibility', {
 });
 
 /**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement/transform
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGAnimatedTransformList
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGTransformList
- * @description SVGElement.transform.baseVal is not implemented in JSDOM yet.
+ * @description According to `lib.DOM`, this belongs on SVGGraphicsElement.
+ * But in JSDOM, not all SVG elements (e.g. `<rect>`) are SVGGraphicsElements.
+ * So we need to mock the property on SVGElement, the common denominator.
+ * Also, in JSDOM, SVGAnimatedTransformList is not implemented.
+ * We only need `transform.baseVal` from there, so we only mock that.
+ * Needed for JointJS's `vel.transform()` method.
  */
 Object.defineProperty(globalThis.SVGElement.prototype, 'transform', {
     writable: true,
@@ -207,4 +228,13 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'transform', {
     },
 });
 
-export {};
+// Types
+// ----------
+
+// Where do the mocks expand upon `lib.DOM`?
+export interface MockedSVGElement extends SVGElement {
+    getBBox(options?: SVGBoundingBoxOptions): DOMRect;
+    getScreenCTM(): DOMMatrix | null;
+    getComputedTextLength(): number;
+    readonly transform: { readonly baseVal: SVGTransformList };
+}

@@ -12,9 +12,20 @@ Import it once, before your tests run, in a DOM environment:
 import '@joint/mock-svg';
 ```
 
-The import is side-effectful: it installs the mocks on `globalThis` and exports nothing. Note that a DOM is required - without it the import fails.
+The import is side-effectful: it installs the mocks on `globalThis` and exports no value. Note that a DOM is required - without it the import fails.
 
 Where that import belongs depends on your runner - it needs to run before any test file touches the SVG globals, which usually means a setup-file option rather than an import in the test itself.
+
+## TypeScript
+
+`getBBox()`, `getScreenCTM()`, `getComputedTextLength()` and `transform` are mocked on `SVGElement`, one level wider than where DOM types (`lib.DOM`) declare them, because JSDOM makes `<rect>`, `<path>` and `<text>` plain `SVGElement`s. Reading one of them off `SVGElement.prototype` - like when spying on the mocks - therefore needs the exported `MockedSVGElement` type. For example:
+
+```ts
+import type { MockedSVGElement } from '@joint/mock-svg';
+
+jest.spyOn(SVGElement.prototype as MockedSVGElement, 'getBBox')
+    .mockReturnValue({ x: 0, y: 0, width: 100, height: 50 } as DOMRect);
+```
 
 ## License
 
