@@ -1,3 +1,4 @@
+import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import type { MockedSVGElement } from '@joint/mock-svg';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -6,7 +7,7 @@ const svg = () => document.createElementNS(NS, 'svg') as SVGSVGElement;
 const rect = () => document.createElementNS(NS, 'rect') as SVGRectElement;
 const text = () => document.createElementNS(NS, 'text') as SVGTextElement;
 
-afterEach(() => jest.restoreAllMocks());
+afterEach(() => { jest.restoreAllMocks(); });
 
 describe('changing what a mock returns', () => {
 

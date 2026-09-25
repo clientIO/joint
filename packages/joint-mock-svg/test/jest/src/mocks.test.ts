@@ -1,3 +1,4 @@
+import { describe, it, expect, jest } from '@jest/globals';
 import type { MockedSVGElement } from '@joint/mock-svg';
 
 const NS = 'http://www.w3.org/2000/svg';

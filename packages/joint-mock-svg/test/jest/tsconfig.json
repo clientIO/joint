@@ -1,14 +1,14 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["ESNext", "DOM"],
-    "types": ["jest", "node"],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true
-  },
-  "include": ["src"]
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "noEmit": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "esnext",
+        "types": []
+    },
+    "include": ["src"]
 }

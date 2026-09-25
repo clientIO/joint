@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { dia, shapes, elementTools, V } from '@joint/core';
 import type { MockedSVGElement } from '@joint/mock-svg';
 
@@ -47,7 +48,7 @@ describe('a real JointJS paper', () => {
         jest.spyOn(SVGElement.prototype as MockedSVGElement, 'getBBox')
             .mockReturnValue({ x: 0, y: 0, width: 100, height: 50 } as DOMRect);
     });
-    afterEach(() => jest.restoreAllMocks());
+    afterEach(() => { jest.restoreAllMocks(); });
 
     it('renders an element', () => {
         const { paper } = buildPaper();
