@@ -32,7 +32,7 @@ import {
     has,
     uniqueId,
 } from '../util/index.mjs';
-import { adoptStylesheet } from '../util/adoptStylesheet.mjs';
+import { adoptStylesheet, releaseStylesheet } from '../util/adoptStylesheet.mjs';
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views as viewsRegistry } from '../mvc/index.mjs';
@@ -1301,8 +1301,18 @@ export const Paper = View.extend({
 
     addStylesheet: function(css) {
         if (!css) return;
-        if (adoptStylesheet(this.el.ownerDocument, css)) return;
+        // `render()` may run more than once; the paper holds one reference.
+        this.removeStylesheet();
+        this._adoptedStylesheet = adoptStylesheet(this.el.ownerDocument, css);
+        if (this._adoptedStylesheet) return;
         V(this.svg).prepend(V.createSVGStyle(css));
+    },
+
+    removeStylesheet: function() {
+        const sheet = this._adoptedStylesheet;
+        if (!sheet) return;
+        this._adoptedStylesheet = null;
+        releaseStylesheet(this.el.ownerDocument, sheet);
     },
 
     /**
@@ -2285,6 +2295,7 @@ export const Paper = View.extend({
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
         this._removeLayerViews();
+        this.removeStylesheet();
     },
 
     getComputedSize: function() {

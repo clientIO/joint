@@ -44,7 +44,7 @@ QUnit.module('Content Security Policy', function(hooks) {
             height: 300,
             async: false
         }, options));
-        fixtures.getElement().appendChild(created.render().el);
+        fixtures.getElement().appendChild(created.el);
         return created;
     }
 
@@ -149,6 +149,49 @@ QUnit.module('Content Security Policy', function(hooks) {
 
         const reported = describe(await collect());
         assert.deepEqual(reported, [], 'no violation from adopting it');
+    });
+
+    // The sheet used to live inside the paper's SVG and go with it. Now that it
+    // belongs to the document, the last paper to leave has to take it.
+    // A stylesheet of its own, so papers elsewhere in the suite do not count.
+    QUnit.test('drops the stylesheet once the last paper is removed', function(assert) {
+
+        const MARKER = 'csp-lifecycle-probe';
+        const ProbePaper = joint.dia.Paper.extend({
+            stylesheet: `.${MARKER} { color: red; }`
+        });
+
+        const countAdopted = function() {
+            return [...document.adoptedStyleSheets].filter(function(sheet) {
+                return [...sheet.cssRules].some(function(rule) {
+                    return rule.cssText.includes(MARKER);
+                });
+            }).length;
+        };
+
+        const createProbe = function() {
+            const probe = new ProbePaper({ model: new joint.dia.Graph, width: 1, height: 1 });
+            fixtures.getElement().appendChild(probe.el);
+            return probe;
+        };
+
+        assert.strictEqual(countAdopted(), 0, 'nothing adopted before any paper exists');
+
+        const first = createProbe();
+        assert.strictEqual(countAdopted(), 1, 'the first paper adopts it');
+
+        const second = createProbe();
+        assert.strictEqual(countAdopted(), 1, 'the second paper shares it');
+
+        second.remove();
+        assert.strictEqual(countAdopted(), 1, 'it stays while a paper still holds it');
+
+        first.remove();
+        assert.strictEqual(countAdopted(), 0, 'the last paper to leave drops it');
+
+        const later = createProbe();
+        assert.strictEqual(countAdopted(), 1, 'a later paper adopts it again');
+        later.remove();
     });
 
     QUnit.test('the `style` presentation attribute needs no inline style', async function(assert) {
