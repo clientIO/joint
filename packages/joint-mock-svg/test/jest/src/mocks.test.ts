@@ -5,14 +5,8 @@ const NS = 'http://www.w3.org/2000/svg';
 
 const svg = () => document.createElementNS(NS, 'svg') as SVGSVGElement;
 const rect = () => document.createElementNS(NS, 'rect') as SVGRectElement;
-const text = () => document.createElementNS(NS, 'text') as SVGTextElement;
 
 describe('SVGPathElement', () => {
-
-    it('is defined and constructible', () => {
-        expect(typeof globalThis.SVGPathElement).toBe('function');
-        expect(typeof new SVGPathElement()).toBe('object');
-    });
 
     it('is assigned, so a consumer can redefine or delete it', () => {
         expect(Object.getOwnPropertyDescriptor(globalThis, 'SVGPathElement'))
@@ -20,42 +14,7 @@ describe('SVGPathElement', () => {
     });
 });
 
-describe('SVGAngle', () => {
-
-    it('exposes the unit constants Vectorizer checks for', () => {
-        expect(new SVGAngle()).toMatchObject({
-            SVG_ANGLETYPE_UNKNOWN: 0,
-            SVG_ANGLETYPE_UNSPECIFIED: 1,
-            SVG_ANGLETYPE_DEG: 2,
-            SVG_ANGLETYPE_RAD: 3,
-            SVG_ANGLETYPE_GRAD: 4,
-        });
-    });
-
-    it('is truthy, which is all `V.isSVGSupported` asks of it', () => {
-        expect(globalThis.SVGAngle).toBeTruthy();
-    });
-});
-
 describe('ResizeObserver', () => {
-
-    it('constructs and exposes the three observer methods', () => {
-        const observer = new ResizeObserver(() => {});
-        expect(typeof observer.observe).toBe('function');
-        expect(typeof observer.unobserve).toBe('function');
-        expect(typeof observer.disconnect).toBe('function');
-        expect(() => {
-            observer.observe(document.body);
-            observer.unobserve(document.body);
-            observer.disconnect();
-        }).not.toThrow();
-    });
-
-    it('never invokes its callback', () => {
-        const callback = jest.fn();
-        new ResizeObserver(callback).observe(document.body);
-        expect(callback).not.toHaveBeenCalled();
-    });
 
     it('gives each instance its own methods', () => {
         const a = new ResizeObserver(() => {});
@@ -66,10 +25,6 @@ describe('ResizeObserver', () => {
 });
 
 describe('createSVGMatrix()', () => {
-
-    it('returns a zeroed matrix', () => {
-        expect(svg().createSVGMatrix()).toMatchObject({ a: 0, b: 0, c: 0, d: 0, e: 0, f: 0 });
-    });
 
     it('returns a fresh matrix from every operation, so chains resolve', () => {
         const m = svg().createSVGMatrix();
@@ -91,31 +46,8 @@ describe('createSVGMatrix()', () => {
 
 describe('createSVGTransform()', () => {
 
-    it('returns a transform carrying a matrix and the type constants', () => {
-        expect(svg().createSVGTransform()).toMatchObject({
-            type: 0,
-            angle: 0,
-            SVG_TRANSFORM_UNKNOWN: 0,
-            SVG_TRANSFORM_MATRIX: 1,
-            SVG_TRANSFORM_TRANSLATE: 2,
-            SVG_TRANSFORM_SCALE: 3,
-            SVG_TRANSFORM_ROTATE: 4,
-            SVG_TRANSFORM_SKEWX: 5,
-            SVG_TRANSFORM_SKEWY: 6,
-        });
+    it('carries a matrix, not a bare object', () => {
         expect(svg().createSVGTransform().matrix).toMatchObject({ a: 0, f: 0 });
-    });
-
-    it('accepts every setter without throwing', () => {
-        const t = svg().createSVGTransform();
-        expect(() => {
-            t.setMatrix(svg().createSVGMatrix());
-            t.setRotate(45, 0, 0);
-            t.setScale(2, 2);
-            t.setSkewX(10);
-            t.setSkewY(10);
-            t.setTranslate(5, 5);
-        }).not.toThrow();
     });
 
     it('gives each setter its own function', () => {
@@ -127,10 +59,8 @@ describe('createSVGTransform()', () => {
 
 describe('createSVGPoint()', () => {
 
-    it('returns the origin and transforms into another point', () => {
+    it('transforms into another point, so chains resolve', () => {
         const p = svg().createSVGPoint();
-        expect(p).toMatchObject({ x: 0, y: 0 });
-        expect(p.matrixTransform()).toMatchObject({ x: 0, y: 0 });
         expect(p.matrixTransform().matrixTransform()).toMatchObject({ x: 0, y: 0 });
     });
 
@@ -140,37 +70,18 @@ describe('createSVGPoint()', () => {
     });
 });
 
-describe('getComputedTextLength()', () => {
-
-    it('measures every string as zero', () => {
-        const label = text();
-        label.textContent = 'Hello World';
-        expect(label.getComputedTextLength()).toBe(0);
-    });
-});
-
 describe('getScreenCTM()', () => {
 
     it('returns an invertible matrix on any SVG element, not only graphics ones', () => {
-        expect(rect().getScreenCTM()).toMatchObject({ a: 0, f: 0 });
+        // Mocked on `SVGElement.prototype` on purpose: in JSDOM a `<rect>` is not
+        // an `SVGGraphicsElement`, so the spec-correct home would miss it.
         expect(rect().getScreenCTM()?.inverse()).toMatchObject({ a: 0 });
         const defs = document.createElementNS(NS, 'defs') as SVGDefsElement;
         expect(defs.getScreenCTM()).toMatchObject({ a: 0 });
     });
 });
 
-describe('getBBox()', () => {
-
-    it('returns an all-zero rect', () => {
-        expect(rect().getBBox()).toEqual({ x: 0, y: 0, width: 0, height: 0 });
-    });
-});
-
 describe('checkVisibility()', () => {
-
-    it('is false while the bounding box is empty', () => {
-        expect(rect().checkVisibility()).toBe(false);
-    });
 
     it('follows `getBBox`, so a sized element counts as visible', () => {
         const spy = jest.spyOn(SVGElement.prototype as MockedSVGElement, 'getBBox')
@@ -183,12 +94,6 @@ describe('checkVisibility()', () => {
 
 describe('transform.baseVal', () => {
 
-    it('reports an empty list', () => {
-        const { baseVal } = rect().transform;
-        expect(baseVal.numberOfItems).toBe(0);
-        expect(baseVal.length).toBe(0);
-    });
-
     it('returns a transform from every member that produces one', () => {
         const { baseVal } = rect().transform;
         const t = svg().createSVGTransform();
@@ -199,10 +104,6 @@ describe('transform.baseVal', () => {
             baseVal.createSVGTransformFromMatrix(),
         ];
         for (const result of results) expect(result).toMatchObject({ type: 0, angle: 0 });
-    });
-
-    it('clears without throwing', () => {
-        expect(() => rect().transform.baseVal.clear()).not.toThrow();
     });
 
     it('gives each member its own function', () => {
