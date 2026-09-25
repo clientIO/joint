@@ -15,7 +15,7 @@ export default defineConfig({
 })
 ```
 
-The mocks themselves come from [`@joint/mock-svg`](../joint-mock-svg) as plain functions. If your test needs to assert on one of them, or change what the mock returns, use `vi.spyOn()`.
+The mocks themselves come from [`@joint/mock-svg`](https://github.com/clientIO/joint/tree/master/packages/joint-mock-svg) as plain functions. If your test needs to assert on one of them, or change what the mock returns, use `vi.spyOn()`.
 
 ### Changing what a mock returns
 
