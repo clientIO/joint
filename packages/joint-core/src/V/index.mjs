@@ -1299,6 +1299,14 @@ const V = (function() {
             if (el.getAttribute(trueName) === stringValue) return this;
             if (trueName === 'id') {
                 el.id = stringValue;
+            } else if (trueName === 'style' && el.style) {
+                // Assigned through the CSSOM, like the `style` presentation
+                // attribute. A `style` attribute is subject to the
+                // `style-src-attr` directive, so writing one has no effect
+                // under a Content Security Policy that forbids inline styles.
+                // Elements outside the HTML and SVG namespaces expose no
+                // `style`, and keep the attribute.
+                el.style.cssText = stringValue;
             } else {
                 el.setAttribute(trueName, stringValue);
             }

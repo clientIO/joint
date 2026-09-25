@@ -93,6 +93,18 @@ module.exports = function(grunt) {
         },
         joint: {
             options: {
+                // The suite runs under a Content Security Policy that forbids
+                // inline styles, so `test/jointjs/csp.js` can prove the library
+                // needs none. Scoped to `context.html`, the document the tests
+                // execute in: Karma's own runner frame carries an inline
+                // `<style>` and must stay unrestricted. `script-src` is left
+                // alone too, since `context.html` carries Karma's inline
+                // bootstrap and scripts are not what this checks.
+                customHeaders: [{
+                    match: 'context\\.html$',
+                    name: 'Content-Security-Policy',
+                    value: 'style-src \'self\' \'report-sample\''
+                }],
                 files: [
                     dependencies,
                     modules.geometry.test,
