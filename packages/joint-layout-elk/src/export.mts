@@ -16,35 +16,14 @@ import type {
 const ELK_LABEL_TEXT = '-';
 
 /**
- * A node's label, as far as layout is concerned: a box and its options. ELK sizes
- * labels from the box and never reads their text, so there is none to set.
+ * An ELK label draft
  */
-export interface ElkNodeLabelDraft {
-    x: number;
-    y: number;
+export interface ElkLabelDraft {
+    x?: number;
+    y?: number;
     width: number;
     height: number;
-    layoutOptions?: LabelElkLayoutOptions;
-}
-
-/**
- * A port's label - no `x`/`y` (unlike `ElkNodeLabelDraft`): the node's own
- * `portLabels.placement: 'OUTSIDE'` is what places it, not the label itself.
- */
-export interface ElkPortLabelDraft {
-    width: number;
-    height: number;
-    layoutOptions?: LabelElkLayoutOptions;
-}
-
-/**
- * An edge's label - no `x`/`y` (unlike `ElkNodeLabelDraft`): ELK places it along
- * the routed edge itself, per `layoutOptions` (e.g. `elk.edgeLabels.inline`).
- */
-export interface ElkEdgeLabelDraft {
-    width: number;
-    height: number;
-    layoutOptions?: LabelElkLayoutOptions;
+    layoutOptions: LabelElkLayoutOptions;
 }
 
 export interface ElkNodeDraft {
@@ -60,7 +39,7 @@ export interface ElkNodeDraft {
      * Empty. JointJS elements carry no labels, so add them only if ELK should
      * size around them, e.g. under `elk.nodeSize.constraints: 'NODE_LABELS'`.
      */
-    labels?: ElkNodeLabelDraft[];
+    labels?: ElkLabelDraft[];
 }
 
 /**
@@ -81,7 +60,6 @@ export interface ElkPortDraft {
     width: number;
     height: number;
     layoutOptions: PortElkLayoutOptions;
-    labels?: ElkPortLabelDraft[];
 }
 
 /**
@@ -99,7 +77,6 @@ export type ExportPortCallbackParameters = {
 export interface ElkEdgeDraft {
     readonly id: string;
     layoutOptions: EdgeElkLayoutOptions;
-    labels?: ElkEdgeLabelDraft[];
 }
 
 /**
@@ -110,6 +87,20 @@ export type ExportEdgeCallback = (params: ExportEdgeCallbackParameters) => void 
 export type ExportEdgeCallbackParameters = {
     link: dia.Link;
     elkEdge: ElkEdgeDraft;
+};
+
+export type ExportPortLabelCallback = (params: ExportPortLabelCallbackParameters) => void | false;
+export type ExportPortLabelCallbackParameters = {
+    port: dia.Element.Port;
+    element: dia.Element;
+    elkPortLabel: ElkLabelDraft;
+};
+
+export type ExportEdgeLabelCallback = (params: ExportEdgeLabelCallbackParameters) => void | false;
+export type ExportEdgeLabelCallbackParameters = {
+    link: dia.Link;
+    label: dia.Link.Label;
+    elkEdgeLabel: ElkLabelDraft;
 };
 
 export interface ElkGraphPort {
@@ -127,13 +118,10 @@ export interface ElkGraphData {
 export interface ExportGraphOptions {
     exportElement?: ExportElementCallback;
     exportPort?: ExportPortCallback;
+    exportPortLabel?: ExportPortLabelCallback;
     exportEdge?: ExportEdgeCallback;
+    exportEdgeLabel?: ExportEdgeLabelCallback;
 }
-
-export const DEFAULT_LABEL_SIZE: dia.Size = {
-    width: 50,
-    height: 20
-};
 
 let exportGraphOptions: ExportGraphOptions;
 
@@ -190,9 +178,6 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         const portId = `${port.id}`;
         const elkPortId = `${element.id}:${portId}`;
 
-        const labelSize = element.portProp(portId, 'label/size');
-        const { width: labelWidth, height: labelHeight } = labelSize ?? DEFAULT_LABEL_SIZE;
-
         const { x, y } = element.getPortRelativePosition(portId);
         const { width, height } = element.getPortRelativeRect(portId);
 
@@ -205,12 +190,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             layoutOptions: {
                 // Negative offset moves the port inward from the node border, centering it there.
                 'elk.port.borderOffset': `${-width / 2}`
-            },
-            labels: [{
-                width: labelWidth,
-                height: labelHeight,
-                layoutOptions: {}
-            }]
+            }
         };
 
         if (exportGraphOptions.exportPort?.({ port, element, elkPort }) === false) {
@@ -218,14 +198,26 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             return;
         }
 
+        const portLabel: ElkLabelDraft = {
+            width: 0,
+            height: 0,
+            layoutOptions: {}
+        };
+
+        exportGraphOptions.exportPortLabel?.({ port, element, elkPortLabel: portLabel });
+
+        let labels: ElkLabel[] = [];
+        if (portLabel.width && portLabel.height) {
+            labels = [{
+                ...portLabel,
+                text: ELK_LABEL_TEXT
+            }];
+        }
+
         portsById.set(elkPort.id, { element, portId });
         ports.push({
             ...elkPort,
-            labels: (elkPort.labels || []).map((label): ElkLabel => ({
-                // Some text is required, otherwise ELK ignores the label.
-                text: ELK_LABEL_TEXT,
-                ...label
-            }))
+            labels
         });
     });
 
@@ -239,23 +231,10 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
  * so nothing is registered and nothing downstream (a child, a port, a connected edge)
  * can end up referencing it.
  */
-function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 0, y: 0 }): ElkNode | null {
+function buildElkNode(element: dia.Element): ElkNode | null {
     const id = `${element.id}`;
 
-    const {
-        x: absoluteX,
-        y: absoluteY
-    } = element.position();
-    const x = absoluteX - containerPosition.x;
-    const y = absoluteY - containerPosition.y;
-
-    // Only relevant for a node that has ports.
-    const computedLayoutOptions: NodeElkLayoutOptions = element.hasPorts() ? {
-        'portLabels.placement': 'OUTSIDE'
-    } : {};
-
-    const embeds = element.getEmbeddedCells()
-        .filter((cell): cell is dia.Element => cell.isElement());
+    const embeds = element.getEmbeddedCells().filter(cell => cell.isElement());
 
     // A container's real size is computed by ELK to fit its content - `0` is just a
     // placeholder (elkjs needs a numeric size upfront for a hierarchical node).
@@ -269,10 +248,12 @@ function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 
         id,
         width,
         height,
-        layoutOptions: computedLayoutOptions
+        layoutOptions: {}
     };
 
-    if (exportGraphOptions.exportElement?.({ element, elkNode }) === false) return null;
+    // If exportElement() returns false omit the element
+    if (exportGraphOptions.exportElement?.({ element, elkNode }) === false)
+        return null;
 
     elementsById.set(id, element);
 
@@ -282,7 +263,7 @@ function buildElkNode(element: dia.Element, containerPosition: dia.Point = { x: 
     let edges: ElkExtendedEdge[] | undefined;
     if (embeds.length > 0) {
         children = embeds
-            .map((embed) => buildElkNode(embed, { x, y }))
+            .map((embed) => buildElkNode(embed))
             .filter((node): node is ElkNode => node !== null);
         // Shared with `edgeContainersById` (see there) - edges filed under this container
         // by `buildEdge` need to end up on the node itself.
@@ -342,39 +323,48 @@ function buildEdge(link: dia.Link): void {
         ? [`${targetElement.id}:${targetPort}`]
         : [`${targetElement.id}`];
 
+    const elkEdge: ElkEdgeDraft = {
+        id,
+        layoutOptions: {}
+    };
+
+    if (exportGraphOptions.exportEdge?.({ link, elkEdge }) === false)
+        return;
+
+    linksById.set(id, link);
+
     // Resolved (`link.labels()`) - `size` falls back through `defaultLabel`/the built-in
     // default the same way `@joint/core` itself resolves it for rendering, and a custom
     // `elkLayoutOptionsProperty` property passes through too (whether set on the label
     // itself or on `defaultLabel` - see `Link#_getResolvedLabel`), so it can be read
     // directly here instead of from the label's raw JSON.
     const resolvedLabels = link.labels();
-    let labels: ElkEdgeLabelDraft[] | undefined;
+    let labels: ElkLabel[] = [];
     if (resolvedLabels.length > 0) {
-        labels = resolvedLabels.map((label): ElkEdgeLabelDraft => {
-            const { width, height } = label.size || DEFAULT_LABEL_SIZE;
-            return { width, height, layoutOptions: {}};
-        });
+        labels = resolvedLabels.reduce((result: ElkLabel[], label) => {
+            const { width, height } = label.size!;
+            const labelDraft: ElkLabelDraft = {
+                width,
+                height,
+                layoutOptions: {}
+            };
+
+            if (exportGraphOptions.exportEdgeLabel?.({ link, label, elkEdgeLabel: labelDraft }) === false)
+                return result;
+
+            result.push({
+                ...labelDraft,
+                text: ELK_LABEL_TEXT
+            });
+            return result;
+        }, []);
     }
-
-    const elkEdge: ElkEdgeDraft = {
-        id,
-        layoutOptions: {},
-        labels
-    };
-
-    if (exportGraphOptions.exportEdge?.({ link, elkEdge }) === false) return;
-
-    linksById.set(id, link);
 
     const edge: ElkExtendedEdge = {
         ...elkEdge,
         sources,
         targets,
-        labels: elkEdge.labels && elkEdge.labels.map((label): ElkLabel => ({
-            // Some text is required, otherwise ELK ignores the label.
-            text: ELK_LABEL_TEXT,
-            ...label
-        }))
+        labels
     };
 
     const lcaId = getLowestCommonAncestorId(getAncestorPath(sourceElement), getAncestorPath(targetElement));
