@@ -32,7 +32,7 @@ import {
     has,
     uniqueId,
 } from '../util/index.mjs';
-import { adoptStylesheet, releaseStylesheet } from '../util/adoptStylesheet.mjs';
+import { adoptStylesheet, releaseStylesheet } from '../util/adoptedStylesheets.mjs';
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views as viewsRegistry } from '../mvc/index.mjs';
