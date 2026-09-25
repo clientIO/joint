@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@changesets/config@4.0.0/schema.json",
   "baseBranch": "master",
   "access": "public",
-  "changelog": "@changesets/cli/changelog",
+  "changelog": "./changelog.cjs",
   "commit": false,
   "ignore": [],
   "fixed": [],
