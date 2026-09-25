@@ -4,9 +4,9 @@ name: Test PR
 # Trigger this workflow on:
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "dev" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "dev" ]
 
 # Reset permissions and grant them explicitly per job.
 permissions: {}
@@ -99,12 +99,14 @@ jobs:
         id: check-changeset
         # Release PR is skipped - it consumes all changesets instead
         if: ${{ github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/') }}
-        # Compare PR to current committed master
+        # Compare PR to current state of its base branch (= `master` or `dev`)
         # NOTE: the checkout sets `persist-credentials: false`, so this fetch is
         # unauthenticated - it only works while the repository stays public
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          git fetch --no-tags origin '+refs/heads/master:refs/remotes/origin/master'
-          yarn changeset status --since=origin/master
+          git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+          yarn changeset status --since="origin/$BASE_REF"
 
       # Build the joint project
       - name: Prepare joint
