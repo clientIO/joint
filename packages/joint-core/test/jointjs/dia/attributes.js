@@ -144,7 +144,7 @@ QUnit.module('Attributes', function() {
                         text-transform: ${textTransform};
                     }
                 `);
-                document.adoptedStyleSheets = [...document.adoptedStyleSheets, stylesheet];
+                document.adoptedStyleSheets.push(stylesheet);
 
                 const el = new joint.shapes.standard.Rectangle({
                     attrs: {
@@ -173,9 +173,7 @@ QUnit.module('Attributes', function() {
                         );
                     })));
 
-                document.adoptedStyleSheets = [...document.adoptedStyleSheets].filter(
-                    (sheet) => sheet !== stylesheet
-                );
+                document.adoptedStyleSheets.splice(document.adoptedStyleSheets.indexOf(stylesheet), 1);
                 spy.restore();
             });
 
