@@ -1,5 +1,5 @@
 ---
-'@joint/vitest-plugin-mock-svg': minor
+"@joint/vitest-plugin-mock-svg": minor
 ---
 
-use `@joint/mock-svg` as the source of plain-function mocks
+replace `vi.fn()` mocks with plain functions from `@joint/mock-svg` - use `vi.spyOn()` to assert or override

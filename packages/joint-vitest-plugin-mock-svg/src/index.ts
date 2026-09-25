@@ -1,5 +1,7 @@
 import type { Plugin } from 'vite';
 
+export type { MockedSVGElement } from '@joint/mock-svg';
+
 // Inspired by https://github.com/davidmyersdev/vite-plugin-node-polyfills
 
 export const mockSVG = (): Plugin => {

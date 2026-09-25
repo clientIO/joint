@@ -6744,6 +6744,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/mock-svg@workspace:packages/joint-mock-svg"
   dependencies:
+    "@babel/core": "npm:^7.26.0"
     "@babel/preset-env": "npm:^7.26.0"
     "@babel/preset-typescript": "npm:^7.26.0"
     "@jest/globals": "npm:30.1.2"

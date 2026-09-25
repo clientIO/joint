@@ -29,7 +29,7 @@ jest.spyOn(SVGElement.prototype as MockedSVGElement, 'getBBox')
 
 ## License
 
-Copyright © 2013-2026 client IO
+Copyright (c) 2013-2026 client IO
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

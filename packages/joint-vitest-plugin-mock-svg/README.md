@@ -36,7 +36,7 @@ render(<MyDiagram />);
 expect(getBBox).toHaveBeenCalled();
 ```
 
-`vi.spyOn` reaches nested members too, as well - for example `vi.spyOn(SVGElement.prototype.transform.baseVal, 'appendItem')`.
+`vi.spyOn` reaches nested members, as well - for example `vi.spyOn(SVGElement.prototype.transform.baseVal, 'appendItem')`.
 
 To swap a mock implementation permanently, reassign it:
 
@@ -60,9 +60,20 @@ globalThis.ResizeObserver = class {
 };
 ```
 
+## TypeScript
+
+`getBBox()`, `getScreenCTM()`, `getComputedTextLength()` and `transform` are mocked on `SVGElement`, one level wider than where DOM types (`lib.DOM`) declare them, because JSDOM makes `<rect>`, `<path>` and `<text>` plain `SVGElement`s. Reading one of them off `SVGElement.prototype` - as every example above does - therefore needs the re-exported `MockedSVGElement` type. For example:
+
+```ts
+import type { MockedSVGElement } from '@joint/vitest-plugin-mock-svg';
+
+vi.spyOn(SVGElement.prototype as MockedSVGElement, 'getBBox')
+  .mockReturnValue({ x: 0, y: 0, width: 100, height: 20 } as DOMRect);
+```
+
 ## License
 
-Copyright © 2013-2026 client IO
+Copyright (c) 2013-2026 client IO
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
