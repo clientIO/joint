@@ -1900,8 +1900,12 @@ QUnit.module('links', function(hooks) {
 
             QUnit.test('getter', function(assert) {
                 var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
-                assert.deepEqual(link.label(0), { position: { distance: 10, offset: 10 }});
-                assert.deepEqual(link.label(1), { position: { distance: 20, offset: 20 }});
+                // Resolved against `defaultLabel`/the built-in default - a label's own
+                // `position` is kept as-is, `markup`/`attrs` fall back to the built-in default.
+                assert.deepEqual(link.label(0).position, { distance: 10, offset: 10 });
+                assert.deepEqual(link.label(1).position, { distance: 20, offset: 20 });
+                assert.ok(link.label(0).markup);
+                assert.ok(link.label(0).attrs);
                 assert.deepEqual(link.label(2), undefined);
             });
 
@@ -1921,13 +1925,38 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.labels(), []);
                 link.set('labels', [{ position: { distance: 10, offset: 10 }}]);
                 assert.notEqual(link.labels(), link.get('labels'), 'Copy');
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}]);
+                // Resolved against `defaultLabel`/the built-in default - see `label > getter` above.
+                assert.deepEqual(link.labels()[0].position, { distance: 10, offset: 10 });
+                assert.ok(link.labels()[0].markup);
             });
 
             QUnit.test('setter', function(assert) {
                 var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
                 link.labels([{ position: { distance: 30, offset: 30 }}]);
                 assert.deepEqual(link.get('labels'), [{ position: { distance: 30, offset: 30 }}]);
+            });
+        });
+
+        QUnit.module('custom properties', function() {
+
+            QUnit.test('pass through on `label`/`labels`, own value winning over `defaultLabel`\'s', function(assert) {
+                var link = new joint.shapes.standard.Link({
+                    defaultLabel: { custom: 'default', onlyOnDefault: 'd' },
+                    labels: [
+                        { custom: 'own', position: 0 },
+                        { position: 0 }
+                    ]
+                });
+
+                assert.equal(link.label(0).custom, 'own');
+                assert.equal(link.label(0).onlyOnDefault, 'd');
+                assert.equal(link.label(1).custom, 'default');
+
+                assert.equal(link.labels()[0].custom, 'own');
+                assert.equal(link.labels()[1].custom, 'default');
+
+                // Raw storage is unaffected - `defaultLabel`'s value isn't baked into it.
+                assert.equal(link.get('labels')[1].custom, undefined);
             });
         });
 
@@ -1947,7 +1976,9 @@ QUnit.module('links', function(hooks) {
                 link.insertLabel(-1, { position: { distance: 20, offset: 20 }});
                 link.insertLabel(0, { position: { distance: 10, offset: 10 }});
                 link.insertLabel(100, { position: { distance: 30, offset: 30 }});
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
+                // Raw, as stored (not resolved - see `labels > getter` above) - confirms the
+                // insert didn't bake any resolved defaults into the other, untouched labels.
+                assert.deepEqual(link.get('labels'), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
             });
         });
 
@@ -1965,7 +1996,8 @@ QUnit.module('links', function(hooks) {
                 assert.equal(!!error, true);
 
                 link.appendLabel({ position: { distance: 10, offset: 10 }});
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}]);
+                // Raw, as stored - see `insertLabel > sanity` above.
+                assert.deepEqual(link.get('labels'), [{ position: { distance: 10, offset: 10 }}]);
             });
         });
 
@@ -1973,12 +2005,13 @@ QUnit.module('links', function(hooks) {
 
             QUnit.test('sanity', function(assert) {
                 var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}] });
+                // Raw, as stored - see `insertLabel > sanity` above.
                 link.removeLabel(100);
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}]);
+                assert.deepEqual(link.get('labels'), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}]);
                 link.removeLabel(-1);
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
+                assert.deepEqual(link.get('labels'), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
                 link.removeLabel(0);
-                assert.deepEqual(link.labels(), [{ position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
+                assert.deepEqual(link.get('labels'), [{ position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
             });
         });
     });

@@ -979,6 +979,8 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     portProp(portId: string, path: Path): any;
 
+    portProp(portId: string, object: DeepPartial<Element.Port>, opt?: S): Element;
+
     portProp(portId: string, path: Path, value?: any, opt?: S): Element;
 
     protected generatePortId(): string | number;
@@ -1034,6 +1036,10 @@ export namespace Link {
         position?: LabelPosition | number; // optional for default labels
         attrs?: Cell.Selectors;
         size?: Size;
+        // Any other custom property - passed
+        // through as-is by `Link#labels`/`Link#label`, whether set on the label itself or
+        // on `defaultLabel` (the label's own value wins).
+        [key: string]: any;
     }
 
     interface Vertex extends Point {
