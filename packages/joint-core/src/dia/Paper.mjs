@@ -1303,9 +1303,10 @@ export const Paper = View.extend({
         if (!css) return;
         // `render()` may run more than once; the paper holds one reference.
         this.removeStylesheet();
+        // A document that cannot adopt a stylesheet goes without one. Every
+        // browser the library supports can; the case left is a DOM
+        // implementation that does not render, such as jsdom.
         this._adoptedStylesheet = adoptStylesheet(this.el.ownerDocument, css);
-        if (this._adoptedStylesheet) return;
-        V(this.svg).prepend(V.createSVGStyle(css));
     },
 
     removeStylesheet: function() {

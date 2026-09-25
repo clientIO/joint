@@ -20,8 +20,7 @@ function entriesFor(ownerDocument) {
  * Release it with {@link releaseStylesheet} when it is no longer needed.
  * @param {Document} ownerDocument the document to adopt the stylesheet into
  * @param {string} css
- * @returns {CSSStyleSheet|null} `null` when the document cannot adopt one, so
- * the caller can fall back to a `<style>` element.
+ * @returns {CSSStyleSheet|null} `null` when the document cannot adopt one.
  */
 export function adoptStylesheet(ownerDocument, css) {
     const view = ownerDocument && ownerDocument.defaultView;
