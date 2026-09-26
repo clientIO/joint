@@ -91,10 +91,13 @@ describe('useCells (ids array form) — graph membership reactivity', () => {
   });
 
   it('re-subscribes when the ids array prop itself gains an id', async () => {
-    const { result, rerender } = renderHook(({ list }: { list: readonly CellId[] }) => useCells(list), {
-      wrapper: Wrapper,
-      initialProps: { list: ['a', 'b'] as readonly CellId[] },
-    });
+    const { result, rerender } = renderHook(
+      ({ list }: { list: readonly CellId[] }) => useCells(list),
+      {
+        wrapper: Wrapper,
+        initialProps: { list: ['a', 'b'] as readonly CellId[] },
+      }
+    );
     await act(async () => flush());
     expect(ids(result.current)).toEqual(['a', 'b']);
 

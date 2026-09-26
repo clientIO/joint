@@ -92,7 +92,10 @@ describe('createElementsSizeObserver', () => {
   let mockOnBatchUpdate: jest.Mock;
   let mockGetCellTransform: jest.Mock;
   let mockGetElements: jest.Mock;
-  let mockElements: Map<string, { size: { width: number; height: number }; position: { x: number; y: number } }>;
+  let mockElements: Map<
+    string,
+    { size: { width: number; height: number }; position: { x: number; y: number } }
+  >;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let createElementsSizeObserver: any;
 
@@ -107,7 +110,8 @@ describe('createElementsSizeObserver', () => {
     // jest.resetModules() requires synchronous re-import; using `require` is the only
     // option here. ESM `import()` is async and does not bypass module cache the same way.
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    createElementsSizeObserver = require('../create-elements-size-observer').createElementsSizeObserver;
+    createElementsSizeObserver =
+      require('../create-elements-size-observer').createElementsSizeObserver;
 
     mockElements = new Map([
       ['element-1', { size: { width: 1, height: 1 }, position: { x: 0, y: 0 } }],
@@ -555,8 +559,7 @@ describe('createElementsSizeObserver', () => {
       const resizeObserver = MockResizeObserver.getLastInstance()!;
 
       // Construct an entry with empty borderBoxSize manually
-      const callback = (resizeObserver as unknown as { callback: ResizeObserverCallback })
-        .callback;
+      const callback = (resizeObserver as unknown as { callback: ResizeObserverCallback }).callback;
       callback(
         [
           {
@@ -588,8 +591,7 @@ describe('createElementsSizeObserver', () => {
       const resizeObserver = MockResizeObserver.getLastInstance()!;
       const otherNode = document.createElement('div');
 
-      const callback = (resizeObserver as unknown as { callback: ResizeObserverCallback })
-        .callback;
+      const callback = (resizeObserver as unknown as { callback: ResizeObserverCallback }).callback;
       callback(
         [
           {

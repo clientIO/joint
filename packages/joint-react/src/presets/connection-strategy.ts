@@ -94,20 +94,22 @@ const PIN_STRATEGIES: Record<ConnectionStrategyPin, connectionStrategies.Connect
  * @returns A JointJS-compatible `connectionStrategy` callback.
  */
 export function connectionStrategy(
-  options: ConnectionStrategyOptions = {},
+  options: ConnectionStrategyOptions = {}
 ): connectionStrategies.ConnectionStrategy {
   const { pin = 'none', customize } = options;
   const pinStrategy = PIN_STRATEGIES[pin];
   if (!pinStrategy) {
     throw new Error(
-      `connectionStrategy: unknown pin '${pin}'. Expected 'none', 'absolute', or 'relative'.`,
+      `connectionStrategy: unknown pin '${pin}'. Expected 'none', 'absolute', or 'relative'.`
     );
   }
 
-  return function(endDefinition, endView, magnet, coords, link, endType) {
+  return function (endDefinition, endView, magnet, coords, link, endType) {
     const paper = endView.paper!;
     // Base strategies may return undefined (e.g. useDefaults) — fall back to the incoming endDefinition.
-    const defaultEnd = pinStrategy.call(paper, endDefinition, endView, magnet, coords, link, endType) ?? endDefinition;
+    const defaultEnd =
+      pinStrategy.call(paper, endDefinition, endView, magnet, coords, link, endType) ??
+      endDefinition;
     if (!customize) return defaultEnd;
     return customize({
       end: defaultEnd,

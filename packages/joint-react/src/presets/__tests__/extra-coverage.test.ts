@@ -290,19 +290,25 @@ describe('presets / link-view / LinkView', () => {
 
       // Call protected methods directly to exercise the override paths.
       const data: Record<string, unknown> = {};
-      (linkView as unknown as { _beforeArrowheadMove: (d: unknown) => void })._beforeArrowheadMove(data);
+      (linkView as unknown as { _beforeArrowheadMove: (d: unknown) => void })._beforeArrowheadMove(
+        data
+      );
       expect(linkView.el.classList.contains('jj-is-connecting')).toBe(true);
 
       // _snapArrowhead is invoked during drag; calling parent requires a magnet at coords.
       // Instead, simulate parent returning false via our toggle logic by spying.
       // But to hit the line, just invoke and let parent run; on an empty area it returns undefined.
-      const snapResult = (linkView as unknown as {
-        _snapArrowhead: (event_: dia.Event, x: number, y: number) => unknown;
-      })._snapArrowhead({} as dia.Event, 5000, 5000);
+      const snapResult = (
+        linkView as unknown as {
+          _snapArrowhead: (event_: dia.Event, x: number, y: number) => unknown;
+        }
+      )._snapArrowhead({} as dia.Event, 5000, 5000);
       // After snap with no target, snapped class is false, connecting class is true
       expect(linkView.el.classList.contains('jj-is-snapped')).toBe(!!snapResult);
 
-      (linkView as unknown as { _afterArrowheadMove: (d: unknown) => void })._afterArrowheadMove(data);
+      (linkView as unknown as { _afterArrowheadMove: (d: unknown) => void })._afterArrowheadMove(
+        data
+      );
       expect(linkView.el.classList.contains('jj-is-connecting')).toBe(false);
       expect(linkView.el.classList.contains('jj-is-snapped')).toBe(false);
     } finally {
@@ -350,9 +356,11 @@ describe('presets / link-view / LinkView', () => {
         return { magnet: 'fake' };
       };
       try {
-        const snapResult = (linkView as unknown as {
-          _snapArrowhead: (event_: dia.Event, x: number, y: number) => unknown;
-        })._snapArrowhead({} as dia.Event, 1, 1);
+        const snapResult = (
+          linkView as unknown as {
+            _snapArrowhead: (event_: dia.Event, x: number, y: number) => unknown;
+          }
+        )._snapArrowhead({} as dia.Event, 1, 1);
         expect(snapResult).toBeTruthy();
         expect(linkView.el.classList.contains('jj-is-snapped')).toBe(true);
         expect(linkView.el.classList.contains('jj-is-connecting')).toBe(false);

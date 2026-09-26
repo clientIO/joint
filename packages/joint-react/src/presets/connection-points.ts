@@ -22,12 +22,26 @@ export const boundaryPoint: connectionPoints.ConnectionPoint = (
   endMagnet,
   _opt,
   endType,
-  linkView,
+  linkView
 ) => {
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
-    return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, MODEL_GEOMETRY_OPTIONS, endType, linkView);
+    return connectionPoints.rectangle(
+      endPathSegmentLine,
+      endView,
+      endMagnet,
+      MODEL_GEOMETRY_OPTIONS,
+      endType,
+      linkView
+    );
   }
-  return connectionPoints.boundary(endPathSegmentLine, endView, endMagnet, BOUNDARY_OPTIONS, endType, linkView);
+  return connectionPoints.boundary(
+    endPathSegmentLine,
+    endView,
+    endMagnet,
+    BOUNDARY_OPTIONS,
+    endType,
+    linkView
+  );
 };
 
 /**
@@ -48,13 +62,20 @@ export const anchorPoint: connectionPoints.ConnectionPoint = (
   endMagnet,
   _opt,
   endType,
-  linkView,
+  linkView
 ) => {
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
     return endPathSegmentLine.end.clone();
   }
   // For custom magnets, use rectangle with DOM geometry to find the point on the magnet itself.
-  return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, EMPTY_OPTIONS, endType, linkView);
+  return connectionPoints.rectangle(
+    endPathSegmentLine,
+    endView,
+    endMagnet,
+    EMPTY_OPTIONS,
+    endType,
+    linkView
+  );
 };
 
 /**
@@ -68,7 +89,7 @@ export function withOffsets(
   cp: connectionPoints.ConnectionPoint,
   sourceOffset: number,
   targetOffset: number,
-  markerSelector = 'line',
+  markerSelector = 'line'
 ): connectionPoints.ConnectionPoint {
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
     const point = cp(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);

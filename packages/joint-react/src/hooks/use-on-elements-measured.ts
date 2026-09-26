@@ -85,7 +85,9 @@ export function useOnElementsMeasured(
   const isContextForm = typeof paperTargetOrCallback === 'function';
 
   const paperTarget = isContextForm ? undefined : (paperTargetOrCallback as PaperTarget);
-  const callback = isContextForm ? (paperTargetOrCallback as OnElementsMeasured) : (callbackArgument as OnElementsMeasured);
+  const callback = isContextForm
+    ? (paperTargetOrCallback as OnElementsMeasured)
+    : (callbackArgument as OnElementsMeasured);
 
   const paperId = useResolvePaperId(paperTarget);
   const paperStore = usePaperStore(paperId);

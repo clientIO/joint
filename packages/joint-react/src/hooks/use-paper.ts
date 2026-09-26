@@ -3,7 +3,7 @@ import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
 import { useGraphStore } from './use-graph-store';
 import { useInternalData } from './use-stores';
-import type { PaperView } from '../mvc/paper';
+import type { dia } from '@joint/core';
 import { DEFAULT_PAPER_ID } from '../mvc/paper';
 import type { PaperTarget } from '../types';
 import { resolvePaperId } from '../utils/resolve-paper-target';
@@ -76,7 +76,7 @@ export function usePaperStore(paperId?: string): PaperStore | undefined {
  */
 export interface PaperApi {
   /** Resolved JointJS paper instance, or `null` until a `<Paper>` has mounted. */
-  readonly paper: PaperView | null;
+  readonly paper: dia.Paper | null;
   /**
    * Trigger a render pass on the paper. Forwards to `paper.wakeUp()`.
    * No-op when the paper isn't resolved yet.

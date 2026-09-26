@@ -1,4 +1,4 @@
-import type { routers, connectors as connectorTypes, anchors, connectionPoints} from '@joint/core';
+import type { routers, connectors as connectorTypes, anchors, connectionPoints } from '@joint/core';
 import { connectors as connectorFns } from '@joint/core';
 
 /**
@@ -24,7 +24,9 @@ export function straightRouterUntilConnected(router: routers.Router): routers.Ro
  * of the link is not connected to an element.
  * @param connector
  */
-export function straightConnectorUntilConnected(connector: connectorTypes.Connector): connectorTypes.Connector {
+export function straightConnectorUntilConnected(
+  connector: connectorTypes.Connector
+): connectorTypes.Connector {
   return (sourcePoint, targetPoint, routePoints, args, linkView) => {
     if (!linkView?.model.getSourceCell() || !linkView.model.getTargetCell()) {
       return connectorFns.straight(sourcePoint, targetPoint, routePoints, {}, linkView);
@@ -38,7 +40,10 @@ export function straightConnectorUntilConnected(connector: connectorTypes.Connec
  * @param connected
  * @param disconnected
  */
-export function anchorWhenConnected(connected: anchors.Anchor, disconnected: anchors.Anchor): anchors.Anchor {
+export function anchorWhenConnected(
+  connected: anchors.Anchor,
+  disconnected: anchors.Anchor
+): anchors.Anchor {
   return (elementView, magnet, ref, opt, endType, linkView) => {
     const link = linkView.model;
     if (!link.getSourceCell() || !link.getTargetCell()) {
@@ -59,7 +64,10 @@ export function anchorWhenConnected(connected: anchors.Anchor, disconnected: anc
  * @param presetAnchor - used when the end has no anchor of its own
  * @param customAnchor - used when the end declares its own anchor
  */
-export function connectionPointWhenAnchorIsDefault(presetAnchor: connectionPoints.ConnectionPoint, customAnchor: connectionPoints.ConnectionPoint): connectionPoints.ConnectionPoint {
+export function connectionPointWhenAnchorIsDefault(
+  presetAnchor: connectionPoints.ConnectionPoint,
+  customAnchor: connectionPoints.ConnectionPoint
+): connectionPoints.ConnectionPoint {
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
     const link = linkView.model;
     const end = endType === 'source' ? link.source() : link.target();
@@ -73,7 +81,10 @@ export function connectionPointWhenAnchorIsDefault(presetAnchor: connectionPoint
  * @param connected
  * @param disconnected
  */
-export function connectionPointWhenConnected(connected: connectionPoints.ConnectionPoint, disconnected: connectionPoints.ConnectionPoint): connectionPoints.ConnectionPoint {
+export function connectionPointWhenConnected(
+  connected: connectionPoints.ConnectionPoint,
+  disconnected: connectionPoints.ConnectionPoint
+): connectionPoints.ConnectionPoint {
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
     const link = linkView.model;
     if (!link.getSourceCell() || !link.getTargetCell()) {

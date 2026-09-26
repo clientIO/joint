@@ -49,10 +49,9 @@ describe('useCell overload branches (lines 77, 82)', () => {
 
   it('forwards a custom isEqual on the (id, selector, isEqual) overload (line 82)', () => {
     const isEqual = jest.fn((a: string, b: string) => a === b);
-    const { result } = renderHook(
-      () => useCell('a', (cell) => String(cell.id), isEqual),
-      { wrapper: plainWrapper }
-    );
+    const { result } = renderHook(() => useCell('a', (cell) => String(cell.id), isEqual), {
+      wrapper: plainWrapper,
+    });
     expect(result.current).toBe('a');
   });
 });

@@ -16,11 +16,11 @@ import type { Mutable } from '../../types';
  */
 export function mergeLabelsFromAttributes(
   dataLabels: Record<string, LinkLabel>,
-  attributeLabels: dia.Link.Label[],
+  attributeLabels: dia.Link.Label[]
 ): Record<string, LinkLabel> {
   const mergedLabels: Record<string, LinkLabel> = {};
   for (const attributeLabel of attributeLabels) {
-    const { id } = (attributeLabel as dia.Link.Label & { id?: string });
+    const { id } = attributeLabel as dia.Link.Label & { id?: string };
     if (!id || !(id in dataLabels)) continue;
     const flatLabel: Mutable<LinkLabel> = { ...dataLabels[id] };
     const pos = attributeLabel.position as dia.Link.LabelPosition | undefined;

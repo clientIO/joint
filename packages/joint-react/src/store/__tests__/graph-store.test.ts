@@ -195,7 +195,9 @@ describe('GraphStore', () => {
     it('fires with added/changed/removed summary', async () => {
       const snaps: Array<ReturnType<typeof snapshot>> = [];
       const store = new GraphStore({});
-      store.setOnIncrementalCellsChange((c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])));
+      store.setOnIncrementalCellsChange((c) =>
+        snaps.push(snapshot(c as Parameters<typeof snapshot>[0]))
+      );
       store.graph.addCell({
         id: 'a',
         type: ELEMENT_MODEL_TYPE,
@@ -213,7 +215,9 @@ describe('GraphStore', () => {
     it('reports links alongside elements in the unified pipeline', async () => {
       const snaps: Array<ReturnType<typeof snapshot>> = [];
       const store = new GraphStore({});
-      store.setOnIncrementalCellsChange((c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])));
+      store.setOnIncrementalCellsChange((c) =>
+        snaps.push(snapshot(c as Parameters<typeof snapshot>[0]))
+      );
       store.graph.addCells([
         {
           id: 'a',

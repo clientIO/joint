@@ -114,7 +114,7 @@ export function useOnPaperEvents(
 ): void {
   const isTargetForm = isPaperTarget(paperTargetOrHandlers);
   const paperTarget = isTargetForm ? paperTargetOrHandlers : undefined;
-  const handlers = isTargetForm ? handlersArgument ?? EMPTY_HANDLERS : paperTargetOrHandlers;
+  const handlers = isTargetForm ? (handlersArgument ?? EMPTY_HANDLERS) : paperTargetOrHandlers;
 
   const paperId = useResolvePaperId(paperTarget);
   const paperStore = usePaperStore(paperId);

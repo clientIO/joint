@@ -114,8 +114,8 @@ export function useOnGraphEvents(
     throw new Error('useOnGraphEvents without a graph target must be used within a GraphProvider.');
   }
 
-  const graph = isTargetForm ? graphOrHandlers : graphStore?.graph ?? null;
-  const handlers = isTargetForm ? handlersArgument ?? EMPTY_HANDLERS : graphOrHandlers;
+  const graph = isTargetForm ? graphOrHandlers : (graphStore?.graph ?? null);
+  const handlers = isTargetForm ? (handlersArgument ?? EMPTY_HANDLERS) : graphOrHandlers;
 
   useOnEvents(graph, handlers, subscribeToGraphEvents);
 }

@@ -10,8 +10,18 @@ import type { CellRecord } from '../../../types/cell.types';
 import type { CellInteractivity } from '../../../presets/cell-interactivity';
 
 const CELLS: readonly CellRecord[] = [
-  { id: 'a', type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 }, size: { width: 50, height: 50 } } as CellRecord,
-  { id: 'b', type: ELEMENT_MODEL_TYPE, position: { x: 200, y: 0 }, size: { width: 50, height: 50 } } as CellRecord,
+  {
+    id: 'a',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 0, y: 0 },
+    size: { width: 50, height: 50 },
+  } as CellRecord,
+  {
+    id: 'b',
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 200, y: 0 },
+    size: { width: 50, height: 50 },
+  } as CellRecord,
   { id: 'l1', type: LINK_MODEL_TYPE, source: { id: 'a' }, target: { id: 'b' } } as CellRecord,
 ];
 

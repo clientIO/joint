@@ -1,6 +1,5 @@
 import type { ElementPosition, ElementSize } from '../types/cell.types';
 
- 
 export const isStrictEqual = Object.is;
 export const identitySelector = <T>(item: T) => item;
 
@@ -10,10 +9,7 @@ export const identitySelector = <T>(item: T) => item;
  * @param a
  * @param b
  */
-export function isShallowEqual(
-  a: object | undefined,
-  b: object | undefined
-): boolean {
+export function isShallowEqual(a: object | undefined, b: object | undefined): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
   const objectA = a as Record<string, unknown>;

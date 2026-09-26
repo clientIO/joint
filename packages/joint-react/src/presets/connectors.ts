@@ -9,8 +9,20 @@ import { connectors as connectorFns } from '@joint/core';
  * @param _args
  * @param linkView
  */
-export const outwardsCurveConnector: connectorTypes.Connector = (sourcePoint, targetPoint, routePoints, _args, linkView) =>
-  connectorFns.curve(sourcePoint, targetPoint, routePoints, {
-    sourceDirection: connectorFns.curve.TangentDirections.OUTWARDS,
-    targetDirection: connectorFns.curve.TangentDirections.OUTWARDS,
-  }, linkView);
+export const outwardsCurveConnector: connectorTypes.Connector = (
+  sourcePoint,
+  targetPoint,
+  routePoints,
+  _args,
+  linkView
+) =>
+  connectorFns.curve(
+    sourcePoint,
+    targetPoint,
+    routePoints,
+    {
+      sourceDirection: connectorFns.curve.TangentDirections.OUTWARDS,
+      targetDirection: connectorFns.curve.TangentDirections.OUTWARDS,
+    },
+    linkView
+  );

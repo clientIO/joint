@@ -68,7 +68,6 @@ describe('is.ts utility functions', () => {
     });
 
     test('returns false when property is undefined', () => {
-       
       expect(is.hasProperty({ foo: 1 })).toBe(false);
     });
 
@@ -107,7 +106,13 @@ describe('is.ts utility functions', () => {
     });
 
     test('works with generic user data containing extra properties', () => {
-      expect(is.hasDefinedSize({ position: { x: 0, y: 0 }, size: { width: 100, height: 50 }, label: 'test' })).toBe(true);
+      expect(
+        is.hasDefinedSize({
+          position: { x: 0, y: 0 },
+          size: { width: 100, height: 50 },
+          label: 'test',
+        })
+      ).toBe(true);
       expect(is.hasDefinedSize({ position: { x: 0, y: 0 }, label: 'test' })).toBe(false);
     });
   });

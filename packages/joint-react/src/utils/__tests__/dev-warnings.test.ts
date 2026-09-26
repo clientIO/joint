@@ -12,8 +12,14 @@ afterEach(() => {
 
 describe('warnUnstableSelector', () => {
   it('warns when arrays have same-length objects with identical shallow values', () => {
-    const previous = [{ id: 'a', x: 1 }, { id: 'b', x: 2 }];
-    const next = [{ id: 'a', x: 1 }, { id: 'b', x: 2 }];
+    const previous = [
+      { id: 'a', x: 1 },
+      { id: 'b', x: 2 },
+    ];
+    const next = [
+      { id: 'a', x: 1 },
+      { id: 'b', x: 2 },
+    ];
     warnUnstableSelector('useCells', previous, next, false);
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy).toHaveBeenCalledWith(

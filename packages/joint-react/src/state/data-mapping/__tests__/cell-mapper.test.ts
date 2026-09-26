@@ -19,7 +19,7 @@ describe('mapCellToAttributes', () => {
         position: { x: 1, y: 2 },
         size: { width: 5, height: 6 },
       } as ElementJSONInit,
-      graph,
+      graph
     );
 
     expect(result.id).toBe('el-1');
@@ -35,7 +35,7 @@ describe('mapCellToAttributes', () => {
         source: { id: 'a' },
         target: { id: 'b' },
       } as LinkJSONInit,
-      graph,
+      graph
     );
 
     expect(result.id).toBe('link-1');
@@ -50,7 +50,7 @@ describe('mapCellToAttributes', () => {
         type: 'totally.Unknown.Type',
         foo: 'bar',
       } as unknown as ElementJSONInit,
-      graph,
+      graph
     );
 
     expect(result).toEqual({
@@ -64,7 +64,7 @@ describe('mapCellToAttributes', () => {
     const graph = createGraph();
     const result = mapCellToAttributes(
       { type: 'totally.Unknown.Type' } as unknown as ElementJSONInit,
-      graph,
+      graph
     );
     expect(result).toEqual({ type: 'totally.Unknown.Type' });
   });
@@ -77,7 +77,7 @@ describe('mapCellToAttributes', () => {
         position: { x: 0, y: 0 },
         size: { width: 1, height: 1 },
       } as ElementJSONInit,
-      graph,
+      graph
     );
     expect(result.type).toBe(ELEMENT_MODEL_TYPE);
     expect(result.id).toBeUndefined();
@@ -91,7 +91,7 @@ describe('mapCellToAttributes', () => {
         source: { id: 'a' },
         target: { id: 'b' },
       } as LinkJSONInit,
-      graph,
+      graph
     );
     expect(result.type).toBe(LINK_MODEL_TYPE);
     expect(result.id).toBeUndefined();

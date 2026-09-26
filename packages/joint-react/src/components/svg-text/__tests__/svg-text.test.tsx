@@ -35,7 +35,6 @@ describe('SVGText', () => {
 
   it('renders with height and textWrap options', () => {
     render(
-       
       <SVGText width={100} height={40} textWrap={{ ellipsis: true, maxLineCount: 2 }}>
         hello world hello world hello world
       </SVGText>,
@@ -64,7 +63,17 @@ describe('SVGText', () => {
 
   it('falls back to style fallbacks when explicit font props are undefined', async () => {
     render(
-      <SVGText width={120} textWrap style={{ fontWeight: 700, fontFamily: 'serif', fontSize: 12, letterSpacing: 1, lineHeight: 1.2 }}>
+      <SVGText
+        width={120}
+        textWrap
+        style={{
+          fontWeight: 700,
+          fontFamily: 'serif',
+          fontSize: 12,
+          letterSpacing: 1,
+          lineHeight: 1.2,
+        }}
+      >
         styled fallback
       </SVGText>,
       {
@@ -98,24 +107,19 @@ describe('SVGText', () => {
   });
 
   it('uses the cell size from the graph when width prop is undefined', async () => {
-    render(
-      <SVGText textWrap>
-        wrap-from-cell-size
-      </SVGText>,
-      {
-        wrapper: paperRenderElementWrapper({
-          graphProviderProps: {
-            initialCells: [
-              {
-                id: '1',
-                type: ELEMENT_MODEL_TYPE,
-                size: { width: 87, height: 33 },
-              },
-            ],
-          },
-        }),
-      }
-    );
+    render(<SVGText textWrap>wrap-from-cell-size</SVGText>, {
+      wrapper: paperRenderElementWrapper({
+        graphProviderProps: {
+          initialCells: [
+            {
+              id: '1',
+              type: ELEMENT_MODEL_TYPE,
+              size: { width: 87, height: 33 },
+            },
+          ],
+        },
+      }),
+    });
     await waitFor(() => {
       expect(util.breakText).toHaveBeenCalledWith(
         'wrap-from-cell-size',

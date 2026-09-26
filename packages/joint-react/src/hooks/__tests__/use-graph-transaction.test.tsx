@@ -295,8 +295,9 @@ async function renderWithPaper() {
 const firstPaper = () => [...storeRef!.paperStores.values()][0].paper;
 // Count only the transaction's keyed freeze/unfreeze calls, ignoring the paper's own.
 const keyedCalls = (spy: jest.SpyInstance) =>
-  spy.mock.calls.filter(([opt]) => (opt as { key?: string } | undefined)?.key === 'react/transaction')
-    .length;
+  spy.mock.calls.filter(
+    ([opt]) => (opt as { key?: string } | undefined)?.key === 'react/transaction'
+  ).length;
 
 describe('useGraph().transaction — paper freezing', () => {
   it('freezes every bound paper and unfreezes on close when deferPaint is set', async () => {

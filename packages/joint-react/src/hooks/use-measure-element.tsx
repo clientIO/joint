@@ -2,7 +2,7 @@ import { useContext, useLayoutEffect, type RefObject } from 'react';
 import { CellIdContext } from '../context';
 import { useGraphStore } from './use-graph-store';
 import type { TransformElementLayout } from '../store/create-elements-size-observer';
-import { usePaper } from './use-paper';
+import { usePaperStore } from './use-paper';
 import type { ElementSize } from '../types/cell.types';
 import { useCell } from './use-cell';
 import { selectElementSize } from '../selectors';
@@ -32,8 +32,6 @@ export interface MeasureElementOptions {
    */
   readonly transform?: TransformElementLayout;
 }
-
-const EMPTY_OBJECT: MeasureElementOptions = {};
 
 /**
  * Measures a rendered DOM node and keeps the graph element's size in sync with
@@ -139,11 +137,13 @@ const EMPTY_OBJECT: MeasureElementOptions = {};
  */
 export function useMeasureElement(
   nodeRef: RefObject<HTMLElement | SVGElement | null>,
-  options: MeasureElementOptions = EMPTY_OBJECT
+  options?: MeasureElementOptions
 ): Required<ElementSize> {
-  const { transform } = options;
+  const transform = options?.transform;
   const { graph, setMeasuredNode } = useGraphStore();
-  const { paper } = usePaper();
+  // The store's `PaperView` (not `usePaper()`'s public `dia.Paper`): the
+  // measure flag below is a `PaperView` member.
+  const paper = usePaperStore()?.paper;
   const id = useContext(CellIdContext);
   if (id === undefined) {
     throw new Error('useMeasureElement() must be used inside renderElement');

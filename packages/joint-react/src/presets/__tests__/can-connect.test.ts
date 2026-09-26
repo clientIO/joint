@@ -146,7 +146,9 @@ describe('presets / can-connect / canConnect built-in rules', () => {
     const targetMagnet = makeMagnet({ port: 'q' });
     const linkView = { model: {} } as any;
     const function_ = canConnect({ allowRootConnection: false });
-    expect(function_(sourceView, sourceMagnet, targetView, targetMagnet, 'target', linkView)).toBe(true);
+    expect(function_(sourceView, sourceMagnet, targetView, targetMagnet, 'target', linkView)).toBe(
+      true
+    );
   });
 
   it('rejects duplicate links by default', () => {
@@ -249,7 +251,9 @@ describe('presets / can-connect / canConnect built-in rules', () => {
     const sourceMagnet = makeMagnet({ port: 'p2' });
     const targetMagnet = makeMagnet({ port: 'p2' });
     const function_ = canConnect({ linkLimit: 'one-per-pair' });
-    expect(function_(sourceView, sourceMagnet, targetView, targetMagnet, 'target', linkView)).toBe(true);
+    expect(function_(sourceView, sourceMagnet, targetView, targetMagnet, 'target', linkView)).toBe(
+      true
+    );
   });
 
   it('treats different ids as non-duplicate', () => {
@@ -275,7 +279,9 @@ describe('presets / can-connect / canConnect built-in rules', () => {
     // New link has source port 'p2' instead of 'p1'
     const sourceMagnet = makeMagnet({ port: 'p2' });
     const function_ = canConnect();
-    expect(function_(sourceView, sourceMagnet, targetView, undefined, 'target', linkView)).toBe(true);
+    expect(function_(sourceView, sourceMagnet, targetView, undefined, 'target', linkView)).toBe(
+      true
+    );
   });
 
   it('matches duplicate based on magnet selector when no ports', () => {
@@ -288,7 +294,9 @@ describe('presets / can-connect / canConnect built-in rules', () => {
     const linkView = { model: {} } as any;
     const sourceMagnet = makeMagnet({ jointSelector: 'body' });
     const function_ = canConnect();
-    expect(function_(sourceView, sourceMagnet, targetView, undefined, 'target', linkView)).toBe(false);
+    expect(function_(sourceView, sourceMagnet, targetView, undefined, 'target', linkView)).toBe(
+      false
+    );
   });
 
   it('non-port magnet without selector attribute returns null selector in duplicate check', () => {
@@ -302,7 +310,9 @@ describe('presets / can-connect / canConnect built-in rules', () => {
     // Magnet without joint-selector attribute and without port -> getEndMagnetSelector returns null
     const sourceMagnet = makeMagnet({});
     const function_ = canConnect();
-    expect(function_(sourceView, sourceMagnet, targetView, undefined, 'target', linkView)).toBe(false);
+    expect(function_(sourceView, sourceMagnet, targetView, undefined, 'target', linkView)).toBe(
+      false
+    );
   });
 
   it('non-port magnet without selector compared to existing magnet field', () => {
@@ -328,7 +338,9 @@ describe('presets / can-connect / canConnect built-in rules', () => {
     const linkView = { model: {} } as any;
     const targetMagnet = makeMagnet({ port: 'other' });
     const function_ = canConnect();
-    expect(function_(sourceView, undefined, targetView, targetMagnet, 'target', linkView)).toBe(true);
+    expect(function_(sourceView, undefined, targetView, targetMagnet, 'target', linkView)).toBe(
+      true
+    );
   });
 
   it('runs validate callback when built-in checks pass', () => {

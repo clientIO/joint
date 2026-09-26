@@ -11,6 +11,7 @@ import {
 } from './use-cell-drag.utils';
 import { usePaper } from './use-paper';
 
+// Fields shared by `CellDragStateDragging` and `CellDragStateIdle`.
 interface CellDragStateBase {
   /** True when cell is being dragged. */
   readonly isDragging: boolean;
@@ -30,12 +31,23 @@ interface CellDragStateBase {
   readonly cellId?: dia.Cell.ID;
 }
 
-interface CellDragStateDragging extends Required<CellDragStateBase> {
-  isDragging: true;
-}
-interface CellDragStateIdle extends CellDragStateBase {
-  isDragging: false;
-}
+/**
+ * {@link CellDragState} while the cell is being dragged: every field is set.
+ * @interface
+ * @group Types
+ */
+export type CellDragStateDragging = Required<CellDragStateBase> & {
+  readonly isDragging: true;
+};
+/**
+ * {@link CellDragState} while the cell is not being dragged: only the flags are
+ * guaranteed.
+ * @interface
+ * @group Types
+ */
+export type CellDragStateIdle = CellDragStateBase & {
+  readonly isDragging: false;
+};
 /**
  * Drag state for the current cell, returned by {@link useCellDrag}. While a
  * drag is in progress (`isDragging` is `true`), the active fields (`event`,

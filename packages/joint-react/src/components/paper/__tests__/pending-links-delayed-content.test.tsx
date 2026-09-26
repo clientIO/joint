@@ -78,7 +78,8 @@ describe('pending links — endpoint content mounting after a delay', () => {
     const LINKS = 300;
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
     const cells: dia.Cell.JSON[] = [];
-    for (let index = 0; index <= LINKS; index += 1) cells.push(elementJSON(`e${index}`, index * 30));
+    for (let index = 0; index <= LINKS; index += 1)
+      cells.push(elementJSON(`e${index}`, index * 30));
     for (let index = 0; index < LINKS; index += 1) {
       cells.push({
         id: `l${index}`,

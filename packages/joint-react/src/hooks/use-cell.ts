@@ -4,8 +4,8 @@ import { useCells } from './use-cells';
 import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.types';
 
 /**
- * Read the current cell from the closest `CellIdContext`, the id is provided
- * by `<Paper />` around `renderElement` / `renderLink`. Use this inside a
+ * Read the cell being rendered, its id is provided by `<Paper />` around
+ * `renderElement` / `renderLink`. Use this inside a
  * render callback (or a component mounted from one) to access the full cell
  * record.
  *
@@ -57,8 +57,8 @@ export function useCell<Cell extends AnyCellRecord = CellRecord, Selected = Comp
   isEqual?: (a: Selected, b: Selected) => boolean
 ): Selected;
 /**
- * Subscribe to a specific cell by id. Works anywhere, does not require
- * `CellIdContext`. Throws when the id does not resolve to a cell.
+ * Subscribe to a specific cell by id. Works anywhere, not only inside
+ * `renderElement` / `renderLink`. Throws when the id does not resolve to a cell.
  * @title Read a cell by id
  * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form
  * @param id - cell id to track
@@ -80,7 +80,7 @@ export function useCell<Cell extends AnyCellRecord = CellRecord>(
 ): Computed<Cell>;
 /**
  * Subscribe to a specific cell by id and derive a value from it. Works
- * anywhere, does not require `CellIdContext`. Throws when the id does not
+ * anywhere, not only inside `renderElement` / `renderLink`. Throws when the id does not
  * resolve to a cell.
  * @title Select from a cell by id
  * @template Cell - input cell record shape (defaults to CellRecord); reads resolve to its Computed form

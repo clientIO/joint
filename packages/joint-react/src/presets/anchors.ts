@@ -12,9 +12,7 @@ import { getMarkerLength, MODEL_GEOMETRY_OPTIONS } from './utils';
  * @param endType
  * @param linkView
  */
-export const centerAnchor: anchors.Anchor = (
-  elementView, magnet, ref, _, endType, linkView
-) => {
+export const centerAnchor: anchors.Anchor = (elementView, magnet, ref, _, endType, linkView) => {
   if (magnet === elementView.el || magnet.getAttribute('port')) {
     return anchors.center(elementView, magnet, ref, MODEL_GEOMETRY_OPTIONS, endType, linkView);
   }
@@ -32,10 +30,22 @@ export const centerAnchor: anchors.Anchor = (
  * @param linkView
  */
 export const perpendicularAnchor: anchors.Anchor = (
-  elementView, magnet, ref, _, endType, linkView
+  elementView,
+  magnet,
+  ref,
+  _,
+  endType,
+  linkView
 ) => {
   if (magnet === elementView.el || magnet.getAttribute('port')) {
-    return anchors.perpendicular(elementView, magnet, ref, MODEL_GEOMETRY_OPTIONS, endType, linkView);
+    return anchors.perpendicular(
+      elementView,
+      magnet,
+      ref,
+      MODEL_GEOMETRY_OPTIONS,
+      endType,
+      linkView
+    );
   }
   return anchors.perpendicular(elementView, magnet, ref, _, endType, linkView);
 };
@@ -49,7 +59,16 @@ export const perpendicularAnchor: anchors.Anchor = (
  * sides.
  * @group Types
  */
-export type LinkMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto' | 'top-bottom' | 'bottom-top' | 'left-right' | 'right-left';
+export type LinkMode =
+  | 'prefer-horizontal'
+  | 'prefer-vertical'
+  | 'horizontal'
+  | 'vertical'
+  | 'auto'
+  | 'top-bottom'
+  | 'bottom-top'
+  | 'left-right'
+  | 'right-left';
 
 /**
  * Creates an anchor function that chooses the anchor position based on the magnet type:
@@ -61,7 +80,12 @@ export type LinkMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 
  * @param targetOffset - Padding for target end (px). Default: `0`.
  * @param markerSelector
  */
-export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetOffset = 0, markerSelector = 'line'): anchors.Anchor {
+export function midSideAnchor(
+  mode: LinkMode = 'auto',
+  sourceOffset = 0,
+  targetOffset = 0,
+  markerSelector = 'line'
+): anchors.Anchor {
   return (elementView, magnet, ref, _, endType, linkView) => {
     const userOffset = endType === 'source' ? sourceOffset : targetOffset;
     const markerLength = getMarkerLength(linkView, endType, markerSelector);
@@ -76,17 +100,28 @@ export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetO
     if (portId && element.hasPort(portId)) {
       // For ports, calculate the point based on the port bbox and element geometry
       const portRect = element.getPortRelativeRect(portId);
-      const point = element.position().offset(
-        portRect.x + portRect.width / 2,
-        portRect.y + portRect.height / 2
-      );
+      const point = element
+        .position()
+        .offset(portRect.x + portRect.width / 2, portRect.y + portRect.height / 2);
 
       const side = element.getBBox().sideNearestToPoint(point);
       switch (side) {
-        case 'left': { point.x -= portRect.width / 2 + padding; break; }
-        case 'right': { point.x += portRect.width / 2 + padding; break; }
-        case 'top': { point.y -= portRect.height / 2 + padding; break; }
-        case 'bottom': { point.y += portRect.height / 2 + padding; break; }
+        case 'left': {
+          point.x -= portRect.width / 2 + padding;
+          break;
+        }
+        case 'right': {
+          point.x += portRect.width / 2 + padding;
+          break;
+        }
+        case 'top': {
+          point.y -= portRect.height / 2 + padding;
+          break;
+        }
+        case 'bottom': {
+          point.y += portRect.height / 2 + padding;
+          break;
+        }
         // No default
       }
 

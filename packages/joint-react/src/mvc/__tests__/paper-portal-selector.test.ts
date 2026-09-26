@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { dia} from '@joint/core';
+import type { dia } from '@joint/core';
 import { shapes } from '@joint/core';
 import { PaperView } from '../paper';
 import { ElementModel } from '../element-model';
@@ -152,10 +152,19 @@ describe('PaperView / portalSelector overrides', () => {
       const noPortalSelector: undefined = undefined;
       paper = createPaper(noPortalSelector);
 
-      const a = new shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 50, height: 50 } });
-      const b = new shapes.standard.Rectangle({ position: { x: 200, y: 0 }, size: { width: 50, height: 50 } });
+      const a = new shapes.standard.Rectangle({
+        position: { x: 0, y: 0 },
+        size: { width: 50, height: 50 },
+      });
+      const b = new shapes.standard.Rectangle({
+        position: { x: 200, y: 0 },
+        size: { width: 50, height: 50 },
+      });
       const flow = new shapes.standard.Link({ source: { id: a.id }, target: { id: b.id } });
-      const commentLink = new shapes.standard.Link({ source: { x: 100, y: 100 }, target: { id: flow.id } });
+      const commentLink = new shapes.standard.Link({
+        source: { x: 100, y: 100 },
+        target: { id: flow.id },
+      });
       graphStore.graph.addCells([a, b, flow, commentLink]);
 
       const commentLinkView = paper.findViewByModel(commentLink)!;
@@ -166,11 +175,20 @@ describe('PaperView / portalSelector overrides', () => {
       const noPortalSelector: undefined = undefined;
       paper = createPaper(noPortalSelector);
 
-      const a = new shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 50, height: 50 } });
-      const b = new shapes.standard.Rectangle({ position: { x: 200, y: 0 }, size: { width: 50, height: 50 } });
+      const a = new shapes.standard.Rectangle({
+        position: { x: 0, y: 0 },
+        size: { width: 50, height: 50 },
+      });
+      const b = new shapes.standard.Rectangle({
+        position: { x: 200, y: 0 },
+        size: { width: 50, height: 50 },
+      });
       const flow = new shapes.standard.Link({ source: { id: a.id }, target: { id: b.id } });
       const first = new shapes.standard.Link({ source: { x: 0, y: 100 }, target: { id: flow.id } });
-      const second = new shapes.standard.Link({ source: { x: 0, y: 200 }, target: { id: first.id } });
+      const second = new shapes.standard.Link({
+        source: { x: 0, y: 200 },
+        target: { id: first.id },
+      });
       graphStore.graph.addCells([a, b, flow, first, second]);
 
       const firstView = paper.findViewByModel(first)!;
@@ -183,7 +201,10 @@ describe('PaperView / portalSelector overrides', () => {
       const noPortalSelector: undefined = undefined;
       paper = createPaper(noPortalSelector);
 
-      const a = new shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 50, height: 50 } });
+      const a = new shapes.standard.Rectangle({
+        position: { x: 0, y: 0 },
+        size: { width: 50, height: 50 },
+      });
       const link = new shapes.standard.Link({ source: { id: a.id }, target: { x: 200, y: 100 } });
       graphStore.graph.addCells([a, link]);
 
@@ -195,9 +216,11 @@ describe('PaperView / portalSelector overrides', () => {
       const noPortalSelector: undefined = undefined;
       paper = createPaper(noPortalSelector);
 
-      const isElementReady = (paper as unknown as {
-        isElementReady: (id: string | undefined) => boolean;
-      }).isElementReady.bind(paper);
+      const isElementReady = (
+        paper as unknown as {
+          isElementReady: (id: string | undefined) => boolean;
+        }
+      ).isElementReady.bind(paper);
 
       // line 116: !elementId branch
       const noElementId: undefined = undefined;

@@ -142,11 +142,9 @@ describe('useImperativeApi', () => {
   });
 
   it('reset() inside onUpdate triggers a fresh onLoad', async () => {
-    const onUpdate = jest.fn(
-      (_instance: FakeInstance, reset: () => void) => {
-        reset();
-      }
-    );
+    const onUpdate = jest.fn((_instance: FakeInstance, reset: () => void) => {
+      reset();
+    });
     const { result, rerender } = renderHook(
       ({ dep }: { dep: number }) =>
         useImperativeApi(

@@ -6,10 +6,7 @@ import { usePaperStore } from './use-paper';
 import { setForwardRef } from './use-combined-ref';
 import type { GraphStore } from '../store/graph-store';
 import type { PaperStore } from '../store/paper-store';
-import {
-  PaperFeaturesContext,
-  GraphFeaturesContext,
-} from '../context';
+import { PaperFeaturesContext, GraphFeaturesContext } from '../context';
 import type { FeaturesContext } from '../context';
 import type { Feature } from '../types/feature.types';
 import { selectGraphFeaturesVersion } from '../selectors';
@@ -350,7 +347,8 @@ export function useCreateFeature<T>(
       if (existingInStore === featureRef.current) {
         registerFeature(target, graphStore, paperStore, featureRef.current, true);
         setForwardRef(forwardedRef, featureRef.current.instance);
-        return () => unregisterFeature(target, graphStore, paperStore, featureRef.current!.id, true);
+        return () =>
+          unregisterFeature(target, graphStore, paperStore, featureRef.current!.id, true);
       }
       // Feature was cleaned up (e.g. by StrictMode cleanup) — discard the dead
       // reference so the creation path below creates a fresh instance.
@@ -370,7 +368,13 @@ export function useCreateFeature<T>(
       return;
     }
 
-    const feature = createAndRegisterFeature(target, onAddFeature, graphStore, paperStore, asChildren);
+    const feature = createAndRegisterFeature(
+      target,
+      onAddFeature,
+      graphStore,
+      paperStore,
+      asChildren
+    );
     featureRef.current = feature;
     registerFeature(target, graphStore, paperStore, feature, true);
     setForwardRef(forwardedRef, feature.instance);
@@ -400,7 +404,14 @@ export function useCreateFeature<T>(
       return;
     }
     const existingFeature = resolveExistingFeature(target, graphStore, paperStore, id);
-    fireOnUpdate(target, onUpdateFeature, graphStore, paperStore, existingFeature?.instance, asChildren);
+    fireOnUpdate(
+      target,
+      onUpdateFeature,
+      graphStore,
+      paperStore,
+      existingFeature?.instance,
+      asChildren
+    );
     if (existingFeature) {
       registerFeature(target, graphStore, paperStore, existingFeature, true);
     }

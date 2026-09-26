@@ -1,4 +1,4 @@
-import type { dia} from '@joint/core';
+import type { dia } from '@joint/core';
 import { highlighters, V } from '@joint/core';
 import { CONNECTING_CLASS_NAME } from './link-view';
 
@@ -11,17 +11,17 @@ export const MAGNET_HIGHLIGHTER_NAME = 'magnetHighlighter';
  * allows CSS @starting-style transitions to animate the highlighter's appearance.
  */
 export const MagnetHighlighter = highlighters.stroke.extend({
-    className: 'jj-magnet-highlighter',
-    classNamePrefix: '',
+  className: 'jj-magnet-highlighter',
+  classNamePrefix: '',
 
-    highlight(this: highlighters.stroke, cellView: dia.CellView, node: SVGElement): void {
-        V(node).addClass(CONNECTING_CLASS_NAME);
-        highlighters.stroke.prototype.highlight.call(this, cellView, node);
-    },
+  highlight(this: highlighters.stroke, cellView: dia.CellView, node: SVGElement): void {
+    V(node).addClass(CONNECTING_CLASS_NAME);
+    highlighters.stroke.prototype.highlight.call(this, cellView, node);
+  },
 
-    unhighlight(_cellView: dia.CellView, node: SVGElement): void {
-        V(node).removeClass(CONNECTING_CLASS_NAME);
-        // @ts-expect-error - calling protected method of parent class
-        highlighters.stroke.prototype.unhighlight.call(this, _cellView, node);
-    },
+  unhighlight(_cellView: dia.CellView, node: SVGElement): void {
+    V(node).removeClass(CONNECTING_CLASS_NAME);
+    // @ts-expect-error - calling protected method of parent class
+    highlighters.stroke.prototype.unhighlight.call(this, _cellView, node);
+  },
 });

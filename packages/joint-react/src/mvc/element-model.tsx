@@ -40,6 +40,7 @@ export class ElementModel<Attributes extends dia.Element.Attributes = dia.Elemen
   /**
    * Selector of the node in this cell's view where `@joint/react` mounts your
    * {@link RenderElement} content, the `'__portal__'` `<g>` group.
+   * @default '__portal__'
    */
   portalSelector = PORTAL_SELECTOR;
 

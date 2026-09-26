@@ -4,7 +4,6 @@ import type { dia } from '@joint/core';
 import { render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../../components';
 import { usePaper } from '../../../hooks/use-paper';
-import type { PaperView } from '../../../mvc/paper';
 import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
 import type { CellRecord } from '../../../types/cell.types';
 
@@ -32,7 +31,7 @@ const initialCells: readonly CellRecord[] = [
   } as CellRecord,
 ];
 
-let capturedPaper: PaperView | null = null;
+let capturedPaper: dia.Paper | null = null;
 let capturedButton: HTMLButtonElement | null = null;
 
 function Capture() {
@@ -65,7 +64,7 @@ interface GuardProbe {
   readonly guardExplicit: (event: dia.Event, view?: dia.CellView) => boolean | undefined;
 }
 
-const readPaper = (): PaperView | null => capturedPaper;
+const readPaper = (): dia.Paper | null => capturedPaper;
 const readButton = (): HTMLButtonElement | null => capturedButton;
 
 /**
@@ -73,12 +72,16 @@ const readButton = (): HTMLButtonElement | null => capturedButton;
  * @param onButtonMouseDown - Spy for the overlay button's React `onMouseDown`.
  * @returns The mounted paper view.
  */
-async function renderPaperWithOverlay(onButtonMouseDown: () => void): Promise<PaperView> {
+async function renderPaperWithOverlay(onButtonMouseDown: () => void): Promise<dia.Paper> {
   capturedPaper = null;
   capturedButton = null;
   render(
     <GraphProvider initialCells={initialCells}>
-      <Paper style={{ width: 100, height: 100 }} id="html-content-paper" renderElement={renderElement}>
+      <Paper
+        style={{ width: 100, height: 100 }}
+        id="html-content-paper"
+        renderElement={renderElement}
+      >
         <OverlayProbe onButtonMouseDown={onButtonMouseDown} />
         <Capture />
       </Paper>
