@@ -1300,9 +1300,10 @@ export const Paper = View.extend({
     },
 
     addStylesheet: function(css) {
-        if (!css) return;
-        // `render()` may run more than once; the paper holds one reference.
+        // Released first: `render()` may run more than once, and the paper's
+        // stylesheet may have been emptied since the last one.
         this.removeStylesheet();
+        if (!css) return;
         // A document that cannot adopt a stylesheet goes without one. Every
         // browser the library supports can; the case left is a DOM
         // implementation that does not render, such as jsdom.

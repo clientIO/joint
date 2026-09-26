@@ -194,6 +194,34 @@ QUnit.module('Content Security Policy', function(hooks) {
         later.remove();
     });
 
+    // Emptying the stylesheet and re-rendering has to let go of the old sheet,
+    // or its rules keep applying with nothing left pointing at them.
+    QUnit.test('releases the stylesheet when it is emptied', function(assert) {
+
+        const MARKER = 'csp-emptied-probe';
+        const ProbePaper = joint.dia.Paper.extend({
+            stylesheet: `.${MARKER} { color: red; }`
+        });
+
+        const countAdopted = function() {
+            return [...document.adoptedStyleSheets].filter(function(sheet) {
+                return [...sheet.cssRules].some(function(rule) {
+                    return rule.cssText.includes(MARKER);
+                });
+            }).length;
+        };
+
+        const probe = new ProbePaper({ model: new joint.dia.Graph, width: 1, height: 1 });
+        fixtures.getElement().appendChild(probe.el);
+        assert.strictEqual(countAdopted(), 1, 'adopted while the paper has a stylesheet');
+
+        probe.stylesheet = '';
+        probe.render();
+        assert.strictEqual(countAdopted(), 0, 'released once the stylesheet is emptied');
+
+        probe.remove();
+    });
+
     QUnit.test('the `style` presentation attribute needs no inline style', async function(assert) {
 
         const graph = new joint.dia.Graph;

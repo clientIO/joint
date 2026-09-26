@@ -39,13 +39,15 @@ export function adoptStylesheet(ownerDocument, css) {
         sheet = new SheetConstructor();
         // Throws on `@import`, which a `<style>` element would have allowed.
         sheet.replaceSync(css);
+        // Reassigned rather than mutated in place: the list is only a mutable
+        // array from Chrome 99 on, while `adoptedStyleSheets` arrived in 73.
+        ownerDocument.adoptedStyleSheets = [...ownerDocument.adoptedStyleSheets, sheet];
     } catch {
         return null;
     }
+    // Recorded only once the document holds it, so a failure leaves no entry
+    // claiming a sheet that was never adopted.
     entries.set(css, { sheet, css, count: 1 });
-    // Reassigned rather than mutated in place: the list is only a mutable array
-    // from Chrome 99 on, while `adoptedStyleSheets` itself arrived in 73.
-    ownerDocument.adoptedStyleSheets = [...ownerDocument.adoptedStyleSheets, sheet];
     return sheet;
 }
 
