@@ -1301,13 +1301,15 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     protected onmagnet(evt: Event, x: number, y: number): void;
 
-    protected getLinkEnd(magnet: SVGElement, x: number, y: number, link: Link, endType: LinkEnd): Link.EndJSON;
+    getLinkEnd(magnet: SVGElement, x: number, y: number, link: Link, endType: LinkEnd): Link.EndJSON;
 
     protected getMagnetFromLinkEnd(end: Link.EndJSON): SVGElement;
 
     protected customizeLinkEnd(end: Link.EndJSON, magnet: SVGElement, x: number, y: number, link: Link, endType: LinkEnd): Link.EndJSON;
 
-    protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
+    addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
+
+    createLinkFromMagnet(magnet: SVGElement, x: number, y: number): Link;
 
     protected nodeCache(magnet: SVGElement): CellView.NodeMetrics;
 
@@ -1522,6 +1524,12 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 
     startArrowheadMove(end: LinkEnd, options?: any): unknown;
 
+    updateArrowheadMove(data: unknown, evt: Event, x: number, y: number): void;
+
+    finishArrowheadMove(data: unknown, evt: Event, x: number, y: number): void;
+
+    cancelArrowheadMove(data: unknown): void;
+
     protected updateRoute(): void;
 
     protected updatePath(): void;
@@ -1572,6 +1580,56 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 }
 
 // dia.Paper
+
+export namespace LinkDrag {
+
+    interface Options extends Graph.Options {
+        end?: LinkEnd;
+        whenNotAllowed?: 'revert' | 'remove';
+    }
+
+    type FinishOn = 'pointerup' | 'pointerdown' | 'connection' | ((evt: globalThis.PointerEvent, linkDrag: LinkDrag) => boolean);
+
+    interface FollowPointerOptions {
+        finishOn?: FinishOn;
+    }
+
+    interface Result {
+        cancelled: boolean;
+        linkView: LinkView;
+    }
+
+    interface ConnectionCandidate {
+        cellView: CellView;
+        magnet: SVGElement;
+    }
+}
+
+export class LinkDrag {
+
+    constructor(paper: Paper, link: Link, opt?: LinkDrag.Options);
+
+    readonly paper: Paper;
+    readonly link: Link;
+    readonly linkView: LinkView;
+    readonly end: LinkEnd;
+
+    isActive(): boolean;
+
+    move(evt: Event | globalThis.MouseEvent): void;
+    move(evt: Event | globalThis.MouseEvent, x: number, y: number): void;
+    move(x: number, y: number): void;
+
+    finish(evt: Event | globalThis.MouseEvent): void;
+    finish(evt: Event | globalThis.MouseEvent, x: number, y: number): void;
+    finish(x: number, y: number): void;
+
+    cancel(): void;
+
+    getConnectionCandidate(): LinkDrag.ConnectionCandidate | null;
+
+    followPointer(opt?: LinkDrag.FollowPointerOptions): Promise<LinkDrag.Result>;
+}
 
 export namespace Paper {
 
@@ -2141,6 +2199,8 @@ export class Paper extends mvc.View<Graph> {
     drawBackground(opt?: Paper.BackgroundOptions): this;
 
     getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
+
+    startLinkDrag(link: Link, opt?: LinkDrag.Options): LinkDrag;
 
     getModelById(id: Graph.CellRef): Cell;
 

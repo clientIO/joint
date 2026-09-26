@@ -61,22 +61,31 @@ export const Connect = Button.extend({
         const { paper, relatedView } = this;
         const normalizedEvent = util.normalizeEvent(evt);
         const { x, y } = paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
-        relatedView.dragLinkStart(normalizedEvent, this.getMagnetNode(), x, y);
+        const linkDrag = paper.startLinkDrag(relatedView.createLinkFromMagnet(this.getMagnetNode(), x, y));
+        this.linkDrag = linkDrag;
+        // backwards compatibility events
+        linkDrag.linkView.notifyPointerdown(normalizedEvent, x, y);
+        paper.setDragging(normalizedEvent);
         paper.undelegateEvents();
         this.delegateDocumentEvents(null, normalizedEvent.data);
         this.focus();
     },
     drag: function(evt) {
-        const { paper, relatedView } = this;
-        const normalizedEvent = util.normalizeEvent(evt);
-        const { x, y } = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-        relatedView.dragLink(normalizedEvent, x, y);
+        const { paper, linkDrag } = this;
+        const [normalizedEvent, x, y] = paper.getPointerArgs(evt);
+        linkDrag.move(normalizedEvent, x, y);
+        // backwards compatibility events
+        linkDrag.linkView.notifyPointermove(normalizedEvent, x, y);
     },
     dragend: function(evt) {
-        const { paper, relatedView } = this;
-        const normalizedEvent = util.normalizeEvent(evt);
-        const { x, y } = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-        relatedView.dragLinkEnd(normalizedEvent, x, y);
+        const { paper, relatedView, linkDrag } = this;
+        const [normalizedEvent, x, y] = paper.getPointerArgs(evt);
+        const { linkView } = linkDrag;
+        linkDrag.finish(normalizedEvent, x, y);
+        this.linkDrag = null;
+        // backwards compatibility events
+        linkView.notifyPointerup(normalizedEvent, x, y);
+        linkView.checkMouseleave(normalizedEvent);
         this.undelegateDocumentEvents();
         paper.delegateEvents();
         this.blur();
