@@ -340,6 +340,10 @@ export const Paper = dia.Paper.extend(
         disposeHidden: true,
         lazyInitialize: true,
       },
+      // Nothing rendered through React uses a `scalable` group, so the rule
+      // the paper would inject has nothing to apply to, and skipping it keeps
+      // the paper free of inline styles under a Content Security Policy.
+      injectScalableGroupStylesheet: false,
       // Defaults (overridable from constructor options)
       preventDefaultBlankAction: false,
       linkPinning: false,
