@@ -78,7 +78,6 @@ const MOUNT_BATCH_SIZE = 1000;
 const UPDATE_BATCH_SIZE = Infinity;
 const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
 
-
 const HighlightingTypes = CellView.Highlighting;
 
 const defaultHighlighting = {
