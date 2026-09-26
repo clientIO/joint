@@ -134,6 +134,22 @@ QUnit.module('Content Security Policy', function(hooks) {
 
 
 
+    // A blocked write leaves the attribute set and the declaration empty, so
+    // the attribute cannot stand in for "already applied" when deciding to
+    // skip a repeat write.
+    QUnit.test('applies a `style` the policy already blocked once', async function(assert) {
+
+        const node = V('rect').node;
+        fixtures.getElement().appendChild(node);
+        node.setAttribute('style', 'fill:red');
+
+        assert.strictEqual(node.style.fill, '', 'the blocked write set the attribute but applied nothing');
+
+        V(node).attr('style', 'fill:red');
+
+        assert.strictEqual(node.style.fill, 'red', 'writing the same value again applies it');
+    });
+
     QUnit.test('the `style` presentation attribute needs no inline style', async function(assert) {
 
         const graph = new joint.dia.Graph;
