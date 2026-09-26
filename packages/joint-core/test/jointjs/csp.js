@@ -42,7 +42,8 @@ QUnit.module('Content Security Policy', function(hooks) {
             model: graph,
             width: 300,
             height: 300,
-            async: false
+            async: false,
+            injectScalableGroupStylesheet: false
         }, options));
         fixtures.getElement().appendChild(created.el);
         return created;
@@ -130,97 +131,8 @@ QUnit.module('Content Security Policy', function(hooks) {
             'no violation while rendering elements, a link and a link label');
     });
 
-    // One sheet per document however many papers share the stylesheet: a
-    // canvas and its minimap must not adopt one each.
-    QUnit.test('adopts a single stylesheet per document', async function(assert) {
 
-        const graph = new joint.dia.Graph;
-        paper = createPaper(graph);
-        const second = createPaper(graph);
 
-        const adopted = [...document.adoptedStyleSheets].filter(function(sheet) {
-            return [...sheet.cssRules].some(function(rule) {
-                return rule.cssText.includes('non-scaling-stroke');
-            });
-        });
-        second.remove();
-
-        assert.strictEqual(adopted.length, 1, 'the paper stylesheet is adopted once');
-
-        const reported = describe(await collect());
-        assert.deepEqual(reported, [], 'no violation from adopting it');
-    });
-
-    // The sheet used to live inside the paper's SVG and go with it. Now that it
-    // belongs to the document, the last paper to leave has to take it.
-    // A stylesheet of its own, so papers elsewhere in the suite do not count.
-    QUnit.test('drops the stylesheet once the last paper is removed', function(assert) {
-
-        const MARKER = 'csp-lifecycle-probe';
-        const ProbePaper = joint.dia.Paper.extend({
-            stylesheet: `.${MARKER} { color: red; }`
-        });
-
-        const countAdopted = function() {
-            return [...document.adoptedStyleSheets].filter(function(sheet) {
-                return [...sheet.cssRules].some(function(rule) {
-                    return rule.cssText.includes(MARKER);
-                });
-            }).length;
-        };
-
-        const createProbe = function() {
-            const probe = new ProbePaper({ model: new joint.dia.Graph, width: 1, height: 1 });
-            fixtures.getElement().appendChild(probe.el);
-            return probe;
-        };
-
-        assert.strictEqual(countAdopted(), 0, 'nothing adopted before any paper exists');
-
-        const first = createProbe();
-        assert.strictEqual(countAdopted(), 1, 'the first paper adopts it');
-
-        const second = createProbe();
-        assert.strictEqual(countAdopted(), 1, 'the second paper shares it');
-
-        second.remove();
-        assert.strictEqual(countAdopted(), 1, 'it stays while a paper still holds it');
-
-        first.remove();
-        assert.strictEqual(countAdopted(), 0, 'the last paper to leave drops it');
-
-        const later = createProbe();
-        assert.strictEqual(countAdopted(), 1, 'a later paper adopts it again');
-        later.remove();
-    });
-
-    // Emptying the stylesheet and re-rendering has to let go of the old sheet,
-    // or its rules keep applying with nothing left pointing at them.
-    QUnit.test('releases the stylesheet when it is emptied', function(assert) {
-
-        const MARKER = 'csp-emptied-probe';
-        const ProbePaper = joint.dia.Paper.extend({
-            stylesheet: `.${MARKER} { color: red; }`
-        });
-
-        const countAdopted = function() {
-            return [...document.adoptedStyleSheets].filter(function(sheet) {
-                return [...sheet.cssRules].some(function(rule) {
-                    return rule.cssText.includes(MARKER);
-                });
-            }).length;
-        };
-
-        const probe = new ProbePaper({ model: new joint.dia.Graph, width: 1, height: 1 });
-        fixtures.getElement().appendChild(probe.el);
-        assert.strictEqual(countAdopted(), 1, 'adopted while the paper has a stylesheet');
-
-        probe.stylesheet = '';
-        probe.render();
-        assert.strictEqual(countAdopted(), 0, 'released once the stylesheet is emptied');
-
-        probe.remove();
-    });
 
     QUnit.test('the `style` presentation attribute needs no inline style', async function(assert) {
 
@@ -240,5 +152,46 @@ QUnit.module('Content Security Policy', function(hooks) {
         const reported = describe(await collect());
         assert.deepEqual(reported, [],
             'no violation from the `style` attribute definition');
+    });
+});
+
+// The paper injects its stylesheet by default, and that is what an application
+// under a strict policy has to turn off. Pinned both ways so removing the
+// default in v5 is a deliberate act.
+QUnit.module('Paper stylesheet injection', function(hooks) {
+
+    let paper;
+
+    hooks.afterEach(function() {
+        if (paper) {
+            paper.remove();
+            paper = null;
+        }
+    });
+
+    function injectedStylesheets(options) {
+        paper = new joint.dia.Paper(joint.util.assign({
+            model: new joint.dia.Graph,
+            width: 1,
+            height: 1
+        }, options));
+        fixtures.getElement().appendChild(paper.el);
+        return Array.from(paper.svg.querySelectorAll('style')).map(function(el) {
+            return el.textContent;
+        });
+    }
+
+    QUnit.test('injects the stylesheet by default', function(assert) {
+
+        const injected = injectedStylesheets();
+
+        assert.strictEqual(injected.length, 1, 'one <style> is injected');
+        assert.ok(injected[0].includes('non-scaling-stroke'), 'it carries the scalable group rule');
+    });
+
+    QUnit.test('injects nothing when the option is off', function(assert) {
+
+        assert.deepEqual(injectedStylesheets({ injectScalableGroupStylesheet: false }), [],
+            'no <style> is injected');
     });
 });

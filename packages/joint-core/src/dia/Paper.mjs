@@ -32,7 +32,6 @@ import {
     has,
     uniqueId,
 } from '../util/index.mjs';
-import { adoptStylesheet, releaseStylesheet } from '../util/adoptedStylesheets.mjs';
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views as viewsRegistry } from '../mvc/index.mjs';
@@ -325,6 +324,10 @@ export const Paper = View.extend({
         height: 600,
         gridSize: 1,
         // Whether or not to draw the grid lines on the paper's DOM element.
+        // Whether to inject `stylesheet` into the paper's SVG. Turn off when a
+        // Content Security Policy forbids inline styles - see `stylesheet`.
+        injectScalableGroupStylesheet: true,
+
         // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
         drawGrid: false,
         // If not set, the size of the visual grid is the same as the `gridSize`.
@@ -1285,7 +1288,9 @@ export const Paper = View.extend({
 
         V.ensureId(svg);
 
-        this.addStylesheet(stylesheet);
+        if (options.injectScalableGroupStylesheet) {
+            this.addStylesheet(stylesheet);
+        }
 
         if (options.background) {
             this.drawBackground(options.background);
@@ -1299,21 +1304,8 @@ export const Paper = View.extend({
     },
 
     addStylesheet: function(css) {
-        // Released first: `render()` may run more than once, and the paper's
-        // stylesheet may have been emptied since the last one.
-        this.removeStylesheet();
         if (!css) return;
-        // A document that cannot adopt a stylesheet goes without one. Every
-        // browser the library supports can; the case left is a DOM
-        // implementation that does not render, such as jsdom.
-        this._adoptedStylesheet = adoptStylesheet(this.el.ownerDocument, css);
-    },
-
-    removeStylesheet: function() {
-        const sheet = this._adoptedStylesheet;
-        if (!sheet) return;
-        this._adoptedStylesheet = null;
-        releaseStylesheet(this.el.ownerDocument, sheet);
+        V(this.svg).prepend(V.createSVGStyle(css));
     },
 
     /**
@@ -2296,7 +2288,6 @@ export const Paper = View.extend({
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
         this._removeLayerViews();
-        this.removeStylesheet();
     },
 
     getComputedSize: function() {
