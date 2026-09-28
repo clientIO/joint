@@ -1,4 +1,4 @@
-import { dia, shapes } from '@joint/core';
+import { dia, shapes, setTheme } from '@joint/core';
 import {
     ElkLayoutOptions,
     ExportElementCallback,
@@ -28,6 +28,10 @@ const cellNamespace = {
 };
 
 const init = () => {
+
+    // Every view (paper and cells alike) picks up a `joint-theme-material` class -
+    // this example's own CSS gives that class its actual meaning (see `styles.scss`).
+    setTheme('material');
 
     // Create JointJS graph and paper
     const graph = new dia.Graph({}, { cellNamespace });
@@ -158,14 +162,6 @@ const init = () => {
 
     // Initial layout of the fixed example data, fit to the paper's viewport.
     runLayout().then(() => zoom(paper, 1));
-
-    // "Layout" toolbar button - re-runs the same from-scratch layout on the
-    // unchanged graph. Every run is independent (no `interactive: true`), so
-    // clicking it repeatedly is a quick way to check that `layout()` is
-    // idempotent - each run should settle on the same result as the last.
-    document.getElementById('layout')!.addEventListener('click', () => {
-        runLayout().then(() => zoom(paper, 1));
-    });
 };
 
 function zoom(paper: dia.Paper, zoomLevel: number): void {
