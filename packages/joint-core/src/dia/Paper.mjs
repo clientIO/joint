@@ -53,6 +53,7 @@ import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
+import { PaperTouchGestures, isCancelEvent } from './PaperTouchGestures.mjs';
 import { GridLayerView } from './GridLayerView.mjs';
 
 const paperLayers = {
@@ -628,6 +629,18 @@ export const Paper = View.extend({
     ],
     MIN_SCALE: 1e-6,
 
+    // On a touchscreen, a press (the `pointerdown` inside the paper and the
+    // `cell:pointerdown` / `blank:pointerdown` events) is announced once the finger has
+    // been down this long, or as soon as it travels `TOUCH_PRESS_THRESHOLD` or lifts. A
+    // second finger landing before that starts a two-finger gesture instead, and no press
+    // is ever announced for it.
+    TOUCH_PRESS_DELAY: 150,
+    // How far a finger may travel before it is dragging rather than pressing. Wider than
+    // a mouse's slop on purpose: the first finger of a pinch drifts as the hand opens,
+    // and every pixel of this is drift that starts nothing. A finger released within it
+    // is a tap; one released beyond it is a swipe, and gets no `pointerclick`.
+    TOUCH_PRESS_THRESHOLD: 20,
+
     // Default find buffer for the findViewsInArea and findViewsAtPoint methods.
     // The find buffer is used to extend the area of the search
     // to mitigate the differences between the model and view geometry.
@@ -692,6 +705,7 @@ export const Paper = View.extend({
         this._setDimensions();
         this._startObservingElementSize();
         this.startListening();
+        this._touchGestures = new PaperTouchGestures(this);
 
         // Mouse wheel events buffer
         this._mw_evt_buffer = {
@@ -2276,6 +2290,7 @@ export const Paper = View.extend({
 
     onRemove: function() {
 
+        this._touchGestures.remove();
         this._stopObservingElementSize();
         this.freeze();
         this._updates.disabled = true;
@@ -3422,6 +3437,9 @@ export const Paper = View.extend({
 
     pointerdblclick: function(evt) {
 
+        // The lifts of a two-finger gesture are not taps.
+        if (evt.type === 'dbltap' && this._touchGestures.isGestureLift()) return;
+
         evt.preventDefault();
 
         // magnetpointerdblclick can stop propagation
@@ -3512,7 +3530,10 @@ export const Paper = View.extend({
                 ? this.guard(evt, view)
                 : this.guardExplicit(evt, view);
 
-            if (guarded) return;
+            if (guarded) {
+                this._touchGestures.releasePress(evt);
+                return;
+            }
         }
 
         if (view) {
@@ -3524,6 +3545,27 @@ export const Paper = View.extend({
                 // to be able to click on a checkbox.
                 evt.preventDefault();
             }
+
+        } else if (!isContextMenu && this.options.preventDefaultBlankAction) {
+            evt.preventDefault();
+        }
+
+        // On a touchscreen the press waits until the finger proves it is not the first
+        // of a two-finger gesture (see `PaperTouchGestures`).
+        if (this._touchGestures.withholdPress(evt, view)) return;
+
+        this._dispatchPointerdown(evt, view, isContextMenu);
+    },
+
+    // The part of `pointerdown()` the outside world can observe: the custom event, the
+    // magnet handling, the `cell:pointerdown` / `blank:pointerdown` events and the drag
+    // they start. The decisions the browser needs at once (guarding, `preventDefault()`)
+    // are made in `pointerdown()` itself.
+    _dispatchPointerdown: function(evt, view, isContextMenu) {
+
+        const { target } = evt;
+
+        if (view) {
 
             if (hasTagNameInPath(target, this.PREVENT_INTERACTION_TAG_NAMES, view.el)) {
                 // If the target is a form element, we do not want to start dragging the element.
@@ -3572,9 +3614,6 @@ export const Paper = View.extend({
             if (view) {
                 view.pointerdown(evt, localPoint.x, localPoint.y);
             } else {
-                if (this.options.preventDefaultBlankAction) {
-                    evt.preventDefault();
-                }
                 this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
             }
 
@@ -3637,7 +3676,8 @@ export const Paper = View.extend({
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
         }
 
-        if (!normalizedEvt.isPropagationStopped()) {
+        // A cancelled press (`touchcancel`, `pointercancel`) was never released: no click.
+        if (!normalizedEvt.isPropagationStopped() && !isCancelEvent(normalizedEvt)) {
             this.pointerclick(new $.Event(evt.originalEvent, { type: 'click', data: evt.data }));
         }
 
@@ -3786,14 +3826,12 @@ export const Paper = View.extend({
         const localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
         const { deltaX, deltaY } = normalizeWheel(originalEvent);
 
-        const pinchHandlers = this._events['paper:pinch'];
-
         // Touchpad devices will send a fake CTRL press when a pinch is performed
         //
         // We also check if there are any subscribers to paper:pinch event. If there are none,
         // just skip the entire block of code (we don't want to blindly call
         // .preventDefault() if we really don't have to).
-        if (evt.ctrlKey && pinchHandlers && pinchHandlers.length > 0) {
+        if (evt.ctrlKey && this._hasListeners('paper:pinch')) {
             // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
             originalEvent.preventDefault();
             this._mw_evt_buffer.event = evt;
@@ -3921,6 +3959,8 @@ export const Paper = View.extend({
     delegateDragEvents: function(view, data) {
 
         data || (data = {});
+        // A second finger ends whatever this interaction started, through this object.
+        this._touchGestures.trackInteraction(data);
         this.eventData({ data: data }, { sourceView: view || null, mousemoved: 0 });
         this.delegateDocumentEvents(null, data);
     },
@@ -3935,6 +3975,19 @@ export const Paper = View.extend({
     // Returns true when a drag has been confirmed for `evt` (see `setDragging`).
     isDragging: function(evt) {
         return !!this.eventData(evt).isDragging;
+    },
+
+    _hasListeners: function(eventName) {
+
+        const handlers = this._events && this._events[eventName];
+        return !!handlers && handlers.length > 0;
+    },
+
+    // As with a touchpad pinch (see `mousewheel()`), a touchscreen gesture is the paper's
+    // only when a listener consumes it. Without one, every touch keeps the immediate path.
+    _consumesTouchGestures: function() {
+
+        return this._hasListeners('paper:pinch') || this._hasListeners('paper:pan');
     },
 
     // Guard the specified event. If the event should be ignored, guard returns `true`.

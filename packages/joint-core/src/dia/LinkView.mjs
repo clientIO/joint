@@ -1,4 +1,5 @@
 import { CellView } from './CellView.mjs';
+import { isCancelEvent } from './PaperTouchGestures.mjs';
 import { Link } from './Link.mjs';
 import V from '../V/index.mjs';
 import { addClassNamePrefix, merge, assign, isObject, isFunction, clone, isPercentage, result, isEqual } from '../util/index.mjs';
@@ -1736,8 +1737,11 @@ export const LinkView = CellView.extend({
             this._connectArrowheadEnd(data, x, y);
         }
 
-        if (!paper.linkAllowed(this)) {
-            // If the changed link is not allowed, revert to its previous state.
+        // A cancelled drag was taken away rather than released (the browser took the
+        // pointer, or a second finger turned the touch into a gesture), so it is undone
+        // the way a disallowed connection is: a link a magnet just created is removed,
+        // an existing end reverts.
+        if (isCancelEvent(evt) || !paper.linkAllowed(this)) {
             this._disallow(data);
         } else {
             this._finishEmbedding(data);

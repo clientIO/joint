@@ -1393,6 +1393,12 @@ export class ElementView<E extends Element = Element> extends CellViewGeneric<E>
 
     protected dragEnd(evt: Event, x: number, y: number): void;
 
+    /**
+     * Undo a drag that was cancelled rather than released (`touchcancel`, `pointercancel`):
+     * the element returns to where the drag picked it up and keeps nothing the drag prepared.
+     */
+    protected dragCancel(evt: Event, x: number, y: number): void;
+
     protected dragMagnetEnd(evt: Event, x: number, y: number): void;
 
     protected snapToGrid(evt: Event, x: number, y: number): Point;
@@ -1918,8 +1924,14 @@ export namespace Paper {
         'element:mousewheel': (elementView: ElementView, evt: Event, x: number, y: number, delta: number) => void;
         'link:mousewheel': (linkView: LinkView, evt: Event, x: number, y: number, delta: number) => void;
         'blank:mousewheel': (evt: Event, x: number, y: number, delta: number) => void;
-        // touchpad
+        // touchpad (wheel) and touchscreen (two fingers)
+        // On a touchscreen the paper takes over the touch stream - withholding the press and
+        // the `pointerdown` of content under the finger - only while one of the two events
+        // below has a listener. A paper with neither leaves every touch and pointer event
+        // untouched, so an app can recognize its own gestures there.
+        /** A touchpad scroll (every wheel event) or a two-finger touch pan (once per frame). `deltaX` / `deltaY` follow the wheel sign convention. */
         'paper:pan': (evt: Event, deltaX: number, deltaY: number) => void;
+        /** A touchpad pinch (ctrl/cmd + wheel) or a two-finger touch pinch (once per frame). `x` / `y` is the gesture point in local coordinates, `scale` the ratio since the previous event. */
         'paper:pinch': (evt: Event, x: number, y: number, scale: number) => void;
         // magnet
         'element:magnet:pointerclick': (elementView: ElementView, evt: Event, magnetNode: SVGElement, x: number, y: number) => void;
@@ -2002,6 +2014,19 @@ export class Paper extends mvc.View<Graph> {
     GUARDED_TAG_NAMES: string[];
     FORM_CONTROL_TAG_NAMES: string[];
     PREVENT_INTERACTION_TAG_NAMES: string[];
+    /**
+     * On a touchscreen, a press is announced once the finger has been down for this many
+     * milliseconds, or as soon as it travels `TOUCH_PRESS_THRESHOLD` or lifts. A second
+     * finger landing before that starts a two-finger gesture instead, and no press is
+     * announced for it.
+     */
+    TOUCH_PRESS_DELAY: number;
+    /**
+     * How far (in pixels) a finger may travel before it is dragging rather than pressing.
+     * Wider than a mouse's slop on purpose: the first finger of a pinch drifts as the hand
+     * opens. A finger released within it is a tap; one released beyond it gets no `pointerclick`.
+     */
+    TOUCH_PRESS_THRESHOLD: number;
 
     matrix(): SVGMatrix;
     matrix(ctm: SVGMatrix | Vectorizer.Matrix, data?: any): this;

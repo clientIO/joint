@@ -1,5 +1,6 @@
 import { assign, isFunction, toArray } from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
+import { isCancelEvent } from './PaperTouchGestures.mjs';
 import { Cell } from './Cell.mjs';
 import V from '../V/index.mjs';
 import { elementViewPortPrototype } from './ports.mjs';
@@ -661,7 +662,13 @@ export const ElementView = CellView.extend({
                 this.dragMagnetEnd(evt, x, y);
                 break;
             case DragActions.MOVE:
-                (delegatedView || this).dragEnd(evt, x, y);
+                // A cancelled drag was taken away mid-gesture, so it is undone rather
+                // than committed (see `dragCancel()`).
+                if (isCancelEvent(evt)) {
+                    (delegatedView || this).dragCancel(evt, x, y);
+                } else {
+                    (delegatedView || this).dragEnd(evt, x, y);
+                }
             // eslint: no-fallthrough=false
             default:
                 if (data.preventPointerEvents) break;
@@ -864,6 +871,26 @@ export const ElementView = CellView.extend({
 
         var data = this.eventData(evt);
         if (data.embedding) this.finalizeEmbedding(data);
+    },
+
+    // The drag was cancelled rather than released (the browser took the pointer for a
+    // scroll, or a second finger turned the touch into a gesture): the element goes back
+    // where the drag picked it up, and nothing the drag prepared is kept.
+    dragCancel: function(evt, x, y) {
+
+        const data = this.eventData(evt);
+        const { initialPosition, embedding } = data;
+        if (embedding) {
+            this.clearEmbedding(data);
+            // `prepareEmbedding()` also rewrote the z-indices and detached the element
+            // from its parent, which reverting the position alone would leave behind.
+            // Forced to `revert`: `whenNotAllowed` may say `remove`, which is the answer
+            // to a drop that failed validation, not to a drag that was taken away.
+            this._disallowUnembed({ ...data, whenNotAllowed: 'revert' });
+            return;
+        }
+        if (!initialPosition) return;
+        this.model.position(initialPosition.x, initialPosition.y, { deep: true, ui: true });
     },
 
     dragMagnetEnd: function(evt, x, y) {
