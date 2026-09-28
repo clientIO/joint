@@ -1,6 +1,6 @@
 # JointJS ELK Containers & Ports Demo
 
-A fixed (non-random), small system diagram laid out automatically with `@joint/layout-elk`: two containers ("Frontend", "Backend"), each grouping a couple of services that connect through ports - including a link that crosses from one container into the other.
+A fixed (non-random) web platform reference architecture laid out automatically with `@joint/layout-elk`: nested containers ("Client Layer" > "Edge", "Core Services" > "Data Layer", "Observability") grouping services that connect through ports, plus a couple of links connecting containers directly - including one that crosses from one container into another. Styled with Material Design, via JointJS's theme mechanism and CSS.
 
 ## Setup
 

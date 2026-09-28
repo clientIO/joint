@@ -4,23 +4,22 @@ const PORT_SIZE = { width: 12, height: 12 };
 const PORT_ATTRS = {
     circle: {
         r: 6,
-        fill: '#FFFFFF',
-        stroke: '#333',
-        strokeWidth: 2
+        class: 'md-port'
     },
     text: {
-        fontSize: 14,
-        fill: '#555'
+        class: 'md-port-label'
     }
 };
 
 // `@joint/layout-elk` reads a port label's `size` directly rather than measuring the
 // rendered text itself, so it has to be estimated from the label text up front.
 // `Service` (below) computes and assigns it for every port as soon as the port is
-// added, from that port's own label text length.
-const PORT_LABEL_AVERAGE_CHAR_WIDTH = PORT_ATTRS.text.fontSize * 0.4;
+// added, from that port's own label text length. The estimate only needs to roughly
+// match `.md-port-label`'s CSS font size/weight, since it never has to be exact.
+const PORT_LABEL_FONT_SIZE = 11;
+const PORT_LABEL_AVERAGE_CHAR_WIDTH = PORT_LABEL_FONT_SIZE * 0.6;
 const PORT_LABEL_HORIZONTAL_PADDING = 6;
-const PORT_LABEL_HEIGHT = PORT_ATTRS.text.fontSize + 4;
+const PORT_LABEL_HEIGHT = PORT_LABEL_FONT_SIZE + 4;
 
 function estimatePortLabelSize(text: string): dia.Size {
     return {
@@ -42,22 +41,19 @@ const HUB_PORT_ATTRS = {
         y: -HUB_PORT_SIZE.height / 2,
         width: HUB_PORT_SIZE.width,
         height: HUB_PORT_SIZE.height,
-        fill: '#FFFFFF',
-        stroke: '#B85C38',
-        strokeWidth: 2
+        class: 'md-port'
     },
     text: {
-        fontSize: 14,
-        fill: '#555'
+        class: 'md-port-label'
     }
 };
 
 const CONTAINER_PADDING = '[top=40,left=20,bottom=20,right=20]';
 
 /**
- * A dashed, semi-transparent container - its final size and position are
- * computed by ELK to fit whatever gets embedded into it. Its label sits in
- * the top-left corner, out of the way of embedded elements.
+ * A tonal container surface - its final size and position are computed by ELK to fit
+ * whatever gets embedded into it. Its label sits in the top-left corner, out of the
+ * way of embedded elements.
  */
 export class Container extends shapes.standard.Rectangle {
     defaults() {
@@ -67,22 +63,14 @@ export class Container extends shapes.standard.Rectangle {
             padding: CONTAINER_PADDING,
             attrs: {
                 body: {
-                    fill: '#EEF3F1',
-                    stroke: '#7C9C92',
-                    strokeWidth: 2,
-                    strokeDasharray: '6,3',
-                    rx: 8,
-                    ry: 8
+                    class: 'md-container'
                 },
                 label: {
                     x: 12,
                     y: 10,
                     textAnchor: 'start',
                     textVerticalAnchor: 'top',
-                    fontWeight: 'bold',
-                    fontSize: 13,
-                    fill: '#3E5C53',
-                    fontFamily: 'Arial, helvetica, sans-serif'
+                    class: 'md-container-label'
                 }
             }
         }, super.defaults);
@@ -91,8 +79,8 @@ export class Container extends shapes.standard.Rectangle {
 
 /**
  * A service node with exactly one 'in' (left) and one 'out' (right) port,
- * always - only `fill` and label `text` are left for each instance to fill
- * in. See `HubService` for a service with a custom number of ports.
+ * always - only the label `text` is left for each instance to fill in. See
+ * `HubService` for a service with a custom number of ports.
  */
 export class Service extends shapes.standard.Rectangle {
     defaults() {
@@ -101,20 +89,13 @@ export class Service extends shapes.standard.Rectangle {
             size: { width: 130, height: 50 },
             attrs: {
                 body: {
-                    stroke: '#333',
-                    strokeWidth: 2,
-                    rx: 5,
-                    ry: 5
+                    class: 'md-card'
                 },
                 label: {
-                    fill: '#333',
-                    fontSize: 13,
-                    fontFamily: 'Arial, helvetica, sans-serif'
+                    class: 'md-card-label'
                 }
             },
             ports: {
-                // `elkLayoutOptions` here is a plain custom property too, applied by this
-                // example's `exportPort` callback in `index.ts` (see `Container` above).
                 groups: {
                     in: {
                         position: {
@@ -171,9 +152,9 @@ export class Service extends shapes.standard.Rectangle {
 
 /**
  * A service with a custom (per-instance) number of ports - `ports.items`
- * always comes from the instance, replacing `Service`'s fixed pair. Also
- * highlighted with a thicker, colored stroke, to stand out as a hub with
- * several ports fanning in/out on the same side.
+ * always comes from the instance, replacing `Service`'s fixed pair. Its own
+ * `md-card--hub` outline (an emphasis color, not a shape change) sets it apart
+ * as a hub with several ports fanning in/out on the same side.
  */
 export class HubService extends Service {
     defaults() {
@@ -184,8 +165,7 @@ export class HubService extends Service {
             type: 'example.HubService',
             attrs: {
                 body: {
-                    stroke: '#B85C38',
-                    strokeWidth: 3
+                    class: 'md-card md-card--hub'
                 }
             },
             ports: {
@@ -207,21 +187,29 @@ export class HubService extends Service {
 }
 
 /**
- * A link with a labelled, pill-shaped background - only the label `text`
- * is left for each instance to fill in.
+ * A link with a labelled, pill-shaped Material "assist chip" background - only
+ * the label `text` is left for each instance to fill in.
  */
 export class InteractionLink extends shapes.standard.Link {
     defaults() {
         return util.defaultsDeep({
             type: 'example.InteractionLink',
+            attrs: {
+                // A CSS class alone can't color this: the arrowhead is a separate
+                // `<marker>` def (in `<defs>`, so it isn't reached by a class on the
+                // line) whose own color JointJS derives from this `stroke` value -
+                // see `attributes/defs.mjs`'s `contextMarker()`.
+                line: {
+                    stroke: '#78909C',
+                    class: 'md-link'
+                }
+            },
             defaultLabel: {
                 size: { width: 80, height: 20 },
                 inline: true,
                 attrs: {
                     text: {
-                        fontSize: 11,
-                        fontFamily: 'Arial, helvetica, sans-serif',
-                        fill: '#333'
+                        class: 'md-chip-text'
                     },
                     rect: {
                         ref: null,
@@ -229,9 +217,9 @@ export class InteractionLink extends shapes.standard.Link {
                         y: 'calc(y - calc(h / 2))',
                         width: 'calc(w)',
                         height: 'calc(h)',
-                        fill: '#FFB7C3',
-                        strokeWidth: 1,
-                        stroke: '#333'
+                        rx: 'calc(h / 2)',
+                        ry: 'calc(h / 2)',
+                        class: 'md-chip-bg'
                     }
                 },
                 position: 0.5

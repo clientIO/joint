@@ -4,19 +4,22 @@ import { dia } from '@joint/core';
 // them with a nested container of their own, grouping eight services that
 // communicate over ports - plus a couple of links that connect two
 // containers directly, rather than a pair of ports, including one that
-// crosses container boundaries. Every plain `example.Service` has exactly
-// one 'in' and one 'out' port; the four "hub" services (Load Balancer, API
-// Gateway, Auth Service, Logger) are `example.HubService` instead, with a
-// custom number of ports - highlighted, and the only ones that opt into
-// `portsPosition` so ELK orders their ports to minimize crossings (see
-// `index.ts`).
+// crosses container boundaries. A recognizable, if simplified, web platform
+// reference architecture: a client layer talking through an edge (load
+// balancer + API gateway) to core services (auth, guarding a data layer of
+// cache + database), with logs/metrics/analytics flowing to observability.
+// Every plain `example.Service` has exactly one 'in' and one 'out' port; the
+// four "hub" services (Load Balancer, API Gateway, Auth Service, Monitoring)
+// are `example.HubService` instead, with a custom number of ports and ELK's
+// `FIXED_SIDE` port constraint, so it can reorder them to minimize crossings
+// (see `index.ts`).
 export const graphJSON: dia.Graph.JSON = {
     cells: [
         // Containers
         {
             id: 'frontend',
             type: 'example.Container',
-            attrs: { label: { text: 'Frontend' } },
+            attrs: { label: { text: 'Client Layer' } },
             embeds: ['webui', 'mobileui', 'edge']
         },
         {
@@ -29,42 +32,42 @@ export const graphJSON: dia.Graph.JSON = {
         {
             id: 'backend',
             type: 'example.Container',
-            attrs: { label: { text: 'Backend' } },
+            attrs: { label: { text: 'Core Services' } },
             embeds: ['auth', 'storage']
         },
         {
             id: 'storage',
             type: 'example.Container',
             parent: 'backend',
-            attrs: { label: { text: 'Storage' } },
+            attrs: { label: { text: 'Data Layer' } },
             embeds: ['cache', 'db']
         },
         {
             id: 'observability',
             type: 'example.Container',
             attrs: { label: { text: 'Observability' } },
-            embeds: ['logger']
+            embeds: ['monitoring']
         },
 
-        // Frontend
+        // Client Layer
         {
             id: 'webui',
             type: 'example.Service',
             parent: 'frontend',
-            attrs: { body: { fill: '#F8FCDA' }, label: { text: 'Web UI' } }
+            attrs: { label: { text: 'Web App' } }
         },
         {
             id: 'mobileui',
             type: 'example.Service',
             parent: 'frontend',
-            attrs: { body: { fill: '#F8FCDA' }, label: { text: 'Mobile UI' } }
+            attrs: { label: { text: 'Mobile App' } }
         },
         {
             id: 'lb',
             type: 'example.HubService',
             parent: 'edge',
             size: { width: 130, height: 80 },
-            attrs: { body: { fill: '#E3E9C2' }, label: { text: 'Load Balancer' } },
+            attrs: { label: { text: 'Load Balancer' } },
             ports: {
                 items: [
                     { id: 'in1', group: 'in', attrs: { text: { text: 'in1' } } },
@@ -78,7 +81,7 @@ export const graphJSON: dia.Graph.JSON = {
             type: 'example.HubService',
             parent: 'edge',
             size: { width: 130, height: 80 },
-            attrs: { body: { fill: '#E3E9C2' }, label: { text: 'API Gateway' } },
+            attrs: { label: { text: 'API Gateway' } },
             ports: {
                 items: [
                     { id: 'in', group: 'in', attrs: { text: { text: 'in' } } },
@@ -88,13 +91,13 @@ export const graphJSON: dia.Graph.JSON = {
             }
         },
 
-        // Backend
+        // Core Services
         {
             id: 'auth',
             type: 'example.HubService',
             parent: 'backend',
             size: { width: 130, height: 80 },
-            attrs: { body: { fill: '#F9FBB2' }, label: { text: 'Auth Service' } },
+            attrs: { label: { text: 'Auth Service' } },
             ports: {
                 items: [
                     { id: 'in', group: 'in', attrs: { text: { text: 'in' } } },
@@ -107,22 +110,22 @@ export const graphJSON: dia.Graph.JSON = {
             id: 'cache',
             type: 'example.Service',
             parent: 'storage',
-            attrs: { body: { fill: '#F9FBB2' }, label: { text: 'Cache' } }
+            attrs: { label: { text: 'Redis Cache' } }
         },
         {
             id: 'db',
             type: 'example.Service',
             parent: 'storage',
-            attrs: { body: { fill: '#C89F9C' }, label: { text: 'Database' } }
+            attrs: { label: { text: 'PostgreSQL' } }
         },
 
         // Observability
         {
-            id: 'logger',
+            id: 'monitoring',
             type: 'example.HubService',
             parent: 'observability',
             size: { width: 130, height: 80 },
-            attrs: { body: { fill: '#D9D2E9' }, label: { text: 'Logger' } },
+            attrs: { label: { text: 'Monitoring' } },
             ports: {
                 items: [
                     { id: 'in1', group: 'in', attrs: { text: { text: 'in1' } } },
@@ -164,8 +167,8 @@ export const graphJSON: dia.Graph.JSON = {
             id: 'l5',
             type: 'example.InteractionLink',
             source: { id: 'gateway', port: 'out2' },
-            target: { id: 'logger', port: 'in1' },
-            labels: [{ attrs: { text: { text: 'log' } } }]
+            target: { id: 'monitoring', port: 'in1' },
+            labels: [{ attrs: { text: { text: 'metrics' } } }]
         },
         {
             id: 'l6',
@@ -178,8 +181,8 @@ export const graphJSON: dia.Graph.JSON = {
             id: 'l7',
             type: 'example.InteractionLink',
             source: { id: 'auth', port: 'out2' },
-            target: { id: 'logger', port: 'in2' },
-            labels: [{ attrs: { text: { text: 'log' } } }]
+            target: { id: 'monitoring', port: 'in2' },
+            labels: [{ attrs: { text: { text: 'logs' } } }]
         },
         {
             id: 'l8',
@@ -197,17 +200,17 @@ export const graphJSON: dia.Graph.JSON = {
             type: 'example.InteractionLink',
             source: { id: 'backend' },
             target: { id: 'observability' },
-            // Overrides `InteractionLink.defaultLabel`'s `elkLayoutOptions` (own value wins -
-            // see `Link#labels`) - floated beside the edge instead of centered directly on it,
-            // so it doesn't obscure a long aggregate link's whole path.
-            labels: [{ attrs: { text: { text: 'metrics' } }, inline: false }]
+            // Overrides `InteractionLink.defaultLabel`'s `inline` (own value wins -
+            // see `Link#labels`) - floated beside the edge instead of centered directly on
+            // it, so it doesn't obscure a long aggregate link's whole path.
+            labels: [{ attrs: { text: { text: 'metrics' } } }]
         },
         {
             id: 'l10',
             type: 'example.InteractionLink',
             source: { id: 'frontend' },
             target: { id: 'observability' },
-            labels: [{ attrs: { text: { text: 'analytics' } }, inline: false }]
+            labels: [{ attrs: { text: { text: 'analytics' } } }]
         }
     ]
 };
