@@ -50,6 +50,7 @@ import { subscribeToPaperEvents } from './use-on-paper-events';
 import { useOnEvents } from './use-on-events';
 import type { CellId } from '../types/cell.types';
 import { extractEventsFromPaperProps } from '../presets/paper-events';
+import { useFitToContent } from './use-fit-to-content';
 
 type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
@@ -191,6 +192,7 @@ export function useCreatePortalPaper(
     interactive,
     useHTMLOverlay,
     transform,
+    fitToContent,
     portalSelector,
     linkRouting,
     options: escapeHatchOptions,
@@ -239,6 +241,8 @@ export function useCreatePortalPaper(
   const version = useInternalData(selectPaperVersion);
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
+
+  useFitToContent(paperStore, fitToContent, transform !== undefined);
 
   const paperRef = useRef<PaperView | null>(null);
   const isReadyNotifiedRef = useRef(false);
