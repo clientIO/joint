@@ -32,6 +32,8 @@ export type {
   DefaultLinkParams,
 } from './components/paper/paper.types';
 /** @group Types */
+export type { PinchZoomBounds } from './hooks/use-pinch-zoom';
+/** @group Types */
 export type { PortalHostCell, PortalSelector, PortalSelectorParams } from './mvc/paper.types';
 /** @group Types */
 export type {

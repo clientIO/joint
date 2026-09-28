@@ -25,6 +25,26 @@ function overflows(element: Element): boolean {
 }
 
 /**
+ * Whether `target` sits inside a natively scrollable region (a `<textarea>` or
+ * an element carrying {@link SCROLLABLE_ATTRIBUTE} — both with actual
+ * overflow). Shared by the wheel guard and the touch-gesture guard so both
+ * input kinds honor the same opt-out.
+ * @param target - event target to test
+ * @returns `true` when a scrollable region owns the input
+ */
+export function isInsideScrollableRegion(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  for (
+    let element: Element | null = target.closest(SCROLLABLE_SELECTOR);
+    element;
+    element = element.parentElement?.closest(SCROLLABLE_SELECTOR) ?? null
+  ) {
+    if (overflows(element)) return true;
+  }
+  return false;
+}
+
+/**
  * Predicate for `dia.Paper.options.guard`. Returns `true` when a wheel event
  * targets a scrollable region (native `<textarea>` or an element carrying
  * {@link SCROLLABLE_ATTRIBUTE} — both with actual overflow), so the paper
@@ -37,13 +57,5 @@ function overflows(element: Element): boolean {
 export function wheelGuard(event: GuardEvent): boolean {
   if (!/wheel/i.test(event.type)) return false;
   if (event.ctrlKey || event.metaKey) return false;
-  if (!(event.target instanceof Element)) return false;
-  for (
-    let element: Element | null = event.target.closest(SCROLLABLE_SELECTOR);
-    element;
-    element = element.parentElement?.closest(SCROLLABLE_SELECTOR) ?? null
-  ) {
-    if (overflows(element)) return true;
-  }
-  return false;
+  return isInsideScrollableRegion(event.target);
 }
