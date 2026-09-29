@@ -23,14 +23,14 @@ export interface LayerRecord<LayerId extends string = string> {
   readonly id: LayerId;
   /**
    * Whether the layer is painted. A hidden layer keeps its cells mounted and
-   * only sets `display: none` on the layer group, so toggling is O(1).
+   * only sets `visibility: hidden` on the layer group (see {@link LayerView}),
+   * so toggling is O(1) and the cells keep their bounding boxes: they can still
+   * be measured, and links anchored to them still route.
    *
    * Hidden is not unmounted: cell views stay in the DOM and in the paper's
-   * view management, so hide/show never re-renders React content. Two
-   * consequences to plan for — a link in a visible layer anchored to a port of
-   * an element in a hidden layer cannot measure that port and may misroute,
-   * and for a very large layer you hide for long periods the paper's
-   * `cellVisibility` option (which does unmount) is the better tool.
+   * view management, so hide/show never re-renders React content. For a very
+   * large layer you hide for long periods the paper's `cellVisibility` option
+   * (which does unmount) is the better tool.
    * @default true
    */
   readonly visible?: boolean;

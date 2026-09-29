@@ -46,6 +46,16 @@ export interface GraphProviderProps<
    */
   readonly cellNamespace?: unknown;
   /**
+   * Layer namespace passed to `new dia.Graph`, keyed by layer `type`. Your
+   * entries are merged on top of the built-in, which maps the plain layer type
+   * to the `@joint/react` {@link LayerModel}. Declare a layer with a `type` you
+   * registered here to use your own `dia.GraphLayer` subclass, and register
+   * its view as `<type>View` in the `<Paper>` `layerViewNamespace` (JointJS
+   * resolves layer views by that name; {@link LayerView} is a good base).
+   * @default the `@joint/react` layer model
+   */
+  readonly layerNamespace?: unknown;
+  /**
    * Base model class used for every cell the graph constructs from JSON. Maps to
    * the (deprecated) `cellModel` option of `dia.Graph`; prefer `cellNamespace`,
    * which registers shapes by `type` and supports per-type model classes.
@@ -154,6 +164,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     onCellsChange,
     graph,
     cellNamespace,
+    layerNamespace,
     cellModel,
     autoSizeOrigin,
     initialCells,
@@ -195,6 +206,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
           new GraphStore<ElementJSONInit, LinkJSONInit>({
             graph,
             cellNamespace,
+            layerNamespace,
             cellModel,
             initialCells: shouldSeed ? (cells ?? initialCells ?? []) : undefined,
             initialLayers: shouldSeed ? (layers ?? initialLayers) : undefined,

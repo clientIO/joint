@@ -1,10 +1,15 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+import { dia } from '@joint/core';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
 import { usePaper } from '../../hooks/use-paper';
 import { useGraph } from '../../hooks/use-graph';
 import { useGraphStore } from '../../hooks/use-graph-store';
+import { LayerModel, LAYER_MODEL_TYPE } from '../layer-model';
+import { LayerView } from '../layer-view';
 import type { CellRecord } from '../../types/cell.types';
 import type { LayerRecord } from '../../types/layer.types';
+import type { GraphProviderProps } from '../../components/graph/graph-provider';
+import type { PaperProps } from '../../components/paper/paper.types';
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 /** Runs a mutation inside `act` and drains the store's microtask commit. */
@@ -24,46 +29,91 @@ const CELLS: readonly CellRecord[] = [
 ];
 const renderRect = () => <rect />;
 
-function makeWrapper(id: string) {
+interface MountOptions {
+  readonly graphProviderProps?: Partial<GraphProviderProps>;
+  readonly paperProps?: Partial<PaperProps>;
+}
+
+function makeWrapper(id: string, { graphProviderProps, paperProps }: MountOptions) {
   return paperRenderElementWrapper({
-    graphProviderProps: { initialLayers: LAYERS, initialCells: CELLS },
-    paperProps: { id, renderElement: renderRect },
+    graphProviderProps: { initialLayers: LAYERS, initialCells: CELLS, ...graphProviderProps },
+    paperProps: { id, renderElement: renderRect, ...paperProps },
   });
 }
 
 /** Mounts a paper with the layers fixture and resolves once the paper exists. */
-async function mountPaper(id: string) {
+async function mountPaper(id: string, options: MountOptions = {}) {
   const { result } = renderHook(
     () => ({ paperApi: usePaper(id), api: useGraph(), store: useGraphStore() }),
-    { wrapper: makeWrapper(id) }
+    { wrapper: makeWrapper(id, options) }
   );
   await waitFor(() => expect(result.current.paperApi.paper).not.toBeNull());
   return { result, paper: result.current.paperApi.paper! };
 }
 
+describe('LayerModel / LayerView registration', () => {
+  it('keeps the plain layer type, so the graph JSON is unchanged', () => {
+    expect(LAYER_MODEL_TYPE).toBe(dia.GraphLayer.prototype.defaults().type);
+  });
+
+  it('constructs the default layer and declared layers as LayerModel, rendered by LayerView', async () => {
+    const { result, paper } = await mountPaper('reg');
+    const { graph } = result.current.store;
+    expect(graph.getDefaultLayer()).toBeInstanceOf(LayerModel);
+    expect(graph.getLayer('notes')).toBeInstanceOf(LayerModel);
+    expect(paper.getLayerView('cells')).toBeInstanceOf(LayerView);
+    expect(paper.getLayerView('notes')).toBeInstanceOf(LayerView);
+  });
+
+  it('merges a custom layerNamespace on top of the built-in', async () => {
+    class TintLayer extends LayerModel {
+      defaults() {
+        return { ...super.defaults(), type: 'TintLayer' };
+      }
+    }
+    // joint-core resolves a layer's view as `<type>View`, so a custom type needs
+    // a view registered too. The wrapper mounts the hook inside `renderElement`,
+    // so the graph also needs a cell.
+    const { result, paper } = await mountPaper('custom-ns', {
+      graphProviderProps: {
+        layerNamespace: { TintLayer },
+        initialLayers: [{ id: 'cells' }, { id: 'tint', type: 'TintLayer', visible: false }],
+        initialCells: [{ id: 't', type: 'element', layer: 'tint' } as CellRecord],
+      },
+      paperProps: { layerViewNamespace: { TintLayerView: LayerView } },
+    });
+    const { graph } = result.current.store;
+    expect(graph.getLayer('tint')).toBeInstanceOf(TintLayer);
+    expect(graph.getDefaultLayer()).toBeInstanceOf(LayerModel);
+    expect(paper.getLayerView('tint')).toBeInstanceOf(LayerView);
+    expect(paper.getLayerView('tint').el.style.visibility).toBe('hidden');
+  });
+});
+
 describe('layer visibility on <Paper>', () => {
   it('hides a layer declared with visible: false and keeps its cells mounted', async () => {
     const { paper } = await mountPaper('vis-initial');
-    expect(paper.getLayerView('notes').el.style.display).toBe('none');
-    expect(paper.getLayerView('overlay').el.style.display).toBe('');
-    // Hidden means not painted, not unmounted: the cell view is still there.
+    expect(paper.getLayerView('notes').el.style.visibility).toBe('hidden');
+    expect(paper.getLayerView('overlay').el.style.visibility).toBe('');
+    // Hidden means not painted, not unmounted: the cell view is still there
+    // and, unlike `display: none`, keeps its bounding box for measurement.
     expect(paper.findViewByModel('n')).toBeDefined();
   });
 
-  it('toggles display when visible changes, without touching cell views', async () => {
+  it('toggles visibility when visible changes, without touching cell views', async () => {
     const { result, paper } = await mountPaper('vis-toggle');
     const viewBefore = paper.findViewByModel('n');
 
     await commit(() => {
       result.current.api.setLayer('notes', { visible: true });
     });
-    expect(paper.getLayerView('notes').el.style.display).toBe('');
+    expect(paper.getLayerView('notes').el.style.visibility).toBe('');
     expect(paper.findViewByModel('n')).toBe(viewBefore);
 
     await commit(() => {
       result.current.api.setLayer('notes', { visible: false });
     });
-    expect(paper.getLayerView('notes').el.style.display).toBe('none');
+    expect(paper.getLayerView('notes').el.style.visibility).toBe('hidden');
   });
 
   it('applies visibility to a layer added after the paper mounted', async () => {
@@ -71,7 +121,7 @@ describe('layer visibility on <Paper>', () => {
     await commit(() => {
       result.current.api.setLayer('late', { visible: false });
     });
-    expect(paper.getLayerView('late').el.style.display).toBe('none');
+    expect(paper.getLayerView('late').el.style.visibility).toBe('hidden');
   });
 });
 

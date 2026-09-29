@@ -14,6 +14,7 @@ import {
 } from './create-elements-size-observer';
 import { ELEMENT_MODEL_TYPE, ElementModel } from '../mvc/element-model';
 import { LINK_MODEL_TYPE, LinkModel } from '../mvc/link-model';
+import { LAYER_MODEL_TYPE, LayerModel } from '../mvc/layer-model';
 import { isElementType, isLinkType } from '../utils/cell-type';
 import { clearConnectedLinkViews } from './clear-view';
 import { LAYOUT_UPDATE_EVENT } from './graph-changes';
@@ -34,6 +35,15 @@ export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
   [ELEMENT_MODEL_TYPE]: ElementModel,
   [LINK_MODEL_TYPE]: LinkModel,
+};
+
+/**
+ * Layer namespace of a graph the store creates: joint-core's plain layer
+ * `type` resolves to {@link LayerModel}, so the default `cells` layer and every
+ * layer declared without a `type` is one. Keyed by `type` like a cell namespace.
+ */
+export const DEFAULT_LAYER_NAMESPACE: Record<string, unknown> = {
+  [LAYER_MODEL_TYPE]: LayerModel,
 };
 
 /**
@@ -94,6 +104,8 @@ export interface GraphStoreOptions<
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
+  /** Layer classes by `type`, merged on top of {@link DEFAULT_LAYER_NAMESPACE}. */
+  readonly layerNamespace?: unknown;
   /**
    * Reference point that stays fixed when an auto-sized element's measured size
    * changes. See {@link AutoSizeOrigin}.
@@ -129,6 +141,7 @@ export class GraphStore<
     const {
       cellModel,
       cellNamespace = DEFAULT_CELL_NAMESPACE,
+      layerNamespace = DEFAULT_LAYER_NAMESPACE,
       graph,
       autoSizeOrigin = 'top-left',
       initialCells,
@@ -144,6 +157,10 @@ export class GraphStore<
           cellNamespace: {
             ...DEFAULT_CELL_NAMESPACE,
             ...(cellNamespace as Record<string, unknown>),
+          },
+          layerNamespace: {
+            ...DEFAULT_LAYER_NAMESPACE,
+            ...(layerNamespace as Record<string, unknown>),
           },
           cellModel,
         }

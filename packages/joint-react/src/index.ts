@@ -300,6 +300,14 @@ export type { LinkMarkerName, LinkMarker } from './theme/named-link-markers';
 export { ElementModel, ELEMENT_MODEL_TYPE } from './mvc/element-model';
 /** @group MVC */
 export { LinkModel, LINK_MODEL_TYPE } from './mvc/link-model';
+/**
+ * Layer model and view
+ * @group MVC
+ */
+export { LayerModel, LAYER_MODEL_TYPE } from './mvc/layer-model';
+export type { LayerModelAttributes } from './mvc/layer-model';
+/** @group MVC */
+export { LayerView } from './mvc/layer-view';
 
 // Utilities
 // ---------
