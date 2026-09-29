@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="An interactive flowchart demo with cycles, built with JointJS and automatically laid out with ELK.">
+    <title>ELK Interactive Flowchart | JointJS</title>
+</head>
+
+<body>
+    <div class="toolbar">
+        <span id="zoom-out" class="toolbar-button">Zoom Out</span>
+        <span id="zoom-in" class="toolbar-button">Zoom In</span>
+    </div>
+    <div class="help-text">
+        Click a step's top "+" to add an input, or its bottom "+" to add an
+        output. Click any (unconnected) output port to grow a new step from
+        it, or drag between two unconnected ports to connect two existing
+        steps. Drag a step onto another in the same row to reorder it - ELK
+        re-lays out to match.
+    </div>
+    <div id="canvas" class="canvas"></div>
+    <script src="dist/bundle.js"></script>
+
+</body>
+
+</html>

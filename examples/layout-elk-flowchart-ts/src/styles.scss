@@ -1,0 +1,144 @@
+:root {
+    --primary: #3F51B5;
+    --primary-tint: #E8EAF6;
+    --on-primary-tint: #283593;
+    --surface: #FFFFFF;
+    --outline: #C7CBDD;
+    --on-surface: rgba(0, 0, 0, 0.87);
+    --on-surface-variant: rgba(0, 0, 0, 0.6);
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+#canvas {
+    position: absolute;
+    margin-top: 50px;
+    margin-left: 20px;
+    border: 1px solid var(--outline);
+    background-color: #FAFAFA;
+    overflow: hidden;
+}
+
+.toolbar {
+    display: flex;
+    position: fixed;
+    width: 100%;
+    top: 10px;
+    margin-left: 30px;
+    z-index: 1;
+}
+
+.toolbar-button {
+    outline: none;
+    background: var(--surface);
+    border: 1px solid var(--outline);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 12px;
+    color: var(--primary);
+    cursor: pointer;
+    user-select: none;
+    margin: 0 2px;
+
+    &:hover {
+        background: var(--primary-tint);
+    }
+}
+
+.help-text {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    max-width: 300px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--on-surface-variant);
+    text-align: right;
+    line-height: 1.4;
+}
+
+.joint-theme-material {
+
+    .node {
+        fill: var(--surface);
+        stroke: var(--outline);
+        stroke-width: 1.5px;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+    }
+
+    .node--process {
+        rx: 6px;
+        ry: 6px;
+    }
+
+    .node--decision {
+        stroke: var(--primary);
+    }
+
+    .node--terminal {
+        rx: 20px;
+        ry: 20px;
+        fill: var(--primary);
+        stroke: none;
+    }
+
+    .node-label {
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        fill: var(--on-surface);
+    }
+
+    // `node--terminal`'s fill is already the primary color - its own label needs
+    // the "on primary" (light) text color instead of the default dark one above.
+    .node-label--on-primary {
+        fill: #FFFFFF;
+    }
+
+    .port {
+        fill: var(--surface);
+        stroke: var(--primary);
+        stroke-width: 2px;
+    }
+
+    .link {
+        stroke-linecap: round;
+    }
+
+    .link-label-bg {
+        fill: var(--primary-tint);
+        rx: 4px;
+        ry: 4px;
+    }
+
+    .link-label-text {
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 500;
+        fill: var(--on-primary-tint);
+    }
+
+    .add-button {
+        fill: var(--primary);
+        cursor: pointer;
+    }
+
+    .add-button-icon {
+        stroke: #FFFFFF;
+        stroke-width: 2px;
+        pointer-events: none;
+    }
+
+    // The cloned, floating preview of whichever element is currently being
+    // dragged (see `index.ts`'s `element:pointerdown`/`pointermove`) - not the
+    // real element, which never moves during the drag.
+    .drag-preview {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+}
