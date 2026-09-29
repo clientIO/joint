@@ -2,6 +2,7 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "src/internal.ts!",
+    "stories/stories-utils.ts!",
     ".storybook/{main,manager,preview}.ts",
     "stories/**/story.tsx",
     "stories/**/*.mdx"
