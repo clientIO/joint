@@ -333,12 +333,12 @@ function buildEdge(link: dia.Link): void {
 
     linksById.set(id, link);
 
-    // Resolved (`link.labels()`) - `size` falls back through `defaultLabel`/the built-in
-    // default the same way `@joint/core` itself resolves it for rendering, and a custom
-    // `elkLayoutOptionsProperty` property passes through too (whether set on the label
-    // itself or on `defaultLabel` - see `Link#_getResolvedLabel`), so it can be read
+    // Resolved (`link.getComputedLabels()`) - `size` falls back through `defaultLabel`/the
+    // built-in default the same way `@joint/core` itself resolves it for rendering, and a
+    // custom `elkLayoutOptionsProperty` property passes through too (whether set on the
+    // label itself or on `defaultLabel` - see `Link#getComputedLabels`), so it can be read
     // directly here instead of from the label's raw JSON.
-    const resolvedLabels = link.labels();
+    const resolvedLabels = link.getComputedLabels();
     let labels: ElkLabel[] = [];
     if (resolvedLabels.length > 0) {
         labels = resolvedLabels.reduce((result: ElkLabel[], label) => {
