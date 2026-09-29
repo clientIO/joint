@@ -6350,9 +6350,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-layout-elk-interactive-ts@workspace:examples/layout-elk-interactive-ts":
+"@joint/demo-layout-elk-flowchart-ts@workspace:examples/layout-elk-flowchart-ts":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-layout-elk-interactive-ts@workspace:examples/layout-elk-interactive-ts"
+  resolution: "@joint/demo-layout-elk-flowchart-ts@workspace:examples/layout-elk-flowchart-ts"
   dependencies:
     "@joint/core": "workspace:^"
     "@joint/layout-elk": "workspace:^"
