@@ -146,10 +146,10 @@ function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: di
             const points = [startPoint, ...bendPoints, endPoint]
                 .map((point) => toAbsolute(point, containerPosition));
             const polyline = new g.Polyline(points);
-            // `link.labels()` returns each label resolved against `defaultLabel`/the built-in
-            // default (`@joint/core`) - reading `labels` (the raw model attribute) directly
-            // instead, so writing `labels[index]` back below doesn't bake that resolved
-            // `markup`/`attrs`/`size` permanently into the label's own stored JSON.
+            // `link.getComputedLabels()` (`@joint/core`) returns each label resolved against
+            // `defaultLabel`/the built-in default - reading `labels` (the raw model attribute)
+            // directly instead, so writing `labels[index]` back below doesn't bake that
+            // resolved `markup`/`attrs`/`size` permanently into the label's own stored JSON.
             const currentLabels: dia.Link.Label[] = link.get('labels') || [];
             labels = currentLabels.slice();
             edge.labels.forEach((label, index) => {

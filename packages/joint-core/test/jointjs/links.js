@@ -1900,12 +1900,8 @@ QUnit.module('links', function(hooks) {
 
             QUnit.test('getter', function(assert) {
                 var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
-                // Resolved against `defaultLabel`/the built-in default - a label's own
-                // `position` is kept as-is, `markup`/`attrs` fall back to the built-in default.
-                assert.deepEqual(link.label(0).position, { distance: 10, offset: 10 });
-                assert.deepEqual(link.label(1).position, { distance: 20, offset: 20 });
-                assert.ok(link.label(0).markup);
-                assert.ok(link.label(0).attrs);
+                assert.deepEqual(link.label(0), { position: { distance: 10, offset: 10 }});
+                assert.deepEqual(link.label(1), { position: { distance: 20, offset: 20 }});
                 assert.deepEqual(link.label(2), undefined);
             });
 
@@ -1925,9 +1921,7 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.labels(), []);
                 link.set('labels', [{ position: { distance: 10, offset: 10 }}]);
                 assert.notEqual(link.labels(), link.get('labels'), 'Copy');
-                // Resolved against `defaultLabel`/the built-in default - see `label > getter` above.
-                assert.deepEqual(link.labels()[0].position, { distance: 10, offset: 10 });
-                assert.ok(link.labels()[0].markup);
+                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}]);
             });
 
             QUnit.test('setter', function(assert) {
@@ -1937,9 +1931,23 @@ QUnit.module('links', function(hooks) {
             });
         });
 
-        QUnit.module('custom properties', function() {
+        QUnit.module('getComputedLabel/getComputedLabels', function() {
 
-            QUnit.test('pass through on `label`/`labels`, own value winning over `defaultLabel`\'s', function(assert) {
+            QUnit.test('resolved against `defaultLabel`/the built-in default - unlike `label`/`labels`', function(assert) {
+                var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                // A label's own `position` is kept as-is, `markup`/`attrs` fall back to the
+                // built-in default.
+                assert.deepEqual(link.getComputedLabel(0).position, { distance: 10, offset: 10 });
+                assert.deepEqual(link.getComputedLabel(1).position, { distance: 20, offset: 20 });
+                assert.ok(link.getComputedLabel(0).markup);
+                assert.ok(link.getComputedLabel(0).attrs);
+                assert.deepEqual(link.getComputedLabel(2), undefined);
+
+                assert.deepEqual(link.getComputedLabels()[0].position, { distance: 10, offset: 10 });
+                assert.ok(link.getComputedLabels()[0].markup);
+            });
+
+            QUnit.test('pass through custom properties, own value winning over `defaultLabel`\'s', function(assert) {
                 var link = new joint.shapes.standard.Link({
                     defaultLabel: { custom: 'default', onlyOnDefault: 'd' },
                     labels: [
@@ -1948,15 +1956,18 @@ QUnit.module('links', function(hooks) {
                     ]
                 });
 
-                assert.equal(link.label(0).custom, 'own');
-                assert.equal(link.label(0).onlyOnDefault, 'd');
-                assert.equal(link.label(1).custom, 'default');
+                assert.equal(link.getComputedLabel(0).custom, 'own');
+                assert.equal(link.getComputedLabel(0).onlyOnDefault, 'd');
+                assert.equal(link.getComputedLabel(1).custom, 'default');
 
-                assert.equal(link.labels()[0].custom, 'own');
-                assert.equal(link.labels()[1].custom, 'default');
+                assert.equal(link.getComputedLabels()[0].custom, 'own');
+                assert.equal(link.getComputedLabels()[1].custom, 'default');
 
-                // Raw storage is unaffected - `defaultLabel`'s value isn't baked into it.
+                // Raw storage (and `label`/`labels`) are unaffected - `defaultLabel`'s value
+                // isn't baked into either.
                 assert.equal(link.get('labels')[1].custom, undefined);
+                assert.equal(link.label(1).custom, undefined);
+                assert.equal(link.labels()[1].custom, undefined);
             });
         });
 

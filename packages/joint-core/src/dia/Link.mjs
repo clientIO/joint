@@ -1,6 +1,7 @@
 import { Cell } from './Cell.mjs';
-import { clone, isPlainObject, isFunction, isString, isNumber, merge, assign } from '../util/index.mjs';
+import { clone, isPlainObject, isFunction, isString, isNumber, assign } from '../util/index.mjs';
 import { Point, Polyline } from '../g/index.mjs';
+import { getResolvedLabel } from './link-labels.mjs';
 
 // Link base model.
 // --------------------------
@@ -203,45 +204,52 @@ export const Link = Cell.extend({
     // Labels API
 
     // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
-    // The getter returns a label resolved against `defaultLabel`/the built-in default (see `_getResolvedLabel`) -
-    // the setter always writes the given (raw, unresolved) value, same as before.
     label: function(idx, label, opt) {
 
-        var rawLabels = this._getRawLabels();
+        var labels = this.labels();
 
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
-        if (idx < 0) idx = rawLabels.length + idx;
+        if (idx < 0) idx = labels.length + idx;
 
         // getter
-        if (arguments.length <= 1) {
-            var rawLabel = rawLabels[idx];
-            return (rawLabel === undefined) ? undefined : this._getResolvedLabel(rawLabel);
-        }
+        if (arguments.length <= 1) return this.prop(['labels', idx]);
         // setter
         return this.prop(['labels', idx], label, opt);
     },
 
-    // The getter returns each label resolved against `defaultLabel`/the built-in default
-    // (see `_getResolvedLabel`) - the setter always writes the given (raw, unresolved)
-    // labels, same as before. Use `_getRawLabels()` internally to read labels back
-    // unresolved (e.g. to modify and write them back, as `insertLabel`/`removeLabel` do below).
+    // Like `label()`'s getter, but resolved against `defaultLabel`/the built-in default
+    // (see `getResolvedLabel` in `link-labels.mjs`) - `label()` itself always returns the
+    // label exactly as stored (or `undefined` if there isn't one at that index).
+    getComputedLabel: function(idx) {
+
+        var labels = this.labels();
+
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+        if (idx < 0) idx = labels.length + idx;
+
+        var label = labels[idx];
+        return (label === undefined) ? undefined : getResolvedLabel(this, label);
+    },
+
     labels: function(labels, opt) {
 
         // getter
         if (arguments.length === 0) {
-            return this._getRawLabels().map((label) => this._getResolvedLabel(label));
+            labels = this.get('labels');
+            if (!Array.isArray(labels)) return [];
+            return labels.slice();
         }
         // setter
         if (!Array.isArray(labels)) labels = [];
         return this.set('labels', labels, opt);
     },
 
-    // Labels as stored, unresolved - i.e. without `defaultLabel`/the built-in default
-    // merged in (see `_getResolvedLabel`).
-    _getRawLabels: function() {
-        var labels = this.get('labels');
-        if (!Array.isArray(labels)) return [];
-        return labels.slice();
+    // Like `labels()`'s getter, but with every label resolved against `defaultLabel`/the
+    // built-in default (see `getResolvedLabel` in `link-labels.mjs`) - `labels()` itself
+    // always returns each label exactly as stored.
+    getComputedLabels: function() {
+
+        return this.labels().map((label) => getResolvedLabel(this, label));
     },
 
     hasLabels: function() {
@@ -253,7 +261,7 @@ export const Link = Cell.extend({
 
         if (!label) throw new Error('dia.Link: no label provided');
 
-        var labels = this._getRawLabels();
+        var labels = this.labels();
         var n = labels.length;
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
         if (idx < 0) idx = n + idx + 1;
@@ -271,7 +279,7 @@ export const Link = Cell.extend({
 
     removeLabel: function(idx, opt) {
 
-        var labels = this._getRawLabels();
+        var labels = this.labels();
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
 
         labels.splice(idx, 1);
@@ -558,7 +566,7 @@ export const Link = Cell.extend({
 
     // Get resolved default label. Kept as-is (including any custom property, e.g. a
     // `@joint/layout-elk` `elkLayoutOptions`) - not just the known `markup`/`attrs`/
-    // `size`/`position` - so `_getResolvedLabel` below can pass it through too.
+    // `size`/`position` - so `getResolvedLabel` (`link-labels.mjs`) can pass it through too.
     _getDefaultLabel: function() {
 
         var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
@@ -570,104 +578,6 @@ export const Link = Cell.extend({
         label.size = defaultLabel.size;
 
         return label;
-    },
-
-    // A label as given (own `markup`/`attrs`/`size`/`position`, any of which may be missing),
-    // resolved against `defaultLabel` and the built-in default - the same resolution
-    // `LinkView` used to do at render time (see `_mergeLabelAttrs`/`_mergeLabelSize`/
-    // `_mergeLabelPositionProperty` below). Passing `{}` resolves to the pure default.
-    // Any other (custom) property on the label or `defaultLabel` passes through unresolved -
-    // the label's own value wins over `defaultLabel`'s.
-    _getResolvedLabel: function(label) {
-
-        label = label || {};
-
-        var builtinDefaultLabel = this._builtins.defaultLabel;
-        var defaultLabel = this._getDefaultLabel();
-
-        // A label's own or `defaultLabel`'s markup, if either is set, is "custom" - the
-        // built-in default attrs (`builtinDefaultLabelAttrs`) only make sense for the
-        // built-in markup, so they don't apply once a custom one is in play.
-        var hasCustomMarkup = !!(label.markup || defaultLabel.markup);
-
-        return assign({}, defaultLabel, label, {
-            markup: label.markup || defaultLabel.markup || builtinDefaultLabel.markup,
-            attrs: this._mergeLabelAttrs(hasCustomMarkup, label.attrs, defaultLabel.attrs, builtinDefaultLabel.attrs),
-            size: this._mergeLabelSize(label.size, defaultLabel.size),
-            position: this._mergeLabelPositionProperty(
-                this._normalizeLabelPosition(label.position),
-                this._getDefaultLabelPositionProperty()
-            )
-        });
-    },
-
-    // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
-    // keep `undefined` or `null` because `{}` means something else
-    _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
-
-        if (labelAttrs === null) return null;
-        if (labelAttrs === undefined) {
-
-            if (defaultLabelAttrs === null) return null;
-            if (defaultLabelAttrs === undefined) {
-
-                if (hasCustomMarkup) return undefined;
-                return builtinDefaultLabelAttrs;
-            }
-
-            if (hasCustomMarkup) return defaultLabelAttrs;
-            return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs);
-        }
-
-        if (hasCustomMarkup) return merge({}, defaultLabelAttrs, labelAttrs);
-        return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
-    },
-
-    // merge default label size into label size (no built-in default)
-    // keep `undefined` or `null` because `{}` means something else
-    _mergeLabelSize: function(labelSize, defaultLabelSize) {
-
-        if (labelSize === null) return null;
-        if (labelSize === undefined) {
-
-            if (defaultLabelSize === null) return null;
-            if (defaultLabelSize === undefined) return undefined;
-
-            return defaultLabelSize;
-        }
-
-        return merge({}, defaultLabelSize, labelSize);
-    },
-
-    // combine default label position with built-in default label position
-    _getDefaultLabelPositionProperty: function() {
-
-        var builtinDefaultLabelPosition = this._builtins.defaultLabel.position;
-        var defaultLabelPosition = this._normalizeLabelPosition(this._getDefaultLabel().position);
-
-        return merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
-    },
-
-    // if label position is a number, normalize it to a position object
-    // this makes sure that label positions can be merged properly
-    _normalizeLabelPosition: function(labelPosition) {
-
-        if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, angle: 0, args: null };
-        return labelPosition;
-    },
-
-    // expects normalized position properties
-    // e.g. `this._normalizeLabelPosition(labelPosition)` and `this._getDefaultLabelPositionProperty()`
-    _mergeLabelPositionProperty: function(normalizedLabelPosition, normalizedDefaultLabelPosition) {
-
-        if (normalizedLabelPosition === null) return null;
-        if (normalizedLabelPosition === undefined) {
-
-            if (normalizedDefaultLabelPosition === null) return null;
-            return normalizedDefaultLabelPosition;
-        }
-
-        return merge({}, normalizedDefaultLabelPosition, normalizedLabelPosition);
     }
 }, {
 

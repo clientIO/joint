@@ -331,9 +331,9 @@ export const LinkView = CellView.extend({
         var labelCache = this._labelCache = {};
         var labelSelectors = this._labelSelectors = {};
         var model = this.model;
-        // Resolved (see `Link#labels`) - `label.markup` is always set (falls back all the
-        // way to the built-in default), so there's no need to resolve it again here.
-        var labels = model.labels();
+        // Resolved (see `Link#getComputedLabels`) - `label.markup` is always set (falls
+        // back all the way to the built-in default), so there's no need to resolve it again here.
+        var labels = model.getComputedLabels();
         var labelsCount = labels.length;
 
         if (labelsCount === 0) {
@@ -425,9 +425,9 @@ export const LinkView = CellView.extend({
             this.cleanNodeCache(this.el);
         }
 
-        // Resolved (see `Link#labels`) - `attrs`/`size` are already merged with
+        // Resolved (see `Link#getComputedLabels`) - `attrs`/`size` are already merged with
         // `defaultLabel`/the built-in default.
-        var labels = this.model.labels();
+        var labels = this.model.getComputedLabels();
         var canLabelMove = this.can('labelMove');
 
         for (var i = 0, n = labels.length; i < n; i++) {
@@ -795,9 +795,9 @@ export const LinkView = CellView.extend({
         // This method assumes all the label nodes are stored in the `this._labelCache` hash table
         // by their indices in the `this.get('labels')` array. This is done in the `renderLabels()` method.
 
-        // Resolved (see `Link#labels`) - `position` is already merged with `defaultLabel`/
-        // the built-in default.
-        var labels = this.model.labels();
+        // Resolved (see `Link#getComputedLabels`) - `position` is already merged with
+        // `defaultLabel`/the built-in default.
+        var labels = this.model.getComputedLabels();
         if (!labels.length) return this;
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
@@ -833,8 +833,8 @@ export const LinkView = CellView.extend({
         }
     },
 
-    // Used by `addLabel` below, for a not-yet-existing label - unlike `_getResolvedLabel`,
-    // does not need the built-in default (which never has `position.args`).
+    // Used by `addLabel` below, for a not-yet-existing label - unlike `getResolvedLabel`
+    // (`link-labels.mjs`), does not need the built-in default (which never has `position.args`).
     _getDefaultLabelPositionArgs: function() {
 
         var defaultLabel = this.model._getDefaultLabel();
@@ -1473,8 +1473,9 @@ export const LinkView = CellView.extend({
             var labelNode = evt.currentTarget;
             var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
-            // Resolved (see `Link#labels`) - already merged with `defaultLabel`/the built-in default.
-            var position = this.model.label(labelIdx).position || {};
+            // Resolved (see `Link#getComputedLabel`) - already merged with `defaultLabel`/
+            // the built-in default.
+            var position = this.model.getComputedLabel(labelIdx).position || {};
 
             var coords = this.getLabelCoordinates(position);
             var dx = coords.x - x; // how much needs to be added to cursor x to get to label x
