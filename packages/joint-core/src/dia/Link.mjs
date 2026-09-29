@@ -573,9 +573,6 @@ export const Link = Cell.extend({
 
         var label = assign({}, defaultLabel);
         label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
-        label.position = defaultLabel.position;
-        label.attrs = defaultLabel.attrs;
-        label.size = defaultLabel.size;
 
         return label;
     }
