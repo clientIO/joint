@@ -5,10 +5,19 @@ import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import { Paper } from '../presets/paper';
 import { MEASURING_CLASS_NAME } from '../utils/class-names';
+import { LayerView } from './layer-view';
 export const CLEANUP_EVENT_NAME = 'cleanup';
 const noopViewMountChange = (): void => {
   // No-op default for onViewMountChange callback
 };
+
+/**
+ * Layer views `@joint/react` registers on every paper, keyed as joint-core
+ * resolves them (`<layer type>View`): plain graph layers, the default `cells`
+ * layer included, render through {@link LayerView}. A paper's own
+ * `layerViewNamespace` is merged on top.
+ */
+const DEFAULT_LAYER_VIEW_NAMESPACE = { GraphLayerView: LayerView };
 
 /** Well-known paper ID used when no explicit `id` is provided to `<Paper>`. */
 export const DEFAULT_PAPER_ID = 'default-paper';
@@ -62,7 +71,10 @@ export class PaperView extends Paper {
 
   constructor(options: PaperViewOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;
-    super(paperOptions);
+    super({
+      ...paperOptions,
+      layerViewNamespace: { ...DEFAULT_LAYER_VIEW_NAMESPACE, ...paperOptions.layerViewNamespace },
+    });
     this.id = id;
     this.onViewMountChange = onViewMountChange ?? noopViewMountChange;
     this.shouldPreserveHostElementOnRemove = !!paperOptions.el;

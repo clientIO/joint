@@ -11,8 +11,8 @@ const meta = {
     showcase: {
       canvasHeight: 440,
       description:
-        'Organize elements and links into background, main, and foreground layers, then show or hide each layer with the paper cellVisibility predicate.',
-      apiUrl: getAPILink('Paper'),
+        'Declare paint-ordered layers on GraphProvider, assign cells with their `layer` field, then hide and reorder them with useLayer, useLayers, and setLayers — and move a cell between layers with setCell.',
+      apiUrl: getAPILink('useLayers'),
       code: codeRaw,
     },
   },
