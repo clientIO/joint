@@ -83,8 +83,8 @@ export interface ElkEdgeDraft {
  * Mutate `elkEdge` to customize what this package computed for a link, or return
  * `false` to drop the edge from the ELK graph - it is simply not routed/laid out.
  */
-export type ExportEdgeCallback = (params: ExportEdgeCallbackParameters) => void | false;
-export type ExportEdgeCallbackParameters = {
+export type ExportLinkCallback = (params: ExportLinkCallbackParameters) => void | false;
+export type ExportLinkCallbackParameters = {
     link: dia.Link;
     elkEdge: ElkEdgeDraft;
 };
@@ -96,8 +96,8 @@ export type ExportPortLabelCallbackParameters = {
     elkPortLabel: ElkLabelDraft;
 };
 
-export type ExportEdgeLabelCallback = (params: ExportEdgeLabelCallbackParameters) => void | false;
-export type ExportEdgeLabelCallbackParameters = {
+export type ExportLinkLabelCallback = (params: ExportLinkLabelCallbackParameters) => void | false;
+export type ExportLinkLabelCallbackParameters = {
     link: dia.Link;
     label: dia.Link.Label;
     elkEdgeLabel: ElkLabelDraft;
@@ -119,8 +119,8 @@ export interface ExportGraphOptions {
     exportElement?: ExportElementCallback;
     exportPort?: ExportPortCallback;
     exportPortLabel?: ExportPortLabelCallback;
-    exportEdge?: ExportEdgeCallback;
-    exportEdgeLabel?: ExportEdgeLabelCallback;
+    exportLink?: ExportLinkCallback;
+    exportLinkLabel?: ExportLinkLabelCallback;
 }
 
 let exportGraphOptions: ExportGraphOptions;
@@ -296,8 +296,8 @@ function getLowestCommonAncestorId(sourcePath: string[], targetPath: string[]): 
 }
 
 /**
- * Builds a link's ELK edge. `exportEdge` (if given) may mutate the edge's draft, or
- * return `false` to drop it from the ELK graph (see `ExportEdgeCallback`).
+ * Builds a link's ELK edge. `exportLink` (if given) may mutate the edge's draft, or
+ * return `false` to drop it from the ELK graph (see `ExportLinkCallback`).
  */
 function buildEdge(link: dia.Link): void {
     const sourceElement = link.getSourceElement();
@@ -328,7 +328,7 @@ function buildEdge(link: dia.Link): void {
         layoutOptions: {}
     };
 
-    if (exportGraphOptions.exportEdge?.({ link, elkEdge }) === false)
+    if (exportGraphOptions.exportLink?.({ link, elkEdge }) === false)
         return;
 
     linksById.set(id, link);
@@ -349,7 +349,7 @@ function buildEdge(link: dia.Link): void {
                 layoutOptions: {}
             };
 
-            if (exportGraphOptions.exportEdgeLabel?.({ link, label, elkEdgeLabel: labelDraft }) === false)
+            if (exportGraphOptions.exportLinkLabel?.({ link, label, elkEdgeLabel: labelDraft }) === false)
                 return result;
 
             result.push({

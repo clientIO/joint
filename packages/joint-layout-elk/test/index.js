@@ -218,7 +218,7 @@ QUnit.module('layout()', () => {
         assert.deepEqual(seen, [['out1', 'a']]);
     });
 
-    QUnit.test('should let exportElement/exportPort/exportEdge add to the computed layoutOptions without losing it', async(assert) => {
+    QUnit.test('should let exportElement/exportPort/exportLink add to the computed layoutOptions without losing it', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({
@@ -248,7 +248,7 @@ QUnit.module('layout()', () => {
             exportPort: ({ elkPort }) => {
                 elkPort.layoutOptions['elk.custom'] = 'port';
             },
-            exportEdge: ({ elkEdge }) => {
+            exportLink: ({ elkEdge }) => {
                 elkEdge.layoutOptions['elk.custom'] = 'edge';
             }
         });
@@ -411,7 +411,7 @@ QUnit.module('layout()', () => {
         assert.equal(parentNode.layoutOptions['elk.padding'], '[top=40,left=20,bottom=20,right=20]');
     });
 
-    QUnit.test('should let exportEdgeLabel read a link label\'s own custom property into its computed layoutOptions', async(assert) => {
+    QUnit.test('should let exportLinkLabel read a link label\'s own custom property into its computed layoutOptions', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
@@ -425,7 +425,7 @@ QUnit.module('layout()', () => {
         graph.resetCells([el1, el2, link]);
 
         const { elkGraph } = await joint.layout.ELK.layout(graph, {
-            exportEdgeLabel: ({ label, elkEdgeLabel }) => {
+            exportLinkLabel: ({ label, elkEdgeLabel }) => {
                 Object.assign(elkEdgeLabel.layoutOptions, label.elkLayoutOptions);
             }
         });
@@ -433,12 +433,12 @@ QUnit.module('layout()', () => {
         const [elkEdge] = elkGraph.edges;
         assert.equal(elkEdge.labels[0].layoutOptions['elk.edgeLabels.inline'], 'true');
 
-        // The label's own raw JSON is unaffected - reading it in `exportEdgeLabel` doesn't
+        // The label's own raw JSON is unaffected - reading it in `exportLinkLabel` doesn't
         // write anything back.
         assert.deepEqual(link.get('labels')[0].elkLayoutOptions, { 'elk.edgeLabels.inline': 'true' });
     });
 
-    QUnit.test('should not place a link label inline by default - only `exportEdgeLabel` can opt one in', async(assert) => {
+    QUnit.test('should not place a link label inline by default - only `exportLinkLabel` can opt one in', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
@@ -457,7 +457,7 @@ QUnit.module('layout()', () => {
         assert.notOk('elk.edgeLabels.inline' in elkEdge.labels[0].layoutOptions);
     });
 
-    QUnit.test('should let exportEdgeLabel read a link\'s `defaultLabel`-inherited custom property for every label', async(assert) => {
+    QUnit.test('should let exportLinkLabel read a link\'s `defaultLabel`-inherited custom property for every label', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
@@ -471,14 +471,14 @@ QUnit.module('layout()', () => {
             },
             // Neither label sets its own `elkLayoutOptions` - both fall back to
             // `defaultLabel`'s, already merged in by `Link#getComputedLabels()` (`@joint/core`)
-            // by the time `exportEdgeLabel` sees `label` below.
+            // by the time `exportLinkLabel` sees `label` below.
             labels: [{}, {}]
         });
 
         graph.resetCells([el1, el2, link]);
 
         const { elkGraph } = await joint.layout.ELK.layout(graph, {
-            exportEdgeLabel: ({ label, elkEdgeLabel }) => {
+            exportLinkLabel: ({ label, elkEdgeLabel }) => {
                 Object.assign(elkEdgeLabel.layoutOptions, label.elkLayoutOptions);
             }
         });
@@ -563,5 +563,102 @@ QUnit.module('layout()', () => {
         // `out2`'s own `label.size` overrides its group's.
         assert.equal(out2Label.width, 55);
         assert.equal(out2Label.height, 11);
+    });
+
+    QUnit.test('should return a zero-size bbox for an empty graph', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+        const { bbox, elkGraph } = await joint.layout.ELK.layout(graph);
+
+        assert.equal(bbox.width, 0);
+        assert.equal(bbox.height, 0);
+        assert.deepEqual(elkGraph.children, []);
+    });
+
+    QUnit.test('should drop an element (and its subtree) when exportElement returns false', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const parent = new joint.shapes.standard.Rectangle({ id: 'parent', size: { width: 10, height: 10 }});
+        const child = new joint.shapes.standard.Rectangle({ id: 'child', size: { width: 50, height: 50 }});
+        const other = new joint.shapes.standard.Rectangle({ id: 'other', size: { width: 50, height: 50 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'child' }, target: { id: 'other' }});
+        parent.embed(child);
+
+        graph.resetCells([parent, child, other, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportElement: ({ element }) => element.id !== 'parent'
+        });
+
+        // Neither `parent` nor its embedded `child` (dropped along with it) made it in -
+        // and, since `child` never did, the link connected to it wasn't routed either.
+        assert.notOk(elkGraph.children.some((node) => node.id === 'parent' || node.id === 'child'));
+        assert.deepEqual(elkGraph.edges, []);
+    });
+
+    QUnit.test('should drop only that port when exportPort returns false, falling the edge back to the element', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: {
+                groups: { out: { position: 'right' }},
+                items: [{ id: 'out1', group: 'out' }]
+            }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a', port: 'out1' }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportPort: () => false
+        });
+
+        const elkNode = elkGraph.children.find((node) => node.id === 'a');
+        assert.deepEqual(elkNode.ports, []);
+
+        const [elkEdge] = elkGraph.edges;
+        assert.deepEqual(elkEdge.sources, ['a']);
+    });
+
+    QUnit.test('should drop a link when exportLink returns false - it is not routed at all', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportLink: () => false
+        });
+
+        assert.deepEqual(elkGraph.edges, []);
+        assert.notOk(link.vertices().length);
+    });
+
+    QUnit.test('should drop only that label when exportLinkLabel returns false', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a' },
+            target: { id: 'b' },
+            labels: [{ size: { width: 40, height: 20 }}]
+        });
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportLinkLabel: () => false
+        });
+
+        const [elkEdge] = elkGraph.edges;
+        assert.deepEqual(elkEdge.labels, []);
     });
 });
