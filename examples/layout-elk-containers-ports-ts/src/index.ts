@@ -3,11 +3,10 @@ import {
     ElkLayoutOptions,
     ExportElementCallback,
     ExportPortCallback,
-    ExportEdgeCallback,
     NodeElkLayoutOptions,
     PortElkLayoutOptions,
     layout,
-    ExportEdgeLabelCallback,
+    ExportLinkLabelCallback,
     ExportPortLabelCallback
 } from '@joint/layout-elk';
 import ELK from 'elkjs/lib/elk-api.js';
@@ -135,7 +134,7 @@ const init = () => {
         elkPortLabel.height = height;
     };
 
-    const exportEdgeLabel: ExportEdgeLabelCallback = ({ label, elkEdgeLabel }) => {
+    const exportLinkLabel: ExportLinkLabelCallback = ({ label, elkEdgeLabel }) => {
         const inline = label['inline'];
         elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = inline ? 'true' : 'false';
     };
@@ -150,7 +149,7 @@ const init = () => {
             exportElement,
             exportPort,
             exportPortLabel,
-            exportEdgeLabel,
+            exportLinkLabel,
             elkLayoutOptions
         }).then(() => {
             paper.unfreeze();

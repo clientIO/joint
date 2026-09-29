@@ -3,7 +3,7 @@ import {
     ElkLayoutOptions,
     ExportElementCallback,
     ExportPortCallback,
-    ExportEdgeLabelCallback,
+    ExportLinkLabelCallback,
     SetPortAttributesCallback,
     layout
 } from '@joint/layout-elk';
@@ -195,7 +195,7 @@ const init = () => {
 
     // Every branch condition ("Valid"/"Invalid", ...) sits directly on its edge,
     // rather than floating beside it.
-    const exportEdgeLabel: ExportEdgeLabelCallback = ({ elkEdgeLabel }) => {
+    const exportLinkLabel: ExportLinkLabelCallback = ({ elkEdgeLabel }) => {
         elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = 'true';
     };
 
@@ -206,13 +206,13 @@ const init = () => {
     // the diamond's real slanted edge - only its y moves; x (which side, and
     // where along it) stays exactly what ELK computed.
     const setPortAttributes: SetPortAttributesCallback = ({ element, portId, attributes }) => {
-        if (element instanceof Decision && attributes.position) {
+        /*if (element instanceof Decision && attributes.position) {
             const { width, height } = element.size();
             const { x, y } = attributes.position.args;
             const distanceFromCenter = Math.abs(x - width / 2);
             const edgeY = distanceFromCenter / (width / 2) * (height / 2);
             attributes.position.args.y = (y < height / 2) ? edgeY : height - edgeY;
-        }
+        }*/
         element.portProp(portId, attributes);
     };
 
@@ -222,7 +222,7 @@ const init = () => {
             elk,
             exportElement,
             exportPort,
-            exportEdgeLabel,
+            exportLinkLabel,
             setPortAttributes,
             elkLayoutOptions
         }).then(() => {
