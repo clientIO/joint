@@ -1,4 +1,5 @@
 import { type dia } from '@joint/core';
+import type { LiteralUnion } from '../types/index';
 
 /**
  * Shape of a port's body.
@@ -7,7 +8,7 @@ import { type dia } from '@joint/core';
  * - Any other string is used directly as the SVG path `d` attribute.
  * @group Types
  */
-export type ElementPortShape = 'ellipse' | 'rect' | (string & Record<never, never>);
+export type ElementPortShape = LiteralUnion<'ellipse' | 'rect'>;
 
 /**
  * Declarative port description for {@link elementPort} and {@link elementPorts}.
@@ -164,13 +165,11 @@ export function elementPort(port: ElementPort): dia.Element.Port {
   if (label) {
     result.label = {
       position: { name: labelPosition, args: { x: labelOffsetX, y: labelOffsetY } },
-      markup: [
-        {
-          tagName: 'text',
-          selector: 'label',
-          className: `jj-port-label ${labelClassName}`.trim(),
-        },
-      ],
+      markup: [{
+        tagName: 'text',
+        selector: 'label',
+        className: `jj-port-label ${labelClassName}`.trim(),
+      }],
     };
     const labelAttributes: Record<string, unknown> = {
       text: label,
@@ -202,10 +201,7 @@ const PORT_GROUP = 'main';
  * ```
  * @group Presets
  */
-export function elementPorts(
-  ports: Record<string, ElementPort>,
-  portStyle?: Partial<ElementPort>
-): {
+export function elementPorts(ports: Record<string, ElementPort>, portStyle?: Partial<ElementPort>): {
   groups: Record<string, dia.Element.PortGroup>;
   items: dia.Element.Port[];
 } {

@@ -42,10 +42,7 @@ import { useCombinedRef } from '../use-combined-ref';
  */
 
 /** Records what the parent's layout effect saw, in order. */
-function Harness({
-  forwardedRef,
-  seen,
-}: Readonly<{
+function Harness({ forwardedRef, seen }: Readonly<{
   forwardedRef: Ref<HTMLDivElement>;
   seen: Array<HTMLDivElement | null>;
 }>) {

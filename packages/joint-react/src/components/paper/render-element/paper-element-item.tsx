@@ -1,4 +1,9 @@
-import { useLayoutEffect, useMemo, type ComponentType, type CSSProperties } from 'react';
+import {
+  useLayoutEffect,
+  useMemo,
+  type ComponentType,
+  type CSSProperties,
+} from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
 import { useGraphStore } from '../../../hooks/use-graph-store';

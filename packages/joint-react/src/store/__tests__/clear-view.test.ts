@@ -84,6 +84,7 @@ function makeLink(sourceId: string, targetId: string): dia.Link {
 }
 
 describe('shouldClearLink', () => {
+
   it('returns true when source matches', () => {
     const link = makeLink('a', 'b');
     expect(shouldClearLink(link, 'a')).toBe(true);
@@ -178,9 +179,7 @@ describe('clearConnectedLinkViews', () => {
     graph.addCell(link);
 
     // Override `findView` to simulate the no-view-registered case.
-    link.findView = jest.fn(
-      () => undefined as unknown as dia.LinkView
-    ) as unknown as typeof link.findView;
+    link.findView = jest.fn(() => undefined as unknown as dia.LinkView) as unknown as typeof link.findView;
 
     const paper = {
       findViewByModel: jest.fn(),
@@ -297,3 +296,4 @@ describe('executeClearViewForCell', () => {
     expect(mockLinkView.requestConnectionUpdate).toHaveBeenCalled();
   });
 });
+

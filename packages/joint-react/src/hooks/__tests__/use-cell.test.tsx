@@ -31,7 +31,11 @@ const initialCells: readonly CellRecord[] = [
   } as CellRecord,
 ];
 
-function ReadCell({ onRead }: { readonly onRead: (cell: CellRecord | undefined) => void }) {
+function ReadCell({
+  onRead,
+}: {
+  readonly onRead: (cell: CellRecord | undefined) => void;
+}) {
   const cell = useCell();
   onRead(cell);
   return null;
@@ -205,9 +209,10 @@ describe('useCell (id + selector + isEqual form)', () => {
     // argument2 = selector, argument3 = equality. Picks up the
     // `argument3 = isEqual` branch (line 82).
     const isEqual = jest.fn((a: string, b: string) => a === b);
-    const { result } = renderHook(() => useCell('a', (cell) => String(cell.id), isEqual), {
-      wrapper: plainWrapper,
-    });
+    const { result } = renderHook(
+      () => useCell('a', (cell) => String(cell.id), isEqual),
+      { wrapper: plainWrapper }
+    );
     expect(result.current).toBe('a');
   });
 });

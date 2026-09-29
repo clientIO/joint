@@ -91,7 +91,9 @@ describe('controlled GraphProvider: reset preserves measured size', () => {
     await waitFor(() => expect(storeRef.graphProjection.cells.getSnapshot().length).toBe(3));
     expect(storeRef.graph.getCell('task-1')).toBeUndefined();
 
-    const sizeAfterReset = (elementA as { size: () => { width: number; height: number } }).size();
+    const sizeAfterReset = (
+      elementA as { size: () => { width: number; height: number } }
+    ).size();
     expect(sizeAfterReset).toEqual({ width: 100, height: 40 });
   });
 

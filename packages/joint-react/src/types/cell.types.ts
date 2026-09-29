@@ -1,4 +1,12 @@
-import type { dia, mvc } from '@joint/core';
+import type {
+  Cell as DiaCell,
+  Element as DiaElement,
+  Graph as DiaGraph,
+  Link as DiaLink,
+  Point as DiaPoint,
+  Size as DiaSize,
+} from '@joint/core/types/dia';
+import type { Collection as MvcCollection } from '@joint/core/types/mvc';
 import type { ELEMENT_MODEL_TYPE } from '../mvc/element-model';
 import type { LINK_MODEL_TYPE } from '../mvc/link-model';
 import type { LinkPresetAttributes } from '../presets/link-attributes';
@@ -7,22 +15,20 @@ import type { ElementPresetAttributes } from '../presets/element-attributes';
 /**
  * Loose element shape accepted at the record/mapper boundary: a `dia.Element`
  * JSON init (optional `id`, plus `type` and visual attrs) with the React preset
- * extras and an optional typed `data` payload. The upper bound of every
- * `Element` generic in the API (`GraphProvider`, `useGraph`, `CellInput`, ...).
+ * extras and an optional typed `data` payload.
  * @group Types
  */
-export interface ElementJSONInit extends dia.Element.JSONInit, ElementPresetAttributes {
+export interface ElementJSONInit extends DiaElement.JSONInit, ElementPresetAttributes {
   data?: unknown;
 }
 
 /**
  * Loose link shape accepted at the record/mapper boundary: a `dia.Link` JSON
  * init (optional `id`, plus `type` and visual attrs) with the React preset
- * extras and an optional typed `data` payload. The upper bound of every
- * `Link` generic in the API (`GraphProvider`, `useGraph`, `CellInput`, ...).
+ * extras and an optional typed `data` payload.
  * @group Types
  */
-export interface LinkJSONInit extends dia.Link.JSONInit, LinkPresetAttributes {
+export interface LinkJSONInit extends DiaLink.JSONInit, LinkPresetAttributes {
   data?: unknown;
 }
 
@@ -40,21 +46,19 @@ export interface LinkJSONInit extends dia.Link.JSONInit, LinkPresetAttributes {
  * @template Type - the `type` discriminator literal
  * @group Types
  */
+// `data` is optional while untyped and required once typed. Spelled out (not a
+// helper alias) so the API docs show the shape instead of a private name.
 export type ElementRecord<
   ElementData = unknown,
   Type extends string = typeof ELEMENT_MODEL_TYPE,
-> = ElementJSONInit & {
-  readonly type: Type;
-} & // `data` is optional while untyped and required once typed. Spelled out (not
-  // a helper alias) so the API docs show the shape instead of a private name.
-  (unknown extends ElementData ? { readonly data?: unknown } : { readonly data: ElementData });
+> = ElementJSONInit & { readonly type: Type } & (unknown extends ElementData
+    ? { readonly data?: unknown }
+    : { readonly data: ElementData });
 
 /**
  * An {@link ElementRecord} as the store holds it, after JointJS /
  * {@link elementAttributes} defaults are applied: what
- * `Computed<ElementRecord<ElementData>>` resolves to, and so what reading hooks
- * ({@link useCell}, {@link useCells}) and selectors hand back. Prefer writing
- * {@link Computed}, which also resolves unions and custom records.
+ * `Computed<ElementRecord<MyData>>` resolves to and what reading hooks hand back.
  *
  * Always populated by the framework:
  * - `position`, `dia.Element` defaults to `{ x: 0, y: 0 }`.
@@ -83,21 +87,18 @@ export type ComputedElementRecord<ElementData = unknown> = ElementRecord<Element
  * @template Type - the `type` discriminator literal
  * @group Types
  */
+// Same `data` rule as `ElementRecord`.
 export type LinkRecord<
   LinkData = unknown,
   Type extends string = typeof LINK_MODEL_TYPE,
-> = LinkJSONInit & {
-  readonly type: Type;
-} & // `data` is optional while untyped and required once typed. Spelled out (not
-  // a helper alias) so the API docs show the shape instead of a private name.
-  (unknown extends LinkData ? { readonly data?: unknown } : { readonly data: LinkData });
+> = LinkJSONInit & { readonly type: Type } & (unknown extends LinkData
+    ? { readonly data?: unknown }
+    : { readonly data: LinkData });
 
 /**
  * A {@link LinkRecord} as the store holds it, after JointJS /
  * {@link linkAttributes} defaults are applied: what
- * `Computed<LinkRecord<LinkData>>` resolves to, and so what reading hooks
- * ({@link useCell}, {@link useCells}) hand back. Prefer writing
- * {@link Computed}, which also resolves unions and custom records.
+ * `Computed<LinkRecord<MyData>>` resolves to and what reading hooks hand back.
  *
  * Always populated by the framework:
  * - `source`, `dia.Link` defaults to `{}`.
@@ -129,7 +130,9 @@ export type CellRecord<
   LinkData = unknown,
   ElementType extends string = typeof ELEMENT_MODEL_TYPE,
   LinkType extends string = typeof LINK_MODEL_TYPE,
-> = ElementRecord<ElementData, ElementType> | LinkRecord<LinkData, LinkType>;
+> =
+  | ElementRecord<ElementData, ElementType>
+  | LinkRecord<LinkData, LinkType>;
 
 /**
  * The most permissive {@link CellRecord}: `data` is `unknown` and `type` is any
@@ -141,22 +144,22 @@ export type CellRecord<
 export type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
 
 /**
- * Resolves any input cell shape to its store form ({@link ComputedElementRecord}
- * or {@link ComputedLinkRecord}), the variant with framework-populated fields (`id`, `position`, `size`, `angle`, `data` for
+ * Resolves any input cell shape to its internal store form, the variant with
+ * framework-populated fields (`id`, `position`, `size`, `angle`, `data` for
  * elements; `id`, `source`, `target`, `data` for links) required.
  *
  * Distributes over unions, so a single utility covers every input flavor:
  *
  * | Input                              | Result                            |
  * |------------------------------------|-----------------------------------|
- * | `Computed<ElementRecord<D>>`       | `ComputedElementRecord<D>`        |
- * | `Computed<LinkRecord<D>>`          | `ComputedLinkRecord<D>`           |
+ * | `Computed<ElementRecord<D>>`       | element with required fields      |
+ * | `Computed<LinkRecord<D>>`          | link with required fields         |
  * | `Computed<CellRecord<E, L>>`       | resolved element or resolved link |
  *
  * To keep a custom record's exact shape, compose it OUTSIDE the wrapper, e.g.
  * `Computed<CellRecord> | MyCustomRecord`. Passing a custom element- or
  * link-shaped record (any object with a `type` field) directly through
- * `Computed` re-maps it to {@link ComputedElementRecord} / {@link ComputedLinkRecord}, because it
+ * `Computed` re-maps it to the internal element/link record, because it
  * structurally matches the same branch as {@link ElementRecord} /
  * {@link LinkRecord}.
  *
@@ -194,7 +197,7 @@ export type Computed<T> =
  * Short alias for cell ids; same as `dia.Cell.ID`.
  * @group Types
  */
-export type CellId = dia.Cell.ID;
+export type CellId = DiaCell.ID;
 
 // ── Element Layout Aliases ──────────────────────────────────────────────────
 
@@ -202,30 +205,25 @@ export type CellId = dia.Cell.ID;
  * An element's top-left position, `{ x, y }`. Alias for `dia.Point`.
  * @group Types
  */
-export type ElementPosition = dia.Point;
+export type ElementPosition = DiaPoint;
 
 /**
  * An element's bounding-box size, `{ width, height }`. Alias for `dia.Size`.
  * @group Types
  */
-export type ElementSize = dia.Size;
+export type ElementSize = DiaSize;
 
 // ── Element Layout (internal — used by size observer) ───────────────────────
 
 /**
- * Flat element layout used internally by the size observer and transform callbacks.
- * @internal
+ * Flat element layout used by the size observer and transform callbacks.
+ * @group Types
  */
 export interface ElementLayout {
-  /** X of the element's top-left corner, in paper coordinates. */
   readonly x: number;
-  /** Y of the element's top-left corner, in paper coordinates. */
   readonly y: number;
-  /** Element width. */
   readonly width: number;
-  /** Element height. */
   readonly height: number;
-  /** Element rotation, in degrees. */
   readonly angle: number;
 }
 
@@ -261,14 +259,14 @@ export interface LinkLayout {
 export type CellInput<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
-> = Element | Link | dia.Cell;
+> = Element | Link | DiaCell;
 
 /**
  * A reference to a cell — either its {@link CellId} or the `dia.Cell` instance
  * itself. Alias for JointJS core's `dia.Graph.CellRef`.
  * @group Types
  */
-export type CellRef = dia.Graph.CellRef;
+export type CellRef = DiaGraph.CellRef;
 
 /**
  * A JointJS cell collection (e.g. the `collection` from a selection). Iterable —
@@ -276,7 +274,7 @@ export type CellRef = dia.Graph.CellRef;
  * cell setters instead of `collection.toArray()`.
  * @group Types
  */
-export type CellCollection = mvc.Collection<dia.Cell>;
+export type CellCollection = MvcCollection<DiaCell>;
 
 /**
  * A list of cell references accepted by `removeCells`: either a readonly array

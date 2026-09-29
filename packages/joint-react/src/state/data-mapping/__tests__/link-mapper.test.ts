@@ -43,7 +43,9 @@ describe('mapAttributesToLink', () => {
   });
 
   it('returns labels as-is when no labelMap is present', () => {
-    const labels: dia.Link.Label[] = [{ attrs: {}, position: { distance: 0.5 } } as dia.Link.Label];
+    const labels: dia.Link.Label[] = [
+      { attrs: {}, position: { distance: 0.5 } } as dia.Link.Label,
+    ];
     const result = mapAttributesToLink({
       type: LINK_MODEL_TYPE,
       labels,

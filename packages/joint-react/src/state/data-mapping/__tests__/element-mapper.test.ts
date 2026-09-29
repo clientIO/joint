@@ -1,5 +1,8 @@
 import type { dia } from '@joint/core';
-import { mapAttributesToElement, mapElementToAttributes } from '../element-mapper';
+import {
+  mapAttributesToElement,
+  mapElementToAttributes,
+} from '../element-mapper';
 import { ELEMENT_MODEL_TYPE } from '../../../mvc/element-model';
 import type { ElementJSONInit } from '../../../types/cell.types';
 

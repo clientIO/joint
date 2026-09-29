@@ -1,4 +1,5 @@
 import { type dia, util } from '@joint/core';
+import type { LiteralUnion } from '../types';
 
 /**
  * A simplified link label, text plus optional styling, that {@link linkLabel}
@@ -38,7 +39,7 @@ export interface LinkLabel {
   /** Extra CSS class added to the label background element. @default '' */
   backgroundClassName?: string;
   /** Background outline shape: `'rect'`, `'ellipse'`, or a raw SVG path `d` string. @default 'rect' */
-  backgroundShape?: 'rect' | 'ellipse' | (string & Record<never, never>);
+  backgroundShape?: LiteralUnion<'rect' | 'ellipse'>;
 }
 
 const defaultLabelStyle = {
@@ -49,10 +50,7 @@ const defaultLabelStyle = {
   backgroundOutline: '' as string,
   backgroundOutlineWidth: '' as number | string,
   backgroundBorderRadius: 4,
-  backgroundPadding: { horizontal: 4, vertical: 2 } as {
-    readonly horizontal: number;
-    readonly vertical: number;
-  },
+  backgroundPadding: { horizontal: 4, vertical: 2 } as { readonly horizontal: number; readonly vertical: number },
   position: 0.5,
   className: '',
   backgroundClassName: '',
@@ -94,10 +92,8 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
     backgroundShape = 'rect',
   } = label;
 
-  const ph =
-    typeof backgroundPadding === 'number' ? backgroundPadding : (backgroundPadding.horizontal ?? 0);
-  const pv =
-    typeof backgroundPadding === 'number' ? backgroundPadding : (backgroundPadding.vertical ?? 0);
+  const ph = typeof backgroundPadding === 'number' ? backgroundPadding : backgroundPadding.horizontal ?? 0;
+  const pv = typeof backgroundPadding === 'number' ? backgroundPadding : backgroundPadding.vertical ?? 0;
 
   const labelTextAttributes: Record<string, unknown> = {
     text,

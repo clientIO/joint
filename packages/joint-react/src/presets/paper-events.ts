@@ -9,39 +9,28 @@ import { type ConnectionEnd, toConnectionEnd } from './can-connect';
 
 // Paper + graph references shared by every event context.
 interface BaseContext {
-  /** The paper the event fired on. */
   readonly paper: dia.Paper;
-  /** The graph rendered by the paper (`paper.model`). */
   readonly graph: dia.Graph;
 }
 
 // Cell-level identifying payload (fires for any cell — element or link).
 interface CellContext {
-  /** Id of the cell the event fired on. */
   readonly id: dia.Cell.ID;
-  /** The cell model the event fired on. */
   readonly model: dia.Cell;
-  /** The cell view the event fired on. */
   readonly view: dia.CellView;
 }
 
 // Element-level cell payload — `model` / `view` narrowed to element types.
 interface ElementContext {
-  /** Id of the element the event fired on. */
   readonly id: dia.Cell.ID;
-  /** The element model the event fired on. */
   readonly model: dia.Element;
-  /** The element view the event fired on. */
   readonly view: dia.ElementView;
 }
 
 // Link-level cell payload — `model` / `view` narrowed to link types.
 interface LinkContext {
-  /** Id of the link the event fired on. */
   readonly id: dia.Cell.ID;
-  /** The link model the event fired on. */
   readonly model: dia.Link;
-  /** The link view the event fired on. */
   readonly view: dia.LinkView;
 }
 
@@ -51,21 +40,12 @@ type ElementEventParams = BaseContext & ElementContext;
 type LinkEventParams = BaseContext & LinkContext;
 
 type WithPointer<Params> = Params & {
-  /** The native DOM event. */
   readonly event: dia.Event;
-  /** Pointer x, in paper coordinates. */
   readonly x: number;
-  /** Pointer y, in paper coordinates. */
   readonly y: number;
 };
-type WithHover<Params> = Params & {
-  /** The native DOM event. */
-  readonly event: dia.Event;
-};
-type WithWheel<Params> = WithPointer<Params> & {
-  /** Wheel delta, as reported by the paper `mousewheel` event. */
-  readonly delta: number;
-};
+type WithHover<Params> = Params & { readonly event: dia.Event };
+type WithWheel<Params> = WithPointer<Params> & { readonly delta: number };
 
 // ============================================================================
 // Pointer / hover / wheel context aliases

@@ -105,7 +105,10 @@ export interface GraphApi<
    * are silently skipped. The optional `metadata` is forwarded as the
    * `graph.removeCells` event opt.
    */
-  readonly removeCells: (cellRefs?: CellRefList | null, metadata?: Record<string, unknown>) => void;
+  readonly removeCells: (
+    cellRefs?: CellRefList | null,
+    metadata?: Record<string, unknown>
+  ) => void;
   /**
    * Atomically replace the cell set. Accepts an array (dia.Cell instances
    * alongside records), a JointJS cell collection, or an updater receiving the

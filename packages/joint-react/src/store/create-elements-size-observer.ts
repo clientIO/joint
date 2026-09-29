@@ -24,27 +24,22 @@ const EPSILON = 0.5;
  * Element layout where width/height are required but x/y may be omitted.
  * @inline
  */
-interface ElementLayoutOptionalXY {
-  readonly width: number;
-  readonly height: number;
-  readonly x?: number;
-  readonly y?: number;
-}
+type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
+  Partial<Pick<ElementLayout, 'x' | 'y'>>;
 
 /**
  * The element's measurement, passed to a {@link TransformElementLayout} callback.
  * Carries the element's current `x`, `y`, and `angle` together with the freshly
  * measured `width` and `height`, plus the underlying model and cell id.
  * @expand
- * @interface
  * @group Types
  */
-export type TransformElementLayoutParams = Required<ElementLayout> & {
+export interface TransformElementLayoutParams extends Required<ElementLayout> {
   /** The JointJS `dia.Element` instance being measured. */
   readonly model: dia.Element;
   /** Id of the cell being measured. */
   readonly id: CellId;
-};
+}
 
 /**
  * Adjusts a measured element layout before it is written to the graph. Receives

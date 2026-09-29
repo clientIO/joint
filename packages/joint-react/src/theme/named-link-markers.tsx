@@ -8,8 +8,6 @@ import {
   type LinkMarkerRecord,
 } from '../presets/link-markers';
 
-// Spelled out (not `keyof typeof namedLinkMarkers`) so the API docs show the
-// names; the `satisfies` below keeps the two in sync.
 /**
  * The names of the built-in link markers you can pass to a {@link LinkStyle}:
  * `'arrow'`, `'arrow-open'`, `'arrow-sunken'`, `'circle'`, `'diamond'`, or
@@ -28,12 +26,12 @@ export type LinkMarkerName =
  * Built-in marker shapes for links.
  */
 export const namedLinkMarkers = {
-  none: null,
-  arrow: linkMarkerArrow(),
+  'none': null,
+  'arrow': linkMarkerArrow(),
   'arrow-open': linkMarkerArrowOpen(),
   'arrow-sunken': linkMarkerArrowSunken(),
-  circle: linkMarkerCircle(),
-  diamond: linkMarkerDiamond(),
+  'circle': linkMarkerCircle(),
+  'diamond': linkMarkerDiamond(),
 } as const satisfies Record<LinkMarkerName, LinkMarkerRecord | null>;
 
 /**
@@ -61,7 +59,9 @@ export type LinkMarker = LinkMarkerName | LinkMarkerRecord;
  */
 export function resolveLinkMarker(marker: LinkMarker | undefined): LinkMarkerRecord | null {
   if (marker === undefined || marker === 'none') return null;
-  const resolvedMarker = isString(marker) ? namedLinkMarkers[marker] : marker;
+  const resolvedMarker = isString(marker)
+    ? namedLinkMarkers[marker as keyof typeof namedLinkMarkers]
+    : marker;
   if (!resolvedMarker) return null;
   return resolvedMarker;
 }

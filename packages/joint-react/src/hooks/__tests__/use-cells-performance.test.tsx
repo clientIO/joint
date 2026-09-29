@@ -35,13 +35,7 @@ function StoreProbe() {
 }
 
 /** Re-renders (and counts) only when its own cell's position changes. */
-function CellPositionProbe({
-  id,
-  onRender,
-}: {
-  readonly id: string;
-  readonly onRender: () => void;
-}) {
+function CellPositionProbe({ id, onRender }: { readonly id: string; readonly onRender: () => void }) {
   useCells(id, (cell) => (cell as CellRecord | undefined)?.position?.x ?? -1);
   onRender();
   return null;
@@ -63,9 +57,7 @@ describe('cells container — real-case fine-grained render behaviour (O(1) drag
     const renders = { a: 0, b: 0, c: 0, list: 0 };
     await act(async () => {
       render(
-        <GraphProvider
-          initialCells={[makeElement('a', 0), makeElement('b', 50), makeElement('c', 100)]}
-        >
+        <GraphProvider initialCells={[makeElement('a', 0), makeElement('b', 50), makeElement('c', 100)]}>
           <StoreProbe />
           <CellPositionProbe id="a" onRender={() => (renders.a += 1)} />
           <CellPositionProbe id="b" onRender={() => (renders.b += 1)} />

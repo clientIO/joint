@@ -25,7 +25,6 @@ export { Paper } from './components/paper/paper';
 export type {
   PaperProps,
   PaperOptions,
-  PaperSupportedOptions,
   PaperTransform,
   RenderElement,
   RenderLink,
@@ -262,6 +261,8 @@ export type {
   ElementJSONInit,
   LinkJSONInit,
 } from './types/cell.types';
+/** @group Types */
+export type { LiteralUnion, Nullable } from './types';
 
 /**
  * Element types and utilities
@@ -364,4 +365,4 @@ export { jsx } from './utils/joint-jsx/jsx-to-markup';
  */
 export { useLinkLayout } from './hooks/use-link-layout';
 /** @group Types */
-export type { LinkLayout } from './types/cell.types';
+export type { ElementLayout, LinkLayout } from './types/cell.types';

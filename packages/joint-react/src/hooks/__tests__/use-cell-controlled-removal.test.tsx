@@ -102,11 +102,7 @@ describe('useCell — controlled cell removal', () => {
       rerender(
         <CatchErrorBoundary onCatch={captureError}>
           <GraphProvider cells={buildCells('c')}>
-            <Paper
-              style={PAPER_STYLE}
-              id="usecell-removal-paper"
-              renderElement={renderSubscribing}
-            />
+            <Paper style={PAPER_STYLE} id="usecell-removal-paper" renderElement={renderSubscribing} />
           </GraphProvider>
         </CatchErrorBoundary>
       );

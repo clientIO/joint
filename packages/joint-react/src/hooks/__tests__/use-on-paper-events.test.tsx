@@ -28,7 +28,9 @@ describe('subscribeToPaperEvents', () => {
   it('binds handlers from a static map and stops them on cleanup', () => {
     const stopListening = jest.fn();
     const listenTo = jest.fn();
-    const listenerSpy = jest.spyOn(mvc.Listener.prototype, 'listenTo').mockImplementation(listenTo);
+    const listenerSpy = jest
+      .spyOn(mvc.Listener.prototype, 'listenTo')
+      .mockImplementation(listenTo);
     const stopSpy = jest
       .spyOn(mvc.Listener.prototype, 'stopListening')
       .mockImplementation(stopListening);
@@ -73,11 +75,7 @@ describe('useOnPaperEvents (hook integration)', () => {
     }
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper
-          style={{ width: 100, height: 100 }}
-          id="events-paper"
-          renderElement={renderRectElement}
-        >
+        <Paper style={{ width: 100, height: 100 }} id="events-paper" renderElement={renderRectElement}>
           <Probe />
         </Paper>
       </GraphProvider>
@@ -119,11 +117,7 @@ describe('useOnPaperEvents (hook integration)', () => {
       }
       const ui = (handler: () => void) => (
         <GraphProvider initialCells={initialCells}>
-          <Paper
-            style={{ width: 100, height: 100 }}
-            id="events-paper"
-            renderElement={renderRectElement}
-          >
+          <Paper style={{ width: 100, height: 100 }} id="events-paper" renderElement={renderRectElement}>
             <Probe handler={handler} />
           </Paper>
         </GraphProvider>
@@ -162,11 +156,7 @@ describe('useOnPaperEvents (hook integration)', () => {
       }
       const ui = (hasClick: boolean) => (
         <GraphProvider initialCells={initialCells}>
-          <Paper
-            style={{ width: 100, height: 100 }}
-            id="events-paper"
-            renderElement={renderRectElement}
-          >
+          <Paper style={{ width: 100, height: 100 }} id="events-paper" renderElement={renderRectElement}>
             <Probe hasClick={hasClick} />
           </Paper>
         </GraphProvider>
@@ -199,11 +189,7 @@ describe('useOnPaperEvents (hook integration)', () => {
       }
       const ui = (isEnabled: boolean) => (
         <GraphProvider initialCells={initialCells}>
-          <Paper
-            style={{ width: 100, height: 100 }}
-            id="events-paper"
-            renderElement={renderRectElement}
-          >
+          <Paper style={{ width: 100, height: 100 }} id="events-paper" renderElement={renderRectElement}>
             <Probe isEnabled={isEnabled} />
           </Paper>
         </GraphProvider>

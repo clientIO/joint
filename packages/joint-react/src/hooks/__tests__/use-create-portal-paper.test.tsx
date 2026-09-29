@@ -43,10 +43,7 @@ function makeFakeCellView(paper: dia.Paper): dia.CellView {
 function callDefaultLink(paper: dia.Paper): dia.Link {
   const cellView = makeFakeCellView(paper);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (paper.options as any).defaultLink(
-    cellView,
-    (cellView as unknown as { el: SVGElement }).el
-  ) as dia.Link;
+  return (paper.options as any).defaultLink(cellView, (cellView as unknown as { el: SVGElement }).el) as dia.Link;
 }
 
 const initialCells: readonly CellRecord[] = [
@@ -112,8 +109,7 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper
-            style={{ width: 100, height: 100 }}
+          <Paper style={{ width: 100, height: 100 }}
             ref={paperRef}
             id="default-link-static"
             renderElement={() => <rect />}
@@ -151,8 +147,7 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper
-            style={{ width: 100, height: 100 }}
+          <Paper style={{ width: 100, height: 100 }}
             ref={paperRef}
             id="default-link-factory"
             renderElement={() => <rect />}
@@ -186,8 +181,7 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper
-            style={{ width: 100, height: 100 }}
+          <Paper style={{ width: 100, height: 100 }}
             ref={paperRef}
             id="default-link-instance-factory"
             renderElement={() => <rect />}
@@ -215,8 +209,7 @@ describe('Paper — defaultLink prop variants (lines 100–124)', () => {
       const paperRef = useRef<dia.Paper | null>(null);
       return (
         <>
-          <Paper
-            style={{ width: 100, height: 100 }}
+          <Paper style={{ width: 100, height: 100 }}
             ref={paperRef}
             id="default-link-null-factory"
             renderElement={() => <rect />}
@@ -247,8 +240,7 @@ interface GridAppProps {
 function GridApp({ drawGrid, gridSize, transform }: Readonly<GridAppProps>) {
   return (
     <GraphProvider initialCells={initialCells}>
-      <Paper
-        style={{ width: 100, height: 100 }}
+      <Paper style={{ width: 100, height: 100 }}
         id="grid-paper"
         renderElement={() => <rect />}
         drawGrid={drawGrid}
@@ -311,8 +303,7 @@ describe('Paper — renderLink integration (LinkItem render, line 161)', () => {
     ));
     render(
       <GraphProvider initialCells={RENDER_LINK_CELLS}>
-        <Paper
-          style={{ width: 100, height: 100 }}
+        <Paper style={{ width: 100, height: 100 }}
           id="link-paper"
           renderElement={() => <rect />}
           renderLink={renderLink}

@@ -4,9 +4,7 @@ import { graphProviderWrapper, getTestGraph } from '../../utils/test-wrappers';
 import { useOnGraphEvents } from '../use-on-graph-events';
 import { useGraph } from '../use-graph';
 
-const GRAPH_EVENT_ARGS: Partial<{
-  readonly [EventName in keyof dia.Graph.EventMap]: Parameters<dia.Graph.EventMap[EventName]>;
-}> = {
+const GRAPH_EVENT_ARGS: Partial<{ readonly [EventName in keyof dia.Graph.EventMap]: Parameters<dia.Graph.EventMap[EventName]> }> = {
   add: [{} as dia.Cell, {} as never, { source: 'add' }],
   remove: [{} as dia.Cell, {} as never, { source: 'remove' }],
   reset: [{} as never, { source: 'reset' }],
@@ -16,11 +14,7 @@ const GRAPH_EVENT_ARGS: Partial<{
   move: [{} as dia.Cell, { source: 'move' }],
   changeId: [{} as dia.Cell, 'prev-id', { source: 'changeId' }],
   'layer:add': [{} as dia.GraphLayer, {} as dia.GraphLayerCollection, { source: 'layer:add' }],
-  'layer:remove': [
-    {} as dia.GraphLayer,
-    {} as dia.GraphLayerCollection,
-    { source: 'layer:remove' },
-  ],
+  'layer:remove': [{} as dia.GraphLayer, {} as dia.GraphLayerCollection, { source: 'layer:remove' }],
   'layer:change': [{} as dia.GraphLayer, { source: 'layer:change' }],
   'layer:default': [{} as dia.GraphLayer, { source: 'layer:default' }],
   'layers:sort': [{} as dia.GraphLayerCollection, { source: 'layers:sort' }],

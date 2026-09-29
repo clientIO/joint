@@ -30,8 +30,7 @@ export interface LinkRouting {
 }
 
 /**
- * Options shared by every link routing preset ({@link linkRoutingStraight},
- * {@link linkRoutingOrthogonal}, {@link linkRoutingSmooth}).
+ * Options shared by every link routing preset.
  * @group Types
  */
 export interface BaseLinkOptions {

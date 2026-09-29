@@ -66,9 +66,8 @@ export type PaperOptions = Omit<dia.Paper.Options, 'cellVisibility'>;
  * native types via indexed access (`dia.Paper.Options['name']`), so any
  * type-level change in JointJS propagates automatically. Anything not listed
  * here is reachable via the `options` escape hatch, never implicitly exposed.
- * @group Types
  */
-export interface PaperSupportedOptions {
+interface PaperSupportedOptions {
   // ── Wrapped (structured) ─────────────────────────────────────────────────
 
   /**
@@ -529,7 +528,6 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
    * `PaperView` is an internally-managed instance, not a public, importable type;
    * you normally receive it from another joint-react construct (such as a stencil)
    * rather than constructing it yourself.
-   * @internal
    */
   readonly paper?: PaperView;
 }

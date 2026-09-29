@@ -11,7 +11,6 @@ import {
 } from './use-cell-drag.utils';
 import { usePaper } from './use-paper';
 
-// Fields shared by `CellDragStateDragging` and `CellDragStateIdle`.
 interface CellDragStateBase {
   /** True when cell is being dragged. */
   readonly isDragging: boolean;

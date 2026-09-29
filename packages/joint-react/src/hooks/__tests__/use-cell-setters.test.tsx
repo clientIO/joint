@@ -12,7 +12,11 @@ import {
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE, ElementModel } from '../../mvc/element-model';
 import { LINK_MODEL_TYPE, LinkModel } from '../../mvc/link-model';
-import type { AnyCellRecord, CellRecord, ElementRecord } from '../../types/cell.types';
+import type {
+  AnyCellRecord,
+  CellRecord,
+  ElementRecord,
+} from '../../types/cell.types';
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
@@ -70,10 +74,7 @@ const appendFromUpdater = new ElementModel({
   position: { x: 0, y: 0 },
   size: { width: 10, height: 10 },
 });
-const appendDiaCellUpdater = (previous: readonly AnyCellRecord[]) => [
-  ...previous,
-  appendFromUpdater,
-];
+const appendDiaCellUpdater = (previous: readonly AnyCellRecord[]) => [...previous, appendFromUpdater];
 
 const updateLink = new LinkModel({
   id: 'update-link',
@@ -107,9 +108,10 @@ const incrementNodeDataCount = (previous: NodeData): NodeData => ({
 describe('use-cell-setters', () => {
   describe('useSetCell — happy paths', () => {
     it('adds a cell via the direct form when the id is missing on the graph', async () => {
-      const { result } = renderHook(() => ({ setCell: useSetCell(), store: useGraphStore() }), {
-        wrapper,
-      });
+      const { result } = renderHook(
+        () => ({ setCell: useSetCell(), store: useGraphStore() }),
+        { wrapper }
+      );
       await waitFor(() => expect(result.current).toBeDefined());
       await act(async () => {
         result.current.setCell({
@@ -124,9 +126,10 @@ describe('use-cell-setters', () => {
     });
 
     it('merges a partial record via the direct form when the id exists (lines 68–75)', async () => {
-      const { result } = renderHook(() => ({ setCell: useSetCell(), store: useGraphStore() }), {
-        wrapper,
-      });
+      const { result } = renderHook(
+        () => ({ setCell: useSetCell(), store: useGraphStore() }),
+        { wrapper }
+      );
       await waitFor(() => expect(result.current).toBeDefined());
       await act(async () => {
         result.current.setCell({
@@ -141,9 +144,10 @@ describe('use-cell-setters', () => {
     });
 
     it('updater form applies the updater to the existing record (line 111)', async () => {
-      const { result } = renderHook(() => ({ setCell: useSetCell(), store: useGraphStore() }), {
-        wrapper,
-      });
+      const { result } = renderHook(
+        () => ({ setCell: useSetCell(), store: useGraphStore() }),
+        { wrapper }
+      );
       await waitFor(() => expect(result.current).toBeDefined());
       await act(async () => {
         result.current.setCell('a', setCellAUpdater);
@@ -156,9 +160,10 @@ describe('use-cell-setters', () => {
   describe('useSetCell — missing target warns and no-ops', () => {
     it('warns and no-ops when called with a record that has no `id`', async () => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      const { result } = renderHook(() => ({ setCell: useSetCell(), store: useGraphStore() }), {
-        wrapper,
-      });
+      const { result } = renderHook(
+        () => ({ setCell: useSetCell(), store: useGraphStore() }),
+        { wrapper }
+      );
       await waitFor(() => expect(result.current).toBeDefined());
       const before = result.current.store.graph.getCells().length;
       await act(async () => {
@@ -428,9 +433,10 @@ describe('use-cell-setters', () => {
 
   describe('useSetCell — dia.Cell acceptance', () => {
     it('adds an ElementModel via the direct form', async () => {
-      const { result } = renderHook(() => ({ setCell: useSetCell(), store: useGraphStore() }), {
-        wrapper,
-      });
+      const { result } = renderHook(
+        () => ({ setCell: useSetCell(), store: useGraphStore() }),
+        { wrapper }
+      );
       await waitFor(() => expect(result.current).toBeDefined());
       const diaElement = new ElementModel({
         id: 'dia-new',
@@ -449,9 +455,10 @@ describe('use-cell-setters', () => {
     });
 
     it('adds a shapes.standard.Rectangle via the direct form', async () => {
-      const { result } = renderHook(() => ({ setCell: useSetCell(), store: useGraphStore() }), {
-        wrapper,
-      });
+      const { result } = renderHook(
+        () => ({ setCell: useSetCell(), store: useGraphStore() }),
+        { wrapper }
+      );
       await waitFor(() => expect(result.current).toBeDefined());
       const rect = new shapes.standard.Rectangle({
         id: 'rect-new',
@@ -469,9 +476,10 @@ describe('use-cell-setters', () => {
     });
 
     it('merges a dia.Cell over an existing cell with the same id', async () => {
-      const { result } = renderHook(() => ({ setCell: useSetCell(), store: useGraphStore() }), {
-        wrapper,
-      });
+      const { result } = renderHook(
+        () => ({ setCell: useSetCell(), store: useGraphStore() }),
+        { wrapper }
+      );
       await waitFor(() => expect(result.current).toBeDefined());
       const updated = new ElementModel({
         id: 'a',

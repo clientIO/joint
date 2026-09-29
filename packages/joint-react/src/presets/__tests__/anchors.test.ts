@@ -219,7 +219,14 @@ describe('presets / anchors / midSideAnchor', () => {
       const anchor = midSideAnchor('auto', 5, 0);
       const portMagnet = ctx.targetView.findPortNode('pin1') as SVGElement;
       const refPoint = new g.Point(50, 50);
-      const point = anchor(ctx.targetView, portMagnet, refPoint, {} as any, 'source', ctx.linkView);
+      const point = anchor(
+        ctx.targetView,
+        portMagnet,
+        refPoint,
+        {} as any,
+        'source',
+        ctx.linkView
+      );
       expect(point).toBeDefined();
       // Source side uses sourceOffset=5
     } finally {
@@ -233,7 +240,14 @@ describe('presets / anchors / midSideAnchor', () => {
       const anchor = midSideAnchor('auto', 0, 7);
       const portMagnet = ctx.targetView.findPortNode('pin1') as SVGElement;
       const refPoint = new g.Point(50, 50);
-      const point = anchor(ctx.targetView, portMagnet, refPoint, {} as any, 'target', ctx.linkView);
+      const point = anchor(
+        ctx.targetView,
+        portMagnet,
+        refPoint,
+        {} as any,
+        'target',
+        ctx.linkView
+      );
       expect(point).toBeDefined();
     } finally {
       ctx.cleanup();
@@ -247,7 +261,14 @@ describe('presets / anchors / midSideAnchor', () => {
       const anchor = midSideAnchor('auto', 0, 0);
       const portMagnet = ctx.targetView.findPortNode('pin1') as SVGElement;
       const refPoint = new g.Point(50, 50);
-      const point = anchor(ctx.targetView, portMagnet, refPoint, {} as any, 'target', ctx.linkView);
+      const point = anchor(
+        ctx.targetView,
+        portMagnet,
+        refPoint,
+        {} as any,
+        'target',
+        ctx.linkView
+      );
       expect(point).toBeDefined();
     } finally {
       ctx.cleanup();
@@ -303,7 +324,14 @@ describe('presets / anchors / midSideAnchor', () => {
       const anchor = midSideAnchor('auto', 0, 0);
       const portMagnet = ctx.targetView.findPortNode('pin1') as SVGElement;
       const refPoint = new g.Point(50, 50);
-      const point = anchor(ctx.targetView, portMagnet, refPoint, {} as any, 'target', ctx.linkView);
+      const point = anchor(
+        ctx.targetView,
+        portMagnet,
+        refPoint,
+        {} as any,
+        'target',
+        ctx.linkView
+      );
       expect(point).toBeDefined();
     } finally {
       ctx.cleanup();

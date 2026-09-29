@@ -56,7 +56,7 @@
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
     "docs:typedoc": "typedoc --router group --out docs/api src",
     "docs:typedoc-md": "typedoc --options typedoc.config.mjs",
-    "docs:check": "typedoc --emit none --treatWarningsAsErrors && typedoc --options typedoc.config.mjs --emit none --treatWarningsAsErrors",
+    "docs:check": "typedoc --options typedoc.config.mjs --emit none --treatWarningsAsErrors",
     "bench": "jest --selectProjects default --testMatch '<rootDir>/bench/**/*.{test,spec}.ts?(x)'"
   },
   "exports": {

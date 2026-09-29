@@ -10,9 +10,7 @@ import { CellIdContext, GraphStoreContext, PaperStoreContext } from '../../../..
 import { ELEMENT_MODEL_TYPE } from '../../../../mvc/element-model';
 import type { CellRecord, CellId } from '../../../../types/cell.types';
 
-const RenderEmpty: ComponentType<Record<string, unknown>> = () => (
-  <span data-testid="render-empty" />
-);
+const RenderEmpty: ComponentType<Record<string, unknown>> = () => <span data-testid="render-empty" />;
 
 const CELLS: readonly CellRecord[] = [
   {
@@ -29,11 +27,7 @@ const CELLS: readonly CellRecord[] = [
  * can re-mount SVG / HTML element items with `portalElement={null}` for the
  * defensive guard branches.
  */
-function StoreCapture({
-  onCapture,
-}: {
-  readonly onCapture: (graph: unknown, paper: unknown) => void;
-}) {
+function StoreCapture({ onCapture }: { readonly onCapture: (graph: unknown, paper: unknown) => void }) {
   const graphStore = useContext(GraphStoreContext);
   const paperStore = useContext(PaperStoreContext);
   if (graphStore && paperStore) onCapture(graphStore, paperStore);
@@ -69,7 +63,11 @@ describe('paper-element-item exports', () => {
           value={capturedPaper as React.ContextType<typeof PaperStoreContext>}
         >
           <CellIdContext.Provider value={'one' as CellId}>
-            <SVGElementItem renderElement={RenderEmpty} portalElement={null} areElementsMeasured />
+            <SVGElementItem
+              renderElement={RenderEmpty}
+              portalElement={null}
+              areElementsMeasured
+            />
           </CellIdContext.Provider>
         </PaperStoreContext.Provider>
       </GraphStoreContext.Provider>
@@ -103,7 +101,11 @@ describe('paper-element-item exports', () => {
           value={capturedPaper as React.ContextType<typeof PaperStoreContext>}
         >
           <CellIdContext.Provider value={'one' as CellId}>
-            <HTMLElementItem renderElement={RenderEmpty} portalElement={null} areElementsMeasured />
+            <HTMLElementItem
+              renderElement={RenderEmpty}
+              portalElement={null}
+              areElementsMeasured
+            />
           </CellIdContext.Provider>
         </PaperStoreContext.Provider>
       </GraphStoreContext.Provider>
@@ -152,9 +154,7 @@ describe('paper-element-item exports', () => {
     );
 
     // Placeholder wrapper should still be created with id and zero geometry.
-    const wrapper = portalTarget.querySelector(
-      'div[model-id="missing-cell-id"]'
-    ) as HTMLDivElement | null;
+    const wrapper = portalTarget.querySelector('div[model-id="missing-cell-id"]') as HTMLDivElement | null;
     expect(wrapper).toBeTruthy();
     expect(wrapper?.style.width).toBe('0px');
     expect(wrapper?.style.height).toBe('0px');

@@ -27,8 +27,8 @@ type CellsResult<Cell extends AnyCellRecord, Selected> =
 type UnknownEqual = (a: unknown, b: unknown) => boolean;
 
 /**
- * Selector over the resolved cells array, the array forms of {@link useCells}.
- * Return a primitive or an existing record: a fresh array or object on every
+ * Selector over the resolved cells array (the array forms of {@link useCells}).
+ * Return a primitive or an existing record, a fresh array or object on every
  * call defeats the equality bail-out (pass `isEqual` for derived arrays).
  * @template Cell - the cell record shape
  * @template Selected - the selected value
@@ -296,7 +296,11 @@ export function useCells<
   const { targetId, ids, arraySelector, cellSelector, isEqual } = parseUseCellsArgs<
     Computed<Cell>,
     Selected
-  >(argument1, argument2, argument3);
+  >(
+    argument1,
+    argument2,
+    argument3
+  );
   const hasSelector = arraySelector !== undefined || cellSelector !== undefined;
 
   const arraySelectorRef = useRef(arraySelector);

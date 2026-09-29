@@ -16,7 +16,14 @@ function setup() {
   return { graph, view };
 }
 
-function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50): void {
+function addElement(
+  graph: dia.Graph,
+  id: string,
+  x = 10,
+  y = 20,
+  width = 100,
+  height = 50
+): void {
   graph.addCell({ id, type: ELEMENT_MODEL_TYPE, position: { x, y }, size: { width, height } });
 }
 
@@ -92,7 +99,7 @@ describe('graphProjection — elements data reflects graph state', () => {
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
 
-    expect(getElement(graph, view, 'el-1')).toEqual(
+    expect(getElement(graph, view,'el-1')).toEqual(
       expect.objectContaining({ position: { x: 10, y: 20 }, size: { width: 100, height: 50 } })
     );
     view.destroy();
@@ -106,7 +113,7 @@ describe('graphProjection — elements data reflects graph state', () => {
     (graph.getCell('el-1') as dia.Element).position(50, 60);
     await flush();
 
-    expect(getElement(graph, view, 'el-1')).toEqual(
+    expect(getElement(graph, view,'el-1')).toEqual(
       expect.objectContaining({ position: { x: 50, y: 60 } })
     );
     view.destroy();
@@ -120,7 +127,7 @@ describe('graphProjection — elements data reflects graph state', () => {
     (graph.getCell('el-1') as dia.Element).resize(200, 150);
     await flush();
 
-    expect(getElement(graph, view, 'el-1')).toEqual(
+    expect(getElement(graph, view,'el-1')).toEqual(
       expect.objectContaining({ size: { width: 200, height: 150 } })
     );
     view.destroy();
@@ -143,10 +150,10 @@ describe('graphProjection — elements data reflects graph state', () => {
     addElement(graph, 'el-1', 10, 20);
     await flush();
 
-    const before = getElement(graph, view, 'el-1');
+    const before = getElement(graph, view,'el-1');
     (graph.getCell('el-1') as dia.Element).set('data', { label: 'changed' });
     await flush();
-    const after = getElement(graph, view, 'el-1');
+    const after = getElement(graph, view,'el-1');
 
     expect(after).not.toBe(before);
     view.destroy();
@@ -160,7 +167,7 @@ describe('graphProjection — elements data reflects graph state', () => {
     (graph.getCell('el-1') as dia.Element).rotate(45);
     await flush();
 
-    expect(getElement(graph, view, 'el-1')).toEqual(expect.objectContaining({ angle: 45 }));
+    expect(getElement(graph, view,'el-1')).toEqual(expect.objectContaining({ angle: 45 }));
     view.destroy();
   });
 
@@ -169,10 +176,10 @@ describe('graphProjection — elements data reflects graph state', () => {
     addElement(graph, 'el-1', 10, 20);
     await flush();
 
-    const before = getElement(graph, view, 'el-1');
+    const before = getElement(graph, view,'el-1');
     (graph.getCell('el-1') as dia.Element).position(10, 20);
     await flush();
-    const after = getElement(graph, view, 'el-1');
+    const after = getElement(graph, view,'el-1');
 
     expect(after).toEqual(before);
     view.destroy();
@@ -200,10 +207,10 @@ describe('graphProjection — elements data reflects graph state', () => {
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
 
-    const before = getElement(graph, view, 'el-1');
+    const before = getElement(graph, view,'el-1');
     (graph.getCell('el-1') as dia.Element).position(50, 60);
     await flush();
-    const after = getElement(graph, view, 'el-1');
+    const after = getElement(graph, view,'el-1');
 
     expect(after).not.toBe(before);
     view.destroy();
@@ -218,7 +225,7 @@ describe('graphProjection — links data reflects graph state', () => {
     addLink(graph, 'link-1', 'el-1', 'el-2');
     await flush();
 
-    expect(getLink(graph, view, 'link-1')).toBeDefined();
+    expect(getLink(graph, view,'link-1')).toBeDefined();
     view.destroy();
   });
 
@@ -346,7 +353,7 @@ describe('graphProjection — reset', () => {
     ]);
     await flush();
 
-    expect(getElement(graph, view, 'el-3')).toEqual(
+    expect(getElement(graph, view,'el-3')).toEqual(
       expect.objectContaining({ position: { x: 5, y: 5 }, size: { width: 50, height: 50 } })
     );
     view.destroy();
@@ -392,7 +399,7 @@ describe('graphProjection — link propagation', () => {
     addLink(graph, 'link-1', 'el-1', 'el-2');
     await flush();
 
-    const link = getLink(graph, view, 'link-1');
+    const link = getLink(graph, view,'link-1');
     expect(link).toBeDefined();
     expect(link?.source).toEqual({ id: 'el-1' });
     expect(link?.target).toEqual({ id: 'el-2' });
@@ -465,7 +472,7 @@ describe('graphProjection — controlled-mode updateGraph round-trip', () => {
     expect(countElements(graph, view)).toBe(2);
     expect(view.cells.get('a')).toBeDefined();
     expect(view.cells.get('b')).toBeDefined();
-    expect(getElement(graph, view, 'a')?.position).toEqual({ x: 100, y: 100 });
+    expect(getElement(graph, view,'a')?.position).toEqual({ x: 100, y: 100 });
     expect(countLinks(graph, view)).toBe(1);
     view.destroy();
   });
@@ -477,13 +484,13 @@ describe('graphProjection — selective reference stability', () => {
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
 
-    const before = getElement(graph, view, 'el-1')!;
+    const before = getElement(graph, view,'el-1')!;
     const dataBefore = before.data;
 
     (graph.getCell('el-1') as dia.Element).position(50, 60);
     await flush();
 
-    const after = getElement(graph, view, 'el-1')!;
+    const after = getElement(graph, view,'el-1')!;
     expect(after.position).toEqual({ x: 50, y: 60 });
     expect(after.data).toBe(dataBefore);
     view.destroy();
@@ -494,13 +501,13 @@ describe('graphProjection — selective reference stability', () => {
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
 
-    const before = getElement(graph, view, 'el-1')!;
+    const before = getElement(graph, view,'el-1')!;
     const positionBefore = before.position;
 
     (graph.getCell('el-1') as dia.Element).set('data', { label: 'changed' });
     await flush();
 
-    const after = getElement(graph, view, 'el-1')!;
+    const after = getElement(graph, view,'el-1')!;
     expect(after.data).toEqual({ label: 'changed' });
     expect(after.position).toBe(positionBefore);
     view.destroy();
@@ -511,13 +518,13 @@ describe('graphProjection — selective reference stability', () => {
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
 
-    const before = getElement(graph, view, 'el-1')!;
+    const before = getElement(graph, view,'el-1')!;
     const sizeBefore = before.size;
 
     (graph.getCell('el-1') as dia.Element).position(50, 60);
     await flush();
 
-    const after = getElement(graph, view, 'el-1')!;
+    const after = getElement(graph, view,'el-1')!;
     expect(after.size).toBe(sizeBefore);
     view.destroy();
   });
@@ -533,7 +540,7 @@ describe('graphProjection — selective reference stability', () => {
     });
     await flush();
 
-    const element = getElement(graph, view, 'el-1')!;
+    const element = getElement(graph, view,'el-1')!;
     expect(element.position).toEqual({ x: 10, y: 20 });
     expect(element.size).toEqual({ width: 200, height: 100 });
     expect(element.data).toEqual({ label: 'Hello' });
@@ -554,7 +561,7 @@ describe('graphProjection — selective reference stability', () => {
     (graph.getCell('el-1') as dia.Element).set('attrs', { body: { fill: 'red' } });
     await flush();
 
-    const element = getElement(graph, view, 'el-1')!;
+    const element = getElement(graph, view,'el-1')!;
     expect(element.position).toEqual({ x: 10, y: 20 });
     expect(element.size).toEqual({ width: 200, height: 100 });
     expect(element.data).toEqual({ label: 'Hello' });
@@ -574,7 +581,7 @@ describe('graphProjection — LAYOUT_UPDATE_EVENT path', () => {
     });
     await flush();
 
-    const before = getElement(graph, view, 'el-1')!;
+    const before = getElement(graph, view,'el-1')!;
     expect(before.size).toEqual({ width: 200, height: 100 });
 
     const cell = graph.getCell('el-1') as dia.Element;
@@ -585,7 +592,7 @@ describe('graphProjection — LAYOUT_UPDATE_EVENT path', () => {
     await flush();
     await flush();
 
-    const after = getElement(graph, view, 'el-1')!;
+    const after = getElement(graph, view,'el-1')!;
     expect(after.size).toEqual({ width: 200, height: 100 });
     expect(after.position).toEqual({ x: 10, y: 20 });
     expect(after.data).toEqual({ label: 'Hello' });
@@ -603,7 +610,7 @@ describe('graphProjection — LAYOUT_UPDATE_EVENT path', () => {
     });
     await flush();
 
-    expect(getElement(graph, view, 'el-1')!.size).toEqual({ width: 100, height: 50 });
+    expect(getElement(graph, view,'el-1')!.size).toEqual({ width: 100, height: 50 });
 
     const cell = graph.getCell('el-1') as dia.Element;
     graph.startBatch('resize');
@@ -612,7 +619,7 @@ describe('graphProjection — LAYOUT_UPDATE_EVENT path', () => {
     graph.stopBatch('resize');
     await flush();
 
-    const after = getElement(graph, view, 'el-1')!;
+    const after = getElement(graph, view,'el-1')!;
     expect(after.size).toEqual({ width: 300, height: 200 });
     expect(after.position).toEqual({ x: 15, y: 25 });
     expect(after.data).toEqual({ label: 'Resize me' });
@@ -637,7 +644,7 @@ describe('graphProjection — LAYOUT_UPDATE_EVENT path', () => {
     graph.stopBatch('resize');
     await flush();
 
-    const element = getElement(graph, view, 'el-1')!;
+    const element = getElement(graph, view,'el-1')!;
     expect(element.position).toEqual({ x: 50, y: 60 });
     expect(element.size).toEqual({ width: 300, height: 200 });
     view.destroy();
@@ -661,7 +668,7 @@ describe('graphProjection — LAYOUT_UPDATE_EVENT path', () => {
     });
     await flush();
 
-    expect(getElement(graph, view, 'el-1')!.size).toEqual({ width: 150, height: 80 });
+    expect(getElement(graph, view,'el-1')!.size).toEqual({ width: 150, height: 80 });
 
     const cell = graph.getCell('el-1') as dia.Element;
     const layoutChanges = new Map([['el-1', { type: 'add' as const, data: cell }]]);
@@ -669,7 +676,7 @@ describe('graphProjection — LAYOUT_UPDATE_EVENT path', () => {
     await flush();
     await flush();
 
-    const after = getElement(graph, view, 'el-1')!;
+    const after = getElement(graph, view,'el-1')!;
     expect(after.size).toEqual({ width: 150, height: 80 });
     expect(after.position).toEqual({ x: 50, y: 60 });
     expect(after.data).toEqual({ label: 'Test' });
@@ -689,7 +696,7 @@ describe('graphProjection — embedding', () => {
     parent.embed(child);
     await flush();
 
-    expect(getElement(graph, view, 'child-1')).toEqual(
+    expect(getElement(graph, view,'child-1')).toEqual(
       expect.objectContaining({ parent: 'parent-1' })
     );
     view.destroy();
@@ -706,12 +713,12 @@ describe('graphProjection — embedding', () => {
     parent.embed(child);
     await flush();
 
-    expect(getElement(graph, view, 'child-1')?.parent).toBe('parent-1');
+    expect(getElement(graph, view,'child-1')?.parent).toBe('parent-1');
 
     parent.unembed(child);
     await flush();
 
-    expect(getElement(graph, view, 'child-1')?.parent).toBeUndefined();
+    expect(getElement(graph, view,'child-1')?.parent).toBeUndefined();
     view.destroy();
   });
 
@@ -726,12 +733,12 @@ describe('graphProjection — embedding', () => {
     parent.embed(child);
     await flush();
 
-    expect(getElement(graph, view, 'parent-1')?.embeds).toEqual(['child-1']);
+    expect(getElement(graph, view,'parent-1')?.embeds).toEqual(['child-1']);
 
     parent.unembed(child);
     await flush();
 
-    const embedsAfter = getElement(graph, view, 'parent-1')?.embeds as string[] | undefined;
+    const embedsAfter = getElement(graph, view,'parent-1')?.embeds as string[] | undefined;
     expect(embedsAfter === undefined || embedsAfter.length === 0).toBe(true);
     view.destroy();
   });

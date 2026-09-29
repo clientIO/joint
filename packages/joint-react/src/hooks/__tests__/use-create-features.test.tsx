@@ -57,11 +57,7 @@ describe('useCreateFeature — paper target lifecycle', () => {
     }));
     const { unmount } = render(
       <GraphProvider initialCells={initialCells}>
-        <Paper
-          style={{ width: 100, height: 100 }}
-          id="features-cleanup-paper"
-          renderElement={noopRender}
-        >
+        <Paper style={{ width: 100, height: 100 }} id="features-cleanup-paper" renderElement={noopRender}>
           <FeaturesProvider target="paper" id="paper-feat-cleanup" onAddFeature={onAdd}>
             <div>cleanup-child</div>
           </FeaturesProvider>
@@ -82,11 +78,7 @@ describe('useCreateFeature — paper target lifecycle', () => {
     }));
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper
-          style={{ width: 100, height: 100 }}
-          id="features-onload-paper"
-          renderElement={noopRender}
-        >
+        <Paper style={{ width: 100, height: 100 }} id="features-onload-paper" renderElement={noopRender}>
           <FeaturesProvider
             target="paper"
             id="paper-feat-onload"
@@ -116,11 +108,7 @@ describe('useCreateFeature — paper target lifecycle', () => {
     function App({ value }: Readonly<{ value: number }>) {
       return (
         <GraphProvider initialCells={initialCells}>
-          <Paper
-            style={{ width: 100, height: 100 }}
-            id="features-update-paper"
-            renderElement={noopRender}
-          >
+          <Paper style={{ width: 100, height: 100 }} id="features-update-paper" renderElement={noopRender}>
             <FeaturesProvider
               target="paper"
               id="paper-feat-update"
@@ -158,11 +146,7 @@ describe('useCreateFeature — paper target lifecycle', () => {
     }));
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper
-          style={{ width: 100, height: 100 }}
-          id="features-sync-paper"
-          renderElement={noopRender}
-        >
+        <Paper style={{ width: 100, height: 100 }} id="features-sync-paper" renderElement={noopRender}>
           <FeaturesProvider target="paper" id="paper-feat-sync" onAddFeature={onAdd}>
             <div>sync-child</div>
           </FeaturesProvider>
@@ -192,8 +176,7 @@ describe('useCreateFeature — paper target lifecycle', () => {
     render(
       <GraphProvider initialCells={initialCells}>
         <FeaturesProvider target="paper" id="paper-feat-deferred" onAddFeature={onAdd}>
-          <Paper
-            style={{ width: 100, height: 100 }}
+          <Paper style={{ width: 100, height: 100 }}
             id="features-deferred-paper"
             renderElement={noopRender}
           >

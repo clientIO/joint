@@ -1,11 +1,4 @@
-import type {
-  CellId,
-  CellRecord,
-  ElementRecord,
-  ElementPosition,
-  ElementSize,
-  Computed,
-} from '../types/cell.types';
+import type { CellId, CellRecord, ElementRecord, Computed } from '../types/cell.types';
 
 /**
  * Ready-made selectors to pass into {@link useCell} / {@link useCells}.
@@ -30,7 +23,7 @@ import type {
  * const { x, y } = useCell(elementId, selectElementPosition);
  * ```
  */
-export function selectElementPosition(element: Computed<ElementRecord>): ElementPosition {
+export function selectElementPosition(element: Computed<ElementRecord>) {
   return element.position;
 }
 
@@ -46,7 +39,7 @@ export function selectElementPosition(element: Computed<ElementRecord>): Element
  * const { width, height } = useCell(elementId, selectElementSize);
  * ```
  */
-export function selectElementSize(element: Computed<ElementRecord>): ElementSize {
+export function selectElementSize(element: Computed<ElementRecord>) {
   return element.size;
 }
 
@@ -130,7 +123,8 @@ export const selectCellType = (cell: Computed<CellRecord>) => cell.type;
  * const parentId = useCell(cellId, selectCellParent);
  * ```
  */
-export const selectCellParent = (cell: Computed<CellRecord>): CellId | null => cell.parent ?? null;
+export const selectCellParent = (cell: Computed<CellRecord>): CellId | null =>
+  cell.parent ?? null;
 
 /**
  * Selects the name of the paper layer the cell renders into, or `null` when it
@@ -144,7 +138,8 @@ export const selectCellParent = (cell: Computed<CellRecord>): CellId | null => c
  * const layer = useCell(cellId, selectCellLayer);
  * ```
  */
-export const selectCellLayer = (cell: Computed<CellRecord>): string | null => cell.layer ?? null;
+export const selectCellLayer = (cell: Computed<CellRecord>): string | null =>
+  cell.layer ?? null;
 
 /**
  * Selects a cell's z-index — its paint order within a layer, where higher
@@ -158,4 +153,5 @@ export const selectCellLayer = (cell: Computed<CellRecord>): string | null => ce
  * const z = useCell(cellId, selectCellZIndex);
  * ```
  */
-export const selectCellZIndex = (cell: Computed<CellRecord>): number => cell.z ?? 0;
+export const selectCellZIndex = (cell: Computed<CellRecord>): number =>
+  cell.z ?? 0;

@@ -2,4 +2,4 @@
 "@joint/react": minor
 ---
 
-export the types public signatures reference and stop leaking internal types into the API docs
+types - export the types public signatures reference (`ComputedElementRecord`, `ComputedLinkRecord`, `GraphCellData`, paper event params, ...) so the API docs no longer show internal names

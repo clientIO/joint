@@ -41,9 +41,7 @@ function getBreakTextWidth({ width, graph, cellId }: BreakTextWidthOptions) {
 
   const element = graph.getCell(cellId);
   if (!element.isElement()) {
-    throw new TypeError(
-      'SVGText must be used with useMeasureElement hook to measure the element size'
-    );
+    throw new TypeError('SVGText must be used with useMeasureElement hook to measure the element size');
   }
 
   return element.size().width ?? 0;
@@ -136,6 +134,7 @@ export interface SVGTextProps
   readonly textWrap?: boolean | util.BreakTextOptions;
 }
 
+ 
 function Component(props: SVGTextProps, ref: React.ForwardedRef<SVGTextElement>) {
   const {
     children,
