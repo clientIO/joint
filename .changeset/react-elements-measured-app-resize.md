@@ -2,4 +2,4 @@
 "@joint/react": patch
 ---
 
-useOnElementsMeasured - fix to fire only for measurement writes, not for sizes the application sets itself
+useOnElementsMeasured - fix to fire once per settled change: not for application-written sizes, not while an added element waits to be measured

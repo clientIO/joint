@@ -3,6 +3,7 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
 import { useOnElementsMeasured } from '../use-on-elements-measured';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { AUTO_SIZE_OPTION } from '../../store/graph-store';
 import { useGraphStore } from '../use-graph-store';
 import type { CellRecord } from '../../types/cell.types';
 import type { ElementsMeasuredParams } from '../use-on-elements-measured';
@@ -30,7 +31,7 @@ const wrapper = paperRenderElementWrapper({
 /**
  * Wrapper with zero-size elements (ElementModel defaults).
  * Simulates the flowchart scenario where elements rely on
- * ResizeObserver to set their real size via `fromMeasure`.
+ * ResizeObserver to set their real size via an `autoSize` write.
  */
 const zeroSizeWrapper = paperRenderElementWrapper({
   graphProviderProps: {
@@ -91,12 +92,12 @@ describe('useOnElementsMeasured', () => {
   });
 
   // Regression: ElementModel defaults to size {0,0}. The ResizeObserver
-  // pipeline sets the real size via `cell.set('size', ..., {fromMeasure: true})`.
+  // pipeline sets the real size via `cell.set('size', ..., { autoSize: true })`.
   // Previously, the `change:size` listener in graph-changes.ts skipped
-  // `fromMeasure` writes, so the measured-size never reached the tracking
+  // measurement writes, so the measured size never reached the tracking
   // logic and `useOnElementsMeasured` never fired for elements that relied
   // on DOM measurement (e.g. the flowchart demo).
-  it('fires callback when elements start at zero size and get measured via fromMeasure', async () => {
+  it('fires callback when elements start at zero size and get measured', async () => {
     const callback = jest.fn();
     let graphRef: dia.Graph | undefined;
 
@@ -120,7 +121,7 @@ describe('useOnElementsMeasured', () => {
     // Simulate ResizeObserver setting the real measured size.
     act(() => {
       const cell = graphRef!.getCell('zero-el') as dia.Element;
-      cell.set('size', { width: 100, height: 60 }, { fromMeasure: true } as object);
+      cell.set('size', { width: 100, height: 60 }, { [AUTO_SIZE_OPTION]: true } as object);
     });
 
     await waitFor(() => expect(callback).toHaveBeenCalled());

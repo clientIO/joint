@@ -12,7 +12,10 @@ import { useLatestRef } from './use-latest-ref';
  * @expand
  */
 export interface ElementsMeasuredParams {
-  /** True on the first measurement pass (at least one element has been sized). */
+  /**
+   * True on the first measurement pass (at least one element has been sized),
+   * and again on the first pass after a graph reset (`resetCells()`).
+   */
   readonly isInitial: boolean;
   /** The paper this hook is bound to (the surrounding `<Paper>` context, or the paper passed via `paperTarget`). */
   readonly paper: dia.Paper;
@@ -28,16 +31,20 @@ export interface ElementsMeasuredParams {
 export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
 
 /**
- * Calls a callback when element sizes are measured or re-measured.
+ * Calls a callback once element sizes are known, so a layout can run on them.
  *
- * Fires on the first measurement pass (at least one element has been sized)
- * and again whenever an element is re-measured to a different size. A size the
- * application writes itself (`cell.resize()`, controlled `cells` sync) is not a
- * measurement and does not fire it; listen to `change:size` with
- * {@link useOnGraphEvents} to hear every size change.
+ * Delivers one event per settled change: the first pass (at least one element
+ * has a size), and each later addition or re-measurement, once no element is
+ * still waiting to be measured. An element added without a size waits until
+ * {@link useMeasureElement} (or {@link HTMLHost}) has measured it; a batch
+ * mixing sized and waiting elements is one event, delivered when the last one
+ * is measured. A size the application writes itself (`cell.resize()`,
+ * controlled `cells` sync) is not a measurement and never fires; listen to
+ * `change:size` with {@link useOnGraphEvents} to hear every size change.
  *
- * The callback receives {@link ElementsMeasuredParams}; check `isInitial` to
- * distinguish the first measurement from later ones.
+ * The callback receives {@link ElementsMeasuredParams}; `isInitial` is `true`
+ * for the first event after the hook mounts and again for the first event
+ * after a graph reset (`resetCells()`), which replaces the diagram.
  * @title On the current paper
  * @param callback - Called each time element sizes are measured.
  * @group Hooks
@@ -95,23 +102,26 @@ export function useOnElementsMeasured(
 
   const callbackRef = useLatestRef(callback);
 
-  const { measureState, graph } = useGraphStore();
-  const wasMeasuredRef = useRef(false);
+  const graphStore = useGraphStore();
+  const { measureState, graph } = graphStore;
+  // The `measureGeneration` this hook last reported; a generation it has not
+  // seen yet (mount, graph reset) makes the next event `isInitial`.
+  const reportedGenerationRef = useRef(-1);
   useLayoutEffect(() => {
     if (!paperStore) return;
     const { paper } = paperStore;
     // A new paper (or graph store) starts its own measurement history, so its
     // first pass reports `isInitial: true` again — e.g. after a dev-server hot
     // reload re-created the store, `transformToFitContent()` callers re-fit.
-    wasMeasuredRef.current = false;
+    reportedGenerationRef.current = -1;
 
     function handleChanges() {
-      const value = measureState.get();
-      const isMeasured = value > 0;
-      const isInitial = isMeasured && !wasMeasuredRef.current;
-      if (isInitial) {
-        wasMeasuredRef.current = true;
-      }
+      // A graph reset clears `measureState`; the reset diagram's own first
+      // pass is reported once it settles.
+      if (measureState.get() === 0) return;
+      const { measureGeneration } = graphStore;
+      const isInitial = reportedGenerationRef.current !== measureGeneration;
+      reportedGenerationRef.current = measureGeneration;
       callbackRef.current({ isInitial, paper, graph });
       // The user callback may have moved cells via cell.position()/cell.size().
       // PaperView runs in async mode, so those updates would be queued for the
@@ -129,5 +139,5 @@ export function useOnElementsMeasured(
     return () => {
       unsubscribe();
     };
-  }, [paperStore, measureState, graph, callbackRef]);
+  }, [paperStore, graphStore, measureState, graph, callbackRef]);
 }

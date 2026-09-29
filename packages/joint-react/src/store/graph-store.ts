@@ -109,12 +109,20 @@ export class GraphStore<
   public readonly graphProjection: GraphProjection<Element, Link>;
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<number> = createAtom(0);
+  /**
+   * Incremented by every graph `reset`. `useOnElementsMeasured` reports
+   * `isInitial` for the first `measureState` bump of each generation.
+   */
+  public measureGeneration = 0;
   public readonly graph: dia.Graph;
   public readonly autoSizeOrigin: AutoSizeOrigin;
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
 
   private observer: GraphStoreObserver;
+  /** Elements that arrived without a size and have not been measured yet. */
+  private readonly unmeasuredElements = new Set<CellId>();
+  private readonly scheduleMeasurementDelivery: () => void;
   private onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
   // dev-only `change:size` listener that warns about resizing auto-sized elements.
   private warnAutoSizeResize?: (cell: dia.Cell, size: dia.Size, opt?: AutoSizeOptions) => void;
@@ -148,12 +156,21 @@ export class GraphStore<
       graphFeaturesVersion: 1,
     });
 
-    const elementsMeasured = new Set<CellId>();
-    const onElementSizeChange = () => {
-      if (elementsMeasured.size > 0) {
-        this.measureState.set((previous) => previous + 1);
-      }
+    // Measurement bookkeeping behind `measureState` (see `useOnElementsMeasured`):
+    // one bump per settled change. An element is outstanding from arriving
+    // without a size until a measurement write (`autoSize`), a render that
+    // nothing measures (`markElementRendered`), or its removal. Sizes the
+    // application writes are not measurements and never bump (#3514).
+    const sizedElements = new Set<CellId>();
+    let hasUndeliveredChange = false;
+    const deliverMeasurement = () => {
+      if (!hasUndeliveredChange || this.unmeasuredElements.size > 0) return;
+      // "Measured" means at least one element has a size (`isInitial` contract).
+      if (sizedElements.size === 0) return;
+      hasUndeliveredChange = false;
+      this.measureState.set((previous) => previous + 1);
     };
+    this.scheduleMeasurementDelivery = () => simpleScheduler(deliverMeasurement);
 
     this.graphProjection = graphProjection<Element, Link>({
       graph: this.graph,
@@ -161,25 +178,46 @@ export class GraphStore<
         this.onIncrementalCellsChange?.(changes);
       },
       onElementsSizeChange: (id, size, changeOptions) => {
-        const wasAnyElementMeasured = elementsMeasured.size > 0;
-        // Bookkeeping follows every size change: `isInitial` and
-        // `useAreElementsMeasured` rest on it, whatever wrote the size.
         if (size.width > 0 && size.height > 0) {
-          elementsMeasured.add(id);
+          sizedElements.add(id);
         } else {
-          elementsMeasured.delete(id);
+          sizedElements.delete(id);
         }
-        // Waking the subscribers does not (#3514): an application's own resize
-        // is not a measurement, so only measurement writes (`autoSize`), sizes
-        // arriving with the cell (`add` / `reset`) and the first element to get
-        // a size bump `measureState`.
-        const isApplicationResize = changeOptions !== undefined && !changeOptions[AUTO_SIZE_OPTION];
-        if (isApplicationResize && wasAnyElementMeasured) return;
-        simpleScheduler(onElementSizeChange);
+        if (changeOptions === undefined) {
+          // The size arrived with the cell (`add` / `reset`): an unsized element
+          // is waiting for its measurement, even if the application sizes it
+          // meanwhile (the measurement overwrites that write anyway).
+          if (!sizedElements.has(id)) this.unmeasuredElements.add(id);
+        } else if (changeOptions[AUTO_SIZE_OPTION]) {
+          this.unmeasuredElements.delete(id);
+        } else {
+          return;
+        }
+        hasUndeliveredChange = true;
+        this.scheduleMeasurementDelivery();
+      },
+      onElementRemove: (id) => {
+        sizedElements.delete(id);
+        if (this.unmeasuredElements.delete(id)) this.scheduleMeasurementDelivery();
+      },
+      onReset: () => {
+        // The reset replaces the diagram: its first settled pass is a new
+        // `isInitial` for `useOnElementsMeasured`, and until then nothing is
+        // measured for `useAreElementsMeasured`.
+        sizedElements.clear();
+        this.unmeasuredElements.clear();
+        hasUndeliveredChange = false;
+        this.measureGeneration += 1;
+        this.measureState.set(0);
       },
     });
 
     this.observer = createElementsSizeObserver({
+      onElementMeasured: (id) => {
+        // Settles an element whose measurement equals the size it already has
+        // (the application pre-sized it): the observer then writes nothing.
+        if (this.unmeasuredElements.delete(id)) this.scheduleMeasurementDelivery();
+      },
       getElements: () => {
         // The observer only cares about element-typed cells. Build a Map on
         // demand from the unified cells container — cold path, called only
@@ -441,6 +479,19 @@ export class GraphStore<
   };
 
   public setMeasuredNode = (options: SetMeasuredNodeOptions) => this.observer.add(options);
+
+  /**
+   * An element's React content committed. Called by the element portal item
+   * after its subtree's layout effects, so an element that registered for
+   * measurement (`useMeasureElement`) is still outstanding, while one that
+   * arrived without a size and nothing measures is settled now.
+   * @param id - the rendered element
+   */
+  public markElementRendered = (id: CellId) => {
+    if (!this.unmeasuredElements.has(id) || this.observer.has(id)) return;
+    this.unmeasuredElements.delete(id);
+    this.scheduleMeasurementDelivery();
+  };
   public getPaperStore = (id: string) => {
     return this.paperStores.get(id);
   };
