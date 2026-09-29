@@ -19,34 +19,29 @@ export const graphJSON: dia.Graph.JSON = {
         {
             id: 'frontend',
             type: 'example.Container',
-            attrs: { label: { text: 'Client Layer' } },
-            embeds: ['webui', 'mobileui', 'edge']
+            attrs: { label: { text: 'Client Layer' } }
         },
         {
             id: 'edge',
             type: 'example.Container',
             parent: 'frontend',
-            attrs: { label: { text: 'Edge' } },
-            embeds: ['lb', 'gateway']
+            attrs: { label: { text: 'Edge' } }
         },
         {
             id: 'backend',
             type: 'example.Container',
-            attrs: { label: { text: 'Core Services' } },
-            embeds: ['auth', 'storage']
+            attrs: { label: { text: 'Core Services' } }
         },
         {
             id: 'storage',
             type: 'example.Container',
             parent: 'backend',
-            attrs: { label: { text: 'Data Layer' } },
-            embeds: ['cache', 'db']
+            attrs: { label: { text: 'Data Layer' } }
         },
         {
             id: 'observability',
             type: 'example.Container',
-            attrs: { label: { text: 'Observability' } },
-            embeds: ['monitoring']
+            attrs: { label: { text: 'Observability' } }
         },
 
         // Client Layer
