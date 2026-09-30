@@ -47,7 +47,7 @@ const { bbox } = await layout(graph, {
 ### `layout(graph, options?): Promise<LayoutResult>`
 
 - `graph`: `dia.Graph` - the graph to lay out.
-- `options?`: `Options` - layout configuration (see below).
+- `options?`: `LayoutOptions` - layout configuration (see below).
 
 ```ts
 interface LayoutResult {
@@ -56,10 +56,10 @@ interface LayoutResult {
 }
 ```
 
-### `Options`
+### `LayoutOptions`
 
 ```ts
-interface Options {
+interface LayoutOptions {
     // A custom ELK instance, e.g. one configured to run inside a Web Worker.
     elk?: ELK; // Default: a shared, main-thread instance (`elkjs/lib/elk.bundled.js`)
     // ELK layout options, passed through to ELK unmodified.

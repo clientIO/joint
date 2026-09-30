@@ -22,7 +22,7 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
     'elk.layered.considerModelOrder.portModelOrder': 'true'
 };
 
-const DEFAULT_OPTIONS: Options = {
+const DEFAULT_OPTIONS: LayoutOptions = {
     batchName: LAYOUT_BATCH_NAME,
 };
 
@@ -31,7 +31,7 @@ let defaultElk: ELK | undefined;
 /**
  * Layout configuration options.
  */
-export interface Options extends ImportLayoutOptions, ExportGraphOptions {
+export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
 
     /**
      * A custom ELK instance, e.g. one configured to run inside a Web Worker.
@@ -79,9 +79,9 @@ function getBBox(elkGraph: ElkNode): g.Rect {
     return g.Rect.fromRectUnion(...rects) || new g.Rect(0, 0, 0, 0);
 }
 
-export async function layout(graph: dia.Graph, opt?: Options): Promise<LayoutResult> {
+export async function layout(graph: dia.Graph, opt?: LayoutOptions): Promise<LayoutResult> {
 
-    const options = util.defaults({}, opt || {}, DEFAULT_OPTIONS) as Options;
+    const options = util.defaults({}, opt || {}, DEFAULT_OPTIONS) as LayoutOptions;
     const elkLayoutOptions = util.defaults(
         {},
         opt?.elkLayoutOptions || {},
