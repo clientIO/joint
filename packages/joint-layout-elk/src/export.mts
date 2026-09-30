@@ -26,6 +26,7 @@ export interface ElkLabelDraft {
     layoutOptions: LabelElkLayoutOptions;
 }
 
+/** An ELK node draft, one per JointJS element. */
 export interface ElkNodeDraft {
     readonly id: string;
     /** Relative to the parent node. */
@@ -53,6 +54,7 @@ export type ExportElementCallbackParameters = {
     elkNode: ElkNodeDraft;
 };
 
+/** An ELK port draft, one per JointJS port. */
 export interface ElkPortDraft {
     readonly id: string;
     x: number;
@@ -74,6 +76,7 @@ export type ExportPortCallbackParameters = {
     elkPort: ElkPortDraft;
 };
 
+/** An ELK edge draft, one per JointJS link. */
 export interface ElkEdgeDraft {
     readonly id: string;
     layoutOptions: EdgeElkLayoutOptions;
@@ -251,7 +254,6 @@ function buildElkNode(element: dia.Element): ElkNode | null {
         layoutOptions: {}
     };
 
-    // If exportElement() returns false omit the element
     if (exportGraphOptions.exportElement?.({ element, elkNode }) === false)
         return null;
 
@@ -285,6 +287,8 @@ function getAncestorPath(element: dia.Element): string[] {
     return element.getAncestors().reverse().map((cell) => `${cell.id}`);
 }
 
+// The id shared by the last matching entries of two ancestor paths (or `undefined` if
+// they don't share a root, i.e. one of them is the top-level root itself).
 function getLowestCommonAncestorId(sourcePath: string[], targetPath: string[]): string | undefined {
     let commonId: string | undefined;
     const length = Math.min(sourcePath.length, targetPath.length);
@@ -334,10 +338,8 @@ function buildEdge(link: dia.Link): void {
     linksById.set(id, link);
 
     // Resolved (`link.getComputedLabels()`) - `size` falls back through `defaultLabel`/the
-    // built-in default the same way `@joint/core` itself resolves it for rendering, and a
-    // custom `elkLayoutOptionsProperty` property passes through too (whether set on the
-    // label itself or on `defaultLabel` - see `Link#getComputedLabels`), so it can be read
-    // directly here instead of from the label's raw JSON.
+    // built-in default the same way `@joint/core` itself resolves it for rendering, so it
+    // can be read directly here instead of from the label's raw JSON.
     const resolvedLabels = link.getComputedLabels();
     let labels: ElkLabel[] = [];
     if (resolvedLabels.length > 0) {
