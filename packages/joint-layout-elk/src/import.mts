@@ -3,6 +3,7 @@ import type { ElkPoint } from 'elkjs';
 import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
 import type { ElkGraphPort } from './export.mjs';
 
+/** Applies the ELK-computed position (and, for a container, size) to `element`. */
 export type SetElementAttributesCallback = (params: SetElementAttributesCallbackParameters) => void;
 export type SetElementAttributesCallbackParameters = {
     element: dia.Element;
@@ -15,6 +16,7 @@ export type SetElementAttributesCallbackParameters = {
     elkNode: ElkNode
 };
 
+/** Applies the ELK-computed position (and, for a labeled port, label position) to a port. */
 export type SetPortAttributesCallback = (params: SetPortAttributesCallbackParameters) => void;
 export type SetPortAttributesCallbackParameters = {
     element: dia.Element;
@@ -23,14 +25,14 @@ export type SetPortAttributesCallbackParameters = {
     // `position.args`/`label.position.args` (a group's `position`/`label.position`
     // decides which layout function reads them - handled separately, see `importNode`).
     attributes: {
-        // Present only when `portsPosition` is not 'fixed' - nothing to apply otherwise.
-        position?: { args: dia.Point };
-        // Present only when `positionPortLabels` is enabled and the port has a label.
+        position: { args: dia.Point };
+        // Present only when the port has a label.
         label?: { position: { args: dia.Point } };
     };
     elkPort: ElkPort
 };
 
+/** Applies the ELK-computed vertices, end anchors and label positions to a link. */
 export type SetLinkAttributesCallback = (params: SetLinkAttributesCallbackParameters) => void;
 export type SetLinkAttributesCallbackParameters = {
     link: dia.Link;
@@ -42,8 +44,8 @@ export type SetLinkAttributesCallbackParameters = {
         // replaces `source`/`target` outright rather than merging into them.
         source?: dia.Link.EndJSON;
         target?: dia.Link.EndJSON;
-        // Present only when `edgeLabels` is enabled and the link has labels - the whole
-        // current `labels` array, with each routed label's `position` replaced.
+        // Present only when the link has labels - the whole current `labels` array,
+        // with each routed label's `position` replaced.
         labels?: dia.Link.Label[];
     };
     elkEdge: ElkExtendedEdge
@@ -114,6 +116,10 @@ function toAbsolute(point: ElkPoint, containerPosition: dia.Point): dia.Point {
     };
 }
 
+/**
+ * Applies a container's (or the root's) own ELK edges back onto their JointJS links,
+ * via `setLinkAttributes` (or the default).
+ */
 function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: dia.Point = { x: 0, y: 0 }): void {
     const setLinkAttributes = importLayoutOptions.setLinkAttributes ?? defaultSetLinkAttributes;
 
@@ -181,6 +187,10 @@ function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: di
     });
 }
 
+/**
+ * Applies one ELK node's result (position, size, ports) back onto its JointJS element,
+ * then recurses into its children and its own edges.
+ */
 function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }): void {
     const position = toAbsolute({ x: node.x || 0, y: node.y || 0 }, containerPosition);
 
