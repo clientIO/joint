@@ -88,7 +88,7 @@ export async function layout(graph: dia.Graph, opt?: Options): Promise<LayoutRes
         DEFAULT_LAYOUT_OPTIONS
     ) as ElkLayoutOptions;
     const elk = opt?.elk || getDefaultElk();
-    const batchName = options.batchName || LAYOUT_BATCH_NAME;
+    const batchName = options.batchName as string;
 
     const { elkGraph, elementsById, linksById, portsById } = exportGraph(graph, options as ExportGraphOptions, elkLayoutOptions);
 
