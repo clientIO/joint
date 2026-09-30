@@ -26,13 +26,25 @@ type CellsResult<Cell extends AnyCellRecord, Selected> =
 /** Equality function on raw `unknown` values. */
 type UnknownEqual = (a: unknown, b: unknown) => boolean;
 
-/** Selector over the resolved cells array (the array forms of `useCells`). */
-type CellsSelector<Cell extends AnyCellRecord, Selected> = (
+/**
+ * Selector over the resolved cells array (the array forms of {@link useCells}).
+ * Return a primitive or an existing record, a fresh array or object on every
+ * call defeats the equality bail-out (pass `isEqual` for derived arrays).
+ * @template Cell - the cell record shape
+ * @template Selected - the selected value
+ * @group Types
+ */
+export type CellsSelector<Cell extends AnyCellRecord, Selected> = (
   cells: ReadonlyArray<Computed<Cell>>
 ) => Selected;
 
-/** Equality test that short-circuits a re-render when the selected value is unchanged. */
-type SelectedEqual<Selected> = (a: Selected, b: Selected) => boolean;
+/**
+ * Equality test that short-circuits a re-render when the selected value is
+ * unchanged. Defaults to `Object.is`.
+ * @template Selected - the selected value
+ * @group Types
+ */
+export type SelectedEqual<Selected> = (a: Selected, b: Selected) => boolean;
 
 // ── Module-scoped helpers ───────────────────────────────────────────────────
 

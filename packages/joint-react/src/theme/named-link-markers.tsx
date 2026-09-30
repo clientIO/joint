@@ -9,6 +9,20 @@ import {
 } from '../presets/link-markers';
 
 /**
+ * The names of the built-in link markers you can pass to a {@link LinkStyle}:
+ * `'arrow'`, `'arrow-open'`, `'arrow-sunken'`, `'circle'`, `'diamond'`, or
+ * `'none'`.
+ * @group Types
+ */
+export type LinkMarkerName =
+  | 'none'
+  | 'arrow'
+  | 'arrow-open'
+  | 'arrow-sunken'
+  | 'circle'
+  | 'diamond';
+
+/**
  * Built-in marker shapes for links.
  */
 export const namedLinkMarkers = {
@@ -18,15 +32,7 @@ export const namedLinkMarkers = {
   'arrow-sunken': linkMarkerArrowSunken(),
   'circle': linkMarkerCircle(),
   'diamond': linkMarkerDiamond(),
-} as const satisfies Record<string, LinkMarkerRecord | null>;
-
-/**
- * The names of the built-in link markers you can pass to a {@link LinkStyle}:
- * `'arrow'`, `'arrow-open'`, `'arrow-sunken'`, `'circle'`, `'diamond'`, or
- * `'none'`.
- * @group Types
- */
-export type LinkMarkerName = keyof typeof namedLinkMarkers;
+} as const satisfies Record<LinkMarkerName, LinkMarkerRecord | null>;
 
 /**
  * A link endpoint marker, either a built-in {@link LinkMarkerName} or a custom

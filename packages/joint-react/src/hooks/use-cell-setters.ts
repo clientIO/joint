@@ -54,7 +54,7 @@ function writeMergedCell<Element extends ElementJSONInit, Link extends LinkJSONI
  * @template Link - link record shape
  * @group Types
  */
-type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
+export type SetCellUpdater<Element extends ElementJSONInit, Link extends LinkJSONInit> = (
   previous: Element | Link
 ) => Element | Link;
 
@@ -144,7 +144,7 @@ export function useSetCell<
  * @template Data - cell data shape
  * @group Types
  */
-type SetCellDataUpdater<Data> = (previousData: Data) => Data;
+export type SetCellDataUpdater<Data> = (previousData: Data) => Data;
 
 /**
  * Function exposed by {@link GraphApi}.setCellData. Two forms, both keyed by

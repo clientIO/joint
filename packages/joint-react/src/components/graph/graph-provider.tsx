@@ -7,7 +7,10 @@ import type { AutoSizeOrigin } from '../../store/graph-store';
 import type { OnIncrementalCellsChange } from '../../store/graph-projection';
 import type { ElementJSONInit, LinkJSONInit, CellInput } from '../../types/cell.types';
 
-/** Cells array accepted by GraphProvider. */
+/**
+ * Cells array accepted by GraphProvider.
+ * @inline
+ */
 type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> = ReadonlyArray<
   Element | Link
 >;
