@@ -134,7 +134,8 @@ QUnit.module('Attributes', function() {
                 const fontWeight = '800';
                 const letterSpacing = '5px';
                 const textTransform = 'uppercase';
-                const stylesheet = V.createSVGStyle(`
+                const stylesheet = new CSSStyleSheet();
+                stylesheet.replaceSync(`
                     text {
                         font-size: ${fontSize};
                         font-family: ${fontFamily};
@@ -143,7 +144,7 @@ QUnit.module('Attributes', function() {
                         text-transform: ${textTransform};
                     }
                 `);
-                paper.svg.prepend(stylesheet);
+                document.adoptedStyleSheets.push(stylesheet);
 
                 const el = new joint.shapes.standard.Rectangle({
                     attrs: {
@@ -172,7 +173,7 @@ QUnit.module('Attributes', function() {
                         );
                     })));
 
-                stylesheet.remove();
+                document.adoptedStyleSheets.splice(document.adoptedStyleSheets.indexOf(stylesheet), 1);
                 spy.restore();
             });
 

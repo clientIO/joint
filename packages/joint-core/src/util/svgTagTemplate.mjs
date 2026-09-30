@@ -36,6 +36,14 @@ function buildNode(node) {
         ? tagName.toLowerCase()
         : tagName;
 
+    // A `style` attribute is subject to the `style-src-attr` directive, so the
+    // parser leaves the declaration empty under a Content Security Policy that
+    // forbids inline styles. The CSSOM is not governed by it.
+    const styleAttribute = node.getAttribute('style');
+    if (styleAttribute) {
+        style.cssText = styleAttribute;
+    }
+
     const stylesObject = {};
     for (var i = style.length; i--;) {
         var nameString = style[i];

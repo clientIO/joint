@@ -1292,6 +1292,18 @@ const V = (function() {
             // have a `xlink:href` attribute to set the source of the image.
             if (el.getAttributeNS(ns, local) === stringValue) return this;
             el.setAttributeNS(ns, trueName, stringValue);
+        } else if (trueName === 'style' && el.style) {
+            // Assigned through the CSSOM, like the `style` presentation
+            // attribute. A `style` attribute is subject to the
+            // `style-src-attr` directive, so writing one has no effect under a
+            // Content Security Policy that forbids inline styles. Elements
+            // outside the HTML and SVG namespaces expose no `style`, and keep
+            // the attribute.
+            //
+            // Ahead of the unchanged-value check below, because the attribute
+            // can read back as the value being written while the declaration
+            // it stands for is empty, which is what a blocked write leaves.
+            el.style.cssText = stringValue;
         } else {
             // Note: `el.id` reads as an empty string when there is no `id`
             // attribute, so the attribute itself is the only way to tell an

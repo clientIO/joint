@@ -1737,6 +1737,21 @@ export namespace Paper {
     type MeasureNodeCallback = (node: SVGGraphicsElement, cellView: CellView) => g.Rect;
 
     interface Options extends mvc.ViewOptions<Graph>, CellVisibilityOptions, BeforeRenderOptions, AfterRenderOptions {
+
+        /**
+         * Whether the paper injects its `stylesheet`: one rule giving elements
+         * inside a `scalable` group `vector-effect: non-scaling-stroke`.
+         *
+         * Pass `false` when the application sets a Content Security Policy that
+         * forbids inline styles, since the injected `<style>` element is subject
+         * to `style-src-elem` and is dropped.
+         *
+         * Removed in v5, where the paper injects nothing: add the rule to your
+         * own CSS, or set `vector-effect="non-scaling-stroke"` on the elements
+         * inside the group that need it.
+         * @defaultValue true
+         */
+        injectScalableGroupStylesheet?: boolean;
         // appearance
         width?: Dimension;
         height?: Dimension;
@@ -1986,6 +2001,13 @@ export class Paper extends mvc.View<Graph> {
 
     options: Paper.Options;
 
+    /**
+     * CSS injected into the paper's SVG when `injectScalableGroupStylesheet` is
+     * set. Cannot apply under a Content Security Policy that forbids inline
+     * styles.
+     * @deprecated Removed in v5. Apply `vector-effect: non-scaling-stroke` from
+     * your own CSS, or as an attribute on the elements that need it.
+     */
     stylesheet: string;
 
     svg: SVGSVGElement;
