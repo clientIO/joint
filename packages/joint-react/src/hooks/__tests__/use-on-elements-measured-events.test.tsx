@@ -70,6 +70,20 @@ const pending = (id: string): CellRecord =>
     data: { measured: true },
   }) as CellRecord;
 
+/**
+ * Zero-sized on purpose and never measured: a layout anchor, the shape a
+ * `scalable`-free diagram uses to mark a position without drawing anything.
+ * Its size is its real size, not a size it is waiting for.
+ */
+const anchor = (id: string): CellRecord =>
+  ({
+    id,
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 0, y: 0 },
+    size: { width: 0, height: 0 },
+    data: {},
+  }) as CellRecord;
+
 /** One delivered event, reduced to what these tests assert on. */
 interface RecordedEvent {
   readonly isInitial: boolean;
@@ -336,6 +350,49 @@ describe('useOnElementsMeasured — sizes written by the application', () => {
     });
     await flush();
 
+    expect(harness.events).toHaveLength(0);
+
+    reportMeasurement(harness.graph, 'b');
+    await flush();
+
+    expect(harness.events).toHaveLength(1);
+  });
+});
+
+// An element can be zero-sized for good, rather than briefly on its way to a
+// measurement. Nothing will ever give it a size, so treating it as outstanding
+// holds every later batch open and the hook stops firing altogether.
+describe('useOnElementsMeasured — an element that stays zero-sized', () => {
+  it('delivers the seed pass with a zero-sized element in the graph', async () => {
+    const harness = renderGraph([plain('a'), anchor('anchor')]);
+
+    await waitFor(() => expect(harness.events.length).toBeGreaterThan(0));
+    await flush();
+
+    expect(harness.events).toHaveLength(1);
+    expect(harness.events[0].isInitial).toBe(true);
+  });
+
+  it('delivers the batch that adds a zero-sized element', async () => {
+    const harness = renderGraph([plain('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.addCells([plain('b'), anchor('anchor')] as never);
+    });
+    await flush();
+
+    expect(harness.events).toHaveLength(1);
+  });
+
+  it('keeps delivering later batches once a zero-sized element is in the graph', async () => {
+    const harness = renderGraph([plain('a'), anchor('anchor')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.addCell(pending('b') as never);
+    });
+    await flush();
     expect(harness.events).toHaveLength(0);
 
     reportMeasurement(harness.graph, 'b');
