@@ -51,8 +51,8 @@ const flushFrame = () =>
   });
 
 /** Elements flagged in their `data` render through a host that measures itself. */
-const renderElement = ({ measured }: { measured?: boolean }) =>
-  measured ? <HTMLHost>node</HTMLHost> : <rect width={50} height={50} />;
+const renderElement = ({ measured, label = 'node' }: { measured?: boolean; label?: string }) =>
+  measured ? <HTMLHost>{label}</HTMLHost> : <rect width={50} height={50} />;
 
 /** Renders as a plain `<rect>`: nothing measures it, so it is settled on arrival. */
 const plain = (id: string): CellRecord =>
@@ -408,5 +408,99 @@ describe('useOnElementsMeasured — how a waiting element settles', () => {
     await flush();
 
     expect(harness.events).toHaveLength(1);
+  });
+});
+
+// The case the hook exists for in a live diagram: `renderElement` renders
+// something else (a longer label, an expanded card), the node grows, the
+// ResizeObserver reports the new size and the layout runs again. jsdom has no
+// layout, so a local ResizeObserver mock delivers the entry the browser would.
+describe('useOnElementsMeasured — the content of an element changes', () => {
+  class TestResizeObserver {
+    static readonly instances: TestResizeObserver[] = [];
+    readonly observed = new Set<Element>();
+    private readonly callback: ResizeObserverCallback;
+    constructor(callback: ResizeObserverCallback) {
+      this.callback = callback;
+      TestResizeObserver.instances.push(this);
+    }
+    observe(target: Element) {
+      this.observed.add(target);
+    }
+    unobserve(target: Element) {
+      this.observed.delete(target);
+    }
+    disconnect() {
+      this.observed.clear();
+    }
+    /** What the browser reports after layout: the node's new border box. */
+    report(target: Element, width: number, height: number) {
+      const entry = { target, borderBoxSize: [{ inlineSize: width, blockSize: height }] };
+      this.callback([entry as unknown as ResizeObserverEntry], this as unknown as ResizeObserver);
+    }
+  }
+
+  beforeEach(() => {
+    TestResizeObserver.instances.length = 0;
+    globalThis.ResizeObserver = TestResizeObserver as unknown as typeof ResizeObserver;
+  });
+
+  /** Mounts one measured element, lets it register, and measures it once. */
+  async function mountMeasured() {
+    const harness = renderGraph([pending('b')]);
+    await flushFrame();
+    // StrictMode mounts the store twice; only the live store's observer has
+    // the node registered by `<HTMLHost>`.
+    const observer = TestResizeObserver.instances.find((instance) => instance.observed.size > 0);
+    if (!observer) throw new Error('no ResizeObserver has the measured node registered');
+    const [node] = observer.observed;
+
+    act(() => {
+      observer.report(node, 120, 40);
+    });
+    await flush();
+    expect(harness.events).toEqual([{ isInitial: true }]);
+    harness.events.length = 0;
+
+    const element = harness.graph.getCell('b') as dia.Element;
+    return { harness, observer, node, element };
+  }
+
+  it('delivers one event when the re-rendered content measures larger', async () => {
+    const { harness, observer, node, element } = await mountMeasured();
+
+    // The application changes what `renderElement` shows; the browser lays the
+    // node out larger and the observer reports it.
+    act(() => {
+      element.set('data', { measured: true, label: 'a much longer label' });
+    });
+    await flush();
+    expect(node.textContent).toBe('a much longer label');
+    expect(harness.events).toHaveLength(0);
+
+    act(() => {
+      observer.report(node, 240, 40);
+    });
+    await flush();
+
+    expect(harness.events).toEqual([{ isInitial: false }]);
+    expect(element.size()).toEqual({ width: 240, height: 40 });
+  });
+
+  it('delivers no event when the re-rendered content measures the same', async () => {
+    const { harness, observer, node, element } = await mountMeasured();
+
+    act(() => {
+      element.set('data', { measured: true, label: 'same size' });
+    });
+    await flush();
+    expect(node.textContent).toBe('same size');
+    act(() => {
+      observer.report(node, 120, 40);
+    });
+    await flush();
+
+    expect(harness.events).toHaveLength(0);
+    expect(element.size()).toEqual({ width: 120, height: 40 });
   });
 });
