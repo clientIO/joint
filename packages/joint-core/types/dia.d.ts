@@ -1034,6 +1034,10 @@ export namespace Link {
         position?: LabelPosition | number; // optional for default labels
         attrs?: Cell.Selectors;
         size?: Size;
+        // Any other custom property - passed
+        // through as-is by `Link#labels`/`Link#label`, whether set on the label itself or
+        // on `defaultLabel` (the label's own value wins).
+        [key: string]: any;
     }
 
     interface Vertex extends Point {
@@ -1074,8 +1078,12 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
     label(index?: number): Link.Label;
     label(index: number, label: Link.Label, opt?: S): this;
 
+    getComputedLabel(index?: number): Link.Label;
+
     labels(): Link.Label[];
     labels(labels: Link.Label[], opt?: S): this;
+
+    getComputedLabels(): Link.Label[];
 
     hasLabels(): boolean;
 

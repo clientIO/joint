@@ -1,6 +1,7 @@
 import { Cell } from './Cell.mjs';
-import { clone, isPlainObject, isFunction, isString, isNumber } from '../util/index.mjs';
+import { clone, isPlainObject, isFunction, isString, isNumber, assign } from '../util/index.mjs';
 import { Point, Polyline } from '../g/index.mjs';
+import { getResolvedLabel } from './link-labels.mjs';
 
 // Link base model.
 // --------------------------
@@ -216,6 +217,20 @@ export const Link = Cell.extend({
         return this.prop(['labels', idx], label, opt);
     },
 
+    // Like `label()`'s getter, but resolved against `defaultLabel`/the built-in default
+    // (see `getResolvedLabel` in `link-labels.mjs`) - `label()` itself always returns the
+    // label exactly as stored (or `undefined` if there isn't one at that index).
+    getComputedLabel: function(idx) {
+
+        var labels = this.labels();
+
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+        if (idx < 0) idx = labels.length + idx;
+
+        var label = labels[idx];
+        return (label === undefined) ? undefined : getResolvedLabel(this, label);
+    },
+
     labels: function(labels, opt) {
 
         // getter
@@ -227,6 +242,14 @@ export const Link = Cell.extend({
         // setter
         if (!Array.isArray(labels)) labels = [];
         return this.set('labels', labels, opt);
+    },
+
+    // Like `labels()`'s getter, but with every label resolved against `defaultLabel`/the
+    // built-in default (see `getResolvedLabel` in `link-labels.mjs`) - `labels()` itself
+    // always returns each label exactly as stored.
+    getComputedLabels: function() {
+
+        return this.labels().map((label) => getResolvedLabel(this, label));
     },
 
     hasLabels: function() {
@@ -541,16 +564,15 @@ export const Link = Cell.extend({
         return !!ancestor && (ancestor.id === cellId || ancestor.isEmbeddedIn(cellId));
     },
 
-    // Get resolved default label.
+    // Get resolved default label. Kept as-is (including any custom property, e.g. a
+    // `@joint/layout-elk` `elkLayoutOptions`) - not just the known `markup`/`attrs`/
+    // `size`/`position` - so `getResolvedLabel` (`link-labels.mjs`) can pass it through too.
     _getDefaultLabel: function() {
 
         var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
 
-        var label = {};
+        var label = assign({}, defaultLabel);
         label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
-        label.position = defaultLabel.position;
-        label.attrs = defaultLabel.attrs;
-        label.size = defaultLabel.size;
 
         return label;
     }
