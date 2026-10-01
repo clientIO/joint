@@ -56,7 +56,13 @@ export const Link = Cell.extend({
             // used if neither defaultLabel.position
             // nor label.position is set
             position: {
-                distance: 0.5
+                distance: 0.5,
+                offset: 0,
+                angle: 0
+            },
+            size: {
+                width: 0,
+                height: 0
             }
         }
     },
@@ -233,10 +239,12 @@ export const Link = Cell.extend({
 
         const labels = this.labels();
 
-        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
-        if (idx < 0) idx = labels.length + idx;
+        let index = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+        if (index < 0) {
+            index = labels.length + index;
+        }
 
-        const label = labels[idx];
+        const label = labels[index];
         return (label === undefined) ? null : getComputedLabel(this, label);
     },
 
@@ -583,7 +591,7 @@ export const Link = Cell.extend({
 
     // Get resolved default label. Kept as-is (including any custom property, e.g. a
     // `@joint/layout-elk` `elkLayoutOptions`) - not just the known `markup`/`attrs`/
-    // `size`/`position` - so `getResolvedLabel` (`link-labels.mjs`) can pass it through too.
+    // `size`/`position` - so `getComputedLabel` (`link-labels.mjs`) can pass it through too.
     _getDefaultLabel: function() {
 
         const defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
