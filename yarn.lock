@@ -6407,6 +6407,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-layout-elk-rectpacking-ts@workspace:examples/layout-elk-rectpacking-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-layout-elk-rectpacking-ts@workspace:examples/layout-elk-rectpacking-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-elk": "workspace:^"
+    css-loader: "npm:3.5.3"
+    elkjs: "npm:0.12.0"
+    sass-loader: "npm:8.0.2"
+    style-loader: "npm:1.2.1"
+    ts-loader: "npm:^9.2.5"
+    typescript: "npm:5.8.2"
+    webpack: "npm:5.98.0"
+    webpack-cli: "npm:6.0.1"
+    webpack-dev-server: "npm:5.2.0"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-layout-elk-ts@workspace:examples/layout-elk-ts":
   version: 0.0.0-use.local
   resolution: "@joint/demo-layout-elk-ts@workspace:examples/layout-elk-ts"
