@@ -15,6 +15,4 @@ module.exports = function(grunt) {
             config.pkg = utils.pkg;
         }
     });
-
-    grunt.loadTasks('./grunt/tasks');
 };

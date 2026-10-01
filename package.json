@@ -20,8 +20,6 @@
     "test-coverage": "yarn workspaces foreach --all -tvv run test-coverage",
     "test-coverage-lcov": "yarn workspaces foreach --all -tvv run test-coverage-lcov",
     "test-bundles": "yarn workspaces foreach --all -tvv run test-bundles",
-    "test-e2e": "yarn workspaces foreach --all -tvv run test-e2e",
-    "test-e2e-all": "yarn workspaces foreach --all -tvv run test-e2e-all",
     "lint": "yarn workspaces foreach --all -tvv run lint",
     "lint-fix": "yarn workspaces foreach --all -tvv run lint-fix",
     "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/core\" --include \"@joint/layout-directed-graph\" --include \"@joint/layout-msagl\" --include \"@joint/router-avoid\" pack --out %s-%v.tgz"

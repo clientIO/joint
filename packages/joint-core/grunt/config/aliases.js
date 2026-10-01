@@ -74,13 +74,5 @@ module.exports = function(grunt) {
             'shell:rollup-test-bundle',
             'test:src'
         ],
-        'test:e2e': ['mochaTest:e2e'],
-        'test:e2e:all': [
-            'test:e2e:chrome-linux',
-            'test:e2e:chrome-windows7',
-            'test:e2e:chrome-mac',
-            'test:e2e:firefox-linux',
-            'test:e2e:firefox-mac'
-        ]
     };
 };
