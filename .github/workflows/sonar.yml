@@ -72,9 +72,32 @@ jobs:
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
       # Install all dependencies from the joint repo
+      #
+      # `PUPPETEER_SKIP_DOWNLOAD` is what keeps this step green. Four packages
+      # depend on `puppeteer`, the `node-modules` linker gives each one a copy
+      # of its own, and Yarn runs every copy's `postinstall` concurrently - all
+      # four into the one shared `~/.cache/puppeteer`. `@puppeteer/browsers`
+      # downloads a browser to a fixed archive path, unpacks it and then deletes
+      # it, with no locking, so whichever process gets there first deletes the
+      # archive the others are still unpacking and they die on `ENOENT`. The
+      # step below installs the same browsers once instead.
       - name: Install dependencies
         id: install-dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
         run: yarn install --immutable
+
+      # The browsers the `postinstall` above would have downloaded, installed
+      # once rather than once per package. Naming a browser explicitly is what
+      # makes this step ignore `PUPPETEER_SKIP_DOWNLOAD`, and leaving the
+      # version off installs the build `puppeteer` itself pins - so this is the
+      # same pair, at the same versions, in the same `~/.cache/puppeteer` that
+      # `puppeteer.executablePath()` reads (`CHROME_BIN` in the karma configs)
+      - name: Install Puppeteer browsers
+        id: install-puppeteer-browsers
+        run: |
+          yarn workspace @joint/core exec puppeteer browsers install chrome
+          yarn workspace @joint/core exec puppeteer browsers install chrome-headless-shell
 
       # Build the joint project (needed for tests)
       - name: Prepare joint

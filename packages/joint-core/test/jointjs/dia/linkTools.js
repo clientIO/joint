@@ -198,6 +198,86 @@ QUnit.module('linkTools', function(hooks) {
         });
 
 
+        QUnit.test('a tool hidden right after addTools() stays hidden when the update is deferred', function(assert) {
+            // https://github.com/clientIO/joint/issues/1445
+            paper.freeze();
+            const button = new joint.linkTools.Button();
+            const remove = new joint.linkTools.Remove();
+            const toolsView = new joint.dia.ToolsView({ tools: [button, remove] });
+            linkView.addTools(toolsView);
+            remove.hide();
+            paper.unfreeze();
+            assert.ok(toolsView.isMounted());
+            assert.notEqual(getComputedStyle(button.el).display, 'none');
+            assert.ok(button.isVisible());
+            assert.equal(getComputedStyle(remove.el).display, 'none');
+            assert.notOk(remove.isVisible());
+            assert.notOk(remove.isExplicitlyVisible());
+        });
+
+        QUnit.test('a tool hidden right after addTools() stays hidden in an async paper', function(assert) {
+            // https://github.com/clientIO/joint/issues/1445
+            const done = assert.async();
+            const asyncPaperEl = document.createElement('div');
+            paperEl.parentNode.appendChild(asyncPaperEl);
+            const asyncPaper = new joint.dia.Paper({
+                el: asyncPaperEl,
+                model: graph,
+                cellViewNamespace: joint.shapes,
+                async: true
+            });
+            asyncPaper.once('render:done', () => {
+                const asyncLinkView = link.findView(asyncPaper);
+                const button = new joint.linkTools.Button();
+                const remove = new joint.linkTools.Remove();
+                const toolsView = new joint.dia.ToolsView({ tools: [button, remove] });
+                asyncLinkView.addTools(toolsView);
+                remove.hide();
+                asyncPaper.once('render:done', () => {
+                    assert.ok(toolsView.isMounted());
+                    assert.notEqual(getComputedStyle(button.el).display, 'none');
+                    assert.equal(getComputedStyle(remove.el).display, 'none');
+                    assert.notOk(remove.isVisible());
+                    asyncPaper.remove();
+                    done();
+                });
+            });
+        });
+
+        QUnit.test('tools hidden by focusTool() are visible again when the tools view is re-added', function(assert) {
+            // https://github.com/clientIO/joint/pull/1410
+            // e.g. an arrowhead is dragged and the tools are removed on `link:mouseleave`
+            // before the drag ends (so `blurTool()` is never called)
+            const arrowhead = new joint.linkTools.TargetArrowhead();
+            const remove = new joint.linkTools.Remove();
+            const toolsView = new joint.dia.ToolsView({ tools: [arrowhead, remove] });
+            linkView.addTools(toolsView);
+            toolsView.focusTool(arrowhead);
+            assert.equal(getComputedStyle(remove.el).display, 'none');
+            linkView.removeTools();
+            linkView.addTools(toolsView);
+            assert.notEqual(getComputedStyle(arrowhead.el).display, 'none');
+            assert.notEqual(getComputedStyle(remove.el).display, 'none');
+            assert.ok(remove.isVisible());
+            assert.ok(remove.isExplicitlyVisible());
+        });
+
+        QUnit.test('tools hidden by focusTool() are visible again when the tools view is re-added (deferred update)', function(assert) {
+            // https://github.com/clientIO/joint/pull/1410
+            const arrowhead = new joint.linkTools.TargetArrowhead();
+            const remove = new joint.linkTools.Remove();
+            const toolsView = new joint.dia.ToolsView({ tools: [arrowhead, remove] });
+            linkView.addTools(toolsView);
+            toolsView.focusTool(arrowhead);
+            linkView.removeTools();
+            paper.freeze();
+            linkView.addTools(toolsView);
+            paper.unfreeze();
+            assert.notEqual(getComputedStyle(arrowhead.el).display, 'none');
+            assert.notEqual(getComputedStyle(remove.el).display, 'none');
+            assert.ok(remove.isVisible());
+        });
+
         QUnit.test('show()', function(assert) {
             paper.freeze();
             const remove = new joint.linkTools.Vertices();

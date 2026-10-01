@@ -1,7 +1,7 @@
 {
   "name": "@joint/react",
   "title": "JointJS React",
-  "version": "4.3.5",
+  "version": "4.3.6",
   "description": "React bindings and hooks for JointJS to build interactive diagrams and graphs.",
   "type": "module",
   "sideEffects": [
@@ -44,10 +44,10 @@
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build-storybook": "storybook build",
     "storybook": "storybook dev -p 6006",
-    "test": "yarn run typecheck && yarn run knip && yarn run test:react19 && yarn run test:react18",
+    "test": "yarn run typecheck && yarn run knip && yarn run test-coverage && yarn run test:react18",
     "test:react19": "jest",
     "test:react18": "jest --config jest.react18.config.mjs",
-    "test-coverage": "jest --coverage",
+    "test-coverage": "yarn run test:react19 --coverage",
     "test-coverage-lcov": "COVERAGE_REPORTER=lcov yarn run test-coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{ts,tsx}\"",

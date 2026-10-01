@@ -1,12 +1,18 @@
 # @joint/core
 
+## 4.3.3
+
+### Patch Changes
+
+- mvc.Collection - store cids in a map separate from ids, so a model id in the cid namespace (e.g. `'c12'`) is never shadowed by another model's auto-generated cid — previously `graph.getCell()` could return the wrong cell or a newly added cell could be silently merged away as a duplicate (f7455fd9)
+
 ## 4.3.2
 
 ### Patch Changes
 
-- 0a2991b: alg.rightAnglePath: refactor to consolidate duplicate code into helpers
-- 68a4758: dia.Paper - the `guard` option can now veto blank pointerdowns; its `view` argument is `undefined` when the event did not hit a cell view
-- 54d9800: routers.rightAngle - refactor the path-finding algorithm into a separate utility
+- routers.rightAngle - refactor to consolidate duplicate code into helpers (0a2991b6)
+- dia.Paper - the `guard` option can now veto blank pointerdowns; its `view` argument is `undefined` when the event did not hit a cell view (68a47586)
+- routers.rightAngle - refactor the path-finding algorithm into a separate utility (54d98005)
 
 ## 4.3.1
 

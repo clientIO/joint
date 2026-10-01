@@ -1,7 +1,7 @@
 {
   "name": "@joint/router-avoid",
   "title": "JointJS Avoid Router",
-  "version": "4.3.2",
+  "version": "4.3.3",
   "description": "Avoid router module for JointJS",
   "sideEffects": false,
   "main": "./dist/esm/index.mjs",

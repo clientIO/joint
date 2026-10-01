@@ -56,7 +56,20 @@ jobs:
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
       # Install all dependencies from the monorepo root
+      #
+      # `PUPPETEER_SKIP_DOWNLOAD` is what keeps this step green. Four packages
+      # depend on `puppeteer`, the `node-modules` linker gives each one a copy
+      # of its own, and Yarn runs every copy's `postinstall` concurrently - all
+      # four into the one shared `~/.cache/puppeteer`. `@puppeteer/browsers`
+      # downloads a browser to a fixed archive path, unpacks it and then deletes
+      # it, with no locking, so whichever process gets there first deletes the
+      # archive the others are still unpacking and they die on `ENOENT`.
+      #
+      # NOTE: unlike the workflows that test, nothing is installed in their
+      # place - this job only builds docs, and launches no browser.
       - name: Install dependencies from root
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
         run: yarn install --immutable
         working-directory: ./
 

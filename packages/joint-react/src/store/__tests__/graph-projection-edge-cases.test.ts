@@ -87,13 +87,17 @@ describe('graphProjection — incremental remove of element with connected links
     ]);
     await flush();
 
-    // Build a synthetic change-set carrying just the element 'a' as a
-    // remove. Because the graph still owns the link 'l1' at the moment
-    // the LAYOUT_UPDATE_EVENT fires, the for-of over getConnectedLinks
-    // walks the link removal branch (lines 221-223).
-    const elementA = graph.getCell('a') as dia.Element;
-    const layoutChanges = new Map([['a', { type: 'remove' as const, data: elementA }]]);
-    graph.trigger('layout:update', { changes: layoutChanges });
+    // Lose the link's own remove event (flagged `isUpdateFromReact`, which
+    // graph-changes skips) so its record lingers in the container — the
+    // "missed link removal" the element-remove sweep exists for. Removing
+    // the element afterwards must prune the stranded link record even
+    // though `getConnectedLinks` can no longer name it (both cells are out
+    // of the graph by then).
+    graph.getCell('l1').remove({ isUpdateFromReact: true } as dia.Cell.DisconnectableOptions);
+    await flush();
+    expect(view.cells.has('l1')).toBe(true);
+
+    (graph.getCell('a') as dia.Element).remove();
     await flush();
 
     expect(view.cells.has('a')).toBe(false);

@@ -5,12 +5,11 @@ export default defineConfig({
     build: {
         lib: {
             entry: {
-                index: './index.ts',
+                index: './src/index.ts',
             },
         },
         minify: false,
         rollupOptions: {
-            external: ['@joint/mock-svg'],
             output: [
                 {
                     esModule: true,
