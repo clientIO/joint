@@ -1,7 +1,7 @@
 {
   "name": "@joint/mock-svg",
   "title": "JointJS Mock SVG",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Test-runner-agnostic mocks of the SVG globals JSDOM does not implement, required for JointJS testing.",
   "type": "module",
   "sideEffects": true,

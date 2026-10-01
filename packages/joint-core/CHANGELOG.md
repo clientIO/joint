@@ -1,5 +1,11 @@
 # @joint/core
 
+## 4.3.4
+
+### Patch Changes
+
+- dia.ToolsView - fix a tool hidden with `hide()` right after `addTools()` reappearing when the update is deferred (e.g. `async: true`) (3de3381e)
+
 ## 4.3.3
 
 ### Patch Changes
