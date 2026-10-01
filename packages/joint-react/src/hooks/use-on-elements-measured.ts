@@ -35,12 +35,15 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  *
  * Delivers one event per settled change: the first pass (at least one element
  * has a size), and each later addition or re-measurement, once no element is
- * still waiting to be measured. An element added without a size waits until
- * {@link useMeasureElement} (or {@link HTMLHost}) has measured it; a batch
- * mixing sized and waiting elements is one event, delivered when the last one
- * is measured. A size the application writes itself (`cell.resize()`,
- * controlled `cells` sync) is not a measurement and never fires; listen to
- * `change:size` with {@link useOnGraphEvents} to hear every size change.
+ * still waiting. An added element waits until the paper has rendered it; if
+ * its content measures itself ({@link useMeasureElement}, {@link HTMLHost}),
+ * until that measurement arrives. A batch mixing plain and measured elements
+ * is one event, delivered when the last one is measured. An element the paper
+ * does not render (viewport culling, `cellVisibility`) and a zero-sized element
+ * nothing measures do not hold the event back. A size the application writes
+ * itself (`cell.resize()`, controlled `cells` sync) is not a measurement and
+ * never fires; listen to `change:size` with {@link useOnGraphEvents} to hear
+ * every size change.
  *
  * The callback receives {@link ElementsMeasuredParams}; `isInitial` is `true`
  * for the first event after the hook mounts and again for the first event

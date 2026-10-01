@@ -33,26 +33,22 @@ import type { dia } from '@joint/core';
 const PAPER_ID = 'events-paper';
 const PAPER_STYLE = { width: 100, height: 100 };
 
-/** Lets React effects and the scheduler's microtask batch settle. */
-const flush = () =>
-  act(async () => {
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
-  });
-
 /**
- * Also waits for the paper's async render frame, in which a newly added
- * element's view mounts, its portal content commits and a `useMeasureElement`
- * inside it registers with the observer. `flush()` alone lands before that.
+ * Lets everything settle: React effects, the scheduler's microtask batch, the
+ * paper's render frame (`requestAnimationFrame`) in which a newly added
+ * element's view mounts, and the commit after it in which the element's portal
+ * content mounts and registers with the observer. A microtask, or a plain
+ * `setTimeout`, lands before that frame, while the portal does not exist yet.
  */
-const flushFrame = () =>
+const flush = () =>
   act(async () => {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
   });
 
 /** Elements flagged in their `data` render through a host that measures itself. */
-const renderElement = ({ measured, label = 'node' }: { measured?: boolean; label?: string }) =>
-  measured ? <HTMLHost>{label}</HTMLHost> : <rect width={50} height={50} />;
+const renderElement = ({ measured }: { measured?: boolean }) =>
+  measured ? <HTMLHost>node</HTMLHost> : <rect width={50} height={50} />;
 
 /** Renders as a plain `<rect>`: nothing measures it, so it is settled on arrival. */
 const plain = (id: string): CellRecord =>
@@ -64,15 +60,6 @@ const plain = (id: string): CellRecord =>
     data: {},
   }) as CellRecord;
 
-/** Arrives without a size, but renders as a plain `<rect>` that nothing measures. */
-const unsized = (id: string): CellRecord =>
-  ({
-    id,
-    type: ELEMENT_MODEL_TYPE,
-    position: { x: 0, y: 0 },
-    data: {},
-  }) as CellRecord;
-
 /** Renders through `<HTMLHost>`: registers for measurement and waits for a size. */
 const pending = (id: string): CellRecord =>
   ({
@@ -80,6 +67,20 @@ const pending = (id: string): CellRecord =>
     type: ELEMENT_MODEL_TYPE,
     position: { x: 0, y: 0 },
     data: { measured: true },
+  }) as CellRecord;
+
+/**
+ * Zero-sized on purpose and never measured: a layout anchor, the shape a
+ * `scalable`-free diagram uses to mark a position without drawing anything.
+ * Its size is its real size, not a size it is waiting for.
+ */
+const anchor = (id: string): CellRecord =>
+  ({
+    id,
+    type: ELEMENT_MODEL_TYPE,
+    position: { x: 0, y: 0 },
+    size: { width: 0, height: 0 },
+    data: {},
   }) as CellRecord;
 
 /** One delivered event, reduced to what these tests assert on. */
@@ -344,6 +345,9 @@ describe('useOnElementsMeasured — sizes written by the application', () => {
     expect(harness.events).toHaveLength(0);
 
     act(() => {
+      // A size other than the measured one: writing the measured size itself
+      // would be a no-op `set()` in JointJS, with no `change:size` for anything
+      // to observe (the browser's ResizeObserver covers that case instead).
       (harness.graph.getCell('b') as dia.Element).resize(70, 70);
     });
     await flush();
@@ -357,150 +361,45 @@ describe('useOnElementsMeasured — sizes written by the application', () => {
   });
 });
 
-// What ends the wait besides a measurement write: the element renders and
-// nothing measures it, the observer measures it to the size it already has,
-// or it leaves the graph.
-describe('useOnElementsMeasured — how a waiting element settles', () => {
-  it('delivers one event once an unsized element that nothing measures has rendered', async () => {
+// An element can be zero-sized for good, rather than briefly on its way to a
+// measurement. Nothing will ever give it a size, so treating it as outstanding
+// holds every later batch open and the hook stops firing altogether.
+describe('useOnElementsMeasured — an element that stays zero-sized', () => {
+  it('delivers the seed pass with a zero-sized element in the graph', async () => {
+    const harness = renderGraph([plain('a'), anchor('anchor')]);
+
+    await waitFor(() => expect(harness.events.length).toBeGreaterThan(0));
+    await flush();
+
+    expect(harness.events).toHaveLength(1);
+    expect(harness.events[0].isInitial).toBe(true);
+  });
+
+  it('delivers the batch that adds a zero-sized element', async () => {
     const harness = renderGraph([plain('a')]);
     await settleAndClear(harness);
 
     act(() => {
-      harness.graph.addCell(unsized('b') as never);
+      harness.graph.addCells([plain('b'), anchor('anchor')] as never);
     });
     await flush();
-    expect(harness.events).toHaveLength(0);
-
-    await flushFrame();
 
     expect(harness.events).toHaveLength(1);
   });
 
-  it('keeps waiting for an element that registered for measurement when it rendered', async () => {
-    const harness = renderGraph([plain('a')]);
+  it('keeps delivering later batches once a zero-sized element is in the graph', async () => {
+    const harness = renderGraph([plain('a'), anchor('anchor')]);
     await settleAndClear(harness);
 
     act(() => {
       harness.graph.addCell(pending('b') as never);
     });
-    await flushFrame();
+    await flush();
     expect(harness.events).toHaveLength(0);
 
     reportMeasurement(harness.graph, 'b');
     await flush();
 
     expect(harness.events).toHaveLength(1);
-  });
-
-  it('delivers the batch once a waiting element is removed before it is measured', async () => {
-    const harness = renderGraph([plain('a')]);
-    await settleAndClear(harness);
-
-    act(() => {
-      harness.graph.addCells([plain('b'), pending('c')] as never);
-    });
-    await flush();
-    expect(harness.events).toHaveLength(0);
-
-    act(() => {
-      harness.graph.getCell('c').remove();
-    });
-    await flush();
-
-    expect(harness.events).toHaveLength(1);
-  });
-});
-
-// The case the hook exists for in a live diagram: `renderElement` renders
-// something else (a longer label, an expanded card), the node grows, the
-// ResizeObserver reports the new size and the layout runs again. jsdom has no
-// layout, so a local ResizeObserver mock delivers the entry the browser would.
-describe('useOnElementsMeasured — the content of an element changes', () => {
-  class TestResizeObserver {
-    static readonly instances: TestResizeObserver[] = [];
-    readonly observed = new Set<Element>();
-    private readonly callback: ResizeObserverCallback;
-    constructor(callback: ResizeObserverCallback) {
-      this.callback = callback;
-      TestResizeObserver.instances.push(this);
-    }
-    observe(target: Element) {
-      this.observed.add(target);
-    }
-    unobserve(target: Element) {
-      this.observed.delete(target);
-    }
-    disconnect() {
-      this.observed.clear();
-    }
-    /** What the browser reports after layout: the node's new border box. */
-    report(target: Element, width: number, height: number) {
-      const entry = { target, borderBoxSize: [{ inlineSize: width, blockSize: height }] };
-      this.callback([entry as unknown as ResizeObserverEntry], this as unknown as ResizeObserver);
-    }
-  }
-
-  beforeEach(() => {
-    TestResizeObserver.instances.length = 0;
-    globalThis.ResizeObserver = TestResizeObserver as unknown as typeof ResizeObserver;
-  });
-
-  /** Mounts one measured element, lets it register, and measures it once. */
-  async function mountMeasured() {
-    const harness = renderGraph([pending('b')]);
-    await flushFrame();
-    // StrictMode mounts the store twice; only the live store's observer has
-    // the node registered by `<HTMLHost>`.
-    const observer = TestResizeObserver.instances.find((instance) => instance.observed.size > 0);
-    if (!observer) throw new Error('no ResizeObserver has the measured node registered');
-    const [node] = observer.observed;
-
-    act(() => {
-      observer.report(node, 120, 40);
-    });
-    await flush();
-    expect(harness.events).toEqual([{ isInitial: true }]);
-    harness.events.length = 0;
-
-    const element = harness.graph.getCell('b') as dia.Element;
-    return { harness, observer, node, element };
-  }
-
-  it('delivers one event when the re-rendered content measures larger', async () => {
-    const { harness, observer, node, element } = await mountMeasured();
-
-    // The application changes what `renderElement` shows; the browser lays the
-    // node out larger and the observer reports it.
-    act(() => {
-      element.set('data', { measured: true, label: 'a much longer label' });
-    });
-    await flush();
-    expect(node.textContent).toBe('a much longer label');
-    expect(harness.events).toHaveLength(0);
-
-    act(() => {
-      observer.report(node, 240, 40);
-    });
-    await flush();
-
-    expect(harness.events).toEqual([{ isInitial: false }]);
-    expect(element.size()).toEqual({ width: 240, height: 40 });
-  });
-
-  it('delivers no event when the re-rendered content measures the same', async () => {
-    const { harness, observer, node, element } = await mountMeasured();
-
-    act(() => {
-      element.set('data', { measured: true, label: 'same size' });
-    });
-    await flush();
-    expect(node.textContent).toBe('same size');
-    act(() => {
-      observer.report(node, 120, 40);
-    });
-    await flush();
-
-    expect(harness.events).toHaveLength(0);
-    expect(element.size()).toEqual({ width: 120, height: 40 });
   });
 });

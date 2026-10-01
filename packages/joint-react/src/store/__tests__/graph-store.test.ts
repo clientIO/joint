@@ -97,6 +97,9 @@ describe('GraphStore', () => {
         { id: 'a', type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 } } as CellRecord,
       ];
       const store = new GraphStore({ initialCells });
+      await flush();
+      // Nothing has a size yet, so the seed pass is not delivered.
+      expect(store.measureState.get()).toBe(0);
       // The application pre-sizes the waiting element: not a measurement.
       (store.graph.getCell('a') as dia.Element).resize(120, 40);
       await flush();

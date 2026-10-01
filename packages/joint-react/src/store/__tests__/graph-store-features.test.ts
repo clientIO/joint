@@ -426,6 +426,8 @@ describe('GraphStore.clearViewForElementAndLinks', () => {
     const fakePaper = {
       getCellView: jest.fn().mockReturnValue(fakeElementView),
       remove: jest.fn(),
+      // `destroy()` unsubscribes the store's `render:done` listener.
+      off: jest.fn(),
     } as unknown as dia.Paper;
 
     // Forcefully redirect paperStore.paper to point at the mock so the
