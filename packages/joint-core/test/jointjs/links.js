@@ -1977,6 +1977,37 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(labels[3].size, { width: 10, height: 20 });
             });
 
+            QUnit.test('returns new `markup`/`attrs`/`size`/`position` objects', function(assert) {
+                var builtinDefaultLabel = joint.util.cloneDeep(joint.dia.Link.prototype._builtins.defaultLabel);
+                var ownMarkup = [{ tagName: 'text', selector: 'text' }];
+                var defaultMarkup = [{ tagName: 'rect', selector: 'body' }];
+                var defaultAttrs = { body: { fill: 'red' }};
+
+                function mutate(label) {
+                    label.markup.push({ tagName: 'circle' });
+                    label.attrs.mutated = { fill: 'blue' };
+                    label.size.width = 100;
+                    label.position.distance = 100;
+                }
+
+                // Built-in default (shared by all links).
+                var link = new joint.shapes.standard.Link({ labels: [{}] });
+                mutate(link.getComputedLabel(0));
+                assert.deepEqual(link._builtins.defaultLabel, builtinDefaultLabel);
+                assert.deepEqual(link.get('labels'), [{}]);
+
+                // `defaultLabel` with a custom markup (attrs are not merged with the built-in ones).
+                link.set('defaultLabel', { markup: defaultMarkup, attrs: defaultAttrs });
+                mutate(link.getComputedLabel(0));
+                assert.deepEqual(defaultMarkup, [{ tagName: 'rect', selector: 'body' }]);
+                assert.deepEqual(defaultAttrs, { body: { fill: 'red' }});
+
+                // The label's own markup.
+                link.labels([{ markup: ownMarkup }]);
+                mutate(link.getComputedLabel(0));
+                assert.deepEqual(ownMarkup, [{ tagName: 'text', selector: 'text' }]);
+            });
+
             QUnit.test('pass through custom properties, own value winning over `defaultLabel`\'s', function(assert) {
                 var link = new joint.shapes.standard.Link({
                     defaultLabel: { custom: 'default', onlyOnDefault: 'd' },

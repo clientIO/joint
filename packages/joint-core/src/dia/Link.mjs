@@ -232,7 +232,7 @@ export const Link = Cell.extend({
      * The stored label is not modified.
      *
      * @param {number} [idx=0] - The index of the label. Negative values count from the end.
-     * @returns {dia.Link.Label | null} A new object with the resolved label, or `null`
+     * @returns {dia.Link.ComputedLabel | null} A new object with the resolved label, or `null`
      * if there is no label at `idx`.
      */
     getComputedLabel: function(idx) {
@@ -269,7 +269,7 @@ export const Link = Cell.extend({
      * has `markup`, `attrs`, `size` and `position` merged with the defaults.
      * The stored labels are not modified.
      *
-     * @returns {dia.Link.Label[]} A new array of resolved labels, in the same order as
+     * @returns {dia.Link.ComputedLabel[]} A new array of resolved labels, in the same order as
      * `labels()`. Empty if the link has no labels.
      */
     getComputedLabels: function() {
@@ -594,7 +594,7 @@ export const Link = Cell.extend({
     // `size`/`position` - so `getComputedLabel` (`link-labels.mjs`) can pass it through too.
     _getDefaultLabel: function() {
 
-        const defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
+        const defaultLabel = this.get('defaultLabel') || this.defaultLabel;
 
         const label = assign({}, defaultLabel);
         label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;

@@ -1,4 +1,4 @@
-import { merge } from '../util/index.mjs';
+import { cloneDeep, merge } from '../util/index.mjs';
 
 // A label as given (own `markup`/`attrs`/`size`/`position`, any of which may be missing),
 // resolved against `link`'s `defaultLabel` and its built-in default.
@@ -14,8 +14,11 @@ export function getComputedLabel(link, label) {
     // built-in markup, so they don't apply once a custom one is in play.
     const hasCustomMarkup = !!(label.markup || defaultLabel.markup);
 
+    // The resolved `markup`/`attrs`/`size`/`position` are always new objects - never the
+    // stored label's, `defaultLabel`'s or the (shared by all links) built-in default's -
+    // so mutating a computed label can't change them. Custom properties are passed through as-is.
     return Object.assign({}, defaultLabel, label, {
-        markup: label.markup || defaultLabel.markup || builtinDefaultLabel.markup,
+        markup: cloneDeep(label.markup || defaultLabel.markup || builtinDefaultLabel.markup),
         attrs: mergeLabelAttrs(hasCustomMarkup, label.attrs, defaultLabel.attrs, builtinDefaultLabel.attrs),
         size: mergeLabelSize(label.size, defaultLabel.size, builtinDefaultLabel.size),
         position: mergeLabelPosition(label.position, defaultLabel.position, builtinDefaultLabel.position)
@@ -33,10 +36,10 @@ function mergeLabelAttrs(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtin
         if (defaultLabelAttrs === undefined) {
 
             if (hasCustomMarkup) return undefined;
-            return builtinDefaultLabelAttrs;
+            return merge({}, builtinDefaultLabelAttrs);
         }
 
-        if (hasCustomMarkup) return defaultLabelAttrs;
+        if (hasCustomMarkup) return merge({}, defaultLabelAttrs);
         return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs);
     }
 
