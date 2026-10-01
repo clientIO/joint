@@ -38,7 +38,6 @@ yarn test
 yarn test-server       # Server-side tests (Node.js/Mocha)
 yarn test-client       # Client-side tests (Browser/Karma/QUnit)
 yarn test-ts           # TypeScript type definition tests
-yarn test-e2e          # End-to-end tests (Puppeteer)
 ```
 
 ## Linting

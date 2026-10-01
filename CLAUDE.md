@@ -28,7 +28,6 @@ yarn test
 yarn test-server       # Server-side tests (Node.js)
 yarn test-client       # Client-side tests (Browser with Karma)
 yarn test-ts           # TypeScript type definition tests
-yarn test-e2e          # End-to-end tests (Puppeteer)
 
 # Linting
 yarn lint              # Check all packages
@@ -96,7 +95,6 @@ export { anchors, linkAnchors, config, connectionPoints, connectionStrategies,
 - **`/packages/joint-core/test/vectorizer/`** - SVG vectorizer tests
 - **`/packages/joint-core/test/ts/`**, **`test/ts-exports/`** - TypeScript
   definition validation
-- **`/packages/joint-core/test/e2e/`** - Puppeteer E2E tests
 - **`/packages/joint-react/src/`** - Jest tests with @testing-library/react,
   colocated in `__tests__` folders
 
