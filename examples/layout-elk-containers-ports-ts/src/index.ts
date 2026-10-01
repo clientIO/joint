@@ -116,8 +116,8 @@ const init = () => {
         }
     };
 
-    const exportPort: ExportPortCallback = ({ port, elkPort }) => {
-        switch (port.group) {
+    const exportPort: ExportPortCallback = ({ portId, element, elkPort }) => {
+        switch (element.getPort(portId).group) {
             case 'in':
                 elkPort.layoutOptions['elk.port.side'] = 'WEST';
                 break;
@@ -127,15 +127,14 @@ const init = () => {
         }
     };
 
-    const exportPortLabel: ExportPortLabelCallback = ({ port, element, elkPortLabel }) => {
-        const portId = `${port.id}`;
+    const exportPortLabel: ExportPortLabelCallback = ({ portId, element, elkPortLabel }) => {
         const { width, height} = element.portProp(portId, 'label/size');
         elkPortLabel.width = width;
         elkPortLabel.height = height;
     };
 
-    const exportLinkLabel: ExportLinkLabelCallback = ({ label, elkEdgeLabel }) => {
-        const inline = label['inline'];
+    const exportLinkLabel: ExportLinkLabelCallback = ({ link, labelIndex, elkEdgeLabel }) => {
+        const inline = link.label(labelIndex)['inline'];
         elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = inline ? 'true' : 'false';
     };
 

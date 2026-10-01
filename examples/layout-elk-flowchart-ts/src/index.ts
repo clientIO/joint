@@ -189,8 +189,8 @@ const init = () => {
     // ports specifically, or a newly-added one (last in `getGroupPorts()`,
     // meant to land on the *right*, matching a new 'in' port) would instead
     // end up leftmost.
-    const exportPort: ExportPortCallback = ({ port, elkPort }) => {
-        elkPort.layoutOptions['elk.port.side'] = (port.group === 'in') ? 'NORTH' : 'SOUTH';
+    const exportPort: ExportPortCallback = ({ portId, element, elkPort }) => {
+        elkPort.layoutOptions['elk.port.side'] = (element.getPort(portId).group === 'in') ? 'NORTH' : 'SOUTH';
     };
 
     // Every branch condition ("Valid"/"Invalid", ...) sits directly on its edge,
@@ -206,13 +206,13 @@ const init = () => {
     // the diamond's real slanted edge - only its y moves; x (which side, and
     // where along it) stays exactly what ELK computed.
     const setPortAttributes: SetPortAttributesCallback = ({ element, portId, attributes }) => {
-        /*if (element instanceof Decision && attributes.position) {
+        if (element instanceof Decision && attributes.position) {
             const { width, height } = element.size();
             const { x, y } = attributes.position.args;
             const distanceFromCenter = Math.abs(x - width / 2);
             const edgeY = distanceFromCenter / (width / 2) * (height / 2);
             attributes.position.args.y = (y < height / 2) ? edgeY : height - edgeY;
-        }*/
+        }
         element.portProp(portId, attributes);
     };
 
