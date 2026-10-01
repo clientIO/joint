@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Folders and files packed with ELK's rectangle packing algorithm (rectpacking), using JointJS and @joint/layout-elk.">
+    <title>ELK Rectangle Packing | JointJS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="toolbar">
+        <label class="toolbar-field">
+            Optimization goal
+            <select id="optimization-goal">
+                <option value="MAX_SCALE_DRIVEN" selected>Max scale</option>
+                <option value="ASPECT_RATIO_DRIVEN">Aspect ratio</option>
+                <option value="AREA_DRIVEN">Area</option>
+            </select>
+        </label>
+        <label class="toolbar-field">
+            Aspect ratio
+            <input id="aspect-ratio" type="range" min="0.5" max="3" step="0.1" value="1.6">
+            <span id="aspect-ratio-value" class="toolbar-value">1.6</span>
+        </label>
+        <label class="toolbar-field">
+            White space
+            <select id="white-space-elimination">
+                <option value="NONE" selected>Keep</option>
+                <option value="EQUAL_BETWEEN_STRUCTURES">Fill equally</option>
+                <option value="TO_ASPECT_RATIO">Fill to aspect ratio</option>
+            </select>
+        </label>
+        <label class="toolbar-field">
+            <input id="order-by-size" type="checkbox">
+            Order by size
+        </label>
+        <span id="shuffle" class="toolbar-button">Shuffle</span>
+        <span id="add-file" class="toolbar-button">Add File</span>
+        <span id="zoom-out" class="toolbar-button">Zoom Out</span>
+        <span id="zoom-in" class="toolbar-button">Zoom In</span>
+    </div>
+    <div id="canvas" class="canvas"></div>
+    <script src="dist/bundle.js"></script>
+
+</body>
+
+</html>

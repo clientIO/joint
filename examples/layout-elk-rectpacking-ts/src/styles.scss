@@ -1,0 +1,148 @@
+// A restrained Material Design palette, scoped under the `joint-theme-material`
+// class every view gets from `setTheme('material')` (`index.ts`). Each file kind
+// gets its own tonal tile color, so the packed board reads as a storage overview.
+:root {
+    --md-primary: #3F51B5;
+    --md-primary-tint: #E8EAF6;
+    --md-surface: #FFFFFF;
+    --md-surface-container: #F3F4F9;
+    --md-outline: #D0D3E3;
+    --md-on-surface: rgba(0, 0, 0, 0.87);
+    --md-on-surface-variant: rgba(0, 0, 0, 0.6);
+
+    --md-photo: #E3F2FD;
+    --md-photo-outline: #90CAF9;
+    --md-video: #FCE4EC;
+    --md-video-outline: #F48FB1;
+    --md-document: #FFF8E1;
+    --md-document-outline: #FFD54F;
+    --md-music: #E8F5E9;
+    --md-music-outline: #A5D6A7;
+    --md-archive: #EDE7F6;
+    --md-archive-outline: #B39DDB;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', 'Segoe UI', sans-serif;
+}
+
+#canvas {
+    position: absolute;
+    margin-top: 64px;
+    margin-left: 20px;
+    border: 1px solid var(--md-outline);
+    background-color: #FAFAFA;
+    overflow: hidden;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    top: 10px;
+    left: 20px;
+    right: 20px;
+    z-index: 1;
+    font-size: 13px;
+    color: var(--md-on-surface-variant);
+}
+
+.toolbar-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--md-surface);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.14);
+    padding: 4px 10px;
+    min-height: 26px;
+
+    select {
+        font-family: inherit;
+        font-size: 13px;
+        color: var(--md-on-surface);
+        border: 1px solid var(--md-outline);
+        border-radius: 4px;
+        background: var(--md-surface);
+        padding: 2px 4px;
+    }
+
+    input[type="range"] {
+        width: 100px;
+        accent-color: var(--md-primary);
+    }
+
+    input[type="checkbox"] {
+        margin: 0;
+        accent-color: var(--md-primary);
+    }
+}
+
+.toolbar-value {
+    min-width: 2em;
+    font-variant-numeric: tabular-nums;
+    color: var(--md-on-surface);
+}
+
+.toolbar-button {
+    background: var(--md-surface);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.14);
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    letter-spacing: 0.4px;
+    color: var(--md-primary);
+    cursor: pointer;
+    user-select: none;
+    transition: box-shadow 0.15s ease, background 0.15s ease;
+
+    &:hover {
+        background: var(--md-primary-tint);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.16);
+    }
+}
+
+// Everything from here on only ever applies to a `joint-theme-material` view.
+.joint-theme-material {
+
+    .md-folder {
+        fill: var(--md-surface-container);
+        stroke: var(--md-outline);
+        stroke-width: 1px;
+        rx: 8px;
+        ry: 8px;
+    }
+
+    .md-folder-label {
+        font-family: inherit;
+        font-weight: 500;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        fill: var(--md-on-surface-variant);
+    }
+
+    .md-tile {
+        stroke-width: 1px;
+        rx: 4px;
+        ry: 4px;
+    }
+
+    @each $kind in photo, video, document, music, archive {
+        .md-tile-#{$kind} {
+            fill: var(--md-#{$kind});
+            stroke: var(--md-#{$kind}-outline);
+        }
+    }
+
+    .md-tile-label {
+        font-family: inherit;
+        font-size: 11px;
+        fill: var(--md-on-surface);
+    }
+}
