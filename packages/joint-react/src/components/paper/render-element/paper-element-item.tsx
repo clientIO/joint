@@ -50,6 +50,11 @@ function SVGElementItemComponent(props: ElementItemProps) {
   const graphStore = useGraphStore();
   const { paper } = usePaper();
   useLayoutEffect(() => {
+    // Runs after the portal subtree's layout effects, so a `useMeasureElement`
+    // inside `renderElement` has already registered with the size observer
+    // (in HTML overlay mode this item follows `HTMLElementItem`, which renders
+    // the user content, in sibling order). O(1), and a no-op on re-runs.
+    graphStore.markElementRendered(id);
     if (!paper) return;
     graphStore.clearViewForElementAndLinks({
       cellId: id,

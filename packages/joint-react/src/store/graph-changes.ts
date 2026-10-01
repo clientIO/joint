@@ -60,10 +60,29 @@ interface OnChangeOptions {
   readonly isReset?: boolean;
 }
 
-interface Options {
+/**
+ * Graph events the measurement bookkeeping in `GraphStore` listens to. Forwarded
+ * unchanged by `graphProjection`.
+ */
+export interface MeasurementListeners {
+  /**
+   * An element got a size. `changeOptions` are the options of the `change:size`
+   * event; `undefined` when the size arrives with the cell (`add` / `reset`).
+   */
+  readonly onElementsSizeChange?: (
+    id: CellId,
+    size: dia.Size,
+    changeOptions?: dia.Cell.Options
+  ) => void;
+  /** An element left the graph (not fired by a `reset`; see {@link onReset}). */
+  readonly onElementRemove?: (id: CellId) => void;
+  /** The graph was reset; fires before the seed cells' `onElementsSizeChange` calls. */
+  readonly onReset?: () => void;
+}
+
+interface Options extends MeasurementListeners {
   readonly graph: dia.Graph;
   readonly onChanges: (options: OnChangeOptions) => void;
-  readonly onElementsSizeChange?: (id: CellId, size: { width: number; height: number }) => void;
 }
 
 interface JointJSEventOptions {
@@ -78,7 +97,7 @@ interface JointJSEventOptions {
  * @returns Controller exposing updateGraph and destroy.
  */
 export function graphChanges(options: Options) {
-  const { graph, onElementsSizeChange } = options;
+  const { graph, onElementsSizeChange, onElementRemove, onReset } = options;
   const changes = new Map<CellId, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
@@ -165,6 +184,7 @@ export function graphChanges(options: Options) {
       _collection: mvc.Collection<dia.Cell>,
       { isUpdateFromReact }: JointJSEventOptions
     ) => {
+      if (cell.isElement()) onElementRemove?.(cell.id);
       if (isUpdateFromReact) return;
       onCellEvent(cell, 'remove');
     }
@@ -176,6 +196,7 @@ export function graphChanges(options: Options) {
       if (eventOptions.isUpdateFromReact) return;
       isSyncedWithReact = true;
       changes.clear();
+      onReset?.();
       for (const cell of collection.models) {
         changes.set(cell.id, { type: 'add', data: cell });
         // `reset` suppresses per-cell `add` events, so size notifications
@@ -203,10 +224,14 @@ export function graphChanges(options: Options) {
     onChanges({ changes: layoutChanges, isInsideBatch: true, deferCommit: isDeferring() });
   });
 
-  controller.listenTo(graph, 'change:size', (cell: dia.Cell, newSize: dia.Size) => {
-    if (!onElementsSizeChange) return;
-    onElementsSizeChange(cell.id, newSize);
-  });
+  controller.listenTo(
+    graph,
+    'change:size',
+    (cell: dia.Cell, newSize: dia.Size, changeOptions: dia.Cell.Options = {}) => {
+      if (!onElementsSizeChange) return;
+      onElementsSizeChange(cell.id, newSize, changeOptions);
+    }
+  );
 
   // Always-on batch tracking. A batch flagged with DEFER_COMMIT_BATCH_OPTION
   // defers its container commits until it closes, so a burst of edits (sync or

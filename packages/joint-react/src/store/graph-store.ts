@@ -13,6 +13,7 @@ import { LINK_MODEL_TYPE, LinkModel } from '../mvc/link-model';
 import { isElementType, isLinkType } from '../utils/cell-type';
 import { clearConnectedLinkViews } from './clear-view';
 import { LAYOUT_UPDATE_EVENT } from './graph-changes';
+import { isPaperView } from '../mvc/paper';
 import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
@@ -109,12 +110,20 @@ export class GraphStore<
   public readonly graphProjection: GraphProjection<Element, Link>;
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<number> = createAtom(0);
+  /**
+   * Incremented by every graph `reset`. `useOnElementsMeasured` reports
+   * `isInitial` for the first `measureState` bump of each generation.
+   */
+  public measureGeneration = 0;
   public readonly graph: dia.Graph;
   public readonly autoSizeOrigin: AutoSizeOrigin;
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
 
   private observer: GraphStoreObserver;
+  /** Elements added to the graph that no paper has accounted for yet (see the constructor). */
+  private readonly outstandingElements = new Set<CellId>();
+  private readonly scheduleMeasurementDelivery: () => void;
   private onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
   // dev-only `change:size` listener that warns about resizing auto-sized elements.
   private warnAutoSizeResize?: (cell: dia.Cell, size: dia.Size, opt?: AutoSizeOptions) => void;
@@ -148,29 +157,73 @@ export class GraphStore<
       graphFeaturesVersion: 1,
     });
 
-    const elementsMeasured = new Set<CellId>();
-    const onElementSizeChange = () => {
-      if (elementsMeasured.size > 0) {
-        this.measureState.set((previous) => previous + 1);
-      }
+    // Measurement bookkeeping behind `measureState` (see `useOnElementsMeasured`):
+    // one bump per settled change. An element is outstanding from arriving in
+    // the graph until it is accounted for: its React content committed without
+    // registering a measurer (`markElementRendered`), no paper renders it
+    // (`settleUnrenderedElements`, after a paper's render pass), or, when it did
+    // register one (`useMeasureElement`), the observer measured it. A zero size
+    // is never read as "waiting": it is a legal final size (a layout anchor).
+    // Sizes the application writes are not measurements and never bump (#3514).
+    const sizedElements = new Set<CellId>();
+    let hasUndeliveredChange = false;
+    const deliverMeasurement = () => {
+      if (!hasUndeliveredChange) return;
+      // Papers account for outstanding elements; without one nothing renders
+      // or measures, so there is nothing to wait for.
+      if (this.outstandingElements.size > 0 && this.paperStores.size > 0) return;
+      // "Measured" means at least one element has a size (`isInitial` contract).
+      if (sizedElements.size === 0) return;
+      hasUndeliveredChange = false;
+      this.measureState.set((previous) => previous + 1);
     };
+    this.scheduleMeasurementDelivery = () => simpleScheduler(deliverMeasurement);
 
     this.graphProjection = graphProjection<Element, Link>({
       graph: this.graph,
       onIncrementalCellsChange: (changes) => {
         this.onIncrementalCellsChange?.(changes);
       },
-      onElementsSizeChange: (id, size) => {
+      onElementsSizeChange: (id, size, changeOptions) => {
         if (size.width > 0 && size.height > 0) {
-          elementsMeasured.add(id);
+          sizedElements.add(id);
         } else {
-          elementsMeasured.delete(id);
+          sizedElements.delete(id);
         }
-        simpleScheduler(onElementSizeChange);
+        if (changeOptions === undefined) {
+          // The size arrived with the cell (`add` / `reset`): outstanding until
+          // a paper has rendered it, whatever the size says.
+          this.outstandingElements.add(id);
+        } else if (changeOptions[AUTO_SIZE_OPTION]) {
+          this.outstandingElements.delete(id);
+        } else {
+          return;
+        }
+        hasUndeliveredChange = true;
+        this.scheduleMeasurementDelivery();
+      },
+      onElementRemove: (id) => {
+        sizedElements.delete(id);
+        if (this.outstandingElements.delete(id)) this.scheduleMeasurementDelivery();
+      },
+      onReset: () => {
+        // The reset replaces the diagram: its first settled pass is a new
+        // `isInitial` for `useOnElementsMeasured`, and until then nothing is
+        // measured for `useAreElementsMeasured`.
+        sizedElements.clear();
+        this.outstandingElements.clear();
+        hasUndeliveredChange = false;
+        this.measureGeneration += 1;
+        this.measureState.set(0);
       },
     });
 
     this.observer = createElementsSizeObserver({
+      onElementMeasured: (id) => {
+        // Settles an element whose measurement equals the size it already has
+        // (the application pre-sized it): the observer then writes nothing.
+        if (this.outstandingElements.delete(id)) this.scheduleMeasurementDelivery();
+      },
       getElements: () => {
         // The observer only cares about element-typed cells. Build a Map on
         // demand from the unified cells container — cold path, called only
@@ -432,6 +485,52 @@ export class GraphStore<
   };
 
   public setMeasuredNode = (options: SetMeasuredNodeOptions) => this.observer.add(options);
+
+  /**
+   * An element's React content committed. Called by the element portal item
+   * after its subtree's layout effects, so an element that registered for
+   * measurement (`useMeasureElement`) stays outstanding until measured, while
+   * one that nothing measures is settled now.
+   * @param id - the rendered element
+   */
+  public markElementRendered = (id: CellId) => {
+    if (!this.outstandingElements.has(id) || this.observer.has(id)) return;
+    this.outstandingElements.delete(id);
+    this.scheduleMeasurementDelivery();
+  };
+
+  /**
+   * A paper finished a render pass (`render:done`): every view it mounts for
+   * this pass is in the DOM now. An outstanding element that no paper renders
+   * (viewport culling, `cellVisibility`, a hidden group) is not going to be
+   * measured, so it is settled with the size it has; one with a mounted view
+   * waits for its content to commit (`markElementRendered`). O(outstanding),
+   * which is empty between changes.
+   */
+  public settleUnrenderedElements = () => {
+    let didSettle = false;
+    for (const id of this.outstandingElements) {
+      if (this.observer.has(id) || this.isRenderedByAnyPaper(id)) continue;
+      this.outstandingElements.delete(id);
+      didSettle = true;
+    }
+    if (didSettle) this.scheduleMeasurementDelivery();
+  };
+
+  /**
+   * Whether some paper mounted the element's view and will render React
+   * content into it, which is the only way a measurer gets registered: the
+   * paper has a `renderElement` and the view has a portal node.
+   */
+  private isRenderedByAnyPaper(id: CellId): boolean {
+    for (const paperStore of this.paperStores.values()) {
+      if (!paperStore.renderElement) continue;
+      const view = paperStore.getElementView(id);
+      if (!view?.el.isConnected || !isPaperView(view.paper)) continue;
+      if (view.paper.getCellViewPortalNode(view)) return true;
+    }
+    return false;
+  }
   public getPaperStore = (id: string) => {
     return this.paperStores.get(id);
   };

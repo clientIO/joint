@@ -97,6 +97,12 @@ interface Options {
   readonly getElements: () => Map<CellId, ElementJSONInit>;
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (data: Record<CellId, ElementLayoutOptionalXY>) => void;
+  /**
+   * An observed node was measured, whether or not the size differs from the
+   * model's (a measurement equal to the model size, or a zero size, writes
+   * nothing). Fires before `onBatchUpdate` for the same entries.
+   */
+  readonly onElementMeasured?: (id: CellId) => void;
 }
 
 /**
@@ -226,6 +232,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     resizeObserverOptions = DEFAULT_OBSERVER_OPTIONS,
     getCellTransform,
     onBatchUpdate,
+    onElementMeasured,
     getElements,
   } = options;
 
@@ -265,6 +272,8 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         target as HTMLElement | SVGElement
       );
       if (!observedElement) continue;
+
+      onElementMeasured?.(observedElement.id);
 
       if (!borderBoxSize || borderBoxSize.length === 0) {
         continue;
