@@ -1,11 +1,8 @@
 import { merge } from '../util/index.mjs';
 
 // A label as given (own `markup`/`attrs`/`size`/`position`, any of which may be missing),
-// resolved against `link`'s `defaultLabel` and its built-in default - the same resolution
-// `LinkView` used to do at render time. Passing `{}` resolves to the pure default. Any
-// other (custom) property on the label or `defaultLabel` passes through unresolved - the
-// label's own value wins over `defaultLabel`'s.
-export function getResolvedLabel(link, label) {
+// resolved against `link`'s `defaultLabel` and its built-in default.
+export function getComputedLabel(link, label) {
 
     label = label || {};
 

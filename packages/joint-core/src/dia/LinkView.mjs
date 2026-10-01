@@ -1473,9 +1473,7 @@ export const LinkView = CellView.extend({
             var labelNode = evt.currentTarget;
             var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
-            // Resolved (see `Link#getComputedLabel`) - already merged with `defaultLabel`/
-            // the built-in default.
-            var position = this.model.getComputedLabel(labelIdx).position || {};
+            var position = this.model.getComputedLabel(labelIdx).position;
 
             var coords = this.getLabelCoordinates(position);
             var dx = coords.x - x; // how much needs to be added to cursor x to get to label x

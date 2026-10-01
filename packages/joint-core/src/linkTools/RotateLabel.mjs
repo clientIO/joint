@@ -98,14 +98,15 @@ export const RotateLabel = Control.extend({
         return this.options.labelIndex || 0;
     },
 
+    // Change to getComputedLabel() in future release
     getLabel() {
-        // Resolved (see `Link#getComputedLabel`) - already merged with `defaultLabel`/
-        // the built-in default.
-        return this.relatedView.model.getComputedLabel(this.getLabelIndex()) || null;
+        return this.relatedView.model.label(this.getLabelIndex()) || null;
     },
 
     getLabelPosition(label) {
-        return label.position;
+        const view = this.relatedView;
+        const labelPosition = view._normalizeLabelPosition(label.position);
+        return view._mergeLabelPositionProperty(labelPosition, view._getDefaultLabelPositionProperty());
     },
 
 });
