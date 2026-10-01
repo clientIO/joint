@@ -71,7 +71,7 @@ export interface ElkPortDraft {
  */
 export type ExportPortCallback = (params: ExportPortCallbackParameters) => void | false;
 export type ExportPortCallbackParameters = {
-    port: dia.Element.Port;
+    portId: string;
     element: dia.Element;
     elkPort: ElkPortDraft;
 };
@@ -94,7 +94,7 @@ export type ExportLinkCallbackParameters = {
 
 export type ExportPortLabelCallback = (params: ExportPortLabelCallbackParameters) => void | false;
 export type ExportPortLabelCallbackParameters = {
-    port: dia.Element.Port;
+    portId: string;
     element: dia.Element;
     elkPortLabel: ElkLabelDraft;
 };
@@ -102,7 +102,7 @@ export type ExportPortLabelCallbackParameters = {
 export type ExportLinkLabelCallback = (params: ExportLinkLabelCallbackParameters) => void | false;
 export type ExportLinkLabelCallbackParameters = {
     link: dia.Link;
-    label: dia.Link.Label;
+    labelIndex: number;
     elkEdgeLabel: ElkLabelDraft;
 };
 
@@ -196,7 +196,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             }
         };
 
-        if (exportGraphOptions.exportPort?.({ port, element, elkPort }) === false) {
+        if (exportGraphOptions.exportPort?.({ portId, element, elkPort }) === false) {
             getExcludedPortIds(element).add(portId);
             return;
         }
@@ -207,7 +207,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             layoutOptions: {}
         };
 
-        exportGraphOptions.exportPortLabel?.({ port, element, elkPortLabel: portLabel });
+        exportGraphOptions.exportPortLabel?.({ portId, element, elkPortLabel: portLabel });
 
         let labels: ElkLabel[] = [];
         if (portLabel.width && portLabel.height) {
@@ -343,7 +343,7 @@ function buildEdge(link: dia.Link): void {
     const resolvedLabels = link.getComputedLabels();
     let labels: ElkLabel[] = [];
     if (resolvedLabels.length > 0) {
-        labels = resolvedLabels.reduce((result: ElkLabel[], label) => {
+        labels = resolvedLabels.reduce((result: ElkLabel[], label, labelIndex) => {
             const { width, height } = label.size!;
             const labelDraft: ElkLabelDraft = {
                 width,
@@ -351,7 +351,7 @@ function buildEdge(link: dia.Link): void {
                 layoutOptions: {}
             };
 
-            if (exportGraphOptions.exportLinkLabel?.({ link, label, elkEdgeLabel: labelDraft }) === false)
+            if (exportGraphOptions.exportLinkLabel?.({ link, labelIndex, elkEdgeLabel: labelDraft }) === false)
                 return result;
 
             result.push({

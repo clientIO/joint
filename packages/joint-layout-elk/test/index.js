@@ -210,8 +210,8 @@ QUnit.module('layout()', () => {
 
         const seen = [];
         await joint.layout.ELK.layout(graph, {
-            exportPort: ({ port, element }) => {
-                seen.push([port.id, element.id]);
+            exportPort: ({ portId, element }) => {
+                seen.push([portId, element.id]);
             }
         });
 
@@ -425,8 +425,8 @@ QUnit.module('layout()', () => {
         graph.resetCells([el1, el2, link]);
 
         const { elkGraph } = await joint.layout.ELK.layout(graph, {
-            exportLinkLabel: ({ label, elkEdgeLabel }) => {
-                Object.assign(elkEdgeLabel.layoutOptions, label.elkLayoutOptions);
+            exportLinkLabel: ({ link, labelIndex, elkEdgeLabel }) => {
+                Object.assign(elkEdgeLabel.layoutOptions, link.label(labelIndex).elkLayoutOptions);
             }
         });
 
@@ -470,16 +470,16 @@ QUnit.module('layout()', () => {
                 elkLayoutOptions: { 'elk.edgeLabels.inline': 'true' }
             },
             // Neither label sets its own `elkLayoutOptions` - both fall back to
-            // `defaultLabel`'s, already merged in by `Link#getComputedLabels()` (`@joint/core`)
-            // by the time `exportLinkLabel` sees `label` below.
+            // `defaultLabel`'s, merged in by `Link#getComputedLabels()` (`@joint/core`)
+            // which `exportLinkLabel` indexes into with `labelIndex` below.
             labels: [{}, {}]
         });
 
         graph.resetCells([el1, el2, link]);
 
         const { elkGraph } = await joint.layout.ELK.layout(graph, {
-            exportLinkLabel: ({ label, elkEdgeLabel }) => {
-                Object.assign(elkEdgeLabel.layoutOptions, label.elkLayoutOptions);
+            exportLinkLabel: ({ link, labelIndex, elkEdgeLabel }) => {
+                Object.assign(elkEdgeLabel.layoutOptions, link.getComputedLabels()[labelIndex].elkLayoutOptions);
             }
         });
 
@@ -508,8 +508,9 @@ QUnit.module('layout()', () => {
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
             },
-            exportPort: ({ element, port, elkPort }) => {
-                const groupOptions = element.prop(['ports', 'groups', port.group, 'elkLayoutOptions']);
+            exportPort: ({ element, portId, elkPort }) => {
+                const { group } = element.getPort(portId);
+                const groupOptions = element.prop(['ports', 'groups', group, 'elkLayoutOptions']);
                 Object.assign(elkPort.layoutOptions, groupOptions);
             }
         });
@@ -546,8 +547,8 @@ QUnit.module('layout()', () => {
             // `portProp(id, 'label/size')` only reads the port's own item data, with no
             // group fallback - `getPortMetrics` resolves it the same way `dia.Element`
             // itself does for rendering (group first, item overriding it).
-            exportPortLabel: ({ element, port, elkPortLabel }) => {
-                const { width, height } = element.getPortMetrics(port.id).labelSize;
+            exportPortLabel: ({ element, portId, elkPortLabel }) => {
+                const { width, height } = element.getPortMetrics(portId).labelSize;
                 elkPortLabel.width = width;
                 elkPortLabel.height = height;
             }

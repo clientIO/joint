@@ -87,10 +87,10 @@ Each receives an ELK draft already populated with what this package computed for
 
 ```ts
 type ExportElementCallback = (params: { element: dia.Element; elkNode: ElkNodeDraft }) => void | false;
-type ExportPortCallback = (params: { port: dia.Element.Port; element: dia.Element; elkPort: ElkPortDraft }) => void | false;
-type ExportPortLabelCallback = (params: { port: dia.Element.Port; element: dia.Element; elkPortLabel: ElkLabelDraft }) => void | false;
+type ExportPortCallback = (params: { portId: string; element: dia.Element; elkPort: ElkPortDraft }) => void | false;
+type ExportPortLabelCallback = (params: { portId: string; element: dia.Element; elkPortLabel: ElkLabelDraft }) => void | false;
 type ExportLinkCallback = (params: { link: dia.Link; elkEdge: ElkEdgeDraft }) => void | false;
-type ExportLinkLabelCallback = (params: { link: dia.Link; label: dia.Link.Label; elkEdgeLabel: ElkLabelDraft }) => void | false;
+type ExportLinkLabelCallback = (params: { link: dia.Link; labelIndex: number; elkEdgeLabel: ElkLabelDraft }) => void | false;
 ```
 
 ### Import callbacks
