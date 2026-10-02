@@ -178,7 +178,7 @@ describe('useOnElementsMeasured', () => {
   // options, so an application's own resize bumped `measureState` like a
   // measurement write and woke every subscriber.
   describe('application resizes vs measurement writes', () => {
-    function renderMeasuredProbe(callback: jest.Mock) {
+    function renderResizeProbe(callback: jest.Mock) {
       let graphRef: dia.Graph | undefined;
       function Probe() {
         const store = useGraphStore();
@@ -192,7 +192,7 @@ describe('useOnElementsMeasured', () => {
 
     it('does not fire when the application resizes an element', async () => {
       const callback = jest.fn();
-      const getElement = renderMeasuredProbe(callback);
+      const getElement = renderResizeProbe(callback);
       await waitFor(() => expect(callback).toHaveBeenCalled());
       callback.mockClear();
 
@@ -207,7 +207,7 @@ describe('useOnElementsMeasured', () => {
 
     it('fires with isInitial=false for a measurement write', async () => {
       const callback = jest.fn();
-      const getElement = renderMeasuredProbe(callback);
+      const getElement = renderResizeProbe(callback);
       await waitFor(() => expect(callback).toHaveBeenCalled());
       callback.mockClear();
 
