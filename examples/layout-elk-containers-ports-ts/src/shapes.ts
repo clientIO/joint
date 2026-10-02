@@ -18,19 +18,18 @@ const PORT_ATTRS = {
 // match `.md-port-label`'s CSS font size/weight, since it never has to be exact.
 const PORT_LABEL_FONT_SIZE = 11;
 const PORT_LABEL_AVERAGE_CHAR_WIDTH = PORT_LABEL_FONT_SIZE * 0.6;
-const PORT_LABEL_HORIZONTAL_PADDING = 6;
-const PORT_LABEL_HEIGHT = PORT_LABEL_FONT_SIZE + 4;
+const PORT_LABEL_HEIGHT = PORT_LABEL_FONT_SIZE + 5;
 
 function estimatePortLabelSize(text: string): dia.Size {
     return {
-        width: Math.ceil(text.length * PORT_LABEL_AVERAGE_CHAR_WIDTH) + PORT_LABEL_HORIZONTAL_PADDING,
+        width: Math.ceil(text.length * PORT_LABEL_AVERAGE_CHAR_WIDTH),
         height: PORT_LABEL_HEIGHT
     };
 }
 
 // Square ports (rather than `PORT_ATTRS`' circles) set `HubService` apart as
 // a hub with several ports fanning in/out on the same side.
-const HUB_PORT_SIZE = { width: 14, height: 14 };
+const HUB_PORT_SIZE = { width: 14, height: 8 };
 const HUB_PORT_MARKUP = [{
     tagName: 'rect',
     selector: 'rect'

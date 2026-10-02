@@ -238,7 +238,7 @@ QUnit.module('layout()', () => {
 
         // Each callback mutates the draft it's given in place, rather than returning a
         // value to merge - so what this package itself already put on that same draft
-        // (e.g. `elk.port.borderOffset`, or an `elkNode`/`elkPort`'s own `width`) survives
+        // (e.g. an `elkNode`/`elkPort`'s own `width`) survives
         // alongside whatever the callback itself adds.
         const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportElement: ({ elkNode }) => {
@@ -260,7 +260,6 @@ QUnit.module('layout()', () => {
 
         const elkPort = elkNode.ports.find((port) => port.id === 'a:out1');
         assert.equal(elkPort.layoutOptions['elk.custom'], 'port');
-        assert.equal(typeof elkPort.layoutOptions['elk.port.borderOffset'], 'string');
         assert.equal(typeof elkPort.width, 'number');
 
         const [elkEdge] = elkGraph.edges;
@@ -340,6 +339,71 @@ QUnit.module('layout()', () => {
         const relativePosition = el1.getPortRelativePosition('out1');
         assert.equal(relativePosition.x, position.x);
         assert.equal(relativePosition.y, position.y);
+    });
+
+    QUnit.test('should keep a port where it is under FIXED_POS port constraints', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 60 },
+            ports: {
+                groups: {
+                    right: { position: 'right', size: { width: 20, height: 10 }}
+                },
+                items: [{ id: 'right1', group: 'right' }]
+            }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 60 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a', port: 'right1' }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        const before = el1.getPortRelativePosition('right1');
+
+        await joint.layout.ELK.layout(graph, {
+            exportElement: ({ elkNode }) => {
+                elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_POS';
+            }
+        });
+
+        const after = el1.getPortRelativePosition('right1');
+        assert.deepEqual({ x: after.x, y: after.y }, { x: before.x, y: before.y });
+    });
+
+    QUnit.test('should center a non-square port on whichever side ELK puts it', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        // 'absolute' with no args - every port starts at the element's corner, so only
+        // `elk.port.side` (not the port's own position) says which side it belongs to.
+        const group = { position: { name: 'absolute' }, size: { width: 14, height: 8 }};
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 130, height: 50 },
+            ports: {
+                groups: { in: group, out: group },
+                items: [{ id: 'in1', group: 'in' }, { id: 'out1', group: 'out' }]
+            }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 40 }});
+        const el3 = new joint.shapes.standard.Rectangle({ id: 'c', size: { width: 100, height: 40 }});
+        const link1 = new joint.shapes.standard.Link({ source: { id: 'b' }, target: { id: 'a', port: 'in1' }});
+        const link2 = new joint.shapes.standard.Link({ source: { id: 'a', port: 'out1' }, target: { id: 'c' }});
+
+        graph.resetCells([el1, el2, el3, link1, link2]);
+
+        await joint.layout.ELK.layout(graph, {
+            exportElement: ({ element, elkNode }) => {
+                if (element.hasPorts()) elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
+            },
+            exportPort: ({ portId, elkPort }) => {
+                elkPort.layoutOptions['elk.port.side'] = (portId === 'in1') ? 'WEST' : 'SOUTH';
+            }
+        });
+
+        // Each port's center sits on its border, in the middle of that side.
+        assert.deepEqual(el1.portProp('in1', ['position', 'args']), { x: 0, y: 25 });
+        assert.deepEqual(el1.portProp('out1', ['position', 'args']), { x: 65, y: 50 });
     });
 
     QUnit.test('should keep a port\'s rendered position stable across repeated `layout()` calls', async(assert) => {
@@ -519,9 +583,6 @@ QUnit.module('layout()', () => {
         const elkPort = elkNode.ports.find((port) => port.id === 'a:out1');
         // The group's own `elk.port.side` wins over what `right` would otherwise compute.
         assert.equal(elkPort.layoutOptions['elk.port.side'], 'WEST');
-        // What this package itself computes (e.g. `elk.port.borderOffset`) still survives -
-        // `exportPort` adds to the same `layoutOptions` object, it doesn't replace it.
-        assert.equal(typeof elkPort.layoutOptions['elk.port.borderOffset'], 'string');
     });
 
     QUnit.test('should size a port label via exportPortLabel, from the port\'s (or its group\'s) `label.size`', async(assert) => {

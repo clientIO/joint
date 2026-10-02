@@ -218,11 +218,19 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             if (!found) return;
             const { element, portId } = found;
 
+            // ELK places a port just outside the node's border - clamping its center
+            // into the node's bounds moves it onto the border, whichever side it is on.
+            const center = {
+                x: Math.min(Math.max((port.x || 0) + (port.width || 0) / 2, 0), node.width || 0),
+                y: Math.min(Math.max((port.y || 0) + (port.height || 0) / 2, 0), node.height || 0)
+            };
+
             let labelPosition: dia.Point | undefined;
             const [label] = port.labels || [];
             if (label) {
                 // ELK's `label.x`/`y` are relative to the port's top-left corner, but
-                // 'manual' label position expects an offset from the port's *center*.
+                // 'manual' label position expects an offset from the port's center - the
+                // label keeps its place next to the port as the port moves onto the border.
                 labelPosition = {
                     x: (label.x || 0) - (port.width || 0) / 2,
                     y: (label.y || 0) - (port.height || 0) / 2
@@ -234,10 +242,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
                 portId,
                 attributes: {
                     position: {
-                        args: {
-                            x: (port.x || 0) + (port.width || 0) / 2,
-                            y: (port.y || 0) + (port.height || 0) / 2
-                        }
+                        args: center
                     },
                     ...(labelPosition ? {
                         label: {
