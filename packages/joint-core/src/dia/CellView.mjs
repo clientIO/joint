@@ -745,7 +745,7 @@ export const CellView = View.extend({
             nodePosition.round(1);
             nodeMatrix.e = nodePosition.x;
             nodeMatrix.f = nodePosition.y;
-            node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+            V(node).attr('transform', V.matrixToTransformString(nodeMatrix));
             // TODO: store nodeMatrix metrics?
         }
     },

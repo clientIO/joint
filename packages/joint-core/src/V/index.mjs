@@ -1280,16 +1280,40 @@ const V = (function() {
         }
 
         const trueName = attributeNames[name];
+        // The DOM converts the value with `String()` semantics, which differ
+        // from `'' + value` for an object defining both `toString()` and
+        // `valueOf()`. Convert once and write that exact string, so the value
+        // compared is always the value stored.
+        const stringValue = String(value);
 
-        const { ns } = V.qualifyAttr(trueName);
+        const { ns, local } = V.qualifyAttr(trueName);
         if (ns) {
             // Attribute names can be namespaced. E.g. `image` elements
             // have a `xlink:href` attribute to set the source of the image.
-            el.setAttributeNS(ns, trueName, value);
-        } else if (trueName === 'id') {
-            el.id = value;
+            if (el.getAttributeNS(ns, local) === stringValue) return this;
+            el.setAttributeNS(ns, trueName, stringValue);
+        } else if (trueName === 'style' && el.style) {
+            // Assigned through the CSSOM, like the `style` presentation
+            // attribute. A `style` attribute is subject to the
+            // `style-src-attr` directive, so writing one has no effect under a
+            // Content Security Policy that forbids inline styles. Elements
+            // outside the HTML and SVG namespaces expose no `style`, and keep
+            // the attribute.
+            //
+            // Ahead of the unchanged-value check below, because the attribute
+            // can read back as the value being written while the declaration
+            // it stands for is empty, which is what a blocked write leaves.
+            el.style.cssText = stringValue;
         } else {
-            el.setAttribute(trueName, value);
+            // Note: `el.id` reads as an empty string when there is no `id`
+            // attribute, so the attribute itself is the only way to tell an
+            // absent `id` from a present empty one.
+            if (el.getAttribute(trueName) === stringValue) return this;
+            if (trueName === 'id') {
+                el.id = stringValue;
+            } else {
+                el.setAttribute(trueName, stringValue);
+            }
         }
 
         return this;
