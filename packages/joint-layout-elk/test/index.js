@@ -153,6 +153,66 @@ QUnit.module('layout()', () => {
         assert.ok(!joint.g.intersection.exists(parent.getBBox(), outside.getBBox()));
     });
 
+    QUnit.test('should place a link inside nested containers using ELK\'s graph-absolute edge coordinates', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const outer = new joint.shapes.standard.Rectangle({ id: 'outer', size: { width: 10, height: 10 }});
+        const inner = new joint.shapes.standard.Rectangle({ id: 'inner', size: { width: 10, height: 10 }});
+        const a = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 60, height: 40 }});
+        const b = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 60, height: 80 }});
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a' },
+            target: { id: 'b' },
+            labels: [{ size: { width: 30, height: 12 }}]
+        });
+        outer.embed(inner);
+        inner.embed(a);
+        inner.embed(b);
+
+        graph.resetCells([outer, inner, a, b, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            elkLayoutOptions: {
+                'elk.padding': '[top=40,left=20,bottom=20,right=20]'
+            }
+        });
+
+        assert.equal(elkGraph.layoutOptions['elk.json.edgeCoords'], 'ROOT');
+
+        const elkInner = elkGraph.children[0].children[0];
+        const [elkEdge] = elkInner.edges;
+        const { startPoint, endPoint } = elkEdge.sections[0];
+
+        // ELK's own (graph-absolute) end points land on the laid out elements' borders -
+        // relative to `inner`, they'd be off by both containers' offsets.
+        assert.ok(a.getBBox().inflate(1).containsPoint(startPoint));
+        assert.ok(b.getBBox().inflate(1).containsPoint(endPoint));
+
+        // ...and are applied as they are: each end's anchor resolves to that same point.
+        const { dx, dy } = link.source().anchor.args;
+        assert.deepEqual(a.position().offset(dx, dy).toJSON(), { x: startPoint.x, y: startPoint.y });
+
+        // The label stays on the link's path.
+        const [label] = link.labels();
+        assert.ok(Math.abs(label.position.offset) < 30);
+    });
+
+    QUnit.test('should let `elkLayoutOptions` override `elk.json.edgeCoords`', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 50, height: 50 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            elkLayoutOptions: { 'elk.json.edgeCoords': 'CONTAINER' }
+        });
+
+        assert.equal(elkGraph.layoutOptions['elk.json.edgeCoords'], 'CONTAINER');
+    });
+
     QUnit.test('should route links to/from ports without overriding their anchor', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
@@ -483,7 +543,7 @@ QUnit.module('layout()', () => {
         const link = new joint.shapes.standard.Link({
             source: { id: 'a' },
             target: { id: 'b' },
-            labels: [{ size: { width: 40, height: 20 }, elkLayoutOptions: { 'elk.edgeLabels.inline': 'true' }}]
+            labels: [{ size: { width: 40, height: 20 }, elkLayoutOptions: { 'elk.edgeLabels.inline': 'false' }}]
         });
 
         graph.resetCells([el1, el2, link]);
@@ -495,14 +555,15 @@ QUnit.module('layout()', () => {
         });
 
         const [elkEdge] = elkGraph.edges;
-        assert.equal(elkEdge.labels[0].layoutOptions['elk.edgeLabels.inline'], 'true');
+        // The label's own value wins over the package's inline default.
+        assert.equal(elkEdge.labels[0].layoutOptions['elk.edgeLabels.inline'], 'false');
 
         // The label's own raw JSON is unaffected - reading it in `exportLinkLabel` doesn't
         // write anything back.
-        assert.deepEqual(link.get('labels')[0].elkLayoutOptions, { 'elk.edgeLabels.inline': 'true' });
+        assert.deepEqual(link.get('labels')[0].elkLayoutOptions, { 'elk.edgeLabels.inline': 'false' });
     });
 
-    QUnit.test('should not place a link label inline by default - only `exportLinkLabel` can opt one in', async(assert) => {
+    QUnit.test('should place a link label inline by default - `exportLinkLabel` can opt one out', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
@@ -516,9 +577,14 @@ QUnit.module('layout()', () => {
         graph.resetCells([el1, el2, link]);
 
         const { elkGraph } = await joint.layout.ELK.layout(graph);
+        assert.equal(elkGraph.edges[0].labels[0].layoutOptions['elk.edgeLabels.inline'], 'true');
 
-        const [elkEdge] = elkGraph.edges;
-        assert.notOk('elk.edgeLabels.inline' in elkEdge.labels[0].layoutOptions);
+        const { elkGraph: optedOutElkGraph } = await joint.layout.ELK.layout(graph, {
+            exportLinkLabel: ({ elkEdgeLabel }) => {
+                elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = 'false';
+            }
+        });
+        assert.equal(optedOutElkGraph.edges[0].labels[0].layoutOptions['elk.edgeLabels.inline'], 'false');
     });
 
     QUnit.test('should let exportLinkLabel read a link\'s `defaultLabel`-inherited custom property for every label', async(assert) => {
@@ -531,7 +597,7 @@ QUnit.module('layout()', () => {
             target: { id: 'b' },
             defaultLabel: {
                 size: { width: 40, height: 20 },
-                elkLayoutOptions: { 'elk.edgeLabels.inline': 'true' }
+                elkLayoutOptions: { 'elk.edgeLabels.inline': 'false' }
             },
             // Neither label sets its own `elkLayoutOptions` - both fall back to
             // `defaultLabel`'s, merged in by `Link#getComputedLabels()` (`@joint/core`)
@@ -548,8 +614,8 @@ QUnit.module('layout()', () => {
         });
 
         const [elkEdge] = elkGraph.edges;
-        assert.equal(elkEdge.labels[0].layoutOptions['elk.edgeLabels.inline'], 'true');
-        assert.equal(elkEdge.labels[1].layoutOptions['elk.edgeLabels.inline'], 'true');
+        assert.equal(elkEdge.labels[0].layoutOptions['elk.edgeLabels.inline'], 'false');
+        assert.equal(elkEdge.labels[1].layoutOptions['elk.edgeLabels.inline'], 'false');
     });
 
     QUnit.test('should let exportPort read a port group\'s own custom property into its computed layoutOptions', async(assert) => {

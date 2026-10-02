@@ -63,7 +63,7 @@ interface LayoutOptions {
     // A custom ELK instance, e.g. one configured to run inside a Web Worker.
     elk?: ELK; // Default: a shared, main-thread instance (`elkjs/lib/elk.bundled.js`)
     // ELK layout options, passed through to ELK unmodified.
-    elkLayoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN' }
+    elkLayoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.json.edgeCoords': 'ROOT' }
     // A name for the layout batch, grouping everything `layout()` applies into one graph change.
     batchName?: string; // Default: 'layout'
 
@@ -105,6 +105,7 @@ type SetLinkAttributesCallback = (params: { link: dia.Link; attributes: { vertic
 
 ## ⚠️ Caveats & Known Limitations
 
+- **Edge coordinates are graph-absolute** - `layout()` sets `elk.json.edgeCoords: 'ROOT'`, so ELK returns every edge's route points and labels relative to the root, whichever container the edge is in, and the default import applies them as they are. Overriding it (e.g. `'CONTAINER'`) is allowed, but the default import then misplaces vertices, end anchors and labels of edges inside containers - convert them yourself in `setLinkAttributes` (from `elkEdge`). The same applies to the raw `elkGraph` in `layout()`'s result.
 - **Node labels are not supported** - ELK's node-label placement assumes labels are layout participants, whereas JointJS labels are attrs inside the shape. Link labels are supported.
 - **Ports keep their JointJS-computed position by default** - `layout()` only tells ELK where they already are, so edges route to/from the exact spot the element's port groups place them at. Opt into ELK repositioning/reordering them by setting `elk.portConstraints` (e.g. `'FIXED_SIDE'`/`'FREE'`) via `exportElement`/`exportPort`.
 - **Asynchronous** - unlike `@joint/layout-directed-graph`, `layout()` returns a `Promise`, since `elkjs` computes layouts asynchronously (and, optionally, inside a Web Worker).
