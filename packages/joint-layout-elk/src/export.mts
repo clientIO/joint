@@ -181,8 +181,10 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         const portId = `${port.id}`;
         const elkPortId = `${element.id}:${portId}`;
 
-        const { x, y } = element.getPortRelativePosition(portId);
-        const { width, height } = element.getPortRelativeRect(portId);
+        // ELK takes a port's top-left corner, not its center. No `elk.port.borderOffset`:
+        // ELK places the port just outside the border, and `importLayout` moves its center
+        // onto the border (a negative offset would also shift the port along the side).
+        const { x, y, width, height } = element.getPortRelativeRect(portId);
 
         const elkPort: ElkPortDraft = {
             id: elkPortId,
@@ -190,10 +192,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             y,
             width,
             height,
-            layoutOptions: {
-                // Negative offset moves the port inward from the node border, centering it there.
-                'elk.port.borderOffset': `${-width / 2}`
-            }
+            layoutOptions: {}
         };
 
         if (exportGraphOptions.exportPort?.({ portId, element, elkPort }) === false) {
@@ -348,7 +347,9 @@ function buildEdge(link: dia.Link): void {
             const labelDraft: ElkLabelDraft = {
                 width,
                 height,
-                layoutOptions: {}
+                layoutOptions: {
+                    'elk.edgeLabels.inline': 'true'
+                }
             };
 
             if (exportGraphOptions.exportLinkLabel?.({ link, labelIndex, elkEdgeLabel: labelDraft }) === false)

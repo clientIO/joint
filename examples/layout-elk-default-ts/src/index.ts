@@ -61,8 +61,7 @@ const init = () => {
             'elk.direction': 'RIGHT',
             'elk.edgeRouting': 'ORTHOGONAL',
             'elk.spacing.nodeNode': '30',
-            'elk.layered.spacing.nodeNodeBetweenLayers': '50',
-            'elk.spacing.edgeLabel': '2'
+            'elk.layered.spacing.nodeNodeBetweenLayers': '50'
         },
     }).then(() => {
         paper.unfreeze();
