@@ -1,7 +1,7 @@
 import { useContext, useLayoutEffect, type RefObject } from 'react';
 import { CellIdContext } from '../context';
 import { useGraphStore } from './use-graph-store';
-import type { TransformElementLayout } from '../store/create-elements-size-observer';
+import type { TransformElementLayout } from '../store/measurement';
 import { usePaper } from './use-paper';
 import type { ElementSize } from '../types/cell.types';
 import { useCell } from './use-cell';
@@ -142,7 +142,8 @@ export function useMeasureElement(
   options: MeasureElementOptions = EMPTY_OBJECT
 ): Required<ElementSize> {
   const { transform } = options;
-  const { graph, setMeasuredNode } = useGraphStore();
+  const graphStore = useGraphStore();
+  const { graph, measurement } = graphStore;
   const { paper } = usePaper();
   const id = useContext(CellIdContext);
   if (id === undefined) {
@@ -179,15 +180,18 @@ export function useMeasureElement(
       paper.requestViewUpdate(view, paper.FLAG_MEASURE, view.UPDATE_PRIORITY);
     }
 
-    const clean = setMeasuredNode({ id, node: nodeRef.current, transform });
-    return () => {
-      // No class cleanup here: views aren't recycled today, so the view
-      // is gone with the cell.
-      clean();
-    };
+    // No class cleanup: views aren't recycled today, so the view is gone with the cell.
+    return measurement.observe({ id, node: nodeRef.current, transform });
     // transform is not a dependency because it doesn't change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodeRef, graph, id, paper, setMeasuredNode]);
+  }, [nodeRef, graph, id, paper, measurement]);
+
+  // The paper may route the links before React commits a measured size (the
+  // application may flush the views from a measurement callback), so let
+  // them resolve again against the committed content.
+  useLayoutEffect(() => {
+    if (paper) graphStore.clearViewForElementAndLinks({ cellId: id, paper });
+  }, [graphStore, id, paper, size]);
 
   return size;
 }

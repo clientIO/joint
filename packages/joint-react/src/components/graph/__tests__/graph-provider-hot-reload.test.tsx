@@ -46,7 +46,8 @@ import type * as ElementModelModule from '../../../mvc/element-model';
 import type * as LinkModelModule from '../../../mvc/link-model';
 import type * as UseGraphStoreModule from '../../../hooks/use-graph-store';
 import type * as UseCellIdsModule from '../../../hooks/use-cell-ids';
-import type * as UseOnElementsMeasuredModule from '../../../hooks/use-on-elements-measured';
+import type * as UseOnCellsChangeModule from '../../../hooks/use-on-cells-change';
+import type * as SelectorsModule from '../../../selectors';
 import type * as GraphProviderModule from '../graph-provider';
 import type * as PaperModule from '../../paper/paper';
 
@@ -88,8 +89,11 @@ const linkModelModule: typeof LinkModelModule = require('../../../mvc/link-model
 const { useGraphStore }: typeof UseGraphStoreModule = require('../../../hooks/use-graph-store');
 const { useCellIds }: typeof UseCellIdsModule = require('../../../hooks/use-cell-ids');
 const {
-  useOnElementsMeasured,
-}: typeof UseOnElementsMeasuredModule = require('../../../hooks/use-on-elements-measured');
+  useOnCellsChange,
+}: typeof UseOnCellsChangeModule = require('../../../hooks/use-on-cells-change');
+const {
+  selectMeasuredState,
+}: typeof SelectorsModule = require('../../../selectors');
 
 const graphProviderV1: typeof GraphProviderModule = require('../graph-provider');
 const paperV1: typeof PaperModule = require('../../paper/paper');
@@ -191,8 +195,8 @@ function Probe() {
     mountSequence += 1;
     return mountSequence;
   });
-  useOnElementsMeasured(({ isInitial }) => {
-    measuredCalls.push(isInitial);
+  useOnCellsChange(selectMeasuredState, (version, previousMeasuredState) => {
+    if (version) measuredCalls.push(!previousMeasuredState);
   });
   const ids = useCellIds();
   return h(

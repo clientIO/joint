@@ -1,25 +1,6 @@
-import type { GraphStoreInternalSnapshot } from '../store/graph-store';
-
-// ── Public cell selectors ───────────────────────────────────────────────────
-
+// Public selectors, passed to `useCell` / `useCells` / `useOnCellsChange`.
 export * from './cell-selectors';
+export * from './measurement-selectors';
 
-// ── Internal selectors ──────────────────────────────────────────────────────
-
-export const selectResetVersion = (state: GraphStoreInternalSnapshot): number => state.resetVersion;
-
-/**
- * Creates a selector for the version of a specific paper.
- * @param id - The paper ID to select the version for.
- */
-export function createSelectPaperVersion(id: string) {
-  return (snapshot: GraphStoreInternalSnapshot) => snapshot.papers[id]?.version;
-}
-
-/**
- * Selects the graph features version from the internal snapshot.
- * Used to trigger re-renders when graph-level features change.
- * @param state
- */
-export const selectGraphFeaturesVersion = (state: GraphStoreInternalSnapshot): number =>
-  state.graphFeaturesVersion;
+// Internal selectors of the graph store snapshot.
+export * from './store-selectors';

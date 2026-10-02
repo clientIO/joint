@@ -8,6 +8,9 @@ import type { CellRecord } from '../../types/cell.types';
 const createGraph = () => new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
+const measuredState = (store: {
+  readonly measurement: { readonly stateSource: { readonly get: () => number } };
+}) => store.measurement.stateSource.get();
 
 describe('GraphStore', () => {
   describe('constructor', () => {
@@ -61,7 +64,7 @@ describe('GraphStore', () => {
       store.destroy(true);
     });
 
-    it('bumps measureState after initialCells seed (so useOnElementsMeasured can fire isInitial)', async () => {
+    it('bumps the measurement version after the initialCells seed', async () => {
       const initialCells: readonly CellRecord[] = [
         {
           id: 'a',
@@ -71,14 +74,14 @@ describe('GraphStore', () => {
         } as CellRecord,
       ];
       const store = new GraphStore({ initialCells });
-      // simpleScheduler defers the measureState bump to a microtask.
+      // simpleScheduler defers the bump to a microtask.
       await flush();
-      expect(store.measureState.get()).toBeGreaterThan(0);
+      expect(measuredState(store)).toBeGreaterThan(0);
       store.destroy(false);
     });
 
-    it('does not bump measureState when initialCells contain only links or zero-sized elements', async () => {
-      const initialCells: readonly CellRecord[] = [
+    it('counts a zero-sized element as measured (zero is a legal size), but not a diagram of links only', async () => {
+      const zeroSized: readonly CellRecord[] = [
         {
           id: 'zero',
           type: ELEMENT_MODEL_TYPE,
@@ -86,35 +89,49 @@ describe('GraphStore', () => {
           size: { width: 0, height: 0 },
         } as CellRecord,
       ];
-      const store = new GraphStore({ initialCells });
+      const store = new GraphStore({ initialCells: zeroSized });
       await flush();
-      expect(store.measureState.get()).toBe(0);
+      expect(measuredState(store)).toBe(1);
       store.destroy(false);
+
+      const linksOnly = new GraphStore({
+        initialCells: [
+          {
+            id: 'l',
+            type: LINK_MODEL_TYPE,
+            source: { x: 0, y: 0 },
+            target: { x: 9, y: 9 },
+          } as CellRecord,
+        ],
+      });
+      await flush();
+      expect(measuredState(linksOnly)).toBe(0);
+      linksOnly.destroy(false);
     });
 
-    it('bumps measureState once an unsized element is measured to the size it already has', async () => {
+    it('does not change the measured state for an application resize or an equal measurement', async () => {
       const initialCells: readonly CellRecord[] = [
         { id: 'a', type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 } } as CellRecord,
       ];
       const store = new GraphStore({ initialCells });
       await flush();
-      // Nothing has a size yet, so the seed pass is not delivered.
-      expect(store.measureState.get()).toBe(0);
-      // The application pre-sizes the waiting element: not a measurement.
+      // No paper renders it, so the seed settles on its own.
+      expect(measuredState(store)).toBe(1);
+      // The application sizes the element: not a measurement.
       (store.graph.getCell('a') as dia.Element).resize(120, 40);
       await flush();
-      expect(store.measureState.get()).toBe(0);
+      expect(measuredState(store)).toBe(1);
 
       // The observer measures the same size, so it writes nothing to the graph.
       const node = document.createElement('div');
-      store.setMeasuredNode({ id: 'a', node });
+      store.measurement.observe({ id: 'a', node });
       const [callback] = (globalThis.ResizeObserver as jest.Mock).mock.calls.at(-1) as [
         ResizeObserverCallback,
       ];
       const entry = { target: node, borderBoxSize: [{ inlineSize: 120, blockSize: 40 }] };
       callback([entry as unknown as ResizeObserverEntry], {} as ResizeObserver);
       await flush();
-      expect(store.measureState.get()).toBe(1);
+      expect(measuredState(store)).toBe(1);
       store.destroy(false);
     });
 
@@ -221,7 +238,9 @@ describe('GraphStore', () => {
     it('fires with added/changed/removed summary', async () => {
       const snaps: Array<ReturnType<typeof snapshot>> = [];
       const store = new GraphStore({});
-      store.setOnIncrementalCellsChange((c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])));
+      store.setOnIncrementalCellsChange((c) =>
+        snaps.push(snapshot(c as Parameters<typeof snapshot>[0]))
+      );
       store.graph.addCell({
         id: 'a',
         type: ELEMENT_MODEL_TYPE,
@@ -239,7 +258,9 @@ describe('GraphStore', () => {
     it('reports links alongside elements in the unified pipeline', async () => {
       const snaps: Array<ReturnType<typeof snapshot>> = [];
       const store = new GraphStore({});
-      store.setOnIncrementalCellsChange((c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])));
+      store.setOnIncrementalCellsChange((c) =>
+        snaps.push(snapshot(c as Parameters<typeof snapshot>[0]))
+      );
       store.graph.addCells([
         {
           id: 'a',
@@ -317,7 +338,7 @@ describe('GraphStore', () => {
     const measure = (store: GraphStore, id: string) => {
       const node = document.createElement('div');
       document.body.append(node);
-      store.setMeasuredNode({ id, node });
+      store.measurement.observe({ id, node });
       return () => node.remove();
     };
 

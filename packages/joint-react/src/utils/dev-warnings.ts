@@ -125,3 +125,39 @@ export function warnResizeOnAutoSizedElement(cellId: dia.Cell.ID): void {
       'explicit size (e.g. from FreeTransform / Halo).'
   );
 }
+
+/**
+ * Warns once when a selector made by `createSourceSelector` (for example
+ * `selectMeasuredState`) is called as a function. Such a selector reads the
+ * graph store through the hook it is passed to, so on its own it can only
+ * return its neutral value. Dev-only, tree-shaken in production.
+ */
+export function warnSourceSelectorCalled(): void {
+  if (process.env.NODE_ENV === 'production') return;
+  const key = 'source-selector-called';
+  if (WARNED.has(key)) return;
+  WARNED.add(key);
+
+  console.warn(
+    '[@joint/react] This selector reads the graph store, not the cells: pass it directly ' +
+      'to useCells() or useOnCellsChange() in their all-cells form instead of calling it.'
+  );
+}
+
+/**
+ * Reports once that store callbacks keep scheduling each other, typically a
+ * change handler that changes what it listens to. The scheduler then spreads
+ * the work over later tasks instead of freezing the page. Dev-only,
+ * tree-shaken in production.
+ */
+export function warnSchedulerCascade(): void {
+  if (process.env.NODE_ENV === 'production') return;
+  const key = 'scheduler-cascade';
+  if (WARNED.has(key)) return;
+  WARNED.add(key);
+
+  console.error(
+    '[@joint/react] A store callback keeps scheduling more work each time it runs, ' +
+      'for example a change handler that adds or removes cells. Guard it so it settles.'
+  );
+}

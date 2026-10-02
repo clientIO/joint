@@ -5,11 +5,13 @@ import {
   useCell,
   Paper,
   SVGText,
+  useCells,
   useGraph,
-  useOnElementsMeasured,
+  usePaper,
   selectElementSize,
+  selectIsMeasured,
 } from '@joint/react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect } from 'react';
 
 // Colors — unified dark diagram palette. The status dot colors are random on
 // purpose: the color IS the status this demo renders.
@@ -209,8 +211,12 @@ function Main() {
 
   useInterval(setRandomStatuses);
 
-  useOnElementsMeasured(({ isInitial, paper }) => {
-    if (!isInitial) return;
+  const { paper } = usePaper();
+  const isMeasured = useCells(selectIsMeasured);
+
+  // The status lists attach to the element views, which exist once the sizes are known.
+  useLayoutEffect(() => {
+    if (!isMeasured || !paper) return;
     for (const element of graph.getElements()) {
       StatusList.add(element.findView(paper), 'root', 'status', {
         attribute: 'status',
@@ -221,7 +227,7 @@ function Main() {
       });
     }
     setRandomStatuses();
-  });
+  }, [isMeasured, paper, graph, setRandomStatuses]);
 
   return (
     <Paper className="size-full" renderElement={RenderElement} drawGrid={false} />

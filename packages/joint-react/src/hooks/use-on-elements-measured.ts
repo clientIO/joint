@@ -1,9 +1,10 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect } from 'react';
 import type { dia } from '@joint/core';
 import { usePaperStore, useResolvePaperId } from './use-paper';
 import type { PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 import { useLatestRef } from './use-latest-ref';
+import { rethrowLater } from '../utils/scheduler';
 
 /**
  * Payload passed to the {@link useOnElementsMeasured} callback after a
@@ -48,6 +49,9 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  * The callback receives {@link ElementsMeasuredParams}; `isInitial` is `true`
  * for the first event after the hook mounts and again for the first event
  * after a graph reset (`resetCells()`), which replaces the diagram.
+ * @deprecated Use {@link useOnCellsChange} with {@link selectMeasuredState} to
+ *   react to every settled change, or {@link useCells} with
+ *   {@link selectIsMeasured} to act once the sizes are known.
  * @title On the current paper
  * @param callback - Called each time element sizes are measured.
  * @group Hooks
@@ -70,6 +74,9 @@ export function useOnElementsMeasured(callback: OnElementsMeasured): void;
 /**
  * Calls a callback when element sizes are measured, targeting a specific paper
  * instead of the surrounding context. Useful when several papers share one graph.
+ * @deprecated Use {@link useOnCellsChange} with {@link selectMeasuredState} to
+ *   react to every settled change, or {@link useCells} with
+ *   {@link selectIsMeasured} to act once the sizes are known.
  * @title On a specific paper
  * @param paperTarget - Which paper to watch: a registered paper id, a
  *   `dia.Paper` instance, or a React ref to one.
@@ -98,34 +105,36 @@ export function useOnElementsMeasured(
   const isContextForm = typeof paperTargetOrCallback === 'function';
 
   const paperTarget = isContextForm ? undefined : (paperTargetOrCallback as PaperTarget);
-  const callback = isContextForm ? (paperTargetOrCallback as OnElementsMeasured) : (callbackArgument as OnElementsMeasured);
+  const callback = isContextForm
+    ? (paperTargetOrCallback as OnElementsMeasured)
+    : (callbackArgument as OnElementsMeasured);
 
   const paperId = useResolvePaperId(paperTarget);
   const paperStore = usePaperStore(paperId);
 
   const callbackRef = useLatestRef(callback);
 
-  const graphStore = useGraphStore();
-  const { measureState, graph } = graphStore;
-  // The `measureGeneration` this hook last reported; a generation it has not
-  // seen yet (mount, graph reset) makes the next event `isInitial`.
-  const reportedGenerationRef = useRef(-1);
+  const { measurement, graph } = useGraphStore();
   useLayoutEffect(() => {
     if (!paperStore) return;
     const { paper } = paperStore;
-    // A new paper (or graph store) starts its own measurement history, so its
-    // first pass reports `isInitial: true` again — e.g. after a dev-server hot
-    // reload re-created the store, `transformToFitContent()` callers re-fit.
-    reportedGenerationRef.current = -1;
+    const { stateSource } = measurement;
+    // A new paper (or graph store) starts its own history, and so does a graph
+    // reset (the state goes back to `0`): the next event is the initial one.
+    let previousState = 0;
 
     function handleChanges() {
-      // A graph reset clears `measureState`; the reset diagram's own first
-      // pass is reported once it settles.
-      if (measureState.get() === 0) return;
-      const { measureGeneration } = graphStore;
-      const isInitial = reportedGenerationRef.current !== measureGeneration;
-      reportedGenerationRef.current = measureGeneration;
-      callbackRef.current({ isInitial, paper, graph });
+      const state = stateSource.get();
+      const isInitial = previousState === 0;
+      previousState = state;
+      if (state === 0) return;
+      // This runs inside the store's notification: an error must not keep the
+      // other subscribers of this change from being notified.
+      try {
+        callbackRef.current({ isInitial, paper, graph });
+      } catch (error) {
+        rethrowLater(error);
+      }
       // The user callback may have moved cells via cell.position()/cell.size().
       // PaperView runs in async mode, so those updates would be queued for the
       // next rAF — producing a one-frame flash where the element is visible at its
@@ -135,12 +144,7 @@ export function useOnElementsMeasured(
     }
     // Flush any measurement that happened before subscription (e.g. initial
     // data sync ran before this paperStore was available).
-    if (measureState.get() > 0) {
-      handleChanges();
-    }
-    const unsubscribe = measureState.subscribe(handleChanges);
-    return () => {
-      unsubscribe();
-    };
-  }, [paperStore, graphStore, measureState, graph, callbackRef]);
+    handleChanges();
+    return stateSource.subscribe(handleChanges);
+  }, [paperStore, measurement, graph, callbackRef]);
 }

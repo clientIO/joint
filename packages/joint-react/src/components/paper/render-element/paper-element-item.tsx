@@ -27,20 +27,18 @@ export interface ElementItemProps {
   readonly renderElement: ComponentType<Record<string, unknown>>;
   /** The DOM element to portal into. */
   readonly portalElement: SVGElement | HTMLElement | null;
-  /** Whether all auto-sized elements have been measured. */
-  readonly areElementsMeasured: boolean;
 }
 
 /**
  * SVG element portal component. Subscribes only to the element's `data`
  * slice, position and size are handled by JointJS's view transform and
- * never cause a React re-render here. Clears cached views after
- * measurement to force re-render with correct dimensions.
+ * never cause a React re-render here. Clears the cached view once its content
+ * is committed, so links resolve against the rendered magnets.
  * @param props - render/portal props
  * @internal
  */
 function SVGElementItemComponent(props: ElementItemProps) {
-  const { renderElement: RenderElement, portalElement, areElementsMeasured } = props;
+  const { renderElement: RenderElement, portalElement } = props;
   const id = useCellId();
   // Subscribe to just this element's `data` slice (missing-tolerant — the portal
   // can mount before the record lands in the store, and briefly after removal).
@@ -54,13 +52,13 @@ function SVGElementItemComponent(props: ElementItemProps) {
     // inside `renderElement` has already registered with the size observer
     // (in HTML overlay mode this item follows `HTMLElementItem`, which renders
     // the user content, in sibling order). O(1), and a no-op on re-runs.
-    graphStore.markElementRendered(id);
+    graphStore.measurement.markRendered(id);
     if (!paper) return;
     graphStore.clearViewForElementAndLinks({
       cellId: id,
       paper,
     });
-  }, [id, graphStore, areElementsMeasured, paper]);
+  }, [id, graphStore, paper]);
 
   if (!portalElement) {
     return null;

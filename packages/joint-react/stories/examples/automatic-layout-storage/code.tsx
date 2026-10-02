@@ -5,7 +5,8 @@ import {
   useCellId,
   useGraph,
   useCells,
-  useOnElementsMeasured,
+  useOnCellsChange,
+  selectMeasuredState,
   linkRoutingOrthogonal,
   type CellRecord,
   type Computed,
@@ -193,7 +194,9 @@ function LayoutRunner() {
     }
   }, [graph]);
 
-  useOnElementsMeasured(runLayout);
+  useOnCellsChange(selectMeasuredState, (measuredState) => {
+    if (measuredState) runLayout();
+  });
   return null;
 }
 

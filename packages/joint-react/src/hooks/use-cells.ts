@@ -4,7 +4,8 @@ import { type mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.types';
 import type { ReadonlyContainer } from '../store/state-container';
-import { areArraysShallowEqual, arrayAwareEqual } from '../utils/selector-utils';
+import { areArraysShallowEqual, arrayAwareEqual } from '../selectors/selector-utils';
+import { getSelectorSource } from '../selectors/source-selector';
 import { isCollection } from '../utils/is';
 import { subscribeToCollection } from '../utils/collection-subscription';
 import { parseUseCellsArgs } from './use-cells.utils';
@@ -27,12 +28,25 @@ type CellsResult<Cell extends AnyCellRecord, Selected> =
 type UnknownEqual = (a: unknown, b: unknown) => boolean;
 
 /** Selector over the resolved cells array (the array forms of `useCells`). */
-type CellsSelector<Cell extends AnyCellRecord, Selected> = (
+export type CellsSelector<Cell extends AnyCellRecord, Selected> = (
   cells: ReadonlyArray<Computed<Cell>>
 ) => Selected;
 
+/** What a `useCells` call can be scoped to: one cell, several cells, or a JointJS collection. */
+type CellsTarget = CellId | null | readonly CellId[] | mvc.Collection<dia.Cell>;
+
 /** Equality test that short-circuits a re-render when the selected value is unchanged. */
-type SelectedEqual<Selected> = (a: Selected, b: Selected) => boolean;
+export type SelectedEqual<Selected> = (a: Selected, b: Selected) => boolean;
+
+/** The arguments of every `useCells` form: an optional target, a selector, an equality function. */
+type CellsArguments<Cell extends AnyCellRecord, Selected> = [
+  argument1?: CellsTarget | CellsSelector<Cell, Selected>,
+  argument2?:
+    | CellsSelector<Cell, Selected>
+    | ((cell: Computed<Cell> | undefined) => Selected)
+    | SelectedEqual<Selected>,
+  argument3?: SelectedEqual<Selected>,
+];
 
 // ── Module-scoped helpers ───────────────────────────────────────────────────
 
@@ -261,19 +275,25 @@ export function useCells<
 export function useCells<
   Cell extends AnyCellRecord = CellRecord,
   Selected = ReadonlyArray<Computed<Cell>>,
->(
-  argument1?:
-    | CellId
-    | null
-    | readonly CellId[]
-    | CellsSelector<Cell, Selected>
-    | mvc.Collection<dia.Cell>,
-  argument2?:
-    | CellsSelector<Cell, Selected>
-    | ((cell: Computed<Cell> | undefined) => Selected)
-    | SelectedEqual<Selected>,
-  argument3?: SelectedEqual<Selected>
-): CellsResult<Computed<Cell>, Selected> {
+>(...args: CellsArguments<Cell, Selected>): CellsResult<Computed<Cell>, Selected> {
+  const { subscribe, getSnapshot, select, isEqual } = useCellsSource(...args);
+  return useSyncExternalStoreWithSelector(subscribe, getSnapshot, getSnapshot, select, isEqual);
+}
+
+/**
+ * The subscription behind {@link useCells}, without the render: what to
+ * subscribe to, the change token, and the cached selection for the given
+ * `useCells` arguments. Shared with {@link useOnCellsChange}, which listens
+ * to it directly instead of re-rendering.
+ * @param args - The `useCells` arguments: target and/or selector, then an equality function.
+ * @returns `subscribe`, `getSnapshot`, `select` and `isEqual`, identity-stable while the arguments are.
+ * @internal
+ */
+export function useCellsSource<
+  Cell extends AnyCellRecord = CellRecord,
+  Selected = ReadonlyArray<Computed<Cell>>,
+>(...args: CellsArguments<Cell, Selected>) {
+  const [argument1, argument2, argument3] = args;
   const store = useGraphStore();
   // The store holds resolved (Computed) records; the public `Cell` generic is the
   // input record shape, so internally we work in `Computed<Cell>`.
@@ -284,11 +304,7 @@ export function useCells<
   const { targetId, ids, arraySelector, cellSelector, isEqual } = parseUseCellsArgs<
     Computed<Cell>,
     Selected
-  >(
-    argument1,
-    argument2,
-    argument3
-  );
+  >(argument1, argument2, argument3);
   const hasSelector = arraySelector !== undefined || cellSelector !== undefined;
 
   const arraySelectorRef = useRef(arraySelector);
@@ -326,8 +342,21 @@ export function useCells<
 
   // ── Subscribe ──
 
+  // An all-cells selector with its own source (see `createSourceSelector`) is read
+  // from that source: no subscription to every commit, no cells array built.
+  const isAllCellsForm = targetId === undefined && !ids && !collectionArgument;
+  const selectorSource = isAllCellsForm ? getSelectorSource(arraySelector, store) : undefined;
+  // Not dev-only: in production the selector would return its fallback forever.
+  if (!isAllCellsForm && getSelectorSource(arraySelector ?? cellSelector, store)) {
+    throw new Error(
+      'This selector reads the graph store, not the cells: use it in the all-cells form, ' +
+        'without an id, ids or collection.'
+    );
+  }
+
   const subscribe = useCallback(
     (listener: () => void) => {
+      if (selectorSource) return selectorSource.subscribe(listener);
       if (collectionArgument) {
         return subscribeToCollection(
           collectionArgument,
@@ -348,12 +377,13 @@ export function useCells<
       return container.subscribe(listener);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [container, collectionArgument, targetId, idsKey]
+    [container, collectionArgument, targetId, idsKey, selectorSource]
   );
 
   // ── Snapshot ──
 
   const getSnapshot = useCallback(() => {
+    if (selectorSource) return selectorSource.get();
     // Per-id token for ANY single-cell form (with or without a selector): the
     // token is the cell record itself, so the store only re-reads when THIS cell
     // changes, never on unrelated commits. Immutable records keep the reference
@@ -363,23 +393,31 @@ export function useCells<
     // All-cells / ids / selector-only forms: the immutable snapshot reference
     // changes on every commit and doubles as the change token.
     return container.getSnapshot();
-  }, [container, collectionArgument, targetId]);
+  }, [container, collectionArgument, targetId, selectorSource]);
 
   // ── Equality ──
 
+  // Read through a ref, like the selectors, so an inline `isEqual` does not make
+  // a new subscription on every render.
+  const isEqualRef = useRef(isEqual);
+  isEqualRef.current = isEqual;
+  const hasIsEqual = isEqual !== undefined;
   const isEqualCallback = useMemo<UnknownEqual>(() => {
-    if (isEqual) return isEqual as unknown as UnknownEqual;
+    if (hasIsEqual) {
+      return (a, b) => (isEqualRef.current as unknown as UnknownEqual)(a, b);
+    }
     if (targetId === undefined && !hasSelector) {
       return (a, b) => areArraysShallowEqual(a as readonly unknown[], b as readonly unknown[]);
     }
     if (hasSelector) return arrayAwareEqual;
     return Object.is;
-  }, [isEqual, targetId, hasSelector]);
+  }, [hasIsEqual, targetId, hasSelector]);
 
   // ── Selector ──
 
   const select = useCallback(
     (): Result => {
+      if (selectorSource) return selectorSource.get() as Result;
       const subscribedIds = collectionArgument ? collectionIdsRef.current : idsRef.current;
       const next = computeNext<Computed<Cell>, Selected>(
         container,
@@ -396,7 +434,7 @@ export function useCells<
         return cachedRef.current.value;
       }
       if (hasSelector && cachedRef.current.hasValue) {
-        warnUnstableSelector('useCells', cachedRef.current.value, next, !!isEqual);
+        warnUnstableSelector('useCells', cachedRef.current.value, next, hasIsEqual);
       }
       // No defensive copy for the all-cells form: the container's snapshot is
       // already immutable and yields a fresh reference on every commit, so it is
@@ -405,14 +443,8 @@ export function useCells<
       return next;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [container, collectionArgument, targetId, idsKey, isEqualCallback]
+    [container, collectionArgument, targetId, idsKey, isEqualCallback, selectorSource]
   );
 
-  return useSyncExternalStoreWithSelector(
-    subscribe,
-    getSnapshot,
-    getSnapshot,
-    select,
-    isEqualCallback
-  );
+  return { subscribe, getSnapshot, select, isEqual: isEqualCallback };
 }
