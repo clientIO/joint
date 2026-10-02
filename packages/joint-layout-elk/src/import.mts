@@ -106,9 +106,10 @@ function init(
     portsById = ports;
 }
 
-// ELK positions a node's children (and routes a node's own edges) relative to that
-// node's own origin - `containerPosition` accumulates the offset needed to turn those
-// relative coordinates into graph-absolute ones as we walk down the hierarchy.
+// ELK positions a node's children relative to that node's own origin - `containerPosition`
+// accumulates the offset needed to turn those relative coordinates into graph-absolute
+// ones as we walk down the hierarchy. Edges need no such conversion: `layout()` defaults
+// `elk.json.edgeCoords` to 'ROOT', so ELK already returns their coordinates graph-absolute.
 function toAbsolute(point: ElkPoint, containerPosition: dia.Point): dia.Point {
     return {
         x: containerPosition.x + point.x,
@@ -118,9 +119,10 @@ function toAbsolute(point: ElkPoint, containerPosition: dia.Point): dia.Point {
 
 /**
  * Applies a container's (or the root's) own ELK edges back onto their JointJS links,
- * via `setLinkAttributes` (or the default).
+ * via `setLinkAttributes` (or the default). Their coordinates are used as they are - see
+ * `toAbsolute` above.
  */
-function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: dia.Point = { x: 0, y: 0 }): void {
+function importEdges(edges: ElkExtendedEdge[] | undefined): void {
     const setLinkAttributes = importLayoutOptions.setLinkAttributes ?? defaultSetLinkAttributes;
 
     (edges || []).forEach((edge) => {
@@ -132,26 +134,24 @@ function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: di
 
         const { startPoint, endPoint, bendPoints = [] } = section;
 
-        const vertices = bendPoints.map((point) => toAbsolute(point, containerPosition));
+        const vertices = bendPoints.map(({ x, y }) => ({ x, y }));
 
         // A port-connected end already has its anchor computed by JointJS - no override
         // needed. The end's existing `id`/`port` is kept, since `.set()` replaces it outright.
         const currentSource = link.source();
         const source = (currentSource.port) ? undefined : {
             ...currentSource,
-            anchor: getPortlessEndAnchor(link.getSourceElement() as dia.Element, toAbsolute(startPoint, containerPosition))
+            anchor: getPortlessEndAnchor(link.getSourceElement() as dia.Element, startPoint)
         };
         const currentTarget = link.target();
         const target = (currentTarget.port) ? undefined : {
             ...currentTarget,
-            anchor: getPortlessEndAnchor(link.getTargetElement() as dia.Element, toAbsolute(endPoint, containerPosition))
+            anchor: getPortlessEndAnchor(link.getTargetElement() as dia.Element, endPoint)
         };
 
         let labels: dia.Link.Label[] | undefined;
         if (edge.labels && edge.labels.length > 0) {
-            const points = [startPoint, ...bendPoints, endPoint]
-                .map((point) => toAbsolute(point, containerPosition));
-            const polyline = new g.Polyline(points);
+            const polyline = new g.Polyline([startPoint, ...bendPoints, endPoint]);
             // `link.getComputedLabels()` (`@joint/core`) returns each label resolved against
             // `defaultLabel`/the built-in default - reading `labels` (the raw model attribute)
             // directly instead, so writing `labels[index]` back below doesn't bake that
@@ -160,7 +160,7 @@ function importEdges(edges: ElkExtendedEdge[] | undefined, containerPosition: di
             labels = currentLabels.slice();
             edge.labels.forEach((label, index) => {
                 const { x = 0, y = 0, width = 0, height = 0 } = label;
-                const center = new g.Point(containerPosition.x + x + width / 2, containerPosition.y + y + height / 2);
+                const center = new g.Point(x + width / 2, y + height / 2);
                 const distance = polyline.closestPointLength(center);
                 // Get the tangent at the closest point to calculate the offset
                 const tangent = polyline.tangentAtLength(distance);
@@ -258,7 +258,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
     }
 
     (node.children || []).forEach((child) => importNode(child, position));
-    importEdges(node.edges, position);
+    importEdges(node.edges);
 }
 
 /**
