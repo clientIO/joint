@@ -1935,16 +1935,77 @@ QUnit.module('links', function(hooks) {
 
             QUnit.test('resolved against `defaultLabel`/the built-in default - unlike `label`/`labels`', function(assert) {
                 var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
-                // A label's own `position` is kept as-is, `markup`/`attrs` fall back to the
-                // built-in default.
-                assert.deepEqual(link.getComputedLabel(0).position, { distance: 10, offset: 10 });
-                assert.deepEqual(link.getComputedLabel(1).position, { distance: 20, offset: 20 });
+                // A label's own `position` wins over the built-in default, `markup`/`attrs`/`size`
+                // fall back to the built-in default.
+                assert.deepEqual(link.getComputedLabel(0).position, { distance: 10, offset: 10, angle: 0 });
+                assert.deepEqual(link.getComputedLabel(1).position, { distance: 20, offset: 20, angle: 0 });
                 assert.ok(link.getComputedLabel(0).markup);
                 assert.ok(link.getComputedLabel(0).attrs);
-                assert.deepEqual(link.getComputedLabel(2), undefined);
+                assert.deepEqual(link.getComputedLabel(0).size, { width: 0, height: 0 });
+                assert.strictEqual(link.getComputedLabel(2), null);
 
-                assert.deepEqual(link.getComputedLabels()[0].position, { distance: 10, offset: 10 });
+                assert.deepEqual(link.getComputedLabels()[0].position, { distance: 10, offset: 10, angle: 0 });
                 assert.ok(link.getComputedLabels()[0].markup);
+            });
+
+            QUnit.test('`position` and `size` are resolved objects (unless `position` is `null`)', function(assert) {
+                var link = new joint.shapes.standard.Link({
+                    labels: [
+                        {},
+                        { position: null, size: null },
+                        { position: 0.3 },
+                        { position: { offset: { x: 5, y: 5 }}, size: { width: 10 }}
+                    ]
+                });
+
+                var labels = link.getComputedLabels();
+                assert.deepEqual(labels[0].position, { distance: 0.5, offset: 0, angle: 0 });
+                assert.deepEqual(labels[0].size, { width: 0, height: 0 });
+                // `null` is kept - only `undefined` falls back to the defaults.
+                assert.strictEqual(labels[1].position, null);
+                assert.deepEqual(labels[1].size, { width: 0, height: 0 });
+                assert.deepEqual(labels[2].position, { distance: 0.3, offset: 0, angle: 0, args: null });
+                assert.deepEqual(labels[3].position, { distance: 0.5, offset: { x: 5, y: 5 }, angle: 0 });
+                assert.deepEqual(labels[3].size, { width: 10, height: 0 });
+
+                link.set('defaultLabel', { position: { distance: 0.2, angle: 45 }, size: { width: 20, height: 20 }});
+                labels = link.getComputedLabels();
+                assert.deepEqual(labels[0].position, { distance: 0.2, offset: 0, angle: 45 });
+                assert.deepEqual(labels[0].size, { width: 20, height: 20 });
+                // A number position resets `defaultLabel`'s `offset`/`angle`/`args`.
+                assert.deepEqual(labels[2].position, { distance: 0.3, offset: 0, angle: 0, args: null });
+                assert.deepEqual(labels[3].size, { width: 10, height: 20 });
+            });
+
+            QUnit.test('returns new `markup`/`attrs`/`size`/`position` objects', function(assert) {
+                var builtinDefaultLabel = joint.util.cloneDeep(joint.dia.Link.prototype._builtins.defaultLabel);
+                var ownMarkup = [{ tagName: 'text', selector: 'text' }];
+                var defaultMarkup = [{ tagName: 'rect', selector: 'body' }];
+                var defaultAttrs = { body: { fill: 'red' }};
+
+                function mutate(label) {
+                    label.markup.push({ tagName: 'circle' });
+                    label.attrs.mutated = { fill: 'blue' };
+                    label.size.width = 100;
+                    label.position.distance = 100;
+                }
+
+                // Built-in default (shared by all links).
+                var link = new joint.shapes.standard.Link({ labels: [{}] });
+                mutate(link.getComputedLabel(0));
+                assert.deepEqual(link._builtins.defaultLabel, builtinDefaultLabel);
+                assert.deepEqual(link.get('labels'), [{}]);
+
+                // `defaultLabel` with a custom markup (attrs are not merged with the built-in ones).
+                link.set('defaultLabel', { markup: defaultMarkup, attrs: defaultAttrs });
+                mutate(link.getComputedLabel(0));
+                assert.deepEqual(defaultMarkup, [{ tagName: 'rect', selector: 'body' }]);
+                assert.deepEqual(defaultAttrs, { body: { fill: 'red' }});
+
+                // The label's own markup.
+                link.labels([{ markup: ownMarkup }]);
+                mutate(link.getComputedLabel(0));
+                assert.deepEqual(ownMarkup, [{ tagName: 'text', selector: 'text' }]);
             });
 
             QUnit.test('pass through custom properties, own value winning over `defaultLabel`\'s', function(assert) {

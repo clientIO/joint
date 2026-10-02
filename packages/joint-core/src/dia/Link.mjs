@@ -1,7 +1,7 @@
 import { Cell } from './Cell.mjs';
 import { clone, isPlainObject, isFunction, isString, isNumber, assign } from '../util/index.mjs';
 import { Point, Polyline } from '../g/index.mjs';
-import { getResolvedLabel } from './link-labels.mjs';
+import { getComputedLabel } from './link-labels.mjs';
 
 // Link base model.
 // --------------------------
@@ -56,7 +56,13 @@ export const Link = Cell.extend({
             // used if neither defaultLabel.position
             // nor label.position is set
             position: {
-                distance: 0.5
+                distance: 0.5,
+                offset: 0,
+                angle: 0
+            },
+            size: {
+                width: 0,
+                height: 0
             }
         }
     },
@@ -217,18 +223,29 @@ export const Link = Cell.extend({
         return this.prop(['labels', idx], label, opt);
     },
 
-    // Like `label()`'s getter, but resolved against `defaultLabel`/the built-in default
-    // (see `getResolvedLabel` in `link-labels.mjs`) - `label()` itself always returns the
-    // label exactly as stored (or `undefined` if there isn't one at that index).
+    /**
+     * Returns the label at the given index, resolved against the link's `defaultLabel`
+     * and the built-in default label.
+     *
+     * Unlike the `label()` getter, which returns the label exactly as stored, the result
+     * has `markup`, `attrs`, `size` and `position` merged with the defaults.
+     * The stored label is not modified.
+     *
+     * @param {number} [idx=0] - The index of the label. Negative values count from the end.
+     * @returns {dia.Link.ComputedLabel | null} A new object with the resolved label, or `null`
+     * if there is no label at `idx`.
+     */
     getComputedLabel: function(idx) {
 
-        var labels = this.labels();
+        const labels = this.labels();
 
-        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
-        if (idx < 0) idx = labels.length + idx;
+        let index = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+        if (index < 0) {
+            index = labels.length + index;
+        }
 
-        var label = labels[idx];
-        return (label === undefined) ? undefined : getResolvedLabel(this, label);
+        const label = labels[index];
+        return (label === undefined) ? null : getComputedLabel(this, label);
     },
 
     labels: function(labels, opt) {
@@ -244,12 +261,20 @@ export const Link = Cell.extend({
         return this.set('labels', labels, opt);
     },
 
-    // Like `labels()`'s getter, but with every label resolved against `defaultLabel`/the
-    // built-in default (see `getResolvedLabel` in `link-labels.mjs`) - `labels()` itself
-    // always returns each label exactly as stored.
+    /**
+     * Returns all labels of the link, each resolved against the link's `defaultLabel`
+     * and the built-in default label.
+     *
+     * Unlike the `labels()` getter, which returns the labels exactly as stored, each
+     * has `markup`, `attrs`, `size` and `position` merged with the defaults.
+     * The stored labels are not modified.
+     *
+     * @returns {dia.Link.ComputedLabel[]} A new array of resolved labels, in the same order as
+     * `labels()`. Empty if the link has no labels.
+     */
     getComputedLabels: function() {
 
-        return this.labels().map((label) => getResolvedLabel(this, label));
+        return this.labels().map((label) => getComputedLabel(this, label));
     },
 
     hasLabels: function() {
@@ -566,12 +591,12 @@ export const Link = Cell.extend({
 
     // Get resolved default label. Kept as-is (including any custom property, e.g. a
     // `@joint/layout-elk` `elkLayoutOptions`) - not just the known `markup`/`attrs`/
-    // `size`/`position` - so `getResolvedLabel` (`link-labels.mjs`) can pass it through too.
+    // `size`/`position` - so `getComputedLabel` (`link-labels.mjs`) can pass it through too.
     _getDefaultLabel: function() {
 
-        var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
+        const defaultLabel = this.get('defaultLabel') || this.defaultLabel;
 
-        var label = assign({}, defaultLabel);
+        const label = assign({}, defaultLabel);
         label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
 
         return label;

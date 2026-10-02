@@ -833,7 +833,7 @@ export const LinkView = CellView.extend({
         }
     },
 
-    // Used by `addLabel` below, for a not-yet-existing label - unlike `getResolvedLabel`
+    // Used by `addLabel` below, for a not-yet-existing label - unlike `getComputedLabel`
     // (`link-labels.mjs`), does not need the built-in default (which never has `position.args`).
     _getDefaultLabelPositionArgs: function() {
 
@@ -1231,33 +1231,29 @@ export const LinkView = CellView.extend({
         return position;
     },
 
+    // Expects a label position object (e.g. `Link#getComputedLabel(idx).position`).
     _getLabelTransformationMatrix: function(labelPosition) {
 
-        var labelDistance;
-        var labelAngle = 0;
-        var args = {};
-        if (typeof labelPosition === 'number') {
-            labelDistance = labelPosition;
-        } else if (typeof labelPosition.distance === 'number') {
-            args = labelPosition.args || {};
-            labelDistance = labelPosition.distance;
-            labelAngle = labelPosition.angle || 0;
-        } else {
+        if (!labelPosition) {
+            throw new Error('dia.LinkView: invalid label position.');
+        }
+
+        var labelDistance = labelPosition.distance;
+        if (typeof labelDistance !== 'number') {
             throw new Error('dia.LinkView: invalid label position distance.');
         }
 
+        var labelAngle = labelPosition.angle || 0;
+        var args = labelPosition.args || {};
+
         var isDistanceRelative = ((labelDistance > 0) && (labelDistance <= 1));
 
-        var labelOffset = 0;
-        var labelOffsetCoordinates = { x: 0, y: 0 };
-        if (labelPosition.offset) {
-            var positionOffset = labelPosition.offset;
-            if (typeof positionOffset === 'number') labelOffset = positionOffset;
-            if (positionOffset.x) labelOffsetCoordinates.x = positionOffset.x;
-            if (positionOffset.y) labelOffsetCoordinates.y = positionOffset.y;
-        }
-
-        var isOffsetAbsolute = ((labelOffsetCoordinates.x !== 0) || (labelOffsetCoordinates.y !== 0) || labelOffset === 0);
+        // a number offset is perpendicular to the path, an `{ x, y }` offset is absolute
+        var labelOffset = labelPosition.offset || 0;
+        var isOffsetAbsolute = (typeof labelOffset !== 'number');
+        var labelOffsetCoordinates = isOffsetAbsolute
+            ? { x: labelOffset.x || 0, y: labelOffset.y || 0 }
+            : { x: 0, y: 0 };
 
         var isKeepGradient = args.keepGradient;
         var isEnsureLegibility = args.ensureLegibility;
@@ -1473,9 +1469,7 @@ export const LinkView = CellView.extend({
             var labelNode = evt.currentTarget;
             var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
-            // Resolved (see `Link#getComputedLabel`) - already merged with `defaultLabel`/
-            // the built-in default.
-            var position = this.model.getComputedLabel(labelIdx).position || {};
+            var position = this.model.getComputedLabel(labelIdx).position;
 
             var coords = this.getLabelCoordinates(position);
             var dx = coords.x - x; // how much needs to be added to cursor x to get to label x

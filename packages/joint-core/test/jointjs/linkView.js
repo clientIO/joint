@@ -547,6 +547,24 @@ QUnit.module('linkView', function(hooks) {
 
     QUnit.module('getLabelCoordinates', function(hooks) {
 
+        QUnit.test('invalid position', function(assert) {
+
+            assert.throws(function() {
+                linkView.getLabelCoordinates(null);
+            }, /invalid label position/);
+
+            assert.throws(function() {
+                linkView.getLabelCoordinates({ distance: null });
+            }, /invalid label position distance/);
+
+            // A label's own `null` position is kept by `getComputedLabel()` - it isn't
+            // replaced by the default position.
+            assert.throws(function() {
+                link.appendLabel({ position: null });
+            }, /invalid label position/);
+            link.removeLabel(-1);
+        });
+
         QUnit.test('default', function(assert) {
 
             var labelCoordinates;

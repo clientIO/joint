@@ -1,11 +1,8 @@
-import { merge } from '../util/index.mjs';
+import { cloneDeep, merge } from '../util/index.mjs';
 
 // A label as given (own `markup`/`attrs`/`size`/`position`, any of which may be missing),
-// resolved against `link`'s `defaultLabel` and its built-in default - the same resolution
-// `LinkView` used to do at render time. Passing `{}` resolves to the pure default. Any
-// other (custom) property on the label or `defaultLabel` passes through unresolved - the
-// label's own value wins over `defaultLabel`'s.
-export function getResolvedLabel(link, label) {
+// resolved against `link`'s `defaultLabel` and its built-in default.
+export function getComputedLabel(link, label) {
 
     label = label || {};
 
@@ -17,14 +14,14 @@ export function getResolvedLabel(link, label) {
     // built-in markup, so they don't apply once a custom one is in play.
     const hasCustomMarkup = !!(label.markup || defaultLabel.markup);
 
+    // The resolved `markup`/`attrs`/`size`/`position` are always new objects - never the
+    // stored label's, `defaultLabel`'s or the (shared by all links) built-in default's -
+    // so mutating a computed label can't change them. Custom properties are passed through as-is.
     return Object.assign({}, defaultLabel, label, {
-        markup: label.markup || defaultLabel.markup || builtinDefaultLabel.markup,
+        markup: cloneDeep(label.markup || defaultLabel.markup || builtinDefaultLabel.markup),
         attrs: mergeLabelAttrs(hasCustomMarkup, label.attrs, defaultLabel.attrs, builtinDefaultLabel.attrs),
-        size: mergeLabelSize(label.size, defaultLabel.size),
-        position: mergeLabelPositionProperty(
-            normalizeLabelPosition(label.position),
-            getDefaultLabelPositionProperty(link, defaultLabel)
-        )
+        size: mergeLabelSize(label.size, defaultLabel.size, builtinDefaultLabel.size),
+        position: mergeLabelPosition(label.position, defaultLabel.position, builtinDefaultLabel.position)
     });
 }
 
@@ -39,10 +36,10 @@ function mergeLabelAttrs(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtin
         if (defaultLabelAttrs === undefined) {
 
             if (hasCustomMarkup) return undefined;
-            return builtinDefaultLabelAttrs;
+            return merge({}, builtinDefaultLabelAttrs);
         }
 
-        if (hasCustomMarkup) return defaultLabelAttrs;
+        if (hasCustomMarkup) return merge({}, defaultLabelAttrs);
         return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs);
     }
 
@@ -50,49 +47,37 @@ function mergeLabelAttrs(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtin
     return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
 }
 
-// merge default label size into label size (no built-in default)
-// keep `undefined` or `null` because `{}` means something else
-function mergeLabelSize(labelSize, defaultLabelSize) {
+// merge label size with default label size and built-in default label size
+// the result is always a size object (`null` or `undefined` falls back to the defaults)
+function mergeLabelSize(labelSize, defaultLabelSize, builtinDefaultLabelSize) {
 
-    if (labelSize === null) return null;
-    if (labelSize === undefined) {
-
-        if (defaultLabelSize === null) return null;
-        if (defaultLabelSize === undefined) return undefined;
-
-        return defaultLabelSize;
-    }
-
-    return merge({}, defaultLabelSize, labelSize);
+    return merge({}, builtinDefaultLabelSize, defaultLabelSize, labelSize);
 }
 
-// combine default label position with built-in default label position
-function getDefaultLabelPositionProperty(link, defaultLabel) {
+// merge label position with default label position and built-in default label position
+// keep `null` (an invalid position, set on purpose), only `undefined` falls back to the defaults
+function mergeLabelPosition(labelPosition, defaultLabelPosition, builtinDefaultLabelPosition) {
 
-    const builtinDefaultLabelPosition = link._builtins.defaultLabel.position;
-    const defaultLabelPosition = normalizeLabelPosition(defaultLabel.position);
-
-    return merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
+    if (labelPosition === null) return null;
+    return merge(
+        {},
+        builtinDefaultLabelPosition,
+        normalizeLabelPosition(defaultLabelPosition),
+        normalizeLabelPosition(labelPosition)
+    );
 }
 
 // if label position is a number, normalize it to a position object
 // this makes sure that label positions can be merged properly
 function normalizeLabelPosition(labelPosition) {
 
-    if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, angle: 0, args: null };
-    return labelPosition;
-}
-
-// expects normalized position properties
-// e.g. `normalizeLabelPosition(labelPosition)` and `getDefaultLabelPositionProperty(link, defaultLabel)`
-function mergeLabelPositionProperty(normalizedLabelPosition, normalizedDefaultLabelPosition) {
-
-    if (normalizedLabelPosition === null) return null;
-    if (normalizedLabelPosition === undefined) {
-
-        if (normalizedDefaultLabelPosition === null) return null;
-        return normalizedDefaultLabelPosition;
+    if (typeof labelPosition === 'number') {
+        return {
+            distance: labelPosition,
+            offset: 0,
+            angle: 0,
+            args: null
+        };
     }
-
-    return merge({}, normalizedDefaultLabelPosition, normalizedLabelPosition);
+    return labelPosition;
 }

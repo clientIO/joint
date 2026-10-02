@@ -979,8 +979,6 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     portProp(portId: string, path: Path): any;
 
-    portProp(portId: string, object: DeepPartial<Element.Port>, opt?: S): Element;
-
     portProp(portId: string, path: Path, value?: any, opt?: S): Element;
 
     protected generatePortId(): string | number;
@@ -1042,6 +1040,23 @@ export namespace Link {
         [key: string]: any;
     }
 
+    interface ComputedLabelPosition {
+        distance: number;
+        offset: number | { x: number, y: number };
+        angle: number;
+        args?: LinkView.LabelOptions | null;
+    }
+
+    interface ComputedLabel {
+        markup: string | MarkupJSON;
+        position: ComputedLabelPosition | null;
+        attrs?: Cell.Selectors | null;
+        size: Size;
+        // Any other custom property - passed
+        // through as-is from the label itself or from `defaultLabel`.
+        [key: string]: any;
+    }
+
     interface Vertex extends Point {
         [key: string]: any;
     }
@@ -1080,12 +1095,12 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
     label(index?: number): Link.Label;
     label(index: number, label: Link.Label, opt?: S): this;
 
-    getComputedLabel(index?: number): Link.Label;
+    getComputedLabel(index?: number): Link.ComputedLabel | null;
 
     labels(): Link.Label[];
     labels(labels: Link.Label[], opt?: S): this;
 
-    getComputedLabels(): Link.Label[];
+    getComputedLabels(): Link.ComputedLabel[];
 
     hasLabels(): boolean;
 
@@ -1502,7 +1517,7 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
     getLabelPosition(x: number, y: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
     getLabelPosition(x: number, y: number, angle: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
 
-    getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
+    getLabelCoordinates(labelPosition: Link.LabelPosition | Link.ComputedLabelPosition): g.Point;
 
     getVertexIndex(x: number, y: number): number;
     getVertexIndex(point: Point): number;
