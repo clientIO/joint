@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
 import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
-import { graphChanges, type MeasurementListeners, type UpdateGraphOptions } from './graph-changes';
+import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer, type ContainerChangeSet } from './state-container';
 import { mergeCellRecord, toCellRecord } from '../state/data-mapping/cell-record-merge';
 
@@ -36,7 +36,7 @@ export type OnIncrementalCellsChange<Element extends ElementJSONInit, Link exten
 interface GraphProjectionState<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
-> extends MeasurementListeners {
+> {
   readonly graph: dia.Graph;
   readonly onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
 }
@@ -55,8 +55,7 @@ export function graphProjection<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 >(options: GraphProjectionState<Element, Link>) {
-  const { graph, onIncrementalCellsChange, onElementsSizeChange, onElementRemove, onReset } =
-    options;
+  const { graph, onIncrementalCellsChange } = options;
 
   const cells = createContainer<Element | Link>();
 
@@ -123,9 +122,6 @@ export function graphProjection<
 
   const graphChangesController = graphChanges({
     graph,
-    onElementsSizeChange,
-    onElementRemove,
-    onReset,
     onChanges: ({ changes, isInsideBatch, deferCommit, isReset }) => {
       // Elements removed in this batch — swept once after the loop for link
       // records they may have stranded.
@@ -248,6 +244,12 @@ export function graphProjection<
       //   when the transaction closes, so a burst of edits (sync or spread across
       //   `await`s) becomes a single React update. `flushContainer` self-guards
       //   when nothing is pending.
+      // Cleared before anything is notified: a subscriber may change the graph
+      // from its callback, and those changes are recorded here for the next
+      // pass. Clearing afterwards would drop them and leave the store out of
+      // sync with the graph.
+      changes.clear();
+
       if (!deferCommit) flushContainer();
 
       const hasTrackedChanges =
@@ -261,8 +263,6 @@ export function graphProjection<
         changed!.clear();
         removed!.clear();
       }
-
-      changes.clear();
     },
   });
 

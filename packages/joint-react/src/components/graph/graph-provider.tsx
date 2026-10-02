@@ -3,7 +3,7 @@ import React, { memo, useLayoutEffect, useRef } from 'react';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
-import type { AutoSizeOrigin } from '../../store/graph-store';
+import type { AutoSizeOrigin } from '../../store/measurement';
 import type { OnIncrementalCellsChange } from '../../store/graph-projection';
 import type { ElementJSONInit, LinkJSONInit, CellInput } from '../../types/cell.types';
 

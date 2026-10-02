@@ -11,7 +11,7 @@ const meta = {
     showcase: {
       description:
         'Persists only the data field of each node to a JSON file, while HTMLHost measures node sizes and a tree layout recomputes positions on every measurement.',
-      apiUrl: getAPILink('useOnElementsMeasured'),
+      apiUrl: getAPILink('useOnCellsChange'),
       canvasHeight: 640,
       code: codeRaw,
     },

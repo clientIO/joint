@@ -3,17 +3,12 @@ import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types'
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
-import {
-  createElementsSizeObserver,
-  type GraphStoreObserver,
-  type SetMeasuredNodeOptions,
-} from './create-elements-size-observer';
+import { createMeasurement, type AutoSizeOrigin, type Measurement } from './measurement';
 import { ELEMENT_MODEL_TYPE, ElementModel } from '../mvc/element-model';
 import { LINK_MODEL_TYPE, LinkModel } from '../mvc/link-model';
 import { isElementType, isLinkType } from '../utils/cell-type';
 import { clearConnectedLinkViews } from './clear-view';
 import { LAYOUT_UPDATE_EVENT } from './graph-changes';
-import { isPaperView } from '../mvc/paper';
 import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
@@ -22,28 +17,15 @@ import {
   type GraphProjection,
   type OnIncrementalCellsChange,
 } from './graph-projection';
-import { simpleScheduler } from '../utils/scheduler';
 import { cellInputToModel } from '../utils/normalize-cell-input';
 import type { CellInput } from '../types/cell.types';
-import { warnDuplicatePapers, warnResizeOnAutoSizedElement } from '../utils/dev-warnings';
+import { warnDuplicatePapers } from '../utils/dev-warnings';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
   [ELEMENT_MODEL_TYPE]: ElementModel,
   [LINK_MODEL_TYPE]: LinkModel,
 };
-
-/**
- * `dia.Cell.set()` option key used to mark writes that originate from the
- * auto-size / measurement pipeline. `change:size` listeners can read it to
- * distinguish measurement writes from external ones (controlled-mode sync,
- * `cell.resize`, interactive tools) and avoid feedback loops. Exported for
- * plugin authors and `@joint/react-plus` via `@joint/react/internal`.
- */
-export const AUTO_SIZE_OPTION = 'autoSize';
-
-/** Option shape accepted by `dia.Cell.set()` writes from the auto-size pipeline. */
-type AutoSizeOptions = { [AUTO_SIZE_OPTION]?: boolean };
 
 /**
  * Paper snapshot is a simple version counter.
@@ -64,19 +46,6 @@ export interface GraphStoreInternalSnapshot {
   readonly resetVersion: number;
   readonly graphFeaturesVersion: number;
 }
-
-/**
- * Reference point that stays fixed when an auto-sized element's measured size
- * changes. Mirrors CSS `transform-origin` semantics.
- *
- * - `'top-left'` (default): element grows right/down, top-left stays put.
- * - `'center'`: element grows symmetrically, geometric center stays put.
- *
- * Only affects writes from the {@link useMeasureElement} pipeline. Manual `cell.resize()`,
- * interactive resize tools, and direct `cell.set('size', ...)` calls are unaffected.
- * @group Types
- */
-export type AutoSizeOrigin = 'top-left' | 'center';
 
 /**
  * Options for constructing a {@link GraphStore}: an optional existing `dia.Graph`,
@@ -109,24 +78,13 @@ export class GraphStore<
 > {
   public readonly graphProjection: GraphProjection<Element, Link>;
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
-  public readonly measureState: Atom<number> = createAtom(0);
-  /**
-   * Incremented by every graph `reset`. `useOnElementsMeasured` reports
-   * `isInitial` for the first `measureState` bump of each generation.
-   */
-  public measureGeneration = 0;
+  /** Element measuring and its "sizes are settled" signal. See {@link createMeasurement}. */
+  public readonly measurement: Measurement;
   public readonly graph: dia.Graph;
-  public readonly autoSizeOrigin: AutoSizeOrigin;
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
 
-  private observer: GraphStoreObserver;
-  /** Elements added to the graph that no paper has accounted for yet (see the constructor). */
-  private readonly outstandingElements = new Set<CellId>();
-  private readonly scheduleMeasurementDelivery: () => void;
   private onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
-  // dev-only `change:size` listener that warns about resizing auto-sized elements.
-  private warnAutoSizeResize?: (cell: dia.Cell, size: dia.Size, opt?: AutoSizeOptions) => void;
 
   constructor(public readonly config: GraphStoreOptions<Element, Link>) {
     const {
@@ -136,7 +94,6 @@ export class GraphStore<
       autoSizeOrigin = 'top-left',
       initialCells,
     } = config;
-    this.autoSizeOrigin = autoSizeOrigin;
 
     this.graph =
       graph ??
@@ -157,126 +114,17 @@ export class GraphStore<
       graphFeaturesVersion: 1,
     });
 
-    // Measurement bookkeeping behind `measureState` (see `useOnElementsMeasured`):
-    // one bump per settled change. An element is outstanding from arriving in
-    // the graph until it is accounted for: its React content committed without
-    // registering a measurer (`markElementRendered`), no paper renders it
-    // (`settleUnrenderedElements`, after a paper's render pass), or, when it did
-    // register one (`useMeasureElement`), the observer measured it. A zero size
-    // is never read as "waiting": it is a legal final size (a layout anchor).
-    // Sizes the application writes are not measurements and never bump (#3514).
-    const sizedElements = new Set<CellId>();
-    let hasUndeliveredChange = false;
-    const deliverMeasurement = () => {
-      if (!hasUndeliveredChange) return;
-      // Papers account for outstanding elements; without one nothing renders
-      // or measures, so there is nothing to wait for.
-      if (this.outstandingElements.size > 0 && this.paperStores.size > 0) return;
-      // "Measured" means at least one element has a size (`isInitial` contract).
-      if (sizedElements.size === 0) return;
-      hasUndeliveredChange = false;
-      this.measureState.set((previous) => previous + 1);
-    };
-    this.scheduleMeasurementDelivery = () => simpleScheduler(deliverMeasurement);
-
     this.graphProjection = graphProjection<Element, Link>({
       graph: this.graph,
       onIncrementalCellsChange: (changes) => {
         this.onIncrementalCellsChange?.(changes);
       },
-      onElementsSizeChange: (id, size, changeOptions) => {
-        if (size.width > 0 && size.height > 0) {
-          sizedElements.add(id);
-        } else {
-          sizedElements.delete(id);
-        }
-        if (changeOptions === undefined) {
-          // The size arrived with the cell (`add` / `reset`): outstanding until
-          // a paper has rendered it, whatever the size says.
-          this.outstandingElements.add(id);
-        } else if (changeOptions[AUTO_SIZE_OPTION]) {
-          this.outstandingElements.delete(id);
-        } else {
-          return;
-        }
-        hasUndeliveredChange = true;
-        this.scheduleMeasurementDelivery();
-      },
-      onElementRemove: (id) => {
-        sizedElements.delete(id);
-        if (this.outstandingElements.delete(id)) this.scheduleMeasurementDelivery();
-      },
-      onReset: () => {
-        // The reset replaces the diagram: its first settled pass is a new
-        // `isInitial` for `useOnElementsMeasured`, and until then nothing is
-        // measured for `useAreElementsMeasured`.
-        sizedElements.clear();
-        this.outstandingElements.clear();
-        hasUndeliveredChange = false;
-        this.measureGeneration += 1;
-        this.measureState.set(0);
-      },
     });
-
-    this.observer = createElementsSizeObserver({
-      onElementMeasured: (id) => {
-        // Settles an element whose measurement equals the size it already has
-        // (the application pre-sized it): the observer then writes nothing.
-        if (this.outstandingElements.delete(id)) this.scheduleMeasurementDelivery();
-      },
-      getElements: () => {
-        // The observer only cares about element-typed cells. Build a Map on
-        // demand from the unified cells container — cold path, called only
-        // when the ResizeObserver fires.
-        const map = new Map<CellId, ElementJSONInit>();
-        for (const cell of this.graphProjection.cells.getSnapshot()) {
-          if (cell.id === undefined) continue;
-          if (this.isElement(cell)) {
-            map.set(cell.id, cell);
-          }
-        }
-        return map;
-      },
-      onBatchUpdate: (updatedElements) => {
-        this.graph.startBatch('auto-size');
-        for (const [id, data] of Object.entries(updatedElements)) {
-          const model = this.graph.getCell(id);
-          if (!model?.isElement()) continue;
-          // `autoSize: true` marks writes that originate from the
-          // ResizeObserver pipeline so `change:size` listeners can tell our
-          // own writes apart from external ones (controlled-mode sync,
-          // direct `cell.resize`, etc.) and avoid feedback loops.
-          const attributes: dia.Cell.Attributes = {
-            size: { width: data.width, height: data.height },
-          };
-
-          if (data.x !== undefined && data.y !== undefined) {
-            attributes.position = { x: data.x, y: data.y };
-          } else if (this.autoSizeOrigin === 'center') {
-            // Center-anchored auto-size: keep the geometric center fixed.
-            const center = model.getCenter();
-            attributes.position = {
-              x: center.x - data.width / 2,
-              y: center.y - data.height / 2,
-            };
-          }
-
-          model.set(attributes, { [AUTO_SIZE_OPTION]: true });
-          // Top-left auto-size (default): don't write position — the cell's
-          // top-left stays put implicitly and it grows right/down.
-        }
-        this.graph.stopBatch('auto-size');
-      },
-      getCellTransform: (id) => {
-        const model = this.graph.getCell(id);
-        if (!model?.isElement()) throw new Error('Cell not found or not an element: ' + id);
-        return {
-          model,
-          ...model.size(),
-          ...model.position().toJSON(),
-          angle: model.angle(),
-        };
-      },
+    // Before the seed below, so the seed cells are tracked.
+    this.measurement = createMeasurement({
+      graph: this.graph,
+      autoSizeOrigin,
+      paperStores: this.paperStores,
     });
 
     if (initialCells && initialCells.length > 0) {
@@ -293,18 +141,6 @@ export class GraphStore<
       this.graphProjection.syncFromGraph();
     }
 
-    // dev only — warn when an auto-sized element (registered with the size
-    // observer because it renders without `useModelGeometry`) is resized by
-    // something other than the measurement pipeline. Such resizes are
-    // immediately overwritten by the measured content size.
-    if (process.env.NODE_ENV !== 'production') {
-      this.warnAutoSizeResize = (cell, _size, opt) => {
-        if (opt?.[AUTO_SIZE_OPTION]) return; // our own measurement write
-        if (!this.observer.has(cell.id)) return; // not auto-sized → resize is honored
-        warnResizeOnAutoSizedElement(cell.id);
-      };
-      this.graph.on('change:size', this.warnAutoSizeResize);
-    }
   }
 
   public setOnIncrementalCellsChange = (callback: OnIncrementalCellsChange<Element, Link>) => {
@@ -370,10 +206,7 @@ export class GraphStore<
     this.paperStores.clear();
     this.graphProjection.destroy();
     this.internalState.clean();
-    this.observer.clean();
-    if (this.warnAutoSizeResize) {
-      this.graph.off('change:size', this.warnAutoSizeResize);
-    }
+    this.measurement.destroy();
     if (!isGraphExternal) {
       this.graph.clear();
     }
@@ -484,53 +317,6 @@ export class GraphStore<
     return { paperStore, remove: () => this.removePaper(id) };
   };
 
-  public setMeasuredNode = (options: SetMeasuredNodeOptions) => this.observer.add(options);
-
-  /**
-   * An element's React content committed. Called by the element portal item
-   * after its subtree's layout effects, so an element that registered for
-   * measurement (`useMeasureElement`) stays outstanding until measured, while
-   * one that nothing measures is settled now.
-   * @param id - the rendered element
-   */
-  public markElementRendered = (id: CellId) => {
-    if (!this.outstandingElements.has(id) || this.observer.has(id)) return;
-    this.outstandingElements.delete(id);
-    this.scheduleMeasurementDelivery();
-  };
-
-  /**
-   * A paper finished a render pass (`render:done`): every view it mounts for
-   * this pass is in the DOM now. An outstanding element that no paper renders
-   * (viewport culling, `cellVisibility`, a hidden group) is not going to be
-   * measured, so it is settled with the size it has; one with a mounted view
-   * waits for its content to commit (`markElementRendered`). O(outstanding),
-   * which is empty between changes.
-   */
-  public settleUnrenderedElements = () => {
-    let didSettle = false;
-    for (const id of this.outstandingElements) {
-      if (this.observer.has(id) || this.isRenderedByAnyPaper(id)) continue;
-      this.outstandingElements.delete(id);
-      didSettle = true;
-    }
-    if (didSettle) this.scheduleMeasurementDelivery();
-  };
-
-  /**
-   * Whether some paper mounted the element's view and will render React
-   * content into it, which is the only way a measurer gets registered: the
-   * paper has a `renderElement` and the view has a portal node.
-   */
-  private isRenderedByAnyPaper(id: CellId): boolean {
-    for (const paperStore of this.paperStores.values()) {
-      if (!paperStore.renderElement) continue;
-      const view = paperStore.getElementView(id);
-      if (!view?.el.isConnected || !isPaperView(view.paper)) continue;
-      if (view.paper.getCellViewPortalNode(view)) return true;
-    }
-    return false;
-  }
   public getPaperStore = (id: string) => {
     return this.paperStores.get(id);
   };

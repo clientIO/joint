@@ -1,4 +1,4 @@
-import type { CellRecord, LinkRecord, LinkStyle, OnElementsMeasured } from '@joint/react';
+import type { CellRecord, LinkRecord, LinkStyle } from '@joint/react';
 import {
   type ElementRecord,
   GraphProvider,
@@ -7,14 +7,15 @@ import {
   SVGText,
   useCell,
   useCellId,
+  useCells,
   useGraph,
   useMarkup,
-  useOnElementsMeasured,
   usePaper,
   selectElementSize,
+  selectIsMeasured,
   linkRoutingOrthogonal,
 } from '@joint/react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useLayoutEffect, useMemo } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
@@ -745,8 +746,13 @@ function Main() {
     return !model.prop('hidden');
   }, []);
 
-  const handleElementsMeasured: OnElementsMeasured = useCallback(({ isInitial, paper, graph }) => {
-    if (!isInitial) return;
+  const { graph } = useGraph();
+  const { paper } = usePaper();
+  const isMeasured = useCells(selectIsMeasured);
+
+  // Lay the tree out and fit it once the element sizes are known.
+  useLayoutEffect(() => {
+    if (!isMeasured || !paper) return;
     runLayout(graph);
     addExpandTools(paper);
     paper.transformToFitContent({
@@ -755,9 +761,7 @@ function Main() {
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
     });
-  }, []);
-
-  useOnElementsMeasured(handleElementsMeasured);
+  }, [isMeasured, paper, graph]);
 
   const renderElement = useCallback((data: FTAData) => RenderFTAElement(data), []);
 

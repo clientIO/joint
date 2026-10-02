@@ -11,7 +11,7 @@ const meta = {
     showcase: {
       description:
         'Attaches a custom list highlighter to each shape and refreshes its colored status dots on an interval.',
-      apiUrl: getAPILink('useOnElementsMeasured'),
+      apiUrl: getAPILink('selectIsMeasured'),
       canvasHeight: 240,
       code: codeRaw,
     },

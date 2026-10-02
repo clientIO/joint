@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import type { ElementJSONInit, LinkJSONInit } from '../../types/cell.types';
-import { isShallowEqual, isPositionEqual, isSizeEqual } from '../../utils/selector-utils';
+import { isShallowEqual, isPositionEqual, isSizeEqual } from '../../selectors/selector-utils';
 import { mapAttributesToElement } from './element-mapper';
 import { mapAttributesToLink } from './link-mapper';
 
