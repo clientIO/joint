@@ -594,7 +594,7 @@ export const Link = Cell.extend({
     // `size`/`position` - so `getComputedLabel` (`link-labels.mjs`) can pass it through too.
     _getDefaultLabel: function() {
 
-        const defaultLabel = this.get('defaultLabel') || this.defaultLabel;
+        const defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
 
         const label = assign({}, defaultLabel);
         label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
