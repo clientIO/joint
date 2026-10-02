@@ -3,8 +3,6 @@ import {
     ElkLayoutOptions,
     ExportElementCallback,
     ExportPortCallback,
-    NodeElkLayoutOptions,
-    PortElkLayoutOptions,
     layout,
     ExportLinkLabelCallback,
     ExportPortLabelCallback
@@ -122,7 +120,7 @@ const init = () => {
                 elkPort.layoutOptions['elk.port.side'] = 'WEST';
                 break;
             case 'out':
-                elkPort.layoutOptions['elk.port.side'] = 'EAST';
+                elkPort.layoutOptions['elk.port.side'] = 'SOUTH';
                 break;
         }
     };
@@ -131,11 +129,6 @@ const init = () => {
         const { width, height} = element.portProp(portId, 'label/size');
         elkPortLabel.width = width;
         elkPortLabel.height = height;
-    };
-
-    const exportLinkLabel: ExportLinkLabelCallback = ({ link, labelIndex, elkEdgeLabel }) => {
-        const inline = link.label(labelIndex)['inline'];
-        elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = inline ? 'true' : 'false';
     };
 
     // Wraps every `layout()` call the example makes - freezing the paper for its
@@ -148,7 +141,6 @@ const init = () => {
             exportElement,
             exportPort,
             exportPortLabel,
-            exportLinkLabel,
             elkLayoutOptions
         }).then(() => {
             paper.unfreeze();
@@ -159,7 +151,9 @@ const init = () => {
     };
 
     // Initial layout of the fixed example data, fit to the paper's viewport.
-    runLayout().then(() => zoom(paper, 1));
+    runLayout().then(() => {
+        zoom(paper, 1)
+    });
 };
 
 function zoom(paper: dia.Paper, zoomLevel: number): void {
