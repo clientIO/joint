@@ -19,7 +19,11 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
     'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
     // Keep the order of ports on a node consistent with the order of their
     // `ports.items` array, instead of reordering them to reduce edge crossings.
-    'elk.layered.considerModelOrder.portModelOrder': 'true'
+    'elk.layered.considerModelOrder.portModelOrder': 'true',
+    // Return every edge's route points and labels graph-absolute, whichever container
+    // the edge belongs to - `importLayout` applies them as they are. Overriding this
+    // means handling the coordinates yourself (e.g. in `setLinkAttributes`).
+    'elk.json.edgeCoords': 'ROOT'
 };
 
 const DEFAULT_OPTIONS: LayoutOptions = {
@@ -47,7 +51,7 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
     /**
      * ELK layout options, passed through to ELK unmodified.
      * @see https://eclipse.dev/elk/reference/options.html
-     * @defaultValue `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN' }`
+     * @defaultValue `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.json.edgeCoords': 'ROOT' }`
      */
     elkLayoutOptions?: ElkLayoutOptions;
     /**

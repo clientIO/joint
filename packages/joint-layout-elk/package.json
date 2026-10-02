@@ -1,7 +1,7 @@
 {
   "name": "@joint/layout-elk",
   "title": "JointJS ELK Layout",
-  "version": "0.1.0",
+  "version": "4.4.0",
   "description": "ELK Layout module for JointJS",
   "sideEffects": false,
   "main": "./dist/esm/index.mjs",
