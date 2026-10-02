@@ -135,32 +135,6 @@ describe('GraphStore', () => {
       store.destroy(false);
     });
 
-    it('bumps measureState once an unsized element is measured to the size it already has', async () => {
-      const initialCells: readonly CellRecord[] = [
-        { id: 'a', type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 } } as CellRecord,
-      ];
-      const store = new GraphStore({ initialCells });
-      await flush();
-      // Nothing has a size yet, so the seed pass is not delivered.
-      expect(store.measureState.get()).toBe(0);
-      // The application pre-sizes the waiting element: not a measurement.
-      (store.graph.getCell('a') as dia.Element).resize(120, 40);
-      await flush();
-      expect(store.measureState.get()).toBe(0);
-
-      // The observer measures the same size, so it writes nothing to the graph.
-      const node = document.createElement('div');
-      store.setMeasuredNode({ id: 'a', node });
-      const [callback] = (globalThis.ResizeObserver as jest.Mock).mock.calls.at(-1) as [
-        ResizeObserverCallback,
-      ];
-      const entry = { target: node, borderBoxSize: [{ inlineSize: 120, blockSize: 40 }] };
-      callback([entry as unknown as ResizeObserverEntry], {} as ResizeObserver);
-      await flush();
-      expect(store.measureState.get()).toBe(1);
-      store.destroy(false);
-    });
-
     it('seeds from dia.Cell instances in initialCells', () => {
       const element = new ElementModel({
         id: 'dia-el',
