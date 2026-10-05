@@ -131,7 +131,7 @@ const init = () => {
         try {
             do {
                 pending = false;
-                const { bbox } = await layout(graph, {
+                const { bbox } = await layout({ graph }, {
                     elk,
                     elkLayoutOptions: getRootOptions(),
                     exportElement,

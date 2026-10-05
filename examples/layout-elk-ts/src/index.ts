@@ -44,7 +44,7 @@ const init = () => {
         workerUrl: '../node_modules/elkjs/lib/elk-worker.js',
     });
 
-    layout(graph, {
+    layout({ graph }, {
         elk,
         elkLayoutOptions: {
             /**

@@ -45,7 +45,7 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
      * @example
      * import ELK from 'elkjs/lib/elk-api.js';
      * const elk = new ELK({ workerUrl: new URL('elkjs/lib/elk-worker.min.js', import.meta.url).href });
-     * layout(graph, { elk });
+     * layout({ graph }, { elk });
      */
     elk?: ELK;
     /**
@@ -83,7 +83,32 @@ function getBBox(elkGraph: ElkNode): g.Rect {
     return g.Rect.fromRectUnion(...rects) || new g.Rect(0, 0, 0, 0);
 }
 
-export async function layout(graph: dia.Graph, opt?: LayoutOptions): Promise<LayoutResult> {
+/**
+ * What `layout()` lays out: the graph, and optionally which of its elements/links.
+ */
+export interface LayoutCells {
+    /** The graph the elements and links belong to - also where the layout's batch runs. */
+    graph: dia.Graph;
+    /**
+     * The elements to lay out, in this order - the top-level ones follow it, and so do
+     * each container's own children (instead of `getEmbeddedCells()` order). An element
+     * whose parent isn't listed is laid out as a top-level one. Each element must be
+     * listed only once.
+     * @defaultValue all of the graph's elements
+     */
+    elements?: dia.Element[];
+    /**
+     * The links to lay out, in this order - a link is laid out only if both its ends are too.
+     * Each link must be listed only once.
+     * @defaultValue all of the graph's links
+     */
+    links?: dia.Link[];
+}
+
+/**
+ * Lays out a JointJS graph (or only some of its elements/links, see `LayoutCells`) with ELK.
+ */
+export async function layout({ graph, elements, links }: LayoutCells, opt?: LayoutOptions): Promise<LayoutResult> {
 
     const options = util.defaults({}, opt || {}, DEFAULT_OPTIONS) as LayoutOptions;
     const elkLayoutOptions = util.defaults(
@@ -94,7 +119,12 @@ export async function layout(graph: dia.Graph, opt?: LayoutOptions): Promise<Lay
     const elk = opt?.elk || getDefaultElk();
     const batchName = options.batchName as string;
 
-    const { elkGraph, elementsById, linksById, portsById } = exportGraph(graph, options as ExportGraphOptions, elkLayoutOptions);
+    const { elkGraph, elementsById, linksById, portsById } = exportGraph(
+        elements ?? graph.getElements(),
+        links ?? graph.getLinks(),
+        options as ExportGraphOptions,
+        elkLayoutOptions
+    );
 
     const result = await elk.layout(elkGraph as unknown as RawElkNode) as ElkNode;
 

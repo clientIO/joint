@@ -33,7 +33,7 @@ const link = new shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }
 
 graph.addCells([rect1, rect2, link]);
 
-const { bbox } = await layout(graph, {
+const { bbox } = await layout({ graph }, {
     elkLayoutOptions: {
         'elk.algorithm': 'layered',
         'elk.direction': 'RIGHT',
@@ -44,10 +44,23 @@ const { bbox } = await layout(graph, {
 
 ## 📖 API Reference
 
-### `layout(graph, options?): Promise<LayoutResult>`
+### `layout({ graph, elements?, links? }, options?): Promise<LayoutResult>`
 
-- `graph`: `dia.Graph` - the graph to lay out.
+- `graph`: `dia.Graph` - the graph to lay out (also where the layout's batch runs).
+- `elements?`: `dia.Element[]` - which of its elements to lay out. Default: all of the graph's elements.
+- `links?`: `dia.Link[]` - which of its links to lay out. Default: all of the graph's links.
 - `options?`: `LayoutOptions` - layout configuration (see below).
+
+`elements` and `links` are both the selection and the order:
+
+- **Selection** - only the given elements are laid out, and a given link only if both its ends are laid out too. Everything else is left untouched. An element whose parent isn't in `elements` is laid out as a top-level element.
+- **Order** - the top-level elements follow the order of `elements`, and so do each container's given children (instead of `getEmbeddedCells()` order). The links follow the order of `links`, inside each container too.
+- Each cell must appear only once in its list. An empty `elements` lays out nothing.
+
+```ts
+// Lay out only the selected elements, and every link between them.
+await layout({ graph, elements: selectedElements });
+```
 
 ```ts
 interface LayoutResult {

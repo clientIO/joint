@@ -54,7 +54,7 @@ const init = () => {
     // `layout()` at its simplest, with only plain ELK layout options passed through.
     // Containers, ports and link labels are all laid out from this package's own
     // defaults alone.
-    layout(graph, {
+    layout({ graph }, {
         elk,
         elkLayoutOptions: {
             'elk.algorithm': 'layered',

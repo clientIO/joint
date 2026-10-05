@@ -138,12 +138,17 @@ let excludedPortIdsByElement: Map<string, Set<string>>;
 // Every container node (plus the root), keyed by element id (`undefined` for the root) -
 // used to file each edge under the lowest common ancestor of its source and target.
 let edgeContainersById: Map<string | undefined, ElkExtendedEdge[]>;
+// Every exported node's parent node in the ELK graph (`undefined` for a top-level one) -
+// not always its JointJS parent (see `exportGraph`).
+let elkParentIdsById: Map<string, string | undefined>;
+// Each element's position in the list of elements given to `exportGraph`.
+let elementIndicesById: Map<string, number>;
 
 /**
  * (Re)initializes all the module-level state above for a single `exportGraph` call, so
  * that no callback, option or lookup table can leak from one call into the next.
  */
-function init(options: ExportGraphOptions): void {
+function init(options: ExportGraphOptions, elements: dia.Element[]): void {
     exportGraphOptions = options;
 
     elementsById = new Map();
@@ -151,6 +156,25 @@ function init(options: ExportGraphOptions): void {
     portsById = new Map();
     excludedPortIdsByElement = new Map();
     edgeContainersById = new Map();
+    elkParentIdsById = new Map();
+    elementIndicesById = new Map(elements.map((element, index) => [`${element.id}`, index]));
+}
+
+// Whether an element's parent is laid out too - i.e. the element is laid out inside it,
+// rather than as a top-level node.
+function hasLaidOutParent(element: dia.Element): boolean {
+    const parentId = element.parent();
+    if (!parentId) return false;
+    return elementIndicesById.has(`${parentId}`);
+}
+
+// An element's embedded elements that take part in the layout, in the order of the list
+// of elements given to `exportGraph`.
+function getEmbeddedElements(element: dia.Element): dia.Element[] {
+    const indices = elementIndicesById;
+    return element.getEmbeddedCells()
+        .filter((cell): cell is dia.Element => cell.isElement() && indices.has(`${cell.id}`))
+        .sort((a, b) => indices.get(`${a.id}`)! - indices.get(`${b.id}`)!);
 }
 
 function getExcludedPortIds(element: dia.Element): Set<string> {
@@ -233,10 +257,10 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
  * so nothing is registered and nothing downstream (a child, a port, a connected edge)
  * can end up referencing it.
  */
-function buildElkNode(element: dia.Element): ElkNode | null {
+function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
     const id = `${element.id}`;
 
-    const embeds = element.getEmbeddedCells().filter(cell => cell.isElement());
+    const embeds = getEmbeddedElements(element);
 
     // A container's real size is computed by ELK to fit its content - `0` is just a
     // placeholder (elkjs needs a numeric size upfront for a hierarchical node).
@@ -257,6 +281,7 @@ function buildElkNode(element: dia.Element): ElkNode | null {
         return null;
 
     elementsById.set(id, element);
+    elkParentIdsById.set(id, parentId);
 
     const ports = buildPorts(element);
 
@@ -264,7 +289,7 @@ function buildElkNode(element: dia.Element): ElkNode | null {
     let edges: ElkExtendedEdge[] | undefined;
     if (embeds.length > 0) {
         children = embeds
-            .map((embed) => buildElkNode(embed))
+            .map((embed) => buildElkNode(embed, id))
             .filter((node): node is ElkNode => node !== null);
         // Shared with `edgeContainersById` (see there) - edges filed under this container
         // by `buildEdge` need to end up on the node itself.
@@ -281,9 +306,16 @@ function buildElkNode(element: dia.Element): ElkNode | null {
 }
 
 // The lowest common ancestor of an element and itself/an ancestor is the element's parent chain -
-// this returns that chain, ordered from the outermost ancestor to the immediate parent.
+// this returns that chain in the ELK graph, ordered from the outermost ancestor to the
+// immediate parent.
 function getAncestorPath(element: dia.Element): string[] {
-    return element.getAncestors().reverse().map((cell) => `${cell.id}`);
+    const path: string[] = [];
+    let parentId = elkParentIdsById.get(`${element.id}`);
+    while (parentId !== undefined) {
+        path.unshift(parentId);
+        parentId = elkParentIdsById.get(parentId);
+    }
+    return path;
 }
 
 // The id shared by the last matching entries of two ancestor paths (or `undefined` if
@@ -380,19 +412,25 @@ function buildEdge(link: dia.Link): void {
 }
 
 /**
- * Converts a JointJS graph (elements, their embedded elements, ports and the
- * links between them) to an ELK graph structure.
+ * Converts JointJS elements (with their embedded elements and ports) and the links
+ * between them to an ELK graph structure.
+ *
+ * `elements`/`links` are what takes part - a link only if both its ends do too - and
+ * set its order: the root's children and edges follow them, and so do each container's
+ * own children. An element whose parent isn't in `elements` becomes a top-level node.
  */
 export function exportGraph(
-    graph: dia.Graph,
+    elements: dia.Element[],
+    links: dia.Link[],
     options: ExportGraphOptions,
     elkLayoutOptions: ElkLayoutOptions
 ): ElkGraphData {
 
-    init(options);
+    init(options, elements);
 
-    const children: ElkNode[] = graph.getElements()
-        .filter((element) => !element.parent())
+    const topLevelElements = elements.filter((element) => !hasLaidOutParent(element));
+
+    const children: ElkNode[] = topLevelElements
         .map((element) => buildElkNode(element))
         .filter((node): node is ElkNode => node !== null);
 
@@ -406,7 +444,7 @@ export function exportGraph(
     // `buildEdge` need to end up on `elkGraph` itself.
     edgeContainersById.set(undefined, elkGraph.edges as ElkExtendedEdge[]);
 
-    graph.getLinks().forEach(buildEdge);
+    links.forEach(buildEdge);
 
     return { elkGraph, elementsById, linksById, portsById };
 }
