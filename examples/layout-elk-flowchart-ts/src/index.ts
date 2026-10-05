@@ -7,7 +7,6 @@ import {
     SetPortAttributesCallback,
     layout
 } from '@joint/layout-elk';
-import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Decision, FlowchartNode, FlowLink, Process, Terminal } from './shapes';
 import './styles.scss';
@@ -162,10 +161,6 @@ const init = () => {
         'elk.layered.layering.strategy': 'INTERACTIVE'
     };
 
-    const elk = new ELK({
-        workerUrl: '../node_modules/elkjs/lib/elk-worker.js'
-    });
-
     // `FIXED_SIDE` (not the default `FREE`) is what lets ELK reorder a node's ports
     // along their side to reduce crossings, instead of only routing edges to
     // wherever a port happens to already be.
@@ -219,7 +214,6 @@ const init = () => {
     const runLayout = (): Promise<void> => {
         paper.freeze();
         return layout({ graph }, {
-            elk,
             exportElement,
             exportPort,
             exportLinkLabel,

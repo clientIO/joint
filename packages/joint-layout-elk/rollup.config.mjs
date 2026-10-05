@@ -12,6 +12,33 @@ const bannerText = `/*! ${packageJson.title} v${packageJson.version} (${formatte
 
 const input = ['./dist/esm/index.mjs'];
 
+// A UMD bundle has no way to locate a worker file of its own - replace the module that
+// starts one (see `src/workerFactory.mts`) with one that doesn't, so `layout()` runs ELK
+// on the main thread by default.
+const noWorker = {
+    name: 'no-worker',
+    resolveId(source) {
+        return /(^|\/)workerFactory\.mjs$/.test(source) ? '\0workerFactory' : null;
+    },
+    load(id) {
+        return (id === '\0workerFactory') ? 'export function createElkWorker() { return undefined; }' : null;
+    }
+};
+
+// The unit test bundle starts whichever worker a test hands it (`window.__createElkWorker`),
+// so the default worker - and falling back from it - can be tested too (see `test/index.js`).
+const testWorker = {
+    name: 'test-worker',
+    resolveId(source) {
+        return /(^|\/)workerFactory\.mjs$/.test(source) ? '\0workerFactory' : null;
+    },
+    load(id) {
+        return (id === '\0workerFactory')
+            ? 'export function createElkWorker() { return window.__createElkWorker ? window.__createElkWorker() : undefined; }'
+            : null;
+    }
+};
+
 export default [
     {
         input,
@@ -52,6 +79,7 @@ export default [
             },
         ],
         plugins: [
+            noWorker,
             nodeResolve({
                 preferBuiltins: false
             })
@@ -82,6 +110,7 @@ export default [
             }
         ],
         plugins: [
+            testWorker,
             nodeResolve({
                 preferBuiltins: false
             }),

@@ -17,6 +17,8 @@ module.exports = function(config) {
         files: [
             './node_modules/@joint/core/build/joint.js',
             './node_modules/elkjs/lib/elk.bundled.js',
+            // Served (not loaded) for the tests starting ELK's default Web Worker.
+            { pattern: './node_modules/elkjs/lib/elk-worker.min.js', included: false },
             TEST_BUNDLE,
 
             './test/index.js'

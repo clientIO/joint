@@ -1,6 +1,5 @@
 import { dia, shapes, setTheme } from '@joint/core';
 import { layout } from '@joint/layout-elk';
-import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Container, Service, InteractionLink } from './shapes';
 import './styles.scss';
@@ -45,17 +44,11 @@ const init = () => {
     // Load the fixed example data.
     graph.fromJSON(graphJSON);
 
-    // Run ELK in a Web Worker, via the `@joint/layout-elk` package.
-    const elk = new ELK({
-        workerUrl: '../node_modules/elkjs/lib/elk-worker.js'
-    });
-
     // No `exportElement`/`exportPort`/`setPortAttributes`/... callbacks - this is
     // `layout()` at its simplest, with only plain ELK layout options passed through.
     // Containers, ports and link labels are all laid out from this package's own
     // defaults alone.
     layout({ graph }, {
-        elk,
         elkLayoutOptions: {
             'elk.algorithm': 'layered',
             'elk.direction': 'RIGHT',

@@ -907,3 +907,71 @@ QUnit.module('layout()', () => {
         assert.deepEqual(elkEdge.labels, []);
     });
 });
+
+// Last: the default ELK instance is shared by every `layout()` call without an `elk`
+// option - once its worker fails (the second test), it stays on the main thread.
+QUnit.module('the default ELK instance', (hooks) => {
+
+    // Every worker the default instance has started (see `rollup.config.mjs`'s `testWorker`),
+    // and how many messages they've sent back.
+    const startedWorkers = [];
+    let workerMessageCount = 0;
+
+    hooks.before(() => {
+        window.__createElkWorker = () => {
+            const worker = new Worker('/base/node_modules/elkjs/lib/elk-worker.min.js');
+            worker.addEventListener('message', () => workerMessageCount++);
+            startedWorkers.push(worker);
+            return worker;
+        };
+    });
+
+    hooks.after(() => {
+        delete window.__createElkWorker;
+    });
+
+    const createGraph = () => {
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }});
+        graph.resetCells([el1, el2, link]);
+        return { graph, el1, el2 };
+    };
+
+    QUnit.test('should run in a Web Worker - one started on first use, then shared', async(assert) => {
+
+        const { graph, el1, el2 } = createGraph();
+
+        await joint.layout.ELK.layout({ graph });
+
+        assert.equal(startedWorkers.length, 1);
+        // The layout came from the worker, not from a main-thread fallback.
+        assert.ok(workerMessageCount > 0);
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+
+        const messageCount = workerMessageCount;
+        await joint.layout.ELK.layout(createGraph());
+        assert.equal(startedWorkers.length, 1);
+        assert.ok(workerMessageCount > messageCount);
+    });
+
+    QUnit.test('should retry a layout on the main thread when the worker fails - and stay there', async(assert) => {
+
+        const { graph, el1, el2 } = createGraph();
+
+        const result = joint.layout.ELK.layout({ graph });
+        // E.g. a worker script a bundler didn't emit - ELK itself would never settle `result`.
+        startedWorkers[startedWorkers.length - 1].dispatchEvent(new ErrorEvent('error'));
+        await result;
+
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+
+        // No new worker is started for later layouts.
+        const workerCount = startedWorkers.length;
+        const { graph: nextGraph, el1: nextEl1, el2: nextEl2 } = createGraph();
+        await joint.layout.ELK.layout({ graph: nextGraph });
+        assert.equal(startedWorkers.length, workerCount);
+        assert.notOk(joint.g.intersection.exists(nextEl1.getBBox(), nextEl2.getBBox()));
+    });
+});

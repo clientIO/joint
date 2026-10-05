@@ -1,6 +1,5 @@
 import { dia, g, shapes, setTheme, util } from '@joint/core';
 import { layout } from '@joint/layout-elk';
-import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON, createFileJSON, type FileKind } from './example';
 import { Folder, FileTile, FOLDER_PADDING } from './shapes';
 import './styles.scss';
@@ -47,10 +46,6 @@ const init = () => {
     document.getElementById('canvas')!.appendChild(paper.el);
 
     graph.fromJSON(graphJSON);
-
-    const elk = new ELK({
-        workerUrl: '../node_modules/elkjs/lib/elk-worker.js'
-    });
 
     const controls = getControls();
 
@@ -132,7 +127,6 @@ const init = () => {
             do {
                 pending = false;
                 const { bbox } = await layout({ graph }, {
-                    elk,
                     elkLayoutOptions: getRootOptions(),
                     exportElement,
                     setElementAttributes
