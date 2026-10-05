@@ -1,6 +1,6 @@
 import { util, g } from '@joint/core';
-import ElkConstructor from 'elkjs/lib/elk.bundled.js';
 import { importLayout } from './import.mjs';
+import { layoutWithDefaultElk } from './defaultElk.mjs';
 import { exportGraph } from './export.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
@@ -30,18 +30,19 @@ const DEFAULT_OPTIONS: LayoutOptions = {
     batchName: LAYOUT_BATCH_NAME,
 };
 
-let defaultElk: ELK | undefined;
-
 /**
  * Layout configuration options.
  */
 export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
 
     /**
-     * A custom ELK instance, e.g. one configured to run inside a Web Worker.
-     * The instance is not terminated by the package - call `elk.terminateWorker()`
-     * yourself when it is no longer needed.
-     * @defaultValue a shared, main-thread instance (`elkjs/lib/elk.bundled.js`)
+     * A custom ELK instance, e.g. one running in a Web Worker of your own. The instance
+     * is not terminated by the package - call `elk.terminateWorker()` yourself when it is
+     * no longer needed.
+     * @defaultValue a shared instance running in a Web Worker the package starts itself
+     * (bundled as a worker file of its own by webpack 5, Vite or Parcel). Where no worker can
+     * be started or loaded - no `Worker` (e.g. Node/SSR), the UMD build, a bundler that
+     * doesn't emit worker files - a shared main-thread instance (`elkjs/lib/elk.bundled.js`).
      * @example
      * import ELK from 'elkjs/lib/elk-api.js';
      * const elk = new ELK({ workerUrl: new URL('elkjs/lib/elk-worker.min.js', import.meta.url).href });
@@ -66,13 +67,6 @@ export interface LayoutResult {
     bbox: g.Rect;
     /** The raw ELK layout result, for anything not mapped back onto the graph (e.g. junction points). */
     elkGraph: ElkNode;
-}
-
-function getDefaultElk(): ELK {
-    if (!defaultElk) {
-        defaultElk = new ElkConstructor();
-    }
-    return defaultElk;
 }
 
 /**
@@ -116,7 +110,6 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
         opt?.elkLayoutOptions || {},
         DEFAULT_LAYOUT_OPTIONS
     ) as ElkLayoutOptions;
-    const elk = opt?.elk || getDefaultElk();
     const batchName = options.batchName as string;
 
     const { elkGraph, elementsById, linksById, portsById } = exportGraph(
@@ -126,7 +119,8 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
         elkLayoutOptions
     );
 
-    const result = await elk.layout(elkGraph as unknown as RawElkNode) as ElkNode;
+    const rawElkGraph = elkGraph as unknown as RawElkNode;
+    const result = await (opt?.elk ? opt.elk.layout(rawElkGraph) : layoutWithDefaultElk(rawElkGraph)) as ElkNode;
 
     // Wraps the import in a single batch, so it emits one combined change instead of
     // one per element/port/link.

@@ -7,7 +7,6 @@ import {
     ExportLinkLabelCallback,
     ExportPortLabelCallback
 } from '@joint/layout-elk';
-import ELK from 'elkjs/lib/elk-api.js';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
 import './styles.scss';
@@ -98,11 +97,6 @@ const init = () => {
         'elk.layered.priority.direction': '40'
     }
 
-    // Run ELK in a Web Worker, via the `@joint/layout-elk` package.
-    const elk = new ELK({
-        workerUrl: '../node_modules/elkjs/lib/elk-worker.js'
-    });
-
     const exportElement: ExportElementCallback = ({ element, elkNode }) => {
         if (element.hasPorts()) {
             elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
@@ -137,7 +131,6 @@ const init = () => {
     const runLayout = (): Promise<void> => {
         paper.freeze();
         return layout({ graph }, {
-            elk,
             exportElement,
             exportPort,
             exportPortLabel,

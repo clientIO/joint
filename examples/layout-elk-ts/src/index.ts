@@ -1,6 +1,5 @@
 import { dia, shapes, g } from '@joint/core';
 import { layout } from '@joint/layout-elk';
-import ELK from 'elkjs/lib/elk-api.js';
 import dependenciesJSON from './dependencies.json';
 import './styles.scss';
 
@@ -39,13 +38,7 @@ const init = () => {
     // Generate JointJS cells from example data
     generateCells(dependenciesJSON, graph);
 
-    // Run ELK in a Web Worker, via the `@joint/layout-elk` package
-    const elk = new ELK({
-        workerUrl: '../node_modules/elkjs/lib/elk-worker.js',
-    });
-
     layout({ graph }, {
-        elk,
         elkLayoutOptions: {
             /**
              * Overall direction of the layout.
