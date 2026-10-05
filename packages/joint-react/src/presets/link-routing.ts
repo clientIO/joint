@@ -29,7 +29,11 @@ export interface LinkRouting {
   readonly defaultConnectionPoint?: dia.Paper.Options['defaultConnectionPoint'];
 }
 
-interface BaseLinkOptions {
+/**
+ * Options shared by every link routing preset.
+ * @group Types
+ */
+export interface BaseLinkOptions {
   /** Which side of an element or port each link end attaches to; see {@link LinkMode} for how each value behaves. @default 'auto' */
   readonly mode?: LinkMode;
   /** Offset (in px) applied to the connection point at the source end. @default 0 */

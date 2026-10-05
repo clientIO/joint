@@ -20,7 +20,10 @@ const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // especially on Safari
 const EPSILON = 0.5;
 
-/** Element layout where width/height are required but x/y may be omitted. */
+/**
+ * Element layout where width/height are required but x/y may be omitted.
+ * @inline
+ */
 type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
   Partial<Pick<ElementLayout, 'x' | 'y'>>;
 

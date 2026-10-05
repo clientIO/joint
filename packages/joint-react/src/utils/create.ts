@@ -1,9 +1,6 @@
 import type { ELEMENT_MODEL_TYPE } from '../mvc/element-model';
 import type { LINK_MODEL_TYPE } from '../mvc/link-model';
 
-/** The member type of a cells array; passes a non-array `Cells` through. */
-type CellArrayMember<Cells> = Cells extends ReadonlyArray<infer Member> ? Member : Cells;
-
 /**
  * Infer the element record type from a cells collection, typically
  * `typeof cells`. Selects the member whose `type` is `'element'`, so a mixed
@@ -29,7 +26,7 @@ type CellArrayMember<Cells> = Cells extends ReadonlyArray<infer Member> ? Member
  * ```
  */
 export type InferElement<Cells> = Extract<
-  CellArrayMember<Cells>,
+  Cells extends ReadonlyArray<infer Member> ? Member : Cells,
   { readonly type: typeof ELEMENT_MODEL_TYPE }
 >;
 
@@ -52,6 +49,6 @@ export type InferElement<Cells> = Extract<
  * ```
  */
 export type InferLink<Cells> = Extract<
-  CellArrayMember<Cells>,
+  Cells extends ReadonlyArray<infer Member> ? Member : Cells,
   { readonly type: typeof LINK_MODEL_TYPE }
 >;
