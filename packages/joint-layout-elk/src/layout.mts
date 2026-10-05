@@ -81,20 +81,24 @@ function getBBox(elkGraph: ElkNode): g.Rect {
  * What `layout()` lays out: the graph, and optionally which of its elements/links.
  */
 export interface LayoutCells {
-    /** The graph the elements and links belong to - also where the layout's batch runs. */
-    graph: dia.Graph;
+    /**
+     * The graph the elements and links belong to - also where the layout's batch runs.
+     * Without it, the layout is applied outside of any batch, and `elements` and `links`
+     * default to none.
+     */
+    graph?: dia.Graph;
     /**
      * The elements to lay out, in this order - the top-level ones follow it, and so do
      * each container's own children (instead of `getEmbeddedCells()` order). An element
      * whose parent isn't listed is laid out as a top-level one. Each element must be
      * listed only once.
-     * @defaultValue all of the graph's elements
+     * @defaultValue all of the graph's elements (none without `graph`)
      */
     elements?: dia.Element[];
     /**
      * The links to lay out, in this order - a link is laid out only if both its ends are too.
      * Each link must be listed only once.
-     * @defaultValue all of the graph's links
+     * @defaultValue all of the graph's links (none without `graph`)
      */
     links?: dia.Link[];
 }
@@ -113,8 +117,8 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
     const batchName = options.batchName as string;
 
     const { elkGraph, elementsById, linksById, portsById } = exportGraph(
-        elements ?? graph.getElements(),
-        links ?? graph.getLinks(),
+        elements ?? graph?.getElements() ?? [],
+        links ?? graph?.getLinks() ?? [],
         options as ExportGraphOptions,
         elkLayoutOptions
     );
@@ -124,9 +128,9 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
 
     // Wraps the import in a single batch, so it emits one combined change instead of
     // one per element/port/link.
-    graph.startBatch(batchName);
+    graph?.startBatch(batchName);
     importLayout(result, elementsById, linksById, portsById, options);
-    graph.stopBatch(batchName);
+    graph?.stopBatch(batchName);
 
     return {
         bbox: getBBox(result),
