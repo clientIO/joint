@@ -2,10 +2,7 @@ import { cloneDeep, merge } from '../util/index.mjs';
 
 // A label as given (own `markup`/`attrs`/`size`/`position`, any of which may be missing),
 // resolved against `link`'s `defaultLabel` and its built-in default.
-export function getComputedLabel(link, label) {
-
-    label = label || {};
-
+export function getComputedLabel(link, label = {}) {
     const builtinDefaultLabel = link._builtins.defaultLabel;
     const defaultLabel = link._getDefaultLabel();
 
