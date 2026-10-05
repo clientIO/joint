@@ -74,7 +74,7 @@ const rectangle = new joint.shapes.standard.Rectangle({
 
 // `portProp()` - whole port getter, path getter/setter, object setter
 const port: joint.dia.Element.Port = rectangle.portProp('port1');
-const portGroup: any = rectangle.portProp('port1', 'group');
+const portGroup = rectangle.portProp('port1', 'group');
 rectangle.portProp('port1', ['position', 'args'], { x: 10, y: 20 }, { silent: true });
 const portPropObjectResult = rectangle.portProp('port1', {
     position: { args: { x: 10, y: 20 }},
