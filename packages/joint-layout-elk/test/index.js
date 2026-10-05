@@ -32,7 +32,7 @@ QUnit.module('layout()', () => {
         assert.equal(initialBBox.x, 0);
         assert.equal(initialBBox.y, 0);
 
-        const { bbox } = await joint.layout.ELK.layout(graph);
+        const { bbox } = await joint.layout.ELK.layout({ graph });
 
         assert.ok(bbox.width > 0);
         assert.ok(bbox.height > 0);
@@ -55,7 +55,7 @@ QUnit.module('layout()', () => {
 
         const { graph } = createGraph();
 
-        await joint.layout.ELK.layout(graph, {
+        await joint.layout.ELK.layout({ graph }, {
             elkLayoutOptions: {
                 'elk.algorithm': 'layered',
                 'elk.direction': 'RIGHT',
@@ -83,7 +83,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout(graph);
+        await joint.layout.ELK.layout({ graph });
 
         const label = link.label(0);
         assert.ok(label.position && typeof label.position.distance === 'number');
@@ -104,7 +104,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph);
+        const { elkGraph } = await joint.layout.ELK.layout({ graph });
 
         const [elkEdge] = elkGraph.edges;
         assert.equal(elkEdge.labels[0].width, 80);
@@ -123,7 +123,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([parent, child1, child2, childLink]);
 
-        await joint.layout.ELK.layout(graph);
+        await joint.layout.ELK.layout({ graph });
 
         const parentBBox = parent.getBBox();
         const child1BBox = child1.getBBox();
@@ -147,7 +147,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([parent, child, outside, link]);
 
-        await joint.layout.ELK.layout(graph);
+        await joint.layout.ELK.layout({ graph });
 
         assert.ok(Array.isArray(link.vertices()));
         assert.ok(!joint.g.intersection.exists(parent.getBBox(), outside.getBBox()));
@@ -171,7 +171,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([outer, inner, a, b, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             elkLayoutOptions: {
                 'elk.padding': '[top=40,left=20,bottom=20,right=20]'
             }
@@ -206,7 +206,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             elkLayoutOptions: { 'elk.json.edgeCoords': 'CONTAINER' }
         });
 
@@ -243,7 +243,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout(graph);
+        await joint.layout.ELK.layout({ graph });
 
         assert.notOk(link.prop('source/anchor'));
         assert.notOk(link.prop('target/anchor'));
@@ -269,7 +269,7 @@ QUnit.module('layout()', () => {
         graph.resetCells([el1, el2, link]);
 
         const seen = [];
-        await joint.layout.ELK.layout(graph, {
+        await joint.layout.ELK.layout({ graph }, {
             exportPort: ({ portId, element }) => {
                 seen.push([portId, element.id]);
             }
@@ -300,7 +300,7 @@ QUnit.module('layout()', () => {
         // value to merge - so what this package itself already put on that same draft
         // (e.g. an `elkNode`/`elkPort`'s own `width`) survives
         // alongside whatever the callback itself adds.
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
                 elkNode.layoutOptions['elk.custom'] = 'node';
@@ -342,7 +342,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1]);
 
-        await joint.layout.ELK.layout(graph);
+        await joint.layout.ELK.layout({ graph });
 
         // Untouched - still the original group config, not switched to 'absolute'.
         assert.equal(el1.prop(['ports', 'groups', 'out', 'position']), 'right');
@@ -378,7 +378,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout(graph, {
+        await joint.layout.ELK.layout({ graph }, {
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
             }
@@ -421,7 +421,7 @@ QUnit.module('layout()', () => {
 
         const before = el1.getPortRelativePosition('right1');
 
-        await joint.layout.ELK.layout(graph, {
+        await joint.layout.ELK.layout({ graph }, {
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_POS';
             }
@@ -452,7 +452,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, el3, link1, link2]);
 
-        await joint.layout.ELK.layout(graph, {
+        await joint.layout.ELK.layout({ graph }, {
             exportElement: ({ element, elkNode }) => {
                 if (element.hasPorts()) elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
             },
@@ -498,12 +498,12 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout(graph);
+        await joint.layout.ELK.layout({ graph });
         const firstPosition = el1.getPortRelativePosition('out1');
 
         // Laying out the same, already laid out graph again should not move the
         // port any further - each call is independent, not cumulative.
-        await joint.layout.ELK.layout(graph);
+        await joint.layout.ELK.layout({ graph });
         const secondPosition = el1.getPortRelativePosition('out1');
 
         assert.equal(secondPosition.x, firstPosition.x);
@@ -525,7 +525,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([parent, child]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportElement: ({ element, elkNode }) => {
                 Object.assign(elkNode.layoutOptions, element.get('elkLayoutOptions'));
             }
@@ -548,7 +548,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportLinkLabel: ({ link, labelIndex, elkEdgeLabel }) => {
                 Object.assign(elkEdgeLabel.layoutOptions, link.label(labelIndex).elkLayoutOptions);
             }
@@ -576,10 +576,10 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph);
+        const { elkGraph } = await joint.layout.ELK.layout({ graph });
         assert.equal(elkGraph.edges[0].labels[0].layoutOptions['elk.edgeLabels.inline'], 'true');
 
-        const { elkGraph: optedOutElkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph: optedOutElkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportLinkLabel: ({ elkEdgeLabel }) => {
                 elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = 'false';
             }
@@ -607,7 +607,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportLinkLabel: ({ link, labelIndex, elkEdgeLabel }) => {
                 Object.assign(elkEdgeLabel.layoutOptions, link.getComputedLabels()[labelIndex].elkLayoutOptions);
             }
@@ -634,7 +634,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
             },
@@ -670,7 +670,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             // `portProp(id, 'label/size')` only reads the port's own item data, with no
             // group fallback - `getPortMetrics` resolves it the same way `dia.Element`
             // itself does for rendering (group first, item overriding it).
@@ -697,11 +697,128 @@ QUnit.module('layout()', () => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
-        const { bbox, elkGraph } = await joint.layout.ELK.layout(graph);
+        const { bbox, elkGraph } = await joint.layout.ELK.layout({ graph });
 
         assert.equal(bbox.width, 0);
         assert.equal(bbox.height, 0);
         assert.deepEqual(elkGraph.children, []);
+    });
+
+    QUnit.module('given `elements`/`links`', () => {
+
+        const rect = (id, x = 500, y = 500) => new joint.shapes.standard.Rectangle({ id, size: { width: 50, height: 50 }, position: { x, y }});
+        const edge = (id, source, target) => new joint.shapes.standard.Link({ id, source: { id: source }, target: { id: target }});
+        const ids = (items) => (items || []).map((item) => item.id);
+
+        QUnit.test('should lay out only the given elements and links - a link only if both its ends are given too', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const [a, b, c] = [rect('a'), rect('b'), rect('c', 1000, 1000)];
+            const ab = edge('ab', 'a', 'b');
+            const bc = edge('bc', 'b', 'c');
+            const ac = edge('ac', 'a', 'c');
+            graph.resetCells([a, b, c, ab, bc, ac]);
+
+            const { elkGraph } = await joint.layout.ELK.layout({ graph, elements: [a, b], links: [ab, bc] });
+
+            assert.deepEqual(ids(elkGraph.children), ['a', 'b']);
+            // `bc` is given, but `c` isn't - `ac` isn't given at all.
+            assert.deepEqual(ids(elkGraph.edges), ['ab']);
+            // What's left out is left alone.
+            assert.deepEqual(c.position().toJSON(), { x: 1000, y: 1000 });
+            assert.notOk(bc.vertices().length);
+            assert.notOk(ac.vertices().length);
+        });
+
+        QUnit.test('should take what isn\'t given from the graph', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const [a, b, c] = [rect('a'), rect('b'), rect('c')];
+            const ab = edge('ab', 'a', 'b');
+            const bc = edge('bc', 'b', 'c');
+            graph.resetCells([a, b, c, ab, bc]);
+
+            // Only `elements` - every graph link between them is laid out.
+            const { elkGraph: withElements } = await joint.layout.ELK.layout({ graph, elements: [b, a] });
+            assert.deepEqual(ids(withElements.children), ['b', 'a']);
+            assert.deepEqual(ids(withElements.edges), ['ab']);
+
+            // Only `links` - every graph element is laid out.
+            const { elkGraph: withLinks } = await joint.layout.ELK.layout({ graph, links: [bc] });
+            assert.deepEqual(ids(withLinks.children), ['a', 'b', 'c']);
+            assert.deepEqual(ids(withLinks.edges), ['bc']);
+        });
+
+        QUnit.test('should follow the given order for the top-level elements and links', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const [a, b, c] = [rect('a'), rect('b'), rect('c')];
+            const ab = edge('ab', 'a', 'b');
+            const bc = edge('bc', 'b', 'c');
+            graph.resetCells([a, b, c, ab, bc]);
+
+            const { elkGraph } = await joint.layout.ELK.layout({ graph, elements: [c, a, b], links: [bc, ab] });
+
+            assert.deepEqual(ids(elkGraph.children), ['c', 'a', 'b']);
+            assert.deepEqual(ids(elkGraph.edges), ['bc', 'ab']);
+        });
+
+        QUnit.test('should follow the given order (and selection) for a container\'s children and edges', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const parent = rect('parent');
+            const [a, b, c] = [rect('a'), rect('b'), rect('c')];
+            const ab = edge('ab', 'a', 'b');
+            const ba = edge('ba', 'b', 'a');
+            graph.resetCells([parent, a, b, c, ab, ba]);
+            parent.embed([a, b, c]);
+
+            // `c` is embedded in `parent` but isn't given.
+            const { elkGraph } = await joint.layout.ELK.layout({ graph, elements: [parent, b, a], links: [ba, ab] });
+
+            const [elkParent] = elkGraph.children;
+            assert.deepEqual(ids(elkGraph.children), ['parent']);
+            assert.deepEqual(ids(elkParent.children), ['b', 'a']);
+            assert.deepEqual(ids(elkParent.edges), ['ba', 'ab']);
+            // `parent` is still sized by ELK to fit what's given of its content.
+            assert.ok(parent.getBBox().containsRect(a.getBBox()));
+            assert.ok(parent.getBBox().containsRect(b.getBBox()));
+        });
+
+        QUnit.test('should lay out an element whose parent isn\'t given as a top-level one', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const parent = rect('parent', 0, 0);
+            const [a, b] = [rect('a'), rect('b')];
+            const ab = edge('ab', 'a', 'b');
+            graph.resetCells([parent, a, b, ab]);
+            parent.embed([a, b]);
+            const parentBBox = parent.getBBox();
+
+            const { elkGraph } = await joint.layout.ELK.layout({ graph, elements: [a, b] });
+
+            assert.deepEqual(ids(elkGraph.children), ['a', 'b']);
+            assert.deepEqual(ids(elkGraph.edges), ['ab']);
+            assert.notOk(elkGraph.children[0].children);
+            // The parent, not given itself, isn't resized or moved.
+            assert.ok(parent.getBBox().equals(parentBBox));
+        });
+
+        QUnit.test('should lay out nothing given no elements', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const [a, b] = [rect('a'), rect('b', 600, 600)];
+            const ab = edge('ab', 'a', 'b');
+            graph.resetCells([a, b, ab]);
+
+            const { bbox, elkGraph } = await joint.layout.ELK.layout({ graph, elements: [] });
+
+            assert.ok(bbox.equals(new joint.g.Rect(0, 0, 0, 0)));
+            assert.deepEqual(elkGraph.children, []);
+            assert.deepEqual(elkGraph.edges, []);
+            assert.deepEqual(a.position().toJSON(), { x: 500, y: 500 });
+            assert.notOk(ab.vertices().length);
+        });
     });
 
     QUnit.test('should drop an element (and its subtree) when exportElement returns false', async(assert) => {
@@ -715,7 +832,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([parent, child, other, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportElement: ({ element }) => element.id !== 'parent'
         });
 
@@ -741,7 +858,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportPort: () => false
         });
 
@@ -761,7 +878,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportLink: () => false
         });
 
@@ -782,7 +899,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
             exportLinkLabel: () => false
         });
 

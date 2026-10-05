@@ -136,7 +136,7 @@ const init = () => {
     // same way regardless of which caller triggered the layout.
     const runLayout = (): Promise<void> => {
         paper.freeze();
-        return layout(graph, {
+        return layout({ graph }, {
             elk,
             exportElement,
             exportPort,

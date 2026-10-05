@@ -72,6 +72,22 @@ const rectangle = new joint.shapes.standard.Rectangle({
     }
 });
 
+// `portProp()` - whole port getter, path getter/setter, object setter
+const port: joint.dia.Element.Port = rectangle.portProp('port1');
+const portGroup: any = rectangle.portProp('port1', 'group');
+rectangle.portProp('port1', ['position', 'args'], { x: 10, y: 20 }, { silent: true });
+const portPropObjectResult = rectangle.portProp('port1', {
+    position: { args: { x: 10, y: 20 }},
+    label: { position: { args: { x: 5, y: -5 }}}
+}, { rewrite: true });
+const isElementAfterObjectSet: AssertExtends<typeof portPropObjectResult, joint.dia.Element> = true;
+
+// A port label's position `args` are the label layout's own options.
+const portLabelPosition: joint.dia.Element.PortLabelPositionType = {
+    name: 'manual',
+    args: { x: 5, y: -5, attrs: { labelText: { textAnchor: 'start' }}}
+};
+
 const link = new joint.shapes.standard.Link({
     attrs: {
         line: {
