@@ -75,6 +75,8 @@ interface LayoutResult {
 interface LayoutOptions {
     // A custom ELK instance, e.g. one running in a Web Worker of your own.
     elk?: ELK; // Default: a shared instance running in a Web Worker (see "Web Worker" below)
+    // Where the default ELK instance runs the layout - ignored with a custom `elk`.
+    thread?: 'auto' | 'worker' | 'main'; // Default: 'auto'
     // ELK layout options, passed through to ELK unmodified.
     elkLayoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.json.edgeCoords': 'ROOT' }
     // A name for the layout batch, grouping everything `layout()` applies into one graph change.
@@ -118,6 +120,19 @@ type SetPortAttributesCallback = (params: { element: dia.Element; portId: string
 type SetLinkAttributesCallback = (params: { link: dia.Link; attributes: { vertices: dia.Point[]; source?: dia.Link.EndJSON; target?: dia.Link.EndJSON; labels?: dia.Link.Label[] }; elkEdge: ElkExtendedEdge }) => void;
 ```
 
+### Choosing the thread
+
+Without an `elk` option, `thread` sets where ELK runs the layout:
+
+- `'auto'` (default) - in the package's Web Worker where one can be used, on the main thread otherwise (see "Web Worker" below).
+- `'worker'` - in the Web Worker only. Where none can be used (e.g. Node/SSR, the UMD build, or a worker that fails to load), `layout()` rejects instead of blocking the page.
+- `'main'` - on the main thread, without starting a worker - e.g. for tests or debugging. The page is blocked while ELK runs.
+
+```ts
+// Never block the page - e.g. for a graph large enough to take seconds to lay out.
+await layout({ graph }, { thread: 'worker' });
+```
+
 ### Aborting a layout
 
 `layout()` is asynchronous, so the graph may change while ELK is still computing - pass an `AbortSignal` to drop a layout that is no longer wanted (or takes too long). An aborted `layout()` rejects with the signal's reason (an `AbortError` `DOMException` by default) and applies nothing to the graph.
@@ -148,7 +163,7 @@ ELK can't stop a layout in progress, so a layout the default Web Worker is busy 
 - **Node labels are not supported** - ELK's node-label placement assumes labels are layout participants, whereas JointJS labels are attrs inside the shape. Link labels are supported.
 - **Ports keep their JointJS-computed position by default** - every element with ports is exported with `elk.portConstraints: 'FIXED_POS'`, so ELK keeps each port where the element's port groups place it and edges route to/from that exact spot. Opt into ELK repositioning/reordering them by overriding it (e.g. `'FIXED_SIDE'`/`'FREE'`) in `exportElement` - setting it in `elkLayoutOptions` has no effect, since the per-node value takes precedence.
 - **Asynchronous** - unlike `@joint/layout-directed-graph`, `layout()` returns a `Promise`, since `elkjs` computes layouts asynchronously (by default inside a Web Worker).
-- **Web Worker** - without an `elk` option, `layout()` runs ELK in a Web Worker the package starts on first use and shares between calls. It is started with `new Worker(new URL('./elk.worker.mjs', import.meta.url), { type: 'module' })`, which webpack 5, Vite and Parcel bundle as a worker file of its own with no extra setup. The main-thread copy of ELK (`elkjs/lib/elk.bundled.js`) is imported dynamically, so it is split into a chunk of its own, only loaded if a layout ever runs on the main thread. ELK runs on the main thread instead where no worker can be used: no `Worker` (e.g. Node/SSR), the UMD build (a script tag has no way to locate a worker file), or a worker that can't be started or fails to load (e.g. a bundler that doesn't emit worker files, or a CSP `worker-src` that blocks it) - a layout in progress when that happens is retried on the main thread. A worker that crashes once loaded (e.g. out of memory) is different: the layout it was busy with is rejected rather than retried on the main thread (where the same crash would take the page down), and a new worker takes over the layouts still waiting. To run ELK in a worker of your own instead (e.g. with the UMD build), pass `elk: new ELK({ workerUrl })` (`elkjs/lib/elk-api.js`).
+- **Web Worker** - without an `elk` option, `layout()` runs ELK in a Web Worker the package starts on first use and shares between calls. It is started with `new Worker(new URL('./elk.worker.mjs', import.meta.url), { type: 'module' })`, which webpack 5, Vite and Parcel bundle as a worker file of its own with no extra setup. The main-thread copy of ELK (`elkjs/lib/elk.bundled.js`) is imported dynamically, so it is split into a chunk of its own, only loaded if a layout ever runs on the main thread. With `thread: 'auto'`, ELK runs on the main thread instead where no worker can be used: no `Worker` (e.g. Node/SSR), the UMD build (a script tag has no way to locate a worker file), or a worker that can't be started or fails to load (e.g. a bundler that doesn't emit worker files, or a CSP `worker-src` that blocks it) - a layout in progress when that happens is retried on the main thread (or rejected, with `thread: 'worker'`). A worker that crashes once loaded (e.g. out of memory) is different: the layout it was busy with is rejected rather than retried on the main thread (where the same crash would take the page down), and a new worker takes over the layouts still waiting. To run ELK in a worker of your own instead (e.g. with the UMD build), pass `elk: new ELK({ workerUrl })` (`elkjs/lib/elk-api.js`).
 - **Worker troubleshooting** - a worker that can't be started or fails to load is reported once with a `console.warn` (layouts still work, but block the page while ELK runs). Common causes:
   - **Vite dev server** - Vite pre-bundles dependencies into `node_modules/.vite/deps`, where the worker file isn't found (production builds are not affected). Exclude the package from pre-bundling: `optimizeDeps: { exclude: ['@joint/layout-elk'] }` in `vite.config.js`.
   - **An absolute `publicPath`** (webpack `output.publicPath: '/dist/'`) - the worker file is requested from that path, so it is not found once the app is served from anywhere else. Prefer `'auto'` (webpack's default).

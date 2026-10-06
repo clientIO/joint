@@ -821,6 +821,24 @@ QUnit.module('layout()', () => {
             assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
         });
 
+        QUnit.test('should run on the main thread given `thread: main`', async(assert) => {
+
+            const { graph, el1, el2 } = createGraph();
+
+            await joint.layout.ELK.layout({ graph }, { thread: 'main' });
+
+            assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        });
+
+        QUnit.test('should reject given `thread: worker` where no worker can be used', async(assert) => {
+
+            // No worker in the unit test bundle, unless a test hands it one.
+            const { graph, el1, el2 } = createGraph();
+
+            await assert.rejects(joint.layout.ELK.layout({ graph }, { thread: 'worker' }), /no Web Worker can be used here/);
+            assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        });
+
         QUnit.test('should reject when aborted during the layout of a custom `elk` instance', async(assert) => {
 
             const { graph, el1, el2 } = createGraph();
@@ -1157,6 +1175,30 @@ QUnit.module('the default ELK instance', (hooks) => {
         assert.ok(joint.g.intersection.exists(aborted.el1.getBBox(), aborted.el2.getBBox()));
     });
 
+    QUnit.test('should not start a worker given `thread: main`', async(assert) => {
+
+        const { graph, el1, el2 } = createGraph();
+        const workerCount = startedWorkers.length;
+        const messageCount = workerMessageCount;
+
+        await joint.layout.ELK.layout({ graph }, { thread: 'main' });
+
+        assert.equal(startedWorkers.length, workerCount);
+        assert.equal(workerMessageCount, messageCount);
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+    });
+
+    QUnit.test('should run in the worker given `thread: worker`', async(assert) => {
+
+        const { graph, el1, el2 } = createGraph();
+        const messageCount = workerMessageCount;
+
+        await joint.layout.ELK.layout({ graph }, { thread: 'worker' });
+
+        assert.ok(workerMessageCount > messageCount);
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+    });
+
     QUnit.test('should reject a layout the worker crashes during - a new worker takes over the layouts still waiting', async(assert) => {
 
         const crashed = createGraph();
@@ -1195,13 +1237,21 @@ QUnit.module('the default ELK instance', (hooks) => {
         await assert.rejects(crashedResult);
 
         const { graph, el1, el2 } = createGraph();
-        // Posted to the worker still loading - ELK itself would never settle it.
+        const workerOnly = createGraph();
+        // Posted to the worker still loading - ELK itself would never settle them.
+        // Not retried on the main thread - rejected (handled right away: before the layout below).
+        const workerOnlyRejected = assert.rejects(
+            joint.layout.ELK.layout({ graph: workerOnly.graph }, { thread: 'worker' }),
+            /the ELK Web Worker failed to load, and `thread: 'worker'` rules out/
+        );
         try {
             await joint.layout.ELK.layout({ graph });
         } finally {
             console.warn = warn;
         }
         assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        await workerOnlyRejected;
+        assert.ok(joint.g.intersection.exists(workerOnly.el1.getBBox(), workerOnly.el2.getBBox()));
         // Reported - layouts still work, but now block the page.
         assert.equal(warnings.length, 1);
         assert.ok(/the ELK Web Worker failed to load - running ELK on the main thread instead/.test(warnings[0]));
@@ -1213,5 +1263,6 @@ QUnit.module('the default ELK instance', (hooks) => {
         await joint.layout.ELK.layout({ graph: nextGraph });
         assert.equal(startedWorkers.length, workerCount);
         assert.notOk(joint.g.intersection.exists(nextEl1.getBBox(), nextEl2.getBBox()));
+        await assert.rejects(joint.layout.ELK.layout(createGraph(), { thread: 'worker' }), /the ELK Web Worker failed to load/);
     });
 });
