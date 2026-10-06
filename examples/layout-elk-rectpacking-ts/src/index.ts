@@ -1,5 +1,5 @@
 import { dia, g, shapes, setTheme, util } from '@joint/core';
-import { layout } from '@joint/layout-elk';
+import { createWorkerElk, layout } from '@joint/layout-elk';
 import { graphJSON, createFileJSON, type FileKind } from './example';
 import { Folder, FileTile, FOLDER_PADDING } from './shapes';
 import './styles.scss';
@@ -27,6 +27,10 @@ const FILE_EXTENSIONS: Record<FileKind, string> = {
     music: 'mp3',
     archive: 'zip'
 };
+
+// ELK runs in a Web Worker, so a layout doesn't block the page - the worker is started on
+// the first layout, then shared by every later one.
+const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
 
 const init = () => {
 
@@ -127,6 +131,7 @@ const init = () => {
             pending = false;
             try {
                 const { bbox } = await layout({ graph }, {
+                    elk,
                     elkLayoutOptions: getRootOptions(),
                     exportElement,
                     setElementAttributes
