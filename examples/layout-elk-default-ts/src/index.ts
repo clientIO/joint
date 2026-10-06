@@ -50,7 +50,7 @@ const init = () => {
     // defaults alone.
     layout({ graph }, {
         elkLayoutOptions: {
-            'elk.algorithm': 'layered',
+            // `'elk.algorithm': 'layered'` is the package's default - not repeated here.
             'elk.direction': 'RIGHT',
             'elk.edgeRouting': 'ORTHOGONAL',
             'elk.spacing.nodeNode': '30',

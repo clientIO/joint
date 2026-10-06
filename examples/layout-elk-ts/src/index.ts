@@ -95,6 +95,7 @@ const init = () => {
         // Scroll into a busy area of the example
         window.scroll(650, 560);
     }).catch((error) => {
+        paper.unfreeze();
         console.error('ELK layout error:', error.message);
     });
 };

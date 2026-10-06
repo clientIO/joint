@@ -3,7 +3,6 @@ import {
     ElkLayoutOptions,
     ExportElementCallback,
     ExportPortCallback,
-    ExportLinkLabelCallback,
     SetPortAttributesCallback,
     layout
 } from '@joint/layout-elk';
@@ -158,12 +157,15 @@ const init = () => {
         // ignore the model order entirely. This makes it absolute instead, so the
         // reorder feature's `order` (via `z`) always actually has a visible effect.
         'elk.layered.crossingMinimization.forceNodeModelOrder': 'true',
+        // Layers follow the nodes' current positions (passed to ELK in `exportElement`
+        // below), so a re-layout after an edit keeps every existing step in the layer it
+        // is already in, instead of re-ranking the whole flowchart from scratch.
         'elk.layered.layering.strategy': 'INTERACTIVE'
     };
 
-    // `FIXED_SIDE` (not the default `FREE`) is what lets ELK reorder a node's ports
-    // along their side to reduce crossings, instead of only routing edges to
-    // wherever a port happens to already be.
+    // `FIXED_SIDE` (not the package's default `FIXED_POS`) is what lets ELK reorder a
+    // node's ports along their side to reduce crossings, instead of only routing edges
+    // to wherever a port happens to already be.
     const exportElement: ExportElementCallback = ({ elkNode, element }) => {
         elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
         const position = element.position();
@@ -173,25 +175,10 @@ const init = () => {
 
     // Every 'in' port sits on the node's top, every 'out' port on its bottom -
     // matching the top-to-bottom flow and `FlowchartNode`'s own port groups.
-    // `elk.port.index` gives crossing minimization (which, under `FIXED_SIDE`,
-    // still uses it as its initial/tie-break order rather than requiring it
-    // outright) an explicit left-to-right order to start from, rather than
-    // leaving a brand new, still-unconnected port (added via the "+" buttons)
-    // to whatever an edgeless port happens to fall back to. ELK's own
-    // documented convention for that index is clockwise starting at the
-    // top-left, which makes the *south* side's index count right-to-left, the
-    // opposite of north's left-to-right - so it has to be reversed for 'out'
-    // ports specifically, or a newly-added one (last in `getGroupPorts()`,
-    // meant to land on the *right*, matching a new 'in' port) would instead
-    // end up leftmost.
+    // `FIXED_SIDE` keeps each port on that side, while still letting ELK order
+    // them along it.
     const exportPort: ExportPortCallback = ({ portId, element, elkPort }) => {
         elkPort.layoutOptions['elk.port.side'] = (element.getPort(portId).group === 'in') ? 'NORTH' : 'SOUTH';
-    };
-
-    // Every branch condition ("Valid"/"Invalid", ...) sits directly on its edge,
-    // rather than floating beside it.
-    const exportLinkLabel: ExportLinkLabelCallback = ({ elkEdgeLabel }) => {
-        elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = 'true';
     };
 
     // ELK (and the built-in 'top'/'bottom' port position functions) place a port
@@ -211,21 +198,31 @@ const init = () => {
         element.portProp(portId, attributes);
     };
 
-    const runLayout = (): Promise<void> => {
+    // Every edit (a new step, port or connection, a reorder) runs a new layout - one
+    // made while an earlier layout is still running supersedes it: the earlier one is
+    // aborted, so only the latest layout (which already includes every edit) is applied.
+    let layoutController: AbortController | null = null;
+    const runLayout = async(): Promise<void> => {
+        layoutController?.abort();
+        const controller = new AbortController();
+        layoutController = controller;
         paper.freeze();
-        return layout({ graph }, {
-            exportElement,
-            exportPort,
-            exportLinkLabel,
-            setPortAttributes,
-            elkLayoutOptions
-        }).then(() => {
-            paper.unfreeze();
-            zoom(paper, 1);
-        }).catch((error) => {
-            paper.unfreeze();
-            console.error('ELK layout error:', error.message);
-        });
+        try {
+            await layout({ graph }, {
+                exportElement,
+                exportPort,
+                setPortAttributes,
+                elkLayoutOptions,
+                signal: controller.signal
+            });
+        } catch (error) {
+            // Superseded - the layout that aborted it unfreezes the paper once it's done.
+            if (controller.signal.aborted) return;
+            console.error('ELK layout error:', (error as Error).message);
+        }
+        paper.unfreeze();
+        // Refit the paper to the new layout, keeping the current zoom level.
+        zoom(paper, paper.scale().sx);
     };
 
     runLayout();
@@ -348,9 +345,8 @@ const init = () => {
         // Always prevent JointJS's own native move, reorderable or not - an
         // element with no siblings (e.g. `Start`/`End`) would otherwise still
         // be freely draggable around the canvas by default, just with no
-        // preview and no effect on drop (`runLayout()` snaps it right back).
-        // Blocking the native move outright means it's simply not possible to
-        // move it around in the first place.
+        // preview and no effect on drop. Blocking the native move outright
+        // means it's simply not possible to move it around in the first place.
         elementView.preventDefaultInteraction(evt);
 
         const y = element.position().y;
@@ -375,16 +371,18 @@ const init = () => {
     });
 
     paper.on('element:pointerup', (elementView: dia.ElementView, _evt: dia.Event, x: number) => {
-        if (elementView.model === draggedElement && draggedSiblings) {
-            reorderAmongSiblings(elementView.model, draggedSiblings, x);
-        }
+        // Only a drop that actually changes the order needs a new layout - not a plain
+        // click, nor a drop back where the element already was.
+        const isReordered = (elementView.model === draggedElement && draggedSiblings)
+            ? reorderAmongSiblings(elementView.model, draggedSiblings, x)
+            : false;
         clearPreview();
 
         draggedElement = null;
         draggedSiblings = null;
         draggedBBox = null;
 
-        runLayout();
+        if (isReordered) runLayout();
     });
 };
 
@@ -398,12 +396,19 @@ const init = () => {
 // that's supposed to be purely local to this layer. `z` (hence
 // `graph.getElements()`'s own order, hence `exportGraph`, hence
 // `considerModelOrder.strategy`) follows automatically, via the
-// `change:order` listener registered in `init()`.
-function reorderAmongSiblings(element: dia.Element, siblings: dia.Element[], dropX: number): void {
+// `change:order` listener registered in `init()`. Returns whether any element's
+// `order` changed.
+function reorderAmongSiblings(element: dia.Element, siblings: dia.Element[], dropX: number): boolean {
     const group = [element, ...siblings];
     const orderValues: number[] = group.map((el) => el.get('order')).sort((a, b) => a - b);
     const sorted = util.sortBy(group, (el) => (el === element) ? dropX : el.getBBox().center().x);
-    sorted.forEach((el, i) => el.set('order', orderValues[i]));
+    let isChanged = false;
+    sorted.forEach((el, i) => {
+        if (el.get('order') === orderValues[i]) return;
+        el.set('order', orderValues[i]);
+        isChanged = true;
+    });
+    return isChanged;
 }
 
 function zoom(paper: dia.Paper, zoomLevel: number): void {
