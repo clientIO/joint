@@ -4,6 +4,14 @@ import { abortable, getAbortReason, throwIfAborted } from './abort.mjs';
 
 import type { ELK, ElkNode } from 'elkjs';
 
+/**
+ * Where the default ELK instance runs a layout:
+ * - `'auto'` - in a Web Worker where one can be used, on the main thread otherwise.
+ * - `'worker'` - in a Web Worker only - the layout is rejected where none can be used.
+ * - `'main'` - on the main thread (no worker is started).
+ */
+export type LayoutThread = 'auto' | 'worker' | 'main';
+
 // The algorithms `elkjs/lib/elk-api.js` registers with a worker by default.
 const ALGORITHMS = ['layered', 'stress', 'mrtree', 'radial', 'force', 'disco', 'sporeOverlap', 'sporeCompaction', 'rectpacking'];
 
@@ -13,6 +21,8 @@ const REGISTER_ID = 0;
 interface LayoutJob {
     id: number;
     graph: ElkNode;
+    // Whether the job may be retried on the main thread if the worker fails to load.
+    canRunOnMainThread: boolean;
     resolve: (result: ElkNode) => void;
     reject: (reason: unknown) => void;
 }
@@ -46,26 +56,40 @@ function runOnMainThread(job: LayoutJob): void {
     layoutOnMainThread(job.graph).then(job.resolve, job.reject);
 }
 
+// Why the default worker can't be used - `undefined` while it can, or where no worker is
+// expected in the first place (no `Worker`, e.g. Node/SSR, or the UMD build).
+let workerFailureReason: string | undefined;
 let hasWarned = false;
 
 // Running ELK on the main thread where a worker was expected is easy to miss (layouts
 // still work, they only block the page) - so it is reported once.
-function warnMainThreadFallback(reason: string): void {
-    if (hasWarned) return;
+function warnMainThreadFallback(): void {
+    if (hasWarned || !workerFailureReason) return;
     hasWarned = true;
-    console.warn(`@joint/layout-elk: ${reason} - running ELK on the main thread instead. See "Web Worker" in the README of @joint/layout-elk.`);
+    console.warn(`@joint/layout-elk: ${workerFailureReason} - running ELK on the main thread instead. See "Web Worker" in the README of @joint/layout-elk.`);
+}
+
+function fallBackToMainThread(job: LayoutJob): void {
+    warnMainThreadFallback();
+    runOnMainThread(job);
+}
+
+// Rejects a layout for which `thread: 'worker'` rules out the main thread.
+function createNoWorkerError(): Error {
+    const reason = workerFailureReason || 'no Web Worker can be used here (e.g. Node/SSR, or the UMD build)';
+    return new Error(`@joint/layout-elk: ${reason}, and \`thread: 'worker'\` rules out running ELK on the main thread.`);
 }
 
 function startWorker(): Worker | undefined {
-    // E.g. Node/SSR - expected, not reported.
+    // E.g. Node/SSR.
     if (typeof Worker === 'undefined') return undefined;
     try {
-        // `undefined` in the UMD build - expected, not reported.
+        // `undefined` in the UMD build.
         return createElkWorker();
     } catch (error) {
         // E.g. a worker script the page's CSP (`worker-src`) doesn't allow, or no
         // `import.meta.url` to resolve it against.
-        warnMainThreadFallback(`the ELK Web Worker could not be started (${error})`);
+        workerFailureReason = `the ELK Web Worker could not be started (${error})`;
         return undefined;
     }
 }
@@ -120,7 +144,7 @@ class ElkWorkerClient {
         return true;
     }
 
-    layout(graph: ElkNode, signal?: AbortSignal): Promise<ElkNode> {
+    layout(graph: ElkNode, signal: AbortSignal | undefined, canRunOnMainThread: boolean): Promise<ElkNode> {
         return new Promise<ElkNode>((resolve, reject) => {
             if (signal?.aborted) {
                 reject(getAbortReason(signal));
@@ -134,6 +158,7 @@ class ElkWorkerClient {
             const job: LayoutJob = {
                 id: this.nextId++,
                 graph,
+                canRunOnMainThread,
                 resolve: (result) => {
                     settle();
                     resolve(result);
@@ -204,8 +229,8 @@ class ElkWorkerClient {
     }
 
     /**
-     * The worker failed to load - every job not settled yet is retried on the main thread
-     * (see `getWorkerClient`).
+     * The worker failed to load - every job not settled yet is retried on the main thread,
+     * or rejected if it can't run there (see `getWorkerClient`).
      */
     private fail(): void {
         this.terminate();
@@ -231,9 +256,14 @@ function getWorkerClient(): ElkWorkerClient | undefined {
         hasWorkerFailed = true;
         workerClient = undefined;
         // E.g. a worker file the bundler didn't emit, or doesn't serve where it says it is.
-        warnMainThreadFallback('the ELK Web Worker failed to load');
-        // Retried on the main thread.
-        jobs.forEach(runOnMainThread);
+        workerFailureReason = 'the ELK Web Worker failed to load';
+        jobs.forEach((job) => {
+            if (job.canRunOnMainThread) {
+                fallBackToMainThread(job);
+            } else {
+                job.reject(createNoWorkerError());
+            }
+        });
     });
     // No worker yet is checked for again on the next layout - nothing is started meanwhile.
     if (!client.start()) return undefined;
@@ -242,17 +272,20 @@ function getWorkerClient(): ElkWorkerClient | undefined {
 }
 
 /**
- * Lays out `elkGraph` with the default ELK instance - in a Web Worker where one can be
- * started, on the main thread otherwise (e.g. no `Worker` in Node/SSR, or the UMD build).
- * A layout started while the worker fails to load is retried on the main thread - one the
- * worker crashes during is rejected.
+ * Lays out `elkGraph` with the default ELK instance - where `thread` says (see
+ * `LayoutThread`). With `'auto'`, a layout started while the worker fails to load is
+ * retried on the main thread - one the worker crashes during is rejected.
  *
  * Aborting `signal` rejects with its reason straight away. A layout the worker is busy
  * with is stopped by terminating the worker - one on the main thread can't be stopped,
  * its result is only ignored.
  */
-export function layoutWithDefaultElk(elkGraph: ElkNode, signal?: AbortSignal): Promise<ElkNode> {
-    const client = getWorkerClient();
-    if (client) return client.layout(elkGraph, signal);
+export function layoutWithDefaultElk(elkGraph: ElkNode, signal?: AbortSignal, thread: LayoutThread = 'auto'): Promise<ElkNode> {
+    if (thread !== 'main') {
+        const client = getWorkerClient();
+        if (client) return client.layout(elkGraph, signal, thread === 'auto');
+        if (thread === 'worker') return Promise.reject(createNoWorkerError());
+        warnMainThreadFallback();
+    }
     return abortable(layoutOnMainThread(elkGraph, signal), signal);
 }
