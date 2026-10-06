@@ -9,7 +9,7 @@ import {
   useCells,
   useGraph,
   useMeasureElement,
-  useOnElementsMeasured,
+  usePaper,
   type CellId,
   type CellRecord,
   type Computed,
@@ -18,12 +18,14 @@ import {
   type ElementPort,
   type PaperProps,
   selectElementSize,
+  selectMeasuredState,
   linkRoutingOrthogonal,
 } from '@joint/react';
 import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -290,16 +292,21 @@ function MinimapRenderElement() {
 function MiniMap() {
   const minimapId = useId();
 
-  useOnElementsMeasured(minimapId, ({ paper, graph }) => {
-    const contentArea = graph.getBBox();
-    if (!contentArea) return;
+  const { graph } = useGraph();
+  const { paper } = usePaper(minimapId);
+  const measuredState = useCells(selectMeasuredState);
+
+  // Keep the whole diagram in view each time the element sizes settle.
+  useLayoutEffect(() => {
+    const contentArea = measuredState > 0 && graph.getBBox();
+    if (!contentArea || !paper) return;
     paper.transformToFitContent({
       contentArea,
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
       padding: 20,
     });
-  });
+  }, [measuredState, paper, graph]);
 
   return (
     <div className="absolute bottom-6 right-6 z-10 h-[150px] w-[200px] overflow-hidden rounded-lg border border-[#2f4053] bg-[#121c26] shadow-md">

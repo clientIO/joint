@@ -104,8 +104,8 @@ export class PaperStore {
 
   /** Link changes pending flush, populated by clearView, flushed in afterRender. */
   private pendingLinkChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
-  /** The graph store's `render:done` listener, kept to unsubscribe an adopted paper. */
-  private readonly settleUnrenderedElements: () => void;
+  /** The measurement's `render:done` listener, kept to unsubscribe an adopted paper. */
+  private readonly settleUnrendered: () => void;
 
   constructor(options: PaperStoreOptions) {
     const {
@@ -180,10 +180,8 @@ export class PaperStore {
     // prop-update effect runs (or when the store is used without the hook).
     this.nativeCellVisibility = this.paper.options.cellVisibility;
 
-    // After each render pass the graph store learns which added elements no
-    // paper renders, so they do not hold `useOnElementsMeasured` open.
-    this.settleUnrenderedElements = graphStore.settleUnrenderedElements;
-    this.paper.on('render:done', this.settleUnrenderedElements);
+    this.settleUnrendered = graphStore.measurement.settleUnrendered;
+    this.paper.on('render:done', this.settleUnrendered);
 
     if (transform !== undefined) {
       this.paper.matrix(toSVGMatrix(transform));
@@ -273,7 +271,7 @@ export class PaperStore {
    * Should be called when the paper is being removed from the graph store.
    */
   public destroy = () => {
-    this.paper.off('render:done', this.settleUnrenderedElements);
+    this.paper.off('render:done', this.settleUnrendered);
     // An adopted paper is owned by its creator (e.g. `<Stencil>`), which
     // removes it itself — removing it here would kill a paper still in use,
     // breaking the next adoption (notably under React StrictMode remounts).

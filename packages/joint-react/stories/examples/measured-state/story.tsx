@@ -4,16 +4,16 @@ import Code from './code';
 import codeRaw from './code?raw';
 
 const meta = {
-  title: 'Examples/Element Controls',
+  title: 'Examples/Measured state',
   component: Code,
   tags: ['example'],
   parameters: {
     showcase: {
       description:
-        'Drag custom elementTools.Control handles to reshape SVG nodes, re-rendering each React shape from its updated element data.',
-      apiUrl: getAPILink('selectIsMeasured'),
+        'Watch selectIsMeasured flip once on load, selectMeasuredState change on every settled add, remove or re-measure, and selectElementsSizes change only when a size does. Moving nodes fires nothing.',
+      apiUrl: getAPILink('useOnCellsChange'),
       code: codeRaw,
-      canvasHeight: 640,
+      canvasHeight: 480,
     },
   },
 } satisfies Meta<typeof Code>;

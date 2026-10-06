@@ -2,10 +2,25 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import './index.css';
-import type { CellRecord, ElementRecord, LinkRecord, LinkLabel, TransformElementLayoutParams } from '@joint/react';
-import { GraphProvider, Paper, useMarkup, useMeasureElement, useOnElementsMeasured, linkRoutingOrthogonal } from '@joint/react';
+import type {
+  CellRecord,
+  ElementRecord,
+  LinkRecord,
+  LinkLabel,
+  TransformElementLayoutParams,
+} from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useCells,
+  useMarkup,
+  useMeasureElement,
+  usePaper,
+  selectIsMeasured,
+  linkRoutingOrthogonal,
+} from '@joint/react';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useLayoutEffect, useRef, useState } from 'react';
 
 const unit = 4;
 const bevel = 2 * unit;
@@ -28,7 +43,12 @@ type ElementData = {
 // top-left coincides with center, and `autoSizeOrigin="center"` preserves
 // that center through the first DOM measurement.
 const flowchartElements: Array<ElementRecord<ElementData>> = [
-  { id: 'start', type: 'element', data: { label: 'Start', type: 'start' }, position: { x: 60, y: 40 } },
+  {
+    id: 'start',
+    type: 'element',
+    data: { label: 'Start', type: 'start' },
+    position: { x: 60, y: 40 },
+  },
   {
     id: 'addToCart',
     type: 'element',
@@ -251,7 +271,10 @@ const flowchartLinks: LinkRecord[] = [
   },
 ];
 
-const initialCells: ReadonlyArray<CellRecord<ElementData>> = [...flowchartElements, ...flowchartLinks];
+const initialCells: ReadonlyArray<CellRecord<ElementData>> = [
+  ...flowchartElements,
+  ...flowchartLinks,
+];
 
 interface PropsWithClick {
   readonly onMouseEnter?: () => void;
@@ -404,15 +427,19 @@ function RenderFlowchartElement(data: Readonly<ElementData>) {
 }
 
 function Main() {
-  useOnElementsMeasured(({ isInitial, paper }) => {
-    if (!isInitial) return;
-    paper.transformToFitContent({
+  const { paper: fitPaper } = usePaper();
+  const isMeasured = useCells(selectIsMeasured);
+
+  // Fit the content once the element sizes are known.
+  useLayoutEffect(() => {
+    if (!isMeasured || !fitPaper) return;
+    fitPaper.transformToFitContent({
       padding: 40,
       useModelGeometry: true,
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
     });
-  });
+  }, [isMeasured, fitPaper]);
 
   return (
     <Paper
