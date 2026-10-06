@@ -22,6 +22,16 @@ export function getComputedLabel(link, label = {}) {
     });
 }
 
+// Only a label's `position`, resolved exactly as in `getComputedLabel()` - for callers that need
+// nothing else (e.g. `LinkView`'s frequent label position updates), so the label's `markup`,
+// `attrs` and `size` aren't cloned or merged for nothing.
+export function getComputedLabelPosition(link, label = {}) {
+    const builtinDefaultLabel = link._builtins.defaultLabel;
+    const defaultLabel = link._getDefaultLabel();
+
+    return mergeLabelPosition(label.position, defaultLabel.position, builtinDefaultLabel.position);
+}
+
 // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
 // keep `undefined` or `null` because `{}` means something else
 function mergeLabelAttrs(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {

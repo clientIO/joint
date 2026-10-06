@@ -1,7 +1,7 @@
 import { Cell } from './Cell.mjs';
-import { clone, isPlainObject, isFunction, isString, isNumber, assign } from '../util/index.mjs';
+import { clone, isPlainObject, isFunction, isString, isNumber } from '../util/index.mjs';
 import { Point, Polyline } from '../g/index.mjs';
-import { getComputedLabel } from './link-labels.mjs';
+import { getComputedLabel, getComputedLabelPosition } from './link-labels.mjs';
 
 // Link base model.
 // --------------------------
@@ -237,15 +237,39 @@ export const Link = Cell.extend({
      */
     getComputedLabel: function(idx) {
 
-        const labels = this.labels();
+        const label = this._getStoredLabel(idx);
+        return (label === undefined) ? null : getComputedLabel(this, label);
+    },
+
+    /**
+     * Returns the position of the label at the given index, resolved against the link's
+     * `defaultLabel` and the built-in default label - the same `position` that
+     * `getComputedLabel()` returns, without resolving the rest of the label (`markup`,
+     * `attrs`, `size`). The stored label is not modified.
+     *
+     * @param {number} [idx=0] - The index of the label. Negative values count from the end.
+     * @returns {dia.Link.ComputedLabelPosition | null} A new object with the resolved position,
+     * or `null` if there is no label at `idx` (or its own `position` is `null`).
+     */
+    getLabelPosition: function(idx) {
+
+        const label = this._getStoredLabel(idx);
+        return (label === undefined) ? null : getComputedLabelPosition(this, label);
+    },
+
+    // The label at `idx` exactly as stored (`undefined` if there is none) - negative values
+    // count from the end. Reads the stored array directly, without `labels()`'s copy.
+    _getStoredLabel: function(idx) {
+
+        const labels = this.get('labels');
+        if (!Array.isArray(labels)) return undefined;
 
         let index = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
         if (index < 0) {
             index = labels.length + index;
         }
 
-        const label = labels[index];
-        return (label === undefined) ? null : getComputedLabel(this, label);
+        return labels[index];
     },
 
     labels: function(labels, opt) {
@@ -593,11 +617,12 @@ export const Link = Cell.extend({
     // `@joint/layout-elk` `elkLayoutOptions`) - not just the known `markup`/`attrs`/
     // `size`/`position` - so `getComputedLabel` (`link-labels.mjs`) can pass it through too.
     _getDefaultLabel: function() {
+        const defaultLabel = this.get('defaultLabel') || this.defaultLabel;
+        const label = { ...defaultLabel };
 
-        const defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
-
-        const label = assign({}, defaultLabel);
-        label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
+        if (!label.markup) {
+            label.markup = this.get('labelMarkup') || this.labelMarkup;
+        }
 
         return label;
     }

@@ -795,15 +795,17 @@ export const LinkView = CellView.extend({
         // This method assumes all the label nodes are stored in the `this._labelCache` hash table
         // by their indices in the `this.get('labels')` array. This is done in the `renderLabels()` method.
 
-        // Resolved (see `Link#getComputedLabels`) - `position` is already merged with
-        // `defaultLabel`/the built-in default.
-        var labels = this.model.getComputedLabels();
-        if (!labels.length) return this;
+        // Only each label's resolved `position` (see `Link#getLabelPosition`) - this runs on
+        // every endpoint/route/connector/label position change, so the rest of the label
+        // (`markup`, `attrs`, `size`) isn't resolved here.
+        var model = this.model;
+        var labelsCount = model.labels().length;
+        if (!labelsCount) return this;
 
-        for (var idx = 0, n = labels.length; idx < n; idx++) {
+        for (var idx = 0; idx < labelsCount; idx++) {
             var labelNode = this._labelCache[idx];
             if (!labelNode) continue;
-            var position = labels[idx].position;
+            var position = model.getLabelPosition(idx);
             var transformationMatrix = this._getLabelTransformationMatrix(position);
             labelNode.setAttribute('transform', V.matrixToTransformString(transformationMatrix));
             this._cleanLabelMatrices(idx);
@@ -1469,7 +1471,7 @@ export const LinkView = CellView.extend({
             var labelNode = evt.currentTarget;
             var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
-            var position = this.model.getComputedLabel(labelIdx).position;
+            var position = this.model.getLabelPosition(labelIdx);
 
             var coords = this.getLabelCoordinates(position);
             var dx = coords.x - x; // how much needs to be added to cursor x to get to label x

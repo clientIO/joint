@@ -2032,6 +2032,63 @@ QUnit.module('links', function(hooks) {
             });
         });
 
+        QUnit.module('getLabelPosition', function() {
+
+            QUnit.test('the same `position` as `getComputedLabel()`', function(assert) {
+                var link = new joint.shapes.standard.Link({
+                    labels: [
+                        {},
+                        { position: null },
+                        { position: 0.3 },
+                        { position: { offset: { x: 5, y: 5 }}}
+                    ]
+                });
+
+                function assertSameAsComputed(message) {
+                    for (var i = 0; i < 4; i++) {
+                        assert.deepEqual(link.getLabelPosition(i), link.getComputedLabel(i).position, message + ' - label ' + i);
+                    }
+                }
+
+                assertSameAsComputed('built-in default');
+                assert.deepEqual(link.getLabelPosition(0), { distance: 0.5, offset: 0, angle: 0 });
+                // `null` is kept - only `undefined` falls back to the defaults.
+                assert.strictEqual(link.getLabelPosition(1), null);
+
+                link.set('defaultLabel', { position: { distance: 0.2, angle: 45, args: { keepGradient: true }}});
+                assertSameAsComputed('`defaultLabel` attribute');
+                assert.deepEqual(link.getLabelPosition(0), { distance: 0.2, offset: 0, angle: 45, args: { keepGradient: true }});
+            });
+
+            QUnit.test('negative and missing indices', function(assert) {
+                var link = new joint.shapes.standard.Link({ labels: [{ position: 0.1 }, { position: 0.9 }] });
+
+                assert.equal(link.getLabelPosition().distance, 0.1);
+                assert.equal(link.getLabelPosition(-1).distance, 0.9);
+                assert.strictEqual(link.getLabelPosition(2), null);
+                assert.strictEqual(link.getLabelPosition(-3), null);
+                assert.strictEqual(new joint.shapes.standard.Link().getLabelPosition(0), null);
+            });
+
+            QUnit.test('returns a new object - the stored labels and defaults are unaffected', function(assert) {
+                var builtinDefaultPosition = joint.util.cloneDeep(joint.dia.Link.prototype._builtins.defaultLabel.position);
+                var defaultPosition = { distance: 0.2 };
+                var ownPosition = { offset: 5 };
+                var link = new joint.shapes.standard.Link({
+                    defaultLabel: { position: defaultPosition },
+                    labels: [{ position: ownPosition }]
+                });
+
+                var position = link.getLabelPosition(0);
+                position.distance = 100;
+                position.offset = 100;
+
+                assert.deepEqual(defaultPosition, { distance: 0.2 });
+                assert.deepEqual(ownPosition, { offset: 5 });
+                assert.deepEqual(joint.dia.Link.prototype._builtins.defaultLabel.position, builtinDefaultPosition);
+            });
+        });
+
         QUnit.module('insertLabel', function() {
 
             QUnit.test('sanity', function(assert) {
