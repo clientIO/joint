@@ -8,13 +8,15 @@ module.exports = {
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'dist'),
-        publicPath: '/dist/',
+        // Resolved from the bundle's own URL - the ELK worker and main-thread ELK are
+        // chunks of their own, loaded from next to it wherever the demo is served.
+        publicPath: 'auto',
     },
     mode: 'development',
     module: {
         rules: [
             {
-                test: /\.m?js/,
+                test: /\.m?js$/,
                 resolve: {
                     fullySpecified: false,
                 },
@@ -33,6 +35,9 @@ module.exports = {
     devServer: {
         static: {
             directory: __dirname,
+        },
+        devMiddleware: {
+            publicPath: '/dist/',
         },
         compress: true,
     },

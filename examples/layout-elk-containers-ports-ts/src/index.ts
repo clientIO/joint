@@ -3,9 +3,8 @@ import {
     ElkLayoutOptions,
     ExportElementCallback,
     ExportPortCallback,
-    layout,
-    ExportLinkLabelCallback,
-    ExportPortLabelCallback
+    ExportPortLabelCallback,
+    layout
 } from '@joint/layout-elk';
 import { graphJSON } from './example';
 import { Container, HubService, InteractionLink, Service } from './shapes';
@@ -84,8 +83,8 @@ const init = () => {
         /**
          * Desired width-to-height ratio of the drawing - ELK's wrapping
          * strategy (below) targets this to decide how many rows to wrap
-         * onto. Tuned, together with the spacing above, to keep this
-         * particular graph within `ELK_MAX_WIDTH` (see the check below).
+         * onto. Tuned, together with the spacing above, for this
+         * particular graph.
          */
         'elk.aspectRatio': '1.2',
         /**
@@ -93,10 +92,11 @@ const init = () => {
          * "wrap" edges, instead of growing a single row indefinitely.
          * 'NONE' | 'SINGLE_EDGE' | 'MULTI_EDGE'
          */
-        'elk.layered.wrapping.strategy': 'MULTI_EDGE',
-        'elk.layered.priority.direction': '40'
-    }
+        'elk.layered.wrapping.strategy': 'MULTI_EDGE'
+    };
 
+    // `FIXED_SIDE` (not the package's default `FIXED_POS`) lets ELK move each port
+    // along the side `exportPort` puts it on, to reduce crossings.
     const exportElement: ExportElementCallback = ({ element, elkNode }) => {
         if (element.hasPorts()) {
             elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
@@ -125,9 +125,8 @@ const init = () => {
         elkPortLabel.height = height;
     };
 
-    // Wraps every `layout()` call the example makes - freezing the paper for its
-    // (async) duration, so nothing renders mid-layout, and reporting any error the
-    // same way regardless of which caller triggered the layout.
+    // Freezes the paper for the (async) duration of the layout, so nothing renders
+    // mid-layout.
     const runLayout = (): Promise<void> => {
         paper.freeze();
         return layout({ graph }, {
@@ -145,7 +144,7 @@ const init = () => {
 
     // Initial layout of the fixed example data, fit to the paper's viewport.
     runLayout().then(() => {
-        zoom(paper, 1)
+        zoom(paper, 1);
     });
 };
 

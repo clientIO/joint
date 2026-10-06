@@ -123,9 +123,9 @@ const init = () => {
             return;
         }
         running = true;
-        try {
-            do {
-                pending = false;
+        do {
+            pending = false;
+            try {
                 const { bbox } = await layout({ graph }, {
                     elkLayoutOptions: getRootOptions(),
                     exportElement,
@@ -134,13 +134,13 @@ const init = () => {
                 contentArea = bbox;
                 paper.unfreeze();
                 fit();
-            } while (pending);
-        } catch (error) {
-            paper.unfreeze();
-            console.error('ELK layout error:', (error as Error).message);
-        } finally {
-            running = false;
-        }
+            } catch (error) {
+                // A failed layout doesn't drop a change made meanwhile - the loop goes on.
+                paper.unfreeze();
+                console.error('ELK layout error:', (error as Error).message);
+            }
+        } while (pending);
+        running = false;
     };
 
     controls.aspectRatio.addEventListener('input', () => {

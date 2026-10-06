@@ -1,4 +1,6 @@
-# JointJS ELK Demo
+# JointJS ELK Layout Demo
+
+Lays out a JointJS graph with [`@joint/layout-elk`](../../packages/joint-layout-elk) - the Eclipse Layout Kernel (ELK), running in a Web Worker.
 
 ## Setup
 
