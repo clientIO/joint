@@ -36,6 +36,7 @@ export interface ElkNodeDraft {
     /** `0` for a container: ELK sizes it to fit its content. */
     width: number;
     height: number;
+    /** `{ 'elk.portConstraints': 'FIXED_POS' }` for an element with ports, empty otherwise. */
     layoutOptions: NodeElkLayoutOptions;
     /**
      * Empty. JointJS elements carry no labels, so add them only if ELK should
@@ -275,7 +276,9 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
         id,
         width,
         height,
-        layoutOptions: {}
+        // Ports stay where JointJS already places them - without it, ELK is free to move
+        // them to another side or reorder them. `exportElement` may override it.
+        layoutOptions: element.hasPorts() ? { 'elk.portConstraints': 'FIXED_POS' } : {}
     };
 
     if (exportGraphOptions.exportElement?.({ element, elkNode }) === false)

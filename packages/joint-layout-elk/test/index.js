@@ -340,12 +340,24 @@ QUnit.module('layout()', () => {
             }
         });
 
-        graph.resetCells([el1]);
+        // An incoming edge to a port on the right - ELK would move the port to the left
+        // side if it were free to.
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'b' }, target: { id: 'a', port: 'out1' }});
 
-        await joint.layout.ELK.layout({ graph });
+        graph.resetCells([el1, el2, link]);
 
+        const portPosition = el1.getPortsPositions('out').out1;
+
+        const { elkGraph } = await joint.layout.ELK.layout({ graph });
+
+        assert.equal(elkGraph.children.find((node) => node.id === 'a').layoutOptions['elk.portConstraints'], 'FIXED_POS');
+        assert.notOk(elkGraph.children.find((node) => node.id === 'b').layoutOptions['elk.portConstraints']);
         // Untouched - still the original group config, not switched to 'absolute'.
         assert.equal(el1.prop(['ports', 'groups', 'out', 'position']), 'right');
+        // Still on the right side, where JointJS placed it.
+        const { x, y } = el1.getPortsPositions('out').out1;
+        assert.deepEqual({ x, y }, { x: portPosition.x, y: portPosition.y });
     });
 
     QUnit.test('should let ELK position ports when `exportElement` opts a node into `FIXED_SIDE`', async(assert) => {
