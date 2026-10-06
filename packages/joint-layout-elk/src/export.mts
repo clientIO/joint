@@ -1,4 +1,5 @@
 import { type dia } from '@joint/core';
+import { getLinkLabelId } from './labelIds.mjs';
 
 import type {
     ElkNode,
@@ -389,6 +390,7 @@ function buildEdge(link: dia.Link): void {
 
             result.push({
                 ...labelDraft,
+                id: getLinkLabelId(id, labelIndex),
                 text: ELK_LABEL_TEXT
             });
             return result;
