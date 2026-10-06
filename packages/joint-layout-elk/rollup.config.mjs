@@ -44,8 +44,7 @@ export default [
         input,
         external: [
             '@joint/core',
-            'elkjs/lib/elk.bundled.js',
-            'elkjs/lib/elk-api.js'
+            'elkjs/lib/elk.bundled.js'
         ],
         output: [
             {
@@ -55,8 +54,7 @@ export default [
                 extend: true,
                 globals: {
                     '@joint/core': 'joint',
-                    'elkjs/lib/elk.bundled.js': 'ELK',
-                    'elkjs/lib/elk-api.js': 'ELK'
+                    'elkjs/lib/elk.bundled.js': 'ELK'
                 },
                 plugins: [
                     banner(() => bannerText)
@@ -69,8 +67,7 @@ export default [
                 extend: true,
                 globals: {
                     '@joint/core': 'joint',
-                    'elkjs/lib/elk.bundled.js': 'ELK',
-                    'elkjs/lib/elk-api.js': 'ELK'
+                    'elkjs/lib/elk.bundled.js': 'ELK'
                 },
                 plugins: [
                     terser({ format: { ascii_only: true }}),
@@ -92,8 +89,7 @@ export default [
         input: ['./src/index.mts'],
         external: [
             '@joint/core',
-            'elkjs/lib/elk.bundled.js',
-            'elkjs/lib/elk-api.js'
+            'elkjs/lib/elk.bundled.js'
         ],
         output: [
             {
@@ -103,8 +99,7 @@ export default [
                 extend: true,
                 globals: {
                     '@joint/core': 'joint',
-                    'elkjs/lib/elk.bundled.js': 'ELK',
-                    'elkjs/lib/elk-api.js': 'ELK'
+                    'elkjs/lib/elk.bundled.js': 'ELK'
                 },
                 sourcemap: true
             }

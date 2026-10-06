@@ -746,6 +746,69 @@ QUnit.module('layout()', () => {
         assert.notOk(graph.hasActiveBatch());
     });
 
+    QUnit.module('given a `signal`', () => {
+
+        const isAbortError = (error) => error instanceof DOMException && error.name === 'AbortError';
+        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+        const createGraph = () => {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+            const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+            const link = new joint.shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }});
+            graph.resetCells([el1, el2, link]);
+            return { graph, el1, el2 };
+        };
+
+        QUnit.test('should reject without laying out anything when already aborted', async(assert) => {
+
+            const { graph, el1, el2 } = createGraph();
+            const exportElement = () => assert.ok(false, 'nothing is exported');
+
+            await assert.rejects(joint.layout.ELK.layout({ graph }, { signal: AbortSignal.abort(), exportElement }), isAbortError);
+
+            await wait(50);
+            assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        });
+
+        QUnit.test('should reject with the signal\'s reason, and apply nothing, when aborted during the layout', async(assert) => {
+
+            const { graph, el1, el2 } = createGraph();
+            const controller = new AbortController();
+            const reason = new Error('graph changed');
+
+            const result = joint.layout.ELK.layout({ graph }, { signal: controller.signal });
+            controller.abort(reason);
+
+            await assert.rejects(result, reason);
+            // ELK's own result (on the main thread, it can't be stopped) is ignored.
+            await wait(100);
+            assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        });
+
+        QUnit.test('should apply the layout when the signal is not aborted', async(assert) => {
+
+            const { graph, el1, el2 } = createGraph();
+
+            await joint.layout.ELK.layout({ graph }, { signal: new AbortController().signal });
+
+            assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        });
+
+        QUnit.test('should reject when aborted during the layout of a custom `elk` instance', async(assert) => {
+
+            const { graph, el1, el2 } = createGraph();
+            const controller = new AbortController();
+
+            const result = joint.layout.ELK.layout({ graph }, { elk: new window.ELK(), signal: controller.signal });
+            controller.abort();
+
+            await assert.rejects(result, isAbortError);
+            await wait(100);
+            assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        });
+    });
+
     QUnit.module('given `elements`/`links`', () => {
 
         const rect = (id, x = 500, y = 500) => new joint.shapes.standard.Rectangle({ id, size: { width: 50, height: 50 }, position: { x, y }});
@@ -1025,6 +1088,44 @@ QUnit.module('the default ELK instance', (hooks) => {
         await joint.layout.ELK.layout(createGraph());
         assert.equal(startedWorkers.length, 1);
         assert.ok(workerMessageCount > messageCount);
+    });
+
+    QUnit.test('should terminate the worker busy with an aborted layout - a new one takes over the layouts still waiting', async(assert) => {
+
+        const aborted = createGraph();
+        const waiting = createGraph();
+        const workerCount = startedWorkers.length;
+        const controller = new AbortController();
+
+        const abortedResult = joint.layout.ELK.layout({ graph: aborted.graph }, { signal: controller.signal });
+        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph });
+        controller.abort();
+
+        await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
+        await waitingResult;
+
+        assert.equal(startedWorkers.length, workerCount + 1);
+        assert.ok(joint.g.intersection.exists(aborted.el1.getBBox(), aborted.el2.getBBox()));
+        assert.notOk(joint.g.intersection.exists(waiting.el1.getBBox(), waiting.el2.getBBox()));
+    });
+
+    QUnit.test('should keep the worker when a layout still waiting its turn is aborted', async(assert) => {
+
+        const busy = createGraph();
+        const aborted = createGraph();
+        const workerCount = startedWorkers.length;
+        const controller = new AbortController();
+
+        const busyResult = joint.layout.ELK.layout({ graph: busy.graph });
+        const abortedResult = joint.layout.ELK.layout({ graph: aborted.graph }, { signal: controller.signal });
+        controller.abort();
+
+        await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
+        await busyResult;
+
+        assert.equal(startedWorkers.length, workerCount);
+        assert.notOk(joint.g.intersection.exists(busy.el1.getBBox(), busy.el2.getBBox()));
+        assert.ok(joint.g.intersection.exists(aborted.el1.getBBox(), aborted.el2.getBBox()));
     });
 
     QUnit.test('should retry a layout on the main thread when the worker fails - and stay there', async(assert) => {
