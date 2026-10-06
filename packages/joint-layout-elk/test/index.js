@@ -821,24 +821,6 @@ QUnit.module('layout()', () => {
             assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
         });
 
-        QUnit.test('should run on the main thread given `thread: main`', async(assert) => {
-
-            const { graph, el1, el2 } = createGraph();
-
-            await joint.layout.ELK.layout({ graph }, { thread: 'main' });
-
-            assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
-        });
-
-        QUnit.test('should reject given `thread: worker` where no worker can be used', async(assert) => {
-
-            // No worker in the unit test bundle, unless a test hands it one.
-            const { graph, el1, el2 } = createGraph();
-
-            await assert.rejects(joint.layout.ELK.layout({ graph }, { thread: 'worker' }), /no Web Worker can be used here/);
-            assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
-        });
-
         QUnit.test('should reject when aborted during the layout of a custom `elk` instance', async(assert) => {
 
             const { graph, el1, el2 } = createGraph();
@@ -1086,30 +1068,38 @@ QUnit.module('layout()', () => {
     });
 });
 
-// Last: the default ELK instance is shared by every `layout()` call without an `elk`
-// option - once its worker fails to load (the last test), it stays on the main thread.
-QUnit.module('the default ELK instance', (hooks) => {
+QUnit.module('createWorkerElk()', (hooks) => {
 
-    // Every worker the default instance has started (see `rollup.config.mjs`'s `testWorker`),
-    // and how many messages they've sent back.
-    const startedWorkers = [];
-    let workerMessageCount = 0;
-    // The script the next worker is started with - one that doesn't exist fails to load.
     const WORKER_URL = '/base/node_modules/elkjs/lib/elk-worker.min.js';
-    let workerUrl = WORKER_URL;
+    // A script that doesn't exist - e.g. one a bundler didn't emit - fails to load.
+    const MISSING_WORKER_URL = '/base/missing-elk-worker.js';
 
-    hooks.before(() => {
-        window.__createElkWorker = () => {
-            const worker = new Worker(workerUrl);
+    // Every worker started by `createWorker()` below, and how many messages they've sent back.
+    let startedWorkers;
+    let workerMessageCount;
+    // Instances to terminate after each test.
+    let elks;
+
+    hooks.beforeEach(() => {
+        startedWorkers = [];
+        workerMessageCount = 0;
+        elks = [];
+    });
+
+    hooks.afterEach(() => {
+        elks.forEach((elk) => elk.terminate());
+    });
+
+    const createElk = (getUrl = () => WORKER_URL) => {
+        const elk = joint.layout.ELK.createWorkerElk(() => {
+            const worker = new Worker(getUrl());
             worker.addEventListener('message', () => workerMessageCount++);
             startedWorkers.push(worker);
             return worker;
-        };
-    });
-
-    hooks.after(() => {
-        delete window.__createElkWorker;
-    });
+        });
+        elks.push(elk);
+        return elk;
+    };
 
     const createGraph = () => {
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
@@ -1120,149 +1110,135 @@ QUnit.module('the default ELK instance', (hooks) => {
         return { graph, el1, el2 };
     };
 
-    QUnit.test('should run in a Web Worker - one started on first use, then shared', async(assert) => {
+    const isLaidOut = ({ el1, el2 }) => !joint.g.intersection.exists(el1.getBBox(), el2.getBBox());
 
-        const { graph, el1, el2 } = createGraph();
+    QUnit.test('should lay out in a worker - started on the first layout, then shared', async(assert) => {
 
-        await joint.layout.ELK.layout({ graph });
+        const elk = createElk();
+        assert.equal(startedWorkers.length, 0);
+
+        const first = createGraph();
+        await joint.layout.ELK.layout({ graph: first.graph }, { elk });
 
         assert.equal(startedWorkers.length, 1);
-        // The layout came from the worker, not from a main-thread fallback.
+        // The layout came from the worker.
         assert.ok(workerMessageCount > 0);
-        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        assert.ok(isLaidOut(first));
 
         const messageCount = workerMessageCount;
-        await joint.layout.ELK.layout(createGraph());
+        const second = createGraph();
+        await joint.layout.ELK.layout({ graph: second.graph }, { elk });
         assert.equal(startedWorkers.length, 1);
         assert.ok(workerMessageCount > messageCount);
+        assert.ok(isLaidOut(second));
     });
 
     QUnit.test('should terminate the worker busy with an aborted layout - a new one takes over the layouts still waiting', async(assert) => {
 
+        const elk = createElk();
         const aborted = createGraph();
         const waiting = createGraph();
-        const workerCount = startedWorkers.length;
         const controller = new AbortController();
 
-        const abortedResult = joint.layout.ELK.layout({ graph: aborted.graph }, { signal: controller.signal });
-        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph });
+        const abortedResult = joint.layout.ELK.layout({ graph: aborted.graph }, { elk, signal: controller.signal });
+        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph }, { elk });
         controller.abort();
 
         await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
         await waitingResult;
 
-        assert.equal(startedWorkers.length, workerCount + 1);
-        assert.ok(joint.g.intersection.exists(aborted.el1.getBBox(), aborted.el2.getBBox()));
-        assert.notOk(joint.g.intersection.exists(waiting.el1.getBBox(), waiting.el2.getBBox()));
+        assert.equal(startedWorkers.length, 2);
+        assert.notOk(isLaidOut(aborted));
+        assert.ok(isLaidOut(waiting));
     });
 
     QUnit.test('should keep the worker when a layout still waiting its turn is aborted', async(assert) => {
 
+        const elk = createElk();
         const busy = createGraph();
         const aborted = createGraph();
-        const workerCount = startedWorkers.length;
         const controller = new AbortController();
 
-        const busyResult = joint.layout.ELK.layout({ graph: busy.graph });
-        const abortedResult = joint.layout.ELK.layout({ graph: aborted.graph }, { signal: controller.signal });
+        const busyResult = joint.layout.ELK.layout({ graph: busy.graph }, { elk });
+        const abortedResult = joint.layout.ELK.layout({ graph: aborted.graph }, { elk, signal: controller.signal });
         controller.abort();
 
         await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
         await busyResult;
 
-        assert.equal(startedWorkers.length, workerCount);
-        assert.notOk(joint.g.intersection.exists(busy.el1.getBBox(), busy.el2.getBBox()));
-        assert.ok(joint.g.intersection.exists(aborted.el1.getBBox(), aborted.el2.getBBox()));
-    });
-
-    QUnit.test('should not start a worker given `thread: main`', async(assert) => {
-
-        const { graph, el1, el2 } = createGraph();
-        const workerCount = startedWorkers.length;
-        const messageCount = workerMessageCount;
-
-        await joint.layout.ELK.layout({ graph }, { thread: 'main' });
-
-        assert.equal(startedWorkers.length, workerCount);
-        assert.equal(workerMessageCount, messageCount);
-        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
-    });
-
-    QUnit.test('should run in the worker given `thread: worker`', async(assert) => {
-
-        const { graph, el1, el2 } = createGraph();
-        const messageCount = workerMessageCount;
-
-        await joint.layout.ELK.layout({ graph }, { thread: 'worker' });
-
-        assert.ok(workerMessageCount > messageCount);
-        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        assert.equal(startedWorkers.length, 1);
+        assert.ok(isLaidOut(busy));
+        assert.notOk(isLaidOut(aborted));
     });
 
     QUnit.test('should reject a layout the worker crashes during - a new worker takes over the layouts still waiting', async(assert) => {
 
+        const elk = createElk();
         const crashed = createGraph();
         const waiting = createGraph();
-        const workerCount = startedWorkers.length;
 
-        const crashedResult = joint.layout.ELK.layout({ graph: crashed.graph });
-        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph });
-        // E.g. out of memory - not retried on the main thread.
-        startedWorkers[startedWorkers.length - 1].dispatchEvent(new ErrorEvent('error', { message: 'out of memory' }));
+        const crashedResult = joint.layout.ELK.layout({ graph: crashed.graph }, { elk });
+        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph }, { elk });
+        // Loaded by now - e.g. out of memory.
+        await new Promise((resolve) => startedWorkers[0].addEventListener('message', resolve, { once: true }));
+        startedWorkers[0].dispatchEvent(new ErrorEvent('error', { message: 'out of memory' }));
 
         await assert.rejects(crashedResult, /the ELK worker crashed during the layout \(out of memory\)/);
         await waitingResult;
 
-        assert.equal(startedWorkers.length, workerCount + 1);
-        assert.ok(joint.g.intersection.exists(crashed.el1.getBBox(), crashed.el2.getBBox()));
-        assert.notOk(joint.g.intersection.exists(waiting.el1.getBBox(), waiting.el2.getBBox()));
-
-        // The new worker lays out later layouts too.
-        const messageCount = workerMessageCount;
-        await joint.layout.ELK.layout(createGraph());
-        assert.equal(startedWorkers.length, workerCount + 1);
-        assert.ok(workerMessageCount > messageCount);
+        assert.equal(startedWorkers.length, 2);
+        assert.notOk(isLaidOut(crashed));
+        assert.ok(isLaidOut(waiting));
     });
 
-    QUnit.test('should retry a layout on the main thread when the worker fails to load - and stay there', async(assert) => {
+    QUnit.test('should reject every layout when the worker fails to load - the next one starts a new worker', async(assert) => {
 
-        // A crash restarts the worker - with a script that doesn't exist (e.g. one a bundler
-        // didn't emit), which fails to load.
-        workerUrl = '/base/missing-elk-worker.js';
-        const warnings = [];
-        const warn = console.warn;
-        console.warn = (message) => warnings.push(message);
-        const crashedResult = joint.layout.ELK.layout(createGraph());
-        startedWorkers[startedWorkers.length - 1].dispatchEvent(new ErrorEvent('error'));
-        await assert.rejects(crashedResult);
+        let url = MISSING_WORKER_URL;
+        const elk = createElk(() => url);
+        const first = createGraph();
+        const second = createGraph();
 
+        // Handled right away - both reject while the other is still pending.
+        const rejected = Promise.all([
+            assert.rejects(joint.layout.ELK.layout({ graph: first.graph }, { elk }), /the ELK worker failed to load/),
+            assert.rejects(joint.layout.ELK.layout({ graph: second.graph }, { elk }), /the ELK worker failed to load/)
+        ]);
+        await rejected;
+        assert.notOk(isLaidOut(first));
+        assert.notOk(isLaidOut(second));
+
+        // E.g. the script is served by now.
+        url = WORKER_URL;
+        const next = createGraph();
+        await joint.layout.ELK.layout({ graph: next.graph }, { elk });
+        assert.equal(startedWorkers.length, 2);
+        assert.ok(isLaidOut(next));
+    });
+
+    QUnit.test('should reject a layout when no worker can be started', async(assert) => {
+
+        const error = new Error('blocked by CSP');
+        const elk = joint.layout.ELK.createWorkerElk(() => { throw error; });
         const { graph, el1, el2 } = createGraph();
-        const workerOnly = createGraph();
-        // Posted to the worker still loading - ELK itself would never settle them.
-        // Not retried on the main thread - rejected (handled right away: before the layout below).
-        const workerOnlyRejected = assert.rejects(
-            joint.layout.ELK.layout({ graph: workerOnly.graph }, { thread: 'worker' }),
-            /the ELK Web Worker failed to load, and `thread: 'worker'` rules out/
-        );
-        try {
-            await joint.layout.ELK.layout({ graph });
-        } finally {
-            console.warn = warn;
-        }
-        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
-        await workerOnlyRejected;
-        assert.ok(joint.g.intersection.exists(workerOnly.el1.getBBox(), workerOnly.el2.getBBox()));
-        // Reported - layouts still work, but now block the page.
-        assert.equal(warnings.length, 1);
-        assert.ok(/the ELK Web Worker failed to load - running ELK on the main thread instead/.test(warnings[0]));
 
-        // No new worker is started for later layouts.
-        workerUrl = WORKER_URL;
-        const workerCount = startedWorkers.length;
-        const { graph: nextGraph, el1: nextEl1, el2: nextEl2 } = createGraph();
-        await joint.layout.ELK.layout({ graph: nextGraph });
-        assert.equal(startedWorkers.length, workerCount);
-        assert.notOk(joint.g.intersection.exists(nextEl1.getBBox(), nextEl2.getBBox()));
-        await assert.rejects(joint.layout.ELK.layout(createGraph(), { thread: 'worker' }), /the ELK Web Worker failed to load/);
+        await assert.rejects(joint.layout.ELK.layout({ graph }, { elk }), error);
+        assert.notOk(isLaidOut({ el1, el2 }));
+    });
+
+    QUnit.test('should reject the layouts not settled yet when terminated - a later layout starts a new worker', async(assert) => {
+
+        const elk = createElk();
+        const terminated = createGraph();
+
+        const terminatedResult = joint.layout.ELK.layout({ graph: terminated.graph }, { elk });
+        elk.terminate();
+
+        await assert.rejects(terminatedResult, /the ELK worker was terminated/);
+        assert.notOk(isLaidOut(terminated));
+
+        const next = createGraph();
+        await joint.layout.ELK.layout({ graph: next.graph }, { elk });
+        assert.equal(startedWorkers.length, 2);
+        assert.ok(isLaidOut(next));
     });
 });

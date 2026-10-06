@@ -47,7 +47,8 @@
       "types": "./dist/esm/index.d.mts",
       "import": "./dist/esm/index.mjs",
       "default": "./dist/esm/index.mjs"
-    }
+    },
+    "./worker": "./dist/esm/elk.worker.mjs"
   },
   "files": [
     "dist",

@@ -27,19 +27,7 @@ const replaceModule = (name, code) => {
     };
 };
 
-// A UMD bundle has no way to locate a worker file of its own - replace the module that
-// starts one (see `src/workerFactory.mts`) with one that doesn't, so `layout()` runs ELK
-// on the main thread by default.
-const noWorker = replaceModule('workerFactory', 'export function createElkWorker() { return undefined; }');
-
-// The unit test bundle starts whichever worker a test hands it (`window.__createElkWorker`),
-// so the default worker - and falling back from it - can be tested too (see `test/index.js`).
-const testWorker = replaceModule(
-    'workerFactory',
-    'export function createElkWorker() { return window.__createElkWorker ? window.__createElkWorker() : undefined; }'
-);
-
-// A UMD bundle can't load a chunk of its own either - replace the module that imports
+// A UMD bundle can't load a chunk of its own - replace the module that imports
 // main-thread ELK dynamically (see `src/mainThreadElk.mts`) with one importing it
 // statically, i.e. the `ELK` global.
 const staticMainThreadElk = replaceModule(
@@ -91,7 +79,6 @@ export default [
             },
         ],
         plugins: [
-            noWorker,
             staticMainThreadElk,
             nodeResolve({
                 preferBuiltins: false
@@ -121,7 +108,6 @@ export default [
             }
         ],
         plugins: [
-            testWorker,
             testMainThreadElk,
             nodeResolve({
                 preferBuiltins: false

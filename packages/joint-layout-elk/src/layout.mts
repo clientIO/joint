@@ -3,12 +3,11 @@ import { importLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
 import { exportGraph } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
+import { ElkWorkerClient } from './workerElk.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
 import type { ImportLayoutOptions } from './import.mjs';
-import type { LayoutThread } from './defaultElk.mjs';
-
-export type { LayoutThread };
+import type { WorkerElk } from './workerElk.mjs';
 import type { ElkLayoutOptions, ElkNode } from './types/index.mjs';
 import type { dia } from '@joint/core';
 import type { ELK, ElkNode as RawElkNode } from 'elkjs';
@@ -40,30 +39,16 @@ const DEFAULT_OPTIONS: LayoutOptions = {
 export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
 
     /**
-     * A custom ELK instance, e.g. one running in a Web Worker of your own. The instance
-     * is not terminated by the package - call `elk.terminateWorker()` yourself when it is
-     * no longer needed.
-     * @defaultValue a shared instance running in a Web Worker the package starts itself
-     * (bundled as a worker file of its own by webpack 5, Vite or Parcel). Where no worker can
-     * be started or loaded - no `Worker` (e.g. Node/SSR), the UMD build, a bundler that
-     * doesn't emit worker files - a shared main-thread instance (`elkjs/lib/elk.bundled.js`).
-     * See `thread`.
+     * The ELK instance to lay out with - e.g. one running in a Web Worker, so the layout
+     * doesn't block the page (see `createWorkerElk()`), or any `elkjs` instance of your
+     * own. It is never terminated by the package.
+     * @defaultValue a shared instance running on the main thread (`elkjs/lib/elk.bundled.js`,
+     * loaded on the first layout that needs it)
      * @example
-     * import ELK from 'elkjs/lib/elk-api.js';
-     * const elk = new ELK({ workerUrl: new URL('elkjs/lib/elk-worker.min.js', import.meta.url).href });
+     * const elk = createWorkerElk(() => new Worker(new URL('elkjs/lib/elk-worker.min.js', import.meta.url)));
      * layout({ graph }, { elk });
      */
-    elk?: ELK;
-    /**
-     * Where the default ELK instance runs the layout - ignored with a custom `elk`.
-     * - `'auto'` - in a Web Worker where one can be used, on the main thread otherwise.
-     * - `'worker'` - in a Web Worker only: where none can be used (e.g. Node/SSR, the UMD
-     *   build, or a worker that fails to load), `layout()` rejects instead.
-     * - `'main'` - on the main thread, without starting a worker (e.g. for tests or
-     *   debugging) - it blocks the page while ELK runs.
-     * @defaultValue 'auto'
-     */
-    thread?: LayoutThread;
+    elk?: WorkerElk | ELK;
     /**
      * ELK layout options, passed through to ELK unmodified.
      * @see https://eclipse.dev/elk/reference/options.html
@@ -78,9 +63,9 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
     /**
      * Aborts the layout - e.g. once the graph has changed since it started, or it takes too
      * long. `layout()` then rejects with the signal's reason, and nothing is applied to the
-     * graph. A layout the default worker is busy with is stopped by terminating the worker
-     * (a new one takes over the layouts still waiting). ELK on the main thread, or a custom
-     * `elk` instance, can't be stopped - its result is only ignored.
+     * graph. A layout a `createWorkerElk()` worker is busy with is stopped by terminating the
+     * worker (a new one takes over the layouts still waiting). ELK on the main thread, or
+     * any other `elk` instance, can't be stopped - its result is only ignored.
      * @example
      * const controller = new AbortController();
      * layout({ graph }, { signal: controller.signal });
@@ -154,9 +139,17 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
     );
 
     const rawElkGraph = elkGraph as unknown as RawElkNode;
-    const result = await (opt?.elk
-        ? abortable(opt.elk.layout(rawElkGraph), signal)
-        : layoutWithDefaultElk(rawElkGraph, signal, opt?.thread)) as ElkNode;
+    const elk = opt?.elk;
+    let layoutResult: Promise<RawElkNode>;
+    if (!elk) {
+        layoutResult = layoutWithDefaultElk(rawElkGraph, signal);
+    } else if (elk instanceof ElkWorkerClient) {
+        // Stops the worker's layout when aborted, rather than only ignoring its result.
+        layoutResult = elk.layout(rawElkGraph, { signal });
+    } else {
+        layoutResult = abortable((elk as ELK).layout(rawElkGraph), signal);
+    }
+    const result = await layoutResult as ElkNode;
 
     // Aborted after ELK settled, but before the result was applied.
     throwIfAborted(signal);
