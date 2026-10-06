@@ -127,10 +127,14 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
     const result = await (opt?.elk ? opt.elk.layout(rawElkGraph) : layoutWithDefaultElk(rawElkGraph)) as ElkNode;
 
     // Wraps the import in a single batch, so it emits one combined change instead of
-    // one per element/port/link.
+    // one per element/port/link. Closed even if a `set*Attributes` callback throws -
+    // a batch left open would e.g. keep a command manager from ever closing its undo step.
     graph?.startBatch(batchName);
-    importLayout(result, elementsById, linksById, portsById, options);
-    graph?.stopBatch(batchName);
+    try {
+        importLayout(result, elementsById, linksById, portsById, options);
+    } finally {
+        graph?.stopBatch(batchName);
+    }
 
     return {
         bbox: getBBox(result),
