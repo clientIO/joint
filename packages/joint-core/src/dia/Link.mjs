@@ -251,7 +251,7 @@ export const Link = Cell.extend({
      * @returns {dia.Link.ComputedLabelPosition | null} A new object with the resolved position,
      * or `null` if there is no label at `idx` (or its own `position` is `null`).
      */
-    getLabelPosition: function(idx) {
+    getComputedLabelPosition: function(idx) {
 
         const label = this.label(idx);
         return (label === undefined) ? null : getComputedLabelPosition(this, label);

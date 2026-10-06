@@ -1097,7 +1097,7 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
 
     getComputedLabel(index?: number): Link.ComputedLabel | null;
 
-    getLabelPosition(index?: number): Link.ComputedLabelPosition | null;
+    getComputedLabelPosition(index?: number): Link.ComputedLabelPosition | null;
 
     labels(): Link.Label[];
     labels(labels: Link.Label[], opt?: S): this;

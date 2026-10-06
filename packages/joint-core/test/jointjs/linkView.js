@@ -556,26 +556,26 @@ QUnit.module('linkView', function(hooks) {
 
             var getComputedLabelSpy = sinon.spy(link, 'getComputedLabel');
             var getComputedLabelsSpy = sinon.spy(link, 'getComputedLabels');
-            var getLabelPositionSpy = sinon.spy(link, 'getLabelPosition');
+            var getComputedLabelPositionSpy = sinon.spy(link, 'getComputedLabelPosition');
             try {
                 // Moving an end re-routes the link, and with it moves its labels.
                 link.target({ x: 300, y: 100 });
 
                 assert.ok(getComputedLabelSpy.notCalled);
                 assert.ok(getComputedLabelsSpy.notCalled);
-                assert.ok(getLabelPositionSpy.calledWith(0));
-                assert.ok(getLabelPositionSpy.calledWith(1));
+                assert.ok(getComputedLabelPositionSpy.calledWith(0));
+                assert.ok(getComputedLabelPositionSpy.calledWith(1));
             } finally {
                 getComputedLabelSpy.restore();
                 getComputedLabelsSpy.restore();
-                getLabelPositionSpy.restore();
+                getComputedLabelPositionSpy.restore();
             }
 
             // Each label is placed at its resolved position on the new route.
             [0, 1].forEach(function(index) {
                 var labelNode = linkView.el.querySelector('[label-idx="' + index + '"]');
                 var matrix = V(labelNode).transform();
-                var coords = linkView.getLabelCoordinates(link.getLabelPosition(index));
+                var coords = linkView.getLabelCoordinates(link.getComputedLabelPosition(index));
                 assert.deepEqual({ x: matrix.e, y: matrix.f }, { x: coords.x, y: coords.y }, 'label ' + index);
             });
         });
