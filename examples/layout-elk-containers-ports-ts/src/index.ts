@@ -4,6 +4,7 @@ import {
     ExportElementCallback,
     ExportPortCallback,
     ExportPortLabelCallback,
+    createWorkerElk,
     layout
 } from '@joint/layout-elk';
 import { graphJSON } from './example';
@@ -21,6 +22,10 @@ const cellNamespace = {
         InteractionLink
     }
 };
+
+// ELK runs in a Web Worker, so a layout doesn't block the page - the worker is started on
+// the first layout, then shared by every later one.
+const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
 
 const init = () => {
 
@@ -130,6 +135,7 @@ const init = () => {
     const runLayout = (): Promise<void> => {
         paper.freeze();
         return layout({ graph }, {
+            elk,
             exportElement,
             exportPort,
             exportPortLabel,

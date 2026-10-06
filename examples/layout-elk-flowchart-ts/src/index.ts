@@ -4,6 +4,7 @@ import {
     ExportElementCallback,
     ExportPortCallback,
     SetPortAttributesCallback,
+    createWorkerElk,
     layout
 } from '@joint/layout-elk';
 import { graphJSON } from './example';
@@ -25,6 +26,10 @@ class AddPortButton extends elementTools.Button {
         { tagName: 'path', selector: 'icon', attributes: { d: 'M -3 0 3 0 M 0 -3 0 3', class: 'add-button-icon' } }
     ];
 }
+
+// ELK runs in a Web Worker, so a layout doesn't block the page - the worker is started on
+// the first layout, then shared by every later one.
+const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
 
 const init = () => {
 
@@ -209,6 +214,7 @@ const init = () => {
         paper.freeze();
         try {
             await layout({ graph }, {
+                elk,
                 exportElement,
                 exportPort,
                 setPortAttributes,

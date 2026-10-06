@@ -47,7 +47,8 @@ const init = () => {
     // No `exportElement`/`exportPort`/`setPortAttributes`/... callbacks - this is
     // `layout()` at its simplest, with only plain ELK layout options passed through.
     // Containers, ports and link labels are all laid out from this package's own
-    // defaults alone.
+    // defaults alone - and with no `elk` option, ELK runs on the main thread (the
+    // other ELK examples run it in a Web Worker, see `createWorkerElk()`).
     layout({ graph }, {
         elkLayoutOptions: {
             // `'elk.algorithm': 'layered'` is the package's default - not repeated here.

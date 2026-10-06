@@ -1,5 +1,5 @@
 import { dia, shapes, g } from '@joint/core';
-import { layout } from '@joint/layout-elk';
+import { createWorkerElk, layout } from '@joint/layout-elk';
 import dependenciesJSON from './dependencies.json';
 import './styles.scss';
 
@@ -7,6 +7,10 @@ const colors = ['#F8FCDA', '#E3E9C2', '#F9FBB2', '#C89F9C'];
 const ELK_DIRECTION = 'RIGHT';
 const DEFAULT_LABEL_WIDTH = 50;
 const DEFAULT_LABEL_HEIGHT = 20;
+
+// ELK runs in a Web Worker, so a layout doesn't block the page - the worker is started on
+// the first layout, then shared by every later one.
+const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
 
 const init = () => {
 
@@ -39,6 +43,7 @@ const init = () => {
     generateCells(dependenciesJSON, graph);
 
     layout({ graph }, {
+        elk,
         elkLayoutOptions: {
             /**
              * Overall direction of the layout.

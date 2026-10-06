@@ -8,8 +8,8 @@ module.exports = {
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'dist'),
-        // Resolved from the bundle's own URL - the ELK worker and main-thread ELK are
-        // chunks of their own, loaded from next to it wherever the demo is served.
+        // Resolved from the bundle's own URL - the ELK worker is a file of its own,
+        // loaded from next to it wherever the demo is served.
         publicPath: 'auto',
     },
     mode: 'development',
