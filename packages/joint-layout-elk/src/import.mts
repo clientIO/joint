@@ -2,6 +2,7 @@ import { type dia, g } from '@joint/core';
 import type { ElkPoint } from 'elkjs';
 import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
 import type { ElkGraphPort } from './export.mjs';
+import { getLinkLabelIndex } from './labelIds.mjs';
 
 /** Applies the ELK-computed position (and, for a container, size) to `element`. */
 export type SetElementAttributesCallback = (params: SetElementAttributesCallbackParameters) => void;
@@ -158,7 +159,11 @@ function importEdges(edges: ElkExtendedEdge[] | undefined): void {
             // resolved `markup`/`attrs`/`size` permanently into the label's own stored JSON.
             const currentLabels: dia.Link.Label[] = link.get('labels') || [];
             labels = currentLabels.slice();
-            edge.labels.forEach((label, index) => {
+            edge.labels.forEach((label) => {
+                // Not the label's index in `edge.labels` - labels `exportLinkLabel` dropped
+                // are missing there (see `getLinkLabelId`).
+                const index = getLinkLabelIndex(edge.id, label.id);
+                if (index === undefined || !currentLabels[index]) return;
                 const { x = 0, y = 0, width = 0, height = 0 } = label;
                 const center = new g.Point(x + width / 2, y + height / 2);
                 const distance = polyline.closestPointLength(center);

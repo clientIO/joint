@@ -906,6 +906,35 @@ QUnit.module('layout()', () => {
         const [elkEdge] = elkGraph.edges;
         assert.deepEqual(elkEdge.labels, []);
     });
+
+    QUnit.test('should apply each laid out label to its own link label when exportLinkLabel drops another', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a' },
+            target: { id: 'b' },
+            labels: [
+                { position: 0.25, size: { width: 40, height: 20 }},
+                { position: 0.75, size: { width: 40, height: 20 }}
+            ]
+        });
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+            exportLinkLabel: ({ labelIndex }) => (labelIndex === 0 ? false : undefined)
+        });
+
+        const [elkEdge] = elkGraph.edges;
+        assert.equal(elkEdge.labels.length, 1);
+        assert.equal(elkEdge.labels[0].id, `${link.id}:labels:1`);
+        // The dropped label is left untouched - the laid out one goes to the second label.
+        assert.equal(link.label(0).position, 0.25);
+        assert.equal(typeof link.label(1).position, 'object');
+        assert.equal(typeof link.label(1).position.distance, 'number');
+    });
 });
 
 // Last: the default ELK instance is shared by every `layout()` call without an `elk`
