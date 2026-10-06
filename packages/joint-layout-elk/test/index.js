@@ -1187,14 +1187,24 @@ QUnit.module('the default ELK instance', (hooks) => {
         // A crash restarts the worker - with a script that doesn't exist (e.g. one a bundler
         // didn't emit), which fails to load.
         workerUrl = '/base/missing-elk-worker.js';
+        const warnings = [];
+        const warn = console.warn;
+        console.warn = (message) => warnings.push(message);
         const crashedResult = joint.layout.ELK.layout(createGraph());
         startedWorkers[startedWorkers.length - 1].dispatchEvent(new ErrorEvent('error'));
         await assert.rejects(crashedResult);
 
         const { graph, el1, el2 } = createGraph();
         // Posted to the worker still loading - ELK itself would never settle it.
-        await joint.layout.ELK.layout({ graph });
+        try {
+            await joint.layout.ELK.layout({ graph });
+        } finally {
+            console.warn = warn;
+        }
         assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        // Reported - layouts still work, but now block the page.
+        assert.equal(warnings.length, 1);
+        assert.ok(/the ELK Web Worker failed to load - running ELK on the main thread instead/.test(warnings[0]));
 
         // No new worker is started for later layouts.
         workerUrl = WORKER_URL;

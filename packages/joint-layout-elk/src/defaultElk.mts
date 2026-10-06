@@ -46,12 +46,26 @@ function runOnMainThread(job: LayoutJob): void {
     layoutOnMainThread(job.graph).then(job.resolve, job.reject);
 }
 
+let hasWarned = false;
+
+// Running ELK on the main thread where a worker was expected is easy to miss (layouts
+// still work, they only block the page) - so it is reported once.
+function warnMainThreadFallback(reason: string): void {
+    if (hasWarned) return;
+    hasWarned = true;
+    console.warn(`@joint/layout-elk: ${reason} - running ELK on the main thread instead. See "Web Worker" in the README of @joint/layout-elk.`);
+}
+
 function startWorker(): Worker | undefined {
+    // E.g. Node/SSR - expected, not reported.
     if (typeof Worker === 'undefined') return undefined;
     try {
+        // `undefined` in the UMD build - expected, not reported.
         return createElkWorker();
-    } catch {
-        // E.g. a worker script the page's CSP (`worker-src`) doesn't allow.
+    } catch (error) {
+        // E.g. a worker script the page's CSP (`worker-src`) doesn't allow, or no
+        // `import.meta.url` to resolve it against.
+        warnMainThreadFallback(`the ELK Web Worker could not be started (${error})`);
         return undefined;
     }
 }
@@ -216,6 +230,8 @@ function getWorkerClient(): ElkWorkerClient | undefined {
     const client = new ElkWorkerClient((jobs) => {
         hasWorkerFailed = true;
         workerClient = undefined;
+        // E.g. a worker file the bundler didn't emit, or doesn't serve where it says it is.
+        warnMainThreadFallback('the ELK Web Worker failed to load');
         // Retried on the main thread.
         jobs.forEach(runOnMainThread);
     });
