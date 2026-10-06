@@ -716,6 +716,36 @@ QUnit.module('layout()', () => {
         assert.deepEqual(elkGraph.children, []);
     });
 
+    QUnit.test('should apply the layout in a single `batchName` batch', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        graph.resetCells([el1]);
+
+        const batches = [];
+        graph.on('batch:start', ({ batchName }) => batches.push(`start:${batchName}`));
+        graph.on('batch:stop', ({ batchName }) => batches.push(`stop:${batchName}`));
+
+        await joint.layout.ELK.layout({ graph }, { batchName: 'my-layout' });
+
+        assert.deepEqual(batches, ['start:my-layout', 'stop:my-layout']);
+        assert.notOk(graph.hasActiveBatch());
+    });
+
+    QUnit.test('should close the batch when an import callback throws', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        graph.resetCells([el1]);
+
+        const error = new Error('setElementAttributes failed');
+        await assert.rejects(joint.layout.ELK.layout({ graph }, {
+            setElementAttributes: () => { throw error; }
+        }), error);
+
+        assert.notOk(graph.hasActiveBatch());
+    });
+
     QUnit.module('given `elements`/`links`', () => {
 
         const rect = (id, x = 500, y = 500) => new joint.shapes.standard.Rectangle({ id, size: { width: 50, height: 50 }, position: { x, y }});
