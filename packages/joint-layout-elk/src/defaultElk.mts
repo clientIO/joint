@@ -67,11 +67,13 @@ function startWorker(): Worker | undefined {
 class ElkWorkerClient {
 
     private worker: Worker | undefined;
+    // Whether the worker has answered its first message - i.e. its script loaded and runs.
+    private isLoaded = false;
     private readonly jobs = new Map<number, LayoutJob>();
     private nextId = REGISTER_ID + 1;
 
     /**
-     * @param onFailure Called with the jobs left unsettled once the worker fails.
+     * @param onFailure Called with the jobs left unsettled once the worker fails to load.
      */
     constructor(private readonly onFailure: (jobs: LayoutJob[]) => void) {}
 
@@ -83,15 +85,21 @@ class ElkWorkerClient {
         const worker = startWorker();
         if (!worker) return false;
         this.worker = worker;
+        this.isLoaded = false;
         worker.addEventListener('message', (event: MessageEvent) => {
             if (worker === this.worker) this.receive(event.data);
         });
         // ELK itself never listens for a worker's `error` event - a worker script that fails
-        // to load (e.g. a bundler that doesn't emit worker files) would leave every layout
-        // pending.
+        // to load (e.g. a bundler that doesn't emit worker files), or a worker that crashes
+        // (e.g. out of memory), would leave every layout pending.
         worker.addEventListener('error', (event) => {
             event.preventDefault();
-            if (worker === this.worker) this.fail();
+            if (worker !== this.worker) return;
+            if (this.isLoaded) {
+                this.crash(event);
+            } else {
+                this.fail();
+            }
         });
         worker.postMessage({ id: REGISTER_ID, cmd: 'register', algorithms: ALGORITHMS });
         this.jobs.forEach((job) => this.post(job));
@@ -134,6 +142,10 @@ class ElkWorkerClient {
     }
 
     private receive(data: { id: number, data?: ElkNode, error?: unknown }): void {
+        if (data.id === REGISTER_ID) {
+            this.isLoaded = true;
+            return;
+        }
         const job = this.jobs.get(data.id);
         if (!job) return;
         this.jobs.delete(data.id);
@@ -153,11 +165,34 @@ class ElkWorkerClient {
         if (!this.jobs.has(job.id)) return;
         const isRunning = this.jobs.keys().next().value === job.id;
         this.jobs.delete(job.id);
-        if (!isRunning) return;
+        if (isRunning) this.restart();
+    }
+
+    /**
+     * The worker crashed (after it loaded) - most likely because of the job it was busy
+     * with, which is rejected rather than retried, on the main thread least of all, where
+     * the same crash would take the page down with it. A new worker takes over the jobs
+     * still waiting.
+     */
+    private crash(event: ErrorEvent): void {
+        const [running] = this.jobs.values();
+        if (running) {
+            this.jobs.delete(running.id);
+            const details = event.message ? ` (${event.message})` : '';
+            running.reject(new Error(`@joint/layout-elk: the ELK worker crashed during the layout${details}.`));
+        }
+        this.restart();
+    }
+
+    private restart(): void {
         this.terminate();
         if (!this.start()) this.fail();
     }
 
+    /**
+     * The worker failed to load - every job not settled yet is retried on the main thread
+     * (see `getWorkerClient`).
+     */
     private fail(): void {
         this.terminate();
         const jobs = Array.from(this.jobs.values());
@@ -172,7 +207,8 @@ class ElkWorkerClient {
 }
 
 let workerClient: ElkWorkerClient | undefined;
-// Set once the worker fails - every later layout then runs on the main thread straight away.
+// Set once the worker fails to load - every later layout then runs on the main thread
+// straight away.
 let hasWorkerFailed = false;
 
 function getWorkerClient(): ElkWorkerClient | undefined {
@@ -192,7 +228,8 @@ function getWorkerClient(): ElkWorkerClient | undefined {
 /**
  * Lays out `elkGraph` with the default ELK instance - in a Web Worker where one can be
  * started, on the main thread otherwise (e.g. no `Worker` in Node/SSR, or the UMD build).
- * A layout started while the worker fails is retried on the main thread.
+ * A layout started while the worker fails to load is retried on the main thread - one the
+ * worker crashes during is rejected.
  *
  * Aborting `signal` rejects with its reason straight away. A layout the worker is busy
  * with is stopped by terminating the worker - one on the main thread can't be stopped,

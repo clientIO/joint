@@ -1069,17 +1069,20 @@ QUnit.module('layout()', () => {
 });
 
 // Last: the default ELK instance is shared by every `layout()` call without an `elk`
-// option - once its worker fails (the second test), it stays on the main thread.
+// option - once its worker fails to load (the last test), it stays on the main thread.
 QUnit.module('the default ELK instance', (hooks) => {
 
     // Every worker the default instance has started (see `rollup.config.mjs`'s `testWorker`),
     // and how many messages they've sent back.
     const startedWorkers = [];
     let workerMessageCount = 0;
+    // The script the next worker is started with - one that doesn't exist fails to load.
+    const WORKER_URL = '/base/node_modules/elkjs/lib/elk-worker.min.js';
+    let workerUrl = WORKER_URL;
 
     hooks.before(() => {
         window.__createElkWorker = () => {
-            const worker = new Worker('/base/node_modules/elkjs/lib/elk-worker.min.js');
+            const worker = new Worker(workerUrl);
             worker.addEventListener('message', () => workerMessageCount++);
             startedWorkers.push(worker);
             return worker;
@@ -1154,18 +1157,47 @@ QUnit.module('the default ELK instance', (hooks) => {
         assert.ok(joint.g.intersection.exists(aborted.el1.getBBox(), aborted.el2.getBBox()));
     });
 
-    QUnit.test('should retry a layout on the main thread when the worker fails - and stay there', async(assert) => {
+    QUnit.test('should reject a layout the worker crashes during - a new worker takes over the layouts still waiting', async(assert) => {
+
+        const crashed = createGraph();
+        const waiting = createGraph();
+        const workerCount = startedWorkers.length;
+
+        const crashedResult = joint.layout.ELK.layout({ graph: crashed.graph });
+        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph });
+        // E.g. out of memory - not retried on the main thread.
+        startedWorkers[startedWorkers.length - 1].dispatchEvent(new ErrorEvent('error', { message: 'out of memory' }));
+
+        await assert.rejects(crashedResult, /the ELK worker crashed during the layout \(out of memory\)/);
+        await waitingResult;
+
+        assert.equal(startedWorkers.length, workerCount + 1);
+        assert.ok(joint.g.intersection.exists(crashed.el1.getBBox(), crashed.el2.getBBox()));
+        assert.notOk(joint.g.intersection.exists(waiting.el1.getBBox(), waiting.el2.getBBox()));
+
+        // The new worker lays out later layouts too.
+        const messageCount = workerMessageCount;
+        await joint.layout.ELK.layout(createGraph());
+        assert.equal(startedWorkers.length, workerCount + 1);
+        assert.ok(workerMessageCount > messageCount);
+    });
+
+    QUnit.test('should retry a layout on the main thread when the worker fails to load - and stay there', async(assert) => {
+
+        // A crash restarts the worker - with a script that doesn't exist (e.g. one a bundler
+        // didn't emit), which fails to load.
+        workerUrl = '/base/missing-elk-worker.js';
+        const crashedResult = joint.layout.ELK.layout(createGraph());
+        startedWorkers[startedWorkers.length - 1].dispatchEvent(new ErrorEvent('error'));
+        await assert.rejects(crashedResult);
 
         const { graph, el1, el2 } = createGraph();
-
-        const result = joint.layout.ELK.layout({ graph });
-        // E.g. a worker script a bundler didn't emit - ELK itself would never settle `result`.
-        startedWorkers[startedWorkers.length - 1].dispatchEvent(new ErrorEvent('error'));
-        await result;
-
+        // Posted to the worker still loading - ELK itself would never settle it.
+        await joint.layout.ELK.layout({ graph });
         assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
 
         // No new worker is started for later layouts.
+        workerUrl = WORKER_URL;
         const workerCount = startedWorkers.length;
         const { graph: nextGraph, el1: nextEl1, el2: nextEl2 } = createGraph();
         await joint.layout.ELK.layout({ graph: nextGraph });
