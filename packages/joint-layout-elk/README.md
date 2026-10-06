@@ -73,10 +73,8 @@ interface LayoutResult {
 
 ```ts
 interface LayoutOptions {
-    // A custom ELK instance, e.g. one running in a Web Worker of your own.
-    elk?: ELK; // Default: a shared instance running in a Web Worker (see "Web Worker" below)
-    // Where the default ELK instance runs the layout - ignored with a custom `elk`.
-    thread?: 'auto' | 'worker' | 'main'; // Default: 'auto'
+    // The ELK instance to lay out with, e.g. one running in a Web Worker (see `createWorkerElk()` below).
+    elk?: WorkerElk | ELK; // Default: a shared instance running on the main thread
     // ELK layout options, passed through to ELK unmodified.
     elkLayoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.json.edgeCoords': 'ROOT' }
     // A name for the layout batch, grouping everything `layout()` applies into one graph change.
@@ -120,18 +118,38 @@ type SetPortAttributesCallback = (params: { element: dia.Element; portId: string
 type SetLinkAttributesCallback = (params: { link: dia.Link; attributes: { vertices: dia.Point[]; source?: dia.Link.EndJSON; target?: dia.Link.EndJSON; labels?: dia.Link.Label[] }; elkEdge: ElkExtendedEdge }) => void;
 ```
 
-### Choosing the thread
+### Running ELK in a Web Worker
 
-Without an `elk` option, `thread` sets where ELK runs the layout:
-
-- `'auto'` (default) - in the package's Web Worker where one can be used, on the main thread otherwise (see "Web Worker" below).
-- `'worker'` - in the Web Worker only. Where none can be used (e.g. Node/SSR, the UMD build, or a worker that fails to load), `layout()` rejects instead of blocking the page.
-- `'main'` - on the main thread, without starting a worker - e.g. for tests or debugging. The page is blocked while ELK runs.
+By default, `layout()` runs ELK on the main thread - nothing to set up, and it works anywhere (browsers, Node/SSR, tests, the UMD build). ELK blocks the page while it runs, though: a few milliseconds for a small graph, but up to seconds for one with thousands of elements. To keep the page responsive, run ELK in a Web Worker instead - start one with `createWorkerElk()` and pass it to `layout()` as `elk`:
 
 ```ts
-// Never block the page - e.g. for a graph large enough to take seconds to lay out.
-await layout({ graph }, { thread: 'worker' });
+import { layout, createWorkerElk } from '@joint/layout-elk';
+
+const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
+
+await layout({ graph }, { elk });
+
+// Once no longer needed.
+elk.terminate();
 ```
+
+#### `createWorkerElk(createWorker: () => Worker): WorkerElk`
+
+`createWorker` starts the worker - running `@joint/layout-elk/worker`, the package's worker script (ELK's own, `elkjs/lib/elk-worker.min.js`). Starting it is up to you, since only your bundler knows where the script ends up:
+
+- **webpack 5, Vite** (dev server and builds) - `new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' })`, as above. Both bundle the worker script as a file of its own. With webpack, keep `output.publicPath` at `'auto'` (the default), so the file is found wherever the app is served from.
+- **Vite** - also `import ElkWorker from '@joint/layout-elk/worker?worker'`, then `createWorkerElk(() => new ElkWorker())`.
+- **No bundler** (e.g. the UMD build) - serve a copy of `elkjs/lib/elk-worker.min.js`, then `createWorkerElk(() => new Worker('/path/to/elk-worker.min.js'))`.
+
+The returned `WorkerElk`:
+
+- **Starts the worker on its first layout**, then lays out every graph in it, one at a time - share one instance between layouts.
+- **Stops an aborted layout** (see `signal` below) by terminating the worker, if it is busy with it - a new worker takes over the layouts still waiting.
+- **Rejects the layout the worker crashes during** (e.g. out of memory) - a new worker takes over the layouts still waiting.
+- **Rejects every layout when the worker fails to load** (e.g. its script isn't served where `createWorker` starts it from) or can't be started (e.g. a CSP `worker-src` that blocks it) - with an error saying so, rather than running ELK on the main thread. The next layout tries again with a new worker.
+- **`terminate()`** terminates the worker - layouts not settled yet are rejected, and a later layout starts a new worker.
+
+Any other ELK instance works as `elk` too, e.g. `elkjs`'s own `new ELK({ workerUrl })` (`elkjs/lib/elk-api.js`) - without stopping an aborted layout, though (see below).
 
 ### Aborting a layout
 
@@ -155,20 +173,15 @@ async function runLayout() {
 await layout({ graph }, { signal: AbortSignal.timeout(5000) });
 ```
 
-ELK can't stop a layout in progress, so a layout the default Web Worker is busy with is stopped by terminating the worker - a new one takes over the layouts still waiting. A layout on the main thread, or in a custom `elk` instance, keeps running - only its result is ignored (call `elk.terminateWorker()` yourself to stop a custom one).
+ELK can't stop a layout in progress, so a layout a `createWorkerElk()` worker is busy with is stopped by terminating the worker - a new one takes over the layouts still waiting. A layout on the main thread, or in any other `elk` instance, keeps running - only its result is ignored.
 
 ## ⚠️ Caveats & Known Limitations
 
 - **Edge coordinates are graph-absolute** - `layout()` sets `elk.json.edgeCoords: 'ROOT'`, so ELK returns every edge's route points and labels relative to the root, whichever container the edge is in, and the default import applies them as they are. Overriding it (e.g. `'CONTAINER'`) is allowed, but the default import then misplaces vertices, end anchors and labels of edges inside containers - convert them yourself in `setLinkAttributes` (from `elkEdge`). The same applies to the raw `elkGraph` in `layout()`'s result.
 - **Node labels are not supported** - ELK's node-label placement assumes labels are layout participants, whereas JointJS labels are attrs inside the shape. Link labels are supported.
 - **Ports keep their JointJS-computed position by default** - every element with ports is exported with `elk.portConstraints: 'FIXED_POS'`, so ELK keeps each port where the element's port groups place it and edges route to/from that exact spot. Opt into ELK repositioning/reordering them by overriding it (e.g. `'FIXED_SIDE'`/`'FREE'`) in `exportElement` - setting it in `elkLayoutOptions` has no effect, since the per-node value takes precedence.
-- **Asynchronous** - unlike `@joint/layout-directed-graph`, `layout()` returns a `Promise`, since `elkjs` computes layouts asynchronously (by default inside a Web Worker).
-- **Web Worker** - without an `elk` option, `layout()` runs ELK in a Web Worker the package starts on first use and shares between calls. It is started with `new Worker(new URL('./elk.worker.mjs', import.meta.url), { type: 'module' })`, which webpack 5, Vite and Parcel bundle as a worker file of its own with no extra setup. The main-thread copy of ELK (`elkjs/lib/elk.bundled.js`) is imported dynamically, so it is split into a chunk of its own, only loaded if a layout ever runs on the main thread. With `thread: 'auto'`, ELK runs on the main thread instead where no worker can be used: no `Worker` (e.g. Node/SSR), the UMD build (a script tag has no way to locate a worker file), or a worker that can't be started or fails to load (e.g. a bundler that doesn't emit worker files, or a CSP `worker-src` that blocks it) - a layout in progress when that happens is retried on the main thread (or rejected, with `thread: 'worker'`). A worker that crashes once loaded (e.g. out of memory) is different: the layout it was busy with is rejected rather than retried on the main thread (where the same crash would take the page down), and a new worker takes over the layouts still waiting. To run ELK in a worker of your own instead (e.g. with the UMD build), pass `elk: new ELK({ workerUrl })` (`elkjs/lib/elk-api.js`).
-- **Worker troubleshooting** - a worker that can't be started or fails to load is reported once with a `console.warn` (layouts still work, but block the page while ELK runs). Common causes:
-  - **Vite dev server** - Vite pre-bundles dependencies into `node_modules/.vite/deps`, where the worker file isn't found (production builds are not affected). Exclude the package from pre-bundling: `optimizeDeps: { exclude: ['@joint/layout-elk'] }` in `vite.config.js`.
-  - **An absolute `publicPath`** (webpack `output.publicPath: '/dist/'`) - the worker file is requested from that path, so it is not found once the app is served from anywhere else. Prefer `'auto'` (webpack's default).
-  - **esbuild** (and other bundlers that don't follow `new URL(..., import.meta.url)`) - the worker file isn't emitted. Pass `elk: new ELK({ workerUrl })` instead, pointing at a copy of `elkjs/lib/elk-worker.min.js` you serve yourself.
-- **ID handling** - ELK requires string ids; element and link ids are converted with `` `${id}` `` internally, but never written back to the graph.
+- **Asynchronous** - unlike `@joint/layout-directed-graph`, `layout()` returns a `Promise`, since `elkjs` computes layouts asynchronously - even on the main thread.
+- **Main thread by default** - without an `elk` option, ELK runs on the main thread and blocks the page while it runs - see "Running ELK in a Web Worker" above. The main-thread copy of ELK (`elkjs/lib/elk.bundled.js`) is imported dynamically, so bundlers split it into a chunk of its own, only loaded by the first layout without an `elk` option.
 
 ## 📄 License
 
@@ -176,6 +189,6 @@ ELK can't stop a layout in progress, so a layout the default Web Worker is busy 
 
 The code in this package is licensed under the Mozilla Public License 2.0, same as the rest of JointJS. It contains no ELK code: it only calls ELK through its API, and its TypeScript option types link to [ELK's option reference](https://eclipse.dev/elk/reference/options.html) instead of reproducing it.
 
-It depends on [`elkjs`](https://github.com/kieler/elkjs), which is dual-licensed under the [Eclipse Public License 2.0](https://github.com/kieler/elkjs/blob/master/LICENSE.md) or GPL-3.0-or-later (`EPL-2.0 OR GPL-3.0-or-later`) - you can use it under the EPL-2.0. `elkjs` is installed as a regular dependency and kept external to this package's own builds (ESM and UMD) - it is never copied or inlined into them. An application that bundles this package does ship `elkjs` code though (the Web Worker file, and the main-thread fallback), under that license: keep `elkjs`'s license notice with it (e.g. with your bundler's license extraction), and note where its source is available (it is published on [GitHub](https://github.com/kieler/elkjs) and [npm](https://www.npmjs.com/package/elkjs)).
+It depends on [`elkjs`](https://github.com/kieler/elkjs), which is dual-licensed under the [Eclipse Public License 2.0](https://github.com/kieler/elkjs/blob/master/LICENSE.md) or GPL-3.0-or-later (`EPL-2.0 OR GPL-3.0-or-later`) - you can use it under the EPL-2.0. `elkjs` is installed as a regular dependency and kept external to this package's own builds (ESM and UMD) - it is never copied or inlined into them. An application that bundles this package does ship `elkjs` code though (the main-thread chunk, and the Web Worker file if it uses `@joint/layout-elk/worker`), under that license: keep `elkjs`'s license notice with it (e.g. with your bundler's license extraction), and note where its source is available (it is published on [GitHub](https://github.com/kieler/elkjs) and [npm](https://www.npmjs.com/package/elkjs)).
 
 Copyright © 2013-2026 client IO
