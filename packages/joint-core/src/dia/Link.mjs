@@ -237,7 +237,7 @@ export const Link = Cell.extend({
      */
     getComputedLabel: function(idx) {
 
-        const label = this._getStoredLabel(idx);
+        const label = this.label(idx);
         return (label === undefined) ? null : getComputedLabel(this, label);
     },
 
@@ -253,23 +253,8 @@ export const Link = Cell.extend({
      */
     getLabelPosition: function(idx) {
 
-        const label = this._getStoredLabel(idx);
+        const label = this.label(idx);
         return (label === undefined) ? null : getComputedLabelPosition(this, label);
-    },
-
-    // The label at `idx` exactly as stored (`undefined` if there is none) - negative values
-    // count from the end. Reads the stored array directly, without `labels()`'s copy.
-    _getStoredLabel: function(idx) {
-
-        const labels = this.get('labels');
-        if (!Array.isArray(labels)) return undefined;
-
-        let index = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
-        if (index < 0) {
-            index = labels.length + index;
-        }
-
-        return labels[index];
     },
 
     labels: function(labels, opt) {
