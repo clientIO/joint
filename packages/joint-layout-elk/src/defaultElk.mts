@@ -1,6 +1,6 @@
-import ElkConstructor from 'elkjs/lib/elk.bundled.js';
 import { createElkWorker } from './workerFactory.mjs';
-import { abortable, getAbortReason } from './abort.mjs';
+import { loadMainThreadElk } from './mainThreadElk.mjs';
+import { abortable, getAbortReason, throwIfAborted } from './abort.mjs';
 
 import type { ELK, ElkNode } from 'elkjs';
 
@@ -17,18 +17,33 @@ interface LayoutJob {
     reject: (reason: unknown) => void;
 }
 
-// Lazily created on the first `layout()` call, then shared by every later one.
-let mainThreadElk: ELK | undefined;
+// Loaded on the first layout that runs on the main thread, then shared by every later one.
+let mainThreadElk: Promise<ELK> | undefined;
 
-function getMainThreadElk(): ELK {
+function getMainThreadElk(): Promise<ELK> {
     if (!mainThreadElk) {
-        mainThreadElk = new ElkConstructor();
+        mainThreadElk = loadMainThreadElk().then(
+            (ElkConstructor) => new ElkConstructor(),
+            (error) => {
+                // E.g. a chunk that failed to load - tried again on the next layout.
+                mainThreadElk = undefined;
+                throw error;
+            }
+        );
     }
     return mainThreadElk;
 }
 
+function layoutOnMainThread(graph: ElkNode, signal?: AbortSignal): Promise<ElkNode> {
+    return getMainThreadElk().then((elk) => {
+        // Aborted while ELK was loading - no need to start it.
+        throwIfAborted(signal);
+        return elk.layout(graph);
+    });
+}
+
 function runOnMainThread(job: LayoutJob): void {
-    getMainThreadElk().layout(job.graph).then(job.resolve, job.reject);
+    layoutOnMainThread(job.graph).then(job.resolve, job.reject);
 }
 
 function startWorker(): Worker | undefined {
@@ -186,5 +201,5 @@ function getWorkerClient(): ElkWorkerClient | undefined {
 export function layoutWithDefaultElk(elkGraph: ElkNode, signal?: AbortSignal): Promise<ElkNode> {
     const client = getWorkerClient();
     if (client) return client.layout(elkGraph, signal);
-    return abortable(getMainThreadElk().layout(elkGraph), signal);
+    return abortable(layoutOnMainThread(elkGraph, signal), signal);
 }

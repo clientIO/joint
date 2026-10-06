@@ -12,32 +12,47 @@ const bannerText = `/*! ${packageJson.title} v${packageJson.version} (${formatte
 
 const input = ['./dist/esm/index.mjs'];
 
+// Replaces the module imported as `<name>.mjs` with `code`.
+const replaceModule = (name, code) => {
+    const id = `\0${name}`;
+    const pattern = new RegExp(`(^|/)${name}\\.mjs$`);
+    return {
+        name: `replace-${name}`,
+        resolveId(source) {
+            return pattern.test(source) ? id : null;
+        },
+        load(loadId) {
+            return (loadId === id) ? code : null;
+        }
+    };
+};
+
 // A UMD bundle has no way to locate a worker file of its own - replace the module that
 // starts one (see `src/workerFactory.mts`) with one that doesn't, so `layout()` runs ELK
 // on the main thread by default.
-const noWorker = {
-    name: 'no-worker',
-    resolveId(source) {
-        return /(^|\/)workerFactory\.mjs$/.test(source) ? '\0workerFactory' : null;
-    },
-    load(id) {
-        return (id === '\0workerFactory') ? 'export function createElkWorker() { return undefined; }' : null;
-    }
-};
+const noWorker = replaceModule('workerFactory', 'export function createElkWorker() { return undefined; }');
 
 // The unit test bundle starts whichever worker a test hands it (`window.__createElkWorker`),
 // so the default worker - and falling back from it - can be tested too (see `test/index.js`).
-const testWorker = {
-    name: 'test-worker',
-    resolveId(source) {
-        return /(^|\/)workerFactory\.mjs$/.test(source) ? '\0workerFactory' : null;
-    },
-    load(id) {
-        return (id === '\0workerFactory')
-            ? 'export function createElkWorker() { return window.__createElkWorker ? window.__createElkWorker() : undefined; }'
-            : null;
-    }
-};
+const testWorker = replaceModule(
+    'workerFactory',
+    'export function createElkWorker() { return window.__createElkWorker ? window.__createElkWorker() : undefined; }'
+);
+
+// A UMD bundle can't load a chunk of its own either - replace the module that imports
+// main-thread ELK dynamically (see `src/mainThreadElk.mts`) with one importing it
+// statically, i.e. the `ELK` global.
+const staticMainThreadElk = replaceModule(
+    'mainThreadElk',
+    'import ElkConstructor from \'elkjs/lib/elk.bundled.js\'; export function loadMainThreadElk() { return Promise.resolve(ElkConstructor); }'
+);
+
+// The unit test bundle loads main-thread ELK the same way, unless a test hands it a loader
+// of its own (`window.__loadMainThreadElk`), so failing to load it can be tested too.
+const testMainThreadElk = replaceModule(
+    'mainThreadElk',
+    'import ElkConstructor from \'elkjs/lib/elk.bundled.js\'; export function loadMainThreadElk() { return window.__loadMainThreadElk ? window.__loadMainThreadElk() : Promise.resolve(ElkConstructor); }'
+);
 
 export default [
     {
@@ -77,6 +92,7 @@ export default [
         ],
         plugins: [
             noWorker,
+            staticMainThreadElk,
             nodeResolve({
                 preferBuiltins: false
             })
@@ -106,6 +122,7 @@ export default [
         ],
         plugins: [
             testWorker,
+            testMainThreadElk,
             nodeResolve({
                 preferBuiltins: false
             }),

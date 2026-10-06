@@ -5,6 +5,32 @@ QUnit.module('sanity check', () => {
     });
 });
 
+// First: main-thread ELK is loaded once, then shared by every later layout.
+QUnit.module('loading main-thread ELK', (hooks) => {
+
+    hooks.after(() => {
+        delete window.__loadMainThreadElk;
+    });
+
+    QUnit.test('should load it again on the next layout after it failed to load', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        graph.resetCells([el1, el2]);
+
+        // E.g. a chunk that failed to load.
+        const error = new Error('chunk failed to load');
+        window.__loadMainThreadElk = () => Promise.reject(error);
+        await assert.rejects(joint.layout.ELK.layout({ graph }), error);
+        assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+
+        delete window.__loadMainThreadElk;
+        await joint.layout.ELK.layout({ graph });
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+    });
+});
+
 QUnit.module('layout()', () => {
 
     function createGraph() {
