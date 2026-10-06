@@ -2,6 +2,7 @@ import { util, g } from '@joint/core';
 import { importLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
 import { exportGraph } from './export.mjs';
+import { abortable, throwIfAborted } from './abort.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
 import type { ImportLayoutOptions } from './import.mjs';
@@ -60,6 +61,18 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
      * @defaultValue 'layout'
      */
     batchName?: string;
+    /**
+     * Aborts the layout - e.g. once the graph has changed since it started, or it takes too
+     * long. `layout()` then rejects with the signal's reason, and nothing is applied to the
+     * graph. A layout the default worker is busy with is stopped by terminating the worker
+     * (a new one takes over the layouts still waiting). ELK on the main thread, or a custom
+     * `elk` instance, can't be stopped - its result is only ignored.
+     * @example
+     * const controller = new AbortController();
+     * layout({ graph }, { signal: controller.signal });
+     * graph.once('change', () => controller.abort());
+     */
+    signal?: AbortSignal;
 }
 
 export interface LayoutResult {
@@ -115,6 +128,9 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
         DEFAULT_LAYOUT_OPTIONS
     ) as ElkLayoutOptions;
     const batchName = options.batchName as string;
+    const signal = opt?.signal;
+
+    throwIfAborted(signal);
 
     const { elkGraph, elementsById, linksById, portsById } = exportGraph(
         elements ?? graph?.getElements() ?? [],
@@ -124,7 +140,12 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
     );
 
     const rawElkGraph = elkGraph as unknown as RawElkNode;
-    const result = await (opt?.elk ? opt.elk.layout(rawElkGraph) : layoutWithDefaultElk(rawElkGraph)) as ElkNode;
+    const result = await (opt?.elk
+        ? abortable(opt.elk.layout(rawElkGraph), signal)
+        : layoutWithDefaultElk(rawElkGraph, signal)) as ElkNode;
+
+    // Aborted after ELK settled, but before the result was applied.
+    throwIfAborted(signal);
 
     // Wraps the import in a single batch, so it emits one combined change instead of
     // one per element/port/link. Closed even if a `set*Attributes` callback throws -

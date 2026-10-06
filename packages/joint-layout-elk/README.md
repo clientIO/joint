@@ -79,6 +79,8 @@ interface LayoutOptions {
     elkLayoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.json.edgeCoords': 'ROOT' }
     // A name for the layout batch, grouping everything `layout()` applies into one graph change.
     batchName?: string; // Default: 'layout'
+    // Aborts the layout - `layout()` rejects with the signal's reason and applies nothing.
+    signal?: AbortSignal;
 
     // Export callbacks (JointJS graph -> ELK graph) - see below.
     exportElement?: ExportElementCallback;
@@ -115,6 +117,30 @@ type SetElementAttributesCallback = (params: { element: dia.Element; attributes:
 type SetPortAttributesCallback = (params: { element: dia.Element; portId: string; attributes: { position: { args: dia.Point }; label?: { position: { args: dia.Point } } }; elkPort: ElkPort }) => void;
 type SetLinkAttributesCallback = (params: { link: dia.Link; attributes: { vertices: dia.Point[]; source?: dia.Link.EndJSON; target?: dia.Link.EndJSON; labels?: dia.Link.Label[] }; elkEdge: ElkExtendedEdge }) => void;
 ```
+
+### Aborting a layout
+
+`layout()` is asynchronous, so the graph may change while ELK is still computing - pass an `AbortSignal` to drop a layout that is no longer wanted (or takes too long). An aborted `layout()` rejects with the signal's reason (an `AbortError` `DOMException` by default) and applies nothing to the graph.
+
+```ts
+let controller: AbortController | undefined;
+
+async function runLayout() {
+    // Only the latest layout is applied.
+    controller?.abort();
+    controller = new AbortController();
+    try {
+        await layout({ graph }, { signal: controller.signal });
+    } catch (error) {
+        if ((error as Error).name !== 'AbortError') throw error;
+    }
+}
+
+// Give up after 5 seconds.
+await layout({ graph }, { signal: AbortSignal.timeout(5000) });
+```
+
+ELK can't stop a layout in progress, so a layout the default Web Worker is busy with is stopped by terminating the worker - a new one takes over the layouts still waiting. A layout on the main thread, or in a custom `elk` instance, keeps running - only its result is ignored (call `elk.terminateWorker()` yourself to stop a custom one).
 
 ## ⚠️ Caveats & Known Limitations
 
