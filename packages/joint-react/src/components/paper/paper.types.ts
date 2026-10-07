@@ -264,7 +264,9 @@ interface PaperSupportedOptions {
   readonly cellViewNamespace?: dia.Paper.Options['cellViewNamespace'];
   /**
    * Namespace of layer-view constructors used to resolve custom paper layers.
-   * @default JointJS built-in layer views
+   * Merged on top of the built-ins, which render plain graph layers through
+   * the `@joint/react` {@link LayerView}.
+   * @default JointJS built-in layer views plus the `@joint/react` layer view
    */
   readonly layerViewNamespace?: dia.Paper.Options['layerViewNamespace'];
   /**

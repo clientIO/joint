@@ -1,5 +1,7 @@
 export * from './use-cells';
 export * from './use-cell';
+export * from './use-layers';
+export * from './use-layer';
 export * from './use-graph';
 export * from './use-paper';
 export * from './use-measure-element';
