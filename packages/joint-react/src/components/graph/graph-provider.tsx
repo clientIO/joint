@@ -250,7 +250,13 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
         return;
       }
       if (isControlled) {
-        applyControlled(cells, undefined, layersToApply());
+        // Same React-origin apply as the effect below: guarded so the parent's
+        // own layers do not echo, and recorded so the next commit skips them.
+        const nextLayers = layersToApply();
+        isApplyingLayersRef.current = true;
+        applyControlled(cells, undefined, nextLayers);
+        isApplyingLayersRef.current = false;
+        if (nextLayers) lastAppliedLayersRef.current = nextLayers;
       }
     });
     // Controlled layers ride along with controlled cells in ONE commit: joint-core
@@ -304,6 +310,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
       isApplyingLayersRef.current = true;
       applyLayers(controlledLayers);
       isApplyingLayersRef.current = false;
+      lastAppliedLayersRef.current = controlledLayers;
     };
     return graphProjection.layers.subscribe(() => {
       // A React-origin apply re-reads the store synchronously; that is the

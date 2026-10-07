@@ -2,4 +2,4 @@
 "@joint/react": minor
 ---
 
-LayerModel / LayerView - add the layer presets registered for plain layers, and a `layerNamespace` prop
+LayerModel - add the layer model preset registered for plain graph layers

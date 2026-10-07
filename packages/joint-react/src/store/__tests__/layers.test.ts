@@ -265,6 +265,23 @@ describe('assertLayerRecords', () => {
     );
   });
 
+  it('rejects a type that only resolves through the prototype chain', () => {
+    expect(() => assertLayerRecords(createGraph(), [{ id: 'a', type: 'constructor' }])).toThrow(
+      /layer "a" has type "constructor"/
+    );
+  });
+
+  it('rejects a new type for a layer that already exists', () => {
+    class TintLayer extends dia.GraphLayer {}
+    const graph = new dia.Graph(
+      {},
+      { cellNamespace: DEFAULT_CELL_NAMESPACE, layerNamespace: { TintLayer } }
+    );
+    expect(() => assertLayerRecords(graph, [{ id: 'cells', type: 'TintLayer' }])).toThrow(
+      /layer "cells" already exists with another type/
+    );
+  });
+
   it('accepts unique ids and registered types', () => {
     class TintLayer extends dia.GraphLayer {}
     const graph = new dia.Graph(

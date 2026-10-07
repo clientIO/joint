@@ -1,4 +1,4 @@
-import { dia, util } from '@joint/core';
+import { dia } from '@joint/core';
 import type { LayerPatch, LayerRecord } from '../types/layer.types';
 import { forgetLayerNotEmptyWarning, warnLayerNotEmpty } from '../utils/dev-warnings';
 import { isShallowEqual } from '../utils/selector-utils';
@@ -88,15 +88,23 @@ export function readLayerRecords(
  * @param type - The layer `type` attribute.
  */
 function isRegisteredLayerType(graph: dia.Graph, type: string): boolean {
-  const namespace: unknown = graph.layerCollection.layerNamespace;
-  return isRecord(namespace) && typeof util.getByPath(namespace, type, '.') === 'function';
+  // Own keys only: `util.getByPath` also walks the prototype chain, so a type
+  // such as `constructor` or `toString` would pass here and then fail inside
+  // joint-core, halfway through the apply.
+  let current: unknown = graph.layerCollection.layerNamespace;
+  for (const key of type.split('.')) {
+    if (!isRecord(current) || !Object.hasOwn(current, key)) return false;
+    current = current[key];
+  }
+  return typeof current === 'function';
 }
 
 /**
  * Throws on a layer list joint-core would reject or silently collapse: an
  * empty id, an id declared twice (layers are keyed by id, so the graph could
- * never match the array), or a `type` with no constructor in the graph's
- * `layerNamespace`. Runs before any write, so a bad array leaves the graph —
+ * never match the array), a `type` with no constructor in the graph's
+ * `layerNamespace`, or a `type` that differs from the existing layer's (a
+ * layer's class is fixed at creation, so the change would be ignored). Runs before any write, so a bad array leaves the graph —
  * and any open batch — untouched.
  * @param graph - The target graph.
  * @param layers - The declared layers.
@@ -111,6 +119,12 @@ export function assertLayerRecords(graph: dia.Graph, layers: readonly LayerRecor
     if (typeof type === 'string' && !isRegisteredLayerType(graph, type)) {
       throw new Error(
         `GraphProvider: layer "${id}" has type "${type}", which is not in the graph's \`layerNamespace\`.`
+      );
+    }
+    if (typeof type === 'string' && graph.hasLayer(id) && graph.getLayer(id).get('type') !== type) {
+      throw new Error(
+        `GraphProvider: layer "${id}" already exists with another type than "${type}". ` +
+          'A layer type is fixed at creation - declare the new type under a new id.'
       );
     }
   }

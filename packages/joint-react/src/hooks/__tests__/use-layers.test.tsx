@@ -446,3 +446,47 @@ describe('controlled cells + layers on an imperative fromJSON()', () => {
     expect(graph.getCell('c').layer()).toBe('x');
   });
 });
+
+// Regression: the cell-commit re-apply of a controlled provider (no
+// `onCellsChange`) applied the layers outside the React-origin guard and never
+// recorded them as applied, so the parent's own array echoed through
+// `onLayersChange` and every later cell commit reconciled the layers again.
+const moveCell = () => storeRef!.graph.getCell('b').set('position', { x: 10, y: 10 });
+
+describe('controlled cells + layers after a graph-origin layer change', () => {
+  const LAYERS: readonly LayerRecord[] = [{ id: 'background' }];
+
+  it('re-applies the layers once, then does no layer work on later cell commits', async () => {
+    await mountBoth({ layers: LAYERS, cells: CELLS });
+    await commit(() => {
+      storeRef!.graph.addLayer({ id: 'stray' });
+    });
+    expect(storeRef!.graph.hasLayer('stray')).toBe(false);
+
+    const getDefaultLayer = jest.spyOn(storeRef!.graph, 'getDefaultLayer');
+    await commit(moveCell);
+    expect(getDefaultLayer).not.toHaveBeenCalled();
+  });
+
+  it('does not echo the re-applied array to a parent that ignored the change', async () => {
+    const onLayersChange = jest.fn();
+    render(
+      <GraphProvider layers={LAYERS} cells={CELLS} onLayersChange={onLayersChange}>
+        <StoreProbe />
+      </GraphProvider>
+    );
+    await waitFor(() => expect(storeRef).toBeDefined());
+    await commit(() => {
+      storeRef!.graph.addLayer({ id: 'stray' });
+    });
+    expect(onLayersChange).toHaveBeenCalledTimes(1);
+
+    await commit(moveCell);
+    expect(storeRef!.graph.hasLayer('stray')).toBe(false);
+    expect(onLayersChange).toHaveBeenCalledTimes(1);
+
+    const getDefaultLayer = jest.spyOn(storeRef!.graph, 'getDefaultLayer');
+    await commit(moveCell);
+    expect(getDefaultLayer).not.toHaveBeenCalled();
+  });
+});
