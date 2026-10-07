@@ -8,8 +8,8 @@
 #     PR titled "Version Packages".
 #   * `publish` - the release PR has been merged, so the versions in `master`
 #     are ahead of what is on npm. The workflow builds the workspace, publishes
-#     every changed public package, and creates a git tag + GitHub Release per
-#     published package.
+#     every changed public package, creates a git tag + GitHub Release per
+#     published package, and finally resets `prod` to the released commit.
 #
 # Nothing is published until the release PR is merged by a maintainer.
 #
@@ -43,6 +43,7 @@ jobs:
       contents: read
     outputs:
       mode: ${{ steps.select-mode.outputs.mode }}
+
     steps:
       - name: Checkout joint
         id: checkout-joint
@@ -64,8 +65,20 @@ jobs:
             .yarn/cache
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
+      # `PUPPETEER_SKIP_DOWNLOAD` is what keeps this step green. Four packages
+      # depend on `puppeteer`, the `node-modules` linker gives each one a copy
+      # of its own, and Yarn runs every copy's `postinstall` concurrently - all
+      # four into the one shared `~/.cache/puppeteer`. `@puppeteer/browsers`
+      # downloads a browser to a fixed archive path, unpacks it and then deletes
+      # it, with no locking, so whichever process gets there first deletes the
+      # archive the others are still unpacking and they die on `ENOENT`.
+      #
+      # NOTE: unlike the workflows that test, nothing is installed in their
+      # place - no job of this workflow launches a browser.
       - name: Install dependencies
         id: install-dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
         run: yarn install --immutable
 
       - name: Select Changesets mode
@@ -80,6 +93,7 @@ jobs:
     permissions:
       contents: write # commit the version bumps
       pull-requests: write # open the release PR
+
     steps:
       - name: Checkout joint
         id: checkout-joint
@@ -101,8 +115,11 @@ jobs:
             .yarn/cache
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
+      # See the install step of `select-mode` above for `PUPPETEER_SKIP_DOWNLOAD`
       - name: Install dependencies
         id: install-dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
         run: yarn install --immutable
 
       # Runs `changeset version` and pushes the result to `changeset-release/master`.
@@ -117,10 +134,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # push git tags and create GitHub Releases
+
     steps:
       - name: Checkout joint
         id: checkout-joint
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js v22
         id: setup-node
@@ -137,8 +157,12 @@ jobs:
             .yarn/cache
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
+      # See the install step of `select-mode` above for `PUPPETEER_SKIP_DOWNLOAD`.
+      # `yarn dist` builds only - it runs no test, so it launches no browser.
       - name: Install dependencies
         id: install-dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
         run: yarn install --immutable
 
       - name: Build packages
@@ -153,3 +177,13 @@ jobs:
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           # No `NODE_AUTH_TOKEN` on purpose (must use Yarn)
+
+      # Mirror the released commit onto `prod`.
+      - name: Update `prod` branch
+        id: update-prod
+        if: ${{ steps.publish-packages.outputs.published == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X PATCH "repos/${{ github.repository }}/git/refs/heads/prod" \
+            -f sha='${{ github.sha }}' -F force=true

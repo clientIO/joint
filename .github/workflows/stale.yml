@@ -8,7 +8,10 @@ name: Mark stale issues/PR
 on:
   workflow_dispatch:
   schedule:
-  - cron: '0 0 * * *'
+    - cron: '0 0 * * *'
+
+# Reset permissions and grant them explicitly per job.
+permissions: {}
 
 jobs:
   stale:
@@ -19,15 +22,15 @@ jobs:
       pull-requests: write
 
     steps:
-    - uses: actions/stale@v11
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        stale-issue-message: 'This issue is stale because it has been open 60 days with no activity. Please remove stale label or comment or this will be closed in 14 days.'
-        stale-pr-message: 'This PR is stale because it has been open 60 days with no activity. Please remove stale label or comment or this will be closed in 14 days.'
-        stale-issue-label: 'stale'
-        stale-pr-label: 'stale'
-        days-before-stale: 60
-        days-before-close: 14
-        exempt-issue-labels: 'bug,candidate feature,enhancement,technical debt'
-        exempt-draft-pr: true
-        operations-per-run: 999
+      - uses: actions/stale@v11
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: 'This issue is stale because it has been open 60 days with no activity. Please remove stale label or comment or this will be closed in 14 days.'
+          stale-pr-message: 'This PR is stale because it has been open 60 days with no activity. Please remove stale label or comment or this will be closed in 14 days.'
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          days-before-stale: 60
+          days-before-close: 14
+          exempt-issue-labels: 'bug,candidate feature,enhancement,technical debt'
+          exempt-draft-pr: true
+          operations-per-run: 999

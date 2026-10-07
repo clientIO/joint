@@ -23,12 +23,16 @@ function setupWithSize() {
   const graph = createGraph();
   const onChanges = jest.fn();
   const onElementsSizeChange = jest.fn();
+  const onElementRemove = jest.fn();
+  const onReset = jest.fn();
   const controller = graphChanges({
     graph,
     onChanges,
     onElementsSizeChange,
+    onElementRemove,
+    onReset,
   });
-  return { graph, onChanges, onElementsSizeChange, controller };
+  return { graph, onChanges, onElementsSizeChange, onElementRemove, onReset, controller };
 }
 
 function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50) {
@@ -479,7 +483,33 @@ describe('graphChanges', () => {
       );
     });
 
-    it('fires when ResizeObserver sets size via fromMeasure flag', () => {
+    it('fires onReset before the seed cells\' size notifications', () => {
+      const { graph, onElementsSizeChange, onReset } = setupWithSize();
+      onReset.mockImplementation(() => {
+        expect(onElementsSizeChange).not.toHaveBeenCalled();
+      });
+      graph.resetCells([
+        { id: 'a', type: 'element', position: { x: 0, y: 0 }, size: { width: 100, height: 50 } },
+      ]);
+
+      expect(onReset).toHaveBeenCalledTimes(1);
+      expect(onElementsSizeChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('fires onElementRemove for elements only', () => {
+      const { graph, onElementRemove } = setupWithSize();
+      addElement(graph, 'a');
+      addElement(graph, 'b');
+      addLink(graph, 'l1', 'a', 'b');
+
+      graph.getCell('l1').remove();
+      expect(onElementRemove).not.toHaveBeenCalled();
+
+      graph.getCell('a').remove();
+      expect(onElementRemove).toHaveBeenCalledWith('a');
+    });
+
+    it('forwards the change:size options of a measurement write', () => {
       const { graph, onElementsSizeChange } = setupWithSize();
       graph.resetCells([
         {
@@ -492,9 +522,15 @@ describe('graphChanges', () => {
       onElementsSizeChange.mockClear();
 
       const cell = graph.getCell('a') as dia.Element;
-      cell.set('size', { width: 120, height: 60 }, { fromMeasure: true } as object);
+      cell.set('size', { width: 120, height: 60 }, { autoSize: true } as object);
 
-      expect(onElementsSizeChange).toHaveBeenCalledWith('a', { width: 120, height: 60 });
+      // The `change:size` options are forwarded so the store can tell a
+      // measurement write from an application resize (#3514).
+      expect(onElementsSizeChange).toHaveBeenCalledWith(
+        'a',
+        { width: 120, height: 60 },
+        expect.objectContaining({ autoSize: true })
+      );
     });
 
     it('does not fire for links on reset', () => {
