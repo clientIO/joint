@@ -45,7 +45,7 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
      * @defaultValue a shared instance running on the main thread (`elkjs/lib/elk.bundled.js`,
      * loaded on the first layout that needs it)
      * @example
-     * const elk = createWorkerElk(() => new Worker(new URL('elkjs/lib/elk-worker.min.js', import.meta.url)));
+     * const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
      * layout({ graph }, { elk });
      */
     elk?: WorkerElk | ELK;

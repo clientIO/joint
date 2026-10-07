@@ -201,11 +201,12 @@ export class ElkWorkerClient implements WorkerElk {
 /**
  * Creates an ELK instance running in a Web Worker, to pass to `layout()` as its `elk`
  * option - so a layout doesn't block the page. `createWorker` starts the worker, running
- * ELK's own worker script (`elkjs/lib/elk-worker.min.js`) - however your bundler loads a
- * worker script (see "Web Worker" in the README). It is called on the first layout, and
- * again whenever the worker is replaced (e.g. after an aborted layout).
+ * `@joint/layout-elk/worker` (ELK's own worker script, `elkjs/lib/elk-worker.min.js`) -
+ * however your bundler loads a worker script (see "Running ELK in a Web Worker" in the
+ * README). It is called on the first layout, and again whenever the worker is replaced
+ * (e.g. after an aborted layout).
  * @example
- * const elk = createWorkerElk(() => new Worker(new URL('elkjs/lib/elk-worker.min.js', import.meta.url)));
+ * const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
  * await layout({ graph }, { elk });
  */
 export function createWorkerElk(createWorker: () => Worker): WorkerElk {
