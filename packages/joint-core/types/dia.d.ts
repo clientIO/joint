@@ -840,7 +840,7 @@ export namespace Element {
 
     type PositionType = string | PortPositionCallback | PortPositionJSON;
 
-    type PortLabelPositionType = PortLabelPositionCallback | PortPositionJSON;
+    type PortLabelPositionType = PortLabelPositionCallback | PortLabelPositionJSON;
 
     interface PortGroup {
         position?: PositionType;
@@ -977,7 +977,11 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     getPortGroupNames(): string[];
 
+    portProp(portId: string): Element.Port;
+
     portProp(portId: string, path: Path): any;
+
+    portProp(portId: string, object: DeepPartial<Element.Port>, opt?: S): Element;
 
     portProp(portId: string, path: Path, value?: any, opt?: S): Element;
 
