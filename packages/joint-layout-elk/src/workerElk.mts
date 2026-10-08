@@ -37,8 +37,10 @@ export interface WorkerElk {
  * `elkjs/lib/elk-api.js`, which can neither cancel a layout nor settle one whose worker
  * fails or is terminated.
  *
- * The worker lays out one graph at a time, in the order they were posted - `jobs` keeps
- * that order, so its first job is the one the worker is busy with.
+ * The worker lays out one graph at a time, in the order they were posted. `jobs` holds the
+ * layouts not settled yet, `posted` the ids sent to the current worker that it hasn't
+ * answered yet - including those of layouts aborted while waiting their turn, which it
+ * still lays out - so the first of `posted` is the one the worker is busy with.
  */
 export class ElkWorkerClient implements WorkerElk {
 
@@ -46,6 +48,7 @@ export class ElkWorkerClient implements WorkerElk {
     // Whether the worker has answered its first message - i.e. its script loaded and runs.
     private isLoaded = false;
     private readonly jobs = new Map<number, LayoutJob>();
+    private posted: number[] = [];
     private nextId = REGISTER_ID + 1;
 
     constructor(private readonly createWorker: () => Worker) {}
@@ -120,13 +123,26 @@ export class ElkWorkerClient implements WorkerElk {
             }
         });
         worker.postMessage({ id: REGISTER_ID, cmd: 'register', algorithms: ALGORITHMS });
-        this.jobs.forEach((job) => this.post(job));
+        // A copy - `post()` drops a job that can't be posted.
+        Array.from(this.jobs.values()).forEach((job) => this.post(job));
     }
 
+    /**
+     * Posts `job` to the worker - or, if it can't be (e.g. a `DataCloneError` for a value
+     * an export callback left in the ELK graph that can't be cloned), rejects it.
+     */
     private post(job: LayoutJob): void {
-        // The worker gets its own (structured) clone of `graph` - a job re-posted after a
-        // restart starts from the original.
-        this.worker?.postMessage({ id: job.id, cmd: 'layout', graph: job.graph, layoutOptions: {}, options: {}});
+        if (!this.worker) return;
+        try {
+            // The worker gets its own (structured) clone of `graph` - a job re-posted after
+            // a restart starts from the original.
+            this.worker.postMessage({ id: job.id, cmd: 'layout', graph: job.graph, layoutOptions: {}, options: {}});
+        } catch (error) {
+            this.jobs.delete(job.id);
+            job.reject(error);
+            return;
+        }
+        this.posted.push(job.id);
     }
 
     private receive(data: { id: number, data?: ElkNode, error?: unknown }): void {
@@ -134,6 +150,7 @@ export class ElkWorkerClient implements WorkerElk {
             this.isLoaded = true;
             return;
         }
+        this.posted = this.posted.filter((id) => id !== data.id);
         const job = this.jobs.get(data.id);
         if (!job) return;
         this.jobs.delete(data.id);
@@ -151,18 +168,18 @@ export class ElkWorkerClient implements WorkerElk {
      */
     private cancel(job: LayoutJob): void {
         if (!this.jobs.has(job.id)) return;
-        const isRunning = this.jobs.keys().next().value === job.id;
         this.jobs.delete(job.id);
-        if (isRunning) this.restart();
+        if (this.posted[0] === job.id) this.restart();
     }
 
     /**
      * The worker crashed (after it loaded) - most likely because of the job it was busy
-     * with, which is rejected rather than retried. A new worker takes over the jobs still
-     * waiting.
+     * with, which is rejected rather than retried (unless it was aborted already). A new
+     * worker takes over the jobs still waiting.
      */
     private crash(event: ErrorEvent): void {
-        const [running] = this.jobs.values();
+        const [runningId] = this.posted;
+        const running = (runningId === undefined) ? undefined : this.jobs.get(runningId);
         if (running) {
             this.jobs.delete(running.id);
             const details = event.message ? ` (${event.message})` : '';
@@ -195,6 +212,7 @@ export class ElkWorkerClient implements WorkerElk {
     private stopWorker(): void {
         this.worker?.terminate();
         this.worker = undefined;
+        this.posted = [];
     }
 }
 
