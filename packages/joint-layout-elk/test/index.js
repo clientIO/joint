@@ -840,6 +840,23 @@ QUnit.module('layout()', () => {
             assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
         });
 
+        QUnit.test('should reject with the signal\'s reason even when it is `null`', async(assert) => {
+
+            const { graph } = createGraph();
+            const controller = new AbortController();
+
+            const result = joint.layout.ELK.layout({ graph }, { signal: controller.signal });
+            controller.abort(null);
+
+            let error = 'not rejected';
+            try {
+                await result;
+            } catch (reason) {
+                error = reason;
+            }
+            assert.strictEqual(error, null);
+        });
+
         QUnit.test('should apply the layout when the signal is not aborted', async(assert) => {
 
             const { graph, el1, el2 } = createGraph();
