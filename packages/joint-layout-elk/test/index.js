@@ -731,6 +731,34 @@ QUnit.module('layout()', () => {
         assert.equal(out2Label.height, 11);
     });
 
+    QUnit.test('should drop only that port\'s label when exportPortLabel returns false', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: {
+                groups: { out: { position: 'right' }},
+                items: [{ id: 'out1', group: 'out' }, { id: 'out2', group: 'out' }]
+            }
+        });
+
+        graph.resetCells([el1]);
+
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+            exportPortLabel: ({ portId, elkPortLabel }) => {
+                // Sized either way - `false` drops it regardless.
+                elkPortLabel.width = 40;
+                elkPortLabel.height = 20;
+                if (portId === 'out1') return false;
+            }
+        });
+
+        const elkNode = elkGraph.children.find((node) => node.id === 'a');
+        assert.deepEqual(elkNode.ports.find((port) => port.id === 'a:out1').labels, []);
+        assert.equal(elkNode.ports.find((port) => port.id === 'a:out2').labels.length, 1);
+    });
+
     QUnit.test('should return a zero-size bbox for an empty graph', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
