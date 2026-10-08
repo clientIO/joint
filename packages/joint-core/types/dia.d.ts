@@ -1095,14 +1095,14 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
     label(index?: number): Link.Label;
     label(index: number, label: Link.Label, opt?: S): this;
 
-    getComputedLabel(index?: number): Link.ComputedLabel | null;
+    protected getComputedLabel(index?: number): Link.ComputedLabel | null;
 
-    getComputedLabelPosition(index?: number): Link.ComputedLabelPosition | null;
+    protected getComputedLabelPosition(index?: number): Link.ComputedLabelPosition | null;
 
     labels(): Link.Label[];
     labels(labels: Link.Label[], opt?: S): this;
 
-    getComputedLabels(): Link.ComputedLabel[];
+    protected getComputedLabels(): Link.ComputedLabel[];
 
     hasLabels(): boolean;
 
@@ -1519,7 +1519,7 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
     getLabelPosition(x: number, y: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
     getLabelPosition(x: number, y: number, angle: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
 
-    getLabelCoordinates(labelPosition: Link.LabelPosition | Link.ComputedLabelPosition): g.Point;
+    getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
 
     getVertexIndex(x: number, y: number): number;
     getVertexIndex(point: Point): number;
