@@ -1034,6 +1034,27 @@ export namespace Link {
         position?: LabelPosition | number; // optional for default labels
         attrs?: Cell.Selectors;
         size?: Size;
+        // Any other custom property - passed
+        // through as-is by `Link#labels`/`Link#label`, whether set on the label itself or
+        // on `defaultLabel` (the label's own value wins).
+        [key: string]: any;
+    }
+
+    interface ComputedLabelPosition {
+        distance: number;
+        offset: number | { x: number, y: number };
+        angle: number;
+        args?: LinkView.LabelOptions | null;
+    }
+
+    interface ComputedLabel {
+        markup: string | MarkupJSON;
+        position: ComputedLabelPosition | null;
+        attrs?: Cell.Selectors | null;
+        size: Size;
+        // Any other custom property - passed
+        // through as-is from the label itself or from `defaultLabel`.
+        [key: string]: any;
     }
 
     interface Vertex extends Point {
@@ -1074,8 +1095,14 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
     label(index?: number): Link.Label;
     label(index: number, label: Link.Label, opt?: S): this;
 
+    protected getComputedLabel(index?: number): Link.ComputedLabel | null;
+
+    protected getComputedLabelPosition(index?: number): Link.ComputedLabelPosition | null;
+
     labels(): Link.Label[];
     labels(labels: Link.Label[], opt?: S): this;
+
+    protected getComputedLabels(): Link.ComputedLabel[];
 
     hasLabels(): boolean;
 
