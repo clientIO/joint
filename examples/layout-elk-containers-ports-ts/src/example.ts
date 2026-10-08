@@ -195,9 +195,6 @@ export const graphJSON: dia.Graph.JSON = {
             type: 'example.InteractionLink',
             source: { id: 'backend' },
             target: { id: 'observability' },
-            // Overrides `InteractionLink.defaultLabel`'s `inline` (own value wins -
-            // see `Link#labels`) - floated beside the edge instead of centered directly on
-            // it, so it doesn't obscure a long aggregate link's whole path.
             labels: [{ attrs: { text: { text: 'metrics' } } }]
         },
         {

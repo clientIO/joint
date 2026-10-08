@@ -205,7 +205,6 @@ export class InteractionLink extends shapes.standard.Link {
             },
             defaultLabel: {
                 size: { width: 80, height: 20 },
-                inline: true,
                 attrs: {
                     text: {
                         class: 'md-chip-text'
