@@ -1018,6 +1018,71 @@ QUnit.module('layout()', () => {
         assert.deepEqual(elkGraph.edges, []);
     });
 
+    QUnit.test('should lay out a container whose embeds exportElement all dropped as a leaf, with its own size', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const container = new joint.shapes.standard.Rectangle({ id: 'container', size: { width: 300, height: 200 }});
+        const child = new joint.shapes.standard.Rectangle({ id: 'child', size: { width: 50, height: 50 }});
+        const other = new joint.shapes.standard.Rectangle({ id: 'other', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'container' }, target: { id: 'other' }});
+        container.embed(child);
+
+        graph.resetCells([container, child, other, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+            exportElement: ({ element }) => element.id !== 'child'
+        });
+
+        const elkNode = elkGraph.children.find((node) => node.id === 'container');
+        assert.notOk(elkNode.children && elkNode.children.length);
+        assert.equal(elkNode.width, 300);
+        assert.equal(elkNode.height, 200);
+        // ELK made room for it - and it kept its size.
+        assert.deepEqual(container.size(), { width: 300, height: 200 });
+        assert.notOk(joint.g.intersection.exists(container.getBBox(), other.getBBox()));
+    });
+
+    QUnit.test('should keep ELK ids unique whatever the cell and port ids', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const size = { width: 100, height: 100 };
+        // Element `a`'s port `p` would share its ELK id with element `a:p`, and element
+        // `root` with the root node, without escaping.
+        const a = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size,
+            ports: { groups: { in: { position: 'left' }}, items: [{ id: 'p', group: 'in' }] }
+        });
+        const ap = new joint.shapes.standard.Rectangle({ id: 'a:p', size });
+        const root = new joint.shapes.standard.Rectangle({ id: 'root', size });
+        const b = new joint.shapes.standard.Rectangle({ id: 'b\\', size });
+        const toPort = new joint.shapes.standard.Link({ id: 'l1', source: { id: 'b\\' }, target: { id: 'a', port: 'p' }});
+        const toElement = new joint.shapes.standard.Link({ id: 'l:2', source: { id: 'b\\' }, target: { id: 'a:p' }});
+        const toRoot = new joint.shapes.standard.Link({ id: 'l3', source: { id: 'b\\' }, target: { id: 'root' }});
+
+        graph.resetCells([a, ap, root, b, toPort, toElement, toRoot]);
+
+        const { elkGraph } = await joint.layout.ELK.layout({ graph });
+
+        const nodeIds = elkGraph.children.map((node) => node.id);
+        assert.deepEqual(nodeIds, ['a', 'a\\:p', 'root', 'b\\\\']);
+        assert.deepEqual(elkGraph.children[0].ports.map((port) => port.id), ['a:p']);
+        assert.notOk(nodeIds.includes(elkGraph.id));
+
+        const targetsByEdgeId = {};
+        elkGraph.edges.forEach((edge) => { targetsByEdgeId[edge.id] = edge.targets; });
+        assert.deepEqual(targetsByEdgeId, { l1: ['a:p'], 'l\\:2': ['a\\:p'], l3: ['root'] });
+
+        // Every element laid out where ELK put it, and every link routed - the one to the
+        // element (not the port) anchored on it.
+        const elements = [a, ap, root, b];
+        elements.forEach((el1, i) => elements.slice(i + 1).forEach((el2) => {
+            assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()), `${el1.id} / ${el2.id}`);
+        }));
+        assert.ok(toElement.target().anchor);
+        assert.notOk(toPort.target().anchor);
+    });
+
     QUnit.test('should drop only that port when exportPort returns false, falling the edge back to the element', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
