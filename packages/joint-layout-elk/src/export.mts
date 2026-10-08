@@ -378,8 +378,12 @@ function buildEdge(link: dia.Link): void {
 
     // Resolved (`link.getComputedLabels()`) - `size` falls back through `defaultLabel`/the
     // built-in default the same way `@joint/core` itself resolves it for rendering, so it
-    // can be read directly here instead of from the label's raw JSON.
-    const resolvedLabels = link.getComputedLabels();
+    // can be read directly here instead of from the label's raw JSON. The method is
+    // `protected` in `@joint/core`'s types, but it is on every link at runtime - and this
+    // package is released together with `@joint/core`.
+    const resolvedLabels = (link as unknown as {
+        getComputedLabels(): dia.Link.ComputedLabel[];
+    }).getComputedLabels();
     let labels: ElkLabel[] = [];
     if (resolvedLabels.length > 0) {
         labels = resolvedLabels.reduce((result: ElkLabel[], label, labelIndex) => {
