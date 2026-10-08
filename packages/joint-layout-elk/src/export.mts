@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import { getLinkLabelId } from './labelIds.mjs';
+import { ELK_ROOT_ID, getElkEdgeId, getElkNodeId, getElkPortId, getLinkLabelId } from './elkIds.mjs';
 
 import type {
     ElkNode,
@@ -29,6 +29,7 @@ export interface ElkLabelDraft {
 
 /** An ELK node draft, one per JointJS element. */
 export interface ElkNodeDraft {
+    /** The element's id - with any `\` and `:` in it escaped with a `\`. */
     readonly id: string;
     /** Relative to the parent node. */
     x?: number;
@@ -58,6 +59,7 @@ export type ExportElementCallbackParameters = {
 
 /** An ELK port draft, one per JointJS port. */
 export interface ElkPortDraft {
+    /** `<element id>:<port id>` - with any `\` and `:` in either escaped with a `\`. */
     readonly id: string;
     x: number;
     y: number;
@@ -80,6 +82,7 @@ export type ExportPortCallbackParameters = {
 
 /** An ELK edge draft, one per JointJS link. */
 export interface ElkEdgeDraft {
+    /** The link's id - with any `\` and `:` in it escaped with a `\`. */
     readonly id: string;
     layoutOptions: EdgeElkLayoutOptions;
 }
@@ -209,7 +212,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
 
     element.getPorts().forEach((port) => {
         const portId = `${port.id}`;
-        const elkPortId = `${element.id}:${portId}`;
+        const elkPortId = getElkPortId(element, portId);
 
         // ELK takes a port's top-left corner, not its center. No `elk.port.borderOffset`:
         // ELK places the port just outside the border, and `importLayout` moves its center
@@ -264,7 +267,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
  * can end up referencing it.
  */
 function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
-    const id = `${element.id}`;
+    const id = getElkNodeId(element);
 
     const embeds = getEmbeddedElements(element);
 
@@ -299,10 +302,19 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
         children = embeds
             .map((embed) => buildElkNode(embed, id))
             .filter((node): node is ElkNode => node !== null);
-        // Shared with `edgeContainersById` (see there) - edges filed under this container
-        // by `buildEdge` need to end up on the node itself.
-        edges = [];
-        edgeContainersById.set(id, edges);
+        if (children.length > 0) {
+            // Shared with `edgeContainersById` (see there) - edges filed under this
+            // container by `buildEdge` need to end up on the node itself.
+            edges = [];
+            edgeContainersById.set(id, edges);
+        } else {
+            // `exportElement` dropped every embed - laid out as a leaf, with its own size
+            // in place of the container placeholder (unless `exportElement` set one).
+            children = undefined;
+            if (elkNode.width === 0 && elkNode.height === 0) {
+                ({ width: elkNode.width, height: elkNode.height } = element.size());
+            }
+        }
     }
 
     return {
@@ -318,7 +330,7 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
 // immediate parent.
 function getAncestorPath(element: dia.Element): string[] {
     const path: string[] = [];
-    let parentId = elkParentIdsById.get(`${element.id}`);
+    let parentId = elkParentIdsById.get(getElkNodeId(element));
     while (parentId !== undefined) {
         path.unshift(parentId);
         parentId = elkParentIdsById.get(parentId);
@@ -350,9 +362,9 @@ function buildEdge(link: dia.Link): void {
     if (!sourceElement || !targetElement) return;
     // Covers both a link connected to an element `exportElement` dropped, and one
     // connected to an element that was never part of the layout to begin with.
-    if (!elementsById.has(`${sourceElement.id}`) || !elementsById.has(`${targetElement.id}`)) return;
+    if (!elementsById.has(getElkNodeId(sourceElement)) || !elementsById.has(getElkNodeId(targetElement))) return;
 
-    const id = `${link.id}`;
+    const id = getElkEdgeId(link);
 
     const sourcePort = link.source().port;
     const targetPort = link.target().port;
@@ -360,11 +372,11 @@ function buildEdge(link: dia.Link): void {
     // A port `exportPort` dropped falls back to anchoring the edge on the element
     // itself, same as a naturally portless connection.
     const sources = (sourcePort && !isPortExcluded(sourceElement, sourcePort))
-        ? [`${sourceElement.id}:${sourcePort}`]
-        : [`${sourceElement.id}`];
+        ? [getElkPortId(sourceElement, `${sourcePort}`)]
+        : [getElkNodeId(sourceElement)];
     const targets = (targetPort && !isPortExcluded(targetElement, targetPort))
-        ? [`${targetElement.id}:${targetPort}`]
-        : [`${targetElement.id}`];
+        ? [getElkPortId(targetElement, `${targetPort}`)]
+        : [getElkNodeId(targetElement)];
 
     const elkEdge: ElkEdgeDraft = {
         id,
@@ -446,7 +458,7 @@ export function exportGraph(
         .filter((node): node is ElkNode => node !== null);
 
     const elkGraph: ElkNode = {
-        id: 'root',
+        id: ELK_ROOT_ID,
         layoutOptions: elkLayoutOptions,
         children,
         edges: []

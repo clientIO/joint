@@ -2,7 +2,7 @@ import { type dia, g } from '@joint/core';
 import type { ElkPoint } from 'elkjs';
 import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
 import type { ElkGraphPort } from './export.mjs';
-import { getLinkLabelIndex } from './labelIds.mjs';
+import { getLinkLabelIndex } from './elkIds.mjs';
 
 /** Applies the ELK-computed position (and, for a container, size) to `element`. */
 export type SetElementAttributesCallback = (params: SetElementAttributesCallbackParameters) => void;
