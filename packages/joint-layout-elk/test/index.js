@@ -1241,4 +1241,73 @@ QUnit.module('createWorkerElk()', (hooks) => {
         assert.equal(startedWorkers.length, 2);
         assert.ok(isLaidOut(next));
     });
+    // Settles as `promise` does, or with 'pending' if it hasn't within `ms` - so a layout
+    // left pending fails its test instead of hanging the suite.
+    const settledWithin = (promise, ms) => Promise.race([
+        promise.then(() => 'resolved', (error) => `rejected: ${error.message}`),
+        new Promise((resolve) => setTimeout(() => resolve('pending'), ms))
+    ]);
+
+    QUnit.test('should not blame a crash during a layout aborted while waiting on the layout waiting behind it', async(assert) => {
+
+        const elk = createElk();
+        const controller = new AbortController();
+
+        const first = createGraph();
+        const firstResult = joint.layout.ELK.layout({ graph: first.graph }, { elk });
+        const abortedResult = joint.layout.ELK.layout({ graph: createGraph().graph }, { elk, signal: controller.signal });
+        controller.abort();
+        await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
+        await firstResult;
+
+        // The worker is busy with the aborted layout now (its result ignored) - `waiting`
+        // waits behind it, and the crash is no fault of its own.
+        const waiting = createGraph();
+        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph }, { elk });
+        startedWorkers[0].dispatchEvent(new ErrorEvent('error', { message: 'out of memory' }));
+
+        assert.equal(await settledWithin(waitingResult, 5000), 'resolved');
+        assert.equal(startedWorkers.length, 2);
+        assert.ok(isLaidOut(waiting));
+    });
+
+    QUnit.test('should reject a layout that can\'t be posted to the worker - without holding up the others', async(assert) => {
+
+        const elk = createElk();
+        // Started and loaded.
+        await joint.layout.ELK.layout(createGraph(), { elk });
+
+        // A function can't be cloned into the worker.
+        const unpostable = createGraph();
+        await assert.rejects(joint.layout.ELK.layout({ graph: unpostable.graph }, {
+            elk,
+            exportElement: ({ elkNode }) => {
+                elkNode.layoutOptions['elk.custom'] = () => {};
+            }
+        }), (error) => error.name === 'DataCloneError');
+        assert.notOk(isLaidOut(unpostable));
+
+        // Aborting the layout the worker is busy with still terminates it - a new worker
+        // takes over the one waiting.
+        const controller = new AbortController();
+        const abortedResult = joint.layout.ELK.layout(createGraph(), { elk, signal: controller.signal });
+        const waiting = createGraph();
+        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph }, { elk });
+        controller.abort();
+        await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
+        assert.equal(await settledWithin(waitingResult, 5000), 'resolved');
+        assert.equal(startedWorkers.length, 2);
+        assert.ok(isLaidOut(waiting));
+
+        // A crash rejects the layout the worker is busy with - and a new worker takes over
+        // the one waiting (the layout that couldn't be posted isn't re-posted either).
+        const crashedResult = joint.layout.ELK.layout(createGraph(), { elk });
+        const afterCrash = createGraph();
+        const afterCrashResult = joint.layout.ELK.layout({ graph: afterCrash.graph }, { elk });
+        startedWorkers[1].dispatchEvent(new ErrorEvent('error', { message: 'out of memory' }));
+        await assert.rejects(crashedResult, /the ELK worker crashed during the layout/);
+        assert.equal(await settledWithin(afterCrashResult, 5000), 'resolved');
+        assert.equal(startedWorkers.length, 3);
+        assert.ok(isLaidOut(afterCrash));
+    });
 });
