@@ -1,7 +1,9 @@
 // Not part of the public API (not re-exported from `index.mts`).
 
+// The signal's reason - whatever it is, `null` included. Only where the browser doesn't
+// support `reason` (it is `undefined` then) a default one is made up.
 export function getAbortReason(signal: AbortSignal): unknown {
-    return signal.reason ?? new DOMException('The layout was aborted.', 'AbortError');
+    return (signal.reason !== undefined) ? signal.reason : new DOMException('The layout was aborted.', 'AbortError');
 }
 
 export function throwIfAborted(signal: AbortSignal | undefined): void {
