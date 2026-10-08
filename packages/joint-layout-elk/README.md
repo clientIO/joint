@@ -14,6 +14,19 @@ This library depends on [JointJS](https://github.com/clientio/joint) (*>=4.0*), 
 npm install @joint/layout-elk
 ```
 
+#### UMD build (script tags)
+
+`dist/umd/index.js` keeps `@joint/core` and `elkjs` external - load both first: `@joint/core` as the `joint` global, and `elkjs/lib/elk.bundled.js` as the `ELK` global, which `layout()` runs on the main thread. The package then is `joint.layout.ELK`.
+
+```html
+<script src="node_modules/@joint/core/dist/joint.min.js"></script>
+<script src="node_modules/elkjs/lib/elk.bundled.js"></script>
+<script src="node_modules/@joint/layout-elk/dist/umd/index.min.js"></script>
+<script>
+    joint.layout.ELK.layout({ graph }).then(({ bbox }) => { /* ... */ });
+</script>
+```
+
 ### Basic Usage
 
 ```ts
@@ -120,7 +133,7 @@ type SetLinkAttributesCallback = (params: { link: dia.Link; attributes: { vertic
 
 ### Running ELK in a Web Worker
 
-By default, `layout()` runs ELK on the main thread - nothing to set up, and it works anywhere (browsers, Node/SSR, tests, the UMD build). ELK blocks the page while it runs, though: a few milliseconds for a small graph, but up to seconds for one with thousands of elements. To keep the page responsive, run ELK in a Web Worker instead - start one with `createWorkerElk()` and pass it to `layout()` as `elk`:
+By default, `layout()` runs ELK on the main thread - nothing to set up with a bundler or in Node, and it works anywhere (browsers, Node/SSR, tests, and the UMD build once `elkjs` is loaded - see "UMD build" above). ELK blocks the page while it runs, though: a few milliseconds for a small graph, but up to seconds for one with thousands of elements. To keep the page responsive, run ELK in a Web Worker instead - start one with `createWorkerElk()` and pass it to `layout()` as `elk`:
 
 ```ts
 import { layout, createWorkerElk } from '@joint/layout-elk';
@@ -181,7 +194,7 @@ ELK can't stop a layout in progress, so a layout a `createWorkerElk()` worker is
 - **Node labels are not supported** - ELK's node-label placement assumes labels are layout participants, whereas JointJS labels are attrs inside the shape. Link labels are supported.
 - **Ports keep their JointJS-computed position by default** - every element with ports is exported with `elk.portConstraints: 'FIXED_POS'`, so ELK keeps each port where the element's port groups place it and edges route to/from that exact spot. Opt into ELK repositioning/reordering them by overriding it (e.g. `'FIXED_SIDE'`/`'FREE'`) in `exportElement` - setting it in `elkLayoutOptions` has no effect, since the per-node value takes precedence.
 - **Asynchronous** - unlike `@joint/layout-directed-graph`, `layout()` returns a `Promise`, since `elkjs` computes layouts asynchronously - even on the main thread.
-- **Main thread by default** - without an `elk` option, ELK runs on the main thread and blocks the page while it runs - see "Running ELK in a Web Worker" above. The main-thread copy of ELK (`elkjs/lib/elk.bundled.js`) is imported dynamically, so bundlers split it into a chunk of its own, only loaded by the first layout without an `elk` option.
+- **Main thread by default** - without an `elk` option, ELK runs on the main thread and blocks the page while it runs - see "Running ELK in a Web Worker" above. In the ESM build, the main-thread copy of ELK (`elkjs/lib/elk.bundled.js`) is imported dynamically, so bundlers split it into a chunk of its own, only loaded by the first layout without an `elk` option. The UMD build can't load a chunk - it uses the `ELK` global instead, which the page has to load first (see "UMD build" above).
 
 ## 📄 License
 
