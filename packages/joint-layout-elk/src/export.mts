@@ -94,6 +94,10 @@ export type ExportLinkCallbackParameters = {
     elkEdge: ElkEdgeDraft;
 };
 
+/**
+ * Size `elkPortLabel` (it starts at `0`x`0`, which leaves the port without a label in the
+ * ELK graph) for ELK to place the port's label, or return `false` to leave it out.
+ */
 export type ExportPortLabelCallback = (params: ExportPortLabelCallbackParameters) => void | false;
 export type ExportPortLabelCallbackParameters = {
     portId: string;
@@ -232,10 +236,10 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             layoutOptions: {}
         };
 
-        exportGraphOptions.exportPortLabel?.({ portId, element, elkPortLabel: portLabel });
+        const isLabelExported = exportGraphOptions.exportPortLabel?.({ portId, element, elkPortLabel: portLabel }) !== false;
 
         let labels: ElkLabel[] = [];
-        if (portLabel.width && portLabel.height) {
+        if (isLabelExported && portLabel.width && portLabel.height) {
             labels = [{
                 ...portLabel,
                 text: ELK_LABEL_TEXT
