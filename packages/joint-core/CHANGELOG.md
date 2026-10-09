@@ -1,5 +1,14 @@
 # @joint/core
 
+## 4.3.4
+
+### Patch Changes
+
+- dia.Link - refactor link labels resolution against `defaultLabel` and the built-in default label (d742fc60)
+- dia.ToolsView - fix a tool hidden with `hide()` right after `addTools()` reappearing when the update is deferred (e.g. `async: true`) (3de3381e)
+- routers.rightAngle - fix the link direction at ports of rotated elements and route around rotated elements (a255c1b3)
+- types - `cell.findView()` returns `ElementView` for `dia.Element` and `LinkView` for `dia.Link`; `paper.getCellView()` infers the view type from the model (72b79b41)
+
 ## 4.3.3
 
 ### Patch Changes
