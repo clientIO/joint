@@ -143,6 +143,11 @@ function isObviousHtml(input) {
     );
 }
 
+// A window is not array-like: its `length` is the number of its frames.
+export function isWindow(obj) {
+    return obj != null && obj === obj.window;
+}
+
 const Dom = function(selector) {
     if (!selector) {
         // HANDLE: $(""), $(null), $(undefined), $(false)
@@ -158,6 +163,12 @@ const Dom = function(selector) {
     }
     if (selector.nodeType) {
         // HANDLE: $(DOMElement)
+        this[0] = selector;
+        this.length = 1;
+        return this;
+    }
+    if (isWindow(selector)) {
+        // HANDLE: $(window)
         this[0] = selector;
         this.length = 1;
         return this;

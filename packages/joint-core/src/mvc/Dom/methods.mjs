@@ -1,5 +1,5 @@
 import { camelCase } from '../../util/utilHelpers.mjs';
-import $ from './Dom.mjs';
+import $, { isWindow } from './Dom.mjs';
 import V from '../../V/index.mjs';
 import { dataPriv, dataUser } from './vars.mjs';
 
@@ -294,7 +294,7 @@ export function off(types, selector, fn) {
 
 export function width() {
     const [el] = this;
-    if (el === window) return el.document.documentElement.clientWidth;
+    if (isWindow(el)) return el.document.documentElement.clientWidth;
     else if (!el) return undefined;
     const styles = window.getComputedStyle(el);
     const height = el.offsetWidth;
@@ -307,7 +307,7 @@ export function width() {
 
 export function height() {
     const [el] = this;
-    if (el === window) return el.document.documentElement.clientHeight;
+    if (isWindow(el)) return el.document.documentElement.clientHeight;
     if (!el) return undefined;
     const styles = window.getComputedStyle(el);
     const width = el.offsetHeight;
