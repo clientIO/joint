@@ -246,14 +246,14 @@ export function deepMixin(destinationObject: object, ...sourceObjects: object[])
 export function assign(destinationObject: object, ...sourceObjects: object[]): object;
 
 /** @deprecated use joint.util.defaults */
-export function supplement(destinationObject: object, ...sourceObjects: object[]): object;
+export function supplement(destinationObject: object, ...sourceObjects: (object | undefined)[]): object;
 
 /** @deprecated use joint.util.defaultsDeep */
-export function deepSupplement(destinationObject: object, ...sourceObjects: object[]): object;
+export function deepSupplement(destinationObject: object, ...sourceObjects: (object | undefined)[]): object;
 
-export function defaults(destinationObject: object, ...sourceObjects: object[]): object;
+export function defaults(destinationObject: object, ...sourceObjects: (object | undefined)[]): object;
 
-export function defaultsDeep(destinationObject: object, ...sourceObjects: object[]): object;
+export function defaultsDeep(destinationObject: object, ...sourceObjects: (object | undefined)[]): object;
 
 export function invoke(collection: Collection, methodPath: PropertyPath, args?: any[]): any[];
 export function invoke<ArgsT>(collection: Collection, functionToInvokeForAll: IterateeFunction<ArgsT>, ...args: ArgsT[]): any[];

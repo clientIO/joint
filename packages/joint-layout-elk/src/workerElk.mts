@@ -147,6 +147,14 @@ export class ElkWorkerClient implements WorkerElk {
 
     private receive(data: { id: number, data?: ElkNode, error?: unknown }): void {
         if (data.id === REGISTER_ID) {
+            // ELK answers a `register` that threw with an error in place of the
+            // acknowledgement. Its algorithms are gone, so every layout the worker is
+            // given would fail - the worker is replaced rather than kept as loaded.
+            if (data.error) {
+                this.stopWorker();
+                this.rejectAll(data.error);
+                return;
+            }
             this.isLoaded = true;
             return;
         }

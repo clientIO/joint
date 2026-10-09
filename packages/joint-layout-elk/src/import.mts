@@ -40,9 +40,9 @@ export type SetLinkAttributesCallbackParameters = {
     // Shaped for `link.set(attributes)`.
     attributes: {
         vertices: dia.Point[];
-        // Present only for an end not already connected to a port - carries the end's
-        // existing `id`/`port`/... alongside the new `anchor`, since `link.set(...)`
-        // replaces `source`/`target` outright rather than merging into them.
+        // Present only for an end ELK anchored on the element rather than on a port -
+        // carries the end's existing `id`/`port`/... alongside the new `anchor`, since
+        // `link.set(...)` replaces `source`/`target` outright rather than merging into them.
         source?: dia.Link.EndJSON;
         target?: dia.Link.EndJSON;
         // Present only when the link has labels - the whole current `labels` array,
@@ -58,10 +58,18 @@ export interface ImportLayoutOptions {
     setPortAttributes?: SetPortAttributesCallback;
 }
 
-// The anchor for a link end not connected to a port - computed the same way JointJS
-// computes one for a port-connected end, so both react the same way to future moves.
-function getPortlessEndAnchor(element: dia.Element, point: dia.Point): NonNullable<dia.Link.EndCellArgs['anchor']> {
-    const delta = element.getRelativePointFromAbsolute(point);
+// The anchor for a link end ELK routed to an element rather than to a port - computed the
+// same way JointJS computes one for a port-connected end, so both react the same way to
+// future moves. `useModelGeometry` measures `topLeft` from the port's bbox whenever the
+// end still carries a port, so the delta is taken from that same rect.
+function getElementAnchorAtPoint(
+    element: dia.Element,
+    portId: string | number | undefined | null,
+    point: dia.Point
+): NonNullable<dia.Link.EndCellArgs['anchor']> {
+    const delta = (portId !== undefined && portId !== null && element.hasPort(`${portId}`))
+        ? new g.Point(point).difference(element.getPortBBox(`${portId}`, { rotate: true }).topLeft())
+        : element.getRelativePointFromAbsolute(point);
     return {
         name: 'topLeft',
         args: {
@@ -69,6 +77,33 @@ function getPortlessEndAnchor(element: dia.Element, point: dia.Point): NonNullab
             dy: delta.y,
             useModelGeometry: true
         }
+    };
+}
+
+// A label's `distance` in `(0, 1]` is read back as a ratio of the link's length, not as a
+// length (see `LinkView.prototype._getLabelTransformationMatrix`) - a label that close to
+// the link's start is pinned to the start instead.
+function toLabelDistance(length: number): number {
+    return (length > 0 && length <= 1) ? 0 : length;
+}
+
+/**
+ * The end to write back, or `null` when ELK anchored it on a port - JointJS computes that
+ * anchor itself. The end's existing `id`/`port`/... is kept, since `link.set()` replaces
+ * `source`/`target` outright rather than merging into them.
+ */
+function buildEnd(
+    currentEnd: dia.Link.EndJSON,
+    refs: string[] | undefined,
+    point: dia.Point
+): dia.Link.EndJSON | null {
+    const [elkId] = refs || [];
+    if (elkId === undefined) return null;
+    const element = elementsById.get(elkId);
+    if (!element) return null;
+    return {
+        ...currentEnd,
+        anchor: getElementAnchorAtPoint(element, currentEnd.port, point)
     };
 }
 
@@ -137,26 +172,19 @@ function importEdges(edges: ElkExtendedEdge[] | undefined): void {
 
         const vertices = bendPoints.map(({ x, y }) => ({ x, y }));
 
-        // A port-connected end already has its anchor computed by JointJS - no override
-        // needed. The end's existing `id`/`port` is kept, since `.set()` replaces it outright.
-        const currentSource = link.source();
-        const source = (currentSource.port) ? undefined : {
-            ...currentSource,
-            anchor: getPortlessEndAnchor(link.getSourceElement() as dia.Element, startPoint)
-        };
-        const currentTarget = link.target();
-        const target = (currentTarget.port) ? undefined : {
-            ...currentTarget,
-            anchor: getPortlessEndAnchor(link.getTargetElement() as dia.Element, endPoint)
-        };
+        // Which end ELK anchored on is read back from the edge itself, rather than from
+        // the link: the graph may have changed while the layout was running, and an end
+        // whose port `exportPort` dropped was routed to the element despite keeping it.
+        const source = buildEnd(link.source(), edge.sources, startPoint);
+        const target = buildEnd(link.target(), edge.targets, endPoint);
 
         let labels: dia.Link.Label[] | undefined;
         if (edge.labels && edge.labels.length > 0) {
             const polyline = new g.Polyline([startPoint, ...bendPoints, endPoint]);
-            // `link.getComputedLabels()` (`@joint/core`) returns each label resolved against
+            // `link.getComputedLabels()` (`@joint/core`) returns each label computed against
             // `defaultLabel`/the built-in default - reading `labels` (the raw model attribute)
             // directly instead, so writing `labels[index]` back below doesn't bake that
-            // resolved `markup`/`attrs`/`size` permanently into the label's own stored JSON.
+            // computed `markup`/`attrs`/`size` permanently into the label's own stored JSON.
             const currentLabels: dia.Link.Label[] = link.get('labels') || [];
             labels = currentLabels.slice();
             edge.labels.forEach((label) => {
@@ -166,13 +194,17 @@ function importEdges(edges: ElkExtendedEdge[] | undefined): void {
                 if (index === undefined || !currentLabels[index]) return;
                 const { x = 0, y = 0, width = 0, height = 0 } = label;
                 const center = new g.Point(x + width / 2, y + height / 2);
-                const distance = polyline.closestPointLength(center);
+                const length = polyline.closestPointLength(center);
                 // Get the tangent at the closest point to calculate the offset
-                const tangent = polyline.tangentAtLength(distance);
+                const tangent = polyline.tangentAtLength(length);
+                const currentPosition = currentLabels[index]!.position;
                 labels![index] = {
                     ...currentLabels[index],
                     position: {
-                        distance,
+                        // `angle`, `args` and any other position setting the label already
+                        // had are kept - only its place along the link is ELK's to decide.
+                        ...(typeof currentPosition === 'object' ? currentPosition : {}),
+                        distance: toLabelDistance(length),
                         offset: tangent ? tangent.pointOffset(center) : 0
                     }
                 };

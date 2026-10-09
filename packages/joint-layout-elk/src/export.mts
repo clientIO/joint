@@ -140,10 +140,6 @@ let exportGraphOptions: ExportGraphOptions;
 let elementsById: Map<string, dia.Element>;
 let linksById: Map<string, dia.Link>;
 let portsById: Map<string, ElkGraphPort>;
-// A port `exportPort` dropped, keyed by its element's id then its own port id - so
-// `buildEdge` can fall an edge connected to it back to the element itself, instead
-// of referencing a port id that was never actually added to the ELK graph.
-let excludedPortIdsByElement: Map<string, Set<string>>;
 // Every container node (plus the root), keyed by element id (`undefined` for the root) -
 // used to file each edge under the lowest common ancestor of its source and target.
 let edgeContainersById: Map<string | undefined, ElkExtendedEdge[]>;
@@ -163,7 +159,6 @@ function init(options: ExportGraphOptions, elements: dia.Element[]): void {
     elementsById = new Map();
     linksById = new Map();
     portsById = new Map();
-    excludedPortIdsByElement = new Map();
     edgeContainersById = new Map();
     elkParentIdsById = new Map();
     elementIndicesById = new Map(elements.map((element, index) => [`${element.id}`, index]));
@@ -184,20 +179,6 @@ function getEmbeddedElements(element: dia.Element): dia.Element[] {
     return element.getEmbeddedCells()
         .filter((cell): cell is dia.Element => cell.isElement() && indices.has(`${cell.id}`))
         .sort((a, b) => indices.get(`${a.id}`)! - indices.get(`${b.id}`)!);
-}
-
-function getExcludedPortIds(element: dia.Element): Set<string> {
-    const id = `${element.id}`;
-    let excluded = excludedPortIdsByElement.get(id);
-    if (!excluded) {
-        excluded = new Set();
-        excludedPortIdsByElement.set(id, excluded);
-    }
-    return excluded;
-}
-
-function isPortExcluded(element: dia.Element, portId: string): boolean {
-    return !!excludedPortIdsByElement.get(`${element.id}`)?.has(portId);
 }
 
 /**
@@ -228,10 +209,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             layoutOptions: {}
         };
 
-        if (exportGraphOptions.exportPort?.({ portId, element, elkPort }) === false) {
-            getExcludedPortIds(element).add(portId);
-            return;
-        }
+        if (exportGraphOptions.exportPort?.({ portId, element, elkPort }) === false) return;
 
         const portLabel: ElkLabelDraft = {
             width: 0,
@@ -351,32 +329,42 @@ function getLowestCommonAncestorId(sourcePath: string[], targetPath: string[]): 
 }
 
 /**
+ * The id a link end anchors on in the ELK graph - its port's, or the element's whenever
+ * that port isn't in the ELK graph: one `exportPort` dropped, or one the link references
+ * although the element no longer has it (JointJS renders such an end against the
+ * element's bbox, while ELK rejects the whole graph over the dangling reference).
+ */
+function getElkEndId(element: dia.Element, port: string | number | undefined | null): string {
+    if (port !== undefined && port !== null) {
+        const elkPortId = getElkPortId(element, `${port}`);
+        if (portsById.has(elkPortId)) return elkPortId;
+    }
+    return getElkNodeId(element);
+}
+
+/**
  * Builds a link's ELK edge. `exportLink` (if given) may mutate the edge's draft, or
  * return `false` to drop it from the ELK graph (see `ExportLinkCallback`).
  */
 function buildEdge(link: dia.Link): void {
-    const sourceElement = link.getSourceElement();
-    const targetElement = link.getTargetElement();
+    // `getSourceCell()`, not `getSourceElement()` - the latter walks through a chain of
+    // links and returns the element at its far end, so a link connected to another link
+    // would pass the guard below and be exported as an edge between the wrong ends.
+    const sourceCell = link.getSourceCell();
+    const targetCell = link.getTargetCell();
     // Links not connected to two elements (e.g. connected to a point or
     // to another link) are not part of the layout.
-    if (!sourceElement || !targetElement) return;
+    if (!sourceCell?.isElement() || !targetCell?.isElement()) return;
+    const sourceElement = sourceCell as dia.Element;
+    const targetElement = targetCell as dia.Element;
     // Covers both a link connected to an element `exportElement` dropped, and one
     // connected to an element that was never part of the layout to begin with.
     if (!elementsById.has(getElkNodeId(sourceElement)) || !elementsById.has(getElkNodeId(targetElement))) return;
 
     const id = getElkEdgeId(link);
 
-    const sourcePort = link.source().port;
-    const targetPort = link.target().port;
-
-    // A port `exportPort` dropped falls back to anchoring the edge on the element
-    // itself, same as a naturally portless connection.
-    const sources = (sourcePort && !isPortExcluded(sourceElement, sourcePort))
-        ? [getElkPortId(sourceElement, `${sourcePort}`)]
-        : [getElkNodeId(sourceElement)];
-    const targets = (targetPort && !isPortExcluded(targetElement, targetPort))
-        ? [getElkPortId(targetElement, `${targetPort}`)]
-        : [getElkNodeId(targetElement)];
+    const sources = [getElkEndId(sourceElement, link.source().port)];
+    const targets = [getElkEndId(targetElement, link.target().port)];
 
     const elkEdge: ElkEdgeDraft = {
         id,
@@ -388,15 +376,15 @@ function buildEdge(link: dia.Link): void {
 
     linksById.set(id, link);
 
-    // Resolved (`link.getComputedLabels()`) - `size` falls back through `defaultLabel`/the
-    // built-in default the same way `@joint/core` itself resolves it for rendering, so it
+    // Computed (`link.getComputedLabels()`) - `size` falls back through `defaultLabel`/the
+    // built-in default the same way `@joint/core` itself computes it for rendering, so it
     // can be read directly here instead of from the label's raw JSON.
     // @ts-expect-error `getComputedLabels()` is `protected` in `@joint/core`'s types for now - it
     // will become public in the future (it is on every link at runtime already).
-    const resolvedLabels: dia.Link.ComputedLabel[] = link.getComputedLabels();
+    const computedLabels: dia.Link.ComputedLabel[] = link.getComputedLabels();
     let labels: ElkLabel[] = [];
-    if (resolvedLabels.length > 0) {
-        labels = resolvedLabels.reduce((result: ElkLabel[], label, labelIndex) => {
+    if (computedLabels.length > 0) {
+        labels = computedLabels.reduce((result: ElkLabel[], label, labelIndex) => {
             const { width, height } = label.size!;
             const labelDraft: ElkLabelDraft = {
                 width,

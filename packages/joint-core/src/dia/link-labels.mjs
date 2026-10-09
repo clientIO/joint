@@ -1,7 +1,7 @@
 import { cloneDeep, merge } from '../util/index.mjs';
 
 // A label as given (own `markup`/`attrs`/`size`/`position`, any of which may be missing),
-// resolved against `link`'s `defaultLabel` and its built-in default.
+// computed against `link`'s `defaultLabel` and its built-in default.
 export function getComputedLabel(link, label = {}) {
     const builtinDefaultLabel = link._builtins.defaultLabel;
     const defaultLabel = link._getDefaultLabel();
@@ -11,7 +11,7 @@ export function getComputedLabel(link, label = {}) {
     // built-in markup, so they don't apply once a custom one is in play.
     const hasCustomMarkup = !!(label.markup || defaultLabel.markup);
 
-    // The resolved `markup`/`attrs`/`size`/`position` are always new objects - never the
+    // The computed `markup`/`attrs`/`size`/`position` are always new objects - never the
     // stored label's, `defaultLabel`'s or the (shared by all links) built-in default's -
     // so mutating a computed label can't change them. Custom properties are passed through as-is.
     return Object.assign({}, defaultLabel, label, {
@@ -22,7 +22,7 @@ export function getComputedLabel(link, label = {}) {
     });
 }
 
-// Only a label's `position`, resolved exactly as in `getComputedLabel()` - for callers that need
+// Only a label's `position`, computed exactly as in `getComputedLabel()` - for callers that need
 // nothing else (e.g. `LinkView`'s frequent label position updates), so the label's `markup`,
 // `attrs` and `size` aren't cloned or merged for nothing.
 export function getComputedLabelPosition(link, label = {}) {

@@ -8,14 +8,17 @@ let mainThreadElk: Promise<ELK> | undefined;
 
 function getMainThreadElk(): Promise<ELK> {
     if (!mainThreadElk) {
-        mainThreadElk = loadMainThreadElk().then(
-            (ElkConstructor) => new ElkConstructor(),
-            (error) => {
+        // The `catch` covers the constructor too, not just the import - in the UMD build
+        // `ElkConstructor` is the page's `ELK` global, and is `undefined` when elkjs was
+        // not loaded first.
+        const pending: Promise<ELK> = loadMainThreadElk()
+            .then((ElkConstructor) => new ElkConstructor())
+            .catch((error) => {
                 // E.g. a chunk that failed to load - tried again on the next layout.
-                mainThreadElk = undefined;
+                if (mainThreadElk === pending) mainThreadElk = undefined;
                 throw error;
-            }
-        );
+            });
+        mainThreadElk = pending;
     }
     return mainThreadElk;
 }

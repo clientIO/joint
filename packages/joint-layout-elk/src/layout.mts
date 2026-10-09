@@ -52,7 +52,7 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
     /**
      * ELK layout options, passed through to ELK unmodified.
      * @see https://eclipse.dev/elk/reference/options.html
-     * @defaultValue `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.json.edgeCoords': 'ROOT' }`
+     * @defaultValue `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.layered.considerModelOrder.portModelOrder': 'true', 'elk.json.edgeCoords': 'ROOT' }`
      */
     elkLayoutOptions?: ElkLayoutOptions;
     /**
@@ -120,10 +120,10 @@ export interface LayoutCells {
  */
 export async function layout({ graph, elements, links }: LayoutCells, opt?: LayoutOptions): Promise<LayoutResult> {
 
-    const options = util.defaults({}, opt || {}, DEFAULT_OPTIONS) as LayoutOptions;
+    const options = util.defaults({}, opt, DEFAULT_OPTIONS) as LayoutOptions;
     const elkLayoutOptions = util.defaults(
         {},
-        opt?.elkLayoutOptions || {},
+        opt?.elkLayoutOptions,
         DEFAULT_LAYOUT_OPTIONS
     ) as ElkLayoutOptions;
     const batchName = options.batchName as string;
@@ -138,9 +138,14 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
         elkLayoutOptions
     );
 
-    const rawElkGraph = elkGraph as unknown as RawElkNode;
+    // elkjs types every `layoutOptions` as `{ [key: string]: string }`, which this package
+    // narrows to its own option interfaces - and their optional properties force
+    // `| undefined` into the index signature, so `ElkNode` is not assignable to elkjs's
+    // own type although it is the same object at runtime. ELK's result needs no assertion
+    // back: `{ [key: string]: string }` does satisfy the narrowed interfaces.
+    const rawElkGraph = elkGraph as RawElkNode;
     const elk = opt?.elk;
-    let layoutResult: Promise<RawElkNode>;
+    let layoutResult: Promise<ElkNode>;
     if (!elk) {
         layoutResult = layoutWithDefaultElk(rawElkGraph, signal);
     } else if (elk instanceof ElkWorkerClient) {
@@ -149,7 +154,7 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
     } else {
         layoutResult = abortable((elk as ELK).layout(rawElkGraph), signal);
     }
-    const result = await layoutResult as ElkNode;
+    const result = await layoutResult;
 
     // Aborted after ELK settled, but before the result was applied.
     throwIfAborted(signal);
