@@ -2,4 +2,4 @@
 "@joint/core": patch
 ---
 
-routers.rightAngle - fix the link direction and clearance at ports of rotated elements
+routers.rightAngle - fix the link direction at ports of rotated elements and route around rotated elements
