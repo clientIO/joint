@@ -190,6 +190,155 @@ QUnit.module('joint.mvc.$', function(hooks) {
             window.dispatchEvent(new Event('mvc-dom-test'));
             assert.equal(handler.callCount, 1);
         });
+
+        QUnit.test('innerWidth() and innerHeight() return the viewport size without the scrollbar', function(assert) {
+            withScrollableWindow(() => {
+                const $window = joint.mvc.$(window);
+                assert.equal($window.innerWidth(), document.documentElement.clientWidth);
+                assert.equal($window.innerHeight(), document.documentElement.clientHeight);
+            });
+        });
+
+        QUnit.test('outerWidth() and outerHeight() return the viewport size with the scrollbar', function(assert) {
+            withScrollableWindow(() => {
+                const $window = joint.mvc.$(window);
+                assert.equal($window.outerWidth(), window.innerWidth);
+                assert.equal($window.outerHeight(), window.innerHeight);
+            });
+        });
+
+        QUnit.test('outerWidth() and outerHeight() read the size when given a boolean', function(assert) {
+            withScrollableWindow(() => {
+                const $window = joint.mvc.$(window);
+                assert.equal($window.outerWidth(true), window.innerWidth);
+                assert.equal($window.outerWidth(false), window.innerWidth);
+                assert.equal($window.outerHeight(true), window.innerHeight);
+                assert.equal($window.outerHeight(false), window.innerHeight);
+            });
+        });
+
+        QUnit.test('width() and height() of an iframe\'s window measure its own document', function(assert) {
+            withIframe((iframe) => {
+                const frameDocumentElement = iframe.contentDocument.documentElement;
+                const $frameWindow = joint.mvc.$(iframe.contentWindow);
+                assert.equal($frameWindow.width(), frameDocumentElement.clientWidth);
+                assert.equal($frameWindow.height(), frameDocumentElement.clientHeight);
+                assert.notEqual($frameWindow.width(), document.documentElement.clientWidth, 'not the parent window');
+            });
+        });
+
+        QUnit.test('scrollTop() and scrollLeft() return the scroll offsets of the window', function(assert) {
+            withScrollableWindow(() => {
+                window.scrollTo(30, 40);
+                const $window = joint.mvc.$(window);
+                assert.equal($window.scrollTop(), 40);
+                assert.equal($window.scrollLeft(), 30);
+            });
+        });
+
+        QUnit.test('scrollTop(value) and scrollLeft(value) scroll the window', function(assert) {
+            withScrollableWindow(() => {
+                window.scrollTo(30, 40);
+                const $window = joint.mvc.$(window);
+                assert.equal($window.scrollTop(120), $window);
+                assert.equal(window.pageXOffset, 30);
+                assert.equal(window.pageYOffset, 120);
+                assert.equal($window.scrollLeft(70), $window);
+                assert.equal(window.pageXOffset, 70);
+                assert.equal(window.pageYOffset, 120);
+            });
+        });
+
+        QUnit.test('size setters leave the window alone', function(assert) {
+            const $window = joint.mvc.$(window);
+            assert.equal($window.length, 1, 'the collection holds the window');
+            const width = $window.innerWidth();
+            assert.equal($window.innerWidth(100), $window);
+            assert.equal($window.innerHeight(100), $window);
+            assert.equal($window.outerWidth(100), $window);
+            assert.equal($window.outerHeight(100), $window);
+            ['clientWidth', 'clientHeight', 'offsetWidth', 'offsetHeight'].forEach((name) => {
+                assert.notOk(Object.prototype.hasOwnProperty.call(window, name), `no own ${name}`);
+            });
+            assert.equal($window.innerWidth(), width);
+        });
+
+        QUnit.test('scrollTop(value) on a window and an element scrolls each', function(assert) {
+            withScrollableWindow(() => {
+                const el = document.createElement('div');
+                el.style.cssText = 'width: 100px; height: 100px; overflow: scroll;';
+                el.innerHTML = '<div style="height: 1000px;"></div>';
+                document.body.appendChild(el);
+                try {
+                    joint.mvc.$([window, el]).scrollTop(25);
+                    assert.equal(window.pageYOffset, 25);
+                    assert.equal(el.scrollTop, 25);
+                } finally {
+                    el.remove();
+                }
+            });
+        });
+    });
+
+    QUnit.module('size and scroll methods on an element', function(hooks) {
+
+        let box;
+        let scroller;
+
+        hooks.beforeEach(function() {
+            box = document.createElement('div');
+            box.style.cssText = 'width: 100px; height: 50px; padding: 5px; border: 1px solid;';
+            scroller = document.createElement('div');
+            scroller.style.cssText = 'width: 100px; height: 100px; overflow: scroll;';
+            scroller.innerHTML = '<div style="width: 1000px; height: 1000px;"></div>';
+            document.body.append(box, scroller);
+        });
+
+        hooks.afterEach(function() {
+            box.remove();
+            scroller.remove();
+        });
+
+        QUnit.test('width() and height() return the content size', function(assert) {
+            const $box = joint.mvc.$(box);
+            assert.equal($box.width(), 100);
+            assert.equal($box.height(), 50);
+        });
+
+        QUnit.test('innerWidth() and innerHeight() return clientWidth and clientHeight', function(assert) {
+            const $box = joint.mvc.$(box);
+            assert.equal($box.innerWidth(), box.clientWidth);
+            assert.equal($box.innerHeight(), box.clientHeight);
+        });
+
+        QUnit.test('outerWidth() and outerHeight() return offsetWidth and offsetHeight', function(assert) {
+            const $box = joint.mvc.$(box);
+            assert.equal($box.outerWidth(), box.offsetWidth);
+            assert.equal($box.outerHeight(), box.offsetHeight);
+        });
+
+        QUnit.test('scrollTop() and scrollLeft() return the scroll offsets', function(assert) {
+            scroller.scrollTop = 30;
+            scroller.scrollLeft = 20;
+            const $scroller = joint.mvc.$(scroller);
+            assert.equal($scroller.scrollTop(), 30);
+            assert.equal($scroller.scrollLeft(), 20);
+        });
+
+        QUnit.test('scrollTop(value) and scrollLeft(value) scroll the element', function(assert) {
+            const $scroller = joint.mvc.$(scroller);
+            assert.equal($scroller.scrollTop(30), $scroller);
+            assert.equal($scroller.scrollLeft(20), $scroller);
+            assert.equal(scroller.scrollTop, 30);
+            assert.equal(scroller.scrollLeft, 20);
+        });
+
+        QUnit.test('scrollTop(undefined) changes nothing and returns the collection', function(assert) {
+            scroller.scrollTop = 30;
+            const $scroller = joint.mvc.$(scroller);
+            assert.equal($scroller.scrollTop(undefined), $scroller);
+            assert.equal(scroller.scrollTop, 30);
+        });
     });
 
 });
