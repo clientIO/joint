@@ -29,6 +29,13 @@ const ANGLE_DIRECTION_MAP = {
     90: Directions.BOTTOM
 };
 
+const DIRECTION_ANGLE_MAP = {
+    [Directions.RIGHT]: 0,
+    [Directions.BOTTOM]: 90,
+    [Directions.LEFT]: 180,
+    [Directions.TOP]: 270
+};
+
 function getSegmentAngle(line) {
     // TODO: the angle() method is general and therefore unnecessarily heavy for orthogonal links
     return line.angle();
@@ -63,6 +70,17 @@ function getOutsidePoint(side, pointData, margin) {
     return outsidePoint;
 }
 
+function getMagnetSide(element, point) {
+    const bbox = element.getBBox();
+    const angle = element.angle();
+    if (!angle) return bbox.sideNearestToPoint(point);
+    // Find the side in the element's own (unrotated) frame, then turn it
+    // by the element's angle, snapped to the nearest of the four directions.
+    const localSide = bbox.sideNearestToPoint(element.getPointRotatedAroundCenter(angle, point));
+    const sideAngle = g.normalizeAngle(Math.round((DIRECTION_ANGLE_MAP[localSide] + angle) / 90) * 90);
+    return ANGLE_DIRECTION_MAP[sideAngle];
+}
+
 function resolveSides(source, target) {
     const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, bbox: sourceBBox, direction: sourceDirection } = source;
     const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, bbox: targetBBox, direction: targetDirection } = target;
@@ -79,7 +97,7 @@ function resolveSides(source, target) {
             ? sourceBBox.sideNearestToPoint(targetPoint)
             : sourceBBox.sideNearestToPoint(sourcePoint);
     } else if (sourceDirection === Directions.MAGNET_SIDE) {
-        sourceSide = sourceView.model.getBBox().sideNearestToPoint(sourcePoint);
+        sourceSide = getMagnetSide(sourceView.model, sourcePoint);
     } else {
         sourceSide = sourceDirection;
     }
@@ -96,7 +114,7 @@ function resolveSides(source, target) {
             ? targetBBox.sideNearestToPoint(sourcePoint)
             : targetBBox.sideNearestToPoint(targetPoint);
     } else if (targetDirection === Directions.MAGNET_SIDE) {
-        targetSide = targetView.model.getBBox().sideNearestToPoint(targetPoint);
+        targetSide = getMagnetSide(targetView.model, targetPoint);
     } else {
         targetSide = targetDirection;
     }
@@ -297,9 +315,9 @@ function pointDataFromAnchor(view, anchor, bbox, direction, isPort, margin, useM
     // - the anchor point may be outside the element body and port
     let rect;
     if (useModelGeometry) {
-        rect = isElement ? g.Rect.fromRectUnion(view.model.getBBox(), anchor) : anchor;
+        rect = isElement ? g.Rect.fromRectUnion(view.model.getBBox({ rotate: true }), anchor) : anchor;
     } else {
-        rect = isElement ? g.Rect.fromRectUnion(anchor, bbox, view.model.getBBox()) : anchor;
+        rect = isElement ? g.Rect.fromRectUnion(anchor, bbox, view.model.getBBox({ rotate: true })) : anchor;
     }
 
     const {
@@ -465,7 +483,7 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     const [resolvedSourceDirection] = resolveSides(sourcePoint, firstVertex);
     const isElement = sourcePoint.view && sourcePoint.view.model.isElement();
-    const sourceBBox = isElement ? moveAndExpandBBox(useModelGeometry ? linkView.sourceView.model.getBBox() : linkView.sourceBBox, resolvedSourceDirection, sourceMargin) : null;
+    const sourceBBox = isElement ? moveAndExpandBBox(useModelGeometry ? linkView.sourceView.model.getBBox({ rotate: true }) : linkView.sourceBBox, resolvedSourceDirection, sourceMargin) : null;
     const isVertexInside = isElement ? sourceBBox.containsPoint(firstVertex.point) : false;
 
     if (isVertexInside) {
@@ -591,7 +609,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             const roundedLastSegmentAngle = Math.round(getSegmentAngle(lastSegment));
             const lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
 
-            const targetBBox = moveAndExpandBBox(useModelGeometry ? linkView.targetView.model.getBBox() : linkView.targetBBox, resolvedTargetDirection, margin);
+            const targetBBox = moveAndExpandBBox(useModelGeometry ? linkView.targetView.model.getBBox({ rotate: true }) : linkView.targetBBox, resolvedTargetDirection, margin);
 
             const alignsVertically = lastVertex.point.x === targetPoint.point.x;
             const alignsHorizontally = lastVertex.point.y === targetPoint.point.y;

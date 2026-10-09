@@ -2790,4 +2790,87 @@ QUnit.module('routers', function(hooks) {
         assert.notOk(r1.getBBox().containsPoint(linkView.sourceAnchor), 'Source anchor is still outside the element bbox');
         assert.checkDataPath(linkView.metrics.data, 'M 25 -51 L 25 -79 L 78 -79 L 78 100 L 25 100 L 25 150', 'Source anchor 51px above the element — path shifts by 1px');
     });
+
+    QUnit.module('rightAngle routing - ports of rotated elements', function(hooks) {
+
+        // A 200x60 element with a single port in the middle of its bottom side.
+        this.addRotatedElement = function(angle) {
+            const element = new joint.shapes.standard.Rectangle({
+                position: { x: 100, y: 100 },
+                size: { width: 200, height: 60 },
+                ports: {
+                    groups: { bottom: { position: 'bottom' }},
+                    items: [{ id: 'port', group: 'bottom' }]
+                }
+            });
+            element.rotate(angle);
+            this.graph.addCell(element);
+            return element;
+        };
+
+        // The direction of the vector from `point` to the nearest point of the
+        // route that is not `point` itself.
+        function directionFrom(point, routePoints) {
+            const next = routePoints.map(p => new g.Point(p)).find(p => !p.equals(point));
+            const dx = next.x - point.x;
+            const dy = next.y - point.y;
+            if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'right' : 'left';
+            return dy > 0 ? 'bottom' : 'top';
+        }
+
+        // The bottom port turned by the angle of the element; 60° is snapped
+        // to the nearest of the four directions.
+        const expectedSides = { 0: 'bottom', 90: 'left', 180: 'top', 270: 'right', 60: 'left' };
+
+        Object.keys(expectedSides).forEach(angle => {
+
+            QUnit.test(`source port - element angle: ${angle}`, function(assert) {
+                const element = this.addRotatedElement(Number(angle));
+                const link = new joint.shapes.standard.Link({
+                    source: { id: element.id, port: 'port' },
+                    target: { x: 600, y: 600 },
+                    router: { name: 'rightAngle' }
+                });
+                this.graph.addCell(link);
+                const linkView = link.findView(this.paper);
+                assert.equal(directionFrom(linkView.sourceAnchor, linkView.route), expectedSides[angle]);
+            });
+
+            QUnit.test(`target port - element angle: ${angle}`, function(assert) {
+                const element = this.addRotatedElement(Number(angle));
+                const link = new joint.shapes.standard.Link({
+                    source: { x: 600, y: 600 },
+                    target: { id: element.id, port: 'port' },
+                    router: { name: 'rightAngle' }
+                });
+                this.graph.addCell(link);
+                const linkView = link.findView(this.paper);
+                assert.equal(directionFrom(linkView.targetAnchor, linkView.route.slice().reverse()), expectedSides[angle]);
+            });
+        });
+
+        [false, true].forEach(useModelGeometry => {
+
+            QUnit.test(`route avoids the rotated element - useModelGeometry: ${useModelGeometry}`, function(assert) {
+                // Rotated by 270°, the port is on the right side and the
+                // element spans x: 170-230, y: 30-230.
+                const element = this.addRotatedElement(270);
+                const link = new joint.shapes.standard.Link({
+                    source: { id: element.id, port: 'port' },
+                    target: { x: 0, y: 130 },
+                    router: { name: 'rightAngle', args: { useModelGeometry }}
+                });
+                this.graph.addCell(link);
+                const linkView = link.findView(this.paper);
+                const points = [linkView.sourceAnchor, ...linkView.route, linkView.targetAnchor].map(p => new g.Point(p));
+                // Inset by 1px - the route starts at the anchor on the edge.
+                const elementArea = element.getBBox({ rotate: true }).inflate(-1);
+                const crossing = points.slice(1).some((point, index) => {
+                    return elementArea.containsPoint(point)
+                        || elementArea.intersectionWithLine(new g.Line(points[index], point)) !== null;
+                });
+                assert.notOk(crossing, 'No segment of the route crosses the element');
+            });
+        });
+    });
 });
