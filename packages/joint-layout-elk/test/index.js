@@ -800,6 +800,39 @@ QUnit.module('layout()', () => {
         assert.notOk(graph.hasActiveBatch());
     });
 
+    QUnit.test('should place a port on the border of the node ELK laid out, whatever size the element has', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: { groups: { out: { position: 'right' }}, items: [{ id: 'p', group: 'out' }] }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a', port: 'p' }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        // `exportElement` lays the element out as if it were bigger - the port belongs on
+        // the border of that box, in the frame the caller asked for, not on the element's.
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportElement: ({ element, elkNode }) => {
+                if (element.id !== 'a') return;
+                elkNode.width = 500;
+                elkNode.height = 400;
+                elkNode.layoutOptions['elk.portConstraints'] = 'FREE';
+            }
+        });
+
+        const elkNode = elkGraph.children.find((node) => node.id === 'a');
+        const [elkPort] = elkNode.ports;
+        const { x, y } = el1.portProp('p', 'position/args');
+
+        // The center is moved onto the border - by half the port, and no further.
+        assert.equal(x, Math.min(elkPort.x + elkPort.width / 2, elkNode.width));
+        assert.equal(y, Math.min(elkPort.y + elkPort.height / 2, elkNode.height));
+    });
+
     QUnit.test('should leave out a link connected to another link', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
