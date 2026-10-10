@@ -890,6 +890,29 @@ QUnit.module('layout()', () => {
         assert.equal(args.dy, startPoint.y - node.y);
     });
 
+    QUnit.test('should hand the signal to any `WorkerElk`, not only to `createWorkerElk()`\'s own', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 50, height: 50 }});
+        graph.resetCells([el1]);
+
+        const controller = new AbortController();
+        let received;
+        // An implementation of the interface that is not our class - `instanceof` would
+        // miss it and the signal would never reach `layout()`.
+        const elk = {
+            layout: (elkGraph, options) => {
+                received = options;
+                return Promise.resolve(elkGraph);
+            },
+            terminate: () => {}
+        };
+
+        await joint.layout.ELK.layout(graph, { elk, signal: controller.signal });
+
+        assert.strictEqual(received.signal, controller.signal);
+    });
+
     QUnit.module('given a `signal`', () => {
 
         const isAbortError = (error) => error instanceof DOMException && error.name === 'AbortError';

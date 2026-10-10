@@ -3,7 +3,6 @@ import { importLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
 import { exportGraph } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
-import { ElkWorkerClient } from './workerElk.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
 import type { ImportLayoutOptions } from './import.mjs';
@@ -80,6 +79,14 @@ function getBBox(elkGraph: ElkNode): g.Rect {
     return g.Rect.fromRectUnion(...rects) || new g.Rect(0, 0, 0, 0);
 }
 
+// A `WorkerElk` takes the signal itself and terminates the worker busy with the layout.
+// `instanceof` would miss any implementation that is not literally our own class - a
+// caller's, or `createWorkerElk()`'s from a second copy of the package in one bundle.
+// `elkjs` has no `terminate()`.
+function isWorkerElk(elk: WorkerElk | ELK): elk is WorkerElk {
+    return typeof (elk as WorkerElk).terminate === 'function';
+}
+
 // The elements and the links to lay out, in the order they were given, and the graphs the
 // layout's batch runs on. A batch groups only the changes emitted by its own graph's cells,
 // so it has to run on every graph the cells come from - in practice one. A cell that is in
@@ -154,11 +161,11 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
     let layoutResult: Promise<ElkNode>;
     if (!elk) {
         layoutResult = layoutWithDefaultElk(rawElkGraph, signal);
-    } else if (elk instanceof ElkWorkerClient) {
+    } else if (isWorkerElk(elk)) {
         // Stops the worker's layout when aborted, rather than only ignoring its result.
         layoutResult = elk.layout(rawElkGraph, { signal });
     } else {
-        layoutResult = abortable((elk as ELK).layout(rawElkGraph), signal);
+        layoutResult = abortable(elk.layout(rawElkGraph), signal);
     }
     const result = await layoutResult;
 
