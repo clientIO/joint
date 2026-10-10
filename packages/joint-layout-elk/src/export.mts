@@ -199,6 +199,15 @@ function getEmbeddedElements(element: dia.Element): dia.Element[] {
     return childElementsByParentId.get(`${element.id}`) ?? [];
 }
 
+// ELK's ids are strings, while a JointJS cell's id may be a string or a number - so two
+// cells whose ids differ only in type (`5` and `'5'`) would share one ELK id. ELK accepts
+// the duplicate and lays both out, and the import then resolves them to the same cell,
+// leaving the other one where it was.
+function throwIfIdTaken(taken: boolean, cell: dia.Cell, id: string): void {
+    if (!taken) return;
+    throw new Error(`@joint/layout-elk: the id of ${cell.isLink() ? 'link' : 'element'} \`${cell.id}\` collides with another cell's in the ELK graph ("${id}").`);
+}
+
 /**
  * Builds a node's ELK ports, starting from the position JointJS already computed for
  * them. `exportPort` (if given) may mutate a port's draft, or return `false` to drop
@@ -287,6 +296,7 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
     if (exportGraphOptions.exportElement?.({ element, elkNode }) === false)
         return null;
 
+    throwIfIdTaken(elementsById.has(id), element, id);
     elementsById.set(id, element);
     elkParentIdsById.set(id, parentId);
 
@@ -404,6 +414,7 @@ function buildEdge(link: dia.Link): void {
     if (exportGraphOptions.exportLink?.({ link, elkEdge }) === false)
         return;
 
+    throwIfIdTaken(linksById.has(id), link, id);
     linksById.set(id, link);
 
     // Computed (`link.getComputedLabels()`) - `size` falls back through `defaultLabel`/the

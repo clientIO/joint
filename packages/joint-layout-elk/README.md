@@ -68,6 +68,7 @@ A list of cells is both the selection and the order:
 - **Links** - a link is laid out only if both of the elements it connects are given too. One that isn't - including a link connected to a point, to another link, or one that is in no graph, whose ends cannot be resolved at all - is left out of the layout entirely: no `exportLink` call, no route, and its vertices, anchors and label positions are left as they are.
 - **Order** - the top-level elements follow the order they are given in, and so do each container's children. The links follow their order too, inside each container.
 - Elements and links go in the same list, in any order - a link may come before the elements it connects. A cell listed more than once is laid out once.
+- ELK identifies everything by a string, so two cells whose ids differ only in type - `5` and `'5'` - would share one id in the ELK graph. `layout()` rejects rather than lay one of them out and leave the other where it was. (Ports are unaffected: JointJS already treats `5` and `'5'` as the same port.)
 
 The layout is applied in a single `'layout'` batch on the graph the cells belong to, so it emits one combined change rather than one per element, port and link. An element that is in no graph is laid out and positioned like any other, but contributes no change events - which makes it useful as a container that only exists to group others for the layout.
 
