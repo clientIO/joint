@@ -282,7 +282,7 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
     // area for a rotated one.
     if (!hasWarnedAboutRotation && element.angle() !== 0) {
         hasWarnedAboutRotation = true;
-        console.warn(`@joint/layout-elk: element \`${element.id}\` is rotated. Element rotation is not taken into account - a rotated element is laid out by its unrotated geometry, so it may overlap.`);
+        console.warn('@joint/layout-elk: element rotation is not supported - exclude rotated elements from the layout.');
     }
 
     const embeds = getEmbeddedElements(element);
