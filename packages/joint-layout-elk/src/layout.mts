@@ -83,37 +83,34 @@ function getBBox(elkGraph: ElkNode): g.Rect {
 /**
  * What `layout()` lays out: the graph, and optionally which of its elements/links.
  */
-// The elements and the links to lay out, in the order they were given.
-function splitCells(graphOrCells: dia.Graph | dia.Cell[]): { elements: dia.Element[], links: dia.Link[] } {
+// The elements and the links to lay out, in the order they were given, and the graphs the
+// layout's batch runs on. A batch groups only the changes emitted by its own graph's cells,
+// so it has to run on every graph the cells come from - in practice one. A cell that is in
+// no graph (e.g. a container added only to shape the layout) emits nothing and brings none.
+function splitCells(graphOrCells: dia.Graph | dia.Cell[]): {
+    elements: dia.Element[],
+    links: dia.Link[],
+    graphs: dia.Graph[]
+} {
     if (!Array.isArray(graphOrCells)) {
-        return { elements: graphOrCells.getElements(), links: graphOrCells.getLinks() };
+        return {
+            elements: graphOrCells.getElements(),
+            links: graphOrCells.getLinks(),
+            graphs: [graphOrCells]
+        };
     }
     const elements: dia.Element[] = [];
     const links: dia.Link[] = [];
+    const graphs = new Set<dia.Graph>();
     graphOrCells.forEach((cell) => {
         if (cell.isElement()) {
             elements.push(cell as dia.Element);
         } else {
             links.push(cell as dia.Link);
         }
-    });
-    return { elements, links };
-}
-
-// Every graph the laid out cells belong to - the batch has to run on each of them, since
-// it groups only the changes emitted by its own graph's cells. A cell that is in no graph
-// (e.g. a container added only to shape the layout) contributes none, and emits none.
-function getCellGraphs(
-    elementsById: Map<string, dia.Element>,
-    linksById: Map<string, dia.Link>
-): dia.Graph[] {
-    const graphs = new Set<dia.Graph>();
-    const collect = (cell: dia.Cell) => {
         if (cell.graph) graphs.add(cell.graph);
-    };
-    elementsById.forEach(collect);
-    linksById.forEach(collect);
-    return Array.from(graphs);
+    });
+    return { elements, links, graphs: Array.from(graphs) };
 }
 
 /**
@@ -139,7 +136,7 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
 
     throwIfAborted(signal);
 
-    const { elements, links } = splitCells(graphOrCells);
+    const { elements, links, graphs } = splitCells(graphOrCells);
 
     const { elkGraph, elementsById, linksById, portsById } = exportGraph(
         elements,
@@ -172,7 +169,6 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
     // Wraps the import in a single batch, so it emits one combined change instead of
     // one per element/port/link. Closed even if a `set*Attributes` callback throws -
     // a batch left open would e.g. keep a command manager from ever closing its undo step.
-    const graphs = getCellGraphs(elementsById, linksById);
     graphs.forEach((graph) => graph.startBatch(LAYOUT_BATCH_NAME));
     try {
         importLayout(result, elementsById, linksById, portsById, options);

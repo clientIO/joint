@@ -64,9 +64,10 @@ const { bbox } = await layout(graph, {
 
 A list of cells is both the selection and the order:
 
-- **Selection** - only the given elements are laid out, and a given link only if both its ends are laid out too. Everything else is left untouched. An element whose parent isn't given is laid out as a top-level element.
-- **Order** - the top-level elements follow the order they are given in, and so do each container's given children. The links follow their order too, inside each container.
-- Elements and links may be interleaved. Each cell should appear only once. An empty list lays out nothing.
+- **Selection** - only the given elements are laid out. An element whose parent isn't given is laid out as a top-level element.
+- **Links** - a link is laid out only if both of the elements it connects are given too. One that isn't - including a link connected to a point or to another link - is left out of the layout entirely: no `exportLink` call, no route, and its vertices, anchors and label positions are left as they are.
+- **Order** - the top-level elements follow the order they are given in, and so do each container's children. The links follow their order too, inside each container.
+- Elements and links go in the same list, in any order - a link may come before the elements it connects. Each cell should appear only once.
 
 The layout is applied in a single `'layout'` batch on the graph the cells belong to, so it emits one combined change rather than one per element, port and link. A cell that is in no graph is laid out and positioned like any other, but contributes no change events - which makes it useful as a container that only exists to group others for the layout.
 
