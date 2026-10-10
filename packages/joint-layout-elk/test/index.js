@@ -800,6 +800,96 @@ QUnit.module('layout()', () => {
         assert.notOk(graph.hasActiveBatch());
     });
 
+    QUnit.test('should leave out a link connected to another link', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 50, height: 50 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
+        const el3 = new joint.shapes.standard.Rectangle({ id: 'c', size: { width: 50, height: 50 }});
+        const link = new joint.shapes.standard.Link({ id: 'ab', source: { id: 'a' }, target: { id: 'b' }});
+        // `getSourceElement()` walks through a chain of links - this one must not be taken
+        // for a link between `c` and `b`.
+        const toLink = new joint.shapes.standard.Link({ id: 'toLink', source: { id: 'c' }, target: { id: 'ab' }});
+
+        graph.resetCells([el1, el2, el3, link, toLink]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
+
+        assert.deepEqual(elkGraph.edges.map((edge) => edge.id), ['ab']);
+        assert.notOk(toLink.source().anchor);
+        assert.notOk(toLink.target().anchor);
+        assert.notOk(toLink.vertices().length);
+    });
+
+    QUnit.test('should anchor a link end on the element when it references a port the element does not have', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 50, height: 50 },
+            ports: { items: [{ id: 'out' }] }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
+        const link = new joint.shapes.standard.Link({ id: 'ab', source: { id: 'a', port: 'gone' }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
+
+        // A dangling port reference would make ELK reject the whole graph.
+        assert.deepEqual(elkGraph.edges[0].sources, ['a']);
+        // JointJS renders such an end against the element's bbox - the anchor matches.
+        assert.ok(link.source().anchor);
+    });
+
+    QUnit.test('should keep a link label\'s other position settings', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 50, height: 50 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
+        const link = new joint.shapes.standard.Link({ id: 'ab', source: { id: 'a' }, target: { id: 'b' }});
+        link.labels([{
+            size: { width: 40, height: 20 },
+            position: { distance: 0.5, angle: 45, args: { keepGradient: true }}
+        }]);
+
+        graph.resetCells([el1, el2, link]);
+
+        await joint.layout.ELK.layout(graph);
+
+        const { position } = link.label(0);
+        // Only the label's place along the link is ELK's to decide.
+        assert.equal(position.angle, 45);
+        assert.deepEqual(position.args, { keepGradient: true });
+        assert.ok('distance' in position);
+        assert.ok('offset' in position);
+    });
+
+    QUnit.test('should measure a link end\'s anchor from the position ELK computed, not the one the element has', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 50, height: 50 }, position: { x: 400, y: 400 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }, position: { x: 700, y: 700 }});
+        const link = new joint.shapes.standard.Link({ id: 'ab', source: { id: 'a' }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        // A `setElementAttributes` is free to defer the position (the README suggests a
+        // `transition()`), so the element still sits where it was while links are imported.
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            setElementAttributes: () => { /* applied later */ }
+        });
+
+        assert.deepEqual(el1.position().toJSON(), { x: 400, y: 400 });
+
+        const node = elkGraph.children.find((child) => child.id === 'a');
+        const { startPoint } = elkGraph.edges[0].sections[0];
+        const { args } = link.source().anchor;
+
+        assert.equal(args.dx, startPoint.x - node.x);
+        assert.equal(args.dy, startPoint.y - node.y);
+    });
+
     QUnit.module('given a `signal`', () => {
 
         const isAbortError = (error) => error instanceof DOMException && error.name === 'AbortError';
@@ -995,6 +1085,69 @@ QUnit.module('layout()', () => {
             assert.deepEqual(a.position().toJSON(), { x: 500, y: 500 });
             assert.notOk(ab.vertices().length);
         });
+
+        QUnit.test('should lay out a cell listed more than once only once', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const [a, b] = [rect('a'), rect('b')];
+            const ab = edge('ab', 'a', 'b');
+            graph.resetCells([a, b, ab]);
+
+            const { elkGraph } = await joint.layout.ELK.layout([a, a, b, ab, ab]);
+
+            assert.deepEqual(ids(elkGraph.children), ['a', 'b']);
+            assert.deepEqual(ids(elkGraph.edges), ['ab']);
+        });
+
+        QUnit.test('should lay out the elements inside a container that is in no graph', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const [a, b] = [rect('a'), rect('b')];
+            // Only there to group `a` and `b` for the layout - never added to the graph,
+            // so its children come from their own `parent`, not from the graph.
+            const container = rect('container');
+            graph.resetCells([a, b]);
+            a.set('parent', 'container');
+            b.set('parent', 'container');
+
+            const { elkGraph } = await joint.layout.ELK.layout([a, b, container]);
+
+            assert.deepEqual(ids(elkGraph.children), ['container']);
+            assert.deepEqual(ids(elkGraph.children[0].children), ['a', 'b']);
+        });
+
+        QUnit.test('should batch on the graph the cells are in, whichever of them is in none', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const [a, b] = [rect('a'), rect('b')];
+            const container = rect('container');
+            graph.resetCells([a, b]);
+            a.set('parent', 'container');
+            b.set('parent', 'container');
+
+            const batches = [];
+            graph.on('batch:start', ({ batchName }) => batches.push(`start:${batchName}`));
+            graph.on('batch:stop', ({ batchName }) => batches.push(`stop:${batchName}`));
+
+            await joint.layout.ELK.layout([a, b, container]);
+
+            assert.deepEqual(batches, ['start:layout', 'stop:layout']);
+            assert.notOk(graph.hasActiveBatch());
+        });
+
+        QUnit.test('should reject two cells whose ids differ only in type', async(assert) => {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            // Distinct cells for JointJS, one and the same id for ELK, which identifies
+            // everything by a string.
+            const numeric = new joint.shapes.standard.Rectangle({ id: 5, size: { width: 50, height: 50 }});
+            const textual = new joint.shapes.standard.Rectangle({ id: '5', size: { width: 50, height: 50 }});
+            graph.resetCells([numeric, textual]);
+
+            assert.equal(graph.getCells().length, 2);
+            await assert.rejects(joint.layout.ELK.layout(graph), /collides/);
+        });
+
     });
 
     QUnit.test('should drop an element (and its subtree) when exportElement returns false', async(assert) => {
@@ -1039,6 +1192,32 @@ QUnit.module('layout()', () => {
         assert.equal(elkNode.height, 200);
         // ELK made room for it - and it kept its size.
         assert.deepEqual(container.size(), { width: 300, height: 200 });
+        assert.notOk(joint.g.intersection.exists(container.getBBox(), other.getBBox()));
+    });
+
+    QUnit.test('should keep the size `exportElement` set on a container whose embeds it dropped, and the element\'s own for the rest', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const container = new joint.shapes.standard.Rectangle({ id: 'container', size: { width: 300, height: 200 }});
+        const child = new joint.shapes.standard.Rectangle({ id: 'child', size: { width: 50, height: 50 }});
+        const other = new joint.shapes.standard.Rectangle({ id: 'other', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'container' }, target: { id: 'other' }});
+        container.embed(child);
+
+        graph.resetCells([container, child, other, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportElement: ({ element, elkNode }) => {
+                if (element.id === 'child') return false;
+                // Only one of the two dimensions - the other is the element's own.
+                if (element.id === 'container') elkNode.width = 500;
+            }
+        });
+
+        const elkNode = elkGraph.children.find((node) => node.id === 'container');
+        assert.equal(elkNode.width, 500);
+        assert.equal(elkNode.height, 200);
+        // A node ELK thinks is zero high gets no room, and its neighbour moves into it.
         assert.notOk(joint.g.intersection.exists(container.getBBox(), other.getBBox()));
     });
 

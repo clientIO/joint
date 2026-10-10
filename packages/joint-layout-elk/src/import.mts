@@ -62,11 +62,21 @@ export interface ImportLayoutOptions {
 // computes one for a port-connected end, so both react the same way to future moves.
 // Only ends that carry no port, or one the element does not have, are routed this way -
 // which is also when `useModelGeometry` measures `topLeft` from the element's own bbox.
+//
+// Measured from the position ELK gave the element, not from the one it has now: the two
+// are the same only once `setElementAttributes` has written it, and a callback is free to
+// defer that (the `transition()` the README suggests does).
 function getElementAnchorAtPoint(
     element: dia.Element,
+    elementRect: g.Rect,
     point: dia.Point
 ): NonNullable<dia.Link.EndCellArgs['anchor']> {
-    const delta = element.getRelativePointFromAbsolute(point);
+    // `Cell#getRelativePointFromAbsolute()` does this against the element's current
+    // position; `elementRect` is the one ELK computed, which the element may not have yet.
+    const angle = element.angle();
+    const local = new g.Point(point);
+    if (angle) local.rotate(elementRect.center(), angle);
+    const delta = local.difference(elementRect.topLeft());
     return {
         name: 'topLeft',
         args: {
@@ -99,13 +109,15 @@ function buildEnd(
     if (elkId === undefined) return null;
     const element = elementsById.get(elkId);
     if (!element) return null;
+    const elementRect = elementRectsById.get(elkId);
+    if (!elementRect) return null;
     // The end gained a port while the layout was running - `topLeft` would now resolve
     // against that port's bbox, not the element's, so the delta below would not apply.
     const { port } = currentEnd;
     if (port !== undefined && port !== null && element.hasPort(`${port}`)) return null;
     return {
         ...currentEnd,
-        anchor: getElementAnchorAtPoint(element, point)
+        anchor: getElementAnchorAtPoint(element, elementRect, point)
     };
 }
 
@@ -126,6 +138,10 @@ let importLayoutOptions: ImportLayoutOptions;
 let elementsById: Map<string, dia.Element>;
 let linksById: Map<string, dia.Link>;
 let portsById: Map<string, ElkGraphPort>;
+// The graph-absolute rect ELK gave each node, filled in as `importNode` walks down. A
+// node's children, and the edges filed under it, are imported after it, so an edge's ends
+// are always in here by the time `importEdges` reaches it.
+let elementRectsById: Map<string, g.Rect>;
 
 /**
  * (Re)initializes all the module-level state above for a single `importLayout` call, so
@@ -142,6 +158,7 @@ function init(
     elementsById = elements;
     linksById = links;
     portsById = ports;
+    elementRectsById = new Map();
 }
 
 // ELK positions a node's children relative to that node's own origin - `containerPosition`
@@ -231,6 +248,7 @@ function importEdges(edges: ElkExtendedEdge[] | undefined): void {
  */
 function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }): void {
     const position = toAbsolute({ x: node.x || 0, y: node.y || 0 }, containerPosition);
+    elementRectsById.set(node.id, new g.Rect(position.x, position.y, node.width || 0, node.height || 0));
 
     const element = elementsById.get(node.id);
     if (element) {
