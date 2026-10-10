@@ -29,10 +29,6 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
     'elk.json.edgeCoords': 'ROOT'
 };
 
-const DEFAULT_OPTIONS: LayoutOptions = {
-    batchName: LAYOUT_BATCH_NAME,
-};
-
 /**
  * Layout configuration options.
  */
@@ -55,11 +51,6 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
      * @defaultValue `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.layered.considerModelOrder.portModelOrder': 'true', 'elk.json.edgeCoords': 'ROOT' }`
      */
     elkLayoutOptions?: ElkLayoutOptions;
-    /**
-     * A name for the layout batch, which can be used to group multiple layout operations together.
-     * @defaultValue 'layout'
-     */
-    batchName?: string;
     /**
      * Aborts the layout - e.g. once the graph has changed since it started, or it takes too
      * long. `layout()` then rejects with the signal's reason, and nothing is applied to the
@@ -120,13 +111,12 @@ export interface LayoutCells {
  */
 export async function layout({ graph, elements, links }: LayoutCells, opt?: LayoutOptions): Promise<LayoutResult> {
 
-    const options = util.defaults({}, opt, DEFAULT_OPTIONS) as LayoutOptions;
+    const options: LayoutOptions = opt ?? {};
     const elkLayoutOptions = util.defaults(
         {},
         opt?.elkLayoutOptions,
         DEFAULT_LAYOUT_OPTIONS
     ) as ElkLayoutOptions;
-    const batchName = options.batchName as string;
     const signal = opt?.signal;
 
     throwIfAborted(signal);
@@ -162,11 +152,11 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
     // Wraps the import in a single batch, so it emits one combined change instead of
     // one per element/port/link. Closed even if a `set*Attributes` callback throws -
     // a batch left open would e.g. keep a command manager from ever closing its undo step.
-    graph?.startBatch(batchName);
+    graph?.startBatch(LAYOUT_BATCH_NAME);
     try {
         importLayout(result, elementsById, linksById, portsById, options);
     } finally {
-        graph?.stopBatch(batchName);
+        graph?.stopBatch(LAYOUT_BATCH_NAME);
     }
 
     return {

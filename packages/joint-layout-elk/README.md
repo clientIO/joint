@@ -90,8 +90,6 @@ interface LayoutOptions {
     elk?: WorkerElk | ELK; // Default: a shared instance running on the main thread
     // ELK layout options, passed through to ELK unmodified.
     elkLayoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.layered.considerModelOrder.portModelOrder': 'true', 'elk.json.edgeCoords': 'ROOT' }
-    // A name for the layout batch, grouping everything `layout()` applies into one graph change.
-    batchName?: string; // Default: 'layout'
     // Aborts the layout - `layout()` rejects with the signal's reason and applies nothing.
     signal?: AbortSignal;
 

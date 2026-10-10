@@ -770,7 +770,7 @@ QUnit.module('layout()', () => {
         assert.deepEqual(elkGraph.children, []);
     });
 
-    QUnit.test('should apply the layout in a single `batchName` batch', async(assert) => {
+    QUnit.test('should apply the layout in a single `layout` batch', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
@@ -780,9 +780,9 @@ QUnit.module('layout()', () => {
         graph.on('batch:start', ({ batchName }) => batches.push(`start:${batchName}`));
         graph.on('batch:stop', ({ batchName }) => batches.push(`stop:${batchName}`));
 
-        await joint.layout.ELK.layout({ graph }, { batchName: 'my-layout' });
+        await joint.layout.ELK.layout({ graph });
 
-        assert.deepEqual(batches, ['start:my-layout', 'stop:my-layout']);
+        assert.deepEqual(batches, ['start:layout', 'stop:layout']);
         assert.notOk(graph.hasActiveBatch());
     });
 
