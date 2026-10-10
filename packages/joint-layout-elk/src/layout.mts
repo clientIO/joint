@@ -83,33 +83,51 @@ function getBBox(elkGraph: ElkNode): g.Rect {
 /**
  * What `layout()` lays out: the graph, and optionally which of its elements/links.
  */
-export interface LayoutCells {
-    /**
-     * The graph the elements and links belong to - also where the layout's batch runs.
-     * Without it, the layout is applied outside of any batch, and `elements` and `links`
-     * default to none.
-     */
-    graph?: dia.Graph;
-    /**
-     * The elements to lay out, in this order - the top-level ones follow it, and so do
-     * each container's own children (instead of `getEmbeddedCells()` order). An element
-     * whose parent isn't listed is laid out as a top-level one. Each element must be
-     * listed only once.
-     * @defaultValue all of the graph's elements (none without `graph`)
-     */
-    elements?: dia.Element[];
-    /**
-     * The links to lay out, in this order - a link is laid out only if both its ends are too.
-     * Each link must be listed only once.
-     * @defaultValue all of the graph's links (none without `graph`)
-     */
-    links?: dia.Link[];
+// The elements and the links to lay out, in the order they were given.
+function splitCells(graphOrCells: dia.Graph | dia.Cell[]): { elements: dia.Element[], links: dia.Link[] } {
+    if (!Array.isArray(graphOrCells)) {
+        return { elements: graphOrCells.getElements(), links: graphOrCells.getLinks() };
+    }
+    const elements: dia.Element[] = [];
+    const links: dia.Link[] = [];
+    graphOrCells.forEach((cell) => {
+        if (cell.isElement()) {
+            elements.push(cell as dia.Element);
+        } else {
+            links.push(cell as dia.Link);
+        }
+    });
+    return { elements, links };
+}
+
+// Every graph the laid out cells belong to - the batch has to run on each of them, since
+// it groups only the changes emitted by its own graph's cells. A cell that is in no graph
+// (e.g. a container added only to shape the layout) contributes none, and emits none.
+function getCellGraphs(
+    elementsById: Map<string, dia.Element>,
+    linksById: Map<string, dia.Link>
+): dia.Graph[] {
+    const graphs = new Set<dia.Graph>();
+    const collect = (cell: dia.Cell) => {
+        if (cell.graph) graphs.add(cell.graph);
+    };
+    elementsById.forEach(collect);
+    linksById.forEach(collect);
+    return Array.from(graphs);
 }
 
 /**
- * Lays out a JointJS graph (or only some of its elements/links, see `LayoutCells`) with ELK.
+ * Lays out a whole JointJS graph, or only the given cells.
+ *
+ * A list of cells is laid out in the order it is given: the top-level nodes follow it, and
+ * so do each container's children. An element whose parent is not listed becomes a
+ * top-level node, and a link is laid out only if both of its ends are listed too. Each cell
+ * should be listed only once.
+ *
+ * The layout is applied in a `'layout'` batch on the graph the cells belong to, so that it
+ * emits one combined change rather than one per element, port and link.
  */
-export async function layout({ graph, elements, links }: LayoutCells, opt?: LayoutOptions): Promise<LayoutResult> {
+export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutOptions): Promise<LayoutResult> {
 
     const options: LayoutOptions = opt ?? {};
     const elkLayoutOptions = util.defaults(
@@ -121,9 +139,11 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
 
     throwIfAborted(signal);
 
+    const { elements, links } = splitCells(graphOrCells);
+
     const { elkGraph, elementsById, linksById, portsById } = exportGraph(
-        elements ?? graph?.getElements() ?? [],
-        links ?? graph?.getLinks() ?? [],
+        elements,
+        links,
         options as ExportGraphOptions,
         elkLayoutOptions
     );
@@ -152,11 +172,12 @@ export async function layout({ graph, elements, links }: LayoutCells, opt?: Layo
     // Wraps the import in a single batch, so it emits one combined change instead of
     // one per element/port/link. Closed even if a `set*Attributes` callback throws -
     // a batch left open would e.g. keep a command manager from ever closing its undo step.
-    graph?.startBatch(LAYOUT_BATCH_NAME);
+    const graphs = getCellGraphs(elementsById, linksById);
+    graphs.forEach((graph) => graph.startBatch(LAYOUT_BATCH_NAME));
     try {
         importLayout(result, elementsById, linksById, portsById, options);
     } finally {
-        graph?.stopBatch(LAYOUT_BATCH_NAME);
+        graphs.forEach((graph) => graph.stopBatch(LAYOUT_BATCH_NAME));
     }
 
     return {

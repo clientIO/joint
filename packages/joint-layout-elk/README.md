@@ -23,7 +23,7 @@ npm install @joint/layout-elk
 <script src="node_modules/elkjs/lib/elk.bundled.js"></script>
 <script src="node_modules/@joint/layout-elk/dist/umd/index.min.js"></script>
 <script>
-    joint.layout.ELK.layout({ graph }).then(({ bbox }) => { /* ... */ });
+    joint.layout.ELK.layout(graph).then(({ bbox }) => { /* ... */ });
 </script>
 ```
 
@@ -46,7 +46,7 @@ const link = new shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }
 
 graph.addCells([rect1, rect2, link]);
 
-const { bbox } = await layout({ graph }, {
+const { bbox } = await layout(graph, {
     elkLayoutOptions: {
         'elk.algorithm': 'layered',
         'elk.direction': 'RIGHT',
@@ -57,22 +57,22 @@ const { bbox } = await layout({ graph }, {
 
 ## 📖 API Reference
 
-### `layout({ graph, elements?, links? }, options?): Promise<LayoutResult>`
+### `layout(graphOrCells, options?): Promise<LayoutResult>`
 
-- `graph`: `dia.Graph` - the graph to lay out (also where the layout's batch runs).
-- `elements?`: `dia.Element[]` - which of its elements to lay out. Default: all of the graph's elements.
-- `links?`: `dia.Link[]` - which of its links to lay out. Default: all of the graph's links.
+- `graphOrCells`: `dia.Graph | dia.Cell[]` - the graph to lay out, or the cells to lay out.
 - `options?`: `LayoutOptions` - layout configuration (see below).
 
-`elements` and `links` are both the selection and the order:
+A list of cells is both the selection and the order:
 
-- **Selection** - only the given elements are laid out, and a given link only if both its ends are laid out too. Everything else is left untouched. An element whose parent isn't in `elements` is laid out as a top-level element.
-- **Order** - the top-level elements follow the order of `elements`, and so do each container's given children (instead of `getEmbeddedCells()` order). The links follow the order of `links`, inside each container too.
-- Each cell must appear only once in its list. An empty `elements` lays out nothing.
+- **Selection** - only the given elements are laid out, and a given link only if both its ends are laid out too. Everything else is left untouched. An element whose parent isn't given is laid out as a top-level element.
+- **Order** - the top-level elements follow the order they are given in, and so do each container's given children. The links follow their order too, inside each container.
+- Elements and links may be interleaved. Each cell should appear only once. An empty list lays out nothing.
+
+The layout is applied in a single `'layout'` batch on the graph the cells belong to, so it emits one combined change rather than one per element, port and link. A cell that is in no graph is laid out and positioned like any other, but contributes no change events - which makes it useful as a container that only exists to group others for the layout.
 
 ```ts
 // Lay out only the selected elements, and every link between them.
-await layout({ graph, elements: selectedElements });
+await layout([...selectedElements, ...selectedLinks]);
 ```
 
 ```ts
@@ -138,7 +138,7 @@ import { layout, createWorkerElk } from '@joint/layout-elk';
 
 const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
 
-await layout({ graph }, { elk });
+await layout(graph, { elk });
 
 // Once no longer needed.
 elk.terminate();
@@ -174,14 +174,14 @@ async function runLayout() {
     controller?.abort();
     controller = new AbortController();
     try {
-        await layout({ graph }, { signal: controller.signal });
+        await layout(graph, { signal: controller.signal });
     } catch (error) {
         if ((error as Error).name !== 'AbortError') throw error;
     }
 }
 
 // Give up after 5 seconds.
-await layout({ graph }, { signal: AbortSignal.timeout(5000) });
+await layout(graph, { signal: AbortSignal.timeout(5000) });
 ```
 
 ELK can't stop a layout in progress, so a layout a `createWorkerElk()` worker is busy with is stopped by terminating the worker - a new one takes over the layouts still waiting. A layout on the main thread, or in any other `elk` instance, keeps running - only its result is ignored.

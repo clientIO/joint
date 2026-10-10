@@ -42,7 +42,7 @@ const init = () => {
     // Generate JointJS cells from example data
     generateCells(dependenciesJSON, graph);
 
-    layout({ graph }, {
+    layout(graph, {
         elk,
         elkLayoutOptions: {
             /**

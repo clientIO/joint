@@ -22,11 +22,11 @@ QUnit.module('loading main-thread ELK', (hooks) => {
         // E.g. a chunk that failed to load.
         const error = new Error('chunk failed to load');
         window.__loadMainThreadElk = () => Promise.reject(error);
-        await assert.rejects(joint.layout.ELK.layout({ graph }), error);
+        await assert.rejects(joint.layout.ELK.layout(graph), error);
         assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
 
         delete window.__loadMainThreadElk;
-        await joint.layout.ELK.layout({ graph });
+        await joint.layout.ELK.layout(graph);
         assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
     });
 });
@@ -58,7 +58,7 @@ QUnit.module('layout()', () => {
         assert.equal(initialBBox.x, 0);
         assert.equal(initialBBox.y, 0);
 
-        const { bbox } = await joint.layout.ELK.layout({ graph });
+        const { bbox } = await joint.layout.ELK.layout(graph);
 
         assert.ok(bbox.width > 0);
         assert.ok(bbox.height > 0);
@@ -81,7 +81,7 @@ QUnit.module('layout()', () => {
 
         const { graph } = createGraph();
 
-        await joint.layout.ELK.layout({ graph }, {
+        await joint.layout.ELK.layout(graph, {
             elkLayoutOptions: {
                 'elk.algorithm': 'layered',
                 'elk.direction': 'RIGHT',
@@ -109,7 +109,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout({ graph });
+        await joint.layout.ELK.layout(graph);
 
         const label = link.label(0);
         assert.ok(label.position && typeof label.position.distance === 'number');
@@ -130,7 +130,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph });
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
 
         const [elkEdge] = elkGraph.edges;
         assert.equal(elkEdge.labels[0].width, 80);
@@ -149,7 +149,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([parent, child1, child2, childLink]);
 
-        await joint.layout.ELK.layout({ graph });
+        await joint.layout.ELK.layout(graph);
 
         const parentBBox = parent.getBBox();
         const child1BBox = child1.getBBox();
@@ -173,7 +173,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([parent, child, outside, link]);
 
-        await joint.layout.ELK.layout({ graph });
+        await joint.layout.ELK.layout(graph);
 
         assert.ok(Array.isArray(link.vertices()));
         assert.ok(!joint.g.intersection.exists(parent.getBBox(), outside.getBBox()));
@@ -197,7 +197,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([outer, inner, a, b, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             elkLayoutOptions: {
                 'elk.padding': '[top=40,left=20,bottom=20,right=20]'
             }
@@ -232,7 +232,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             elkLayoutOptions: { 'elk.json.edgeCoords': 'CONTAINER' }
         });
 
@@ -269,7 +269,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout({ graph });
+        await joint.layout.ELK.layout(graph);
 
         assert.notOk(link.prop('source/anchor'));
         assert.notOk(link.prop('target/anchor'));
@@ -295,7 +295,7 @@ QUnit.module('layout()', () => {
         graph.resetCells([el1, el2, link]);
 
         const seen = [];
-        await joint.layout.ELK.layout({ graph }, {
+        await joint.layout.ELK.layout(graph, {
             exportPort: ({ portId, element }) => {
                 seen.push([portId, element.id]);
             }
@@ -326,7 +326,7 @@ QUnit.module('layout()', () => {
         // value to merge - so what this package itself already put on that same draft
         // (e.g. an `elkNode`/`elkPort`'s own `width`) survives
         // alongside whatever the callback itself adds.
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
                 elkNode.layoutOptions['elk.custom'] = 'node';
@@ -375,7 +375,7 @@ QUnit.module('layout()', () => {
 
         const portPosition = el1.getPortsPositions('out').out1;
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph });
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
 
         assert.equal(elkGraph.children.find((node) => node.id === 'a').layoutOptions['elk.portConstraints'], 'FIXED_POS');
         assert.notOk(elkGraph.children.find((node) => node.id === 'b').layoutOptions['elk.portConstraints']);
@@ -416,7 +416,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout({ graph }, {
+        await joint.layout.ELK.layout(graph, {
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
             }
@@ -459,7 +459,7 @@ QUnit.module('layout()', () => {
 
         const before = el1.getPortRelativePosition('right1');
 
-        await joint.layout.ELK.layout({ graph }, {
+        await joint.layout.ELK.layout(graph, {
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_POS';
             }
@@ -490,7 +490,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, el3, link1, link2]);
 
-        await joint.layout.ELK.layout({ graph }, {
+        await joint.layout.ELK.layout(graph, {
             exportElement: ({ element, elkNode }) => {
                 if (element.hasPorts()) elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
             },
@@ -536,12 +536,12 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        await joint.layout.ELK.layout({ graph });
+        await joint.layout.ELK.layout(graph);
         const firstPosition = el1.getPortRelativePosition('out1');
 
         // Laying out the same, already laid out graph again should not move the
         // port any further - each call is independent, not cumulative.
-        await joint.layout.ELK.layout({ graph });
+        await joint.layout.ELK.layout(graph);
         const secondPosition = el1.getPortRelativePosition('out1');
 
         assert.equal(secondPosition.x, firstPosition.x);
@@ -563,7 +563,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([parent, child]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportElement: ({ element, elkNode }) => {
                 Object.assign(elkNode.layoutOptions, element.get('elkLayoutOptions'));
             }
@@ -586,7 +586,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportLinkLabel: ({ link, labelIndex, elkEdgeLabel }) => {
                 Object.assign(elkEdgeLabel.layoutOptions, link.label(labelIndex).elkLayoutOptions);
             }
@@ -614,10 +614,10 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph });
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
         assert.equal(elkGraph.edges[0].labels[0].layoutOptions['elk.edgeLabels.inline'], 'true');
 
-        const { elkGraph: optedOutElkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph: optedOutElkGraph } = await joint.layout.ELK.layout(graph, {
             exportLinkLabel: ({ elkEdgeLabel }) => {
                 elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = 'false';
             }
@@ -645,7 +645,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportLinkLabel: ({ link, labelIndex, elkEdgeLabel }) => {
                 Object.assign(elkEdgeLabel.layoutOptions, link.getComputedLabels()[labelIndex].elkLayoutOptions);
             }
@@ -672,7 +672,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_SIDE';
             },
@@ -708,7 +708,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             // `portProp(id, 'label/size')` only reads the port's own item data, with no
             // group fallback - `getPortMetrics` resolves it the same way `dia.Element`
             // itself does for rendering (group first, item overriding it).
@@ -745,7 +745,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportPortLabel: ({ portId, elkPortLabel }) => {
                 // Sized either way - `false` drops it regardless.
                 elkPortLabel.width = 40;
@@ -763,7 +763,7 @@ QUnit.module('layout()', () => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
-        const { bbox, elkGraph } = await joint.layout.ELK.layout({ graph });
+        const { bbox, elkGraph } = await joint.layout.ELK.layout(graph);
 
         assert.equal(bbox.width, 0);
         assert.equal(bbox.height, 0);
@@ -780,7 +780,7 @@ QUnit.module('layout()', () => {
         graph.on('batch:start', ({ batchName }) => batches.push(`start:${batchName}`));
         graph.on('batch:stop', ({ batchName }) => batches.push(`stop:${batchName}`));
 
-        await joint.layout.ELK.layout({ graph });
+        await joint.layout.ELK.layout(graph);
 
         assert.deepEqual(batches, ['start:layout', 'stop:layout']);
         assert.notOk(graph.hasActiveBatch());
@@ -793,7 +793,7 @@ QUnit.module('layout()', () => {
         graph.resetCells([el1]);
 
         const error = new Error('setElementAttributes failed');
-        await assert.rejects(joint.layout.ELK.layout({ graph }, {
+        await assert.rejects(joint.layout.ELK.layout(graph, {
             setElementAttributes: () => { throw error; }
         }), error);
 
@@ -819,7 +819,7 @@ QUnit.module('layout()', () => {
             const { graph, el1, el2 } = createGraph();
             const exportElement = () => assert.ok(false, 'nothing is exported');
 
-            await assert.rejects(joint.layout.ELK.layout({ graph }, { signal: AbortSignal.abort(), exportElement }), isAbortError);
+            await assert.rejects(joint.layout.ELK.layout(graph, { signal: AbortSignal.abort(), exportElement }), isAbortError);
 
             await wait(50);
             assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
@@ -831,7 +831,7 @@ QUnit.module('layout()', () => {
             const controller = new AbortController();
             const reason = new Error('graph changed');
 
-            const result = joint.layout.ELK.layout({ graph }, { signal: controller.signal });
+            const result = joint.layout.ELK.layout(graph, { signal: controller.signal });
             controller.abort(reason);
 
             await assert.rejects(result, reason);
@@ -845,7 +845,7 @@ QUnit.module('layout()', () => {
             const { graph } = createGraph();
             const controller = new AbortController();
 
-            const result = joint.layout.ELK.layout({ graph }, { signal: controller.signal });
+            const result = joint.layout.ELK.layout(graph, { signal: controller.signal });
             controller.abort(null);
 
             let error = 'not rejected';
@@ -861,7 +861,7 @@ QUnit.module('layout()', () => {
 
             const { graph, el1, el2 } = createGraph();
 
-            await joint.layout.ELK.layout({ graph }, { signal: new AbortController().signal });
+            await joint.layout.ELK.layout(graph, { signal: new AbortController().signal });
 
             assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
         });
@@ -871,7 +871,7 @@ QUnit.module('layout()', () => {
             const { graph, el1, el2 } = createGraph();
             const controller = new AbortController();
 
-            const result = joint.layout.ELK.layout({ graph }, { elk: new window.ELK(), signal: controller.signal });
+            const result = joint.layout.ELK.layout(graph, { elk: new window.ELK(), signal: controller.signal });
             controller.abort();
 
             await assert.rejects(result, isAbortError);
@@ -880,7 +880,7 @@ QUnit.module('layout()', () => {
         });
     });
 
-    QUnit.module('given `elements`/`links`', () => {
+    QUnit.module('given a list of cells', () => {
 
         const rect = (id, x = 500, y = 500) => new joint.shapes.standard.Rectangle({ id, size: { width: 50, height: 50 }, position: { x, y }});
         const edge = (id, source, target) => new joint.shapes.standard.Link({ id, source: { id: source }, target: { id: target }});
@@ -895,7 +895,7 @@ QUnit.module('layout()', () => {
             const ac = edge('ac', 'a', 'c');
             graph.resetCells([a, b, c, ab, bc, ac]);
 
-            const { elkGraph } = await joint.layout.ELK.layout({ graph, elements: [a, b], links: [ab, bc] });
+            const { elkGraph } = await joint.layout.ELK.layout([a, b, ab, bc]);
 
             assert.deepEqual(ids(elkGraph.children), ['a', 'b']);
             // `bc` is given, but `c` isn't - `ac` isn't given at all.
@@ -906,7 +906,7 @@ QUnit.module('layout()', () => {
             assert.notOk(ac.vertices().length);
         });
 
-        QUnit.test('should take what isn\'t given from the graph', async(assert) => {
+        QUnit.test('should take the elements and the links from one list, whatever their order in it', async(assert) => {
 
             const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             const [a, b, c] = [rect('a'), rect('b'), rect('c')];
@@ -914,13 +914,13 @@ QUnit.module('layout()', () => {
             const bc = edge('bc', 'b', 'c');
             graph.resetCells([a, b, c, ab, bc]);
 
-            // Only `elements` - every graph link between them is laid out.
-            const { elkGraph: withElements } = await joint.layout.ELK.layout({ graph, elements: [b, a] });
+            // `bc` is listed, but `c` isn't.
+            const { elkGraph: withElements } = await joint.layout.ELK.layout([b, a, ab, bc]);
             assert.deepEqual(ids(withElements.children), ['b', 'a']);
             assert.deepEqual(ids(withElements.edges), ['ab']);
 
-            // Only `links` - every graph element is laid out.
-            const { elkGraph: withLinks } = await joint.layout.ELK.layout({ graph, links: [bc] });
+            // A link may be listed before the elements it connects.
+            const { elkGraph: withLinks } = await joint.layout.ELK.layout([bc, a, b, c]);
             assert.deepEqual(ids(withLinks.children), ['a', 'b', 'c']);
             assert.deepEqual(ids(withLinks.edges), ['bc']);
         });
@@ -933,7 +933,7 @@ QUnit.module('layout()', () => {
             const bc = edge('bc', 'b', 'c');
             graph.resetCells([a, b, c, ab, bc]);
 
-            const { elkGraph } = await joint.layout.ELK.layout({ graph, elements: [c, a, b], links: [bc, ab] });
+            const { elkGraph } = await joint.layout.ELK.layout([c, a, b, bc, ab]);
 
             assert.deepEqual(ids(elkGraph.children), ['c', 'a', 'b']);
             assert.deepEqual(ids(elkGraph.edges), ['bc', 'ab']);
@@ -950,7 +950,7 @@ QUnit.module('layout()', () => {
             parent.embed([a, b, c]);
 
             // `c` is embedded in `parent` but isn't given.
-            const { elkGraph } = await joint.layout.ELK.layout({ graph, elements: [parent, b, a], links: [ba, ab] });
+            const { elkGraph } = await joint.layout.ELK.layout([parent, b, a, ba, ab]);
 
             const [elkParent] = elkGraph.children;
             assert.deepEqual(ids(elkGraph.children), ['parent']);
@@ -971,7 +971,7 @@ QUnit.module('layout()', () => {
             parent.embed([a, b]);
             const parentBBox = parent.getBBox();
 
-            const { elkGraph } = await joint.layout.ELK.layout({ graph, elements: [a, b] });
+            const { elkGraph } = await joint.layout.ELK.layout([a, b, ab]);
 
             assert.deepEqual(ids(elkGraph.children), ['a', 'b']);
             assert.deepEqual(ids(elkGraph.edges), ['ab']);
@@ -987,7 +987,7 @@ QUnit.module('layout()', () => {
             const ab = edge('ab', 'a', 'b');
             graph.resetCells([a, b, ab]);
 
-            const { bbox, elkGraph } = await joint.layout.ELK.layout({ graph, elements: [] });
+            const { bbox, elkGraph } = await joint.layout.ELK.layout([]);
 
             assert.ok(bbox.equals(new joint.g.Rect(0, 0, 0, 0)));
             assert.deepEqual(elkGraph.children, []);
@@ -1008,7 +1008,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([parent, child, other, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportElement: ({ element }) => element.id !== 'parent'
         });
 
@@ -1029,7 +1029,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([container, child, other, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportElement: ({ element }) => element.id !== 'child'
         });
 
@@ -1062,7 +1062,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([a, ap, root, b, toPort, toElement, toRoot]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph });
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
 
         const nodeIds = elkGraph.children.map((node) => node.id);
         assert.deepEqual(nodeIds, ['a', 'a\\:p', 'root', 'b\\\\']);
@@ -1099,7 +1099,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportPort: () => false
         });
 
@@ -1119,7 +1119,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportLink: () => false
         });
 
@@ -1140,7 +1140,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportLinkLabel: () => false
         });
 
@@ -1164,7 +1164,7 @@ QUnit.module('layout()', () => {
 
         graph.resetCells([el1, el2, link]);
 
-        const { elkGraph } = await joint.layout.ELK.layout({ graph }, {
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
             exportLinkLabel: ({ labelIndex }) => (labelIndex === 0 ? false : undefined)
         });
 
@@ -1228,7 +1228,7 @@ QUnit.module('createWorkerElk()', (hooks) => {
         assert.equal(startedWorkers.length, 0);
 
         const first = createGraph();
-        await joint.layout.ELK.layout({ graph: first.graph }, { elk });
+        await joint.layout.ELK.layout(first.graph, { elk });
 
         assert.equal(startedWorkers.length, 1);
         // The layout came from the worker.
@@ -1237,7 +1237,7 @@ QUnit.module('createWorkerElk()', (hooks) => {
 
         const messageCount = workerMessageCount;
         const second = createGraph();
-        await joint.layout.ELK.layout({ graph: second.graph }, { elk });
+        await joint.layout.ELK.layout(second.graph, { elk });
         assert.equal(startedWorkers.length, 1);
         assert.ok(workerMessageCount > messageCount);
         assert.ok(isLaidOut(second));
@@ -1250,8 +1250,8 @@ QUnit.module('createWorkerElk()', (hooks) => {
         const waiting = createGraph();
         const controller = new AbortController();
 
-        const abortedResult = joint.layout.ELK.layout({ graph: aborted.graph }, { elk, signal: controller.signal });
-        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph }, { elk });
+        const abortedResult = joint.layout.ELK.layout(aborted.graph, { elk, signal: controller.signal });
+        const waitingResult = joint.layout.ELK.layout(waiting.graph, { elk });
         controller.abort();
 
         await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
@@ -1269,8 +1269,8 @@ QUnit.module('createWorkerElk()', (hooks) => {
         const aborted = createGraph();
         const controller = new AbortController();
 
-        const busyResult = joint.layout.ELK.layout({ graph: busy.graph }, { elk });
-        const abortedResult = joint.layout.ELK.layout({ graph: aborted.graph }, { elk, signal: controller.signal });
+        const busyResult = joint.layout.ELK.layout(busy.graph, { elk });
+        const abortedResult = joint.layout.ELK.layout(aborted.graph, { elk, signal: controller.signal });
         controller.abort();
 
         await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
@@ -1287,8 +1287,8 @@ QUnit.module('createWorkerElk()', (hooks) => {
         const crashed = createGraph();
         const waiting = createGraph();
 
-        const crashedResult = joint.layout.ELK.layout({ graph: crashed.graph }, { elk });
-        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph }, { elk });
+        const crashedResult = joint.layout.ELK.layout(crashed.graph, { elk });
+        const waitingResult = joint.layout.ELK.layout(waiting.graph, { elk });
         // Loaded by now - e.g. out of memory.
         await new Promise((resolve) => startedWorkers[0].addEventListener('message', resolve, { once: true }));
         startedWorkers[0].dispatchEvent(new ErrorEvent('error', { message: 'out of memory' }));
@@ -1310,8 +1310,8 @@ QUnit.module('createWorkerElk()', (hooks) => {
 
         // Handled right away - both reject while the other is still pending.
         const rejected = Promise.all([
-            assert.rejects(joint.layout.ELK.layout({ graph: first.graph }, { elk }), /the ELK worker failed to load/),
-            assert.rejects(joint.layout.ELK.layout({ graph: second.graph }, { elk }), /the ELK worker failed to load/)
+            assert.rejects(joint.layout.ELK.layout(first.graph, { elk }), /the ELK worker failed to load/),
+            assert.rejects(joint.layout.ELK.layout(second.graph, { elk }), /the ELK worker failed to load/)
         ]);
         await rejected;
         assert.notOk(isLaidOut(first));
@@ -1320,7 +1320,7 @@ QUnit.module('createWorkerElk()', (hooks) => {
         // E.g. the script is served by now.
         url = WORKER_URL;
         const next = createGraph();
-        await joint.layout.ELK.layout({ graph: next.graph }, { elk });
+        await joint.layout.ELK.layout(next.graph, { elk });
         assert.equal(startedWorkers.length, 2);
         assert.ok(isLaidOut(next));
     });
@@ -1331,7 +1331,7 @@ QUnit.module('createWorkerElk()', (hooks) => {
         const elk = joint.layout.ELK.createWorkerElk(() => { throw error; });
         const { graph, el1, el2 } = createGraph();
 
-        await assert.rejects(joint.layout.ELK.layout({ graph }, { elk }), error);
+        await assert.rejects(joint.layout.ELK.layout(graph, { elk }), error);
         assert.notOk(isLaidOut({ el1, el2 }));
     });
 
@@ -1340,14 +1340,14 @@ QUnit.module('createWorkerElk()', (hooks) => {
         const elk = createElk();
         const terminated = createGraph();
 
-        const terminatedResult = joint.layout.ELK.layout({ graph: terminated.graph }, { elk });
+        const terminatedResult = joint.layout.ELK.layout(terminated.graph, { elk });
         elk.terminate();
 
         await assert.rejects(terminatedResult, /the ELK worker was terminated/);
         assert.notOk(isLaidOut(terminated));
 
         const next = createGraph();
-        await joint.layout.ELK.layout({ graph: next.graph }, { elk });
+        await joint.layout.ELK.layout(next.graph, { elk });
         assert.equal(startedWorkers.length, 2);
         assert.ok(isLaidOut(next));
     });
@@ -1364,8 +1364,8 @@ QUnit.module('createWorkerElk()', (hooks) => {
         const controller = new AbortController();
 
         const first = createGraph();
-        const firstResult = joint.layout.ELK.layout({ graph: first.graph }, { elk });
-        const abortedResult = joint.layout.ELK.layout({ graph: createGraph().graph }, { elk, signal: controller.signal });
+        const firstResult = joint.layout.ELK.layout(first.graph, { elk });
+        const abortedResult = joint.layout.ELK.layout(createGraph().graph, { elk, signal: controller.signal });
         controller.abort();
         await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
         await firstResult;
@@ -1373,7 +1373,7 @@ QUnit.module('createWorkerElk()', (hooks) => {
         // The worker is busy with the aborted layout now (its result ignored) - `waiting`
         // waits behind it, and the crash is no fault of its own.
         const waiting = createGraph();
-        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph }, { elk });
+        const waitingResult = joint.layout.ELK.layout(waiting.graph, { elk });
         startedWorkers[0].dispatchEvent(new ErrorEvent('error', { message: 'out of memory' }));
 
         assert.equal(await settledWithin(waitingResult, 5000), 'resolved');
@@ -1385,11 +1385,11 @@ QUnit.module('createWorkerElk()', (hooks) => {
 
         const elk = createElk();
         // Started and loaded.
-        await joint.layout.ELK.layout(createGraph(), { elk });
+        await joint.layout.ELK.layout(createGraph().graph, { elk });
 
         // A function can't be cloned into the worker.
         const unpostable = createGraph();
-        await assert.rejects(joint.layout.ELK.layout({ graph: unpostable.graph }, {
+        await assert.rejects(joint.layout.ELK.layout(unpostable.graph, {
             elk,
             exportElement: ({ elkNode }) => {
                 elkNode.layoutOptions['elk.custom'] = () => {};
@@ -1400,9 +1400,9 @@ QUnit.module('createWorkerElk()', (hooks) => {
         // Aborting the layout the worker is busy with still terminates it - a new worker
         // takes over the one waiting.
         const controller = new AbortController();
-        const abortedResult = joint.layout.ELK.layout(createGraph(), { elk, signal: controller.signal });
+        const abortedResult = joint.layout.ELK.layout(createGraph().graph, { elk, signal: controller.signal });
         const waiting = createGraph();
-        const waitingResult = joint.layout.ELK.layout({ graph: waiting.graph }, { elk });
+        const waitingResult = joint.layout.ELK.layout(waiting.graph, { elk });
         controller.abort();
         await assert.rejects(abortedResult, (error) => error.name === 'AbortError');
         assert.equal(await settledWithin(waitingResult, 5000), 'resolved');
@@ -1411,9 +1411,9 @@ QUnit.module('createWorkerElk()', (hooks) => {
 
         // A crash rejects the layout the worker is busy with - and a new worker takes over
         // the one waiting (the layout that couldn't be posted isn't re-posted either).
-        const crashedResult = joint.layout.ELK.layout(createGraph(), { elk });
+        const crashedResult = joint.layout.ELK.layout(createGraph().graph, { elk });
         const afterCrash = createGraph();
-        const afterCrashResult = joint.layout.ELK.layout({ graph: afterCrash.graph }, { elk });
+        const afterCrashResult = joint.layout.ELK.layout(afterCrash.graph, { elk });
         startedWorkers[1].dispatchEvent(new ErrorEvent('error', { message: 'out of memory' }));
         await assert.rejects(crashedResult, /the ELK worker crashed during the layout/);
         assert.equal(await settledWithin(afterCrashResult, 5000), 'resolved');

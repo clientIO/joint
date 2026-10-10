@@ -134,7 +134,7 @@ const init = () => {
     // mid-layout.
     const runLayout = (): Promise<void> => {
         paper.freeze();
-        return layout({ graph }, {
+        return layout(graph, {
             elk,
             exportElement,
             exportPort,
