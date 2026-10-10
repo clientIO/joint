@@ -148,6 +148,11 @@ let edgeContainersById: Map<string | undefined, ElkExtendedEdge[]>;
 let elkParentIdsById: Map<string, string | undefined>;
 // Each element's position in the list of elements given to `exportGraph`.
 let elementIndicesById: Map<string, number>;
+// The elements laid out inside each container, keyed by the container's element id and
+// in the order of the list given to `exportGraph`. Built from each element's `parent()`
+// rather than read off the graph, so it covers an element that is in no graph (e.g. a
+// container that only exists to group others for the layout).
+let childElementsByParentId: Map<string, dia.Element[]>;
 
 /**
  * (Re)initializes all the module-level state above for a single `exportGraph` call, so
@@ -162,6 +167,21 @@ function init(options: ExportGraphOptions, elements: dia.Element[]): void {
     edgeContainersById = new Map();
     elkParentIdsById = new Map();
     elementIndicesById = new Map(elements.map((element, index) => [`${element.id}`, index]));
+
+    // A second pass - a container may be listed after the elements inside it.
+    childElementsByParentId = new Map();
+    elements.forEach((element) => {
+        const parentId = element.parent();
+        if (!parentId) return;
+        const containerId = `${parentId}`;
+        if (!elementIndicesById.has(containerId)) return;
+        const children = childElementsByParentId.get(containerId);
+        if (children) {
+            children.push(element);
+        } else {
+            childElementsByParentId.set(containerId, [element]);
+        }
+    });
 }
 
 // Whether an element's parent is laid out too - i.e. the element is laid out inside it,
@@ -175,10 +195,7 @@ function hasLaidOutParent(element: dia.Element): boolean {
 // An element's embedded elements that take part in the layout, in the order of the list
 // of elements given to `exportGraph`.
 function getEmbeddedElements(element: dia.Element): dia.Element[] {
-    const indices = elementIndicesById;
-    return element.getEmbeddedCells()
-        .filter((cell): cell is dia.Element => cell.isElement() && indices.has(`${cell.id}`))
-        .sort((a, b) => indices.get(`${a.id}`)! - indices.get(`${b.id}`)!);
+    return childElementsByParentId.get(`${element.id}`) ?? [];
 }
 
 /**
