@@ -58,18 +58,15 @@ export interface ImportLayoutOptions {
     setPortAttributes?: SetPortAttributesCallback;
 }
 
-// The anchor for a link end ELK routed to an element rather than to a port - computed the
-// same way JointJS computes one for a port-connected end, so both react the same way to
-// future moves. `useModelGeometry` measures `topLeft` from the port's bbox whenever the
-// end still carries a port, so the delta is taken from that same rect.
+// The anchor for a link end ELK routed to an element - computed the same way JointJS
+// computes one for a port-connected end, so both react the same way to future moves.
+// Only ends that carry no port, or one the element does not have, are routed this way -
+// which is also when `useModelGeometry` measures `topLeft` from the element's own bbox.
 function getElementAnchorAtPoint(
     element: dia.Element,
-    portId: string | number | undefined | null,
     point: dia.Point
 ): NonNullable<dia.Link.EndCellArgs['anchor']> {
-    const delta = (portId !== undefined && portId !== null && element.hasPort(`${portId}`))
-        ? new g.Point(point).difference(element.getPortBBox(`${portId}`, { rotate: true }).topLeft())
-        : element.getRelativePointFromAbsolute(point);
+    const delta = element.getRelativePointFromAbsolute(point);
     return {
         name: 'topLeft',
         args: {
@@ -103,7 +100,7 @@ function buildEnd(
     if (!element) return null;
     return {
         ...currentEnd,
-        anchor: getElementAnchorAtPoint(element, currentEnd.port, point)
+        anchor: getElementAnchorAtPoint(element, point)
     };
 }
 

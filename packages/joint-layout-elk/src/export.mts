@@ -70,8 +70,9 @@ export interface ElkPortDraft {
 
 /**
  * Mutate `elkPort` to customize what this package computed for a port, or return
- * `false` to drop the port from the ELK graph - any edge connected to it falls
- * back to anchoring on the element itself, the same as a naturally portless one.
+ * `false` to keep the port out of the ELK graph - ELK then neither positions it nor
+ * routes to it, so the links connected to it are left out of the layout too and keep
+ * the route they already had.
  */
 export type ExportPortCallback = (params: ExportPortCallbackParameters) => void | false;
 export type ExportPortCallbackParameters = {
@@ -345,11 +346,19 @@ function getLowestCommonAncestorId(sourcePath: string[], targetPath: string[]): 
     return commonId;
 }
 
+// Whether a link end's port is one `exportPort` dropped - the port is there, it is only
+// hidden from ELK, so there is nothing for an edge to attach to.
+function isEndPortDropped(element: dia.Element, port: string | number | undefined | null): boolean {
+    if (port === undefined || port === null) return false;
+    const portId = `${port}`;
+    return element.hasPort(portId) && !portsById.has(getElkPortId(element, portId));
+}
+
 /**
- * The id a link end anchors on in the ELK graph - its port's, or the element's whenever
- * that port isn't in the ELK graph: one `exportPort` dropped, or one the link references
- * although the element no longer has it (JointJS renders such an end against the
- * element's bbox, while ELK rejects the whole graph over the dangling reference).
+ * The id a link end anchors on in the ELK graph - its port's, or the element's when the
+ * end has no port, or references one the element no longer has. JointJS renders such an
+ * end against the element's bbox, while ELK rejects the whole graph over the dangling
+ * reference, so the edge is attached to the node instead.
  */
 function getElkEndId(element: dia.Element, port: string | number | undefined | null): string {
     if (port !== undefined && port !== null) {
@@ -377,6 +386,10 @@ function buildEdge(link: dia.Link): void {
     // Covers both a link connected to an element `exportElement` dropped, and one
     // connected to an element that was never part of the layout to begin with.
     if (!elementsById.has(getElkNodeId(sourceElement)) || !elementsById.has(getElkNodeId(targetElement))) return;
+    // A port `exportPort` dropped takes the links connected to it out of the layout too -
+    // the same rule as an element that isn't laid out, one level down.
+    if (isEndPortDropped(sourceElement, link.source().port)) return;
+    if (isEndPortDropped(targetElement, link.target().port)) return;
 
     const id = getElkEdgeId(link);
 

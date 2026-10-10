@@ -1083,7 +1083,7 @@ QUnit.module('layout()', () => {
         assert.notOk(toPort.target().anchor);
     });
 
-    QUnit.test('should drop only that port when exportPort returns false, falling the edge back to the element', async(assert) => {
+    QUnit.test('should drop only that port when exportPort returns false - and the links connected to it', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({
@@ -1091,23 +1091,29 @@ QUnit.module('layout()', () => {
             size: { width: 100, height: 100 },
             ports: {
                 groups: { out: { position: 'right' }},
-                items: [{ id: 'out1', group: 'out' }]
+                items: [{ id: 'out1', group: 'out' }, { id: 'out2', group: 'out' }]
             }
         });
         const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
-        const link = new joint.shapes.standard.Link({ source: { id: 'a', port: 'out1' }, target: { id: 'b' }});
+        const onDroppedPort = new joint.shapes.standard.Link({ id: 'dropped', source: { id: 'a', port: 'out1' }, target: { id: 'b' }});
+        const onKeptPort = new joint.shapes.standard.Link({ id: 'kept', source: { id: 'a', port: 'out2' }, target: { id: 'b' }});
 
-        graph.resetCells([el1, el2, link]);
+        graph.resetCells([el1, el2, onDroppedPort, onKeptPort]);
 
         const { elkGraph } = await joint.layout.ELK.layout(graph, {
-            exportPort: () => false
+            exportPort: ({ portId }) => (portId === 'out1') ? false : undefined
         });
 
         const elkNode = elkGraph.children.find((node) => node.id === 'a');
-        assert.deepEqual(elkNode.ports, []);
+        assert.deepEqual(elkNode.ports.map((port) => port.id), ['a:out2']);
 
-        const [elkEdge] = elkGraph.edges;
-        assert.deepEqual(elkEdge.sources, ['a']);
+        // Only the link on the port that is still in the ELK graph is laid out.
+        assert.deepEqual(elkGraph.edges.map((edge) => edge.id), ['kept']);
+        assert.deepEqual(elkGraph.edges[0].sources, ['a:out2']);
+
+        // The one left out keeps its route, and no anchor is written onto its end.
+        assert.notOk(onDroppedPort.vertices().length);
+        assert.notOk(onDroppedPort.source().anchor);
     });
 
     QUnit.test('should drop a link when exportLink returns false - it is not routed at all', async(assert) => {

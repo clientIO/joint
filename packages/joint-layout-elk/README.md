@@ -111,7 +111,7 @@ interface LayoutOptions {
 
 ### Export callbacks
 
-Each receives an ELK draft already populated with what this package computed for that element/port/link/label, to mutate in place (e.g. to set `elk.*` `layoutOptions`). Returning `false` instead drops it from the ELK graph entirely - for `exportElement`, its whole subtree (embeds, ports, any connected edge) goes with it.
+Each receives an ELK draft already populated with what this package computed for that element/port/link/label, to mutate in place (e.g. to set `elk.*` `layoutOptions`). Returning `false` instead drops it from the ELK graph entirely - for `exportElement`, its whole subtree (embeds, ports, any connected edge) goes with it, and for `exportPort`, the links connected to that port, which ELK can no longer route to. A link left out this way keeps the route it already had.
 
 ```ts
 type ExportElementCallback = (params: { element: dia.Element; elkNode: ElkNodeDraft }) => void | false;
