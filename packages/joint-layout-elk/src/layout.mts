@@ -102,7 +102,9 @@ function splitCells(graphOrCells: dia.Graph | dia.Cell[]): {
     const elements: dia.Element[] = [];
     const links: dia.Link[] = [];
     const graphs = new Set<dia.Graph>();
-    graphOrCells.forEach((cell) => {
+    // A cell listed twice would be laid out twice - two ELK nodes sharing an id, so ELK
+    // reserves room for both and the import applies whichever came last.
+    new Set(graphOrCells).forEach((cell) => {
         if (cell.isElement()) {
             elements.push(cell as dia.Element);
         } else {
