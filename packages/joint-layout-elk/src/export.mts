@@ -176,7 +176,7 @@ function init(options: ExportGraphOptions, elements: dia.Element[]): void {
     childElementsByParentId = new Map();
     elements.forEach((element) => {
         const parentId = element.parent();
-        if (!parentId) return;
+        if (parentId === undefined || parentId === null) return;
         const containerId = `${parentId}`;
         if (!elementIndicesById.has(containerId)) return;
         const children = childElementsByParentId.get(containerId);
@@ -192,7 +192,7 @@ function init(options: ExportGraphOptions, elements: dia.Element[]): void {
 // rather than as a top-level node.
 function hasLaidOutParent(element: dia.Element): boolean {
     const parentId = element.parent();
-    if (!parentId) return false;
+    if (parentId === undefined || parentId === null) return false;
     return elementIndicesById.has(`${parentId}`);
 }
 
@@ -277,14 +277,6 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
 function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
     const id = getElkNodeId(element);
 
-    // An ELK node is a box with a position and a size, with no rotation, so the element
-    // goes in with the geometry it would have at `angle: 0` and ELK reserves the wrong
-    // area for a rotated one.
-    if (!hasWarnedAboutRotation && element.angle() !== 0) {
-        hasWarnedAboutRotation = true;
-        console.warn('@joint/layout-elk: element rotation is not supported - exclude rotated elements from the layout.');
-    }
-
     const embeds = getEmbeddedElements(element);
 
     // A container's real size is computed by ELK to fit its content - `0` is just a
@@ -306,6 +298,14 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
 
     if (exportGraphOptions.exportElement?.({ element, elkNode }) === false)
         return null;
+
+    // An ELK node is a box with a position and a size, with no rotation, so the element
+    // goes in with the geometry it would have at `angle: 0` and ELK reserves the wrong
+    // area for a rotated one. Reported only for an element that is actually laid out.
+    if (!hasWarnedAboutRotation && element.angle() !== 0) {
+        hasWarnedAboutRotation = true;
+        console.warn('@joint/layout-elk: element rotation is not supported - exclude rotated elements from the layout.');
+    }
 
     throwIfIdTaken(elementsById.has(id), element, id);
     elementsById.set(id, element);

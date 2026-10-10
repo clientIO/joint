@@ -99,6 +99,10 @@ function buildEnd(
     if (elkId === undefined) return null;
     const element = elementsById.get(elkId);
     if (!element) return null;
+    // The end gained a port while the layout was running - `topLeft` would now resolve
+    // against that port's bbox, not the element's, so the delta below would not apply.
+    const { port } = currentEnd;
+    if (port !== undefined && port !== null && element.hasPort(`${port}`)) return null;
     return {
         ...currentEnd,
         anchor: getElementAnchorAtPoint(element, point)
@@ -171,8 +175,7 @@ function importEdges(edges: ElkExtendedEdge[] | undefined): void {
         const vertices = bendPoints.map(({ x, y }) => ({ x, y }));
 
         // Which end ELK anchored on is read back from the edge itself, rather than from
-        // the link: the graph may have changed while the layout was running, and an end
-        // whose port `exportPort` dropped was routed to the element despite keeping it.
+        // the link - the graph may have changed while the layout was running.
         const source = buildEnd(link.source(), edge.sources, startPoint);
         const target = buildEnd(link.target(), edge.targets, endPoint);
 
