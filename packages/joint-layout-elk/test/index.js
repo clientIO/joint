@@ -833,6 +833,36 @@ QUnit.module('layout()', () => {
         assert.equal(y, Math.min(elkPort.y + elkPort.height / 2, elkNode.height));
     });
 
+    QUnit.test('should size a node around the labels `exportElement` added to it', async(assert) => {
+
+        const layOut = async (addLabel) => {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 20, height: 10 }});
+            const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
+            graph.resetCells([el1, el2]);
+
+            const { elkGraph } = await joint.layout.ELK.layout(graph, {
+                exportElement: ({ element, elkNode }) => {
+                    if (element.id !== 'a') return;
+                    elkNode.layoutOptions['elk.nodeSize.constraints'] = 'NODE_LABELS MINIMUM_SIZE';
+                    elkNode.layoutOptions['elk.nodeLabels.placement'] = 'INSIDE V_CENTER H_CENTER';
+                    // Only the size is the caller's to set - ELK skips a label with no
+                    // text, so the package supplies its own placeholder.
+                    if (addLabel) elkNode.labels = [{ width: 200, height: 50, layoutOptions: {}}];
+                }
+            });
+
+            return elkGraph.children.find((node) => node.id === 'a');
+        };
+
+        const withoutLabel = await layOut(false);
+        const withLabel = await layOut(true);
+
+        assert.ok(withLabel.width > withoutLabel.width, `${withLabel.width} > ${withoutLabel.width}`);
+        assert.ok(withLabel.width >= 200, `${withLabel.width} fits the 200 wide label`);
+        assert.ok(withLabel.height >= 50, `${withLabel.height} fits the 50 high label`);
+    });
+
     QUnit.test('should leave out a link connected to another link', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });

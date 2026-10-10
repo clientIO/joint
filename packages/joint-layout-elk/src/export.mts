@@ -40,8 +40,11 @@ export interface ElkNodeDraft {
     /** `{ 'elk.portConstraints': 'FIXED_POS' }` for an element with ports, empty otherwise. */
     layoutOptions: NodeElkLayoutOptions;
     /**
-     * Empty. JointJS elements carry no labels, so add them only if ELK should
-     * size around them, e.g. under `elk.nodeSize.constraints: 'NODE_LABELS'`.
+     * Empty. JointJS elements carry no labels, so add them only if ELK should size around
+     * them - which also needs `elk.nodeLabels.placement` (and usually `MINIMUM_SIZE`
+     * alongside `NODE_LABELS`), e.g. `{ 'elk.nodeSize.constraints': 'NODE_LABELS
+     * MINIMUM_SIZE', 'elk.nodeLabels.placement': 'INSIDE V_CENTER H_CENTER' }`. Only the
+     * size of a label matters here - its text is this package's own placeholder.
      */
     labels?: ElkLabelDraft[];
 }
@@ -329,6 +332,8 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
 
     return {
         ...elkNode,
+        // ELK skips a label with no text, so `exportElement` only has to size one.
+        labels: elkNode.labels?.map((label) => ({ ...label, text: ELK_LABEL_TEXT })),
         children,
         ports,
         edges
