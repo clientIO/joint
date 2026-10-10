@@ -72,7 +72,8 @@ function getElementAnchorAtPoint(
         args: {
             dx: delta.x,
             dy: delta.y,
-            useModelGeometry: true
+            useModelGeometry: true,
+            rotate: true
         }
     };
 }
