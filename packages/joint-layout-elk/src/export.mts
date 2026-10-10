@@ -149,6 +149,8 @@ let edgeContainersById: Map<string | undefined, ElkExtendedEdge[]>;
 let elkParentIdsById: Map<string, string | undefined>;
 // Each element's position in the list of elements given to `exportGraph`.
 let elementIndicesById: Map<string, number>;
+// Whether this call has already reported a rotated element (see `buildElkNode`).
+let hasWarnedAboutRotation: boolean;
 // The elements laid out inside each container, keyed by the container's element id and
 // in the order of the list given to `exportGraph`. Built from each element's `parent()`
 // rather than read off the graph, so it covers an element that is in no graph (e.g. a
@@ -168,6 +170,7 @@ function init(options: ExportGraphOptions, elements: dia.Element[]): void {
     edgeContainersById = new Map();
     elkParentIdsById = new Map();
     elementIndicesById = new Map(elements.map((element, index) => [`${element.id}`, index]));
+    hasWarnedAboutRotation = false;
 
     // A second pass - a container may be listed after the elements inside it.
     childElementsByParentId = new Map();
@@ -273,6 +276,14 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
  */
 function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
     const id = getElkNodeId(element);
+
+    // An ELK node is a box with a position and a size, with no rotation, so the element
+    // goes in with the geometry it would have at `angle: 0` and ELK reserves the wrong
+    // area for a rotated one.
+    if (!hasWarnedAboutRotation && element.angle() !== 0) {
+        hasWarnedAboutRotation = true;
+        console.warn(`@joint/layout-elk: element \`${element.id}\` is rotated. Element rotation is not taken into account - a rotated element is laid out by its unrotated geometry, so it may overlap.`);
+    }
 
     const embeds = getEmbeddedElements(element);
 
