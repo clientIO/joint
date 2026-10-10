@@ -42,7 +42,7 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
      * loaded on the first layout that needs it)
      * @example
      * const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
-     * layout({ graph }, { elk });
+     * layout(graph, { elk });
      */
     elk?: WorkerElk | ELK;
     /**
@@ -59,7 +59,7 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
      * any other `elk` instance, can't be stopped - its result is only ignored.
      * @example
      * const controller = new AbortController();
-     * layout({ graph }, { signal: controller.signal });
+     * layout(graph, { signal: controller.signal });
      * graph.once('change', () => controller.abort());
      */
     signal?: AbortSignal;
@@ -80,9 +80,6 @@ function getBBox(elkGraph: ElkNode): g.Rect {
     return g.Rect.fromRectUnion(...rects) || new g.Rect(0, 0, 0, 0);
 }
 
-/**
- * What `layout()` lays out: the graph, and optionally which of its elements/links.
- */
 // The elements and the links to lay out, in the order they were given, and the graphs the
 // layout's batch runs on. A batch groups only the changes emitted by its own graph's cells,
 // so it has to run on every graph the cells come from - in practice one. A cell that is in
@@ -120,8 +117,8 @@ function splitCells(graphOrCells: dia.Graph | dia.Cell[]): {
  *
  * A list of cells is laid out in the order it is given: the top-level nodes follow it, and
  * so do each container's children. An element whose parent is not listed becomes a
- * top-level node, and a link is laid out only if both of its ends are listed too. Each cell
- * should be listed only once.
+ * top-level node, and a link is laid out only if both of its ends are listed too. A cell
+ * listed more than once is laid out once.
  *
  * The layout is applied in a `'layout'` batch on the graph the cells belong to, so that it
  * emits one combined change rather than one per element, port and link.

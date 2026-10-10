@@ -233,7 +233,7 @@ export class ElkWorkerClient implements WorkerElk {
  * (e.g. after an aborted layout).
  * @example
  * const elk = createWorkerElk(() => new Worker(new URL('@joint/layout-elk/worker', import.meta.url), { type: 'module' }));
- * await layout({ graph }, { elk });
+ * await layout(graph, { elk });
  */
 export function createWorkerElk(createWorker: () => Worker): WorkerElk {
     return new ElkWorkerClient(createWorker);
