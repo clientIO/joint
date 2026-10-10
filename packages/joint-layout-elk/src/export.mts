@@ -34,7 +34,7 @@ export interface ElkNodeDraft {
     /** Relative to the parent node. */
     x?: number;
     y?: number;
-    /** `0` for a container: ELK sizes it to fit its content. */
+    /** The element's own size - ELK overrides it for a node that ends up with children. */
     width: number;
     height: number;
     /** `{ 'elk.portConstraints': 'FIXED_POS' }` for an element with ports, empty otherwise. */
@@ -279,13 +279,10 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
 
     const embeds = getEmbeddedElements(element);
 
-    // A container's real size is computed by ELK to fit its content - `0` is just a
-    // placeholder (elkjs needs a numeric size upfront for a hierarchical node).
-    let width = 0;
-    let height = 0;
-    if (embeds.length === 0) {
-        ({ width, height } = element.size());
-    }
+    // ELK computes the size of a node that ends up with children, from its content - the
+    // element's own size is what a leaf is laid out with, and what a container falls back
+    // to if `exportElement` drops every element inside it.
+    const { width, height } = element.size();
 
     const elkNode: ElkNodeDraft = {
         id,
@@ -325,12 +322,8 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
             edges = [];
             edgeContainersById.set(id, edges);
         } else {
-            // `exportElement` dropped every embed - laid out as a leaf, with its own size
-            // in place of the container placeholder (unless `exportElement` set one).
+            // `exportElement` dropped every embed - laid out as a leaf.
             children = undefined;
-            if (elkNode.width === 0 && elkNode.height === 0) {
-                ({ width: elkNode.width, height: elkNode.height } = element.size());
-            }
         }
     }
 
