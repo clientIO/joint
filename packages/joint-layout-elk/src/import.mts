@@ -113,8 +113,9 @@ function buildEnd(
     if (!elementRect) return null;
     // The end gained a port while the layout was running - `topLeft` would now resolve
     // against that port's bbox, not the element's, so the delta below would not apply.
+    // `port` as the link holds it: `5` and `'5'` are two different ports.
     const { port } = currentEnd;
-    if (port !== undefined && port !== null && element.hasPort(`${port}`)) return null;
+    if (port !== undefined && port !== null && element.hasPort(port as string)) return null;
     return {
         ...currentEnd,
         anchor: getElementAnchorAtPoint(element, elementRect, point)

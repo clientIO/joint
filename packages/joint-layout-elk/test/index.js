@@ -835,7 +835,7 @@ QUnit.module('layout()', () => {
 
     QUnit.test('should size a node around the labels `exportElement` added to it', async(assert) => {
 
-        const layOut = async (addLabel) => {
+        const layOut = async(addLabel) => {
             const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 20, height: 10 }});
             const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
@@ -861,6 +861,49 @@ QUnit.module('layout()', () => {
         assert.ok(withLabel.width > withoutLabel.width, `${withLabel.width} > ${withoutLabel.width}`);
         assert.ok(withLabel.width >= 200, `${withLabel.width} fits the 200 wide label`);
         assert.ok(withLabel.height >= 50, `${withLabel.height} fits the 50 high label`);
+    });
+
+    QUnit.test('should reject two ports of one element whose ids differ only in type', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        // Two distinct ports for JointJS, one and the same id for ELK, which identifies
+        // everything by a string.
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: {
+                groups: { right: { position: 'right' }},
+                items: [{ id: 5, group: 'right' }, { id: '5', group: 'right' }]
+            }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+
+        graph.resetCells([el1, el2]);
+
+        assert.equal(el1.getPorts().length, 2);
+        await assert.rejects(joint.layout.ELK.layout(graph), /collides/);
+    });
+
+    QUnit.test('should lay out an element whose port ids are numbers', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            // `@joint/core` types a port id as a string, but a number is valid - and
+            // `portProp()` looks one up with `===`, so a stringified id finds nothing.
+            ports: { groups: { right: { position: 'right' }}, items: [{ id: 5, group: 'right' }] }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a', port: 5 }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
+
+        assert.deepEqual(elkGraph.edges[0].sources, ['a:5']);
+        // The import ran to the end - an element laid out after the ports was positioned.
+        assert.notDeepEqual(el2.position().toJSON(), { x: 0, y: 0 });
     });
 
     QUnit.test('should leave out a link connected to another link', async(assert) => {

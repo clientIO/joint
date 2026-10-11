@@ -225,7 +225,10 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
     const ports: ElkPort[] = [];
 
     element.getPorts().forEach((port) => {
-        const portId = `${port.id}`;
+        // Not stringified: a port id may be a number, and `5` and `'5'` are two different
+        // ports, so it has to go back to `portProp()` exactly as it came. `getElkPortId()`
+        // stringifies it for ELK, whose own ids are strings.
+        const portId = port.id as string;
         const elkPortId = getElkPortId(element, portId);
 
         // ELK takes a port's top-left corner, not its center. No `elk.port.borderOffset`:
@@ -260,6 +263,9 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             }];
         }
 
+        if (portsById.has(elkPort.id)) {
+            throw new Error(`@joint/layout-elk: the id of port \`${portId}\` of element \`${element.id}\` collides with another port's in the ELK graph ("${elkPort.id}").`);
+        }
         portsById.set(elkPort.id, { element, portId });
         ports.push({
             ...elkPort,
@@ -369,8 +375,9 @@ function getLowestCommonAncestorId(sourcePath: string[], targetPath: string[]): 
 // hidden from ELK, so there is nothing for an edge to attach to.
 function isEndPortDropped(element: dia.Element, port: string | number | undefined | null): boolean {
     if (port === undefined || port === null) return false;
-    const portId = `${port}`;
-    return element.hasPort(portId) && !portsById.has(getElkPortId(element, portId));
+    // `port` as the link holds it - `5` and `'5'` are two different ports, so a stringified
+    // id would ask about a port the element may not have. Only the ELK id is a string.
+    return element.hasPort(port as string) && !portsById.has(getElkPortId(element, port as string));
 }
 
 /**
