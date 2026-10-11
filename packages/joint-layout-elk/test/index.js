@@ -759,6 +759,31 @@ QUnit.module('layout()', () => {
         assert.equal(elkNode.ports.find((port) => port.id === 'a:out2').labels.length, 1);
     });
 
+    QUnit.test('should cover an edge label ELK kept room for beside the nodes', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a' },
+            target: { id: 'b' },
+            // Far taller than the nodes it runs between, so ELK lays the graph out around
+            // the label and the union of the nodes is no longer the whole layout.
+            labels: [{ size: { width: 40, height: 400 }}]
+        });
+        graph.resetCells([el1, el2, link]);
+
+        const { bbox, elkGraph } = await joint.layout.ELK.layout(graph);
+
+        // `elk.json.edgeCoords: 'ROOT'` - the label is placed in the root's coordinates.
+        const [{ x, y, width, height }] = elkGraph.edges[0].labels;
+        const labelRect = new joint.g.Rect(x, y, width, height);
+        const elementsRect = graph.getCellsBBox([el1, el2]);
+        assert.notOk(elementsRect.containsRect(labelRect), 'the label is outside the elements');
+        assert.ok(bbox.containsRect(labelRect), `${bbox.toString()} contains ${labelRect.toString()}`);
+        assert.ok(bbox.containsRect(elementsRect));
+    });
+
     QUnit.test('should return a zero-size bbox for an empty graph', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
