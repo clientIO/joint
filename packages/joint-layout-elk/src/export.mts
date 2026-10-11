@@ -79,7 +79,7 @@ export interface ElkPortDraft {
  */
 export type ExportPortCallback = (params: ExportPortCallbackParameters) => void | false;
 export type ExportPortCallbackParameters = {
-    portId: string;
+    portId: dia.Cell.ID;
     element: dia.Element;
     elkPort: ElkPortDraft;
 };
@@ -107,7 +107,7 @@ export type ExportLinkCallbackParameters = {
  */
 export type ExportPortLabelCallback = (params: ExportPortLabelCallbackParameters) => void | false;
 export type ExportPortLabelCallbackParameters = {
-    portId: string;
+    portId: dia.Cell.ID;
     element: dia.Element;
     elkPortLabel: ElkLabelDraft;
 };
@@ -230,9 +230,9 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
     element.getPorts().forEach((port) => {
         // A port id may be a number, and `5` and `'5'` are two different ports, so it has
         // to go back to `portProp()` exactly as it came - only the ELK id is a string.
-        // `@joint/core` types a port id as a string - `ElkGraphPort.portId` says what it
-        // really is, and `defaultSetPortAttributes()` carries the one `@ts-expect-error`
-        // that fails once clientIO/joint#3544 widens those typings.
+        // `@joint/core` types a port id as a string - this package types it as it really
+        // is, and every call that hands one back to `@joint/core` carries a
+        // `@ts-expect-error` that fails once clientIO/joint#3544 widens those typings.
         const portId: dia.Cell.ID = port.id!;
         const elkPortId = getElkPortId(element, portId);
 

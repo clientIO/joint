@@ -114,6 +114,7 @@ const init = () => {
     };
 
     const exportPort: ExportPortCallback = ({ portId, element, elkPort }) => {
+        // @ts-expect-error a port id may be a number - clientIO/joint#3544
         switch (element.getPort(portId).group) {
             case 'in':
                 elkPort.layoutOptions['elk.port.side'] = 'WEST';
@@ -125,9 +126,13 @@ const init = () => {
     };
 
     const exportPortLabel: ExportPortLabelCallback = ({ portId, element, elkPortLabel }) => {
-        const { width, height} = element.portProp(portId, 'label/size');
-        elkPortLabel.width = width;
-        elkPortLabel.height = height;
+        // @ts-expect-error a port id may be a number - clientIO/joint#3544
+        const size = element.portProp(portId, 'label/size');
+        // A port with no label text is never sized (see `Service` in `shapes.ts`) - it
+        // goes to ELK without a label rather than with an unsized one.
+        if (!size) return false;
+        elkPortLabel.width = size.width;
+        elkPortLabel.height = size.height;
     };
 
     // Freezes the paper for the (async) duration of the layout, so nothing renders
