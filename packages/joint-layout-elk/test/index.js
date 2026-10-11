@@ -884,6 +884,25 @@ QUnit.module('layout()', () => {
         await assert.rejects(joint.layout.ELK.layout(graph), /collides/);
     });
 
+    QUnit.test('should not nest an element under a container whose id differs from its `parent` only in type', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const container = new joint.shapes.standard.Rectangle({ id: '5', size: { width: 200, height: 200 }});
+        const child = new joint.shapes.standard.Rectangle({ id: 'child', size: { width: 50, height: 50 }});
+        const other = new joint.shapes.standard.Rectangle({ id: 'other', size: { width: 50, height: 50 }});
+
+        graph.resetCells([container, child, other]);
+        // The number 5, not the string - a cell id JointJS keeps apart from `'5'`.
+        child.set('parent', 5);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph);
+
+        const elkContainer = elkGraph.children.find((node) => node.id === '5');
+        assert.notOk(elkContainer.children && elkContainer.children.length);
+        // Its parent is not among the laid out elements, so it is a top-level node.
+        assert.ok(elkGraph.children.some((node) => node.id === 'child'));
+    });
+
     QUnit.test('should lay out an element whose port ids are numbers', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });

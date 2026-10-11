@@ -150,15 +150,16 @@ let edgeContainersById: Map<string | undefined, ElkExtendedEdge[]>;
 // Every exported node's parent node in the ELK graph (`undefined` for a top-level one) -
 // not always its JointJS parent (see `exportGraph`).
 let elkParentIdsById: Map<string, string | undefined>;
-// Each element's position in the list of elements given to `exportGraph`.
-let elementIndicesById: Map<string, number>;
+// Each element's position in the list of elements given to `exportGraph`, by the
+// element's own id - `5` and `'5'` are two different cells, so the key is not a string.
+let elementIndicesById: Map<dia.Cell.ID, number>;
 // Whether this call has already reported a rotated element (see `buildElkNode`).
 let hasWarnedAboutRotation: boolean;
 // The elements laid out inside each container, keyed by the container's element id and
 // in the order of the list given to `exportGraph`. Built from each element's `parent()`
 // rather than read off the graph, so it covers an element that is in no graph (e.g. a
 // container that only exists to group others for the layout).
-let childElementsByParentId: Map<string, dia.Element[]>;
+let childElementsByParentId: Map<dia.Cell.ID, dia.Element[]>;
 
 /**
  * (Re)initializes all the module-level state above for a single `exportGraph` call, so
@@ -172,7 +173,7 @@ function init(options: ExportGraphOptions, elements: dia.Element[]): void {
     portsById = new Map();
     edgeContainersById = new Map();
     elkParentIdsById = new Map();
-    elementIndicesById = new Map(elements.map((element, index) => [`${element.id}`, index]));
+    elementIndicesById = new Map(elements.map((element, index) => [element.id, index]));
     hasWarnedAboutRotation = false;
 
     // A second pass - a container may be listed after the elements inside it.
@@ -180,13 +181,12 @@ function init(options: ExportGraphOptions, elements: dia.Element[]): void {
     elements.forEach((element) => {
         const parentId = element.parent();
         if (parentId === undefined || parentId === null) return;
-        const containerId = `${parentId}`;
-        if (!elementIndicesById.has(containerId)) return;
-        const children = childElementsByParentId.get(containerId);
+        if (!elementIndicesById.has(parentId)) return;
+        const children = childElementsByParentId.get(parentId);
         if (children) {
             children.push(element);
         } else {
-            childElementsByParentId.set(containerId, [element]);
+            childElementsByParentId.set(parentId, [element]);
         }
     });
 }
@@ -196,13 +196,13 @@ function init(options: ExportGraphOptions, elements: dia.Element[]): void {
 function hasLaidOutParent(element: dia.Element): boolean {
     const parentId = element.parent();
     if (parentId === undefined || parentId === null) return false;
-    return elementIndicesById.has(`${parentId}`);
+    return elementIndicesById.has(parentId);
 }
 
 // An element's embedded elements that take part in the layout, in the order of the list
 // of elements given to `exportGraph`.
 function getEmbeddedElements(element: dia.Element): dia.Element[] {
-    return childElementsByParentId.get(`${element.id}`) ?? [];
+    return childElementsByParentId.get(element.id) ?? [];
 }
 
 // ELK's ids are strings, while a JointJS cell's id may be a string or a number - so two
