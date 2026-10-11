@@ -71,12 +71,34 @@ export interface LayoutResult {
     elkGraph: ElkNode;
 }
 
+// ELK's own default, used for every side `elk.padding` does not name.
+const DEFAULT_PADDING = 12;
+
 /**
- * Tight bounding box of the top-level nodes in an ELK layout result.
+ * Tight bounding box of an ELK layout result.
+ *
+ * ELK sizes the root node around everything it laid out - nodes, edge routes and edge
+ * labels alike - plus the root's own padding, so the box is that size with the padding
+ * taken off, the way `@joint/layout-directed-graph` and `@joint/layout-msagl` take off
+ * the margins they were given.
  */
-function getBBox(elkGraph: ElkNode): g.Rect {
-    const rects = (elkGraph.children || []).map((node) => new g.Rect(node.x || 0, node.y || 0, node.width || 0, node.height || 0));
-    return g.Rect.fromRectUnion(...rects) || new g.Rect(0, 0, 0, 0);
+function getBBox(elkGraph: ElkNode, elkLayoutOptions: ElkLayoutOptions): g.Rect {
+    const padding = { top: DEFAULT_PADDING, left: DEFAULT_PADDING, bottom: DEFAULT_PADDING, right: DEFAULT_PADDING };
+    const value = elkLayoutOptions['elk.padding'];
+    if (value) {
+        // `[top=12,left=12,bottom=12,right=12]`, with any side left out keeping the default.
+        const sides = /(top|left|bottom|right)\s*=\s*(-?[\d.]+)/g;
+        let side;
+        while ((side = sides.exec(value)) !== null) {
+            padding[side[1] as keyof typeof padding] = Number(side[2]);
+        }
+    }
+    const { top, left, bottom, right } = padding;
+    const width = Math.max(0, (elkGraph.width || 0) - left - right);
+    const height = Math.max(0, (elkGraph.height || 0) - top - bottom);
+    // Nothing was laid out - the root is its own padding, which is not a box at `left`/`top`.
+    if (width === 0 && height === 0) return new g.Rect(0, 0, 0, 0);
+    return new g.Rect(left, top, width, height);
 }
 
 // A `WorkerElk` takes the signal itself and terminates the worker busy with the layout.
@@ -183,7 +205,7 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
     }
 
     return {
-        bbox: getBBox(result),
+        bbox: getBBox(result, elkLayoutOptions),
         elkGraph: result
     };
 }
