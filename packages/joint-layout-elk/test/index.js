@@ -439,6 +439,37 @@ QUnit.module('layout()', () => {
         assert.equal(relativePosition.y, position.y);
     });
 
+    QUnit.test('should keep a port where `exportPort` put it under FIXED_POS port constraints', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 60 },
+            ports: {
+                groups: { out: { position: { name: 'absolute', args: { x: 100, y: 30 }}, size: { width: 20, height: 10 }}},
+                items: [{ id: 'out1', group: 'out' }]
+            }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 60 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a', port: 'out1' }, target: { id: 'b' }});
+
+        graph.resetCells([el1, el2, link]);
+
+        await joint.layout.ELK.layout(graph, {
+            exportElement: ({ elkNode }) => {
+                elkNode.layoutOptions['elk.portConstraints'] = 'FIXED_POS';
+            },
+            // Stood off the element, the way `args.dx` or `ellipseLayout`'s `dr` does it.
+            exportPort: ({ elkPort }) => {
+                elkPort.x = 150;
+            }
+        });
+
+        // ELK handed the port back untouched, so it stays where it was put - the center
+        // of the box `exportPort` sent, not half a port further in.
+        assert.deepEqual(el1.portProp('out1', 'position/args'), { x: 160, y: 30 });
+    });
+
     QUnit.test('should keep a port where it is under FIXED_POS port constraints', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });

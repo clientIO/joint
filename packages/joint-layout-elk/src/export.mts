@@ -271,7 +271,8 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         if (portsById.has(elkPort.id)) {
             throw new Error(`@joint/layout-elk: the id of port \`${portId}\` of element \`${element.id}\` collides with another port's in the ELK graph ("${elkPort.id}").`);
         }
-        portsById.set(elkPort.id, { element, portId, x, y });
+        // What was sent - `exportPort` may have moved the port from where it is now.
+        portsById.set(elkPort.id, { element, portId, x: elkPort.x, y: elkPort.y });
         ports.push({
             ...elkPort,
             labels
