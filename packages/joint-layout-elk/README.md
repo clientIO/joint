@@ -128,7 +128,7 @@ Each applies the ELK-computed attributes itself, in place of the package's own d
 
 ```ts
 type SetElementAttributesCallback = (params: { element: dia.Element; attributes: { position: dia.Point; size?: dia.Size }; elkNode: ElkNode }) => void;
-type SetPortAttributesCallback = (params: { element: dia.Element; portId: string; attributes: { position: { args: dia.Point }; label?: { position: { args: dia.Point } } }; elkPort: ElkPort }) => void;
+type SetPortAttributesCallback = (params: { element: dia.Element; portId: dia.Cell.ID; attributes: { position: { args: dia.Point }; label?: { position: { args: dia.Point } } }; elkPort: ElkPort; hasMoved: boolean }) => void;
 type SetLinkAttributesCallback = (params: { link: dia.Link; attributes: { vertices: dia.Point[]; source?: dia.Link.EndJSON; target?: dia.Link.EndJSON; labels?: dia.Link.Label[] }; elkEdge: ElkExtendedEdge }) => void;
 ```
 

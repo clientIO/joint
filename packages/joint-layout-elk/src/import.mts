@@ -30,7 +30,13 @@ export type SetPortAttributesCallbackParameters = {
         // Present only when the port has a label.
         label?: { position: { args: dia.Point } };
     };
-    elkPort: ElkPort
+    elkPort: ElkPort;
+    /**
+     * Whether the port is not where it was. ELK returns one untouched under the default
+     * `elk.portConstraints: 'FIXED_POS'`, unless the node's border moved, and places it
+     * itself under e.g. `'FIXED_SIDE'`.
+     */
+    hasMoved: boolean;
 };
 
 /** Applies the ELK-computed vertices, end anchors and label positions to a link. */
@@ -276,7 +282,8 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
         node.ports.forEach((port) => {
             const found = portsById.get(port.id);
             if (!found) return;
-            const { element, portId } = found;
+            const { element, portId, x: sentX, y: sentY } = found;
+            const hasMoved = (port.x || 0) !== sentX || (port.y || 0) !== sentY;
 
             // ELK places a port just outside the node's border - clamping its center
             // into the node's bounds moves it onto the border, whichever side it is on.
@@ -312,7 +319,8 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
                         }
                     } : {})
                 },
-                elkPort: port
+                elkPort: port,
+                hasMoved
             });
         });
     }

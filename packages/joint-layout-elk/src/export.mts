@@ -122,6 +122,9 @@ export type ExportLinkLabelCallbackParameters = {
 export interface ElkGraphPort {
     element: dia.Element;
     portId: dia.Cell.ID;
+    /** The port's top-left as it was sent to ELK - what came back is `ElkPort`'s own. */
+    x: number;
+    y: number;
 }
 
 export interface ElkGraphData {
@@ -268,7 +271,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         if (portsById.has(elkPort.id)) {
             throw new Error(`@joint/layout-elk: the id of port \`${portId}\` of element \`${element.id}\` collides with another port's in the ELK graph ("${elkPort.id}").`);
         }
-        portsById.set(elkPort.id, { element, portId });
+        portsById.set(elkPort.id, { element, portId, x, y });
         ports.push({
             ...elkPort,
             labels
