@@ -21,7 +21,7 @@ export type SetElementAttributesCallbackParameters = {
 export type SetPortAttributesCallback = (params: SetPortAttributesCallbackParameters) => void;
 export type SetPortAttributesCallbackParameters = {
     element: dia.Element;
-    portId: string;
+    portId: dia.Cell.ID;
     // Shaped for `element.portProp(portId, attributes)` - only the port's own
     // `position.args`/`label.position.args` (a group's `position`/`label.position`
     // decides which layout function reads them - handled separately, see `importNode`).
@@ -115,7 +115,7 @@ function buildEnd(
     // against that port's bbox, not the element's, so the delta below would not apply.
     // `port` as the link holds it: `5` and `'5'` are two different ports.
     const { port } = currentEnd;
-    if (port !== undefined && port !== null && element.hasPort(port as string)) return null;
+    if (port !== undefined && port !== null && element.hasPort(port)) return null;
     return {
         ...currentEnd,
         anchor: getElementAnchorAtPoint(element, elementRect, point)
@@ -127,6 +127,9 @@ const defaultSetElementAttributes: SetElementAttributesCallback = ({ element, at
 };
 
 const defaultSetPortAttributes: SetPortAttributesCallback = ({ element, portId, attributes }) => {
+    // A port id may be a number, which `@joint/core` does not type - and `portProp()`
+    // looks one up with `===`, so it has to be passed on as it is.
+    // @ts-expect-error fails once clientIO/joint#3544 widens the typings - delete it then
     element.portProp(portId, attributes);
 };
 

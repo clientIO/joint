@@ -24,7 +24,7 @@ export function getElkNodeId(element: dia.Element): string {
 }
 
 /** The id of an element port's ELK port - `<element id>:<port id>`. */
-export function getElkPortId(element: dia.Element, portId: string): string {
+export function getElkPortId(element: dia.Element, portId: dia.Cell.ID): string {
     return `${getElkNodeId(element)}:${escapeId(portId)}`;
 }
 
