@@ -127,9 +127,16 @@ export interface ElkGraphPort {
     y: number;
 }
 
+export interface ElkGraphElement {
+    element: dia.Element;
+    /** The size the node was sent to ELK with - what came back is on the `ElkNode`. */
+    width: number;
+    height: number;
+}
+
 export interface ElkGraphData {
     elkGraph: ElkNode;
-    elementsById: Map<string, dia.Element>;
+    elementsById: Map<string, ElkGraphElement>;
     linksById: Map<string, dia.Link>;
     portsById: Map<string, ElkGraphPort>;
 }
@@ -144,7 +151,7 @@ export interface ExportGraphOptions {
 
 let exportGraphOptions: ExportGraphOptions;
 
-let elementsById: Map<string, dia.Element>;
+let elementsById: Map<string, ElkGraphElement>;
 let linksById: Map<string, dia.Link>;
 let portsById: Map<string, ElkGraphPort>;
 // Every container node (plus the root), keyed by element id (`undefined` for the root) -
@@ -319,7 +326,7 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
     }
 
     throwIfIdTaken(elementsById.has(id), element, id);
-    elementsById.set(id, element);
+    elementsById.set(id, { element, width: elkNode.width, height: elkNode.height });
     elkParentIdsById.set(id, parentId);
 
     const ports = buildPorts(element);
