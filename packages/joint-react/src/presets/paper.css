@@ -26,6 +26,11 @@
 .jj-paper {
     background-color: var(--jj-paper-color);
     height: stretch;
+    /* Disable the browser's double-tap zoom so fast taps stay app gestures
+       (`dbltap`). Pan / pinch suppression is handled selectively in JS (see
+       utils/touch-gestures) so `[data-jj-scrollable]` regions keep native
+       touch scrolling — `touch-action: none` here would take it from them. */
+    touch-action: manipulation;
 }
 
 /* ── Paper Interactions ─────────────────────────────────────────────────────── */

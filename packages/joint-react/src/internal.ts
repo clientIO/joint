@@ -67,6 +67,7 @@ export { assignOptions, pickValues, makeOptions } from './utils/object-utilities
 export { resolvePaper, resolvePaperId, isPaperTarget } from './utils/resolve-paper-target';
 export { isRecord } from './utils/is';
 export { wheelGuard, SCROLLABLE_ATTRIBUTE } from './utils/wheel-guard';
+export { isMultiTouchEvent } from './utils/touch-gestures';
 
 // Constants
 export { ELEMENT_MODEL_TYPE, PORTAL_SELECTOR } from './mvc/element-model';

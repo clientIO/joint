@@ -17,6 +17,7 @@ import type { CellVisibility } from '../../presets/cell-visibility';
 import type { CellInteractivity } from '../../presets/cell-interactivity';
 import type { LinkRouting } from '../../presets/link-routing';
 import type { PaperEventHandlers } from '../../presets/paper-events';
+import type { PinchZoomBounds } from '../../hooks/use-pinch-zoom';
 
 /**
  * Viewport transform accepted by the `<Paper>` `transform` prop: either a CSS
@@ -473,6 +474,24 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
    * ```
    */
   readonly transform?: PaperTransform;
+
+  /**
+   * Built-in pinch-to-zoom: two-finger touch pinches and touchpad
+   * (`Ctrl`/`Cmd`+wheel) pinches zoom the canvas around the gesture point,
+   * and two-finger touch pans move it. Pass `{ min, max }` to tune the zoom
+   * bounds, or `false` to turn the behavior off (e.g. when the viewport is
+   * driven through the `transform` prop).
+   *
+   * Subscribing your own `onPaperPinch` / `onPaperPan` handler takes
+   * precedence — the built-in behavior yields automatically, no need to also
+   * pass `false`.
+   * @default true
+   * @example
+   * ```tsx
+   * <Paper zoomOnPinch={{ min: 0.5, max: 2 }} />
+   * ```
+   */
+  readonly zoomOnPinch?: boolean | PinchZoomBounds;
 
   /**
    * Maximum pointer travel (in px) still treated as a click rather than a drag.
