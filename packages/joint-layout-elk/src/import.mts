@@ -283,6 +283,10 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             const found = portsById.get(port.id);
             if (!found) return;
             const { element, portId, x: sentX, y: sentY } = found;
+            // The port was removed while the layout was running - `portsById` was built
+            // before it went, and `portProp()` throws for a port the element no longer has.
+            // @ts-expect-error a port id may be a number - clientIO/joint#3544
+            if (!element.hasPort(portId)) return;
             const hasMoved = (port.x || 0) !== sentX || (port.y || 0) !== sentY;
 
             // ELK places a port just outside the node's border - clamping its center

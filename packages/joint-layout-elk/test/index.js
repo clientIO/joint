@@ -903,6 +903,29 @@ QUnit.module('layout()', () => {
         assert.ok(elkGraph.children.some((node) => node.id === 'child'));
     });
 
+    QUnit.test('should skip a port removed while the layout was running', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: { groups: { right: { position: 'right' }}, items: [{ id: 'gone', group: 'right' }] }
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+
+        graph.resetCells([el1, el2]);
+
+        const pending = joint.layout.ELK.layout(graph);
+        // The ports were read when the layout started - this one is gone by the time its
+        // result comes back, and `portProp()` throws for a port the element does not have.
+        el1.removePort('gone');
+
+        await pending;
+
+        // The import ran to the end rather than stopping at the port.
+        assert.notDeepEqual(el2.position().toJSON(), { x: 0, y: 0 });
+    });
+
     QUnit.test('should lay out an element whose port ids are numbers', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
