@@ -1,7 +1,7 @@
 import { type dia, g } from '@joint/core';
 import type { ElkPoint } from 'elkjs';
 import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
-import type { ElkGraphElement, ElkGraphPort } from './export.mjs';
+import type { ElkGraphPort } from './export.mjs';
 import { getLinkLabelIndex } from './elkIds.mjs';
 
 /** Applies the ELK-computed position (and, for a container, size) to `element`. */
@@ -113,9 +113,8 @@ function buildEnd(
 ): dia.Link.EndJSON | null {
     const [elkId] = refs || [];
     if (elkId === undefined) return null;
-    const found = elementsById.get(elkId);
-    if (!found) return null;
-    const { element } = found;
+    const element = elementsById.get(elkId);
+    if (!element) return null;
     const elementRect = elementRectsById.get(elkId);
     if (!elementRect) return null;
     // The end gained a port while the layout was running - `topLeft` would now resolve
@@ -146,7 +145,7 @@ const defaultSetLinkAttributes: SetLinkAttributesCallback = ({ link, attributes 
 
 let importLayoutOptions: ImportLayoutOptions;
 
-let elementsById: Map<string, ElkGraphElement>;
+let elementsById: Map<string, dia.Element>;
 let linksById: Map<string, dia.Link>;
 let portsById: Map<string, ElkGraphPort>;
 // The graph-absolute rect ELK gave each node, filled in as `importNode` walks down. A
@@ -159,7 +158,7 @@ let elementRectsById: Map<string, g.Rect>;
  * that no lookup table or option can leak from one call into the next.
  */
 function init(
-    elements: Map<string, ElkGraphElement>,
+    elements: Map<string, dia.Element>,
     links: Map<string, dia.Link>,
     ports: Map<string, ElkGraphPort>,
     options: ImportLayoutOptions
@@ -276,14 +275,14 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
     const position = toAbsolute({ x: node.x || 0, y: node.y || 0 }, containerPosition);
     elementRectsById.set(node.id, new g.Rect(position.x, position.y, node.width || 0, node.height || 0));
 
-    const found = elementsById.get(node.id);
-    if (found) {
-        const { element, width: sentWidth, height: sentHeight } = found;
+    const element = elementsById.get(node.id);
+    if (element) {
         // ELK sizes a container to fit its content, and some algorithms resize a leaf too
-        // (`rectpacking`'s white space elimination, `elk.nodeSize.constraints`). A node it
-        // handed back the size it was given is left alone - a caller may well have sent a
-        // size of its own through `exportElement` only to shape the layout.
-        const hasResized = (node.width || 0) !== sentWidth || (node.height || 0) !== sentHeight;
+        // (`rectpacking`'s white space elimination, `elk.nodeSize.constraints`). The size
+        // it laid the node out at is the one the element should end up with - compared
+        // against the element's own, so an unchanged one is not written again.
+        const { width, height } = element.size();
+        const hasResized = (node.width || 0) !== width || (node.height || 0) !== height;
         const setElementAttributes = importLayoutOptions.setElementAttributes ?? defaultSetElementAttributes;
         setElementAttributes({
             element,
@@ -357,7 +356,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
  */
 export function importLayout(
     elkGraph: ElkNode,
-    elementsById: Map<string, ElkGraphElement>,
+    elementsById: Map<string, dia.Element>,
     linksById: Map<string, dia.Link>,
     portsById: Map<string, ElkGraphPort>,
     options: ImportLayoutOptions
