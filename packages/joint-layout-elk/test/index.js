@@ -926,6 +926,66 @@ QUnit.module('layout()', () => {
         assert.notDeepEqual(el2.position().toJSON(), { x: 0, y: 0 });
     });
 
+    QUnit.test('should apply a size ELK computed for a leaf, and take it back when ELK stops computing one', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const tiles = [40, 50, 60, 70].map((width, index) => new joint.shapes.standard.Rectangle({
+            id: `t${index}`,
+            size: { width, height: 30 + (index % 3) * 20 }
+        }));
+        graph.resetCells(tiles);
+
+        // Like the `layout-elk-rectpacking-ts` example: every tile goes to ELK at the size
+        // it started with, so stretching compounds from that rather than from the last run.
+        const baseSizes = tiles.map((tile) => tile.size());
+        const exportElement = ({ element, elkNode }) => {
+            const { width, height } = baseSizes[tiles.indexOf(element)];
+            elkNode.width = width;
+            elkNode.height = height;
+        };
+        const pack = (strategy) => joint.layout.ELK.layout(graph, {
+            exportElement,
+            elkLayoutOptions: {
+                'elk.algorithm': 'rectpacking',
+                'elk.rectpacking.whiteSpaceElimination.strategy': strategy
+            }
+        });
+        const sizes = () => tiles.map((tile) => tile.size());
+
+        // White space elimination stretches the tiles - the package applies that.
+        await pack('EQUAL_BETWEEN_STRUCTURES');
+        const stretched = sizes();
+        assert.notDeepEqual(stretched, baseSizes);
+
+        // And takes it back when ELK no longer stretches them: the size that matters is
+        // the one ELK laid the node out at, not whether it differs from the one it was
+        // given - `exportElement` sends the base size either way.
+        await pack('NONE');
+        assert.deepEqual(sizes(), baseSizes);
+    });
+
+    QUnit.test('should not resize an element ELK laid out at the size it already has', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 80, height: 40 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }});
+        graph.resetCells([el1, el2, link]);
+
+        const sized = [];
+        await joint.layout.ELK.layout(graph, {
+            setElementAttributes: ({ element, attributes }) => {
+                if ('size' in attributes) sized.push(element.id);
+                element.set(attributes);
+            }
+        });
+
+        assert.deepEqual(el1.size(), { width: 80, height: 40 });
+        assert.deepEqual(el2.size(), { width: 50, height: 50 });
+        // `attributes` carries a size only for a node ELK laid out at a different one.
+        assert.deepEqual(sized, []);
+    });
+
     QUnit.test('should lay out an element whose port ids are numbers', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
