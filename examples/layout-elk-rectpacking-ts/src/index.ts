@@ -1,4 +1,4 @@
-import { dia, g, shapes, setTheme, util } from '@joint/core';
+import { dia, g, shapes, setTheme } from '@joint/core';
 import { createWorkerElk, layout } from '@joint/layout-elk';
 import { graphJSON, createFileJSON, type FileKind } from './example';
 import { Folder, FileTile, FOLDER_PADDING } from './shapes';
@@ -6,8 +6,7 @@ import './styles.scss';
 
 import type {
     ElkLayoutOptions,
-    ExportElementCallback,
-    SetElementAttributesCallback
+    ExportElementCallback
 } from '@joint/layout-elk';
 
 const cellNamespace = {
@@ -17,8 +16,6 @@ const cellNamespace = {
         FileTile
     }
 };
-
-const TRANSITION_DURATION = 400;
 
 const FILE_EXTENSIONS: Record<FileKind, string> = {
     photo: 'jpg',
@@ -92,25 +89,14 @@ const init = () => {
         elkNode.height = height;
     };
 
-    // `@joint/layout-elk` applies the ELK-computed size to containers only - a leaf
-    // keeps its own size by default. Here ELK resizes tiles too (white space
-    // elimination), so each tile takes `elkNode`'s size as well. Both are animated.
-    const setElementAttributes: SetElementAttributesCallback = ({ element, attributes, elkNode }) => {
-        const size = attributes.size ?? {
-            width: elkNode.width ?? element.size().width,
-            height: elkNode.height ?? element.size().height
-        };
-        transition(element, 'position', attributes.position);
-        transition(element, 'size', size);
-    };
-
     let contentArea = new g.Rect(0, 0, 0, 0);
     let zoomLevel = 1;
 
     const fit = () => {
         paper.scale(zoomLevel);
         paper.fitToContent({
-            // Fit to the layout result itself - the elements are still mid-transition.
+            // The layout result itself - the paper is async, so measuring the views
+            // right after `unfreeze()` would read them before they have rendered.
             contentArea,
             padding: 40 * zoomLevel,
             allowNewOrigin: 'any'
@@ -133,8 +119,7 @@ const init = () => {
                 const { bbox } = await layout(graph, {
                     elk,
                     elkLayoutOptions: getRootOptions(),
-                    exportElement,
-                    setElementAttributes
+                    exportElement
                 });
                 contentArea = bbox;
                 paper.unfreeze();
@@ -178,12 +163,7 @@ const init = () => {
             ratio: [0.75, 1, 1.5, 1.8][Math.floor(Math.random() * 4)]
         }));
         // Appears at its folder's corner, then moves to wherever ELK packs it.
-        tile.set({
-            // A plain object - not the `g.Point` the getter returns, which the
-            // transition below would otherwise mutate in place, without a change event.
-            position: folder.position().toJSON(),
-            z: graph.maxZIndex() + 1
-        });
+        tile.set({ position: folder.position().toJSON(), z: graph.maxZIndex() + 1 });
         graph.addCell(tile);
         runLayout();
     });
@@ -200,15 +180,6 @@ const init = () => {
 
     runLayout();
 };
-
-function transition(element: dia.Element, path: 'position' | 'size', value: dia.Point | dia.Size): void {
-    element.stopTransitions(path);
-    element.transition(path, value, {
-        duration: TRANSITION_DURATION,
-        timingFunction: util.timing.cubic,
-        valueFunction: util.interpolate.object
-    });
-}
 
 function shuffle<T>(items: T[]): T[] {
     const result = items.slice();

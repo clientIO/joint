@@ -1,6 +1,9 @@
 // A restrained Material Design palette, scoped under the `joint-theme-material`
 // class every view gets from `setTheme('material')` (`index.ts`). Each file kind
 // gets its own tonal tile color, so the packed board reads as a storage overview.
+$layout-duration: 400ms;
+$layout-easing: cubic-bezier(0.2, 0, 0, 1);
+
 :root {
     --md-primary: #3F51B5;
     --md-primary-tint: #E8EAF6;
@@ -104,6 +107,20 @@ html, body {
     &:hover {
         background: var(--md-primary-tint);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.16);
+    }
+}
+
+// The layout writes each element's position and size once and the browser animates the
+// change: an element's position is a `transform` on its group, and a tile's size reaches
+// its `rect` as `width`/`height`, both of which CSS can interpolate. ELK resizes tiles
+// here (white space elimination), so both are in play.
+.joint-element {
+    transition: transform $layout-duration $layout-easing;
+
+    rect {
+        transition:
+            width $layout-duration $layout-easing,
+            height $layout-duration $layout-easing;
     }
 }
 
