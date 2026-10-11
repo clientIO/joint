@@ -182,6 +182,21 @@ function toAbsolute(point: ElkPoint, containerPosition: dia.Point): dia.Point {
     };
 }
 
+// A port's center along one axis, from the box ELK returned for it.
+//
+// ELK draws a port's box beyond the border it sits on - an east port of a 100 wide node
+// comes back at `x: 100` - while JointJS puts a port's center on that border. Undoing
+// that is a shift of half the port, inwards, and only for a port ELK placed itself:
+// the same box can equally be a port a group put outside the element on purpose
+// (`args.dx`, `ellipseLayout`'s `dr`) and handed back untouched, which is left alone.
+function toPortCenter(start: number, size: number, nodeSize: number, hasMoved: boolean): number {
+    const center = start + size / 2;
+    if (!hasMoved) return center;
+    if (start >= nodeSize) return center - size / 2;
+    if (start + size <= 0) return center + size / 2;
+    return center;
+}
+
 /**
  * Applies a container's (or the root's) own ELK edges back onto their JointJS links,
  * via `setLinkAttributes` (or the default). Their coordinates are used as they are - see
@@ -289,11 +304,9 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             if (!element.hasPort(portId)) return;
             const hasMoved = (port.x || 0) !== sentX || (port.y || 0) !== sentY;
 
-            // ELK places a port just outside the node's border - clamping its center
-            // into the node's bounds moves it onto the border, whichever side it is on.
             const center = {
-                x: Math.min(Math.max((port.x || 0) + (port.width || 0) / 2, 0), node.width || 0),
-                y: Math.min(Math.max((port.y || 0) + (port.height || 0) / 2, 0), node.height || 0)
+                x: toPortCenter(port.x || 0, port.width || 0, node.width || 0, hasMoved),
+                y: toPortCenter(port.y || 0, port.height || 0, node.height || 0, hasMoved)
             };
 
             let labelPosition: dia.Point | undefined;
