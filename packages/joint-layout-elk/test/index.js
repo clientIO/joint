@@ -986,6 +986,39 @@ QUnit.module('layout()', () => {
         assert.deepEqual(sized, []);
     });
 
+    QUnit.test('should shrink a container back to its content under an algorithm that keeps a given size', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        // Far bigger than its content needs - as a folder is after the tiles inside it
+        // shrink, or after they are repacked into fewer rows.
+        const container = new joint.shapes.standard.Rectangle({ id: 'c', size: { width: 800, height: 600 }});
+        const tiles = [0, 1, 2].map((index) => new joint.shapes.standard.Rectangle({
+            id: `t${index}`,
+            size: { width: 60, height: 40 }
+        }));
+
+        graph.resetCells([container, ...tiles]);
+        tiles.forEach((tile) => container.embed(tile));
+
+        // `rectpacking` keeps the size a node is given, unlike `layered` - a container
+        // sent its own size would never shrink again.
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            elkLayoutOptions: { 'elk.algorithm': 'rectpacking' },
+            exportElement: ({ element, elkNode }) => {
+                if (element.id === 'c') elkNode.layoutOptions['elk.algorithm'] = 'rectpacking';
+            }
+        });
+
+        const elkContainer = elkGraph.children.find((node) => node.id === 'c');
+        assert.equal(elkContainer.children.length, 3);
+        assert.ok(container.size().width < 800, `${container.size().width} < 800`);
+        assert.ok(container.size().height < 600, `${container.size().height} < 600`);
+        // Still big enough for what is inside it.
+        tiles.forEach((tile) => {
+            assert.ok(container.getBBox().containsRect(tile.getBBox()), `${tile.id} fits`);
+        });
+    });
+
     QUnit.test('should lay out an element whose port ids are numbers', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });

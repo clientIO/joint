@@ -293,15 +293,19 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
 
     const embeds = getEmbeddedElements(element);
 
-    // ELK computes the size of a node that ends up with children, from its content - the
-    // element's own size is what a leaf is laid out with, and what a container falls back
-    // to if `exportElement` drops every element inside it.
+    // A container goes in without a size of its own, because ELK computes one from its
+    // content. Not merely redundant to send one: `rectpacking` keeps the size it is given,
+    // so a container would stay at whatever it grew to on an earlier layout and never
+    // shrink back. `0` stands for "no size" because `ElkNodeDraft` types it as required -
+    // `exportElement` may still set one, and a container whose embeds it drops gets the
+    // element's own size back below.
     const { width, height } = element.size();
+    const isContainer = embeds.length > 0;
 
     const elkNode: ElkNodeDraft = {
         id,
-        width,
-        height,
+        width: isContainer ? 0 : width,
+        height: isContainer ? 0 : height,
         // Ports stay where JointJS already places them - without it, ELK is free to move
         // them to another side or reorder them. `exportElement` may override it.
         layoutOptions: element.hasPorts() ? { 'elk.portConstraints': 'FIXED_POS' } : {}
@@ -336,8 +340,12 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
             edges = [];
             edgeContainersById.set(id, edges);
         } else {
-            // `exportElement` dropped every embed - laid out as a leaf.
+            // `exportElement` dropped every embed - laid out as a leaf, so the element's
+            // own size takes the place of the container placeholder, per dimension:
+            // `exportElement` may have set only one of the two.
             children = undefined;
+            if (elkNode.width === 0) elkNode.width = width;
+            if (elkNode.height === 0) elkNode.height = height;
         }
     }
 
