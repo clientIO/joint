@@ -307,3 +307,43 @@ myElementView.model.test();
 // TODO: Fix 'MyElement' is assignable to the constraint of type 'E', but 'E'
 // could be instantiated with a different subtype of constraint 'Element<Attributes, ModelSetOptions>'.
 // const ElementView1: typeof joint.dia.ElementView = CustomElementView;
+
+// dia.Paper.startLinkDrag() / dia.LinkDrag
+{
+    const dragPaper = new joint.dia.Paper({ model: graph });
+    const draggedLink = new joint.shapes.standard.Link();
+    const drag: joint.dia.LinkDrag = dragPaper.startLinkDrag(draggedLink, { end: 'source', whenNotAllowed: 'remove' });
+    const dragFromView: joint.dia.LinkDrag = new joint.dia.LinkDrag(dragPaper, drag.linkView.model);
+    const isLinkView: AssertExtends<typeof drag.linkView, joint.dia.LinkView> = true;
+    const isLink: AssertExtends<typeof drag.link, joint.dia.Link> = true;
+    const end: joint.dia.LinkEnd = drag.end;
+    drag.move(10, 20);
+    drag.move(new MouseEvent('pointermove'));
+    drag.move(new MouseEvent('pointermove'), 10, 20);
+    drag.finish(new MouseEvent('pointerup'), 10, 20);
+    drag.finish(10, 20);
+    dragFromView.cancel();
+    const active: boolean = dragFromView.isActive();
+    dragPaper.startLinkDrag(draggedLink).followPointer({ finishOn: 'pointerdown' }).then((result) => {
+        const cancelled: boolean = result.cancelled;
+        const resultView: joint.dia.LinkView = result.linkView;
+    });
+    dragPaper.startLinkDrag(draggedLink).followPointer({ finishOn: 'connection' });
+    dragPaper.startLinkDrag(draggedLink).followPointer({
+        finishOn: (evt, linkDrag) => evt.type === 'pointerdown' && linkDrag.getConnectionCandidate() !== null
+    });
+    const candidate: joint.dia.LinkDrag.ConnectionCandidate | null = drag.getConnectionCandidate();
+    if (candidate) {
+        const candidateView: joint.dia.CellView = candidate.cellView;
+        const candidateMagnet: SVGElement = candidate.magnet;
+    }
+    const linkViewFromMagnet: joint.dia.LinkView = drag.linkView.addLinkFromMagnet(drag.linkView.el, 0, 0);
+    const linkFromMagnet: joint.dia.Link = drag.linkView.createLinkFromMagnet(drag.linkView.el, 0, 0);
+    dragPaper.startLinkDrag(linkFromMagnet, { ui: true, tool: 'x' });
+    const linkEnd: joint.dia.Link.EndJSON = drag.linkView.getLinkEnd(drag.linkView.el, 0, 0, draggedLink, 'target');
+    const arrowheadMoveData = drag.linkView.startArrowheadMove('target');
+    const arrowheadMoveEvent = {} as joint.dia.Event;
+    drag.linkView.updateArrowheadMove(arrowheadMoveData, arrowheadMoveEvent, 0, 0);
+    drag.linkView.finishArrowheadMove(arrowheadMoveData, arrowheadMoveEvent, 0, 0);
+    drag.linkView.cancelArrowheadMove(arrowheadMoveData);
+}
