@@ -3170,6 +3170,54 @@ QUnit.module('element ports', function() {
             assert.strictEqual(elementView.getLinkEnd(stringPortNode).port, '5');
         });
 
+        QUnit.test('connection point is computed against the port with a numeric id', function(assert) {
+            const element = createElement([
+                { id: 5, group: 'left', size: { width: 20, height: 20 }},
+                { id: '5', group: 'right', size: { width: 20, height: 20 }}
+            ]);
+            const other = new joint.shapes.standard.Rectangle({
+                position: { x: -300, y: 40 },
+                size: { width: 20, height: 20 }
+            });
+            const link = new joint.shapes.standard.Link({
+                source: { id: other.id },
+                target: { id: element.id, port: 5, connectionPoint: { name: 'bbox', args: { useModelGeometry: true }}}
+            });
+            graph.addCells([element, other, link]);
+
+            assert.ok(link.findView(paper).targetPoint.round().equals({ x: -10, y: 50 }));
+        });
+
+        QUnit.test('magnet selector resolves within the port with a numeric id', function(assert) {
+            const portDefinition = {
+                markup: [{
+                    tagName: 'circle',
+                    selector: 'portBody',
+                    attributes: { r: 10 }
+                }, {
+                    tagName: 'circle',
+                    selector: 'portInner',
+                    attributes: { r: 5 }
+                }],
+                attrs: {
+                    portRoot: { magnetSelector: 'portInner' }
+                }
+            };
+            const element = createElement([
+                { ...portDefinition, id: 5, group: 'left' },
+                { ...portDefinition, id: '5', group: 'right' }
+            ]);
+            const other = new joint.shapes.standard.Rectangle();
+            const link = new joint.shapes.standard.Link({
+                source: { id: other.id },
+                target: { id: element.id, port: 5 }
+            });
+            graph.addCells([element, other, link]);
+            const elementView = element.findView(paper);
+
+            assert.equal(link.findView(paper).targetMagnet, elementView.findPortNode(5, 'portInner'));
+        });
+
         QUnit.test('a non-integer numeric id survives the round trip through the DOM', function(assert) {
             const element = createElement([{ id: 1.5, group: 'left' }]);
             element.addTo(graph);
