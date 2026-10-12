@@ -230,9 +230,6 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
     element.getPorts().forEach((port) => {
         // A port id may be a number, and `5` and `'5'` are two different ports, so it has
         // to go back to `portProp()` exactly as it came - only the ELK id is a string.
-        // `@joint/core` types a port id as a string - this package types it as it really
-        // is, and every call that hands one back to `@joint/core` carries a
-        // `@ts-expect-error` that fails once clientIO/joint#3544 widens those typings.
         const portId: dia.Cell.ID = port.id!;
         const elkPortId = getElkPortId(element, portId);
 
@@ -391,7 +388,6 @@ function isEndPortDropped(element: dia.Element, port: string | number | undefine
     if (port === undefined || port === null) return false;
     // `port` as the link holds it - `5` and `'5'` are two different ports, so a stringified
     // id would ask about a port the element may not have. Only the ELK id is a string.
-    // @ts-expect-error a port id may be a number - clientIO/joint#3544
     return element.hasPort(port) && !portsById.has(getElkPortId(element, port));
 }
 

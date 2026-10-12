@@ -133,9 +133,7 @@ const defaultSetElementAttributes: SetElementAttributesCallback = ({ element, at
 };
 
 const defaultSetPortAttributes: SetPortAttributesCallback = ({ element, portId, attributes }) => {
-    // A port id may be a number, which `@joint/core` does not type - and `portProp()`
-    // looks one up with `===`, so it has to be passed on as it is.
-    // @ts-expect-error fails once clientIO/joint#3544 widens the typings - delete it then
+    // `portProp()` looks a port up with `===`, so the id has to be passed on as it came.
     element.portProp(portId, attributes);
 };
 
@@ -305,7 +303,6 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
             const { element, portId, x: sentX, y: sentY } = found;
             // The port was removed while the layout was running - `portsById` was built
             // before it went, and `portProp()` throws for a port the element no longer has.
-            // @ts-expect-error a port id may be a number - clientIO/joint#3544
             if (!element.hasPort(portId)) return;
             const hasMoved = (port.x || 0) !== sentX || (port.y || 0) !== sentY;
 
