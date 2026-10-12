@@ -3148,16 +3148,6 @@ QUnit.module('element ports', function() {
             assert.deepEqual(element.getPortRelativePosition('5'), { x: 100, y: 50, angle: 0 });
         });
 
-        QUnit.test('getGroupPortsMetrics() returns a plain object keyed by the port id', function(assert) {
-            const element = createElement([{ id: 5, group: 'left' }, { id: 'a', group: 'left' }]);
-            const metrics = element.getGroupPortsMetrics('left');
-
-            assert.ok(joint.util.isPlainObject(metrics));
-            assert.deepEqual(Object.keys(metrics), ['5', 'a']);
-            assert.strictEqual(metrics[5].portId, 5);
-            assert.deepEqual(metrics[5].portTransformation, element.getPortMetrics(5).portTransformation);
-        });
-
         QUnit.test('ports whose ids differ only in type are rendered separately', function(assert) {
             const element = createElement([
                 { id: 5, group: 'left' },

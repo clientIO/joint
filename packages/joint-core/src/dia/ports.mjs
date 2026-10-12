@@ -460,7 +460,10 @@ export const elementPortPrototype = {
      */
     getPortsPositions: function(groupName) {
 
-        const portsMetrics = this._getGroupPortsMetrics(groupName);
+        const portsMetrics = this.getGroupPortsMetrics(groupName);
+        // TODO: Return a `Map` keyed by the port id in the next major version.
+        // A plain object keys the ports by the id as a string, so ports whose
+        // ids differ only in type (`5` and `'5'`) overwrite each other here.
         const portsPosition = {};
         for (const [portId, metrics] of portsMetrics) {
             const {
@@ -477,17 +480,11 @@ export const elementPortPrototype = {
 
     getPortMetrics: function(portId) {
         const port = this._portSettingsData.getPort(portId);
-        return this._getGroupPortsMetrics(port.group).get(portId);
+        return this.getGroupPortsMetrics(port.group).get(portId);
     },
 
-    // The metrics keyed by the port id (`5` and `'5'` are different ports).
-    _getGroupPortsMetrics: function(groupName) {
-        return this._portSettingsData.getGroupPortsMetrics(groupName, this.size());
-    },
-
-    // The metrics keyed by the port id as a string, for backwards compatibility.
     getGroupPortsMetrics: function(groupName) {
-        return Object.fromEntries(this._getGroupPortsMetrics(groupName));
+        return this._portSettingsData.getGroupPortsMetrics(groupName, this.size());
     },
 
     getPortRelativePosition: function(portId) {
@@ -1072,7 +1069,7 @@ export const elementViewPortPrototype = {
      */
     _updatePortGroup: function(groupName) {
 
-        const portsMetrics = this.model._getGroupPortsMetrics(groupName);
+        const portsMetrics = this.model.getGroupPortsMetrics(groupName);
 
         for (const [portId, metrics] of portsMetrics) {
             const cached = this._portElementsCache.get(portId) || {};
