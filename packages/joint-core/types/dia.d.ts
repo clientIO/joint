@@ -856,6 +856,8 @@ export namespace Element {
     }
 
     interface Port {
+        // TODO: Change to `Element.PortID` in the next major version
+        // (widening it breaks code that assigns `port.id` to a `string`).
         id?: string;
         markup?: string | MarkupJSON;
         group?: string;
