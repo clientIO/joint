@@ -5,8 +5,8 @@ import type { ElkGraphPort } from './export.mjs';
 import { getLinkLabelIndex } from './elkIds.mjs';
 
 /** Applies the ELK-computed position (and, for a container, size) to `element`. */
-export type SetElementAttributesCallback = (params: SetElementAttributesCallbackParameters) => void;
-export type SetElementAttributesCallbackParameters = {
+export type SetElementAttributesCallback = (params: SetElementAttributesCallbackParams) => void;
+export type SetElementAttributesCallbackParams = {
     element: dia.Element;
     attributes: {
         position: dia.Point;
@@ -18,8 +18,8 @@ export type SetElementAttributesCallbackParameters = {
 };
 
 /** Applies the ELK-computed position (and, for a labeled port, label position) to a port. */
-export type SetPortAttributesCallback = (params: SetPortAttributesCallbackParameters) => void;
-export type SetPortAttributesCallbackParameters = {
+export type SetPortAttributesCallback = (params: SetPortAttributesCallbackParams) => void;
+export type SetPortAttributesCallbackParams = {
     element: dia.Element;
     portId: dia.Cell.ID;
     // Shaped for `element.portProp(portId, attributes)` - only the port's own
@@ -40,8 +40,8 @@ export type SetPortAttributesCallbackParameters = {
 };
 
 /** Applies the ELK-computed vertices, end anchors and label positions to a link. */
-export type SetLinkAttributesCallback = (params: SetLinkAttributesCallbackParameters) => void;
-export type SetLinkAttributesCallbackParameters = {
+export type SetLinkAttributesCallback = (params: SetLinkAttributesCallbackParams) => void;
+export type SetLinkAttributesCallbackParams = {
     link: dia.Link;
     // Shaped for `link.set(attributes)`.
     attributes: {

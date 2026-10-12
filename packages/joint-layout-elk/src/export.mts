@@ -54,8 +54,8 @@ export interface ElkNodeDraft {
  * return `false` to drop the element - and its whole subtree (embeds, ports,
  * any edge connected to any of it) - from the ELK graph entirely.
  */
-export type ExportElementCallback = (params: ExportElementCallbackParameters) => void | false;
-export type ExportElementCallbackParameters = {
+export type ExportElementCallback = (params: ExportElementCallbackParams) => void | false;
+export type ExportElementCallbackParams = {
     element: dia.Element;
     elkNode: ElkNodeDraft;
 };
@@ -77,8 +77,8 @@ export interface ElkPortDraft {
  * routes to it, so the links connected to it are left out of the layout too and keep
  * the route they already had.
  */
-export type ExportPortCallback = (params: ExportPortCallbackParameters) => void | false;
-export type ExportPortCallbackParameters = {
+export type ExportPortCallback = (params: ExportPortCallbackParams) => void | false;
+export type ExportPortCallbackParams = {
     portId: dia.Cell.ID;
     element: dia.Element;
     elkPort: ElkPortDraft;
@@ -95,8 +95,8 @@ export interface ElkEdgeDraft {
  * Mutate `elkEdge` to customize what this package computed for a link, or return
  * `false` to drop the edge from the ELK graph - it is simply not routed/laid out.
  */
-export type ExportLinkCallback = (params: ExportLinkCallbackParameters) => void | false;
-export type ExportLinkCallbackParameters = {
+export type ExportLinkCallback = (params: ExportLinkCallbackParams) => void | false;
+export type ExportLinkCallbackParams = {
     link: dia.Link;
     elkEdge: ElkEdgeDraft;
 };
@@ -105,15 +105,15 @@ export type ExportLinkCallbackParameters = {
  * Size `elkPortLabel` (it starts at `0`x`0`, which leaves the port without a label in the
  * ELK graph) for ELK to place the port's label, or return `false` to leave it out.
  */
-export type ExportPortLabelCallback = (params: ExportPortLabelCallbackParameters) => void | false;
-export type ExportPortLabelCallbackParameters = {
+export type ExportPortLabelCallback = (params: ExportPortLabelCallbackParams) => void | false;
+export type ExportPortLabelCallbackParams = {
     portId: dia.Cell.ID;
     element: dia.Element;
     elkPortLabel: ElkLabelDraft;
 };
 
-export type ExportLinkLabelCallback = (params: ExportLinkLabelCallbackParameters) => void | false;
-export type ExportLinkLabelCallbackParameters = {
+export type ExportLinkLabelCallback = (params: ExportLinkLabelCallbackParams) => void | false;
+export type ExportLinkLabelCallbackParams = {
     link: dia.Link;
     labelIndex: number;
     elkEdgeLabel: ElkLabelDraft;
