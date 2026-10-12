@@ -143,6 +143,10 @@ function isObviousHtml(input) {
     );
 }
 
+export function isWindow(obj) {
+    return obj != null && obj === obj.window;
+}
+
 const Dom = function(selector) {
     if (!selector) {
         // HANDLE: $(""), $(null), $(undefined), $(false)
@@ -158,6 +162,15 @@ const Dom = function(selector) {
     }
     if (selector.nodeType) {
         // HANDLE: $(DOMElement)
+        this[0] = selector;
+        this.length = 1;
+        return this;
+    }
+    if (isWindow(selector)) {
+        // HANDLE: $(window)
+        // A window is held, but only the event methods and `width()`/`height()`
+        // support it. This check precedes the array-like branch, because a
+        // window's `length` counts its frames.
         this[0] = selector;
         this.length = 1;
         return this;
