@@ -8,11 +8,14 @@
             "dom"
         ],
         "noImplicitAny": false,
-        "sourceMap": false,
-        "rootDir": "./src",
-        "outDir": "./build",
-        "noUncheckedSideEffectImports": false,
         "resolveJsonModule": true,
-        "esModuleInterop": true
-    }
+        "esModuleInterop": true,
+        "noEmit": true,
+        "types": [
+            "vite/client"
+        ]
+    },
+    "include": [
+        "src"
+    ]
 }

@@ -21,8 +21,11 @@ yarn run build
 
 Navigate to this directory, then run:
 ```bash
-yarn start
+yarn dev
 ```
+
+Then open the URL printed in the terminal (usually `http://localhost:5173`). `yarn build`
+makes a production build in `dist/`, `yarn preview` serves it.
 
 ## License
 
