@@ -282,6 +282,13 @@ if (rectangle.hasPort(1)) {
     rectangle.removePort(1);
 }
 
+const portIds: joint.dia.Element.Port.ID[] = [1, 'port1'];
+const portDefinition: joint.dia.Element.Port = { id: 'port1', group: 'in' };
+rectangle.addPort(portDefinition);
+rectangle.removePorts([...portIds, portDefinition]);
+// @ts-expect-error - an object is not a port id
+rectangle.hasPort({});
+
 class MyElement extends joint.dia.Element {
 
     test() {
