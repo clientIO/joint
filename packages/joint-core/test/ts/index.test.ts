@@ -267,6 +267,29 @@ new joint.shapes.standard.Rectangle({
     position: { x: 100 },
 });
 
+/* Numeric port ids */
+
+if (rectangle.hasPort(1)) {
+    rectangle.getPort(1);
+    rectangle.getPortIndex(1);
+    rectangle.getPortBBox(1, { rotate: true });
+    rectangle.getPortCenter(1);
+    rectangle.getPortRelativeRect(1);
+    rectangle.getPortRelativePosition(1);
+    rectangle.portProp(1, 'group');
+    rectangle.portProp(1, 'group', 'in');
+    rectangle.removePorts([1, '1']);
+    rectangle.removePort(1);
+}
+
+const portIds: joint.dia.Element.PortID[] = [1, 'port1'];
+const portDefinition: joint.dia.Element.Port = { id: 'port1', group: 'in' };
+rectangle.addPort(portDefinition);
+rectangle.removePorts([...portIds, portDefinition]);
+// @ts-expect-error - an object is not a port id
+rectangle.hasPort({});
+const nodePortId: joint.dia.Element.PortID | null = paper.findViewByModel(rectangle).findNodePortId(document.createElementNS('http://www.w3.org/2000/svg', 'g'));
+
 class MyElement extends joint.dia.Element {
 
     test() {

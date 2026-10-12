@@ -116,7 +116,7 @@ function rectangleIntersection(line, view, magnet, opt) {
 function getNodeModelBBox(elementView, magnet, rotate) {
     const element = elementView.model;
 
-    const portId = elementView.findAttribute('port', magnet);
+    const portId = elementView.findNodePortId(magnet);
     if (element.hasPort(portId)) {
         if (rotate) {
             return element.getPortBBox(portId, { rotate });

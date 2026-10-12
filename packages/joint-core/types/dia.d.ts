@@ -856,6 +856,8 @@ export namespace Element {
     }
 
     interface Port {
+        // TODO: Change to `Element.PortID` in the next major version
+        // (widening it breaks code that assigns `port.id` to a `string`).
         id?: string;
         markup?: string | MarkupJSON;
         group?: string;
@@ -869,6 +871,8 @@ export namespace Element {
         label?: PortLabel;
         z?: number | 'auto';
     }
+
+    type PortID = Cell.ID;
 
     interface PortPosition extends Point {
         angle: number;
@@ -950,40 +954,40 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     insertPort(before: number | string | Element.Port, port: Element.Port, opt?: S): this;
 
-    removePort(port: string | Element.Port, opt?: S): this;
+    removePort(port: Element.PortID | Element.Port, opt?: S): this;
 
     removePorts(opt?: S): this;
-    removePorts(ports: Array<Element.Port | string>, opt?: S): this;
+    removePorts(ports: Array<Element.Port | Element.PortID>, opt?: S): this;
 
     hasPorts(): boolean;
 
-    hasPort(id: string): boolean;
+    hasPort(id: Element.PortID): boolean;
 
     getPorts(): Element.Port[];
 
     getGroupPorts(groupName: string): Element.Port[];
 
-    getPort(id: string): Element.Port;
+    getPort(id: Element.PortID): Element.Port;
 
     getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
 
-    getPortRelativePosition(portId: string): Element.PortPosition;
+    getPortRelativePosition(portId: Element.PortID): Element.PortPosition;
 
-    getPortRelativeRect(portId: string): Element.PortRect;
+    getPortRelativeRect(portId: Element.PortID): Element.PortRect;
 
-    getPortCenter(portId: string): g.Point;
+    getPortCenter(portId: Element.PortID): g.Point;
 
-    getPortBBox(portId: string, opt?: Element.RotateOptions): g.Rect;
+    getPortBBox(portId: Element.PortID, opt?: Element.RotateOptions): g.Rect;
 
-    getPortIndex(port: string | Element.Port): number;
+    getPortIndex(port: Element.PortID | Element.Port): number;
 
     getPortGroupNames(): string[];
 
-    portProp(portId: string, path: Path): any;
+    portProp(portId: Element.PortID, path: Path): any;
 
-    portProp(portId: string, path: Path, value?: any, opt?: S): Element;
+    portProp(portId: Element.PortID, path: Path, value?: any, opt?: S): Element;
 
-    protected generatePortId(): string | number;
+    protected generatePortId(): Element.PortID;
 
     static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
 
@@ -1224,6 +1228,8 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
+    findNodePortId(node: DOMElement): Element.PortID | null;
+
     getSelector(el: SVGElement, prevSelector?: string): string;
 
     notify(eventName: string, ...eventArguments: any[]): void;
@@ -1391,10 +1397,10 @@ export class ElementView<E extends Element = Element> extends CellViewGeneric<E>
 
     getTargetParentView(evt: Event): CellView | null;
 
-    findPortNode(portId: string | number): SVGElement | null;
-    findPortNode(portId: string | number, selector: string): DOMElement | null;
+    findPortNode(portId: Element.PortID): SVGElement | null;
+    findPortNode(portId: Element.PortID, selector: string): DOMElement | null;
 
-    findPortNodes(portId: string | number, groupSelector: string): DOMElement[];
+    findPortNodes(portId: Element.PortID, groupSelector: string): DOMElement[];
 
     protected renderMarkup(): void;
 
