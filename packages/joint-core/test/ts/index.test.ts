@@ -288,6 +288,7 @@ rectangle.addPort(portDefinition);
 rectangle.removePorts([...portIds, portDefinition]);
 // @ts-expect-error - an object is not a port id
 rectangle.hasPort({});
+const nodePortId: joint.dia.Element.PortID | null = paper.findViewByModel(rectangle).findNodePortId(document.createElementNS('http://www.w3.org/2000/svg', 'g'));
 
 class MyElement extends joint.dia.Element {
 

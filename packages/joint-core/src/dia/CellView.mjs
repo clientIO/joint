@@ -432,9 +432,16 @@ export const CellView = View.extend({
         return link.findView(paper);
     },
 
-    // Find the id of the port the node belongs to (the closest `port` attribute).
-    // A numeric port id is restored from the string it is stored as in the DOM.
-    _findPortId: function(node) {
+    /**
+     * @public
+     * @internal not documented
+     * @description Finds the id of the port the node belongs to (the closest
+     * `port` attribute). A numeric port id is restored from the string it is
+     * stored as in the DOM.
+     * @param {Element} node
+     * @returns {string|number|null} The port id or `null` if the node does not belong to a port.
+     */
+    findNodePortId: function(node) {
         const portNode = this.findAttributeNode('port', node);
         if (!portNode) return null;
         const port = portNode.getAttribute('port');
@@ -446,7 +453,7 @@ export const CellView = View.extend({
         const model = this.model;
         const id = model.id;
         // Find the port the magnet belongs to.
-        const port = this._findPortId(magnet);
+        const port = this.findNodePortId(magnet);
         // Find a unique `selector` of the element under pointer that is a magnet.
         const selector = magnet.getAttribute('joint-selector');
 
