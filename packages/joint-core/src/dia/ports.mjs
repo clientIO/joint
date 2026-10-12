@@ -460,7 +460,7 @@ export const elementPortPrototype = {
      */
     getPortsPositions: function(groupName) {
 
-        const portsMetrics = this.getGroupPortsMetrics(groupName);
+        const portsMetrics = this._getGroupPortsMetrics(groupName);
         const portsPosition = {};
         for (const [portId, metrics] of portsMetrics) {
             const {
@@ -477,11 +477,17 @@ export const elementPortPrototype = {
 
     getPortMetrics: function(portId) {
         const port = this._portSettingsData.getPort(portId);
-        return this.getGroupPortsMetrics(port.group).get(portId);
+        return this._getGroupPortsMetrics(port.group).get(portId);
     },
 
-    getGroupPortsMetrics: function(groupName) {
+    // The metrics keyed by the port id (`5` and `'5'` are different ports).
+    _getGroupPortsMetrics: function(groupName) {
         return this._portSettingsData.getGroupPortsMetrics(groupName, this.size());
+    },
+
+    // The metrics keyed by the port id as a string, for backwards compatibility.
+    getGroupPortsMetrics: function(groupName) {
+        return Object.fromEntries(this._getGroupPortsMetrics(groupName));
     },
 
     getPortRelativePosition: function(portId) {
@@ -1066,7 +1072,7 @@ export const elementViewPortPrototype = {
      */
     _updatePortGroup: function(groupName) {
 
-        const portsMetrics = this.model.getGroupPortsMetrics(groupName);
+        const portsMetrics = this.model._getGroupPortsMetrics(groupName);
 
         for (const [portId, metrics] of portsMetrics) {
             const cached = this._portElementsCache.get(portId) || {};
