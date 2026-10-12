@@ -950,38 +950,38 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     insertPort(before: number | string | Element.Port, port: Element.Port, opt?: S): this;
 
-    removePort(port: string | Element.Port, opt?: S): this;
+    removePort(port: string | number | Element.Port, opt?: S): this;
 
     removePorts(opt?: S): this;
-    removePorts(ports: Array<Element.Port | string>, opt?: S): this;
+    removePorts(ports: Array<Element.Port | string | number>, opt?: S): this;
 
     hasPorts(): boolean;
 
-    hasPort(id: string): boolean;
+    hasPort(id: string | number): boolean;
 
     getPorts(): Element.Port[];
 
     getGroupPorts(groupName: string): Element.Port[];
 
-    getPort(id: string): Element.Port;
+    getPort(id: string | number): Element.Port;
 
     getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
 
-    getPortRelativePosition(portId: string): Element.PortPosition;
+    getPortRelativePosition(portId: string | number): Element.PortPosition;
 
-    getPortRelativeRect(portId: string): Element.PortRect;
+    getPortRelativeRect(portId: string | number): Element.PortRect;
 
-    getPortCenter(portId: string): g.Point;
+    getPortCenter(portId: string | number): g.Point;
 
-    getPortBBox(portId: string, opt?: Element.RotateOptions): g.Rect;
+    getPortBBox(portId: string | number, opt?: Element.RotateOptions): g.Rect;
 
-    getPortIndex(port: string | Element.Port): number;
+    getPortIndex(port: string | number | Element.Port): number;
 
     getPortGroupNames(): string[];
 
-    portProp(portId: string, path: Path): any;
+    portProp(portId: string | number, path: Path): any;
 
-    portProp(portId: string, path: Path, value?: any, opt?: S): Element;
+    portProp(portId: string | number, path: Path, value?: any, opt?: S): Element;
 
     protected generatePortId(): string | number;
 

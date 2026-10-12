@@ -446,7 +446,7 @@ export const CellView = View.extend({
         if (portNode != null) {
             let port = portNode.getAttribute('port');
             if (portNode.getAttribute('port-id-type') === 'number') {
-                port = parseInt(port, 10);
+                port = Number(port);
             }
             end.port = port;
             if (!model.hasPort(port) && !selector) {
