@@ -4,7 +4,7 @@ A storage drive's folders and files packed with ELK's rectangle packing algorith
 
 - **Optimization goal** - `elk.rectpacking.widthApproximation.optimizationGoal` (`MAX_SCALE_DRIVEN`, `ASPECT_RATIO_DRIVEN`, `AREA_DRIVEN`).
 - **Aspect ratio** - `elk.aspectRatio`, the width/height the packing aims for.
-- **White space** - `elk.rectpacking.whiteSpaceElimination.strategy`, which stretches tiles to fill the gaps left in a folder. `@joint/layout-elk` applies ELK-computed sizes to containers only, so the example's own `setElementAttributes` callback applies them to the tiles too. Its `exportElement` callback hands ELK each tile's original size, so a stretched tile doesn't keep growing from one layout to the next.
+- **White space** - `elk.rectpacking.whiteSpaceElimination.strategy`, which stretches tiles to fill the gaps left in a folder. `@joint/layout-elk` applies whatever size ELK computed, so a stretched tile is resized for you. The example's `exportElement` callback hands ELK each tile's original size, so a stretched tile doesn't keep growing from one layout to the next.
 - **Order by size** - `elk.rectpacking.orderBySize`. Otherwise files are packed in model order, which **Shuffle** changes.
 
 ELK doesn't pass layout options down the hierarchy, so `exportElement` also sets `rectpacking` (and its options) on every folder. `elk.hierarchyHandling: 'SEPARATE_CHILDREN'` overrides the package's default `INCLUDE_CHILDREN`, which only matters for edges crossing a container's boundary.
