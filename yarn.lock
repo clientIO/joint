@@ -6348,9 +6348,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-layout-elk-containers-ports-ts@workspace:examples/layout-elk-containers-ports-ts":
+"@joint/demo-layout-elk-containers-and-ports-ts@workspace:examples/layout-elk-containers-and-ports-ts":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-layout-elk-containers-ports-ts@workspace:examples/layout-elk-containers-ports-ts"
+  resolution: "@joint/demo-layout-elk-containers-and-ports-ts@workspace:examples/layout-elk-containers-and-ports-ts"
   dependencies:
     "@joint/core": "workspace:^"
     "@joint/layout-elk": "workspace:^"
@@ -6360,9 +6360,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-layout-elk-default-ts@workspace:examples/layout-elk-default-ts":
+"@joint/demo-layout-elk-defaults-ts@workspace:examples/layout-elk-defaults-ts":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-layout-elk-default-ts@workspace:examples/layout-elk-default-ts"
+  resolution: "@joint/demo-layout-elk-defaults-ts@workspace:examples/layout-elk-defaults-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-elk": "workspace:^"
+    sass: "npm:^1.93.2"
+    typescript: "npm:5.8.2"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-layout-elk-dependency-graph-ts@workspace:examples/layout-elk-dependency-graph-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-layout-elk-dependency-graph-ts@workspace:examples/layout-elk-dependency-graph-ts"
   dependencies:
     "@joint/core": "workspace:^"
     "@joint/layout-elk": "workspace:^"
@@ -6375,18 +6387,6 @@ __metadata:
 "@joint/demo-layout-elk-rectpacking-ts@workspace:examples/layout-elk-rectpacking-ts":
   version: 0.0.0-use.local
   resolution: "@joint/demo-layout-elk-rectpacking-ts@workspace:examples/layout-elk-rectpacking-ts"
-  dependencies:
-    "@joint/core": "workspace:^"
-    "@joint/layout-elk": "workspace:^"
-    sass: "npm:^1.93.2"
-    typescript: "npm:5.8.2"
-    vite: "npm:^7.3.1"
-  languageName: unknown
-  linkType: soft
-
-"@joint/demo-layout-elk-ts@workspace:examples/layout-elk-ts":
-  version: 0.0.0-use.local
-  resolution: "@joint/demo-layout-elk-ts@workspace:examples/layout-elk-ts"
   dependencies:
     "@joint/core": "workspace:^"
     "@joint/layout-elk": "workspace:^"

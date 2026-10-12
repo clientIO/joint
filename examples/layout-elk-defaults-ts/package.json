@@ -1,8 +1,8 @@
 {
-  "name": "@joint/demo-layout-elk-containers-ports-ts",
+  "name": "@joint/demo-layout-elk-defaults-ts",
   "version": "4.3.1",
   "type": "module",
-  "description": "JointJS - ELK Layout Containers & Ports Demo",
+  "description": "JointJS - ELK Layout Default Usage Demo",
   "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",

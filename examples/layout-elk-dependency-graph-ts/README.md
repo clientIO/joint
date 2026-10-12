@@ -1,6 +1,6 @@
-# JointJS ELK Layout Demo
+# JointJS ELK Dependency Graph Demo
 
-Lays out a JointJS graph with [`@joint/layout-elk`](../../packages/joint-layout-elk) - the Eclipse Layout Kernel (ELK), running in a Web Worker.
+A package dependency graph laid out with [`@joint/layout-elk`](../../packages/joint-layout-elk) - the Eclipse Layout Kernel (ELK), running in a Web Worker.
 
 ## Setup
 

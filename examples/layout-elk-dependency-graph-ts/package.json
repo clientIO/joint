@@ -1,8 +1,8 @@
 {
-  "name": "@joint/demo-layout-elk-default-ts",
+  "name": "@joint/demo-layout-elk-dependency-graph-ts",
   "version": "4.3.1",
   "type": "module",
-  "description": "JointJS - ELK Layout Default Usage Demo",
+  "description": "JointJS - ELK Layout Dependency Graph Demo",
   "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
