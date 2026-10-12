@@ -120,7 +120,6 @@ QUnit.module('joint.mvc.$', function(hooks) {
             try {
                 callback();
             } finally {
-                window.scrollTo(0, 0);
                 filler.remove();
             }
         }
