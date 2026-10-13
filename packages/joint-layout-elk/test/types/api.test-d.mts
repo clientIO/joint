@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { ElkNode as ElkJsNode } from 'elkjs';
 import BundledElk from 'elkjs/lib/elk.bundled.js';
-import { layout, exportGraphLayout, toNativeElkNode, importGraphLayout } from '../../src/index.mjs';
+import { layout, toNativeElkNode } from '../../src/index.mjs';
 
 import type { Expect, Equals } from './assert.mjs';
 import type {
@@ -33,13 +33,6 @@ export const fromNative: NativeElkNode = toNativeElkNode({
 // ...and what comes out is what elkjs takes.
 export const forElk: ElkJsNode = toNativeElkNode({ id: 'root' });
 
-// The composition the README documents.
-export const exported = toNativeElkNode(
-    exportGraphLayout([], { elkLayoutOptions: { 'elk.padding': { top: 40 }}}).elkGraph
-);
-
-// A whole graph, as `layout()` takes it.
-export const exportedGraph = toNativeElkNode(exportGraphLayout(graph).elkGraph);
 
 // A bag in either spelling reaches `layout()`.
 declare const strictBag: StrictElkLayoutOptions;
@@ -69,10 +62,3 @@ export const exportLinkLabel: ExportLinkLabelCallback = ({ elkEdgeLabel }) => {
 export const bundledElkTakesIt: Promise<ElkJsNode> =
     new BundledElk().layout(toNativeElkNode({ id: 'root', layoutOptions: { 'elk.padding': { top: 40 }}}));
 
-// The round trip the README documents: one `exportGraphLayout()` gives both the graph and the
-// `cells` its ids stand for, and `importGraphLayout()` takes them back.
-export async function roundTrip(): Promise<void> {
-    const exported = exportGraphLayout(graph, { elkLayoutOptions: { 'elk.padding': { top: 40 }}});
-    const elkResult = await new BundledElk().layout(toNativeElkNode(exported.elkGraph));
-    importGraphLayout(elkResult, exported.index);
-}

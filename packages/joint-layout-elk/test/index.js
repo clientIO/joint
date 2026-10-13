@@ -2116,76 +2116,34 @@ QUnit.module('toNativeElkNode()', () => {
         assert.deepEqual(twice, once);
     });
 
-    QUnit.test('should apply an ELK result through `exportGraphLayout()` and `importGraphLayout()`', async(assert) => {
-
-        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
-        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
-        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
-        const link = new joint.shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }});
-        graph.resetCells([el1, el2, link]);
-        assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()), 'they start on top of each other');
-
-        // The round trip `layout()` does, driven by hand - the README's example.
-        const exported = joint.layout.ELK.exportGraphLayout(graph, {
-            elkLayoutOptions: { 'elk.algorithm': 'layered', 'elk.spacing.nodeNode': 40 }
-        });
-        const elkResult = await new window.ELK().layout(joint.layout.ELK.toNativeElkNode(exported.elkGraph));
-        joint.layout.ELK.importGraphLayout(elkResult, exported.index);
-
-        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()), 'the result was applied');
-    });
-
-    QUnit.test('should route links the same whether driven by hand or by `layout()`', async(assert) => {
-
-        // A link inside a container: the case where the edge coordinates ELK reports are
-        // the container's unless `elk.json.edgeCoords` says otherwise, and the import
-        // reads them as the root's.
-        const build = () => {
-            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
-            const outer = new joint.shapes.standard.Rectangle({ id: 'outer', size: { width: 10, height: 10 }});
-            const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 50, height: 50 }});
-            const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
-            el1.set('parent', 'outer');
-            el2.set('parent', 'outer');
-            outer.set('embeds', ['a', 'b']);
-            const link = new joint.shapes.standard.Link({ id: 'l', source: { id: 'a' }, target: { id: 'b' }});
-            graph.resetCells([outer, el1, el2, link]);
-            return { graph, link };
-        };
-
-        const byLayout = build();
-        await joint.layout.ELK.layout(byLayout.graph);
-
-        const byHand = build();
-        const exported = joint.layout.ELK.exportGraphLayout(byHand.graph);
-        const elkResult = await new window.ELK().layout(joint.layout.ELK.toNativeElkNode(exported.elkGraph));
-        joint.layout.ELK.importGraphLayout(elkResult, exported.index);
-
-        assert.deepEqual(byHand.link.get('vertices'), byLayout.link.get('vertices'));
-        assert.deepEqual(byHand.link.get('source'), byLayout.link.get('source'));
-        assert.deepEqual(byHand.link.get('target'), byLayout.link.get('target'));
-    });
-
-    QUnit.test('should write out a graph from `exportGraphLayout()` for ELK to lay out', async(assert) => {
+    QUnit.test('should hand ELK a graph carrying this package\'s default options', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
         const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
         graph.resetCells([el1, el2]);
 
-        const { elkGraph } = joint.layout.ELK.exportGraphLayout([el1, el2], {
-            elkLayoutOptions: {
-                'elk.algorithm': 'layered',
-                'elk.padding': { top: 40 }
-            }
-        });
+        // An `elk` of your own sees exactly what ELK is given - the way to look at the
+        // graph this package builds, now that building it is not public.
+        let sent;
+        const elk = {
+            layout: (elkGraph) => {
+                sent = elkGraph;
+                return new window.ELK().layout(elkGraph);
+            },
+            terminate: () => {}
+        };
 
-        const native = joint.layout.ELK.toNativeElkNode(elkGraph);
-        assert.equal(native.layoutOptions['elk.padding'], '[top=40,left=0,bottom=0,right=0]');
+        await joint.layout.ELK.layout(graph, { elk, elkLayoutOptions: { 'elk.spacing.nodeNode': 40 }});
 
-        const laidOut = await new window.ELK().layout(native);
-        assert.ok(laidOut.width > 0);
-        assert.ok(laidOut.height > 0);
+        // `importGraphLayout()` reads an edge's points as the root's coordinates, so this
+        // one is not a preference - a graph sent without it is laid out and applied wrong.
+        assert.equal(sent.layoutOptions['elk.json.edgeCoords'], 'ROOT');
+        assert.equal(sent.layoutOptions['elk.algorithm'], 'layered');
+        assert.equal(sent.layoutOptions['elk.hierarchyHandling'], 'INCLUDE_CHILDREN');
+        // What was asked for is not overwritten by the defaults.
+        assert.equal(sent.layoutOptions['elk.spacing.nodeNode'], '40');
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
     });
 });
 

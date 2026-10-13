@@ -518,6 +518,8 @@ function buildEdge(link: dia.Link): void {
  * Converts JointJS elements (with their embedded elements and ports) and the links
  * between them to an ELK graph structure.
  *
+ * Not public - the other half of `layout()`, which is where the two are kept together.
+ *
  * Takes a whole graph or only the given cells, like `layout()`. They are what takes part -
  * a link only if both its ends do too - and set the order: the root's children and edges
  * follow them, and so do each container's own children. An element whose parent is not

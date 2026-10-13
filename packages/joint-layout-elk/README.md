@@ -151,37 +151,31 @@ const options: StrictElkLayoutOptions = {
 
 Returns a new graph with every layout option written out as the string ELK takes - throughout: the node's own options, its labels', its ports' (and theirs), the edges filed under it (and theirs), and each of its children. The graph passed in is left as it is.
 
-`layout()` does this for you, so you only need it when you drive ELK yourself - see below.
+`layout()` does this for you. Reach for it when you build an ELK graph of your own and want to write its options in the JointJS spelling too.
 
-### Driving ELK yourself
+### Seeing what ELK is given
 
-`layout()` is `exportGraphLayout()` → ELK → `importGraphLayout()`. Those three are public, so you can run the middle step however you like:
+`layout()` builds the ELK graph, runs ELK on it and applies the result back. All three are one step - there is no public way to do them separately, so that what the ids in between stand for stays this package's business.
 
-- `exportGraphLayout(graphOrCells, options?)` turns cells into an ELK graph, with the [export callbacks](#export-callbacks) applied and this package's default layout options filled in. It takes a whole graph or a list of cells, exactly like `layout()`, and answers "what does this graph look like to ELK?" on its own.
-- `importGraphLayout(elkResult, index, options?)` applies a result back - positions, sizes, ports, link routes and labels - with the [import callbacks](#import-callbacks) applied.
-
-**Most of the time you do not need this.** To run ELK somewhere else - a Web Worker, a server, a cache - pass your own `elk` to `layout()` instead (see [Running ELK in a Web Worker](#running-elk-in-a-web-worker)); it is any object with `layout()` and `terminate()`, and `layout()` still does the export and the import for you.
+To see the graph itself, pass an `elk` of your own: it is any object with `layout()` and `terminate()` (see [Running ELK in a Web Worker](#running-elk-in-a-web-worker)), and it is handed exactly what ELK is handed - every option already written out as a string, so it pastes straight into [elk-live](https://rtsys.informatik.uni-kiel.de/elklive/json.html).
 
 ```ts
 import ELK from 'elkjs/lib/elk.bundled.js';
-import { exportGraphLayout, toNativeElkNode, importGraphLayout } from '@joint/layout-elk';
 
-// The bundled build, which carries ELK itself - `elkjs`'s own entry point is an API
-// shim that needs a Web Worker to run in (see "Running ELK in a Web Worker" below).
-const elk = new ELK();
+const realElk = new ELK();
 
-const exported = exportGraphLayout(graph, {
-    elkLayoutOptions: { 'elk.algorithm': 'layered', 'elk.padding': { top: 40 }}
+await layout(graph, {
+    elk: {
+        layout: (elkGraph) => {
+            console.log(JSON.stringify(elkGraph, null, 2));
+            return realElk.layout(elkGraph);
+        },
+        terminate: () => {}
+    }
 });
-
-// `elk.layout()` here is elkjs's own method, not this package's `layout()`. It takes
-// ELK's spelling of every option, which is what `toNativeElkNode()` produces.
-const elkResult = await elk.layout(toNativeElkNode(exported.elkGraph));
-
-// The index of the same export the result came from - it is what the ids in the
-// result stand for.
-importGraphLayout(elkResult, exported.index);
 ```
+
+The same hook is how you run ELK somewhere else - a Web Worker, a server, a cache - or change the graph on its way there. `layout()` still applies the result for you.
 
 ### Export callbacks
 

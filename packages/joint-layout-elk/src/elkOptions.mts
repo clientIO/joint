@@ -193,8 +193,8 @@ function toNativeEdge(edge: ElkExtendedEdge): ElkExtendedEdge {
  * A new graph - the one passed in is left as it is, including any option object it shares
  * with a cell's own data.
  *
- * `layout()` does this for you, so you only need it when you skip `layout()` and call
- * `elkjs`'s own `elk.layout()` yourself - typically on a graph from `exportGraphLayout()`.
+ * `layout()` does this for you. Reach for it when you build an ELK graph of your own and
+ * want to write its options in the JointJS spelling too.
  */
 export function toNativeElkNode(node: ElkNode): NativeElkNode {
     const nativeNode: ElkNode = toNativeOptions(node);

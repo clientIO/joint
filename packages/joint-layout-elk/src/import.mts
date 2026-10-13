@@ -352,14 +352,9 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
  * Applies an ELK layout result back onto the cells it was exported from - their positions
  * and sizes, their ports, and the links' routes and labels.
  *
- * `layout()` does this for you. Call it yourself when you drove ELK yourself, with the
- * `index` of the same `exportGraphLayout()` the result came from:
- *
- * ```ts
- * const exported = exportGraphLayout(graph);
- * const result = await elk.layout(toNativeElkNode(exported.elkGraph));
- * importGraphLayout(result, exported.index);
- * ```
+ * Not public - the other half of `layout()`, which is where the two are kept together.
+ * `index` has to be the one from the same `exportGraphLayout()` the result came from; it
+ * is what the ids in the result stand for.
  */
 export function importGraphLayout(
     elkGraph: ElkNode,
