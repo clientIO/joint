@@ -1,7 +1,8 @@
 import { type dia, g } from '@joint/core';
 import type { ElkPoint } from 'elkjs';
 import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
-import type { ElkGraphPort } from './export.mjs';
+import type { ElkGraphCells } from './export.mjs';
+import type { ElkGraphPort, ElkGraphCellsData } from './cells.mjs';
 import { getLinkLabelIndex } from './elkIds.mjs';
 
 /** Applies the ELK-computed position (and, for a container, size) to `element`. */
@@ -349,15 +350,25 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
 }
 
 /**
- * Applies an ELK layout result back onto the JointJS graph.
+ * Applies an ELK layout result back onto the cells it was exported from - their positions
+ * and sizes, their ports, and the links' routes and labels.
+ *
+ * `layout()` does this for you. Call it yourself when you drove ELK yourself, with the
+ * graph and the `cells` a single `exportGraph()` gave you:
+ *
+ * ```ts
+ * const { elkGraph, cells } = exportGraph(graph);
+ * importLayout(await elk.layout(toNativeElkNode(elkGraph)), cells);
+ * ```
  */
 export function importLayout(
     elkGraph: ElkNode,
-    elementsById: Map<string, dia.Element>,
-    linksById: Map<string, dia.Link>,
-    portsById: Map<string, ElkGraphPort>,
-    options: ImportLayoutOptions
+    cells: ElkGraphCells,
+    options: ImportLayoutOptions = {}
 ): void {
+
+    // The one place the opaque handle `exportGraph()` made is read back.
+    const { elementsById, linksById, portsById } = cells as unknown as ElkGraphCellsData;
 
     init(elementsById, linksById, portsById, options);
 

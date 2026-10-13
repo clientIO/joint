@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { ElkNode as ElkJsNode } from 'elkjs';
 import BundledElk from 'elkjs/lib/elk.bundled.js';
-import { layout, exportGraph, toNativeElkNode } from '../../src/index.mjs';
+import { layout, exportGraph, toNativeElkNode, importLayout } from '../../src/index.mjs';
 
 import type { Expect, Equals } from './assert.mjs';
 import type {
@@ -68,3 +68,11 @@ export const exportLinkLabel: ExportLinkLabelCallback = ({ elkEdgeLabel }) => {
 // carries ELK itself, rather than `elkjs`'s worker-dependent entry point.
 export const bundledElkTakesIt: Promise<ElkJsNode> =
     new BundledElk().layout(toNativeElkNode({ id: 'root', layoutOptions: { 'elk.padding': { top: 40 }}}));
+
+// The round trip the README documents: one `exportGraph()` gives both the graph and the
+// `cells` its ids stand for, and `importLayout()` takes them back.
+export async function roundTrip(): Promise<void> {
+    const { elkGraph, cells } = exportGraph(graph, { elkLayoutOptions: { 'elk.padding': { top: 40 }}});
+    const elkResult = await new BundledElk().layout(toNativeElkNode(elkGraph));
+    importLayout(elkResult, cells);
+}

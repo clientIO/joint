@@ -2071,6 +2071,25 @@ QUnit.module('toNativeElkNode()', () => {
         assert.deepEqual(twice, once);
     });
 
+    QUnit.test('should apply an ELK result through `exportGraph()` and `importLayout()`', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }});
+        graph.resetCells([el1, el2, link]);
+        assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()), 'they start on top of each other');
+
+        // The round trip `layout()` does, driven by hand - the README's example.
+        const { elkGraph, cells } = joint.layout.ELK.exportGraph(graph, {
+            elkLayoutOptions: { 'elk.algorithm': 'layered', 'elk.spacing.nodeNode': 40 }
+        });
+        const elkResult = await new window.ELK().layout(joint.layout.ELK.toNativeElkNode(elkGraph));
+        joint.layout.ELK.importLayout(elkResult, cells);
+
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()), 'the result was applied');
+    });
+
     QUnit.test('should write out a graph from `exportGraph()` for ELK to lay out', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });

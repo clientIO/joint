@@ -1,5 +1,7 @@
 import { type dia } from '@joint/core';
 import { splitCells } from './cells.mjs';
+
+import type { ElkGraphPort, ElkGraphCellsData } from './cells.mjs';
 import { ELK_ROOT_ID, getElkEdgeId, getElkNodeId, getElkPortId, getLinkLabelId } from './elkIds.mjs';
 
 import type {
@@ -120,19 +122,23 @@ export type ExportLinkLabelCallbackParams = {
     elkEdgeLabel: ElkLabelDraft;
 };
 
-export interface ElkGraphPort {
-    element: dia.Element;
-    portId: dia.Cell.ID;
-    /** The port's top-left as it was sent to ELK - what came back is `ElkPort`'s own. */
-    x: number;
-    y: number;
+declare const ELK_GRAPH_CELLS: unique symbol;
+
+/**
+ * What the ids in an exported ELK graph stand for - handed to `importLayout()` to apply a
+ * layout result back onto the cells it was exported from.
+ *
+ * Opaque: there is nothing to read in it, and what it holds is free to change.
+ */
+export interface ElkGraphCells {
+    readonly [ELK_GRAPH_CELLS]: never;
 }
 
 export interface ElkGraphData {
+    /** The ELK graph, with its layout options in the spelling they were given. */
     elkGraph: ElkNode;
-    elementsById: Map<string, dia.Element>;
-    linksById: Map<string, dia.Link>;
-    portsById: Map<string, ElkGraphPort>;
+    /** Pass to `importLayout()` along with what ELK gives back. */
+    cells: ElkGraphCells;
 }
 
 export interface ExportGraphOptions {
@@ -537,5 +543,8 @@ export function exportGraph(
 
     links.forEach(buildEdge);
 
-    return { elkGraph, elementsById, linksById, portsById };
+    const cells: ElkGraphCellsData = { elementsById, linksById, portsById };
+    // The one place the opaque handle is made - `importLayout()` is the one place it is
+    // read back. Opaque so that what it holds stays this package's business.
+    return { elkGraph, cells: cells as unknown as ElkGraphCells };
 }
