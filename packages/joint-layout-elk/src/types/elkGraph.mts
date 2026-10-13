@@ -1,8 +1,12 @@
+// elkjs's own graph types, under this package's name for them: "native" is ELK's own
+// spelling, where every layout option value is a string (see `NativeElkLayoutOptions`).
+// They are also what this package's own graph types below are built from, with only
+// `layoutOptions` - and the element arrays - narrowed.
 import type {
-    ElkNode as RawElkNode,
-    ElkPort as RawElkPort,
-    ElkExtendedEdge as RawElkExtendedEdge,
-    ElkLabel as RawElkLabel
+    ElkNode as NativeElkNode,
+    ElkPort as NativeElkPort,
+    ElkExtendedEdge as NativeElkExtendedEdge,
+    ElkLabel as NativeElkLabel
 } from 'elkjs';
 
 import type { NodeElkLayoutOptions } from './elkNodeOptions.mjs';
@@ -12,21 +16,21 @@ import type { LabelElkLayoutOptions } from './elkLabelOptions.mjs';
 
 // ELK graph element shapes, narrowing `layoutOptions` (and, on `ElkNode`, the element
 // arrays it nests) from elkjs's own loosely-typed versions to the option types above.
-export interface ElkLabel extends Omit<RawElkLabel, 'layoutOptions'> {
+export interface ElkLabel extends Omit<NativeElkLabel, 'layoutOptions'> {
     layoutOptions?: LabelElkLayoutOptions;
 }
 
-export interface ElkPort extends Omit<RawElkPort, 'layoutOptions' | 'labels'> {
+export interface ElkPort extends Omit<NativeElkPort, 'layoutOptions' | 'labels'> {
     layoutOptions?: PortElkLayoutOptions;
     labels?: ElkLabel[];
 }
 
-export interface ElkExtendedEdge extends Omit<RawElkExtendedEdge, 'layoutOptions' | 'labels'> {
+export interface ElkExtendedEdge extends Omit<NativeElkExtendedEdge, 'layoutOptions' | 'labels'> {
     layoutOptions?: EdgeElkLayoutOptions;
     labels?: ElkLabel[];
 }
 
-export interface ElkNode extends Omit<RawElkNode, 'layoutOptions' | 'children' | 'ports' | 'edges' | 'labels'> {
+export interface ElkNode extends Omit<NativeElkNode, 'layoutOptions' | 'children' | 'ports' | 'edges' | 'labels'> {
     layoutOptions?: NodeElkLayoutOptions;
     children?: ElkNode[];
     ports?: ElkPort[];
@@ -34,10 +38,7 @@ export interface ElkNode extends Omit<RawElkNode, 'layoutOptions' | 'children' |
     labels?: ElkLabel[];
 }
 
-/**
- * An ELK graph with every layout option in ELK's own spelling - a string.
- *
- * elkjs's own node type, named in this package's vocabulary: what `toNativeElkNode()`
- * returns and what `elk.layout()` takes, with no assertion at the call site.
- */
-export type NativeElkNode = RawElkNode;
+// What `toNativeElkNode()` returns and what `elk.layout()` takes, with no assertion at
+// the call site. The other three stay internal - elkjs exports them under their own names
+// for anyone who needs to spell one out.
+export type { NativeElkNode };

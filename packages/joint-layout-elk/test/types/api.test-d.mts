@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { ElkNode as RawElkNode } from 'elkjs';
+import type { ElkNode as ElkJsNode } from 'elkjs';
 import { layout, exportGraph, toNativeElkNode } from '../../src/index.mjs';
 
 import type { Expect, Equals } from './assert.mjs';
@@ -17,7 +17,7 @@ declare const graph: dia.Graph;
 
 // `NativeElkNode` is elkjs's own node type under this package's name, which is what lets
 // the result go straight to `elk.layout()` with no assertion at the call site.
-export type _nativeNode = Expect<Equals<NativeElkNode, RawElkNode>>;
+export type _nativeNode = Expect<Equals<NativeElkNode, ElkJsNode>>;
 
 // Either spelling goes in...
 export const fromStrict: NativeElkNode = toNativeElkNode({
@@ -30,7 +30,7 @@ export const fromNative: NativeElkNode = toNativeElkNode({
 });
 
 // ...and what comes out is what elkjs takes.
-export const forElk: RawElkNode = toNativeElkNode({ id: 'root' });
+export const forElk: ElkJsNode = toNativeElkNode({ id: 'root' });
 
 // The composition the README documents.
 export const exported = toNativeElkNode(exportGraph([], [], {}, { 'elk.padding': { top: 40 }}).elkGraph);
