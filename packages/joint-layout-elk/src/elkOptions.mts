@@ -17,6 +17,33 @@ import type {
     PointValuedElkOptionKeys
 } from './types/toNativeElkOptions.mjs';
 
+const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
+    'elk.algorithm': 'layered',
+    // Lay out embedded elements (containers) as part of the same pass as their
+    // parent, so that edges crossing a container's boundary are routed and
+    // accounted for correctly, instead of only being considered afterwards.
+    'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+    // Keep the order of ports on a node consistent with the order of their
+    // `ports.items` array, instead of reordering them to reduce edge crossings.
+    'elk.layered.considerModelOrder.portModelOrder': 'true',
+    // Return every edge's route points and labels graph-absolute, whichever container
+    // the edge belongs to - `importGraphLayout` applies them as they are. Overriding this
+    // means handling the coordinates yourself (e.g. in `setLinkAttributes`).
+    'elk.json.edgeCoords': 'ROOT'
+};
+
+/**
+ * `elkLayoutOptions` with this package's defaults filled in - what `exportGraphLayout()`
+ * and `layout()` both lay out with.
+ *
+ * `elk.json.edgeCoords` in particular is not a preference: `importGraphLayout()` reads an
+ * edge's points as the root's coordinates, so a graph exported without it routes links
+ * into the wrong place.
+ */
+export function withDefaultElkLayoutOptions(elkLayoutOptions?: ElkLayoutOptions): ElkLayoutOptions {
+    return util.defaults({}, elkLayoutOptions, DEFAULT_LAYOUT_OPTIONS) as ElkLayoutOptions;
+}
+
 // ELK's own default, on every side of a node whose `elk.padding` is not set.
 // - A side a padding *does* name leaves the others at `0`, not at this - ELK's own parser
 //   reads `[top=40]` as `40` at the top and nothing anywhere else.

@@ -1,10 +1,10 @@
 import { g } from '@joint/core';
 import { importGraphLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
-import { exportGraphLayout, withDefaultElkLayoutOptions } from './export.mjs';
+import { exportGraphLayout } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
 import { splitCells } from './cells.mjs';
-import { toNativeElkNode, getElkPadding } from './elkOptions.mjs';
+import { toNativeElkNode, getElkPadding, withDefaultElkLayoutOptions } from './elkOptions.mjs';
 
 import type { ExportGraphLayoutOptions } from './export.mjs';
 import type { ImportGraphLayoutOptions } from './import.mjs';
