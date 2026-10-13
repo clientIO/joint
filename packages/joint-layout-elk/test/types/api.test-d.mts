@@ -1,5 +1,6 @@
 import type { dia } from '@joint/core';
 import type { ElkNode as ElkJsNode } from 'elkjs';
+import BundledElk from 'elkjs/lib/elk.bundled.js';
 import { layout, exportGraph, toNativeElkNode } from '../../src/index.mjs';
 
 import type { Expect, Equals } from './assert.mjs';
@@ -57,3 +58,8 @@ export const exportLink: ExportLinkCallback = ({ elkEdge }) => {
 export const exportLinkLabel: ExportLinkLabelCallback = ({ elkEdgeLabel }) => {
     elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = false;
 };
+
+// The import form the README's `toNativeElkNode()` example uses: the bundled build, which
+// carries ELK itself, rather than `elkjs`'s worker-dependent entry point.
+export const bundledElkTakesIt: Promise<ElkJsNode> =
+    new BundledElk().layout(toNativeElkNode({ id: 'root', layoutOptions: { 'elk.padding': { top: 40 }}}));

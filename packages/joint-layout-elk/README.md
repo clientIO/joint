@@ -151,17 +151,26 @@ const options: StrictElkLayoutOptions = {
 
 Returns a new graph with every layout option written out as the string ELK takes - throughout: the node's own options, its labels', its ports' (and theirs), the edges filed under it (and theirs), and each of its children. The graph passed in is left as it is.
 
-`layout()` does this for you. Call it yourself when you hand a graph to ELK directly, e.g. one from `exportGraph()`:
+`layout()` does this for you, so you only need it when you skip `layout()` and drive `elkjs` yourself - typically on a graph from `exportGraph(elements, links, callbacks, elkLayoutOptions)`, the step of `layout()` that turns cells into an ELK graph (with the [export callbacks](#export-callbacks) applied) and hands it back instead of laying it out:
 
 ```ts
+import ELK from 'elkjs/lib/elk.bundled.js';
 import { exportGraph, toNativeElkNode } from '@joint/layout-elk';
+
+// The bundled build, which carries ELK itself - `elkjs`'s own entry point is an API
+// shim that needs a Web Worker to run in (see "Running ELK in a Web Worker" below).
+const elk = new ELK();
 
 const { elkGraph } = exportGraph(graph.getElements(), graph.getLinks(), {}, {
     'elk.algorithm': 'layered',
     'elk.padding': { top: 40 }
 });
 
-const result = await elk.layout(toNativeElkNode(elkGraph));
+// `elk.layout()` here is elkjs's own method, not this package's `layout()`. It takes
+// ELK's spelling of every option, which is what `toNativeElkNode()` produces - and it
+// returns an ELK graph, not a laid out JointJS graph. Applying the result to the cells
+// is then yours to do; `layout()` is what does both for you.
+const elkResult = await elk.layout(toNativeElkNode(elkGraph));
 ```
 
 ### Export callbacks
