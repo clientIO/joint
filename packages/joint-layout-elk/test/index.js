@@ -2008,6 +2008,33 @@ QUnit.module('layout option values', () => {
         });
     });
 
+    QUnit.test('should measure the bbox from a padding set under ELK\'s full option id', async(assert) => {
+
+        const full = await layout({ 'org.eclipse.elk.padding': 20 });
+        const short = await layout({ 'elk.padding': 20 });
+
+        assert.equal(full.bbox.x, 20);
+        assert.equal(full.bbox.y, 20);
+        assert.deepEqual(full.bbox.toJSON(), short.bbox.toJSON(), 'the same either way');
+    });
+
+    QUnit.test('should read a padding string the way ELK reads it', async(assert) => {
+
+        // ELK reads these as a padding and finds no side in them - so every side is `0`,
+        // not the option's own default.
+        for (const value of ['[TOP=40]', '[Top=40]', '[foo=1]', '[]']) {
+            const { bbox, elkGraph } = await layout({ 'elk.padding': value });
+            assert.equal(bbox.x, 0, value);
+            assert.equal(bbox.width, elkGraph.width, value);
+        }
+        // A sign and an exponent, both of which ELK takes.
+        for (const value of ['[top=4E1]', '[top=4e1]', '[top=+40]']) {
+            const { bbox, elkGraph } = await layout({ 'elk.padding': value });
+            assert.equal(bbox.y, 40, value);
+            assert.equal(bbox.height, elkGraph.height - 40, value);
+        }
+    });
+
     QUnit.test('should return a zero-size bbox for an empty graph whatever the padding', async(assert) => {
 
         const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
@@ -2063,6 +2090,24 @@ QUnit.module('toNativeElkNode()', () => {
         assert.notStrictEqual(native.layoutOptions, elkGraph.layoutOptions);
     });
 
+    QUnit.test('should copy a node, port or label that carries no `layoutOptions`', assert => {
+
+        // ELK writes its own coordinates into the graph it is given, so nothing in the
+        // result may be an object the caller still holds.
+        const elkGraph = {
+            id: 'root',
+            children: [{ id: 'a', ports: [{ id: 'a.p' }], labels: [{ text: 'x' }] }]
+        };
+
+        const native = joint.layout.ELK.toNativeElkNode(elkGraph);
+
+        const [node] = elkGraph.children;
+        const [nativeNode] = native.children;
+        assert.notStrictEqual(nativeNode, node);
+        assert.notStrictEqual(nativeNode.ports[0], node.ports[0]);
+        assert.notStrictEqual(nativeNode.labels[0], node.labels[0]);
+    });
+
     QUnit.test('should write out an already written out graph unchanged', assert => {
 
         const once = joint.layout.ELK.toNativeElkNode(createElkGraph());
@@ -2088,6 +2133,37 @@ QUnit.module('toNativeElkNode()', () => {
         joint.layout.ELK.importGraphLayout(elkResult, exported.index);
 
         assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()), 'the result was applied');
+    });
+
+    QUnit.test('should route links the same whether driven by hand or by `layout()`', async(assert) => {
+
+        // A link inside a container: the case where the edge coordinates ELK reports are
+        // the container's unless `elk.json.edgeCoords` says otherwise, and the import
+        // reads them as the root's.
+        const build = () => {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const outer = new joint.shapes.standard.Rectangle({ id: 'outer', size: { width: 10, height: 10 }});
+            const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 50, height: 50 }});
+            const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
+            el1.set('parent', 'outer');
+            el2.set('parent', 'outer');
+            outer.set('embeds', ['a', 'b']);
+            const link = new joint.shapes.standard.Link({ id: 'l', source: { id: 'a' }, target: { id: 'b' }});
+            graph.resetCells([outer, el1, el2, link]);
+            return { graph, link };
+        };
+
+        const byLayout = build();
+        await joint.layout.ELK.layout(byLayout.graph);
+
+        const byHand = build();
+        const exported = joint.layout.ELK.exportGraphLayout(byHand.graph);
+        const elkResult = await new window.ELK().layout(joint.layout.ELK.toNativeElkNode(exported.elkGraph));
+        joint.layout.ELK.importGraphLayout(elkResult, exported.index);
+
+        assert.deepEqual(byHand.link.get('vertices'), byLayout.link.get('vertices'));
+        assert.deepEqual(byHand.link.get('source'), byLayout.link.get('source'));
+        assert.deepEqual(byHand.link.get('target'), byLayout.link.get('target'));
     });
 
     QUnit.test('should write out a graph from `exportGraphLayout()` for ELK to lay out', async(assert) => {

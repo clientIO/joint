@@ -1,7 +1,7 @@
-import { util, g } from '@joint/core';
+import { g } from '@joint/core';
 import { importGraphLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
-import { exportGraphLayout } from './export.mjs';
+import { exportGraphLayout, withDefaultElkLayoutOptions } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
 import { splitCells } from './cells.mjs';
 import { toNativeElkNode, getElkPadding } from './elkOptions.mjs';
@@ -15,20 +15,6 @@ import type { ELK } from 'elkjs';
 
 const LAYOUT_BATCH_NAME = 'layout';
 
-const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
-    'elk.algorithm': 'layered',
-    // Lay out embedded elements (containers) as part of the same pass as their
-    // parent, so that edges crossing a container's boundary are routed and
-    // accounted for correctly, instead of only being considered afterwards.
-    'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
-    // Keep the order of ports on a node consistent with the order of their
-    // `ports.items` array, instead of reordering them to reduce edge crossings.
-    'elk.layered.considerModelOrder.portModelOrder': 'true',
-    // Return every edge's route points and labels graph-absolute, whichever container
-    // the edge belongs to - `importGraphLayout` applies them as they are. Overriding this
-    // means handling the coordinates yourself (e.g. in `setLinkAttributes`).
-    'elk.json.edgeCoords': 'ROOT'
-};
 
 /**
  * Layout configuration options.
@@ -83,7 +69,7 @@ export interface LayoutResult {
 function getBBox(elkGraph: ElkNode, elkLayoutOptions: ElkLayoutOptions): g.Rect {
     // The options as they were given, not the root node's own: those have been written out
     // as the strings ELK takes, while this needs the padding itself, in either spelling.
-    const { top, left, bottom, right } = getElkPadding(elkLayoutOptions['elk.padding']);
+    const { top, left, bottom, right } = getElkPadding(elkLayoutOptions);
     const width = Math.max(0, (elkGraph.width || 0) - left - right);
     const height = Math.max(0, (elkGraph.height || 0) - top - bottom);
     // Nothing was laid out - the root is its own padding, which is not a box at `left`/`top`.
@@ -114,11 +100,7 @@ function isWorkerElk(elk: WorkerElk | ELK): elk is WorkerElk {
 export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutOptions): Promise<LayoutResult> {
 
     const options: LayoutOptions = opt ?? {};
-    const elkLayoutOptions = util.defaults(
-        {},
-        opt?.elkLayoutOptions,
-        DEFAULT_LAYOUT_OPTIONS
-    ) as ElkLayoutOptions;
+    const elkLayoutOptions = withDefaultElkLayoutOptions(opt?.elkLayoutOptions);
     const signal = opt?.signal;
 
     throwIfAborted(signal);

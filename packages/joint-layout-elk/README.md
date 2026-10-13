@@ -157,7 +157,7 @@ Returns a new graph with every layout option written out as the string ELK takes
 
 `layout()` is `exportGraphLayout()` → ELK → `importGraphLayout()`. Those three are public, so you can run the middle step however you like:
 
-- `exportGraphLayout(graphOrCells, options?)` turns cells into an ELK graph, with the [export callbacks](#export-callbacks) applied. It takes a whole graph or a list of cells, exactly like `layout()`, and answers "what does this graph look like to ELK?" on its own.
+- `exportGraphLayout(graphOrCells, options?)` turns cells into an ELK graph, with the [export callbacks](#export-callbacks) applied and this package's default layout options filled in. It takes a whole graph or a list of cells, exactly like `layout()`, and answers "what does this graph look like to ELK?" on its own.
 - `importGraphLayout(elkResult, index, options?)` applies a result back - positions, sizes, ports, link routes and labels - with the [import callbacks](#import-callbacks) applied.
 
 **Most of the time you do not need this.** To run ELK somewhere else - a Web Worker, a server, a cache - pass your own `elk` to `layout()` instead (see [Running ELK in a Web Worker](#running-elk-in-a-web-worker)); it is any object with `layout()` and `terminate()`, and `layout()` still does the export and the import for you.

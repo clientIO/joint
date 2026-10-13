@@ -7,6 +7,7 @@ import type {
     ElkLabel,
     ElkExtendedEdge,
     NativeElkNode,
+    ElkLayoutOptions,
     StrictElkLayoutOptions,
     StrictElkNodeLayoutOptions
 } from './types/index.mjs';
@@ -124,9 +125,12 @@ interface WithLayoutOptions {
 // - Copied rather than written to: the options may be an object an export callback took
 //   straight from a cell's own data, or a shared - even frozen - constant, and neither is
 //   this package's to rewrite.
+// - Copied even when there is nothing to convert: ELK writes its own coordinates into
+//   every node and port of the graph it is given, so one shared with the caller would be
+//   written through.
 function toNativeOptions<T extends object>(element: T): T {
     const { layoutOptions } = element as WithLayoutOptions;
-    if (!layoutOptions) return element;
+    if (!layoutOptions) return { ...element };
     const nativeOptions: { [key: string]: unknown } = {};
     Object.keys(layoutOptions).forEach((key) => {
         nativeOptions[key] = toElkOption(key, layoutOptions[key]);
@@ -190,7 +194,9 @@ export function toNativeElkNode(node: ElkNode): NativeElkNode {
  * read as a padding at all (`'40'`, `''`, `'nonsense'`), and no option at all, leave every
  * side at the `12` default.
  */
-export function getElkPadding(value: unknown): ElkPadding {
+export function getElkPadding(options: ElkLayoutOptions): ElkPadding {
+    // Either spelling of the key, as `toElkOption()` takes either.
+    const value = options['elk.padding'] ?? options[`${ELK_ID_PREFIX}elk.padding`];
     if (typeof value === 'string') {
         const padding = parseElkPadding(value);
         if (padding) return padding;
@@ -201,17 +207,22 @@ export function getElkPadding(value: unknown): ElkPadding {
 }
 
 // `[top=12,left=12,bottom=12,right=12]` - ELK also takes it without the brackets, with
-// spaces around the `=`, in exponent notation, and with any side (or all of them) left out.
-// `null` for a string naming no side at all, which ELK does not read as a padding either.
+// spaces around the `=`, with a sign or an exponent, and with any side left out.
+//
+// A side the string does not name is `0`, and so is a side it names in any other case
+// (`[TOP=40]`) or does not name at all (`[]`) - ELK reads those as a padding all the same,
+// it just finds no side in them. Only a string it cannot read as a padding at all
+// (`'40'`, `'nonsense'`, `''`) leaves every side at the option's own default, which is
+// what `null` here means.
 function parseElkPadding(value: string): ElkPadding | null {
+    // What ELK reads as a padding: a `key=value`, or the brackets on their own.
+    if (!/=/.test(value) && !/\[/.test(value)) return null;
     const padding = { top: 0, right: 0, bottom: 0, left: 0 };
-    // Case-sensitive, as ELK is: it ignores `[TOP=40]`.
-    const sides = /(top|left|bottom|right)\s*=\s*(-?[\d.]+(?:e[-+]?\d+)?)/g;
-    let isPadding = false;
+    // Case-sensitive, as ELK is: it reads no side out of `[TOP=40]`.
+    const sides = /(top|left|bottom|right)\s*=\s*([-+]?[\d.]+(?:[eE][-+]?\d+)?)/g;
     let side;
     while ((side = sides.exec(value)) !== null) {
-        isPadding = true;
         padding[side[1] as keyof ElkPadding] = Number(side[2]);
     }
-    return isPadding ? padding : null;
+    return padding;
 }

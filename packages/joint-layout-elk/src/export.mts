@@ -1,4 +1,5 @@
 import { type dia } from '@joint/core';
+import { util } from '@joint/core';
 import { splitCells } from './cells.mjs';
 
 import { ELK_ROOT_ID, getElkEdgeId, getElkNodeId, getElkPortId, getLinkLabelId } from './elkIds.mjs';
@@ -144,6 +145,33 @@ export interface CellIndex {
     portsById: Map<string, ExportedPort>;
 }
 
+const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
+    'elk.algorithm': 'layered',
+    // Lay out embedded elements (containers) as part of the same pass as their
+    // parent, so that edges crossing a container's boundary are routed and
+    // accounted for correctly, instead of only being considered afterwards.
+    'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+    // Keep the order of ports on a node consistent with the order of their
+    // `ports.items` array, instead of reordering them to reduce edge crossings.
+    'elk.layered.considerModelOrder.portModelOrder': 'true',
+    // Return every edge's route points and labels graph-absolute, whichever container
+    // the edge belongs to - `importGraphLayout` applies them as they are. Overriding this
+    // means handling the coordinates yourself (e.g. in `setLinkAttributes`).
+    'elk.json.edgeCoords': 'ROOT'
+};
+
+/**
+ * `elkLayoutOptions` with this package's defaults filled in - what `exportGraphLayout()`
+ * and `layout()` both lay out with.
+ *
+ * `elk.json.edgeCoords` in particular is not a preference: `importGraphLayout()` reads an
+ * edge's points as the root's coordinates, so a graph exported without it routes links
+ * into the wrong place.
+ */
+export function withDefaultElkLayoutOptions(elkLayoutOptions?: ElkLayoutOptions): ElkLayoutOptions {
+    return util.defaults({}, elkLayoutOptions, DEFAULT_LAYOUT_OPTIONS) as ElkLayoutOptions;
+}
+
 export interface ExportedGraphLayout {
     /** The ELK graph, with its layout options in the spelling they were given. */
     elkGraph: ElkNode;
@@ -155,8 +183,7 @@ export interface ExportGraphLayoutOptions {
     /**
      * The layout options of the exported graph's root node.
      * @see https://eclipse.dev/elk/reference/options.html
-     * @remarks `layout()` merges its own defaults into these; `exportGraphLayout()` takes them
-     * as given, so a graph exported on its own carries only what is set here.
+     * @remarks This package's defaults are merged in - see `withDefaultElkLayoutOptions()`.
      */
     elkLayoutOptions?: ElkLayoutOptions;
     exportElement?: ExportElementCallback;
@@ -523,6 +550,10 @@ function buildEdge(link: dia.Link): void {
  * follow them, and so do each container's own children. An element whose parent is not
  * among them becomes a top-level node.
  *
+ * The root carries `elkLayoutOptions` with this package's defaults filled in, the same
+ * ones `layout()` lays out with - among them `elk.json.edgeCoords`, which
+ * `importGraphLayout()` relies on to read an edge's points as the root's coordinates.
+ *
  * The options of the graph it returns are in whichever spelling they were given - pass it
  * through `toNativeElkNode()` before handing it to ELK.
  */
@@ -543,7 +574,7 @@ export function exportGraphLayout(
 
     const elkGraph: ElkNode = {
         id: ELK_ROOT_ID,
-        layoutOptions: options.elkLayoutOptions ?? {},
+        layoutOptions: withDefaultElkLayoutOptions(options.elkLayoutOptions),
         children,
         edges: []
     };
