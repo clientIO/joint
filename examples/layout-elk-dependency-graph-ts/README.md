@@ -1,4 +1,6 @@
-# JointJS ELK Demo
+# JointJS ELK Dependency Graph Demo
+
+A package dependency graph laid out with [`@joint/layout-elk`](../../packages/joint-layout-elk) - the Eclipse Layout Kernel (ELK), running in a Web Worker.
 
 ## Setup
 
@@ -12,8 +14,11 @@ yarn run build
 
 Navigate to this directory, then run:
 ```bash
-yarn start
+yarn dev
 ```
+
+Then open the URL printed in the terminal (usually `http://localhost:5173`). `yarn build`
+makes a production build in `dist/`, `yarn preview` serves it.
 
 ## License
 

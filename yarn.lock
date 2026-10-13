@@ -6348,20 +6348,51 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-layout-elk-ts@workspace:examples/layout-elk-ts":
+"@joint/demo-layout-elk-containers-and-ports-ts@workspace:examples/layout-elk-containers-and-ports-ts":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-layout-elk-ts@workspace:examples/layout-elk-ts"
+  resolution: "@joint/demo-layout-elk-containers-and-ports-ts@workspace:examples/layout-elk-containers-and-ports-ts"
   dependencies:
     "@joint/core": "workspace:^"
-    css-loader: "npm:3.5.3"
-    elkjs: "npm:^0.11.0"
-    sass-loader: "npm:8.0.2"
-    style-loader: "npm:1.2.1"
-    ts-loader: "npm:^9.2.5"
+    "@joint/layout-elk": "workspace:^"
+    sass: "npm:^1.93.2"
     typescript: "npm:5.8.2"
-    webpack: "npm:5.98.0"
-    webpack-cli: "npm:6.0.1"
-    webpack-dev-server: "npm:5.2.0"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-layout-elk-defaults-ts@workspace:examples/layout-elk-defaults-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-layout-elk-defaults-ts@workspace:examples/layout-elk-defaults-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-elk": "workspace:^"
+    sass: "npm:^1.93.2"
+    typescript: "npm:5.8.2"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-layout-elk-dependency-graph-ts@workspace:examples/layout-elk-dependency-graph-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-layout-elk-dependency-graph-ts@workspace:examples/layout-elk-dependency-graph-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-elk": "workspace:^"
+    sass: "npm:^1.93.2"
+    typescript: "npm:5.8.2"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-layout-elk-rectpacking-ts@workspace:examples/layout-elk-rectpacking-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-layout-elk-rectpacking-ts@workspace:examples/layout-elk-rectpacking-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-elk": "workspace:^"
+    sass: "npm:^1.93.2"
+    typescript: "npm:5.8.2"
+    vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
 
@@ -6707,6 +6738,31 @@ __metadata:
     rollup: "npm:4.36.0"
     rollup-plugin-banner2: "npm:^1.2.2"
     should: "npm:13.2.3"
+  languageName: unknown
+  linkType: soft
+
+"@joint/layout-elk@workspace:^, @joint/layout-elk@workspace:packages/joint-layout-elk":
+  version: 0.0.0-use.local
+  resolution: "@joint/layout-elk@workspace:packages/joint-layout-elk"
+  dependencies:
+    "@joint/core": "workspace:~"
+    "@joint/eslint-config": "workspace:*"
+    "@rollup/plugin-node-resolve": "npm:^16.0.1"
+    "@rollup/plugin-terser": "npm:^0.4.4"
+    "@rollup/plugin-typescript": "npm:^12.1.1"
+    concurrently: "npm:^9.2.0"
+    elkjs: "npm:0.12.0"
+    eslint: "npm:9.39.2"
+    karma: "npm:^6.4.2"
+    karma-chrome-launcher: "npm:^3.2.0"
+    karma-coverage: "npm:^2.2.1"
+    karma-qunit: "npm:^4.1.2"
+    karma-sourcemap-loader: "npm:^0.4.0"
+    puppeteer: "npm:24.22.0"
+    qunit: "npm:^2.24.1"
+    rollup: "npm:4.36.0"
+    rollup-plugin-banner2: "npm:^1.2.2"
+    typescript: "npm:^5.7.3"
   languageName: unknown
   linkType: soft
 
@@ -14185,6 +14241,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chokidar@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "chokidar@npm:5.0.0"
+  dependencies:
+    readdirp: "npm:^5.0.0"
+  checksum: 10/a1c2a4ee6ee81ba6409712c295a47be055fb9de1186dfbab33c1e82f28619de962ba02fc5f9d433daaedc96c35747460d8b2079ac2907de2c95e3f7cce913113
+  languageName: node
+  linkType: hard
+
 "chownr@npm:^1.1.1":
   version: 1.1.4
   resolution: "chownr@npm:1.1.4"
@@ -15761,10 +15826,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"elkjs@npm:^0.11.0":
-  version: 0.11.0
-  resolution: "elkjs@npm:0.11.0"
-  checksum: 10/afc7bf05b2d40c21cce4654ed383fb6c97c12a200edf00ac01762a9fa177d6784a0ef752f2f4356bec041a13a05aac9ac31f66ee990ffa0ded31f0575ae93177
+"elkjs@npm:0.12.0":
+  version: 0.12.0
+  resolution: "elkjs@npm:0.12.0"
+  checksum: 10/84337ad8d3800e7aa2951bd2feeb54bbef9eb653bf0abadad372c32b8ab44f9ec761f9f06d13ad31c42639e548bc39f556c90fa45837cbabe2941ebafdefd21d
   languageName: node
   linkType: hard
 
@@ -19579,6 +19644,13 @@ __metadata:
   version: 5.1.4
   resolution: "immutable@npm:5.1.4"
   checksum: 10/0655b33af249ff99c7a56f9e6d7aee632af2dc25758710ddf224bda645f66dd2dd98119c0d86986895ea52cc889b6c5127a848c6fba21aadabdc4c5ead04be2b
+  languageName: node
+  linkType: hard
+
+"immutable@npm:^5.1.5":
+  version: 5.1.9
+  resolution: "immutable@npm:5.1.9"
+  checksum: 10/dc61ea6f79897320a048f193dec703dff25ad7bb633c3a0294677d2f258764c88da06e7c2b53d1aa51b6657c98d9f1c7341f49735b9b802fe6e834122cf78dcd
   languageName: node
   linkType: hard
 
@@ -25816,6 +25888,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"readdirp@npm:^5.0.0":
+  version: 5.1.1
+  resolution: "readdirp@npm:5.1.1"
+  checksum: 10/4a6a61272c6db332db361166b42be34ce8480542073061f04f405ed2f703e517e90dfafe33843f647e91d20090c575aee04a823e9ed9d9d9a01ec3603ca45a8b
+  languageName: node
+  linkType: hard
+
 "readdirp@npm:~3.6.0":
   version: 3.6.0
   resolution: "readdirp@npm:3.6.0"
@@ -27141,6 +27220,23 @@ __metadata:
   bin:
     sass: sass.js
   checksum: 10/4af4627505087b692a29c575f346b12e30a3f58dd0254832ebc9ccff456e6f8a2c16d1f9b45d83d6aaae867e6fb54b98c485ddf79a226e328d595b54725c7f84
+  languageName: node
+  linkType: hard
+
+"sass@npm:^1.93.2":
+  version: 1.105.1
+  resolution: "sass@npm:1.105.1"
+  dependencies:
+    "@parcel/watcher": "npm:^2.4.1"
+    chokidar: "npm:^5.0.0"
+    immutable: "npm:^5.1.5"
+    source-map-js: "npm:>=0.6.2 <2.0.0"
+  dependenciesMeta:
+    "@parcel/watcher":
+      optional: true
+  bin:
+    sass: sass.js
+  checksum: 10/772b8943117cb9badaa1a3d3dda888acc456de859820ab7ac401d03e095f8d88de1e6a39dc969baa850efbbc6ed1a5e4eeb288d0ae4d0d7d99b6efffcf9ec050
   languageName: node
   linkType: hard
 
