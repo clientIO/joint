@@ -1,3 +1,5 @@
+import type { dia, g } from '@joint/core';
+import type { ToNativeElkOptions } from './toNativeElkOptions.mjs';
 import type {
     Alignment,
     HierarchyHandling,
@@ -10,9 +12,24 @@ import type {
     TopdownNodeTypes
 } from './elkEnums.mjs';
 
-export interface NodeElkLayoutOptions {
-    // Falls back to a plain string for any ELK option beyond this package's Core/Layered coverage.
-    [key: string]: string | undefined;
+/**
+ * An ELK node's layout options in their JointJS spelling - `6`, `true`,
+ * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`.
+ *
+ * Every option is declared here; {@link NativeNodeElkLayoutOptions} is projected from it. Annotate
+ * your own options with this type to be held to the JointJS spelling alone:
+ *
+ * ```ts
+ * const options: StrictNodeElkLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * ```
+ */
+export interface StrictNodeElkLayoutOptions {
+    // Falls back to any ELK option beyond this package's Core/Layered coverage.
+    // Wider than `string`, because TypeScript holds every declared property to the index
+    // signature and the ones below are typed `number`, `boolean`, `dia.Sides` and
+    // `g.PlainPoint`. (`dia.Sides` already covers `number`; both are spelled out to say
+    // which spellings this type takes.)
+    [key: string]: string | number | boolean | dia.Sides | g.PlainPoint | undefined;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-alignment.html
      * @defaultValue 'AUTOMATIC'
@@ -245,3 +262,23 @@ export interface NodeElkLayoutOptions {
      */
     'elk.layered.considerModelOrder.groupModelOrder.componentGroupId'?: number;
 }
+
+/**
+ * An ELK node's layout options in ELK's own spelling - every value a string, the way the
+ * reference page linked from each option expresses it, and the way options that arrive as
+ * data (a saved diagram, a backend's config) are already shaped.
+ *
+ * Projected from {@link StrictNodeElkLayoutOptions}, so the two cannot drift.
+ */
+export type NativeNodeElkLayoutOptions = ToNativeElkOptions<StrictNodeElkLayoutOptions>;
+
+/**
+ * An ELK node's layout options. Each option takes either spelling, so one object can mix
+ * them: `{ 'elk.spacing.nodeNode': 6, 'elk.padding': '[top=12,left=12]' }`.
+ *
+ * Per key rather than `StrictNodeElkLayoutOptions | NativeNodeElkLayoutOptions`: an object literal
+ * mixing the two spellings matches neither arm of a union of the whole types.
+ */
+export type NodeElkLayoutOptions = {
+    [K in keyof StrictNodeElkLayoutOptions]?: StrictNodeElkLayoutOptions[K] | NativeNodeElkLayoutOptions[K];
+};

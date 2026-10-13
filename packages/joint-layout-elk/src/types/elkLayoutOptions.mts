@@ -1,3 +1,5 @@
+import type { dia, g } from '@joint/core';
+import type { ToNativeElkOptions } from './toNativeElkOptions.mjs';
 import type {
     ElkAlgorithm,
     Alignment,
@@ -42,9 +44,24 @@ import type {
     PortSide
 } from './elkEnums.mjs';
 
-export interface ElkLayoutOptions {
-    // Falls back to a plain string for any ELK option beyond this package's Core/Layered coverage.
-    [key: string]: string | undefined;
+/**
+ * ELK layout options in their JointJS spelling - `6`, `true`,
+ * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`.
+ *
+ * Every option is declared here; {@link NativeElkLayoutOptions} is projected from it. Annotate
+ * your own options with this type to be held to the JointJS spelling alone:
+ *
+ * ```ts
+ * const options: StrictElkLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * ```
+ */
+export interface StrictElkLayoutOptions {
+    // Falls back to any ELK option beyond this package's Core/Layered coverage.
+    // Wider than `string`, because TypeScript holds every declared property to the index
+    // signature and the ones below are typed `number`, `boolean`, `dia.Sides` and
+    // `g.PlainPoint`. (`dia.Sides` already covers `number`; both are spelled out to say
+    // which spellings this type takes.)
+    [key: string]: string | number | boolean | dia.Sides | g.PlainPoint | undefined;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-box-packingMode.html
      * @defaultValue `BoxLayoutProvider.PackingMode.SIMPLE`
@@ -924,3 +941,23 @@ export interface ElkLayoutOptions {
      */
     'elk.layered.generatePositionAndLayerIds'?: boolean;
 }
+
+/**
+ * ELK layout options in ELK's own spelling - every value a string, the way the
+ * reference page linked from each option expresses it, and the way options that arrive as
+ * data (a saved diagram, a backend's config) are already shaped.
+ *
+ * Projected from {@link StrictElkLayoutOptions}, so the two cannot drift.
+ */
+export type NativeElkLayoutOptions = ToNativeElkOptions<StrictElkLayoutOptions>;
+
+/**
+ * ELK layout options. Each option takes either spelling, so one object can mix
+ * them: `{ 'elk.spacing.nodeNode': 6, 'elk.padding': '[top=12,left=12]' }`.
+ *
+ * Per key rather than `StrictElkLayoutOptions | NativeElkLayoutOptions`: an object literal
+ * mixing the two spellings matches neither arm of a union of the whole types.
+ */
+export type ElkLayoutOptions = {
+    [K in keyof StrictElkLayoutOptions]?: StrictElkLayoutOptions[K] | NativeElkLayoutOptions[K];
+};
