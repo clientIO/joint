@@ -1,7 +1,13 @@
 // elkjs's own graph types, under this package's name for them: "native" is ELK's own
-// spelling, where every layout option value is a string (see `NativeElkLayoutOptions`).
-// They are also what this package's own graph types below are built from, with only
-// `layoutOptions` - and the element arrays - narrowed.
+// spelling, where every layout option value is a string. They are also what this package's
+// own graph types below are built from, with only `layoutOptions` - and the element
+// arrays - narrowed.
+// - Their `layoutOptions` stays elkjs's own `{ [key: string]: string }`, rather than this
+//   package's `NativeElkLayoutOptions`, which says the same thing far more precisely.
+//   Narrowing it would be the end of them: an optional property forces `| undefined` into
+//   the index signature, and elkjs's type does not take that - so `toNativeElkNode()`
+//   would no longer return something `elk.layout()` accepts as it is, which is the one
+//   thing it exists to do.
 import type {
     ElkNode as NativeElkNode,
     ElkPort as NativeElkPort,
