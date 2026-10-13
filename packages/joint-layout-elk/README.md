@@ -91,7 +91,7 @@ interface LayoutResult {
 interface LayoutOptions {
     // The ELK instance to lay out with, e.g. one running in a Web Worker (see `createWorkerElk()` below).
     elk?: WorkerElk | ELK; // Default: a shared instance running on the main thread
-    // ELK layout options, passed through to ELK unmodified.
+    // ELK layout options, in either spelling (see "Layout option values" below).
     elkLayoutOptions?: ElkLayoutOptions; // Default: { 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.layered.considerModelOrder.portModelOrder': 'true', 'elk.json.edgeCoords': 'ROOT' }
     // Aborts the layout - `layout()` rejects with the signal's reason and applies nothing.
     signal?: AbortSignal;
@@ -108,6 +108,60 @@ interface LayoutOptions {
     setPortAttributes?: SetPortAttributesCallback;
     setLinkAttributes?: SetLinkAttributesCallback;
 }
+```
+
+### Layout option values
+
+ELK takes every option value as a string. This package takes that spelling and the JointJS one, per option, so one object can mix them:
+
+```ts
+elkLayoutOptions: {
+    'elk.spacing.nodeNode': 6,                  // or '6'
+    'elk.rectpacking.orderBySize': true,        // or 'true'
+    'elk.padding': { left: 10, vertical: 40 },  // or '[top=40,left=10,bottom=40,right=0]'
+    'elk.position': { x: 10, y: 20 },           // or '10,20'
+    'elk.direction': 'RIGHT'                    // enums are strings either way
+}
+```
+
+The string spelling stays supported: it is what the ELK reference page linked from each option uses, and what options that arrive as data - a saved diagram, a backend's config - are already shaped like.
+
+- **Numbers and booleans** take `6` / `true` on any option ELK types as one.
+- **Paddings and margins** (`elk.padding`, `elk.margins`, `elk.spacing.portsSurrounding`, `elk.nodeLabels.padding`) take a [`dia.Sides`](https://docs.jointjs.com/api/util/normalizeSides/): a number for every side, or an object naming `top`/`right`/`bottom`/`left`/`horizontal`/`vertical`. **A side the value does not name is `0`**, not the option's own default - ELK's own string parser reads `'[top=40]'` the same way. That default applies only when the option is not set at all.
+- **Points** (`elk.position`, `elk.nodeSize.minimum`, `elk.port.anchor`) take `{ x, y }`, `g.Point` included.
+- Anything else goes to ELK as it is, so ELK reports a value it cannot use rather than this package guessing at it.
+
+The same applies to the `layoutOptions` set on a draft in an [export callback](#export-callbacks).
+
+To be held to the JointJS spelling alone, annotate your own options with the `Strict` type - there is no flag on this package to switch:
+
+```ts
+import type { StrictElkLayoutOptions } from '@joint/layout-elk';
+
+const options: StrictElkLayoutOptions = {
+    'elk.spacing.nodeNode': 6,
+    // Type error: the strict spelling takes `6`, not `'6'`.
+    'elk.layered.spacing.nodeNodeBetweenLayers': '40'
+};
+```
+
+`Native*` is the other direction - ELK's own spelling alone - and is what `toNativeElkNode()` produces. Each has a per-element counterpart: `StrictNodeElkLayoutOptions`, `NativeEdgeElkLayoutOptions`, and so on.
+
+#### `toNativeElkNode(node: ElkNode): NativeElkNode`
+
+Returns a new graph with every layout option written out as the string ELK takes - throughout: the node's own options, its labels', its ports' (and theirs), the edges filed under it (and theirs), and each of its children. The graph passed in is left as it is.
+
+`layout()` does this for you. Call it yourself when you hand a graph to ELK directly, e.g. one from `exportGraph()`:
+
+```ts
+import { exportGraph, toNativeElkNode } from '@joint/layout-elk';
+
+const { elkGraph } = exportGraph(graph.getElements(), graph.getLinks(), {}, {
+    'elk.algorithm': 'layered',
+    'elk.padding': { top: 40 }
+});
+
+const result = await elk.layout(toNativeElkNode(elkGraph));
 ```
 
 ### Export callbacks
