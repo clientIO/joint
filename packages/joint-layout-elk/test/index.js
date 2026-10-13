@@ -2081,11 +2081,11 @@ QUnit.module('toNativeElkNode()', () => {
         assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()), 'they start on top of each other');
 
         // The round trip `layout()` does, driven by hand - the README's example.
-        const { elkGraph, cells } = joint.layout.ELK.exportGraphLayout(graph, {
+        const exported = joint.layout.ELK.exportGraphLayout(graph, {
             elkLayoutOptions: { 'elk.algorithm': 'layered', 'elk.spacing.nodeNode': 40 }
         });
-        const elkResult = await new window.ELK().layout(joint.layout.ELK.toNativeElkNode(elkGraph));
-        joint.layout.ELK.importGraphLayout(elkResult, cells);
+        const elkResult = await new window.ELK().layout(joint.layout.ELK.toNativeElkNode(exported.elkGraph));
+        joint.layout.ELK.importGraphLayout(elkResult, exported.index);
 
         assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()), 'the result was applied');
     });

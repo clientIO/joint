@@ -72,7 +72,7 @@ export const bundledElkTakesIt: Promise<ElkJsNode> =
 // The round trip the README documents: one `exportGraphLayout()` gives both the graph and the
 // `cells` its ids stand for, and `importGraphLayout()` takes them back.
 export async function roundTrip(): Promise<void> {
-    const { elkGraph, cells } = exportGraphLayout(graph, { elkLayoutOptions: { 'elk.padding': { top: 40 }}});
-    const elkResult = await new BundledElk().layout(toNativeElkNode(elkGraph));
-    importGraphLayout(elkResult, cells);
+    const exported = exportGraphLayout(graph, { elkLayoutOptions: { 'elk.padding': { top: 40 }}});
+    const elkResult = await new BundledElk().layout(toNativeElkNode(exported.elkGraph));
+    importGraphLayout(elkResult, exported.index);
 }

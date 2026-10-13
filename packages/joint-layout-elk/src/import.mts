@@ -1,8 +1,8 @@
 import { type dia, g } from '@joint/core';
 import type { ElkPoint } from 'elkjs';
 import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
-import type { ElkGraphCells } from './export.mjs';
-import type { ElkGraphPort, ElkGraphCellsData } from './cells.mjs';
+import type { ExportedCellIndex } from './export.mjs';
+import type { ExportedPort, ExportedCellIndexData } from './cells.mjs';
 import { getLinkLabelIndex } from './elkIds.mjs';
 
 /** Applies the ELK-computed position (and, for a container, size) to `element`. */
@@ -146,7 +146,7 @@ let importGraphLayoutOptions: ImportGraphLayoutOptions;
 
 let elementsById: Map<string, dia.Element>;
 let linksById: Map<string, dia.Link>;
-let portsById: Map<string, ElkGraphPort>;
+let portsById: Map<string, ExportedPort>;
 // The graph-absolute rect ELK gave each node, filled in as `importNode` walks down. A
 // node's children, and the edges filed under it, are imported after it, so an edge's ends
 // are always in here by the time `importEdges` reaches it.
@@ -159,7 +159,7 @@ let elementRectsById: Map<string, g.Rect>;
 function init(
     elements: Map<string, dia.Element>,
     links: Map<string, dia.Link>,
-    ports: Map<string, ElkGraphPort>,
+    ports: Map<string, ExportedPort>,
     options: ImportGraphLayoutOptions
 ): void {
     importGraphLayoutOptions = options;
@@ -354,21 +354,22 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
  * and sizes, their ports, and the links' routes and labels.
  *
  * `layout()` does this for you. Call it yourself when you drove ELK yourself, with the
- * graph and the `cells` a single `exportGraphLayout()` gave you:
+ * `index` of the same `exportGraphLayout()` the result came from:
  *
  * ```ts
- * const { elkGraph, cells } = exportGraphLayout(graph);
- * importGraphLayout(await elk.layout(toNativeElkNode(elkGraph)), cells);
+ * const exported = exportGraphLayout(graph);
+ * const result = await elk.layout(toNativeElkNode(exported.elkGraph));
+ * importGraphLayout(result, exported.index);
  * ```
  */
 export function importGraphLayout(
     elkGraph: ElkNode,
-    cells: ElkGraphCells,
+    index: ExportedCellIndex,
     options: ImportGraphLayoutOptions = {}
 ): void {
 
-    // The one place the opaque handle `exportGraphLayout()` made is read back.
-    const { elementsById, linksById, portsById } = cells as unknown as ElkGraphCellsData;
+    // The one place the index `exportGraphLayout()` built is read back.
+    const { elementsById, linksById, portsById } = index as unknown as ExportedCellIndexData;
 
     init(elementsById, linksById, portsById, options);
 

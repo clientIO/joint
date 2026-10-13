@@ -125,7 +125,8 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
 
     const { graphs } = splitCells(graphOrCells);
 
-    const { elkGraph, cells } = exportGraphLayout(graphOrCells, { ...options, elkLayoutOptions });
+    const exported = exportGraphLayout(graphOrCells, { ...options, elkLayoutOptions });
+    const { elkGraph } = exported;
 
     // Writes every layout option out as the string ELK takes - last, so that it sees what
     // the export callbacks left behind. ELK's result needs no conversion back:
@@ -151,7 +152,7 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
     // a batch left open would e.g. keep a command manager from ever closing its undo step.
     graphs.forEach((graph) => graph.startBatch(LAYOUT_BATCH_NAME));
     try {
-        importGraphLayout(result, cells, options);
+        importGraphLayout(result, exported.index, options);
     } finally {
         graphs.forEach((graph) => graph.stopBatch(LAYOUT_BATCH_NAME));
     }

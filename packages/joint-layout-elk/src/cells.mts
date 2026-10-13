@@ -1,10 +1,10 @@
 import type { dia } from '@joint/core';
 
-// Not part of the public API (not re-exported from `index.mts`) - `ElkGraphCells` is, and
+// Not part of the public API (not re-exported from `index.mts`) - `ExportedCellIndex` is, and
 // is opaque, so none of the shapes below are promised to anyone.
 
 /** An element's port, as it was exported - its `x`/`y` are what ELK was given. */
-export interface ElkGraphPort {
+export interface ExportedPort {
     element: dia.Element;
     portId: dia.Cell.ID;
     /** The port's top-left as it was sent to ELK - what came back is `ElkPort`'s own. */
@@ -18,10 +18,10 @@ export interface ElkGraphPort {
  * ELK ids are built from cell ids (see `elkIds.mts`), and a port's also carries where it
  * was when it was exported - which the result alone cannot say.
  */
-export interface ElkGraphCellsData {
+export interface ExportedCellIndexData {
     elementsById: Map<string, dia.Element>;
     linksById: Map<string, dia.Link>;
-    portsById: Map<string, ElkGraphPort>;
+    portsById: Map<string, ExportedPort>;
 }
 
 // The elements and the links to lay out, in the order they were given, and the graphs the

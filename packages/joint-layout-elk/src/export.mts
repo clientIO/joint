@@ -1,7 +1,7 @@
 import { type dia } from '@joint/core';
 import { splitCells } from './cells.mjs';
 
-import type { ElkGraphPort, ElkGraphCellsData } from './cells.mjs';
+import type { ExportedPort, ExportedCellIndexData } from './cells.mjs';
 import { ELK_ROOT_ID, getElkEdgeId, getElkNodeId, getElkPortId, getLinkLabelId } from './elkIds.mjs';
 
 import type {
@@ -122,7 +122,7 @@ export type ExportLinkLabelCallbackParams = {
     elkEdgeLabel: ElkLabelDraft;
 };
 
-declare const ELK_GRAPH_CELLS: unique symbol;
+declare const EXPORTED_CELL_INDEX: unique symbol;
 
 /**
  * What the ids in an exported ELK graph stand for - handed to `importGraphLayout()` to apply a
@@ -130,15 +130,15 @@ declare const ELK_GRAPH_CELLS: unique symbol;
  *
  * Opaque: there is nothing to read in it, and what it holds is free to change.
  */
-export interface ElkGraphCells {
-    readonly [ELK_GRAPH_CELLS]: never;
+export interface ExportedCellIndex {
+    readonly [EXPORTED_CELL_INDEX]: never;
 }
 
-export interface ElkGraphData {
+export interface ExportedGraphLayout {
     /** The ELK graph, with its layout options in the spelling they were given. */
     elkGraph: ElkNode;
-    /** Pass to `importGraphLayout()` along with what ELK gives back. */
-    cells: ElkGraphCells;
+    /** What the ids in `elkGraph` stand for - `importGraphLayout()` reads it. */
+    index: ExportedCellIndex;
 }
 
 export interface ExportGraphLayoutOptions {
@@ -160,7 +160,7 @@ let exportGraphLayoutOptions: ExportGraphLayoutOptions;
 
 let elementsById: Map<string, dia.Element>;
 let linksById: Map<string, dia.Link>;
-let portsById: Map<string, ElkGraphPort>;
+let portsById: Map<string, ExportedPort>;
 // Every container node (plus the root), keyed by element id (`undefined` for the root) -
 // used to file each edge under the lowest common ancestor of its source and target.
 let edgeContainersById: Map<string | undefined, ElkExtendedEdge[]>;
@@ -519,7 +519,7 @@ function buildEdge(link: dia.Link): void {
 export function exportGraphLayout(
     graphOrCells: dia.Graph | dia.Cell[],
     options: ExportGraphLayoutOptions = {}
-): ElkGraphData {
+): ExportedGraphLayout {
 
     const { elements, links } = splitCells(graphOrCells);
 
@@ -543,8 +543,8 @@ export function exportGraphLayout(
 
     links.forEach(buildEdge);
 
-    const cells: ElkGraphCellsData = { elementsById, linksById, portsById };
-    // The one place the opaque handle is made - `importGraphLayout()` is the one place it is
-    // read back. Opaque so that what it holds stays this package's business.
-    return { elkGraph, cells: cells as unknown as ElkGraphCells };
+    const index: ExportedCellIndexData = { elementsById, linksById, portsById };
+    // The one place the index is built - `importGraphLayout()` is the one place it is read
+    // back. Opaque so that what it holds stays this package's business.
+    return { elkGraph, index: index as unknown as ExportedCellIndex };
 }
