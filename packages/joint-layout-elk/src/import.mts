@@ -59,7 +59,7 @@ export type SetLinkAttributesCallbackParams = {
     elkEdge: ElkExtendedEdge
 };
 
-export interface ImportLayoutOptions {
+export interface ImportGraphLayoutOptions {
     setElementAttributes?: SetElementAttributesCallback;
     setLinkAttributes?: SetLinkAttributesCallback;
     setPortAttributes?: SetPortAttributesCallback;
@@ -142,7 +142,7 @@ const defaultSetLinkAttributes: SetLinkAttributesCallback = ({ link, attributes 
     link.set(attributes);
 };
 
-let importLayoutOptions: ImportLayoutOptions;
+let importGraphLayoutOptions: ImportGraphLayoutOptions;
 
 let elementsById: Map<string, dia.Element>;
 let linksById: Map<string, dia.Link>;
@@ -153,16 +153,16 @@ let portsById: Map<string, ElkGraphPort>;
 let elementRectsById: Map<string, g.Rect>;
 
 /**
- * (Re)initializes all the module-level state above for a single `importLayout` call, so
+ * (Re)initializes all the module-level state above for a single `importGraphLayout` call, so
  * that no lookup table or option can leak from one call into the next.
  */
 function init(
     elements: Map<string, dia.Element>,
     links: Map<string, dia.Link>,
     ports: Map<string, ElkGraphPort>,
-    options: ImportLayoutOptions
+    options: ImportGraphLayoutOptions
 ): void {
-    importLayoutOptions = options;
+    importGraphLayoutOptions = options;
 
     elementsById = elements;
     linksById = links;
@@ -202,7 +202,7 @@ function toPortCenter(start: number, size: number, nodeSize: number, hasMoved: b
  * `toAbsolute` above.
  */
 function importEdges(edges: ElkExtendedEdge[] | undefined): void {
-    const setLinkAttributes = importLayoutOptions.setLinkAttributes ?? defaultSetLinkAttributes;
+    const setLinkAttributes = importGraphLayoutOptions.setLinkAttributes ?? defaultSetLinkAttributes;
 
     (edges || []).forEach((edge) => {
         const link = linksById.get(edge.id);
@@ -282,7 +282,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
         // against the element's own, so an unchanged one is not written again.
         const { width, height } = element.size();
         const hasResized = (node.width || 0) !== width || (node.height || 0) !== height;
-        const setElementAttributes = importLayoutOptions.setElementAttributes ?? defaultSetElementAttributes;
+        const setElementAttributes = importGraphLayoutOptions.setElementAttributes ?? defaultSetElementAttributes;
         setElementAttributes({
             element,
             attributes: {
@@ -296,7 +296,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
     }
 
     if (node.ports) {
-        const setPortAttributes = importLayoutOptions.setPortAttributes ?? defaultSetPortAttributes;
+        const setPortAttributes = importGraphLayoutOptions.setPortAttributes ?? defaultSetPortAttributes;
 
         node.ports.forEach((port) => {
             const found = portsById.get(port.id);
@@ -354,20 +354,20 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
  * and sizes, their ports, and the links' routes and labels.
  *
  * `layout()` does this for you. Call it yourself when you drove ELK yourself, with the
- * graph and the `cells` a single `exportGraph()` gave you:
+ * graph and the `cells` a single `exportGraphLayout()` gave you:
  *
  * ```ts
- * const { elkGraph, cells } = exportGraph(graph);
- * importLayout(await elk.layout(toNativeElkNode(elkGraph)), cells);
+ * const { elkGraph, cells } = exportGraphLayout(graph);
+ * importGraphLayout(await elk.layout(toNativeElkNode(elkGraph)), cells);
  * ```
  */
-export function importLayout(
+export function importGraphLayout(
     elkGraph: ElkNode,
     cells: ElkGraphCells,
-    options: ImportLayoutOptions = {}
+    options: ImportGraphLayoutOptions = {}
 ): void {
 
-    // The one place the opaque handle `exportGraph()` made is read back.
+    // The one place the opaque handle `exportGraphLayout()` made is read back.
     const { elementsById, linksById, portsById } = cells as unknown as ElkGraphCellsData;
 
     init(elementsById, linksById, portsById, options);

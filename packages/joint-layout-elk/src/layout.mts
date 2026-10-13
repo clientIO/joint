@@ -1,13 +1,13 @@
 import { util, g } from '@joint/core';
-import { importLayout } from './import.mjs';
+import { importGraphLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
-import { exportGraph } from './export.mjs';
+import { exportGraphLayout } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
 import { splitCells } from './cells.mjs';
 import { toNativeElkNode, getElkPadding } from './elkOptions.mjs';
 
-import type { ExportGraphOptions } from './export.mjs';
-import type { ImportLayoutOptions } from './import.mjs';
+import type { ExportGraphLayoutOptions } from './export.mjs';
+import type { ImportGraphLayoutOptions } from './import.mjs';
 import type { WorkerElk } from './workerElk.mjs';
 import type { ElkLayoutOptions, ElkNode } from './types/index.mjs';
 import type { dia } from '@joint/core';
@@ -25,7 +25,7 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
     // `ports.items` array, instead of reordering them to reduce edge crossings.
     'elk.layered.considerModelOrder.portModelOrder': 'true',
     // Return every edge's route points and labels graph-absolute, whichever container
-    // the edge belongs to - `importLayout` applies them as they are. Overriding this
+    // the edge belongs to - `importGraphLayout` applies them as they are. Overriding this
     // means handling the coordinates yourself (e.g. in `setLinkAttributes`).
     'elk.json.edgeCoords': 'ROOT'
 };
@@ -33,9 +33,9 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
 /**
  * Layout configuration options.
  */
-export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
+export interface LayoutOptions extends ImportGraphLayoutOptions, ExportGraphLayoutOptions {
 
-    // `elkLayoutOptions` comes from `ExportGraphOptions` - it is the exported graph's root
+    // `elkLayoutOptions` comes from `ExportGraphLayoutOptions` - it is the exported graph's root
     // options. These defaults are merged into it here:
     // `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
     //    'elk.layered.considerModelOrder.portModelOrder': 'true', 'elk.json.edgeCoords': 'ROOT' }`
@@ -125,7 +125,7 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
 
     const { graphs } = splitCells(graphOrCells);
 
-    const { elkGraph, cells } = exportGraph(graphOrCells, { ...options, elkLayoutOptions });
+    const { elkGraph, cells } = exportGraphLayout(graphOrCells, { ...options, elkLayoutOptions });
 
     // Writes every layout option out as the string ELK takes - last, so that it sees what
     // the export callbacks left behind. ELK's result needs no conversion back:
@@ -151,7 +151,7 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
     // a batch left open would e.g. keep a command manager from ever closing its undo step.
     graphs.forEach((graph) => graph.startBatch(LAYOUT_BATCH_NAME));
     try {
-        importLayout(result, cells, options);
+        importGraphLayout(result, cells, options);
     } finally {
         graphs.forEach((graph) => graph.stopBatch(LAYOUT_BATCH_NAME));
     }

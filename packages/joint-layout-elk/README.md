@@ -155,22 +155,22 @@ Returns a new graph with every layout option written out as the string ELK takes
 
 ### Driving ELK yourself
 
-`layout()` is `exportGraph()` → ELK → `importLayout()`. Those three are public, so you can run the middle step however you like:
+`layout()` is `exportGraphLayout()` → ELK → `importGraphLayout()`. Those three are public, so you can run the middle step however you like:
 
-- `exportGraph(graphOrCells, options?)` turns cells into an ELK graph, with the [export callbacks](#export-callbacks) applied. It takes a whole graph or a list of cells, exactly like `layout()`, and answers "what does this graph look like to ELK?" on its own.
-- `importLayout(elkResult, cells, options?)` applies a result back - positions, sizes, ports, link routes and labels - with the [import callbacks](#import-callbacks) applied.
+- `exportGraphLayout(graphOrCells, options?)` turns cells into an ELK graph, with the [export callbacks](#export-callbacks) applied. It takes a whole graph or a list of cells, exactly like `layout()`, and answers "what does this graph look like to ELK?" on its own.
+- `importGraphLayout(elkResult, cells, options?)` applies a result back - positions, sizes, ports, link routes and labels - with the [import callbacks](#import-callbacks) applied.
 
 **Most of the time you do not need this.** To run ELK somewhere else - a Web Worker, a server, a cache - pass your own `elk` to `layout()` instead (see [Running ELK in a Web Worker](#running-elk-in-a-web-worker)); it is any object with `layout()` and `terminate()`, and `layout()` still does the export and the import for you.
 
 ```ts
 import ELK from 'elkjs/lib/elk.bundled.js';
-import { exportGraph, toNativeElkNode, importLayout } from '@joint/layout-elk';
+import { exportGraphLayout, toNativeElkNode, importGraphLayout } from '@joint/layout-elk';
 
 // The bundled build, which carries ELK itself - `elkjs`'s own entry point is an API
 // shim that needs a Web Worker to run in (see "Running ELK in a Web Worker" below).
 const elk = new ELK();
 
-const { elkGraph, cells } = exportGraph(graph, {
+const { elkGraph, cells } = exportGraphLayout(graph, {
     elkLayoutOptions: { 'elk.algorithm': 'layered', 'elk.padding': { top: 40 }}
 });
 
@@ -180,7 +180,7 @@ const elkResult = await elk.layout(toNativeElkNode(elkGraph));
 
 // `cells` is what the ids in the result stand for - pass the one that came with this
 // `elkGraph`. There is nothing to read in it.
-importLayout(elkResult, cells);
+importGraphLayout(elkResult, cells);
 ```
 
 ### Export callbacks

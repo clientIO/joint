@@ -125,7 +125,7 @@ export type ExportLinkLabelCallbackParams = {
 declare const ELK_GRAPH_CELLS: unique symbol;
 
 /**
- * What the ids in an exported ELK graph stand for - handed to `importLayout()` to apply a
+ * What the ids in an exported ELK graph stand for - handed to `importGraphLayout()` to apply a
  * layout result back onto the cells it was exported from.
  *
  * Opaque: there is nothing to read in it, and what it holds is free to change.
@@ -137,15 +137,15 @@ export interface ElkGraphCells {
 export interface ElkGraphData {
     /** The ELK graph, with its layout options in the spelling they were given. */
     elkGraph: ElkNode;
-    /** Pass to `importLayout()` along with what ELK gives back. */
+    /** Pass to `importGraphLayout()` along with what ELK gives back. */
     cells: ElkGraphCells;
 }
 
-export interface ExportGraphOptions {
+export interface ExportGraphLayoutOptions {
     /**
      * The layout options of the exported graph's root node.
      * @see https://eclipse.dev/elk/reference/options.html
-     * @remarks `layout()` merges its own defaults into these; `exportGraph()` takes them
+     * @remarks `layout()` merges its own defaults into these; `exportGraphLayout()` takes them
      * as given, so a graph exported on its own carries only what is set here.
      */
     elkLayoutOptions?: ElkLayoutOptions;
@@ -156,7 +156,7 @@ export interface ExportGraphOptions {
     exportLinkLabel?: ExportLinkLabelCallback;
 }
 
-let exportGraphOptions: ExportGraphOptions;
+let exportGraphLayoutOptions: ExportGraphLayoutOptions;
 
 let elementsById: Map<string, dia.Element>;
 let linksById: Map<string, dia.Link>;
@@ -165,25 +165,25 @@ let portsById: Map<string, ElkGraphPort>;
 // used to file each edge under the lowest common ancestor of its source and target.
 let edgeContainersById: Map<string | undefined, ElkExtendedEdge[]>;
 // Every exported node's parent node in the ELK graph (`undefined` for a top-level one) -
-// not always its JointJS parent (see `exportGraph`).
+// not always its JointJS parent (see `exportGraphLayout`).
 let elkParentIdsById: Map<string, string | undefined>;
-// Each element's position in the list of elements given to `exportGraph`, by the
+// Each element's position in the list of elements given to `exportGraphLayout`, by the
 // element's own id - `5` and `'5'` are two different cells, so the key is not a string.
 let elementIndicesById: Map<dia.Cell.ID, number>;
 // Whether this call has already reported a rotated element (see `buildElkNode`).
 let hasWarnedAboutRotation: boolean;
 // The elements laid out inside each container, keyed by the container's element id and
-// in the order of the list given to `exportGraph`. Built from each element's `parent()`
+// in the order of the list given to `exportGraphLayout`. Built from each element's `parent()`
 // rather than read off the graph, so it covers an element that is in no graph (e.g. a
 // container that only exists to group others for the layout).
 let childElementsByParentId: Map<dia.Cell.ID, dia.Element[]>;
 
 /**
- * (Re)initializes all the module-level state above for a single `exportGraph` call, so
+ * (Re)initializes all the module-level state above for a single `exportGraphLayout` call, so
  * that no callback, option or lookup table can leak from one call into the next.
  */
-function init(options: ExportGraphOptions, elements: dia.Element[]): void {
-    exportGraphOptions = options;
+function init(options: ExportGraphLayoutOptions, elements: dia.Element[]): void {
+    exportGraphLayoutOptions = options;
 
     elementsById = new Map();
     linksById = new Map();
@@ -217,7 +217,7 @@ function hasLaidOutParent(element: dia.Element): boolean {
 }
 
 // An element's embedded elements that take part in the layout, in the order of the list
-// of elements given to `exportGraph`.
+// of elements given to `exportGraphLayout`.
 function getEmbeddedElements(element: dia.Element): dia.Element[] {
     return childElementsByParentId.get(element.id) ?? [];
 }
@@ -248,7 +248,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
         const elkPortId = getElkPortId(element, portId);
 
         // ELK takes a port's top-left corner, not its center. No `elk.port.borderOffset`:
-        // ELK places the port just outside the border, and `importLayout` moves its center
+        // ELK places the port just outside the border, and `importGraphLayout` moves its center
         // onto the border (a negative offset would also shift the port along the side).
         const { x, y, width, height } = element.getPortRelativeRect(portId);
 
@@ -261,7 +261,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             layoutOptions: {}
         };
 
-        if (exportGraphOptions.exportPort?.({ portId, element, elkPort }) === false) return;
+        if (exportGraphLayoutOptions.exportPort?.({ portId, element, elkPort }) === false) return;
 
         const portLabel: ElkLabelDraft = {
             width: 0,
@@ -269,7 +269,7 @@ function buildPorts(element: dia.Element): ElkPort[] | undefined {
             layoutOptions: {}
         };
 
-        const isLabelExported = exportGraphOptions.exportPortLabel?.({ portId, element, elkPortLabel: portLabel }) !== false;
+        const isLabelExported = exportGraphLayoutOptions.exportPortLabel?.({ portId, element, elkPortLabel: portLabel }) !== false;
 
         let labels: ElkLabel[] = [];
         if (isLabelExported && portLabel.width && portLabel.height) {
@@ -323,7 +323,7 @@ function buildElkNode(element: dia.Element, parentId?: string): ElkNode | null {
         layoutOptions: element.hasPorts() ? { 'elk.portConstraints': 'FIXED_POS' } : {}
     };
 
-    if (exportGraphOptions.exportElement?.({ element, elkNode }) === false)
+    if (exportGraphLayoutOptions.exportElement?.({ element, elkNode }) === false)
         return null;
 
     // An ELK node is a box with a position and a size, with no rotation, so the element
@@ -452,7 +452,7 @@ function buildEdge(link: dia.Link): void {
         layoutOptions: {}
     };
 
-    if (exportGraphOptions.exportLink?.({ link, elkEdge }) === false)
+    if (exportGraphLayoutOptions.exportLink?.({ link, elkEdge }) === false)
         return;
 
     throwIfIdTaken(linksById.has(id), link, id);
@@ -476,7 +476,7 @@ function buildEdge(link: dia.Link): void {
                 }
             };
 
-            if (exportGraphOptions.exportLinkLabel?.({ link, labelIndex, elkEdgeLabel: labelDraft }) === false)
+            if (exportGraphLayoutOptions.exportLinkLabel?.({ link, labelIndex, elkEdgeLabel: labelDraft }) === false)
                 return result;
 
             result.push({
@@ -516,9 +516,9 @@ function buildEdge(link: dia.Link): void {
  * The options of the graph it returns are in whichever spelling they were given - pass it
  * through `toNativeElkNode()` before handing it to ELK.
  */
-export function exportGraph(
+export function exportGraphLayout(
     graphOrCells: dia.Graph | dia.Cell[],
-    options: ExportGraphOptions = {}
+    options: ExportGraphLayoutOptions = {}
 ): ElkGraphData {
 
     const { elements, links } = splitCells(graphOrCells);
@@ -544,7 +544,7 @@ export function exportGraph(
     links.forEach(buildEdge);
 
     const cells: ElkGraphCellsData = { elementsById, linksById, portsById };
-    // The one place the opaque handle is made - `importLayout()` is the one place it is
+    // The one place the opaque handle is made - `importGraphLayout()` is the one place it is
     // read back. Opaque so that what it holds stays this package's business.
     return { elkGraph, cells: cells as unknown as ElkGraphCells };
 }

@@ -163,7 +163,7 @@ function toNativeEdge(edge: ElkExtendedEdge): ElkExtendedEdge {
  * with a cell's own data.
  *
  * `layout()` does this for you, so you only need it when you skip `layout()` and call
- * `elkjs`'s own `elk.layout()` yourself - typically on a graph from `exportGraph()`.
+ * `elkjs`'s own `elk.layout()` yourself - typically on a graph from `exportGraphLayout()`.
  */
 export function toNativeElkNode(node: ElkNode): NativeElkNode {
     const nativeNode: ElkNode = toNativeOptions(node);
