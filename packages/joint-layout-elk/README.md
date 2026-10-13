@@ -177,6 +177,8 @@ await layout(graph, {
 
 The same hook is how you run ELK somewhere else - a Web Worker, a server, a cache - or change the graph on its way there. `layout()` still applies the result for you.
 
+One thing to know if you also use [`signal`](#aborting-a-layout): a `terminate()` is how an `elk` says it can be stopped, so `layout()` hands it the signal instead of merely ignoring a late result. The wrapper above cannot stop `elkjs`, so an abort only takes effect once ELK settles. Leave the wrapper out of the abort path, or forward the signal to something that honours it.
+
 ### Export callbacks
 
 Each receives an ELK draft already populated with what this package computed for that element/port/link/label, to mutate in place (e.g. to set `elk.*` `layoutOptions`). Returning `false` instead drops it from the ELK graph entirely - for `exportElement`, its whole subtree (embeds, ports, any connected edge) goes with it, and for `exportPort`, the links connected to that port, which ELK can no longer route to. A link left out this way keeps the route it already had.

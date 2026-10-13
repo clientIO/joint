@@ -20,7 +20,7 @@ import type {
  * your own options with this type to be held to the JointJS spelling alone:
  *
  * ```ts
- * const options: StrictElkNodeLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * const options: StrictElkNodeLayoutOptions = { 'elk.padding': { top: 40 }};
  * ```
  */
 export interface StrictElkNodeLayoutOptions {

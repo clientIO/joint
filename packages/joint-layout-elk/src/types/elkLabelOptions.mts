@@ -3,14 +3,13 @@ import type { ToNativeElkOptions } from './toNativeElkOptions.mjs';
 import type { EdgeLabelPlacement, CenterEdgeLabelPlacementStrategy } from './elkEnums.mjs';
 
 /**
- * An ELK label's layout options in their JointJS spelling - `6`, `true`,
- * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`.
+ * An ELK label's layout options in their JointJS spelling - `6`, `true`, `{ x: 10, y: 20 }`.
  *
  * Every option is declared here; {@link NativeElkLabelLayoutOptions} is projected from it. Annotate
  * your own options with this type to be held to the JointJS spelling alone:
  *
  * ```ts
- * const options: StrictElkLabelLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * const options: StrictElkLabelLayoutOptions = { 'elk.edgeLabels.inline': true };
  * ```
  */
 export interface StrictElkLabelLayoutOptions {

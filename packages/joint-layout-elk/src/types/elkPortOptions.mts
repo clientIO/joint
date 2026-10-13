@@ -3,14 +3,13 @@ import type { ToNativeElkOptions } from './toNativeElkOptions.mjs';
 import type { PortSide } from './elkEnums.mjs';
 
 /**
- * An ELK port's layout options in their JointJS spelling - `6`, `true`,
- * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`.
+ * An ELK port's layout options in their JointJS spelling - `6`, `true`, `{ x: 10, y: 20 }`.
  *
  * Every option is declared here; {@link NativeElkPortLayoutOptions} is projected from it. Annotate
  * your own options with this type to be held to the JointJS spelling alone:
  *
  * ```ts
- * const options: StrictElkPortLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * const options: StrictElkPortLayoutOptions = { 'elk.port.anchor': { x: 1, y: 2 }};
  * ```
  */
 export interface StrictElkPortLayoutOptions {

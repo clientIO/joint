@@ -29,7 +29,13 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
     // Return every edge's route points and labels graph-absolute, whichever container
     // the edge belongs to - `importGraphLayout` applies them as they are. Overriding this
     // means handling the coordinates yourself (e.g. in `setLinkAttributes`).
-    'elk.json.edgeCoords': 'ROOT'
+    'elk.json.edgeCoords': 'ROOT',
+    // The other half of the same contract, for nodes and ports rather than edges:
+    // `importGraphLayout` adds each container's own position as it walks down, so a node's
+    // has to be its parent's. ELK's own default, pinned so that it is read next to
+    // `edgeCoords` rather than relied on silently - overriding it to `ROOT` would have
+    // every container's origin counted twice, and only on a graph that has containers.
+    'elk.json.shapeCoords': 'PARENT'
 };
 
 /**
@@ -49,28 +55,42 @@ export function withDefaultElkLayoutOptions(elkLayoutOptions?: ElkLayoutOptions)
 //   reads `[top=40]` as `40` at the top and nothing anywhere else.
 const DEFAULT_PADDING = 12;
 
+// Fails to compile when `T` is anything but `never` - i.e. when an option below was
+// missed. `new Set<Union>([...])` does not catch that on its own: widening the union
+// never makes a shorter list of literals an error.
+type AssertNone<T extends never> = T;
+
 // The options ELK types as an `ElkPadding`/`ElkMargin`, which therefore take `dia.Sides`.
-// - Derived from the option types, so the two cannot drift: adding a `dia.Sides` option
-//   there and leaving it out here would not compile.
-const SIDES_OPTIONS: ReadonlySet<string> = new Set<
-    SidesValuedElkOptionKeys<StrictElkLayoutOptions> | SidesValuedElkOptionKeys<StrictElkNodeLayoutOptions>
->([
+const SIDES_OPTION_IDS = [
     'elk.padding',
     'elk.margins',
     'elk.spacing.portsSurrounding',
     'elk.nodeLabels.padding'
-]);
+] as const;
+
+type SidesOptionId =
+    | SidesValuedElkOptionKeys<StrictElkLayoutOptions>
+    | SidesValuedElkOptionKeys<StrictElkNodeLayoutOptions>;
+
+export type _everySidesOptionIsListed = AssertNone<Exclude<SidesOptionId, typeof SIDES_OPTION_IDS[number]>>;
+
+const SIDES_OPTIONS: ReadonlySet<string> = new Set<SidesOptionId>(SIDES_OPTION_IDS);
 
 // The options ELK types as a `KVector`, which therefore take a point.
-const POINT_OPTIONS: ReadonlySet<string> = new Set<
-    PointValuedElkOptionKeys<StrictElkLayoutOptions> | PointValuedElkOptionKeys<StrictElkNodeLayoutOptions>
->([
+const POINT_OPTION_IDS = [
     'elk.position',
     'elk.nodeSize.minimum',
     'elk.port.anchor'
-]);
+] as const;
 
-// ELK takes an option's full id as well as its short form, e.g. `org.eclipse.elk.padding`.
+type PointOptionId =
+    | PointValuedElkOptionKeys<StrictElkLayoutOptions>
+    | PointValuedElkOptionKeys<StrictElkNodeLayoutOptions>;
+
+export type _everyPointOptionIsListed = AssertNone<Exclude<PointOptionId, typeof POINT_OPTION_IDS[number]>>;
+
+const POINT_OPTIONS: ReadonlySet<string> = new Set<PointOptionId>(POINT_OPTION_IDS);
+
 const ELK_ID_PREFIX = 'org.eclipse.';
 
 const SIDES = ['top', 'right', 'bottom', 'left', 'vertical', 'horizontal'] as const;

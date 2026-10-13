@@ -3,14 +3,13 @@ import type { ToNativeElkOptions } from './toNativeElkOptions.mjs';
 import type { EdgeType } from './elkEnums.mjs';
 
 /**
- * An ELK edge's layout options in their JointJS spelling - `6`, `true`,
- * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`.
+ * An ELK edge's layout options in their JointJS spelling - `6`, `true`.
  *
  * Every option is declared here; {@link NativeElkEdgeLayoutOptions} is projected from it. Annotate
  * your own options with this type to be held to the JointJS spelling alone:
  *
  * ```ts
- * const options: StrictElkEdgeLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * const options: StrictElkEdgeLayoutOptions = { 'elk.priority': 3 };
  * ```
  */
 export interface StrictElkEdgeLayoutOptions {
