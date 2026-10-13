@@ -1,7 +1,7 @@
 import { type dia } from '@joint/core';
 import { splitCells } from './cells.mjs';
 
-import type { ExportedPort, ExportedCellIndexData } from './cells.mjs';
+import type { ExportedPort, CellIndex } from './cells.mjs';
 import { ELK_ROOT_ID, getElkEdgeId, getElkNodeId, getElkPortId, getLinkLabelId } from './elkIds.mjs';
 
 import type {
@@ -543,7 +543,7 @@ export function exportGraphLayout(
 
     links.forEach(buildEdge);
 
-    const index: ExportedCellIndexData = { elementsById, linksById, portsById };
+    const index: CellIndex = { elementsById, linksById, portsById };
     // The one place the index is built - `importGraphLayout()` is the one place it is read
     // back. Opaque so that what it holds stays this package's business.
     return { elkGraph, index: index as unknown as ExportedCellIndex };

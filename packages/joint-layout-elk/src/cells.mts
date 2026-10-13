@@ -13,12 +13,13 @@ export interface ExportedPort {
 }
 
 /**
- * What the ELK graph's ids stand for, so a layout result can be applied back.
+ * What the ELK graph's ids stand for, so a layout result can be applied back - the shape
+ * behind the opaque `ExportedCellIndex` that `exportGraphLayout()` hands out.
  *
  * ELK ids are built from cell ids (see `elkIds.mts`), and a port's also carries where it
  * was when it was exported - which the result alone cannot say.
  */
-export interface ExportedCellIndexData {
+export interface CellIndex {
     elementsById: Map<string, dia.Element>;
     linksById: Map<string, dia.Link>;
     portsById: Map<string, ExportedPort>;
