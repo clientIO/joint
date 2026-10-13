@@ -34,7 +34,12 @@ export const fromNative: NativeElkNode = toNativeElkNode({
 export const forElk: ElkJsNode = toNativeElkNode({ id: 'root' });
 
 // The composition the README documents.
-export const exported = toNativeElkNode(exportGraph([], [], {}, { 'elk.padding': { top: 40 }}).elkGraph);
+export const exported = toNativeElkNode(
+    exportGraph([], { elkLayoutOptions: { 'elk.padding': { top: 40 }}}).elkGraph
+);
+
+// A whole graph, as `layout()` takes it.
+export const exportedGraph = toNativeElkNode(exportGraph(graph).elkGraph);
 
 // A bag in either spelling reaches `layout()`.
 declare const strictBag: StrictElkLayoutOptions;

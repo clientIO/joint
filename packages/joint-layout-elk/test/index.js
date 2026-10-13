@@ -2078,9 +2078,11 @@ QUnit.module('toNativeElkNode()', () => {
         const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
         graph.resetCells([el1, el2]);
 
-        const { elkGraph } = joint.layout.ELK.exportGraph([el1, el2], [], {}, {
-            'elk.algorithm': 'layered',
-            'elk.padding': { top: 40 }
+        const { elkGraph } = joint.layout.ELK.exportGraph([el1, el2], {
+            elkLayoutOptions: {
+                'elk.algorithm': 'layered',
+                'elk.padding': { top: 40 }
+            }
         });
 
         const native = joint.layout.ELK.toNativeElkNode(elkGraph);

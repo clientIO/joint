@@ -151,7 +151,7 @@ const options: StrictElkLayoutOptions = {
 
 Returns a new graph with every layout option written out as the string ELK takes - throughout: the node's own options, its labels', its ports' (and theirs), the edges filed under it (and theirs), and each of its children. The graph passed in is left as it is.
 
-`layout()` does this for you, so you only need it when you skip `layout()` and drive `elkjs` yourself - typically on a graph from `exportGraph(elements, links, callbacks, elkLayoutOptions)`, the step of `layout()` that turns cells into an ELK graph (with the [export callbacks](#export-callbacks) applied) and hands it back instead of laying it out:
+`layout()` does this for you, so you only need it when you skip `layout()` and drive `elkjs` yourself - typically on a graph from `exportGraph(graphOrCells, options?)`, the step of `layout()` that turns cells into an ELK graph (with the [export callbacks](#export-callbacks) applied) and hands it back instead of laying it out. It takes a whole graph or a list of cells, exactly like `layout()`:
 
 ```ts
 import ELK from 'elkjs/lib/elk.bundled.js';
@@ -161,9 +161,8 @@ import { exportGraph, toNativeElkNode } from '@joint/layout-elk';
 // shim that needs a Web Worker to run in (see "Running ELK in a Web Worker" below).
 const elk = new ELK();
 
-const { elkGraph } = exportGraph(graph.getElements(), graph.getLinks(), {}, {
-    'elk.algorithm': 'layered',
-    'elk.padding': { top: 40 }
+const { elkGraph } = exportGraph(graph, {
+    elkLayoutOptions: { 'elk.algorithm': 'layered', 'elk.padding': { top: 40 }}
 });
 
 // `elk.layout()` here is elkjs's own method, not this package's `layout()`. It takes

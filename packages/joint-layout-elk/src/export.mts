@@ -1,4 +1,5 @@
 import { type dia } from '@joint/core';
+import { splitCells } from './cells.mjs';
 import { ELK_ROOT_ID, getElkEdgeId, getElkNodeId, getElkPortId, getLinkLabelId } from './elkIds.mjs';
 
 import type {
@@ -135,6 +136,13 @@ export interface ElkGraphData {
 }
 
 export interface ExportGraphOptions {
+    /**
+     * The layout options of the exported graph's root node.
+     * @see https://eclipse.dev/elk/reference/options.html
+     * @remarks `layout()` merges its own defaults into these; `exportGraph()` takes them
+     * as given, so a graph exported on its own carries only what is set here.
+     */
+    elkLayoutOptions?: ElkLayoutOptions;
     exportElement?: ExportElementCallback;
     exportPort?: ExportPortCallback;
     exportPortLabel?: ExportPortLabelCallback;
@@ -494,19 +502,20 @@ function buildEdge(link: dia.Link): void {
  * Converts JointJS elements (with their embedded elements and ports) and the links
  * between them to an ELK graph structure.
  *
- * `elements`/`links` are what takes part - a link only if both its ends do too - and
- * set its order: the root's children and edges follow them, and so do each container's
- * own children. An element whose parent isn't in `elements` becomes a top-level node.
+ * Takes a whole graph or only the given cells, like `layout()`. They are what takes part -
+ * a link only if both its ends do too - and set the order: the root's children and edges
+ * follow them, and so do each container's own children. An element whose parent is not
+ * among them becomes a top-level node.
  *
  * The options of the graph it returns are in whichever spelling they were given - pass it
  * through `toNativeElkNode()` before handing it to ELK.
  */
 export function exportGraph(
-    elements: dia.Element[],
-    links: dia.Link[],
-    options: ExportGraphOptions,
-    elkLayoutOptions: ElkLayoutOptions
+    graphOrCells: dia.Graph | dia.Cell[],
+    options: ExportGraphOptions = {}
 ): ElkGraphData {
+
+    const { elements, links } = splitCells(graphOrCells);
 
     init(options, elements);
 
@@ -518,7 +527,7 @@ export function exportGraph(
 
     const elkGraph: ElkNode = {
         id: ELK_ROOT_ID,
-        layoutOptions: elkLayoutOptions,
+        layoutOptions: options.elkLayoutOptions ?? {},
         children,
         edges: []
     };

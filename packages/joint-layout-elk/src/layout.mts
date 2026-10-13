@@ -3,6 +3,7 @@ import { importLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
 import { exportGraph } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
+import { splitCells } from './cells.mjs';
 import { toNativeElkNode, getElkPadding } from './elkOptions.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
@@ -34,6 +35,11 @@ const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
  */
 export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
 
+    // `elkLayoutOptions` comes from `ExportGraphOptions` - it is the exported graph's root
+    // options. These defaults are merged into it here:
+    // `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+    //    'elk.layered.considerModelOrder.portModelOrder': 'true', 'elk.json.edgeCoords': 'ROOT' }`
+
     /**
      * The ELK instance to lay out with - e.g. one running in a Web Worker, so the layout
      * doesn't block the page (see `createWorkerElk()`), or any `elkjs` instance of your
@@ -45,12 +51,6 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
      * layout(graph, { elk });
      */
     elk?: WorkerElk | ELK;
-    /**
-     * ELK layout options, passed through to ELK unmodified.
-     * @see https://eclipse.dev/elk/reference/options.html
-     * @defaultValue `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.layered.considerModelOrder.portModelOrder': 'true', 'elk.json.edgeCoords': 'ROOT' }`
-     */
-    elkLayoutOptions?: ElkLayoutOptions;
     /**
      * Aborts the layout - e.g. once the graph has changed since it started, or it takes too
      * long. `layout()` then rejects with the signal's reason, and nothing is applied to the
@@ -99,37 +99,6 @@ function isWorkerElk(elk: WorkerElk | ELK): elk is WorkerElk {
     return typeof (elk as WorkerElk).terminate === 'function';
 }
 
-// The elements and the links to lay out, in the order they were given, and the graphs the
-// layout's batch runs on. A batch groups only the changes emitted by its own graph's cells,
-// so it has to run on every graph the cells come from - in practice one. A cell that is in
-// no graph (e.g. a container added only to shape the layout) emits nothing and brings none.
-function splitCells(graphOrCells: dia.Graph | dia.Cell[]): {
-    elements: dia.Element[],
-    links: dia.Link[],
-    graphs: dia.Graph[]
-} {
-    if (!Array.isArray(graphOrCells)) {
-        return {
-            elements: graphOrCells.getElements(),
-            links: graphOrCells.getLinks(),
-            graphs: [graphOrCells]
-        };
-    }
-    const elements: dia.Element[] = [];
-    const links: dia.Link[] = [];
-    const graphs = new Set<dia.Graph>();
-    // A cell listed twice would be laid out twice - two ELK nodes sharing an id, so ELK
-    // reserves room for both and the import applies whichever came last.
-    new Set(graphOrCells).forEach((cell) => {
-        if (cell.isElement()) {
-            elements.push(cell as dia.Element);
-        } else {
-            links.push(cell as dia.Link);
-        }
-        if (cell.graph) graphs.add(cell.graph);
-    });
-    return { elements, links, graphs: Array.from(graphs) };
-}
 
 /**
  * Lays out a whole JointJS graph, or only the given cells.
@@ -154,13 +123,11 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
 
     throwIfAborted(signal);
 
-    const { elements, links, graphs } = splitCells(graphOrCells);
+    const { graphs } = splitCells(graphOrCells);
 
     const { elkGraph, elementsById, linksById, portsById } = exportGraph(
-        elements,
-        links,
-        options as ExportGraphOptions,
-        elkLayoutOptions
+        graphOrCells,
+        { ...options, elkLayoutOptions }
     );
 
     // Writes every layout option out as the string ELK takes - last, so that it sees what
