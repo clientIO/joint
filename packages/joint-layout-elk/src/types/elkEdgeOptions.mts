@@ -14,7 +14,7 @@ export interface EdgeElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-priority.html
      */
-    'elk.priority'?: `${number}`;
+    'elk.priority'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-junctionPoints.html
      * @defaultValue `new KVectorChain()`
@@ -24,17 +24,17 @@ export interface EdgeElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-noLayout.html
      * @defaultValue 'false'
      */
-    'elk.noLayout'?: 'true' | 'false';
+    'elk.noLayout'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-insideSelfLoops-yo.html
      * @defaultValue 'false'
      */
-    'elk.insideSelfLoops.yo'?: 'true' | 'false';
+    'elk.insideSelfLoops.yo'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-edge-thickness.html
      * @defaultValue '1'
      */
-    'elk.edge.thickness'?: `${number}`;
+    'elk.edge.thickness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-edge-type.html
      * @defaultValue 'NONE'
@@ -44,25 +44,25 @@ export interface EdgeElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-priority-direction.html
      * @defaultValue '0'
      */
-    'elk.layered.priority.direction'?: `${number}`;
+    'elk.layered.priority.direction'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-priority-shortness.html
      * @defaultValue '0'
      */
-    'elk.layered.priority.shortness'?: `${number}`;
+    'elk.layered.priority.shortness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-priority-straightness.html
      * @defaultValue '0'
      */
-    'elk.layered.priority.straightness'?: `${number}`;
+    'elk.layered.priority.straightness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-crossingMinimizationId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-componentGroupId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.componentGroupId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.componentGroupId'?: number;
 }

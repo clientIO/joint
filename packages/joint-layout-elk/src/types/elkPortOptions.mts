@@ -10,20 +10,20 @@ export interface PortElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-position.html
      */
-    'elk.position'?: string;
+    'elk.position'?: g.PlainPoint;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-noLayout.html
      * @defaultValue 'false'
      */
-    'elk.noLayout'?: 'true' | 'false';
+    'elk.noLayout'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-port-anchor.html
      */
-    'elk.port.anchor'?: string;
+    'elk.port.anchor'?: g.PlainPoint;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-port-index.html
      */
-    'elk.port.index'?: `${number}`;
+    'elk.port.index'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-port-side.html
      * @defaultValue 'UNDEFINED'
@@ -32,20 +32,20 @@ export interface PortElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-port-borderOffset.html
      */
-    'elk.port.borderOffset'?: `${number}`;
+    'elk.port.borderOffset'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-crossingMinimizationId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-componentGroupId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.componentGroupId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.componentGroupId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-allowNonFlowPortsToSwitchSides.html
      * @defaultValue 'false'
      */
-    'elk.layered.allowNonFlowPortsToSwitchSides'?: 'true' | 'false';
+    'elk.layered.allowNonFlowPortsToSwitchSides'?: boolean;
 }

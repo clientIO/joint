@@ -15,7 +15,7 @@ export interface LabelElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-position.html
      */
-    'elk.position'?: string;
+    'elk.position'?: g.PlainPoint;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-edgeLabels-placement.html
      * @defaultValue 'CENTER'
@@ -25,7 +25,7 @@ export interface LabelElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-edgeLabels-inline.html
      * @defaultValue 'false'
      */
-    'elk.edgeLabels.inline'?: 'true' | 'false';
+    'elk.edgeLabels.inline'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-font-name.html
      */
@@ -33,17 +33,17 @@ export interface LabelElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-font-size.html
      */
-    'elk.font.size'?: `${number}`;
+    'elk.font.size'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-softwrappingFuzziness.html
      * @defaultValue '0.0'
      */
-    'elk.softwrappingFuzziness'?: `${number}`;
+    'elk.softwrappingFuzziness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-noLayout.html
      * @defaultValue 'false'
      */
-    'elk.noLayout'?: 'true' | 'false';
+    'elk.noLayout'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-edgeLabels-centerLabelPlacementStrategy.html
      * @defaultValue 'MEDIAN_LAYER'
