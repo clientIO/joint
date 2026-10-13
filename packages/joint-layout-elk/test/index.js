@@ -1683,6 +1683,415 @@ QUnit.module('layout()', () => {
     });
 });
 
+QUnit.module('layout option values', () => {
+
+    // Two unconnected elements, so a component-spacing option visibly moves them apart.
+    function createGraph() {
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        graph.resetCells([el1, el2]);
+        return { graph, el1, el2 };
+    }
+
+    // Connected, so that an option the `layered` algorithm only applies to edges bites.
+    function createConnectedGraph() {
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const ids = ['a', 'b', 'c'];
+        const elements = ids.map((id) => new joint.shapes.standard.Rectangle({ id, size: { width: 100, height: 100 }}));
+        const links = [['a', 'b'], ['a', 'c'], ['b', 'c']].map(([source, target]) =>
+            new joint.shapes.standard.Link({ source: { id: source }, target: { id: target }}));
+        graph.resetCells([...elements, ...links]);
+        return { graph };
+    }
+
+    const layout = (elkLayoutOptions, options) => {
+        const { graph } = createGraph();
+        return joint.layout.ELK.layout(graph, Object.assign({ elkLayoutOptions }, options));
+    };
+
+    const layoutConnected = (elkLayoutOptions) => {
+        const { graph } = createConnectedGraph();
+        return joint.layout.ELK.layout(graph, { elkLayoutOptions });
+    };
+
+    QUnit.test('should send a number option to ELK as a string', async(assert) => {
+
+        const asNumber = await layout({ 'elk.spacing.nodeNode': 60 });
+        const asString = await layout({ 'elk.spacing.nodeNode': '60' });
+        const byDefault = await layout({});
+
+        assert.equal(asNumber.elkGraph.layoutOptions['elk.spacing.nodeNode'], '60');
+        assert.deepEqual(asNumber.bbox.toJSON(), asString.bbox.toJSON(), 'lays out as the string does');
+        // The option reached ELK, rather than only being stringified on the way there.
+        assert.notDeepEqual(asNumber.bbox.toJSON(), byDefault.bbox.toJSON());
+    });
+
+    QUnit.test('should send a boolean option to ELK as a string', async(assert) => {
+
+        const option = 'elk.layered.nodePlacement.favorStraightEdges';
+        const asBoolean = await layoutConnected({ [option]: false });
+        const asString = await layoutConnected({ [option]: 'false' });
+        const byDefault = await layoutConnected({});
+
+        assert.equal(asBoolean.elkGraph.layoutOptions[option], 'false');
+        assert.deepEqual(asBoolean.bbox.toJSON(), asString.bbox.toJSON());
+        assert.notDeepEqual(asBoolean.bbox.toJSON(), byDefault.bbox.toJSON());
+    });
+
+    QUnit.test('should write a `dia.Sides` padding out as ELK\'s own padding string', async(assert) => {
+
+        const padding = { left: 10, vertical: 40 };
+        const elkLayoutOptions = { 'elk.padding': padding };
+        const { graph } = createGraph();
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, { elkLayoutOptions });
+
+        assert.equal(elkGraph.layoutOptions['elk.padding'], '[top=40,left=10,bottom=40,right=0]');
+        // The caller's own options are left as they were.
+        assert.deepEqual(elkLayoutOptions['elk.padding'], { left: 10, vertical: 40 });
+        assert.strictEqual(elkLayoutOptions['elk.padding'], padding);
+    });
+
+    QUnit.test('should lay out with a padding object as with the string it writes out as', async(assert) => {
+
+        const asSides = await layout({ 'elk.padding': { top: 40, left: 20, bottom: 20, right: 20 }});
+        const asString = await layout({ 'elk.padding': '[top=40,left=20,bottom=20,right=20]' });
+
+        assert.equal(asSides.elkGraph.width, asString.elkGraph.width);
+        assert.equal(asSides.elkGraph.height, asString.elkGraph.height);
+        assert.deepEqual(asSides.bbox.toJSON(), asString.bbox.toJSON());
+    });
+
+    QUnit.test('should measure the bbox from a padding object', async(assert) => {
+
+        const { bbox, elkGraph } = await layout({ 'elk.padding': { left: 10, vertical: 40 }});
+
+        assert.equal(bbox.x, 10);
+        assert.equal(bbox.y, 40);
+        assert.equal(bbox.width, elkGraph.width - 10);
+        assert.equal(bbox.height, elkGraph.height - 80);
+    });
+
+    QUnit.test('should take a number padding as every side', async(assert) => {
+
+        const asNumber = await layout({ 'elk.padding': 20 });
+        const asString = await layout({ 'elk.padding': '[top=20,left=20,bottom=20,right=20]' });
+
+        assert.equal(asNumber.elkGraph.layoutOptions['elk.padding'], '[top=20,left=20,bottom=20,right=20]');
+        assert.equal(asNumber.bbox.x, 20);
+        assert.equal(asNumber.bbox.y, 20);
+        assert.deepEqual(asNumber.bbox.toJSON(), asString.bbox.toJSON());
+    });
+
+    QUnit.test('should take sides for every padding and margin option', async(assert) => {
+
+        const sides = { top: 1, right: 2, bottom: 3, left: 4 };
+        const expected = '[top=1,left=4,bottom=3,right=2]';
+        const { graph } = createGraph();
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            elkLayoutOptions: {
+                'elk.padding': sides,
+                'elk.margins': sides,
+                'elk.spacing.portsSurrounding': sides,
+                'elk.nodeLabels.padding': sides
+            },
+            // The full option id is what ELK takes too.
+            exportElement: ({ elkNode }) => {
+                elkNode.layoutOptions['org.eclipse.elk.padding'] = sides;
+            }
+        });
+
+        ['elk.padding', 'elk.margins', 'elk.spacing.portsSurrounding', 'elk.nodeLabels.padding']
+            .forEach((option) => assert.equal(elkGraph.layoutOptions[option], expected, option));
+        assert.equal(elkGraph.children[0].layoutOptions['org.eclipse.elk.padding'], expected);
+    });
+
+    QUnit.test('should write a point option out as ELK\'s own vector string', async(assert) => {
+
+        const { graph } = createGraph();
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportElement: ({ element, elkNode }) => {
+                elkNode.layoutOptions['elk.nodeSize.minimum'] = element.id === 'a'
+                    ? { x: 10, y: 20 }
+                    // A `g.Point` is a point structurally, so it is taken as one.
+                    : new joint.g.Point(30, 40);
+            }
+        });
+
+        assert.equal(elkGraph.children[0].layoutOptions['elk.nodeSize.minimum'], '10,20');
+        assert.equal(elkGraph.children[1].layoutOptions['elk.nodeSize.minimum'], '30,40');
+    });
+
+    QUnit.test('should leave a value it does not recognize for ELK to reject', async(assert) => {
+
+        const { graph } = createGraph();
+        const reject = (value) => joint.layout.ELK.layout(graph, { elkLayoutOptions: { 'elk.padding': value }});
+
+        // Neither sides nor a point - zeroing every side of it would lay the graph out as
+        // if that had been asked for, where ELK says so instead.
+        await assert.rejects(reject(new joint.g.Rect(0, 0, 10, 10)));
+        await assert.rejects(reject([1, 2, 3, 4]));
+        await assert.rejects(reject(null));
+    });
+
+    QUnit.test('should write out the options every export callback set', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const container = new joint.shapes.standard.Rectangle({ id: 'container', size: { width: 100, height: 100 }});
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            ports: { items: [{ id: 'p1', group: 'in' }], groups: { in: { position: 'left' }}}
+        });
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        el1.set('parent', 'container');
+        container.set('embeds', ['a']);
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a' }, target: { id: 'b' },
+            labels: [{ size: { width: 40, height: 20 }}]
+        });
+        graph.resetCells([container, el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportElement: ({ elkNode }) => {
+                elkNode.layoutOptions['elk.padding'] = { top: 40 };
+                elkNode.layoutOptions['elk.custom'] = 6;
+                elkNode.labels = [{ width: 20, height: 10, layoutOptions: { 'elk.custom': true }}];
+            },
+            exportPort: ({ elkPort }) => {
+                elkPort.layoutOptions['elk.custom'] = 1;
+            },
+            exportPortLabel: ({ elkPortLabel }) => {
+                elkPortLabel.width = 10;
+                elkPortLabel.height = 10;
+                elkPortLabel.layoutOptions['elk.custom'] = true;
+            },
+            exportLink: ({ elkEdge }) => {
+                elkEdge.layoutOptions['elk.custom'] = 2;
+            },
+            exportLinkLabel: ({ elkEdgeLabel }) => {
+                elkEdgeLabel.layoutOptions['elk.custom'] = false;
+            }
+        });
+
+        const containerNode = elkGraph.children.find((node) => node.id === 'container');
+        const portNode = containerNode.children[0];
+        assert.equal(containerNode.layoutOptions['elk.padding'], '[top=40,left=0,bottom=0,right=0]');
+        assert.equal(containerNode.layoutOptions['elk.custom'], '6');
+        assert.equal(containerNode.labels[0].layoutOptions['elk.custom'], 'true');
+        assert.equal(portNode.ports[0].layoutOptions['elk.custom'], '1');
+        assert.equal(portNode.ports[0].labels[0].layoutOptions['elk.custom'], 'true');
+        assert.equal(elkGraph.edges[0].layoutOptions['elk.custom'], '2');
+        assert.equal(elkGraph.edges[0].labels[0].layoutOptions['elk.custom'], 'false');
+    });
+
+    QUnit.test('should apply a padding an `exportElement` set on a container', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const container = new joint.shapes.standard.Rectangle({ id: 'container', size: { width: 10, height: 10 }});
+        const child = new joint.shapes.standard.Rectangle({ id: 'child', size: { width: 50, height: 50 }});
+        child.set('parent', 'container');
+        container.set('embeds', ['child']);
+        graph.resetCells([container, child]);
+
+        await joint.layout.ELK.layout(graph, {
+            exportElement: ({ element, elkNode }) => {
+                if (element.id === 'container') elkNode.layoutOptions['elk.padding'] = { top: 40 };
+            }
+        });
+
+        // ELK honoured the padding, rather than this package only producing a string.
+        assert.equal(container.size().height, child.size().height + 40);
+    });
+
+    QUnit.test('should not write the converted value back into a callback\'s own object', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el = new joint.shapes.standard.Rectangle({
+            id: 'a',
+            size: { width: 100, height: 100 },
+            // Frozen: writing into it would throw rather than silently rewrite the cell's data.
+            elkLayoutOptions: Object.freeze({ 'elk.padding': { top: 40 }})
+        });
+        graph.resetCells([el]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportElement: ({ element, elkNode }) => {
+                elkNode.layoutOptions = element.get('elkLayoutOptions');
+            }
+        });
+
+        assert.equal(elkGraph.children[0].layoutOptions['elk.padding'], '[top=40,left=0,bottom=0,right=0]');
+        assert.deepEqual(el.get('elkLayoutOptions'), { 'elk.padding': { top: 40 }});
+    });
+
+    QUnit.test('should write out the options of an edge nested in containers', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const outer = new joint.shapes.standard.Rectangle({ id: 'outer', size: { width: 10, height: 10 }});
+        const inner = new joint.shapes.standard.Rectangle({ id: 'inner', size: { width: 10, height: 10 }});
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 50, height: 50 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 50, height: 50 }});
+        inner.set('parent', 'outer');
+        outer.set('embeds', ['inner']);
+        el1.set('parent', 'inner');
+        el2.set('parent', 'inner');
+        inner.set('embeds', ['a', 'b']);
+        const link = new joint.shapes.standard.Link({
+            source: { id: 'a' }, target: { id: 'b' },
+            labels: [{ size: { width: 20, height: 10 }}]
+        });
+        graph.resetCells([outer, inner, el1, el2, link]);
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            exportLink: ({ elkEdge }) => {
+                elkEdge.layoutOptions['elk.custom'] = 6;
+            },
+            exportLinkLabel: ({ elkEdgeLabel }) => {
+                elkEdgeLabel.layoutOptions['elk.custom'] = true;
+            }
+        });
+
+        // The edge is filed under its ends' lowest common ancestor, two levels down.
+        const edge = elkGraph.children[0].children[0].edges[0];
+        assert.equal(edge.layoutOptions['elk.custom'], '6');
+        assert.equal(edge.labels[0].layoutOptions['elk.custom'], 'true');
+    });
+
+    QUnit.test('should measure the bbox from a padding string naming only some sides', async(assert) => {
+
+        const { bbox, elkGraph } = await layout({ 'elk.padding': '[top=40]' });
+        const asSides = await layout({ 'elk.padding': { top: 40 }});
+
+        // ELK reads a side the string does not name as `0`, not as the option's `12`.
+        assert.equal(bbox.x, 0);
+        assert.equal(bbox.y, 40);
+        assert.equal(bbox.width, elkGraph.width);
+        assert.equal(bbox.height, elkGraph.height - 40);
+        assert.deepEqual(bbox.toJSON(), asSides.bbox.toJSON());
+    });
+
+    QUnit.test('should measure the bbox from a full padding string', async(assert) => {
+
+        const { bbox, elkGraph } = await layout({ 'elk.padding': '[top=40,left=20,bottom=20,right=20]' });
+
+        assert.equal(bbox.x, 20);
+        assert.equal(bbox.y, 40);
+        assert.equal(bbox.width, elkGraph.width - 40);
+        assert.equal(bbox.height, elkGraph.height - 60);
+    });
+
+    QUnit.test('should read a padding string with spaces, decimals and negative sides', async(assert) => {
+
+        // ELK takes it without the brackets too.
+        const { bbox, elkGraph } = await layout({ 'elk.padding': 'top = 40.5, left = -10, bottom=0, right=0' });
+
+        assert.equal(bbox.x, -10);
+        assert.equal(bbox.y, 40.5);
+        assert.equal(bbox.width, elkGraph.width + 10);
+        assert.equal(bbox.height, elkGraph.height - 40.5);
+    });
+
+    QUnit.test('should fall back to ELK\'s default padding', async(assert) => {
+
+        const byDefault = await layout({});
+        // A string ELK cannot read as a padding leaves every side at the default too.
+        const unparseable = await layout({ 'elk.padding': 'nonsense' });
+
+        [byDefault, unparseable].forEach(({ bbox, elkGraph }) => {
+            assert.equal(bbox.x, 12);
+            assert.equal(bbox.y, 12);
+            assert.equal(bbox.width, elkGraph.width - 24);
+        });
+    });
+
+    QUnit.test('should return a zero-size bbox for an empty graph whatever the padding', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+        const { bbox } = await joint.layout.ELK.layout(graph, {
+            elkLayoutOptions: { 'elk.padding': { top: 40 }}
+        });
+
+        assert.ok(bbox.equals(new joint.g.Rect(0, 0, 0, 0)));
+    });
+});
+
+QUnit.module('toNativeElkNode()', () => {
+
+    const createElkGraph = () => ({
+        id: 'root',
+        layoutOptions: { 'elk.padding': { top: 40 }, 'elk.spacing.nodeNode': 6 },
+        labels: [{ width: 10, height: 10, layoutOptions: { 'elk.custom': true }}],
+        children: [{
+            id: 'a',
+            layoutOptions: { 'elk.position': { x: 1, y: 2 }},
+            ports: [{ id: 'a.p', layoutOptions: { 'elk.custom': 1 }, labels: [{ layoutOptions: { 'elk.custom': 2 }}] }],
+            edges: [{ id: 'e', sources: ['a'], targets: ['a'], layoutOptions: { 'elk.custom': 3 }, labels: [{ layoutOptions: { 'elk.custom': false }}] }],
+            children: [{ id: 'a.a', layoutOptions: { 'elk.custom': 4 }}]
+        }]
+    });
+
+    QUnit.test('should write out every option in the graph', assert => {
+
+        const native = joint.layout.ELK.toNativeElkNode(createElkGraph());
+
+        assert.equal(native.layoutOptions['elk.padding'], '[top=40,left=0,bottom=0,right=0]');
+        assert.equal(native.layoutOptions['elk.spacing.nodeNode'], '6');
+        assert.equal(native.labels[0].layoutOptions['elk.custom'], 'true');
+        const [node] = native.children;
+        assert.equal(node.layoutOptions['elk.position'], '1,2');
+        assert.equal(node.ports[0].layoutOptions['elk.custom'], '1');
+        assert.equal(node.ports[0].labels[0].layoutOptions['elk.custom'], '2');
+        assert.equal(node.edges[0].layoutOptions['elk.custom'], '3');
+        assert.equal(node.edges[0].labels[0].layoutOptions['elk.custom'], 'false');
+        assert.equal(node.children[0].layoutOptions['elk.custom'], '4');
+    });
+
+    QUnit.test('should leave the graph it was given as it was', assert => {
+
+        const elkGraph = createElkGraph();
+        const before = JSON.parse(JSON.stringify(elkGraph));
+
+        const native = joint.layout.ELK.toNativeElkNode(elkGraph);
+
+        assert.deepEqual(JSON.parse(JSON.stringify(elkGraph)), before);
+        assert.notStrictEqual(native, elkGraph);
+        assert.notStrictEqual(native.layoutOptions, elkGraph.layoutOptions);
+    });
+
+    QUnit.test('should write out an already written out graph unchanged', assert => {
+
+        const once = joint.layout.ELK.toNativeElkNode(createElkGraph());
+        const twice = joint.layout.ELK.toNativeElkNode(once);
+
+        assert.deepEqual(twice, once);
+    });
+
+    QUnit.test('should write out a graph from `exportGraph()` for ELK to lay out', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        graph.resetCells([el1, el2]);
+
+        const { elkGraph } = joint.layout.ELK.exportGraph([el1, el2], [], {}, {
+            'elk.algorithm': 'layered',
+            'elk.padding': { top: 40 }
+        });
+
+        const native = joint.layout.ELK.toNativeElkNode(elkGraph);
+        assert.equal(native.layoutOptions['elk.padding'], '[top=40,left=0,bottom=0,right=0]');
+
+        const laidOut = await new window.ELK().layout(native);
+        assert.ok(laidOut.width > 0);
+        assert.ok(laidOut.height > 0);
+    });
+});
+
 QUnit.module('createWorkerElk()', (hooks) => {
 
     const WORKER_URL = '/base/node_modules/elkjs/lib/elk-worker.min.js';
@@ -1726,6 +2135,26 @@ QUnit.module('createWorkerElk()', (hooks) => {
     };
 
     const isLaidOut = ({ el1, el2 }) => !joint.g.intersection.exists(el1.getBBox(), el2.getBBox());
+
+    QUnit.test('should write out the option values before posting the graph to the worker', async(assert) => {
+
+        const elk = createElk();
+        const fixture = createGraph();
+
+        // The worker gets the graph by structured clone - an option left as a number or an
+        // object would reach ELK as it is and be rejected inside the worker.
+        const { bbox } = await joint.layout.ELK.layout(fixture.graph, {
+            elk,
+            elkLayoutOptions: {
+                'elk.padding': { top: 40, left: 20, bottom: 20, right: 20 },
+                'elk.spacing.nodeNode': 60
+            }
+        });
+
+        assert.ok(isLaidOut(fixture));
+        assert.equal(bbox.x, 20);
+        assert.equal(bbox.y, 40);
+    });
 
     QUnit.test('should lay out in a worker - started on the first layout, then shared', async(assert) => {
 

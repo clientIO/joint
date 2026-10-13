@@ -3,13 +3,14 @@ import { importLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
 import { exportGraph } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
+import { toNativeElkNode, getElkPadding } from './elkOptions.mjs';
 
 import type { ExportGraphOptions } from './export.mjs';
 import type { ImportLayoutOptions } from './import.mjs';
 import type { WorkerElk } from './workerElk.mjs';
 import type { ElkLayoutOptions, ElkNode } from './types/index.mjs';
 import type { dia } from '@joint/core';
-import type { ELK, ElkNode as RawElkNode } from 'elkjs';
+import type { ELK } from 'elkjs';
 
 const LAYOUT_BATCH_NAME = 'layout';
 
@@ -71,9 +72,6 @@ export interface LayoutResult {
     elkGraph: ElkNode;
 }
 
-// ELK's own default, used for every side `elk.padding` does not name.
-const DEFAULT_PADDING = 12;
-
 /**
  * Tight bounding box of an ELK layout result.
  *
@@ -83,17 +81,9 @@ const DEFAULT_PADDING = 12;
  * the margins they were given.
  */
 function getBBox(elkGraph: ElkNode, elkLayoutOptions: ElkLayoutOptions): g.Rect {
-    const padding = { top: DEFAULT_PADDING, left: DEFAULT_PADDING, bottom: DEFAULT_PADDING, right: DEFAULT_PADDING };
-    const value = elkLayoutOptions['elk.padding'];
-    if (value) {
-        // `[top=12,left=12,bottom=12,right=12]`, with any side left out keeping the default.
-        const sides = /(top|left|bottom|right)\s*=\s*(-?[\d.]+)/g;
-        let side;
-        while ((side = sides.exec(value)) !== null) {
-            padding[side[1] as keyof typeof padding] = Number(side[2]);
-        }
-    }
-    const { top, left, bottom, right } = padding;
+    // The options as they were given, not the root node's own: those have been written out
+    // as the strings ELK takes, while this needs the padding itself, in either spelling.
+    const { top, left, bottom, right } = getElkPadding(elkLayoutOptions['elk.padding']);
     const width = Math.max(0, (elkGraph.width || 0) - left - right);
     const height = Math.max(0, (elkGraph.height || 0) - top - bottom);
     // Nothing was laid out - the root is its own padding, which is not a box at `left`/`top`.
@@ -173,12 +163,10 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
         elkLayoutOptions
     );
 
-    // elkjs types every `layoutOptions` as `{ [key: string]: string }`, which this package
-    // narrows to its own option interfaces - and their optional properties force
-    // `| undefined` into the index signature, so `ElkNode` is not assignable to elkjs's
-    // own type although it is the same object at runtime. ELK's result needs no assertion
-    // back: `{ [key: string]: string }` does satisfy the narrowed interfaces.
-    const rawElkGraph = elkGraph as RawElkNode;
+    // Writes every layout option out as the string ELK takes - last, so that it sees what
+    // the export callbacks left behind. ELK's result needs no conversion back:
+    // `{ [key: string]: string }` satisfies this package's option interfaces as it is.
+    const rawElkGraph = toNativeElkNode(elkGraph);
     const elk = opt?.elk;
     let layoutResult: Promise<ElkNode>;
     if (!elk) {

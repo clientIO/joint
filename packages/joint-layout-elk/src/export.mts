@@ -458,7 +458,7 @@ function buildEdge(link: dia.Link): void {
                 width,
                 height,
                 layoutOptions: {
-                    'elk.edgeLabels.inline': 'true'
+                    'elk.edgeLabels.inline': true
                 }
             };
 
@@ -497,6 +497,9 @@ function buildEdge(link: dia.Link): void {
  * `elements`/`links` are what takes part - a link only if both its ends do too - and
  * set its order: the root's children and edges follow them, and so do each container's
  * own children. An element whose parent isn't in `elements` becomes a top-level node.
+ *
+ * The options of the graph it returns are in whichever spelling they were given - pass it
+ * through `toNativeElkNode()` before handing it to ELK.
  */
 export function exportGraph(
     elements: dia.Element[],

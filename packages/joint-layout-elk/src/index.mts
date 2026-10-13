@@ -3,6 +3,7 @@
 export * from './layout.mjs';
 export * from './import.mjs';
 export * from './export.mjs';
+export { toNativeElkNode } from './elkOptions.mjs';
 export { createWorkerElk } from './workerElk.mjs';
 export type { WorkerElk } from './workerElk.mjs';
 
