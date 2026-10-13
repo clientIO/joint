@@ -150,6 +150,12 @@ export interface ExportedGraphLayout {
     elkGraph: ElkNode;
     /** What the ids in `elkGraph` stand for - `importGraphLayout()` reads it. */
     index: CellIndex;
+    /**
+     * The graphs the cells came from - in practice one, and none for a cell that is in no
+     * graph. Handed back so that `layout()` can batch on them without splitting the cells
+     * a second time.
+     */
+    graphs: dia.Graph[];
 }
 
 export interface ExportGraphLayoutOptions {
@@ -537,7 +543,7 @@ export function exportGraphLayout(
     options: ExportGraphLayoutOptions = {}
 ): ExportedGraphLayout {
 
-    const { elements, links } = splitCells(graphOrCells);
+    const { elements, links, graphs } = splitCells(graphOrCells);
 
     init(options, elements);
 
@@ -560,5 +566,5 @@ export function exportGraphLayout(
     links.forEach(buildEdge);
 
     const index: CellIndex = { elementsById, linksById, portsById };
-    return { elkGraph, index };
+    return { elkGraph, index, graphs };
 }

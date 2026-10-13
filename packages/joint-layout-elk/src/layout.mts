@@ -3,7 +3,6 @@ import { importGraphLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
 import { exportGraphLayout } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
-import { splitCells } from './cells.mjs';
 import { toNativeElkNode, getElkPadding, withDefaultElkLayoutOptions } from './elkOptions.mjs';
 
 import type { ExportGraphLayoutOptions } from './export.mjs';
@@ -105,9 +104,9 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
 
     throwIfAborted(signal);
 
-    const { graphs } = splitCells(graphOrCells);
 
     const exported = exportGraphLayout(graphOrCells, { ...options, elkLayoutOptions });
+    const { graphs } = exported;
     const { elkGraph } = exported;
 
     // Writes every layout option out as the string ELK takes - last, so that it sees what
