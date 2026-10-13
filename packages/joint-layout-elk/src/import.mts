@@ -1,7 +1,7 @@
 import { type dia, g } from '@joint/core';
 import type { ElkPoint } from 'elkjs';
 import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
-import type { ExportedPort, CellIndex, ExportedCellIndex } from './cells.mjs';
+import type { ExportedPort, CellIndex } from './export.mjs';
 import { getLinkLabelIndex } from './elkIds.mjs';
 
 /** Applies the ELK-computed position (and, for a container, size) to `element`. */
@@ -363,13 +363,11 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
  */
 export function importGraphLayout(
     elkGraph: ElkNode,
-    index: ExportedCellIndex,
+    index: CellIndex,
     options: ImportGraphLayoutOptions = {}
 ): void {
 
-    // Narrowed to what `exportGraphLayout()` built it as - the only thing that satisfies
-    // `ExportedCellIndex`.
-    const { elementsById, linksById, portsById } = index as CellIndex;
+    const { elementsById, linksById, portsById } = index;
 
     init(elementsById, linksById, portsById, options);
 

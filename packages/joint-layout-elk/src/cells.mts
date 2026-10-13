@@ -1,41 +1,6 @@
 import type { dia } from '@joint/core';
 
-// Not part of the public API (not re-exported from `index.mts`) - `ExportedCellIndex` is, and
-// is opaque, so none of the shapes below are promised to anyone.
-
-/** An element's port, as it was exported - its `x`/`y` are what ELK was given. */
-export interface ExportedPort {
-    element: dia.Element;
-    portId: dia.Cell.ID;
-    /** The port's top-left as it was sent to ELK - what came back is `ElkPort`'s own. */
-    x: number;
-    y: number;
-}
-
-// Carried by the index itself, so that `ExportedCellIndex` is a type a real object
-// satisfies rather than a phantom only a cast can produce.
-export const CELL_INDEX: unique symbol = Symbol('@joint/layout-elk: cell index');
-
-/**
- * The handle `exportGraphLayout()` hands out, for `importGraphLayout()` to read back.
- *
- * Opaque: `CellIndex` below is what it holds, and that is this package's business.
- */
-export interface ExportedCellIndex {
-    readonly [CELL_INDEX]: true;
-}
-
-/**
- * What the ELK graph's ids stand for, so a layout result can be applied back.
- *
- * ELK ids are built from cell ids (see `elkIds.mts`), and a port's also carries where it
- * was when it was exported - which the result alone cannot say.
- */
-export interface CellIndex extends ExportedCellIndex {
-    elementsById: Map<string, dia.Element>;
-    linksById: Map<string, dia.Link>;
-    portsById: Map<string, ExportedPort>;
-}
+// Not part of the public API (not re-exported from `index.mts`).
 
 // The elements and the links to lay out, in the order they were given, and the graphs the
 // layout's batch runs on. A batch groups only the changes emitted by its own graph's cells,

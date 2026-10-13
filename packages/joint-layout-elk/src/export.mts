@@ -1,9 +1,6 @@
 import { type dia } from '@joint/core';
 import { splitCells } from './cells.mjs';
 
-import { CELL_INDEX } from './cells.mjs';
-
-import type { ExportedPort, CellIndex, ExportedCellIndex } from './cells.mjs';
 import { ELK_ROOT_ID, getElkEdgeId, getElkNodeId, getElkPortId, getLinkLabelId } from './elkIds.mjs';
 
 import type {
@@ -124,13 +121,34 @@ export type ExportLinkLabelCallbackParams = {
     elkEdgeLabel: ElkLabelDraft;
 };
 
-export type { ExportedCellIndex };
+/** An element's port, as it was exported - its `x`/`y` are what ELK was given. */
+export interface ExportedPort {
+    element: dia.Element;
+    portId: dia.Cell.ID;
+    /** The port's top-left as it was sent to ELK - what came back is `ElkPort`'s own. */
+    x: number;
+    y: number;
+}
+
+/**
+ * What the ids in an exported ELK graph stand for, so a layout result can be applied back.
+ *
+ * ELK ids are built from cell ids (see `elkIds.mts`), and a port's entry also carries where
+ * it was when it was exported - which the result alone cannot say. Built by
+ * `exportGraphLayout()` and read by `importGraphLayout()`; what it holds is this package's
+ * business, so do not build or change one yourself.
+ */
+export interface CellIndex {
+    elementsById: Map<string, dia.Element>;
+    linksById: Map<string, dia.Link>;
+    portsById: Map<string, ExportedPort>;
+}
 
 export interface ExportedGraphLayout {
     /** The ELK graph, with its layout options in the spelling they were given. */
     elkGraph: ElkNode;
     /** What the ids in `elkGraph` stand for - `importGraphLayout()` reads it. */
-    index: ExportedCellIndex;
+    index: CellIndex;
 }
 
 export interface ExportGraphLayoutOptions {
@@ -535,6 +553,6 @@ export function exportGraphLayout(
 
     links.forEach(buildEdge);
 
-    const index: CellIndex = { [CELL_INDEX]: true, elementsById, linksById, portsById };
+    const index: CellIndex = { elementsById, linksById, portsById };
     return { elkGraph, index };
 }
