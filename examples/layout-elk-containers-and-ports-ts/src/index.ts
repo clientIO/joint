@@ -69,15 +69,13 @@ const init = () => {
 
         /**
          * Spacing between nodes (siblings).
-         * A number value as a string.
          */
-        'elk.spacing.nodeNode': '30',
+        'elk.spacing.nodeNode': 30,
 
         /**
          * Spacing between layers (for layered algorithm).
-         * A number value as a string.
          */
-        'elk.layered.spacing.nodeNodeBetweenLayers': '40',
+        'elk.layered.spacing.nodeNodeBetweenLayers': 40,
 
         /**
          * Edge routing style.
@@ -91,7 +89,7 @@ const init = () => {
          * onto. Tuned, together with the spacing above, for this
          * particular graph.
          */
-        'elk.aspectRatio': '1.2',
+        'elk.aspectRatio': 1.2,
         /**
          * Wraps layers onto additional rows, connected by dedicated
          * "wrap" edges, instead of growing a single row indefinitely.
@@ -114,7 +112,6 @@ const init = () => {
     };
 
     const exportPort: ExportPortCallback = ({ portId, element, elkPort }) => {
-        // @ts-expect-error a port id may be a number - clientIO/joint#3544
         switch (element.getPort(portId).group) {
             case 'in':
                 elkPort.layoutOptions['elk.port.side'] = 'WEST';
@@ -126,7 +123,6 @@ const init = () => {
     };
 
     const exportPortLabel: ExportPortLabelCallback = ({ portId, element, elkPortLabel }) => {
-        // @ts-expect-error a port id may be a number - clientIO/joint#3544
         const size = element.portProp(portId, 'label/size');
         // A port with no label text is never sized (see `Service` in `shapes.ts`) - it
         // goes to ELK without a label rather than with an unsized one.

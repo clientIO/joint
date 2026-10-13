@@ -55,9 +55,9 @@ const init = () => {
     // the folders) and on every folder (to pack its files) - see `exportElement`.
     const getPackingOptions = (): ElkLayoutOptions => ({
         'elk.algorithm': 'rectpacking',
-        'elk.aspectRatio': controls.aspectRatio.value as `${number}`,
+        'elk.aspectRatio': Number(controls.aspectRatio.value),
         'elk.rectpacking.widthApproximation.optimizationGoal': controls.optimizationGoal.value,
-        'elk.rectpacking.orderBySize': `${controls.orderBySize.checked}`
+        'elk.rectpacking.orderBySize': controls.orderBySize.checked
     });
 
     // Every folder is packed on its own (its size then fixed), before the root
@@ -66,16 +66,15 @@ const init = () => {
     const getRootOptions = (): ElkLayoutOptions => ({
         ...getPackingOptions(),
         'elk.hierarchyHandling': 'SEPARATE_CHILDREN',
-        'elk.spacing.nodeNode': '20',
-        'elk.padding': '[top=0,left=0,bottom=0,right=0]'
+        'elk.spacing.nodeNode': 20,
+        'elk.padding': 0
     });
 
     const exportElement: ExportElementCallback = ({ element, elkNode }) => {
         if (element instanceof Folder) {
-            const { top, left, bottom, right } = FOLDER_PADDING;
             Object.assign(elkNode.layoutOptions, getPackingOptions(), {
-                'elk.spacing.nodeNode': '6',
-                'elk.padding': `[top=${top},left=${left},bottom=${bottom},right=${right}]`,
+                'elk.spacing.nodeNode': 6,
+                'elk.padding': FOLDER_PADDING,
                 // Applied to the files only, not to the root: stretching a folder
                 // (already packed on its own) would just leave empty space inside it.
                 'elk.rectpacking.whiteSpaceElimination.strategy': controls.whiteSpaceElimination.value
