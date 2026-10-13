@@ -145,7 +145,7 @@ const options: StrictElkLayoutOptions = {
 };
 ```
 
-`Native*` is the other direction - ELK's own spelling alone - and is what `toNativeElkNode()` produces. Each has a per-element counterpart: `StrictNodeElkLayoutOptions`, `NativeEdgeElkLayoutOptions`, and so on.
+`Native*` is the other direction - ELK's own spelling alone - and is what `toNativeElkNode()` produces. Each has a per-element counterpart: `StrictElkNodeLayoutOptions`, `NativeElkEdgeLayoutOptions`, and so on.
 
 #### `toNativeElkNode(node: ElkNode): NativeElkNode`
 

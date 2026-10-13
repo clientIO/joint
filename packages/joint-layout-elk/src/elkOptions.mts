@@ -8,7 +8,7 @@ import type {
     ElkExtendedEdge,
     NativeElkNode,
     StrictElkLayoutOptions,
-    StrictNodeElkLayoutOptions
+    StrictElkNodeLayoutOptions
 } from './types/index.mjs';
 // Not from the barrel: these are how the option spellings are derived, not public API.
 import type {
@@ -25,7 +25,7 @@ const DEFAULT_PADDING = 12;
 // - Derived from the option types, so the two cannot drift: adding a `dia.Sides` option
 //   there and leaving it out here would not compile.
 const SIDES_OPTIONS: ReadonlySet<string> = new Set<
-    SidesValuedElkOptionKeys<StrictElkLayoutOptions> | SidesValuedElkOptionKeys<StrictNodeElkLayoutOptions>
+    SidesValuedElkOptionKeys<StrictElkLayoutOptions> | SidesValuedElkOptionKeys<StrictElkNodeLayoutOptions>
 >([
     'elk.padding',
     'elk.margins',
@@ -35,7 +35,7 @@ const SIDES_OPTIONS: ReadonlySet<string> = new Set<
 
 // The options ELK types as a `KVector`, which therefore take a point.
 const POINT_OPTIONS: ReadonlySet<string> = new Set<
-    PointValuedElkOptionKeys<StrictElkLayoutOptions> | PointValuedElkOptionKeys<StrictNodeElkLayoutOptions>
+    PointValuedElkOptionKeys<StrictElkLayoutOptions> | PointValuedElkOptionKeys<StrictElkNodeLayoutOptions>
 >([
     'elk.position',
     'elk.nodeSize.minimum',

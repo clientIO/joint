@@ -7,10 +7,10 @@ import type {
     ElkExtendedEdge,
     ElkLabel,
     ElkLayoutOptions,
-    NodeElkLayoutOptions,
-    PortElkLayoutOptions,
-    EdgeElkLayoutOptions,
-    LabelElkLayoutOptions
+    ElkNodeLayoutOptions,
+    ElkPortLayoutOptions,
+    ElkEdgeLayoutOptions,
+    ElkLabelLayoutOptions
 } from './types/index.mjs';
 
 // ELK ignores labels with no text.
@@ -24,7 +24,7 @@ export interface ElkLabelDraft {
     y?: number;
     width: number;
     height: number;
-    layoutOptions: LabelElkLayoutOptions;
+    layoutOptions: ElkLabelLayoutOptions;
 }
 
 /** An ELK node draft, one per JointJS element. */
@@ -38,7 +38,7 @@ export interface ElkNodeDraft {
     width: number;
     height: number;
     /** `{ 'elk.portConstraints': 'FIXED_POS' }` for an element with ports, empty otherwise. */
-    layoutOptions: NodeElkLayoutOptions;
+    layoutOptions: ElkNodeLayoutOptions;
     /**
      * Empty. JointJS elements carry no labels, so add them only if ELK should size around
      * them - which also needs `elk.nodeLabels.placement` (and usually `MINIMUM_SIZE`
@@ -68,7 +68,7 @@ export interface ElkPortDraft {
     y: number;
     width: number;
     height: number;
-    layoutOptions: PortElkLayoutOptions;
+    layoutOptions: ElkPortLayoutOptions;
 }
 
 /**
@@ -88,7 +88,7 @@ export type ExportPortCallbackParams = {
 export interface ElkEdgeDraft {
     /** The link's id - with any `\` and `:` in it escaped with a `\`. */
     readonly id: string;
-    layoutOptions: EdgeElkLayoutOptions;
+    layoutOptions: ElkEdgeLayoutOptions;
 }
 
 /**

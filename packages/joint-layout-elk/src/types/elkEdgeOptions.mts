@@ -6,14 +6,14 @@ import type { EdgeType } from './elkEnums.mjs';
  * An ELK edge's layout options in their JointJS spelling - `6`, `true`,
  * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`.
  *
- * Every option is declared here; {@link NativeEdgeElkLayoutOptions} is projected from it. Annotate
+ * Every option is declared here; {@link NativeElkEdgeLayoutOptions} is projected from it. Annotate
  * your own options with this type to be held to the JointJS spelling alone:
  *
  * ```ts
- * const options: StrictEdgeElkLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * const options: StrictElkEdgeLayoutOptions = { 'elk.spacing.nodeNode': 6 };
  * ```
  */
-export interface StrictEdgeElkLayoutOptions {
+export interface StrictElkEdgeLayoutOptions {
     // Falls back to any ELK option beyond this package's Core/Layered coverage.
     // Wider than `string`, because TypeScript holds every declared property to the index
     // signature and the ones below are typed `number`, `boolean`, `dia.Sides` and
@@ -89,17 +89,17 @@ export interface StrictEdgeElkLayoutOptions {
  * reference page linked from each option expresses it, and the way options that arrive as
  * data (a saved diagram, a backend's config) are already shaped.
  *
- * Projected from {@link StrictEdgeElkLayoutOptions}, so the two cannot drift.
+ * Projected from {@link StrictElkEdgeLayoutOptions}, so the two cannot drift.
  */
-export type NativeEdgeElkLayoutOptions = ToNativeElkOptions<StrictEdgeElkLayoutOptions>;
+export type NativeElkEdgeLayoutOptions = ToNativeElkOptions<StrictElkEdgeLayoutOptions>;
 
 /**
  * An ELK edge's layout options. Each option takes either spelling, so one object can mix
  * them: `{ 'elk.spacing.nodeNode': 6, 'elk.padding': '[top=12,left=12]' }`.
  *
- * Per key rather than `StrictEdgeElkLayoutOptions | NativeEdgeElkLayoutOptions`: an object literal
+ * Per key rather than `StrictElkEdgeLayoutOptions | NativeElkEdgeLayoutOptions`: an object literal
  * mixing the two spellings matches neither arm of a union of the whole types.
  */
-export type EdgeElkLayoutOptions = {
-    [K in keyof StrictEdgeElkLayoutOptions]?: StrictEdgeElkLayoutOptions[K] | NativeEdgeElkLayoutOptions[K];
+export type ElkEdgeLayoutOptions = {
+    [K in keyof StrictElkEdgeLayoutOptions]?: StrictElkEdgeLayoutOptions[K] | NativeElkEdgeLayoutOptions[K];
 };

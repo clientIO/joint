@@ -4,15 +4,15 @@ import type {
     ElkLayoutOptions,
     StrictElkLayoutOptions,
     NativeElkLayoutOptions,
-    NodeElkLayoutOptions,
-    StrictNodeElkLayoutOptions,
-    NativeNodeElkLayoutOptions,
-    EdgeElkLayoutOptions,
-    NativeEdgeElkLayoutOptions,
-    PortElkLayoutOptions,
-    NativePortElkLayoutOptions,
-    LabelElkLayoutOptions,
-    NativeLabelElkLayoutOptions,
+    ElkNodeLayoutOptions,
+    StrictElkNodeLayoutOptions,
+    NativeElkNodeLayoutOptions,
+    ElkEdgeLayoutOptions,
+    NativeElkEdgeLayoutOptions,
+    ElkPortLayoutOptions,
+    NativeElkPortLayoutOptions,
+    ElkLabelLayoutOptions,
+    NativeElkLabelLayoutOptions,
     Direction
 } from '../../src/types/index.mjs';
 
@@ -42,11 +42,11 @@ export type _index = Expect<
 >;
 
 // The four smaller option types get the same treatment.
-export type _nodeNumber = Expect<Equals<NativeNodeElkLayoutOptions['elk.priority'], `${number}` | undefined>>;
-export type _nodeSides = Expect<Equals<StrictNodeElkLayoutOptions['elk.padding'], dia.Sides | undefined>>;
-export type _edgeNumber = Expect<Equals<NativeEdgeElkLayoutOptions['elk.priority'], `${number}` | undefined>>;
-export type _portBoolean = Expect<Equals<NativePortElkLayoutOptions['elk.noLayout'], 'true' | 'false' | undefined>>;
-export type _labelBoolean = Expect<Equals<NativeLabelElkLayoutOptions['elk.noLayout'], 'true' | 'false' | undefined>>;
+export type _nodeNumber = Expect<Equals<NativeElkNodeLayoutOptions['elk.priority'], `${number}` | undefined>>;
+export type _nodeSides = Expect<Equals<StrictElkNodeLayoutOptions['elk.padding'], dia.Sides | undefined>>;
+export type _edgeNumber = Expect<Equals<NativeElkEdgeLayoutOptions['elk.priority'], `${number}` | undefined>>;
+export type _portBoolean = Expect<Equals<NativeElkPortLayoutOptions['elk.noLayout'], 'true' | 'false' | undefined>>;
+export type _labelBoolean = Expect<Equals<NativeElkLabelLayoutOptions['elk.noLayout'], 'true' | 'false' | undefined>>;
 
 // One object can mix the two spellings, per key - which is why `ElkLayoutOptions` is a
 // mapped type rather than `Strict | Native`.
@@ -116,7 +116,7 @@ export const sides: ElkLayoutOptions = { 'elk.padding': { left: 10, vertical: 40
 export const misspelledSide: ElkLayoutOptions = { 'elk.padding': { lef: 10 }};
 
 // The per-element option types take both spellings too.
-export const nodeOptions: NodeElkLayoutOptions = { 'elk.padding': { top: 40 }, 'elk.priority': 3 };
-export const edgeOptions: EdgeElkLayoutOptions = { 'elk.priority': 3, 'elk.noLayout': true };
-export const portOptions: PortElkLayoutOptions = { 'elk.port.anchor': { x: 1, y: 2 }, 'elk.noLayout': 'false' };
-export const labelOptions: LabelElkLayoutOptions = { 'elk.edgeLabels.inline': true };
+export const nodeOptions: ElkNodeLayoutOptions = { 'elk.padding': { top: 40 }, 'elk.priority': 3 };
+export const edgeOptions: ElkEdgeLayoutOptions = { 'elk.priority': 3, 'elk.noLayout': true };
+export const portOptions: ElkPortLayoutOptions = { 'elk.port.anchor': { x: 1, y: 2 }, 'elk.noLayout': 'false' };
+export const labelOptions: ElkLabelLayoutOptions = { 'elk.edgeLabels.inline': true };

@@ -16,14 +16,14 @@ import type {
  * An ELK node's layout options in their JointJS spelling - `6`, `true`,
  * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`.
  *
- * Every option is declared here; {@link NativeNodeElkLayoutOptions} is projected from it. Annotate
+ * Every option is declared here; {@link NativeElkNodeLayoutOptions} is projected from it. Annotate
  * your own options with this type to be held to the JointJS spelling alone:
  *
  * ```ts
- * const options: StrictNodeElkLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * const options: StrictElkNodeLayoutOptions = { 'elk.spacing.nodeNode': 6 };
  * ```
  */
-export interface StrictNodeElkLayoutOptions {
+export interface StrictElkNodeLayoutOptions {
     // Falls back to any ELK option beyond this package's Core/Layered coverage.
     // Wider than `string`, because TypeScript holds every declared property to the index
     // signature and the ones below are typed `number`, `boolean`, `dia.Sides` and
@@ -268,17 +268,17 @@ export interface StrictNodeElkLayoutOptions {
  * reference page linked from each option expresses it, and the way options that arrive as
  * data (a saved diagram, a backend's config) are already shaped.
  *
- * Projected from {@link StrictNodeElkLayoutOptions}, so the two cannot drift.
+ * Projected from {@link StrictElkNodeLayoutOptions}, so the two cannot drift.
  */
-export type NativeNodeElkLayoutOptions = ToNativeElkOptions<StrictNodeElkLayoutOptions>;
+export type NativeElkNodeLayoutOptions = ToNativeElkOptions<StrictElkNodeLayoutOptions>;
 
 /**
  * An ELK node's layout options. Each option takes either spelling, so one object can mix
  * them: `{ 'elk.spacing.nodeNode': 6, 'elk.padding': '[top=12,left=12]' }`.
  *
- * Per key rather than `StrictNodeElkLayoutOptions | NativeNodeElkLayoutOptions`: an object literal
+ * Per key rather than `StrictElkNodeLayoutOptions | NativeElkNodeLayoutOptions`: an object literal
  * mixing the two spellings matches neither arm of a union of the whole types.
  */
-export type NodeElkLayoutOptions = {
-    [K in keyof StrictNodeElkLayoutOptions]?: StrictNodeElkLayoutOptions[K] | NativeNodeElkLayoutOptions[K];
+export type ElkNodeLayoutOptions = {
+    [K in keyof StrictElkNodeLayoutOptions]?: StrictElkNodeLayoutOptions[K] | NativeElkNodeLayoutOptions[K];
 };

@@ -6,14 +6,14 @@ import type { PortSide } from './elkEnums.mjs';
  * An ELK port's layout options in their JointJS spelling - `6`, `true`,
  * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`.
  *
- * Every option is declared here; {@link NativePortElkLayoutOptions} is projected from it. Annotate
+ * Every option is declared here; {@link NativeElkPortLayoutOptions} is projected from it. Annotate
  * your own options with this type to be held to the JointJS spelling alone:
  *
  * ```ts
- * const options: StrictPortElkLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * const options: StrictElkPortLayoutOptions = { 'elk.spacing.nodeNode': 6 };
  * ```
  */
-export interface StrictPortElkLayoutOptions {
+export interface StrictElkPortLayoutOptions {
     // Falls back to any ELK option beyond this package's Core/Layered coverage.
     // Wider than `string`, because TypeScript holds every declared property to the index
     // signature and the ones below are typed `number`, `boolean`, `dia.Sides` and
@@ -72,17 +72,17 @@ export interface StrictPortElkLayoutOptions {
  * reference page linked from each option expresses it, and the way options that arrive as
  * data (a saved diagram, a backend's config) are already shaped.
  *
- * Projected from {@link StrictPortElkLayoutOptions}, so the two cannot drift.
+ * Projected from {@link StrictElkPortLayoutOptions}, so the two cannot drift.
  */
-export type NativePortElkLayoutOptions = ToNativeElkOptions<StrictPortElkLayoutOptions>;
+export type NativeElkPortLayoutOptions = ToNativeElkOptions<StrictElkPortLayoutOptions>;
 
 /**
  * An ELK port's layout options. Each option takes either spelling, so one object can mix
  * them: `{ 'elk.spacing.nodeNode': 6, 'elk.padding': '[top=12,left=12]' }`.
  *
- * Per key rather than `StrictPortElkLayoutOptions | NativePortElkLayoutOptions`: an object literal
+ * Per key rather than `StrictElkPortLayoutOptions | NativeElkPortLayoutOptions`: an object literal
  * mixing the two spellings matches neither arm of a union of the whole types.
  */
-export type PortElkLayoutOptions = {
-    [K in keyof StrictPortElkLayoutOptions]?: StrictPortElkLayoutOptions[K] | NativePortElkLayoutOptions[K];
+export type ElkPortLayoutOptions = {
+    [K in keyof StrictElkPortLayoutOptions]?: StrictElkPortLayoutOptions[K] | NativeElkPortLayoutOptions[K];
 };

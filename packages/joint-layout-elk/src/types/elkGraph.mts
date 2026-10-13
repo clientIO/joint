@@ -9,29 +9,29 @@ import type {
     ElkLabel as NativeElkLabel
 } from 'elkjs';
 
-import type { NodeElkLayoutOptions } from './elkNodeOptions.mjs';
-import type { PortElkLayoutOptions } from './elkPortOptions.mjs';
-import type { EdgeElkLayoutOptions } from './elkEdgeOptions.mjs';
-import type { LabelElkLayoutOptions } from './elkLabelOptions.mjs';
+import type { ElkNodeLayoutOptions } from './elkNodeOptions.mjs';
+import type { ElkPortLayoutOptions } from './elkPortOptions.mjs';
+import type { ElkEdgeLayoutOptions } from './elkEdgeOptions.mjs';
+import type { ElkLabelLayoutOptions } from './elkLabelOptions.mjs';
 
 // ELK graph element shapes, narrowing `layoutOptions` (and, on `ElkNode`, the element
 // arrays it nests) from elkjs's own loosely-typed versions to the option types above.
 export interface ElkLabel extends Omit<NativeElkLabel, 'layoutOptions'> {
-    layoutOptions?: LabelElkLayoutOptions;
+    layoutOptions?: ElkLabelLayoutOptions;
 }
 
 export interface ElkPort extends Omit<NativeElkPort, 'layoutOptions' | 'labels'> {
-    layoutOptions?: PortElkLayoutOptions;
+    layoutOptions?: ElkPortLayoutOptions;
     labels?: ElkLabel[];
 }
 
 export interface ElkExtendedEdge extends Omit<NativeElkExtendedEdge, 'layoutOptions' | 'labels'> {
-    layoutOptions?: EdgeElkLayoutOptions;
+    layoutOptions?: ElkEdgeLayoutOptions;
     labels?: ElkLabel[];
 }
 
 export interface ElkNode extends Omit<NativeElkNode, 'layoutOptions' | 'children' | 'ports' | 'edges' | 'labels'> {
-    layoutOptions?: NodeElkLayoutOptions;
+    layoutOptions?: ElkNodeLayoutOptions;
     children?: ElkNode[];
     ports?: ElkPort[];
     edges?: ElkExtendedEdge[];
