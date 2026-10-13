@@ -1,8 +1,7 @@
 import { type dia, g } from '@joint/core';
 import type { ElkPoint } from 'elkjs';
 import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
-import type { ExportedCellIndex } from './export.mjs';
-import type { ExportedPort, CellIndex } from './cells.mjs';
+import type { ExportedPort, CellIndex, ExportedCellIndex } from './cells.mjs';
 import { getLinkLabelIndex } from './elkIds.mjs';
 
 /** Applies the ELK-computed position (and, for a container, size) to `element`. */
@@ -368,8 +367,9 @@ export function importGraphLayout(
     options: ImportGraphLayoutOptions = {}
 ): void {
 
-    // The one place the index `exportGraphLayout()` built is read back.
-    const { elementsById, linksById, portsById } = index as unknown as CellIndex;
+    // Narrowed to what `exportGraphLayout()` built it as - the only thing that satisfies
+    // `ExportedCellIndex`.
+    const { elementsById, linksById, portsById } = index as CellIndex;
 
     init(elementsById, linksById, portsById, options);
 

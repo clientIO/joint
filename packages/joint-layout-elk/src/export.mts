@@ -1,7 +1,9 @@
 import { type dia } from '@joint/core';
 import { splitCells } from './cells.mjs';
 
-import type { ExportedPort, CellIndex } from './cells.mjs';
+import { CELL_INDEX } from './cells.mjs';
+
+import type { ExportedPort, CellIndex, ExportedCellIndex } from './cells.mjs';
 import { ELK_ROOT_ID, getElkEdgeId, getElkNodeId, getElkPortId, getLinkLabelId } from './elkIds.mjs';
 
 import type {
@@ -122,17 +124,7 @@ export type ExportLinkLabelCallbackParams = {
     elkEdgeLabel: ElkLabelDraft;
 };
 
-declare const EXPORTED_CELL_INDEX: unique symbol;
-
-/**
- * What the ids in an exported ELK graph stand for - handed to `importGraphLayout()` to apply a
- * layout result back onto the cells it was exported from.
- *
- * Opaque: there is nothing to read in it, and what it holds is free to change.
- */
-export interface ExportedCellIndex {
-    readonly [EXPORTED_CELL_INDEX]: never;
-}
+export type { ExportedCellIndex };
 
 export interface ExportedGraphLayout {
     /** The ELK graph, with its layout options in the spelling they were given. */
@@ -543,8 +535,6 @@ export function exportGraphLayout(
 
     links.forEach(buildEdge);
 
-    const index: CellIndex = { elementsById, linksById, portsById };
-    // The one place the index is built - `importGraphLayout()` is the one place it is read
-    // back. Opaque so that what it holds stays this package's business.
-    return { elkGraph, index: index as unknown as ExportedCellIndex };
+    const index: CellIndex = { [CELL_INDEX]: true, elementsById, linksById, portsById };
+    return { elkGraph, index };
 }

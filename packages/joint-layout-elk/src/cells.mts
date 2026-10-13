@@ -12,14 +12,26 @@ export interface ExportedPort {
     y: number;
 }
 
+// Carried by the index itself, so that `ExportedCellIndex` is a type a real object
+// satisfies rather than a phantom only a cast can produce.
+export const CELL_INDEX: unique symbol = Symbol('@joint/layout-elk: cell index');
+
 /**
- * What the ELK graph's ids stand for, so a layout result can be applied back - the shape
- * behind the opaque `ExportedCellIndex` that `exportGraphLayout()` hands out.
+ * The handle `exportGraphLayout()` hands out, for `importGraphLayout()` to read back.
+ *
+ * Opaque: `CellIndex` below is what it holds, and that is this package's business.
+ */
+export interface ExportedCellIndex {
+    readonly [CELL_INDEX]: true;
+}
+
+/**
+ * What the ELK graph's ids stand for, so a layout result can be applied back.
  *
  * ELK ids are built from cell ids (see `elkIds.mts`), and a port's also carries where it
  * was when it was exported - which the result alone cannot say.
  */
-export interface CellIndex {
+export interface CellIndex extends ExportedCellIndex {
     elementsById: Map<string, dia.Element>;
     linksById: Map<string, dia.Link>;
     portsById: Map<string, ExportedPort>;
