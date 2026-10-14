@@ -1825,6 +1825,72 @@ QUnit.module('layout option values', () => {
         assert.equal(elkGraph.children[1].layoutOptions['elk.nodeSize.minimum'], '30,40');
     });
 
+    QUnit.test('should write an enum-set array out as ELK\'s own string of its values', async(assert) => {
+
+        const placement = ['INSIDE', 'V_TOP', 'H_LEFT'];
+        const elkLayoutOptions = { 'elk.nodeLabels.placement': placement };
+        const { graph } = createGraph();
+
+        const { elkGraph } = await joint.layout.ELK.layout(graph, { elkLayoutOptions });
+
+        assert.equal(elkGraph.layoutOptions['elk.nodeLabels.placement'], 'INSIDE V_TOP H_LEFT');
+        // The caller's own options are left as they were.
+        assert.strictEqual(elkLayoutOptions['elk.nodeLabels.placement'], placement);
+        assert.deepEqual(placement, ['INSIDE', 'V_TOP', 'H_LEFT']);
+    });
+
+    QUnit.test('should take an array for every enum-set option', async(assert) => {
+
+        const { graph } = createGraph();
+
+        // elkjs throws on any of these given as an array, so laying out at all is the test.
+        const { elkGraph } = await joint.layout.ELK.layout(graph, {
+            elkLayoutOptions: {
+                'elk.contentAlignment': ['V_CENTER', 'H_CENTER'],
+                'elk.nodeLabels.placement': ['OUTSIDE', 'V_BOTTOM', 'H_CENTER'],
+                'elk.nodeSize.constraints': ['NODE_LABELS', 'MINIMUM_SIZE'],
+                'elk.nodeSize.options': ['DEFAULT_MINIMUM_SIZE', 'COMPUTE_PADDING'],
+                'elk.portLabels.placement': ['OUTSIDE', 'NEXT_TO_PORT_IF_POSSIBLE']
+            },
+            // The full option id is what ELK takes too.
+            exportElement: ({ elkNode }) => {
+                elkNode.layoutOptions['org.eclipse.elk.nodeLabels.placement'] = ['INSIDE'];
+            }
+        });
+
+        assert.equal(elkGraph.layoutOptions['elk.contentAlignment'], 'V_CENTER H_CENTER');
+        assert.equal(elkGraph.layoutOptions['elk.nodeLabels.placement'], 'OUTSIDE V_BOTTOM H_CENTER');
+        assert.equal(elkGraph.layoutOptions['elk.nodeSize.constraints'], 'NODE_LABELS MINIMUM_SIZE');
+        assert.equal(elkGraph.layoutOptions['elk.nodeSize.options'], 'DEFAULT_MINIMUM_SIZE COMPUTE_PADDING');
+        assert.equal(elkGraph.layoutOptions['elk.portLabels.placement'], 'OUTSIDE NEXT_TO_PORT_IF_POSSIBLE');
+        assert.equal(elkGraph.children[0].layoutOptions['org.eclipse.elk.nodeLabels.placement'], 'INSIDE');
+    });
+
+    QUnit.test('should lay out with an enum-set array as with the string it writes out as', async(assert) => {
+
+        // `MINIMUM_SIZE` has ELK grow a node to `elk.nodeSize.minimum`, which shows in the layout.
+        const layoutWithConstraints = (constraints) => {
+            const { graph } = createGraph();
+            return joint.layout.ELK.layout(graph, {
+                exportElement: ({ elkNode }) => {
+                    elkNode.layoutOptions['elk.nodeSize.minimum'] = { x: 200, y: 150 };
+                    if (constraints !== undefined) elkNode.layoutOptions['elk.nodeSize.constraints'] = constraints;
+                }
+            });
+        };
+
+        const asArray = await layoutWithConstraints(['MINIMUM_SIZE']);
+        const asString = await layoutWithConstraints('MINIMUM_SIZE');
+        const asEmptySet = await layoutWithConstraints([]);
+        const byDefault = await layoutWithConstraints(undefined);
+
+        assert.equal(asArray.elkGraph.children[0].width, 200, 'the option reached ELK');
+        assert.deepEqual(asArray.bbox.toJSON(), asString.bbox.toJSON(), 'lays out as the string does');
+        // `[]` is the empty set - ELK's own default for the option - written out as `''`.
+        assert.equal(asEmptySet.elkGraph.children[0].layoutOptions['elk.nodeSize.constraints'], '');
+        assert.deepEqual(asEmptySet.bbox.toJSON(), byDefault.bbox.toJSON(), 'the empty set lays out as unset');
+    });
+
     QUnit.test('should leave a value it does not recognize for ELK to reject', async(assert) => {
 
         const { graph } = createGraph();
@@ -1835,6 +1901,10 @@ QUnit.module('layout option values', () => {
         await assert.rejects(reject(new joint.g.Rect(0, 0, 10, 10)));
         await assert.rejects(reject([1, 2, 3, 4]));
         await assert.rejects(reject(null));
+
+        // Only an array of strings is a set of enum values to write out.
+        const rejectSet = (value) => joint.layout.ELK.layout(graph, { elkLayoutOptions: { 'elk.nodeLabels.placement': value }});
+        await assert.rejects(rejectSet(['INSIDE', 1]));
     });
 
     QUnit.test('should write out the options every export callback set', async(assert) => {
@@ -2055,7 +2125,7 @@ QUnit.module('toNativeElkNode()', () => {
         labels: [{ width: 10, height: 10, layoutOptions: { 'elk.custom': true }}],
         children: [{
             id: 'a',
-            layoutOptions: { 'elk.position': { x: 1, y: 2 }},
+            layoutOptions: { 'elk.position': { x: 1, y: 2 }, 'elk.nodeLabels.placement': ['INSIDE', 'H_LEFT'] },
             ports: [{ id: 'a.p', layoutOptions: { 'elk.custom': 1 }, labels: [{ layoutOptions: { 'elk.custom': 2 }}] }],
             edges: [{ id: 'e', sources: ['a'], targets: ['a'], layoutOptions: { 'elk.custom': 3 }, labels: [{ layoutOptions: { 'elk.custom': false }}] }],
             children: [{ id: 'a.a', layoutOptions: { 'elk.custom': 4 }}]
@@ -2071,6 +2141,7 @@ QUnit.module('toNativeElkNode()', () => {
         assert.equal(native.labels[0].layoutOptions['elk.custom'], 'true');
         const [node] = native.children;
         assert.equal(node.layoutOptions['elk.position'], '1,2');
+        assert.equal(node.layoutOptions['elk.nodeLabels.placement'], 'INSIDE H_LEFT');
         assert.equal(node.ports[0].layoutOptions['elk.custom'], '1');
         assert.equal(node.ports[0].labels[0].layoutOptions['elk.custom'], '2');
         assert.equal(node.edges[0].layoutOptions['elk.custom'], '3');

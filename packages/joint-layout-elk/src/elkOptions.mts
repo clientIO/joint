@@ -17,7 +17,8 @@ import type {
 // Not from the barrel: these are how the option spellings are derived, not public API.
 import type {
     SidesValuedElkOptionKeys,
-    PointValuedElkOptionKeys
+    PointValuedElkOptionKeys,
+    SetValuedElkOptionKeys
 } from './types/toNativeElkOptions.mjs';
 
 const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
@@ -104,6 +105,30 @@ export type _everyPointOptionIsListed = AssertNone<Exclude<PointOptionId, typeof
 
 const POINT_OPTIONS: ReadonlySet<string> = new Set<PointOptionId>(POINT_OPTION_IDS);
 
+// The options ELK types as an `EnumSet`, which therefore take an array of enum values.
+// - These are every `ENUMSET` option elkjs 0.12 knows (`knownLayoutOptions()`) - this package
+//   declares all of them, so none can reach ELK as an array through the catch-all.
+const SET_OPTION_IDS = [
+    'elk.contentAlignment',
+    'elk.nodeLabels.placement',
+    'elk.nodeSize.constraints',
+    'elk.nodeSize.options',
+    'elk.portLabels.placement'
+] as const;
+
+// Every strict interface, not only the graph's and the node's - a port or a label can
+// declare one too, and one missed is one that reaches ELK unconverted.
+type SetOptionId =
+    | SetValuedElkOptionKeys<StrictElkLayoutOptions>
+    | SetValuedElkOptionKeys<StrictElkNodeLayoutOptions>
+    | SetValuedElkOptionKeys<StrictElkEdgeLayoutOptions>
+    | SetValuedElkOptionKeys<StrictElkPortLayoutOptions>
+    | SetValuedElkOptionKeys<StrictElkLabelLayoutOptions>;
+
+export type _everySetOptionIsListed = AssertNone<Exclude<SetOptionId, typeof SET_OPTION_IDS[number]>>;
+
+const SET_OPTIONS: ReadonlySet<string> = new Set<SetOptionId>(SET_OPTION_IDS);
+
 const ELK_ID_PREFIX = 'org.eclipse.';
 
 const SIDES = ['top', 'right', 'bottom', 'left', 'vertical', 'horizontal'] as const;
@@ -143,6 +168,16 @@ function isPoint(value: unknown): value is g.PlainPoint {
     return isFinite(x as number) && isFinite(y as number);
 }
 
+/**
+ * Whether `value` is a set of enum values to convert - an array of strings.
+ *
+ * An array holding anything else is not: joining it would hand ELK a string it may read as
+ * something else, where leaving it alone has ELK reject it.
+ */
+function isEnumSet(value: unknown): value is readonly string[] {
+    return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
 /** `dia.Sides` as ELK's own padding/margin string, with every side spelled out. */
 function toElkPadding(sides: dia.Sides): string {
     const { top, left, bottom, right } = normalizeSides(sides);
@@ -160,7 +195,9 @@ function normalizeSides(sides: dia.Sides): ElkPadding {
  * A number or a boolean is spelled out (`6` -> `'6'`, `true` -> `'true'`); a `dia.Sides`
  * given for an option ELK types as an `ElkPadding`/`ElkMargin` becomes ELK's own
  * `[top=,left=,bottom=,right=]`; a point given for one it types as a `KVector` becomes
- * `x,y`. Everything else - a string already, `undefined`, and any value this package does
+ * `x,y`; an array of enum values given for an option ELK types as an `EnumSet` becomes its
+ * values separated by spaces (`['INSIDE', 'V_TOP']` -> `'INSIDE V_TOP'`, `[]` -> `''`, the
+ * empty set). Everything else - a string already, `undefined`, and any value this package does
  * not recognize - goes to ELK as it is, so that ELK reports it rather than this package
  * guessing at what it was meant to be.
  */
@@ -173,6 +210,8 @@ function toElkOption(key: string, value: unknown): unknown {
     // ELK would read as no padding at all and silently lay out with its own default.
     if (SIDES_OPTIONS.has(id) && isSides(value)) return toElkPadding(value);
     if (POINT_OPTIONS.has(id) && isPoint(value)) return `${value.x},${value.y}`;
+    // elkjs throws on an array: it takes a set only as one string of its values.
+    if (SET_OPTIONS.has(id) && isEnumSet(value)) return value.join(' ');
     if (typeof value === 'number') return `${value}`;
     return value;
 }

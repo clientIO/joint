@@ -41,12 +41,17 @@ import type {
     InteractiveReferencePoint,
     PortSortingStrategy,
     EdgeType,
-    PortSide
+    PortSide,
+    ContentAlignment,
+    NodeLabelPlacement,
+    SizeConstraint,
+    SizeOptions,
+    PortLabelPlacement
 } from './elkEnums.mjs';
 
 /**
  * ELK layout options in their JointJS spelling - `6`, `true`,
- * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`.
+ * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`, `['INSIDE', 'V_TOP']`.
  *
  * Every option is declared here; {@link NativeElkLayoutOptions} is projected from it. Annotate
  * your own options with this type to be held to the JointJS spelling alone:
@@ -58,10 +63,11 @@ import type {
 export interface StrictElkLayoutOptions {
     // Falls back to any ELK option beyond this package's Core/Layered coverage.
     // Wider than `string`, because TypeScript holds every declared property to the index
-    // signature and the ones below are typed `number`, `boolean`, `dia.Sides` and
-    // `g.PlainPoint`. (`dia.Sides` already covers `number`; both are spelled out to say
-    // which spellings this type takes.)
-    [key: string]: string | number | boolean | dia.Sides | g.PlainPoint | undefined;
+    // signature and the ones below are typed `number`, `boolean`, `dia.Sides`,
+    // `g.PlainPoint` and arrays of enum values (the options ELK takes a set of values for).
+    // (`dia.Sides` already covers `number`; both are spelled out to say which spellings
+    // this type takes.)
+    [key: string]: string | number | boolean | dia.Sides | g.PlainPoint | readonly string[] | undefined;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-box-packingMode.html
      * @defaultValue `BoxLayoutProvider.PackingMode.SIMPLE`
@@ -86,9 +92,9 @@ export interface StrictElkLayoutOptions {
     'elk.bendPoints'?: string;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-contentAlignment.html
-     * @defaultValue `ContentAlignment.topLeft()`
+     * @defaultValue ['V_TOP', 'H_LEFT']
      */
-    'elk.contentAlignment'?: string;
+    'elk.contentAlignment'?: readonly ContentAlignment[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-debugMode.html
      * @defaultValue 'false'
@@ -234,9 +240,9 @@ export interface StrictElkLayoutOptions {
     'elk.nodeLabels.padding'?: dia.Sides;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeLabels-placement.html
-     * @defaultValue `NodeLabelPlacement.fixed`
+     * @defaultValue [] - no placement: a label keeps the position it is given
      */
-    'elk.nodeLabels.placement'?: string;
+    'elk.nodeLabels.placement'?: readonly NodeLabelPlacement[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portAlignment-default.html
      * @defaultValue 'DISTRIBUTED'
@@ -281,14 +287,14 @@ export interface StrictElkLayoutOptions {
     'elk.separateConnectedComponents'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-constraints.html
-     * @defaultValue `EnumSet.noneOf(SizeConstraint)`
+     * @defaultValue []
      */
-    'elk.nodeSize.constraints'?: string;
+    'elk.nodeSize.constraints'?: readonly SizeConstraint[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-options.html
-     * @defaultValue `EnumSet.of(SizeOptions.DEFAULT_MINIMUM_SIZE)`
+     * @defaultValue ['DEFAULT_MINIMUM_SIZE']
      */
-    'elk.nodeSize.options'?: string;
+    'elk.nodeSize.options'?: readonly SizeOptions[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-minimum.html
      * @defaultValue `new KVector(0, 0)`
@@ -366,9 +372,9 @@ export interface StrictElkLayoutOptions {
     'elk.port.borderOffset'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portLabels-placement.html
-     * @defaultValue `PortLabelPlacement.outside`
+     * @defaultValue ['OUTSIDE']
      */
-    'elk.portLabels.placement'?: string;
+    'elk.portLabels.placement'?: readonly PortLabelPlacement[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portLabels-nextToPortIfPossible.html
      * @defaultValue 'false'

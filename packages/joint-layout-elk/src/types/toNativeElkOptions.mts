@@ -10,6 +10,10 @@ import type { dia, g } from '@joint/core';
  *
  * The order of the branches is load-bearing:
  *
+ * - An array - an option ELK takes a set of enum values for - has a branch of its own, which
+ *   ELK takes as one string of the values. It would reach the final `string` without one,
+ *   but that branch is the catch-all's alone (see the last point). An array matches none of
+ *   the branches between, so where it is tested does not matter.
  * - `dia.Sides` is `number | SidesJSON`, so `number extends dia.Sides` holds. Testing
  *   `dia.Sides` first would route every number-valued option into the `string` branch and
  *   lose its `` `${number}` ``. The reverse is safe: `number | SidesJSON` does not extend
@@ -26,12 +30,13 @@ import type { dia, g } from '@joint/core';
  */
 export type ToNativeElkOptions<T> = {
     [K in keyof T]?:
-        NonNullable<T[K]> extends boolean ? `${boolean}`
-            : NonNullable<T[K]> extends number ? `${number}`
-                : NonNullable<T[K]> extends dia.Sides ? string
-                    : NonNullable<T[K]> extends g.PlainPoint ? string
-                        : NonNullable<T[K]> extends string ? T[K]
-                            : string;
+        NonNullable<T[K]> extends readonly string[] ? string
+            : NonNullable<T[K]> extends boolean ? `${boolean}`
+                : NonNullable<T[K]> extends number ? `${number}`
+                    : NonNullable<T[K]> extends dia.Sides ? string
+                        : NonNullable<T[K]> extends g.PlainPoint ? string
+                            : NonNullable<T[K]> extends string ? T[K]
+                                : string;
 };
 
 /**
@@ -49,6 +54,15 @@ export type SidesValuedElkOptionKeys<T> = {
 /** The options of `T` that take a point - the ones ELK types as a `KVector`. */
 export type PointValuedElkOptionKeys<T> = {
     [K in KnownElkOptionKeys<T>]-?: g.PlainPoint extends NonNullable<T[K]> ? K : never
+}[KnownElkOptionKeys<T>];
+
+/**
+ * The options of `T` that take an array of enum values - the ones ELK types as an `EnumSet`.
+ * `toNativeElkNode()` joins these into the one string of space-separated values ELK takes;
+ * elkjs throws on an array.
+ */
+export type SetValuedElkOptionKeys<T> = {
+    [K in KnownElkOptionKeys<T>]-?: NonNullable<T[K]> extends readonly string[] ? K : never
 }[KnownElkOptionKeys<T>];
 
 // The keys declared on `T`, without the catch-all index signature - which would otherwise

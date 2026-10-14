@@ -13,7 +13,9 @@ import type {
     NativeElkPortLayoutOptions,
     ElkLabelLayoutOptions,
     NativeElkLabelLayoutOptions,
-    Direction
+    StrictElkLabelLayoutOptions,
+    Direction,
+    NodeLabelPlacement
 } from '../../src/types/index.mjs';
 
 // The projection, one assertion per value shape. These are the tripwires: the branch order
@@ -24,21 +26,25 @@ export type _sides = Expect<Equals<NativeElkLayoutOptions['elk.padding'], string
 export type _point = Expect<Equals<NativeElkLayoutOptions['elk.position'], string | undefined>>;
 export type _enum = Expect<Equals<NativeElkLayoutOptions['elk.direction'], Direction | undefined>>;
 export type _string = Expect<Equals<NativeElkLayoutOptions['elk.bendPoints'], string | undefined>>;
+export type _set = Expect<Equals<NativeElkLayoutOptions['elk.nodeLabels.placement'], string | undefined>>;
 
 // `dia.Sides` is `number | SidesJSON`, so `number extends dia.Sides` holds: testing sides
 // before number would degrade every number option to a plain `string`.
 export type _strictNumber = Expect<Equals<StrictElkLayoutOptions['elk.spacing.nodeNode'], number | undefined>>;
 export type _strictSides = Expect<Equals<StrictElkLayoutOptions['elk.padding'], dia.Sides | undefined>>;
 export type _strictPoint = Expect<Equals<StrictElkLayoutOptions['elk.position'], g.PlainPoint | undefined>>;
+export type _strictSet = Expect<
+    Equals<StrictElkLayoutOptions['elk.nodeLabels.placement'], readonly NodeLabelPlacement[] | undefined>
+>;
 
 // The index signatures. Without the terminal `string` branch the native variant's catch-all
 // stays the strict union and the type is not native at all - no other assertion catches it.
 export type _nativeIndex = Expect<Equals<NativeElkLayoutOptions[string], string | undefined>>;
 export type _strictIndex = Expect<
-    Equals<StrictElkLayoutOptions[string], string | number | boolean | dia.Sides | g.PlainPoint | undefined>
+    Equals<StrictElkLayoutOptions[string], string | number | boolean | dia.Sides | g.PlainPoint | readonly string[] | undefined>
 >;
 export type _index = Expect<
-    Equals<ElkLayoutOptions[string], string | number | boolean | dia.Sides | g.PlainPoint | undefined>
+    Equals<ElkLayoutOptions[string], string | number | boolean | dia.Sides | g.PlainPoint | readonly string[] | undefined>
 >;
 
 // The four smaller option types get the same treatment.
@@ -120,3 +126,24 @@ export const nodeOptions: ElkNodeLayoutOptions = { 'elk.padding': { top: 40 }, '
 export const edgeOptions: ElkEdgeLayoutOptions = { 'elk.priority': 3, 'elk.noLayout': true };
 export const portOptions: ElkPortLayoutOptions = { 'elk.port.anchor': { x: 1, y: 2 }, 'elk.noLayout': 'false' };
 export const labelOptions: ElkLabelLayoutOptions = { 'elk.edgeLabels.inline': true };
+
+// The options ELK takes a set of enum values for take an array of them, typed against the
+// enum - or ELK's own string of them, which nothing checks.
+export const setOptions: ElkLayoutOptions = {
+    'elk.nodeLabels.placement': ['INSIDE', 'V_TOP', 'H_LEFT'],
+    'elk.contentAlignment': ['V_CENTER', 'H_CENTER'],
+    'elk.nodeSize.constraints': [],
+    'elk.nodeSize.options': ['DEFAULT_MINIMUM_SIZE', 'COMPUTE_PADDING'],
+    'elk.portLabels.placement': 'OUTSIDE NEXT_TO_PORT_IF_POSSIBLE'
+};
+const placement = ['OUTSIDE', 'V_BOTTOM'] as const;
+export const readonlySet: StrictElkNodeLayoutOptions = { 'elk.nodeLabels.placement': placement };
+export const labelSet: StrictElkLabelLayoutOptions = { 'elk.nodeLabels.placement': ['INSIDE'] };
+// @ts-expect-error 'FIXED' is not a node label placement - ELK would ignore the whole set.
+export const badSetValue: ElkLayoutOptions = { 'elk.nodeLabels.placement': ['INSIDE', 'FIXED'] };
+// @ts-expect-error the values of one option's enum are not another's.
+export const otherEnumSetValue: ElkLayoutOptions = { 'elk.nodeSize.constraints': ['INSIDE'] };
+// @ts-expect-error the strict spelling takes an array, not ELK's own string.
+export const strictSetString: StrictElkLayoutOptions = { 'elk.nodeLabels.placement': 'INSIDE V_TOP' };
+// @ts-expect-error the native spelling takes ELK's own string, not an array.
+export const nativeSetArray: NativeElkLayoutOptions = { 'elk.nodeLabels.placement': ['INSIDE'] };

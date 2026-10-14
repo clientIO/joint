@@ -120,6 +120,7 @@ elkLayoutOptions: {
     'elk.rectpacking.orderBySize': true,        // or 'true'
     'elk.padding': { left: 10, vertical: 40 },  // or '[top=40,left=10,bottom=40,right=0]'
     'elk.position': { x: 10, y: 20 },           // or '10,20'
+    'elk.nodeLabels.placement': ['INSIDE', 'V_TOP', 'H_LEFT'],  // or 'INSIDE V_TOP H_LEFT'
     'elk.direction': 'RIGHT'                    // enums are strings either way
 }
 ```
@@ -129,6 +130,7 @@ The string spelling stays supported: it is what the ELK reference page linked fr
 - **Numbers and booleans** take `6` / `true` on any option ELK types as one.
 - **Paddings and margins** (`elk.padding`, `elk.margins`, `elk.spacing.portsSurrounding`, `elk.nodeLabels.padding`) take a [`dia.Sides`](https://docs.jointjs.com/api/util/normalizeSides/): a number for every side, or an object naming `top`/`right`/`bottom`/`left`/`horizontal`/`vertical`. **A side the value does not name is `0`**, not the option's own default - ELK's own string parser reads `'[top=40]'` the same way. That default applies only when the option is not set at all.
 - **Points** (`elk.position`, `elk.nodeSize.minimum`, `elk.port.anchor`) take `{ x, y }`, `g.Point` included.
+- **Sets of enum values** (`elk.nodeLabels.placement`, `elk.portLabels.placement`, `elk.contentAlignment`, `elk.nodeSize.constraints`, `elk.nodeSize.options`) take an array of the option's values, typed against its enum - `[]` is the empty set. ELK itself takes them only as one string of the values; elkjs throws on an array. **ELK ignores the whole value, without an error, if any one of its values is not one it knows** - `'INSIDE BOGUS'` does not even apply `INSIDE` - so the array, which is type-checked, is the safer spelling.
 - Anything else goes to ELK as it is, so ELK reports a value it cannot use rather than this package guessing at it.
 
 The same applies to the `layoutOptions` set on a draft in an [export callback](#export-callbacks).
