@@ -353,6 +353,23 @@ QUnit.module('cell', function(hooks) {
                     assert.deepEqual(attributes.a[0], { aa: 'aa' });
                     assert.deepEqual(attributes.a[1], { cc: 'cc' });
                 });
+
+                QUnit.test('remove single property', (assert) => {
+
+                    attributes.a = 'aaa';
+                    el.removeProp(['a']);
+                    assert.notOk(attributes.hasOwnProperty('a'));
+                    assert.notOk(attributes.hasOwnProperty('0'));
+                });
+
+                QUnit.test('remove single property - options are passed', (assert) => {
+
+                    attributes.a = 'aaa';
+                    const changeSpy = sinon.spy();
+                    el.on('change', changeSpy);
+                    el.removeProp(['a'], { test: true });
+                    assert.ok(changeSpy.calledWithExactly(el, sinon.match((o) => o.test === true)));
+                });
             });
         });
 
@@ -406,6 +423,15 @@ QUnit.module('cell', function(hooks) {
                 attributes.attrs.b = 'root_b';
                 el.removeAttr(['a/b', 'c']);
                 assert.deepEqual(attributes.attrs, { 'a/b': {} , b: 'root_b', c: 'root_c' }, 'deep_c is removed');
+            });
+
+            QUnit.test('path defines as array - options are passed', (assert) => {
+
+                attributes.attrs.a = { b: 'b' };
+                const changeSpy = sinon.spy();
+                el.on('change', changeSpy);
+                el.removeAttr(['a', 'b'], { test: true });
+                assert.ok(changeSpy.calledWithExactly(el, sinon.match((o) => o.test === true)));
             });
 
             QUnit.test('path defines as string', function(assert) {
