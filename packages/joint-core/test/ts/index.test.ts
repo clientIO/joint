@@ -4,6 +4,9 @@ import * as joint from '../../';
 
 const graph = new joint.dia.Graph({ graphAttribute: true });
 
+// config
+joint.config.storeEmbeds = false;
+
 // graph events
 graph.on('add', function(cell, collection, options) {
     const isCell: AssertExtends<typeof cell, joint.dia.Cell> = true;
