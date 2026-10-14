@@ -8,6 +8,10 @@ const vertices = new linkTools.Vertices({
     vertexAdding: false,
 });
 
+new linkTools.Vertices({
+    vertexAdding: { interactiveLinkNode: 'wrapper' },
+});
+
 class MySegmentHandle extends linkTools.Segments.SegmentHandle {
 }
 

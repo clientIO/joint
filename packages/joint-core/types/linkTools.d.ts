@@ -24,7 +24,7 @@ export namespace Vertices {
     }
 
     interface VertexAddingOptions {
-        interactiveLineNode: string;
+        interactiveLinkNode: string;
     }
 
     interface Options extends dia.ToolView.Options<dia.LinkView> {
