@@ -9,7 +9,10 @@ import type {
     NativeElkNode,
     ElkLayoutOptions,
     StrictElkLayoutOptions,
-    StrictElkNodeLayoutOptions
+    StrictElkNodeLayoutOptions,
+    StrictElkEdgeLayoutOptions,
+    StrictElkPortLayoutOptions,
+    StrictElkLabelLayoutOptions
 } from './types/index.mjs';
 // Not from the barrel: these are how the option spellings are derived, not public API.
 import type {
@@ -68,9 +71,14 @@ const SIDES_OPTION_IDS = [
     'elk.nodeLabels.padding'
 ] as const;
 
+// Every strict interface, not only the graph's and the node's - a port or a label can
+// declare one too, and one missed is one that reaches ELK unconverted.
 type SidesOptionId =
     | SidesValuedElkOptionKeys<StrictElkLayoutOptions>
-    | SidesValuedElkOptionKeys<StrictElkNodeLayoutOptions>;
+    | SidesValuedElkOptionKeys<StrictElkNodeLayoutOptions>
+    | SidesValuedElkOptionKeys<StrictElkEdgeLayoutOptions>
+    | SidesValuedElkOptionKeys<StrictElkPortLayoutOptions>
+    | SidesValuedElkOptionKeys<StrictElkLabelLayoutOptions>;
 
 export type _everySidesOptionIsListed = AssertNone<Exclude<SidesOptionId, typeof SIDES_OPTION_IDS[number]>>;
 
@@ -83,9 +91,14 @@ const POINT_OPTION_IDS = [
     'elk.port.anchor'
 ] as const;
 
+// Every strict interface, not only the graph's and the node's - a port or a label can
+// declare one too, and one missed is one that reaches ELK unconverted.
 type PointOptionId =
     | PointValuedElkOptionKeys<StrictElkLayoutOptions>
-    | PointValuedElkOptionKeys<StrictElkNodeLayoutOptions>;
+    | PointValuedElkOptionKeys<StrictElkNodeLayoutOptions>
+    | PointValuedElkOptionKeys<StrictElkEdgeLayoutOptions>
+    | PointValuedElkOptionKeys<StrictElkPortLayoutOptions>
+    | PointValuedElkOptionKeys<StrictElkLabelLayoutOptions>;
 
 export type _everyPointOptionIsListed = AssertNone<Exclude<PointOptionId, typeof POINT_OPTION_IDS[number]>>;
 
