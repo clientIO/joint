@@ -125,3 +125,44 @@ export function warnResizeOnAutoSizedElement(cellId: dia.Cell.ID): void {
       'explicit size (e.g. from FreeTransform / Halo).'
   );
 }
+
+/**
+ * Warns once per paper when `fitToContent` and `transform` are both set on the
+ * same `<Paper>`. Both write the viewport matrix, so the visible result depends
+ * on which effect ran last. Dev-only, tree-shaken in production.
+ * @param paperId - Id of the paper carrying both props.
+ */
+export function warnFitToContentWithTransform(paperId: string): void {
+  if (process.env.NODE_ENV === 'production') return;
+  const key = `fit-with-transform:${paperId}`;
+  if (WARNED.has(key)) return;
+  WARNED.add(key);
+
+  console.warn(
+    `[Paper] \`fitToContent\` was ignored on paper "${paperId}" because \`transform\` is also set. ` +
+      'Both write the viewport matrix, so together they race.\n\n' +
+      'Fix: drop one of them.\n' +
+      '  <Paper fitToContent />                 // let the fit own the viewport\n' +
+      '  <Paper transform="scale(0.5)" />       // control it yourself\n'
+  );
+}
+
+/**
+ * Warns once per paper when `fitToContent` runs in `'resize'` mode while a
+ * `<PaperScroller>` owns the paper. The scroller sets the paper's dimensions
+ * itself and overwrites the fit on the next tick. Dev-only, tree-shaken in
+ * production.
+ * @param paperId - Id of the paper owned by a scroller.
+ */
+export function warnFitResizeUnderScroller(paperId: string): void {
+  if (process.env.NODE_ENV === 'production') return;
+  const key = `fit-resize-under-scroller:${paperId}`;
+  if (WARNED.has(key)) return;
+  WARNED.add(key);
+
+  console.warn(
+    `[Paper] \`fitToContent={{ mode: 'resize' }}\` was skipped on paper "${paperId}": ` +
+      'a <PaperScroller> owns the paper dimensions and overwrites them.\n\n' +
+      'Fix: use zoom mode instead — <Paper fitToContent /> or fitToContent={{ mode: \'zoom\' }}.\n'
+  );
+}
