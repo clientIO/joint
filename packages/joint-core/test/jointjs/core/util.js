@@ -1845,4 +1845,99 @@ QUnit.module('util', function(hooks) {
         });
     });
 
+    QUnit.module('util.toggleFullScreen()', (hooks) => {
+
+        // Every name `toggleFullScreen()` may pick for these properties, the
+        // prefixed ones and the standard one, so the browser's own names never
+        // decide a result.
+        const allNames = (...props) => props.flatMap((prop) => ['webkit', 'moz', 'ms', 'o', ''].map((prefix) => {
+            return prefix ? prefix + prop : prop[0].toLowerCase() + prop.slice(1);
+        }));
+
+        // An own property shadows the browser's, and deleting it brings the
+        // browser's back.
+        let overrides = [];
+        const override = (obj, names, value) => {
+            names.forEach((name) => {
+                Object.defineProperty(obj, name, { configurable: true, value });
+                overrides.push([obj, name]);
+            });
+        };
+
+        // The page reports `fullscreenElement` as its element in fullscreen,
+        // and exits fullscreen through the returned spy.
+        const stubPage = (doc, fullscreenElement) => {
+            override(doc, allNames('FullscreenElement', 'FullScreenElement'), fullscreenElement);
+            const exit = sinon.spy();
+            override(doc, allNames('ExitFullscreen', 'CancelFullScreen'), exit);
+            return exit;
+        };
+
+        // The element enters fullscreen through the returned spy.
+        const stubElement = (el) => {
+            const request = sinon.spy();
+            override(el, allNames('RequestFullscreen', 'RequestFullScreen'), request);
+            return request;
+        };
+
+        let iframe = null;
+
+        // An iframe without `src` holds a same-origin about:blank page, ready at once.
+        const appendFrameTarget = () => {
+            iframe = document.createElement('iframe');
+            document.getElementById('qunit-fixture').appendChild(iframe);
+            const frameDocument = iframe.contentDocument;
+            const target = frameDocument.createElement('div');
+            frameDocument.body.appendChild(target);
+            return target;
+        };
+
+        hooks.afterEach(() => {
+            overrides.forEach(([obj, name]) => delete obj[name]);
+            overrides = [];
+            iframe?.remove();
+            iframe = null;
+        });
+
+        QUnit.test('puts an element of a same-origin embedded page in fullscreen while its embedding pages are in fullscreen', (assert) => {
+            const target = appendFrameTarget();
+            stubPage(target.ownerDocument, null);
+            // Under Karma the test page is itself embedded; stubbed first, so
+            // when it is `window.top` the test page's stub below replaces it.
+            const topExit = stubPage(window.top.document, window.top.document.body);
+            const pageExit = stubPage(document, document.body);
+            const request = stubElement(target);
+            joint.util.toggleFullScreen(target);
+            assert.ok(request.called);
+            assert.ok(request.alwaysCalledOn(target));
+            assert.ok(pageExit.notCalled);
+            assert.ok(topExit.notCalled);
+        });
+
+        QUnit.test('exits fullscreen on the embedded page when it reports an element in fullscreen', (assert) => {
+            const target = appendFrameTarget();
+            const frameExit = stubPage(target.ownerDocument, target);
+            const pageExit = stubPage(document, null);
+            const request = stubElement(target);
+            joint.util.toggleFullScreen(target);
+            assert.ok(frameExit.called);
+            assert.ok(frameExit.alwaysCalledOn(target.ownerDocument));
+            assert.ok(request.notCalled);
+            assert.ok(pageExit.notCalled);
+        });
+
+        QUnit.test('puts the current page\'s body in fullscreen without an element while its embedding page is in fullscreen', (assert) => {
+            // Under Karma the test page is itself embedded. When it is
+            // `window.top`, the test page's stub below replaces this one, and
+            // code that reads `window.top.document` passes too.
+            const topExit = stubPage(window.top.document, window.top.document.body);
+            stubPage(document, null);
+            const request = stubElement(document.body);
+            joint.util.toggleFullScreen();
+            assert.ok(request.called);
+            assert.ok(request.alwaysCalledOn(document.body));
+            assert.ok(topExit.notCalled);
+        });
+    });
+
 });

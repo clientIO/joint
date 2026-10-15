@@ -1678,12 +1678,14 @@ export const template = function(html) {
 };
 
 /**
- * @param {Element} el Element, which content is intent to display in full-screen mode, 'window.top.document.body' is default.
+ * Puts `el` in fullscreen, or leaves fullscreen when the document `el` belongs to
+ * already shows an element in fullscreen.
+ * @param {Element} [el] The element to show in fullscreen; the current document's body by default.
  */
 export const toggleFullScreen = function(el) {
 
-    var topDocument = window.top.document;
-    el = el || topDocument.body;
+    const doc = el ? el.ownerDocument : document;
+    el = el || doc.body;
 
     function prefixedResult(el, prop) {
 
@@ -1697,9 +1699,9 @@ export const toggleFullScreen = function(el) {
         }
     }
 
-    if (prefixedResult(topDocument, 'FullscreenElement') || prefixedResult(topDocument, 'FullScreenElement')) {
-        prefixedResult(topDocument, 'ExitFullscreen') || // Spec.
-        prefixedResult(topDocument, 'CancelFullScreen'); // Firefox
+    if (prefixedResult(doc, 'FullscreenElement') || prefixedResult(doc, 'FullScreenElement')) {
+        prefixedResult(doc, 'ExitFullscreen') || // Spec.
+        prefixedResult(doc, 'CancelFullScreen'); // Firefox
     } else {
         prefixedResult(el, 'RequestFullscreen') || // Spec.
         prefixedResult(el, 'RequestFullScreen'); // Firefox
