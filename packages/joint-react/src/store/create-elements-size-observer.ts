@@ -122,6 +122,18 @@ export interface GraphStoreObserver {
    * @returns True if the node is being observed
    */
   readonly has: (id: CellId) => boolean;
+  /**
+   * Discards the cell's measurement state after its size was written from
+   * outside the measurement pipeline (controlled-mode sync, `cell.resize`).
+   * The pipeline must re-assert the measured size from the current layout,
+   * but on its own it stays silent: ResizeObserver does not re-fire when the
+   * DOM did not change, and the last-measurement dedup memory would swallow
+   * a delivery repeating the pre-write numbers. Re-observing the active node
+   * forces a fresh delivery of the current layout with the memory cleared, so
+   * the model can never be left silently diverged from the DOM.
+   * @param id - The ID of the cell whose measurement state to discard
+   */
+  readonly invalidate: (id: CellId) => void;
 }
 
 /**
@@ -243,6 +255,12 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
 
   /** Starts observing the given element and registers it in the active DOM node lookup. */
   function activateElement(observedElement: ObservedElement) {
+    // Start with a clean measurement memory: the model may have moved while
+    // the node was inactive (stack fallback) or was just written externally
+    // (invalidate), and stale lastWidth/lastHeight would swallow the forced
+    // initial delivery when it repeats the previously measured numbers.
+    observedElement.lastWidth = undefined;
+    observedElement.lastHeight = undefined;
     observer.observe(observedElement.node, resizeObserverOptions);
     activeObservedElementByDomNode.set(observedElement.node, observedElement);
   }
@@ -369,6 +387,19 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     has(id: CellId) {
       const stack = observedStacksByCellId.get(id);
       return !!stack && stack.length > 0;
+    },
+    invalidate(id: CellId) {
+      const stack = observedStacksByCellId.get(id);
+      const active = stack ? getActiveElement(stack) : undefined;
+      if (!active) return;
+
+      // Re-observe: `unobserve()` resets the observer's last-reported size,
+      // so `observe()` forces a fresh delivery of the current layout even
+      // though the DOM itself did not change (calling `observe()` alone is a
+      // spec no-op for an already-observed target). `activateElement` clears
+      // the dedup memory so that delivery is honored.
+      deactivateElement(active);
+      activateElement(active);
     },
   };
 }
