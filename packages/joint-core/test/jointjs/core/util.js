@@ -1847,10 +1847,9 @@ QUnit.module('util', function(hooks) {
 
     QUnit.module('util.toggleFullScreen()', (hooks) => {
 
-        // Every name `toggleFullScreen()` may pick for these properties, the
-        // prefixed ones and the standard one, so the browser's own names never
-        // decide a result.
-        const allNames = (...props) => props.flatMap((prop) => ['webkit', 'moz', 'ms', 'o', ''].map((prefix) => {
+        // The names `toggleFullScreen()` tries for each property, its prefixes and
+        // then the standard name, so the browser's own names never decide a result.
+        const fullscreenNames =(...props) => props.flatMap((prop) => ['webkit', 'moz', 'ms', 'o', ''].map((prefix) => {
             return prefix ? prefix + prop : prop[0].toLowerCase() + prop.slice(1);
         }));
 
@@ -1867,16 +1866,16 @@ QUnit.module('util', function(hooks) {
         // The page reports `fullscreenElement` as its element in fullscreen,
         // and exits fullscreen through the returned spy.
         const stubPage = (doc, fullscreenElement) => {
-            override(doc, allNames('FullscreenElement', 'FullScreenElement'), fullscreenElement);
+            override(doc, fullscreenNames('FullscreenElement', 'FullScreenElement'), fullscreenElement);
             const exit = sinon.spy();
-            override(doc, allNames('ExitFullscreen', 'CancelFullScreen'), exit);
+            override(doc, fullscreenNames('ExitFullscreen', 'CancelFullScreen'), exit);
             return exit;
         };
 
         // The element enters fullscreen through the returned spy.
         const stubElement = (el) => {
             const request = sinon.spy();
-            override(el, allNames('RequestFullscreen', 'RequestFullScreen'), request);
+            override(el, fullscreenNames('RequestFullscreen', 'RequestFullScreen'), request);
             return request;
         };
 
@@ -1937,6 +1936,18 @@ QUnit.module('util', function(hooks) {
             assert.ok(request.called);
             assert.ok(request.alwaysCalledOn(document.body));
             assert.ok(topExit.notCalled);
+        });
+
+        QUnit.test('exits fullscreen on the current page without an element when it reports an element in fullscreen', (assert) => {
+            // Under Karma the test page is itself embedded; stubbed first, so
+            // when it is `window.top` the test page's stub below replaces it.
+            stubPage(window.top.document, null);
+            const pageExit = stubPage(document, document.body);
+            const topRequest = stubElement(window.top.document.body);
+            joint.util.toggleFullScreen();
+            assert.ok(pageExit.called);
+            assert.ok(pageExit.alwaysCalledOn(document));
+            assert.ok(topRequest.notCalled);
         });
     });
 
