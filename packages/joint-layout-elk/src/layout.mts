@@ -66,9 +66,7 @@ export interface LayoutResult {
  * the margins they were given.
  */
 function getBBox(elkGraph: ElkNode, elkLayoutOptions: ElkLayoutOptions): g.Rect {
-    // The options as they were given, not the root node's own: those have been written out
-    // as the strings ELK takes, while this needs the padding itself, in either spelling.
-    const { top, left, bottom, right } = getElkPadding(elkLayoutOptions);
+    const { top, left, bottom, right } = getElkPadding(elkGraph.layoutOptions ?? elkLayoutOptions);
     const width = Math.max(0, (elkGraph.width || 0) - left - right);
     const height = Math.max(0, (elkGraph.height || 0) - top - bottom);
     // Nothing was laid out - the root is its own padding, which is not a box at `left`/`top`.
