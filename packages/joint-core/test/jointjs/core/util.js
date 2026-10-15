@@ -1847,9 +1847,9 @@ QUnit.module('util', function(hooks) {
 
     QUnit.module('util.toggleFullScreen()', (hooks) => {
 
-        // The names `toggleFullScreen()` tries for each property, its prefixes and
+        // The names `toggleFullScreen()` tries for each property, its `prefixes` list and
         // then the standard name, so the browser's own names never decide a result.
-        const fullscreenNames =(...props) => props.flatMap((prop) => ['webkit', 'moz', 'ms', 'o', ''].map((prefix) => {
+        const fullscreenNames = (...props) => props.flatMap((prop) => ['webkit', 'moz', 'ms', 'o', ''].map((prefix) => {
             return prefix ? prefix + prop : prop[0].toLowerCase() + prop.slice(1);
         }));
 
@@ -1941,13 +1941,12 @@ QUnit.module('util', function(hooks) {
         QUnit.test('exits fullscreen on the current page without an element when it reports an element in fullscreen', (assert) => {
             // Under Karma the test page is itself embedded; stubbed first, so
             // when it is `window.top` the test page's stub below replaces it.
-            stubPage(window.top.document, null);
+            const topExit = stubPage(window.top.document, window.top.document.body);
             const pageExit = stubPage(document, document.body);
-            const topRequest = stubElement(window.top.document.body);
             joint.util.toggleFullScreen();
             assert.ok(pageExit.called);
             assert.ok(pageExit.alwaysCalledOn(document));
-            assert.ok(topRequest.notCalled);
+            assert.ok(topExit.notCalled);
         });
     });
 
