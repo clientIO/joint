@@ -1,7 +1,7 @@
 import { type dia, g } from '@joint/core';
 import type { ElkPoint } from 'elkjs';
 import type { ElkNode, ElkExtendedEdge, ElkPort } from './types/index.mjs';
-import type { ElkGraphPort } from './export.mjs';
+import type { ExportedPort, CellIndex } from './export.mjs';
 import { getLinkLabelIndex } from './elkIds.mjs';
 
 /** Applies the ELK-computed position (and, for a container, size) to `element`. */
@@ -58,7 +58,7 @@ export type SetLinkAttributesCallbackParams = {
     elkEdge: ElkExtendedEdge
 };
 
-export interface ImportLayoutOptions {
+export interface ImportGraphLayoutOptions {
     setElementAttributes?: SetElementAttributesCallback;
     setLinkAttributes?: SetLinkAttributesCallback;
     setPortAttributes?: SetPortAttributesCallback;
@@ -141,27 +141,27 @@ const defaultSetLinkAttributes: SetLinkAttributesCallback = ({ link, attributes 
     link.set(attributes);
 };
 
-let importLayoutOptions: ImportLayoutOptions;
+let importGraphLayoutOptions: ImportGraphLayoutOptions;
 
 let elementsById: Map<string, dia.Element>;
 let linksById: Map<string, dia.Link>;
-let portsById: Map<string, ElkGraphPort>;
+let portsById: Map<string, ExportedPort>;
 // The graph-absolute rect ELK gave each node, filled in as `importNode` walks down. A
 // node's children, and the edges filed under it, are imported after it, so an edge's ends
 // are always in here by the time `importEdges` reaches it.
 let elementRectsById: Map<string, g.Rect>;
 
 /**
- * (Re)initializes all the module-level state above for a single `importLayout` call, so
+ * (Re)initializes all the module-level state above for a single `importGraphLayout` call, so
  * that no lookup table or option can leak from one call into the next.
  */
 function init(
     elements: Map<string, dia.Element>,
     links: Map<string, dia.Link>,
-    ports: Map<string, ElkGraphPort>,
-    options: ImportLayoutOptions
+    ports: Map<string, ExportedPort>,
+    options: ImportGraphLayoutOptions
 ): void {
-    importLayoutOptions = options;
+    importGraphLayoutOptions = options;
 
     elementsById = elements;
     linksById = links;
@@ -201,7 +201,7 @@ function toPortCenter(start: number, size: number, nodeSize: number, hasMoved: b
  * `toAbsolute` above.
  */
 function importEdges(edges: ElkExtendedEdge[] | undefined): void {
-    const setLinkAttributes = importLayoutOptions.setLinkAttributes ?? defaultSetLinkAttributes;
+    const setLinkAttributes = importGraphLayoutOptions.setLinkAttributes ?? defaultSetLinkAttributes;
 
     (edges || []).forEach((edge) => {
         const link = linksById.get(edge.id);
@@ -281,7 +281,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
         // against the element's own, so an unchanged one is not written again.
         const { width, height } = element.size();
         const hasResized = (node.width || 0) !== width || (node.height || 0) !== height;
-        const setElementAttributes = importLayoutOptions.setElementAttributes ?? defaultSetElementAttributes;
+        const setElementAttributes = importGraphLayoutOptions.setElementAttributes ?? defaultSetElementAttributes;
         setElementAttributes({
             element,
             attributes: {
@@ -295,7 +295,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
     }
 
     if (node.ports) {
-        const setPortAttributes = importLayoutOptions.setPortAttributes ?? defaultSetPortAttributes;
+        const setPortAttributes = importGraphLayoutOptions.setPortAttributes ?? defaultSetPortAttributes;
 
         node.ports.forEach((port) => {
             const found = portsById.get(port.id);
@@ -349,15 +349,20 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
 }
 
 /**
- * Applies an ELK layout result back onto the JointJS graph.
+ * Applies an ELK layout result back onto the cells it was exported from - their positions
+ * and sizes, their ports, and the links' routes and labels.
+ *
+ * Not public - the other half of `layout()`, which is where the two are kept together.
+ * `index` has to be the one from the same `exportGraphLayout()` the result came from; it
+ * is what the ids in the result stand for.
  */
-export function importLayout(
+export function importGraphLayout(
     elkGraph: ElkNode,
-    elementsById: Map<string, dia.Element>,
-    linksById: Map<string, dia.Link>,
-    portsById: Map<string, ElkGraphPort>,
-    options: ImportLayoutOptions
+    index: CellIndex,
+    options: ImportGraphLayoutOptions = {}
 ): void {
+
+    const { elementsById, linksById, portsById } = index;
 
     init(elementsById, linksById, portsById, options);
 

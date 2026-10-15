@@ -1,3 +1,5 @@
+import type { dia, g } from '@joint/core';
+import type { ToNativeElkOptions } from './toNativeElkOptions.mjs';
 import type {
     Alignment,
     HierarchyHandling,
@@ -7,12 +9,32 @@ import type {
     NodeFlexibility,
     SelfLoopDistributionStrategy,
     SelfLoopOrderingStrategy,
-    TopdownNodeTypes
+    TopdownNodeTypes,
+    NodeLabelPlacement,
+    SizeConstraint,
+    SizeOptions,
+    PortLabelPlacement
 } from './elkEnums.mjs';
 
-export interface NodeElkLayoutOptions {
-    // Falls back to a plain string for any ELK option beyond this package's Core/Layered coverage.
-    [key: string]: string | undefined;
+/**
+ * An ELK node's layout options in their JointJS spelling - `6`, `true`,
+ * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`, `['INSIDE', 'V_TOP']`.
+ *
+ * Every option is declared here; {@link NativeElkNodeLayoutOptions} is projected from it. Annotate
+ * your own options with this type to be held to the JointJS spelling alone:
+ *
+ * ```ts
+ * const options: StrictElkNodeLayoutOptions = { 'elk.padding': { top: 40 }};
+ * ```
+ */
+export interface StrictElkNodeLayoutOptions {
+    // Falls back to any ELK option beyond this package's Core/Layered coverage.
+    // Wider than `string`, because TypeScript holds every declared property to the index
+    // signature and the ones below are typed `number`, `boolean`, `dia.Sides`,
+    // `g.PlainPoint` and arrays of enum values (the options ELK takes a set of values for).
+    // (`dia.Sides` already covers `number`; both are spelled out to say which spellings
+    // this type takes.)
+    [key: string]: string | number | boolean | dia.Sides | g.PlainPoint | readonly string[] | undefined;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-alignment.html
      * @defaultValue 'AUTOMATIC'
@@ -27,12 +49,12 @@ export interface NodeElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-padding.html
      * @defaultValue `new ElkPadding(12)`
      */
-    'elk.padding'?: string;
+    'elk.padding'?: dia.Sides;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-portPort.html
      * @defaultValue '10'
      */
-    'elk.spacing.portPort'?: `${number}`;
+    'elk.spacing.portPort'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-individual.html
      */
@@ -40,12 +62,12 @@ export interface NodeElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-partitioning-partition.html
      */
-    'elk.partitioning.partition'?: `${number}`;
+    'elk.partitioning.partition'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeLabels-placement.html
-     * @defaultValue `NodeLabelPlacement.fixed`
+     * @defaultValue [] - no placement: a label keeps the position it is given
      */
-    'elk.nodeLabels.placement'?: string;
+    'elk.nodeLabels.placement'?: readonly NodeLabelPlacement[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portAlignment-default.html
      * @defaultValue 'DISTRIBUTED'
@@ -75,66 +97,66 @@ export interface NodeElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-position.html
      */
-    'elk.position'?: string;
+    'elk.position'?: g.PlainPoint;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-priority.html
      */
-    'elk.priority'?: `${number}`;
+    'elk.priority'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-constraints.html
-     * @defaultValue `EnumSet.noneOf(SizeConstraint)`
+     * @defaultValue []
      */
-    'elk.nodeSize.constraints'?: string;
+    'elk.nodeSize.constraints'?: readonly SizeConstraint[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-options.html
-     * @defaultValue `EnumSet.of(SizeOptions.DEFAULT_MINIMUM_SIZE)`
+     * @defaultValue ['DEFAULT_MINIMUM_SIZE']
      */
-    'elk.nodeSize.options'?: string;
+    'elk.nodeSize.options'?: readonly SizeOptions[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-minimum.html
      * @defaultValue `new KVector(0, 0)`
      */
-    'elk.nodeSize.minimum'?: string;
+    'elk.nodeSize.minimum'?: g.PlainPoint;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-commentBox.html
      * @defaultValue 'false'
      */
-    'elk.commentBox'?: 'true' | 'false';
+    'elk.commentBox'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-hypernode.html
      * @defaultValue 'false'
      */
-    'elk.hypernode'?: 'true' | 'false';
+    'elk.hypernode'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-margins.html
      * @defaultValue `new ElkMargin()`
      */
-    'elk.margins'?: string;
+    'elk.margins'?: dia.Sides;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-noLayout.html
      * @defaultValue 'false'
      */
-    'elk.noLayout'?: 'true' | 'false';
+    'elk.noLayout'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portLabels-placement.html
-     * @defaultValue `PortLabelPlacement.outside`
+     * @defaultValue ['OUTSIDE']
      */
-    'elk.portLabels.placement'?: string;
+    'elk.portLabels.placement'?: readonly PortLabelPlacement[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portLabels-nextToPortIfPossible.html
      * @defaultValue 'false'
      */
-    'elk.portLabels.nextToPortIfPossible'?: 'true' | 'false';
+    'elk.portLabels.nextToPortIfPossible'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portLabels-treatAsGroup.html
      * @defaultValue 'true'
      */
-    'elk.portLabels.treatAsGroup'?: 'true' | 'false';
+    'elk.portLabels.treatAsGroup'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-scaleFactor.html
      * @defaultValue '1'
      */
-    'elk.scaleFactor'?: `${number}`;
+    'elk.scaleFactor'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-sizeApproximator.html
      * @defaultValue `null`
@@ -144,12 +166,12 @@ export interface NodeElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-hierarchicalNodeWidth.html
      * @defaultValue '150'
      */
-    'elk.topdown.hierarchicalNodeWidth'?: `${number}`;
+    'elk.topdown.hierarchicalNodeWidth'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-hierarchicalNodeAspectRatio.html
      * @defaultValue '1.414'
      */
-    'elk.topdown.hierarchicalNodeAspectRatio'?: `${number}`;
+    'elk.topdown.hierarchicalNodeAspectRatio'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-nodeType.html
      * @defaultValue `null`
@@ -159,7 +181,7 @@ export interface NodeElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-insideSelfLoops-activate.html
      * @defaultValue 'false'
      */
-    'elk.insideSelfLoops.activate'?: 'true' | 'false';
+    'elk.insideSelfLoops.activate'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-layerConstraint.html
      * @defaultValue 'NONE'
@@ -169,12 +191,12 @@ export interface NodeElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-layerChoiceConstraint.html
      * @defaultValue `null`
      */
-    'elk.layered.layering.layerChoiceConstraint'?: `${number}`;
+    'elk.layered.layering.layerChoiceConstraint'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-layerId.html
      * @defaultValue '-1'
      */
-    'elk.layered.layering.layerId'?: `${number}`;
+    'elk.layered.layering.layerId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-inLayerPredOf.html
      * @defaultValue `null`
@@ -189,12 +211,12 @@ export interface NodeElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-positionChoiceConstraint.html
      * @defaultValue `null`
      */
-    'elk.layered.crossingMinimization.positionChoiceConstraint'?: `${number}`;
+    'elk.layered.crossingMinimization.positionChoiceConstraint'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-positionId.html
      * @defaultValue '-1'
      */
-    'elk.layered.crossingMinimization.positionId'?: `${number}`;
+    'elk.layered.crossingMinimization.positionId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-nodePlacement-networkSimplex-nodeFlexibility.html
      */
@@ -213,35 +235,55 @@ export interface NodeElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layerUnzipping-minimizeEdgeLength.html
      * @defaultValue 'false'
      */
-    'elk.layered.layerUnzipping.minimizeEdgeLength'?: 'true' | 'false';
+    'elk.layered.layerUnzipping.minimizeEdgeLength'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layerUnzipping-layerSplit.html
      * @defaultValue '2'
      */
-    'elk.layered.layerUnzipping.layerSplit'?: `${number}`;
+    'elk.layered.layerUnzipping.layerSplit'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layerUnzipping-resetOnLongEdges.html
      * @defaultValue 'true'
      */
-    'elk.layered.layerUnzipping.resetOnLongEdges'?: 'true' | 'false';
+    'elk.layered.layerUnzipping.resetOnLongEdges'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-noModelOrder.html
      * @defaultValue 'false'
      */
-    'elk.layered.considerModelOrder.noModelOrder'?: 'true' | 'false';
+    'elk.layered.considerModelOrder.noModelOrder'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-cycleBreakingId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.cycleBreakingId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.cycleBreakingId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-crossingMinimizationId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-componentGroupId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.componentGroupId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.componentGroupId'?: number;
 }
+
+/**
+ * An ELK node's layout options in ELK's own spelling - every value a string, the way the
+ * reference page linked from each option expresses it, and the way options that arrive as
+ * data (a saved diagram, a backend's config) are already shaped.
+ *
+ * Projected from {@link StrictElkNodeLayoutOptions}, so the two cannot drift.
+ */
+export type NativeElkNodeLayoutOptions = ToNativeElkOptions<StrictElkNodeLayoutOptions>;
+
+/**
+ * An ELK node's layout options. Each option takes either spelling, so one object can mix
+ * them: `{ 'elk.spacing.nodeNode': 6, 'elk.padding': '[top=12,left=12]' }`.
+ *
+ * Per key rather than `StrictElkNodeLayoutOptions | NativeElkNodeLayoutOptions`: an object literal
+ * mixing the two spellings matches neither arm of a union of the whole types.
+ */
+export type ElkNodeLayoutOptions = {
+    [K in keyof StrictElkNodeLayoutOptions]?: StrictElkNodeLayoutOptions[K] | NativeElkNodeLayoutOptions[K];
+};

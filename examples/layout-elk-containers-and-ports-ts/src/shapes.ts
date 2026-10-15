@@ -47,7 +47,7 @@ const HUB_PORT_ATTRS = {
     }
 };
 
-const CONTAINER_PADDING = '[top=40,left=20,bottom=20,right=20]';
+const CONTAINER_PADDING = { top: 40, horizontal: 20, bottom: 20 };
 
 /**
  * A tonal container surface - its final size and position are computed by ELK to fit

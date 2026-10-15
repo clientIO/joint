@@ -1,37 +1,29 @@
-import { util, g } from '@joint/core';
-import { importLayout } from './import.mjs';
+import { g } from '@joint/core';
+import { importGraphLayout } from './import.mjs';
 import { layoutWithDefaultElk } from './defaultElk.mjs';
-import { exportGraph } from './export.mjs';
+import { exportGraphLayout } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
+import { toNativeElkNode, getElkPadding, withDefaultElkLayoutOptions } from './elkOptions.mjs';
 
-import type { ExportGraphOptions } from './export.mjs';
-import type { ImportLayoutOptions } from './import.mjs';
+import type { ExportGraphLayoutOptions } from './export.mjs';
+import type { ImportGraphLayoutOptions } from './import.mjs';
 import type { WorkerElk } from './workerElk.mjs';
 import type { ElkLayoutOptions, ElkNode } from './types/index.mjs';
 import type { dia } from '@joint/core';
-import type { ELK, ElkNode as RawElkNode } from 'elkjs';
+import type { ELK } from 'elkjs';
 
 const LAYOUT_BATCH_NAME = 'layout';
 
-const DEFAULT_LAYOUT_OPTIONS: ElkLayoutOptions = {
-    'elk.algorithm': 'layered',
-    // Lay out embedded elements (containers) as part of the same pass as their
-    // parent, so that edges crossing a container's boundary are routed and
-    // accounted for correctly, instead of only being considered afterwards.
-    'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
-    // Keep the order of ports on a node consistent with the order of their
-    // `ports.items` array, instead of reordering them to reduce edge crossings.
-    'elk.layered.considerModelOrder.portModelOrder': 'true',
-    // Return every edge's route points and labels graph-absolute, whichever container
-    // the edge belongs to - `importLayout` applies them as they are. Overriding this
-    // means handling the coordinates yourself (e.g. in `setLinkAttributes`).
-    'elk.json.edgeCoords': 'ROOT'
-};
 
 /**
  * Layout configuration options.
  */
-export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
+export interface LayoutOptions extends ImportGraphLayoutOptions, ExportGraphLayoutOptions {
+
+    // `elkLayoutOptions` comes from `ExportGraphLayoutOptions` - it is the exported graph's root
+    // options. These defaults are merged into it here:
+    // `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+    //    'elk.layered.considerModelOrder.portModelOrder': 'true', 'elk.json.edgeCoords': 'ROOT' }`
 
     /**
      * The ELK instance to lay out with - e.g. one running in a Web Worker, so the layout
@@ -44,12 +36,6 @@ export interface LayoutOptions extends ImportLayoutOptions, ExportGraphOptions {
      * layout(graph, { elk });
      */
     elk?: WorkerElk | ELK;
-    /**
-     * ELK layout options, passed through to ELK unmodified.
-     * @see https://eclipse.dev/elk/reference/options.html
-     * @defaultValue `{ 'elk.algorithm': 'layered', 'elk.hierarchyHandling': 'INCLUDE_CHILDREN', 'elk.layered.considerModelOrder.portModelOrder': 'true', 'elk.json.edgeCoords': 'ROOT' }`
-     */
-    elkLayoutOptions?: ElkLayoutOptions;
     /**
      * Aborts the layout - e.g. once the graph has changed since it started, or it takes too
      * long. `layout()` then rejects with the signal's reason, and nothing is applied to the
@@ -71,9 +57,6 @@ export interface LayoutResult {
     elkGraph: ElkNode;
 }
 
-// ELK's own default, used for every side `elk.padding` does not name.
-const DEFAULT_PADDING = 12;
-
 /**
  * Tight bounding box of an ELK layout result.
  *
@@ -83,17 +66,7 @@ const DEFAULT_PADDING = 12;
  * the margins they were given.
  */
 function getBBox(elkGraph: ElkNode, elkLayoutOptions: ElkLayoutOptions): g.Rect {
-    const padding = { top: DEFAULT_PADDING, left: DEFAULT_PADDING, bottom: DEFAULT_PADDING, right: DEFAULT_PADDING };
-    const value = elkLayoutOptions['elk.padding'];
-    if (value) {
-        // `[top=12,left=12,bottom=12,right=12]`, with any side left out keeping the default.
-        const sides = /(top|left|bottom|right)\s*=\s*(-?[\d.]+)/g;
-        let side;
-        while ((side = sides.exec(value)) !== null) {
-            padding[side[1] as keyof typeof padding] = Number(side[2]);
-        }
-    }
-    const { top, left, bottom, right } = padding;
+    const { top, left, bottom, right } = getElkPadding(elkGraph.layoutOptions ?? elkLayoutOptions);
     const width = Math.max(0, (elkGraph.width || 0) - left - right);
     const height = Math.max(0, (elkGraph.height || 0) - top - bottom);
     // Nothing was laid out - the root is its own padding, which is not a box at `left`/`top`.
@@ -109,37 +82,6 @@ function isWorkerElk(elk: WorkerElk | ELK): elk is WorkerElk {
     return typeof (elk as WorkerElk).terminate === 'function';
 }
 
-// The elements and the links to lay out, in the order they were given, and the graphs the
-// layout's batch runs on. A batch groups only the changes emitted by its own graph's cells,
-// so it has to run on every graph the cells come from - in practice one. A cell that is in
-// no graph (e.g. a container added only to shape the layout) emits nothing and brings none.
-function splitCells(graphOrCells: dia.Graph | dia.Cell[]): {
-    elements: dia.Element[],
-    links: dia.Link[],
-    graphs: dia.Graph[]
-} {
-    if (!Array.isArray(graphOrCells)) {
-        return {
-            elements: graphOrCells.getElements(),
-            links: graphOrCells.getLinks(),
-            graphs: [graphOrCells]
-        };
-    }
-    const elements: dia.Element[] = [];
-    const links: dia.Link[] = [];
-    const graphs = new Set<dia.Graph>();
-    // A cell listed twice would be laid out twice - two ELK nodes sharing an id, so ELK
-    // reserves room for both and the import applies whichever came last.
-    new Set(graphOrCells).forEach((cell) => {
-        if (cell.isElement()) {
-            elements.push(cell as dia.Element);
-        } else {
-            links.push(cell as dia.Link);
-        }
-        if (cell.graph) graphs.add(cell.graph);
-    });
-    return { elements, links, graphs: Array.from(graphs) };
-}
 
 /**
  * Lays out a whole JointJS graph, or only the given cells.
@@ -155,30 +97,17 @@ function splitCells(graphOrCells: dia.Graph | dia.Cell[]): {
 export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutOptions): Promise<LayoutResult> {
 
     const options: LayoutOptions = opt ?? {};
-    const elkLayoutOptions = util.defaults(
-        {},
-        opt?.elkLayoutOptions,
-        DEFAULT_LAYOUT_OPTIONS
-    ) as ElkLayoutOptions;
+    const elkLayoutOptions = withDefaultElkLayoutOptions(opt?.elkLayoutOptions);
     const signal = opt?.signal;
 
     throwIfAborted(signal);
 
-    const { elements, links, graphs } = splitCells(graphOrCells);
+    const { elkGraph, index, graphs } = exportGraphLayout(graphOrCells, { ...options, elkLayoutOptions });
 
-    const { elkGraph, elementsById, linksById, portsById } = exportGraph(
-        elements,
-        links,
-        options as ExportGraphOptions,
-        elkLayoutOptions
-    );
-
-    // elkjs types every `layoutOptions` as `{ [key: string]: string }`, which this package
-    // narrows to its own option interfaces - and their optional properties force
-    // `| undefined` into the index signature, so `ElkNode` is not assignable to elkjs's
-    // own type although it is the same object at runtime. ELK's result needs no assertion
-    // back: `{ [key: string]: string }` does satisfy the narrowed interfaces.
-    const rawElkGraph = elkGraph as RawElkNode;
+    // Writes every layout option out as the string ELK takes - last, so that it sees what
+    // the export callbacks left behind. ELK's result needs no conversion back:
+    // `{ [key: string]: string }` satisfies this package's option interfaces as it is.
+    const rawElkGraph = toNativeElkNode(elkGraph);
     const elk = opt?.elk;
     let layoutResult: Promise<ElkNode>;
     if (!elk) {
@@ -199,7 +128,7 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
     // a batch left open would e.g. keep a command manager from ever closing its undo step.
     graphs.forEach((graph) => graph.startBatch(LAYOUT_BATCH_NAME));
     try {
-        importLayout(result, elementsById, linksById, portsById, options);
+        importGraphLayout(result, index, options);
     } finally {
         graphs.forEach((graph) => graph.stopBatch(LAYOUT_BATCH_NAME));
     }

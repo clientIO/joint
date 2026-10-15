@@ -54,8 +54,8 @@ const init = () => {
             // `'elk.algorithm': 'layered'` is the package's default - not repeated here.
             'elk.direction': 'RIGHT',
             'elk.edgeRouting': 'ORTHOGONAL',
-            'elk.spacing.nodeNode': '30',
-            'elk.layered.spacing.nodeNodeBetweenLayers': '50'
+            'elk.spacing.nodeNode': 30,
+            'elk.layered.spacing.nodeNodeBetweenLayers': 50
         },
     }).then(() => {
         paper.unfreeze();

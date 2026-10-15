@@ -1,3 +1,5 @@
+import type { dia, g } from '@joint/core';
+import type { ToNativeElkOptions } from './toNativeElkOptions.mjs';
 import type {
     ElkAlgorithm,
     Alignment,
@@ -39,12 +41,33 @@ import type {
     InteractiveReferencePoint,
     PortSortingStrategy,
     EdgeType,
-    PortSide
+    PortSide,
+    ContentAlignment,
+    NodeLabelPlacement,
+    SizeConstraint,
+    SizeOptions,
+    PortLabelPlacement
 } from './elkEnums.mjs';
 
-export interface ElkLayoutOptions {
-    // Falls back to a plain string for any ELK option beyond this package's Core/Layered coverage.
-    [key: string]: string | undefined;
+/**
+ * ELK layout options in their JointJS spelling - `6`, `true`,
+ * `{ left: 10, vertical: 40 }`, `{ x: 10, y: 20 }`, `['INSIDE', 'V_TOP']`.
+ *
+ * Every option is declared here; {@link NativeElkLayoutOptions} is projected from it. Annotate
+ * your own options with this type to be held to the JointJS spelling alone:
+ *
+ * ```ts
+ * const options: StrictElkLayoutOptions = { 'elk.spacing.nodeNode': 6 };
+ * ```
+ */
+export interface StrictElkLayoutOptions {
+    // Falls back to any ELK option beyond this package's Core/Layered coverage.
+    // Wider than `string`, because TypeScript holds every declared property to the index
+    // signature and the ones below are typed `number`, `boolean`, `dia.Sides`,
+    // `g.PlainPoint` and arrays of enum values (the options ELK takes a set of values for).
+    // (`dia.Sides` already covers `number`; both are spelled out to say which spellings
+    // this type takes.)
+    [key: string]: string | number | boolean | dia.Sides | g.PlainPoint | readonly string[] | undefined;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-box-packingMode.html
      * @defaultValue `BoxLayoutProvider.PackingMode.SIMPLE`
@@ -62,21 +85,21 @@ export interface ElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-aspectRatio.html
      */
-    'elk.aspectRatio'?: `${number}`;
+    'elk.aspectRatio'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-bendPoints.html
      */
     'elk.bendPoints'?: string;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-contentAlignment.html
-     * @defaultValue `ContentAlignment.topLeft()`
+     * @defaultValue ['V_TOP', 'H_LEFT']
      */
-    'elk.contentAlignment'?: string;
+    'elk.contentAlignment'?: readonly ContentAlignment[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-debugMode.html
      * @defaultValue 'false'
      */
-    'elk.debugMode'?: 'true' | 'false';
+    'elk.debugMode'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-direction.html
      * @defaultValue 'UNDEFINED'
@@ -91,7 +114,7 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-expandNodes.html
      * @defaultValue 'false'
      */
-    'elk.expandNodes'?: 'true' | 'false';
+    'elk.expandNodes'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-hierarchyHandling.html
      * @defaultValue 'INHERIT'
@@ -101,22 +124,22 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-padding.html
      * @defaultValue `new ElkPadding(12)`
      */
-    'elk.padding'?: string;
+    'elk.padding'?: dia.Sides;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-interactive.html
      * @defaultValue 'false'
      */
-    'elk.interactive'?: 'true' | 'false';
+    'elk.interactive'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-interactiveLayout.html
      * @defaultValue 'false'
      */
-    'elk.interactiveLayout'?: 'true' | 'false';
+    'elk.interactiveLayout'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-omitNodeMicroLayout.html
      * @defaultValue 'false'
      */
-    'elk.omitNodeMicroLayout'?: 'true' | 'false';
+    'elk.omitNodeMicroLayout'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-json-shapeCoords.html
      * @defaultValue 'INHERIT'
@@ -131,67 +154,67 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-commentComment.html
      * @defaultValue '10'
      */
-    'elk.spacing.commentComment'?: `${number}`;
+    'elk.spacing.commentComment'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-commentNode.html
      * @defaultValue '10'
      */
-    'elk.spacing.commentNode'?: `${number}`;
+    'elk.spacing.commentNode'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-componentComponent.html
      * @defaultValue '20'
      */
-    'elk.spacing.componentComponent'?: `${number}`;
+    'elk.spacing.componentComponent'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-edgeEdge.html
      * @defaultValue '10'
      */
-    'elk.spacing.edgeEdge'?: `${number}`;
+    'elk.spacing.edgeEdge'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-edgeLabel.html
      * @defaultValue '2'
      */
-    'elk.spacing.edgeLabel'?: `${number}`;
+    'elk.spacing.edgeLabel'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-edgeNode.html
      * @defaultValue '10'
      */
-    'elk.spacing.edgeNode'?: `${number}`;
+    'elk.spacing.edgeNode'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-labelLabel.html
      * @defaultValue '0'
      */
-    'elk.spacing.labelLabel'?: `${number}`;
+    'elk.spacing.labelLabel'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-labelNode.html
      * @defaultValue '5'
      */
-    'elk.spacing.labelNode'?: `${number}`;
+    'elk.spacing.labelNode'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-labelPortHorizontal.html
      * @defaultValue '1'
      */
-    'elk.spacing.labelPortHorizontal'?: `${number}`;
+    'elk.spacing.labelPortHorizontal'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-labelPortVertical.html
      * @defaultValue '1'
      */
-    'elk.spacing.labelPortVertical'?: `${number}`;
+    'elk.spacing.labelPortVertical'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-nodeNode.html
      * @defaultValue '20'
      */
-    'elk.spacing.nodeNode'?: `${number}`;
+    'elk.spacing.nodeNode'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-nodeSelfLoop.html
      * @defaultValue '10'
      */
-    'elk.spacing.nodeSelfLoop'?: `${number}`;
+    'elk.spacing.nodeSelfLoop'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-portPort.html
      * @defaultValue '10'
      */
-    'elk.spacing.portPort'?: `${number}`;
+    'elk.spacing.portPort'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-individual.html
      */
@@ -200,26 +223,26 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-spacing-portsSurrounding.html
      * @defaultValue `new ElkMargin(0)`
      */
-    'elk.spacing.portsSurrounding'?: string;
+    'elk.spacing.portsSurrounding'?: dia.Sides;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-partitioning-partition.html
      */
-    'elk.partitioning.partition'?: `${number}`;
+    'elk.partitioning.partition'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-partitioning-activate.html
      * @defaultValue 'false'
      */
-    'elk.partitioning.activate'?: 'true' | 'false';
+    'elk.partitioning.activate'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeLabels-padding.html
      * @defaultValue `new ElkPadding(5)`
      */
-    'elk.nodeLabels.padding'?: string;
+    'elk.nodeLabels.padding'?: dia.Sides;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeLabels-placement.html
-     * @defaultValue `NodeLabelPlacement.fixed`
+     * @defaultValue [] - no placement: a label keeps the position it is given
      */
-    'elk.nodeLabels.placement'?: string;
+    'elk.nodeLabels.placement'?: readonly NodeLabelPlacement[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portAlignment-default.html
      * @defaultValue 'DISTRIBUTED'
@@ -249,39 +272,39 @@ export interface ElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-position.html
      */
-    'elk.position'?: string;
+    'elk.position'?: g.PlainPoint;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-priority.html
      */
-    'elk.priority'?: `${number}`;
+    'elk.priority'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-randomSeed.html
      */
-    'elk.randomSeed'?: `${number}`;
+    'elk.randomSeed'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-separateConnectedComponents.html
      */
-    'elk.separateConnectedComponents'?: 'true' | 'false';
+    'elk.separateConnectedComponents'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-constraints.html
-     * @defaultValue `EnumSet.noneOf(SizeConstraint)`
+     * @defaultValue []
      */
-    'elk.nodeSize.constraints'?: string;
+    'elk.nodeSize.constraints'?: readonly SizeConstraint[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-options.html
-     * @defaultValue `EnumSet.of(SizeOptions.DEFAULT_MINIMUM_SIZE)`
+     * @defaultValue ['DEFAULT_MINIMUM_SIZE']
      */
-    'elk.nodeSize.options'?: string;
+    'elk.nodeSize.options'?: readonly SizeOptions[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-minimum.html
      * @defaultValue `new KVector(0, 0)`
      */
-    'elk.nodeSize.minimum'?: string;
+    'elk.nodeSize.minimum'?: g.PlainPoint;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-nodeSize-fixedGraphSize.html
      * @defaultValue 'false'
      */
-    'elk.nodeSize.fixedGraphSize'?: 'true' | 'false';
+    'elk.nodeSize.fixedGraphSize'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-junctionPoints.html
      * @defaultValue `new KVectorChain()`
@@ -291,7 +314,7 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-commentBox.html
      * @defaultValue 'false'
      */
-    'elk.commentBox'?: 'true' | 'false';
+    'elk.commentBox'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-edgeLabels-placement.html
      * @defaultValue 'CENTER'
@@ -301,7 +324,7 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-edgeLabels-inline.html
      * @defaultValue 'false'
      */
-    'elk.edgeLabels.inline'?: 'true' | 'false';
+    'elk.edgeLabels.inline'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-font-name.html
      */
@@ -309,35 +332,35 @@ export interface ElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-font-size.html
      */
-    'elk.font.size'?: `${number}`;
+    'elk.font.size'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-hypernode.html
      * @defaultValue 'false'
      */
-    'elk.hypernode'?: 'true' | 'false';
+    'elk.hypernode'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-softwrappingFuzziness.html
      * @defaultValue '0.0'
      */
-    'elk.softwrappingFuzziness'?: `${number}`;
+    'elk.softwrappingFuzziness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-margins.html
      * @defaultValue `new ElkMargin()`
      */
-    'elk.margins'?: string;
+    'elk.margins'?: dia.Sides;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-noLayout.html
      * @defaultValue 'false'
      */
-    'elk.noLayout'?: 'true' | 'false';
+    'elk.noLayout'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-port-anchor.html
      */
-    'elk.port.anchor'?: string;
+    'elk.port.anchor'?: g.PlainPoint;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-port-index.html
      */
-    'elk.port.index'?: `${number}`;
+    'elk.port.index'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-port-side.html
      * @defaultValue 'UNDEFINED'
@@ -346,55 +369,55 @@ export interface ElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-port-borderOffset.html
      */
-    'elk.port.borderOffset'?: `${number}`;
+    'elk.port.borderOffset'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portLabels-placement.html
-     * @defaultValue `PortLabelPlacement.outside`
+     * @defaultValue ['OUTSIDE']
      */
-    'elk.portLabels.placement'?: string;
+    'elk.portLabels.placement'?: readonly PortLabelPlacement[];
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portLabels-nextToPortIfPossible.html
      * @defaultValue 'false'
      */
-    'elk.portLabels.nextToPortIfPossible'?: 'true' | 'false';
+    'elk.portLabels.nextToPortIfPossible'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-portLabels-treatAsGroup.html
      * @defaultValue 'true'
      */
-    'elk.portLabels.treatAsGroup'?: 'true' | 'false';
+    'elk.portLabels.treatAsGroup'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-scaleFactor.html
      * @defaultValue '1'
      */
-    'elk.scaleFactor'?: `${number}`;
+    'elk.scaleFactor'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-childAreaWidth.html
      */
-    'elk.childAreaWidth'?: `${number}`;
+    'elk.childAreaWidth'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-childAreaHeight.html
      */
-    'elk.childAreaHeight'?: `${number}`;
+    'elk.childAreaHeight'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdownLayout.html
      * @defaultValue 'false'
      */
-    'elk.topdownLayout'?: 'true' | 'false';
+    'elk.topdownLayout'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-sizeCategories.html
      * @defaultValue '3'
      */
-    'elk.topdown.sizeCategories'?: `${number}`;
+    'elk.topdown.sizeCategories'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-sizeCategoriesHierarchicalNodeWeight.html
      * @defaultValue '4'
      */
-    'elk.topdown.sizeCategoriesHierarchicalNodeWeight'?: `${number}`;
+    'elk.topdown.sizeCategoriesHierarchicalNodeWeight'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-scaleFactor.html
      * @defaultValue '1'
      */
-    'elk.topdown.scaleFactor'?: `${number}`;
+    'elk.topdown.scaleFactor'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-sizeApproximator.html
      * @defaultValue `null`
@@ -404,12 +427,12 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-hierarchicalNodeWidth.html
      * @defaultValue '150'
      */
-    'elk.topdown.hierarchicalNodeWidth'?: `${number}`;
+    'elk.topdown.hierarchicalNodeWidth'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-hierarchicalNodeAspectRatio.html
      * @defaultValue '1.414'
      */
-    'elk.topdown.hierarchicalNodeAspectRatio'?: `${number}`;
+    'elk.topdown.hierarchicalNodeAspectRatio'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-nodeType.html
      * @defaultValue `null`
@@ -419,22 +442,22 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-topdown-scaleCap.html
      * @defaultValue '1'
      */
-    'elk.topdown.scaleCap'?: `${number}`;
+    'elk.topdown.scaleCap'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-insideSelfLoops-activate.html
      * @defaultValue 'false'
      */
-    'elk.insideSelfLoops.activate'?: 'true' | 'false';
+    'elk.insideSelfLoops.activate'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-insideSelfLoops-yo.html
      * @defaultValue 'false'
      */
-    'elk.insideSelfLoops.yo'?: 'true' | 'false';
+    'elk.insideSelfLoops.yo'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-edge-thickness.html
      * @defaultValue '1'
      */
-    'elk.edge.thickness'?: `${number}`;
+    'elk.edge.thickness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-edge-type.html
      * @defaultValue 'NONE'
@@ -444,47 +467,47 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-animate.html
      * @defaultValue 'true'
      */
-    'elk.animate'?: 'true' | 'false';
+    'elk.animate'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-animTimeFactor.html
      * @defaultValue '100'
      */
-    'elk.animTimeFactor'?: `${number}`;
+    'elk.animTimeFactor'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layoutAncestors.html
      * @defaultValue 'false'
      */
-    'elk.layoutAncestors'?: 'true' | 'false';
+    'elk.layoutAncestors'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-maxAnimTime.html
      * @defaultValue '4000'
      */
-    'elk.maxAnimTime'?: `${number}`;
+    'elk.maxAnimTime'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-minAnimTime.html
      * @defaultValue '400'
      */
-    'elk.minAnimTime'?: `${number}`;
+    'elk.minAnimTime'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-progressBar.html
      * @defaultValue 'false'
      */
-    'elk.progressBar'?: 'true' | 'false';
+    'elk.progressBar'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-validateGraph.html
      * @defaultValue 'false'
      */
-    'elk.validateGraph'?: 'true' | 'false';
+    'elk.validateGraph'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-validateOptions.html
      * @defaultValue 'true'
      */
-    'elk.validateOptions'?: 'true' | 'false';
+    'elk.validateOptions'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-zoomToFit.html
      * @defaultValue 'false'
      */
-    'elk.zoomToFit'?: 'true' | 'false';
+    'elk.zoomToFit'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-cycleBreaking-strategy.html
      * @defaultValue 'GREEDY'
@@ -504,22 +527,22 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-layerChoiceConstraint.html
      * @defaultValue `null`
      */
-    'elk.layered.layering.layerChoiceConstraint'?: `${number}`;
+    'elk.layered.layering.layerChoiceConstraint'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-layerId.html
      * @defaultValue '-1'
      */
-    'elk.layered.layering.layerId'?: `${number}`;
+    'elk.layered.layering.layerId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-minWidth-upperBoundOnWidth.html
      * @defaultValue '4'
      */
-    'elk.layered.layering.minWidth.upperBoundOnWidth'?: `${number}`;
+    'elk.layered.layering.minWidth.upperBoundOnWidth'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-minWidth-upperLayerEstimationScalingFactor.html
      * @defaultValue '2'
      */
-    'elk.layered.layering.minWidth.upperLayerEstimationScalingFactor'?: `${number}`;
+    'elk.layered.layering.minWidth.upperLayerEstimationScalingFactor'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-nodePromotion-strategy.html
      * @defaultValue 'NONE'
@@ -529,12 +552,12 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-nodePromotion-maxIterations.html
      * @defaultValue '0'
      */
-    'elk.layered.layering.nodePromotion.maxIterations'?: `${number}`;
+    'elk.layered.layering.nodePromotion.maxIterations'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layering-coffmanGraham-layerBound.html
      * @defaultValue 'MAX_VALUE'
      */
-    'elk.layered.layering.coffmanGraham.layerBound'?: `${number}`;
+    'elk.layered.layering.coffmanGraham.layerBound'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-strategy.html
      * @defaultValue 'LAYER_SWEEP'
@@ -544,17 +567,17 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-forceNodeModelOrder.html
      * @defaultValue 'false'
      */
-    'elk.layered.crossingMinimization.forceNodeModelOrder'?: 'true' | 'false';
+    'elk.layered.crossingMinimization.forceNodeModelOrder'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-hierarchicalSweepiness.html
      * @defaultValue '0.1'
      */
-    'elk.layered.crossingMinimization.hierarchicalSweepiness'?: `${number}`;
+    'elk.layered.crossingMinimization.hierarchicalSweepiness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-greedySwitch-activationThreshold.html
      * @defaultValue '40'
      */
-    'elk.layered.crossingMinimization.greedySwitch.activationThreshold'?: `${number}`;
+    'elk.layered.crossingMinimization.greedySwitch.activationThreshold'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-greedySwitch-type.html
      * @defaultValue 'TWO_SIDED'
@@ -569,7 +592,7 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-semiInteractive.html
      * @defaultValue 'false'
      */
-    'elk.layered.crossingMinimization.semiInteractive'?: 'true' | 'false';
+    'elk.layered.crossingMinimization.semiInteractive'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-inLayerPredOf.html
      * @defaultValue `null`
@@ -584,12 +607,12 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-positionChoiceConstraint.html
      * @defaultValue `null`
      */
-    'elk.layered.crossingMinimization.positionChoiceConstraint'?: `${number}`;
+    'elk.layered.crossingMinimization.positionChoiceConstraint'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-crossingMinimization-positionId.html
      * @defaultValue '-1'
      */
-    'elk.layered.crossingMinimization.positionId'?: `${number}`;
+    'elk.layered.crossingMinimization.positionId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-nodePlacement-strategy.html
      * @defaultValue 'BRANDES_KOEPF'
@@ -598,7 +621,7 @@ export interface ElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-nodePlacement-favorStraightEdges.html
      */
-    'elk.layered.nodePlacement.favorStraightEdges'?: 'true' | 'false';
+    'elk.layered.nodePlacement.favorStraightEdges'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-nodePlacement-bk-edgeStraightening.html
      * @defaultValue 'IMPROVE_STRAIGHTNESS'
@@ -613,7 +636,7 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-nodePlacement-linearSegments-deflectionDampening.html
      * @defaultValue '0.3'
      */
-    'elk.layered.nodePlacement.linearSegments.deflectionDampening'?: `${number}`;
+    'elk.layered.nodePlacement.linearSegments.deflectionDampening'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-nodePlacement-networkSimplex-nodeFlexibility.html
      */
@@ -637,12 +660,12 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-edgeRouting-splines-sloppy-layerSpacingFactor.html
      * @defaultValue '0.2'
      */
-    'elk.layered.edgeRouting.splines.sloppy.layerSpacingFactor'?: `${number}`;
+    'elk.layered.edgeRouting.splines.sloppy.layerSpacingFactor'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-edgeRouting-polyline-slopedEdgeZoneWidth.html
      * @defaultValue '2.0'
      */
-    'elk.layered.edgeRouting.polyline.slopedEdgeZoneWidth'?: `${number}`;
+    'elk.layered.edgeRouting.polyline.slopedEdgeZoneWidth'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-edgeRouting-selfLoopDistribution.html
      * @defaultValue 'NORTH'
@@ -656,37 +679,37 @@ export interface ElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-spacing-baseValue.html
      */
-    'elk.layered.spacing.baseValue'?: `${number}`;
+    'elk.layered.spacing.baseValue'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-spacing-edgeNodeBetweenLayers.html
      * @defaultValue '10'
      */
-    'elk.layered.spacing.edgeNodeBetweenLayers'?: `${number}`;
+    'elk.layered.spacing.edgeNodeBetweenLayers'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-spacing-edgeEdgeBetweenLayers.html
      * @defaultValue '10'
      */
-    'elk.layered.spacing.edgeEdgeBetweenLayers'?: `${number}`;
+    'elk.layered.spacing.edgeEdgeBetweenLayers'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-spacing-nodeNodeBetweenLayers.html
      * @defaultValue '20'
      */
-    'elk.layered.spacing.nodeNodeBetweenLayers'?: `${number}`;
+    'elk.layered.spacing.nodeNodeBetweenLayers'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-priority-direction.html
      * @defaultValue '0'
      */
-    'elk.layered.priority.direction'?: `${number}`;
+    'elk.layered.priority.direction'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-priority-shortness.html
      * @defaultValue '0'
      */
-    'elk.layered.priority.shortness'?: `${number}`;
+    'elk.layered.priority.shortness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-priority-straightness.html
      * @defaultValue '0'
      */
-    'elk.layered.priority.straightness'?: `${number}`;
+    'elk.layered.priority.straightness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-compaction-postCompaction-strategy.html
      * @defaultValue 'NONE'
@@ -701,22 +724,22 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-compaction-connectedComponents.html
      * @defaultValue 'false'
      */
-    'elk.layered.compaction.connectedComponents'?: 'true' | 'false';
+    'elk.layered.compaction.connectedComponents'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-highDegreeNodes-treatment.html
      * @defaultValue 'false'
      */
-    'elk.layered.highDegreeNodes.treatment'?: 'true' | 'false';
+    'elk.layered.highDegreeNodes.treatment'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-highDegreeNodes-threshold.html
      * @defaultValue '16'
      */
-    'elk.layered.highDegreeNodes.threshold'?: `${number}`;
+    'elk.layered.highDegreeNodes.threshold'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-highDegreeNodes-treeHeight.html
      * @defaultValue '5'
      */
-    'elk.layered.highDegreeNodes.treeHeight'?: `${number}`;
+    'elk.layered.highDegreeNodes.treeHeight'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-wrapping-strategy.html
      * @defaultValue 'OFF'
@@ -726,12 +749,12 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-wrapping-additionalEdgeSpacing.html
      * @defaultValue '10'
      */
-    'elk.layered.wrapping.additionalEdgeSpacing'?: `${number}`;
+    'elk.layered.wrapping.additionalEdgeSpacing'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-wrapping-correctionFactor.html
      * @defaultValue '1.0'
      */
-    'elk.layered.wrapping.correctionFactor'?: `${number}`;
+    'elk.layered.wrapping.correctionFactor'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-wrapping-cutting-strategy.html
      * @defaultValue 'MSD'
@@ -745,7 +768,7 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-wrapping-cutting-msd-freedom.html
      * @defaultValue '1'
      */
-    'elk.layered.wrapping.cutting.msd.freedom'?: `${number}`;
+    'elk.layered.wrapping.cutting.msd.freedom'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-wrapping-validify-strategy.html
      * @defaultValue 'GREEDY'
@@ -759,17 +782,17 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-wrapping-multiEdge-improveCuts.html
      * @defaultValue 'true'
      */
-    'elk.layered.wrapping.multiEdge.improveCuts'?: 'true' | 'false';
+    'elk.layered.wrapping.multiEdge.improveCuts'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-wrapping-multiEdge-distancePenalty.html
      * @defaultValue '2.0'
      */
-    'elk.layered.wrapping.multiEdge.distancePenalty'?: `${number}`;
+    'elk.layered.wrapping.multiEdge.distancePenalty'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-wrapping-multiEdge-improveWrappedEdges.html
      * @defaultValue 'true'
      */
-    'elk.layered.wrapping.multiEdge.improveWrappedEdges'?: 'true' | 'false';
+    'elk.layered.wrapping.multiEdge.improveWrappedEdges'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layerUnzipping-strategy.html
      * @defaultValue 'NONE'
@@ -779,17 +802,17 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layerUnzipping-minimizeEdgeLength.html
      * @defaultValue 'false'
      */
-    'elk.layered.layerUnzipping.minimizeEdgeLength'?: 'true' | 'false';
+    'elk.layered.layerUnzipping.minimizeEdgeLength'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layerUnzipping-layerSplit.html
      * @defaultValue '2'
      */
-    'elk.layered.layerUnzipping.layerSplit'?: `${number}`;
+    'elk.layered.layerUnzipping.layerSplit'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-layerUnzipping-resetOnLongEdges.html
      * @defaultValue 'true'
      */
-    'elk.layered.layerUnzipping.resetOnLongEdges'?: 'true' | 'false';
+    'elk.layered.layerUnzipping.resetOnLongEdges'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-edgeLabels-sideSelection.html
      * @defaultValue 'SMART_DOWN'
@@ -809,12 +832,12 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-portModelOrder.html
      * @defaultValue 'false'
      */
-    'elk.layered.considerModelOrder.portModelOrder'?: 'true' | 'false';
+    'elk.layered.considerModelOrder.portModelOrder'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-noModelOrder.html
      * @defaultValue 'false'
      */
-    'elk.layered.considerModelOrder.noModelOrder'?: 'true' | 'false';
+    'elk.layered.considerModelOrder.noModelOrder'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-components.html
      * @defaultValue 'NONE'
@@ -829,27 +852,27 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-crossingCounterNodeInfluence.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.crossingCounterNodeInfluence'?: `${number}`;
+    'elk.layered.considerModelOrder.crossingCounterNodeInfluence'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-crossingCounterPortInfluence.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.crossingCounterPortInfluence'?: `${number}`;
+    'elk.layered.considerModelOrder.crossingCounterPortInfluence'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-cycleBreakingId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.cycleBreakingId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.cycleBreakingId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-crossingMinimizationId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.crossingMinimizationId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-componentGroupId.html
      * @defaultValue '0'
      */
-    'elk.layered.considerModelOrder.groupModelOrder.componentGroupId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.componentGroupId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-cbGroupOrderStrategy.html
      * @defaultValue 'ONLY_WITHIN_GROUP'
@@ -858,11 +881,11 @@ export interface ElkLayoutOptions {
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-cbPreferredSourceId.html
      */
-    'elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.cbPreferredSourceId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-cbPreferredTargetId.html
      */
-    'elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId'?: `${number}`;
+    'elk.layered.considerModelOrder.groupModelOrder.cbPreferredTargetId'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-considerModelOrder-groupModelOrder-cmGroupOrderStrategy.html
      * @defaultValue 'ONLY_WITHIN_GROUP'
@@ -882,7 +905,7 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-feedbackEdges.html
      * @defaultValue 'false'
      */
-    'elk.layered.feedbackEdges'?: 'true' | 'false';
+    'elk.layered.feedbackEdges'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-interactiveReferencePoint.html
      * @defaultValue 'CENTER'
@@ -892,17 +915,17 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-mergeEdges.html
      * @defaultValue 'false'
      */
-    'elk.layered.mergeEdges'?: 'true' | 'false';
+    'elk.layered.mergeEdges'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-mergeHierarchyEdges.html
      * @defaultValue 'true'
      */
-    'elk.layered.mergeHierarchyEdges'?: 'true' | 'false';
+    'elk.layered.mergeHierarchyEdges'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-allowNonFlowPortsToSwitchSides.html
      * @defaultValue 'false'
      */
-    'elk.layered.allowNonFlowPortsToSwitchSides'?: 'true' | 'false';
+    'elk.layered.allowNonFlowPortsToSwitchSides'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-portSortingStrategy.html
      * @defaultValue 'INPUT_ORDER'
@@ -912,15 +935,35 @@ export interface ElkLayoutOptions {
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-thoroughness.html
      * @defaultValue '7'
      */
-    'elk.layered.thoroughness'?: `${number}`;
+    'elk.layered.thoroughness'?: number;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-unnecessaryBendpoints.html
      * @defaultValue 'false'
      */
-    'elk.layered.unnecessaryBendpoints'?: 'true' | 'false';
+    'elk.layered.unnecessaryBendpoints'?: boolean;
     /**
      * @see https://eclipse.dev/elk/reference/options/org-eclipse-elk-layered-generatePositionAndLayerIds.html
      * @defaultValue 'false'
      */
-    'elk.layered.generatePositionAndLayerIds'?: 'true' | 'false';
+    'elk.layered.generatePositionAndLayerIds'?: boolean;
 }
+
+/**
+ * ELK layout options in ELK's own spelling - every value a string, the way the
+ * reference page linked from each option expresses it, and the way options that arrive as
+ * data (a saved diagram, a backend's config) are already shaped.
+ *
+ * Projected from {@link StrictElkLayoutOptions}, so the two cannot drift.
+ */
+export type NativeElkLayoutOptions = ToNativeElkOptions<StrictElkLayoutOptions>;
+
+/**
+ * ELK layout options. Each option takes either spelling, so one object can mix
+ * them: `{ 'elk.spacing.nodeNode': 6, 'elk.padding': '[top=12,left=12]' }`.
+ *
+ * Per key rather than `StrictElkLayoutOptions | NativeElkLayoutOptions`: an object literal
+ * mixing the two spellings matches neither arm of a union of the whole types.
+ */
+export type ElkLayoutOptions = {
+    [K in keyof StrictElkLayoutOptions]?: StrictElkLayoutOptions[K] | NativeElkLayoutOptions[K];
+};
