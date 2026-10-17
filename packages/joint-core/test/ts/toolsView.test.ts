@@ -1,6 +1,10 @@
 import { dia, linkTools, elementTools } from '../../';
 
 class MyVertexHandle extends linkTools.Vertices.VertexHandle {
+
+    protected override onDoubleClick(evt: dia.Event): void {
+        super.onDoubleClick(evt);
+    }
 }
 
 const vertices = new linkTools.Vertices({
@@ -20,11 +24,31 @@ const segments = new linkTools.Segments({
     snapHandle: false,
 });
 
+class MyTargetAnchor extends linkTools.TargetAnchor {
+
+    protected override onPointerDown(evt: dia.Event): void {
+        super.onPointerDown(evt);
+    }
+
+    protected override onPointerMove(evt: dia.Event): void {
+        super.onPointerMove(evt);
+    }
+
+    protected override onPointerUp(evt: dia.Event): void {
+        super.onPointerUp(evt);
+    }
+
+    protected override onPointerDblClick(evt: dia.Event): void {
+        super.onPointerDblClick(evt);
+    }
+}
+
 const toolsView = new dia.ToolsView({
     name: 'test-tools-view',
     tools: [
         vertices,
         segments,
+        new MyTargetAnchor(),
     ]
 });
 
