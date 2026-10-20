@@ -434,31 +434,30 @@ export const CellView = View.extend({
 
     /**
      * @public
-     * @description Finds the selector of the node in the markup it was
-     * rendered from. The selector is scoped to that markup - the cell, a port
-     * or a link label - the same scope `findNode()`, `findPortNode()` and
-     * `findLabelNode()` resolve it in. Group selectors are not returned.
+     * @description Finds the selector of the node in the cell's markup - the
+     * inverse of `findNode()`: a selector is returned only if `findNode()`
+     * finds the node by it. The nodes of ports and link labels, and the nodes
+     * with group selectors only, have none.
      * @param {Element} node
      * @returns {string|null} The selector or `null` if the node has none.
      */
     getNodeSelector: function(node) {
         if (!node || node.nodeType !== 1) return null;
+        const selector = this._findNodeSelector(node);
+        if (selector === null || this.findNode(selector) !== node) return null;
+        return selector;
+    },
+
+    _findNodeSelector: function(node) {
         const selector = node.getAttribute('joint-selector');
         if (selector !== null) return selector;
-        // String markup does not always map the root in `selectors`.
-        if (node === this.el) return this.selector;
         // The selectors the view assigns itself (e.g. the root) are not
         // written on the nodes.
-        const selectors = this._getNodeScopeSelectors(node);
+        const { selectors } = this;
         for (const key in selectors) {
             if (selectors[key] === node) return key;
         }
         return null;
-    },
-
-    // The selectors of the markup the node was rendered from.
-    _getNodeScopeSelectors: function(_node) {
-        return this.selectors;
     },
 
     getLinkEnd: function(magnet, ...args) {

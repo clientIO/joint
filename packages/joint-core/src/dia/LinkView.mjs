@@ -416,15 +416,6 @@ export const LinkView = CellView.extend({
         }
     },
 
-    _getNodeScopeSelectors: function(node) {
-        // The labels may be rendered outside of the view's element (`labelsLayer`).
-        const { _labelCache, _labelSelectors } = this;
-        for (const labelIndex in _labelCache) {
-            if (_labelCache[labelIndex].contains(node)) return _labelSelectors[labelIndex];
-        }
-        return this.selectors;
-    },
-
     findLabelNodes: function(labelIndex, selector) {
         const labelRoot = this._labelCache[labelIndex];
         if (!labelRoot) return [];

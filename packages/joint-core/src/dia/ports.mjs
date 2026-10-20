@@ -919,13 +919,6 @@ export const elementViewPortPrototype = {
         return node;
     },
 
-    _getNodeScopeSelectors: function(node) {
-        for (const { portElement, portSelectors } of this._portElementsCache.values()) {
-            if (portElement.node.contains(node)) return portSelectors;
-        }
-        return this.selectors;
-    },
-
     /**
      * @private
      */
