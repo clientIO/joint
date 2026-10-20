@@ -5,6 +5,11 @@ import { Model } from '../mvc/Model.mjs';
 import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
+import { Cell } from './Cell.mjs';
+
+const isCellConstructor = function(Ctor) {
+    return typeof Ctor === 'function' && (Ctor === Cell || Ctor.prototype instanceof Cell);
+};
 
 const GraphCells = Collection.extend({
 
@@ -31,7 +36,7 @@ const GraphCells = Collection.extend({
 
         // Find the model class based on the `type` attribute in the cell namespace
         const ModelClass = util.getByPath(namespace, type, '.');
-        if (!ModelClass) {
+        if (!isCellConstructor(ModelClass)) {
             throw new Error(`dia.Graph: Could not find cell constructor for type: '${type}'. Make sure to add the constructor to 'cellNamespace'.`);
         }
 

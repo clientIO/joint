@@ -2862,7 +2862,8 @@ export const Paper = View.extend({
         if (!this.isDefined(filterId)) {
 
             var namespace = _filter;
-            var filterSVGString = namespace[name] && namespace[name](filter.args || {});
+            // Only the filters defined in the namespace, not the inherited methods (e.g. `toString`).
+            var filterSVGString = Object.prototype.hasOwnProperty.call(namespace, name) && namespace[name](filter.args || {});
             if (!filterSVGString) {
                 throw new Error('Non-existing filter ' + name);
             }

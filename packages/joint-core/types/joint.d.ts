@@ -195,11 +195,15 @@ export namespace dia {
 
         constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         addCell(cell: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         addCells(cells: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
         getCell(id: Cell.ID | Cell): Cell;
@@ -258,6 +262,7 @@ export namespace dia {
 
         toJSON(opt?: { cellAttributes?: dia.Cell.ExportOptions }): any;
 
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         fromJSON(json: any, opt?: S): this;
 
         clear(opt?: { [key: string]: any }): this;
@@ -438,6 +443,10 @@ export namespace dia {
         }
     }
 
+    /**
+     * The attributes of a cell (e.g. `markup`, `attrs`, `ports` and `labels`) are rendered as they are.
+     * Sanitize values from an untrusted source first, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}.
+     */
     class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
         constructor(attributes?: DeepPartial<A>, opt?: Cell.ConstructorOptions);
@@ -474,13 +483,17 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: Path): any;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         prop(object: DeepPartial<A>, opt?: Cell.Options): this;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         prop(key: Path, value: any, opt?: Cell.Options): this;
 
         removeProp(path: Path, opt?: Cell.Options): this;
 
         attr(key?: Path): any;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         attr(object: Cell.Selectors, opt?: Cell.Options): this;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         attr(key: Path, value: any, opt?: Cell.Options): this;
 
         clone(): this;

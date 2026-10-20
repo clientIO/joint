@@ -64,7 +64,7 @@ $.parseHTML = function(string) {
 
     context.body.innerHTML = string;
     // remove scripts
-    const scripts = context.getElementsByTagName('script');
+    const scripts = Array.from(context.getElementsByTagName('script'));
     for (let i = 0; i < scripts.length; i++) {
         scripts[i].remove();
     }
