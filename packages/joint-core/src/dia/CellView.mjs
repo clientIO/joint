@@ -445,6 +445,8 @@ export const CellView = View.extend({
         if (!node || node.nodeType !== 1) return null;
         const selector = node.getAttribute('joint-selector');
         if (selector !== null) return selector;
+        // String markup does not always map the root in `selectors`.
+        if (node === this.el) return this.selector;
         // The selectors the view assigns itself (e.g. the root) are not
         // written on the nodes.
         const selectors = this._getNodeScopeSelectors(node);

@@ -117,6 +117,18 @@ QUnit.module('cellView', function(hooks) {
             assert.equal(cellView.getNodeSelector(cellView.el), 'root');
         });
 
+        QUnit.test('link string markup', function(assert) {
+            const link = new joint.shapes.standard.Link({
+                source: { x: 0, y: 0 },
+                target: { x: 100, y: 100 },
+                markup: '<path class="connection"/>'
+            });
+            link.addTo(paper.model);
+            const view = link.findView(paper);
+            assert.equal(view.getNodeSelector(view.el), 'root');
+            assert.equal(view.getNodeSelector(view.el.querySelector('path')), null);
+        });
+
         QUnit.test('port markup', function(assert) {
             const element = new joint.shapes.standard.Rectangle({
                 ports: {
