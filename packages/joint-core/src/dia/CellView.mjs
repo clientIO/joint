@@ -432,6 +432,33 @@ export const CellView = View.extend({
         return link.findView(paper);
     },
 
+    /**
+     * @public
+     * @description Finds the selector of the node in the markup it was
+     * rendered from. The selector is scoped to that markup - the cell, a port
+     * or a link label - the same scope `findNode()`, `findPortNode()` and
+     * `findLabelNode()` resolve it in. Group selectors are not returned.
+     * @param {Element} node
+     * @returns {string|null} The selector or `null` if the node has none.
+     */
+    getNodeSelector: function(node) {
+        if (!node || node.nodeType !== 1) return null;
+        const selector = node.getAttribute('joint-selector');
+        if (selector !== null) return selector;
+        // The selectors the view assigns itself (e.g. the root) are not
+        // written on the nodes.
+        const selectors = this._getNodeScopeSelectors(node);
+        for (const key in selectors) {
+            if (selectors[key] === node) return key;
+        }
+        return null;
+    },
+
+    // The selectors of the markup the node was rendered from.
+    _getNodeScopeSelectors: function(_node) {
+        return this.selectors;
+    },
+
     getLinkEnd: function(magnet, ...args) {
 
         const model = this.model;

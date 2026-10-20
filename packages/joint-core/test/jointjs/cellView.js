@@ -79,6 +79,103 @@ QUnit.module('cellView', function(hooks) {
         });
     });
 
+    QUnit.module('getNodeSelector(node)', function() {
+
+        QUnit.test('should be a function', function(assert) {
+            assert.equal(typeof cellView.getNodeSelector, 'function');
+        });
+
+        QUnit.test('element markup', function(assert) {
+            const element = new joint.shapes.standard.Rectangle({
+                markup: [{
+                    tagName: 'g',
+                    selector: 'group',
+                    groupSelector: 'parts',
+                    children: [{
+                        tagName: 'rect',
+                        selector: 'body',
+                        groupSelector: 'parts'
+                    }, {
+                        tagName: 'circle',
+                        groupSelector: 'parts'
+                    }]
+                }]
+            });
+            element.addTo(paper.model);
+            const view = element.findView(paper);
+            assert.equal(view.getNodeSelector(view.findNode('group')), 'group');
+            assert.equal(view.getNodeSelector(view.findNode('body')), 'body');
+            assert.equal(view.getNodeSelector(view.el), 'root');
+            // A node with group selectors only
+            assert.equal(view.getNodeSelector(view.el.querySelector('circle')), null);
+            assert.equal(view.getNodeSelector(null), null);
+            assert.equal(view.getNodeSelector(document.createTextNode('text')), null);
+        });
+
+        QUnit.test('string markup', function(assert) {
+            assert.equal(cellView.getNodeSelector(cellView.el.querySelector('rect')), null);
+            assert.equal(cellView.getNodeSelector(cellView.el), 'root');
+        });
+
+        QUnit.test('port markup', function(assert) {
+            const element = new joint.shapes.standard.Rectangle({
+                ports: {
+                    items: [{
+                        id: 'port1',
+                        markup: [{ tagName: 'circle', selector: 'portBody' }],
+                        label: {
+                            markup: [{ tagName: 'text', selector: 'portLabel' }]
+                        }
+                    }, {
+                        id: 'port2',
+                        markup: [{ tagName: 'rect' }, { tagName: 'circle' }],
+                        label: {
+                            markup: [{ tagName: 'text' }]
+                        }
+                    }]
+                }
+            });
+            element.addTo(paper.model);
+            const view = element.findView(paper);
+            ['port1', 'port2'].forEach(portId => {
+                assert.equal(view.getNodeSelector(view.findPortNode(portId, 'root')), 'root');
+            });
+            assert.equal(view.getNodeSelector(view.findPortNode('port1', 'portBody')), 'portBody');
+            assert.equal(view.getNodeSelector(view.findPortNode('port1', 'portLabel')), 'portLabel');
+            // The selectors the view assigns itself
+            assert.equal(view.getNodeSelector(view.findPortNode('port2', 'portRoot')), 'portRoot');
+            assert.equal(view.getNodeSelector(view.findPortNode('port2', 'labelRoot')), 'labelRoot');
+            assert.equal(view.getNodeSelector(view.findPortNode('port2', 'portRoot').firstChild), null);
+            // The element markup is not affected
+            assert.equal(view.getNodeSelector(view.findNode('body')), 'body');
+            assert.equal(view.getNodeSelector(view.el), 'root');
+        });
+
+        QUnit.test('link label markup', function(assert) {
+            const labelsPaper = new joint.dia.Paper({ labelsLayer: true });
+            fixtures.getElement().appendChild(labelsPaper.render().el);
+            const link = new joint.shapes.standard.Link({
+                source: { x: 0, y: 0 },
+                target: { x: 100, y: 100 },
+                labels: [{
+                    markup: [{ tagName: 'rect', selector: 'labelBody' }, { tagName: 'text', selector: 'labelText' }]
+                }, {
+                    markup: [{ tagName: 'text' }]
+                }]
+            });
+            link.addTo(labelsPaper.model);
+            const view = link.findView(labelsPaper);
+            assert.notOk(view.el.contains(view.findLabelNode(0, 'root')));
+            assert.equal(view.getNodeSelector(view.findLabelNode(0, 'root')), 'root');
+            assert.equal(view.getNodeSelector(view.findLabelNode(0, 'labelBody')), 'labelBody');
+            assert.equal(view.getNodeSelector(view.findLabelNode(1, 'root')), 'root');
+            assert.equal(view.getNodeSelector(view.findLabelNode(1, 'root').firstChild), null);
+            assert.equal(view.getNodeSelector(view.findNode('line')), 'line');
+            assert.equal(view.getNodeSelector(view.el), 'root');
+            labelsPaper.remove();
+        });
+    });
+
     QUnit.module('highlighting', function() {
 
         QUnit.test('default highlighter', function(assert) {

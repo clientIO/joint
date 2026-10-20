@@ -1193,6 +1193,8 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
+    getNodeSelector(node: DOMElement): string | null;
+
     getSelector(el: SVGElement, prevSelector?: string): string;
 
     notify(eventName: string, ...eventArguments: any[]): void;
