@@ -1,6 +1,6 @@
 import * as util from '../util/index.mjs';
 import { Collection } from '../mvc/Collection.mjs';
-import { CELL_MARKER, CELL_COLLECTION_MARKER } from './symbols.mjs';
+import { CELL_MARKER, CELL_COLLECTION_MARKER, isMarkedConstructor } from './symbols.mjs';
 
 /**
  * @class CellCollection
@@ -36,7 +36,7 @@ export class CellCollection extends Collection {
 
         // Find the model class based on the `type` attribute in the cell namespace
         const ModelClass = util.getByPath(namespace, type, '.');
-        if (!ModelClass) {
+        if (!isMarkedConstructor(ModelClass, CELL_MARKER)) {
             throw new Error(`dia.Graph: Could not find cell constructor for type: '${type}'. Make sure to add the constructor to 'cellNamespace'.`);
         }
 

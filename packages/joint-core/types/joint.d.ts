@@ -328,17 +328,22 @@ export namespace dia {
             cellModel?: typeof Cell
         });
 
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         addCell(cell: Graph.CellInit, opt?: CollectionAddOptions): this;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         addCell(cell: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
 
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         addCells(cells: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
 
         removeCell(cell: Graph.CellRef, opt?: Graph.RemoveCellOptions): void;
 
         removeCells(cells: Array<Graph.CellRef>, opt?: Graph.RemoveCellOptions): this;
 
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         resetCells(cells: Array<Graph.CellInit>, opt?: Graph.Options): this;
 
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         syncCells(cells: Array<Graph.CellInit>, opt?: Graph.SyncCellOptions): void;
 
         addLayer(layerInit: Graph.LayerInit, opt?: Graph.InsertLayerOptions): void;
@@ -415,6 +420,7 @@ export namespace dia {
 
         toJSON(opt?: { cellAttributes?: dia.Cell.ExportOptions }): any;
 
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         fromJSON(json: any, opt?: S): this;
 
         clear(opt?: { [key: string]: any }): this;
@@ -598,6 +604,10 @@ export namespace dia {
         }
     }
 
+    /**
+     * The attributes of a cell (e.g. `markup`, `attrs`, `ports` and `labels`) are rendered as they are.
+     * Sanitize values from an untrusted source first, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}.
+     */
     class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
         constructor(attributes?: DeepPartial<A>, opt?: Cell.ConstructorOptions);
@@ -634,13 +644,17 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: Path): any;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         prop(object: DeepPartial<A>, opt?: Cell.Options): this;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         prop(key: Path, value: any, opt?: Cell.Options): this;
 
         removeProp(path: Path, opt?: Cell.Options): this;
 
         attr(key?: Path): any;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         attr(object: Cell.Selectors, opt?: Cell.Options): this;
+        /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
         attr(key: Path, value: any, opt?: Cell.Options): this;
 
         clone(): this;
