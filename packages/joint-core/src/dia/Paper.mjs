@@ -790,7 +790,16 @@ export const Paper = View.extend({
     * @description When a new layer is added to the graph, we create a new layer view
     **/
     onGraphLayerAdd: function(layer, _, opt) {
-        if (this.hasLayerView(layer.id)) return;
+        if (this.hasLayerView(layer.id)) {
+            const existingLayerView = this.getLayerView(layer.id);
+            // Keep the view of this layer, or of a paper layer with the same id.
+            if (existingLayerView.model === layer || !existingLayerView[GRAPH_LAYER_VIEW_MARKER]) return;
+            // The view of a removed layer with the same id is still waiting
+            // for its removal (see `onGraphLayerRemove()`). Remove it now, so that
+            // the new layer gets a view of its own. Its pending update is skipped
+            // once the view is removed.
+            this._removeLayerView(existingLayerView);
+        }
 
         const layerView = this.createLayerView({
             id: layer.id,
