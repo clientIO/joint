@@ -3,6 +3,9 @@ import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
 import { mapCellToAttributes } from '../state/data-mapping';
+import type { LayerRecord } from '../types/layer.types';
+import { assertLayerRecords, reconcileLayers, removeEmptyLayers } from './layers';
+import { isRecord } from '../utils/is';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
@@ -33,6 +36,12 @@ export interface UpdateGraphOptions<
 > {
   /** Cell records to sync. If omitted, the current graph cells are preserved untouched. */
   readonly cells?: ReadonlyArray<Element | Link>;
+  /**
+   * Layers to reconcile, in paint order. Applied before the cells (so a cell
+   * may name a layer declared in the same commit) and pruned after them (so a
+   * layer emptied in the same commit is removed in it). Omitted → untouched.
+   */
+  readonly layers?: readonly LayerRecord[];
   readonly flag?: 'updateFromReact';
   /** Extra options forwarded verbatim into the `graph.syncCells` event opt. */
   readonly metadata?: Record<string, unknown>;
@@ -83,11 +92,46 @@ export interface MeasurementListeners {
 interface Options extends MeasurementListeners {
   readonly graph: dia.Graph;
   readonly onChanges: (options: OnChangeOptions) => void;
+  /** Fired synchronously after any graph-origin layer add / remove / change / reorder. */
+  readonly onLayersChange?: () => void;
 }
 
 interface JointJSEventOptions {
   readonly isUpdateFromReact?: boolean;
   readonly [key: string]: unknown;
+}
+
+/**
+ * True when a graph event's trailing `opt` argument carries the React-origin
+ * tag. Layer events pass `opt` at differing positions, so callers hand in
+ * whatever came last.
+ * @param eventOptions - The last argument of a graph event.
+ */
+function isReactOrigin(eventOptions: unknown): boolean {
+  return isRecord(eventOptions) && eventOptions.isUpdateFromReact === true;
+}
+
+/**
+ * Throws when a cell names a layer that neither the graph nor the declared
+ * `layers` provide. O(n) property reads; the layer lookup is a Map hit.
+ * @param graph - The target graph.
+ * @param cells - The records about to be synced.
+ * @param layers - Layers declared in the same commit, if any.
+ */
+function assertLayersExist(
+  graph: dia.Graph,
+  cells: ReadonlyArray<ElementJSONInit | LinkJSONInit>,
+  layers: readonly LayerRecord[] | undefined
+): void {
+  for (const cell of cells) {
+    const { layer } = cell;
+    if (layer == null || graph.hasLayer(layer)) continue;
+    if (layers?.some((record) => record.id === layer)) continue;
+    throw new Error(
+      `GraphProvider: cell "${String(cell.id)}" names layer "${layer}", which does not exist. ` +
+        'Declare it in `layers` / `initialLayers`, or add it to the graph first.'
+    );
+  }
 }
 
 /**
@@ -97,12 +141,11 @@ interface JointJSEventOptions {
  * @returns Controller exposing updateGraph and destroy.
  */
 export function graphChanges(options: Options) {
-  const { graph, onElementsSizeChange, onElementRemove, onReset } = options;
+  const { graph, onElementsSizeChange, onElementRemove, onReset, onLayersChange } = options;
   const changes = new Map<CellId, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
   let deferDepth = 0;
-  let isSyncedWithReact = true;
 
   /** True while a {@link DEFER_COMMIT_BATCH_OPTION} batch is open — commits are deferred. */
   function isDeferring() {
@@ -144,6 +187,30 @@ export function graphChanges(options: Options) {
       return;
     }
     onChanges({ changes, isInsideBatch: isInsideBatch(), deferCommit: isDeferring() });
+  }
+
+  /**
+   * Syncs a React cells snapshot into the graph. Returns the synced ids for the
+   * caller's container diff; empty when there was nothing to sync.
+   * @param cells - The records to sync, or `undefined` to leave cells untouched.
+   * @param syncOptions - Forwarded as the `graph.syncCells` opt.
+   */
+  function syncCellsFromReact(
+    cells: ReadonlyArray<ElementJSONInit | LinkJSONInit> | undefined,
+    syncOptions: Record<string, unknown>
+  ): readonly CellId[] {
+    if (!cells) return [];
+
+    const cellIds: CellId[] = [];
+    const cellsToSync: dia.Cell.JSONInit[] = [];
+    for (const cell of cells) {
+      // Cells without an id are valid input — JointJS will assign one — but
+      // they cannot be tracked in `cellIds` (which is used for diffing).
+      if (cell.id !== undefined) cellIds.push(cell.id);
+      cellsToSync.push(mapCellToAttributes(cell, graph));
+    }
+    graph.syncCells(cellsToSync, { ...syncOptions, remove: true });
+    return cellIds;
   }
 
   const controller = new mvc.Listener();
@@ -194,7 +261,6 @@ export function graphChanges(options: Options) {
     'reset',
     (collection: mvc.Collection<dia.Cell>, eventOptions: JointJSEventOptions = {}) => {
       if (eventOptions.isUpdateFromReact) return;
-      isSyncedWithReact = true;
       changes.clear();
       onReset?.();
       for (const cell of collection.models) {
@@ -207,6 +273,12 @@ export function graphChanges(options: Options) {
           onElementsSizeChange(cell.id, (cell as dia.Element).size());
         }
       }
+      // `fromJSON` resets layers too, and joint-core does not forward
+      // `layers:reset` to the graph — the cell `reset` is the only signal.
+      // Layers first: publishing the cells notifies a controlled provider,
+      // which re-applies its arrays at once; it must already know the layers
+      // changed, or it re-applies cells onto layers the reset took away.
+      onLayersChange?.();
       // Bypass the simpleScheduler wrapper used for normal cell events.
       // `reset` is a one-shot bulk operation and callers (e.g. GraphStore
       // constructor) expect the cells container to be observable
@@ -223,6 +295,24 @@ export function graphChanges(options: Options) {
   controller.listenTo(graph, LAYOUT_UPDATE_EVENT, ({ changes: layoutChanges }) => {
     onChanges({ changes: layoutChanges, isInsideBatch: true, deferCommit: isDeferring() });
   });
+
+  if (onLayersChange) {
+    // Synchronous, not coalesced: a graph-origin layer change followed by a
+    // synchronous React commit (flushSync) would otherwise be re-read under the
+    // React-origin guard and lost. The read is O(L) and returns the same
+    // snapshot when nothing changed, and React-origin bursts are already
+    // filtered here, so a graph-origin burst costs a few tiny reads.
+    const scheduleLayersChange = (...args: unknown[]) => {
+      const eventOptions = args.at(-1);
+      if (isReactOrigin(eventOptions)) return;
+      onLayersChange();
+    };
+    controller.listenTo(
+      graph,
+      'layer:add layer:remove layer:change layers:sort layer:default',
+      scheduleLayersChange
+    );
+  }
 
   controller.listenTo(
     graph,
@@ -259,33 +349,27 @@ export function graphChanges(options: Options) {
       Element extends ElementJSONInit = ElementJSONInit,
       Link extends LinkJSONInit = LinkJSONInit,
     >(update: UpdateGraphOptions<Element, Link>): UpdateGraphResult {
-      const { cells, flag, metadata } = update;
-      if (!isSyncedWithReact) {
-        isSyncedWithReact = true;
-        return { cellIds: [] };
-      }
-      if (!cells) {
-        return { cellIds: [] };
-      }
-
-      const cellIds: CellId[] = [];
-      const cellsToSync: dia.Cell.JSONInit[] = [];
-
-      for (const cell of cells) {
-        // Cells without an id are valid input — JointJS will assign one — but
-        // they cannot be tracked in `cellIds` (which is used for diffing).
-        if (cell.id !== undefined) cellIds.push(cell.id);
-        cellsToSync.push(mapCellToAttributes(cell, graph));
-      }
-
-      graph.startBatch('updateFromReact');
+      const { cells, layers, flag, metadata } = update;
       // Spread metadata first so the required sync flags always win.
-      graph.syncCells(cellsToSync, {
-        ...metadata,
-        remove: true,
-        isUpdateFromReact: flag === 'updateFromReact',
-      });
-      graph.stopBatch('updateFromReact');
+      const syncOptions = { ...metadata, isUpdateFromReact: flag === 'updateFromReact' };
+
+      // Tagged batch: every event inside it carries the React-origin flag, so
+      // `batch:stop` schedules no redundant (empty) change pass for it.
+      // Reject before any batch opens: joint-core throws on an invalid layer
+      // record and on a cell naming a layer that does not exist, and a throw
+      // inside the batch would leave the graph reported as "inside a batch" for
+      // every later change.
+      if (layers) assertLayerRecords(graph, layers);
+      if (cells) assertLayersExist(graph, cells, layers);
+
+      graph.startBatch('updateFromReact', syncOptions);
+      // Layers first: a cell may name a layer declared in this same commit.
+      if (layers) reconcileLayers(graph, layers, syncOptions);
+      const cellIds = syncCellsFromReact(cells, syncOptions);
+      // Layers last: joint-core refuses to remove a non-empty layer, so prune
+      // only after the cells that left it are gone.
+      if (layers) removeEmptyLayers(graph, layers, syncOptions);
+      graph.stopBatch('updateFromReact', syncOptions);
 
       return { cellIds };
     },
