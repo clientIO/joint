@@ -5,6 +5,7 @@ import {
     guid,
     omit,
     parseDOMJSON,
+    getNodeSelector,
     isFunction,
     isObject,
     isPlainObject,
@@ -439,7 +440,7 @@ export const CellView = View.extend({
         // Find a node with the `port` attribute set on it.
         const portNode = this.findAttributeNode('port', magnet);
         // Find a unique `selector` of the element under pointer that is a magnet.
-        const selector = magnet.getAttribute('joint-selector');
+        const selector = getNodeSelector(magnet);
 
         const end = { id: id };
         if (selector != null) end.magnet = selector;

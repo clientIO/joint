@@ -73,6 +73,9 @@ export const removeClassNamePrefix = function(className, prefix = config.classNa
     }).join(' ');
 };
 
+// The DOM attribute holding the markup selector of a node.
+const SELECTOR_ATTRIBUTE = 'joint-selector';
+
 export const parseDOMJSON = function(json, namespace) {
 
     const selectors = {};
@@ -127,7 +130,7 @@ export const parseDOMJSON = function(json, namespace) {
                 const nodeSelector = nodeDef.selector;
                 if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
                 selectors[nodeSelector] = node;
-                wrapperNode.attr('joint-selector', nodeSelector);
+                wrapperNode.attr(SELECTOR_ATTRIBUTE, nodeSelector);
             }
             // Groups
             if (nodeDef.hasOwnProperty('groupSelector')) {
@@ -156,6 +159,13 @@ export const parseDOMJSON = function(json, namespace) {
         selectors: selectors,
         groupSelectors: groupSelectors
     };
+};
+
+// Return the selector the node was given in its markup by `parseDOMJSON()`,
+// or `null` if it has none.
+export const getNodeSelector = function(node) {
+    if (!node || node.nodeType !== 1) return null;
+    return node.getAttribute(SELECTOR_ATTRIBUTE);
 };
 
 // Return a simple hash code from a string. See http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/.
