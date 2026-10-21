@@ -5,6 +5,7 @@ import {
     guid,
     omit,
     parseDOMJSON,
+    getNodeSelector,
     isFunction,
     isObject,
     isPlainObject,
@@ -432,34 +433,6 @@ export const CellView = View.extend({
         return link.findView(paper);
     },
 
-    /**
-     * @public
-     * @description Finds the selector of the node in the cell's markup - the
-     * inverse of `findNode()`: a selector is returned only if `findNode()`
-     * finds the node by it. The nodes of ports and link labels, and the nodes
-     * with group selectors only, have none.
-     * @param {Element} node
-     * @returns {string|null} The selector or `null` if the node has none.
-     */
-    getNodeSelector: function(node) {
-        if (!node || node.nodeType !== 1) return null;
-        const selector = this._findNodeSelector(node);
-        if (selector === null || this.findNode(selector) !== node) return null;
-        return selector;
-    },
-
-    _findNodeSelector: function(node) {
-        const selector = node.getAttribute('joint-selector');
-        if (selector !== null) return selector;
-        // The selectors the view assigns itself (e.g. the root) are not
-        // written on the nodes.
-        const { selectors } = this;
-        for (const key in selectors) {
-            if (selectors[key] === node) return key;
-        }
-        return null;
-    },
-
     getLinkEnd: function(magnet, ...args) {
 
         const model = this.model;
@@ -467,7 +440,7 @@ export const CellView = View.extend({
         // Find a node with the `port` attribute set on it.
         const portNode = this.findAttributeNode('port', magnet);
         // Find a unique `selector` of the element under pointer that is a magnet.
-        const selector = magnet.getAttribute('joint-selector');
+        const selector = getNodeSelector(magnet);
 
         const end = { id: id };
         if (selector != null) end.magnet = selector;

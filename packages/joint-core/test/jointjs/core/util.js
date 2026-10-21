@@ -1470,6 +1470,28 @@ QUnit.module('util', function(hooks) {
         });
     });
 
+    QUnit.module('getNodeSelector', function() {
+
+        QUnit.test('reads the selector given by parseDOMJSON', function(assert) {
+            const res = joint.util.parseDOMJSON([
+                { tagName: 'rect', selector: 'test1', groupSelector: 'group' },
+                { tagName: 'circle', groupSelector: 'group' },
+                { tagName: 'div', selector: 'test2', namespaceURI: V.namespace.xhtml }
+            ]);
+            assert.equal(joint.util.getNodeSelector(res.selectors.test1), 'test1');
+            assert.equal(joint.util.getNodeSelector(res.selectors.test2), 'test2');
+            // A node with group selectors only
+            assert.equal(joint.util.getNodeSelector(res.groupSelectors.group[1]), null);
+        });
+
+        QUnit.test('no selector', function(assert) {
+            assert.equal(joint.util.getNodeSelector(document.createElementNS(V.namespace.svg, 'rect')), null);
+            assert.equal(joint.util.getNodeSelector(document.createTextNode('text')), null);
+            assert.equal(joint.util.getNodeSelector(null), null);
+            assert.equal(joint.util.getNodeSelector(undefined), null);
+        });
+    });
+
     QUnit.test('sanitizeHTML', function(assert) {
 
         assert.equal(joint.util.sanitizeHTML('<html><body><p>Hello</p></body></html>'), '<p>Hello</p>');

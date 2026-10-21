@@ -79,25 +79,7 @@ QUnit.module('cellView', function(hooks) {
         });
     });
 
-    QUnit.module('getNodeSelector(node)', function() {
-
-        // `getNodeSelector()` is the inverse of `findNode()`.
-        function assertSymmetry(assert, view, nodes) {
-            nodes.forEach(node => {
-                const selector = view.getNodeSelector(node);
-                if (selector === null) return;
-                assert.equal(view.findNode(selector), node, `findNode('${selector}')`);
-            });
-            // Group selectors (arrays) are not returned.
-            Object.entries(view.selectors || {}).forEach(([selector, node]) => {
-                if (Array.isArray(node)) return;
-                assert.equal(view.getNodeSelector(view.findNode(selector)), selector, `getNodeSelector(findNode('${selector}'))`);
-            });
-        }
-
-        QUnit.test('should be a function', function(assert) {
-            assert.equal(typeof cellView.getNodeSelector, 'function');
-        });
+    QUnit.module('util.getNodeSelector(node) of a cell view', function() {
 
         QUnit.test('element markup', function(assert) {
             const element = new joint.shapes.standard.Rectangle({
@@ -112,42 +94,24 @@ QUnit.module('cellView', function(hooks) {
                     }, {
                         tagName: 'circle',
                         groupSelector: 'parts'
-                    }, {
-                        tagName: 'path',
-                        groupSelector: 'solo'
                     }]
                 }]
             });
             element.addTo(paper.model);
             const view = element.findView(paper);
-            assert.equal(view.getNodeSelector(view.findNode('group')), 'group');
-            assert.equal(view.getNodeSelector(view.findNode('body')), 'body');
-            assert.equal(view.getNodeSelector(view.el), 'root');
-            // Nodes with group selectors only
-            assert.equal(view.getNodeSelector(view.el.querySelector('circle')), null);
-            assert.equal(view.getNodeSelector(view.findNode('solo')), null);
-            assert.equal(view.getNodeSelector(null), null);
-            assert.equal(view.getNodeSelector(document.createTextNode('text')), null);
-            assertSymmetry(assert, view, [view.el, ...view.el.querySelectorAll('*')]);
+            const { getNodeSelector } = joint.util;
+            assert.equal(getNodeSelector(view.findNode('group')), 'group');
+            assert.equal(getNodeSelector(view.findNode('body')), 'body');
+            // The selectors the view assigns itself
+            assert.equal(getNodeSelector(view.el), null);
+            // A node with group selectors only
+            assert.equal(getNodeSelector(view.el.querySelector('circle')), null);
         });
 
         QUnit.test('string markup', function(assert) {
-            assert.equal(cellView.getNodeSelector(cellView.el.querySelector('rect')), null);
-            assert.equal(cellView.getNodeSelector(cellView.el), 'root');
-        });
-
-        QUnit.test('link string markup', function(assert) {
-            const link = new joint.shapes.standard.Link({
-                source: { x: 0, y: 0 },
-                target: { x: 100, y: 100 },
-                markup: '<path class="connection"/>'
-            });
-            link.addTo(paper.model);
-            const view = link.findView(paper);
-            // `findNode('root')` does not find the root of a string-markup link.
-            assert.equal(view.findNode('root'), null);
-            assert.equal(view.getNodeSelector(view.el), null);
-            assert.equal(view.getNodeSelector(view.el.querySelector('path')), null);
+            const { getNodeSelector } = joint.util;
+            assert.equal(getNodeSelector(cellView.el.querySelector('rect')), null);
+            assert.equal(getNodeSelector(cellView.el), null);
         });
 
         QUnit.test('port markup', function(assert) {
@@ -155,54 +119,44 @@ QUnit.module('cellView', function(hooks) {
                 ports: {
                     items: [{
                         id: 'port1',
-                        // The same selector as the element's body
-                        markup: [{ tagName: 'circle', selector: 'body' }],
+                        markup: [{ tagName: 'circle', selector: 'portBody' }],
                         label: {
                             markup: [{ tagName: 'text', selector: 'portLabel' }]
                         }
                     }, {
                         id: 'port2',
-                        markup: [{ tagName: 'rect' }, { tagName: 'circle' }]
+                        markup: [{ tagName: 'rect' }, { tagName: 'circle' }],
+                        label: {
+                            markup: [{ tagName: 'text' }]
+                        }
                     }]
                 }
             });
             element.addTo(paper.model);
             const view = element.findView(paper);
-            ['port1', 'port2'].forEach(portId => {
-                ['root', 'portRoot', 'labelRoot'].forEach(selector => {
-                    assert.equal(view.getNodeSelector(view.findPortNode(portId, selector)), null, `${portId}: ${selector}`);
-                });
+            const { getNodeSelector } = joint.util;
+            assert.equal(getNodeSelector(view.findPortNode('port1', 'portBody')), 'portBody');
+            assert.equal(getNodeSelector(view.findPortNode('port1', 'portLabel')), 'portLabel');
+            // The selectors the view assigns itself
+            ['root', 'portRoot', 'labelRoot'].forEach(selector => {
+                assert.equal(getNodeSelector(view.findPortNode('port2', selector)), null, selector);
             });
-            assert.equal(view.getNodeSelector(view.findPortNode('port1', 'body')), null);
-            assert.equal(view.getNodeSelector(view.findPortNode('port1', 'portLabel')), null);
-            // The element markup is not affected
-            assert.equal(view.getNodeSelector(view.findNode('body')), 'body');
-            assert.equal(view.getNodeSelector(view.el), 'root');
-            assertSymmetry(assert, view, [view.el, ...view.el.querySelectorAll('*')]);
         });
 
         QUnit.test('link label markup', function(assert) {
-            const labelsPaper = new joint.dia.Paper({ labelsLayer: true });
-            fixtures.getElement().appendChild(labelsPaper.render().el);
             const link = new joint.shapes.standard.Link({
                 source: { x: 0, y: 0 },
                 target: { x: 100, y: 100 },
                 labels: [{
-                    // The same selector as the link's line
-                    markup: [{ tagName: 'rect', selector: 'line' }, { tagName: 'text', selector: 'labelText' }]
+                    markup: [{ tagName: 'rect', selector: 'labelBody' }, { tagName: 'text', selector: 'labelText' }]
                 }]
             });
-            link.addTo(labelsPaper.model);
-            const view = link.findView(labelsPaper);
-            const labelNode = view.findLabelNode(0, 'root');
-            assert.equal(view.getNodeSelector(labelNode), null);
-            assert.equal(view.getNodeSelector(view.findLabelNode(0, 'line')), null);
-            assert.equal(view.getNodeSelector(view.findLabelNode(0, 'labelText')), null);
-            // The link markup is not affected
-            assert.equal(view.getNodeSelector(view.findNode('line')), 'line');
-            assert.equal(view.getNodeSelector(view.el), 'root');
-            assertSymmetry(assert, view, [view.el, ...view.el.querySelectorAll('*'), labelNode, ...labelNode.querySelectorAll('*')]);
-            labelsPaper.remove();
+            link.addTo(paper.model);
+            const view = link.findView(paper);
+            const { getNodeSelector } = joint.util;
+            assert.equal(getNodeSelector(view.findLabelNode(0, 'labelBody')), 'labelBody');
+            assert.equal(getNodeSelector(view.findNode('line')), 'line');
+            assert.equal(getNodeSelector(view.findLabelNode(0, 'root')), null);
         });
     });
 
