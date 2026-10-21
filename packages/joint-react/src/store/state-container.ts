@@ -7,6 +7,7 @@ import type { CellId, AnyCellRecord } from '../types/cell.types';
  * Update payload for array-shaped state, replace or transform-from-previous.
  * `Input` defaults to `T` (same type for read and write). Override it to
  * widen the write side, e.g. `ArrayUpdate<Record, Record | dia.Cell>`.
+ * @group Types
  */
 export type ArrayUpdate<T, Input = T> =
   | readonly Input[]

@@ -38,7 +38,7 @@ export interface CellInteractivityParams {
  * returns either a boolean or the native `InteractivityOptions` object.
  * @group Types
  */
-type CellInteractivityCallback = (
+export type CellInteractivityCallback = (
   context: CellInteractivityParams
 ) => boolean | dia.CellView.InteractivityOptions;
 

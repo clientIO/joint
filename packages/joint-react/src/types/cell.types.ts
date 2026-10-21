@@ -16,6 +16,7 @@ import type { ElementPresetAttributes } from '../presets/element-attributes';
  * Loose element shape accepted at the record/mapper boundary: a `dia.Element`
  * JSON init (optional `id`, plus `type` and visual attrs) with the React preset
  * extras and an optional typed `data` payload.
+ * @group Types
  */
 export interface ElementJSONInit extends DiaElement.JSONInit, ElementPresetAttributes {
   data?: unknown;
@@ -25,22 +26,11 @@ export interface ElementJSONInit extends DiaElement.JSONInit, ElementPresetAttri
  * Loose link shape accepted at the record/mapper boundary: a `dia.Link` JSON
  * init (optional `id`, plus `type` and visual attrs) with the React preset
  * extras and an optional typed `data` payload.
+ * @group Types
  */
 export interface LinkJSONInit extends DiaLink.JSONInit, LinkPresetAttributes {
   data?: unknown;
 }
-
-type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-/** Known cell type names. */
-type KnownCellType = typeof ELEMENT_MODEL_TYPE | typeof LINK_MODEL_TYPE;
-
-interface WithType<Type extends string = KnownCellType> {
-  readonly type: Type;
-}
-
-type WithData<Data = unknown> = unknown extends Data
-  ? { readonly data?: unknown }
-  : { readonly data: Data };
 
 /**
  * Plain-object description of one element: your custom `data` plus the visual
@@ -56,27 +46,32 @@ type WithData<Data = unknown> = unknown extends Data
  * @template Type - the `type` discriminator literal
  * @group Types
  */
+// `data` is optional while untyped and required once typed. Spelled out (not a
+// helper alias) so the API docs show the shape instead of a private name.
 export type ElementRecord<
   ElementData = unknown,
   Type extends string = typeof ELEMENT_MODEL_TYPE,
-> = ElementJSONInit & WithType<Type> & WithData<ElementData>;
+> = ElementJSONInit & { readonly type: Type } & (unknown extends ElementData
+    ? { readonly data?: unknown }
+    : { readonly data: ElementData });
 
 /**
- * Internal element record shape, what the store holds after JointJS /
- * {@link elementAttributes} defaults are applied. Reach via {@link Computed}
- * (`Computed<ElementRecord<MyData>>`); kept private so the public surface is
- * a single utility.
+ * An {@link ElementRecord} as the store holds it, after JointJS /
+ * {@link elementAttributes} defaults are applied: what
+ * `Computed<ElementRecord<MyData>>` resolves to and what reading hooks hand back.
  *
  * Always populated by the framework:
  * - `position`, `dia.Element` defaults to `{ x: 0, y: 0 }`.
  * - `size`, `dia.Element` defaults to `{ width: 1, height: 1 }`.
  * - `angle`, `dia.Element` defaults to `0`.
  * - `data`, {@link elementAttributes} defaults to `{} as ElementData`.
+ * @template ElementData - shape of the custom `data` payload carried on the element
+ * @group Types
  */
-type InternalElementRecord<ElementData = unknown> = PickRequired<
-  ElementRecord<ElementData>,
-  'id' | 'type' | 'position' | 'size' | 'angle' | 'data'
->;
+export type ComputedElementRecord<ElementData = unknown> = ElementRecord<ElementData> &
+  Required<
+    Pick<ElementRecord<ElementData>, 'id' | 'type' | 'position' | 'size' | 'angle' | 'data'>
+  >;
 
 /**
  * Plain-object description of one link: your custom `data` plus the visual
@@ -92,26 +87,28 @@ type InternalElementRecord<ElementData = unknown> = PickRequired<
  * @template Type - the `type` discriminator literal
  * @group Types
  */
+// Same `data` rule as `ElementRecord`.
 export type LinkRecord<
   LinkData = unknown,
   Type extends string = typeof LINK_MODEL_TYPE,
-> = LinkJSONInit & WithType<Type> & WithData<LinkData>;
+> = LinkJSONInit & { readonly type: Type } & (unknown extends LinkData
+    ? { readonly data?: unknown }
+    : { readonly data: LinkData });
 
 /**
- * Internal link record shape, what the store holds after JointJS /
- * {@link linkAttributes} defaults are applied. Reach via {@link Computed}
- * (`Computed<LinkRecord<MyData>>`); kept private so the public surface is a
- * single utility.
+ * A {@link LinkRecord} as the store holds it, after JointJS /
+ * {@link linkAttributes} defaults are applied: what
+ * `Computed<LinkRecord<MyData>>` resolves to and what reading hooks hand back.
  *
  * Always populated by the framework:
  * - `source`, `dia.Link` defaults to `{}`.
  * - `target`, `dia.Link` defaults to `{}`.
  * - `data`, {@link linkAttributes} defaults to `{} as LinkData`.
+ * @template LinkData - shape of the custom `data` payload carried on the link
+ * @group Types
  */
-type InternalLinkRecord<LinkData = unknown> = PickRequired<
-  LinkRecord<LinkData>,
-  'id' | 'type' | 'source' | 'target' | 'data'
->;
+export type ComputedLinkRecord<LinkData = unknown> = LinkRecord<LinkData> &
+  Required<Pick<LinkRecord<LinkData>, 'id' | 'type' | 'source' | 'target' | 'data'>>;
 /**
  * One cell — either an {@link ElementRecord} or a {@link LinkRecord} — as a
  * discriminated union on `type`:
@@ -185,13 +182,13 @@ export type AnyCellRecord = CellRecord<unknown, unknown, string, string>;
  */
 export type Computed<T> =
   T extends ElementRecord<infer ElementData>
-    ? InternalElementRecord<ElementData>
+    ? ComputedElementRecord<ElementData>
     : T extends LinkRecord<infer LinkData>
-      ? InternalLinkRecord<LinkData>
+      ? ComputedLinkRecord<LinkData>
       : T extends ElementJSONInit
-        ? InternalElementRecord<T['data']>
+        ? ComputedElementRecord<T['data']>
         : T extends LinkJSONInit
-          ? InternalLinkRecord<T['data']>
+          ? ComputedLinkRecord<T['data']>
           : T;
 
 // Future cleanup: drop this alias and use `dia.Cell.ID` directly everywhere.
@@ -219,8 +216,8 @@ export type ElementSize = DiaSize;
 // ── Element Layout (internal — used by size observer) ───────────────────────
 
 /**
- * Flat element layout used internally by the size observer and transform callbacks.
- * @internal
+ * Flat element layout used by the size observer and transform callbacks.
+ * @group Types
  */
 export interface ElementLayout {
   readonly x: number;
