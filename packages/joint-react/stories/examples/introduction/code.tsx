@@ -279,14 +279,7 @@ function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>
 function MinimapRenderElement() {
   const { width, height } = useCell(selectElementSize);
   return (
-    <rect
-      width={width}
-      height={height}
-      fill={NODE_FILL}
-      stroke={NODE_STROKE}
-      rx={10}
-      ry={10}
-    />
+    <rect width={width} height={height} fill={NODE_FILL} stroke={NODE_STROKE} rx={10} ry={10} />
   );
 }
 
@@ -396,12 +389,7 @@ function ToolBar(props: Readonly<ToolbarProps>) {
         <i className={isMinimapVisible ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'} />
         <span>Toggle minimap</span>
       </button>
-      <button
-        type="button"
-        className="jj-btn"
-        disabled={!selectedId}
-        onClick={duplicateSelected}
-      >
+      <button type="button" className="jj-btn" disabled={!selectedId} onClick={duplicateSelected}>
         <i className="fa-solid fa-clone" />
         <span>Duplicate</span>
       </button>

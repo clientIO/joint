@@ -45,7 +45,7 @@ type Transform = Parameters<ReturnType<typeof createMeasurement>['observe']>[0][
 function setup(autoSizeOrigin: AutoSizeOrigin = 'top-left') {
   const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
   const measurement = createMeasurement({ graph, autoSizeOrigin, paperStores: NO_PAPERS });
-  /** What `selectGraphSizingVersion` reads right now. */
+  /** The sizing version right now. */
   const version = () => measurement.getSizingVersion();
   const nodesById = new Map<string, Element[]>();
   const writes = jest.fn();

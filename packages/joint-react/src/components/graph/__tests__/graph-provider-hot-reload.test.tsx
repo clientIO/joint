@@ -91,9 +91,7 @@ const { useCellIds }: typeof UseCellIdsModule = require('../../../hooks/use-cell
 const {
   useOnGraphStateChange,
 }: typeof UseOnGraphStateChangeModule = require('../../../hooks/use-on-graph-state-change');
-const {
-  selectGraphSizingVersion,
-}: typeof SelectorsModule = require('../../../selectors');
+const { selectGraphSizingVersion }: typeof SelectorsModule = require('../../../selectors');
 
 const graphProviderV1: typeof GraphProviderModule = require('../graph-provider');
 const paperV1: typeof PaperModule = require('../../paper/paper');

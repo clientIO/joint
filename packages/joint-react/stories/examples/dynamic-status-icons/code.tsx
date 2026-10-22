@@ -20,7 +20,6 @@ const SHAPE_FILL_COLOR = '#1c2836';
 const STATUS_STROKE_COLOR = '#3c4f63';
 const TEXT_COLOR = '#DDE6ED';
 
-
 const ShapeTypes = {
   rectangle: 'rectangle',
   circle: 'circle',
@@ -229,9 +228,7 @@ function Main() {
     setRandomStatuses();
   }, [isSizingComplete, paper, graph, setRandomStatuses]);
 
-  return (
-    <Paper className="size-full" renderElement={RenderElement} drawGrid={false} />
-  );
+  return <Paper className="size-full" renderElement={RenderElement} drawGrid={false} />;
 }
 
 export default function App() {

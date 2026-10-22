@@ -179,7 +179,9 @@ describe('useGraphState', () => {
 
   describe('sizing version', () => {
     it('re-renders its reader once per settled change, not per commit', async () => {
-      const { value, getElement, graph, renders } = mount(() => useGraphState(selectGraphSizingVersion));
+      const { value, getElement, graph, renders } = mount(() =>
+        useGraphState(selectGraphSizingVersion)
+      );
       await act(async () => flush());
       expect(value()).toBe(1);
       const rendersBefore = renders();
@@ -263,7 +265,10 @@ describe('useGraphState', () => {
         () => useOnGraphStateChange(selectGraphSizingVersion, () => {}),
       ],
       ['useGraphState(selectGraphSizingVersion)', () => useGraphState(selectGraphSizingVersion)],
-      ['useGraphState(selectIsGraphSizingComplete)', () => useGraphState(selectIsGraphSizingComplete)],
+      [
+        'useGraphState(selectIsGraphSizingComplete)',
+        () => useGraphState(selectIsGraphSizingComplete),
+      ],
       ['useGraphState(a derived selector)', () => useGraphState(selectHasSettledTwice)],
     ])('%s does no work on a commit that is not a measurement', async (_name, useReader) => {
       const { getElement, renders } = mount(useReader);
@@ -442,7 +447,10 @@ describe('useOnGraphStateChange', () => {
     const { result } = renderHook(
       () => {
         useOnGraphStateChange(selectGraphSizingVersion, onChange);
-        return { isSizingComplete: useGraphState(selectIsGraphSizingComplete), graph: useGraphStore().graph };
+        return {
+          isSizingComplete: useGraphState(selectIsGraphSizingComplete),
+          graph: useGraphStore().graph,
+        };
       },
       { wrapper }
     );

@@ -264,11 +264,7 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
       }`}
     >
       {isEditing ? (
-        <div
-          ref={editorRef}
-          onMouseDown={swallowEditorEvent}
-          onClick={swallowEditorEvent}
-        >
+        <div ref={editorRef} onMouseDown={swallowEditorEvent} onClick={swallowEditorEvent}>
           <FieldLabel>Title</FieldLabel>
           <InlineInput
             ref={titleInputRef}

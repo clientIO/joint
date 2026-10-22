@@ -172,7 +172,9 @@ function Inspector({ entries, moves }: Readonly<{ entries: readonly LogEntry[]; 
       <Section title="useGraphState(selectIsGraphSizingComplete)">
         <div>
           <span className="jj-chip">
-            <span className={`size-2 rounded-full ${isSizingComplete ? 'bg-brand' : 'bg-ink-faint'}`} />
+            <span
+              className={`size-2 rounded-full ${isSizingComplete ? 'bg-brand' : 'bg-ink-faint'}`}
+            />
             {isSizingComplete ? 'measured' : 'measuring…'}
           </span>
         </div>

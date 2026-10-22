@@ -127,11 +127,9 @@ function renderGraph(initialCells: CellRecord[]): Harness {
 function reportMeasurement(graph: dia.Graph, ...ids: string[]) {
   act(() => {
     for (const id of ids) {
-      (graph.getCell(id) as dia.Element).set(
-        'size',
-        { width: 120, height: 40 },
-        { [AUTO_SIZE_OPTION]: true } as object
-      );
+      (graph.getCell(id) as dia.Element).set('size', { width: 120, height: 40 }, {
+        [AUTO_SIZE_OPTION]: true,
+      } as object);
     }
   });
 }

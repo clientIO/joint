@@ -34,9 +34,8 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
 /**
  * Calls a callback once element sizes are known, so a layout can run on them.
  *
- * Delivers one event per settled change: the first pass (at least one element
- * has a size), and each later addition or re-measurement, once no element is
- * still waiting. An added element waits until the paper has rendered it; if
+ * Delivers one event per settled change: the first pass, and each later
+ * addition, removal or re-measurement, once no element is still waiting. An added element waits until the paper has rendered it; if
  * its content measures itself ({@link useMeasureElement}, {@link HTMLHost}),
  * until that measurement arrives. A batch mixing plain and measured elements
  * is one event, delivered when the last one is measured. An element the paper
@@ -47,8 +46,9 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  * every size change.
  *
  * The callback receives {@link ElementsMeasuredParams}; `isInitial` is `true`
- * for the first event after the hook mounts and again for the first event
- * after a graph reset (`resetCells()`), which replaces the diagram.
+ * for the first event after the hook mounts, and again for the first event
+ * after a graph reset (`resetCells()`), which replaces the diagram, or after
+ * the last element was removed.
  * @deprecated Use {@link useOnGraphStateChange} with {@link selectGraphSizingVersion}
  *   to react to every settled change, or {@link useGraphState} with
  *   {@link selectIsGraphSizingComplete} to act once the sizes are known.

@@ -72,7 +72,11 @@ function Main() {
 
   const addNode = useCallback(() => {
     nextIdRef.current += 1;
-    setCell({ id: `${nextIdRef.current}`, type: 'element', data: { label: `Node ${elementCount + 1}` } });
+    setCell({
+      id: `${nextIdRef.current}`,
+      type: 'element',
+      data: { label: `Node ${elementCount + 1}` },
+    });
   }, [elementCount, setCell]);
 
   return (
