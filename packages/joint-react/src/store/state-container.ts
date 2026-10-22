@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/prefer-spread */
 import { simpleScheduler } from '../utils/scheduler';
-import { isStrictEqual } from '../utils/selector-utils';
+import { isStrictEqual } from '../selectors/selector-utils';
 import type { CellId, AnyCellRecord } from '../types/cell.types';
 
 /**

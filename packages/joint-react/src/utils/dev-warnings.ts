@@ -72,7 +72,7 @@ export function warnUnstableSelector(
       'Options to fix:\n' +
       '  1. Return primitives: (cells) => cells.map(c => c.id)\n' +
       '  2. Return cell records directly: (cells) => cells.filter(predicate)\n' +
-      '  3. Provide a custom isEqual: useCells(input, selector, shallowEqual)\n'
+      '  3. Provide a custom isEqual as the last argument of the hook\n'
   );
 }
 
@@ -123,5 +123,42 @@ export function warnResizeOnAutoSizedElement(cellId: dia.Cell.ID): void {
       '(no `useModelGeometry` on its HTMLBox/HTMLHost). The measured content size ' +
       'overrides the resize, so it has no effect. Pass `useModelGeometry` to honor an ' +
       'explicit size (e.g. from FreeTransform / Halo).'
+  );
+}
+
+/**
+ * Warns once when the graph state is read outside of the selector it was
+ * handed to (kept in a variable and read later, or after an `await`). The hook
+ * subscribes to what the selector reads while it runs, so such a read is not
+ * followed by any update. Dev-only, tree-shaken in production.
+ */
+export function warnGraphStateReadOutsideSelector(): void {
+  if (process.env.NODE_ENV === 'production') return;
+  const key = 'graph-state-read-outside-selector';
+  if (WARNED.has(key)) return;
+  WARNED.add(key);
+
+  console.warn(
+    '[useGraphState] The graph state was read outside of its selector. The hook follows only ' +
+      'what the selector reads while it runs, so this read will not update.\n\n' +
+      'Fix: read everything you need inside the selector and return it.'
+  );
+}
+
+/**
+ * Reports once that store callbacks keep scheduling each other, typically a
+ * change handler that changes what it listens to. The scheduler then spreads
+ * the work over later tasks instead of freezing the page. Dev-only,
+ * tree-shaken in production.
+ */
+export function warnSchedulerCascade(): void {
+  if (process.env.NODE_ENV === 'production') return;
+  const key = 'scheduler-cascade';
+  if (WARNED.has(key)) return;
+  WARNED.add(key);
+
+  console.error(
+    '[@joint/react] A store callback keeps scheduling more work each time it runs, ' +
+      'for example a change handler that adds or removes cells. Guard it so it settles.'
   );
 }

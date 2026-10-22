@@ -159,8 +159,8 @@ export function useCell<Cell extends AnyCellRecord = CellRecord, Selected = Comp
       lastResolved.value = value;
       return value;
     };
-    // userSelector is captured by reference; React's referential equality on
-    // the closure is enough here because `useCells` keeps its own selectorRef.
+    // A new `userSelector` gives a new selector here, which `useCells` runs on
+    // this render: it may have captured a prop that changed.
   }, [id, userSelector]);
 
   return useCells<Cell, Computed<Cell> | Selected>(

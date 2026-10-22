@@ -160,6 +160,49 @@ describe('useOnElementsMeasured — a waiting element is removed', () => {
   });
 });
 
+// Regression: an element that stopped measuring before it was measured stayed
+// "waiting" forever and held back every later event.
+describe('useOnElementsMeasured — a waiting element stops measuring', () => {
+  it('delivers the batch, and later changes, once nothing measures the element any more', async () => {
+    const harness = renderGraph([plain('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.addCell(pending('b') as never);
+    });
+    await flush();
+    expect(harness.events).toHaveLength(0);
+
+    // Its content switches to a plain shape: the measuring node unmounts.
+    act(() => {
+      harness.graph.getCell('b').set('data', {});
+    });
+    await flush();
+    expect(harness.events).toHaveLength(1);
+
+    act(() => {
+      harness.graph.addCell(plain('c') as never);
+    });
+    await flush();
+    expect(harness.events).toHaveLength(2);
+  });
+});
+
+// A removal changes what a layout has to arrange, so it is a settled change too.
+describe('useOnElementsMeasured — a settled element is removed', () => {
+  it('delivers one event for the removal', async () => {
+    const harness = renderGraph([plain('a'), plain('b')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.getCell('b').remove();
+    });
+    await flush();
+
+    expect(harness.events).toEqual([{ isInitial: false }]);
+  });
+});
+
 // The case the hook exists for in a live diagram: `renderElement` renders
 // something else (a longer label, an expanded card), the node grows, the
 // ResizeObserver reports the new size and the layout runs again. jsdom has no
@@ -194,15 +237,25 @@ describe('useOnElementsMeasured — the content of an element changes', () => {
     globalThis.ResizeObserver = TestResizeObserver as unknown as typeof ResizeObserver;
   });
 
+  /**
+   * The observer holding the node `<HTMLHost>` registered. The paper observes
+   * its own host with another `ResizeObserver`, so the instance is found by
+   * the node: the measured one lives inside the element's `foreignObject`.
+   */
+  function findMeasuredNode() {
+    for (const observer of TestResizeObserver.instances) {
+      for (const node of observer.observed) {
+        if (node.closest('foreignObject')) return { observer, node };
+      }
+    }
+    throw new Error('no ResizeObserver has the measured node registered');
+  }
+
   /** Mounts one measured element, lets it register, and measures it once. */
   async function mountMeasured() {
     const harness = renderGraph([pending('b')]);
     await flush();
-    // StrictMode mounts the store twice; only the live store's observer has
-    // the node registered by `<HTMLHost>`.
-    const observer = TestResizeObserver.instances.find((instance) => instance.observed.size > 0);
-    if (!observer) throw new Error('no ResizeObserver has the measured node registered');
-    const [node] = observer.observed;
+    const { observer, node } = findMeasuredNode();
 
     act(() => {
       observer.report(node, 120, 40);
@@ -256,9 +309,7 @@ describe('useOnElementsMeasured — the content of an element changes', () => {
   it('measures an element the application pre-sized to what it will measure', async () => {
     const harness = renderGraph([pending('b')]);
     await flush();
-    const observer = TestResizeObserver.instances.find((instance) => instance.observed.size > 0);
-    if (!observer) throw new Error('no ResizeObserver has the measured node registered');
-    const [node] = observer.observed;
+    const { observer, node } = findMeasuredNode();
 
     act(() => {
       (harness.graph.getCell('b') as dia.Element).resize(120, 40);
