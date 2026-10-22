@@ -3,51 +3,6 @@ import type { CellId } from '../types/cell.types';
 import type { IncrementalChange } from '../state/incremental.types';
 
 /**
- * Cache entry for batched clearView updates.
- */
-export interface ClearViewCacheEntry {
-  /** Callback to validate which links should be cleared */
-  onValidateLink?: (link: dia.Link) => boolean;
-}
-
-/**
- * Merges two clearView validators.
- * - If no validator (clear all links), that takes precedence
- * - If both have validators, creates union validator
- * @param existing - Existing validator
- * @param incoming - New validator
- * @returns Merged validator or undefined
- */
-export function mergeClearViewValidators(
-  existing: ClearViewCacheEntry | undefined,
-  incoming: ClearViewCacheEntry
-): ClearViewCacheEntry {
-  // No existing entry - use new
-  if (!existing) {
-    return incoming;
-  }
-
-  const { onValidateLink } = incoming;
-
-  // No validator means clear all links - this takes precedence
-  if (!onValidateLink) {
-    return { onValidateLink: undefined };
-  }
-
-  // If existing has validator, create union
-  if (existing.onValidateLink) {
-    const existingValidator = existing.onValidateLink;
-    const newValidator = onValidateLink;
-    return {
-      onValidateLink: (link: dia.Link) => existingValidator(link) || newValidator(link),
-    };
-  }
-
-  // Existing has no validator (clear all) - keep that behavior
-  return existing;
-}
-
-/**
  * Determines if a link should be cleared based on cell connection.
  * @param link - The link to check
  * @param cellId - The cell ID to check against
@@ -104,33 +59,4 @@ export function clearConnectedLinkViews(
     changes.set(String(link.id), { type: 'change', data: link });
   }
   return changes;
-}
-
-/**
- * Executes clearView for a single cell across all papers.
- * @param papers - Iterable of paper stores with paper property
- * @param graph - The JointJS Graph instance
- * @param cellId - The cell ID to clear
- * @param onValidateLink - Optional callback to determine which links to keep
- */
-export function executeClearViewForCell(
-  papers: Iterable<{ readonly paper?: dia.Paper }>,
-  graph: dia.Graph,
-  cellId: CellId,
-  onValidateLink?: (link: dia.Link) => boolean
-): void {
-  for (const paperStore of papers) {
-    const { paper } = paperStore;
-    if (!paper) {
-      continue;
-    }
-
-    const elementView = paper.getCellView(cellId);
-    if (!elementView) {
-      continue;
-    }
-
-    elementView.cleanNodesCache();
-    clearConnectedLinkViews(paper, graph, cellId, onValidateLink);
-  }
 }

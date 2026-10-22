@@ -12,7 +12,7 @@ export { GraphProvider } from './components/graph/graph-provider';
 /** @group Types */
 export type { GraphProviderProps } from './components/graph/graph-provider';
 /** @group Types */
-export type { AutoSizeOrigin } from './store/graph-store';
+export type { AutoSizeOrigin } from './store/measurement';
 /** @group Types */
 export type { IncrementalCellsChange } from './store/graph-projection';
 
@@ -132,10 +132,7 @@ export { useMeasureElement } from './hooks/use-measure-element';
 /** @group Types */
 export type { MeasureElementOptions } from './hooks/use-measure-element';
 /** @group Types */
-export type {
-  TransformElementLayout,
-  TransformElementLayoutParams,
-} from './store/create-elements-size-observer';
+export type { TransformElementLayout, TransformElementLayoutParams } from './store/measurement';
 
 /**
  * useOnElementsMeasured()
@@ -144,6 +141,30 @@ export type {
 export { useOnElementsMeasured } from './hooks/use-on-elements-measured';
 /** @group Types */
 export type { ElementsMeasuredParams, OnElementsMeasured } from './hooks/use-on-elements-measured';
+
+/**
+ * useGraphState()
+ * @group Hooks
+ */
+export { useGraphState } from './hooks/use-graph-state';
+/** @group Types */
+export type { GraphState, GraphStateSelector } from './store/graph-state';
+
+/**
+ * useOnGraphStateChange()
+ * @group Hooks
+ */
+export { useOnGraphStateChange } from './hooks/use-on-graph-state-change';
+/** @group Types */
+export type { OnGraphStateChange } from './hooks/use-on-graph-state-change';
+
+/**
+ * useOnCellsChange()
+ * @group Hooks
+ */
+export { useOnCellsChange } from './hooks/use-on-cells-change';
+/** @group Types */
+export type { OnCellsChange } from './hooks/use-on-cells-change';
 
 /**
  * useOnPaperEvents()
@@ -194,7 +215,12 @@ export {
   selectCellParent,
   selectCellLayer,
   selectCellZIndex,
-} from './selectors/cell-selectors';
+} from './selectors';
+/**
+ * Graph state selectors, pass to {@link useGraphState} / {@link useOnGraphStateChange}
+ * @group Selectors
+ */
+export { selectGraphSizingVersion, selectIsGraphSizingComplete } from './selectors';
 
 // Data
 // ----
