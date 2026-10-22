@@ -8,8 +8,9 @@ import type { CellRecord } from '../../types/cell.types';
 const createGraph = () => new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
-const sizingVersion = (store: { readonly measurement: { readonly getSizingVersion: () => number } }) =>
-  store.measurement.getSizingVersion();
+const sizingVersion = (store: {
+  readonly measurement: { readonly getSizingVersion: () => number };
+}) => store.measurement.getSizingVersion();
 
 describe('GraphStore', () => {
   describe('constructor', () => {
@@ -310,6 +311,29 @@ describe('GraphStore', () => {
       ]);
       expect(store.graphProjection.cells.has('a')).toBe(false);
       expect(store.graphProjection.cells.has('b')).toBe(true);
+      store.destroy(false);
+    });
+  });
+
+  describe('removing a paper', () => {
+    // Regression: only papers hold an outstanding element back, and nothing
+    // re-checked the delivery when the last one went away, so the sizing
+    // version stayed `0` until the next graph change.
+    it('settles the elements that waited for the last paper', async () => {
+      const store = new GraphStore({});
+      const { remove } = store.addPaper('p1', { paperOptions: {} });
+      store.graph.addCell({
+        id: 'a',
+        type: ELEMENT_MODEL_TYPE,
+        position: { x: 0, y: 0 },
+        size: { width: 10, height: 10 },
+      });
+      await flush();
+      expect(sizingVersion(store)).toBe(0);
+
+      remove();
+      await flush();
+      expect(sizingVersion(store)).toBe(1);
       store.destroy(false);
     });
   });

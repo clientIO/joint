@@ -232,6 +232,12 @@ export function graphProjection<
         }
       }
 
+      // Cleared before anything is notified: a subscriber may change the graph
+      // from its callback, and those changes are recorded here for the next
+      // pass. Clearing afterwards would drop them and leave the store out of
+      // sync with the graph.
+      changes.clear();
+
       // Two commit modes, decided by `deferCommit` (see graph-changes):
       //
       // - Plain batches (interactive drags, `auto-size`, layout) and lone edits
@@ -244,12 +250,6 @@ export function graphProjection<
       //   when the transaction closes, so a burst of edits (sync or spread across
       //   `await`s) becomes a single React update. `flushContainer` self-guards
       //   when nothing is pending.
-      // Cleared before anything is notified: a subscriber may change the graph
-      // from its callback, and those changes are recorded here for the next
-      // pass. Clearing afterwards would drop them and leave the store out of
-      // sync with the graph.
-      changes.clear();
-
       if (!deferCommit) flushContainer();
 
       const hasTrackedChanges =

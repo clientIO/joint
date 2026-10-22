@@ -3,7 +3,8 @@ import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.
 import type { SelectedEqual } from '../store/graph-state';
 import type { AnyCellsSelector, CellsSelector, CellsSource, CellsTarget } from './use-cells.types';
 import { useCellsStateSelector } from './use-cells-state-selector';
-import { useGraphState } from './use-graph-state';
+import { toTargetKey } from './use-cells.utils';
+import { useSelectGraphState } from './use-graph-state';
 
 export type { SelectedEqual } from '../store/graph-state';
 export type { CellsSelector } from './use-cells.types';
@@ -184,6 +185,10 @@ export function useCells<
     | SelectedEqual<Selected | CellsSource<Cell>>
     | undefined;
 
-  const select = useCellsStateSelector(target, hasSelector ? selector : undefined);
-  return useGraphState(select, isEqual);
+  const select = useCellsStateSelector(
+    target,
+    toTargetKey(target),
+    hasSelector ? selector : undefined
+  );
+  return useSelectGraphState('useCells', select, isEqual);
 }

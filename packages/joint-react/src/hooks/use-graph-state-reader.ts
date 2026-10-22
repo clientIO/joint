@@ -6,15 +6,15 @@ import { createGraphStateReader, type GraphStateReader } from '../store/graph-st
 /**
  * The reader behind {@link useGraphState} and {@link useOnGraphStateChange}, one
  * per hook instance and per graph store.
+ * @param hookName - The hook the application called, named in dev warnings.
  * @returns The reader of the closest graph store.
  * @internal
  */
-export function useGraphStateReader<Cell extends AnyCellRecord, Selected>(): GraphStateReader<
-  Cell,
-  Selected
-> {
+export function useGraphStateReader<Cell extends AnyCellRecord, Selected>(
+  hookName: string
+): GraphStateReader<Cell, Selected> {
   const store = useGraphStore();
   // Should React drop this memo, the new reader selects afresh: correct, at the
   // cost of one new reference for a selected array or object.
-  return useMemo(() => createGraphStateReader<Cell, Selected>(store), [store]);
+  return useMemo(() => createGraphStateReader<Cell, Selected>(store, hookName), [store, hookName]);
 }

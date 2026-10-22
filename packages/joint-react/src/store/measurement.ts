@@ -149,7 +149,11 @@ export function createMeasurement(options: Options) {
     lastVersion += 1;
     setVersion(lastVersion);
   };
-  const scheduleDelivery = () => simpleScheduler(deliver);
+  // One round later than the graph events that settle an element: the
+  // projection commits those events in the round they are queued in, and a
+  // subscriber of the new version reads the committed cells.
+  const deliverNextRound = () => simpleScheduler(deliver);
+  const scheduleDelivery = () => simpleScheduler(deliverNextRound);
   const settle = (id: CellId) => {
     if (outstanding.delete(id)) scheduleDelivery();
   };
@@ -350,6 +354,12 @@ export function createMeasurement(options: Options) {
         if (!nodesById.has(id) && !isRendered(id)) settle(id);
       }
     },
+    /**
+     * A paper was removed. Only papers hold outstanding elements back, so with
+     * the last one gone the event is due. Checked on the next pass, not now: a
+     * paper re-created right away (StrictMode, a hot reload) keeps them waiting.
+     */
+    onPaperRemoved: scheduleDelivery,
     /** Stops listening to the graph and observing nodes. */
     destroy() {
       listener.stopListening();

@@ -54,7 +54,23 @@ export function useGraphState<Cell extends AnyCellRecord = CellRecord, Selected 
   selector: GraphStateSelector<Cell, Selected>,
   isEqual?: SelectedEqual<Selected>
 ): Selected {
-  const reader = useGraphStateReader<Cell, Selected>();
+  return useSelectGraphState('useGraphState', selector, isEqual);
+}
+
+/**
+ * {@link useGraphState} for a hook built on it, which its dev warnings name.
+ * @param hookName - The hook the application called.
+ * @param selector - Derives the value from the graph state.
+ * @param isEqual - Equality test used to skip re-renders.
+ * @returns The selected value, the same reference for as long as it is equal.
+ * @internal
+ */
+export function useSelectGraphState<Cell extends AnyCellRecord, Selected>(
+  hookName: string,
+  selector: GraphStateSelector<Cell, Selected>,
+  isEqual?: SelectedEqual<Selected>
+): Selected {
+  const reader = useGraphStateReader<Cell, Selected>(hookName);
   const getSnapshot = useCallback(
     () => reader.read(selector, isEqual),
     [reader, selector, isEqual]

@@ -53,6 +53,13 @@ export interface GraphState<Cell extends AnyCellRecord = CellRecord> {
 /**
  * Derives a value from the {@link GraphState}.
  * @group Types
+ * @example
+ * ```ts
+ * import type { CellRecord, GraphStateSelector } from '@joint/react';
+ *
+ * const selectElementCount: GraphStateSelector<CellRecord, number> = (state) =>
+ *   state.cells.filter((cell) => cell.type === 'element').length;
+ * ```
  */
 export type GraphStateSelector<Cell extends AnyCellRecord, Selected> = (
   state: GraphState<Cell>
@@ -138,11 +145,13 @@ function getDetachedRecord(
  * with what the subscription delivered, so a change that lands between a
  * render and its subscription is not missed.
  * @param store - The graph store to read.
+ * @param hookName - The hook the application called, named in dev warnings.
  * @returns `read`, `sync` and `subscribe`, all identity-stable.
  * @internal
  */
 export function createGraphStateReader<Cell extends AnyCellRecord, Selected>(
-  store: GraphStateStore
+  store: GraphStateStore,
+  hookName = 'useGraphState'
 ) {
   // The store holds resolved (Computed) records of the application's own cell
   // shape; the `Cell` generic is how the caller declares that shape.
@@ -277,7 +286,7 @@ export function createGraphStateReader<Cell extends AnyCellRecord, Selected>(
     isDirty = false;
     if (selected) {
       if (isEqual(selected.value, next)) return selected.value;
-      warnUnstableSelector('useGraphState', selected.value, next, isEqual !== arrayAwareEqual);
+      warnUnstableSelector(hookName, selected.value, next, isEqual !== arrayAwareEqual);
     }
     selected = { value: next };
     return next;

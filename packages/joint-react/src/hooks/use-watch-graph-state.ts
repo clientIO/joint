@@ -9,6 +9,14 @@ import { rethrowLater } from '../utils/scheduler';
  * Callback of {@link useOnGraphStateChange}: receives the newly selected value
  * and the one before it, absent on the first call.
  * @group Types
+ * @example
+ * ```ts
+ * import type { OnGraphStateChange } from '@joint/react';
+ *
+ * const logVersion: OnGraphStateChange<number> = (version, previousVersion) => {
+ *   console.info(`sizing version: ${previousVersion ?? '-'} → ${version}`);
+ * };
+ * ```
  */
 export type OnGraphStateChange<Selected> = (value: Selected, previousValue?: Selected) => void;
 
@@ -22,15 +30,17 @@ export type OnGraphStateChange<Selected> = (value: Selected, previousValue?: Sel
  * @param isEqual - Custom equality for the selected value.
  * @param watchKey - Identifies what is watched; changing it runs the callback
  *   again with the current value and no previous one.
+ * @param hookName - The hook the application called, named in dev warnings.
  * @internal
  */
 export function useWatchGraphState<Cell extends AnyCellRecord, Selected>(
   selector: GraphStateSelector<Cell, Selected>,
   onChange: OnGraphStateChange<Selected>,
   isEqual?: SelectedEqual<Selected>,
-  watchKey?: unknown
+  watchKey?: unknown,
+  hookName = 'useOnGraphStateChange'
 ): void {
-  const reader = useGraphStateReader<Cell, Selected>();
+  const reader = useGraphStateReader<Cell, Selected>(hookName);
   const selectorRef = useLatestRef(selector);
   const isEqualRef = useLatestRef(isEqual);
   const onChangeRef = useLatestRef(onChange);

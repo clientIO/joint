@@ -1362,3 +1362,26 @@ describe('useCells — what a re-render changes', () => {
     expect(result.current).toBe(1);
   });
 });
+
+describe('useCells dev warnings', () => {
+  // Regression: the warning named `useGraphState`, which useCells runs on, not
+  // the hook the application called.
+  it('names useCells when its selector returns new objects on every run', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { result } = renderHook(
+      () => {
+        useCells((cells) => cells.map((cell) => ({ id: cell.id })));
+        return useGraphStore().graph;
+      },
+      { wrapper }
+    );
+
+    await act(async () => {
+      (result.current.getCell('a') as dia.Element).position(5, 0);
+      await flush();
+    });
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('[useCells] Selector returns'));
+    warn.mockRestore();
+  });
+});

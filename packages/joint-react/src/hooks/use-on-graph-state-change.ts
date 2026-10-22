@@ -9,6 +9,7 @@ export type { OnGraphStateChange } from './use-watch-graph-state';
  * re-rendering the component: {@link useGraphState} as an effect. The callback
  * runs once when the hook mounts and then synchronously with each store change
  * that changes the selected value, before React re-renders its subscribers.
+ * Like any effect, the mount call runs twice in development under StrictMode.
  *
  * It takes the same selectors and equality functions as {@link useGraphState}
  * and subscribes the same way, to what the selector reads. A new selector

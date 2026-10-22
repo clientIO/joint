@@ -140,7 +140,6 @@ export class GraphStore<
       // (e.g. stencil drag's cloneView).
       this.graphProjection.syncFromGraph();
     }
-
   }
 
   public setOnIncrementalCellsChange = (callback: OnIncrementalCellsChange<Element, Link>) => {
@@ -298,6 +297,7 @@ export class GraphStore<
     const paperStore = this.paperStores.get(id);
     paperStore?.destroy();
     this.paperStores.delete(id);
+    this.measurement.onPaperRemoved();
     this.internalState.setState((previous) => {
       const newPapers: Record<string, PaperStoreState> = {};
       for (const [key, value] of Object.entries(previous.papers)) {

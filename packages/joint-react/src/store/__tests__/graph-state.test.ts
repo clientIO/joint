@@ -2,6 +2,7 @@ import { dia, mvc } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { createGraphStateReader, type GraphState } from '../graph-state';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { AUTO_SIZE_OPTION } from '../measurement';
 import type { CellRecord } from '../../types/cell.types';
 
 const element = (id: string, x = 0): CellRecord =>
@@ -17,6 +18,8 @@ const selectX = (id: string) => (state: GraphState) => state.getCell(id)?.positi
 const selectCount = (state: GraphState) => state.cells.length;
 const selectState = (state: GraphState) => state;
 const selectMeasured = (state: GraphState) => state.sizingVersion;
+const selectVersionAndWidth = (state: GraphState) =>
+  `${state.sizingVersion > 0}:${state.getCell('a')?.size?.width}`;
 const selectIds = (state: GraphState) => state.cells.map((cell) => cell.id);
 const selectPicked = (state: GraphState) =>
   state.getCells(['b', 'missing', 'a']).map((cell) => cell.id);
@@ -163,6 +166,27 @@ describe('createGraphStateReader', () => {
       unsubscribe();
       await commit(() => getElement('a').position(40, 0));
       expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    // Regression: the sizing version was announced in the same scheduler round
+    // as the measured write, ahead of the projection commit of that write, so
+    // a selector reading cells next to the version saw the pre-measure sizes.
+    it('announces a new sizing version once the measured sizes are in the cells', async () => {
+      await flush();
+      const reader = createGraphStateReader<CellRecord, string>(store);
+      const seen: string[] = [];
+      reader.sync(selectVersionAndWidth);
+      reader.subscribe(() => seen.push(reader.sync(selectVersionAndWidth)));
+
+      await commit(() => {
+        store.graph.startBatch('auto-size');
+        getElement('a').set('size', { width: 99, height: 10 }, { [AUTO_SIZE_OPTION]: true });
+        store.graph.stopBatch('auto-size');
+      });
+      await flush();
+
+      expect(seen).not.toContain('true:10');
+      expect(seen.at(-1)).toBe('true:99');
     });
 
     it('is not notified of a cell change when the selector reads the sizing version', async () => {

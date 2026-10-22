@@ -10,6 +10,14 @@ import { useWatchGraphState, type OnGraphStateChange } from './use-watch-graph-s
  * Callback of {@link useOnCellsChange}: receives the newly selected value and
  * the one before it, absent on the first call.
  * @group Types
+ * @example
+ * ```ts
+ * import type { OnCellsChange } from '@joint/react';
+ *
+ * const logCount: OnCellsChange<number> = (count, previousCount) => {
+ *   console.info(`cells: ${previousCount ?? '-'} → ${count}`);
+ * };
+ * ```
  */
 export type OnCellsChange<Selected> = OnGraphStateChange<Selected>;
 
@@ -18,6 +26,7 @@ export type OnCellsChange<Selected> = OnGraphStateChange<Selected>;
  * re-rendering the component: {@link useCells} as an effect. The callback
  * runs once when the hook mounts and then synchronously with each store change
  * that changes the selected value, before React re-renders its subscribers.
+ * Like any effect, the mount call runs twice in development under StrictMode.
  * Changing the watched id, ids or collection starts over: the callback runs
  * again with the current value and no previous one.
  *
@@ -121,10 +130,12 @@ export function useOnCellsChange<Selected>(
     OnCellsChange<Selected>,
     SelectedEqual<unknown> | undefined,
   ];
+  const targetKey = toTargetKey(target);
   useWatchGraphState<AnyCellRecord, unknown>(
-    useCellsStateSelector(target, selector),
+    useCellsStateSelector(target, targetKey, selector),
     onChange as OnCellsChange<unknown>,
     isEqual,
-    toTargetKey(target)
+    targetKey,
+    'useOnCellsChange'
   );
 }
