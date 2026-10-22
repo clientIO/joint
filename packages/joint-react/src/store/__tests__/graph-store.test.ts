@@ -8,9 +8,8 @@ import type { CellRecord } from '../../types/cell.types';
 const createGraph = () => new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
-const measuredState = (store: {
-  readonly measurement: { readonly stateSource: { readonly get: () => number } };
-}) => store.measurement.stateSource.get();
+const sizingVersion = (store: { readonly measurement: { readonly getSizingVersion: () => number } }) =>
+  store.measurement.getSizingVersion();
 
 describe('GraphStore', () => {
   describe('constructor', () => {
@@ -76,7 +75,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells });
       // simpleScheduler defers the bump to a microtask.
       await flush();
-      expect(measuredState(store)).toBeGreaterThan(0);
+      expect(sizingVersion(store)).toBeGreaterThan(0);
       store.destroy(false);
     });
 
@@ -91,7 +90,7 @@ describe('GraphStore', () => {
       ];
       const store = new GraphStore({ initialCells: zeroSized });
       await flush();
-      expect(measuredState(store)).toBe(1);
+      expect(sizingVersion(store)).toBe(1);
       store.destroy(false);
 
       const linksOnly = new GraphStore({
@@ -105,7 +104,7 @@ describe('GraphStore', () => {
         ],
       });
       await flush();
-      expect(measuredState(linksOnly)).toBe(0);
+      expect(sizingVersion(linksOnly)).toBe(0);
       linksOnly.destroy(false);
     });
 
@@ -116,11 +115,11 @@ describe('GraphStore', () => {
       const store = new GraphStore({ initialCells });
       await flush();
       // No paper renders it, so the seed settles on its own.
-      expect(measuredState(store)).toBe(1);
+      expect(sizingVersion(store)).toBe(1);
       // The application sizes the element: not a measurement.
       (store.graph.getCell('a') as dia.Element).resize(120, 40);
       await flush();
-      expect(measuredState(store)).toBe(1);
+      expect(sizingVersion(store)).toBe(1);
 
       // The observer measures the same size, so it writes nothing to the graph.
       const node = document.createElement('div');
@@ -131,7 +130,7 @@ describe('GraphStore', () => {
       const entry = { target: node, borderBoxSize: [{ inlineSize: 120, blockSize: 40 }] };
       callback([entry as unknown as ResizeObserverEntry], {} as ResizeObserver);
       await flush();
-      expect(measuredState(store)).toBe(1);
+      expect(sizingVersion(store)).toBe(1);
       store.destroy(false);
     });
 

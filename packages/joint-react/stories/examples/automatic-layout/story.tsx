@@ -11,7 +11,7 @@ const meta = {
     showcase: {
       description:
         'Position measured elements into a responsive grid, re-running the layout whenever they resize.',
-      apiUrl: getAPILink('useOnCellsChange'),
+      apiUrl: getAPILink('useOnGraphStateChange'),
       code: codeRaw,
     },
   },

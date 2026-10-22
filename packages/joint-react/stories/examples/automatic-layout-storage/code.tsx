@@ -5,8 +5,8 @@ import {
   useCellId,
   useGraph,
   useCells,
-  useOnCellsChange,
-  selectMeasuredState,
+  useOnGraphStateChange,
+  selectGraphSizingVersion,
   linkRoutingOrthogonal,
   type CellRecord,
   type Computed,
@@ -194,8 +194,8 @@ function LayoutRunner() {
     }
   }, [graph]);
 
-  useOnCellsChange(selectMeasuredState, (measuredState) => {
-    if (measuredState) runLayout();
+  useOnGraphStateChange(selectGraphSizingVersion, (sizingVersion) => {
+    if (sizingVersion) runLayout();
   });
   return null;
 }

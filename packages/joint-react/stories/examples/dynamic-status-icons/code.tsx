@@ -5,11 +5,11 @@ import {
   useCell,
   Paper,
   SVGText,
-  useCells,
   useGraph,
   usePaper,
   selectElementSize,
-  selectIsMeasured,
+  useGraphState,
+  selectIsGraphSizingComplete,
 } from '@joint/react';
 import { useCallback, useEffect, useLayoutEffect } from 'react';
 
@@ -212,11 +212,11 @@ function Main() {
   useInterval(setRandomStatuses);
 
   const { paper } = usePaper();
-  const isMeasured = useCells(selectIsMeasured);
+  const isSizingComplete = useGraphState(selectIsGraphSizingComplete);
 
   // The status lists attach to the element views, which exist once the sizes are known.
   useLayoutEffect(() => {
-    if (!isMeasured || !paper) return;
+    if (!isSizingComplete || !paper) return;
     for (const element of graph.getElements()) {
       StatusList.add(element.findView(paper), 'root', 'status', {
         attribute: 'status',
@@ -227,7 +227,7 @@ function Main() {
       });
     }
     setRandomStatuses();
-  }, [isMeasured, paper, graph, setRandomStatuses]);
+  }, [isSizingComplete, paper, graph, setRandomStatuses]);
 
   return (
     <Paper className="size-full" renderElement={RenderElement} drawGrid={false} />

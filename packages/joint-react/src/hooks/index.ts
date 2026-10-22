@@ -10,6 +10,8 @@ export * from './use-graph-store';
 export * from './use-combined-ref';
 export * from './use-stores';
 export * from './use-markup';
+export * from './use-graph-state';
+export * from './use-on-graph-state-change';
 export * from './use-on-cells-change';
 export * from './use-on-elements-measured';
 export * from './use-create-portal-paper';

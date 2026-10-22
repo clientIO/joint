@@ -1,16 +1,17 @@
-import { useLayoutEffect } from 'react';
 import type { dia, mvc } from '@joint/core';
 import type { AnyCellRecord, CellId, CellRecord, Computed } from '../types/cell.types';
-import { useCellsSource, type CellsSelector, type SelectedEqual } from './use-cells';
-import { useLatestRef } from './use-latest-ref';
-import { rethrowLater } from '../utils/scheduler';
+import type { SelectedEqual } from '../store/graph-state';
+import type { AnyCellsSelector, CellsSelector, CellsTarget } from './use-cells.types';
+import { toTargetKey } from './use-cells.utils';
+import { useCellsStateSelector } from './use-cells-state-selector';
+import { useWatchGraphState, type OnGraphStateChange } from './use-watch-graph-state';
 
 /**
  * Callback of {@link useOnCellsChange}: receives the newly selected value and
  * the one before it, absent on the first call.
  * @group Types
  */
-export type OnCellsChange<Selected> = (value: Selected, previousValue?: Selected) => void;
+export type OnCellsChange<Selected> = OnGraphStateChange<Selected>;
 
 /**
  * Runs a callback when a value selected from the cells changes, without
@@ -30,14 +31,12 @@ export type OnCellsChange<Selected> = (value: Selected, previousValue?: Selected
  * @group Hooks
  * @example
  * ```tsx
- * import { useOnCellsChange, selectMeasuredState, useGraph } from '@joint/react';
+ * import { useOnCellsChange } from '@joint/react';
  *
- * // Re-run a layout each time the element sizes settle.
- * function AutoLayout() {
- *   const { graph } = useGraph();
- *   useOnCellsChange(selectMeasuredState, (measuredState) => {
- *     if (measuredState) runLayout(graph);
- *   });
+ * const selectCount = (cells: readonly unknown[]) => cells.length;
+ *
+ * function LogCellCount() {
+ *   useOnCellsChange(selectCount, (count, previousCount) => console.info(count, previousCount));
  *   return null;
  * }
  * ```
@@ -103,38 +102,29 @@ export function useOnCellsChange<Selected>(
   ...args:
     | [CellsSelector<AnyCellRecord, Selected>, OnCellsChange<Selected>, SelectedEqual<Selected>?]
     | [
-        CellId | null | undefined | readonly CellId[] | mvc.Collection<dia.Cell>,
+        CellsTarget,
         CellsSelector<AnyCellRecord, Selected> | ((cell: AnyCellRecord | undefined) => Selected),
         OnCellsChange<Selected>,
         SelectedEqual<Selected>?,
       ]
 ): void {
-  // The target forms carry the callback one position later than the all-cells
-  // form. The overloads guarantee the shapes, which the union hides from TS.
-  const [onChange, sourceArguments] = (
+  // The target forms carry the selector and the callback one position later
+  // than the all-cells form. The overloads guarantee the shapes, which the
+  // union hides from TypeScript.
+  const [target, selector, onChange, isEqual] = (
     typeof args[0] === 'function'
-      ? [args[1], [args[0], args[2]]]
-      : [args[2], [args[0], args[1], args[3]]]
-  ) as [OnCellsChange<unknown>, Parameters<typeof useCellsSource<AnyCellRecord, unknown>>];
-  const { subscribe, select } = useCellsSource<AnyCellRecord, unknown>(...sourceArguments);
-  const onChangeRef = useLatestRef(onChange);
-
-  useLayoutEffect(() => {
-    // `select` returns the cached value while it is equal, so identity is the test.
-    let previous = select();
-    onChangeRef.current(previous);
-    return subscribe(() => {
-      const next = select();
-      if (next === previous) return;
-      const before = previous;
-      previous = next;
-      // This runs inside the store's notification: an error must not keep the
-      // other subscribers of this change from being notified.
-      try {
-        onChangeRef.current(next, before);
-      } catch (error) {
-        rethrowLater(error);
-      }
-    });
-  }, [subscribe, select, onChangeRef]);
+      ? [undefined, args[0], args[1], args[2]]
+      : [args[0] ?? null, args[1], args[2], args[3]]
+  ) as [
+    CellsTarget,
+    AnyCellsSelector<AnyCellRecord, Selected>,
+    OnCellsChange<Selected>,
+    SelectedEqual<unknown> | undefined,
+  ];
+  useWatchGraphState<AnyCellRecord, unknown>(
+    useCellsStateSelector(target, selector),
+    onChange as OnCellsChange<unknown>,
+    isEqual,
+    toTargetKey(target)
+  );
 }

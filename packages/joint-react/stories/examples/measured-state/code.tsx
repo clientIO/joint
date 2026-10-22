@@ -6,12 +6,11 @@ import {
   GraphProvider,
   HTMLBox,
   Paper,
-  useCells,
   useGraph,
-  useOnCellsChange,
-  selectIsMeasured,
-  selectMeasuredState,
-  selectElementsSizes,
+  useGraphState,
+  useOnGraphStateChange,
+  selectIsGraphSizingComplete,
+  selectGraphSizingVersion,
   type CellRecord,
   type ElementRecord,
 } from '@joint/react';
@@ -55,7 +54,7 @@ function renderElement({ label, isLong }: NodeData) {
   return <HTMLBox className="jj-node">{isLong ? label + LONG_SUFFIX : label}</HTMLBox>;
 }
 
-type Source = 'isMeasured' | 'measuredState' | 'sizes';
+type Source = 'isSizingComplete' | 'sizingVersion';
 
 interface LogEntry {
   readonly id: number;
@@ -64,14 +63,13 @@ interface LogEntry {
 }
 
 const SOURCE_CLASS: Record<Source, string> = {
-  isMeasured: 'text-brand',
-  measuredState: 'text-accent',
-  sizes: 'text-ink',
+  isSizingComplete: 'text-brand',
+  sizingVersion: 'text-accent',
 };
 
 /**
- * Logs every change of the three measurement selectors. `useOnCellsChange`
- * calls back without re-rendering this component; only the log state does.
+ * Logs every change of the two measurement selectors. `useOnGraphStateChange` calls
+ * back without re-rendering this component; only the log state does.
  */
 function useMeasurementLog(isAutoLayout: boolean) {
   const { graph } = useGraph();
@@ -85,30 +83,17 @@ function useMeasurementLog(isAutoLayout: boolean) {
   };
 
   // 1. Once per diagram: false → true when the sizes first settle.
-  useOnCellsChange(selectIsMeasured, (isMeasured, previous) => {
+  useOnGraphStateChange(selectIsGraphSizingComplete, (isSizingComplete, previous) => {
     log(
-      'isMeasured',
-      previous === undefined ? `${isMeasured} (mount)` : `${previous} → ${isMeasured}`
+      'isSizingComplete',
+      previous === undefined ? `${isSizingComplete} (mount)` : `${previous} → ${isSizingComplete}`
     );
   });
 
   // 2. Every settled change: first pass, add, remove, re-measure. The place to run a layout.
-  useOnCellsChange(selectMeasuredState, (measuredState) => {
-    log('measuredState', measuredState ? `settled #${measuredState}` : '0 (nothing measured)');
-    if (measuredState && isAutoLayout) layoutRows(graph);
-  });
-
-  // 3. Any size change, element by element. Moving elements never fires it.
-  useOnCellsChange(selectElementsSizes, (sizes, previous) => {
-    let changed = 0;
-    let kept = 0;
-    for (const [id, { width, height }] of sizes) {
-      const before = previous?.get(id);
-      if (before) kept += 1;
-      if (before?.width !== width || before.height !== height) changed += 1;
-    }
-    const removed = (previous?.size ?? 0) - kept;
-    log('sizes', removed > 0 ? `${removed} removed` : `${changed} of ${sizes.size} changed`);
+  useOnGraphStateChange(selectGraphSizingVersion, (sizingVersion) => {
+    log('sizingVersion', sizingVersion ? `settled #${sizingVersion}` : '0 (nothing measured)');
+    if (sizingVersion && isAutoLayout) layoutRows(graph);
   });
 
   return entries;
@@ -170,24 +155,6 @@ function Controls({ onMove }: Readonly<{ onMove: () => void }>) {
   );
 }
 
-function SizesTable() {
-  // Same map reference until a size changes, so dragging does not re-render this.
-  const sizes = useCells(selectElementsSizes);
-  if (sizes.size === 0) return <p className="text-ink-faint">No elements.</p>;
-  return (
-    <ul className="flex flex-col gap-0.5 font-mono text-[12px]">
-      {[...sizes].map(([id, { width, height }]) => (
-        <li key={id} className="flex justify-between">
-          <span className="text-ink-muted">{id}</span>
-          <span className="tabular-nums text-ink">
-            {Math.round(width)} × {Math.round(height)}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 function Section({ title, children }: Readonly<{ title: string; children: ReactNode }>) {
   return (
     <section className="flex flex-col gap-2 border-b border-hairline px-4 py-3">
@@ -198,25 +165,22 @@ function Section({ title, children }: Readonly<{ title: string; children: ReactN
 }
 
 function Inspector({ entries, moves }: Readonly<{ entries: readonly LogEntry[]; moves: number }>) {
-  const isMeasured = useCells(selectIsMeasured);
-  const measuredState = useCells(selectMeasuredState);
+  const isSizingComplete = useGraphState(selectIsGraphSizingComplete);
+  const sizingVersion = useGraphState(selectGraphSizingVersion);
   return (
     <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-l border-hairline bg-surface text-[13px]">
-      <Section title="useCells(selectIsMeasured)">
+      <Section title="useGraphState(selectIsGraphSizingComplete)">
         <div>
           <span className="jj-chip">
-            <span className={`size-2 rounded-full ${isMeasured ? 'bg-brand' : 'bg-ink-faint'}`} />
-            {isMeasured ? 'measured' : 'measuring…'}
+            <span className={`size-2 rounded-full ${isSizingComplete ? 'bg-brand' : 'bg-ink-faint'}`} />
+            {isSizingComplete ? 'measured' : 'measuring…'}
           </span>
         </div>
       </Section>
-      <Section title="useCells(selectMeasuredState)">
-        <span className="font-mono text-[20px] tabular-nums text-ink">{measuredState}</span>
+      <Section title="useGraphState(selectGraphSizingVersion)">
+        <span className="font-mono text-[20px] tabular-nums text-ink">{sizingVersion}</span>
       </Section>
-      <Section title="useCells(selectElementsSizes)">
-        <SizesTable />
-      </Section>
-      <Section title={`useOnCellsChange · moves ignored: ${moves}`}>
+      <Section title={`useOnGraphStateChange · moves ignored: ${moves}`}>
         <ol className="flex flex-col gap-1 font-mono text-[12px]">
           {entries.map(({ id, source, text }) => (
             <li key={id} className="fade-in flex gap-2">
@@ -246,7 +210,7 @@ function Main() {
             onChange={(event) => setIsAutoLayout(event.target.checked)}
             className="accent-accent"
           />
-          <span className="jj-label">re-run the layout on each measuredState change</span>
+          <span className="jj-label">re-run the layout on each sizingVersion change</span>
         </label>
         <Paper className="min-h-0 flex-1" renderElement={renderElement} />
       </div>

@@ -1,6 +1,6 @@
 /**
- * Specification for when the measurement version (`selectMeasuredState`)
- * changes, written as the events a `useOnCellsChange` subscriber receives. It
+ * Specification for when the measurement version (`selectGraphSizingVersion`)
+ * changes, written as the events a `useOnGraphStateChange` subscriber receives. It
  * was written for the former `useOnElementsMeasured` hook; the cases and their
  * expectations are unchanged.
  *
@@ -26,11 +26,11 @@ import { render, waitFor, act } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { Paper } from '../../components/paper/paper';
 import { HTMLHost } from '../../components/html-host';
-import { useOnCellsChange } from '../use-on-cells-change';
+import { useOnGraphStateChange } from '../use-on-graph-state-change';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { AUTO_SIZE_OPTION } from '../../store/measurement';
-import { selectMeasuredState } from '../../selectors';
+import { selectGraphSizingVersion } from '../../selectors';
 import type { CellRecord } from '../../types/cell.types';
 import type { dia } from '@joint/core';
 
@@ -107,8 +107,8 @@ function renderGraph(initialCells: CellRecord[]): Harness {
     graph = currentGraph;
     // An event is a change to a non-zero version; it is the initial one when
     // the version before it was `0` (nothing measured) or the hook just mounted.
-    useOnCellsChange(selectMeasuredState, (version, previousMeasuredState) => {
-      if (version) events.push({ isInitial: !previousMeasuredState });
+    useOnGraphStateChange(selectGraphSizingVersion, (version, previousSizingVersion) => {
+      if (version) events.push({ isInitial: !previousSizingVersion });
     });
     return null;
   }
@@ -143,7 +143,7 @@ async function settleAndClear(harness: Harness) {
   harness.events.length = 0;
 }
 
-describe('selectMeasuredState — one event per settled change', () => {
+describe('selectGraphSizingVersion — one event per settled change', () => {
   it('delivers one event for the seed pass', async () => {
     const harness = renderGraph([plain('a')]);
 
@@ -263,7 +263,7 @@ describe('selectMeasuredState — one event per settled change', () => {
   });
 });
 
-describe('selectMeasuredState — a graph reset starts a new measurement history', () => {
+describe('selectGraphSizingVersion — a graph reset starts a new measurement history', () => {
   // Resetting the graph replaces the diagram, so the next pass is that
   // diagram's first one: a consumer that fits the paper on `isInitial` has a
   // new set of contents to fit.
@@ -320,7 +320,7 @@ describe('selectMeasuredState — a graph reset starts a new measurement history
 // element is settled already, in which case nothing about readiness changed, or
 // it is waiting to be measured, in which case the measurement is still owed and
 // will overwrite the write anyway.
-describe('selectMeasuredState — sizes written by the application', () => {
+describe('selectGraphSizingVersion — sizes written by the application', () => {
   // #3514: a layout that resizes cells must not re-enter its own callback.
   // Nothing was outstanding before the write and nothing is after it.
   it('delivers no event when the application resizes an element nothing measures', async () => {
@@ -370,7 +370,7 @@ describe('selectMeasuredState — sizes written by the application', () => {
 // An element can be zero-sized for good, rather than briefly on its way to a
 // measurement. Nothing will ever give it a size, so treating it as outstanding
 // holds every later batch open and the hook stops firing altogether.
-describe('selectMeasuredState — an element that stays zero-sized', () => {
+describe('selectGraphSizingVersion — an element that stays zero-sized', () => {
   it('delivers the seed pass with a zero-sized element in the graph', async () => {
     const harness = renderGraph([plain('a'), anchor('anchor')]);
 

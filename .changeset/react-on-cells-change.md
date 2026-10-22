@@ -2,5 +2,4 @@
 "@joint/react": minor
 ---
 
-useOnCellsChange - add the hook, with the `selectMeasuredState`, `selectIsMeasured` and `selectElementsSizes` selectors
-`useOnElementsMeasured` is deprecated in favor of it.
+useOnCellsChange - add the hook to run a callback when a value selected from the cells changes

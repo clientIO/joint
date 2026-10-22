@@ -72,7 +72,7 @@ export function warnUnstableSelector(
       'Options to fix:\n' +
       '  1. Return primitives: (cells) => cells.map(c => c.id)\n' +
       '  2. Return cell records directly: (cells) => cells.filter(predicate)\n' +
-      '  3. Provide a custom isEqual: useCells(input, selector, shallowEqual)\n'
+      '  3. Provide a custom isEqual as the last argument of the hook\n'
   );
 }
 
@@ -127,20 +127,21 @@ export function warnResizeOnAutoSizedElement(cellId: dia.Cell.ID): void {
 }
 
 /**
- * Warns once when a selector made by `createSourceSelector` (for example
- * `selectMeasuredState`) is called as a function. Such a selector reads the
- * graph store through the hook it is passed to, so on its own it can only
- * return its neutral value. Dev-only, tree-shaken in production.
+ * Warns once when the graph state is read outside of the selector it was
+ * handed to (kept in a variable and read later, or after an `await`). The hook
+ * subscribes to what the selector reads while it runs, so such a read is not
+ * followed by any update. Dev-only, tree-shaken in production.
  */
-export function warnSourceSelectorCalled(): void {
+export function warnGraphStateReadOutsideSelector(): void {
   if (process.env.NODE_ENV === 'production') return;
-  const key = 'source-selector-called';
+  const key = 'graph-state-read-outside-selector';
   if (WARNED.has(key)) return;
   WARNED.add(key);
 
   console.warn(
-    '[@joint/react] This selector reads the graph store, not the cells: pass it directly ' +
-      'to useCells() or useOnCellsChange() in their all-cells form instead of calling it.'
+    '[useGraphState] The graph state was read outside of its selector. The hook follows only ' +
+      'what the selector reads while it runs, so this read will not update.\n\n' +
+      'Fix: read everything you need inside the selector and return it.'
   );
 }
 

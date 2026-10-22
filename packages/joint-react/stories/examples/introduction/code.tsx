@@ -18,7 +18,8 @@ import {
   type ElementPort,
   type PaperProps,
   selectElementSize,
-  selectMeasuredState,
+  useGraphState,
+  selectGraphSizingVersion,
   linkRoutingOrthogonal,
 } from '@joint/react';
 import {
@@ -294,11 +295,11 @@ function MiniMap() {
 
   const { graph } = useGraph();
   const { paper } = usePaper(minimapId);
-  const measuredState = useCells(selectMeasuredState);
+  const sizingVersion = useGraphState(selectGraphSizingVersion);
 
   // Keep the whole diagram in view each time the element sizes settle.
   useLayoutEffect(() => {
-    const contentArea = measuredState > 0 && graph.getBBox();
+    const contentArea = sizingVersion > 0 && graph.getBBox();
     if (!contentArea || !paper) return;
     paper.transformToFitContent({
       contentArea,
@@ -306,7 +307,7 @@ function MiniMap() {
       horizontalAlign: 'middle',
       padding: 20,
     });
-  }, [measuredState, paper, graph]);
+  }, [sizingVersion, paper, graph]);
 
   return (
     <div className="absolute bottom-6 right-6 z-10 h-[150px] w-[200px] overflow-hidden rounded-lg border border-[#2f4053] bg-[#121c26] shadow-md">

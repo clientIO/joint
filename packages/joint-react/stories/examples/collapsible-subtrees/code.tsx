@@ -7,12 +7,12 @@ import {
   SVGText,
   useCell,
   useCellId,
-  useCells,
   useGraph,
   useMarkup,
   usePaper,
   selectElementSize,
-  selectIsMeasured,
+  useGraphState,
+  selectIsGraphSizingComplete,
   linkRoutingOrthogonal,
 } from '@joint/react';
 import { useCallback, useLayoutEffect, useMemo } from 'react';
@@ -748,11 +748,11 @@ function Main() {
 
   const { graph } = useGraph();
   const { paper } = usePaper();
-  const isMeasured = useCells(selectIsMeasured);
+  const isSizingComplete = useGraphState(selectIsGraphSizingComplete);
 
   // Lay the tree out and fit it once the element sizes are known.
   useLayoutEffect(() => {
-    if (!isMeasured || !paper) return;
+    if (!isSizingComplete || !paper) return;
     runLayout(graph);
     addExpandTools(paper);
     paper.transformToFitContent({
@@ -761,7 +761,7 @@ function Main() {
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
     });
-  }, [isMeasured, paper, graph]);
+  }, [isSizingComplete, paper, graph]);
 
   const renderElement = useCallback((data: FTAData) => RenderFTAElement(data), []);
 

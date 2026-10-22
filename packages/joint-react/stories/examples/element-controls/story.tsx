@@ -11,7 +11,7 @@ const meta = {
     showcase: {
       description:
         'Drag custom elementTools.Control handles to reshape SVG nodes, re-rendering each React shape from its updated element data.',
-      apiUrl: getAPILink('selectIsMeasured'),
+      apiUrl: getAPILink('selectIsGraphSizingComplete'),
       code: codeRaw,
       canvasHeight: 640,
     },

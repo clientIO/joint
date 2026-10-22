@@ -45,8 +45,8 @@ type Transform = Parameters<ReturnType<typeof createMeasurement>['observe']>[0][
 function setup(autoSizeOrigin: AutoSizeOrigin = 'top-left') {
   const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
   const measurement = createMeasurement({ graph, autoSizeOrigin, paperStores: NO_PAPERS });
-  /** What `selectMeasuredState` reads right now. */
-  const version = () => measurement.stateSource.get();
+  /** What `selectGraphSizingVersion` reads right now. */
+  const version = () => measurement.getSizingVersion();
   const nodesById = new Map<string, Element[]>();
   const writes = jest.fn();
   graph.on('batch:stop', ({ batchName }: { batchName?: string }) => {
@@ -675,16 +675,16 @@ describe('measurement — graph events', () => {
       paperStores: NO_PAPERS,
     });
     await flush();
-    expect(measurement.stateSource.get()).toBe(1);
+    expect(measurement.getSizingVersion()).toBe(1);
 
     graph.getCell('a').remove();
     await flush();
     // One element is left, so the diagram is still measured.
-    expect(measurement.stateSource.get()).toBe(2);
+    expect(measurement.getSizingVersion()).toBe(2);
 
     graph.getCell('b').remove();
     await flush();
-    expect(measurement.stateSource.get()).toBe(0);
+    expect(measurement.getSizingVersion()).toBe(0);
   });
 
   it('does not track links', async () => {

@@ -4,8 +4,8 @@ import {
   useGraph,
   useCells,
   HTMLBox,
-  useOnCellsChange,
-  selectMeasuredState,
+  useOnGraphStateChange,
+  selectGraphSizingVersion,
   type CellRecord,
   type ElementRecord,
   type Computed,
@@ -46,8 +46,8 @@ function Main() {
   const nextIdRef = useRef(initialCells.length);
 
   // Re-run the grid layout every time the element sizes settle.
-  useOnCellsChange(selectMeasuredState, (measuredState) => {
-    if (measuredState) layoutGrid(graph, columns);
+  useOnGraphStateChange(selectGraphSizingVersion, (sizingVersion) => {
+    if (sizingVersion) layoutGrid(graph, columns);
   });
 
   const elementCount = useCells<Computed<CellRecord>, number>((cells) => {

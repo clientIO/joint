@@ -12,11 +12,11 @@ import type {
 import {
   GraphProvider,
   Paper,
-  useCells,
   useMarkup,
   useMeasureElement,
   usePaper,
-  selectIsMeasured,
+  useGraphState,
+  selectIsGraphSizingComplete,
   linkRoutingOrthogonal,
 } from '@joint/react';
 import { dia, highlighters, linkTools } from '@joint/core';
@@ -428,18 +428,18 @@ function RenderFlowchartElement(data: Readonly<ElementData>) {
 
 function Main() {
   const { paper: fitPaper } = usePaper();
-  const isMeasured = useCells(selectIsMeasured);
+  const isSizingComplete = useGraphState(selectIsGraphSizingComplete);
 
   // Fit the content once the element sizes are known.
   useLayoutEffect(() => {
-    if (!isMeasured || !fitPaper) return;
+    if (!isSizingComplete || !fitPaper) return;
     fitPaper.transformToFitContent({
       padding: 40,
       useModelGeometry: true,
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
     });
-  }, [isMeasured, fitPaper]);
+  }, [isSizingComplete, fitPaper]);
 
   return (
     <Paper

@@ -3,7 +3,6 @@ import type { CellId, ElementLayout } from '../types/cell.types';
 import type { PaperStore } from './paper-store';
 import { simpleScheduler } from '../utils/scheduler';
 import { warnResizeOnAutoSizedElement } from '../utils/dev-warnings';
-import type { SelectorSource } from '../selectors/source-selector';
 
 /**
  * `dia.Cell.set()` option key used to mark writes that originate from the
@@ -96,9 +95,9 @@ const roundToTwoDecimals = (value: number) => Math.round(value * 100) / 100;
 /**
  * Everything `@joint/react` knows about measuring elements, for one graph:
  * sizing elements from their rendered DOM node ({@link useMeasureElement}) and
- * telling when sizes are settled ({@link selectMeasuredState}).
+ * telling when sizes are settled ({@link selectGraphSizingVersion}).
  *
- * The measured state changes once per settled change. An element is outstanding from
+ * The sizing version changes once per settled change. An element is outstanding from
  * arriving in the graph until it is accounted for: its React content committed
  * without registering a node (`markRendered`), no paper renders it
  * (`settleUnrendered`), the node it registered was measured, or it left the
@@ -112,53 +111,20 @@ const roundToTwoDecimals = (value: number) => Math.round(value * 100) / 100;
  */
 export function createMeasurement(options: Options) {
   const { graph, autoSizeOrigin, paperStores } = options;
-  // `0` while nothing is measured; otherwise the latest of `lastState`, which
+  // `0` while nothing is measured; otherwise the latest of `lastVersion`, which
   // only grows, so a reset followed by a pass never repeats a value.
-  let state = 0;
-  let lastState = 0;
-  const stateListeners = new Set<() => void>();
-  const subscribe = (stateListener: () => void) => {
-    stateListeners.add(stateListener);
+  let version = 0;
+  let lastVersion = 0;
+  const versionListeners = new Set<() => void>();
+  const subscribe = (versionListener: () => void) => {
+    versionListeners.add(versionListener);
     return () => {
-      stateListeners.delete(stateListener);
+      versionListeners.delete(versionListener);
     };
   };
-  const stateSource: SelectorSource<number> = { subscribe, get: () => state };
-  const isMeasuredSource: SelectorSource<boolean> = { subscribe, get: () => state > 0 };
-  const setState = (next: number) => {
-    state = next;
-    for (const stateListener of stateListeners) stateListener();
-  };
-  // The sizes of all elements as one snapshot, built when it is read and
-  // dropped when a size changes.
-  // ponytail: an O(n) rebuild per size change, and only while something reads
-  // it; a persistent map if a diagram resizes elements every frame at scale.
-  let sizes: ReadonlyMap<CellId, dia.Size> | undefined;
-  const sizesListeners = new Set<() => void>();
-  const notifySizes = () => {
-    for (const sizesListener of sizesListeners) sizesListener();
-  };
-  const sizesSource: SelectorSource<ReadonlyMap<CellId, dia.Size>> = {
-    subscribe: (sizesListener) => {
-      sizesListeners.add(sizesListener);
-      return () => {
-        sizesListeners.delete(sizesListener);
-      };
-    },
-    get: () => {
-      if (!sizes) {
-        const next = new Map<CellId, dia.Size>();
-        for (const element of graph.getElements()) next.set(element.id, element.size());
-        sizes = next;
-      }
-      return sizes;
-    },
-  };
-  /** Nothing to do until the snapshot has been read: then nobody holds a stale one. */
-  const invalidateSizes = () => {
-    if (!sizes) return;
-    sizes = undefined;
-    simpleScheduler(notifySizes);
+  const setVersion = (next: number) => {
+    version = next;
+    for (const versionListener of versionListeners) versionListener();
   };
   let elementCount = 0;
   const outstanding = new Set<CellId>();
@@ -176,12 +142,12 @@ export function createMeasurement(options: Options) {
     if (outstanding.size > 0 && paperStores.size > 0) return;
     // An empty diagram has nothing measured.
     if (elementCount === 0) {
-      if (state > 0) setState(0);
+      if (version > 0) setVersion(0);
       return;
     }
     hasUndeliveredChange = false;
-    lastState += 1;
-    setState(lastState);
+    lastVersion += 1;
+    setVersion(lastVersion);
   };
   const scheduleDelivery = () => simpleScheduler(deliver);
   const settle = (id: CellId) => {
@@ -202,7 +168,6 @@ export function createMeasurement(options: Options) {
     scheduleDelivery();
   };
   const track = (element: dia.Element) => {
-    invalidateSizes();
     elementCount += 1;
     outstanding.add(element.id);
     markChanged();
@@ -295,18 +260,16 @@ export function createMeasurement(options: Options) {
   listener.listenTo(graph, 'remove', (cell: dia.Cell) => {
     if (!cell.isElement()) return;
     // What is left has to be laid out again, so a removal is a change too.
-    invalidateSizes();
     elementCount -= 1;
     outstanding.delete(cell.id);
     markChanged();
   });
   listener.listenTo(graph, 'reset', (collection: mvc.Collection<dia.Cell>) => {
     // The reset replaces the diagram: until its first settled pass nothing is measured.
-    invalidateSizes();
     elementCount = 0;
     outstanding.clear();
     hasUndeliveredChange = false;
-    if (state > 0) setState(0);
+    if (version > 0) setVersion(0);
     // `reset` suppresses the per-cell `add` events.
     for (const cell of collection.models) if (cell.isElement()) track(cell);
   });
@@ -314,7 +277,6 @@ export function createMeasurement(options: Options) {
     graph,
     'change:size',
     (cell: dia.Cell, _size: dia.Size, changeOptions: dia.Cell.Options = {}) => {
-      invalidateSizes();
       if (changeOptions[AUTO_SIZE_OPTION]) {
         outstanding.delete(cell.id);
         markChanged();
@@ -326,12 +288,17 @@ export function createMeasurement(options: Options) {
   );
 
   return {
-    /** The measured state as a selector source. See {@link selectMeasuredState}. */
-    stateSource,
-    /** Whether the sizes are known, as a selector source. See {@link selectIsMeasured}. */
-    isMeasuredSource,
-    /** The element sizes, as a selector source. See {@link selectElementsSizes}. */
-    sizesSource,
+    /**
+     * The sizing version: `0` while nothing is measured, otherwise a number
+     * that changes once per settled change. See {@link selectGraphSizingVersion}.
+     */
+    getSizingVersion: () => version,
+    /**
+     * Calls `versionListener` each time the sizing version changes.
+     * @param versionListener - called synchronously with the change
+     * @returns the unsubscribe function
+     */
+    subscribe,
     /**
      * Sizes the element from `node`, for as long as the returned cleanup has not run.
      * @param measured - the element id, its DOM node and an optional transform

@@ -49,9 +49,9 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  * The callback receives {@link ElementsMeasuredParams}; `isInitial` is `true`
  * for the first event after the hook mounts and again for the first event
  * after a graph reset (`resetCells()`), which replaces the diagram.
- * @deprecated Use {@link useOnCellsChange} with {@link selectMeasuredState} to
- *   react to every settled change, or {@link useCells} with
- *   {@link selectIsMeasured} to act once the sizes are known.
+ * @deprecated Use {@link useOnGraphStateChange} with {@link selectGraphSizingVersion}
+ *   to react to every settled change, or {@link useGraphState} with
+ *   {@link selectIsGraphSizingComplete} to act once the sizes are known.
  * @title On the current paper
  * @param callback - Called each time element sizes are measured.
  * @group Hooks
@@ -74,9 +74,9 @@ export function useOnElementsMeasured(callback: OnElementsMeasured): void;
 /**
  * Calls a callback when element sizes are measured, targeting a specific paper
  * instead of the surrounding context. Useful when several papers share one graph.
- * @deprecated Use {@link useOnCellsChange} with {@link selectMeasuredState} to
- *   react to every settled change, or {@link useCells} with
- *   {@link selectIsMeasured} to act once the sizes are known.
+ * @deprecated Use {@link useOnGraphStateChange} with {@link selectGraphSizingVersion}
+ *   to react to every settled change, or {@link useGraphState} with
+ *   {@link selectIsGraphSizingComplete} to act once the sizes are known.
  * @title On a specific paper
  * @param paperTarget - Which paper to watch: a registered paper id, a
  *   `dia.Paper` instance, or a React ref to one.
@@ -118,13 +118,12 @@ export function useOnElementsMeasured(
   useLayoutEffect(() => {
     if (!paperStore) return;
     const { paper } = paperStore;
-    const { stateSource } = measurement;
     // A new paper (or graph store) starts its own history, and so does a graph
     // reset (the state goes back to `0`): the next event is the initial one.
     let previousState = 0;
 
     function handleChanges() {
-      const state = stateSource.get();
+      const state = measurement.getSizingVersion();
       const isInitial = previousState === 0;
       previousState = state;
       if (state === 0) return;
@@ -145,6 +144,6 @@ export function useOnElementsMeasured(
     // Flush any measurement that happened before subscription (e.g. initial
     // data sync ran before this paperStore was available).
     handleChanges();
-    return stateSource.subscribe(handleChanges);
+    return measurement.subscribe(handleChanges);
   }, [paperStore, measurement, graph, callbackRef]);
 }

@@ -9,9 +9,9 @@ import { render, waitFor, act } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { Paper } from '../../components/paper/paper';
 import { HTMLHost } from '../../components/html-host';
-import { useOnCellsChange } from '../use-on-cells-change';
+import { useOnGraphStateChange } from '../use-on-graph-state-change';
 import { useGraphStore } from '../use-graph-store';
-import { selectMeasuredState } from '../../selectors';
+import { selectGraphSizingVersion } from '../../selectors';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import type { CellRecord } from '../../types/cell.types';
 import type { PaperProps } from '../../components/paper/paper.types';
@@ -90,8 +90,8 @@ function renderGraph(initialCells: CellRecord[], paperProps: Partial<PaperProps>
     graph = currentGraph;
     // An event is a change to a non-zero version; it is the initial one when
     // the version before it was `0` (nothing measured) or the hook just mounted.
-    useOnCellsChange(selectMeasuredState, (version, previousMeasuredState) => {
-      if (version) events.push({ isInitial: !previousMeasuredState });
+    useOnGraphStateChange(selectGraphSizingVersion, (version, previousSizingVersion) => {
+      if (version) events.push({ isInitial: !previousSizingVersion });
     });
     return null;
   }
@@ -119,7 +119,7 @@ async function settleAndClear(harness: Harness) {
 // measurer, it becomes outstanding then.
 const hideAnchor: PaperProps['cellVisibility'] = ({ model }) => model.id !== 'anchor';
 
-describe('selectMeasuredState — an element the paper does not render', () => {
+describe('selectGraphSizingVersion — an element the paper does not render', () => {
   it('delivers the seed pass with a culled zero-sized element in the graph', async () => {
     const harness = renderGraph([plain('a'), anchor('anchor')], { cellVisibility: hideAnchor });
 
@@ -143,7 +143,7 @@ describe('selectMeasuredState — an element the paper does not render', () => {
 });
 
 // What else ends the wait: the waiting element leaves the graph.
-describe('selectMeasuredState — a waiting element is removed', () => {
+describe('selectGraphSizingVersion — a waiting element is removed', () => {
   it('delivers the batch once the waiting element is removed before it is measured', async () => {
     const harness = renderGraph([plain('a')]);
     await settleAndClear(harness);
@@ -165,7 +165,7 @@ describe('selectMeasuredState — a waiting element is removed', () => {
 
 // Regression: an element that stopped measuring before it was measured stayed
 // "waiting" forever and held back every later event.
-describe('selectMeasuredState — a waiting element stops measuring', () => {
+describe('selectGraphSizingVersion — a waiting element stops measuring', () => {
   it('delivers the batch, and later changes, once nothing measures the element any more', async () => {
     const harness = renderGraph([plain('a')]);
     await settleAndClear(harness);
@@ -192,7 +192,7 @@ describe('selectMeasuredState — a waiting element stops measuring', () => {
 });
 
 // A removal changes what a layout has to arrange, so it is a settled change too.
-describe('selectMeasuredState — a settled element is removed', () => {
+describe('selectGraphSizingVersion — a settled element is removed', () => {
   it('delivers one event for the removal', async () => {
     const harness = renderGraph([plain('a'), plain('b')]);
     await settleAndClear(harness);
@@ -210,7 +210,7 @@ describe('selectMeasuredState — a settled element is removed', () => {
 // something else (a longer label, an expanded card), the node grows, the
 // ResizeObserver reports the new size and the layout runs again. jsdom has no
 // layout, so a local ResizeObserver mock delivers the entry the browser would.
-describe('selectMeasuredState — the content of an element changes', () => {
+describe('selectGraphSizingVersion — the content of an element changes', () => {
   class TestResizeObserver {
     static readonly instances: TestResizeObserver[] = [];
     readonly observed = new Set<Element>();

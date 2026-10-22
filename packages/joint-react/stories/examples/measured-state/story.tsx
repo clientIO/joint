@@ -10,8 +10,8 @@ const meta = {
   parameters: {
     showcase: {
       description:
-        'Watch selectIsMeasured flip once on load, selectMeasuredState change on every settled add, remove or re-measure, and selectElementsSizes change only when a size does. Moving nodes fires nothing.',
-      apiUrl: getAPILink('useOnCellsChange'),
+        'Watch selectIsGraphSizingComplete flip once on load, and selectGraphSizingVersion change on every settled add, remove or re-measure. Moving nodes fires nothing.',
+      apiUrl: getAPILink('useOnGraphStateChange'),
       code: codeRaw,
       canvasHeight: 480,
     },

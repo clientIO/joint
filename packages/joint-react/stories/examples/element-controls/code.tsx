@@ -3,11 +3,11 @@ import {
   GraphProvider,
   useCell,
   Paper,
-  useCells,
   usePaper,
   type ElementRecord,
   selectElementSize,
-  selectIsMeasured,
+  useGraphState,
+  selectIsGraphSizingComplete,
 } from '@joint/react';
 import { dia, elementTools, g } from '@joint/core';
 import { useLayoutEffect } from 'react';
@@ -751,12 +751,12 @@ function addElementControls(paper: dia.Paper) {
 // ----------------------------------------------------------------------------
 function Main() {
   const { paper } = usePaper();
-  const isMeasured = useCells(selectIsMeasured);
+  const isSizingComplete = useGraphState(selectIsGraphSizingComplete);
 
   // The controls attach to the element views, which exist once the sizes are known.
   useLayoutEffect(() => {
-    if (isMeasured && paper) addElementControls(paper);
-  }, [isMeasured, paper]);
+    if (isSizingComplete && paper) addElementControls(paper);
+  }, [isSizingComplete, paper]);
 
   return <Paper className="size-full" renderElement={renderElement} />;
 }

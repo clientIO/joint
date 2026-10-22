@@ -51,7 +51,7 @@ export function isPositionEqual(a?: ElementPosition, b?: ElementPosition): boole
  * @param b - second array
  * @returns true when both arrays have the same length and the same element refs
  */
-export function areArraysShallowEqual<T>(a: readonly T[], b: readonly T[]): boolean {
+function areArraysShallowEqual<T>(a: readonly T[], b: readonly T[]): boolean {
   if (a === b) return true;
   if (a.length !== b.length) return false;
   for (const [index, value] of a.entries()) {
