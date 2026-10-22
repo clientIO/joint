@@ -267,6 +267,8 @@ new joint.shapes.standard.Rectangle({
     position: { x: 100 },
 });
 
+const nodeSelector: string | null = joint.util.getNodeSelector(document.createElementNS('http://www.w3.org/2000/svg', 'g'));
+
 class MyElement extends joint.dia.Element {
 
     test() {

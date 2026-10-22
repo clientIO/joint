@@ -94,6 +94,8 @@ export interface DOMJSONDocument {
 
 export function parseDOMJSON(json: dia.MarkupJSON): DOMJSONDocument;
 
+export function getNodeSelector(node: DOMElement): string | null;
+
 export namespace timing {
 
     type TimingFunction = (time: number) => number;
