@@ -508,6 +508,59 @@ describe('createElementsSizeObserver', () => {
     });
   });
 
+  describe('invalidate', () => {
+    it('clears the measurement memory so the next delivery of the same size is honored', () => {
+      const element = document.createElement('div');
+      observer.add({ id: 'element-1', node: element });
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+
+      resizeObserver.triggerResize(element, 100, 50);
+      expect(mockOnBatchUpdate).toHaveBeenCalledTimes(1);
+
+      // An external size write happened — the store invalidates the measurement.
+      observer.invalidate('element-1');
+
+      // The forced re-observation delivers the unchanged layout again; it must
+      // be honored, not deduped against the pre-invalidation measurement.
+      resizeObserver.triggerResize(element, 100, 50);
+      expect(mockOnBatchUpdate).toHaveBeenCalledTimes(2);
+    });
+
+    it('re-observes the active node to force a fresh delivery of the current layout', () => {
+      const element = document.createElement('div');
+      observer.add({ id: 'element-1', node: element });
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+      const unobserveSpy = jest.spyOn(resizeObserver, 'unobserve');
+      const observeSpy = jest.spyOn(resizeObserver, 'observe');
+
+      observer.invalidate('element-1');
+
+      expect(unobserveSpy).toHaveBeenCalledWith(element);
+      expect(observeSpy).toHaveBeenCalledWith(element, expect.anything());
+      expect(resizeObserver.isObserving(element)).toBe(true);
+    });
+
+    it('targets only the active node of a multi-entry stack', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+      observer.add({ id: 'element-1', node: nodeA });
+      observer.add({ id: 'element-1', node: nodeB });
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+      const unobserveSpy = jest.spyOn(resizeObserver, 'unobserve');
+
+      observer.invalidate('element-1');
+
+      // Identity check — `toHaveBeenCalledWith` matches structurally and the
+      // two empty divs are structurally equal.
+      expect(unobserveSpy).toHaveBeenCalledTimes(1);
+      expect(unobserveSpy.mock.calls[0][0]).toBe(nodeB);
+    });
+
+    it('is a no-op for an unobserved id', () => {
+      expect(() => observer.invalidate('unknown')).not.toThrow();
+    });
+  });
+
   describe('has', () => {
     it('should return true for registered elements', () => {
       const element = document.createElement('div');
