@@ -28,6 +28,7 @@ import { LINK_MODEL_TYPE } from '../../mvc/link-model';
 import type { CellRecord } from '../../types/cell.types';
 
 let capturedGraph: dia.Graph | null = null;
+let capturedStore: ReturnType<typeof useGraphStore> | null = null;
 let capturedPaper: dia.Paper | null = null;
 
 const initialCells: readonly CellRecord[] = [
@@ -53,8 +54,10 @@ const initialCells: readonly CellRecord[] = [
 
 function Probe() {
   const nodeRef = useRef<SVGRectElement | null>(null);
-  const { graph } = useGraphStore();
+  const store = useGraphStore();
+  const { graph } = store;
   const { paper } = usePaper();
+  capturedStore = store;
   capturedGraph = graph;
   capturedPaper = paper;
   const size = useMeasureElement(nodeRef);
@@ -135,7 +138,8 @@ describe('useMeasureElement', () => {
     expect(() =>
       render(
         <GraphProvider initialCells={initialCells}>
-          <Paper style={{ width: 100, height: 100 }}
+          <Paper
+            style={{ width: 100, height: 100 }}
             id="measure-throw-paper"
             renderElement={renderNullElement}
           >
@@ -172,7 +176,11 @@ describe('useMeasureElement', () => {
     }
     render(
       <GraphProvider initialCells={initialCells}>
-        <Paper style={{ width: 100, height: 100 }} id="measure-link-paper" renderElement={renderLinkProbe} />
+        <Paper
+          style={{ width: 100, height: 100 }}
+          id="measure-link-paper"
+          renderElement={renderLinkProbe}
+        />
       </GraphProvider>
     );
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -184,13 +192,40 @@ describe('useMeasureElement', () => {
   it('returns size record without registering when ref.current is null at mount', async () => {
     const { container } = render(
       <GraphProvider initialCells={initialCells}>
-        <Paper style={{ width: 100, height: 100 }} id="measure-null-paper" renderElement={renderNoNodeProbe} />
+        <Paper
+          style={{ width: 100, height: 100 }}
+          id="measure-null-paper"
+          renderElement={renderNoNodeProbe}
+        />
       </GraphProvider>
     );
     await waitFor(() => {
       const text = container.querySelector('text');
       expect(text).not.toBeNull();
     });
+  });
+
+  // Regression: the paper can route the links before React commits a measured
+  // size, so the measured element clears its view once that size is committed.
+  // This used to be a sweep of every element on a global "measured" flag.
+  it('clears the view of a measured element when its measured size commits', async () => {
+    renderProbe();
+    await waitFor(() => expect(capturedPaper?.findViewByModel('el')).toBeDefined());
+    const clearView = jest.spyOn(capturedStore!, 'clearViewForElementAndLinks');
+    const element = capturedGraph!.getCell('el') as dia.Element;
+
+    await act(async () => {
+      element.position(5, 5);
+      await Promise.resolve();
+    });
+    expect(clearView).not.toHaveBeenCalled();
+
+    await act(async () => {
+      element.set('size', { width: 120, height: 60 }, { autoSize: true });
+      await Promise.resolve();
+    });
+    const clearedIds = clearView.mock.calls.map(([options]) => options.cellId);
+    expect(clearedIds).toEqual(['el']);
   });
 
   describe('with a real ResizeObserver mock', () => {
