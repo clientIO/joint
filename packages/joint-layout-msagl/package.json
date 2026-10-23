@@ -78,7 +78,7 @@
     "karma-sourcemap-loader": "^0.4.0",
     "puppeteer": "24.22.0",
     "qunit": "^2.24.1",
-    "rollup": "4.36.0",
+    "rollup": "4.64.12",
     "rollup-plugin-banner2": "^1.2.2",
     "typescript": "^5.7.3"
   },
