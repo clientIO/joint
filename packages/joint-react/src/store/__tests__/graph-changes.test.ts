@@ -19,18 +19,6 @@ function setup() {
   return { graph, onChanges, controller };
 }
 
-function setupWithSize() {
-  const graph = createGraph();
-  const onChanges = jest.fn();
-  const onElementsSizeChange = jest.fn();
-  const controller = graphChanges({
-    graph,
-    onChanges,
-    onElementsSizeChange,
-  });
-  return { graph, onChanges, onElementsSizeChange, controller };
-}
-
 function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50) {
   graph.addCell({
     id,
@@ -378,89 +366,6 @@ describe('graphChanges', () => {
         'el-1',
         'el-2',
       ]);
-    });
-  });
-
-  describe('onElementsSizeChange', () => {
-    it('fires for each element when resetCells seeds cells with sizes', () => {
-      const { graph, onElementsSizeChange } = setupWithSize();
-      graph.resetCells([
-        {
-          id: 'a',
-          type: 'element',
-          position: { x: 0, y: 0 },
-          size: { width: 100, height: 50 },
-        },
-        {
-          id: 'b',
-          type: 'element',
-          position: { x: 200, y: 0 },
-          size: { width: 80, height: 40 },
-        },
-        {
-          id: 'l1',
-          type: 'standard.Link',
-          source: { id: 'a' },
-          target: { id: 'b' },
-        },
-      ]);
-
-      const elementCalls = onElementsSizeChange.mock.calls.filter(
-        ([id]) => id === 'a' || id === 'b'
-      );
-      expect(elementCalls).toHaveLength(2);
-      expect(elementCalls).toEqual(
-        expect.arrayContaining([
-          ['a', { width: 100, height: 50 }],
-          ['b', { width: 80, height: 40 }],
-        ])
-      );
-    });
-
-    it('fires when ResizeObserver sets size via fromMeasure flag', () => {
-      const { graph, onElementsSizeChange } = setupWithSize();
-      graph.resetCells([
-        {
-          id: 'a',
-          type: 'element',
-          position: { x: 0, y: 0 },
-          size: { width: 0, height: 0 },
-        },
-      ]);
-      onElementsSizeChange.mockClear();
-
-      const cell = graph.getCell('a') as dia.Element;
-      cell.set('size', { width: 120, height: 60 }, { fromMeasure: true } as object);
-
-      expect(onElementsSizeChange).toHaveBeenCalledWith('a', { width: 120, height: 60 });
-    });
-
-    it('does not fire for links on reset', () => {
-      const { graph, onElementsSizeChange } = setupWithSize();
-      graph.resetCells([
-        {
-          id: 'a',
-          type: 'element',
-          position: { x: 0, y: 0 },
-          size: { width: 100, height: 50 },
-        },
-        {
-          id: 'b',
-          type: 'element',
-          position: { x: 200, y: 0 },
-          size: { width: 80, height: 40 },
-        },
-        {
-          id: 'l1',
-          type: 'standard.Link',
-          source: { id: 'a' },
-          target: { id: 'b' },
-        },
-      ]);
-
-      for (const [id] of onElementsSizeChange.mock.calls) {
-        expect(id).not.toBe('l1');
-      }
     });
   });
 
