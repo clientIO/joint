@@ -2,8 +2,7 @@ module.exports = function(grunt) {
 
     return {
         'default': [
-            'install',
-            'watch'
+            'install'
         ],
         'install': [
             'shell:rollup-dist',
@@ -38,10 +37,6 @@ module.exports = function(grunt) {
             'newer:uglify:jointNoWrap',
             'newer:uglify:plugins'
         ],
-        'build:bundles': [
-            'newer:browserify',
-            'webpack'
-        ],
 
         // TESTS
         'test': [
@@ -50,7 +45,7 @@ module.exports = function(grunt) {
             'test:client',
             'test:ts'
         ],
-        'test:server': ['mochaTest:server'],
+        'test:server': ['shell:mocha-server'],
         'test:client': [
             'test:src',
             'test:bundles'
@@ -61,14 +56,13 @@ module.exports = function(grunt) {
             'karma:joint'
         ],
         'test:bundles': [
-            'build:bundles',
             'qunit:joint',
             'qunit:vectorizer',
             'qunit:geometry'
         ],
         'test:ts': [
-            'ts:test',
-            'ts:test-exports'
+            'shell:ts-test',
+            'shell:ts-test-exports'
         ],
         'test:coverage': [
             'shell:rollup-test-bundle',
