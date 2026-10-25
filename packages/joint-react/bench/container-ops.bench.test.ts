@@ -47,6 +47,7 @@ describe('container-ops: O(1) flat-micro benchmark', () => {
       });
       await bench.run();
       logResults(bench);
+      expect(bench.tasks).toHaveLength(1);
       saveBenchResults(bench, `container/set-existing/n=${n}`, OUTPUT);
     }, 60_000);
 
@@ -63,6 +64,7 @@ describe('container-ops: O(1) flat-micro benchmark', () => {
       });
       await bench.run();
       logResults(bench);
+      expect(bench.tasks).toHaveLength(1);
       saveBenchResults(bench, `container/set-insert/n=${n}`, OUTPUT);
     }, 60_000);
 
@@ -80,6 +82,7 @@ describe('container-ops: O(1) flat-micro benchmark', () => {
       });
       await bench.run();
       logResults(bench);
+      expect(bench.tasks).toHaveLength(1);
       saveBenchResults(bench, `container/delete/n=${n}`, OUTPUT);
     }, 60_000);
   }

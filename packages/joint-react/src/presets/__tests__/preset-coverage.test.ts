@@ -162,7 +162,7 @@ describe('presets / element-ports', () => {
   });
   it('elementPorts merges portStyle into each port', () => {
     const out = elementPorts({ a: { cx: 0, cy: 0 } }, { color: 'blue' });
-    expect(out.items.length).toBe(1);
+    expect(out.items).toHaveLength(1);
     expect(out.groups).toBeDefined();
   });
 });
