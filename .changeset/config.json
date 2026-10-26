@@ -41,7 +41,7 @@
     "!**/rollup.config.*",
     "!**/rollup.resources.mjs",
     "!**/vite.config.*",
-    "!**/vitest.workspace.*",
+    "!**/vitest.config.*",
     "!**/jest.config.js",
     "!**/jest.react18.config.mjs",
     "!**/karma.conf.js",
