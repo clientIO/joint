@@ -1471,17 +1471,15 @@ export const Graph = Model.extend({
     },
 
     // Return bounding box of all elements.
-    getBBox: function(opt) {
+    getBBox: function() {
 
-        return this.getCellsBBox(this.getCells(), opt);
+        return this.getCellsBBox(this.getCells());
     },
 
     // Return the bounding box of all cells in array provided.
-    // Only the cells passing the `filter` (if provided) are considered.
     getCellsBBox: function(cells, opt = {}) {
-        const { rotate = true, filter } = opt;
+        const { rotate = true } = opt;
         return util.toArray(cells).reduce(function(memo, cell) {
-            if (typeof filter === 'function' && !filter(cell)) return memo;
             const rect = cell.getBBox({ rotate });
             if (!rect) return memo;
             if (memo) {

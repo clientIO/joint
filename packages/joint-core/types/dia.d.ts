@@ -276,19 +276,6 @@ export namespace Graph {
         strict?: boolean;
     }
 
-    interface BBoxOptions extends Cell.Options {
-        /**
-         * Whether to take the rotation of the cells into account.
-         * @default true
-         */
-        rotate?: boolean;
-        /**
-         * Only the cells for which the function returns `true`
-         * contribute to the bounding box.
-         */
-        filter?: (cell: Cell) => boolean;
-    }
-
     interface SyncCellOptions extends Options {
         remove?: boolean;
     }
@@ -540,9 +527,9 @@ export class Graph<A extends ObjectHash = Graph.Attributes, S = ModelSetOptions>
     /** @deprecated use `findElementsUnderElement` instead */
     findModelsUnderElement(element: Element, opt?: Graph.FindUnderElementOptions): Element[];
 
-    getBBox(opt?: Graph.BBoxOptions): g.Rect | null;
+    getBBox(): g.Rect | null;
 
-    getCellsBBox(cells: Cell[], opt?: Graph.BBoxOptions): g.Rect | null;
+    getCellsBBox(cells: Cell[], opt?: Cell.EmbeddableOptions): g.Rect | null;
 
     hasActiveBatch(name?: string | string[]): boolean;
 

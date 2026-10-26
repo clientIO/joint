@@ -165,8 +165,6 @@ const isVisibleCell = (cell: joint.dia.Cell) => !cell.get('hidden');
 paper.fitToContent({ useModelGeometry: true, filter: isVisibleCell });
 paper.transformToFitContent({ useModelGeometry: true, filter: isVisibleCell });
 paper.getContentArea({ useModelGeometry: true, filter: isVisibleCell }).inflate(5);
-graph.getBBox({ filter: isVisibleCell })?.inflate(5);
-graph.getCellsBBox(graph.getElements(), { rotate: false, filter: isVisibleCell })?.inflate(5);
 
 const eventOptions: joint.dia.Paper.Options[] = [
     // `guard` is called without a view when the event did not hit a cell view.
