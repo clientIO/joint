@@ -2587,7 +2587,13 @@ export const Paper = View.extend({
     getContentArea: function(opt) {
 
         if (opt && opt.useModelGeometry) {
-            return this.model.getBBox() || new Rect();
+            // Only the cells passing the `filter` (if provided) are considered.
+            const { filter } = opt;
+            const bboxOpt = {};
+            if (typeof filter === 'function') {
+                bboxOpt.filter = (cell) => filter.call(this, cell, this);
+            }
+            return this.model.getBBox(bboxOpt) || new Rect();
         }
 
         const graphLayerViews = this.getGraphLayerViews();

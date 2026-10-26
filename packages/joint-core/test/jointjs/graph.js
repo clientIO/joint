@@ -2568,6 +2568,52 @@ QUnit.module('graph', function(hooks) {
             assert.equal(bbox.width, 130 - 50, 'bbox.width correct');
             assert.equal(bbox.height, 130 - 50, 'bbox.height correct');
         });
+
+        QUnit.test('filter option', function(assert) {
+            var r1 = new joint.shapes.standard.Rectangle({
+                position: { x: 50, y: 50 },
+                size: { width: 20, height: 20 },
+            });
+            var r2 = new joint.shapes.standard.Rectangle({
+                position: { x: 100, y: 200 },
+                size: { width: 20, height: 20 },
+            });
+            var r3 = new joint.shapes.standard.Rectangle({
+                angle: 90,
+                position: { x: 200, y: 100 },
+                size: { width: 40, height: 20 },
+            });
+
+            this.graph.resetCells([r1, r2, r3]);
+
+            var filteredCells = [];
+            var bbox = this.graph.getCellsBBox([r1, r2, r3], {
+                filter: function(cell) {
+                    filteredCells.push(cell);
+                    return cell !== r2;
+                }
+            });
+            assert.deepEqual(filteredCells, [r1, r2, r3], 'filter called for every cell');
+            assert.deepEqual(bbox.toJSON(), { x: 50, y: 50, width: 180, height: 80 }, 'filtered cells are excluded');
+
+            bbox = this.graph.getCellsBBox([r1, r2, r3], {
+                rotate: false,
+                filter: function(cell) { return cell !== r2; }
+            });
+            assert.deepEqual(bbox.toJSON(), { x: 50, y: 50, width: 190, height: 70 }, 'rotate option is respected');
+
+            assert.equal(
+                this.graph.getCellsBBox([r1, r2, r3], { filter: function() { return false; } }),
+                null,
+                'returns null when no cell passes the filter',
+            );
+
+            bbox = this.graph.getBBox({ filter: function(cell) { return cell === r2; } });
+            assert.deepEqual(bbox.toJSON(), { x: 100, y: 200, width: 20, height: 20 }, 'graph.getBBox() accepts the filter');
+
+            bbox = this.graph.getBBox();
+            assert.deepEqual(bbox.toJSON(), { x: 50, y: 50, width: 180, height: 170 }, 'graph.getBBox() without options considers all cells');
+        });
     });
 
     QUnit.module('graph.findElementsUnderElement()', function() {

@@ -278,6 +278,78 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
         });
 
+        QUnit.module('getContentArea() > options > filter', function() {
+
+            QUnit.test('useModelGeometry = TRUE', function(assert) {
+                addCells(graph);
+                var [rect1, rect2] = graph.getElements();
+                var calls = [];
+                var area = paper.getContentArea({
+                    useModelGeometry: true,
+                    filter: function(cell, filterPaper) {
+                        calls.push({ context: this, cell, paper: filterPaper });
+                        return cell.isElement();
+                    }
+                });
+                assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 300 }, 'filtered cells are excluded');
+                assert.equal(calls.length, 3, 'filter called for every cell');
+                assert.ok(calls.every(call => call.context === paper && call.paper === paper), 'filter called with the paper');
+
+                area = paper.getContentArea({ useModelGeometry: true, filter: (cell) => cell === rect2 });
+                assert.deepEqual(area.toJSON(), { x: 100, y: 100, width: 100, height: 100 });
+
+                area = paper.getContentArea({ useModelGeometry: true, filter: () => false });
+                assert.ok(area instanceof g.Rect);
+                assert.deepEqual(area.toJSON(), { x: 0, y: 0, width: 0, height: 0 }, 'empty area when no cell passes the filter');
+
+                area = paper.getContentBBox({ useModelGeometry: true, filter: (cell) => cell === rect1 });
+                assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 100, height: 100 }, 'getContentBBox() accepts the filter');
+            });
+
+            QUnit.test('useModelGeometry = FALSE', function(assert) {
+                addCells(graph);
+                var filter = sinon.spy(() => false);
+                var area = paper.getContentArea({ filter });
+                assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 400 }, 'filter is ignored');
+                assert.ok(filter.notCalled);
+            });
+        });
+
+        QUnit.module('fitToContent() > options > filter', function() {
+
+            QUnit.test('useModelGeometry = TRUE', function(assert) {
+                addCells(graph);
+                var area = paper.fitToContent({
+                    useModelGeometry: true,
+                    allowNewOrigin: 'any',
+                    filter: (cell) => cell.isElement()
+                });
+                assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 300 });
+                assert.deepEqual(paper.getArea().toJSON(), { x: -100, y: -100, width: 300, height: 300 });
+
+                area = paper.getFitToContentArea({
+                    useModelGeometry: true,
+                    allowNewOrigin: 'any',
+                    filter: (cell) => cell.isElement() && cell.position().x > 0
+                });
+                assert.deepEqual(area.toJSON(), { x: 100, y: 100, width: 100, height: 100 }, 'getFitToContentArea() accepts the filter');
+            });
+        });
+
+        QUnit.module('transformToFitContent() > options > filter', function() {
+
+            QUnit.test('useModelGeometry = TRUE', function(assert) {
+                addCells(graph);
+                paper.setDimensions(200, 200);
+                paper.transformToFitContent({
+                    useModelGeometry: true,
+                    filter: (cell) => cell.isElement() && cell.position().x > 0
+                });
+                assert.deepEqual(paper.scale(), { sx: 2, sy: 2 });
+                assert.deepEqual(paper.translate(), { tx: -200, ty: -200 });
+            });
+        });
+
         QUnit.module('fitToContent() > options', function() {
 
             [{
