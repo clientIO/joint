@@ -6032,18 +6032,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-layout-elk-dataflow-ts@workspace:examples/layout-elk-dataflow-ts":
-  version: 0.0.0-use.local
-  resolution: "@joint/demo-layout-elk-dataflow-ts@workspace:examples/layout-elk-dataflow-ts"
-  dependencies:
-    "@joint/core": "workspace:^"
-    "@joint/layout-elk": "workspace:^"
-    sass: "npm:^1.93.2"
-    typescript: "npm:5.8.2"
-    vite: "npm:^7.3.1"
-  languageName: unknown
-  linkType: soft
-
 "@joint/demo-layout-elk-defaults-ts@workspace:examples/layout-elk-defaults-ts":
   version: 0.0.0-use.local
   resolution: "@joint/demo-layout-elk-defaults-ts@workspace:examples/layout-elk-defaults-ts"
