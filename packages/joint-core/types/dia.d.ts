@@ -1851,7 +1851,7 @@ export namespace Paper {
          * to the content area. Applies only with `useModelGeometry: true`
          * (cells hidden by `cellVisibility` are never measured from the views).
          */
-        filter?: (this: Paper, cell: Cell, paper: Paper) => boolean;
+        filter?: (cell: Cell) => boolean;
     }
 
     interface TransformToFitContentOptions extends ContentAreaOptions {

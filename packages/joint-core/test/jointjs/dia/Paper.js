@@ -283,17 +283,11 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('useModelGeometry = TRUE', function(assert) {
                 addCells(graph);
                 var [rect1, rect2] = graph.getElements();
-                var calls = [];
-                var area = paper.getContentArea({
-                    useModelGeometry: true,
-                    filter: function(cell, filterPaper) {
-                        calls.push({ context: this, cell, paper: filterPaper });
-                        return cell.isElement();
-                    }
-                });
+                var filter = sinon.spy((cell) => cell.isElement());
+                var area = paper.getContentArea({ useModelGeometry: true, filter });
                 assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 300 }, 'filtered cells are excluded');
-                assert.equal(calls.length, 3, 'filter called for every cell');
-                assert.ok(calls.every(call => call.context === paper && call.paper === paper), 'filter called with the paper');
+                assert.equal(filter.callCount, 3, 'filter called for every cell');
+                assert.ok(filter.getCalls().every(call => call.args.length === 1), 'filter called with the cell only');
 
                 area = paper.getContentArea({ useModelGeometry: true, filter: (cell) => cell === rect2 });
                 assert.deepEqual(area.toJSON(), { x: 100, y: 100, width: 100, height: 100 });

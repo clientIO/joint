@@ -163,7 +163,7 @@ paper.fitToContent({ padding: { top: 10  }, allowNewOrigin: false });
 // Measure the content only from the cells that pass the `filter`.
 const isVisibleCell = (cell: joint.dia.Cell) => !cell.get('hidden');
 paper.fitToContent({ useModelGeometry: true, filter: isVisibleCell });
-paper.transformToFitContent({ useModelGeometry: true, filter(cell, filterPaper) { return this === filterPaper && isVisibleCell(cell); } });
+paper.transformToFitContent({ useModelGeometry: true, filter: isVisibleCell });
 paper.getContentArea({ useModelGeometry: true, filter: isVisibleCell }).inflate(5);
 graph.getBBox({ filter: isVisibleCell })?.inflate(5);
 graph.getCellsBBox(graph.getElements(), { rotate: false, filter: isVisibleCell })?.inflate(5);
