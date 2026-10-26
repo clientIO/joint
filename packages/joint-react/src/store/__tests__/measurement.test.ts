@@ -7,6 +7,8 @@ import type { PaperStore } from '../paper-store';
 class TestResizeObserver {
   static readonly instances: TestResizeObserver[] = [];
   readonly observed = new Set<Element>();
+  /** Every `observe()` call, in order: a browser reports each new observation once. */
+  readonly observations: Element[] = [];
   isDisconnected = false;
   private readonly callback: ResizeObserverCallback;
   constructor(callback: ResizeObserverCallback) {
@@ -15,6 +17,7 @@ class TestResizeObserver {
   }
   observe(target: Element) {
     this.observed.add(target);
+    this.observations.push(target);
   }
   unobserve(target: Element) {
     this.observed.delete(target);
@@ -620,8 +623,8 @@ describe('measurement — graph events', () => {
     expect(version()).toBe(2);
   });
 
-  it('is not measured any more once the last element is removed', async () => {
-    const { graph, version } = setup();
+  it('keeps the version once the last element is removed', async () => {
+    const { graph, version, add } = setup();
     graph.addCells([sized('a'), unsized('z')]);
     await flush();
     expect(version()).toBe(1);
@@ -631,9 +634,71 @@ describe('measurement — graph events', () => {
     // A zero-sized element is still an element with a known size.
     expect(version()).toBe(2);
 
+    // An empty diagram is the same diagram: only a reset starts a new history.
     graph.getCell('z').remove();
     await flush();
-    expect(version()).toBe(0);
+    expect(version()).toBe(2);
+
+    add('b');
+    await flush();
+    expect(version()).toBe(3);
+  });
+
+  // Regression: the graph's `reset` event carries only the default layer's
+  // collection, so elements on other layers were not tracked after a reset.
+  it('tracks the elements a reset seeds on every layer', async () => {
+    const { graph, version } = setup();
+    graph.addLayer({ id: 'top' });
+
+    graph.resetCells([{ ...sized('a'), layer: 'top' }]);
+    await flush();
+    expect(version()).toBe(1);
+
+    graph.getCell('a').remove();
+    graph.addCell(sized('b'));
+    await flush();
+    expect(version()).toBe(2);
+  });
+
+  it('is settled only while no element waits and no change waits to be delivered', async () => {
+    const { measurement, version, add, observe } = setup();
+    expect(measurement.isSettled()).toBe(true);
+
+    add('a');
+    const node = newNode();
+    observe('a', node);
+    expect(measurement.isSettled()).toBe(false);
+
+    await flush();
+    // With no paper nothing holds the change back, yet the element still waits.
+    expect(version()).toBe(1);
+    expect(measurement.isSettled()).toBe(false);
+
+    // Its measurement is owed an event of its own, even when it writes nothing.
+    lastObserver().report(node, 1, 1);
+    expect(measurement.isSettled()).toBe(false);
+    await flush();
+    expect(version()).toBe(2);
+    expect(measurement.isSettled()).toBe(true);
+  });
+
+  // Regression: content that survives a same-id reset (the HTML overlay keeps
+  // its nodes) stayed observed, and a browser does not report an unchanged box
+  // again; its last report also hid the size from the replacement model.
+  it('observes the retained nodes again after a reset, against the new models', async () => {
+    const { graph, add, observe, size } = setup();
+    add('a');
+    const node = newNode();
+    observe('a', node);
+    lastObserver().report(node, 100, 50);
+    expect(size('a')).toEqual({ width: 100, height: 50 });
+    const observationCount = lastObserver().observations.length;
+
+    graph.resetCells([{ id: 'a', type: 'element', size: { width: 1, height: 1 } }]);
+    expect(lastObserver().observations.slice(observationCount)).toEqual([node]);
+
+    lastObserver().report(node, 100, 50);
+    expect(size('a')).toEqual({ width: 100, height: 50 });
   });
 
   it('changes for a measurement write, told apart by the change:size options', async () => {
@@ -684,7 +749,7 @@ describe('measurement — graph events', () => {
 
     graph.getCell('b').remove();
     await flush();
-    expect(measurement.getSizingVersion()).toBe(0);
+    expect(measurement.getSizingVersion()).toBe(2);
   });
 
   it('does not track links', async () => {

@@ -140,12 +140,10 @@ export function createMeasurement(options: Options) {
     // Papers account for outstanding elements; without one nothing renders or
     // measures, so there is nothing to wait for.
     if (outstanding.size > 0 && paperStores.size > 0) return;
-    // An empty diagram has nothing measured.
-    if (elementCount === 0) {
-      if (version > 0) setVersion(0);
-      return;
-    }
     hasUndeliveredChange = false;
+    // An empty diagram has nothing to lay out. It is still the same diagram,
+    // so the version is kept: only a reset starts a new history.
+    if (elementCount === 0) return;
     lastVersion += 1;
     setVersion(lastVersion);
   };
@@ -154,8 +152,16 @@ export function createMeasurement(options: Options) {
   // subscriber of the new version reads the committed cells.
   const deliverNextRound = () => simpleScheduler(deliver);
   const scheduleDelivery = () => simpleScheduler(deliverNextRound);
+  /** A change the subscribers are owed an event for, once nothing is outstanding. */
+  const markChanged = () => {
+    hasUndeliveredChange = true;
+    scheduleDelivery();
+  };
+  // Settling is a change in itself: a pass delivered while no paper was mounted
+  // leaves its elements outstanding, and the paper that renders them later owes
+  // the event for their sizes.
   const settle = (id: CellId) => {
-    if (outstanding.delete(id)) scheduleDelivery();
+    if (outstanding.delete(id)) markChanged();
   };
   /**
    * Settles an element that nothing measures any more: it is not waiting for a
@@ -166,12 +172,7 @@ export function createMeasurement(options: Options) {
     simpleScheduler(() => {
       if (!nodesById.has(id)) settle(id);
     });
-  /** A change the subscribers are owed an event for, once nothing is outstanding. */
-  const markChanged = () => {
-    hasUndeliveredChange = true;
-    scheduleDelivery();
-  };
-  const track = (element: dia.Element) => {
+  const track =(element: dia.Element) => {
     elementCount += 1;
     outstanding.add(element.id);
     markChanged();
@@ -253,6 +254,22 @@ export function createMeasurement(options: Options) {
     resizeObserver?.unobserve(observed.node);
     observedByNode.delete(observed.node);
   };
+  /**
+   * Measures every registered node again, as if it had just registered. Content
+   * can survive a reset that keeps its ids (the HTML overlay keeps its nodes),
+   * and a browser does not report an unchanged box again; the last report is
+   * forgotten too, since the id may name a replacement model of another size.
+   */
+  const remeasureRegistered = () => {
+    for (const nodes of nodesById.values()) {
+      const active = nodes.at(-1);
+      if (!active) continue;
+      active.lastWidth = undefined;
+      active.lastHeight = undefined;
+      stopObserving(active);
+      startObserving(active);
+    }
+  };
 
   // An external graph may already hold elements.
   for (const element of graph.getElements()) track(element);
@@ -268,14 +285,16 @@ export function createMeasurement(options: Options) {
     outstanding.delete(cell.id);
     markChanged();
   });
-  listener.listenTo(graph, 'reset', (collection: mvc.Collection<dia.Cell>) => {
+  listener.listenTo(graph, 'reset', () => {
     // The reset replaces the diagram: until its first settled pass nothing is measured.
     elementCount = 0;
     outstanding.clear();
     hasUndeliveredChange = false;
     if (version > 0) setVersion(0);
-    // `reset` suppresses the per-cell `add` events.
-    for (const cell of collection.models) if (cell.isElement()) track(cell);
+    // `reset` suppresses the per-cell `add` events, and the collection it
+    // carries holds only the default layer's cells.
+    for (const element of graph.getElements()) track(element);
+    remeasureRegistered();
   });
   listener.listenTo(
     graph,
@@ -297,6 +316,11 @@ export function createMeasurement(options: Options) {
      * that changes once per settled change. See {@link useOnElementsMeasured}.
      */
     getSizingVersion: () => version,
+    /**
+     * Whether the current version describes the diagram as it is: no element
+     * is waiting to be measured and no change waits for its delivery.
+     */
+    isSettled: () => !hasUndeliveredChange && outstanding.size === 0,
     /**
      * Calls `versionListener` each time the sizing version changes.
      * @param versionListener - called synchronously with the change
@@ -343,8 +367,8 @@ export function createMeasurement(options: Options) {
       if (!nodesById.has(id)) settle(id);
     },
     /**
-     * A paper finished a render pass (`render:done`): every view it mounts for
-     * this pass is in the DOM now. An outstanding element that no paper renders
+     * A paper finished a render pass (`render:done`, or `render:idle` after a
+     * pass that only culled): every view it mounts for this pass is in the DOM now. An outstanding element that no paper renders
      * (viewport culling, `cellVisibility`, a hidden group) is not going to be
      * measured, so it is settled with the size it has. O(outstanding), which is
      * empty between changes.

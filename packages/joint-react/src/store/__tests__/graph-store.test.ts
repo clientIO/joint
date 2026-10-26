@@ -115,12 +115,17 @@ describe('GraphStore', () => {
       ];
       const store = new GraphStore({ initialCells });
       await flush();
-      // No paper renders it, so the seed settles on its own.
+      // No paper holds the seed back, so it is delivered at once.
       expect(sizingVersion(store)).toBe(1);
+      // Its content commits, as a paper would render it: the element is settled,
+      // and it was still owed that, since the pass was delivered without it.
+      store.measurement.markRendered('a');
+      await flush();
+      expect(sizingVersion(store)).toBe(2);
       // The application sizes the element: not a measurement.
       (store.graph.getCell('a') as dia.Element).resize(120, 40);
       await flush();
-      expect(sizingVersion(store)).toBe(1);
+      expect(sizingVersion(store)).toBe(2);
 
       // The observer measures the same size, so it writes nothing to the graph.
       const node = document.createElement('div');
@@ -131,7 +136,7 @@ describe('GraphStore', () => {
       const entry = { target: node, borderBoxSize: [{ inlineSize: 120, blockSize: 40 }] };
       callback([entry as unknown as ResizeObserverEntry], {} as ResizeObserver);
       await flush();
-      expect(sizingVersion(store)).toBe(1);
+      expect(sizingVersion(store)).toBe(2);
       store.destroy(false);
     });
 

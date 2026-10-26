@@ -12,6 +12,8 @@ import { HTMLHost } from '../../components/html-host';
 import { useOnElementsMeasured } from '../use-on-elements-measured';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
+import { AUTO_SIZE_OPTION } from '../../store/measurement';
+import type { GraphStore } from '../../store/graph-store';
 import type { CellRecord } from '../../types/cell.types';
 import type { PaperProps } from '../../components/paper/paper.types';
 import type { dia } from '@joint/core';
@@ -77,30 +79,47 @@ interface RecordedEvent {
 interface Harness {
   readonly graph: dia.Graph;
   readonly events: RecordedEvent[];
+  readonly getPaper: () => dia.Paper;
+  /** Mounts a second hook instance beside the first one, from now on. */
+  readonly mountLateProbe: () => RecordedEvent[];
 }
 
 /** Renders a graph with one hook instance mounted beside the paper. */
 function renderGraph(initialCells: CellRecord[], paperProps: Partial<PaperProps> = {}): Harness {
   const events: RecordedEvent[] = [];
+  const lateEvents: RecordedEvent[] = [];
   let graph: dia.Graph | undefined;
+  let graphStore: GraphStore | undefined;
 
-  function Probe() {
-    const { graph: currentGraph } = useGraphStore();
-    graph = currentGraph;
+  function Probe({ recorded }: Readonly<{ recorded: RecordedEvent[] }>) {
+    graphStore = useGraphStore();
+    ({ graph } = graphStore);
     useOnElementsMeasured(PAPER_ID, ({ isInitial }) => {
-      events.push({ isInitial });
+      recorded.push({ isInitial });
     });
     return null;
   }
 
-  render(
+  const renderTree = (hasLateProbe: boolean) => (
     <GraphProvider initialCells={initialCells}>
       <Paper id={PAPER_ID} style={PAPER_STYLE} renderElement={renderElement} {...paperProps} />
-      <Probe />
+      <Probe recorded={events} />
+      {hasLateProbe && <Probe recorded={lateEvents} />}
     </GraphProvider>
   );
+  const { rerender } = render(renderTree(false));
 
-  return { graph: graph as dia.Graph, events };
+  const getPaper = () => {
+    const paperStore = graphStore?.getPaperStore(PAPER_ID);
+    if (!paperStore) throw new Error(`Paper "${PAPER_ID}" is not mounted`);
+    return paperStore.paper;
+  };
+  const mountLateProbe = () => {
+    rerender(renderTree(true));
+    return lateEvents;
+  };
+
+  return { graph: graph as dia.Graph, events, getPaper, mountLateProbe };
 }
 
 /** Waits for the seed pass, then clears it so a test counts only its own events. */
@@ -136,6 +155,21 @@ describe('useOnElementsMeasured — an element the paper does not render', () =>
     await flush();
 
     expect(harness.events).toHaveLength(1);
+  });
+
+  // Regression: a pass that only culls updates no view, so the paper fires no
+  // `render:done`, and the culled element waited for one forever.
+  it('delivers an addition the paper culls entirely', async () => {
+    const harness = renderGraph([plain('a')], { cellVisibility: hideAnchor });
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.addCell(anchor('anchor') as never);
+    });
+    await flush();
+    await flush();
+
+    expect(harness.events).toEqual([{ isInitial: false }]);
   });
 });
 
@@ -251,6 +285,43 @@ describe('useOnElementsMeasured — the content of an element changes', () => {
     throw new Error('no ResizeObserver has the measured node registered');
   }
 
+  // Regression: with no paper mounted yet, the seed was delivered unmeasured,
+  // and a paper mounted later replayed that pass as initial, on placeholder sizes.
+  it('waits for the measurement when the paper mounts after the graph', async () => {
+    const events: Array<RecordedEvent & { readonly width: number }> = [];
+    function Probe() {
+      useOnElementsMeasured(PAPER_ID, ({ isInitial, graph }) => {
+        events.push({ isInitial, width: (graph.getCell('b') as dia.Element).size().width });
+      });
+      return null;
+    }
+    const initialCells = [pending('b')];
+    const renderTree = (hasPaper: boolean) => (
+      <GraphProvider initialCells={initialCells}>
+        {hasPaper && (
+          <>
+            <Paper id={PAPER_ID} style={PAPER_STYLE} renderElement={renderElement} />
+            <Probe />
+          </>
+        )}
+      </GraphProvider>
+    );
+    const { rerender } = render(renderTree(false));
+    await flush();
+
+    rerender(renderTree(true));
+    await flush();
+    expect(events).toHaveLength(0);
+
+    const { observer, node } = findMeasuredNode();
+    act(() => {
+      observer.report(node, 120, 40);
+    });
+    await flush();
+
+    expect(events).toEqual([{ isInitial: true, width: 120 }]);
+  });
+
   /** Mounts one measured element, lets it register, and measures it once. */
   async function mountMeasured() {
     const harness = renderGraph([pending('b')]);
@@ -325,5 +396,87 @@ describe('useOnElementsMeasured — the content of an element changes', () => {
     await flush();
 
     expect(harness.events).toEqual([{ isInitial: true }]);
+  });
+});
+
+// Only a reset (or a new mount) starts a new history: emptying the diagram is
+// an ordinary change, however the elements come back.
+describe('useOnElementsMeasured — the diagram is emptied and filled again', () => {
+  it('does not report the next event as initial, with a pass in between', async () => {
+    const harness = renderGraph([plain('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.getCell('a').remove();
+    });
+    await flush();
+    act(() => {
+      harness.graph.addCell(plain('b') as never);
+    });
+    await flush();
+
+    expect(harness.events.every(({ isInitial }) => !isInitial)).toBe(true);
+    expect(harness.events.length).toBeGreaterThan(0);
+  });
+
+  it('does not report the next event as initial, in the same task', async () => {
+    const harness = renderGraph([plain('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.clear();
+      harness.graph.addCell(plain('b') as never);
+    });
+    await flush();
+
+    expect(harness.events).toEqual([{ isInitial: false }]);
+  });
+});
+
+describe('useOnElementsMeasured — a graph reset', () => {
+  // Regression: a same-id reset whose replacement views rendered before React
+  // committed kept the element item mounted with a new portal target, so its
+  // content never reported as rendered and the reset was never delivered.
+  it('delivers the reset when the replacement views render before React commits', async () => {
+    const harness = renderGraph([plain('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.resetCells([plain('a')] as never);
+      harness.getPaper().updateViews();
+    });
+    await flush();
+
+    expect(harness.events).toEqual([{ isInitial: true }]);
+  });
+});
+
+// Regression: a hook mounted while a change was still waiting replayed the
+// previous version at once, so its layout ran on the waiting element's
+// placeholder size, then ran again when the measurement arrived.
+describe('useOnElementsMeasured — mounted while a change is waiting', () => {
+  it('delivers nothing until the change settles, then one initial event', async () => {
+    const harness = renderGraph([plain('a')]);
+    await settleAndClear(harness);
+
+    act(() => {
+      harness.graph.addCell(pending('b') as never);
+    });
+    await flush();
+    expect(harness.events).toHaveLength(0);
+
+    const lateEvents = harness.mountLateProbe();
+    await flush();
+    expect(lateEvents).toHaveLength(0);
+
+    act(() => {
+      harness.graph
+        .getCell('b')
+        .set('size', { width: 80, height: 20 }, { [AUTO_SIZE_OPTION]: true });
+    });
+    await flush();
+
+    expect(lateEvents).toEqual([{ isInitial: true }]);
+    expect(harness.events).toEqual([{ isInitial: false }]);
   });
 });

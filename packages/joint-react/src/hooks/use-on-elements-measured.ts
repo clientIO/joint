@@ -14,8 +14,8 @@ import { rethrowLater } from '../utils/scheduler';
  */
 export interface ElementsMeasuredParams {
   /**
-   * True on the first measurement pass (at least one element has been sized),
-   * and again on the first pass after a graph reset (`resetCells()`).
+   * True on the first event after the hook mounts, and again on the first
+   * event after a graph reset (`resetCells()`).
    */
   readonly isInitial: boolean;
   /** The paper this hook is bound to (the surrounding `<Paper>` context, or the paper passed via `paperTarget`). */
@@ -47,8 +47,9 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  *
  * The callback receives {@link ElementsMeasuredParams}; `isInitial` is `true`
  * for the first event after the hook mounts, and again for the first event
- * after a graph reset (`resetCells()`), which replaces the diagram, or after
- * the last element was removed.
+ * after a graph reset (`resetCells()`), which replaces the diagram. Removing
+ * every element is an ordinary change: an empty diagram fires nothing, and the
+ * next event after elements return is not initial.
  * @title On the current paper
  * @param callback - Called each time element sizes are measured.
  * @group Hooks
@@ -135,9 +136,10 @@ export function useOnElementsMeasured(
       // reflects the post-layout state.
       paper.updateViews();
     }
-    // Flush any measurement that happened before subscription (e.g. initial
-    // data sync ran before this paperStore was available).
-    handleChanges();
+    // Replay a pass that settled before this subscription (e.g. initial data
+    // sync ran before this paperStore was available). A change still waiting
+    // is delivered when it settles, as this hook's initial event.
+    if (measurement.isSettled()) handleChanges();
     return measurement.subscribe(handleChanges);
   }, [paperStore, measurement, graph, callbackRef]);
 }

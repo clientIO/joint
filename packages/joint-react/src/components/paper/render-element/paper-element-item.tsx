@@ -102,14 +102,16 @@ function SVGElementItemComponent(props: ElementItemProps) {
     // Runs after the portal subtree's layout effects, so a `useMeasureElement`
     // inside `renderElement` has already registered with the size observer
     // (in HTML overlay mode this item follows `HTMLElementItem`, which renders
-    // the user content, in sibling order). O(1), and a no-op on re-runs.
+    // the user content, in sibling order). O(1), and a no-op on re-runs. Keyed
+    // on the portal target too: a same-id reset whose replacement view renders
+    // before React commits keeps this item mounted, with a new target.
     graphStore.measurement.markRendered(id);
     if (!paper) return;
     graphStore.clearViewForElementAndLinks({
       cellId: id,
       paper,
     });
-  }, [id, graphStore, paper]);
+  }, [id, graphStore, paper, portalElement]);
 
   if (!portalElement) {
     return null;
