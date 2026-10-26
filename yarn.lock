@@ -6348,9 +6348,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-vuejs-js@workspace:examples/vuejs-js":
+"@joint/demo-vue-js@workspace:examples/vue-js":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-vuejs-js@workspace:examples/vuejs-js"
+  resolution: "@joint/demo-vue-js@workspace:examples/vue-js"
   dependencies:
     "@joint/core": "workspace:^"
     "@vitejs/plugin-vue": "npm:^6.0.10"
