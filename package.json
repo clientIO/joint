@@ -31,7 +31,6 @@
     "./examples/*"
   ],
   "resolutions": {
-    "grunt-contrib-qunit/puppeteer": "24.22.0",
     "eslint-plugin-sonarjs/typescript": "5.8.2"
   },
   "volta": {

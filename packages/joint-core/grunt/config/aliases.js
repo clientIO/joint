@@ -51,6 +51,7 @@ module.exports = function(grunt) {
             'test:bundles'
         ],
         'test:src': [
+            'chrome-bin',
             'karma:geometry',
             'karma:vectorizer',
             'karma:joint'

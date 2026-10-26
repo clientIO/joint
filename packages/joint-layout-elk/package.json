@@ -74,7 +74,7 @@
     "karma-coverage": "^2.2.1",
     "karma-qunit": "^4.1.2",
     "karma-sourcemap-loader": "^0.4.0",
-    "puppeteer": "24.22.0",
+    "puppeteer": "25.16.0",
     "qunit": "^2.24.1",
     "rollup": "4.64.12",
     "rollup-plugin-banner2": "^1.2.2",
