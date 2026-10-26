@@ -12,7 +12,6 @@
   "scripts": {
     "dist": "yarn workspaces foreach --all -tvv run dist",
     "build": "yarn workspaces foreach --all -tvv run build",
-    "build-bundles": "yarn workspaces foreach --all -tvv run build-bundles",
     "test": "yarn workspaces foreach --all -tvv run test",
     "test-server": "yarn workspaces foreach --all -tvv run test-server",
     "test-client": "yarn workspaces foreach --all -tvv run test-client",

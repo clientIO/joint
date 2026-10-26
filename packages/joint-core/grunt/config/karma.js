@@ -65,8 +65,7 @@ module.exports = function(grunt) {
             // Change to false when debugging
             singleRun: true,
             exclude: [
-                'test/**/require.js',
-                'test/**/browserify.js'
+                'test/**/require.js'
             ]
         },
         geometry: {

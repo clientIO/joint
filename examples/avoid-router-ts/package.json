@@ -23,7 +23,7 @@
     "libavoid-js": "0.4.5"
   },
   "devDependencies": {
-    "copy-webpack-plugin": "5.1.1",
+    "copy-webpack-plugin": "14.0.0",
     "css-loader": "3.5.3",
     "file-loader": "6.0.0",
     "sass": "1.26.8",

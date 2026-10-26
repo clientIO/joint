@@ -35,7 +35,6 @@ yarn lint-fix          # Auto-fix errors
 
 # Build bundles
 yarn build
-yarn build-bundles
 ```
 
 ### Running Single Tests
