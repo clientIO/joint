@@ -5747,6 +5747,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-custom-shapes-js@workspace:examples/custom-shapes-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-custom-shapes-js@workspace:examples/custom-shapes-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-decorators@workspace:examples/decorators":
   version: 0.0.0-use.local
   resolution: "@joint/demo-decorators@workspace:examples/decorators"
@@ -6014,6 +6023,18 @@ __metadata:
 "@joint/demo-layout-elk-containers-and-ports-ts@workspace:examples/layout-elk-containers-and-ports-ts":
   version: 0.0.0-use.local
   resolution: "@joint/demo-layout-elk-containers-and-ports-ts@workspace:examples/layout-elk-containers-and-ports-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-elk": "workspace:^"
+    sass: "npm:^1.93.2"
+    typescript: "npm:5.8.2"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-layout-elk-dataflow-ts@workspace:examples/layout-elk-dataflow-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-layout-elk-dataflow-ts@workspace:examples/layout-elk-dataflow-ts"
   dependencies:
     "@joint/core": "workspace:^"
     "@joint/layout-elk": "workspace:^"
