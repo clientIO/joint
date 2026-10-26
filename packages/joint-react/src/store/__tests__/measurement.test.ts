@@ -689,6 +689,27 @@ describe('measurement — graph events', () => {
     expect(measurement.isSettled()).toBe(false);
   });
 
+  it('is not settled while a settled element waits for its first report', async () => {
+    const { measurement, version, add, observe } = setup();
+    add('a');
+    measurement.markRendered('a');
+    await flush();
+    await flush();
+    expect(version()).toBe(1);
+    expect(measurement.isSettled()).toBe(true);
+
+    const node = newNode();
+    observe('a', node);
+    expect(measurement.isSettled()).toBe(false);
+
+    // A report of the size it already has is not a change.
+    lastObserver().report(node, 1, 1);
+    await flush();
+    await flush();
+    expect(version()).toBe(1);
+    expect(measurement.isSettled()).toBe(true);
+  });
+
   // Regression: content that survives a same-id reset (the HTML overlay keeps
   // its nodes) stayed observed, and a browser does not report an unchanged box
   // again; its last report also hid the size from the replacement model.

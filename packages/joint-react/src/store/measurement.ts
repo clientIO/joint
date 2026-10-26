@@ -128,6 +128,9 @@ export function createMeasurement(options: Options) {
   };
   let elementCount = 0;
   const outstanding = new Set<CellId>();
+  // Settled elements that registered a node since: the first report may change
+  // their size, so it holds delivery back, but it is not a change by itself.
+  const awaitingFirstReport = new Set<CellId>();
   let hasUndeliveredChange = false;
   // Registered nodes per element: the last one is the observed one, and the
   // previous one takes over again when it unmounts.
@@ -135,11 +138,12 @@ export function createMeasurement(options: Options) {
   const observedByNode = new WeakMap<Element, ObservedNode>();
   let resizeObserver: ResizeObserver | undefined;
 
+  const isWaiting = () => outstanding.size > 0 || awaitingFirstReport.size > 0;
   const deliver = () => {
     if (!hasUndeliveredChange) return;
-    // Papers account for outstanding elements; without one nothing renders or
+    // Papers account for waiting elements; without one nothing renders or
     // measures, so there is nothing to wait for.
-    if (outstanding.size > 0 && paperStores.size > 0) return;
+    if (isWaiting() && paperStores.size > 0) return;
     hasUndeliveredChange = false;
     // An empty diagram has nothing to lay out. It is still the same diagram,
     // so the version is kept: only a reset starts a new history.
@@ -170,7 +174,9 @@ export function createMeasurement(options: Options) {
    */
   const settleOnceUnobserved = (id: CellId) =>
     simpleScheduler(() => {
-      if (!nodesById.has(id)) settle(id);
+      if (nodesById.has(id)) return;
+      settle(id);
+      if (awaitingFirstReport.delete(id)) scheduleDelivery();
     });
 
   /**
@@ -231,6 +237,9 @@ export function createMeasurement(options: Options) {
       // Measured, whether or not a size is written: a measurement equal to the
       // model's size (the application pre-sized it) writes nothing.
       settle(observed.id);
+      // A written size marks the change; an unchanged one only stops holding
+      // back a change that waited for this report.
+      if (awaitingFirstReport.delete(observed.id)) scheduleDelivery();
       const pending = toWrite(observed, borderBoxSize?.[0]);
       if (pending) writes.push(pending);
     }
@@ -283,12 +292,14 @@ export function createMeasurement(options: Options) {
     // What is left has to be laid out again, so a removal is a change too.
     elementCount -= 1;
     outstanding.delete(cell.id);
+    awaitingFirstReport.delete(cell.id);
     markChanged();
   });
   listener.listenTo(graph, 'reset', () => {
     // The reset replaces the diagram: until its first settled pass nothing is measured.
     elementCount = 0;
     outstanding.clear();
+    awaitingFirstReport.clear();
     hasUndeliveredChange = false;
     if (version > 0) setVersion(0);
     // `reset` suppresses the per-cell `add` events, and the collection it
@@ -321,7 +332,7 @@ export function createMeasurement(options: Options) {
      * delivery. An emptied diagram keeps a version that describes elements
      * that are gone.
      */
-    isSettled: () => elementCount > 0 && outstanding.size === 0 && !hasUndeliveredChange,
+    isSettled: () => elementCount > 0 && !isWaiting() && !hasUndeliveredChange,
     /**
      * Calls `versionListener` each time the sizing version changes.
      * @param versionListener - called synchronously with the change
@@ -330,11 +341,14 @@ export function createMeasurement(options: Options) {
     subscribe,
     /**
      * Sizes the element from `node`, for as long as the returned cleanup has not run.
+     * A settled element that starts measuring (its content switched to
+     * {@link HTMLHost}, or it scrolled into view) waits for the node's first report.
      * @param measured - the element id, its DOM node and an optional transform
      * @returns cleanup that stops measuring the node
      */
     observe(measured: MeasuredNode) {
       const { id } = measured;
+      if (!outstanding.has(id) && graph.getCell(id)) awaitingFirstReport.add(id);
       const observed: ObservedNode = { ...measured };
       const nodes = nodesById.get(id) ?? [];
       const active = nodes.at(-1);

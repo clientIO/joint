@@ -141,6 +141,18 @@ async function settleAndClear(harness: Harness) {
   harness.events.length = 0;
 }
 
+/**
+ * Switches the settled plain `a` to `<HTMLHost>`, which registers a measurer,
+ * together with `otherChange` in the same task.
+ */
+async function startMeasuring(harness: Harness, otherChange?: () => void) {
+  act(() => {
+    harness.graph.getCell('a').set('data', { measured: true });
+    otherChange?.();
+  });
+  await flush();
+}
+
 // An element the paper never renders: culled by `cellVisibility` (or by the
 // viewport). Nothing can measure it while it is unmounted, so it is settled
 // with the size it has, whatever that is; when it mounts and registers a
@@ -408,6 +420,83 @@ describe('useOnElementsMeasured — the content of an element changes', () => {
     await flush();
 
     expect(harness.events).toEqual([{ isInitial: true }]);
+  });
+
+  describe('a settled element starts measuring', () => {
+    // Regression: the newly registered measurer did not hold delivery back, so
+    // the removal fired with the old size and the first report fired again.
+    it('delivers one event for a change made while its first report is due', async () => {
+      const harness = renderGraph([plain('a'), plain('c')]);
+      await settleAndClear(harness);
+
+      await startMeasuring(harness, () => {
+        harness.graph.getCell('c').remove();
+      });
+      expect(harness.events).toHaveLength(0);
+      const { observer, node } = findMeasuredNode();
+
+      act(() => {
+        observer.report(node, 120, 40);
+      });
+      await flush();
+
+      expect(harness.events).toEqual([{ isInitial: false }]);
+    });
+
+    // Regression: a hook mounted before the first report replayed the old size.
+    it('does not replay to a hook mounted before its first report', async () => {
+      const harness = renderGraph([plain('a')]);
+      await settleAndClear(harness);
+      await startMeasuring(harness);
+      const { observer, node } = findMeasuredNode();
+
+      const lateEvents = harness.mountLateProbe();
+      await flush();
+      expect(lateEvents).toHaveLength(0);
+
+      act(() => {
+        observer.report(node, 120, 40);
+      });
+      await flush();
+
+      expect(lateEvents).toEqual([{ isInitial: true }]);
+      expect(harness.events).toEqual([{ isInitial: false }]);
+    });
+
+    it('delivers no event when its first report matches its size', async () => {
+      const harness = renderGraph([plain('a')]);
+      await settleAndClear(harness);
+      await startMeasuring(harness);
+      const { observer, node } = findMeasuredNode();
+
+      act(() => {
+        observer.report(node, 50, 50);
+      });
+      await flush();
+      expect(harness.events).toHaveLength(0);
+
+      act(() => {
+        harness.graph.addCell(plain('d') as never);
+      });
+      await flush();
+      expect(harness.events).toEqual([{ isInitial: false }]);
+    });
+
+    it('delivers the waiting change once it stops measuring before its first report', async () => {
+      const harness = renderGraph([plain('a'), plain('c')]);
+      await settleAndClear(harness);
+      await startMeasuring(harness, () => {
+        harness.graph.getCell('c').remove();
+      });
+      expect(harness.events).toHaveLength(0);
+
+      act(() => {
+        harness.graph.getCell('a').set('data', {});
+      });
+      await flush();
+
+      expect(harness.events).toEqual([{ isInitial: false }]);
+    });
   });
 });
 
