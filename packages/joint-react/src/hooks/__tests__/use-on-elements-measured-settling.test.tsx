@@ -5,12 +5,14 @@
  * except that `flush()` also awaits the paper's render frame, in which a newly
  * added element's view mounts and its portal content registers a measurer.
  */
+import { useRef } from 'react';
 import { render, waitFor, act } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { Paper } from '../../components/paper/paper';
 import { HTMLHost } from '../../components/html-host';
 import { useOnElementsMeasured, type OnElementsMeasured } from '../use-on-elements-measured';
 import { useGraphStore } from '../use-graph-store';
+import { useMeasureElement } from '../use-measure-element';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { AUTO_SIZE_OPTION } from '../../store/measurement';
 import type { GraphStore } from '../../store/graph-store';
@@ -535,5 +537,72 @@ describe('useOnElementsMeasured — a replayed callback resets the graph', () =>
 
     // The replay, then the replacement diagram's first pass.
     expect(lateEvents).toEqual([{ isInitial: true }, { isInitial: true }]);
+  });
+});
+
+// With `useHTMLOverlay`, every element renders into one overlay container that
+// never changes, so React keeps the content of an id removed and added back in
+// one task, and with it the measured node and its registration. A browser
+// reports a node once when it starts observing it, then only when its box
+// changes: this mock does the same, with a fixed box.
+describe('useOnElementsMeasured — the HTML overlay keeps a re-added element', () => {
+  const MEASURED_BOX = { inlineSize: 120, blockSize: 40 };
+
+  class FirstReportResizeObserver {
+    readonly observed = new Set<Element>();
+    private readonly callback: ResizeObserverCallback;
+    constructor(callback: ResizeObserverCallback) {
+      this.callback = callback;
+    }
+    observe(target: Element) {
+      this.observed.add(target);
+      // Only element content: the paper observes its own host too.
+      if (!target.closest('[model-id]')) return;
+      queueMicrotask(() => {
+        if (!this.observed.has(target)) return;
+        const entry = { target, borderBoxSize: [MEASURED_BOX] };
+        this.callback([entry as unknown as ResizeObserverEntry], this as unknown as ResizeObserver);
+      });
+    }
+    unobserve(target: Element) {
+      this.observed.delete(target);
+    }
+    disconnect() {
+      this.observed.clear();
+    }
+  }
+
+  beforeEach(() => {
+    globalThis.ResizeObserver = FirstReportResizeObserver as unknown as typeof ResizeObserver;
+  });
+
+  function MeasuredCard() {
+    const nodeRef = useRef<HTMLDivElement>(null);
+    useMeasureElement(nodeRef);
+    return <div ref={nodeRef}>card</div>;
+  }
+  const overlayProps: Partial<PaperProps> = { useHTMLOverlay: true, renderElement: MeasuredCard };
+
+  // Regression: the re-added element waited for a report the browser never sent
+  // again, and held back this event and every later one.
+  it('delivers one event when an element is removed and added back in one task', async () => {
+    const harness = renderGraph([pending('b')], overlayProps);
+    await settleAndClear(harness);
+    const element = harness.graph.getCell('b') as dia.Element;
+    expect(element.size()).toEqual({ width: 120, height: 40 });
+
+    act(() => {
+      element.remove();
+      harness.graph.addCell(element);
+    });
+    await flush();
+    await flush();
+    expect(harness.events).toEqual([{ isInitial: false }]);
+
+    act(() => {
+      harness.graph.addCell(plain('c') as never);
+    });
+    await flush();
+    expect(harness.events).toEqual([{ isInitial: false }, { isInitial: false }]);
   });
 });
