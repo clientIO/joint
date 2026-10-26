@@ -10,6 +10,7 @@
     [
       "@joint/core",
       "@joint/layout-directed-graph",
+      "@joint/layout-elk",
       "@joint/layout-msagl",
       "@joint/router-avoid"
     ]
