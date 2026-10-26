@@ -43,7 +43,6 @@ import {
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
 import { createSelectPaperVersion } from '../selectors';
-import { useAreElementsMeasured } from './use-are-elements-measured';
 import { LINK_MODEL_TYPE } from '../mvc/link-model';
 import { subscribeToPaperEvents } from './use-on-paper-events';
 import { useOnEvents } from './use-on-events';
@@ -217,7 +216,6 @@ export function useCreatePortalPaper(
   }
 
   const graphStore = useGraphStore();
-  const areElementsMeasured = useAreElementsMeasured();
 
   // Subscribe to cells-container size — only re-renders when cells are added or removed.
   // Partition the id list by type so element / link portals can be rendered separately.
@@ -478,20 +476,11 @@ export function useCreatePortalPaper(
               <HTMLElementItem
                 portalElement={HTMLRendererContainer}
                 renderElement={renderElement}
-                areElementsMeasured={areElementsMeasured}
               />
-              <SVGElementItem
-                portalElement={portalNode}
-                renderElement={ElementHitArea}
-                areElementsMeasured={areElementsMeasured}
-              />
+              <SVGElementItem portalElement={portalNode} renderElement={ElementHitArea} />
             </>
           ) : (
-            <SVGElementItem
-              portalElement={portalNode}
-              renderElement={renderElement}
-              areElementsMeasured={areElementsMeasured}
-            />
+            <SVGElementItem portalElement={portalNode} renderElement={renderElement} />
           )}
         </CellIdContext.Provider>
       );
@@ -500,7 +489,6 @@ export function useCreatePortalPaper(
   }, [
     version,
     HTMLRendererContainer,
-    areElementsMeasured,
     elementIds,
     hasRenderElement,
     paperStore,

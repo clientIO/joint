@@ -14,12 +14,18 @@ const SMOOTH_LINKS = linkRoutingSmooth({ mode: 'horizontal', straightWhenDisconn
 // Links may land on an element body, so a port button can be connected to the other card.
 const VALIDATE_CONNECTION: CanConnectOptions = { allowRootConnection: true };
 
-// Colors — unified dark diagram palette. The card body and border come from the
-// shared `jj-node` class; only the chrome below is styled here.
-const HEADER_COLOR = '#243445';
-const MUTED_TEXT_COLOR = '#93A4B3';
-const BUTTON_COLOR = '#2F4459';
+// Colors come from the theme's tokens, so the chrome below keeps its contrast
+// with the card body and text that the shared `jj-node` class draws.
+const HEADER_COLOR = 'var(--jj-color-light-300)';
+const MUTED_TEXT_COLOR = 'var(--jj-color-light-900)';
+const BUTTON_COLOR = 'var(--jj-color-primary)';
+const BUTTON_TEXT_COLOR = 'var(--jj-color-primary-contrast)';
+const FIELD_COLOR = 'var(--jj-color-surface)';
+const FIELD_BORDER = '1px solid var(--jj-color-border)';
+const DIVIDER = '1px solid var(--jj-color-border-subtle)';
 const MAGNET_COUNT = 3;
+// Tall enough for both cards; the paper fills the story canvas's width.
+const PAPER_STYLE: React.CSSProperties = { height: 300 };
 
 interface NodeData {
   readonly kind: 'body' | 'magnets';
@@ -58,7 +64,7 @@ const headerStyle: React.CSSProperties = {
   fontWeight: 600,
   fontSize: 12,
   background: HEADER_COLOR,
-  borderBottom: '1px solid rgba(128, 128, 128, 0.2)',
+  borderBottom: DIVIDER,
 };
 
 const bodyStyle: React.CSSProperties = {
@@ -72,8 +78,8 @@ const selectStyle: React.CSSProperties = {
   font: 'inherit',
   fontSize: 11,
   color: 'inherit',
-  background: 'rgba(0, 0, 0, 0.25)',
-  border: '1px solid rgba(128, 128, 128, 0.35)',
+  background: FIELD_COLOR,
+  border: FIELD_BORDER,
   borderRadius: 4,
   padding: '3px 6px',
   width: '100%',
@@ -93,15 +99,15 @@ const rowStyle: React.CSSProperties = {
   fontSize: 12,
   cursor: 'crosshair',
   userSelect: 'none',
-  borderBottom: '1px solid rgba(128, 128, 128, 0.15)',
+  borderBottom: DIVIDER,
 };
 
 const buttonStyle: React.CSSProperties = {
   font: 'inherit',
   fontSize: 11,
-  color: 'inherit',
+  color: BUTTON_TEXT_COLOR,
   background: BUTTON_COLOR,
-  border: '1px solid rgba(128, 128, 128, 0.35)',
+  border: '1px solid transparent',
   borderRadius: 4,
   padding: '3px 8px',
   cursor: 'pointer',
@@ -111,8 +117,8 @@ const inputStyle: React.CSSProperties = {
   font: 'inherit',
   fontSize: 11,
   color: 'inherit',
-  background: 'rgba(0, 0, 0, 0.25)',
-  border: '1px solid rgba(128, 128, 128, 0.35)',
+  background: FIELD_COLOR,
+  border: FIELD_BORDER,
   borderRadius: 4,
   padding: '3px 8px',
   boxSizing: 'border-box',
@@ -189,8 +195,8 @@ function BodyButtonNode({ name }: Readonly<Partial<NodeData>>) {
         <TextField style={bodyInputStyle} />
         <StatusSelect style={selectStyle} />
         <p style={hintStyle}>
-          Click the button to count; drag it to move the element without counting. The text
-          field selects text instead, and the paper ignores the dropdown outright.
+          Click the button to count; drag it to move the element without counting. The text field
+          selects text instead, and the paper ignores the dropdown outright.
         </p>
       </div>
     </HTMLBox>
@@ -224,8 +230,8 @@ function MagnetButtonsNode({ name }: Readonly<Partial<NodeData>>) {
       ))}
       <div style={bodyStyle}>
         <p style={hintStyle}>
-          Drag off a row, or off its button, to start a link. The text field starts none, and
-          the dropdown never reaches the paper at all.
+          Drag off a row, or off its button, to start a link. The text field starts none, and the
+          dropdown never reaches the paper at all.
         </p>
       </div>
     </HTMLBox>
@@ -243,7 +249,7 @@ function Main() {
 
   return (
     <Paper
-      className="size-full"
+      style={PAPER_STYLE}
       renderElement={renderElement}
       // Without `onleave` a press on a magnet starts the link immediately, so a plain
       // click on a magnet would already create one.

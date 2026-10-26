@@ -63,7 +63,6 @@ interface OnChangeOptions {
 interface Options {
   readonly graph: dia.Graph;
   readonly onChanges: (options: OnChangeOptions) => void;
-  readonly onElementsSizeChange?: (id: CellId, size: { width: number; height: number }) => void;
 }
 
 interface JointJSEventOptions {
@@ -78,7 +77,7 @@ interface JointJSEventOptions {
  * @returns Controller exposing updateGraph and destroy.
  */
 export function graphChanges(options: Options) {
-  const { graph, onElementsSizeChange } = options;
+  const { graph } = options;
   const changes = new Map<CellId, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
@@ -149,10 +148,6 @@ export function graphChanges(options: Options) {
       _collection: mvc.Collection<dia.Cell>,
       { isUpdateFromReact }: JointJSEventOptions
     ) => {
-      if (cell.isElement() && onElementsSizeChange) {
-        const size = cell.size();
-        onElementsSizeChange(cell.id, size);
-      }
       if (isUpdateFromReact) return;
       onCellEvent(cell, 'add');
     }
@@ -178,13 +173,6 @@ export function graphChanges(options: Options) {
       changes.clear();
       for (const cell of collection.models) {
         changes.set(cell.id, { type: 'add', data: cell });
-        // `reset` suppresses per-cell `add` events, so size notifications
-        // for seed elements never reach `onElementsSizeChange` via the
-        // `add` listener. Mirror that path here so initial-measurement
-        // gating (e.g. `useOnElementsMeasured`) fires for seed cells.
-        if (onElementsSizeChange && cell.isElement()) {
-          onElementsSizeChange(cell.id, (cell as dia.Element).size());
-        }
       }
       // Bypass the simpleScheduler wrapper used for normal cell events.
       // `reset` is a one-shot bulk operation and callers (e.g. GraphStore
@@ -201,11 +189,6 @@ export function graphChanges(options: Options) {
 
   controller.listenTo(graph, LAYOUT_UPDATE_EVENT, ({ changes: layoutChanges }) => {
     onChanges({ changes: layoutChanges, isInsideBatch: true, deferCommit: isDeferring() });
-  });
-
-  controller.listenTo(graph, 'change:size', (cell: dia.Cell, newSize: dia.Size) => {
-    if (!onElementsSizeChange) return;
-    onElementsSizeChange(cell.id, newSize);
   });
 
   // Always-on batch tracking. A batch flagged with DEFER_COMMIT_BATCH_OPTION

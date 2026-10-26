@@ -8,6 +8,9 @@ import type { CellRecord } from '../../types/cell.types';
 const createGraph = () => new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
+const sizingVersion = (store: {
+  readonly measurement: { readonly getSizingVersion: () => number };
+}) => store.measurement.getSizingVersion();
 
 describe('GraphStore', () => {
   describe('constructor', () => {
@@ -61,7 +64,7 @@ describe('GraphStore', () => {
       store.destroy(true);
     });
 
-    it('bumps measureState after initialCells seed (so useOnElementsMeasured can fire isInitial)', async () => {
+    it('bumps the measurement version after the initialCells seed', async () => {
       const initialCells: readonly CellRecord[] = [
         {
           id: 'a',
@@ -71,14 +74,14 @@ describe('GraphStore', () => {
         } as CellRecord,
       ];
       const store = new GraphStore({ initialCells });
-      // simpleScheduler defers the measureState bump to a microtask.
+      // simpleScheduler defers the bump to a microtask.
       await flush();
-      expect(store.measureState.get()).toBeGreaterThan(0);
+      expect(sizingVersion(store)).toBeGreaterThan(0);
       store.destroy(false);
     });
 
-    it('does not bump measureState when initialCells contain only links or zero-sized elements', async () => {
-      const initialCells: readonly CellRecord[] = [
+    it('counts a zero-sized element as measured (zero is a legal size), but not a diagram of links only', async () => {
+      const zeroSized: readonly CellRecord[] = [
         {
           id: 'zero',
           type: ELEMENT_MODEL_TYPE,
@@ -86,9 +89,54 @@ describe('GraphStore', () => {
           size: { width: 0, height: 0 },
         } as CellRecord,
       ];
+      const store = new GraphStore({ initialCells: zeroSized });
+      await flush();
+      expect(sizingVersion(store)).toBe(1);
+      store.destroy(false);
+
+      const linksOnly = new GraphStore({
+        initialCells: [
+          {
+            id: 'l',
+            type: LINK_MODEL_TYPE,
+            source: { x: 0, y: 0 },
+            target: { x: 9, y: 9 },
+          } as CellRecord,
+        ],
+      });
+      await flush();
+      expect(sizingVersion(linksOnly)).toBe(0);
+      linksOnly.destroy(false);
+    });
+
+    it('does not change the measured state for an application resize or an equal measurement', async () => {
+      const initialCells: readonly CellRecord[] = [
+        { id: 'a', type: ELEMENT_MODEL_TYPE, position: { x: 0, y: 0 } } as CellRecord,
+      ];
       const store = new GraphStore({ initialCells });
       await flush();
-      expect(store.measureState.get()).toBe(0);
+      // No paper holds the seed back, so it is delivered at once.
+      expect(sizingVersion(store)).toBe(1);
+      // Its content commits, as a paper would render it: the element is settled,
+      // and it was still owed that, since the pass was delivered without it.
+      store.measurement.markRendered('a');
+      await flush();
+      expect(sizingVersion(store)).toBe(2);
+      // The application sizes the element: not a measurement.
+      (store.graph.getCell('a') as dia.Element).resize(120, 40);
+      await flush();
+      expect(sizingVersion(store)).toBe(2);
+
+      // The observer measures the same size, so it writes nothing to the graph.
+      const node = document.createElement('div');
+      store.measurement.observe({ id: 'a', node });
+      const [callback] = (globalThis.ResizeObserver as jest.Mock).mock.calls.at(-1) as [
+        ResizeObserverCallback,
+      ];
+      const entry = { target: node, borderBoxSize: [{ inlineSize: 120, blockSize: 40 }] };
+      callback([entry as unknown as ResizeObserverEntry], {} as ResizeObserver);
+      await flush();
+      expect(sizingVersion(store)).toBe(2);
       store.destroy(false);
     });
 
@@ -195,7 +243,9 @@ describe('GraphStore', () => {
     it('fires with added/changed/removed summary', async () => {
       const snaps: Array<ReturnType<typeof snapshot>> = [];
       const store = new GraphStore({});
-      store.setOnIncrementalCellsChange((c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])));
+      store.setOnIncrementalCellsChange((c) =>
+        snaps.push(snapshot(c as Parameters<typeof snapshot>[0]))
+      );
       store.graph.addCell({
         id: 'a',
         type: ELEMENT_MODEL_TYPE,
@@ -213,7 +263,9 @@ describe('GraphStore', () => {
     it('reports links alongside elements in the unified pipeline', async () => {
       const snaps: Array<ReturnType<typeof snapshot>> = [];
       const store = new GraphStore({});
-      store.setOnIncrementalCellsChange((c) => snaps.push(snapshot(c as Parameters<typeof snapshot>[0])));
+      store.setOnIncrementalCellsChange((c) =>
+        snaps.push(snapshot(c as Parameters<typeof snapshot>[0]))
+      );
       store.graph.addCells([
         {
           id: 'a',
@@ -268,6 +320,29 @@ describe('GraphStore', () => {
     });
   });
 
+  describe('removing a paper', () => {
+    // Regression: only papers hold an outstanding element back, and nothing
+    // re-checked the delivery when the last one went away, so the sizing
+    // version stayed `0` until the next graph change.
+    it('settles the elements that waited for the last paper', async () => {
+      const store = new GraphStore({});
+      const { remove } = store.addPaper('p1', { paperOptions: {} });
+      store.graph.addCell({
+        id: 'a',
+        type: ELEMENT_MODEL_TYPE,
+        position: { x: 0, y: 0 },
+        size: { width: 10, height: 10 },
+      });
+      await flush();
+      expect(sizingVersion(store)).toBe(0);
+
+      remove();
+      await flush();
+      expect(sizingVersion(store)).toBe(1);
+      store.destroy(false);
+    });
+  });
+
   describe('destroy', () => {
     it('clears features, papers, and internal state', () => {
       const store = new GraphStore({});
@@ -291,7 +366,7 @@ describe('GraphStore', () => {
     const measure = (store: GraphStore, id: string) => {
       const node = document.createElement('div');
       document.body.append(node);
-      store.setMeasuredNode({ id, node });
+      store.measurement.observe({ id, node });
       return () => node.remove();
     };
 
