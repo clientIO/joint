@@ -660,9 +660,10 @@ describe('measurement — graph events', () => {
     expect(version()).toBe(2);
   });
 
-  it('is settled only while no element waits and no change waits to be delivered', async () => {
-    const { measurement, version, add, observe } = setup();
-    expect(measurement.isSettled()).toBe(true);
+  it('is settled only while elements are measured and nothing waits', async () => {
+    const { graph, measurement, version, add, observe } = setup();
+    // An empty diagram has no pass to replay.
+    expect(measurement.isSettled()).toBe(false);
 
     add('a');
     const node = newNode();
@@ -680,6 +681,12 @@ describe('measurement — graph events', () => {
     await flush();
     expect(version()).toBe(2);
     expect(measurement.isSettled()).toBe(true);
+
+    // The version is kept, but it describes elements that are gone.
+    graph.getCell('a').remove();
+    await flush();
+    expect(version()).toBe(2);
+    expect(measurement.isSettled()).toBe(false);
   });
 
   // Regression: content that survives a same-id reset (the HTML overlay keeps
@@ -699,6 +706,28 @@ describe('measurement — graph events', () => {
 
     lastObserver().report(node, 100, 50);
     expect(size('a')).toEqual({ width: 100, height: 50 });
+  });
+
+  // Regression: removing and re-adding an id in one task can keep its rendered
+  // content (the HTML overlay keeps its nodes) and with it the registration, so
+  // the replacement waited for a report the browser never sent again.
+  it('observes a retained node again when its id is added back, against the new model', async () => {
+    const { graph, add, observe, size, version } = setup();
+    add('a');
+    const node = newNode();
+    observe('a', node);
+    lastObserver().report(node, 100, 50);
+    await flush();
+    const observationCount = lastObserver().observations.length;
+
+    graph.getCell('a').remove();
+    add('a');
+    expect(lastObserver().observations.slice(observationCount)).toEqual([node]);
+
+    lastObserver().report(node, 100, 50);
+    expect(size('a')).toEqual({ width: 100, height: 50 });
+    await flush();
+    expect(version()).toBeGreaterThan(1);
   });
 
   it('changes for a measurement write, told apart by the change:size options', async () => {

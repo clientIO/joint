@@ -35,9 +35,10 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  * Calls a callback once element sizes are known, so a layout can run on them.
  *
  * Delivers one event per settled change: the first pass, and each later
- * addition, removal or re-measurement, once no element is still waiting. An added element waits until the paper has rendered it; if
- * its content measures itself ({@link useMeasureElement}, {@link HTMLHost}),
- * until that measurement arrives. A batch mixing plain and measured elements
+ * addition, removal or re-measurement, once no element is still waiting. An
+ * added element waits until the paper has rendered it; if its content measures
+ * itself ({@link useMeasureElement}, {@link HTMLHost}), until that measurement
+ * arrives. A batch mixing plain and measured elements
  * is one event, delivered when the last one is measured. An element the paper
  * does not render (viewport culling, `cellVisibility`) and a zero-sized element
  * nothing measures do not hold the event back. A size the application writes
@@ -48,8 +49,9 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  * The callback receives {@link ElementsMeasuredParams}; `isInitial` is `true`
  * for the first event after the hook mounts, and again for the first event
  * after a graph reset (`resetCells()`), which replaces the diagram. Removing
- * every element is an ordinary change: an empty diagram fires nothing, and the
- * next event after elements return is not initial.
+ * every element is an ordinary change: an empty diagram fires nothing, a hook
+ * mounted on one waits for elements, and the next event after elements return
+ * is not initial.
  * @title On the current paper
  * @param callback - Called each time element sizes are measured.
  * @group Hooks
@@ -136,10 +138,13 @@ export function useOnElementsMeasured(
       // reflects the post-layout state.
       paper.updateViews();
     }
+    // Subscribed before the replay, so a callback that resets the graph is
+    // notified of it and reports the replacement diagram as initial.
+    const unsubscribe = measurement.subscribe(handleChanges);
     // Replay a pass that settled before this subscription (e.g. initial data
     // sync ran before this paperStore was available). A change still waiting
     // is delivered when it settles, as this hook's initial event.
     if (measurement.isSettled()) handleChanges();
-    return measurement.subscribe(handleChanges);
+    return unsubscribe;
   }, [paperStore, measurement, graph, callbackRef]);
 }

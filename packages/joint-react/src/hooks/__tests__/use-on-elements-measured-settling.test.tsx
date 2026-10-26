@@ -9,7 +9,7 @@ import { render, waitFor, act } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
 import { Paper } from '../../components/paper/paper';
 import { HTMLHost } from '../../components/html-host';
-import { useOnElementsMeasured } from '../use-on-elements-measured';
+import { useOnElementsMeasured, type OnElementsMeasured } from '../use-on-elements-measured';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
 import { AUTO_SIZE_OPTION } from '../../store/measurement';
@@ -80,22 +80,31 @@ interface Harness {
   readonly graph: dia.Graph;
   readonly events: RecordedEvent[];
   readonly getPaper: () => dia.Paper;
-  /** Mounts a second hook instance beside the first one, from now on. */
-  readonly mountLateProbe: () => RecordedEvent[];
+  /**
+   * Mounts a second hook instance beside the first one, from now on, recording
+   * its events and calling `onMeasured` after each.
+   */
+  readonly mountLateProbe: (onMeasured?: OnElementsMeasured) => RecordedEvent[];
 }
 
 /** Renders a graph with one hook instance mounted beside the paper. */
-function renderGraph(initialCells: CellRecord[], paperProps: Partial<PaperProps> = {}): Harness {
+function renderGraph(
+  initialCells: CellRecord[],
+  paperProps: Partial<PaperProps> = {},
+  isStrictMode = true
+): Harness {
   const events: RecordedEvent[] = [];
   const lateEvents: RecordedEvent[] = [];
+  let onLateMeasured: OnElementsMeasured | undefined;
   let graph: dia.Graph | undefined;
   let graphStore: GraphStore | undefined;
 
   function Probe({ recorded }: Readonly<{ recorded: RecordedEvent[] }>) {
     graphStore = useGraphStore();
     ({ graph } = graphStore);
-    useOnElementsMeasured(PAPER_ID, ({ isInitial }) => {
-      recorded.push({ isInitial });
+    useOnElementsMeasured(PAPER_ID, (params) => {
+      recorded.push({ isInitial: params.isInitial });
+      if (recorded === lateEvents) onLateMeasured?.(params);
     });
     return null;
   }
@@ -107,14 +116,15 @@ function renderGraph(initialCells: CellRecord[], paperProps: Partial<PaperProps>
       {hasLateProbe && <Probe recorded={lateEvents} />}
     </GraphProvider>
   );
-  const { rerender } = render(renderTree(false));
+  const { rerender } = render(renderTree(false), { reactStrictMode: isStrictMode });
 
   const getPaper = () => {
     const paperStore = graphStore?.getPaperStore(PAPER_ID);
     if (!paperStore) throw new Error(`Paper "${PAPER_ID}" is not mounted`);
     return paperStore.paper;
   };
-  const mountLateProbe = () => {
+  const mountLateProbe = (onMeasured?: OnElementsMeasured) => {
+    onLateMeasured = onMeasured;
     rerender(renderTree(true));
     return lateEvents;
   };
@@ -478,5 +488,52 @@ describe('useOnElementsMeasured — mounted while a change is waiting', () => {
 
     expect(lateEvents).toEqual([{ isInitial: true }]);
     expect(harness.events).toEqual([{ isInitial: false }]);
+  });
+});
+
+// Regression: the mount-time replay ran on an emptied diagram, whose kept
+// version describes elements that are gone.
+describe('useOnElementsMeasured — mounted on an emptied diagram', () => {
+  it('delivers nothing until elements return', async () => {
+    const harness = renderGraph([plain('a')]);
+    await settleAndClear(harness);
+    act(() => {
+      harness.graph.getCell('a').remove();
+    });
+    await flush();
+
+    const lateEvents = harness.mountLateProbe();
+    await flush();
+    expect(lateEvents).toHaveLength(0);
+
+    act(() => {
+      harness.graph.addCell(plain('b') as never);
+    });
+    await flush();
+    expect(lateEvents).toEqual([{ isInitial: true }]);
+  });
+});
+
+// Regression: the mount-time replay ran before the subscription, so a callback
+// that reset the graph missed the reset, and the replacement diagram's first
+// event was reported as not initial.
+describe('useOnElementsMeasured — a replayed callback resets the graph', () => {
+  it('reports the replacement diagram as initial', async () => {
+    // Without StrictMode: its second mount replays after the reset, which
+    // hides the missed notification. Production mounts once.
+    const harness = renderGraph([plain('a')], {}, false);
+    await settleAndClear(harness);
+
+    let hasReset = false;
+    const lateEvents = harness.mountLateProbe(({ graph }) => {
+      if (hasReset) return;
+      hasReset = true;
+      graph.resetCells([plain('x')] as never);
+    });
+    await flush();
+    await flush();
+
+    // The replay, then the replacement diagram's first pass.
+    expect(lateEvents).toEqual([{ isInitial: true }, { isInitial: true }]);
   });
 });
