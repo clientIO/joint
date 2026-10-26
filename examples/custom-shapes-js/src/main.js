@@ -1,6 +1,6 @@
-import * as joint from '../../../joint.mjs';
-import * as g from '../../../src/g/index.mjs';
-import V from '../../../src/V/index.mjs';
+import * as joint from '@joint/core';
+
+const { g, V } = joint;
 
 const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
@@ -310,7 +310,7 @@ const Header = joint.dia.Element.define('custom.Header', {
             y: 22,
             width: 30,
             height: 40,
-            xlinkHref: 'http://placehold.it/30x40'
+            href: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="30" height="40"><rect width="30" height="40" fill="#ccc"/><text x="15" y="24" font-family="sans-serif" font-size="10" fill="#666" text-anchor="middle">30x40</text></svg>')
         }
     }
 }, {
