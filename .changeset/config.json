@@ -17,6 +17,7 @@
     ]
   ],
   "updateInternalDependencies": "patch",
+  "bumpVersionsWithWorkspaceProtocolOnly": true,
   "privatePackages": {
     "version": false,
     "tag": false
