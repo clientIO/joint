@@ -12,7 +12,8 @@
       "@joint/layout-directed-graph",
       "@joint/layout-elk",
       "@joint/layout-msagl",
-      "@joint/router-avoid"
+      "@joint/router-avoid",
+      "@joint/sanitize"
     ]
   ],
   "updateInternalDependencies": "patch",

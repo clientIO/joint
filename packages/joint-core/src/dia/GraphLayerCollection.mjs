@@ -1,6 +1,6 @@
 import { Collection } from '../mvc/index.mjs';
 import { DEFAULT_GRAPH_LAYER_TYPE, GraphLayer } from './GraphLayer.mjs';
-import { CELL_MARKER, GRAPH_LAYER_MARKER, GRAPH_LAYER_COLLECTION_MARKER } from './symbols.mjs';
+import { CELL_MARKER, GRAPH_LAYER_MARKER, GRAPH_LAYER_COLLECTION_MARKER, isMarkedConstructor } from './symbols.mjs';
 import * as util from '../util/index.mjs';
 
 /**
@@ -48,7 +48,7 @@ export const GraphLayerCollection = Collection.extend({
 
         // Find the model class based on the `type` attribute in the cell namespace
         const GraphLayerClass = util.getByPath(namespace, type, '.');
-        if (!GraphLayerClass) {
+        if (!isMarkedConstructor(GraphLayerClass, GRAPH_LAYER_MARKER)) {
             throw new Error(`dia.Graph: Could not find layer constructor for type: '${type}'. Make sure to add the constructor to 'layerNamespace'.`);
         }
 
@@ -207,7 +207,7 @@ export const GraphLayerCollection = Collection.extend({
         }
         if (!type) return null;
         const Ctor = util.getByPath(cellNamespace, type, '.');
-        if (!Ctor || !Ctor.prototype) return null;
+        if (!isMarkedConstructor(Ctor, CELL_MARKER)) return null;
         return Ctor;
     },
 
