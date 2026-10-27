@@ -1,5 +1,35 @@
 # @joint/core
 
+## 4.3.4
+
+### Patch Changes
+
+- linkTools.Anchor - add types for `onPointerDown()`, `onPointerMove()`, `onPointerUp()` and `onPointerDblClick()` (65c07c92)
+- dia.Link - refactor link labels resolution against `defaultLabel` and the built-in default label (d742fc60)
+- dia.Cell - fix `removeAttr()` to pass its options on when the path is an array (f6b183ae)
+- dia.Cell - fix `removeProp()` to remove a top-level property given as an array path (f6b183ae)
+- config - fix the TypeScript types to declare `storeEmbeds` (0a370aac)
+- util - accept `undefined` source objects in the `defaults()`, `defaultsDeep()`, `supplement()` and `deepSupplement()` typings, which the implementations already skip (a1d9f030)
+- dia.Graph - fix to resolve cell and layer `type` only to `dia.Cell` and `dia.GraphLayer` constructors (cf7c369e)
+- dia.Paper - fix `defineFilter()` to ignore filter names inherited from `Object.prototype` (cf7c369e)
+- dia.ElementView - fix `getLinkEnd()` to keep a non-integer numeric port id, e.g. `1.5` (8d7c0871)
+- dia.Paper - fix `multiLinks: false` to tell a link to port `0` apart from links to other ports (8d7c0871)
+- mvc.Dom - fix `$(window)` to hold the window, so event methods and `width()`/`height()` work on it (e3862a8f)
+- mvc.$ - fix `parseHTML()` to remove all `<script>` elements (cf7c369e)
+- dia.Paper - fix a layer removed and added again before the paper updates being left without a view (b038864e)
+- dia.Element - fix port lookups to match a port id by value and type, so `5` and `'5'` are two different ports and `0` is a valid id (8d7c0871)
+- dia.Element - fix `PortLabelPositionType` type to use `PortLabelPositionJSON` for a port label's position (a1d9f030)
+- dia.Element - fix types to allow `portProp(portId)` and `portProp(portId, object, opt)` (a1d9f030)
+- dia.ToolsView - fix a tool hidden with `hide()` right after `addTools()` reappearing when the update is deferred (e.g. `async: true`) (3de3381e)
+- routers.rightAngle - fix the link direction at ports of rotated elements and route around rotated elements (a255c1b3)
+- util - fix `toggleFullScreen()` to work in a cross-origin iframe and default to the current page's body (6c64bd5c)
+- util.filter - fix the built-in filters to escape their arguments (cf7c369e)
+- util - fix `sanitizeHTML()` to remove unsafe elements and to detect obfuscated `javascript:` URLs (cf7c369e)
+- util - fix `setByPath()` and `unsetByPath()` to ignore `__proto__` as the last path segment (cf7c369e)
+- linkTools.Vertices - fix the `VertexHandle` type to declare `onDoubleClick()`, not `onPointerClick()` (65c07c92)
+- linkTools.Vertices - fix the `vertexAdding` type to name `interactiveLinkNode`, not `interactiveLineNode` (375e9cf9)
+- types - `cell.findView()` returns `ElementView` for `dia.Element` and `LinkView` for `dia.Link`; `paper.getCellView()` infers the view type from the model (72b79b41)
+
 ## 4.3.3
 
 ### Patch Changes
