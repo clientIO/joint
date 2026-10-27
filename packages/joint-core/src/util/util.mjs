@@ -219,7 +219,9 @@ export const setByPath = function(obj, path, value, delimiter) {
         diver = value || (diver[key] = {});
     }
 
-    diver[keys[last]] = value;
+    const lastKey = keys[last];
+    if (String(lastKey) === '__proto__') return obj;
+    diver[lastKey] = value;
 
     return obj;
 };
@@ -239,7 +241,9 @@ export const unsetByPath = function(obj, path, delimiter) {
         diver = value;
     }
 
-    delete diver[keys[last]];
+    const lastKey = keys[last];
+    if (String(lastKey) === '__proto__') return obj;
+    delete diver[lastKey];
 
     return obj;
 };
@@ -804,6 +808,8 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
     return lines.join(eol);
 };
 
+const UNSAFE_HTML_ELEMENTS = 'script, iframe, frame, frameset, object, embed, base, meta, link, noscript, animate, set';
+
 // Sanitize HTML
 // Based on https://gist.github.com/ufologist/5a0da51b2b9ef1b861c30254172ac3c9
 // Parses a string into an array of DOM nodes.
@@ -813,13 +819,22 @@ export const sanitizeHTML = function(html) {
     // Ignores tags that are invalid inside a <div> tag (e.g. <body>, <head>)
     const [outputEl] = $.parseHTML('<div>' + html + '</div>');
 
+    // Remove elements which can run scripts, load documents or change the document's base URL.
+    Array.from(outputEl.querySelectorAll(UNSAFE_HTML_ELEMENTS)).forEach(function(node) {
+        node.remove();
+    });
+
     Array.from(outputEl.getElementsByTagName('*')).forEach(function(node) { // for all nodes
         const names = node.getAttributeNames();
         names.forEach(function(name) {
-            const value = node.getAttribute(name);
+            // Browsers ignore whitespace and control characters in URLs and the scheme is case-insensitive
+            // (e.g. `href=" JaVa&#9;Script:alert(1)"`).
+            const attrName = name.toLowerCase();
+            // eslint-disable-next-line no-control-regex
+            const value = node.getAttribute(name).replace(/[\u0000-\u0020\u007F]/g, '').toLowerCase();
             // Remove attribute names that start with "on" (e.g. onload, onerror...).
             // Remove attribute values that start with "javascript:" pseudo protocol (e.g. `href="javascript:alert(1)"`).
-            if (name.startsWith('on') || value.startsWith('javascript:') || value.startsWith('data:') || value.startsWith('vbscript:')) {
+            if (attrName.startsWith('on') || attrName === 'srcdoc' || value.startsWith('javascript:') || value.startsWith('data:') || value.startsWith('vbscript:')) {
                 node.removeAttribute(name);
             }
         });
@@ -1250,7 +1265,7 @@ export const filter = {
         var margin = Number.isFinite(args.margin) ? args.margin : 2;
         var width = Number.isFinite(args.width) ? args.width : 1;
 
-        return template(tpl)({
+        return escapedTemplate(tpl)({
             color: args.color || 'blue',
             opacity: Number.isFinite(args.opacity) ? args.opacity : 1,
             outerRadius: margin + width,
@@ -1266,7 +1281,7 @@ export const filter = {
 
         var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology result="morphed" in="SourceGraphic" operator="dilate" radius="${width}"/><feComposite result="composed" in="colored" in2="morphed" operator="in"/><feGaussianBlur result="blured" in="composed" stdDeviation="${blur}"/><feBlend in="SourceGraphic" in2="blured" mode="normal"/></filter>';
 
-        return template(tpl)({
+        return escapedTemplate(tpl)({
             color: args.color || 'red',
             width: Number.isFinite(args.width) ? args.width : 1,
             blur: Number.isFinite(args.blur) ? args.blur : 0,
@@ -1280,7 +1295,7 @@ export const filter = {
 
         var x = Number.isFinite(args.x) ? args.x : 2;
 
-        return template('<filter><feGaussianBlur stdDeviation="${stdDeviation}"/></filter>')({
+        return escapedTemplate('<filter><feGaussianBlur stdDeviation="${stdDeviation}"/></filter>')({
             stdDeviation: Number.isFinite(args.y) ? [x, args.y] : x
         });
     },
@@ -1296,7 +1311,7 @@ export const filter = {
             ? '<filter><feDropShadow stdDeviation="${blur}" dx="${dx}" dy="${dy}" flood-color="${color}" flood-opacity="${opacity}"/></filter>'
             : '<filter><feGaussianBlur in="SourceAlpha" stdDeviation="${blur}"/><feOffset dx="${dx}" dy="${dy}" result="offsetblur"/><feFlood flood-color="${color}"/><feComposite in2="offsetblur" operator="in"/><feComponentTransfer><feFuncA type="linear" slope="${opacity}"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
 
-        return template(tpl)({
+        return escapedTemplate(tpl)({
             dx: args.dx || 0,
             dy: args.dy || 0,
             opacity: Number.isFinite(args.opacity) ? args.opacity : 1,
@@ -1310,7 +1325,7 @@ export const filter = {
 
         var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
-        return template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${b} ${h} 0 0 0 0 0 1 0"/></filter>')({
+        return escapedTemplate('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${b} ${h} 0 0 0 0 0 1 0"/></filter>')({
             a: 0.2126 + 0.7874 * (1 - amount),
             b: 0.7152 - 0.7152 * (1 - amount),
             c: 0.0722 - 0.0722 * (1 - amount),
@@ -1327,7 +1342,7 @@ export const filter = {
 
         var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
-        return template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${h} ${i} 0 0 0 0 0 1 0"/></filter>')({
+        return escapedTemplate('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${h} ${i} 0 0 0 0 0 1 0"/></filter>')({
             a: 0.393 + 0.607 * (1 - amount),
             b: 0.769 - 0.769 * (1 - amount),
             c: 0.189 - 0.189 * (1 - amount),
@@ -1345,7 +1360,7 @@ export const filter = {
 
         var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
-        return template('<filter><feColorMatrix type="saturate" values="${amount}"/></filter>')({
+        return escapedTemplate('<filter><feColorMatrix type="saturate" values="${amount}"/></filter>')({
             amount: 1 - amount
         });
     },
@@ -1353,7 +1368,7 @@ export const filter = {
     // `angle` ...  the number of degrees around the color circle the input samples will be adjusted (0).
     hueRotate: function(args) {
 
-        return template('<filter><feColorMatrix type="hueRotate" values="${angle}"/></filter>')({
+        return escapedTemplate('<filter><feColorMatrix type="hueRotate" values="${angle}"/></filter>')({
             angle: args.angle || 0
         });
     },
@@ -1363,7 +1378,7 @@ export const filter = {
 
         var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
-        return template('<filter><feComponentTransfer><feFuncR type="table" tableValues="${amount} ${amount2}"/><feFuncG type="table" tableValues="${amount} ${amount2}"/><feFuncB type="table" tableValues="${amount} ${amount2}"/></feComponentTransfer></filter>')({
+        return escapedTemplate('<filter><feComponentTransfer><feFuncR type="table" tableValues="${amount} ${amount2}"/><feFuncG type="table" tableValues="${amount} ${amount2}"/><feFuncB type="table" tableValues="${amount} ${amount2}"/></feComponentTransfer></filter>')({
             amount: amount,
             amount2: 1 - amount
         });
@@ -1372,7 +1387,7 @@ export const filter = {
     // `amount` ... proportion of the conversion (1). A value of 0 will create an image that is completely black. A value of 1 (default) leaves the input unchanged.
     brightness: function(args) {
 
-        return template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}"/><feFuncG type="linear" slope="${amount}"/><feFuncB type="linear" slope="${amount}"/></feComponentTransfer></filter>')({
+        return escapedTemplate('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}"/><feFuncG type="linear" slope="${amount}"/><feFuncB type="linear" slope="${amount}"/></feComponentTransfer></filter>')({
             amount: Number.isFinite(args.amount) ? args.amount : 1
         });
     },
@@ -1382,7 +1397,7 @@ export const filter = {
 
         var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
-        return template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}" intercept="${amount2}"/><feFuncG type="linear" slope="${amount}" intercept="${amount2}"/><feFuncB type="linear" slope="${amount}" intercept="${amount2}"/></feComponentTransfer></filter>')({
+        return escapedTemplate('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}" intercept="${amount2}"/><feFuncG type="linear" slope="${amount}" intercept="${amount2}"/><feFuncB type="linear" slope="${amount}" intercept="${amount2}"/></feComponentTransfer></filter>')({
             amount: amount,
             amount2: .5 - amount / 2
         });
@@ -1643,10 +1658,7 @@ export const format = {
     }
 };
 
-/*
-    Pre-compile the HTML to be used as a template.
-*/
-export const template = function(html) {
+const compileTemplate = function(html, formatValue) {
 
     /*
         Must support the variation in templating syntax found here:
@@ -1672,9 +1684,25 @@ export const template = function(html) {
                 value = value[attrArray.shift()];
             }
 
-            return value !== undefined ? value : '';
+            return value !== undefined ? formatValue(value) : '';
         });
     };
+};
+
+const escapeMarkup = function(value) {
+    return String(value).replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
+};
+
+/*
+    Pre-compile the HTML to be used as a template.
+*/
+export const template = function(html) {
+    return compileTemplate(html, (value) => value);
+};
+
+// The same as `template()`, but the interpolated values are escaped.
+const escapedTemplate = function(html) {
+    return compileTemplate(html, escapeMarkup);
 };
 
 /**
