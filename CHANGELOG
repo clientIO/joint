@@ -1,3 +1,13 @@
+27-10-2026 (v4.2.6)
+
+  @joint/core
+  * dia.Graph - fix to resolve cell and layer `type` only to `dia.Cell` and `dia.GraphLayer` constructors
+  * dia.Paper - fix `defineFilter()` to ignore filter names inherited from `Object.prototype`
+  * mvc.$ - fix `parseHTML()` to remove all `<script>` elements
+  * util - fix `sanitizeHTML()` to remove unsafe elements and to detect obfuscated `javascript:` URLs
+  * util - fix `setByPath()` and `unsetByPath()` to ignore `__proto__` as the last path segment
+  * util.filter - fix the built-in filters to escape their arguments
+
 11-06-2026 (v4.2.5)
 
   @joint/core
