@@ -6,14 +6,14 @@
 //   yarn test-layout --data=thompson.json
 
 import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { resolve } from 'node:path';
 import { dia, shapes } from '@joint/core';
 import { getParentChildLinks, getMateLinks, type PersonNode } from '../src/data';
 import { layoutGenogram } from '../src/layout';
 
 // --- Parse CLI args ---
 const dataFile = process.argv.find(a => a.startsWith('--data='))?.split('=')[1] || 'thompson.json';
-const familiesDir = resolve(dirname(__filename), '../src/families');
+const familiesDir = resolve(import.meta.dirname, '../src/families');
 const persons: PersonNode[] = JSON.parse(readFileSync(`${familiesDir}/${dataFile}`, 'utf-8'));
 
 const personById = new Map<number, PersonNode>();
