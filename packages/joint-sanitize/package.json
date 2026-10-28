@@ -57,8 +57,8 @@
   "devDependencies": {
     "@joint/core": "workspace:~",
     "@joint/eslint-config": "workspace:*",
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^1.0.2",
     "chai": "4.2.0",
     "eslint": "9.39.2",
     "karma": "^6.4.2",
@@ -66,10 +66,10 @@
     "karma-coverage": "^2.2.1",
     "karma-qunit": "4.2.1",
     "karma-sourcemap-loader": "^0.4.0",
-    "mocha": "11.1.0",
+    "mocha": "12.0.3",
     "puppeteer": "25.16.0",
     "qunit": "2.24.1",
-    "rollup": "4.36.0",
+    "rollup": "4.64.12",
     "rollup-plugin-banner2": "^1.2.2"
   },
   "volta": {
