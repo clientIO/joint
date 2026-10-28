@@ -1,10 +1,6 @@
-const puppeteer = require('puppeteer');
 const dependencies = require('../resources/dependencies');
 const modules = require('../resources/esm');
 const coverageThresholds = require('../../coverage.json');
-
-// Used for starting Chrome if using ChromeHeadless in Jenkins
-process.env.CHROME_BIN = puppeteer.executablePath();
 
 // Which path should .lcov files record as root they are relative to?
 // - SonarQube (`.github/workflows/sonar.yml`) needs this to be the repo root
@@ -57,7 +53,9 @@ module.exports = function(grunt) {
                         '--no-sandbox',
                         '--headless',
                         '--disable-gpu',
-                        '--disable-dev-shm-usage'
+                        '--disable-dev-shm-usage',
+                        // Keep macOS from asking for the keychain password on launch
+                        '--use-mock-keychain'
                     ]
                 }
             },

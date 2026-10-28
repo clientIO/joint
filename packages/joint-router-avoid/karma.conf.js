@@ -1,7 +1,10 @@
-// Used for starting Chrome if using ChromeHeadless in Jenkins
-process.env.CHROME_BIN = require('puppeteer').executablePath();
+const puppeteer = require('puppeteer');
 
-module.exports = function(config) {
+module.exports = async function(config) {
+    // Karma's ChromeHeadless launcher starts the browser at `CHROME_BIN` - the one
+    // Puppeteer installs, whose path it only resolves asynchronously
+    process.env.CHROME_BIN = await puppeteer.executablePath();
+
     config.set({
         basePath: '.',
         files: [
@@ -38,7 +41,9 @@ module.exports = function(config) {
                     '--no-sandbox',
                     '--headless',
                     '--disable-gpu',
-                    '--disable-dev-shm-usage'
+                    '--disable-dev-shm-usage',
+                    // Keep macOS from asking for the keychain password on launch
+                    '--use-mock-keychain'
                 ]
             }
         },

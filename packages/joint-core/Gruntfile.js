@@ -31,6 +31,17 @@ module.exports = function(grunt) {
         if (name.indexOf('grunt-') === 0) grunt.loadNpmTasks(name);
     });
 
+    // Karma's ChromeHeadless launcher starts the browser at `CHROME_BIN`, and
+    // Puppeteer only resolves the path of the browser it installs asynchronously,
+    // so this task sets it before the karma tasks run
+    grunt.registerTask('chrome-bin', 'Point CHROME_BIN at the browser Puppeteer installs', function() {
+        var done = this.async();
+        require('puppeteer').executablePath().then(function(executablePath) {
+            process.env.CHROME_BIN = executablePath;
+            done();
+        }, done);
+    });
+
     Object.keys(aliases).forEach(function(name) {
         grunt.registerTask(name, aliases[name]);
     });

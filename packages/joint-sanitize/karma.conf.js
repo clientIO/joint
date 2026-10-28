@@ -2,9 +2,6 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const coverageThresholds = require('./coverage.json');
 
-// Used for starting Chrome if using ChromeHeadless in Jenkins
-process.env.CHROME_BIN = puppeteer.executablePath();
-
 // Coverage is collected for this and source-mapped to `src/`
 const TEST_BUNDLE = './build/test/sanitize.js';
 
@@ -15,7 +12,11 @@ const JOINT_CORE = path.resolve(path.dirname(require.resolve('@joint/core')), '.
 // - SonarQube (`.github/workflows/sonar.yml`) needs this to be the repo root
 const REPOSITORY_ROOT = '../..';
 
-module.exports = function(config) {
+module.exports = async function(config) {
+    // Karma's ChromeHeadless launcher starts the browser at `CHROME_BIN` - the one
+    // Puppeteer installs, whose path it only resolves asynchronously
+    process.env.CHROME_BIN = await puppeteer.executablePath();
+
     config.set({
         basePath: '.',
         files: [
@@ -43,7 +44,9 @@ module.exports = function(config) {
                     '--no-sandbox',
                     '--headless',
                     '--disable-gpu',
-                    '--disable-dev-shm-usage'
+                    '--disable-dev-shm-usage',
+                    // Keep macOS from asking for the keychain password on launch
+                    '--use-mock-keychain'
                 ]
             }
         },

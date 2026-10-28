@@ -1,13 +1,17 @@
 require.config({
     baseUrl: '../../',
     paths: {
-        'qunit': 'node_modules/qunit/qunit/qunit',
-
         // Dependencies for Joint:
         'jquery': 'node_modules/jquery/dist/jquery',
         'lodash': 'node_modules/lodash/lodash',
         'dagre': 'node_modules/dagre/dist/dagre'
     }
+});
+
+// The global QUnit (see `requirejs.html`), as a module.
+// eslint-disable-next-line no-undef
+define('qunit', [], function() {
+    return window.QUnit;
 });
 
 require(['qunit'], function(QUnit) {
