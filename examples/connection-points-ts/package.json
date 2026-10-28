@@ -20,8 +20,8 @@
     "@joint/core": "workspace:^"
   },
   "devDependencies": {
-    "css-loader": "3.5.3",
-    "style-loader": "1.2.1",
+    "css-loader": "^6.8.1",
+    "style-loader": "^3.3.3",
     "ts-loader": "^9.2.5",
     "typescript": "^5.7.3",
     "webpack": "5.112.0",
