@@ -1,7 +1,7 @@
 {
   "name": "@joint/sanitize",
   "title": "JointJS Sanitize",
-  "version": "4.3.3",
+  "version": "4.3.4",
   "description": "Sanitizers of untrusted graph JSON and HTML for JointJS",
   "main": "dist/sanitize.js",
   "module": "./src/index.mjs",
