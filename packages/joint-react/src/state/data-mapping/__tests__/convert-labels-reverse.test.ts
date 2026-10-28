@@ -18,7 +18,7 @@ describe('mergeLabelsFromAttributes', () => {
 
     const result = mergeLabelsFromAttributes(dataLabels, attributeLabels);
     expect(Object.keys(result)).toEqual(['a']);
-    expect(result.a.position).toBe(0.3);
+    expect(result.a.position).toBeCloseTo(0.3);
     expect(result.a.offset).toBe(5);
   });
 
@@ -44,7 +44,7 @@ describe('mergeLabelsFromAttributes', () => {
     ];
 
     const result = mergeLabelsFromAttributes(dataLabels, attributeLabels);
-    expect(result.a.position).toBe(0.9);
+    expect(result.a.position).toBeCloseTo(0.9);
     expect(result.a.offset).toBeUndefined();
   });
 

@@ -10,7 +10,7 @@ export default defineConfig({
         },
         minify: false,
         rollupOptions: {
-            external: ['vitest'],
+            external: ['@joint/mock-svg'],
             output: [
                 {
                     esModule: true,

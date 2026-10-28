@@ -123,7 +123,7 @@ describe('controlled-mode benchmark: round-trip via GraphStore + onIncrementalCe
       );
       logResults(bench);
       saveBenchResults(bench, `controlled/position-change/n=${size}`, baselinePath);
-      expect(bench.tasks.length).toBe(1);
+      expect(bench.tasks).toHaveLength(1);
       // Position changes are coalesced onto a microtask (simpleScheduler), so a
       // burst of `cell.set('position')` collapses into a single React-facing
       // notification — the scaling win this benchmark exists to exercise. Drain
@@ -162,7 +162,7 @@ describe('controlled-mode benchmark: round-trip via GraphStore + onIncrementalCe
       console.log(`\n--- controlled n=${size} — updateGraph round-trip (React→graph) ---`);
       logResults(bench);
       saveBenchResults(bench, `controlled/updateGraph/n=${size}`, baselinePath);
-      expect(bench.tasks.length).toBe(1);
+      expect(bench.tasks).toHaveLength(1);
     }, 60_000);
   }
 });

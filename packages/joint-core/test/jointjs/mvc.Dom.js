@@ -97,4 +97,103 @@ QUnit.module('joint.mvc.$', function(hooks) {
         });
     });
 
+    QUnit.module('$(window)', function(hooks) {
+
+        function withIframe(callback) {
+            const iframe = document.createElement('iframe');
+            iframe.style.cssText = 'width: 300px; height: 150px; border: 0;';
+            document.body.appendChild(iframe);
+            try {
+                callback(iframe);
+            } finally {
+                iframe.remove();
+            }
+        }
+
+        // Content larger than the viewport, so the window scrolls. Where
+        // scrollbars take space, `document.documentElement.clientWidth`
+        // excludes them.
+        function withScrollableWindow(callback) {
+            const filler = document.createElement('div');
+            filler.style.cssText = 'width: 5000px; height: 5000px;';
+            document.body.appendChild(filler);
+            try {
+                callback();
+            } finally {
+                filler.remove();
+            }
+        }
+
+        hooks.afterEach(function() {
+            joint.mvc.$(window).off('mvc-dom-test');
+        });
+
+        QUnit.test('holds the window as its only item', function(assert) {
+            const $window = joint.mvc.$(window);
+            assert.equal($window.length, 1);
+            assert.equal($window[0], window);
+        });
+
+        QUnit.test('holds the window, not its frames, on a page with an iframe', function(assert) {
+            withIframe(() => {
+                assert.ok(window.length > 0, 'the page has a frame');
+                const $window = joint.mvc.$(window);
+                assert.equal($window.length, 1);
+                assert.equal($window[0], window);
+            });
+        });
+
+        QUnit.test('holds the window of an iframe', function(assert) {
+            withIframe((iframe) => {
+                const frameWindow = iframe.contentWindow;
+                const $frameWindow = joint.mvc.$(frameWindow);
+                assert.equal($frameWindow.length, 1);
+                assert.equal($frameWindow[0], frameWindow);
+            });
+        });
+
+        QUnit.test('width() and height() return the viewport size without the scrollbar', function(assert) {
+            withScrollableWindow(() => {
+                assert.ok(window.innerWidth > document.documentElement.clientWidth, 'scrollbars take space');
+                const $window = joint.mvc.$(window);
+                assert.equal($window.width(), document.documentElement.clientWidth);
+                assert.equal($window.height(), document.documentElement.clientHeight);
+            });
+        });
+
+        QUnit.test('width() and height() of an iframe\'s window measure its own document', function(assert) {
+            withIframe((iframe) => {
+                const frameDocumentElement = iframe.contentDocument.documentElement;
+                const $frameWindow = joint.mvc.$(iframe.contentWindow);
+                assert.equal($frameWindow.width(), frameDocumentElement.clientWidth);
+                assert.equal($frameWindow.height(), frameDocumentElement.clientHeight);
+            });
+        });
+
+        QUnit.test('on() receives an event dispatched on the window', function(assert) {
+            const handler = sinon.spy();
+            joint.mvc.$(window).on('mvc-dom-test', handler);
+            window.dispatchEvent(new Event('mvc-dom-test'));
+            assert.ok(handler.calledOnce);
+        });
+
+        QUnit.test('one() runs its handler once', function(assert) {
+            const handler = sinon.spy();
+            joint.mvc.$(window).one('mvc-dom-test', handler);
+            window.dispatchEvent(new Event('mvc-dom-test'));
+            window.dispatchEvent(new Event('mvc-dom-test'));
+            assert.ok(handler.calledOnce);
+        });
+
+        QUnit.test('off() stops the delivery of events', function(assert) {
+            const handler = sinon.spy();
+            const $window = joint.mvc.$(window);
+            $window.on('mvc-dom-test', handler);
+            window.dispatchEvent(new Event('mvc-dom-test'));
+            $window.off('mvc-dom-test', handler);
+            window.dispatchEvent(new Event('mvc-dom-test'));
+            assert.equal(handler.callCount, 1);
+        });
+    });
+
 });

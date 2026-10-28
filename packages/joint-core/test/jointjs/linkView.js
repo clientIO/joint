@@ -545,7 +545,61 @@ QUnit.module('linkView', function(hooks) {
         });
     });
 
+    QUnit.module('updateLabelPositions', function() {
+
+        QUnit.test('resolves only the labels\' positions, not the whole labels', function(assert) {
+
+            link.labels([
+                { position: 0.25, attrs: { text: { text: 'a' }}},
+                { position: { distance: 0.75, offset: 10 }}
+            ]);
+
+            var getComputedLabelSpy = sinon.spy(link, 'getComputedLabel');
+            var getComputedLabelsSpy = sinon.spy(link, 'getComputedLabels');
+            var getComputedLabelPositionSpy = sinon.spy(link, 'getComputedLabelPosition');
+            try {
+                // Moving an end re-routes the link, and with it moves its labels.
+                link.target({ x: 300, y: 100 });
+
+                assert.ok(getComputedLabelSpy.notCalled);
+                assert.ok(getComputedLabelsSpy.notCalled);
+                assert.ok(getComputedLabelPositionSpy.calledWith(0));
+                assert.ok(getComputedLabelPositionSpy.calledWith(1));
+            } finally {
+                getComputedLabelSpy.restore();
+                getComputedLabelsSpy.restore();
+                getComputedLabelPositionSpy.restore();
+            }
+
+            // Each label is placed at its resolved position on the new route.
+            [0, 1].forEach(function(index) {
+                var labelNode = linkView.el.querySelector('[label-idx="' + index + '"]');
+                var matrix = V(labelNode).transform();
+                var coords = linkView.getLabelCoordinates(link.getComputedLabelPosition(index));
+                assert.deepEqual({ x: matrix.e, y: matrix.f }, { x: coords.x, y: coords.y }, 'label ' + index);
+            });
+        });
+    });
+
     QUnit.module('getLabelCoordinates', function(hooks) {
+
+        QUnit.test('invalid position', function(assert) {
+
+            assert.throws(function() {
+                linkView.getLabelCoordinates(null);
+            }, /invalid label position/);
+
+            assert.throws(function() {
+                linkView.getLabelCoordinates({ distance: null });
+            }, /invalid label position distance/);
+
+            // A label's own `null` position is kept by `getComputedLabel()` - it isn't
+            // replaced by the default position.
+            assert.throws(function() {
+                link.appendLabel({ position: null });
+            }, /invalid label position/);
+            link.removeLabel(-1);
+        });
 
         QUnit.test('default', function(assert) {
 

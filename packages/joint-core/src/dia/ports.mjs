@@ -14,7 +14,7 @@ const PortData = function(model) {
 
     const clonedData = util.cloneDeep(model.get('ports')) || {};
     this.ports = [];
-    this.portsMap = {};
+    this.portsMap = new Map();
     this.groups = {};
     this.portLayoutNamespace = portLayoutNamespace;
     this.portLabelLayoutNamespace = portLabelLayoutNamespace;
@@ -27,11 +27,11 @@ const PortData = function(model) {
 PortData.prototype = {
 
     hasPort: function(id) {
-        return id in this.portsMap;
+        return this.portsMap.has(id);
     },
 
     getPort: function(id) {
-        const port = this.portsMap[id];
+        const port = this.portsMap.get(id);
         if (port) return port;
         throw new Error('Element: unable to find port with id ' + id);
     },
@@ -100,14 +100,14 @@ PortData.prototype = {
 
         const accumulator = {
             ports: ports,
-            result: {}
+            result: new Map()
         };
 
         // For each individual port transformation, find the information necessary to calculate SVG transformations:
         util.toArray(groupPortTransformations).reduce((res, portTransformation, index) => {
             const port = res.ports[index];
             const portId = port.id;
-            res.result[portId] = {
+            res.result.set(portId, {
                 index,
                 portId,
                 portTransformation: portTransformation,
@@ -115,7 +115,7 @@ PortData.prototype = {
                 portAttrs: port.attrs,
                 portSize: port.size,
                 labelSize: port.label.size
-            };
+            });
             return res;
         }, accumulator);
 
@@ -160,7 +160,7 @@ PortData.prototype = {
         for (var j = 0, m = ports.length; j < m; j++) {
             const resolvedPort = this._evaluatePort(ports[j]);
             this.ports.push(resolvedPort);
-            this.portsMap[resolvedPort.id] = resolvedPort;
+            this.portsMap.set(resolvedPort.id, resolvedPort);
         }
     },
 
@@ -376,34 +376,34 @@ export const elementPortPrototype = {
     _processRemovedPort: function() {
 
         var current = this.get('ports') || {};
-        var currentItemsMap = {};
+        var currentIds = new Set();
 
         util.toArray(current.items).forEach(function(item) {
-            currentItemsMap[item.id] = true;
+            currentIds.add(item.id);
         });
 
         var previous = this.previous('ports') || {};
-        var removed = {};
+        var removed = new Set();
 
         util.toArray(previous.items).forEach(function(item) {
-            if (!currentItemsMap[item.id]) {
-                removed[item.id] = true;
+            if (!currentIds.has(item.id)) {
+                removed.add(item.id);
             }
         });
 
         var graph = this.graph;
-        if (graph && !util.isEmpty(removed)) {
+        if (graph && removed.size > 0) {
 
             var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
             inboundLinks.forEach(function(link) {
 
-                if (removed[link.get('target').port]) link.remove();
+                if (removed.has(link.get('target').port)) link.remove();
             });
 
             var outboundLinks = graph.getConnectedLinks(this, { outbound: true });
             outboundLinks.forEach(function(link) {
 
-                if (removed[link.get('source').port]) link.remove();
+                if (removed.has(link.get('source').port)) link.remove();
             });
         }
     },
@@ -417,7 +417,7 @@ export const elementPortPrototype = {
     },
 
     /**
-     * @param {string} id
+     * @param {string|number} id
      * @returns {boolean}
      */
     hasPort: function(id) {
@@ -442,11 +442,11 @@ export const elementPortPrototype = {
     },
 
     /**
-     * @param {string} id
+     * @param {string|number} id
      * @returns {object}
      */
     getPort: function(id) {
-        const port = util.toArray(this.prop('ports/items')).find(port => port.id && port.id === id);
+        const port = util.toArray(this.prop('ports/items')).find(port => port.id != null && port.id === id);
         return util.cloneDeep(port);
     },
 
@@ -461,11 +461,14 @@ export const elementPortPrototype = {
     getPortsPositions: function(groupName) {
 
         const portsMetrics = this.getGroupPortsMetrics(groupName);
+        // TODO: Return a `Map` keyed by the port id in the next major version.
+        // A plain object keys the ports by the id as a string, so ports whose
+        // ids differ only in type (`5` and `'5'`) overwrite each other here.
         const portsPosition = {};
-        for (const portId in portsMetrics) {
+        for (const [portId, metrics] of portsMetrics) {
             const {
                 portTransformation: { x, y, angle },
-            } = portsMetrics[portId];
+            } = metrics;
             portsPosition[portId] = {
                 x: x,
                 y: y,
@@ -477,7 +480,7 @@ export const elementPortPrototype = {
 
     getPortMetrics: function(portId) {
         const port = this._portSettingsData.getPort(portId);
-        return this.getGroupPortsMetrics(port.group)[portId];
+        return this.getGroupPortsMetrics(port.group).get(portId);
     },
 
     getGroupPortsMetrics: function(groupName) {
@@ -505,7 +508,7 @@ export const elementPortPrototype = {
     },
 
     /**
-     * @param {string} portId
+     * @param {string|number} portId
      * @returns {Point}
      * @description Returns the port center in the graph coordinate system.
      * The port center is in the graph coordinate system, and the position
@@ -521,7 +524,7 @@ export const elementPortPrototype = {
     },
 
     /**
-     * @param {string} portId
+     * @param {string|number} portId
      * @param {object} [opt]
      * @param {boolean} [opt.rotate] - If true, the port bounding box is rotated
      * around the port center.
@@ -547,7 +550,7 @@ export const elementPortPrototype = {
     },
 
     /**
-     * @param {string|Port} port port id or port
+     * @param {string|number|Port} port port id or port
      * @returns {number} port index
      */
     getPortIndex: function(port) {
@@ -602,7 +605,7 @@ export const elementPortPrototype = {
     },
 
     /**
-     * @param {string} portId
+     * @param {string|number} portId
      * @param {string|object=} path
      * @param {*=} value
      * @param {object=} opt
@@ -794,7 +797,7 @@ export const elementViewPortPrototype = {
             'fill': '#000000'
         }
     }],
-    /** @type {Object<string, {portElement: Vectorizer, portLabelElement: Vectorizer}>} */
+    /** @type {Map<string|number, {portElement: Vectorizer, portLabelElement: Vectorizer}>} */
     _portElementsCache: null,
 
     /**
@@ -826,7 +829,7 @@ export const elementViewPortPrototype = {
     },
 
     _cleanPortsCache: function() {
-        this._portElementsCache = {};
+        this._portElementsCache = new Map();
     },
 
     /**
@@ -899,14 +902,15 @@ export const elementViewPortPrototype = {
      */
     _getPortElement: function(port) {
 
-        if (this._portElementsCache[port.id]) {
-            return this._portElementsCache[port.id].portElement;
+        const portCache = this._portElementsCache.get(port.id);
+        if (portCache) {
+            return portCache.portElement;
         }
         return this._createPortElement(port);
     },
 
     findPortNodes: function(portId, selector) {
-        const portCache = this._portElementsCache[portId];
+        const portCache = this._portElementsCache.get(portId);
         if (!portCache) return [];
         if (!selector) return [portCache.portContentElement.node];
         const portRoot = portCache.portElement.node;
@@ -935,7 +939,7 @@ export const elementViewPortPrototype = {
      * @private
      */
     _removePorts: function() {
-        util.invoke(this._portElementsCache, 'portElement.remove');
+        this._portElementsCache.forEach(portCache => portCache.portElement.remove());
     },
 
     /**
@@ -1047,14 +1051,14 @@ export const elementViewPortPrototype = {
             portContainerElement.append(labelElement.addClass('joint-port-label'));
         }
 
-        this._portElementsCache[port.id] = {
+        this._portElementsCache.set(port.id, {
             portElement: portContainerElement,
             portLabelElement: labelElement,
             portSelectors: portContainerSelectors,
             portLabelSelectors: labelSelectors,
             portContentElement: portElement,
             portContentSelectors: portSelectors
-        };
+        });
 
         return portContainerElement;
     },
@@ -1066,12 +1070,9 @@ export const elementViewPortPrototype = {
     _updatePortGroup: function(groupName) {
 
         const portsMetrics = this.model.getGroupPortsMetrics(groupName);
-        const portsIds = Object.keys(portsMetrics);
 
-        for (let i = 0, n = portsIds.length; i < n; i++) {
-            const portId = portsIds[i];
-            const metrics = portsMetrics[portId];
-            const cached = this._portElementsCache[portId] || {};
+        for (const [portId, metrics] of portsMetrics) {
+            const cached = this._portElementsCache.get(portId) || {};
             const portTransformation = metrics.portTransformation;
             const labelTransformation = metrics.labelTransformation;
             if (labelTransformation && cached.portLabelElement) {

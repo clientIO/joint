@@ -385,17 +385,22 @@ export class Graph<A extends ObjectHash = Graph.Attributes, S = ModelSetOptions>
         context?: any
     ): this;
 
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     addCell(cell: Graph.CellInit, opt?: CollectionAddOptions): this;
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     addCell(cell: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
 
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     addCells(cells: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
 
     removeCell(cell: Graph.CellRef, opt?: Graph.RemoveCellOptions): void;
 
     removeCells(cells: Array<Graph.CellRef>, opt?: Graph.RemoveCellOptions): this;
 
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     resetCells(cells: Array<Graph.CellInit>, opt?: Graph.Options): this;
 
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     syncCells(cells: Array<Graph.CellInit>, opt?: Graph.SyncCellOptions): void;
 
     addLayer(layerInit: Graph.LayerInit, opt?: Graph.InsertLayerOptions): void;
@@ -480,6 +485,7 @@ export class Graph<A extends ObjectHash = Graph.Attributes, S = ModelSetOptions>
 
     toJSON(opt?: { cellAttributes?: Cell.ExportOptions }): Graph.JSON;
 
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     fromJSON(json: Graph.JSON, opt?: S): this;
 
     clear(opt?: { [key: string]: any }): this;
@@ -687,6 +693,10 @@ export namespace Cell {
     }
 }
 
+/**
+ * The attributes of a cell (e.g. `markup`, `attrs`, `ports` and `labels`) are rendered as they are.
+ * Sanitize values from an untrusted source first, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}.
+ */
 export class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = ModelSetOptions> extends mvc.Model<A, S> {
 
     constructor(attributes?: DeepPartial<A>, opt?: Cell.ConstructorOptions);
@@ -723,13 +733,17 @@ export class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSet
     isEmbedded(): boolean;
 
     prop(key: Path): any;
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     prop(object: DeepPartial<A>, opt?: Cell.Options): this;
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     prop(key: Path, value: any, opt?: Cell.Options): this;
 
     removeProp(path: Path, opt?: Cell.Options): this;
 
     attr(key?: Path): any;
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     attr(object: Cell.Selectors, opt?: Cell.Options): this;
+    /** Renders the value as it is. For untrusted data, see {@link https://github.com/clientIO/joint/blob/master/SECURITY.md#untrusted-data | Untrusted Data}. */
     attr(key: Path, value: any, opt?: Cell.Options): this;
 
     clone(): this;
@@ -840,7 +854,7 @@ export namespace Element {
 
     type PositionType = string | PortPositionCallback | PortPositionJSON;
 
-    type PortLabelPositionType = PortLabelPositionCallback | PortPositionJSON;
+    type PortLabelPositionType = PortLabelPositionCallback | PortLabelPositionJSON;
 
     interface PortGroup {
         position?: PositionType;
@@ -856,6 +870,8 @@ export namespace Element {
     }
 
     interface Port {
+        // TODO: Change to `Element.PortID` in the next major version
+        // (widening it breaks code that assigns `port.id` to a `string`).
         id?: string;
         markup?: string | MarkupJSON;
         group?: string;
@@ -869,6 +885,8 @@ export namespace Element {
         label?: PortLabel;
         z?: number | 'auto';
     }
+
+    type PortID = Cell.ID;
 
     interface PortPosition extends Point {
         angle: number;
@@ -918,6 +936,8 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     constructor(attributes?: DeepPartial<A>, opt?: Element.ConstructorOptions);
 
+    findView(paper: Paper): ElementView;
+
     translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
     position(opt?: Element.PositionOptions): g.Point;
@@ -948,40 +968,44 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
 
     insertPort(before: number | string | Element.Port, port: Element.Port, opt?: S): this;
 
-    removePort(port: string | Element.Port, opt?: S): this;
+    removePort(port: Element.PortID | Element.Port, opt?: S): this;
 
     removePorts(opt?: S): this;
-    removePorts(ports: Array<Element.Port | string>, opt?: S): this;
+    removePorts(ports: Array<Element.Port | Element.PortID>, opt?: S): this;
 
     hasPorts(): boolean;
 
-    hasPort(id: string): boolean;
+    hasPort(id: Element.PortID): boolean;
 
     getPorts(): Element.Port[];
 
     getGroupPorts(groupName: string): Element.Port[];
 
-    getPort(id: string): Element.Port;
+    getPort(id: Element.PortID): Element.Port;
 
     getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
 
-    getPortRelativePosition(portId: string): Element.PortPosition;
+    getPortRelativePosition(portId: Element.PortID): Element.PortPosition;
 
-    getPortRelativeRect(portId: string): Element.PortRect;
+    getPortRelativeRect(portId: Element.PortID): Element.PortRect;
 
-    getPortCenter(portId: string): g.Point;
+    getPortCenter(portId: Element.PortID): g.Point;
 
-    getPortBBox(portId: string, opt?: Element.RotateOptions): g.Rect;
+    getPortBBox(portId: Element.PortID, opt?: Element.RotateOptions): g.Rect;
 
-    getPortIndex(port: string | Element.Port): number;
+    getPortIndex(port: Element.PortID | Element.Port): number;
 
     getPortGroupNames(): string[];
 
-    portProp(portId: string, path: Path): any;
+    portProp(portId: Element.PortID): Element.Port;
 
-    portProp(portId: string, path: Path, value?: any, opt?: S): Element;
+    portProp(portId: Element.PortID, path: Path): any;
 
-    protected generatePortId(): string | number;
+    portProp(portId: Element.PortID, object: DeepPartial<Element.Port>, opt?: S): Element;
+
+    portProp(portId: Element.PortID, path: Path, value?: any, opt?: S): Element;
+
+    protected generatePortId(): Element.PortID;
 
     static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
 
@@ -1034,6 +1058,27 @@ export namespace Link {
         position?: LabelPosition | number; // optional for default labels
         attrs?: Cell.Selectors;
         size?: Size;
+        // Any other custom property - passed
+        // through as-is by `Link#labels`/`Link#label`, whether set on the label itself or
+        // on `defaultLabel` (the label's own value wins).
+        [key: string]: any;
+    }
+
+    interface ComputedLabelPosition {
+        distance: number;
+        offset: number | { x: number, y: number };
+        angle: number;
+        args?: LinkView.LabelOptions | null;
+    }
+
+    interface ComputedLabel {
+        markup: string | MarkupJSON;
+        position: ComputedLabelPosition | null;
+        attrs?: Cell.Selectors | null;
+        size: Size;
+        // Any other custom property - passed
+        // through as-is from the label itself or from `defaultLabel`.
+        [key: string]: any;
     }
 
     interface Vertex extends Point {
@@ -1052,6 +1097,8 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
      * @deprecated use `defaultLabel.markup` instead
      */
     labelMarkup?: string | MarkupJSON; // default label markup
+
+    findView(paper: Paper): LinkView;
 
     disconnect(): this;
 
@@ -1074,8 +1121,14 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
     label(index?: number): Link.Label;
     label(index: number, label: Link.Label, opt?: S): this;
 
+    protected getComputedLabel(index?: number): Link.ComputedLabel | null;
+
+    protected getComputedLabelPosition(index?: number): Link.ComputedLabelPosition | null;
+
     labels(): Link.Label[];
     labels(labels: Link.Label[], opt?: S): this;
+
+    protected getComputedLabels(): Link.ComputedLabel[];
 
     hasLabels(): boolean;
 
@@ -1192,6 +1245,8 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
     findNodes(groupSelector: string): Array<SVGElement | HTMLElement>;
 
     findProxyNode(el: SVGElement | null, type: string): SVGElement;
+
+    findNodePortId(node: DOMElement): Element.PortID | null;
 
     getSelector(el: SVGElement, prevSelector?: string): string;
 
@@ -1360,10 +1415,10 @@ export class ElementView<E extends Element = Element> extends CellViewGeneric<E>
 
     getTargetParentView(evt: Event): CellView | null;
 
-    findPortNode(portId: string | number): SVGElement | null;
-    findPortNode(portId: string | number, selector: string): DOMElement | null;
+    findPortNode(portId: Element.PortID): SVGElement | null;
+    findPortNode(portId: Element.PortID, selector: string): DOMElement | null;
 
-    findPortNodes(portId: string | number, groupSelector: string): DOMElement[];
+    findPortNodes(portId: Element.PortID, groupSelector: string): DOMElement[];
 
     protected renderMarkup(): void;
 
@@ -2102,6 +2157,10 @@ export class Paper extends mvc.View<Graph> {
 
     findViewByModel<T extends ElementView | LinkView>(model: Graph.CellRef): T;
 
+    getCellView(model: Element): ElementView | null;
+    getCellView(model: Link): LinkView | null;
+    getCellView(model: Cell | Cell.ID): CellView | null;
+    /** @deprecated Pass the model and let the view type be inferred. */
     getCellView<T extends ElementView | LinkView>(model: Graph.CellRef): T | null;
 
     /**

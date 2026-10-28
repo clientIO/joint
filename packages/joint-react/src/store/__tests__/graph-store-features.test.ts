@@ -343,7 +343,7 @@ describe('GraphStore observer wiring', () => {
     });
 
     const node = document.createElement('div');
-    const cleanup = store.setMeasuredNode({ id: 'a', node });
+    const cleanup = store.measurement.observe({ id: 'a', node });
     expect(typeof cleanup).toBe('function');
     cleanup();
     store.destroy(false);
@@ -499,7 +499,7 @@ describe('GraphStore size observer integration', () => {
     });
 
     const node = document.createElement('div');
-    store.setMeasuredNode({ id: 'a', node });
+    store.measurement.observe({ id: 'a', node });
 
     const observer = MockResizeObserver.instances.at(-1)!;
     observer.triggerResize(node, 100, 50);
@@ -522,7 +522,7 @@ describe('GraphStore size observer integration', () => {
     });
 
     const node = document.createElement('div');
-    store.setMeasuredNode({
+    store.measurement.observe({
       id: 'a',
       node,
       transform: ({ width, height }) => ({ width, height, x: 9, y: 11 }),
@@ -562,7 +562,7 @@ describe('GraphStore size observer integration', () => {
     });
 
     const node = document.createElement('div');
-    store.setMeasuredNode({ id: 'a', node });
+    store.measurement.observe({ id: 'a', node });
 
     const observer = MockResizeObserver.instances.at(-1)!;
     observer.triggerResize(node, 50, 25);
@@ -581,7 +581,7 @@ describe('GraphStore size observer integration', () => {
       size: { width: 1, height: 1 },
     });
     const node = document.createElement('div');
-    store.setMeasuredNode({ id: 'ghost', node });
+    store.measurement.observe({ id: 'ghost', node });
 
     // Remove the cell — the projection no longer contains it, so
     // processSizeChange bails out before reaching getCellTransform.
