@@ -4314,13 +4314,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@handsontable/pikaday@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@handsontable/pikaday@npm:1.0.0"
-  checksum: 10/f9a428900fd6fcf96fd32ad466a8e319cf7b6d4b9ed1ad4ea5c7c6f489466f0eae5dfec796b0b2dd3ab47b94d24a7efb559a57e2d48f5f835f6b262889f1b5c9
-  languageName: node
-  linkType: hard
-
 "@harperfast/extended-iterable@npm:^1.0.3":
   version: 1.0.5
   resolution: "@harperfast/extended-iterable@npm:1.0.5"
@@ -5881,7 +5874,7 @@ __metadata:
   resolution: "@joint/demo-spreadsheet-shapes-with-handsontable-js@workspace:examples/spreadsheet-shapes-with-handsontable-js"
   dependencies:
     "@joint/core": "workspace:^"
-    handsontable: "npm:^16.2.0"
+    handsontable: "npm:^18.1.2"
     vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
@@ -10019,13 +10012,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/trusted-types@npm:^2.0.7":
-  version: 2.0.7
-  resolution: "@types/trusted-types@npm:2.0.7"
-  checksum: 10/8e4202766a65877efcf5d5a41b7dd458480b36195e580a3b1085ad21e948bc417d55d6f8af1fd2a7ad008015d4117d5fdfe432731157da3c68678487174e4ba3
-  languageName: node
-  linkType: hard
-
 "@types/unist@npm:*":
   version: 3.0.3
   resolution: "@types/unist@npm:3.0.3"
@@ -11991,13 +11977,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bignumber.js@npm:^8 || ^9":
-  version: 9.3.1
-  resolution: "bignumber.js@npm:9.3.1"
-  checksum: 10/1be0372bf0d6d29d0a49b9e6a9cefbd54dad9918232ad21fcd4ec39030260773abf0c76af960c6b3b98d3115a3a71e61c6a111812d1395040a039cfa178e0245
-  languageName: node
-  linkType: hard
-
 "binary-extensions@npm:^2.0.0":
   version: 2.3.0
   resolution: "binary-extensions@npm:2.3.0"
@@ -12434,15 +12413,6 @@ __metadata:
   version: 2.1.3
   resolution: "check-error@npm:2.1.3"
   checksum: 10/f1868d3db60f5a7da92e140ccf33e9152bf6124161fa9b7a4ae8eafdb05e66e1f13570401e56f314f037b0f1b71eaf38ad0c7256310d82c6105e9d85ded0f202
-  languageName: node
-  linkType: hard
-
-"chevrotain@npm:^6.5.0":
-  version: 6.5.0
-  resolution: "chevrotain@npm:6.5.0"
-  dependencies:
-    regexp-to-ast: "npm:0.4.0"
-  checksum: 10/e98f7cc12bea6732246a0a2c25028bc076d5ed7dda470403599c595e5eece5d60fe808a7cdb187b938ad3364c308c03f9eb603e2743871c861db497186776efb
   languageName: node
   linkType: hard
 
@@ -12905,13 +12875,6 @@ __metadata:
   version: 3.6.1
   resolution: "core-js@npm:3.6.1"
   checksum: 10/7b24d56dc6187edb41f868d4d1253d1f6ce37e053bb3b6b33ad537fd684600eef8e9a6cd7f178364e37a1a85b9cba239c5810829ce4bf37742df7e2a2087250e
-  languageName: node
-  linkType: hard
-
-"core-js@npm:^3.37.0":
-  version: 3.48.0
-  resolution: "core-js@npm:3.48.0"
-  checksum: 10/08bb3cc9b3225b905e72370c18257a14bb5563946d9eb7496799e0ee4f13231768b980ffe98434df7dbd0f8209bd2c19519938a2fa94846b2c82c2d5aa804037
   languageName: node
   linkType: hard
 
@@ -13416,18 +13379,6 @@ __metadata:
   dependencies:
     domelementtype: "npm:^2.3.0"
   checksum: 10/809b805a50a9c6884a29f38aec0a4e1b4537f40e1c861950ed47d10b049febe6b79ab72adaeeebb3cc8fc1cd33f34e97048a72a9265103426d93efafa78d3e96
-  languageName: node
-  linkType: hard
-
-"dompurify@npm:^3.1.7":
-  version: 3.4.17
-  resolution: "dompurify@npm:3.4.17"
-  dependencies:
-    "@types/trusted-types": "npm:^2.0.7"
-  dependenciesMeta:
-    "@types/trusted-types":
-      optional: true
-  checksum: 10/ae03c068bd351d1201a24a9667cb302c65939f45a0c357edec8b84133108e19ac74f355c2d8b0f30baadadd7f0be2db300d269aa80d3ee15872712ca9ff4e1a8
   languageName: node
   linkType: hard
 
@@ -15968,20 +15919,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"handsontable@npm:^16.2.0":
-  version: 16.2.0
-  resolution: "handsontable@npm:16.2.0"
-  dependencies:
-    "@handsontable/pikaday": "npm:^1.0.0"
-    core-js: "npm:^3.37.0"
-    dompurify: "npm:^3.1.7"
-    hyperformula: "npm:^3.0.0"
-    moment: "npm:2.30.1"
-    numbro: "npm:2.5.0"
-  dependenciesMeta:
-    hyperformula:
-      optional: true
-  checksum: 10/be6e5ff9ef3bcdf7fc59f91d1f9aebb7513fa82dda767442639d78b4897db0e7f8f26e1490b132c7773177d1506250c51f5e871ce8def13d095e101a84f5b795
+"handsontable@npm:^18.1.2":
+  version: 18.1.2
+  resolution: "handsontable@npm:18.1.2"
+  checksum: 10/4c2dcaafb12ac6f442e73b45d6eddd7d09d10f7dd0b32d1496f069affdb9e91cd9cc9cfefd5debd68029990633070acfcd1cc6012d664b5895dd6fe51f5f4947
   languageName: node
   linkType: hard
 
@@ -16172,9 +16113,9 @@ __metadata:
   linkType: hard
 
 "http-cache-semantics@npm:^4.1.1":
-  version: 4.2.0
-  resolution: "http-cache-semantics@npm:4.2.0"
-  checksum: 10/4efd2dfcfeea9d5e88c84af450b9980be8a43c2c8179508b1c57c7b4421c855f3e8efe92fa53e0b3f4a43c85824ada930eabbc306d1b3beab750b6dcc5187693
+  version: 4.3.0
+  resolution: "http-cache-semantics@npm:4.3.0"
+  checksum: 10/3f7b17565d3a046f069ecfc220d790ccfbef4a94a486502c5d1a23c50d71880393175416845579487a91bfefca393614d16a99bd566d474807a4ebb1139da9cd
   languageName: node
   linkType: hard
 
@@ -16287,16 +16228,6 @@ __metadata:
   version: 1.2.0
   resolution: "hyperdyperid@npm:1.2.0"
   checksum: 10/64abb5568ff17aa08ac0175ae55e46e22831c5552be98acdd1692081db0209f36fff58b31432017b4e1772c178962676a2cc3c54e4d5d7f020d7710cec7ad7a6
-  languageName: node
-  linkType: hard
-
-"hyperformula@npm:^3.0.0":
-  version: 3.1.1
-  resolution: "hyperformula@npm:3.1.1"
-  dependencies:
-    chevrotain: "npm:^6.5.0"
-    tiny-emitter: "npm:^2.1.0"
-  checksum: 10/18cce5efc128ed18a713cc6a5f8a28e155e817f1ffcee5157dabd43a2ff5ecd620cf58a5f29a0b857db39631ba62a258a3670072a22da1c7fdd64143dea16729
   languageName: node
   linkType: hard
 
@@ -19322,13 +19253,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moment@npm:2.30.1":
-  version: 2.30.1
-  resolution: "moment@npm:2.30.1"
-  checksum: 10/ae42d876d4ec831ef66110bdc302c0657c664991e45cf2afffc4b0f6cd6d251dde11375c982a5c0564ccc0fa593fc564576ddceb8c8845e87c15f58aa6baca69
-  languageName: node
-  linkType: hard
-
 "mri@npm:^1.2.0":
   version: 1.2.0
   resolution: "mri@npm:1.2.0"
@@ -19753,15 +19677,6 @@ __metadata:
   version: 1.0.1
   resolution: "number-is-nan@npm:1.0.1"
   checksum: 10/13656bc9aa771b96cef209ffca31c31a03b507ca6862ba7c3f638a283560620d723d52e626d57892c7fff475f4c36ac07f0600f14544692ff595abff214b9ffb
-  languageName: node
-  linkType: hard
-
-"numbro@npm:2.5.0":
-  version: 2.5.0
-  resolution: "numbro@npm:2.5.0"
-  dependencies:
-    bignumber.js: "npm:^8 || ^9"
-  checksum: 10/50408c826dded5b5a2a5511ea8af204af4a426e9b89cac367dd115ead813c1da35448fb7b38b1c80b2edae762b59e7ca7d74414f6eb6d74685665e295f2c8f9a
   languageName: node
   linkType: hard
 
@@ -21640,13 +21555,6 @@ __metadata:
     "@eslint-community/regexpp": "npm:^4.8.0"
     refa: "npm:^0.12.1"
   checksum: 10/92299636d9c941ee27db7568a775354d36024504c104c5d7981a89dda1b0ff1e2a56db16f92d7e166a50a1164593788c0849c5840ec9d79b39c1c040d59c442c
-  languageName: node
-  linkType: hard
-
-"regexp-to-ast@npm:0.4.0":
-  version: 0.4.0
-  resolution: "regexp-to-ast@npm:0.4.0"
-  checksum: 10/381f57fa4d056056a50d7bc1365ece93434e1eea87bd3d60144ef6fd85bc4875410757908000c06fbe99ef9554c930c9890e695292b8e49756dfc0762890e777
   languageName: node
   linkType: hard
 
@@ -23819,13 +23727,6 @@ __metadata:
   version: 0.1.0
   resolution: "time-zone@npm:0.1.0"
   checksum: 10/6866477c28defd0dd16d4665e4f2bc35c211b9c5a7756fcdb941184577f51a427d9bae13a2cd72dc26531aa7a5086933d6e7f332688b362aa879d2ff3913fcad
-  languageName: node
-  linkType: hard
-
-"tiny-emitter@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "tiny-emitter@npm:2.1.0"
-  checksum: 10/75633f4de4f47f43af56aff6162f25b87be7efc6f669fda256658f3c3f4a216f23dc0d13200c6fafaaf1b0c7142f0201352fb06aec0b77f68aea96be898f4516
   languageName: node
   linkType: hard
 
