@@ -10,7 +10,10 @@ function abs2rel(absolute, max) {
     return `${relative}%`;
 }
 
-export function pin(opt = {}) {
+export function pin({ relative = false, useModelGeometry = false, clamp = false } = {}) {
+
+    // A copy, so that modifying the options passed in does not change the strategy.
+    const opt = { relative, useModelGeometry, clamp };
 
     return function(end, view, magnet, coords) {
         var fn = (view.isNodeConnection(magnet)) ? pinnedLinkEnd : pinnedElementEnd;

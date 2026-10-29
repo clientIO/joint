@@ -1265,6 +1265,19 @@ QUnit.module('linkView', function(hooks) {
                 assert.equal(end.anchor.args.dy, '40%');
             });
 
+            QUnit.test('reads the options once, when the strategy is created', function(assert) {
+
+                r1.position(0, 0);
+                r1.size(100, 50);
+                const opt = { relative: true };
+                const strategy = joint.connectionStrategies.pin(opt);
+                opt.relative = false;
+                opt.clamp = true;
+                const end = {};
+                strategy(end, rv1, rv1.el, new g.Point(130, 20));
+                assert.equal(end.anchor.args.dx, '130%');
+            });
+
             QUnit.test('does not modify the coordinates passed in', function(assert) {
 
                 r1.position(0, 0);
