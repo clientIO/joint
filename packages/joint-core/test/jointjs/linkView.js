@@ -1241,6 +1241,118 @@ QUnit.module('linkView', function(hooks) {
             assert.equal(end.anchor.args.dx, '13.123%');
         });
 
+        QUnit.module('pin()', function() {
+
+            QUnit.test('defaults to absolute offsets of the rendered magnet', function(assert) {
+
+                r1.position(0, 0);
+                r1.size(100, 50);
+                const end = {};
+                joint.connectionStrategies.pin()(end, rv1, rv1.el, new g.Point(30, 20));
+                assert.deepEqual(end.anchor, {
+                    name: 'topLeft',
+                    args: { dx: 30, dy: 20, rotate: true }
+                });
+            });
+
+            QUnit.test('relative', function(assert) {
+
+                r1.position(0, 0);
+                r1.size(100, 50);
+                const end = {};
+                joint.connectionStrategies.pin({ relative: true })(end, rv1, rv1.el, new g.Point(30, 20));
+                assert.equal(end.anchor.args.dx, '30%');
+                assert.equal(end.anchor.args.dy, '40%');
+            });
+
+            QUnit.test('does not modify the coordinates passed in', function(assert) {
+
+                r1.position(0, 0);
+                r1.size(100, 50);
+                r1.rotate(45);
+                const coords = new g.Point(30, 20);
+                joint.connectionStrategies.pin()({}, rv1, rv1.el, coords);
+                assert.ok(coords.equals(new g.Point(30, 20)));
+            });
+
+            QUnit.test('clamp', function(assert) {
+
+                r1.position(0, 0);
+                r1.size(100, 50);
+                let end;
+
+                end = {};
+                joint.connectionStrategies.pin({ relative: true })(end, rv1, rv1.el, new g.Point(-10, 60));
+                assert.equal(end.anchor.args.dx, '-10%');
+                assert.equal(end.anchor.args.dy, '120%');
+
+                end = {};
+                joint.connectionStrategies.pin({ relative: true, clamp: true })(end, rv1, rv1.el, new g.Point(-10, 60));
+                assert.equal(end.anchor.args.dx, '0%');
+                assert.equal(end.anchor.args.dy, '100%');
+
+                end = {};
+                joint.connectionStrategies.pin({ clamp: true })(end, rv1, rv1.el, new g.Point(130, -5));
+                assert.equal(end.anchor.args.dx, 100);
+                assert.equal(end.anchor.args.dy, 0);
+            });
+
+            QUnit.test('useModelGeometry measures the model, not the magnet', function(assert) {
+
+                r1.position(0, 0);
+                r1.size(100, 50);
+                r1.attr('label/text', 'label');
+                const labelNode = rv1.findNode('label');
+                let end;
+
+                end = {};
+                joint.connectionStrategies.pin({ relative: true })(end, rv1, labelNode, new g.Point(30, 20));
+                assert.notEqual(end.anchor.args.dx, '30%', 'the offsets are relative to the label');
+
+                end = {};
+                joint.connectionStrategies.pin({ relative: true, useModelGeometry: true })(end, rv1, labelNode, new g.Point(30, 20));
+                assert.deepEqual(end.anchor, {
+                    name: 'topLeft',
+                    args: { dx: '30%', dy: '40%', rotate: true, useModelGeometry: true }
+                });
+            });
+
+            QUnit.test('useModelGeometry measures the port', function(assert) {
+
+                r1.position(0, 0);
+                r1.size(100, 50);
+                r1.addPort({ id: 'p1', group: 'g1' }, { silent: true });
+                r1.prop('ports/groups/g1', {
+                    position: { name: 'absolute', args: { x: 50, y: 0 }},
+                    size: { width: 20, height: 10 },
+                    attrs: { portBody: { magnet: true, width: 'calc(w)', height: 'calc(h)' }},
+                    markup: [{ tagName: 'rect', selector: 'portBody' }]
+                });
+                // the port is centered at (50, 0): its bbox is (40, -5, 20, 10)
+                const end = { id: r1.id, port: 'p1' };
+                joint.connectionStrategies.pin({ relative: true, useModelGeometry: true })(end, rv1, rv1.findPortNode('p1'), new g.Point(45, 0));
+                assert.equal(end.anchor.args.dx, '25%');
+                assert.equal(end.anchor.args.dy, '50%');
+            });
+
+            [false, true].forEach(function(useModelGeometry) {
+
+                QUnit.test(`the anchor resolves to the dropped point on a rotated element (useModelGeometry: ${useModelGeometry})`, function(assert) {
+
+                    r1.position(100, 100);
+                    r1.size(100, 50);
+                    r1.rotate(30);
+                    const coords = new g.Point(150, 140);
+                    [false, true].forEach(function(relative) {
+                        const end = rv1.getLinkEnd(rv1.el, coords.x, coords.y, linkView.model, 'target');
+                        joint.connectionStrategies.pin({ relative, useModelGeometry })(end, rv1, rv1.el, coords);
+                        linkView.model.target(end);
+                        assert.ok(linkView.targetAnchor.round(6).equals(coords), `relative: ${relative}`);
+                    });
+                });
+            });
+        });
+
         QUnit.test('with snapLinks=true', function(assert) {
 
             var data;
