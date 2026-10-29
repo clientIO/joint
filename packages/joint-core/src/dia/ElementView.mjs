@@ -566,8 +566,8 @@ export const ElementView = CellView.extend({
         el || (el = this.el);
         const nodeSelector = el.getAttribute(`${type}-selector`);
         if (nodeSelector) {
-            const port = this.findAttribute('port', el);
-            if (port) {
+            const port = this.findNodePortId(el);
+            if (port != null) {
                 const proxyPortNode = this.findPortNode(port, nodeSelector);
                 if (proxyPortNode) return proxyPortNode;
             } else {

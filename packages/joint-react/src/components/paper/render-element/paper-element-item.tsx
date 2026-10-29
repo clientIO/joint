@@ -1,6 +1,7 @@
 import {
   useLayoutEffect,
   useMemo,
+  useRef,
   type ComponentType,
   type CSSProperties,
 } from 'react';
@@ -27,20 +28,18 @@ export interface ElementItemProps {
   readonly renderElement: ComponentType<Record<string, unknown>>;
   /** The DOM element to portal into. */
   readonly portalElement: SVGElement | HTMLElement | null;
-  /** Whether all auto-sized elements have been measured. */
-  readonly areElementsMeasured: boolean;
 }
 
 /**
  * SVG element portal component. Subscribes only to the element's `data`
  * slice, position and size are handled by JointJS's view transform and
- * never cause a React re-render here. Clears cached views after
- * measurement to force re-render with correct dimensions.
+ * never cause a React re-render here. Clears the cached view once its content
+ * is committed, so links resolve against the rendered magnets.
  * @param props - render/portal props
  * @internal
  */
 function SVGElementItemComponent(props: ElementItemProps) {
-  const { renderElement: RenderElement, portalElement, areElementsMeasured } = props;
+  const { renderElement: RenderElement, portalElement } = props;
   const id = useCellId();
   // Subscribe to just this element's `data` slice (missing-tolerant — the portal
   // can mount before the record lands in the store, and briefly after removal).
@@ -53,14 +52,16 @@ function SVGElementItemComponent(props: ElementItemProps) {
     // Runs after the portal subtree's layout effects, so a `useMeasureElement`
     // inside `renderElement` has already registered with the size observer
     // (in HTML overlay mode this item follows `HTMLElementItem`, which renders
-    // the user content, in sibling order). O(1), and a no-op on re-runs.
-    graphStore.markElementRendered(id);
+    // the user content, in sibling order). O(1), and a no-op on re-runs. Keyed
+    // on the portal target too: a same-id reset whose replacement view renders
+    // before React commits keeps this item mounted, with a new target.
+    graphStore.measurement.markRendered(id);
     if (!paper) return;
     graphStore.clearViewForElementAndLinks({
       cellId: id,
       paper,
     });
-  }, [id, graphStore, areElementsMeasured, paper]);
+  }, [id, graphStore, paper, portalElement]);
 
   if (!portalElement) {
     return null;
@@ -91,6 +92,25 @@ function HTMLElementItemComponent(props: ElementItemProps) {
   // Subscribe to the whole element record (missing-tolerant — the portal can
   // mount before the record lands in the store, and briefly after removal).
   const element = useCells<ElementRecord>(id, (cell) => cell);
+  const graphStore = useGraphStore();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const layerId = element?.layer;
+
+  useLayoutEffect(() => {
+    const { layers } = graphStore.graphProjection;
+    // HTML portals live outside the SVG layer group. Mirror its visibility
+    // without rendering user content again or detaching its measurable DOM.
+    const syncVisibility = () => {
+      const wrapper = wrapperRef.current;
+      if (!wrapper) return;
+      const currentLayerId = layerId ?? graphStore.graph.getDefaultLayer().id;
+      const visibility = layers.getLayer(currentLayerId)?.visible === false ? 'hidden' : '';
+      if (wrapper.style.visibility !== visibility) wrapper.style.visibility = visibility;
+    };
+    const unsubscribe = layers.subscribe(syncVisibility);
+    syncVisibility();
+    return unsubscribe;
+  }, [graphStore, layerId, portalElement]);
 
   const x = element?.position?.x ?? 0;
   const y = element?.position?.y ?? 0;
@@ -119,7 +139,7 @@ function HTMLElementItemComponent(props: ElementItemProps) {
   const dataProps = element?.data ?? {};
 
   return createPortal(
-    <div model-id={id} style={style}>
+    <div ref={wrapperRef} model-id={id} style={style}>
       <RenderElement {...dataProps} />
     </div>,
     portalElement

@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-nested-functions */
+ 
 import React from 'react';
 import { renderHook, render, act } from '@testing-library/react';
 import { mvc, type dia } from '@joint/core';
@@ -104,7 +104,7 @@ describe('useCells', () => {
     const { result } = renderHook(() => useCells(), { wrapper });
     await act(async () => flush());
     expect(result.current).toBeDefined();
-    expect(result.current.length).toBe(4);
+    expect(result.current).toHaveLength(4);
   });
 
   it('id form returns the cell record for that id', async () => {
@@ -195,7 +195,7 @@ describe('useCells', () => {
     }
     const { result } = renderHook(() => useCells(), { wrapper: LargeWrapper });
     await act(async () => flush());
-    expect(result.current.length).toBe(5000);
+    expect(result.current).toHaveLength(5000);
   });
 });
 
@@ -273,7 +273,7 @@ describe('useCells (ids array form)', () => {
       storeRef!.graph.getCell('c')?.set('position', { x: 1, y: 2 });
       await flush();
     });
-    expect(renderSpy.mock.calls.length).toBe(beforeCount);
+    expect(renderSpy.mock.calls).toHaveLength(beforeCount);
 
     // Mutate a subscribed id — must trigger at least one Consumer re-render.
     await act(async () => {
@@ -531,7 +531,7 @@ describe('useCells (collection form)', () => {
       storeRef!.graph.getCell('c')?.set('position', { x: 1, y: 2 });
       await flush();
     });
-    expect(renderSpy.mock.calls.length).toBe(countBefore);
+    expect(renderSpy.mock.calls).toHaveLength(countBefore);
   });
 
   it('selector form derives a value from collection cells', async () => {

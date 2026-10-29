@@ -3079,4 +3079,202 @@ QUnit.module('element ports', function() {
         });
     });
 
+    QUnit.module('port ids of different types', function(hooks) {
+
+        let graph, paper;
+
+        hooks.beforeEach(function() {
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            var fixtures = document.getElementById('qunit-fixture');
+            var paperEl = document.createElement('div');
+            fixtures.appendChild(paperEl);
+            paper = new joint.dia.Paper({ el: paperEl, model: graph, cellViewNamespace: joint.shapes });
+        });
+
+        hooks.afterEach(function() {
+            paper.remove();
+        });
+
+        const createElement = function(items) {
+            return new joint.shapes.standard.Rectangle({
+                position: { x: 0, y: 0 },
+                size: { width: 100, height: 100 },
+                ports: {
+                    groups: {
+                        left: { position: 'left' },
+                        right: { position: 'right' }
+                    },
+                    items
+                }
+            });
+        };
+
+        QUnit.test('a numeric id does not match its string form', function(assert) {
+            const element = createElement([{ id: 5, group: 'left' }]);
+
+            assert.ok(element.hasPort(5));
+            assert.notOk(element.hasPort('5'));
+            assert.equal(element.getPort(5).id, 5);
+            assert.equal(element.getPort('5'), undefined);
+            assert.equal(element.getPortIndex('5'), -1);
+            assert.throws(() => element.getPortBBox('5'), /unable to find port with id 5/);
+            assert.throws(() => element.portProp('5', 'group'), /unable to find port with id 5/);
+        });
+
+        QUnit.test('a string id does not match its numeric form', function(assert) {
+            const element = createElement([{ id: '5', group: 'left' }]);
+
+            assert.ok(element.hasPort('5'));
+            assert.notOk(element.hasPort(5));
+            assert.equal(element.getPort(5), undefined);
+            assert.throws(() => element.getPortCenter(5), /unable to find port with id 5/);
+        });
+
+        QUnit.test('ports whose ids differ only in type coexist', function(assert) {
+            const element = createElement([
+                { id: 5, group: 'left' },
+                { id: '5', group: 'right' }
+            ]);
+
+            assert.ok(element.hasPort(5));
+            assert.ok(element.hasPort('5'));
+            assert.equal(element.getPortIndex(5), 0);
+            assert.equal(element.getPortIndex('5'), 1);
+            assert.equal(element.portProp(5, 'group'), 'left');
+            assert.equal(element.portProp('5', 'group'), 'right');
+            assert.ok(element.getPortCenter(5).equals({ x: 0, y: 50 }));
+            assert.ok(element.getPortCenter('5').equals({ x: 100, y: 50 }));
+            assert.deepEqual(element.getPortRelativePosition(5), { x: 0, y: 50, angle: 0 });
+            assert.deepEqual(element.getPortRelativePosition('5'), { x: 100, y: 50, angle: 0 });
+        });
+
+        QUnit.test('ports whose ids differ only in type are rendered separately', function(assert) {
+            const element = createElement([
+                { id: 5, group: 'left' },
+                { id: '5', group: 'right' }
+            ]);
+            element.addTo(graph);
+            const elementView = element.findView(paper);
+
+            const numericPortNode = elementView.findPortNode(5);
+            const stringPortNode = elementView.findPortNode('5');
+            assert.ok(numericPortNode);
+            assert.ok(stringPortNode);
+            assert.notEqual(numericPortNode, stringPortNode);
+            assert.equal(elementView.el.querySelectorAll('.joint-port').length, 2);
+
+            assert.ok(elementView.getNodeBBox(numericPortNode).center().round().equals({ x: 0, y: 50 }));
+            assert.ok(elementView.getNodeBBox(stringPortNode).center().round().equals({ x: 100, y: 50 }));
+
+            assert.strictEqual(elementView.getLinkEnd(numericPortNode).port, 5);
+            assert.strictEqual(elementView.getLinkEnd(stringPortNode).port, '5');
+        });
+
+        QUnit.test('connection point is computed against the port with a numeric id', function(assert) {
+            const element = createElement([
+                { id: 5, group: 'left', size: { width: 20, height: 20 }},
+                { id: '5', group: 'right', size: { width: 20, height: 20 }}
+            ]);
+            const other = new joint.shapes.standard.Rectangle({
+                position: { x: -300, y: 40 },
+                size: { width: 20, height: 20 }
+            });
+            const link = new joint.shapes.standard.Link({
+                source: { id: other.id },
+                target: { id: element.id, port: 5, connectionPoint: { name: 'bbox', args: { useModelGeometry: true }}}
+            });
+            graph.addCells([element, other, link]);
+
+            assert.ok(link.findView(paper).targetPoint.round().equals({ x: -10, y: 50 }));
+        });
+
+        QUnit.test('magnet selector resolves within the port with a numeric id', function(assert) {
+            const portDefinition = {
+                markup: [{
+                    tagName: 'circle',
+                    selector: 'portBody',
+                    attributes: { r: 10 }
+                }, {
+                    tagName: 'circle',
+                    selector: 'portInner',
+                    attributes: { r: 5 }
+                }],
+                attrs: {
+                    portRoot: { magnetSelector: 'portInner' }
+                }
+            };
+            const element = createElement([
+                { ...portDefinition, id: 5, group: 'left' },
+                { ...portDefinition, id: '5', group: 'right' }
+            ]);
+            const other = new joint.shapes.standard.Rectangle();
+            const link = new joint.shapes.standard.Link({
+                source: { id: other.id },
+                target: { id: element.id, port: 5 }
+            });
+            graph.addCells([element, other, link]);
+            const elementView = element.findView(paper);
+
+            assert.equal(link.findView(paper).targetMagnet, elementView.findPortNode(5, 'portInner'));
+        });
+
+        QUnit.test('a non-integer numeric id survives the round trip through the DOM', function(assert) {
+            const element = createElement([{ id: 1.5, group: 'left' }]);
+            element.addTo(graph);
+            const elementView = element.findView(paper);
+
+            const end = elementView.getLinkEnd(elementView.findPortNode(1.5));
+            assert.strictEqual(end.port, 1.5);
+            assert.notOk('selector' in end);
+        });
+
+        QUnit.test('removing a port keeps links connected to a port whose id differs only in type', function(assert) {
+            const element = createElement([
+                { id: 5, group: 'left' },
+                { id: '5', group: 'right' }
+            ]);
+            const other = new joint.shapes.standard.Rectangle();
+            const numericLink = new joint.shapes.standard.Link({ source: { id: other.id }, target: { id: element.id, port: 5 }});
+            const stringLink = new joint.shapes.standard.Link({ source: { id: other.id }, target: { id: element.id, port: '5' }});
+            graph.addCells([element, other, numericLink, stringLink]);
+
+            element.removePort('5');
+            assert.ok(graph.getCell(numericLink.id), 'link to port 5 is kept');
+            assert.notOk(graph.getCell(stringLink.id), 'link to port "5" is removed');
+
+            element.removePort(5);
+            assert.notOk(graph.getCell(numericLink.id), 'link to port 5 is removed');
+        });
+
+        QUnit.module('port id 0', function() {
+
+            QUnit.test('getPort()', function(assert) {
+                const element = createElement([{ id: 0, group: 'left' }]);
+                assert.equal(element.getPort(0).id, 0);
+            });
+
+            QUnit.test('getPointFromConnectedLink()', function(assert) {
+                const element = createElement([{ id: 0, group: 'left' }]);
+                const link = new joint.shapes.standard.Link({ target: { id: element.id, port: 0 }});
+                assert.ok(element.getPointFromConnectedLink(link, 'target').equals({ x: 0, y: 50 }));
+            });
+
+            QUnit.test('Graph.validations.multiLinks', function(assert) {
+                const element = createElement([
+                    { id: 0, group: 'left' },
+                    { id: 1, group: 'right' }
+                ]);
+                const other = new joint.shapes.standard.Rectangle();
+                const link0 = new joint.shapes.standard.Link({ source: { id: other.id }, target: { id: element.id, port: 0 }});
+                const link1 = new joint.shapes.standard.Link({ source: { id: other.id }, target: { id: element.id, port: 1 }});
+                graph.addCells([element, other, link0, link1]);
+
+                assert.ok(joint.dia.Graph.validations.multiLinks(graph, link1), 'links to ports 0 and 1 are not duplicates');
+
+                link1.target({ id: element.id, port: 0 });
+                assert.notOk(joint.dia.Graph.validations.multiLinks(graph, link1), 'two links to port 0 are duplicates');
+            });
+        });
+    });
+
 });

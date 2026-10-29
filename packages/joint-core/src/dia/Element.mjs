@@ -555,7 +555,7 @@ export const Element = Cell.extend({
         var endDef = link.get(endType);
         if (!endDef) return center;
         var portId = endDef.port;
-        if (!portId || !this.hasPort(portId)) return center;
+        if (portId == null || !this.hasPort(portId)) return center;
         return this.getPortCenter(portId);
     }
 

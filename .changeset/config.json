@@ -10,11 +10,14 @@
     [
       "@joint/core",
       "@joint/layout-directed-graph",
+      "@joint/layout-elk",
       "@joint/layout-msagl",
-      "@joint/router-avoid"
+      "@joint/router-avoid",
+      "@joint/sanitize"
     ]
   ],
   "updateInternalDependencies": "patch",
+  "bumpVersionsWithWorkspaceProtocolOnly": true,
   "privatePackages": {
     "version": false,
     "tag": false
@@ -41,7 +44,7 @@
     "!**/rollup.config.*",
     "!**/rollup.resources.mjs",
     "!**/vite.config.*",
-    "!**/vitest.workspace.*",
+    "!**/vitest.config.*",
     "!**/jest.config.js",
     "!**/jest.react18.config.mjs",
     "!**/karma.conf.js",

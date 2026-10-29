@@ -12,7 +12,7 @@ export { GraphProvider } from './components/graph/graph-provider';
 /** @group Types */
 export type { GraphProviderProps } from './components/graph/graph-provider';
 /** @group Types */
-export type { AutoSizeOrigin } from './store/graph-store';
+export type { AutoSizeOrigin } from './store/measurement';
 /** @group Types */
 export type { IncrementalCellsChange } from './store/graph-projection';
 
@@ -145,10 +145,7 @@ export { useMeasureElement } from './hooks/use-measure-element';
 /** @group Types */
 export type { MeasureElementOptions } from './hooks/use-measure-element';
 /** @group Types */
-export type {
-  TransformElementLayout,
-  TransformElementLayoutParams,
-} from './store/create-elements-size-observer';
+export type { TransformElementLayout, TransformElementLayoutParams } from './store/measurement';
 
 /**
  * useOnElementsMeasured()

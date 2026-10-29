@@ -4,6 +4,9 @@
  * `dia.GraphLayer`'s attribute hash, so custom attributes round-trip through
  * `graph.toJSON()` unchanged. Custom attributes read back as `unknown` —
  * narrow them (`typeof layer.name === 'string'`) or select a typed value.
+ * A provided `type` must be a string naming a registered `dia.GraphLayer`
+ * constructor in the graph's `layerNamespace`. Omit it or pass `undefined`
+ * to use the default constructor; other values, including `null`, are rejected.
  * @template LayerId - Union of the layer ids your diagram uses, for
  *   autocomplete and narrowing. Defaults to `string`.
  * @group Types
@@ -23,9 +26,10 @@ export interface LayerRecord<LayerId extends string = string> {
   readonly id: LayerId;
   /**
    * Whether the layer is painted. A hidden layer keeps its cells mounted and
-   * only sets `visibility: hidden` on the layer group (see {@link LayerView}),
-   * so toggling is O(1) and the cells keep their bounding boxes: they can still
-   * be measured, and links anchored to them still route.
+   * sets `visibility: hidden` on the SVG layer group (see {@link LayerView}),
+   * with a single group update. HTML overlays mirror visibility on their
+   * wrappers. Cells keep their bounding boxes: they can still be measured,
+   * and links anchored to them still route.
    *
    * Hidden is not unmounted: cell views stay in the DOM and in the paper's
    * view management, so hide/show never re-renders React content. For a very

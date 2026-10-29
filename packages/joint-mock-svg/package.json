@@ -1,0 +1,84 @@
+{
+  "name": "@joint/mock-svg",
+  "title": "JointJS Mock SVG",
+  "version": "0.1.0",
+  "description": "Test-runner-agnostic mocks of the SVG globals JSDOM does not implement, required for JointJS testing.",
+  "type": "module",
+  "sideEffects": true,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-mock-svg"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
+    "prepack": "yarn run dist",
+    "dist": "yarn run build",
+    "build": "yarn run build-core && yarn run build-types",
+    "build-core": "vite build",
+    "build-types": "yarn run typecheck",
+    "typecheck": "yarn run typecheck-core",
+    "typecheck-core": "yarn run tsc",
+    "typecheck-test": "tsc -p ./test/jest/tsconfig.json",
+    "tsc": "tsc",
+    "test": "yarn run typecheck-test && jest -c ./test/jest/jest.config.cjs",
+    "lint": "eslint .",
+    "lint-fix": "yarn run lint --fix"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "./LICENSE",
+    "./README.md",
+    "./SECURITY.md",
+    "./CHANGELOG.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
+    "@jest/globals": "30.1.2",
+    "@joint/core": "workspace:~",
+    "@joint/eslint-config": "workspace:*",
+    "babel-jest": "30.1.2",
+    "eslint": "9.39.2",
+    "jest": "30.1.2",
+    "jest-environment-jsdom": "30.1.2",
+    "typescript": "5.8.2",
+    "vite": "^7.3.1"
+  },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.18.0"
+  },
+  "keywords": [
+    "jointjs",
+    "mock",
+    "svg",
+    "jsdom",
+    "testing"
+  ]
+}

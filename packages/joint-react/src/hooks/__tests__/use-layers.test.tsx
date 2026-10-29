@@ -175,7 +175,7 @@ describe('useLayer', () => {
     await commit(() => {
       result.current.api.setLayer('foreground', { name: 'Annotations' });
     });
-    expect(renderSpy.mock.calls.length).toBe(baseline);
+    expect(renderSpy.mock.calls).toHaveLength(baseline);
 
     await commit(() => {
       result.current.api.setLayer('foreground', { visible: true });
@@ -193,7 +193,7 @@ describe('useLayer', () => {
     await commit(() => {
       result.current.api.setLayer('foreground', { visible: true });
     });
-    expect(renderSpy.mock.calls.length).toBe(baseline);
+    expect(renderSpy.mock.calls).toHaveLength(baseline);
   });
 });
 
@@ -208,7 +208,7 @@ describe('useLayers — re-render contract', () => {
     await commit(() => {
       result.current.store.graph.getCell('a').set('position', { x: 999, y: 0 });
     });
-    expect(renderSpy.mock.calls.length).toBe(baseline);
+    expect(renderSpy.mock.calls).toHaveLength(baseline);
     expect(result.current.layers).toBe(layers);
   });
 });

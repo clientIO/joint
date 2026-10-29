@@ -11,13 +11,13 @@ const DEFAULT_GRAPH_LAYER_TYPE: unknown = dia.GraphLayer.prototype.defaults().ty
 const RESERVED_KEYS = new Set(['id', 'type', 'isDefault']);
 
 /**
- * Whether a layer attribute belongs in its record: everything except the
- * default `type`, which is joint-core's own marker for a plain layer.
+ * Whether a layer attribute belongs in its record: omit identity, derived
+ * default-layer status and joint-core's type marker for a plain layer.
  * @param key - The attribute key.
  * @param value - Its value.
  */
 function isRecordAttribute(key: string, value: unknown): boolean {
-  return key !== 'id' && !(key === 'type' && value === DEFAULT_GRAPH_LAYER_TYPE);
+  return key !== 'id' && key !== 'isDefault' && !(key === 'type' && value === DEFAULT_GRAPH_LAYER_TYPE);
 }
 
 /**
@@ -96,16 +96,21 @@ function isRegisteredLayerType(graph: dia.Graph, type: string): boolean {
     if (!isRecord(current) || !Object.hasOwn(current, key)) return false;
     current = current[key];
   }
-  return typeof current === 'function';
+  return (
+    typeof current === 'function' &&
+    (current === dia.GraphLayer || current.prototype instanceof dia.GraphLayer)
+  );
 }
 
 /**
  * Throws on a layer list joint-core would reject or silently collapse: an
  * empty id, an id declared twice (layers are keyed by id, so the graph could
- * never match the array), a `type` with no constructor in the graph's
- * `layerNamespace`, or a `type` that differs from the existing layer's (a
- * layer's class is fixed at creation, so the change would be ignored). Runs before any write, so a bad array leaves the graph —
- * and any open batch — untouched.
+ * never match the array), a provided `type` that is not a string identifying a
+ * GraphLayer constructor in the graph's `layerNamespace`, or a `type` that
+ * differs from the existing layer's (a layer's class is fixed at creation,
+ * so the change would be ignored). Runs before any write, so a bad array
+ * leaves the graph — and any open batch — untouched. An omitted or `undefined` type uses the
+ * graph's default layer constructor.
  * @param graph - The target graph.
  * @param layers - The declared layers.
  * @internal
@@ -116,6 +121,11 @@ export function assertLayerRecords(graph: dia.Graph, layers: readonly LayerRecor
     if (!id) throw new Error('GraphProvider: a layer needs a non-empty id, got an empty layer id.');
     if (seen.has(id)) throw new Error(`GraphProvider: layer id "${id}" is declared twice.`);
     seen.add(id);
+    if (type !== undefined && typeof type !== 'string') {
+      throw new Error(
+        `GraphProvider: layer "${id}" has a non-string type. Omit it or provide a layer type string.`
+      );
+    }
     if (typeof type === 'string' && !isRegisteredLayerType(graph, type)) {
       throw new Error(
         `GraphProvider: layer "${id}" has type "${type}", which is not in the graph's \`layerNamespace\`.`

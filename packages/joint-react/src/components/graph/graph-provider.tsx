@@ -5,7 +5,7 @@ import { simpleScheduler } from '../../utils/scheduler';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
-import type { AutoSizeOrigin } from '../../store/graph-store';
+import type { AutoSizeOrigin } from '../../store/measurement';
 import type { OnIncrementalCellsChange } from '../../store/graph-projection';
 import type { ElementJSONInit, LinkJSONInit, CellInput } from '../../types/cell.types';
 import type { LayerRecord } from '../../types/layer.types';
@@ -212,8 +212,40 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
             initialLayers: shouldSeed ? (layers ?? initialLayers) : undefined,
             autoSizeOrigin,
           });
+        // Subscribe before the ready render exposes children: their layout effects
+        // run before this provider's effects and may already change the layers.
+        const { applyLayers, graphProjection } = graphStore;
+        let isActive = true;
+        // One closure per ownership lifetime lets the scheduler dedupe a burst.
+        const revert = () => {
+          const controlledLayers = layersRef.current;
+          if (!isActive || !controlledLayers) return;
+          isApplyingLayersRef.current = true;
+          try {
+            applyLayers(controlledLayers);
+            lastAppliedLayersRef.current = controlledLayers;
+          } finally {
+            isApplyingLayersRef.current = false;
+          }
+        };
+        const unsubscribeLayers = graphProjection.layers.subscribe(() => {
+          // Parent-origin applies are echoes, not changes to report or revert.
+          if (isApplyingLayersRef.current) return;
+          lastAppliedLayersRef.current = undefined;
+          const handler = onLayersChangeRef.current;
+          if (handler) {
+            handler(graphProjection.layers.getSnapshot());
+            return;
+          }
+          // Defer controlled reverts rather than re-entering the notification loop.
+          simpleScheduler(revert);
+        });
         return {
           cleanup() {
+            // The provider owns the subscription even when it adopts a store.
+            // A queued revert must never mutate an external graph after teardown.
+            isActive = false;
+            unsubscribeLayers();
             if (store) return;
             graphStore.destroy(!!graph);
           },
@@ -295,41 +327,6 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     isApplyingLayersRef.current = false;
     lastAppliedLayersRef.current = layers;
   }, [instance, ref, isControlled, hasControlledLayers, layers]);
-
-  // Subscribe once; the handler and the controlled array are read through refs
-  // so an inline `onLayersChange` never re-subscribes.
-  useLayoutEffect(() => {
-    if (!instance || instance !== ref.current) return;
-    const { applyLayers, graphProjection } = instance;
-    // One closure for the life of the subscription: `simpleScheduler` dedupes
-    // by identity, so a burst of graph-origin events reverts once, not per event.
-    const revert = () => {
-      const controlledLayers = layersRef.current;
-      if (!controlledLayers) return;
-      // A React-origin apply like the effects': its store re-read is an echo.
-      isApplyingLayersRef.current = true;
-      applyLayers(controlledLayers);
-      isApplyingLayersRef.current = false;
-      lastAppliedLayersRef.current = controlledLayers;
-    };
-    return graphProjection.layers.subscribe(() => {
-      // A React-origin apply re-reads the store synchronously; that is the
-      // parent's own array coming back, not a change to report or revert.
-      if (isApplyingLayersRef.current) return;
-      // A graph-origin change: whatever the parent decides, its array must be
-      // reconciled again on the next commit even if the reference is unchanged.
-      lastAppliedLayersRef.current = undefined;
-      const handler = onLayersChangeRef.current;
-      if (handler) {
-        handler(graphProjection.layers.getSnapshot());
-        return;
-      }
-      // Controlled without a change handler: the parent's array is the truth,
-      // so an imperative change is reverted — same contract as `cells`. Deferred
-      // so the revert does not re-enter the notification loop that is running.
-      simpleScheduler(revert);
-    });
-  }, [instance, ref, layersRef, onLayersChangeRef]);
 
   if (!instance) {
     return null;

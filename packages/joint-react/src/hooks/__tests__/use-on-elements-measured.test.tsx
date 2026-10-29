@@ -3,7 +3,7 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
 import { useOnElementsMeasured } from '../use-on-elements-measured';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
-import { AUTO_SIZE_OPTION } from '../../store/graph-store';
+import { AUTO_SIZE_OPTION } from '../../store/measurement';
 import { useGraphStore } from '../use-graph-store';
 import type { CellRecord } from '../../types/cell.types';
 import type { ElementsMeasuredParams } from '../use-on-elements-measured';
@@ -49,12 +49,25 @@ const zeroSizeWrapper = paperRenderElementWrapper({
   },
 });
 
-const incrementMeasureState = (previous: number) => previous + 1;
-
-type MeasureStateRef = ReturnType<typeof useGraphStore>['measureState'];
-
-const bumpMeasureFor = (measureState: MeasureStateRef) => () =>
-  measureState.set(incrementMeasureState);
+/**
+ * Mounts the hook for `paperId` through `hookWrapper` and returns a getter of
+ * the live graph. The wrappers mount their children inside `renderElement`, so
+ * there is one hook instance per rendered element.
+ */
+function renderMeasuredProbe(
+  callback: jest.Mock,
+  hookWrapper: typeof wrapper = wrapper,
+  paperId = 'measured-effect-paper'
+) {
+  let graphRef: dia.Graph | undefined;
+  function Probe() {
+    graphRef = useGraphStore().graph;
+    useOnElementsMeasured(paperId, callback);
+    return null;
+  }
+  renderHook(() => Probe(), { wrapper: hookWrapper });
+  return () => graphRef as dia.Graph;
+}
 
 describe('useOnElementsMeasured', () => {
   it('fires callback with isInitial=true after seed cells are measured', async () => {
@@ -66,65 +79,62 @@ describe('useOnElementsMeasured', () => {
     expect(initialCalls.length).toBeGreaterThan(0);
   });
 
-  it('subsequent measurement bumps fire callback with isInitial=false', async () => {
+  it('later settled changes fire the callback with isInitial=false', async () => {
     const callback = jest.fn();
-    let bumpMeasure: () => void = () => {};
-    function Probe() {
-      const { measureState } = useGraphStore();
-      bumpMeasure = bumpMeasureFor(measureState);
-      useOnElementsMeasured('measured-effect-paper', callback);
-      return null;
-    }
-    renderHook(() => Probe(), { wrapper });
+    const getGraph = renderMeasuredProbe(callback);
 
     await waitFor(() =>
       expect(callback.mock.calls.some(([event]) => event.isInitial === true)).toBe(true)
     );
     callback.mockClear();
     act(() => {
-      bumpMeasure();
+      (getGraph().getCell('a') as dia.Element).set('size', { width: 70, height: 70 }, {
+        [AUTO_SIZE_OPTION]: true,
+      } as object);
     });
-    await flush();
-    expect(callback).toHaveBeenCalled();
+    await waitFor(() => expect(callback).toHaveBeenCalled());
     for (const [event] of callback.mock.calls) {
       expect((event as ElementsMeasuredParams).isInitial).toBe(false);
     }
   });
 
-  // Regression: ElementModel defaults to size {0,0}. The ResizeObserver
-  // pipeline sets the real size via `cell.set('size', ..., { autoSize: true })`.
-  // Previously, the `change:size` listener in graph-changes.ts skipped
-  // measurement writes, so the measured size never reached the tracking
-  // logic and `useOnElementsMeasured` never fired for elements that relied
-  // on DOM measurement (e.g. the flowchart demo).
-  it('fires callback when elements start at zero size and get measured', async () => {
+  // An element nothing measures is settled once the paper rendered it, whatever
+  // its size: zero is a legal size. A later measurement is one more change.
+  it('fires for a zero-sized element once it is rendered, then for its measurement', async () => {
     const callback = jest.fn();
-    let graphRef: dia.Graph | undefined;
+    const getGraph = renderMeasuredProbe(callback, zeroSizeWrapper, 'zero-size-paper');
 
-    function Probe() {
-      const store = useGraphStore();
-      graphRef = store.graph;
-      useOnElementsMeasured('zero-size-paper', callback);
-      return null;
-    }
+    await waitFor(() => expect(callback).toHaveBeenCalled());
+    expect(callback.mock.calls[0][0].isInitial).toBe(true);
+    callback.mockClear();
 
-    renderHook(() => Probe(), { wrapper: zeroSizeWrapper });
-
-    // Wait for render to complete and graph to be available.
-    await waitFor(() => expect(graphRef).toBeDefined());
-    await flush();
-
-    // Initial size is {0,0} — callback should NOT have fired yet
-    // (measureState only bumps when elementsMeasured.size > 0).
-    expect(callback).not.toHaveBeenCalled();
-
-    // Simulate ResizeObserver setting the real measured size.
     act(() => {
-      const cell = graphRef!.getCell('zero-el') as dia.Element;
+      const cell = getGraph().getCell('zero-el') as dia.Element;
       cell.set('size', { width: 100, height: 60 }, { [AUTO_SIZE_OPTION]: true } as object);
     });
 
+    await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+    expect(callback.mock.calls[0][0].isInitial).toBe(false);
+  });
+
+  it('reports isInitial again for the first event after a graph reset', async () => {
+    const callback = jest.fn();
+    const getGraph = renderMeasuredProbe(callback);
     await waitFor(() => expect(callback).toHaveBeenCalled());
+    callback.mockClear();
+
+    act(() => {
+      getGraph().resetCells([
+        {
+          id: 'x',
+          type: ELEMENT_MODEL_TYPE,
+          position: { x: 0, y: 0 },
+          size: { width: 9, height: 9 },
+        },
+      ]);
+    });
+
+    await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
     expect(callback.mock.calls[0][0].isInitial).toBe(true);
   });
 
@@ -132,21 +142,10 @@ describe('useOnElementsMeasured', () => {
   // options, so an application's own resize bumped `measureState` like a
   // measurement write and woke every subscriber.
   describe('application resizes vs measurement writes', () => {
-    function renderMeasuredProbe(callback: jest.Mock) {
-      let graphRef: dia.Graph | undefined;
-      function Probe() {
-        const store = useGraphStore();
-        graphRef = store.graph;
-        useOnElementsMeasured('measured-effect-paper', callback);
-        return null;
-      }
-      renderHook(() => Probe(), { wrapper });
-      return () => graphRef!.getCell('a') as dia.Element;
-    }
-
     it('does not fire when the application resizes an element', async () => {
       const callback = jest.fn();
-      const getElement = renderMeasuredProbe(callback);
+      const getGraph = renderMeasuredProbe(callback);
+      const getElement = () => getGraph().getCell('a') as dia.Element;
       await waitFor(() => expect(callback).toHaveBeenCalled());
       callback.mockClear();
 
@@ -161,7 +160,54 @@ describe('useOnElementsMeasured', () => {
 
     it('fires with isInitial=false for a measurement write', async () => {
       const callback = jest.fn();
-      const getElement = renderMeasuredProbe(callback);
+      const getGraph = renderMeasuredProbe(callback);
+      const getElement = () => getGraph().getCell('a') as dia.Element;
+      await waitFor(() => expect(callback).toHaveBeenCalled());
+      callback.mockClear();
+
+      act(() => {
+        getElement().set('size', { width: 80, height: 80 }, { autoSize: true });
+      });
+
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      expect(callback.mock.calls[0][0].isInitial).toBe(false);
+    });
+  });
+
+  // Regression (#3514): the store's `change:size` listener dropped the event
+  // options, so an application's own resize bumped `measureState` like a
+  // measurement write and woke every subscriber.
+  describe('application resizes vs measurement writes', () => {
+    function renderResizeProbe(callback: jest.Mock) {
+      let graphRef: dia.Graph | undefined;
+      function Probe() {
+        const store = useGraphStore();
+        graphRef = store.graph;
+        useOnElementsMeasured('measured-effect-paper', callback);
+        return null;
+      }
+      renderHook(() => Probe(), { wrapper });
+      return () => graphRef!.getCell('a') as dia.Element;
+    }
+
+    it('does not fire when the application resizes an element', async () => {
+      const callback = jest.fn();
+      const getElement = renderResizeProbe(callback);
+      await waitFor(() => expect(callback).toHaveBeenCalled());
+      callback.mockClear();
+
+      act(() => {
+        getElement().resize(80, 80);
+      });
+      await act(async () => flush());
+      await act(async () => flush());
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('fires with isInitial=false for a measurement write', async () => {
+      const callback = jest.fn();
+      const getElement = renderResizeProbe(callback);
       await waitFor(() => expect(callback).toHaveBeenCalled());
       callback.mockClear();
 

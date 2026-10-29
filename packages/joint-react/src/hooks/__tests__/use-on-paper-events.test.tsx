@@ -73,7 +73,7 @@ describe('useOnPaperEvents (hook integration)', () => {
       useOnPaperEvents('events-paper', { 'cell:pointerdown': handler });
       return null;
     }
-    render(
+    const { container } = render(
       <GraphProvider initialCells={initialCells}>
         <Paper style={{ width: 100, height: 100 }} id="events-paper" renderElement={renderRectElement}>
           <Probe />
@@ -82,7 +82,7 @@ describe('useOnPaperEvents (hook integration)', () => {
     );
     await waitFor(() => {
       // The paper exists; subscription is established.
-      expect(true).toBe(true);
+      expect(container.querySelector('.joint-layers')).not.toBeNull();
     });
   });
 
@@ -128,7 +128,7 @@ describe('useOnPaperEvents (hook integration)', () => {
 
       rerender(ui(secondHandler));
       // Handler identity changed; the subscription must stay put.
-      expect(pointerDownCalls().length).toBe(subscriptionsAfterMount);
+      expect(pointerDownCalls()).toHaveLength(subscriptionsAfterMount);
 
       // Dispatch through the registered wrapper — the LATEST handler runs.
       const wrapper = getRegisteredWrapper(pointerDownCalls().at(-1));
