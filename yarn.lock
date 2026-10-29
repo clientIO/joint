@@ -6064,6 +6064,7 @@ __metadata:
     "@joint/core": "workspace:^"
     "@joint/eslint-config": "workspace:*"
     "@joint/layout-directed-graph": "workspace:^"
+    "@joint/mock-svg": "workspace:~"
     "@reduxjs/toolkit": "npm:^2.11.0"
     "@storybook/addon-a11y": "npm:^10.6.2"
     "@storybook/addon-docs": "npm:^10.6.2"

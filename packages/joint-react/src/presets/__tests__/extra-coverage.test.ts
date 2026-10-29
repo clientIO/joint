@@ -8,6 +8,17 @@ import { boundaryPoint, anchorPoint } from '../connection-points';
 import { LinkView } from '../link-view';
 import { Paper } from '../paper';
 
+// `@joint/mock-svg` counts a node as part of the render tree only when its mocked
+// `getBBox()` is non-empty, and the mock is always empty. These suites measure magnets
+// through the DOM-measured branches, so every node is treated as rendered.
+let checkVisibilitySpy: jest.SpyInstance;
+beforeEach(() => {
+  checkVisibilitySpy = jest.spyOn(SVGElement.prototype, 'checkVisibility').mockReturnValue(true);
+});
+afterEach(() => {
+  checkVisibilitySpy.mockRestore();
+});
+
 describe('presets / element-ports / elementPort — group-positioned', () => {
   it('omits position when neither cx nor cy is supplied', () => {
     const port = elementPort({ shape: 'rect' });
