@@ -1827,18 +1827,20 @@ export namespace Paper {
         disposeHidden?: boolean;
     }
 
+    interface ModelGeometryOptions {
+        /**
+         * Only the cells for which the function returns `true` contribute
+         * to the content area.
+         */
+        filter?: (cell: Cell) => boolean;
+    }
+
     interface ContentAreaOptions {
         /**
          * Measure the content from the model geometry instead of the
-         * rendered views.
+         * rendered views. Pass an object to configure the measurement.
          */
-        useModelGeometry?: boolean;
-        /**
-         * Only the cells for which the function returns `true` contribute
-         * to the content area. Applies only with `useModelGeometry: true`
-         * (cells hidden by `cellVisibility` are never measured from the views).
-         */
-        filter?: (cell: Cell) => boolean;
+        useModelGeometry?: boolean | ModelGeometryOptions;
     }
 
     interface TransformToFitContentOptions extends ContentAreaOptions {

@@ -2588,7 +2588,8 @@ export const Paper = View.extend({
 
         if (opt && opt.useModelGeometry) {
             const { model: graph } = this;
-            const { filter } = opt;
+            // `useModelGeometry: true` or `useModelGeometry: { filter }`
+            const { filter } = isObject(opt.useModelGeometry) ? opt.useModelGeometry : {};
             if (typeof filter !== 'function') {
                 return graph.getBBox() || new Rect();
             }

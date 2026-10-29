@@ -278,66 +278,61 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
         });
 
-        QUnit.module('getContentArea() > options > filter', function() {
+        QUnit.module('getContentArea() > options > useModelGeometry > filter', function() {
 
-            QUnit.test('useModelGeometry = TRUE', function(assert) {
+            QUnit.test('filter', function(assert) {
                 addCells(graph);
                 var [rect1, rect2] = graph.getElements();
                 var filter = sinon.spy((cell) => cell.isElement());
-                var area = paper.getContentArea({ useModelGeometry: true, filter });
+                var area = paper.getContentArea({ useModelGeometry: { filter }});
                 assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 300 }, 'filtered cells are excluded');
                 assert.equal(filter.callCount, 3, 'filter called for every cell');
                 assert.ok(filter.getCalls().every(call => call.args.length === 1), 'filter called with the cell only');
 
-                area = paper.getContentArea({ useModelGeometry: true, filter: (cell) => cell === rect2 });
+                area = paper.getContentArea({ useModelGeometry: { filter: (cell) => cell === rect2 }});
                 assert.deepEqual(area.toJSON(), { x: 100, y: 100, width: 100, height: 100 });
 
-                area = paper.getContentArea({ useModelGeometry: true, filter: () => false });
+                area = paper.getContentArea({ useModelGeometry: { filter: () => false }});
                 assert.ok(area instanceof g.Rect);
                 assert.deepEqual(area.toJSON(), { x: 0, y: 0, width: 0, height: 0 }, 'empty area when no cell passes the filter');
 
-                area = paper.getContentBBox({ useModelGeometry: true, filter: (cell) => cell === rect1 });
+                area = paper.getContentBBox({ useModelGeometry: { filter: (cell) => cell === rect1 }});
                 assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 100, height: 100 }, 'getContentBBox() accepts the filter');
             });
 
-            QUnit.test('useModelGeometry = FALSE', function(assert) {
+            QUnit.test('no filter', function(assert) {
                 addCells(graph);
-                var filter = sinon.spy(() => false);
-                var area = paper.getContentArea({ filter });
-                assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 400 }, 'filter is ignored');
-                assert.ok(filter.notCalled);
+                var area = paper.getContentArea({ useModelGeometry: {}});
+                assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 400 }, 'an object without filter measures every cell');
             });
         });
 
-        QUnit.module('fitToContent() > options > filter', function() {
+        QUnit.module('fitToContent() > options > useModelGeometry > filter', function() {
 
-            QUnit.test('useModelGeometry = TRUE', function(assert) {
+            QUnit.test('filter', function(assert) {
                 addCells(graph);
                 var area = paper.fitToContent({
-                    useModelGeometry: true,
-                    allowNewOrigin: 'any',
-                    filter: (cell) => cell.isElement()
+                    useModelGeometry: { filter: (cell) => cell.isElement() },
+                    allowNewOrigin: 'any'
                 });
                 assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 300 });
                 assert.deepEqual(paper.getArea().toJSON(), { x: -100, y: -100, width: 300, height: 300 });
 
                 area = paper.getFitToContentArea({
-                    useModelGeometry: true,
-                    allowNewOrigin: 'any',
-                    filter: (cell) => cell.isElement() && cell.position().x > 0
+                    useModelGeometry: { filter: (cell) => cell.isElement() && cell.position().x > 0 },
+                    allowNewOrigin: 'any'
                 });
                 assert.deepEqual(area.toJSON(), { x: 100, y: 100, width: 100, height: 100 }, 'getFitToContentArea() accepts the filter');
             });
         });
 
-        QUnit.module('transformToFitContent() > options > filter', function() {
+        QUnit.module('transformToFitContent() > options > useModelGeometry > filter', function() {
 
-            QUnit.test('useModelGeometry = TRUE', function(assert) {
+            QUnit.test('filter', function(assert) {
                 addCells(graph);
                 paper.setDimensions(200, 200);
                 paper.transformToFitContent({
-                    useModelGeometry: true,
-                    filter: (cell) => cell.isElement() && cell.position().x > 0
+                    useModelGeometry: { filter: (cell) => cell.isElement() && cell.position().x > 0 }
                 });
                 assert.deepEqual(paper.scale(), { sx: 2, sy: 2 });
                 assert.deepEqual(paper.translate(), { tx: -200, ty: -200 });
