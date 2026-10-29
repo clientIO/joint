@@ -90,28 +90,33 @@ interface Subscription {
   readonly unsubscribers: Map<Source, () => void>;
 }
 
-const collectionIds = new WeakMap<mvc.Collection<dia.Cell>, readonly CellId[]>();
+const collectionIds = new WeakMap<
+  mvc.Collection<dia.Cell>,
+  { readonly models: readonly dia.Cell[]; readonly ids: readonly CellId[] }
+>();
 
 /**
  * The ids of a collection's cells, the same array for as long as the
- * membership and order are. O(members) per call, nothing allocated while unchanged.
+ * membership, model identities and order are. Replacing a detached model with
+ * another of the same id must invalidate its cached record too.
+ * O(members) per call, nothing allocated while unchanged.
  * @param collection - The collection to read.
  */
 function getCollectionIds(collection: mvc.Collection<dia.Cell>): readonly CellId[] {
   const { models } = collection;
   const known = collectionIds.get(collection);
-  if (known?.length === models.length) {
+  if (known?.models.length === models.length) {
     let isSame = true;
     for (const [index, model] of models.entries()) {
-      if (model.id !== known[index]) {
+      if (model !== known.models[index] || model.id !== known.ids[index]) {
         isSame = false;
         break;
       }
     }
-    if (isSame) return known;
+    if (isSame) return known.ids;
   }
   const ids = models.map((model) => model.id);
-  collectionIds.set(collection, ids);
+  collectionIds.set(collection, { models: [...models], ids });
   return ids;
 }
 
