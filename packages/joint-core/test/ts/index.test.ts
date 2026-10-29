@@ -179,6 +179,13 @@ const paper = new joint.dia.Paper({
 
 paper.fitToContent({ padding: { top: 10  }, allowNewOrigin: false });
 
+// Measure the content only from the cells that pass the `filter`.
+const isVisibleCell = (cell: joint.dia.Cell) => !cell.get('hidden');
+paper.fitToContent({ useModelGeometry: { filter: isVisibleCell }});
+paper.transformToFitContent({ useModelGeometry: { filter: isVisibleCell }});
+paper.getContentArea({ useModelGeometry: { filter: isVisibleCell }}).inflate(5);
+paper.getContentBBox({ useModelGeometry: true }).inflate(5);
+
 const eventOptions: joint.dia.Paper.Options[] = [
     // `guard` is called without a view when the event did not hit a cell view.
     { guard: (_evt, view) => view?.model.isElement() ?? false }
