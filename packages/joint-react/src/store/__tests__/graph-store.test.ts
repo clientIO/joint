@@ -129,10 +129,10 @@ describe('GraphStore', () => {
 
       // The observer measures the same size, so it writes nothing to the graph.
       const node = document.createElement('div');
+      const resizeObserverSpy = jest.spyOn(globalThis, 'ResizeObserver');
       store.measurement.observe({ id: 'a', node });
-      const [callback] = (globalThis.ResizeObserver as jest.Mock).mock.calls.at(-1) as [
-        ResizeObserverCallback,
-      ];
+      const [callback] = resizeObserverSpy.mock.calls.at(-1) as [ResizeObserverCallback];
+      resizeObserverSpy.mockRestore();
       const entry = { target: node, borderBoxSize: [{ inlineSize: 120, blockSize: 40 }] };
       callback([entry as unknown as ResizeObserverEntry], {} as ResizeObserver);
       await flush();

@@ -92,6 +92,7 @@
     "@jest/globals": "30.1.2",
     "@joint/eslint-config": "workspace:*",
     "@joint/layout-directed-graph": "workspace:^",
+    "@joint/mock-svg": "workspace:~",
     "@reduxjs/toolkit": "^2.11.0",
     "@storybook/addon-a11y": "^10.6.2",
     "@storybook/addon-docs": "^10.6.2",
