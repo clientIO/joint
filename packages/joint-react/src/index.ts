@@ -143,6 +143,30 @@ export { useOnElementsMeasured } from './hooks/use-on-elements-measured';
 export type { ElementsMeasuredParams, OnElementsMeasured } from './hooks/use-on-elements-measured';
 
 /**
+ * useGraphState()
+ * @group Hooks
+ */
+export { useGraphState } from './hooks/use-graph-state';
+/** @group Types */
+export type { GraphState, GraphStateSelector } from './store/graph-state';
+
+/**
+ * useOnGraphStateChange()
+ * @group Hooks
+ */
+export { useOnGraphStateChange } from './hooks/use-on-graph-state-change';
+/** @group Types */
+export type { OnGraphStateChange } from './hooks/use-on-graph-state-change';
+
+/**
+ * useOnCellsChange()
+ * @group Hooks
+ */
+export { useOnCellsChange } from './hooks/use-on-cells-change';
+/** @group Types */
+export type { OnCellsChange } from './hooks/use-on-cells-change';
+
+/**
  * useOnPaperEvents()
  * @group Hooks
  */
@@ -191,7 +215,12 @@ export {
   selectCellParent,
   selectCellLayer,
   selectCellZIndex,
-} from './selectors/cell-selectors';
+} from './selectors';
+/**
+ * Graph state selectors, pass to {@link useGraphState} / {@link useOnGraphStateChange}
+ * @group Selectors
+ */
+export { selectGraphSizingVersion, selectIsGraphSizingComplete } from './selectors';
 
 // Data
 // ----

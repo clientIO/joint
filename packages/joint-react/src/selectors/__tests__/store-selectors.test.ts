@@ -2,10 +2,10 @@ import {
   selectResetVersion,
   createSelectPaperVersion,
   selectGraphFeaturesVersion,
-} from '../index';
+} from '../store-selectors';
 import type { GraphStoreInternalSnapshot } from '../../store/graph-store';
 
-describe('selectors/index', () => {
+describe('store-selectors', () => {
   const snapshot: GraphStoreInternalSnapshot = {
     papers: {
       'paper-1': { version: 7 } as GraphStoreInternalSnapshot['papers'][string],

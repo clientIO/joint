@@ -96,7 +96,7 @@ const roundToTwoDecimals = (value: number) => Math.round(value * 100) / 100;
 /**
  * Everything `@joint/react` knows about measuring elements, for one graph:
  * sizing elements from their rendered DOM node ({@link useMeasureElement}) and
- * telling when sizes are settled ({@link useOnElementsMeasured}).
+ * telling when sizes are settled ({@link selectGraphSizingVersion}).
  *
  * The sizing version changes once per settled change. An element is outstanding from
  * arriving in the graph until it is accounted for: its React content committed
@@ -150,9 +150,12 @@ export function createMeasurement(options: Options) {
     // measures, so there is nothing to wait for.
     if (isWaiting() && paperStores.size > 0) return;
     hasUndeliveredChange = false;
-    // An empty diagram has nothing to lay out. It is still the same diagram,
-    // so the version is kept: only a reset starts a new history.
-    if (elementCount === 0) return;
+    // Nothing is measured in an empty diagram. The public sizing selectors
+    // clear here; legacy hook initialization still follows actual graph resets.
+    if (elementCount === 0) {
+      if (version > 0) setVersion(0);
+      return;
+    }
     lastVersion += 1;
     setVersion(lastVersion);
   };
@@ -340,14 +343,13 @@ export function createMeasurement(options: Options) {
   return {
     /**
      * The sizing version: `0` while nothing is measured, otherwise a number
-     * that changes once per settled change. See {@link useOnElementsMeasured}.
+     * that changes once per settled change. See {@link selectGraphSizingVersion}.
      */
     getSizingVersion: () => version,
     /**
      * Whether the current version describes the diagram as it is: it has
      * elements, none is waiting to be measured and no change waits for its
-     * delivery. An emptied diagram keeps a version that describes elements
-     * that are gone.
+     * delivery. An empty diagram has no settled element sizes.
      */
     isSettled: () => elementCount > 0 && !isWaiting() && !hasUndeliveredChange,
     /**

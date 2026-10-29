@@ -6,10 +6,12 @@ import {
   Paper,
   SVGText,
   useGraph,
-  useOnElementsMeasured,
+  usePaper,
   selectElementSize,
+  useGraphState,
+  selectIsGraphSizingComplete,
 } from '@joint/react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect } from 'react';
 
 // Colors — unified dark diagram palette. The status dot colors are random on
 // purpose: the color IS the status this demo renders.
@@ -17,7 +19,6 @@ const SHAPE_STROKE_COLOR = '#ED2637';
 const SHAPE_FILL_COLOR = '#1c2836';
 const STATUS_STROKE_COLOR = '#3c4f63';
 const TEXT_COLOR = '#DDE6ED';
-
 
 const ShapeTypes = {
   rectangle: 'rectangle',
@@ -209,8 +210,12 @@ function Main() {
 
   useInterval(setRandomStatuses);
 
-  useOnElementsMeasured(({ isInitial, paper }) => {
-    if (!isInitial) return;
+  const { paper } = usePaper();
+  const isSizingComplete = useGraphState(selectIsGraphSizingComplete);
+
+  // The status lists attach to the element views, which exist once the sizes are known.
+  useLayoutEffect(() => {
+    if (!isSizingComplete || !paper) return;
     for (const element of graph.getElements()) {
       StatusList.add(element.findView(paper), 'root', 'status', {
         attribute: 'status',
@@ -221,11 +226,9 @@ function Main() {
       });
     }
     setRandomStatuses();
-  });
+  }, [isSizingComplete, paper, graph, setRandomStatuses]);
 
-  return (
-    <Paper className="size-full" renderElement={RenderElement} drawGrid={false} />
-  );
+  return <Paper className="size-full" renderElement={RenderElement} drawGrid={false} />;
 }
 
 export default function App() {
