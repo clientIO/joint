@@ -6,7 +6,8 @@ import {
     linkTools,
 } from '@joint/core';
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-classic.min.css';
 import './styles.scss';
 
 const HotModel = dia.Element.define('HotModel', {
@@ -149,6 +150,7 @@ const HotModelView = dia.ElementView.extend({
             height: 'auto',
             selectionMode: 'multiple',
             licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+            themeName: 'ht-theme-classic',
             contextMenu: {
                 items: {
                     row_below: {

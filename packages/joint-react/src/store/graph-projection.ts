@@ -48,7 +48,7 @@ interface GraphProjectionState<
  * sync. Subscribes to graph changes and mirrors add / change / remove events
  * (including connected-link sweeps) into the container, optionally emitting an
  * incremental change set after each commit.
- * @param options - graph to project plus optional change/size callbacks
+ * @param options - graph to project plus optional change callback
  * @returns controller exposing the readonly cells container and sync/update/destroy methods
  */
 export function graphProjection<

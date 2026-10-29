@@ -14,8 +14,8 @@ import { rethrowLater } from '../utils/scheduler';
  */
 export interface ElementsMeasuredParams {
   /**
-   * True on the first measurement pass (at least one element has been sized),
-   * and again on the first pass after a graph reset (`resetCells()`).
+   * True on the first event after the hook mounts, and again on the first
+   * event after a graph reset (`resetCells()`).
    */
   readonly isInitial: boolean;
   /** The paper this hook is bound to (the surrounding `<Paper>` context, or the paper passed via `paperTarget`). */
@@ -35,9 +35,10 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  * Calls a callback once element sizes are known, so a layout can run on them.
  *
  * Delivers one event per settled change: the first pass, and each later
- * addition, removal or re-measurement, once no element is still waiting. An added element waits until the paper has rendered it; if
- * its content measures itself ({@link useMeasureElement}, {@link HTMLHost}),
- * until that measurement arrives. A batch mixing plain and measured elements
+ * addition, removal or re-measurement, once no element is still waiting. An
+ * added element waits until the paper has rendered it; if its content measures
+ * itself ({@link useMeasureElement}, {@link HTMLHost}), until that measurement
+ * arrives. A batch mixing plain and measured elements
  * is one event, delivered when the last one is measured. An element the paper
  * does not render (viewport culling, `cellVisibility`) and a zero-sized element
  * nothing measures do not hold the event back. A size the application writes
@@ -47,8 +48,10 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  *
  * The callback receives {@link ElementsMeasuredParams}; `isInitial` is `true`
  * for the first event after the hook mounts, and again for the first event
- * after a graph reset (`resetCells()`), which replaces the diagram, or after
- * the last element was removed.
+ * after a graph reset (`resetCells()`), which replaces the diagram. Removing
+ * every element is an ordinary change: an empty diagram fires nothing, a hook
+ * mounted on one waits for elements, and the next event after elements return
+ * is not initial.
  * @deprecated Use {@link useOnGraphStateChange} with {@link selectGraphSizingVersion}
  *   to react to every settled change, or {@link useGraphState} with
  *   {@link selectIsGraphSizingComplete} to act once the sizes are known.
@@ -118,19 +121,23 @@ export function useOnElementsMeasured(
   useLayoutEffect(() => {
     if (!paperStore) return;
     const { paper } = paperStore;
-    // A new paper (or graph store) starts its own history, and so does a graph
-    // reset (the state goes back to `0`): the next event is the initial one.
-    let previousState = 0;
+    // This legacy hook starts a new history on mount or an actual graph reset.
+    // The public sizing version also clears when the last element is removed,
+    // which must not turn a later addition into an initial event here.
+    let isInitial = true;
+    const onReset = () => {
+      isInitial = true;
+    };
 
     function handleChanges() {
       const state = measurement.getSizingVersion();
-      const isInitial = previousState === 0;
-      previousState = state;
       if (state === 0) return;
+      const wasInitial = isInitial;
+      isInitial = false;
       // This runs inside the store's notification: an error must not keep the
       // other subscribers of this change from being notified.
       try {
-        callbackRef.current({ isInitial, paper, graph });
+        callbackRef.current({ isInitial: wasInitial, paper, graph });
       } catch (error) {
         rethrowLater(error);
       }
@@ -141,9 +148,17 @@ export function useOnElementsMeasured(
       // reflects the post-layout state.
       paper.updateViews();
     }
-    // Flush any measurement that happened before subscription (e.g. initial
-    // data sync ran before this paperStore was available).
-    handleChanges();
-    return measurement.subscribe(handleChanges);
+    // Subscribed before the replay, so a callback that resets the graph is
+    // notified of it and reports the replacement diagram as initial.
+    graph.on('reset', onReset);
+    const unsubscribe = measurement.subscribe(handleChanges);
+    // Replay a pass that settled before this subscription (e.g. initial data
+    // sync ran before this paperStore was available). A change still waiting
+    // is delivered when it settles, as this hook's initial event.
+    if (measurement.isSettled()) handleChanges();
+    return () => {
+      unsubscribe();
+      graph.off('reset', onReset);
+    };
   }, [paperStore, measurement, graph, callbackRef]);
 }

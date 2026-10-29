@@ -39,7 +39,7 @@ src/
     relationship-chart.json  Labeled relationship roles (Father, Cousin, etc.)
     benchmark.json         Large dataset (~1000 persons, 7 generations)
 scripts/
-  test-layout.cts    Node.js layout test (no browser needed)
+  test-layout.mts    Node.js layout test (no browser needed)
 ```
 
 For a detailed walkthrough of the layout algorithm, couple containers, crossing minimization, link routing styles, and theme architecture, see [TUTORIAL.md](TUTORIAL.md).

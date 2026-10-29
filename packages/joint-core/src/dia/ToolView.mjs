@@ -20,6 +20,11 @@ export const ToolView = mvc.View.extend({
         this.simulateRelatedView(this.el);
         // Delegate events in case the ToolView was removed from the DOM and reused.
         this.delegateEvents();
+        // Reset the explicit visibility in case the ToolView was hidden by
+        // `focusTool()` and removed before `blurTool()` was called (e.g. during
+        // an arrowhead drag). This must happen synchronously, so that `hide()`
+        // called right after `addTools()` is not overridden by a deferred update.
+        this._visibleExplicit = true;
         return this;
     },
 

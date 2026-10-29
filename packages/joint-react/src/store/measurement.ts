@@ -1,6 +1,7 @@
 import { mvc, type dia } from '@joint/core';
 import type { CellId, ElementLayout } from '../types/cell.types';
 import type { PaperStore } from './paper-store';
+import { DEFER_COMMIT_BATCH_OPTION } from './graph-changes';
 import { simpleScheduler } from '../utils/scheduler';
 import { warnResizeOnAutoSizedElement } from '../utils/dev-warnings';
 
@@ -128,24 +129,33 @@ export function createMeasurement(options: Options) {
   };
   let elementCount = 0;
   const outstanding = new Set<CellId>();
+  // Settled elements that registered a node since: the first report may change
+  // their size, so it holds delivery back, but it is not a change by itself.
+  const awaitingFirstReport = new Set<CellId>();
   let hasUndeliveredChange = false;
+  let batchDepth = 0;
+  // A deferred transaction may sit inside an ordinary batch. Its staged cells
+  // are guaranteed committed only when the enclosing batch closes too.
+  let awaitingDeferredCommit = false;
   // Registered nodes per element: the last one is the observed one, and the
   // previous one takes over again when it unmounts.
   const nodesById = new Map<CellId, ObservedNode[]>();
   const observedByNode = new WeakMap<Element, ObservedNode>();
   let resizeObserver: ResizeObserver | undefined;
 
+  const isWaiting = () => outstanding.size > 0 || awaitingFirstReport.size > 0;
   const deliver = () => {
-    if (!hasUndeliveredChange) return;
-    // Papers account for outstanding elements; without one nothing renders or
+    if (!hasUndeliveredChange || awaitingDeferredCommit) return;
+    // Papers account for waiting elements; without one nothing renders or
     // measures, so there is nothing to wait for.
-    if (outstanding.size > 0 && paperStores.size > 0) return;
-    // An empty diagram has nothing measured.
+    if (isWaiting() && paperStores.size > 0) return;
+    hasUndeliveredChange = false;
+    // Nothing is measured in an empty diagram. The public sizing selectors
+    // clear here; legacy hook initialization still follows actual graph resets.
     if (elementCount === 0) {
       if (version > 0) setVersion(0);
       return;
     }
-    hasUndeliveredChange = false;
     lastVersion += 1;
     setVersion(lastVersion);
   };
@@ -154,8 +164,16 @@ export function createMeasurement(options: Options) {
   // subscriber of the new version reads the committed cells.
   const deliverNextRound = () => simpleScheduler(deliver);
   const scheduleDelivery = () => simpleScheduler(deliverNextRound);
+  /** A change the subscribers are owed an event for, once nothing is outstanding. */
+  const markChanged = () => {
+    hasUndeliveredChange = true;
+    scheduleDelivery();
+  };
+  // Settling is a change in itself: a pass delivered while no paper was mounted
+  // leaves its elements outstanding, and the paper that renders them later owes
+  // the event for their sizes.
   const settle = (id: CellId) => {
-    if (outstanding.delete(id)) scheduleDelivery();
+    if (outstanding.delete(id)) markChanged();
   };
   /**
    * Settles an element that nothing measures any more: it is not waiting for a
@@ -164,18 +182,10 @@ export function createMeasurement(options: Options) {
    */
   const settleOnceUnobserved = (id: CellId) =>
     simpleScheduler(() => {
-      if (!nodesById.has(id)) settle(id);
+      if (nodesById.has(id)) return;
+      settle(id);
+      if (awaitingFirstReport.delete(id)) scheduleDelivery();
     });
-  /** A change the subscribers are owed an event for, once nothing is outstanding. */
-  const markChanged = () => {
-    hasUndeliveredChange = true;
-    scheduleDelivery();
-  };
-  const track = (element: dia.Element) => {
-    elementCount += 1;
-    outstanding.add(element.id);
-    markChanged();
-  };
 
   /**
    * Whether some paper mounted the element's view and renders React content
@@ -235,6 +245,9 @@ export function createMeasurement(options: Options) {
       // Measured, whether or not a size is written: a measurement equal to the
       // model's size (the application pre-sized it) writes nothing.
       settle(observed.id);
+      // A written size marks the change; an unchanged one only stops holding
+      // back a change that waited for this report.
+      if (awaitingFirstReport.delete(observed.id)) scheduleDelivery();
       const pending = toWrite(observed, borderBoxSize?.[0]);
       if (pending) writes.push(pending);
     }
@@ -253,11 +266,44 @@ export function createMeasurement(options: Options) {
     resizeObserver?.unobserve(observed.node);
     observedByNode.delete(observed.node);
   };
+  /**
+   * Measures the element's registered node again, as if it had just registered.
+   * Content can outlive its model (a reset, or a removal and an addition of the
+   * same id in one task; the HTML overlay keeps its nodes), and a browser does
+   * not report an unchanged box again. The last report is forgotten too: the
+   * id now names a replacement model, which may have another size.
+   */
+  const remeasure = (id: CellId) => {
+    const active = nodesById.get(id)?.at(-1);
+    if (!active) return;
+    active.lastWidth = undefined;
+    active.lastHeight = undefined;
+    stopObserving(active);
+    startObserving(active);
+  };
+  const track = (element: dia.Element) => {
+    elementCount += 1;
+    outstanding.add(element.id);
+    remeasure(element.id);
+    markChanged();
+  };
 
   // An external graph may already hold elements.
   for (const element of graph.getElements()) track(element);
 
   const listener = new mvc.Listener();
+  listener.listenTo(graph, 'batch:start', (batchOptions: dia.Graph.Options = {}) => {
+    batchDepth += 1;
+    if (batchOptions[DEFER_COMMIT_BATCH_OPTION]) awaitingDeferredCommit = true;
+  });
+  listener.listenTo(graph, 'batch:stop', () => {
+    batchDepth -= 1;
+    if (batchDepth > 0 || !awaitingDeferredCommit) return;
+    awaitingDeferredCommit = false;
+    // The projection's batch-stop listener queues its commit first. Keep the
+    // normal two-round delivery so subscribers read that committed snapshot.
+    scheduleDelivery();
+  });
   listener.listenTo(graph, 'add', (cell: dia.Cell) => {
     if (cell.isElement()) track(cell);
   });
@@ -266,16 +312,19 @@ export function createMeasurement(options: Options) {
     // What is left has to be laid out again, so a removal is a change too.
     elementCount -= 1;
     outstanding.delete(cell.id);
+    awaitingFirstReport.delete(cell.id);
     markChanged();
   });
-  listener.listenTo(graph, 'reset', (collection: mvc.Collection<dia.Cell>) => {
+  listener.listenTo(graph, 'reset', () => {
     // The reset replaces the diagram: until its first settled pass nothing is measured.
     elementCount = 0;
     outstanding.clear();
+    awaitingFirstReport.clear();
     hasUndeliveredChange = false;
     if (version > 0) setVersion(0);
-    // `reset` suppresses the per-cell `add` events.
-    for (const cell of collection.models) if (cell.isElement()) track(cell);
+    // `reset` suppresses the per-cell `add` events, and the collection it
+    // carries holds only the default layer's cells.
+    for (const element of graph.getElements()) track(element);
   });
   listener.listenTo(
     graph,
@@ -298,6 +347,12 @@ export function createMeasurement(options: Options) {
      */
     getSizingVersion: () => version,
     /**
+     * Whether the current version describes the diagram as it is: it has
+     * elements, none is waiting to be measured and no change waits for its
+     * delivery. An empty diagram has no settled element sizes.
+     */
+    isSettled: () => elementCount > 0 && !isWaiting() && !hasUndeliveredChange,
+    /**
      * Calls `versionListener` each time the sizing version changes.
      * @param versionListener - called synchronously with the change
      * @returns the unsubscribe function
@@ -305,11 +360,14 @@ export function createMeasurement(options: Options) {
     subscribe,
     /**
      * Sizes the element from `node`, for as long as the returned cleanup has not run.
+     * A settled element that starts measuring (its content switched to
+     * {@link HTMLHost}, or it scrolled into view) waits for the node's first report.
      * @param measured - the element id, its DOM node and an optional transform
      * @returns cleanup that stops measuring the node
      */
     observe(measured: MeasuredNode) {
       const { id } = measured;
+      if (!outstanding.has(id) && graph.getCell(id)) awaitingFirstReport.add(id);
       const observed: ObservedNode = { ...measured };
       const nodes = nodesById.get(id) ?? [];
       const active = nodes.at(-1);
@@ -343,11 +401,12 @@ export function createMeasurement(options: Options) {
       if (!nodesById.has(id)) settle(id);
     },
     /**
-     * A paper finished a render pass (`render:done`): every view it mounts for
-     * this pass is in the DOM now. An outstanding element that no paper renders
-     * (viewport culling, `cellVisibility`, a hidden group) is not going to be
-     * measured, so it is settled with the size it has. O(outstanding), which is
-     * empty between changes.
+     * A paper finished a render pass (`render:done`, or `render:idle` after a
+     * pass that only culled): every view it mounts for this pass is in the DOM
+     * now. An outstanding element that no paper renders (viewport culling,
+     * `cellVisibility`, a hidden group) is not going to be measured, so it is
+     * settled with the size it has. O(outstanding), which is empty between
+     * changes.
      */
     settleUnrendered() {
       for (const id of outstanding) {

@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "noEmit": true,
+        "paths": {
+            "@joint/mock-svg": ["../../src/index.ts"]
+        },
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "esnext",
+        "types": []
+    },
+    "include": ["src"]
+}

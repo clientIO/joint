@@ -59,7 +59,7 @@ export function useWatchGraphState<Cell extends AnyCellRecord, Selected>(
       // from being notified.
       try {
         const next = read();
-        if (next === previous) return;
+        if (Object.is(next, previous)) return;
         const before = previous;
         previous = next;
         onChangeRef.current(next, before);
@@ -75,10 +75,10 @@ export function useWatchGraphState<Cell extends AnyCellRecord, Selected>(
     };
   }, [reader, watchKey, selectorRef, isEqualRef, onChangeRef]);
 
-  // A new selector may read other parts of the state, or select another value
-  // from the same ones, and the store reports neither. Declared after the
-  // effect above, so on mount and on a new `watchKey` it finds nothing to do.
+  // A new selector or equality can change the selected value without a store
+  // change. Declared after the effect above, so on mount and on a new
+  // `watchKey` it finds nothing to do.
   useLayoutEffect(() => {
     checkRef.current?.();
-  }, [selector]);
+  }, [selector, isEqual]);
 }

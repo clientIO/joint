@@ -81,7 +81,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       console.log(`\n--- ${size} items — container key derivation ---`);
       logResults(bench);
       saveBenchResults(bench, `hooks/key-derivation/n=${size}`, baselinePath);
-      expect(bench.tasks.length).toBe(1);
+      expect(bench.tasks).toHaveLength(1);
     }, 30_000);
 
     it(`${size} items — container items full iteration + selector (useContainerItems hot path)`, async () => {
@@ -100,7 +100,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       console.log(`\n--- ${size} items — full iteration + selector ---`);
       logResults(bench);
       saveBenchResults(bench, `hooks/full-iteration-selector/n=${size}`, baselinePath);
-      expect(bench.tasks.length).toBe(1);
+      expect(bench.tasks).toHaveLength(1);
     }, 30_000);
 
     it(`${size} items — single-ID get + selector (useContainerItem hot path)`, async () => {
@@ -119,7 +119,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       console.log(`\n--- ${size} items — single-ID get + selector ---`);
       logResults(bench);
       saveBenchResults(bench, `hooks/single-id-get-selector/n=${size}`, baselinePath);
-      expect(bench.tasks.length).toBe(1);
+      expect(bench.tasks).toHaveLength(1);
     }, 30_000);
 
     it(`${size} items — shallow Map comparison (useContainerItems optimization)`, async () => {
@@ -150,7 +150,7 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       console.log(`\n--- ${size} items — shallow Map comparison ---`);
       logResults(bench);
       saveBenchResults(bench, `hooks/shallow-map-comparison/n=${size}`, baselinePath);
-      expect(bench.tasks.length).toBe(2);
+      expect(bench.tasks).toHaveLength(2);
     }, 30_000);
   }
 });

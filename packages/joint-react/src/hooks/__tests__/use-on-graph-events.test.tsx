@@ -227,7 +227,7 @@ describe('use-on-graph-events', () => {
       expect(subscriptionsAfterMount).toBeGreaterThan(0);
 
       rerender({ handler: secondHandler });
-      expect(addCalls().length).toBe(subscriptionsAfterMount);
+      expect(addCalls()).toHaveLength(subscriptionsAfterMount);
 
       act(() => {
         graph.trigger('graph:probe', 'cell');

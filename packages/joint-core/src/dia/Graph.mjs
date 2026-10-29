@@ -1571,9 +1571,9 @@ export const Graph = Model.extend({
 
                         var { source: _source, target: _target } = _link.attributes;
                         return _source && _source.id === source.id &&
-                            (!_source.port || (_source.port === source.port)) &&
+                            (_source.port == null || (_source.port === source.port)) &&
                             _target && _target.id === target.id &&
-                            (!_target.port || (_target.port === target.port));
+                            (_target.port == null || (_target.port === target.port));
 
                     });
 

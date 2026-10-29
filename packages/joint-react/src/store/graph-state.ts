@@ -91,7 +91,6 @@ interface Subscription {
 }
 
 const collectionIds = new WeakMap<mvc.Collection<dia.Cell>, readonly CellId[]>();
-const detachedRecords = new WeakMap<dia.Cell, AnyCellRecord>();
 
 /**
  * The ids of a collection's cells, the same array for as long as the
@@ -121,10 +120,12 @@ function getCollectionIds(collection: mvc.Collection<dia.Cell>): readonly CellId
  * clone, for example), one per cell so repeated reads share a reference.
  * @param collection - The collection the cell is a member of.
  * @param id - The id of the cell.
+ * @param detachedRecords - The current reader's detached model snapshots.
  */
 function getDetachedRecord(
   collection: mvc.Collection<dia.Cell>,
-  id: CellId
+  id: CellId,
+  detachedRecords: WeakMap<dia.Cell, AnyCellRecord>
 ): AnyCellRecord | undefined {
   const cell = collection.get(id);
   if (!cell) return undefined;
@@ -157,12 +158,16 @@ export function createGraphStateReader<Cell extends AnyCellRecord, Selected>(
   // shape; the `Cell` generic is how the caller declares that shape.
   const cells = store.graphProjection.cells as ReadonlyContainer<Computed<Cell>>;
   const { measurement } = store;
+  // Cache detached snapshots for this hook's lifetime only. A later hook must
+  // read the model's current attributes even when it reuses the collection.
+  const detachedRecords = new WeakMap<dia.Cell, AnyCellRecord>();
   // What the last selector run read, with the value it saw.
   const seen = new Map<Source, unknown>();
   let subscription: Subscription | undefined;
   // The selector `seen` belongs to. Unset from the start of a run until it
   // returns, so a selector that throws leaves nothing to trust.
   let lastSelector: GraphStateSelector<Cell, Selected> | undefined;
+  let lastEquality: SelectedEqual<Selected> | undefined;
   let selected: { readonly value: Selected } | undefined;
   // True only while a selector runs: the state is not to be read at any other time.
   let isSelecting = false;
@@ -262,7 +267,8 @@ export function createGraphStateReader<Cell extends AnyCellRecord, Selected>(
         // records of the container above.
         const cell =
           getCell(id) ??
-          (collection && (getDetachedRecord(collection, id) as Computed<Cell> | undefined));
+          (collection &&
+            (getDetachedRecord(collection, id, detachedRecords) as Computed<Cell> | undefined));
         if (cell !== undefined) picked.push(cell);
       }
       return picked;
@@ -273,8 +279,11 @@ export function createGraphStateReader<Cell extends AnyCellRecord, Selected>(
     selector: GraphStateSelector<Cell, Selected>,
     isEqual: SelectedEqual<Selected> = arrayAwareEqual
   ): Selected => {
-    if (selected && selector === lastSelector && !hasChanged()) return selected.value;
+    if (selected && selector === lastSelector && isEqual === lastEquality && !hasChanged()) {
+      return selected.value;
+    }
     lastSelector = undefined;
+    lastEquality = undefined;
     isListeningToSeen = false;
     seen.clear();
     // Stays set if the selector throws: a read outside of a selector then goes
@@ -283,6 +292,7 @@ export function createGraphStateReader<Cell extends AnyCellRecord, Selected>(
     const next = selector(state);
     isSelecting = false;
     lastSelector = selector;
+    lastEquality = isEqual;
     isDirty = false;
     if (selected) {
       if (isEqual(selected.value, next)) return selected.value;

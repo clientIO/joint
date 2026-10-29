@@ -52,9 +52,10 @@ export const RotateLabel = Control.extend({
         const label = this.getLabel();
         const labelPosition = this.getLabelPosition(label);
         const coords = view.getLabelCoordinates(labelPosition);
-        let { angle = 0 } = labelPosition;
-        const { args = {}} = labelPosition;
-        const keepGradient = args.keepGradient;
+        // `args` is `null` for a label with a number position
+        const { args } = labelPosition;
+        const keepGradient = args && args.keepGradient;
+        let { angle } = labelPosition;
         if (keepGradient) {
             const tangent = view.getTangentAtRatio(
                 view.getClosestPointRatio(coords)
@@ -99,13 +100,11 @@ export const RotateLabel = Control.extend({
     },
 
     getLabel() {
-        return this.relatedView.model.label(this.getLabelIndex()) || null;
+        return this.relatedView.model.getComputedLabel(this.getLabelIndex());
     },
 
     getLabelPosition(label) {
-        const view = this.relatedView;
-        const labelPosition = view._normalizeLabelPosition(label.position);
-        return view._mergeLabelPositionProperty(labelPosition, view._getDefaultLabelPositionProperty());
+        return label.position;
     },
 
 });
