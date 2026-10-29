@@ -90,3 +90,31 @@ describe('GraphProvider layer subscription ownership', () => {
     );
   });
 });
+
+
+function CommitLayerChange({ visible }: { readonly visible: boolean }) {
+  const { setLayer } = useGraph();
+  useLayoutEffect(() => { setLayer('notes', { visible }); }, [setLayer, visible]);
+  return null;
+}
+
+it('uses the replacement handler for a child layout-effect write in the same commit', () => {
+  const oldHandler = jest.fn();
+  const nextHandler = jest.fn();
+  const { rerender } = render(
+    <GraphProvider initialLayers={INITIAL_LAYERS} onLayersChange={oldHandler}>
+      <CommitLayerChange visible />
+    </GraphProvider>
+  );
+  oldHandler.mockClear();
+  rerender(
+    <GraphProvider initialLayers={INITIAL_LAYERS} onLayersChange={nextHandler}>
+      <CommitLayerChange visible={false} />
+    </GraphProvider>
+  );
+  expect(oldHandler).not.toHaveBeenCalled();
+  expect(nextHandler).toHaveBeenCalledTimes(1);
+  expect(nextHandler).toHaveBeenLastCalledWith(
+    expect.arrayContaining([{ id: 'notes', visible: false }])
+  );
+});

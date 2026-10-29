@@ -333,10 +333,15 @@ export function graphProjection<
     syncFromGraph,
     syncLayersFromGraph,
     updateGraph(update: UpdateGraphOptions<Element, Link>) {
-      const { cellIds } = graphChangesController.updateGraph(update);
+      let cellIds: readonly CellId[];
+      try {
+        ({ cellIds } = graphChangesController.updateGraph(update));
+      } finally {
+        // Tagged layer writes are not echoed by graphChanges. A user layer
+        // constructor may throw after earlier writes; publish the actual state.
+        if (update.flag === 'updateFromReact' && update.layers) syncLayersFromGraph();
+      }
       if (update.flag !== 'updateFromReact') return;
-      // React-origin layer events are ignored by graphChanges, so re-read now.
-      if (update.layers) syncLayersFromGraph();
       if (!update.cells) return;
 
       // React-origin graph events are ignored by graphChanges (isUpdateFromReact),

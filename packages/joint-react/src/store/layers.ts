@@ -9,6 +9,9 @@ const DEFAULT_GRAPH_LAYER_TYPE: unknown = dia.GraphLayer.prototype.defaults().ty
 
 /** Keys that identify or describe a layer's role rather than its attributes — never written back. */
 const RESERVED_KEYS = new Set(['id', 'type', 'isDefault']);
+// Public add/move operations enable layer-aware JSON. Remember that activation
+// without reading or writing the core's legacy flag or repeating a no-op move.
+const graphsWithDeclaredLayers = new WeakSet<dia.Graph>();
 
 /**
  * Whether a layer attribute belongs in its record: omit identity, derived
@@ -161,9 +164,8 @@ export function reconcileLayers(
   options: Record<string, unknown> = {}
 ): void {
   const defaultId = graph.getDefaultLayer().id;
-  const target = next.some((record) => record.id === defaultId)
-    ? next
-    : [{ id: defaultId }, ...next];
+  const declaredDefault = next.find((record) => record.id === defaultId);
+  const target = declaredDefault ? next : [{ id: defaultId }, ...next];
 
   for (const record of target) {
     if (graph.hasLayer(record.id)) {
@@ -173,6 +175,7 @@ export function reconcileLayers(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { isDefault, ...layerInit } = record;
       graph.addLayer(layerInit, options);
+      graphsWithDeclaredLayers.add(graph);
     }
   }
 
@@ -184,8 +187,21 @@ export function reconcileLayers(
   for (const [index, record] of target.entries()) {
     if (order[index] === record.id) continue;
     graph.moveLayer(record.id, { ...options, index });
+    graphsWithDeclaredLayers.add(graph);
     order.splice(order.indexOf(record.id), 1);
     order.splice(index, 0, record.id);
+  }
+
+  // Configuring only the existing default layer calls neither add nor move,
+  // but its attributes must still survive graph.toJSON(). A same-position
+  // public move opts into layer serialization without resetting cells/views.
+  if (
+    declaredDefault &&
+    !graphsWithDeclaredLayers.has(graph) &&
+    Object.keys(declaredDefault).some((key) => !RESERVED_KEYS.has(key))
+  ) {
+    graph.moveLayer(defaultId, { ...options, index: order.indexOf(defaultId) });
+    graphsWithDeclaredLayers.add(graph);
   }
 }
 
@@ -232,25 +248,98 @@ function updateLayerAttributes(
  * @param graph - The graph to prune.
  * @param next - Declared layers; anything else is a removal candidate.
  * @param options - Forwarded into the `layer:remove` event.
+ * @param isCurrent - Whether this declaration still owns layer removals.
+ * @returns Ids retained only because they still hold cells.
  * @internal
  */
 export function removeEmptyLayers(
   graph: dia.Graph,
   next: readonly LayerRecord[],
-  options: Record<string, unknown> = {}
-): void {
+  options: Record<string, unknown> = {},
+  isCurrent: () => boolean = () => true
+): Set<string> {
   const keep = new Set<string>();
   for (const record of next) keep.add(record.id);
-  const defaultId = graph.getDefaultLayer().id;
-  for (const layer of graph.getLayers()) {
-    if (layer.id === defaultId || keep.has(layer.id)) continue;
-    if (layer.cellCollection.length > 0) {
-      warnLayerNotEmpty(layer.id, () => layer.getCells().map((cell) => cell.id));
-      continue;
+  const pending = new Set<string>();
+  for (const candidate of graph.getLayers()) {
+    if (!isCurrent()) break;
+    const { id } = candidate;
+    // Removing the previous layer fires public listeners synchronously. They
+    // may replace this declaration, the default, or the next layer instance.
+    if (id === graph.getDefaultLayer().id || keep.has(id) || !graph.hasLayer(id)) continue;
+    const layer = graph.getLayer(id);
+    if (!removeEmptyLayer(graph, layer, options)) {
+      warnLayerNotEmpty(id, () => layer.getCells().map((cell) => cell.id));
+      pending.add(id);
     }
-    graph.removeLayer(layer.id, options);
-    forgetLayerNotEmptyWarning(layer.id);
   }
+  return pending;
+}
+
+/** Removes an empty layer, keeping nonempty ones for a later cells commit. */
+function removeEmptyLayer(
+  graph: dia.Graph,
+  layer: dia.GraphLayer,
+  options: Record<string, unknown>
+): boolean {
+  if (layer.cellCollection.length > 0) return false;
+  graph.removeLayer(layer.id, options);
+  forgetLayerNotEmptyWarning(layer.id);
+  return true;
+}
+
+/** Resolves a pending id against the current default and current layer model. */
+function getEmptyPendingLayer(
+  graph: dia.Graph,
+  pending: Set<string>,
+  id: string
+): dia.GraphLayer | undefined {
+  if (id === graph.getDefaultLayer().id || !graph.hasLayer(id)) {
+    pending.delete(id);
+    forgetLayerNotEmptyWarning(id);
+    return undefined;
+  }
+  const layer = graph.getLayer(id);
+  return layer.cellCollection.length === 0 ? layer : undefined;
+}
+
+/**
+ * Retries only layers a declaration already tried to remove, after cells move.
+ * No layer list is read or reconciled on this cells-only path.
+ * @param graph - The graph holding the retained layers.
+ * @param pending - Pending ids, removed from this set as they are resolved.
+ * @param options - Forwarded to removals.
+ * @param beforeRemove - Called once, before preparing the first removal.
+ * @param isCurrent - Whether the owner and this pending declaration are still current.
+ * @returns Whether a layer was removed and the snapshot must be refreshed.
+ * @internal
+ */
+export function retryEmptyLayerRemovals(
+  graph: dia.Graph,
+  pending: Set<string>,
+  options: Record<string, unknown>,
+  beforeRemove?: () => void,
+  isCurrent: () => boolean = () => true
+): boolean {
+  let removed = false;
+  let prepared = false;
+  for (const id of pending) {
+    if (!isCurrent()) break;
+    if (!getEmptyPendingLayer(graph, pending, id)) continue;
+    if (!prepared) {
+      prepared = true;
+      beforeRemove?.();
+    }
+    // Batch-start and prior removal listeners may replace the declaration,
+    // destroy its owner, change the default, or replace this layer model.
+    if (!isCurrent()) break;
+    const layer = getEmptyPendingLayer(graph, pending, id);
+    if (layer && removeEmptyLayer(graph, layer, options)) {
+      pending.delete(id);
+      removed = true;
+    }
+  }
+  return removed;
 }
 
 /**
