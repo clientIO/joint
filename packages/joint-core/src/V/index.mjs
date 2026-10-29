@@ -777,7 +777,7 @@ const V = (function() {
         }
 
         for (var i = 0, len = els.length; i < len; i++) {
-            this.node.appendChild(V.toNode(els[i])); // lgtm [js/xss-through-dom]
+            this.node.appendChild(V.toNode(els[i]));
         }
 
         return this;
@@ -809,7 +809,7 @@ const V = (function() {
     };
 
     VPrototype.appendTo = function(node) {
-        V.toNode(node).appendChild(this.node); // lgtm [js/xss-through-dom]
+        V.toNode(node).appendChild(this.node);
         return this;
     };
 

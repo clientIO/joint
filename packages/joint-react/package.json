@@ -1,7 +1,7 @@
 {
   "name": "@joint/react",
   "title": "JointJS React",
-  "version": "4.3.5",
+  "version": "4.3.7",
   "description": "React bindings and hooks for JointJS to build interactive diagrams and graphs.",
   "type": "module",
   "sideEffects": [
@@ -44,19 +44,19 @@
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build-storybook": "storybook build",
     "storybook": "storybook dev -p 6006",
-    "test": "yarn run typecheck && yarn run knip && yarn run duplicity-detect && yarn run test:react19 && yarn run test:react18",
+    "test": "yarn run typecheck && yarn run knip && yarn run duplicity-detect && yarn run test-coverage && yarn run test:react18",
     "test:react19": "jest",
     "test:react18": "jest --config jest.react18.config.mjs",
-    "test-coverage": "jest --coverage",
+    "test-coverage": "yarn run test:react19 --coverage",
     "test-coverage-lcov": "COVERAGE_REPORTER=lcov yarn run test-coverage",
     "typecheck": "tsc --noEmit",
-    "duplicity-detect": "jscpd src",
     "lint": "eslint \"**/*.{ts,tsx}\"",
     "lint-fix": "yarn run lint --fix",
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
     "docs:typedoc": "typedoc --router group --out docs/api src",
     "docs:typedoc-md": "typedoc --options typedoc.config.mjs",
-    "bench": "jest --selectProjects default --testMatch '<rootDir>/bench/**/*.{test,spec}.ts?(x)'"
+    "bench": "jest --selectProjects default --testMatch '<rootDir>/bench/**/*.{test,spec}.ts?(x)'",
+    "duplicity-detect": "jscpd src"
   },
   "exports": {
     ".": {
@@ -93,11 +93,11 @@
     "@joint/eslint-config": "workspace:*",
     "@joint/layout-directed-graph": "workspace:^",
     "@reduxjs/toolkit": "^2.11.0",
-    "@storybook/addon-a11y": "^10.4.2",
-    "@storybook/addon-docs": "^10.4.2",
-    "@storybook/addon-links": "^10.4.2",
-    "@storybook/react": "^10.4.2",
-    "@storybook/react-vite": "^10.4.2",
+    "@storybook/addon-a11y": "^10.6.2",
+    "@storybook/addon-docs": "^10.6.2",
+    "@storybook/addon-links": "^10.6.2",
+    "@storybook/react": "^10.6.2",
+    "@storybook/react-vite": "^10.6.2",
     "@swc/core": "^1.15.11",
     "@swc/jest": "^0.2.39",
     "@tailwindcss/vite": "^4.2.2",
@@ -114,7 +114,7 @@
     "canvas": "^3.1.0",
     "esbuild": "0.25.12",
     "eslint": "9.39.2",
-    "eslint-plugin-storybook": "^10.4.2",
+    "eslint-plugin-storybook": "^10.6.2",
     "jest": "30.1.2",
     "jest-environment-jsdom": "30.1.2",
     "jscpd": "5.2.0",
@@ -134,7 +134,7 @@
     "rollup-plugin-banner2": "^1.2.2",
     "rollup-plugin-dts": "^6.4.1",
     "rollup-plugin-esbuild": "^6.2.1",
-    "storybook": "^10.4.2",
+    "storybook": "^10.6.2",
     "storybook-multilevel-sort": "^2.1.0",
     "tailwindcss": "^4.2.2",
     "tinybench": "^6.0.0",
@@ -142,8 +142,7 @@
     "typedoc-github-theme": "^0.3.0",
     "typedoc-plugin-markdown": "^4.6.4",
     "typescript": "^5.9.2",
-    "vite": "^8",
-    "vite-plugin-md": "0.22.5"
+    "vite": "^8"
   },
   "resolutions": {
     "react": "19.1.1",

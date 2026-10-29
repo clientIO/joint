@@ -10,8 +10,6 @@ export const DEFAULT_GRAPH_LAYER_TYPE = 'GraphLayer';
  */
 export class GraphLayer extends Model {
 
-    [GRAPH_LAYER_MARKER] = true;
-
     preinitialize() {
         // This allows for propagating events from the inner `cellCollection` collection
         // without any prefix and therefore distinguish them from the events
@@ -51,3 +49,7 @@ export class GraphLayer extends Model {
         return this.cellCollection.toArray();
     }
 }
+
+Object.defineProperty(GraphLayer.prototype, GRAPH_LAYER_MARKER, {
+    value: true,
+});

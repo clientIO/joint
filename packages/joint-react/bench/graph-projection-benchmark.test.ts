@@ -147,7 +147,7 @@ describe('graph-projection benchmark: baseline vs graphProjection vs GraphStore'
       console.log(`\n--- ${size} elements — position change ---`);
       logResults(bench);
       saveBenchResults(bench, `graph-projection/position-change/n=${size}`, baselinePath);
-      expect(bench.tasks.length).toBe(3);
+      expect(bench.tasks).toHaveLength(3);
     }, 60_000);
   }
 });

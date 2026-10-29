@@ -74,7 +74,7 @@ describe('createContainer', () => {
       remove(container, 'a');
       expect(container.get('a')).toBeUndefined();
       expect(container.has('a')).toBe(false);
-      expect(container.getSnapshot().length).toBe(2);
+      expect(container.getSnapshot()).toHaveLength(2);
       const ids = container
         .getSnapshot()
         .map((item) => item.id)
@@ -100,10 +100,10 @@ describe('createContainer', () => {
         { id: 'a', x: 1, y: 2, type: 'item' },
         { id: 'b', x: 3, y: 4, type: 'item' }
       );
-      expect(container.getSnapshot().length).toBe(2);
+      expect(container.getSnapshot()).toHaveLength(2);
 
       remove(container, 'a');
-      expect(container.getSnapshot().length).toBe(1);
+      expect(container.getSnapshot()).toHaveLength(1);
     });
   });
 
@@ -129,14 +129,14 @@ describe('createContainer', () => {
       expect(container.has('b')).toBe(false);
       expect(container.get('x')?.x).toBe(10);
       expect(container.get('y')?.y).toBe(40);
-      expect(container.getSnapshot().length).toBe(2);
+      expect(container.getSnapshot()).toHaveLength(2);
     });
 
     it('removing every item clears the container', () => {
       const container = setup();
       add(container, { id: 'a', x: 1, y: 2, type: 'item' });
       remove(container, 'a');
-      expect(container.getSnapshot().length).toBe(0);
+      expect(container.getSnapshot()).toHaveLength(0);
     });
   });
 
@@ -297,7 +297,7 @@ describe('createContainer', () => {
 
       remove(container, 'a');
       expect(container.getSnapshot()).not.toBe(ref1);
-      expect(ref1.length).toBe(2); // old snapshot still holds both
+      expect(ref1).toHaveLength(2); // old snapshot still holds both
     });
   });
 
@@ -455,7 +455,7 @@ describe('createContainer', () => {
           oracle.delete(id);
         }
       }
-      expect(container.getSnapshot().length).toBe(oracle.size);
+      expect(container.getSnapshot()).toHaveLength(oracle.size);
       for (const [id, value] of oracle) expect(container.get(id)).toEqual(value);
     });
   });

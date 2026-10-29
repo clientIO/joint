@@ -47,7 +47,6 @@ export const ToolsView = mvc.View.extend({
         const tools = this.tools;
         if (!tools) return this;
         const n = tools.length;
-        const wasRendered = this.isRendered;
         for (let i = 0; i < n; i++) {
             const tool = tools[i];
             tool.updateVisibility();
@@ -63,10 +62,6 @@ export const ToolsView = mvc.View.extend({
         }
         if (!this.isMounted()) {
             this.mount();
-        }
-        if (!wasRendered) {
-            // Make sure tools are visible (if they were hidden and the tool removed)
-            this.blurTool();
         }
         return this;
     },

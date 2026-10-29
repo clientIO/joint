@@ -108,6 +108,7 @@ describe('graph batch-update round-trip (drag 1 / update K via dia.Graph API)', 
             await flush();
           });
           await bench.run();
+          for (const task of bench.tasks) expect(task.result?.state).toBe('completed');
           logResults(bench);
           if (scenario.counter <= 0) throw new Error('bench invariant: no commits observed');
         }

@@ -21,11 +21,11 @@
     "bezier-js": "^6.1.4"
   },
   "devDependencies": {
-    "css-loader": "3.5.3",
-    "style-loader": "1.2.1",
-    "webpack": "^5.61.0",
-    "webpack-cli": "^4.8.0",
-    "webpack-dev-server": "^4.2.1"
+    "css-loader": "^6.8.1",
+    "style-loader": "^3.3.3",
+    "webpack": "5.112.0",
+    "webpack-cli": "6.0.1",
+    "webpack-dev-server": "5.2.7"
   },
   "volta": {
     "node": "22.14.0",

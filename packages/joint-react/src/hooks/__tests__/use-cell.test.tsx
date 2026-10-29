@@ -149,7 +149,7 @@ describe('useCell (id argument form)', () => {
       storeRef.graph.getCell('b')?.set('position', { x: 99, y: 99 });
       await flush();
     });
-    expect(renderSpy.mock.calls.length).toBe(before);
+    expect(renderSpy.mock.calls).toHaveLength(before);
   });
 
   it('selector form does not infinite-loop when returning a fresh reference', async () => {

@@ -49,7 +49,7 @@ function readExisting(path: string): BaselineFile | undefined {
 function safeExec(cmd: string): string {
   try {
     // The command is a hard-coded constant — no user input is involved.
-    // eslint-disable-next-line sonarjs/os-command
+     
     return execSync(cmd, { encoding: 'utf8' });
   } catch {
     return '';

@@ -1,8 +1,11 @@
 require.config({
-    baseUrl: '../../',
-    paths: {
-        'qunit': 'node_modules/qunit/qunit/qunit',
-    }
+    baseUrl: '../../'
+});
+
+// The global QUnit (see `requirejs.html`), as a module.
+// eslint-disable-next-line no-undef
+define('qunit', [], function() {
+    return window.QUnit;
 });
 
 require(['qunit'], function(QUnit) {

@@ -20,11 +20,11 @@ export namespace Vertices {
         protected onPointerDown(evt: dia.Event): void;
         protected onPointerMove(evt: dia.Event): void;
         protected onPointerUp(evt: dia.Event): void;
-        protected onPointerClick(evt: dia.Event): void;
+        protected onDoubleClick(evt: dia.Event): void;
     }
 
     interface VertexAddingOptions {
-        interactiveLineNode: string;
+        interactiveLinkNode: string;
     }
 
     interface Options extends dia.ToolView.Options<dia.LinkView> {
@@ -123,6 +123,14 @@ export abstract class Anchor extends dia.ToolView<dia.LinkView> {
     type: string;
 
     constructor(opt?: Anchor.Options);
+
+    protected onPointerDown(evt: dia.Event): void;
+
+    protected onPointerMove(evt: dia.Event): void;
+
+    protected onPointerUp(evt: dia.Event): void;
+
+    protected onPointerDblClick(evt: dia.Event): void;
 }
 
 export class SourceAnchor extends Anchor {

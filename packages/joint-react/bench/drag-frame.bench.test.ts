@@ -59,6 +59,7 @@ describe('drag-frame: reactive cost is O(1) (flat across N)', () => {
         container.get(id); // per-id consumer — O(1)
       });
       await bench.run();
+      for (const task of bench.tasks) expect(task.result?.state).toBe('completed');
       logTask(bench);
       unsub();
     }, 60_000);
@@ -79,6 +80,7 @@ describe('drag-frame: reactive cost is O(1) (flat across N)', () => {
         container.getSnapshot(); // whole-list consumer — rebuilds O(n)
       });
       await bench.run();
+      for (const task of bench.tasks) expect(task.result?.state).toBe('completed');
       logTask(bench);
     }, 60_000);
   }
