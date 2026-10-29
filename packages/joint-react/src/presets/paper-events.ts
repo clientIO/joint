@@ -101,14 +101,14 @@ type MagnetEventParams = WithPointer<ElementEventParams> & {
 /** Paper-edge hover payload (`paper:mouseenter` / `paper:mouseleave`). */
 type PaperHoverEventParams = BaseContext & { readonly event: dia.Event };
 
-/** Paper-level pan payload — `paper:pan` from touchpad / wheel pan. */
+/** Paper-level pan payload — `paper:pan` from a wheel / touchpad scroll or a two-finger touch pan. `deltaX` / `deltaY` follow the wheel sign convention. */
 type PaperPanEventParams = BaseContext & {
   readonly event: dia.Event;
   readonly deltaX: number;
   readonly deltaY: number;
 };
 
-/** Paper-level pinch payload — `paper:pinch` from touchpad pinch gesture. */
+/** Paper-level pinch payload — `paper:pinch` from a touchpad pinch (`Ctrl`/`Cmd` + wheel) or a two-finger touch pinch. `scale` is relative to the previous event, `x` / `y` the gesture point in local coordinates. */
 type PaperPinchEventParams = BaseContext & {
   readonly event: dia.Event;
   readonly x: number;
@@ -405,8 +405,10 @@ export interface PaperEventHandlers {
   // paper-level hover (fires when pointer enters/leaves the paper host)
   readonly onPaperMouseEnter?: (params: PaperHoverEventParams) => void;
   readonly onPaperMouseLeave?: (params: PaperHoverEventParams) => void;
-  // paper-level touchpad
+  // paper-level touchpad and touchscreen gestures
+  /** A wheel / touchpad scroll or a two-finger touch pan (`paper:pan`): `deltaX` / `deltaY` in the wheel sign convention. */
   readonly onPaperPan?: (params: PaperPanEventParams) => void;
+  /** A touchpad pinch (`Ctrl`/`Cmd` + wheel) or a two-finger touch pinch (`paper:pinch`): a relative `scale` at the local point `x` / `y`. Subscribing lets the paper own the gesture, so a pinch over a node never presses it. */
   readonly onPaperPinch?: (params: PaperPinchEventParams) => void;
   // paper transforms
   readonly onTranslate?: (params: TranslateEventParams) => void;
