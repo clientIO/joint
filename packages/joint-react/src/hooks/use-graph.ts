@@ -13,6 +13,7 @@ import {
   type SetCellData,
 } from './use-cell-setters';
 import type { ArrayUpdate } from '../store/state-container';
+import type { LayerPatch, LayerRecord } from '../types/layer.types';
 import type {
   ElementJSONInit,
   LinkJSONInit,
@@ -160,6 +161,21 @@ export interface GraphApi<
    * {@link Transaction}.
    */
   readonly transaction: Transaction;
+  /**
+   * Declare the layers, in paint order (index 0 at the bottom). Layers not yet
+   * in the graph are added, existing ones reordered and their attributes
+   * updated, and layers missing from the array removed once they hold no
+   * cells — a non-empty one is kept and a dev warning names its cells. The
+   * default `cells` layer is never removed: omit it and it stays at the bottom.
+   * Accepts an array or an updater receiving the current ordered layers:
+   * `setLayers((previous) => [...previous].reverse())`.
+   */
+  readonly setLayers: (layers: ArrayUpdate<LayerRecord>) => void;
+  /**
+   * Merge attributes into one layer, adding it (at the top) when it does not
+   * exist yet. `setLayer('notes', { visible: false })` hides a layer.
+   */
+  readonly setLayer: (id: string, patch: LayerPatch) => void;
 }
 
 /**
@@ -266,6 +282,18 @@ export function useGraph<
     [graph]
   );
 
+  // Not `useLayers()`/`useLayer()`: those subscribe, and a value only read
+  // inside a callback must not re-render every `useGraph()` consumer.
+  const setLayers = useCallback<GraphApi<Element, Link>['setLayers']>(
+    (layers) => store.applyLayers(layers),
+    [store]
+  );
+
+  const setLayer = useCallback<GraphApi<Element, Link>['setLayer']>(
+    (id, patch) => store.applyLayer(id, patch),
+    [store]
+  );
+
   return useMemo(
     () => ({
       graph,
@@ -280,6 +308,8 @@ export function useGraph<
       exportToJSON,
       importFromJSON,
       transaction,
+      setLayers,
+      setLayer,
     }),
     [
       graph,
@@ -293,6 +323,8 @@ export function useGraph<
       exportToJSON,
       importFromJSON,
       transaction,
+      setLayers,
+      setLayer,
     ]
   );
 }

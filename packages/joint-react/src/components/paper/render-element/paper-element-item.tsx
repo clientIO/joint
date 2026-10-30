@@ -1,6 +1,7 @@
 import {
   useLayoutEffect,
   useMemo,
+  useRef,
   type ComponentType,
   type CSSProperties,
 } from 'react';
@@ -91,6 +92,25 @@ function HTMLElementItemComponent(props: ElementItemProps) {
   // Subscribe to the whole element record (missing-tolerant — the portal can
   // mount before the record lands in the store, and briefly after removal).
   const element = useCells<ElementRecord>(id, (cell) => cell);
+  const graphStore = useGraphStore();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const layerId = element?.layer;
+
+  useLayoutEffect(() => {
+    const { layers } = graphStore.graphProjection;
+    // HTML portals live outside the SVG layer group. Mirror its visibility
+    // without rendering user content again or detaching its measurable DOM.
+    const syncVisibility = () => {
+      const wrapper = wrapperRef.current;
+      if (!wrapper) return;
+      const currentLayerId = layerId ?? graphStore.graph.getDefaultLayer().id;
+      const visibility = layers.getLayer(currentLayerId)?.visible === false ? 'hidden' : '';
+      if (wrapper.style.visibility !== visibility) wrapper.style.visibility = visibility;
+    };
+    const unsubscribe = layers.subscribe(syncVisibility);
+    syncVisibility();
+    return unsubscribe;
+  }, [graphStore, layerId, portalElement]);
 
   const x = element?.position?.x ?? 0;
   const y = element?.position?.y ?? 0;
@@ -119,7 +139,7 @@ function HTMLElementItemComponent(props: ElementItemProps) {
   const dataProps = element?.data ?? {};
 
   return createPortal(
-    <div model-id={id} style={style}>
+    <div ref={wrapperRef} model-id={id} style={style}>
       <RenderElement {...dataProps} />
     </div>,
     portalElement

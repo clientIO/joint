@@ -1,14 +1,23 @@
-import type { dia, mvc } from '@joint/core';
+import { config, dia, type mvc } from '@joint/core';
 import type { CellId } from '../types/cell.types';
 import type { PortalHostCell, PortalSelector, PaperViewOptions } from './paper.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import { Paper } from '../presets/paper';
 import { MEASURING_CLASS_NAME } from '../utils/class-names';
+import { LayerView } from './layer-view';
 export const CLEANUP_EVENT_NAME = 'cleanup';
 const noopViewMountChange = (): void => {
   // No-op default for onViewMountChange callback
 };
+
+/**
+ * Layer views `@joint/react` registers on every paper, keyed as joint-core
+ * resolves them (`<layer type>View`): plain graph layers, the default `cells`
+ * layer included, render through {@link LayerView}. A paper's own
+ * `layerViewNamespace` is merged on top.
+ */
+const DEFAULT_LAYER_VIEW_NAMESPACE = { GraphLayerView: LayerView };
 
 /** Well-known paper ID used when no explicit `id` is provided to `<Paper>`. */
 export const DEFAULT_PAPER_ID = 'default-paper';
@@ -62,11 +71,69 @@ export class PaperView extends Paper {
 
   constructor(options: PaperViewOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;
-    super(paperOptions);
+    super({
+      ...paperOptions,
+      layerViewNamespace: { ...DEFAULT_LAYER_VIEW_NAMESPACE, ...paperOptions.layerViewNamespace },
+    });
     this.id = id;
     this.onViewMountChange = onViewMountChange ?? noopViewMountChange;
     this.shouldPreserveHostElementOnRemove = !!paperOptions.el;
     this.portalSelector = portalSelector;
+    this.listenTo(this.model, 'layer:change:visible', this.onLayerVisibilityChange);
+  }
+
+  /**
+   * Honor registered graph layer views even for core's legacy default layer.
+   * Core otherwise selects its legacy view before consulting the namespace.
+   * @param options - Layer construction options supplied by the paper.
+   * @returns The registered graph layer view, or the core fallback.
+   */
+  protected createLayerView(options: Omit<dia.LayerView.Options, 'paper'>): dia.LayerView {
+    const { model }: { readonly model?: unknown } = options;
+    if (model instanceof dia.GraphLayer) {
+      const { id }: { readonly id?: unknown } = options;
+      if (typeof id !== 'string') return super.createLayerView(options);
+      const namespace: Record<string, typeof dia.LayerView> = this.options.layerViewNamespace ?? {};
+      const type = `${model.get('type') || model.constructor.name}View`;
+      const View = namespace[type];
+      if (View) {
+        const view = new View({ ...options, id, paper: this });
+        // Keep the default group's existing CSS compatibility name while
+        // honoring its registered constructor instead of core's legacy one.
+        if (model === this.model.getDefaultLayer()) {
+          view.el.classList.add(`${config.classNamePrefix}viewport`);
+        }
+        return view;
+      }
+    }
+    return super.createLayerView(options);
+  }
+
+  /**
+   * A dedicated labels layer sits outside a link's own graph layer, so mirror
+   * its visibility on the detached label container without hiding other links.
+   * @param view - The link whose labels were mounted or updated.
+   */
+  private updateDetachedLabelVisibility(view: dia.LinkView): void {
+    if (!view.options.labelsLayer) return;
+    const labels = view.findLabelNode(0)?.parentElement;
+    if (!labels) return;
+    const layer = this.model.getLayer(this.model.getCellLayerId(view.model));
+    const visibility = layer.get('visible') === false ? 'hidden' : '';
+    if (labels.style.visibility !== visibility) labels.style.visibility = visibility;
+  }
+
+  /**
+   * Refresh only the changed layer's links; graph layers index their own cells.
+   * @param layer - The layer whose paint visibility changed.
+   */
+  private onLayerVisibilityChange(layer: dia.GraphLayer): void {
+    if (!this.options.labelsLayer) return;
+    for (const cell of layer.getCells()) {
+      if (!cell.isLink()) continue;
+      const view = this.findViewByModel(cell);
+      if (view instanceof dia.LinkView) this.updateDetachedLabelVisibility(view);
+    }
   }
 
   /**
@@ -394,6 +461,9 @@ export class PaperView extends Paper {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateView(view: mvc.View<any, any>, flagIn: number, opt?: dia.Paper.UpdateViewOptions): number {
     const flagOut = super.updateView(view, flagIn, opt);
+    if (view instanceof dia.LinkView && this.isViewMounted(view)) {
+      this.updateDetachedLabelVisibility(view);
+    }
     if (flagIn & this.FLAG_MEASURE) {
       view.el.classList.remove(MEASURING_CLASS_NAME);
       return flagOut ^ (flagOut & this.FLAG_MEASURE);
