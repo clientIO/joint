@@ -39,8 +39,17 @@ export const toRad = function(deg, over360) {
 };
 
 // Return a random integer from the interval [min,max], inclusive.
-// `generator` returns numbers from the interval [0,1).
-export const random = function(min, max, generator = Math.random) {
+// `generator` returns numbers from the interval [0,1) and is always the last argument.
+export const random = function(min, max, generator) {
+
+    if (typeof min === 'function') {
+        generator = min;
+        min = undefined;
+    } else if (typeof max === 'function') {
+        generator = max;
+        max = undefined;
+    }
+    if (generator === undefined) generator = Math.random;
 
     if (max === undefined) {
         // use first argument as max, min is 0

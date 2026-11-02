@@ -21,6 +21,14 @@ QUnit.module('random(min, max, generator)', function() {
         assert.equal(g.random(undefined, undefined, max), 1, 'no interval');
     });
 
+    QUnit.test('takes the generator as the last argument', function(assert) {
+
+        const max = function() { return 0.9999999; };
+        assert.equal(g.random(max), 1, 'no interval');
+        assert.equal(g.random(5, max), 5, 'max only');
+        assert.equal(g.random(1, 6, max), 6, 'min and max');
+    });
+
     QUnit.test('returns the same sequence for generators with the same seed', function(assert) {
 
         const a = g.seededGenerator(3);

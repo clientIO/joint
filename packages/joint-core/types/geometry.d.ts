@@ -153,7 +153,17 @@ export function toDeg(rad: number): number;
 export function toRad(deg: number, over360?: boolean): number;
 
 /**
- * Returns a random integer from the interval `[min, max]`, inclusive (`[0, min]` with one argument, `[0, 1]` with none).
+ * Returns a random integer from the interval `[0, 1]`.
+ * @param generator A function returning numbers from the interval `[0, 1)`, e.g. `seededGenerator()`. Defaults to `Math.random`.
+ */
+export function random(generator?: () => number): number;
+/**
+ * Returns a random integer from the interval `[0, max]`, inclusive.
+ * @param generator A function returning numbers from the interval `[0, 1)`, e.g. `seededGenerator()`. Defaults to `Math.random`.
+ */
+export function random(max: number, generator?: () => number): number;
+/**
+ * Returns a random integer from the interval `[min, max]`, inclusive.
  * @param generator A function returning numbers from the interval `[0, 1)`, e.g. `seededGenerator()`. Defaults to `Math.random`.
  */
 export function random(min?: number, max?: number, generator?: () => number): number;
