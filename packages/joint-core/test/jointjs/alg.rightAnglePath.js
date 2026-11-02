@@ -765,7 +765,7 @@ QUnit.module('alg.rightAnglePath', function() {
         // A deterministic sweep, on a coarse grid so that equal coordinates -
         // where most of the algorithm's decisions are decided - come up often.
         function sweep(count) {
-            const random = g.seededGenerator(0x1234abcd);
+            const random = joint.util.createSeededRandom(0x1234abcd);
             function pick(values) {
                 return values[Math.floor(random() * values.length)];
             }

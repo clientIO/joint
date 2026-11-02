@@ -39,17 +39,7 @@ export const toRad = function(deg, over360) {
 };
 
 // Return a random integer from the interval [min,max], inclusive.
-// `generator` returns numbers from the interval [0,1) and is always the last argument.
-export const random = function(min, max, generator) {
-
-    if (typeof min === 'function') {
-        generator = min;
-        min = undefined;
-    } else if (typeof max === 'function') {
-        generator = max;
-        max = undefined;
-    }
-    if (generator === undefined) generator = Math.random;
+export const random = function(min, max) {
 
     if (max === undefined) {
         // use first argument as max, min is 0
@@ -63,19 +53,6 @@ export const random = function(min, max, generator) {
         max = temp;
     }
 
-    return floor((generator() * (max - min + 1)) + min);
-};
-
-// Return a function returning pseudo-random numbers from the interval [0,1),
-// the same sequence for the same `seed` (mulberry32).
-export const seededGenerator = function(seed) {
-
-    let state = seed >>> 0;
-    return function() {
-        state = (state + 0x6D2B79F5) >>> 0;
-        let t = Math.imul(state ^ (state >>> 15), state | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
+    return floor((Math.random() * (max - min + 1)) + min);
 };
 

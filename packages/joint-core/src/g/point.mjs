@@ -75,9 +75,9 @@ Point.fromPolar = function(distance, angle, origin) {
 };
 
 // Create a point with random coordinates that fall into the range `[x1, x2]` and `[y1, y2]`.
-Point.random = function(x1, x2, y1, y2, generator) {
+Point.random = function(x1, x2, y1, y2) {
 
-    return new Point(random(x1, x2, generator), random(y1, y2, generator));
+    return new Point(random(x1, x2), random(y1, y2));
 };
 
 Point.prototype = {
