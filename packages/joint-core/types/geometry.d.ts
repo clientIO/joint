@@ -152,7 +152,20 @@ export function toDeg(rad: number): number;
 
 export function toRad(deg: number, over360?: boolean): number;
 
-export function random(min?: number, max?: number): number;
+/**
+ * Returns a random integer from the interval `[min, max]`, inclusive (`[0, min]` with one argument, `[0, 1]` with none).
+ * @param generator A function returning numbers from the interval `[0, 1)`, e.g. `seededGenerator()`. Defaults to `Math.random`.
+ */
+export function random(min?: number, max?: number, generator?: () => number): number;
+
+/**
+ * Returns a function returning pseudo-random numbers from the interval `[0, 1)`,
+ * the same sequence for the same `seed`, e.g. for the `generator` argument of `random()` and `Point.random()`.
+ * - The seed is converted to an unsigned 32-bit integer: `1.5` gives the same sequence as `1`, `-1` the same as `4294967295`, and a seed which is not a number (e.g. `NaN`) the same as `0`.
+ * - The sequence of a seed stays the same within a major version.
+ * - It is not cryptographically secure.
+ */
+export function seededGenerator(seed: number): () => number;
 
 export interface SkeletonPoints {
     startControlPoint1: Point;
@@ -552,7 +565,7 @@ export class Point implements PlainPoint {
 
     static fromPolar(distance: number, angle: number, origin?: PointInit): Point;
 
-    static random(x1: number, x2: number, y1: number, y2: number): Point;
+    static random(x1: number, x2: number, y1: number, y2: number, generator?: () => number): Point;
 }
 export abstract class PolygonalChain {
 

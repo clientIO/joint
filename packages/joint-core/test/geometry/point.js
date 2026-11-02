@@ -23,8 +23,29 @@ QUnit.module('point', function() {
         // TODO: implement
     });
 
-    QUnit.module('random(x1, x2, y1, y2)', function() {
-        // TODO: implement
+    QUnit.module('random(x1, x2, y1, y2, generator)', function() {
+
+        QUnit.test('returns a point with coordinates from the intervals', function(assert) {
+            for (let i = 0; i < 100; i++) {
+                const point = g.Point.random(0, 10, 100, 200);
+                assert.ok(point instanceof g.Point);
+                assert.ok(point.x >= 0 && point.x <= 10 && point.y >= 100 && point.y <= 200, point.toString());
+            }
+        });
+
+        QUnit.test('uses the generator for x, then for y', function(assert) {
+            const values = [0, 0.9999999];
+            const generator = function() { return values.shift(); };
+            assert.deepEqual(g.Point.random(0, 10, 100, 200, generator).toJSON(), { x: 0, y: 200 });
+        });
+
+        QUnit.test('returns the same points for generators with the same seed', function(assert) {
+            const a = g.seededGenerator(5);
+            const b = g.seededGenerator(5);
+            for (let i = 0; i < 20; i++) {
+                assert.ok(g.Point.random(0, 100, 0, 100, a).equals(g.Point.random(0, 100, 0, 100, b)));
+            }
+        });
     });
 
     QUnit.module('prototype', function() {
