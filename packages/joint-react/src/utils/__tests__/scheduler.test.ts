@@ -5,6 +5,11 @@ async function flushScheduler(): Promise<void> {
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
 }
 
+/** Lets the scheduler's queued microtask flush run, without any timer. */
+function flushMicrotasks(): Promise<void> {
+  return Promise.resolve();
+}
+
 describe('createScheduler', () => {
   it('batches multiple schedule calls into a single flush', async () => {
     const scheduler = createScheduler();
@@ -94,5 +99,33 @@ describe('createScheduler', () => {
     await flushScheduler();
 
     expect(calls).toEqual(['batch-1', 'batch-2']);
+  });
+
+  // Regression: a throwing callback left the scheduler marked as flushing, so
+  // every later callback was queued forever — for every store on the page.
+  it('keeps flushing after a callback throws and rethrows the error later', async () => {
+    const scheduler = createScheduler();
+    const error = new Error('callback failed');
+    const calls: string[] = [];
+    const deferred: Array<() => void> = [];
+    const setTimeoutSpy = jest
+      .spyOn(globalThis, 'setTimeout')
+      .mockImplementation(((handler: () => void) => {
+        deferred.push(handler);
+        return 0;
+      }) as unknown as typeof setTimeout);
+
+    scheduler(() => {
+      throw error;
+    });
+    scheduler(() => calls.push('same-pass'));
+    await flushMicrotasks();
+    scheduler(() => calls.push('next-pass'));
+    await flushMicrotasks();
+    setTimeoutSpy.mockRestore();
+
+    expect(calls).toEqual(['same-pass', 'next-pass']);
+    expect(deferred).toHaveLength(1);
+    expect(deferred[0]).toThrow(error);
   });
 });

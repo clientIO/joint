@@ -14,7 +14,9 @@ export function rethrowLater(error: unknown): void {
  *
  * Cascading callbacks (added during flush) are processed in the SAME
  * microtask so that all listener notifications land in a single React
- * batch update instead of triggering separate re-render cycles.
+ * batch update instead of triggering separate re-render cycles. A callback
+ * that throws does not stop the flush: its error is rethrown on a later task
+ * (see {@link rethrowLater}).
  * @returns A function that queues callbacks for batched execution.
  */
 export function createScheduler(): (callback: () => void) => void {
@@ -32,7 +34,14 @@ export function createScheduler(): (callback: () => void) => void {
       const pending = callbacks;
       callbacks = new Set();
       for (const callback of pending) {
-        callback();
+        // One throwing callback must not leave the scheduler marked as
+        // flushing (nothing would ever flush again) or drop the rest of the
+        // pass. The error still surfaces, on a later task.
+        try {
+          callback();
+        } catch (error) {
+          rethrowLater(error);
+        }
       }
     }
 
