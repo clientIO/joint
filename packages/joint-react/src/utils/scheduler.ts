@@ -16,7 +16,9 @@ export function rethrowLater(error: unknown): void {
  * microtask so that all listener notifications land in a single React
  * batch update instead of triggering separate re-render cycles. A callback
  * that throws does not stop the flush: its error is rethrown on a later task
- * (see {@link rethrowLater}).
+ * (see {@link rethrowLater}), and the callbacks queued during that pass run
+ * on a later task too, so one that keeps re-scheduling itself and throwing
+ * cannot hold this microtask forever.
  * @returns A function that queues callbacks for batched execution.
  */
 export function createScheduler(): (callback: () => void) => void {
@@ -27,10 +29,11 @@ export function createScheduler(): (callback: () => void) => void {
   const flush = (): void => {
     scheduled = false;
     flushing = true;
+    let hasFailed = false;
 
     // Process cascading callbacks in the same flush so React sees
     // all store changes as a single batched update.
-    while (callbacks.size > 0) {
+    while (callbacks.size > 0 && !hasFailed) {
       const pending = callbacks;
       callbacks = new Set();
       for (const callback of pending) {
@@ -40,12 +43,16 @@ export function createScheduler(): (callback: () => void) => void {
         try {
           callback();
         } catch (error) {
+          hasFailed = true;
           rethrowLater(error);
         }
       }
     }
 
     flushing = false;
+    if (callbacks.size === 0) return;
+    scheduled = true;
+    setTimeout(flush);
   };
 
   return (callback: () => void): void => {

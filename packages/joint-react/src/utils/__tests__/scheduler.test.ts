@@ -128,4 +128,30 @@ describe('createScheduler', () => {
     expect(deferred).toHaveLength(1);
     expect(deferred[0]).toThrow(error);
   });
+
+  it('runs callbacks queued by a failing pass on a later task, not in the same microtask', async () => {
+    const scheduler = createScheduler();
+    const deferred: Array<() => void> = [];
+    const setTimeoutSpy = jest
+      .spyOn(globalThis, 'setTimeout')
+      .mockImplementation(((handler: () => void) => {
+        deferred.push(handler);
+        return 0;
+      }) as unknown as typeof setTimeout);
+    let runs = 0;
+    const failAndReschedule = () => {
+      runs += 1;
+      scheduler(failAndReschedule);
+      throw new Error('keeps failing');
+    };
+
+    scheduler(failAndReschedule);
+    await flushMicrotasks();
+    await flushMicrotasks();
+    setTimeoutSpy.mockRestore();
+
+    // One run per task: the rethrow and the next flush are both on a timer.
+    expect(runs).toBe(1);
+    expect(deferred).toHaveLength(2);
+  });
 });
