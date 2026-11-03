@@ -6,6 +6,8 @@ import { isRecord } from '../utils/is';
 
 /** `type` joint-core gives a plain layer — read from core, not restated — and left out of records. */
 const DEFAULT_GRAPH_LAYER_TYPE: unknown = dia.GraphLayer.prototype.defaults().type;
+/** {@link DEFAULT_GRAPH_LAYER_TYPE} as a namespace key, for constructing a plain layer. */
+const DEFAULT_LAYER_TYPE = String(DEFAULT_GRAPH_LAYER_TYPE);
 
 /** Keys that identify or describe a layer's role rather than its attributes — never written back. */
 const RESERVED_KEYS = new Set(['id', 'type', 'isDefault']);
@@ -84,25 +86,32 @@ export function readLayerRecords(
   return next ?? previous;
 }
 
+/** A `dia.GraphLayer` constructor registered in a graph's `layerNamespace`. */
+type GraphLayerConstructor = new (
+  attributes: dia.GraphLayer.Attributes,
+  options?: Record<string, unknown>
+) => dia.GraphLayer;
+
 /**
- * Whether the graph can construct a layer of `type` — the constructor is
- * registered in its `layerNamespace` (a dotted path, like a cell type).
+ * The `dia.GraphLayer` constructor registered in the graph's `layerNamespace`
+ * under `type` (a dotted path, like a cell type), or `undefined` when there is
+ * none.
  * @param graph - The graph whose namespace is consulted.
  * @param type - The layer `type` attribute.
  */
-function isRegisteredLayerType(graph: dia.Graph, type: string): boolean {
+function resolveLayerConstructor(graph: dia.Graph, type: string): GraphLayerConstructor | undefined {
   // Own keys only: `util.getByPath` also walks the prototype chain, so a type
   // such as `constructor` or `toString` would pass here and then fail inside
   // joint-core, halfway through the apply.
   let current: unknown = graph.layerCollection.layerNamespace;
   for (const key of type.split('.')) {
-    if (!isRecord(current) || !Object.hasOwn(current, key)) return false;
+    if (!isRecord(current) || !Object.hasOwn(current, key)) return undefined;
     current = current[key];
   }
-  return (
+  const isGraphLayerConstructor =
     typeof current === 'function' &&
-    (current === dia.GraphLayer || current.prototype instanceof dia.GraphLayer)
-  );
+    (current === dia.GraphLayer || current.prototype instanceof dia.GraphLayer);
+  return isGraphLayerConstructor ? (current as GraphLayerConstructor) : undefined;
 }
 
 /**
@@ -129,7 +138,7 @@ export function assertLayerRecords(graph: dia.Graph, layers: readonly LayerRecor
         `GraphProvider: layer "${id}" has a non-string type. Omit it or provide a layer type string.`
       );
     }
-    if (typeof type === 'string' && !isRegisteredLayerType(graph, type)) {
+    if (typeof type === 'string' && !resolveLayerConstructor(graph, type)) {
       throw new Error(
         `GraphProvider: layer "${id}" has type "${type}", which is not in the graph's \`layerNamespace\`.`
       );
@@ -141,6 +150,42 @@ export function assertLayerRecords(graph: dia.Graph, layers: readonly LayerRecor
       );
     }
   }
+}
+
+/**
+ * A record as `dia.Graph.addLayer()` input: `isDefault` is derived from the
+ * graph, never an attribute to store.
+ * @param record - The declared layer.
+ */
+function toLayerInit(record: LayerRecord): dia.GraphLayer.Attributes {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { isDefault, ...layerInit } = record;
+  return layerInit;
+}
+
+/**
+ * Constructs the declared layers the graph does not have yet, without adding
+ * them. Runs before the React-origin batch opens: a throwing layer constructor
+ * then fails the apply before any write, so the graph and its batches stay
+ * untouched. Call {@link assertLayerRecords} first.
+ * @param graph - The target graph.
+ * @param layers - The declared layers.
+ * @returns The new layer models by id, for {@link reconcileLayers} to add.
+ * @internal
+ */
+export function createMissingLayers(
+  graph: dia.Graph,
+  layers: readonly LayerRecord[]
+): ReadonlyMap<string, dia.GraphLayer> {
+  const created = new Map<string, dia.GraphLayer>();
+  for (const record of layers) {
+    if (graph.hasLayer(record.id)) continue;
+    const attributes = toLayerInit(record);
+    const type = typeof attributes.type === 'string' ? attributes.type : DEFAULT_LAYER_TYPE;
+    const LayerConstructor = resolveLayerConstructor(graph, type) ?? dia.GraphLayer;
+    created.set(record.id, new LayerConstructor({ ...attributes, type }));
+  }
+  return created;
 }
 
 /**
@@ -156,12 +201,15 @@ export function assertLayerRecords(graph: dia.Graph, layers: readonly LayerRecor
  * @param graph - The graph to reconcile.
  * @param next - Declared layers in paint order.
  * @param options - Forwarded into every graph event this raises (tag React writes here).
+ * @param createdLayers - Layers built ahead by {@link createMissingLayers};
+ *   missing layers are constructed here otherwise.
  * @internal
  */
 export function reconcileLayers(
   graph: dia.Graph,
   next: readonly LayerRecord[],
-  options: Record<string, unknown> = {}
+  options: Record<string, unknown> = {},
+  createdLayers: ReadonlyMap<string, dia.GraphLayer> = createMissingLayers(graph, next)
 ): void {
   const defaultId = graph.getDefaultLayer().id;
   const declaredDefault = next.find((record) => record.id === defaultId);
@@ -171,10 +219,9 @@ export function reconcileLayers(
     if (graph.hasLayer(record.id)) {
       updateLayerAttributes(graph.getLayer(record.id), record, options);
     } else {
-      // `isDefault` is derived from the graph, never an attribute to store.
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { isDefault, ...layerInit } = record;
-      graph.addLayer(layerInit, options);
+      // A listener may have removed a layer that existed when the new ones
+      // were built; it is then added from its record, as joint-core builds it.
+      graph.addLayer(createdLayers.get(record.id) ?? toLayerInit(record), options);
       graphsWithDeclaredLayers.add(graph);
     }
   }

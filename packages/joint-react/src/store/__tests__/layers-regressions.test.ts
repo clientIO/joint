@@ -88,7 +88,7 @@ it('rejects registered constructors that are not GraphLayer subclasses before an
   }
 });
 
-it('closes the React-origin batch when a registered GraphLayer constructor throws', async () => {
+it('opens no React-origin batch when a registered GraphLayer constructor throws', async () => {
   class ThrowingLayer extends dia.GraphLayer {
     constructor(...args: ConstructorParameters<typeof dia.GraphLayer>) {
       super(...args);
@@ -96,17 +96,15 @@ it('closes the React-origin batch when a registered GraphLayer constructor throw
     }
   }
   const store = new GraphStore({ layerNamespace: { ThrowingLayer } });
-  const stopBatch = jest.spyOn(store.graph, 'stopBatch');
+  const startBatch = jest.spyOn(store.graph, 'startBatch');
   try {
     expect(() => store.applyLayers([{ id: 'bad', type: 'ThrowingLayer' }])).toThrow(
       'layer construction failed'
     );
 
     expect(store.graph.hasActiveBatch('updateFromReact')).toBe(false);
-    expect(stopBatch).toHaveBeenCalledWith(
-      'updateFromReact',
-      expect.objectContaining({ isUpdateFromReact: true })
-    );
+    expect(startBatch).not.toHaveBeenCalled();
+    expect(store.graph.hasLayer('bad')).toBe(false);
 
     store.applyLayers([{ id: 'after' }]);
     store.graph.addCell(element('recovered', 'after'));

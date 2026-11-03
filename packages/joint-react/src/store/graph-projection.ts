@@ -26,6 +26,25 @@ interface LayersStore {
   readonly getLayer: (id: string) => LayerRecord | undefined;
   /** Subscribe to any layer change. */
   readonly subscribe: (listener: () => void) => () => void;
+  /**
+   * Subscribe to layer changes GraphProvider's controlled sync did not make:
+   * graph edits and the imperative setters. Fires after the
+   * {@link LayersStore.subscribe} listeners.
+   */
+  readonly subscribeToOutsideChanges: (listener: () => void) => () => void;
+}
+
+/**
+ * Adds `listener` to `listeners`.
+ * @param listeners - The listener set.
+ * @param listener - The listener to add.
+ * @returns A function removing it again.
+ */
+function addListener(listeners: Set<() => void>, listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 /**
@@ -85,13 +104,20 @@ export function graphProjection<
 
   let layersSnapshot: readonly LayerRecord[] = readLayerRecords(graph, EMPTY_LAYERS);
   const layerListeners = new Set<() => void>();
+  const outsideLayerListeners = new Set<() => void>();
 
-  /** Re-read the layer list; notifies only when something actually changed. */
-  function syncLayersFromGraph(): void {
+  /**
+   * Re-read the layer list; notifies only when something actually changed.
+   * @param isOutsideChange - Whether GraphProvider's controlled sync did not
+   *   make the change, so its outside-change listeners hear about it too.
+   */
+  function syncLayersFromGraph(isOutsideChange = false): void {
     const next = readLayerRecords(graph, layersSnapshot);
     if (next === layersSnapshot) return;
     layersSnapshot = next;
     for (const listener of layerListeners) listener();
+    if (!isOutsideChange) return;
+    for (const listener of outsideLayerListeners) listener();
   }
 
   const layers: LayersStore = {
@@ -105,12 +131,8 @@ export function graphProjection<
       }
       return index.get(id);
     },
-    subscribe(listener) {
-      layerListeners.add(listener);
-      return () => {
-        layerListeners.delete(listener);
-      };
-    },
+    subscribe: (listener) => addListener(layerListeners, listener),
+    subscribeToOutsideChanges: (listener) => addListener(outsideLayerListeners, listener),
   };
 
   // Pending container change set — accumulates across deferred commits (a
@@ -176,7 +198,7 @@ export function graphProjection<
 
   const graphChangesController = graphChanges({
     graph,
-    onLayersChange: syncLayersFromGraph,
+    onLayersChange: () => syncLayersFromGraph(true),
     onChanges: ({ changes, isInsideBatch, deferCommit, isReset }) => {
       // Elements removed in this batch — swept once after the loop for link
       // records they may have stranded.
@@ -333,13 +355,10 @@ export function graphProjection<
     syncFromGraph,
     syncLayersFromGraph,
     updateGraph(update: UpdateGraphOptions<Element, Link>) {
-      let cellIds: readonly CellId[];
-      try {
-        ({ cellIds } = graphChangesController.updateGraph(update));
-      } finally {
-        // Tagged layer writes are not echoed by graphChanges. A user layer
-        // constructor may throw after earlier writes; publish the actual state.
-        if (update.flag === 'updateFromReact' && update.layers) syncLayersFromGraph();
+      const { cellIds, hasRemovedPendingLayer } = graphChangesController.updateGraph(update);
+      // Tagged layer writes are not echoed by graphChanges, so read them here.
+      if (update.flag === 'updateFromReact' && (update.layers || hasRemovedPendingLayer)) {
+        syncLayersFromGraph(!update.isControlledSync);
       }
       if (update.flag !== 'updateFromReact') return;
       if (!update.cells) return;

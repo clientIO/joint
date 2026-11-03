@@ -4,7 +4,13 @@ import { simpleScheduler } from '../utils/scheduler';
 import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types';
 import { mapCellToAttributes } from '../state/data-mapping';
 import type { LayerRecord } from '../types/layer.types';
-import { assertLayerRecords, reconcileLayers, removeEmptyLayers, retryEmptyLayerRemovals } from './layers';
+import {
+  assertLayerRecords,
+  createMissingLayers,
+  reconcileLayers,
+  removeEmptyLayers,
+  retryEmptyLayerRemovals,
+} from './layers';
 import { isRecord } from '../utils/is';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
@@ -43,6 +49,11 @@ export interface UpdateGraphOptions<
    */
   readonly layers?: readonly LayerRecord[];
   readonly flag?: 'updateFromReact';
+  /**
+   * Whether this is GraphProvider's controlled sync, whose layer writes are
+   * the parent's own declaration rather than an outside change.
+   */
+  readonly isControlledSync?: boolean;
   /** Extra options forwarded verbatim into the `graph.syncCells` event opt. */
   readonly metadata?: Record<string, unknown>;
 }
@@ -54,6 +65,8 @@ export interface UpdateGraphOptions<
 export interface UpdateGraphResult {
   /** Empty when no `cells` were provided in the update. */
   readonly cellIds: readonly CellId[];
+  /** Whether a layer kept by an earlier declaration was pruned by this update. */
+  readonly hasRemovedPendingLayer: boolean;
 }
 
 interface OnChangeOptions {
@@ -142,22 +155,18 @@ export function graphChanges(options: Options) {
     if (isDestroyed || isInsideBatch() || pendingLayerRemovals.size === 0) return;
     const pending = pendingLayerRemovals;
     const isCurrent = () => !isDestroyed && pendingLayerRemovals === pending;
-    let batchStarted = false;
-    let removed = false;
-    try {
-      removed = retryEmptyLayerRemovals(
-        graph,
-        pending,
-        pendingRemovalOptions,
-        () => {
-          graph.startBatch('updateFromReact', pendingRemovalOptions);
-          batchStarted = true;
-        },
-        isCurrent
-      );
-    } finally {
-      if (batchStarted) graph.stopBatch('updateFromReact', pendingRemovalOptions);
-    }
+    let isBatchStarted = false;
+    const removed = retryEmptyLayerRemovals(
+      graph,
+      pending,
+      pendingRemovalOptions,
+      () => {
+        graph.startBatch('updateFromReact', pendingRemovalOptions);
+        isBatchStarted = true;
+      },
+      isCurrent
+    );
+    if (isBatchStarted) graph.stopBatch('updateFromReact', pendingRemovalOptions);
     if (removed && !isDestroyed) onLayersChange?.();
   };
 
@@ -370,9 +379,11 @@ export function graphChanges(options: Options) {
       // Reject before any batch opens: joint-core throws on an invalid layer
       // record and on a cell naming a layer that does not exist, and a throw
       // inside the batch would leave the graph reported as "inside a batch" for
-      // every later change.
+      // every later change. New layers are constructed here too, so a throwing
+      // layer constructor also fails before any write.
       if (layers) assertLayerRecords(graph, layers);
       if (cells) assertLayersExist(graph, cells, layers);
+      const createdLayers = layers ? createMissingLayers(graph, layers) : undefined;
 
       // A valid declaration owns pruning before any public mutation event.
       // Nested declarations replace this identity; invalid input never does.
@@ -383,25 +394,20 @@ export function graphChanges(options: Options) {
         : undefined;
 
       graph.startBatch('updateFromReact', syncOptions);
-      let removedPendingLayer = false;
-      try {
-        // Layers first: a cell may name a layer declared in this same commit.
-        if (layers) reconcileLayers(graph, layers, syncOptions);
-        const cellIds = syncCellsFromReact(cells, syncOptions);
-        // Layers last: joint-core refuses to remove a non-empty layer, so prune
-        // only after the cells that left it are gone.
-        removedPendingLayer = pruneLayersAfterSync(
-          layers,
-          Boolean(cells),
-          pending,
-          isCurrent,
-          syncOptions
-        );
-        return { cellIds };
-      } finally {
-        graph.stopBatch('updateFromReact', syncOptions);
-        if (removedPendingLayer && !isDestroyed) onLayersChange?.();
-      }
+      // Layers first: a cell may name a layer declared in this same commit.
+      if (layers) reconcileLayers(graph, layers, syncOptions, createdLayers);
+      const cellIds = syncCellsFromReact(cells, syncOptions);
+      // Layers last: joint-core refuses to remove a non-empty layer, so prune
+      // only after the cells that left it are gone.
+      const hasRemovedPendingLayer = pruneLayersAfterSync(
+        layers,
+        Boolean(cells),
+        pending,
+        isCurrent,
+        syncOptions
+      );
+      graph.stopBatch('updateFromReact', syncOptions);
+      return { cellIds, hasRemovedPendingLayer };
     },
   };
 }

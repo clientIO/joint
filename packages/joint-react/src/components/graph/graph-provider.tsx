@@ -177,9 +177,6 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
   const hasControlledLayers = !!layers;
   const onLayersChangeRef = useLatestRef(onLayersChange);
   const layersRef = useLatestRef(layers);
-  // Set for the duration of a React-origin layers apply so the subscription
-  // below can tell an echo from a graph-origin change.
-  const isApplyingLayersRef = useRef(false);
   const lastAppliedCellsRef = useRef<typeof cells>(undefined);
   // Layers are re-reconciled only when their reference changes, so a drag frame
   // in controlled mode does zero layer work. Cleared on a graph-origin change so
@@ -213,23 +210,17 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
           });
         // Subscribe before the ready render exposes children: their layout effects
         // run before this provider's effects and may already change the layers.
-        const { applyLayers, graphProjection } = graphStore;
+        const { syncControlled, graphProjection } = graphStore;
         let isActive = true;
         // One closure per ownership lifetime lets the scheduler dedupe a burst.
         const revert = () => {
           const controlledLayers = layersRef.current;
           if (!isActive || !controlledLayers) return;
-          isApplyingLayersRef.current = true;
-          try {
-            applyLayers(controlledLayers);
-            lastAppliedLayersRef.current = controlledLayers;
-          } finally {
-            isApplyingLayersRef.current = false;
-          }
+          syncControlled(undefined, controlledLayers);
+          lastAppliedLayersRef.current = controlledLayers;
         };
-        const unsubscribeLayers = graphProjection.layers.subscribe(() => {
-          // Parent-origin applies are echoes, not changes to report or revert.
-          if (isApplyingLayersRef.current) return;
+        // The parent's own controlled sync is not echoed here.
+        const unsubscribeLayers = graphProjection.layers.subscribeToOutsideChanges(() => {
           lastAppliedLayersRef.current = undefined;
           const handler = onLayersChangeRef.current;
           if (handler) {
@@ -264,7 +255,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     // destroyed one (its state lands next render) while `ref` already holds the
     // new one: skip, the re-render wires the live store.
     if (!instance || instance !== ref.current) return;
-    const { setOnIncrementalCellsChange, applyControlled, applyLayers, graphProjection } = instance;
+    const { setOnIncrementalCellsChange, syncControlled, graphProjection } = instance;
     // A re-created store has seen none of the controlled arrays: re-seed it in full.
     if (appliedStoreRef.current !== instance) {
       appliedStoreRef.current = instance;
@@ -281,12 +272,10 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
         return;
       }
       if (isControlled) {
-        // Same React-origin apply as the effect below: guarded so the parent's
-        // own layers do not echo, and recorded so the next commit skips them.
+        // Same React-origin apply as the effect below, recorded so the next
+        // commit skips the layers.
         const nextLayers = layersToApply();
-        isApplyingLayersRef.current = true;
-        applyControlled(cells, undefined, nextLayers);
-        isApplyingLayersRef.current = false;
+        syncControlled(cells, nextLayers);
         if (nextLayers) lastAppliedLayersRef.current = nextLayers;
       }
     });
@@ -297,13 +286,11 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     // left a layer, so a layers-only change skips the O(n) cells diff.
     if (isControlled) {
       const nextLayers = layersToApply();
-      isApplyingLayersRef.current = true;
       if (cells === lastAppliedCellsRef.current) {
-        if (nextLayers) applyLayers(nextLayers);
+        if (nextLayers) syncControlled(undefined, nextLayers);
       } else {
-        applyControlled(cells ?? [], undefined, nextLayers);
+        syncControlled(cells ?? [], nextLayers);
       }
-      isApplyingLayersRef.current = false;
       lastAppliedCellsRef.current = cells;
       lastAppliedLayersRef.current = layers;
     }
@@ -321,9 +308,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
   // With uncontrolled cells nothing else applies controlled layers, so do it here.
   useLayoutEffect(() => {
     if (!instance || instance !== ref.current || isControlled || !hasControlledLayers) return;
-    isApplyingLayersRef.current = true;
-    instance.applyLayers(layers);
-    isApplyingLayersRef.current = false;
+    instance.syncControlled(undefined, layers);
     lastAppliedLayersRef.current = layers;
   }, [instance, ref, isControlled, hasControlledLayers, layers]);
 

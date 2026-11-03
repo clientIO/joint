@@ -15,7 +15,7 @@ const DEFAULT_ATTRIBUTES: readonly LayerRecord[] = [
   { id: 'cells', enabled: false, label: 'Main diagram' },
 ];
 
-it('publishes successful partial layer writes when a later valid constructor throws', () => {
+it('writes nothing when a later valid constructor throws', () => {
   class ThrowingLayer extends dia.GraphLayer {
     constructor(...args: ConstructorParameters<typeof dia.GraphLayer>) {
       super(...args);
@@ -25,17 +25,19 @@ it('publishes successful partial layer writes when a later valid constructor thr
   const store = new GraphStore({ layerNamespace: { ThrowingLayer } });
   const onLayers = jest.fn();
   const unsubscribe = store.graphProjection.layers.subscribe(onLayers);
+  const startBatch = jest.spyOn(store.graph, 'startBatch');
+  const before = store.graph.toJSON();
   try {
     expect(() => store.applyLayers([
-      { id: 'good', label: 'created before failure' },
+      { id: 'good', label: 'declared before the failing one' },
       { id: 'bad', type: 'ThrowingLayer' },
     ])).toThrow('later constructor failed');
 
-    expect(store.graph.hasLayer('good')).toBe(true);
-    expect(store.graphProjection.layers.getLayer('good')).toMatchObject({
-      id: 'good', label: 'created before failure',
-    });
-    expect(onLayers).toHaveBeenCalledTimes(1);
+    expect(startBatch).not.toHaveBeenCalled();
+    expect(store.graph.toJSON()).toEqual(before);
+    expect(store.graph.hasLayer('good')).toBe(false);
+    expect(store.graphProjection.layers.getLayer('good')).toBeUndefined();
+    expect(onLayers).not.toHaveBeenCalled();
     expect(store.graph.hasActiveBatch()).toBe(false);
   } finally {
     unsubscribe();
@@ -266,6 +268,33 @@ it('preserves an existing pending removal when a new declaration fails prevalida
     expect(store.graphProjection.layers.getLayer('notes')).toBeUndefined();
   } finally {
     warn.mockRestore();
+    store.destroy(false);
+  }
+});
+
+it('still reports outside layer changes after a controlled sync throws', () => {
+  class ThrowingLayer extends dia.GraphLayer {
+    constructor(...args: ConstructorParameters<typeof dia.GraphLayer>) {
+      super(...args);
+      throw new Error('controlled constructor failed');
+    }
+  }
+  const store = new GraphStore({ layerNamespace: { ThrowingLayer } });
+  const onOutsideChange = jest.fn();
+  const unsubscribe = store.graphProjection.layers.subscribeToOutsideChanges(onOutsideChange);
+  try {
+    expect(() => store.syncControlled(undefined, [{ id: 'bad', type: 'ThrowingLayer' }])).toThrow(
+      'controlled constructor failed'
+    );
+    store.syncControlled(undefined, [{ id: 'declared' }]);
+    expect(onOutsideChange).not.toHaveBeenCalled();
+
+    store.graph.addLayer({ id: 'graph-origin' });
+    expect(onOutsideChange).toHaveBeenCalledTimes(1);
+    store.applyLayer('graph-origin', { name: 'Imperative' });
+    expect(onOutsideChange).toHaveBeenCalledTimes(2);
+  } finally {
+    unsubscribe();
     store.destroy(false);
   }
 });

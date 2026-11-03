@@ -172,21 +172,33 @@ export class GraphStore<
    * with the react-origin flag set.
    * @param cells - new cells snapshot from the parent
    * @param metadata - extra options forwarded to the underlying `graph.syncCells` opt
-   * @param layers - controlled layers, applied in the same commit: added before
-   *   the cells (a cell may name a new layer) and pruned after them (a layer
-   *   emptied by this sync is removed now, not next time)
    */
   public applyControlled = (
     cells: ReadonlyArray<Element | Link>,
-    metadata?: Record<string, unknown>,
-    layers?: readonly LayerRecord[]
+    metadata?: Record<string, unknown>
   ) => {
-    this.graphProjection.updateGraph({ cells, layers, flag: 'updateFromReact', metadata });
+    this.graphProjection.updateGraph({ cells, flag: 'updateFromReact', metadata });
   };
 
   /**
-   * Apply a layers snapshot from React (the controlled `layers` prop or an
-   * imperative setter). Adds, reorders, updates, and removes now-empty layers.
+   * Apply GraphProvider's controlled `cells` and `layers` in one commit. Layers
+   * are added before the cells (a cell may name a new layer) and pruned after
+   * them (a layer emptied by this sync is removed now, not next time). Its
+   * layer writes are not reported through `layers.subscribeToOutsideChanges`:
+   * they are the parent's own declaration.
+   * @param cells - controlled cells, or `undefined` to leave the cells untouched
+   * @param layers - controlled layers, or `undefined` to leave the layers untouched
+   */
+  public syncControlled = (
+    cells: ReadonlyArray<Element | Link> | undefined,
+    layers: readonly LayerRecord[] | undefined
+  ) => {
+    this.graphProjection.updateGraph({ cells, layers, flag: 'updateFromReact', isControlledSync: true });
+  };
+
+  /**
+   * Apply a layers snapshot from an imperative setter. Adds, reorders, updates,
+   * and removes now-empty layers.
    * @param layers - declared layers in paint order, or an updater of the current ones
    */
   public applyLayers = (layers: ArrayUpdate<LayerRecord>) => {
