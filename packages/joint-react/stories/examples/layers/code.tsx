@@ -1,16 +1,17 @@
 import {
   type CellRecord,
+  type CellVisibility,
   type LayerRecord,
   GraphProvider,
   HTMLHost,
   Paper,
   useCell,
   useGraph,
-  useLayer,
   useLayers,
+  usePaper,
   selectElementSize,
 } from '@joint/react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import './styles.css';
 
 // Colors — unified dark diagram palette.
@@ -20,6 +21,8 @@ const BACKGROUND_LAYER_FILL = '#121c26';
 const BACKGROUND_LAYER_STROKE = '#2f4053';
 const TEXT_COLOR = '#DDE6ED';
 const MUTED_TEXT_COLOR = '#93A4B3';
+
+const PAPER_ID = 'layers-paper';
 
 /** Autocomplete and narrowing for every layer id in this diagram. */
 type DiagramLayerId = 'background' | 'cells' | 'foreground';
@@ -124,21 +127,18 @@ function RenderElement(data: Readonly<LayeredElementData>) {
   return data.isBackground ? <BackgroundNode {...data} /> : <ElementNode {...data} />;
 }
 
-const selectVisible = (layer: LayerRecord) => layer.visible !== false;
+interface LayerToggleProps {
+  readonly id: DiagramLayerId;
+  readonly isHidden: boolean;
+  readonly onToggle: (id: DiagramLayerId) => void;
+}
 
-/** One row of the layers panel; subscribes to its own layer only. */
-function LayerRow({ id }: Readonly<{ id: DiagramLayerId }>) {
-  // `LayerId` infers from the typed `id`, `Selected` from the selector — no generics needed.
-  const isVisible = useLayer(id, selectVisible) ?? true;
-  const { setLayer } = useGraph();
-  const toggle = useCallback(() => setLayer(id, { visible: !isVisible }), [id, isVisible, setLayer]);
+/** One row of the layers panel. */
+function LayerToggle({ id, isHidden, onToggle }: Readonly<LayerToggleProps>) {
+  const toggle = useCallback(() => onToggle(id), [id, onToggle]);
   return (
-    <button
-      type="button"
-      className={isVisible ? 'jj-btn jj-btn--primary' : 'jj-btn'}
-      onClick={toggle}
-    >
-      {isVisible ? 'Hide' : 'Show'} {id}
+    <button type="button" className={isHidden ? 'jj-btn' : 'jj-btn jj-btn--primary'} onClick={toggle}>
+      {isHidden ? 'Show' : 'Hide'} {id}
     </button>
   );
 }
@@ -146,6 +146,27 @@ function LayerRow({ id }: Readonly<{ id: DiagramLayerId }>) {
 function Main() {
   const layers = useLayers<DiagramLayerId>();
   const { setLayers, setCell } = useGraph();
+  const { wakeUp } = usePaper(PAPER_ID);
+  const [hiddenLayers, setHiddenLayers] = useState<ReadonlySet<string>>(() => new Set());
+
+  // Hiding a layer unmounts its cells through the paper's `cellVisibility`.
+  const toggleLayer = useCallback(
+    (id: DiagramLayerId) => {
+      setHiddenLayers((previous) => {
+        const next = new Set(previous);
+        if (!next.delete(id)) next.add(id);
+        return next;
+      });
+      // Refresh the paper so hidden/shown cells are re-evaluated immediately.
+      wakeUp();
+    },
+    [wakeUp]
+  );
+
+  const cellVisibility = useCallback<CellVisibility>(
+    ({ model, graph }) => !hiddenLayers.has(graph.getCellLayerId(model)),
+    [hiddenLayers]
+  );
 
   // Reverse the paint order: the array IS the order, so reorder the array.
   const flipOrder = useCallback(
@@ -163,7 +184,12 @@ function Main() {
     <div className="flex size-full flex-col">
       <div className="jj-controls m-3">
         {layers.map((layer) => (
-          <LayerRow key={layer.id} id={layer.id} />
+          <LayerToggle
+            key={layer.id}
+            id={layer.id}
+            isHidden={hiddenLayers.has(layer.id)}
+            onToggle={toggleLayer}
+          />
         ))}
         <button type="button" className="jj-btn" onClick={flipOrder}>
           Flip order
@@ -172,7 +198,12 @@ function Main() {
           Move "Main 1" to foreground
         </button>
       </div>
-      <Paper className="min-h-0 flex-1" renderElement={RenderElement} />
+      <Paper
+        id={PAPER_ID}
+        className="min-h-0 flex-1"
+        renderElement={RenderElement}
+        cellVisibility={cellVisibility}
+      />
     </div>
   );
 }

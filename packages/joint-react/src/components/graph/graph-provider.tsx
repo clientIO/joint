@@ -47,12 +47,11 @@ export interface GraphProviderProps<
   readonly cellNamespace?: unknown;
   /**
    * Layer namespace passed to `new dia.Graph`, keyed by layer `type`. Your
-   * entries are merged on top of the built-in, which maps the plain layer type
-   * to the `@joint/react` {@link LayerModel}. Declare a layer with a `type` you
-   * registered here to use your own `dia.GraphLayer` subclass, and register
-   * its view as `<type>View` in the `<Paper>` `layerViewNamespace` (JointJS
-   * resolves layer views by that name; {@link LayerView} is a good base).
-   * @default the `@joint/react` layer model
+   * entries are merged on top of the JointJS built-ins. Declare a layer with a
+   * `type` you registered here to use your own `dia.GraphLayer` subclass, and
+   * register its view as `<type>View` in the `<Paper>` `layerViewNamespace`
+   * (JointJS resolves layer views by that name).
+   * @default JointJS built-in layer models
    */
   readonly layerNamespace?: unknown;
   /**
@@ -390,7 +389,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
  * const [layers, setLayers] = useState<ReadonlyArray<LayerRecord<LayerId>>>([
  *   { id: 'background' },
  *   { id: 'cells' },
- *   { id: 'notes', visible: false },
+ *   { id: 'notes' },
  * ]);
  * // Cells join a layer through their `layer` field: { id: 'n1', type: 'element', layer: 'notes' }
  * <GraphProvider layers={layers} onLayersChange={setLayers} initialCells={cells}>

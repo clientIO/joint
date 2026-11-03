@@ -22,7 +22,7 @@ type LayerSelection<Selected> = LayerRecord | Selected | undefined;
  *
  * function LayerBadge() {
  *   const layer = useLayer('foreground');
- *   return <span>{layer?.visible === false ? 'hidden' : 'shown'}</span>;
+ *   return <span>{typeof layer?.name === 'string' ? layer.name : 'Foreground'}</span>;
  * }
  * ```
  */
@@ -33,7 +33,7 @@ export function useLayer<LayerId extends string = string>(
  * Subscribe to a value derived from one layer. Re-renders only when the
  * selected value changes — the same shallow, array-aware comparison `useCell`
  * uses, or your `isEqual` — so select a primitive where you can:
- * `useLayer('foreground', (layer) => layer.visible !== false)` does not
+ * `useLayer('foreground', (layer) => layer.locked === true)` does not
  * re-render when the layer's name changes.
  * @title Select from a layer by id
  * @template LayerId - Union of your layer ids. Defaults to `string`.
@@ -48,11 +48,11 @@ export function useLayer<LayerId extends string = string>(
  * ```tsx
  * import { useLayer, type LayerRecord } from '@joint/react';
  *
- * const selectVisible = (layer: LayerRecord) => layer.visible !== false;
+ * const selectIsLocked = (layer: LayerRecord) => layer.locked === true;
  *
- * function VisibilityToggle() {
- *   const isVisible = useLayer('foreground', selectVisible);
- *   return <input type="checkbox" checked={isVisible ?? true} readOnly />;
+ * function LockIndicator() {
+ *   const isLocked = useLayer('foreground', selectIsLocked);
+ *   return <input type="checkbox" checked={isLocked ?? false} readOnly />;
  * }
  * ```
  */

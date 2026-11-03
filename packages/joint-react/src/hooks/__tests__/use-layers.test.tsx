@@ -29,7 +29,7 @@ function StoreProbe() {
 const THREE_LAYERS: readonly LayerRecord[] = [
   { id: 'background' },
   { id: 'cells' },
-  { id: 'foreground', visible: false },
+  { id: 'foreground', enabled: false },
 ];
 const CELLS: readonly CellRecord[] = [
   { id: 'a', type: 'element', layer: 'background' } as CellRecord,
@@ -56,7 +56,7 @@ function renderCounted<Result>(hook: () => Result, wrapper: typeof withLayers) {
   );
   return { ...view, renderSpy };
 }
-const selectVisible = (layer: LayerRecord) => layer.visible !== false;
+const selectEnabled = (layer: LayerRecord) => layer.enabled !== false;
 
 /** Mounts a provider with BOTH `layers` and `cells` controlled from one state object. */
 async function mountBoth(initial: {
@@ -112,7 +112,7 @@ describe('useLayers — uncontrolled', () => {
       wrapper: withLayersAndCells,
     });
     expect(selectIds(result.current)).toEqual(['background', 'cells', 'foreground']);
-    expect(result.current[2]).toEqual({ id: 'foreground', visible: false });
+    expect(result.current[2]).toEqual({ id: 'foreground', enabled: false });
   });
 
   it('assigns cells to their declared layer and leaves untagged cells on the default layer', () => {
@@ -159,16 +159,16 @@ describe('useLayer', () => {
     const { result } = renderHook(() => [useLayer('foreground'), useLayer('nope')] as const, {
       wrapper: withLayers,
     });
-    expect(result.current[0]).toEqual({ id: 'foreground', visible: false });
+    expect(result.current[0]).toEqual({ id: 'foreground', enabled: false });
     expect(result.current[1]).toBeUndefined();
   });
 
   it('selects a primitive and re-renders only when it changes', async () => {
     const { result, renderSpy } = renderCounted(
-      () => ({ isVisible: useLayer('foreground', selectVisible), api: useGraph() }),
+      () => ({ isEnabled: useLayer('foreground', selectEnabled), api: useGraph() }),
       withLayers
     );
-    expect(result.current.isVisible).toBe(false);
+    expect(result.current.isEnabled).toBe(false);
     const baseline = renderSpy.mock.calls.length;
 
     // Unrelated attribute on the same layer: selected value unchanged → no render.
@@ -178,9 +178,9 @@ describe('useLayer', () => {
     expect(renderSpy.mock.calls).toHaveLength(baseline);
 
     await commit(() => {
-      result.current.api.setLayer('foreground', { visible: true });
+      result.current.api.setLayer('foreground', { enabled: true });
     });
-    expect(result.current.isVisible).toBe(true);
+    expect(result.current.isEnabled).toBe(true);
     expect(renderSpy.mock.calls.length).toBeGreaterThan(baseline);
   });
 
@@ -191,7 +191,7 @@ describe('useLayer', () => {
     );
     const baseline = renderSpy.mock.calls.length;
     await commit(() => {
-      result.current.api.setLayer('foreground', { visible: true });
+      result.current.api.setLayer('foreground', { enabled: true });
     });
     expect(renderSpy.mock.calls).toHaveLength(baseline);
   });
@@ -308,13 +308,13 @@ describe('controlled layers', () => {
     await mountControlled(ONE_LAYER);
     onLayersChange.mockClear();
     await commit(() => {
-      storeRef!.graph.getLayer('background').set('visible', false);
+      storeRef!.graph.getLayer('background').set('enabled', false);
     });
     expect(onLayersChange).toHaveBeenCalled();
     const [emitted] = onLayersChange.mock.calls.at(-1)!;
     expect(emitted).toEqual([
       { id: 'cells', isDefault: true },
-      { id: 'background', visible: false },
+      { id: 'background', enabled: false },
     ]);
   });
 

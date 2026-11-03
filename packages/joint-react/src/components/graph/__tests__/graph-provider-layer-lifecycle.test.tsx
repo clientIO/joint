@@ -17,14 +17,14 @@ function MountMutation({ mutate }: { readonly mutate: (api: GraphApi) => void })
   return null;
 }
 
-const hideNotes = (api: GraphApi) => api.setLayer('notes', { visible: false });
+const disableNotes = (api: GraphApi) => api.setLayer('notes', { enabled: false });
 const addLayer = (api: GraphApi) => {
   if (!api.graph.hasLayer('child')) api.graph.addLayer({ id: 'child' });
 };
 
 describe('GraphProvider layer subscription ownership', () => {
   it.each([
-    ['setLayer', hideNotes, { id: 'notes', visible: false }],
+    ['setLayer', disableNotes, { id: 'notes', enabled: false }],
     ['graph.addLayer', addLayer, { id: 'child' }],
   ] as const)('reports %s from a child mount layout effect', (_name, mutate, expected) => {
     const onLayersChange = jest.fn();
@@ -42,14 +42,14 @@ describe('GraphProvider layer subscription ownership', () => {
     const graph = new dia.Graph();
     render(
       <GraphProvider graph={graph} layers={INITIAL_LAYERS}>
-        <MountMutation mutate={hideNotes} />
+        <MountMutation mutate={disableNotes} />
       </GraphProvider>
     );
 
     await act(async () => {
       await Promise.resolve();
     });
-    expect(graph.getLayer('notes').get('visible')).not.toBe(false);
+    expect(graph.getLayer('notes').get('enabled')).not.toBe(false);
   });
 
   it('does not revert external graph layers after the provider unmounts', async () => {
@@ -57,15 +57,15 @@ describe('GraphProvider layer subscription ownership', () => {
     const { unmount } = render(<GraphProvider graph={graph} layers={INITIAL_LAYERS} />);
 
     act(() => {
-      graph.getLayer('notes').set('visible', false);
+      graph.getLayer('notes').set('enabled', false);
     });
-    expect(graph.getLayer('notes').get('visible')).toBe(false);
+    expect(graph.getLayer('notes').get('enabled')).toBe(false);
     unmount();
 
     await act(async () => {
       await Promise.resolve();
     });
-    expect(graph.getLayer('notes').get('visible')).toBe(false);
+    expect(graph.getLayer('notes').get('enabled')).toBe(false);
   });
 
   it('uses the latest callback and does not echo controlled prop updates', () => {
@@ -81,20 +81,20 @@ describe('GraphProvider layer subscription ownership', () => {
     expect(nextHandler).not.toHaveBeenCalled();
 
     act(() => {
-      graph.getLayer('notes').set('visible', false);
+      graph.getLayer('notes').set('enabled', false);
     });
     expect(initialHandler).not.toHaveBeenCalled();
     expect(nextHandler).toHaveBeenCalledTimes(1);
     expect(nextHandler).toHaveBeenLastCalledWith(
-      expect.arrayContaining([{ id: 'notes', name: 'Updated', visible: false }])
+      expect.arrayContaining([{ id: 'notes', name: 'Updated', enabled: false }])
     );
   });
 });
 
 
-function CommitLayerChange({ visible }: { readonly visible: boolean }) {
+function CommitLayerChange({ enabled }: { readonly enabled: boolean }) {
   const { setLayer } = useGraph();
-  useLayoutEffect(() => { setLayer('notes', { visible }); }, [setLayer, visible]);
+  useLayoutEffect(() => { setLayer('notes', { enabled }); }, [setLayer, enabled]);
   return null;
 }
 
@@ -103,18 +103,18 @@ it('uses the replacement handler for a child layout-effect write in the same com
   const nextHandler = jest.fn();
   const { rerender } = render(
     <GraphProvider initialLayers={INITIAL_LAYERS} onLayersChange={oldHandler}>
-      <CommitLayerChange visible />
+      <CommitLayerChange enabled />
     </GraphProvider>
   );
   oldHandler.mockClear();
   rerender(
     <GraphProvider initialLayers={INITIAL_LAYERS} onLayersChange={nextHandler}>
-      <CommitLayerChange visible={false} />
+      <CommitLayerChange enabled={false} />
     </GraphProvider>
   );
   expect(oldHandler).not.toHaveBeenCalled();
   expect(nextHandler).toHaveBeenCalledTimes(1);
   expect(nextHandler).toHaveBeenLastCalledWith(
-    expect.arrayContaining([{ id: 'notes', visible: false }])
+    expect.arrayContaining([{ id: 'notes', enabled: false }])
   );
 });

@@ -11,7 +11,7 @@ const meta = {
     showcase: {
       canvasHeight: 440,
       description:
-        'Declare paint-ordered layers on GraphProvider, assign cells with their `layer` field, then hide and reorder them with useLayer, useLayers, and setLayers — and move a cell between layers with setCell.',
+        'Declare paint-ordered layers on GraphProvider, assign cells with their `layer` field, reorder them with useLayers and setLayers, move a cell between layers with setCell, and hide a layer with the paper cellVisibility predicate.',
       apiUrl: getAPILink('useLayers'),
       code: codeRaw,
     },

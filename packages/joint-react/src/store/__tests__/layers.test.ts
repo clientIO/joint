@@ -99,11 +99,11 @@ describe('reconcileLayers', () => {
 
   it('updates changed attributes and unsets dropped ones', () => {
     const graph = createGraph();
-    reconcileLayers(graph, [{ id: 'layer1', name: 'Layer 1', visible: true }]);
+    reconcileLayers(graph, [{ id: 'layer1', name: 'Layer 1', enabled: true }]);
     reconcileLayers(graph, [{ id: 'layer1', name: 'Renamed' }]);
     const layer = graph.getLayer('layer1');
     expect(layer.get('name')).toBe('Renamed');
-    expect(layer.has('visible')).toBe(false);
+    expect(layer.has('enabled')).toBe(false);
     expect(graph.toJSON().layers).toEqual([
       { type: 'GraphLayer', id: 'cells' },
       { type: 'GraphLayer', id: 'layer1', name: 'Renamed' },
@@ -165,15 +165,15 @@ describe('reconcileLayers', () => {
   });
 
   // Regression: an empty declaration returned early, so attributes given to the
-  // default layer earlier (e.g. `visible: false`) and its position were kept.
+  // default layer earlier (e.g. `enabled: false`) and its position were kept.
   it('reconciles the default layer on an empty declaration', () => {
     const graph = createGraph();
-    reconcileLayers(graph, [{ id: 'layer1' }, { id: 'cells', visible: false }]);
+    reconcileLayers(graph, [{ id: 'layer1' }, { id: 'cells', enabled: false }]);
     expect(layerIds(graph)).toEqual(['layer1', 'cells']);
 
     reconcileLayers(graph, EMPTY_LAYERS);
 
-    expect(graph.getDefaultLayer().has('visible')).toBe(false);
+    expect(graph.getDefaultLayer().has('enabled')).toBe(false);
     expect(layerIds(graph)).toEqual(['cells', 'layer1']);
   });
 

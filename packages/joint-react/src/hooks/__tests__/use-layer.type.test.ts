@@ -8,10 +8,10 @@
  * - `useLayers()` → `readonly LayerRecord<string>[]`
  * - `useLayers<'a' | 'b'>()` → ids narrowed to the union
  * - `useLayer('a')` → `LayerRecord | undefined` (never throws for a missing id)
- * - `useLayer<'a' | 'b'>('a', (layer) => layer.visible !== false)` → `boolean | undefined`
+ * - `useLayer<'a' | 'b'>('a', (layer) => layer.locked === true)` → `boolean | undefined`
  * - `useLayer<'a' | 'b'>('nope')` is a type error
  * - `useLayer(typedId, selector)` infers both generics — the everyday form
- * - `LayerRecord` keeps custom attributes typed `unknown`, `visible` typed `boolean`
+ * - `LayerRecord` keeps custom attributes typed `unknown`
  */
 import { useLayers } from '../use-layers';
 import { useLayer } from '../use-layer';
@@ -42,19 +42,18 @@ function typeChecks() {
 
   const narrow = useLayer<DiagramLayerId>('foreground');
   expectType<LayerRecord<DiagramLayerId> | undefined>(narrow);
-  expectType<boolean | undefined>(narrow?.visible);
   expectType<unknown>(narrow?.name);
 
   const selected = useLayer<DiagramLayerId, boolean>(
     'foreground',
-    (layer) => layer.visible !== false
+    (layer) => layer.locked === true
   );
   expectType<boolean | undefined>(selected);
 
   // Everyday form: both generics inferred from a typed id and a selector.
   const typedId: DiagramLayerId = 'foreground';
-  const selectVisible = (layer: LayerRecord) => layer.visible !== false;
-  const inferred = useLayer(typedId, selectVisible);
+  const selectIsLocked = (layer: LayerRecord) => layer.locked === true;
+  const inferred = useLayer(typedId, selectIsLocked);
   expectType<boolean | undefined>(inferred);
   // @ts-expect-error -- inferred as boolean, not a record
   expectType<LayerRecord | undefined>(inferred);
@@ -62,18 +61,13 @@ function typeChecks() {
   // @ts-expect-error -- 'nope' is not a DiagramLayerId
   useLayer<DiagramLayerId>('nope');
 
-  const record: LayerRecord<DiagramLayerId> = { id: 'background', visible: true, name: 'BG' };
+  const record: LayerRecord<DiagramLayerId> = { id: 'background', locked: true, name: 'BG' };
   const widened: LayerRecord = record;
   expectType<LayerRecord>(widened);
 
-  // @ts-expect-error -- visible must be a boolean
-  const bad: LayerRecord = { id: 'x', visible: 'yes' };
-
-  // LayerPatch keeps `visible` typed even though it drops `id`.
-  const patch: LayerPatch = { visible: false, name: 'Notes' };
-  expectType<boolean | undefined>(patch.visible);
-  // @ts-expect-error -- visible must be a boolean on a patch too
-  const badPatch: LayerPatch = { visible: 'yes' };
+  // LayerPatch carries custom attributes, typed `unknown`.
+  const patch: LayerPatch = { locked: false, name: 'Notes' };
+  expectType<unknown>(patch.locked);
   // The reserved fields are not patchable, index signature or not.
   // @ts-expect-error -- a layer cannot be renamed through a patch
   const renamePatch: LayerPatch = { id: 'b' };
@@ -87,7 +81,7 @@ function typeChecks() {
   };
   // @ts-expect-error -- 'nope' is not a DiagramLayerId
   const badControlled: GraphProviderProps<never, never, DiagramLayerId> = { layers: [{ id: 'nope' }] };
-  return [bad, badPatch, renamePatch, defaultPatch, controlled, badControlled];
+  return [patch, renamePatch, defaultPatch, controlled, badControlled];
 }
 
 describe('useLayer types', () => {

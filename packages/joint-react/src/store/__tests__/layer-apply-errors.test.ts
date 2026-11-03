@@ -12,7 +12,7 @@ const element = (layer: string, x = 0) => ({
   size: { width: 10, height: 10 },
 } satisfies ElementRecord);
 const DEFAULT_ATTRIBUTES: readonly LayerRecord[] = [
-  { id: 'cells', visible: false, label: 'Main diagram' },
+  { id: 'cells', enabled: false, label: 'Main diagram' },
 ];
 
 it('publishes successful partial layer writes when a later valid constructor throws', () => {
@@ -55,12 +55,12 @@ it.each(['initial', 'update'] as const)(
       expect(moveLayer).not.toHaveBeenCalled();
       const json = store.graph.toJSON();
       expect(json.layers).toEqual(expect.arrayContaining([
-        expect.objectContaining({ id: 'cells', visible: false, label: 'Main diagram' }),
+        expect.objectContaining({ id: 'cells', enabled: false, label: 'Main diagram' }),
       ]));
 
       restored.graph.fromJSON(json);
 
-      expect(restored.graph.getDefaultLayer().get('visible')).toBe(false);
+      expect(restored.graph.getDefaultLayer().get('enabled')).toBe(false);
       expect(restored.graph.getDefaultLayer().get('label')).toBe('Main diagram');
     } finally {
       restored.destroy(false);

@@ -173,7 +173,7 @@ export interface GraphApi<
   readonly setLayers: (layers: ArrayUpdate<LayerRecord>) => void;
   /**
    * Merge attributes into one layer, adding it (at the top) when it does not
-   * exist yet. `setLayer('notes', { visible: false })` hides a layer.
+   * exist yet: `setLayer('notes', { name: 'Notes' })`.
    */
   readonly setLayer: (id: string, patch: LayerPatch) => void;
 }

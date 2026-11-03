@@ -18,26 +18,12 @@
  * const layers: ReadonlyArray<LayerRecord<DiagramLayerId>> = [
  *   { id: 'background' },
  *   { id: 'cells' },
- *   { id: 'foreground', visible: false },
+ *   { id: 'foreground', name: 'Annotations' },
  * ];
  * ```
  */
 export interface LayerRecord<LayerId extends string = string> {
   readonly id: LayerId;
-  /**
-   * Whether the layer is painted. A hidden layer keeps its cells mounted and
-   * sets `visibility: hidden` on the SVG layer group (see {@link LayerView}),
-   * with a single group update. HTML overlays mirror visibility on their
-   * wrappers. Cells keep their bounding boxes: they can still be measured,
-   * and links anchored to them still route.
-   *
-   * Hidden is not unmounted: cell views stay in the DOM and in the paper's
-   * view management, so hide/show never re-renders React content. For a very
-   * large layer you hide for long periods the paper's `cellVisibility` option
-   * (which does unmount) is the better tool.
-   * @default true
-   */
-  readonly visible?: boolean;
   /**
    * `true` on the graph's default layer — the one an untagged cell lands on.
    * Read-only: it reflects `graph.getDefaultLayer()` and is ignored when
@@ -51,15 +37,15 @@ export interface LayerRecord<LayerId extends string = string> {
 /**
  * Attributes to merge into a layer with `setLayer` — everything a
  * {@link LayerRecord} carries except its `id`. Declared explicitly rather than
- * as `Omit<LayerRecord, 'id'>`: `Omit` over an index signature collapses
- * `visible` to `unknown`.
+ * as `Omit<LayerRecord, 'id'>`: `Omit` over an index signature drops the
+ * `never` guards below.
  * @group Types
  * @example
  * ```tsx
  * import { useGraph } from '@joint/react';
  *
  * const { setLayer } = useGraph();
- * setLayer('notes', { visible: false });
+ * setLayer('notes', { name: 'Notes' });
  * ```
  */
 export interface LayerPatch {
@@ -67,7 +53,5 @@ export interface LayerPatch {
   readonly id?: never;
   /** Not patchable: derived from the graph, see {@link LayerRecord.isDefault}. */
   readonly isDefault?: never;
-  /** See {@link LayerRecord.visible}. */
-  readonly visible?: boolean;
   readonly [attribute: string]: unknown;
 }
