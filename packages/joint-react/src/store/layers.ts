@@ -50,8 +50,8 @@ function toLayerRecord(
 /**
  * Reads the graph's layers, bottom to top, as records. Structurally shared:
  * returns `previous` itself when nothing changed, and reuses every unchanged
- * record inside a new array otherwise. O(L); the only allocation on the
- * no-change path is joint-core's own `getLayers()` copy. Runs on layer events,
+ * record inside a new array otherwise. O(L): each layer's attributes are copied
+ * into a candidate record to compare against the previous one. Runs on layer events,
  * on a graph reset, and after a React-origin layers write — never on a plain
  * cell commit.
  * @param graph - The graph to read.

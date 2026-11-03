@@ -37,8 +37,8 @@ export interface LayerRecord<LayerId extends string = string> {
 /**
  * Attributes to merge into a layer with `setLayer` — everything a
  * {@link LayerRecord} carries except its `id`. Declared explicitly rather than
- * as `Omit<LayerRecord, 'id'>`: `Omit` over an index signature drops the
- * `never` guards below.
+ * as `Omit<LayerRecord, 'id'>`: `Omit` over an index signature collapses every
+ * named member into it, so it would neither reject `id` nor guard `isDefault`.
  * @group Types
  * @example
  * ```tsx
