@@ -31,7 +31,9 @@ export interface TransactionOptions {
    * Cheap to enable: the cells and layers snapshots are immutable, so this just
    * holds their references at transaction start (O(1), no copy). The only real
    * cost is paid on an actual rollback, which re-applies the layers and then
-   * the cells via `resetCells`.
+   * the cells via `resetCells`. Restoring changed layers starts a new layers
+   * declaration: a layer whose removal was still pending from an earlier one
+   * stays until the next `setLayers()`.
    */
   readonly rollbackOnError?: boolean;
   /**

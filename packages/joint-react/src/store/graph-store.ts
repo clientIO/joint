@@ -78,6 +78,17 @@ export interface GraphStoreOptions<
 }
 
 /**
+ * What a {@link GraphStore.syncControlled} call actually landed. A graph
+ * listener can apply another layers declaration in the middle of it.
+ */
+export interface ControlledSyncResult {
+  /** `false` when the cells were skipped: the newer layers dropped one they name. */
+  readonly areCellsApplied: boolean;
+  /** Whether an outside layer change happened during the call, so the graph's layers may not be the declared ones. */
+  readonly hasOutsideLayerChange: boolean;
+}
+
+/**
  * Central store for managing graph state, synchronization, and paper instances.
  */
 export class GraphStore<
@@ -188,20 +199,23 @@ export class GraphStore<
    * they are the parent's own declaration.
    * @param cells - controlled cells, or `undefined` to leave the cells untouched
    * @param layers - controlled layers, or `undefined` to leave the layers untouched
-   * @returns `false` when the cells could not be applied, because a graph
-   *   listener replaced the layers midway and dropped one they name
+   * @returns What actually landed (see {@link ControlledSyncResult})
    */
   public syncControlled = (
     cells: ReadonlyArray<Element | Link> | undefined,
     layers?: readonly LayerRecord[]
-  ): boolean => {
+  ): ControlledSyncResult => {
+    const outsideChangesBefore = this.graphProjection.getOutsideLayerChangeCount();
     const areCellsSkipped = this.graphProjection.updateGraph({
       cells,
       layers,
       flag: 'updateFromReact',
       isControlledSync: true,
     });
-    return !areCellsSkipped;
+    return {
+      areCellsApplied: !areCellsSkipped,
+      hasOutsideLayerChange: this.graphProjection.getOutsideLayerChangeCount() !== outsideChangesBefore,
+    };
   };
 
   /**

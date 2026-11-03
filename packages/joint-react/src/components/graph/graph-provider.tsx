@@ -6,9 +6,13 @@ import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { AutoSizeOrigin } from '../../store/measurement';
+import type { ControlledSyncResult } from '../../store/graph-store';
 import type { OnIncrementalCellsChange } from '../../store/graph-projection';
 import type { ElementJSONInit, LinkJSONInit, CellInput } from '../../types/cell.types';
 import type { LayerRecord } from '../../types/layer.types';
+
+/** The result of a controlled sync that had nothing to apply. */
+const NOTHING_TO_SYNC: ControlledSyncResult = { areCellsApplied: true, hasOutsideLayerChange: false };
 
 /** Cells array accepted by GraphProvider. */
 type ProviderCells<Element extends ElementJSONInit, Link extends LinkJSONInit> = ReadonlyArray<
@@ -219,8 +223,9 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
           if (!isActive || !controlledLayers) return;
           // Controlled cells skipped by a superseded sync are re-applied with the layers.
           const skippedCells = lastAppliedCellsRef.current === undefined ? cellsRef.current : undefined;
-          if (!syncControlled(skippedCells, controlledLayers)) return;
-          lastAppliedLayersRef.current = controlledLayers;
+          const result = syncControlled(skippedCells, controlledLayers);
+          if (!result.areCellsApplied) return;
+          if (!result.hasOutsideLayerChange) lastAppliedLayersRef.current = controlledLayers;
           if (skippedCells) lastAppliedCellsRef.current = skippedCells;
         };
         // The parent's own controlled sync is not echoed here.
@@ -277,10 +282,15 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
       }
       if (isControlled) {
         // Same React-origin apply as the effect below, recorded so the next
-        // commit skips the layers.
+        // commit skips what landed.
         const nextLayers = layersToApply();
-        const isApplied = syncControlled(cells, nextLayers);
-        if (nextLayers && isApplied) lastAppliedLayersRef.current = nextLayers;
+        const result = syncControlled(cells, nextLayers);
+        if (!result.areCellsApplied) {
+          lastAppliedCellsRef.current = undefined;
+          lastAppliedLayersRef.current = undefined;
+        } else if (nextLayers && !result.hasOutsideLayerChange) {
+          lastAppliedLayersRef.current = nextLayers;
+        }
       }
     });
     // Controlled layers ride along with controlled cells in ONE commit: joint-core
@@ -290,14 +300,14 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     // left a layer, so a layers-only change skips the O(n) cells diff.
     if (isControlled) {
       const nextLayers = layersToApply();
-      const isApplied =
-        cells === lastAppliedCellsRef.current
-          ? !nextLayers || syncControlled(undefined, nextLayers)
-          : syncControlled(cells ?? [], nextLayers);
-      // Not applied: a graph listener replaced the layers midway, and the next
-      // commit re-applies both arrays in full.
-      lastAppliedCellsRef.current = isApplied ? cells : undefined;
-      lastAppliedLayersRef.current = isApplied ? layers : undefined;
+      const cellsToApply = cells === lastAppliedCellsRef.current ? undefined : (cells ?? []);
+      const result =
+        cellsToApply || nextLayers ? syncControlled(cellsToApply, nextLayers) : NOTHING_TO_SYNC;
+      // A graph listener may replace the layers midway: record only what
+      // landed, so the next commit or revert re-applies the rest.
+      lastAppliedCellsRef.current = result.areCellsApplied ? cells : undefined;
+      lastAppliedLayersRef.current =
+        result.areCellsApplied && !result.hasOutsideLayerChange ? layers : undefined;
     }
   }, [
     instance,
@@ -313,8 +323,8 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
   // With uncontrolled cells nothing else applies controlled layers, so do it here.
   useLayoutEffect(() => {
     if (!instance || instance !== ref.current || isControlled || !hasControlledLayers) return;
-    instance.syncControlled(undefined, layers);
-    lastAppliedLayersRef.current = layers;
+    const { hasOutsideLayerChange } = instance.syncControlled(undefined, layers);
+    lastAppliedLayersRef.current = hasOutsideLayerChange ? undefined : layers;
   }, [instance, ref, isControlled, hasControlledLayers, layers]);
 
   if (!instance) {

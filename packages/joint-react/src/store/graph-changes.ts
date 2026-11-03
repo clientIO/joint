@@ -446,6 +446,11 @@ export function graphChanges(options: Options) {
         syncOptions
       );
       graph.stopBatch('updateFromReact', syncOptions);
+      // Superseded: these cells may have emptied a layer the newer declaration
+      // keeps pending, and their tagged events schedule no retry.
+      if (isCurrent && !isCurrent() && pendingLayerRemovals.size > 0) {
+        simpleScheduler(retryPendingLayers);
+      }
       return { cellIds, hasRemovedPendingLayer, areCellsSkipped: false };
     },
   };

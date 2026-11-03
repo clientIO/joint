@@ -39,6 +39,34 @@ beforeEach(() => {
   captured.store = undefined;
 });
 
+/**
+ * A controlled provider over `cells` and `layers`.
+ * @param cells - The controlled cells.
+ * @param layers - The controlled layers.
+ */
+function controlledTree(cells: readonly CellRecord[], layers: readonly LayerRecord[]) {
+  return (
+    <GraphProvider cells={cells} layers={layers}>
+      <Capture />
+    </GraphProvider>
+  );
+}
+
+/**
+ * Makes a graph listener apply `[{ id: 'b' }]` once, while layer `layerId` is
+ * being added: a newer declaration that supersedes the one adding it.
+ * @param store - The store whose graph to listen to.
+ * @param layerId - The layer whose addition triggers it.
+ */
+function replaceLayersWhileAdding(store: GraphStore, layerId: string) {
+  const replaceDeclaration = (layer: dia.GraphLayer) => {
+    if (layer.id !== layerId) return;
+    store.graph.off('layer:add', replaceDeclaration);
+    store.applyLayers([{ id: 'b' }]);
+  };
+  store.graph.on('layer:add', replaceDeclaration);
+}
+
 const flushMicrotasks = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
 describe('cell layer membership', () => {
@@ -159,27 +187,47 @@ describe('superseded controlled sync', () => {
   const SUPERSEDE_LAYERS_AFTER: readonly LayerRecord[] = [{ id: 'a' }, { id: 'c' }];
 
   it('still lands controlled cells when a graph listener replaces the layers midway', async () => {
-    const tree = (cells: readonly CellRecord[], layers: readonly LayerRecord[]) => (
-      <GraphProvider cells={cells} layers={layers}>
-        <Capture />
-      </GraphProvider>
-    );
-    const view = render(tree(SUPERSEDE_CELLS_BEFORE, SUPERSEDE_LAYERS_BEFORE));
+    const view = render(controlledTree(SUPERSEDE_CELLS_BEFORE, SUPERSEDE_LAYERS_BEFORE));
     try {
       await waitFor(() => expect(captured.store?.graph.hasLayer('a')).toBe(true));
       const store = captured.store!;
-      const replaceDeclaration = (layer: dia.GraphLayer) => {
-        if (layer.id !== 'c') return;
-        store.graph.off('layer:add', replaceDeclaration);
-        store.applyLayers([{ id: 'b' }]);
-      };
-      store.graph.on('layer:add', replaceDeclaration);
+      replaceLayersWhileAdding(store, 'c');
 
       await act(async () => {
-        view.rerender(tree(SUPERSEDE_CELLS_AFTER, SUPERSEDE_LAYERS_AFTER));
+        view.rerender(controlledTree(SUPERSEDE_CELLS_AFTER, SUPERSEDE_LAYERS_AFTER));
       });
 
       expect(store.graph.getCell('second')).toBeDefined();
+      expect(store.graphProjection.cells.has('second')).toBe(true);
+      expect(store.graph.hasActiveBatch()).toBe(false);
+    } finally {
+      view.unmount();
+    }
+  });
+});
+
+describe('skipped controlled cells', () => {
+  const SKIP_CELLS_BEFORE: readonly CellRecord[] = [element('first')];
+  const SKIP_CELLS_AFTER: readonly CellRecord[] = [element('first'), element('second', 'c')];
+  const SKIP_LAYERS_BEFORE: readonly LayerRecord[] = [{ id: 'a' }];
+  const SKIP_LAYERS_AFTER: readonly LayerRecord[] = [{ id: 'a' }, { id: 'c' }];
+
+  it('re-applies cells skipped by a superseded sync when the provider reverts', async () => {
+    const view = render(controlledTree(SKIP_CELLS_BEFORE, SKIP_LAYERS_BEFORE));
+    try {
+      await waitFor(() => expect(captured.store?.graph.hasLayer('a')).toBe(true));
+      const store = captured.store!;
+      // While `c` is added, a newer declaration drops it: `second` cannot land.
+      replaceLayersWhileAdding(store, 'c');
+
+      await act(async () => {
+        view.rerender(controlledTree(SKIP_CELLS_AFTER, SKIP_LAYERS_AFTER));
+        await flushMicrotasks();
+      });
+
+      // No `onLayersChange`: the provider reverts to its own arrays, cells included.
+      expect(store.graph.hasLayer('c')).toBe(true);
+      expect(store.graph.getCellLayerId(store.graph.getCell('second'))).toBe('c');
       expect(store.graphProjection.cells.has('second')).toBe(true);
       expect(store.graph.hasActiveBatch()).toBe(false);
     } finally {

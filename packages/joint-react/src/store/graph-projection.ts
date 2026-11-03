@@ -106,6 +106,7 @@ export function graphProjection<
   let layersSnapshot: readonly LayerRecord[] = readLayerRecords(graph, EMPTY_LAYERS);
   const layerListeners = new Set<() => void>();
   const outsideLayerListeners = new Set<() => void>();
+  let outsideLayerChangeCount = 0;
 
   /**
    * Re-read the layer list; notifies only when something actually changed.
@@ -118,6 +119,7 @@ export function graphProjection<
     layersSnapshot = next;
     for (const listener of layerListeners) listener();
     if (!isOutsideChange) return;
+    outsideLayerChangeCount += 1;
     for (const listener of outsideLayerListeners) listener();
   }
 
@@ -355,6 +357,8 @@ export function graphProjection<
     layers,
     syncFromGraph,
     syncLayersFromGraph,
+    /** How many outside layer changes were reported so far; compare two reads to detect one. */
+    getOutsideLayerChangeCount: () => outsideLayerChangeCount,
     /**
      * Apply a React-origin update to the graph and mirror it into the containers.
      * @param update - the cells and layers to apply
