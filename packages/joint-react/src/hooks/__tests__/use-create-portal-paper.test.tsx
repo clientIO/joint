@@ -253,11 +253,20 @@ function GridApp({ drawGrid, gridSize, transform }: Readonly<GridAppProps>) {
 
 describe('Paper — drawGrid / gridSize / transform live updates (lines 377–390)', () => {
   it('applies drawGrid, gridSize, and transform on prop changes', async () => {
-    const { rerender } = render(<GridApp />);
-    // Allow paper to mount.
-    await new Promise((resolve) => setTimeout(resolve, 30));
-    rerender(<GridApp drawGrid gridSize={20} transform="scale(2)" />);
-    await new Promise((resolve) => setTimeout(resolve, 30));
+    const setGridSpy = jest.spyOn(dia.Paper.prototype, 'setGrid');
+    const matrixSpy = jest.spyOn(dia.Paper.prototype, 'matrix');
+    try {
+      const { rerender } = render(<GridApp />);
+      // Allow paper to mount.
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      rerender(<GridApp drawGrid gridSize={20} transform="scale(2)" />);
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      expect(setGridSpy).toHaveBeenCalledWith(true);
+      expect(matrixSpy).toHaveBeenCalledWith(expect.any(Object));
+    } finally {
+      setGridSpy.mockRestore();
+      matrixSpy.mockRestore();
+    }
   });
 });
 

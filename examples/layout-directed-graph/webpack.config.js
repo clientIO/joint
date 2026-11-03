@@ -49,8 +49,10 @@ module.exports = {
         ]
     },
     plugins: [
-        new CopyPlugin([
-            { from: './index.html', to: './' }
-        ])
+        new CopyPlugin({
+            patterns: [
+                { from: './index.html', to: './' }
+            ]
+        })
     ]
 };

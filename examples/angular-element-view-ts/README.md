@@ -25,7 +25,7 @@ Navigate to `http://localhost:4200/` in your browser.
 
 ## Requirements
 
-- Angular 19+
+- Angular 21+
 - JointJS @joint/core
 
 ## Tutorial

@@ -769,7 +769,7 @@ describe('graphProjection — syncFromGraph and partial updateGraph', () => {
     view.syncFromGraph();
     expect(view.cells.has('a')).toBe(true);
     expect(view.cells.has('b')).toBe(true);
-    expect(view.cells.getSnapshot().length).toBe(2);
+    expect(view.cells.getSnapshot()).toHaveLength(2);
     view.destroy();
   });
 

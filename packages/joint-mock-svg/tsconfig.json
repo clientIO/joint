@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "alwaysStrict": true,
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "esModuleInterop": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "noImplicitReturns": false,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "outDir": "./dist",
+        "resolveJsonModule": true,
+        "rootDir": "./src",
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "esnext",
+        "types": [],
+        "useDefineForClassFields": true
+    },
+    "include": ["src"]
+}

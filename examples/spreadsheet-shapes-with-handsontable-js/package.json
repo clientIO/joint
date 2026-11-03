@@ -13,6 +13,6 @@
     },
     "dependencies": {
         "@joint/core": "workspace:^",
-        "handsontable": "^16.2.0"
+        "handsontable": "^18.1.2"
     }
 }

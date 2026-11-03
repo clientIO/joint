@@ -171,7 +171,7 @@ describe('use-cell-setters', () => {
         await flush();
       });
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('[setCell]'));
-      expect(result.current.store.graph.getCells().length).toBe(before);
+      expect(result.current.store.graph.getCells()).toHaveLength(before);
       warn.mockRestore();
     });
 
@@ -241,7 +241,7 @@ describe('use-cell-setters', () => {
         result.current.removeCells(['no-such-id', 'also-missing']);
         await flush();
       });
-      expect(result.current.store.graph.getCells().length).toBe(before);
+      expect(result.current.store.graph.getCells()).toHaveLength(before);
     });
   });
 
@@ -265,7 +265,7 @@ describe('use-cell-setters', () => {
         await flush();
       });
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('[removeCell]'));
-      expect(result.current.store.graph.getCells().length).toBe(before);
+      expect(result.current.store.graph.getCells()).toHaveLength(before);
       warn.mockRestore();
     });
 

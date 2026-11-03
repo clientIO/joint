@@ -1,5 +1,5 @@
 /**
- * Specification for when `useOnElementsMeasured` delivers an event.
+ * Specification for when `useOnElementsMeasured` delivers an event (#3520).
  *
  * The hook exists so an application can run a layout once element sizes are
  * known. That only works if one settled change delivers exactly one event: a
@@ -26,7 +26,7 @@ import { HTMLHost } from '../../components/html-host';
 import { useOnElementsMeasured } from '../use-on-elements-measured';
 import { useGraphStore } from '../use-graph-store';
 import { ELEMENT_MODEL_TYPE } from '../../mvc/element-model';
-import { AUTO_SIZE_OPTION } from '../../store/graph-store';
+import { AUTO_SIZE_OPTION } from '../../store/measurement';
 import type { CellRecord } from '../../types/cell.types';
 import type { dia } from '@joint/core';
 
@@ -121,11 +121,9 @@ function renderGraph(initialCells: CellRecord[]): Harness {
 function reportMeasurement(graph: dia.Graph, ...ids: string[]) {
   act(() => {
     for (const id of ids) {
-      (graph.getCell(id) as dia.Element).set(
-        'size',
-        { width: 120, height: 40 },
-        { [AUTO_SIZE_OPTION]: true } as object
-      );
+      (graph.getCell(id) as dia.Element).set('size', { width: 120, height: 40 }, {
+        [AUTO_SIZE_OPTION]: true,
+      } as object);
     }
   });
 }

@@ -68,7 +68,7 @@ describe('createScheduler', () => {
   it('is a no-op when nothing is pending', async () => {
     createScheduler();
     // Just ensure no error when nothing is scheduled
-    await flushScheduler();
+    await expect(flushScheduler()).resolves.toBeUndefined();
   });
 
   it('does not re-enter flush if already flushing', async () => {

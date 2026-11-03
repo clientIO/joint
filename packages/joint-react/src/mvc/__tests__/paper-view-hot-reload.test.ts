@@ -59,7 +59,7 @@ describe('isPaperView — hot-reload-safe PaperView guard', () => {
     papers.push(crossEvaluationPaper);
 
     // The hazard: class identity does not survive a module re-evaluation…
-    expect(crossEvaluationPaper instanceof PaperView).toBe(false);
+    expect(crossEvaluationPaper).not.toBeInstanceOf(PaperView);
     // …but the marker does.
     expect(isPaperView(crossEvaluationPaper)).toBe(true);
   });

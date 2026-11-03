@@ -496,6 +496,152 @@ QUnit.module('Layers', function(hooks) {
         assert.ok(afterPaperRefSetSpy.calledOnce, 'afterPaperReferenceSet should still be called only once');
     });
 
+    QUnit.module('re-adding a layer before its view is removed', (hooks) => {
+
+        // `onGraphLayerRemove()` defers the removal of a layer view to the next
+        // update, so that the cell views leave the layer first. A layer added
+        // again with the same id before that update must still get a view.
+
+        let graph;
+        let paper;
+
+        const createPaper = (paperOptions) => {
+            const paperEl = document.createElement('div');
+            fixtures.getElement().appendChild(paperEl);
+            paper = new joint.dia.Paper({
+                el: paperEl,
+                model: graph,
+                cellViewNamespace: joint.shapes,
+                ...paperOptions
+            });
+        };
+
+        const cellIdsIn = (layerId) => {
+            return Array.from(paper.getLayerView(layerId).el.children).map((node) => node.getAttribute('model-id'));
+        };
+
+        hooks.beforeEach(() => {
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        });
+
+        hooks.afterEach(() => {
+            paper.remove();
+            paper = null;
+            graph = null;
+        });
+
+        [
+            ['an async paper', { async: true, autoFreeze: false }],
+            ['a frozen paper', { frozen: true }]
+        ].forEach(([paperName, paperOptions]) => {
+
+            QUnit.module(paperName, (hooks) => {
+
+                hooks.beforeEach(() => {
+                    createPaper(paperOptions);
+                    graph.addLayer({ id: 'layer1' });
+                    paper.updateViews();
+                });
+
+                QUnit.test('the re-added layer has a view bound to it', (assert) => {
+                    graph.removeLayer('layer1');
+                    graph.addLayer({ id: 'layer1' });
+                    paper.updateViews();
+
+                    assert.ok(paper.hasLayerView('layer1'), 'The layer has a view');
+                    assert.equal(paper.getLayerView('layer1').model, graph.getLayer('layer1'), 'The view is bound to the re-added layer');
+                    assert.equal(paper.el.querySelectorAll('.joint-layer1-layer').length, 1, 'There is one layer element');
+                });
+
+                QUnit.test('a cell added to the re-added layer renders in it', (assert) => {
+                    graph.removeLayer('layer1');
+                    graph.addLayer({ id: 'layer1' });
+                    graph.addCell(new joint.shapes.standard.Rectangle({ id: 'rect1', layer: 'layer1' }));
+
+                    paper.updateViews();
+                    assert.deepEqual(cellIdsIn('layer1'), ['rect1']);
+                });
+
+                QUnit.test('the view of the re-added layer follows its z changes', (assert) => {
+                    graph.removeLayer('layer1');
+                    graph.addLayer({ id: 'layer1' });
+                    const rect1 = new joint.shapes.standard.Rectangle({ id: 'rect1', layer: 'layer1', z: 1 });
+                    const rect2 = new joint.shapes.standard.Rectangle({ id: 'rect2', layer: 'layer1', z: 2 });
+                    graph.addCells([rect1, rect2]);
+                    paper.updateViews();
+
+                    rect1.set('z', 3);
+                    paper.updateViews();
+
+                    assert.deepEqual(cellIdsIn('layer1'), ['rect2', 'rect1']);
+                });
+
+                QUnit.test('a cell moved out of the layer before it was removed renders in its new layer', (assert) => {
+                    const rect1 = new joint.shapes.standard.Rectangle({ id: 'rect1', layer: 'layer1' });
+                    graph.addCell(rect1);
+                    paper.updateViews();
+
+                    rect1.set('layer', 'cells');
+                    graph.removeLayer('layer1');
+                    graph.addLayer({ id: 'layer1' });
+                    paper.updateViews();
+
+                    assert.deepEqual(cellIdsIn('cells'), ['rect1'], 'The cell is in its new layer');
+                    assert.deepEqual(cellIdsIn('layer1'), [], 'The re-added layer is empty');
+                });
+
+                QUnit.test('a cell moved back to the re-added layer renders in it', (assert) => {
+                    const rect1 = new joint.shapes.standard.Rectangle({ id: 'rect1', layer: 'layer1' });
+                    graph.addCell(rect1);
+                    paper.updateViews();
+
+                    rect1.set('layer', 'cells');
+                    graph.removeLayer('layer1');
+                    graph.addLayer({ id: 'layer1' });
+                    rect1.set('layer', 'layer1');
+                    paper.updateViews();
+
+                    assert.deepEqual(cellIdsIn('layer1'), ['rect1']);
+                });
+
+                QUnit.test('a layer removed again after the re-add has no view', (assert) => {
+                    graph.removeLayer('layer1');
+                    graph.addLayer({ id: 'layer1' });
+                    graph.removeLayer('layer1');
+                    paper.updateViews();
+
+                    assert.notOk(paper.hasLayerView('layer1'), 'The layer has no view');
+                    assert.equal(paper.el.querySelectorAll('.joint-layer1-layer').length, 0, 'There is no layer element');
+                });
+
+                QUnit.test('a layer re-added with another type gets a view of that type', (assert) => {
+                    class CustomLayer extends joint.dia.GraphLayer {
+                        defaults() {
+                            return { ...super.defaults(), type: 'CustomLayer' };
+                        }
+                    }
+                    const CustomLayerView = joint.dia.GraphLayerView.extend({});
+                    paper.layerViewNamespace.CustomLayerView = CustomLayerView;
+
+                    graph.removeLayer('layer1');
+                    graph.addLayer(new CustomLayer({ id: 'layer1' }));
+                    paper.updateViews();
+
+                    assert.ok(paper.getLayerView('layer1') instanceof CustomLayerView);
+                });
+
+                QUnit.test('a layer with the id of a paper layer leaves the paper layer view in place', (assert) => {
+                    const frontLayerView = paper.getLayerView('front');
+                    graph.addLayer({ id: 'front' });
+                    paper.updateViews();
+
+                    assert.equal(paper.getLayerView('front'), frontLayerView);
+                    assert.ok(paper.el.contains(frontLayerView.el));
+                });
+            });
+        });
+    });
+
     QUnit.test('removing layer with cells', (assert) => {
         const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });
         this.graph.addLayer(layer1);

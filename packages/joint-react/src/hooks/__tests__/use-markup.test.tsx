@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+
 import { useCallback, useEffect, useRef } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { GraphProvider, Paper } from '../../components';
@@ -171,8 +171,7 @@ describe('useMarkup', () => {
     );
     await waitFor(() => expect(cleanupCapturedNode).not.toBeNull());
     // Simulate ref-detach by passing null — exercises the `else` branch (delete).
-    cleanupUtilities!.selectorRef('cleanup-target')(null);
-    expect(true).toBe(true);
+    expect(() => cleanupUtilities!.selectorRef('cleanup-target')(null)).not.toThrow();
   });
 
   it('throws when selector is reserved (PORTAL_SELECTOR / "root" / "portRoot")', async () => {

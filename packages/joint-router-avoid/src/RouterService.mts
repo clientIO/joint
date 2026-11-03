@@ -535,6 +535,8 @@ export class RouterService {
      * provider - resolves with `{ status: 'cancelled' }` instead of
      * rejecting, so fire-and-forget callers are not left with unhandled
      * rejections; provider errors unrelated to destruction still reject.
+     * A pass superseded by {@link start} while still queued also resolves
+     * with `{ status: 'cancelled' }`.
      *
      * Passes run strictly one after another: a pass invoked while another
      * is still in flight waits for it, since each pass replaces the
@@ -594,6 +596,8 @@ export class RouterService {
 
     private async performRoute(cells: dia.Cell[]): Promise<RoutingResult> {
         if (this.destroyed) return { status: 'cancelled' };
+        // A queued one-shot pass must not replace the full graph installed by start().
+        if (this.isStarted) return { status: 'cancelled' };
 
         // Passes are serialized (see `route()`) and cannot run while started,
         // so every route applied until the provider reports the pass as

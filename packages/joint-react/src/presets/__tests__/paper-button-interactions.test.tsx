@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { render, waitFor } from '@testing-library/react';
+import { g, type dia } from '@joint/core';
 import { GraphProvider, Paper } from '../../components';
 import { usePaper } from '../../hooks/use-paper';
 import type { PaperView } from '../../mvc/paper';
@@ -62,6 +63,14 @@ function NodeWithButton() {
 
 const renderElement = () => <NodeWithButton />;
 
+// jsdom has no layout, so `@joint/mock-svg` maps every client point to the origin.
+// The paper sits unscaled at the client origin, so client and local points are equal.
+function clientToLocalIdentity(x: number, y: number): g.Point;
+function clientToLocalIdentity(point: dia.Point): g.Point;
+function clientToLocalIdentity(xOrPoint: number | dia.Point, y?: number): g.Point {
+  return typeof xOrPoint === 'number' ? new g.Point(xOrPoint, y) : new g.Point(xOrPoint);
+}
+
 /**
  * Mount a paper holding one element whose markup contains a `<button>`.
  * @param clickSpy - Spy for the button's React `onClick`.
@@ -87,7 +96,10 @@ async function renderNodeWithButton(
   const paper = capturedPaper;
   const button = capturedButton;
   if (!paper || !button) throw new Error('paper or button not mounted');
-  return { paper, button };
+  // Typed explicitly: the narrowing above cannot see the assignments made while rendering.
+  const mounted: { paper: PaperView; button: HTMLButtonElement } = { paper, button };
+  mounted.paper.clientToLocalPoint = clientToLocalIdentity;
+  return mounted;
 }
 
 function dispatchAt(node: EventTarget, type: string, clientX: number, clientY: number) {

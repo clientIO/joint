@@ -10,5 +10,16 @@ module.exports = {
     },
     'dts-generator': {
         command: 'dts-bundle-generator --config=dts-generator.config.js'
+    },
+    // Node.js tests
+    'mocha-server': {
+        command: 'mocha --reporter spec "test/*-nodejs/*"'
+    },
+    // Type-check the TypeScript definition tests - emit nothing
+    'ts-test': {
+        command: 'tsc --noEmit -p test/ts/tsconfig.json'
+    },
+    'ts-test-exports': {
+        command: 'tsc --noEmit -p test/ts-exports/tsconfig.json'
     }
 };

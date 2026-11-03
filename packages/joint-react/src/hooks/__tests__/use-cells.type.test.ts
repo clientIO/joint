@@ -156,6 +156,7 @@ if (false as boolean) {
 // runtime no-op so Jest accepts the file
 describe('useCells type contract', () => {
   it('compiles', () => {
+    // eslint-disable-next-line sonarjs/no-trivial-assertions -- compile-only file, the assertion only satisfies Jest
     expect(true).toBe(true);
   });
 });

@@ -34,5 +34,7 @@ html, body {
 }
 
 .handsontable .table-header {
-    background: #fcfdc4;
+    // The header row is read-only, and the theme paints read-only cells
+    // with this variable (`!important`)
+    --ht-cell-read-only-background-color: #fcfdc4;
 }

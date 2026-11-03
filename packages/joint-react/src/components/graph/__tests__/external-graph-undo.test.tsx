@@ -78,7 +78,7 @@ describe('external graph — undo of a delete (element with a link)', () => {
 
     // The graph holds one cell; the container must agree — a stale record
     // here turns the undo's re-add into a no-op update.
-    expect(graph.getCells().length).toBe(1);
+    expect(graph.getCells()).toHaveLength(1);
     expect(projection.cells.has('e1')).toBe(false);
     expect(projection.cells.has('l1')).toBe(false);
     expect(projection.cells.getSize()).toBe(1);

@@ -6,6 +6,10 @@
     </head>
     <body>
         <div id="qunit"></div>
+        <!-- QUnit is loaded as a global (the grunt-contrib-qunit bridge expects one),
+             only the code under test is loaded through RequireJS -->
+        <script src="../../node_modules/qunit/qunit/qunit.js"></script>
+        <script>QUnit.config.autostart = false;</script>
         <script src="../../node_modules/requirejs/require.js"></script>
         <script src="./require.js"></script>
     </body>
