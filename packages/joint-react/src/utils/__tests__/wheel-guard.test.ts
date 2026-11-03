@@ -158,4 +158,15 @@ describe('touchGuard', () => {
     expect(touchGuard({ type: 'touchstart', target: null })).toBe(false);
     expect(touchGuard({ type: 'touchstart', target: document })).toBe(false);
   });
+
+  test('returns true for the compatibility mousedown of a guarded touch only', () => {
+    const div = makeOverflowingDiv();
+    mount(div);
+    // A mouse press on the region drags the node as before.
+    expect(touchGuard({ type: 'mousedown', target: div })).toBe(false);
+    expect(touchGuard({ type: 'touchstart', target: div })).toBe(true);
+    expect(touchGuard({ type: 'mousedown', target: div })).toBe(true);
+    // Only the one that follows the touch.
+    expect(touchGuard({ type: 'mousedown', target: div })).toBe(false);
+  });
 });

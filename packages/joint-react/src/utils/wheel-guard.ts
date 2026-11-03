@@ -59,16 +59,33 @@ export function wheelGuard(event: GuardEvent): boolean {
   return isInsideScrollableRegion(event.target);
 }
 
+// A guarded tap is not prevented, so the browser follows its `touchend` with
+// compatibility mouse events. Their `mousedown` comes after the finger's `pointerup`:
+// a press it started would never be released.
+const COMPATIBILITY_MOUSE_WINDOW = 1000;
+let guardedTouchTarget: EventTarget | null = null;
+let guardedTouchTime = 0;
+
 /**
  * Predicate for `dia.Paper.options.guard`. Returns `true` when a touch starts inside a
  * scrollable region (the same regions {@link wheelGuard} honors), so the paper neither
- * presses nor drags and the finger scrolls the region natively. Only `touchstart`
+ * presses nor drags and the finger scrolls the region natively, and for the
+ * compatibility `mousedown` the browser sends after that touch. Only `touchstart`
  * reaches `guard()`; the moves and the lift never do.
- * @param event - touch event dispatched to `paper.guard`
+ * @param event - touch or mouse event dispatched to `paper.guard`
  * @returns `true` to keep the touch off the paper
  * @group Utils
  */
 export function touchGuard(event: GuardEvent): boolean {
-  if (event.type !== 'touchstart') return false;
-  return isInsideScrollableRegion(event.target);
+  if (event.type === 'mousedown') {
+    // shortcut: matched by target and time, as no portable flag marks compatibility mouse events.
+    const isCompatibilityMouse =
+      event.target === guardedTouchTarget && Date.now() - guardedTouchTime < COMPATIBILITY_MOUSE_WINDOW;
+    guardedTouchTarget = null;
+    return isCompatibilityMouse;
+  }
+  if (event.type !== 'touchstart' || !isInsideScrollableRegion(event.target)) return false;
+  guardedTouchTarget = event.target;
+  guardedTouchTime = Date.now();
+  return true;
 }

@@ -899,7 +899,8 @@ export const ElementView = CellView.extend({
 
     magnetpointerclick: function(evt, magnet, x, y) {
         var paper = this.paper;
-        if (paper.eventData(evt).mousemoved > paper.options.clickThreshold) return;
+        // A cancelled press (`touchcancel`, `pointercancel`) was never released: no click.
+        if (isCancelEvent(evt) || paper.eventData(evt).mousemoved > paper.options.clickThreshold) return;
         this.notify('element:magnet:pointerclick', evt, magnet, x, y);
     }
 

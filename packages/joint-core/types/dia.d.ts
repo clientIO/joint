@@ -1926,10 +1926,10 @@ export namespace Paper {
         'blank:mousewheel': (evt: Event, x: number, y: number, delta: number) => void;
         // touchpad (wheel) and touchscreen (two fingers)
         // On a touchscreen the paper takes over the touch stream - withholding the press and
-        // the `pointerdown` of content under the finger - only while one of the two events
-        // below has a listener. A paper with neither leaves every touch and pointer event
-        // untouched, so an app can recognize its own gestures there.
-        /** A touchpad scroll (every wheel event) or a two-finger touch pan (once per frame). `deltaX` / `deltaY` follow the wheel sign convention. */
+        // the `pointerdown` of content under the finger - only while `paper:pinch` has a
+        // listener. A paper without one leaves every touch and pointer event untouched, so an
+        // app can recognize its own gestures there; a `paper:pan` listener alone does not opt in.
+        /** A touchpad scroll (every wheel event) or a two-finger touch pan (once per frame, while `paper:pinch` has a listener). `deltaX` / `deltaY` follow the wheel sign convention. */
         'paper:pan': (evt: Event, deltaX: number, deltaY: number) => void;
         /** A touchpad pinch (ctrl/cmd + wheel) or a two-finger touch pinch (once per frame). `x` / `y` is the gesture point in local coordinates, `scale` the ratio since the previous event. */
         'paper:pinch': (evt: Event, x: number, y: number, scale: number) => void;

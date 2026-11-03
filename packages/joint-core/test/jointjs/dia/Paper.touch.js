@@ -179,6 +179,7 @@ QUnit.module('joint.dia.Paper touch gestures', function(hooks) {
             assert.deepEqual(record['element:pointerup'], ['touchend'], 'released through the document events');
             assert.deepEqual(record['element:pointerclick'], ['click']);
             assert.notOk(graph.hasActiveBatch('pointer'), 'the pointer batch is closed');
+            assert.equal(paper._touchGestures.pointers.size, 0, 'the lifted pointer is not tracked anymore');
         });
 
         QUnit.test('a held finger announces the press after TOUCH_PRESS_DELAY', function(assert) {
@@ -610,15 +611,21 @@ QUnit.module('joint.dia.Paper touch gestures', function(hooks) {
             screen.up(2);
             screen.up(1);
 
+            // A `paper:pan` listener alone is the wheel's pan: touches keep pressing at once.
             paper.on('paper:pan', () => {});
+            screen.down(1, elementRect, 100, 100);
+            assert.deepEqual(record['element:pointerdown'], ['touchstart', 'touchstart', 'touchstart'], 'a pan listener does not opt in');
+            screen.up(1);
+
+            paper.on('paper:pinch', () => {});
             screen.down(1, elementRect, 100, 100);
             const consumed = screen.down(2, elementRect, 200, 100);
             assert.ok(consumed.touch.defaultPrevented, 'a listener: the paper owns the gesture');
             assert.ok(screen.move(2, 220, 100).touch.defaultPrevented);
             assert.ok(screen.up(2).touch.defaultPrevented, 'the lift is prevented: no click, no mouse events');
             assert.ok(screen.up(1).touch.defaultPrevented);
-            assert.deepEqual(record['element:pointerdown'], ['touchstart', 'touchstart'], 'nothing more announced');
-            assert.deepEqual(record['element:pointerclick'], []);
+            assert.deepEqual(record['element:pointerdown'], ['touchstart', 'touchstart', 'touchstart'], 'nothing more announced');
+            assert.deepEqual(record['element:pointerclick'], ['click'], 'only the tap under the pan listener clicked');
         });
 
         QUnit.test('a second finger on content next to the SVG ends the press without a gesture', function(assert) {
@@ -680,6 +687,28 @@ QUnit.module('joint.dia.Paper touch gestures', function(hooks) {
             screen.up(2);
             screen.up(1);
             assert.deepEqual(record['link:pointerup'], ['touchcancel']);
+            assert.deepEqual(record['link:pointerclick'], []);
+        });
+
+        QUnit.test('a label press is cancelled by a browser cancel before the wait is over', function(assert) {
+
+            const link = new joint.shapes.standard.Link({
+                source: { x: 200, y: 300 },
+                target: { x: 380, y: 300 },
+                labels: [{ attrs: { text: { text: 'label' }}}]
+            });
+            link.addTo(graph);
+            const labelNode = link.findView(paper).el.querySelector('.label');
+            const record = recordEvents(['link:pointerdown', 'link:pointerup', 'link:pointerclick']);
+
+            screen.down(1, labelNode, 290, 300);
+            assert.deepEqual(record['link:pointerdown'], ['touchstart']);
+            // The browser takes the finger to scroll while the press is still pending.
+            screen.cancelPointer(1);
+            assert.deepEqual(record['link:pointerup'], ['pointercancel'], 'the label drag ends as a cancel');
+            assert.notOk(graph.hasActiveBatch('pointer'), 'the pointer batch is closed');
+            screen.up(1);
+            assert.deepEqual(record['link:pointerup'], ['pointercancel'], 'and nothing releases it again');
             assert.deepEqual(record['link:pointerclick'], []);
         });
 
@@ -1015,6 +1044,20 @@ QUnit.module('joint.dia.Paper touch gestures', function(hooks) {
             assert.deepEqual(record['element:pointerdown'], ['touchstart']);
             assert.deepEqual(record['element:pointerup'], ['touchcancel']);
             assert.deepEqual(record['element:pointerclick'], []);
+        });
+
+        QUnit.test('a touchcancel on a magnet is not a magnet click', function(assert) {
+
+            element.attr('body/magnet', true);
+            const record = recordEvents(['element:magnet:pointerclick']);
+
+            simulate.touchstart({ target: elementRect });
+            simulate.touchevent({ type: 'touchcancel', target: elementRect });
+            assert.deepEqual(record['element:magnet:pointerclick'], []);
+
+            simulate.touchstart({ target: elementRect });
+            simulate.touchend({ target: elementRect });
+            assert.deepEqual(record['element:magnet:pointerclick'], ['touchend'], 'a released press still clicks');
         });
     });
 

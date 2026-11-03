@@ -406,9 +406,9 @@ export interface PaperEventHandlers {
   readonly onPaperMouseEnter?: (params: PaperHoverEventParams) => void;
   readonly onPaperMouseLeave?: (params: PaperHoverEventParams) => void;
   // paper-level touchpad and touchscreen gestures
-  /** A wheel / touchpad scroll or a two-finger touch pan (`paper:pan`): `deltaX` / `deltaY` in the wheel sign convention. */
+  /** A wheel / touchpad scroll or a two-finger touch pan (`paper:pan`): `deltaX` / `deltaY` in the wheel sign convention. The touch pan fires only while `onPaperPinch` is set. */
   readonly onPaperPan?: (params: PaperPanEventParams) => void;
-  /** A touchpad pinch (`Ctrl`/`Cmd` + wheel) or a two-finger touch pinch (`paper:pinch`): a relative `scale` at the local point `x` / `y`. Subscribing lets the paper own the gesture, so a pinch over a node never presses it. */
+  /** A touchpad pinch (`Ctrl`/`Cmd` + wheel) or a two-finger touch pinch (`paper:pinch`): a relative `scale` at the local point `x` / `y`. Subscribing lets the paper own two-finger gestures, so a pinch over a node never presses it; a touch press is then announced once the finger is held for `TOUCH_PRESS_DELAY` (150 ms), moves or lifts. */
   readonly onPaperPinch?: (params: PaperPinchEventParams) => void;
   // paper transforms
   readonly onTranslate?: (params: TranslateEventParams) => void;

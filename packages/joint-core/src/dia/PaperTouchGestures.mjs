@@ -1,4 +1,5 @@
 import { nextFrame, cancelFrame, normalizeEvent } from '../util/index.mjs';
+import { Point } from '../g/index.mjs';
 import { config } from '../config/index.mjs';
 import $ from '../mvc/Dom/index.mjs';
 
@@ -476,7 +477,7 @@ export class PaperTouchGestures {
 
         this.midX = (first.clientX + second.clientX) / 2;
         this.midY = (first.clientY + second.clientY) / 2;
-        this.distance = Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
+        this.distance = new Point(first.clientX, first.clientY).distance({ x: second.clientX, y: second.clientY });
     }
 
     flush() {
@@ -553,8 +554,9 @@ export class PaperTouchGestures {
         if (evt.pointerId === this.pointerId && evt.type === 'pointercancel') {
             // The browser took the finger to pan or zoom the page. It is the only notice:
             // the touch stream goes on (Chrome sends no `touchcancel` for a scroll), so
-            // the sequence ends here - a pending press is dropped and a live one cancelled.
-            if (this.phase === PHASE_POINTER) this.cancelPress(evt, evt);
+            // the sequence ends here - a pending press is dropped and a live one (the
+            // announced press, or a label drag already live while pending) cancelled.
+            this.cancelPress(evt, evt);
             this.reset();
             if (!delivered) evt.stopImmediatePropagation();
             return;
@@ -563,8 +565,10 @@ export class PaperTouchGestures {
         if (delivered) return;
         if (evt.pointerId === this.pointerId) {
             if (evt.type === 'pointerup' && this.phase === PHASE_PENDING) {
-                // A tap. Announce the press and let this `pointerup` release it.
+                // A tap. Announce the press and let this `pointerup` release it. The replay
+                // re-tracks the pointer, but this was its last event.
                 this.flushPress();
+                this.pointers.delete(evt.pointerId);
                 return;
             }
             // Lifted unheard: there is nothing left to replay.

@@ -3984,10 +3984,11 @@ export const Paper = View.extend({
     },
 
     // As with a touchpad pinch (see `mousewheel()`), a touchscreen gesture is the paper's
-    // only when a listener consumes it. Without one, every touch keeps the immediate path.
+    // only while a `paper:pinch` listener consumes it. A `paper:pan` listener alone does
+    // not opt in: it is also the wheel's pan, and must not change how touches press.
     _consumesTouchGestures: function() {
 
-        return this._hasListeners('paper:pinch') || this._hasListeners('paper:pan');
+        return this._hasListeners('paper:pinch');
     },
 
     // Guard the specified event. If the event should be ignored, guard returns `true`.

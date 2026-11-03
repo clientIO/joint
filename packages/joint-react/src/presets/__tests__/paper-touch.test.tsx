@@ -402,6 +402,17 @@ describe('paper preset touch gestures', () => {
     ]);
   });
 
+  it('ignores the compatibility mousedown of a tap on a scrollable region', async () => {
+    const { list, screen, events } = await renderTouchPaper();
+
+    screen.down(1, list, 100, 100);
+    screen.up(1);
+    // The browser follows an un-prevented tap with compatibility mouse events; that
+    // `mousedown` comes after the `pointerup`, so a press it started would never end.
+    list.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(events).not.toContain('element:pointerdown:mousedown');
+  });
+
   it('keeps the immediate path when no listener consumes gestures', async () => {
     const { paper, node, screen, events } = await renderTouchPaper({ consume: false });
 
