@@ -11,6 +11,10 @@ function flushMicrotasks(): Promise<void> {
 }
 
 describe('createScheduler', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('batches multiple schedule calls into a single flush', async () => {
     const scheduler = createScheduler();
     const calls: string[] = [];
@@ -108,7 +112,7 @@ describe('createScheduler', () => {
     const error = new Error('callback failed');
     const calls: string[] = [];
     const deferred: Array<() => void> = [];
-    const setTimeoutSpy = jest
+    jest
       .spyOn(globalThis, 'setTimeout')
       .mockImplementation(((handler: () => void) => {
         deferred.push(handler);
@@ -122,7 +126,6 @@ describe('createScheduler', () => {
     await flushMicrotasks();
     scheduler(() => calls.push('next-pass'));
     await flushMicrotasks();
-    setTimeoutSpy.mockRestore();
 
     expect(calls).toEqual(['same-pass', 'next-pass']);
     expect(deferred).toHaveLength(1);
@@ -132,7 +135,7 @@ describe('createScheduler', () => {
   it('runs callbacks queued by a failing pass on a later task, not in the same microtask', async () => {
     const scheduler = createScheduler();
     const deferred: Array<() => void> = [];
-    const setTimeoutSpy = jest
+    jest
       .spyOn(globalThis, 'setTimeout')
       .mockImplementation(((handler: () => void) => {
         deferred.push(handler);
@@ -148,7 +151,6 @@ describe('createScheduler', () => {
     scheduler(failAndReschedule);
     await flushMicrotasks();
     await flushMicrotasks();
-    setTimeoutSpy.mockRestore();
 
     // One run per task: the rethrow and the next flush are both on a timer.
     expect(runs).toBe(1);

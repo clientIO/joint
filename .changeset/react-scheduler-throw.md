@@ -2,4 +2,4 @@
 "@joint/react": patch
 ---
 
-<GraphProvider /> - keep delivering graph changes after an `onCellsChange` or other change callback throws
+<GraphProvider /> - fix every diagram on the page freezing after a change callback such as `onCellsChange` throws
