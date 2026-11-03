@@ -356,13 +356,15 @@ export function graphProjection<
     syncFromGraph,
     syncLayersFromGraph,
     updateGraph(update: UpdateGraphOptions<Element, Link>) {
-      const { cellIds, hasRemovedPendingLayer } = graphChangesController.updateGraph(update);
+      const { cellIds, hasRemovedPendingLayer, isSuperseded } =
+        graphChangesController.updateGraph(update);
       // Tagged layer writes are not echoed by graphChanges, so read them here.
       if (update.flag === 'updateFromReact' && (update.layers || hasRemovedPendingLayer)) {
         syncLayersFromGraph(!update.isControlledSync);
       }
       if (update.flag !== 'updateFromReact') return;
-      if (!update.cells) return;
+      // A superseded update wrote no cells; the newer one synced the container.
+      if (!update.cells || isSuperseded) return;
 
       // React-origin graph events are ignored by graphChanges (isUpdateFromReact),
       // so sync the container directly from the just-synced cells.

@@ -67,6 +67,8 @@ export interface UpdateGraphResult {
   readonly cellIds: readonly CellId[];
   /** Whether a layer kept by an earlier declaration was pruned by this update. */
   readonly hasRemovedPendingLayer: boolean;
+  /** Whether a newer declaration, applied by a graph listener, replaced this one midway. */
+  readonly isSuperseded: boolean;
 }
 
 interface OnChangeOptions {
@@ -117,8 +119,10 @@ function assertLayersExist(
   layers: readonly LayerRecord[] | undefined
 ): void {
   for (const cell of cells) {
-    const { layer } = cell;
-    if (layer == null || graph.hasLayer(layer)) continue;
+    // Resolved as joint-core does: an empty `layer`, or any layer on a graph
+    // that ignores layers, means the default layer.
+    const layer = graph.getCellLayerId(cell);
+    if (graph.hasLayer(layer)) continue;
     if (layers?.some((record) => record.id === layer)) continue;
     throw new Error(
       `GraphProvider: cell "${String(cell.id)}" names layer "${layer}", which does not exist. ` +
@@ -354,7 +358,9 @@ export function graphChanges(options: Options) {
     // Decrement before flushing so the deferring batch's own close commits.
     if (batchOptions[DEFER_COMMIT_BATCH_OPTION] && deferDepth > 0) deferDepth -= 1;
     if (batchDepth > 0) return;
-    if (batchOptions.isUpdateFromReact) return;
+    // A React-origin batch has nothing to deliver itself (its own events are
+    // skipped), unless a graph listener made untagged cell changes inside it.
+    if (batchOptions.isUpdateFromReact && changes.size === 0) return;
     onChanges({ changes, isInsideBatch: false, deferCommit: isDeferring() });
     if (pendingLayerRemovals.size > 0) simpleScheduler(retryPendingLayers);
   });
@@ -397,7 +403,15 @@ export function graphChanges(options: Options) {
 
       graph.startBatch('updateFromReact', syncOptions);
       // Layers first: a cell may name a layer declared in this same commit.
-      if (layers) reconcileLayers(graph, layers, syncOptions, createdLayers);
+      if (layers && isCurrent) {
+        reconcileLayers(graph, layers, syncOptions, createdLayers, isCurrent);
+        // A graph listener applied a newer declaration meanwhile. It owns the
+        // graph now, and these cells may name layers it did not keep.
+        if (!isCurrent()) {
+          graph.stopBatch('updateFromReact', syncOptions);
+          return { cellIds: [], hasRemovedPendingLayer: false, isSuperseded: true };
+        }
+      }
       const cellIds = syncCellsFromReact(cells, syncOptions);
       // Layers last: joint-core refuses to remove a non-empty layer, so prune
       // only after the cells that left it are gone.
@@ -409,7 +423,7 @@ export function graphChanges(options: Options) {
         syncOptions
       );
       graph.stopBatch('updateFromReact', syncOptions);
-      return { cellIds, hasRemovedPendingLayer };
+      return { cellIds, hasRemovedPendingLayer, isSuperseded: false };
     },
   };
 }

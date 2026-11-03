@@ -191,7 +191,7 @@ export class GraphStore<
    */
   public syncControlled = (
     cells: ReadonlyArray<Element | Link> | undefined,
-    layers: readonly LayerRecord[] | undefined
+    layers?: readonly LayerRecord[]
   ) => {
     this.graphProjection.updateGraph({ cells, layers, flag: 'updateFromReact', isControlledSync: true });
   };

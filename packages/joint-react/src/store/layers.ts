@@ -208,19 +208,23 @@ export function createMissingLayers(
  * @param options - Forwarded into every graph event this raises (tag React writes here).
  * @param createdLayers - Layers built ahead by {@link createMissingLayers};
  *   missing layers are constructed here otherwise.
+ * @param isCurrent - Whether this declaration is still the latest. A graph
+ *   listener may apply another one synchronously; this one then stops writing.
  * @internal
  */
 export function reconcileLayers(
   graph: dia.Graph,
   next: readonly LayerRecord[],
   options: Record<string, unknown> = {},
-  createdLayers: ReadonlyMap<string, dia.GraphLayer> = createMissingLayers(graph, next, options)
+  createdLayers: ReadonlyMap<string, dia.GraphLayer> = createMissingLayers(graph, next, options),
+  isCurrent: () => boolean = () => true
 ): void {
   const defaultId = graph.getDefaultLayer().id;
   const declaredDefault = next.find((record) => record.id === defaultId);
   const target = declaredDefault ? next : [{ id: defaultId }, ...next];
 
   for (const record of target) {
+    if (!isCurrent()) return;
     if (graph.hasLayer(record.id)) {
       updateLayerAttributes(graph.getLayer(record.id), record, options);
     } else {
@@ -237,6 +241,7 @@ export function reconcileLayers(
   // LCS-minimal moves if diagrams grow past a handful of layers.
   const order = graph.getLayers().map((layer) => layer.id);
   for (const [index, record] of target.entries()) {
+    if (!isCurrent()) return;
     if (order[index] === record.id) continue;
     graph.moveLayer(record.id, { ...options, index });
     graphsWithDeclaredLayers.add(graph);
@@ -249,6 +254,7 @@ export function reconcileLayers(
   // public move opts into layer serialization without resetting cells/views.
   if (
     declaredDefault &&
+    isCurrent() &&
     !graphsWithDeclaredLayers.has(graph) &&
     Object.keys(declaredDefault).some((key) => !RESERVED_KEYS.has(key))
   ) {
