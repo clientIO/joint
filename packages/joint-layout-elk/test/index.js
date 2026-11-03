@@ -2,6 +2,8 @@ QUnit.module('sanity check', () => {
     QUnit.test('should load', assert => {
         assert.ok(typeof joint.layout.ELK !== 'undefined');
         assert.ok(typeof joint.layout.ELK.layout === 'function');
+        assert.ok(typeof joint.layout.ELK.layoutSync === 'function');
+        assert.ok(typeof joint.layout.ELK.loadElk === 'function');
     });
 });
 
@@ -10,6 +12,24 @@ QUnit.module('loading main-thread ELK', (hooks) => {
 
     hooks.after(() => {
         delete window.__loadMainThreadElk;
+    });
+
+    // Before any other test loads it - and it leaves it unloaded for the next one.
+    QUnit.test('should not lay out synchronously before it is loaded, nor after it failed to load', async(assert) => {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        graph.resetCells([el1, el2]);
+        const exportElement = () => assert.ok(false, 'nothing is exported');
+
+        assert.throws(() => joint.layout.ELK.layoutSync(graph, { exportElement }), /ELK is not loaded yet/);
+
+        const error = new Error('chunk failed to load');
+        window.__loadMainThreadElk = () => Promise.reject(error);
+        await assert.rejects(joint.layout.ELK.loadElk(), error);
+        assert.throws(() => joint.layout.ELK.layoutSync(graph), /ELK is not loaded yet/);
+        assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
     });
 
     QUnit.test('should load it again on the next layout after it failed to load', async(assert) => {
@@ -75,6 +95,35 @@ QUnit.module('layout()', () => {
         );
 
         assert.ok(!overlaps);
+    });
+
+    QUnit.test('should settle before the next task once main-thread ELK is loaded', async(assert) => {
+
+        const { graph, el1, el2 } = createGraph();
+        await joint.layout.ELK.loadElk();
+
+        // ELK's own `elk.layout()` settles only after two `setTimeout(…, 0)`.
+        let timedOut = false;
+        setTimeout(() => timedOut = true, 0);
+        await joint.layout.ELK.layout(graph);
+
+        assert.notOk(timedOut);
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+    });
+
+    QUnit.test('should reject with ELK\'s error as `elkjs` does', async(assert) => {
+
+        const { graph } = createGraph();
+
+        let error;
+        try {
+            await joint.layout.ELK.layout(graph, { elkLayoutOptions: { 'elk.algorithm': 'unknown' }});
+        } catch (reason) {
+            error = reason;
+        }
+        assert.ok(error instanceof Error);
+        assert.ok(/Layout algorithm 'unknown' not found/.test(error.message));
+        assert.notOk('__java$exception' in error);
     });
 
     QUnit.test('should route links and set vertices/anchors', async(assert) => {
@@ -2114,6 +2163,91 @@ QUnit.module('layout option values', () => {
         });
 
         assert.ok(bbox.equals(new joint.g.Rect(0, 0, 0, 0)));
+    });
+});
+
+QUnit.module('layoutSync()', (hooks) => {
+
+    hooks.before(() => joint.layout.ELK.loadElk());
+
+    const createGraph = () => {
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const el1 = new joint.shapes.standard.Rectangle({ id: 'a', size: { width: 100, height: 100 }});
+        const el2 = new joint.shapes.standard.Rectangle({ id: 'b', size: { width: 100, height: 100 }});
+        const el3 = new joint.shapes.standard.Rectangle({ id: 'c', size: { width: 100, height: 100 }});
+        const link = new joint.shapes.standard.Link({ source: { id: 'a' }, target: { id: 'b' }});
+        graph.resetCells([el1, el2, el3, link]);
+        return { graph, el1, el2, el3, link };
+    };
+
+    QUnit.test('should lay out the graph synchronously, as `layout()` does', async(assert) => {
+
+        const { graph: syncGraph, el1, el2, link } = createGraph();
+        const { graph: asyncGraph } = createGraph();
+
+        const result = joint.layout.ELK.layoutSync(syncGraph);
+        assert.notOk(result instanceof Promise);
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+        assert.ok(Array.isArray(link.vertices()));
+
+        const asyncResult = await joint.layout.ELK.layout(asyncGraph);
+        // The links' ids are generated - what was laid out is compared instead.
+        const laidOut = (graph) => [
+            graph.getElements().map((element) => element.position().toJSON()),
+            graph.getLinks().map((link) => link.vertices())
+        ];
+        assert.deepEqual(laidOut(syncGraph), laidOut(asyncGraph));
+        assert.ok(result.bbox.equals(asyncResult.bbox));
+        assert.strictEqual(result.elkGraph.id, asyncResult.elkGraph.id);
+    });
+
+    QUnit.test('should apply the layout in a single `layout` batch', assert => {
+
+        const { graph } = createGraph();
+        const batches = [];
+        graph.on('batch:start', ({ batchName }) => batches.push(`start:${batchName}`));
+        graph.on('batch:stop', ({ batchName }) => batches.push(`stop:${batchName}`));
+
+        joint.layout.ELK.layoutSync(graph);
+
+        assert.deepEqual(batches, ['start:layout', 'stop:layout']);
+    });
+
+    QUnit.test('should lay out only the given cells, with the callbacks and options given', assert => {
+
+        const { el1, el2, el3, link } = createGraph();
+        el3.position(500, 500);
+        const exported = [];
+
+        joint.layout.ELK.layoutSync([el1, el2, link], {
+            elkLayoutOptions: { 'elk.direction': 'DOWN' },
+            exportElement: ({ element }) => { exported.push(element.id); }
+        });
+
+        assert.deepEqual(exported, ['a', 'b']);
+        assert.ok(el2.position().y > el1.position().y);
+        assert.deepEqual(el3.position().toJSON(), { x: 500, y: 500 });
+    });
+
+    QUnit.test('should throw ELK\'s error, and apply nothing', assert => {
+
+        const { graph, el1, el2 } = createGraph();
+
+        assert.throws(
+            () => joint.layout.ELK.layoutSync(graph, { elkLayoutOptions: { 'elk.algorithm': 'unknown' }}),
+            (error) => error instanceof Error && /Layout algorithm 'unknown' not found/.test(error.message) && !('__java$exception' in error)
+        );
+        assert.ok(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
+    });
+
+    QUnit.test('should leave a later `layout()` with `elkjs` unaffected', async(assert) => {
+
+        const { graph, el1, el2 } = createGraph();
+
+        joint.layout.ELK.layoutSync(createGraph().graph);
+        await joint.layout.ELK.layout(graph, { elk: new window.ELK() });
+
+        assert.notOk(joint.g.intersection.exists(el1.getBBox(), el2.getBBox()));
     });
 });
 
