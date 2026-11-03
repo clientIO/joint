@@ -64,8 +64,9 @@ function findTouch(touches, identifier) {
  * -> gesture (a second finger), which owns the sequence until the last finger lifts.
  *
  * Withholding a `pointerdown` hides it from everything below the paper element, an app's
- * own handlers included, so the paper takes the touch stream only while `paper:pinch` or
- * `paper:pan` has a listener. A paper with neither leaves every pointer event alone, and
+ * own handlers included, so the paper takes the touch stream only while `paper:pinch` has
+ * a listener (a `paper:pan` listener alone is the wheel's pan and does not opt in). A
+ * paper without one leaves every pointer event alone, and
  * an app recognizing its own pinch there - the pointer-event recipe MDN documents - runs
  * exactly as it would on a plain element.
  */

@@ -166,7 +166,11 @@ describe('touchGuard', () => {
     expect(touchGuard({ type: 'mousedown', target: div })).toBe(false);
     expect(touchGuard({ type: 'touchstart', target: div })).toBe(true);
     expect(touchGuard({ type: 'mousedown', target: div })).toBe(true);
-    // Only the one that follows the touch.
-    expect(touchGuard({ type: 'mousedown', target: div })).toBe(false);
+    // The same answer when the paper asks twice about one event.
+    expect(touchGuard({ type: 'mousedown', target: div })).toBe(true);
+    // A press on another node is not the touch's.
+    const other = makeOverflowingDiv();
+    mount(other);
+    expect(touchGuard({ type: 'mousedown', target: other })).toBe(false);
   });
 });

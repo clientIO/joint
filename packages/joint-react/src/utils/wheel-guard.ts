@@ -78,11 +78,10 @@ let guardedTouchTime = 0;
  */
 export function touchGuard(event: GuardEvent): boolean {
   if (event.type === 'mousedown') {
-    // shortcut: matched by target and time, as no portable flag marks compatibility mouse events.
-    const isCompatibilityMouse =
-      event.target === guardedTouchTarget && Date.now() - guardedTouchTime < COMPATIBILITY_MOUSE_WINDOW;
-    guardedTouchTarget = null;
-    return isCompatibilityMouse;
+    // shortcut: matched by target and time, as no portable flag marks compatibility mouse
+    // events; a real mouse press on the same node within the window is guarded too. Not
+    // cleared on a match: the paper may ask twice about one `mousedown` (a label, then the root).
+    return event.target === guardedTouchTarget && Date.now() - guardedTouchTime < COMPATIBILITY_MOUSE_WINDOW;
   }
   if (event.type !== 'touchstart' || !isInsideScrollableRegion(event.target)) return false;
   guardedTouchTarget = event.target;
