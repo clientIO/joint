@@ -380,10 +380,12 @@ export function graphChanges(options: Options) {
       // record and on a cell naming a layer that does not exist, and a throw
       // inside the batch would leave the graph reported as "inside a batch" for
       // every later change. New layers are constructed here too, so a throwing
-      // layer constructor also fails before any write.
+      // layer constructor also fails before any write. What can still throw
+      // inside the batch is what joint-core's own `syncCells` leaves open too:
+      // an unknown cell type and a throwing graph listener.
       if (layers) assertLayerRecords(graph, layers);
       if (cells) assertLayersExist(graph, cells, layers);
-      const createdLayers = layers ? createMissingLayers(graph, layers) : undefined;
+      const createdLayers = layers ? createMissingLayers(graph, layers, syncOptions) : undefined;
 
       // A valid declaration owns pruning before any public mutation event.
       // Nested declarations replace this identity; invalid input never does.

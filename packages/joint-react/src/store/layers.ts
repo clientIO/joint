@@ -5,9 +5,7 @@ import { isShallowEqual } from '../utils/selector-utils';
 import { isRecord } from '../utils/is';
 
 /** `type` joint-core gives a plain layer — read from core, not restated — and left out of records. */
-const DEFAULT_GRAPH_LAYER_TYPE: unknown = dia.GraphLayer.prototype.defaults().type;
-/** {@link DEFAULT_GRAPH_LAYER_TYPE} as a namespace key, for constructing a plain layer. */
-const DEFAULT_LAYER_TYPE = String(DEFAULT_GRAPH_LAYER_TYPE);
+const DEFAULT_GRAPH_LAYER_TYPE = String(dia.GraphLayer.prototype.defaults().type);
 
 /** Keys that identify or describe a layer's role rather than its attributes — never written back. */
 const RESERVED_KEYS = new Set(['id', 'type', 'isDefault']);
@@ -167,23 +165,29 @@ function toLayerInit(record: LayerRecord): dia.GraphLayer.Attributes {
  * Constructs the declared layers the graph does not have yet, without adding
  * them. Runs before the React-origin batch opens: a throwing layer constructor
  * then fails the apply before any write, so the graph and its batches stay
- * untouched. Call {@link assertLayerRecords} first.
+ * untouched. Constructors therefore run even for an apply that fails later and
+ * must not have side effects outside the layer. Call {@link assertLayerRecords}
+ * first.
  * @param graph - The target graph.
  * @param layers - The declared layers.
+ * @param options - Passed to each layer constructor, as the add options are in joint-core.
  * @returns The new layer models by id, for {@link reconcileLayers} to add.
  * @internal
  */
 export function createMissingLayers(
   graph: dia.Graph,
-  layers: readonly LayerRecord[]
+  layers: readonly LayerRecord[],
+  options: Record<string, unknown> = {}
 ): ReadonlyMap<string, dia.GraphLayer> {
   const created = new Map<string, dia.GraphLayer>();
   for (const record of layers) {
     if (graph.hasLayer(record.id)) continue;
     const attributes = toLayerInit(record);
-    const type = typeof attributes.type === 'string' ? attributes.type : DEFAULT_LAYER_TYPE;
+    const type = typeof attributes.type === 'string' ? attributes.type : DEFAULT_GRAPH_LAYER_TYPE;
     const LayerConstructor = resolveLayerConstructor(graph, type) ?? dia.GraphLayer;
-    created.set(record.id, new LayerConstructor({ ...attributes, type }));
+    // The same constructor input as joint-core's `GraphLayerCollection.model()`.
+    const layerOptions = { ...options, collection: graph.layerCollection };
+    created.set(record.id, new LayerConstructor({ ...attributes, type }, layerOptions));
   }
   return created;
 }
@@ -209,7 +213,7 @@ export function reconcileLayers(
   graph: dia.Graph,
   next: readonly LayerRecord[],
   options: Record<string, unknown> = {},
-  createdLayers: ReadonlyMap<string, dia.GraphLayer> = createMissingLayers(graph, next)
+  createdLayers: ReadonlyMap<string, dia.GraphLayer> = createMissingLayers(graph, next, options)
 ): void {
   const defaultId = graph.getDefaultLayer().id;
   const declaredDefault = next.find((record) => record.id === defaultId);

@@ -28,7 +28,8 @@ interface LayersStore {
   readonly subscribe: (listener: () => void) => () => void;
   /**
    * Subscribe to layer changes GraphProvider's controlled sync did not make:
-   * graph edits and the imperative setters. Fires after the
+   * graph edits, the imperative layer setters, and pending layers pruned by an
+   * imperative cells update or a later retry. Fires after the
    * {@link LayersStore.subscribe} listeners.
    */
   readonly subscribeToOutsideChanges: (listener: () => void) => () => void;

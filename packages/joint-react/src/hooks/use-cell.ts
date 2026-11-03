@@ -142,7 +142,7 @@ export function useCell<Cell extends AnyCellRecord = CellRecord, Selected = Comp
       if (cell === undefined) {
         // The subscribed cell was removed while this subtree is still mounted: a
         // controlled `cells` update fires the cell's per-id listener synchronously
-        // (inside GraphProvider's applyControlled commit) one step before <Paper>
+        // (inside GraphProvider's syncControlled commit) one step before <Paper>
         // unmounts the portal, so the selector re-runs against a cell that is
         // already gone. Return the last value resolved for THIS id — the doomed
         // subtree renders once more with stale data (equal to the cached value, so
