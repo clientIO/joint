@@ -149,7 +149,7 @@ export class PaperTouchGestures {
      */
     isGestureLift() {
 
-        return (Date.now() - this.endedAt) < config.doubleTapInterval;
+        return this.phase === PHASE_GESTURE || (Date.now() - this.endedAt) < config.doubleTapInterval;
     }
 
     resetState() {
@@ -173,8 +173,9 @@ export class PaperTouchGestures {
         this.timer = null;
         // `evt.data` of the interaction the press started (see `trackInteraction()`)
         this.data = null;
-        // The withheld native `pointerdown` of the first finger
-        this.held = null;
+        // The withheld native `pointerdown`s of the fingers that landed before the paper's
+        // `touchstart` (one, or two landing at once)
+        this.held = [];
         // The gesture: the tracked pair and the midpoint and distance last reported
         this.id0 = null;
         this.id1 = null;
@@ -199,9 +200,13 @@ export class PaperTouchGestures {
             cancelFrame(this.frame);
             this.frame = null;
         }
-        const { endedAt } = this;
+        const { endedAt, pointers } = this;
         this.resetState();
         this.endedAt = endedAt;
+        // A pointer the content heard is the content's: only withheld ones stay filtered.
+        pointers.forEach((delivered, pointerId) => {
+            if (delivered) pointers.delete(pointerId);
+        });
     }
 
     toggleListeners(types, add) {
@@ -252,9 +257,15 @@ export class PaperTouchGestures {
                 if (count === 1) {
                     this.beginPress(evt, changedTouches[0]);
                 } else if (count > 1 && touches.length === changedTouches.length) {
-                    // Both fingers landed at once.
-                    this.beginGesture(changedTouches[0], changedTouches[1]);
-                    break;
+                    // Both fingers landed at once. A guarded touch (a scrollable region) is
+                    // the content's, as it is for a single finger in `releasePress()`.
+                    const { paper } = this;
+                    if (!paper.guard(normalizeEvent(new $.Event(evt)), paper.findView(evt.target))) {
+                        this.beginGesture(changedTouches[0], changedTouches[1]);
+                        break;
+                    }
+                    this.replayHeldPointerdown();
+                    this.reset();
                 } else {
                     // A finger joining a sequence the paper let go (a guarded press, or a
                     // press the content under it kept): hand its press back and stay out.
@@ -282,6 +293,8 @@ export class PaperTouchGestures {
                 // paper's, and neither is one whose identifier the browser reused from a
                 // finger that lifted unseen: the press ends, but no gesture begins.
                 if (!this.paper.svg.contains(second.target) || second.identifier === first.identifier) {
+                    // The content hears the first finger it would otherwise only hear lift.
+                    this.replayHeldPointerdown();
                     this.reset();
                     return;
                 }
@@ -379,21 +392,22 @@ export class PaperTouchGestures {
         }));
     }
 
-    // Re-dispatch the withheld native `pointerdown` to the content under the finger.
+    // Re-dispatch the withheld native `pointerdown`s to the content under the fingers.
     replayHeldPointerdown() {
 
         const { held } = this;
-        if (!held) return;
-        this.held = null;
-        this.pointers.set(held.pointerId, true);
-        const { target } = held;
-        if (!target.isConnected) return;
+        this.held = [];
         // An event is a valid init dictionary for its own constructor. `MouseEvent`
         // stands in where pointer events do not exist (jsdom).
         const EventClass = (typeof PointerEvent === 'function') ? PointerEvent : MouseEvent;
-        const replay = new EventClass(held.type, held);
-        replayedPointerEvents.add(replay);
-        target.dispatchEvent(replay);
+        for (let i = 0; i < held.length; i++) {
+            const event = held[i];
+            this.pointers.set(event.pointerId, true);
+            if (!event.target.isConnected) continue;
+            const replay = new EventClass(event.type, event);
+            replayedPointerEvents.add(replay);
+            event.target.dispatchEvent(replay);
+        }
     }
 
     onTouchMove(evt) {
@@ -526,11 +540,14 @@ export class PaperTouchGestures {
         // Content next to the SVG (an overlay) is not on the paper's event surface.
         if (!this.paper.svg.contains(evt.target)) return;
         if (this.phase === PHASE_IDLE) {
-            // The first finger of the paper's sequence. `isPrimary` cannot tell: it is
-            // page-wide, so a finger resting outside the paper makes this one secondary.
-            this.held = evt;
-            this.pointerId = evt.pointerId;
-            this.toggleListeners(SEQUENCE_EVENT_TYPES, true);
+            // Before the paper's `touchstart`: the first finger of its sequence, or a second
+            // landing in the same frame. `isPrimary` cannot tell: it is page-wide, so a
+            // finger resting outside the paper makes this one secondary.
+            if (this.pointerId === null) {
+                this.pointerId = evt.pointerId;
+                this.toggleListeners(SEQUENCE_EVENT_TYPES, true);
+            }
+            this.held.push(evt);
         }
         this.pointers.set(evt.pointerId, false);
         evt.stopImmediatePropagation();
@@ -564,17 +581,13 @@ export class PaperTouchGestures {
         }
         // A pointer whose `pointerdown` was delivered gets its `pointerup` too.
         if (delivered) return;
-        if (evt.pointerId === this.pointerId) {
-            if (evt.type === 'pointerup' && this.phase === PHASE_PENDING) {
-                // A tap. Announce the press and let this `pointerup` release it. The replay
-                // re-tracks the pointer, but this was its last event.
-                this.flushPress();
-                this.pointers.delete(evt.pointerId);
-                return;
-            }
-            // Lifted unheard: there is nothing left to replay.
-            this.held = null;
+        if (evt.pointerId === this.pointerId && evt.type === 'pointerup' && this.phase === PHASE_PENDING) {
+            // A tap. Announce the press and let this `pointerup` release it.
+            this.flushPress();
+            return;
         }
+        // Lifted unheard: there is nothing left to replay.
+        this.held = this.held.filter((event) => event.pointerId !== evt.pointerId);
         evt.stopImmediatePropagation();
     }
 }

@@ -3587,6 +3587,9 @@ export const Paper = View.extend({
             if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
                 const magnetEvt = normalizeEvent(new $.Event(evt.originalEvent, {
                     data: evt.data,
+                    // Where the press is, which a withheld touch press moves (see `PaperTouchGestures`).
+                    clientX: evt.clientX,
+                    clientY: evt.clientY,
                     // Originally the event listener was attached to the magnet element.
                     currentTarget: magnetNode
                 }));
@@ -4382,6 +4385,8 @@ export const Paper = View.extend({
         if (eventNode && rootNode !== eventNode && view.el.contains(eventNode)) {
             const eventEvt = normalizeEvent(new $.Event(evt.originalEvent, {
                 data: evt.data,
+                clientX: evt.clientX,
+                clientY: evt.clientY,
                 // Originally the event listener was attached to the event element.
                 currentTarget: eventNode
             }));

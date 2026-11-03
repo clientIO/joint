@@ -255,6 +255,19 @@ QUnit.module('joint.dia.Paper touch gestures', function(hooks) {
             screen.up(1);
         });
 
+        QUnit.test('a drag from a passive magnet picks up where the finger is too', function(assert) {
+
+            element.attr('body/magnet', 'passive');
+            const origin = element.position().toJSON();
+
+            screen.down(1, elementRect, 100, 100);
+            screen.move(1, 140, 100);
+            clock.tick(paper.TOUCH_PRESS_DELAY);
+            screen.move(1, 150, 100);
+            assert.deepEqual(element.position().toJSON(), { x: origin.x + 10, y: origin.y });
+            screen.up(1);
+        });
+
         QUnit.test('a swipe released before the wait is over is not a click', function(assert) {
 
             const record = recordEvents(['element:pointerdown', 'element:pointerup', 'element:pointerclick']);
@@ -303,6 +316,7 @@ QUnit.module('joint.dia.Paper touch gestures', function(hooks) {
 
             screen.up(2);
             screen.up(1);
+            assert.equal(paper._touchGestures.pointers.size, 0, 'the content kept the pointers: nothing is tracked');
         });
 
         QUnit.test('a finger on content next to the SVG leaves the first press to the next one', function(assert) {
@@ -841,6 +855,21 @@ QUnit.module('joint.dia.Paper touch gestures', function(hooks) {
             assert.deepEqual(record['element:pointerdblclick'], ['dbltap'], 'a real double tap later');
         });
 
+        QUnit.test('a gesture right after a tap is not a double tap', function(assert) {
+
+            const record = recordEvents(['element:pointerdblclick']);
+
+            tap(elementRect, 100, 100);
+            clock.tick(100);
+            screen.down(1, elementRect, 100, 100);
+            screen.down(2, elementRect, 200, 100);
+            clock.tick(50);
+            // The first lift of a live gesture, close enough to the tap to pair with it.
+            screen.up(2);
+            screen.up(1);
+            assert.deepEqual(record['element:pointerdblclick'], []);
+        });
+
         QUnit.test('both fingers landing at once start a gesture', async function(assert) {
 
             const record = recordEvents(['element:pointerdown']);
@@ -860,6 +889,43 @@ QUnit.module('joint.dia.Paper touch gestures', function(hooks) {
 
             assert.deepEqual(record['element:pointerdown'], []);
             assert.deepEqual(pinches, [2]);
+        });
+
+        QUnit.test('both fingers landing at once on a guarded touch are left to the content', function(assert) {
+
+            const pinches = [];
+            paper.on('paper:pinch', (evt, x, y, scale) => pinches.push(scale));
+            paper.options.guard = () => true;
+            const pointerEvents = [];
+            ['pointerdown', 'pointerup'].forEach((type) => {
+                elementRect.addEventListener(type, (evt) => pointerEvents.push(`${type}:${evt.pointerId}`));
+            });
+            function dispatchPointer(type, pointerId, clientX) {
+                elementRect.dispatchEvent(new PointerEvent(type, {
+                    bubbles: true, cancelable: true, pointerType: 'touch', pointerId, isPrimary: pointerId === 101, clientX, clientY: 50
+                }));
+            }
+
+            // The browser order: both pointerdowns, then the one touchstart.
+            dispatchPointer('pointerdown', 101, 0);
+            dispatchPointer('pointerdown', 102, 100);
+            const touches = [
+                new Touch({ identifier: 1, target: elementRect, clientX: 0, clientY: 50 }),
+                new Touch({ identifier: 2, target: elementRect, clientX: 100, clientY: 50 }),
+            ];
+            const start = new TouchEvent('touchstart', { bubbles: true, cancelable: true, touches, changedTouches: touches, targetTouches: touches });
+            elementRect.dispatchEvent(start);
+            assert.notOk(start.defaultPrevented, 'the browser keeps its native scroll and zoom');
+            const moved = [touches[0], new Touch({ identifier: 2, target: elementRect, clientX: 200, clientY: 50 })];
+            const move = new TouchEvent('touchmove', { bubbles: true, cancelable: true, touches: moved, changedTouches: [moved[1]], targetTouches: moved });
+            elementRect.dispatchEvent(move);
+            assert.notOk(move.defaultPrevented);
+            dispatchPointer('pointerup', 101, 0);
+            dispatchPointer('pointerup', 102, 200);
+            elementRect.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true, touches: [], changedTouches: moved, targetTouches: [] }));
+            assert.deepEqual(pinches, []);
+            assert.deepEqual(pointerEvents, ['pointerdown:101', 'pointerdown:102', 'pointerup:101', 'pointerup:102'], 'the content hears both fingers, in pairs');
+            assert.equal(paper._touchGestures.pointers.size, 0, 'and nothing stays tracked');
         });
 
         QUnit.test('a sequence whose lifts were lost is reset by the next fresh touch', function(assert) {
