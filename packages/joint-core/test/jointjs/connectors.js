@@ -460,11 +460,11 @@ QUnit.module('connectors', function(hooks) {
         const JUMP_SIZE = 5;
 
         hooks.beforeEach(function() {
-            this.addLink = (source, target, connectorName = 'jumpover') => {
+            this.addLink = (source, target, connectorName = 'jumpover', args = {}) => {
                 const link = new joint.shapes.standard.Link({
                     source,
                     target,
-                    connector: { name: connectorName, args: { size: JUMP_SIZE }}
+                    connector: { name: connectorName, args: { size: JUMP_SIZE, ...args }}
                 });
                 this.graph.addCell(link);
                 return link;
@@ -518,6 +518,27 @@ QUnit.module('connectors', function(hooks) {
             const path = link.findView(this.paper).getConnection();
             assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
             assert.equal(Math.round(path.start.x), 0);
+        });
+
+        QUnit.test('a gap over a track of close parallel links is a single gap', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 }, 'jumpover', { jump: 'gap' });
+            [100, 107, 114, 121].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            const moves = path.segments.filter((segment) => segment.type === 'M');
+            assert.equal(moves.length, 2, 'one gap');
+            const gapStart = path.segments[path.segments.indexOf(moves[1]) - 1].end;
+            assert.equal(Math.round(gapStart.x), 100 - JUMP_SIZE, 'the gap starts before the first link');
+            assert.equal(Math.round(moves[1].end.x), 121 + JUMP_SIZE, 'the gap ends after the last link');
+        });
+
+        QUnit.test('a cubic jump over a track of close parallel links is a single curve', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 }, 'jumpover', { jump: 'cubic' });
+            [100, 107, 114, 121].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 1, 'one curve');
+            assert.ok(100 - path.bbox().y < JUMP_SIZE * 1.1, 'the curve is about as high as the jump size');
         });
 
         QUnit.test('a single jump is a semicircle of the jump size', function(assert) {
