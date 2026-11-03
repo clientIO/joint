@@ -67,8 +67,11 @@ export interface UpdateGraphResult {
   readonly cellIds: readonly CellId[];
   /** Whether a layer kept by an earlier declaration was pruned by this update. */
   readonly hasRemovedPendingLayer: boolean;
-  /** Whether a newer declaration, applied by a graph listener, replaced this one midway. */
-  readonly isSuperseded: boolean;
+  /**
+   * Whether the cells were not synced: a newer layers declaration, applied by
+   * a graph listener midway, dropped a layer they name.
+   */
+  readonly areCellsSkipped: boolean;
 }
 
 interface OnChangeOptions {
@@ -107,8 +110,32 @@ function isReactOrigin(eventOptions: unknown): boolean {
 }
 
 /**
+ * The first cell naming a layer that neither the graph nor the declared
+ * `layers` provide, with that layer id. O(n) property reads; the layer lookup
+ * is a Map hit.
+ * @param graph - The target graph.
+ * @param cells - The records about to be synced.
+ * @param layers - Layers declared in the same commit, if any.
+ */
+function findCellWithMissingLayer(
+  graph: dia.Graph,
+  cells: ReadonlyArray<ElementJSONInit | LinkJSONInit>,
+  layers?: readonly LayerRecord[]
+): { readonly cell: ElementJSONInit | LinkJSONInit; readonly layer: string } | undefined {
+  for (const cell of cells) {
+    // Resolved as joint-core does: an empty `layer`, or any layer on a graph
+    // that ignores layers, means the default layer.
+    const layer = graph.getCellLayerId(cell);
+    if (graph.hasLayer(layer)) continue;
+    if (layers?.some((record) => record.id === layer)) continue;
+    return { cell, layer };
+  }
+  return undefined;
+}
+
+/**
  * Throws when a cell names a layer that neither the graph nor the declared
- * `layers` provide. O(n) property reads; the layer lookup is a Map hit.
+ * `layers` provide.
  * @param graph - The target graph.
  * @param cells - The records about to be synced.
  * @param layers - Layers declared in the same commit, if any.
@@ -118,17 +145,12 @@ function assertLayersExist(
   cells: ReadonlyArray<ElementJSONInit | LinkJSONInit>,
   layers: readonly LayerRecord[] | undefined
 ): void {
-  for (const cell of cells) {
-    // Resolved as joint-core does: an empty `layer`, or any layer on a graph
-    // that ignores layers, means the default layer.
-    const layer = graph.getCellLayerId(cell);
-    if (graph.hasLayer(layer)) continue;
-    if (layers?.some((record) => record.id === layer)) continue;
-    throw new Error(
-      `GraphProvider: cell "${String(cell.id)}" names layer "${layer}", which does not exist. ` +
-        'Declare it in `layers` / `initialLayers`, or add it to the graph first.'
-    );
-  }
+  const missing = findCellWithMissingLayer(graph, cells, layers);
+  if (!missing) return;
+  throw new Error(
+    `GraphProvider: cell "${String(missing.cell.id)}" names layer "${missing.layer}", which does not exist. ` +
+      'Declare it in `layers` / `initialLayers`, or add it to the graph first.'
+  );
 }
 
 /**
@@ -406,10 +428,11 @@ export function graphChanges(options: Options) {
       if (layers && isCurrent) {
         reconcileLayers(graph, layers, syncOptions, createdLayers, isCurrent);
         // A graph listener applied a newer declaration meanwhile. It owns the
-        // graph now, and these cells may name layers it did not keep.
-        if (!isCurrent()) {
+        // layers now; the cells still land unless they name a layer it did not
+        // keep, which joint-core would throw on inside the batch.
+        if (!isCurrent() && cells && findCellWithMissingLayer(graph, cells)) {
           graph.stopBatch('updateFromReact', syncOptions);
-          return { cellIds: [], hasRemovedPendingLayer: false, isSuperseded: true };
+          return { cellIds: [], hasRemovedPendingLayer: false, areCellsSkipped: true };
         }
       }
       const cellIds = syncCellsFromReact(cells, syncOptions);
@@ -423,7 +446,7 @@ export function graphChanges(options: Options) {
         syncOptions
       );
       graph.stopBatch('updateFromReact', syncOptions);
-      return { cellIds, hasRemovedPendingLayer, isSuperseded: false };
+      return { cellIds, hasRemovedPendingLayer, areCellsSkipped: false };
     },
   };
 }

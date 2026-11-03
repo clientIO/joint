@@ -117,7 +117,11 @@ export function useGraphTransaction(): Transaction {
         // the batch's single commit (not a separate one), then close and repaint.
         // Layers first, so every saved cell has its layer back; layers the
         // transaction added are pruned once the batch closes and they are empty.
-        if (layersSnapshot) store.applyLayers(layersSnapshot);
+        // Only when the transaction changed them: a re-apply starts a new
+        // declaration, which forgets the layers an earlier one still has to prune.
+        if (layersSnapshot && graphProjection.layers.getSnapshot() !== layersSnapshot) {
+          store.applyLayers(layersSnapshot);
+        }
         if (snapshot) resetCells(snapshot);
         graph.stopBatch(batchName, DEFERRED_BATCH);
         unfreezeAll();

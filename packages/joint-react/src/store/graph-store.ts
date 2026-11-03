@@ -188,12 +188,20 @@ export class GraphStore<
    * they are the parent's own declaration.
    * @param cells - controlled cells, or `undefined` to leave the cells untouched
    * @param layers - controlled layers, or `undefined` to leave the layers untouched
+   * @returns `false` when the cells could not be applied, because a graph
+   *   listener replaced the layers midway and dropped one they name
    */
   public syncControlled = (
     cells: ReadonlyArray<Element | Link> | undefined,
     layers?: readonly LayerRecord[]
-  ) => {
-    this.graphProjection.updateGraph({ cells, layers, flag: 'updateFromReact', isControlledSync: true });
+  ): boolean => {
+    const areCellsSkipped = this.graphProjection.updateGraph({
+      cells,
+      layers,
+      flag: 'updateFromReact',
+      isControlledSync: true,
+    });
+    return !areCellsSkipped;
   };
 
   /**

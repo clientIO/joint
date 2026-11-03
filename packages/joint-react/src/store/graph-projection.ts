@@ -355,16 +355,21 @@ export function graphProjection<
     layers,
     syncFromGraph,
     syncLayersFromGraph,
-    updateGraph(update: UpdateGraphOptions<Element, Link>) {
-      const { cellIds, hasRemovedPendingLayer, isSuperseded } =
+    /**
+     * Apply a React-origin update to the graph and mirror it into the containers.
+     * @param update - the cells and layers to apply
+     * @returns `true` when the cells were skipped (see `UpdateGraphResult.areCellsSkipped`)
+     */
+    updateGraph(update: UpdateGraphOptions<Element, Link>): boolean {
+      const { cellIds, hasRemovedPendingLayer, areCellsSkipped } =
         graphChangesController.updateGraph(update);
       // Tagged layer writes are not echoed by graphChanges, so read them here.
       if (update.flag === 'updateFromReact' && (update.layers || hasRemovedPendingLayer)) {
         syncLayersFromGraph(!update.isControlledSync);
       }
-      if (update.flag !== 'updateFromReact') return;
-      // A superseded update wrote no cells; the newer one synced the container.
-      if (!update.cells || isSuperseded) return;
+      if (update.flag !== 'updateFromReact') return areCellsSkipped;
+      // Skipped cells were never written, so the container keeps its state.
+      if (!update.cells || areCellsSkipped) return areCellsSkipped;
 
       // React-origin graph events are ignored by graphChanges (isUpdateFromReact),
       // so sync the container directly from the just-synced cells.
@@ -388,6 +393,7 @@ export function graphProjection<
       }
 
       flushContainer();
+      return false;
     },
     destroy() {
       graphChangesController.destroy();

@@ -20,6 +20,25 @@ const element = (id: string, layer?: string) =>
 const ROLLBACK_LAYERS: readonly LayerRecord[] = [{ id: 'notes' }];
 const ROLLBACK_CELLS: readonly CellRecord[] = [element('node', 'notes')];
 
+interface Captured {
+  api?: ReturnType<typeof useGraph>;
+  store?: GraphStore;
+}
+
+const captured: Captured = {};
+
+/** Hands the provider's graph API and store to the test. */
+function Capture() {
+  captured.api = useGraph();
+  captured.store = useGraphStore();
+  return null;
+}
+
+beforeEach(() => {
+  captured.api = undefined;
+  captured.store = undefined;
+});
+
 const flushMicrotasks = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
 describe('cell layer membership', () => {
@@ -98,12 +117,6 @@ describe('graph listeners during a React-origin layers apply', () => {
 
 describe('transaction rollback with layers', () => {
   it('restores a layer the transaction removed before restoring its cells', async () => {
-    const captured: { api?: ReturnType<typeof useGraph>; store?: GraphStore } = {};
-    function Capture() {
-      captured.api = useGraph();
-      captured.store = useGraphStore();
-      return null;
-    }
     const warn = jest.spyOn(console, 'warn').mockImplementation(jest.fn());
     const view = render(
       <GraphProvider initialLayers={ROLLBACK_LAYERS} initialCells={ROLLBACK_CELLS}>
@@ -132,6 +145,85 @@ describe('transaction rollback with layers', () => {
       expect(store!.graph.hasActiveBatch()).toBe(false);
       expect(store!.graph.hasLayer('notes')).toBe(true);
       expect(store!.graph.getCellLayerId(store!.graph.getCell('node'))).toBe('notes');
+    } finally {
+      view.unmount();
+      warn.mockRestore();
+    }
+  });
+});
+
+describe('superseded controlled sync', () => {
+  const SUPERSEDE_CELLS_BEFORE: readonly CellRecord[] = [element('first')];
+  const SUPERSEDE_CELLS_AFTER: readonly CellRecord[] = [element('first'), element('second')];
+  const SUPERSEDE_LAYERS_BEFORE: readonly LayerRecord[] = [{ id: 'a' }];
+  const SUPERSEDE_LAYERS_AFTER: readonly LayerRecord[] = [{ id: 'a' }, { id: 'c' }];
+
+  it('still lands controlled cells when a graph listener replaces the layers midway', async () => {
+    const tree = (cells: readonly CellRecord[], layers: readonly LayerRecord[]) => (
+      <GraphProvider cells={cells} layers={layers}>
+        <Capture />
+      </GraphProvider>
+    );
+    const view = render(tree(SUPERSEDE_CELLS_BEFORE, SUPERSEDE_LAYERS_BEFORE));
+    try {
+      await waitFor(() => expect(captured.store?.graph.hasLayer('a')).toBe(true));
+      const store = captured.store!;
+      const replaceDeclaration = (layer: dia.GraphLayer) => {
+        if (layer.id !== 'c') return;
+        store.graph.off('layer:add', replaceDeclaration);
+        store.applyLayers([{ id: 'b' }]);
+      };
+      store.graph.on('layer:add', replaceDeclaration);
+
+      await act(async () => {
+        view.rerender(tree(SUPERSEDE_CELLS_AFTER, SUPERSEDE_LAYERS_AFTER));
+      });
+
+      expect(store.graph.getCell('second')).toBeDefined();
+      expect(store.graphProjection.cells.has('second')).toBe(true);
+      expect(store.graph.hasActiveBatch()).toBe(false);
+    } finally {
+      view.unmount();
+    }
+  });
+});
+
+describe('transaction rollback and pending layer removals', () => {
+  const PENDING_LAYERS: readonly LayerRecord[] = [{ id: 'notes' }];
+  const PENDING_CELLS: readonly CellRecord[] = [element('node', 'notes')];
+
+  it('keeps a removal declared before a rollback that did not touch the layers', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(jest.fn());
+    const view = render(
+      <GraphProvider initialLayers={PENDING_LAYERS} initialCells={PENDING_CELLS}>
+        <Capture />
+      </GraphProvider>
+    );
+    try {
+      await waitFor(() => expect(captured.store?.graph.hasLayer('notes')).toBe(true));
+      const { api, store } = captured;
+      // `notes` still holds a cell, so its removal stays pending.
+      act(() => api!.setLayers([]));
+      expect(store!.graph.hasLayer('notes')).toBe(true);
+      const failure = new Error('transaction failed');
+      expect(() =>
+        act(() =>
+          api!.transaction(
+            () => {
+              store!.graph.getCell('node').set('position', { x: 5, y: 5 });
+              throw failure;
+            },
+            { rollbackOnError: true }
+          )
+        )
+      ).toThrow(failure);
+
+      await act(async () => {
+        store!.graph.getCell('node').set('layer', 'cells');
+        await flushMicrotasks();
+      });
+
+      expect(store!.graph.hasLayer('notes')).toBe(false);
     } finally {
       view.unmount();
       warn.mockRestore();

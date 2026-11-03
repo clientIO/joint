@@ -177,6 +177,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
   const hasControlledLayers = !!layers;
   const onLayersChangeRef = useLatestRef(onLayersChange);
   const layersRef = useLatestRef(layers);
+  const cellsRef = useLatestRef(cells);
   const lastAppliedCellsRef = useRef<typeof cells>(undefined);
   // Layers are re-reconciled only when their reference changes, so a drag frame
   // in controlled mode does zero layer work. Cleared on a graph-origin change so
@@ -216,8 +217,11 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
         const revert = () => {
           const controlledLayers = layersRef.current;
           if (!isActive || !controlledLayers) return;
-          syncControlled(undefined, controlledLayers);
+          // Controlled cells skipped by a superseded sync are re-applied with the layers.
+          const skippedCells = lastAppliedCellsRef.current === undefined ? cellsRef.current : undefined;
+          if (!syncControlled(skippedCells, controlledLayers)) return;
           lastAppliedLayersRef.current = controlledLayers;
+          if (skippedCells) lastAppliedCellsRef.current = skippedCells;
         };
         // The parent's own controlled sync is not echoed here.
         const unsubscribeLayers = graphProjection.layers.subscribeToOutsideChanges(() => {
@@ -275,8 +279,8 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
         // Same React-origin apply as the effect below, recorded so the next
         // commit skips the layers.
         const nextLayers = layersToApply();
-        syncControlled(cells, nextLayers);
-        if (nextLayers) lastAppliedLayersRef.current = nextLayers;
+        const isApplied = syncControlled(cells, nextLayers);
+        if (nextLayers && isApplied) lastAppliedLayersRef.current = nextLayers;
       }
     });
     // Controlled layers ride along with controlled cells in ONE commit: joint-core
@@ -286,13 +290,14 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     // left a layer, so a layers-only change skips the O(n) cells diff.
     if (isControlled) {
       const nextLayers = layersToApply();
-      if (cells === lastAppliedCellsRef.current) {
-        if (nextLayers) syncControlled(undefined, nextLayers);
-      } else {
-        syncControlled(cells ?? [], nextLayers);
-      }
-      lastAppliedCellsRef.current = cells;
-      lastAppliedLayersRef.current = layers;
+      const isApplied =
+        cells === lastAppliedCellsRef.current
+          ? !nextLayers || syncControlled(undefined, nextLayers)
+          : syncControlled(cells ?? [], nextLayers);
+      // Not applied: a graph listener replaced the layers midway, and the next
+      // commit re-applies both arrays in full.
+      lastAppliedCellsRef.current = isApplied ? cells : undefined;
+      lastAppliedLayersRef.current = isApplied ? layers : undefined;
     }
   }, [
     instance,
