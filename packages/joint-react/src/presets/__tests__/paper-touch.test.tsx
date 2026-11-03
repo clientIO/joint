@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
-import type { dia } from '@joint/core';
+import { g, type dia } from '@joint/core';
 import { GraphProvider, Paper } from '../../components';
 import type { PaperProps } from '../../components/paper/paper.types';
 import { usePaper } from '../../hooks/use-paper';
@@ -243,6 +243,14 @@ interface RenderOptions {
   readonly consume?: boolean;
 }
 
+// jsdom has no layout, so `@joint/mock-svg` maps every client point to the origin.
+// The paper sits unscaled at the client origin, so client and local points are equal.
+function clientToLocalIdentity(x: number, y: number): g.Point;
+function clientToLocalIdentity(point: dia.Point): g.Point;
+function clientToLocalIdentity(xOrPoint: number | dia.Point, y?: number): g.Point {
+  return typeof xOrPoint === 'number' ? new g.Point(xOrPoint, y) : new g.Point(xOrPoint);
+}
+
 async function renderTouchPaper({ paperProps, consume = true }: RenderOptions = {}): Promise<Rendered> {
   capturedPaper = null;
   capturedNode = null;
@@ -261,6 +269,7 @@ async function renderTouchPaper({ paperProps, consume = true }: RenderOptions = 
   await waitFor(() => expect(capturedNode).not.toBeNull());
   const { paper, node, list } = getCaptured();
   if (!paper || !node || !list) throw new Error('Paper did not render.');
+  paper.clientToLocalPoint = clientToLocalIdentity;
   if (consume) paper.on('paper:pinch', () => {});
   for (const name of [
     'element:pointerdown',
