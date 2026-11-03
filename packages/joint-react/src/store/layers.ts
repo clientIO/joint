@@ -185,7 +185,8 @@ export function createMissingLayers(
     const attributes = toLayerInit(record);
     const type = typeof attributes.type === 'string' ? attributes.type : DEFAULT_GRAPH_LAYER_TYPE;
     const LayerConstructor = resolveLayerConstructor(graph, type) ?? dia.GraphLayer;
-    // The same constructor input as joint-core's `GraphLayerCollection.model()`.
+    // What joint-core's `GraphLayerCollection.model()` passes that a constructor
+    // can rely on: the add options and `collection`.
     const layerOptions = { ...options, collection: graph.layerCollection };
     created.set(record.id, new LayerConstructor({ ...attributes, type }, layerOptions));
   }
