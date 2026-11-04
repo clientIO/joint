@@ -9,6 +9,10 @@ const DEFAULT_GRAPH_LAYER_TYPE = String(dia.GraphLayer.prototype.defaults().type
 
 /** Keys that identify or describe a layer's role rather than its attributes — never written back. */
 const RESERVED_KEYS = new Set(['id', 'type', 'isDefault']);
+// A paper's own layers share the id space of graph layers: a graph layer under one
+// of these ids gets the paper's view, which cannot hold cells.
+const { GRID, BACK, FRONT, TOOLS, LABELS } = dia.Paper.Layers;
+const PAPER_LAYER_IDS = new Set<string>([GRID, BACK, FRONT, TOOLS, LABELS]);
 // Public add/move operations enable layer-aware JSON. Remember that activation
 // without reading or writing the core's legacy flag or repeating a no-op move.
 const graphsWithDeclaredLayers = new WeakSet<dia.Graph>();
@@ -113,9 +117,27 @@ function resolveLayerConstructor(graph: dia.Graph, type: string): GraphLayerCons
 }
 
 /**
+ * Throws for a declared id the graph cannot take.
+ * @param graph - The target graph.
+ * @param id - The declared layer id.
+ * @param seen - The ids declared before this one.
+ * @internal
+ */
+function assertLayerId(graph: dia.Graph, id: string, seen: ReadonlySet<string>): void {
+  if (!id) throw new Error('GraphProvider: a layer needs a non-empty id, got an empty layer id.');
+  if (seen.has(id)) throw new Error(`GraphProvider: layer id "${id}" is declared twice.`);
+  // A layer the graph already holds was not declared here: an unrelated update must not throw.
+  if (PAPER_LAYER_IDS.has(id) && !graph.hasLayer(id)) {
+    throw new Error(`GraphProvider: layer id "${id}" is reserved by the paper. Use another id.`);
+  }
+}
+
+/**
  * Throws on a layer list joint-core would reject or silently collapse: an
  * empty id, an id declared twice (layers are keyed by id, so the graph could
- * never match the array), a provided `type` that is not a string identifying a
+ * never match the array), an id a new layer cannot use because the paper keeps
+ * it for its own layer (the layer would get the paper's view, which cannot hold
+ * cells), a provided `type` that is not a string identifying a
  * GraphLayer constructor in the graph's `layerNamespace`, or a `type` that
  * differs from the existing layer's (a layer's class is fixed at creation,
  * so the change would be ignored). Runs before any write, so a bad array
@@ -128,8 +150,7 @@ function resolveLayerConstructor(graph: dia.Graph, type: string): GraphLayerCons
 export function assertLayerRecords(graph: dia.Graph, layers: readonly LayerRecord[]): void {
   const seen = new Set<string>();
   for (const { id, type } of layers) {
-    if (!id) throw new Error('GraphProvider: a layer needs a non-empty id, got an empty layer id.');
-    if (seen.has(id)) throw new Error(`GraphProvider: layer id "${id}" is declared twice.`);
+    assertLayerId(graph, id, seen);
     seen.add(id);
     if (type !== undefined && typeof type !== 'string') {
       throw new Error(

@@ -259,6 +259,22 @@ describe('assertLayerRecords', () => {
     expect(() => assertLayerRecords(createGraph(), [{ id: '' }])).toThrow(/empty layer id/);
   });
 
+  it.each(['grid', 'back', 'front', 'tools', 'labels'])('rejects the paper layer id "%s"', (id) => {
+    expect(() => assertLayerRecords(createGraph(), [{ id }])).toThrow(
+      new RegExp(`layer id "${id}" is reserved`)
+    );
+  });
+
+  it('accepts a paper layer id the graph already holds', () => {
+    const graph = createGraph();
+    graph.addLayer({ id: 'front' });
+    expect(() => assertLayerRecords(graph, [{ id: 'front' }])).not.toThrow();
+  });
+
+  it('accepts the default layer id', () => {
+    expect(() => assertLayerRecords(createGraph(), [{ id: 'cells' }])).not.toThrow();
+  });
+
   it('rejects a type missing from the graph layerNamespace', () => {
     expect(() => assertLayerRecords(createGraph(), [{ id: 'a', type: 'Nope' }])).toThrow(
       /layer "a" has type "Nope"/

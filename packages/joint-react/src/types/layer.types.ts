@@ -23,6 +23,7 @@
  * ```
  */
 export interface LayerRecord<LayerId extends string = string> {
+  /** The layer id. A new layer cannot use `grid`, `back`, `front`, `tools` or `labels`, which the paper keeps for its own layers. */
   readonly id: LayerId;
   /**
    * `true` on the graph's default layer — the one an untagged cell lands on.
