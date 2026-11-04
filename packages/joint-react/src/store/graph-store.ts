@@ -3,6 +3,10 @@ import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types'
 import type { AddPaperOptions } from './paper-store';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
+import type { LayerPatch, LayerRecord } from '../types/layer.types';
+import { assertLayerRecords, reconcileLayers, withLayerPatch } from './layers';
+import { isUpdater } from '../utils/is';
+import type { ArrayUpdate } from './state-container';
 import { createMeasurement, type AutoSizeOrigin, type Measurement } from './measurement';
 import { ELEMENT_MODEL_TYPE, ElementModel } from '../mvc/element-model';
 import { LINK_MODEL_TYPE, LinkModel } from '../mvc/link-model';
@@ -60,6 +64,8 @@ export interface GraphStoreOptions<
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
+  /** Layer classes by `type`, merged on top of the JointJS built-ins. */
+  readonly layerNamespace?: unknown;
   /**
    * Reference point that stays fixed when an auto-sized element's measured size
    * changes. See {@link AutoSizeOrigin}.
@@ -67,6 +73,19 @@ export interface GraphStoreOptions<
    */
   readonly autoSizeOrigin?: AutoSizeOrigin;
   readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
+  /** Layers to declare once at construction, in paint order. See {@link LayerRecord}. */
+  readonly initialLayers?: readonly LayerRecord[];
+}
+
+/**
+ * What a {@link GraphStore.syncControlled} call actually landed. A graph
+ * listener can apply another layers declaration in the middle of it.
+ */
+export interface ControlledSyncResult {
+  /** `false` when the cells were skipped: the newer layers dropped one they name. */
+  readonly areCellsApplied: boolean;
+  /** Whether an outside layer change happened during the call, so the graph's layers may not be the declared ones. */
+  readonly hasOutsideLayerChange: boolean;
 }
 
 /**
@@ -90,9 +109,11 @@ export class GraphStore<
     const {
       cellModel,
       cellNamespace = DEFAULT_CELL_NAMESPACE,
+      layerNamespace,
       graph,
       autoSizeOrigin = 'top-left',
       initialCells,
+      initialLayers,
     } = config;
 
     this.graph =
@@ -104,6 +125,7 @@ export class GraphStore<
             ...DEFAULT_CELL_NAMESPACE,
             ...(cellNamespace as Record<string, unknown>),
           },
+          layerNamespace,
           cellModel,
         }
       );
@@ -126,6 +148,15 @@ export class GraphStore<
       autoSizeOrigin,
       paperStores: this.paperStores,
     });
+
+    // Layers before cells: a seed cell may name a layer declared here, and
+    // joint-core throws on a cell whose layer does not exist yet.
+    if (initialLayers && initialLayers.length > 0) {
+      // Tagged so the layer listeners skip it; the projection is read once, here.
+      assertLayerRecords(this.graph, initialLayers);
+      reconcileLayers(this.graph, initialLayers, { isUpdateFromReact: true });
+      this.graphProjection.syncLayersFromGraph();
+    }
 
     if (initialCells && initialCells.length > 0) {
       // Replace existing graph state with the seed cells. The graph-changes
@@ -158,6 +189,52 @@ export class GraphStore<
     metadata?: Record<string, unknown>
   ) => {
     this.graphProjection.updateGraph({ cells, flag: 'updateFromReact', metadata });
+  };
+
+  /**
+   * Apply GraphProvider's controlled `cells` and `layers` in one commit. Layers
+   * are added before the cells (a cell may name a new layer) and pruned after
+   * them (a layer emptied by this sync is removed now, not next time). Its
+   * layer writes are not reported through `layers.subscribeToOutsideChanges`:
+   * they are the parent's own declaration.
+   * @param cells - controlled cells, or `undefined` to leave the cells untouched
+   * @param layers - controlled layers, or `undefined` to leave the layers untouched
+   * @returns What actually landed (see {@link ControlledSyncResult})
+   */
+  public syncControlled = (
+    cells: ReadonlyArray<Element | Link> | undefined,
+    layers?: readonly LayerRecord[]
+  ): ControlledSyncResult => {
+    const outsideChangesBefore = this.graphProjection.getOutsideLayerChangeCount();
+    const areCellsSkipped = this.graphProjection.updateGraph({
+      cells,
+      layers,
+      flag: 'updateFromReact',
+      isControlledSync: true,
+    });
+    return {
+      areCellsApplied: !areCellsSkipped,
+      hasOutsideLayerChange: this.graphProjection.getOutsideLayerChangeCount() !== outsideChangesBefore,
+    };
+  };
+
+  /**
+   * Apply a layers snapshot from an imperative setter. Adds, reorders, updates,
+   * and removes now-empty layers.
+   * @param layers - declared layers in paint order, or an updater of the current ones
+   */
+  public applyLayers = (layers: ArrayUpdate<LayerRecord>) => {
+    const next = isUpdater(layers) ? layers(this.graphProjection.layers.getSnapshot()) : layers;
+    this.graphProjection.updateGraph({ layers: next, flag: 'updateFromReact' });
+  };
+
+  /**
+   * Merge attributes into one layer, adding it on top when it does not exist.
+   * @param id - the layer to patch
+   * @param patch - attributes to merge
+   */
+  public applyLayer = (id: string, patch: LayerPatch) => {
+    this.applyLayers(withLayerPatch(this.graphProjection.layers.getSnapshot(), id, patch));
   };
 
   /**

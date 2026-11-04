@@ -419,7 +419,7 @@ export class Graph<A extends ObjectHash = Graph.Attributes, S = ModelSetOptions>
 
     getLayers(): GraphLayer[];
 
-    getCellLayerId(cell: Graph.CellRef): GraphLayer.ID;
+    getCellLayerId(cell: Graph.CellInit): GraphLayer.ID;
 
     getCellNamespace(): Record<string, any>;
 

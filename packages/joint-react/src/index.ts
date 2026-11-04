@@ -119,6 +119,19 @@ export { useCells } from './hooks/use-cells';
 export { useCell } from './hooks/use-cell';
 
 /**
+ * useLayers()
+ * @group Hooks
+ */
+export { useLayers } from './hooks/use-layers';
+/**
+ * useLayer()
+ * @group Hooks
+ */
+export { useLayer } from './hooks/use-layer';
+/** @group Types */
+export type { LayerRecord, LayerPatch } from './types/layer.types';
+
+/**
  * useCellId()
  * @group Hooks
  */
