@@ -1,6 +1,6 @@
 import { g } from '@joint/core';
 import { importGraphLayout } from './import.mjs';
-import { layoutWithDefaultElk } from './defaultElk.mjs';
+import { layoutWithDefaultElk, getDefaultElkSyncLayout, loadDefaultElk } from './defaultElk.mjs';
 import { exportGraphLayout } from './export.mjs';
 import { abortable, throwIfAborted } from './abort.mjs';
 import { toNativeElkNode, getElkPadding, withDefaultElkLayoutOptions } from './elkOptions.mjs';
@@ -50,6 +50,12 @@ export interface LayoutOptions extends ImportGraphLayoutOptions, ExportGraphLayo
     signal?: AbortSignal;
 }
 
+/**
+ * `layoutSync()` configuration options - those of `layout()`, except `elk` (it always lays
+ * out with the default instance) and `signal` (nothing to abort).
+ */
+export type LayoutSyncOptions = Omit<LayoutOptions, 'elk' | 'signal'>;
+
 export interface LayoutResult {
     /** Tight bounding box of the laid out graph. */
     bbox: g.Rect;
@@ -83,45 +89,18 @@ function isWorkerElk(elk: WorkerElk | ELK): elk is WorkerElk {
 }
 
 
-/**
- * Lays out a whole JointJS graph, or only the given cells.
- *
- * A list of cells is laid out in the order it is given: the top-level nodes follow it, and
- * so do each container's children. An element whose parent is not listed becomes a
- * top-level node, and a link is laid out only if both of its ends are listed too. A cell
- * listed more than once is laid out once.
- *
- * The layout is applied in a `'layout'` batch on the graph the cells belong to, so that it
- * emits one combined change rather than one per element, port and link.
- */
-export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutOptions): Promise<LayoutResult> {
-
-    const options: LayoutOptions = opt ?? {};
+// The ELK graph to lay out, and what `applyLayout()` needs to apply ELK's result.
+function prepareLayout(graphOrCells: dia.Graph | dia.Cell[], opt: LayoutOptions | undefined) {
     const elkLayoutOptions = withDefaultElkLayoutOptions(opt?.elkLayoutOptions);
-    const signal = opt?.signal;
-
-    throwIfAborted(signal);
-
-    const { elkGraph, index, graphs } = exportGraphLayout(graphOrCells, { ...options, elkLayoutOptions });
-
+    const { elkGraph, index, graphs } = exportGraphLayout(graphOrCells, { ...opt, elkLayoutOptions });
     // Writes every layout option out as the string ELK takes - last, so that it sees what
     // the export callbacks left behind. ELK's result needs no conversion back:
     // `{ [key: string]: string }` satisfies this package's option interfaces as it is.
     const rawElkGraph = toNativeElkNode(elkGraph);
-    const elk = opt?.elk;
-    let layoutResult: Promise<ElkNode>;
-    if (!elk) {
-        layoutResult = layoutWithDefaultElk(rawElkGraph, signal);
-    } else if (isWorkerElk(elk)) {
-        // Stops the worker's layout when aborted, rather than only ignoring its result.
-        layoutResult = elk.layout(rawElkGraph, { signal });
-    } else {
-        layoutResult = abortable(elk.layout(rawElkGraph), signal);
-    }
-    const result = await layoutResult;
+    return { rawElkGraph, elkLayoutOptions, index, graphs };
+}
 
-    // Aborted after ELK settled, but before the result was applied.
-    throwIfAborted(signal);
+function applyLayout(result: ElkNode, { elkLayoutOptions, index, graphs }: ReturnType<typeof prepareLayout>, options: ImportGraphLayoutOptions): LayoutResult {
 
     // Wraps the import in a single batch, so it emits one combined change instead of
     // one per element/port/link. Closed even if a `set*Attributes` callback throws -
@@ -137,4 +116,72 @@ export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutO
         bbox: getBBox(result, elkLayoutOptions),
         elkGraph: result
     };
+}
+
+
+/**
+ * Lays out a whole JointJS graph, or only the given cells.
+ *
+ * A list of cells is laid out in the order it is given: the top-level nodes follow it, and
+ * so do each container's children. An element whose parent is not listed becomes a
+ * top-level node, and a link is laid out only if both of its ends are listed too. A cell
+ * listed more than once is laid out once.
+ *
+ * The layout is applied in a `'layout'` batch on the graph the cells belong to, so that it
+ * emits one combined change rather than one per element, port and link.
+ *
+ * Without an `elk` option, ELK runs on the main thread - and once it has loaded, the
+ * layout settles before the browser paints again.
+ */
+export async function layout(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutOptions): Promise<LayoutResult> {
+
+    const signal = opt?.signal;
+
+    throwIfAborted(signal);
+
+    const prepared = prepareLayout(graphOrCells, opt);
+    const { rawElkGraph } = prepared;
+    const elk = opt?.elk;
+    let layoutResult: Promise<ElkNode>;
+    if (!elk) {
+        layoutResult = layoutWithDefaultElk(rawElkGraph, signal);
+    } else if (isWorkerElk(elk)) {
+        // Stops the worker's layout when aborted, rather than only ignoring its result.
+        layoutResult = elk.layout(rawElkGraph, { signal });
+    } else {
+        layoutResult = abortable(elk.layout(rawElkGraph), signal);
+    }
+    const result = await layoutResult;
+
+    // Aborted after ELK settled, but before the result was applied.
+    throwIfAborted(signal);
+
+    return applyLayout(result, prepared, opt ?? {});
+}
+
+/**
+ * Lays out a whole JointJS graph, or only the given cells, synchronously - as `layout()`
+ * does with its default ELK instance, which has to be loaded first (see `loadElk()`).
+ *
+ * ELK blocks the page while it runs - for a large graph, use `layout()` with a Web Worker
+ * (see `createWorkerElk()`) instead.
+ * @example
+ * await loadElk();
+ * const { bbox } = layoutSync(graph);
+ */
+export function layoutSync(graphOrCells: dia.Graph | dia.Cell[], opt?: LayoutSyncOptions): LayoutResult {
+    const layoutWithElk = getDefaultElkSyncLayout();
+    const prepared = prepareLayout(graphOrCells, opt);
+    const result = layoutWithElk(prepared.rawElkGraph);
+    return applyLayout(result, prepared, opt ?? {});
+}
+
+/**
+ * Loads the default ELK instance - the one `layout()` runs on the main thread without an
+ * `elk` option, and `layoutSync()` always does. It is loaded only once, and the first
+ * `layout()` without an `elk` option loads it too. Rejects if it fails to load (e.g. a
+ * chunk that failed to load) - the next call tries again.
+ */
+export function loadElk(): Promise<void> {
+    return loadDefaultElk();
 }
