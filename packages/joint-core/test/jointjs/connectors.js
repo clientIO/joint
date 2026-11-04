@@ -600,7 +600,7 @@ QUnit.module('connectors', function(hooks) {
         });
     });
 
-    QUnit.module('jumpover connector - jumpPriority and search', function(hooks) {
+    QUnit.module('jumpover connector - jumpPriority', function(hooks) {
 
         hooks.beforeEach(function() {
             this.addLink = (source, target, args = {}, connectorName = 'jumpover') => {
@@ -684,46 +684,6 @@ QUnit.module('connectors', function(hooks) {
             this.addLink({ x: 50, y: 0 }, { x: 50, y: 100 }, {}, 'normal');
             this.refresh();
             assert.equal(this.countCurves(horizontal), 2);
-        });
-
-        QUnit.test('search: finds the links with findLinksInArea() and the default buffer', function(assert) {
-            const horizontal = this.addLink({ x: 0, y: 50 }, { x: 100, y: 50 }, { search: true });
-            this.addLink({ x: 50, y: 0 }, { x: 50, y: 100 }, {}, 'normal');
-            const spy = sinon.spy(this.graph, 'findLinksInArea');
-            try {
-                this.refresh();
-                assert.ok(spy.called);
-                const area = new g.Rect(spy.firstCall.args[0]);
-                assert.deepEqual(area.toJSON(), { x: -51, y: -1, width: 202, height: 102 }, 'the bounding box grown by 1 + 50');
-            } finally {
-                spy.restore();
-            }
-            assert.equal(this.countCurves(horizontal), 2);
-        });
-
-        QUnit.test('search: a link routed further than the buffer is not found', function(assert) {
-            const horizontal = this.addLink({ x: 0, y: 50 }, { x: 300, y: 50 });
-            // The model bounding box of this link is 50 above `horizontal`,
-            // but the route goes down across it.
-            const detour = this.addLink({ x: 150, y: 0 }, { x: 250, y: 0 }, {}, 'normal');
-            detour.router(() => [{ x: 150, y: 100 }, { x: 250, y: 100 }]);
-            [[false, 4], [true, 4], [{ buffer: 60 }, 4], [{ buffer: 40 }, 0]].forEach(([search, curves]) => {
-                horizontal.connector('jumpover', { search });
-                this.refresh();
-                assert.equal(this.countCurves(horizontal), curves, `search: ${JSON.stringify(search)}`);
-            });
-        });
-
-        QUnit.test('search: the paint order follows the reordering of links', function(assert) {
-            const horizontal = this.addLink({ x: 0, y: 50 }, { x: 100, y: 50 }, { search: true });
-            const vertical = this.addLink({ x: 50, y: 0 }, { x: 50, y: 100 }, { search: true });
-            this.refresh();
-            assert.equal(this.countCurves(vertical), 2);
-            assert.equal(this.countCurves(horizontal), 0);
-            horizontal.toFront();
-            this.refresh();
-            assert.equal(this.countCurves(horizontal), 2);
-            assert.equal(this.countCurves(vertical), 0);
         });
     });
 });

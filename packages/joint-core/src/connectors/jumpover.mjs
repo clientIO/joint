@@ -29,9 +29,6 @@ const TOLERANCE = 1e-6;
 // first one taken as default
 const JUMP_PRIORITIES = ['paint-order', 'vertical', 'horizontal'];
 
-// default distance by which the search area is grown, see the `search` option
-const SEARCH_BUFFER = 50;
-
 /**
  * Transform start/end and route into series of lines
  * @param {g.point} sourcePoint start point
@@ -327,24 +324,6 @@ function buildRoundedSegment(offset, path, curr, prev, next) {
     path.appendSegment(segment);
 }
 
-// Paint order of the links (the `graph.getLinks()` order), cached per graph
-// and rebuilt after a change that can add, remove or reorder links.
-const linkOrders = new WeakMap();
-const LINK_ORDER_EVENTS = 'add remove reset sort move change:z layers:add layers:remove layers:sort';
-
-function getLinkOrder(graph) {
-    let order = linkOrders.get(graph);
-    if (order === undefined) {
-        graph.on(LINK_ORDER_EVENTS, () => linkOrders.set(graph, null));
-    }
-    if (!order) {
-        order = new Map();
-        graph.getLinks().forEach((link, index) => order.set(link, index));
-        linkOrders.set(graph, order);
-    }
-    return order;
-}
-
 // How vertical a line is: 0 for a horizontal line, 1 for a vertical one.
 function getVerticality(line) {
     const dx = Math.abs(line.end.x - line.start.x);
@@ -377,7 +356,6 @@ function drawsJump(thisLine, otherLine, jumpPriority, isOtherAbove) {
  * @param {object} opt options
  * @property {number} size optional size of a jump arc
  * @property {string} jumpPriority which of two crossing jumpover links draws the jump
- * @property {boolean|object} search find the crossing links with `graph.findLinksInArea()`
  * @return {string} created `D` attribute of SVG path
  */
 export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView) {
@@ -390,7 +368,6 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
     var radius = opt.radius || RADIUS;
     var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
     const jumpPriority = getJumpPriority(opt);
-    const { search } = opt;
 
     // grab the first jump type as a default if specified one is invalid
     if (JUMP_TYPES.indexOf(jumpType) === -1) {
@@ -399,38 +376,26 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
 
     var paper = linkView.paper;
     var graph = paper.model;
-    var thisModel = linkView.model;
-    var defaultConnector = paper.options.defaultConnector || {};
+    var allLinks = graph.getLinks();
 
-    // Two links can cross only where the bounding boxes of their routes meet.
-    // It is inflated, since `g.Rect.intersect()` misses boxes that only touch
-    // (e.g. the zero-height box of a horizontal link).
-    const thisBBox = getPathBBox(sourcePoint, targetPoint, route).inflate(1);
-
-    let candidates;
-    let getOrder;
-    if (search) {
-        // `findLinksInArea()` tests the model bounding box of a link (its source,
-        // target and vertices). A router can draw the route outside of it,
-        // hence the buffer.
-        const { buffer = SEARCH_BUFFER } = (search === true) ? {} : search;
-        candidates = graph.findLinksInArea(thisBBox.clone().inflate(buffer));
-        const order = getLinkOrder(graph);
-        getOrder = (link) => order.get(link) ?? -1;
-    } else {
-        candidates = graph.getLinks();
-        getOrder = (link, index) => index;
+    // there is just one link, draw it directly
+    if (allLinks.length === 1) {
+        return buildPath(
+            createLines(sourcePoint, targetPoint, route),
+            jumpSize, jumpType, radius
+        );
     }
-    const thisOrder = getOrder(thisModel, candidates.indexOf(thisModel));
+
+    var thisModel = linkView.model;
+    var thisIndex = allLinks.indexOf(thisModel);
+    var defaultConnector = paper.options.defaultConnector || {};
 
     // Jumpover links that do not leave all their crossings with this link to
     // the link painted on top: which of the two draws each jump.
     const jumpRules = new Map();
 
     // not all links are meant to be jumped over.
-    var links = candidates.filter(function(link, idx) {
-
-        if (link === thisModel) return false;
+    var links = allLinks.filter(function(link, idx) {
 
         var connector = link.get('connector') || defaultConnector;
 
@@ -438,13 +403,13 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
         if (util.toArray(ignoreConnectors).includes(connector.name)) {
             return false;
         }
-        if (connector.name === 'jumpover') {
-            const isAbove = getOrder(link, idx) > thisOrder;
+        if (link !== thisModel && connector.name === 'jumpover') {
+            const isAbove = idx > thisIndex;
             const priority = isAbove ? getJumpPriority(connector.args) : jumpPriority;
             if (priority !== 'paint-order') {
                 jumpRules.set(link, { priority, isAbove });
             } else if (isAbove) {
-                // filter out links that are above this one and have the same connector type
+                // filter out links that are above this one and  have the same connector type
                 // otherwise there would double hoops for each intersection
                 return false;
             }
@@ -457,9 +422,14 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
         return paper.findViewByModel(link);
     });
 
-    // Leave out the links outside of this link's bounding box.
-    const isCandidate = linkViews.map((view) => {
-        if (!view || !view.sourcePoint || !view.targetPoint) return true;
+    // Two links can cross only where the bounding boxes of their routes meet,
+    // so the links outside of this link's bounding box are left out.
+    // It is inflated, since `g.Rect.intersect()` misses boxes that only touch
+    // (e.g. the zero-height box of a horizontal link).
+    const thisBBox = getPathBBox(sourcePoint, targetPoint, route).inflate(1);
+    const isCandidate = links.map((link, i) => {
+        const view = linkViews[i];
+        if (link === thisModel || !view || !view.sourcePoint || !view.targetPoint) return true;
         return thisBBox.intersect(getPathBBox(view.sourcePoint, view.targetPoint, view.route)) !== null;
     });
     links = links.filter((_, i) => isCandidate[i]);
@@ -477,12 +447,15 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
         if (linkView == null) {
             return [];
         }
+        if (linkView === this) {
+            return thisLines;
+        }
         return createLines(
             linkView.sourcePoint,
             linkView.targetPoint,
             linkView.route
         );
-    });
+    }, this);
 
     // transform lines for this link by splitting with jump lines at
     // points of intersection with other links
@@ -490,21 +463,25 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
         // iterate all links and grab the intersections with this line
         // these are then sorted by distance so the line can be split more easily
         var intersections = links.reduce(function(res, link, i) {
-            // A segment next to one collinear with `thisLine` can meet the
-            // infinite line of `thisLine` only at their shared vertex. If that
-            // vertex is on `thisLine`, the two links merge or split there;
-            // otherwise they do not touch at all. Neither is a crossing, so
-            // leave such segments out.
-            const lines = linkLines[i];
-            const collinear = lines.map((line) => thisLine.isCollinear(line));
-            let linkLinesToTest = lines.filter((_, index) => !collinear[index - 1] && !collinear[index + 1]);
-            const jumpRule = jumpRules.get(link);
-            if (jumpRule) {
-                const { priority, isAbove } = jumpRule;
-                linkLinesToTest = linkLinesToTest.filter((line) => drawsJump(thisLine, line, priority, isAbove));
+            // don't intersection with itself
+            if (link !== thisModel) {
+
+                // A segment next to one collinear with `thisLine` can meet the
+                // infinite line of `thisLine` only at their shared vertex. If that
+                // vertex is on `thisLine`, the two links merge or split there;
+                // otherwise they do not touch at all. Neither is a crossing, so
+                // leave such segments out.
+                const lines = linkLines[i];
+                const collinear = lines.map((line) => thisLine.isCollinear(line));
+                let linkLinesToTest = lines.filter((_, index) => !collinear[index - 1] && !collinear[index + 1]);
+                const jumpRule = jumpRules.get(link);
+                if (jumpRule) {
+                    const { priority, isAbove } = jumpRule;
+                    linkLinesToTest = linkLinesToTest.filter((line) => drawsJump(thisLine, line, priority, isAbove));
+                }
+                const lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
+                res.push.apply(res, lineIntersections);
             }
-            const lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
-            res.push.apply(res, lineIntersections);
             return res;
         }, []).sort(function(a, b) {
             return sortPoints(thisLine.start, a) - sortPoints(thisLine.start, b);

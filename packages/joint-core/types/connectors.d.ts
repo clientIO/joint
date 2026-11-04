@@ -27,15 +27,6 @@ export interface JumpOverConnectorArguments {
      * painted on top applies.
      */
     jumpPriority?: 'paint-order' | 'vertical' | 'horizontal';
-    /**
-     * Find the links to jump over with `graph.findLinksInArea()` instead of
-     * checking all links. The search area is this link's bounding box grown
-     * by `buffer` (default `50`). A link whose route strays further than
-     * `buffer` from its model bounding box (source, target and vertices)
-     * is not found. It is faster only on a graph whose `findLinksInArea()`
-     * uses a spatial index; `dia.Graph` checks every link there too.
-     */
-    search?: boolean | { buffer?: number };
 }
 
 export interface StraightConnectorArguments {
