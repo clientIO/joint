@@ -1,5 +1,6 @@
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
+import V from '../V/index.mjs';
 
 // default size of jump if not specified in options
 var JUMP_SIZE = 5;
@@ -23,9 +24,6 @@ var _23 = 2 / 3;
 
 // distance under which two coordinates are considered equal
 const TOLERANCE = 1e-6;
-
-// control point offset of a cubic curve approximating a quarter circle
-const QUARTER_CIRCLE_KAPPA = 0.5523;
 
 /**
  * Transform start/end and route into series of lines
@@ -231,14 +229,14 @@ function buildPath(lines, jumpSize, jumpType, radius) {
                     const topStart = new g.Point(line.start).offset(along.x + normal.x, along.y + normal.y);
                     const topEnd = new g.Point(line.end).offset(-along.x + normal.x, -along.y + normal.y);
                     path.appendSegment(g.Path.createSegment('C',
-                        new g.Point(line.start).offset(normal.x * QUARTER_CIRCLE_KAPPA, normal.y * QUARTER_CIRCLE_KAPPA),
-                        new g.Point(topStart).offset(-along.x * QUARTER_CIRCLE_KAPPA, -along.y * QUARTER_CIRCLE_KAPPA),
+                        new g.Point(line.start).offset(normal.x * V.KAPPA, normal.y * V.KAPPA),
+                        new g.Point(topStart).offset(-along.x * V.KAPPA, -along.y * V.KAPPA),
                         topStart
                     ));
                     path.appendSegment(g.Path.createSegment('L', topEnd));
                     path.appendSegment(g.Path.createSegment('C',
-                        new g.Point(topEnd).offset(along.x * QUARTER_CIRCLE_KAPPA, along.y * QUARTER_CIRCLE_KAPPA),
-                        new g.Point(line.end).offset(normal.x * QUARTER_CIRCLE_KAPPA, normal.y * QUARTER_CIRCLE_KAPPA),
+                        new g.Point(topEnd).offset(along.x * V.KAPPA, along.y * V.KAPPA),
+                        new g.Point(line.end).offset(normal.x * V.KAPPA, normal.y * V.KAPPA),
                         line.end
                     ));
                     return;
