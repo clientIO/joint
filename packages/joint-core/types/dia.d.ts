@@ -1882,7 +1882,23 @@ export namespace Paper {
         disposeHidden?: boolean;
     }
 
-    interface TransformToFitContentOptions {
+    interface ModelGeometryOptions {
+        /**
+         * Only the cells for which the function returns `true` contribute
+         * to the content area.
+         */
+        filter?: (cell: Cell) => boolean;
+    }
+
+    interface ContentAreaOptions {
+        /**
+         * Measure the content from the model geometry instead of the
+         * rendered views. Pass an object to configure the measurement.
+         */
+        useModelGeometry?: boolean | ModelGeometryOptions;
+    }
+
+    interface TransformToFitContentOptions extends ContentAreaOptions {
         padding?: Padding;
         preserveAspectRatio?: boolean;
         minScale?: number;
@@ -1892,7 +1908,6 @@ export namespace Paper {
         maxScaleX?: number;
         maxScaleY?: number;
         scaleGrid?: number;
-        useModelGeometry?: boolean;
         fittingBBox?: BBox;
         contentArea?: BBox;
         verticalAlign?: 'top' | 'middle' | 'bottom';
@@ -1904,7 +1919,7 @@ export namespace Paper {
     */
     type ScaleContentOptions = TransformToFitContentOptions;
 
-    interface FitToContentOptions {
+    interface FitToContentOptions extends ContentAreaOptions {
         gridWidth?: number;
         gridHeight?: number;
         padding?: Padding;
@@ -1914,7 +1929,6 @@ export namespace Paper {
         minHeight?: number;
         maxWidth?: number;
         maxHeight?: number;
-        useModelGeometry?: boolean;
         contentArea?: BBox;
         /**
          * Shifts the grid anchor so the first cell starts at
@@ -2149,9 +2163,9 @@ export class Paper extends mvc.View<Graph> {
     getRestrictedArea(): g.Rect | null;
     getRestrictedArea(elementView: ElementView, x: number, y: number): g.Rect | null | Paper.PointConstraintCallback;
 
-    getContentArea(opt?: { useModelGeometry: boolean }): g.Rect;
+    getContentArea(opt?: Paper.ContentAreaOptions): g.Rect;
 
-    getContentBBox(opt?: { useModelGeometry: boolean }): g.Rect;
+    getContentBBox(opt?: Paper.ContentAreaOptions): g.Rect;
 
     findView<T extends ElementView | LinkView>(element: mvc.$SVGElement): T;
 
