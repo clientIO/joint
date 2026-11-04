@@ -599,4 +599,131 @@ QUnit.module('connectors', function(hooks) {
             }
         });
     });
+
+    QUnit.module('jumpover connector - jumpPriority and search', function(hooks) {
+
+        hooks.beforeEach(function() {
+            this.addLink = (source, target, args = {}, connectorName = 'jumpover') => {
+                const link = new joint.shapes.standard.Link({
+                    source,
+                    target,
+                    connector: { name: connectorName, args }
+                });
+                this.graph.addCell(link);
+                return link;
+            };
+            this.countCurves = (link) => (link.findView(this.paper).metrics.data.match(/C/g) || []).length;
+            this.refresh = () => {
+                this.graph.startBatch('test');
+                this.graph.stopBatch('test');
+            };
+        });
+
+        QUnit.test('paint-order: the link painted on top draws the jump', function(assert) {
+            [undefined, 'paint-order', 'invalid'].forEach((jumpPriority) => {
+                this.graph.resetCells([]);
+                const horizontal = this.addLink({ x: 0, y: 50 }, { x: 100, y: 50 }, { jumpPriority });
+                const vertical = this.addLink({ x: 50, y: 0 }, { x: 50, y: 100 }, { jumpPriority });
+                this.refresh();
+                assert.equal(this.countCurves(vertical), 2, `${jumpPriority}: the top link jumps`);
+                assert.equal(this.countCurves(horizontal), 0, `${jumpPriority}: the bottom link does not`);
+            });
+        });
+
+        QUnit.test('vertical: the more vertical link draws the jump', function(assert) {
+            const vertical = this.addLink({ x: 50, y: 0 }, { x: 50, y: 100 }, { jumpPriority: 'vertical' });
+            const horizontal = this.addLink({ x: 0, y: 50 }, { x: 100, y: 50 }, { jumpPriority: 'vertical' });
+            this.refresh();
+            assert.equal(this.countCurves(vertical), 2);
+            assert.equal(this.countCurves(horizontal), 0);
+        });
+
+        QUnit.test('horizontal: the more horizontal link draws the jump', function(assert) {
+            const horizontal = this.addLink({ x: 0, y: 50 }, { x: 100, y: 50 }, { jumpPriority: 'horizontal' });
+            const vertical = this.addLink({ x: 50, y: 0 }, { x: 50, y: 100 }, { jumpPriority: 'horizontal' });
+            this.refresh();
+            assert.equal(this.countCurves(horizontal), 2);
+            assert.equal(this.countCurves(vertical), 0);
+        });
+
+        QUnit.test('equally steep links fall back to the paint order', function(assert) {
+            const bottom = this.addLink({ x: 0, y: 0 }, { x: 100, y: 100 }, { jumpPriority: 'vertical' });
+            const top = this.addLink({ x: 0, y: 100 }, { x: 100, y: 0 }, { jumpPriority: 'vertical' });
+            this.refresh();
+            assert.equal(this.countCurves(top), 2);
+            assert.equal(this.countCurves(bottom), 0);
+        });
+
+        QUnit.test('the jumpPriority of the link painted on top applies', function(assert) {
+            [
+                ['vertical', 'paint-order', 'paint-order'],
+                ['paint-order', 'vertical', 'vertical'],
+                ['horizontal', 'vertical', 'vertical'],
+                ['vertical', 'horizontal', 'horizontal']
+            ].forEach(([bottomPriority, topPriority, jumping]) => {
+                [['horizontal', 'vertical'], ['vertical', 'horizontal']].forEach(([bottomDirection, topDirection]) => {
+                    this.graph.resetCells([]);
+                    const ends = {
+                        horizontal: [{ x: 0, y: 50 }, { x: 100, y: 50 }],
+                        vertical: [{ x: 50, y: 0 }, { x: 50, y: 100 }]
+                    };
+                    const links = {};
+                    links[bottomDirection] = this.addLink(...ends[bottomDirection], { jumpPriority: bottomPriority });
+                    links[topDirection] = this.addLink(...ends[topDirection], { jumpPriority: topPriority });
+                    this.refresh();
+                    const expected = (jumping === 'paint-order') ? topDirection : jumping;
+                    const message = `${bottomDirection} ${bottomPriority} below ${topDirection} ${topPriority}`;
+                    assert.equal(this.countCurves(links[expected]), 2, `${message}: the ${expected} link jumps`);
+                    assert.equal(this.countCurves(links[expected === 'vertical' ? 'horizontal' : 'vertical']), 0, `${message}: the other link does not`);
+                });
+            });
+        });
+
+        QUnit.test('a link with another connector does not take the jump', function(assert) {
+            const horizontal = this.addLink({ x: 0, y: 50 }, { x: 100, y: 50 }, { jumpPriority: 'vertical' });
+            this.addLink({ x: 50, y: 0 }, { x: 50, y: 100 }, {}, 'normal');
+            this.refresh();
+            assert.equal(this.countCurves(horizontal), 2);
+        });
+
+        QUnit.test('search: finds the links with findLinksInArea() and the default buffer', function(assert) {
+            const horizontal = this.addLink({ x: 0, y: 50 }, { x: 100, y: 50 }, { search: true });
+            this.addLink({ x: 50, y: 0 }, { x: 50, y: 100 }, {}, 'normal');
+            const spy = sinon.spy(this.graph, 'findLinksInArea');
+            try {
+                this.refresh();
+                assert.ok(spy.called);
+                const area = new g.Rect(spy.firstCall.args[0]);
+                assert.deepEqual(area.toJSON(), { x: -51, y: -1, width: 202, height: 102 }, 'the bounding box grown by 1 + 50');
+            } finally {
+                spy.restore();
+            }
+            assert.equal(this.countCurves(horizontal), 2);
+        });
+
+        QUnit.test('search: a link routed further than the buffer is not found', function(assert) {
+            const horizontal = this.addLink({ x: 0, y: 50 }, { x: 300, y: 50 });
+            // The model bounding box of this link is 50 above `horizontal`,
+            // but the route goes down across it.
+            const detour = this.addLink({ x: 150, y: 0 }, { x: 250, y: 0 }, {}, 'normal');
+            detour.router(() => [{ x: 150, y: 100 }, { x: 250, y: 100 }]);
+            [[false, 4], [true, 4], [{ buffer: 60 }, 4], [{ buffer: 40 }, 0]].forEach(([search, curves]) => {
+                horizontal.connector('jumpover', { search });
+                this.refresh();
+                assert.equal(this.countCurves(horizontal), curves, `search: ${JSON.stringify(search)}`);
+            });
+        });
+
+        QUnit.test('search: the paint order follows the reordering of links', function(assert) {
+            const horizontal = this.addLink({ x: 0, y: 50 }, { x: 100, y: 50 }, { search: true });
+            const vertical = this.addLink({ x: 50, y: 0 }, { x: 50, y: 100 }, { search: true });
+            this.refresh();
+            assert.equal(this.countCurves(vertical), 2);
+            assert.equal(this.countCurves(horizontal), 0);
+            horizontal.toFront();
+            this.refresh();
+            assert.equal(this.countCurves(horizontal), 2);
+            assert.equal(this.countCurves(vertical), 0);
+        });
+    });
 });
