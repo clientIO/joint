@@ -1,11 +1,5 @@
 import { dia } from '@joint/core';
-import {
-  clearConnectedLinkViews,
-  executeClearViewForCell,
-  mergeClearViewValidators,
-  shouldClearLink,
-  type ClearViewCacheEntry,
-} from '../clear-view';
+import { clearConnectedLinkViews, shouldClearLink } from '../clear-view';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
 
 function createGraph(): dia.Graph {
@@ -26,55 +20,6 @@ function createMockLinkView(): MockLinkView {
   };
 }
 
-describe('mergeClearViewValidators', () => {
-  it('returns incoming when there is no existing entry', () => {
-    const incoming: ClearViewCacheEntry = { onValidateLink: () => true };
-    const result = mergeClearViewValidators(undefined, incoming);
-    expect(result).toBe(incoming);
-  });
-
-  it('takes precedence with no validator (clear all)', () => {
-    const existing: ClearViewCacheEntry = { onValidateLink: () => true };
-    const incoming: ClearViewCacheEntry = {};
-    const result = mergeClearViewValidators(existing, incoming);
-    expect(result.onValidateLink).toBeUndefined();
-  });
-
-  it('creates a union when both have validators', () => {
-    const existingValidator = jest.fn().mockReturnValue(false);
-    const newValidator = jest.fn().mockReturnValue(true);
-    const result = mergeClearViewValidators(
-      { onValidateLink: existingValidator },
-      { onValidateLink: newValidator }
-    );
-    expect(typeof result.onValidateLink).toBe('function');
-    const link = {} as dia.Link;
-    expect(result.onValidateLink!(link)).toBe(true);
-    expect(existingValidator).toHaveBeenCalledWith(link);
-    expect(newValidator).toHaveBeenCalledWith(link);
-  });
-
-  it('union short-circuits when existing returns true', () => {
-    const existingValidator = jest.fn().mockReturnValue(true);
-    const newValidator = jest.fn().mockReturnValue(false);
-    const result = mergeClearViewValidators(
-      { onValidateLink: existingValidator },
-      { onValidateLink: newValidator }
-    );
-    const link = {} as dia.Link;
-    expect(result.onValidateLink!(link)).toBe(true);
-    expect(newValidator).not.toHaveBeenCalled();
-  });
-
-  it('keeps the existing "clear all" semantics when existing has no validator', () => {
-    const existing: ClearViewCacheEntry = {};
-    const incoming: ClearViewCacheEntry = { onValidateLink: () => true };
-    const result = mergeClearViewValidators(existing, incoming);
-    expect(result).toBe(existing);
-    expect(result.onValidateLink).toBeUndefined();
-  });
-});
-
 function makeLink(sourceId: string, targetId: string): dia.Link {
   return new dia.Link({
     type: 'standard.Link',
@@ -84,7 +29,6 @@ function makeLink(sourceId: string, targetId: string): dia.Link {
 }
 
 describe('shouldClearLink', () => {
-
   it('returns true when source matches', () => {
     const link = makeLink('a', 'b');
     expect(shouldClearLink(link, 'a')).toBe(true);
@@ -179,7 +123,9 @@ describe('clearConnectedLinkViews', () => {
     graph.addCell(link);
 
     // Override `findView` to simulate the no-view-registered case.
-    link.findView = jest.fn(() => undefined as unknown as dia.LinkView) as unknown as typeof link.findView;
+    link.findView = jest.fn(
+      () => undefined as unknown as dia.LinkView
+    ) as unknown as typeof link.findView;
 
     const paper = {
       findViewByModel: jest.fn(),
@@ -226,74 +172,3 @@ describe('clearConnectedLinkViews', () => {
     expect(mockLinkView.requestConnectionUpdate).toHaveBeenCalledWith({ async: true });
   });
 });
-
-describe('executeClearViewForCell', () => {
-  let graph: dia.Graph;
-
-  beforeEach(() => {
-    graph = createGraph();
-  });
-
-  it('iterates papers and skips ones without a paper instance', () => {
-    graph.addCell({
-      id: 'a',
-      type: 'element',
-      position: { x: 0, y: 0 },
-      size: { width: 10, height: 10 },
-    });
-    const papers = [{ paper: undefined }];
-    expect(() => executeClearViewForCell(papers, graph, 'a')).not.toThrow();
-  });
-
-  it('skips papers where the cell view is not present', () => {
-    graph.addCell({
-      id: 'a',
-      type: 'element',
-      position: { x: 0, y: 0 },
-      size: { width: 10, height: 10 },
-    });
-
-    const getCellView = jest.fn();
-    const paper = { getCellView } as unknown as dia.Paper;
-
-    executeClearViewForCell([{ paper }], graph, 'a');
-    expect(getCellView).toHaveBeenCalledWith('a');
-  });
-
-  it('cleans the cell view nodes cache and clears connected link views', () => {
-    graph.addCell({
-      id: 'a',
-      type: 'element',
-      position: { x: 0, y: 0 },
-      size: { width: 10, height: 10 },
-    });
-    graph.addCell({
-      id: 'b',
-      type: 'element',
-      position: { x: 50, y: 0 },
-      size: { width: 10, height: 10 },
-    });
-    const link = new dia.Link({
-      id: 'l1',
-      type: 'standard.Link',
-      source: { id: 'a' },
-      target: { id: 'b' },
-    });
-    graph.addCell(link);
-
-    const cleanNodesCache = jest.fn();
-    const elementView = { cleanNodesCache } as unknown as dia.ElementView;
-
-    const mockLinkView = createMockLinkView();
-    link.findView = jest.fn().mockReturnValue(mockLinkView) as unknown as typeof link.findView;
-
-    const paper = {
-      getCellView: jest.fn().mockReturnValue(elementView),
-    } as unknown as dia.Paper;
-
-    executeClearViewForCell([{ paper }], graph, 'a');
-    expect(cleanNodesCache).toHaveBeenCalledTimes(1);
-    expect(mockLinkView.requestConnectionUpdate).toHaveBeenCalled();
-  });
-});
-

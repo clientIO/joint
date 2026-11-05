@@ -42,9 +42,11 @@ module.exports = {
         ]
     },
     plugins: [
-        new CopyPlugin([
-            { from: './index.html', to: './' },
-            { from: './node_modules/libavoid-js/dist/libavoid.wasm', to: './' },
-        ]),
+        new CopyPlugin({
+            patterns: [
+                { from: './index.html', to: './' },
+                { from: './node_modules/libavoid-js/dist/libavoid.wasm', to: './' },
+            ]
+        }),
     ],
 };

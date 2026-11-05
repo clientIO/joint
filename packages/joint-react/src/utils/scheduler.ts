@@ -1,4 +1,15 @@
 /**
+ * Rethrows an error on a later task, so it still surfaces (to `window.onerror`
+ * and the console) while the caller carries on.
+ * @param error - The error a callback threw.
+ */
+export function rethrowLater(error: unknown): void {
+  setTimeout(() => {
+    throw error;
+  });
+}
+
+/**
  * Creates a microtask-based scheduler that batches callbacks.
  *
  * Cascading callbacks (added during flush) are processed in the SAME

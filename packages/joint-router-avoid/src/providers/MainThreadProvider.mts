@@ -80,6 +80,7 @@ export class MainThreadProvider extends Provider {
             this.deferredCallbackError = null;
             throw deferred.error;
         }
+        this.trigger('processed');
     }
 
     /**
@@ -150,7 +151,7 @@ export class MainThreadProvider extends Provider {
             connector.sourceId === undefined || connector.sourcePinId === undefined ||
             connector.targetId === undefined || connector.targetPinId === undefined
         ) {
-            this.deleteConnector(connector.id);
+            this.deleteConnector(connector.id, process);
             return;
         }
 
@@ -276,7 +277,6 @@ export class MainThreadProvider extends Provider {
         connectors.forEach((connector) => this.setConnector(connector, false));
 
         this.processTransaction();
-        this.trigger('processed');
         return Promise.resolve();
     }
 

@@ -206,6 +206,8 @@ export class Curve {
 
     isDifferentiable(): boolean;
 
+    isLine(): boolean;
+
     length(opt?: SubdivisionsOpt): number;
 
     lengthAtT(t: number, opt?: PrecisionOpt): number;
@@ -323,6 +325,8 @@ export class Line {
     intersect(path: Path, opt?: SegmentSubdivisionsOpt): Point[] | null;
 
     intersectionWithLine(l: Line): Point[] | null;
+
+    isCollinear(line: Line): boolean;
 
     isDifferentiable(): boolean;
 
@@ -480,6 +484,8 @@ export class Point implements PlainPoint {
 
     chooseClosest(points: PointInit[]): Point | null;
 
+    chooseClosestIndex(points: PointInit[]): number;
+
     adhereToRect(r: Rect): this;
 
     angleBetween(p1: PlainPoint, p2: PlainPoint): number;
@@ -540,7 +546,7 @@ export class Point implements PlainPoint {
     translate(tx: PlainPoint): this;
 
     update(x?: number, y?: number): this;
-    update(p: PlainPoint): this;
+    update(p: PointInit): this;
 
     vectorAngle(p: PlainPoint): number;
 

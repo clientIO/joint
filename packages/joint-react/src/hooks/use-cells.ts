@@ -26,6 +26,14 @@ type CellsResult<Cell extends AnyCellRecord, Selected> =
 /** Equality function on raw `unknown` values. */
 type UnknownEqual = (a: unknown, b: unknown) => boolean;
 
+/** Selector over the resolved cells array (the array forms of `useCells`). */
+type CellsSelector<Cell extends AnyCellRecord, Selected> = (
+  cells: ReadonlyArray<Computed<Cell>>
+) => Selected;
+
+/** Equality test that short-circuits a re-render when the selected value is unchanged. */
+type SelectedEqual<Selected> = (a: Selected, b: Selected) => boolean;
+
 // ── Module-scoped helpers ───────────────────────────────────────────────────
 
 /**
@@ -135,8 +143,8 @@ export function useCells<
   Selected = ReadonlyArray<Computed<Cell>>,
 >(
   collection: mvc.Collection<dia.Cell>,
-  selector: (cells: ReadonlyArray<Computed<Cell>>) => Selected,
-  isEqual?: (a: Selected, b: Selected) => boolean
+  selector: CellsSelector<Cell, Selected>,
+  isEqual?: SelectedEqual<Selected>
 ): Selected;
 /**
  * Subscribe to the full cells array.
@@ -186,7 +194,7 @@ export function useCells<
 >(
   id: CellId | null | undefined,
   selector: (cell: Computed<Cell> | undefined) => Selected,
-  isEqual?: (a: Selected, b: Selected) => boolean
+  isEqual?: SelectedEqual<Selected>
 ): Selected;
 /**
  * Subscribe to a specific set of cells by id. Subscribes only to those ids
@@ -219,8 +227,8 @@ export function useCells<
 >(
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   ids: readonly CellId[],
-  selector: (cells: ReadonlyArray<Computed<Cell>>) => Selected,
-  isEqual?: (a: Selected, b: Selected) => boolean
+  selector: CellsSelector<Cell, Selected>,
+  isEqual?: SelectedEqual<Selected>
 ): Selected;
 /**
  * Subscribe via a selector. Runs on every commit; return equal values to skip re-render.
@@ -246,10 +254,7 @@ export function useCells<
 export function useCells<
   Cell extends AnyCellRecord = CellRecord,
   Selected = ReadonlyArray<Computed<Cell>>,
->(
-  selector: (cells: ReadonlyArray<Computed<Cell>>) => Selected,
-  isEqual?: (a: Selected, b: Selected) => boolean
-): Selected;
+>(selector: CellsSelector<Cell, Selected>, isEqual?: SelectedEqual<Selected>): Selected;
 
 // ── Implementation ──────────────────────────────────────────────────────────
 
@@ -261,13 +266,13 @@ export function useCells<
     | CellId
     | null
     | readonly CellId[]
-    | ((cells: ReadonlyArray<Computed<Cell>>) => Selected)
+    | CellsSelector<Cell, Selected>
     | mvc.Collection<dia.Cell>,
   argument2?:
-    | ((cells: ReadonlyArray<Computed<Cell>>) => Selected)
+    | CellsSelector<Cell, Selected>
     | ((cell: Computed<Cell> | undefined) => Selected)
-    | ((a: Selected, b: Selected) => boolean),
-  argument3?: (a: Selected, b: Selected) => boolean
+    | SelectedEqual<Selected>,
+  argument3?: SelectedEqual<Selected>
 ): CellsResult<Computed<Cell>, Selected> {
   const store = useGraphStore();
   // The store holds resolved (Computed) records; the public `Cell` generic is the

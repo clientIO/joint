@@ -28,10 +28,12 @@ export interface TransactionOptions {
    * its promise rejects. Disabled by default; pass `true` to roll back on error
    * (otherwise partial edits are kept). The error is always re-thrown.
    *
-   * Cheap to enable: the cells container is immutable, so this just holds the
-   * current snapshot reference at transaction start (O(1), no copy). The only
-   * real cost is paid on an actual rollback, which re-applies that snapshot via
-   * `resetCells`.
+   * Cheap to enable: the cells and layers snapshots are immutable, so this just
+   * holds their references at transaction start (O(1), no copy). The only real
+   * cost is paid on an actual rollback, which re-applies the layers and then
+   * the cells via `resetCells`. Restoring changed layers starts a new layers
+   * declaration: a layer whose removal was still pending from an earlier one
+   * stays until the next `setLayers()`.
    */
   readonly rollbackOnError?: boolean;
   /**
@@ -92,6 +94,8 @@ export function useGraphTransaction(): Transaction {
       // on every commit, never mutated in place — so holding the reference is an
       // O(1), correct pre-transaction snapshot. No copy needed. Opt-in.
       const snapshot = rollbackOnError === true ? graphProjection.cells.getSnapshot() : null;
+      // The layers too: a cell can only be restored onto a layer that exists.
+      const layersSnapshot = rollbackOnError === true ? graphProjection.layers.getSnapshot() : null;
       // Opt-in: defer paint on every bound paper so the whole transaction repaints once, on close.
       const papers =
         deferPaint === true
@@ -113,6 +117,13 @@ export function useGraphTransaction(): Transaction {
       const revert = () => {
         // Restore INSIDE the still-open batch so the rollback flushes as part of
         // the batch's single commit (not a separate one), then close and repaint.
+        // Layers first, so every saved cell has its layer back; layers the
+        // transaction added are pruned once the batch closes and they are empty.
+        // Only when the transaction changed them: a re-apply starts a new
+        // declaration, which forgets the layers an earlier one still has to prune.
+        if (layersSnapshot && graphProjection.layers.getSnapshot() !== layersSnapshot) {
+          store.applyLayers(layersSnapshot);
+        }
         if (snapshot) resetCells(snapshot);
         graph.stopBatch(batchName, DEFERRED_BATCH);
         unfreezeAll();

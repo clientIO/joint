@@ -51,11 +51,12 @@ function attr(name, value) {
                 this.prop(propertiesMap[attr], value);
                 continue;
             }
+            const stringValue = (value === null) ? null : String(value);
             for (let i = 0; i < this.length; i++) {
-                if (value === null) {
+                if (stringValue === null) {
                     this[i].removeAttribute(attr);
-                } else {
-                    this[i].setAttribute(attr, value);
+                } else if (this[i].getAttribute(attr) !== stringValue) {
+                    this[i].setAttribute(attr, stringValue);
                 }
             }
         }

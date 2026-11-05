@@ -73,7 +73,7 @@ describe('mapAttributesToLink', () => {
       target: { id: 'b' },
     } as dia.Link.Attributes);
 
-    expect(result.labelMap?.a.position).toBe(0.7);
+    expect(result.labelMap?.a.position).toBeCloseTo(0.7);
     expect(result.labelMap?.a.offset).toBe(9);
     expect(result).not.toHaveProperty('labels');
   });

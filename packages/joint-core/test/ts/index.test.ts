@@ -4,6 +4,9 @@ import * as joint from '../../';
 
 const graph = new joint.dia.Graph({ graphAttribute: true });
 
+// config
+joint.config.storeEmbeds = false;
+
 // graph events
 graph.on('add', function(cell, collection, options) {
     const isCell: AssertExtends<typeof cell, joint.dia.Cell> = true;
@@ -71,6 +74,22 @@ const rectangle = new joint.shapes.standard.Rectangle({
         }
     }
 });
+
+// `portProp()` - whole port getter, path getter/setter, object setter
+const port: joint.dia.Element.Port = rectangle.portProp('port1');
+const portGroup = rectangle.portProp('port1', 'group');
+rectangle.portProp('port1', ['position', 'args'], { x: 10, y: 20 }, { silent: true });
+const portPropObjectResult = rectangle.portProp('port1', {
+    position: { args: { x: 10, y: 20 }},
+    label: { position: { args: { x: 5, y: -5 }}}
+}, { rewrite: true });
+const isElementAfterObjectSet: AssertExtends<typeof portPropObjectResult, joint.dia.Element> = true;
+
+// A port label's position `args` are the label layout's own options.
+const portLabelPosition: joint.dia.Element.PortLabelPositionType = {
+    name: 'manual',
+    args: { x: 5, y: -5, attrs: { labelText: { textAnchor: 'start' }}}
+};
 
 const link = new joint.shapes.standard.Link({
     attrs: {
@@ -266,6 +285,30 @@ rectangle.prop({ size: { width: 100 }});
 new joint.shapes.standard.Rectangle({
     position: { x: 100 },
 });
+
+const nodeSelector: string | null = joint.util.getNodeSelector(document.createElementNS('http://www.w3.org/2000/svg', 'g'));
+/* Numeric port ids */
+
+if (rectangle.hasPort(1)) {
+    rectangle.getPort(1);
+    rectangle.getPortIndex(1);
+    rectangle.getPortBBox(1, { rotate: true });
+    rectangle.getPortCenter(1);
+    rectangle.getPortRelativeRect(1);
+    rectangle.getPortRelativePosition(1);
+    rectangle.portProp(1, 'group');
+    rectangle.portProp(1, 'group', 'in');
+    rectangle.removePorts([1, '1']);
+    rectangle.removePort(1);
+}
+
+const portIds: joint.dia.Element.PortID[] = [1, 'port1'];
+const portDefinition: joint.dia.Element.Port = { id: 'port1', group: 'in' };
+rectangle.addPort(portDefinition);
+rectangle.removePorts([...portIds, portDefinition]);
+// @ts-expect-error - an object is not a port id
+rectangle.hasPort({});
+const nodePortId: joint.dia.Element.PortID | null = paper.findViewByModel(rectangle).findNodePortId(document.createElementNS('http://www.w3.org/2000/svg', 'g'));
 
 class MyElement extends joint.dia.Element {
 

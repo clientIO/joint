@@ -8,6 +8,7 @@ export namespace config {
     var cellMergeStrategy: util.MergeCustomizer | null;
     var cellDefaultsMergeStrategy: util.MergeCustomizer | null;
     var layerAttribute: string;
+    var storeEmbeds: boolean;
 }
 
 export namespace env {

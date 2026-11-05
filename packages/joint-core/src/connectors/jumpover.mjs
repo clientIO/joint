@@ -21,46 +21,6 @@ var IGNORED_CONNECTORS = ['smooth'];
 var _13 = 1 / 3;
 var _23 = 2 / 3;
 
-function sortPointsAscending(p1, p2) {
-
-    let { x: x1, y: y1 } = p1;
-    let { x: x2, y: y2 } = p2;
-
-    if (x1 > x2) {
-
-        let swap = x1;
-        x1 = x2;
-        x2 = swap;
-
-        swap = y1;
-        y1 = y2;
-        y2 = swap;
-    }
-
-    if (y1 > y2) {
-        let swap = x1;
-        x1 = x2;
-        x2 = swap;
-
-        swap = y1;
-        y1 = y2;
-        y2 = swap;
-    }
-
-    return [new g.Point(x1, y1), new g.Point(x2, y2)];
-}
-
-function overlapExists(line1, line2) {
-
-    const [{ x: x1, y: y1 }, { x: x2, y: y2 }] = sortPointsAscending(line1.start, line1.end);
-    const [{ x: x3, y: y3 }, { x: x4, y: y4 }] = sortPointsAscending(line2.start, line2.end);
-
-    const xMatch = x1 <= x4 && x3 <= x2;
-    const yMatch = y1 <= y4 && y3 <= y2;
-
-    return xMatch && yMatch;
-}
-
 /**
  * Transform start/end and route into series of lines
  * @param {g.point} sourcePoint start point
@@ -421,14 +381,14 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
             // don't intersection with itself
             if (link !== thisModel) {
 
-                const linkLinesToTest = linkLines[i].slice();
-                const overlapIndex = linkLinesToTest.findIndex((line) => overlapExists(thisLine, line));
-
-                // Overlap occurs and the end point of one segment lies on thisLine
-                if (overlapIndex > -1 && thisLine.containsPoint(linkLinesToTest[overlapIndex].end)) {
-                    // Remove the next segment because there will never be a jump
-                    linkLinesToTest.splice(overlapIndex + 1, 1);
-                }
+                // A segment next to one collinear with `thisLine` can meet the
+                // infinite line of `thisLine` only at their shared vertex. If that
+                // vertex is on `thisLine`, the two links merge or split there;
+                // otherwise they do not touch at all. Neither is a crossing, so
+                // leave such segments out.
+                const lines = linkLines[i];
+                const collinear = lines.map((line) => thisLine.isCollinear(line));
+                const linkLinesToTest = lines.filter((_, index) => !collinear[index - 1] && !collinear[index + 1]);
                 const lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
                 res.push.apply(res, lineIntersections);
             }

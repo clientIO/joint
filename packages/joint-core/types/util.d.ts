@@ -24,6 +24,23 @@ export function flattenObject(object: { [key: string]: any }, delim?: string, st
 
 export function uuid(): string;
 
+/**
+ * Returns a function returning pseudo-random numbers, the same sequence for the same `seed`,
+ * e.g. to generate the same random diagram on every run:
+ * - `random()` returns a number from the interval `[0, 1)`, like `Math.random()`.
+ * - `random(max)` returns an integer from the interval `[0, max]`.
+ * - `random(min, max)` returns an integer from the interval `[min, max]`, with the bounds in either order.
+ *
+ * The seed is converted to an unsigned 32-bit integer: `1.5` gives the same sequence as `1`,
+ * `-1` the same as `4294967295`, and `NaN`, `Infinity` or a non-numeric value the same as `0`.
+ * The sequence of a seed stays the same within a major version. It is not cryptographically secure.
+ */
+export function createSeededRandom(seed: number): {
+    (): number;
+    (max: number): number;
+    (min: number, max: number): number;
+};
+
 export function svg(strings: TemplateStringsArray, ...expressions: any): dia.MarkupJSON;
 
 export function guid(obj?: { [key: string]: any }): string;
@@ -93,6 +110,8 @@ export interface DOMJSONDocument {
 }
 
 export function parseDOMJSON(json: dia.MarkupJSON): DOMJSONDocument;
+
+export function getNodeSelector(node: DOMElement): string | null;
 
 export namespace timing {
 
@@ -246,14 +265,14 @@ export function deepMixin(destinationObject: object, ...sourceObjects: object[])
 export function assign(destinationObject: object, ...sourceObjects: object[]): object;
 
 /** @deprecated use joint.util.defaults */
-export function supplement(destinationObject: object, ...sourceObjects: object[]): object;
+export function supplement(destinationObject: object, ...sourceObjects: (object | undefined)[]): object;
 
 /** @deprecated use joint.util.defaultsDeep */
-export function deepSupplement(destinationObject: object, ...sourceObjects: object[]): object;
+export function deepSupplement(destinationObject: object, ...sourceObjects: (object | undefined)[]): object;
 
-export function defaults(destinationObject: object, ...sourceObjects: object[]): object;
+export function defaults(destinationObject: object, ...sourceObjects: (object | undefined)[]): object;
 
-export function defaultsDeep(destinationObject: object, ...sourceObjects: object[]): object;
+export function defaultsDeep(destinationObject: object, ...sourceObjects: (object | undefined)[]): object;
 
 export function invoke(collection: Collection, methodPath: PropertyPath, args?: any[]): any[];
 export function invoke<ArgsT>(collection: Collection, functionToInvokeForAll: IterateeFunction<ArgsT>, ...args: ArgsT[]): any[];

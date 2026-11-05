@@ -3,6 +3,50 @@ import type { ElementJSONInit, LinkJSONInit, CellId } from '../types/cell.types'
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer, type ContainerChangeSet } from './state-container';
 import { mergeCellRecord, toCellRecord } from '../state/data-mapping/cell-record-merge';
+import type { LayerRecord } from '../types/layer.types';
+import { readLayerRecords } from './layers';
+
+const EMPTY_LAYERS: readonly LayerRecord[] = [];
+
+/**
+ * Per-snapshot id index, so `getLayer(id)` is O(1) per read while the list
+ * itself stays the reactive unit. Keyed by the snapshot array, so it is built
+ * at most once per layer change and never invalidated by hand.
+ */
+const layerIndexBySnapshot = new WeakMap<readonly LayerRecord[], Map<string, LayerRecord>>();
+
+/**
+ * Reactive, ordered view of the graph's layers. The list reference changes only
+ * when a layer is added, removed, reordered or has an attribute changed.
+ */
+interface LayersStore {
+  /** Layers bottom → top. Stable reference across unrelated graph commits. */
+  readonly getSnapshot: () => readonly LayerRecord[];
+  /** One layer by id, O(1). `undefined` when no such layer exists. */
+  readonly getLayer: (id: string) => LayerRecord | undefined;
+  /** Subscribe to any layer change. */
+  readonly subscribe: (listener: () => void) => () => void;
+  /**
+   * Subscribe to layer changes GraphProvider's controlled sync did not make:
+   * graph edits, the imperative layer setters, and pending layers pruned by an
+   * imperative cells update or a later retry. Fires after the
+   * {@link LayersStore.subscribe} listeners.
+   */
+  readonly subscribeToOutsideChanges: (listener: () => void) => () => void;
+}
+
+/**
+ * Adds `listener` to `listeners`.
+ * @param listeners - The listener set.
+ * @param listener - The listener to add.
+ * @returns A function removing it again.
+ */
+function addListener(listeners: Set<() => void>, listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
 /**
  * A batch of cell changes reported after each graph update, delivered to the
@@ -39,7 +83,6 @@ interface GraphProjectionState<
 > {
   readonly graph: dia.Graph;
   readonly onIncrementalCellsChange?: OnIncrementalCellsChange<Element, Link>;
-  readonly onElementsSizeChange?: (id: CellId, size: dia.Size) => void;
 }
 
 /* eslint-disable sonarjs/cognitive-complexity -- graph→container projection
@@ -49,16 +92,51 @@ interface GraphProjectionState<
  * sync. Subscribes to graph changes and mirrors add / change / remove events
  * (including connected-link sweeps) into the container, optionally emitting an
  * incremental change set after each commit.
- * @param options - graph to project plus optional change/size callbacks
+ * @param options - graph to project plus optional change callback
  * @returns controller exposing the readonly cells container and sync/update/destroy methods
  */
 export function graphProjection<
   Element extends ElementJSONInit = ElementJSONInit,
   Link extends LinkJSONInit = LinkJSONInit,
 >(options: GraphProjectionState<Element, Link>) {
-  const { graph, onIncrementalCellsChange, onElementsSizeChange } = options;
+  const { graph, onIncrementalCellsChange } = options;
 
   const cells = createContainer<Element | Link>();
+
+  let layersSnapshot: readonly LayerRecord[] = readLayerRecords(graph, EMPTY_LAYERS);
+  const layerListeners = new Set<() => void>();
+  const outsideLayerListeners = new Set<() => void>();
+  let outsideLayerChangeCount = 0;
+
+  /**
+   * Re-read the layer list; notifies only when something actually changed.
+   * @param isOutsideChange - Whether GraphProvider's controlled sync did not
+   *   make the change, so its outside-change listeners hear about it too.
+   */
+  function syncLayersFromGraph(isOutsideChange = false): void {
+    const next = readLayerRecords(graph, layersSnapshot);
+    if (next === layersSnapshot) return;
+    layersSnapshot = next;
+    for (const listener of layerListeners) listener();
+    if (!isOutsideChange) return;
+    outsideLayerChangeCount += 1;
+    for (const listener of outsideLayerListeners) listener();
+  }
+
+  const layers: LayersStore = {
+    getSnapshot: () => layersSnapshot,
+    getLayer(id) {
+      let index = layerIndexBySnapshot.get(layersSnapshot);
+      if (!index) {
+        index = new Map();
+        for (const record of layersSnapshot) index.set(record.id, record);
+        layerIndexBySnapshot.set(layersSnapshot, index);
+      }
+      return index.get(id);
+    },
+    subscribe: (listener) => addListener(layerListeners, listener),
+    subscribeToOutsideChanges: (listener) => addListener(outsideLayerListeners, listener),
+  };
 
   // Pending container change set — accumulates across deferred commits (a
   // transaction batch) and is flushed into the immutable snapshot by
@@ -123,15 +201,33 @@ export function graphProjection<
 
   const graphChangesController = graphChanges({
     graph,
-    onElementsSizeChange,
+    onLayersChange: () => syncLayersFromGraph(true),
     onChanges: ({ changes, isInsideBatch, deferCommit, isReset }) => {
+      // Elements removed in this batch — swept once after the loop for link
+      // records they may have stranded.
+      let removedElementIds: Set<CellId> | undefined;
+
       for (const [id, change] of changes) {
         const { data, type } = change;
         switch (type) {
           case 'add':
           case 'change': {
+            // An entry can outlive its cell: `layout:update` batches hold
+            // direct cell references, and a removal (or a remove + re-add of
+            // the same id) can land before the entry processes. Writing the
+            // entry's detached model would resurrect or overwrite the record
+            // with stale state, so always snapshot the graph's CURRENT model
+            // — and repair a lingering record when the cell is gone.
+            const cell = graph.getCell(id);
+            if (!cell) {
+              if (currentRecord(id) !== undefined) {
+                stageRemove(id);
+                if (trackChanges) removed!.add(id);
+              }
+              continue;
+            }
             const isAdd = type === 'add';
-            stageWrite(data, isAdd);
+            stageWrite(cell, isAdd);
             if (trackChanges) {
               // Report every primary add/change in the incremental delta using
               // the final staged record — NOT gated on whether this stageWrite
@@ -149,24 +245,54 @@ export function graphProjection<
             // or resized — its links' routes need re-snapshotting). Swept links
             // go to the container only, not the incremental callback — matching
             // the previous behaviour.
-            if (!isAdd && data.isElement()) {
-              for (const link of graph.getConnectedLinks(data)) stageWrite(link, false);
+            if (!isAdd && cell.isElement()) {
+              for (const link of graph.getConnectedLinks(cell)) stageWrite(link, false);
             }
             break;
           }
           case 'remove': {
-            if (!data) continue;
+            // Only a graph removal when the cell is actually gone — a paper
+            // view-unmount notification (no cell reference) can name a cell
+            // the paper merely unmounted, e.g. viewport culling. A cell with
+            // no record left (already removed) reports nothing — re-reporting
+            // ids in later deltas would feed consumers stale removals.
+            if (graph.getCell(id)) continue;
+            if (currentRecord(id) === undefined) continue;
             stageRemove(id);
             if (trackChanges) removed!.add(id);
-            if (data.isElement()) {
-              // Connected links are also removed by JointJS — mirror that.
-              for (const link of graph.getConnectedLinks(data)) {
-                stageRemove(link.id);
-                if (trackChanges) removed!.add(link.id);
-              }
+            if (data?.isElement()) {
+              removedElementIds ??= new Set();
+              removedElementIds.add(id);
             }
             break;
           }
+        }
+      }
+
+      // Connected links normally arrive as their own `remove` entries, but a
+      // missed one must not strand a record — the element is already out of
+      // the graph adjacency, so `getConnectedLinks` cannot name its links.
+      // One pass per removal batch over the committed snapshot + pending
+      // stages; links the graph still holds are kept.
+      if (removedElementIds !== undefined) {
+        const elementIds = removedElementIds;
+        const referencesRemoved = (end: LinkJSONInit['source']): boolean =>
+          typeof end === 'object' && end?.id !== undefined && elementIds.has(end.id);
+        const staleLinkIds: CellId[] = [];
+        const collectStaleLink = (item: Element | Link): void => {
+          const { id: linkId, source, target } = item as LinkJSONInit;
+          if (linkId === undefined) return;
+          // Cheap Set checks first — `getCell` only runs for real candidates.
+          if (!referencesRemoved(source) && !referencesRemoved(target)) return;
+          if (graph.getCell(linkId)) return;
+          staleLinkIds.push(linkId);
+        };
+        for (const item of cells.getSnapshot()) collectStaleLink(item);
+        for (const item of pendingAdded.values()) collectStaleLink(item);
+        for (const item of pendingChanged.values()) collectStaleLink(item);
+        for (const linkId of staleLinkIds) {
+          stageRemove(linkId);
+          if (trackChanges) removed!.add(linkId);
         }
       }
 
@@ -228,11 +354,26 @@ export function graphProjection<
 
   return {
     cells: asReadonlyContainer(cells),
+    layers,
     syncFromGraph,
-    updateGraph(update: UpdateGraphOptions<Element, Link>) {
-      const { cellIds } = graphChangesController.updateGraph(update);
-      if (update.flag !== 'updateFromReact') return;
-      if (!update.cells) return;
+    syncLayersFromGraph,
+    /** How many outside layer changes were reported so far; compare two reads to detect one. */
+    getOutsideLayerChangeCount: () => outsideLayerChangeCount,
+    /**
+     * Apply a React-origin update to the graph and mirror it into the containers.
+     * @param update - the cells and layers to apply
+     * @returns `true` when the cells were skipped (see `UpdateGraphResult.areCellsSkipped`)
+     */
+    updateGraph(update: UpdateGraphOptions<Element, Link>): boolean {
+      const { cellIds, hasRemovedPendingLayer, areCellsSkipped } =
+        graphChangesController.updateGraph(update);
+      // Tagged layer writes are not echoed by graphChanges, so read them here.
+      if (update.flag === 'updateFromReact' && (update.layers || hasRemovedPendingLayer)) {
+        syncLayersFromGraph(!update.isControlledSync);
+      }
+      if (update.flag !== 'updateFromReact') return areCellsSkipped;
+      // Skipped cells were never written, so the container keeps its state.
+      if (!update.cells || areCellsSkipped) return areCellsSkipped;
 
       // React-origin graph events are ignored by graphChanges (isUpdateFromReact),
       // so sync the container directly from the just-synced cells.
@@ -256,6 +397,7 @@ export function graphProjection<
       }
 
       flushContainer();
+      return false;
     },
     destroy() {
       graphChangesController.destroy();

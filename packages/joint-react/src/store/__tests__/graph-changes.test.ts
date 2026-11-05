@@ -19,18 +19,6 @@ function setup() {
   return { graph, onChanges, controller };
 }
 
-function setupWithSize() {
-  const graph = createGraph();
-  const onChanges = jest.fn();
-  const onElementsSizeChange = jest.fn();
-  const controller = graphChanges({
-    graph,
-    onChanges,
-    onElementsSizeChange,
-  });
-  return { graph, onChanges, onElementsSizeChange, controller };
-}
-
 function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50) {
   graph.addCell({
     id,
@@ -51,6 +39,68 @@ function addLink(graph: dia.Graph, id: string, source: string, target: string) {
 
 /** Flush pending microtasks so scheduled callbacks execute. */
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
+
+// Regression: a cell naming an undeclared layer made joint-core throw inside
+// the React-origin batch (and inside core's own `sync-cells` batch), so every
+// later change was reported as inside a batch. The input is rejected first.
+describe('updateGraph — a cell naming an undeclared layer', () => {
+  it('throws before any batch opens and leaves the graph usable', async () => {
+    const { graph, onChanges, controller } = setup();
+    const onBatchStart = jest.fn();
+    graph.on('batch:start', onBatchStart);
+
+    expect(() =>
+      controller.updateGraph({
+        cells: [{ id: 'orphan', type: ELEMENT_MODEL_TYPE, layer: 'missing' } as CellRecord],
+        flag: 'updateFromReact',
+      })
+    ).toThrow(/cell "orphan" names layer "missing"/);
+
+    expect(onBatchStart).not.toHaveBeenCalled();
+    expect(graph.hasActiveBatch('updateFromReact')).toBe(false);
+    expect(graph.hasActiveBatch('sync-cells')).toBe(false);
+
+    // A later graph-origin change is reported outside any batch again.
+    onChanges.mockClear();
+    addElement(graph, 'later');
+    await flush();
+    expect(onChanges).toHaveBeenCalled();
+    const lastCall = onChanges.mock.calls.at(-1)?.[0];
+    expect(lastCall).toMatchObject({ isInsideBatch: false });
+  });
+
+  // Regression: `reconcileLayers` could throw from joint-core after the batch
+  // had opened (an empty id, an unregistered `type`), leaking the batch.
+  it('throws before any batch opens on an invalid layer record', () => {
+    const { graph, controller } = setup();
+    const onBatchStart = jest.fn();
+    graph.on('batch:start', onBatchStart);
+
+    expect(() =>
+      controller.updateGraph({ layers: [{ id: '' }], flag: 'updateFromReact' })
+    ).toThrow(/empty layer id/);
+    expect(() =>
+      controller.updateGraph({ layers: [{ id: 'a', type: 'Nope' }], flag: 'updateFromReact' })
+    ).toThrow(/type "Nope"/);
+    expect(() =>
+      controller.updateGraph({ layers: [{ id: 'a' }, { id: 'a' }], flag: 'updateFromReact' })
+    ).toThrow(/declared twice/);
+
+    expect(onBatchStart).not.toHaveBeenCalled();
+    expect(graph.hasActiveBatch('updateFromReact')).toBe(false);
+    expect(graph.getLayers().map((layer) => layer.id)).toEqual(['cells']);
+  });
+
+  it('accepts a layer declared in the same commit', () => {
+    const { graph, controller } = setup();
+    controller.updateGraph({
+      layers: [{ id: 'fresh' }],
+      cells: [{ id: 'x', type: ELEMENT_MODEL_TYPE, layer: 'fresh' } as CellRecord],
+      flag: 'updateFromReact',
+    });
+    expect(graph.getCell('x').layer()).toBe('fresh');
+  });
+});
 
 describe('graphChanges', () => {
   describe('cell events', () => {
@@ -378,89 +428,6 @@ describe('graphChanges', () => {
         'el-1',
         'el-2',
       ]);
-    });
-  });
-
-  describe('onElementsSizeChange', () => {
-    it('fires for each element when resetCells seeds cells with sizes', () => {
-      const { graph, onElementsSizeChange } = setupWithSize();
-      graph.resetCells([
-        {
-          id: 'a',
-          type: 'element',
-          position: { x: 0, y: 0 },
-          size: { width: 100, height: 50 },
-        },
-        {
-          id: 'b',
-          type: 'element',
-          position: { x: 200, y: 0 },
-          size: { width: 80, height: 40 },
-        },
-        {
-          id: 'l1',
-          type: 'standard.Link',
-          source: { id: 'a' },
-          target: { id: 'b' },
-        },
-      ]);
-
-      const elementCalls = onElementsSizeChange.mock.calls.filter(
-        ([id]) => id === 'a' || id === 'b'
-      );
-      expect(elementCalls).toHaveLength(2);
-      expect(elementCalls).toEqual(
-        expect.arrayContaining([
-          ['a', { width: 100, height: 50 }],
-          ['b', { width: 80, height: 40 }],
-        ])
-      );
-    });
-
-    it('fires when ResizeObserver sets size via fromMeasure flag', () => {
-      const { graph, onElementsSizeChange } = setupWithSize();
-      graph.resetCells([
-        {
-          id: 'a',
-          type: 'element',
-          position: { x: 0, y: 0 },
-          size: { width: 0, height: 0 },
-        },
-      ]);
-      onElementsSizeChange.mockClear();
-
-      const cell = graph.getCell('a') as dia.Element;
-      cell.set('size', { width: 120, height: 60 }, { fromMeasure: true } as object);
-
-      expect(onElementsSizeChange).toHaveBeenCalledWith('a', { width: 120, height: 60 });
-    });
-
-    it('does not fire for links on reset', () => {
-      const { graph, onElementsSizeChange } = setupWithSize();
-      graph.resetCells([
-        {
-          id: 'a',
-          type: 'element',
-          position: { x: 0, y: 0 },
-          size: { width: 100, height: 50 },
-        },
-        {
-          id: 'b',
-          type: 'element',
-          position: { x: 200, y: 0 },
-          size: { width: 80, height: 40 },
-        },
-        {
-          id: 'l1',
-          type: 'standard.Link',
-          source: { id: 'a' },
-          target: { id: 'b' },
-        },
-      ]);
-
-      for (const [id] of onElementsSizeChange.mock.calls) {
-        expect(id).not.toBe('l1');
-      }
     });
   });
 

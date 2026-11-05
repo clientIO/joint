@@ -62,7 +62,7 @@ describe('GraphProvider controlled / uncontrolled', () => {
 
     render(<App />);
     await waitFor(() => expect(storeRef).toBeDefined());
-    await waitFor(() => expect(storeRef.graphProjection.cells.getSnapshot().length).toBe(1));
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSnapshot()).toHaveLength(1));
 
     act(() => {
       externalSetCells([
@@ -87,7 +87,7 @@ describe('GraphProvider controlled / uncontrolled', () => {
       ]);
     });
 
-    await waitFor(() => expect(storeRef.graphProjection.cells.getSnapshot().length).toBe(3));
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSnapshot()).toHaveLength(3));
     expect(storeRef.graphProjection.cells.has('l1')).toBe(true);
   });
 
@@ -99,6 +99,6 @@ describe('GraphProvider controlled / uncontrolled', () => {
     );
 
     await waitFor(() => expect(storeRef).toBeDefined());
-    await waitFor(() => expect(storeRef.graphProjection.cells.getSnapshot().length).toBe(2));
+    await waitFor(() => expect(storeRef.graphProjection.cells.getSnapshot()).toHaveLength(2));
   });
 });

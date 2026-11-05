@@ -63,8 +63,8 @@ describe('presets / link-markers', () => {
   });
 
   it('linkMarkerOne always has zero length', () => {
-    expect(linkMarkerOne().length).toBe(0);
-    expect(linkMarkerOne({ scale: 5 }).length).toBe(0);
+    expect(linkMarkerOne()).toHaveLength(0);
+    expect(linkMarkerOne({ scale: 5 })).toHaveLength(0);
   });
 
   it('linkMarkerArrow length grows with scale and strokeWidth', () => {

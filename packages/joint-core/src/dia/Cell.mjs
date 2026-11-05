@@ -663,7 +663,7 @@ export const Cell = Model.extend({
 
         if (pathArray.length === 1) {
             // A top level property
-            return this.unset(path, opt);
+            return this.unset(property, opt);
         }
 
         // A nested property
@@ -705,7 +705,7 @@ export const Cell = Model.extend({
 
         if (Array.isArray(path)) {
 
-            return this.removeProp(['attrs'].concat(path));
+            return this.removeProp(['attrs'].concat(path), opt);
         }
 
         return this.removeProp('attrs/' + path, opt);

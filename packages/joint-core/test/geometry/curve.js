@@ -840,6 +840,43 @@ QUnit.module('curve', function() {
             });
         });
 
+        QUnit.module('isLine()', function() {
+
+            QUnit.test('returns true when both control points lie on the start-end chord', function(assert) {
+
+                assert.ok(new g.Curve('0 0', '10 0', '20 0', '30 0').isLine(), 'evenly spaced');
+                assert.ok(new g.Curve('0 0', '1 0', '29 0', '30 0').isLine(), 'unevenly spaced');
+                assert.ok(new g.Curve('0 0', '0 0', '30 30', '30 30').isLine(), 'control points equal to endpoints');
+                assert.ok(new g.Curve('0 0', '40 40', '-10 -10', '30 30').isLine(), 'control points outside the chord');
+                assert.ok(new g.Curve('0 0', '10 10', '20 20', '30 30').isLine(), 'diagonal');
+            });
+
+            QUnit.test('returns false for curved, point-like and loop curves', function(assert) {
+
+                assert.notOk(new g.Curve('0 0', '10 10', '20 10', '30 0').isLine(), 'curved');
+                assert.notOk(new g.Curve('0 0', '10 0', '20 1', '30 0').isLine(), 'one control point off the chord');
+                assert.notOk(new g.Curve('5 5', '5 5', '5 5', '5 5').isLine(), 'point');
+                assert.notOk(new g.Curve('0 0', '100 0', '100 100', '0 0').isLine(), 'loop (start equals end)');
+            });
+
+            QUnit.test('tolerates floating point noise in the control points', function(assert) {
+
+                let curve;
+                for (let i = 0; i < 100; i++) {
+                    const start = new g.Point(Math.random() * 1000 - 500, Math.random() * 1000 - 500);
+                    const end = new g.Point(Math.random() * 1000 - 500, Math.random() * 1000 - 500);
+                    curve = g.Curve.throughPoints([start, end])[0];
+                    assert.ok(curve.isLine(), 'throughPoints() of two points: ' + curve.toString());
+                }
+
+                curve = new g.Curve('0 0', '0.1 0.1', '0.2 0.2', '0.3 0.3');
+                assert.ok(curve.isLine(), 'small coordinates');
+
+                curve = new g.Curve('0 0', '1000 1000', '2000 2000.001', '3000 3000');
+                assert.notOk(curve.isLine(), 'visible deviation is not noise');
+            });
+        });
+
         QUnit.module('length()', function() {
 
             QUnit.test('sanity', function(assert) {

@@ -35,7 +35,7 @@ src/
   styles.css               Paper container and hover highlight styles
   families/                Dataset JSON files (including benchmark.json ~1000 persons)
 scripts/
-  test-layout.cts          Node.js layout test (no browser needed)
+  test-layout.mts          Node.js layout test (no browser needed)
 ```
 
 ## Step 1: Data Model

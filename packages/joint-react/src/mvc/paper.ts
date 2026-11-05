@@ -14,6 +14,29 @@ const noopViewMountChange = (): void => {
 export const DEFAULT_PAPER_ID = 'default-paper';
 
 /**
+ * Marks every {@link PaperView} instance for {@link isPaperView} — the same
+ * pattern as joint-core's `GRAPH_LAYER_MARKER`. Taken from the global symbol
+ * registry on purpose: a dev-server hot reload (HMR) re-evaluates this module,
+ * and a plain `Symbol()` would then differ between the class that created the
+ * live papers and the class doing the check, the very hazard `instanceof` has.
+ */
+const PAPER_VIEW_MARKER: unique symbol = Symbol.for('joint.react.paperViewMarker');
+
+/**
+ * Type guard: is this paper a {@link PaperView}?
+ *
+ * Checks the {@link PaperView} marker instead of `instanceof`: a dev-server hot
+ * reload (HMR) can re-evaluate this module and create a new `PaperView` class
+ * identity while live paper instances still come from the previous evaluation
+ * — `instanceof` would reject those and blank the canvas.
+ * @param paper - The paper instance to check (nullish tolerated).
+ * @returns `true` when the paper is a `PaperView` from any evaluation of this module.
+ */
+export function isPaperView(paper: dia.Paper | null | undefined): paper is PaperView {
+  return !!paper && PAPER_VIEW_MARKER in paper;
+}
+
+/**
  * Extended Paper class that manages React view lifecycle.
  *
  * PaperView centralizes view management by:
@@ -21,11 +44,21 @@ export const DEFAULT_PAPER_ID = 'default-paper';
  * - Hiding links until their source/target elements have rendered
  */
 export class PaperView extends Paper {
+  readonly [PAPER_VIEW_MARKER] = true;
   public viewChanges: Map<CellId, IncrementalChange<dia.Cell>> = new Map();
   public onViewMountChange: (changes: Map<CellId, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();
+  // Portal nodes of parked links' not-ready endpoints. React mounts portal
+  // content outside joint's render cycle (child state, Suspense), so a DOM
+  // mutation is the only reliable "content painted" signal.
+  private portalObserver: MutationObserver | null = null;
+  private observedPortalNodes: Set<Node> = new Set();
+  // Element id → number of parked links waiting on it. Lets a park and an
+  // element mount each do O(1) observation work instead of re-walking every
+  // pending link (which made a mount of N parked links O(N²)).
+  private pendingEndpointIds: Map<CellId, number> = new Map();
 
   constructor(options: PaperViewOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;
@@ -37,13 +70,40 @@ export class PaperView extends Paper {
   }
 
   /**
-   * Preserves externally managed host elements (e.g. React refs) on cleanup.
+   * Preserves externally managed host elements (e.g. React refs) on cleanup:
+   * only the paper's own top-level nodes (background, svg) leave the host, so
+   * a paper re-created on the same host (a Fast Refresh of `<Paper>`) starts
+   * from a host that still holds React's children and nothing of ours.
    */
   protected _removeElement(): void {
-    if (this.shouldPreserveHostElementOnRemove) {
+    if (!this.shouldPreserveHostElementOnRemove) {
+      super._removeElement();
       return;
     }
-    super._removeElement();
+    for (const node of Object.values(this.childNodes ?? {})) {
+      if (node.parentNode === this.el) {
+        node.remove();
+      }
+    }
+  }
+
+  /**
+   * `mvc.View.renderChildren()` empties the element before appending the
+   * paper's markup. On a React-owned host that would also drop React's own
+   * children (the HTML overlay rendered into the host) when the paper is
+   * re-created there, so they are kept and re-appended after the paper's nodes.
+   *
+   * Runs from `dia.Paper`'s constructor, before this class's fields are
+   * assigned — so it cannot consult `shouldPreserveHostElementOnRemove` and
+   * preserves unconditionally (a paper-created element is empty here anyway).
+   * @param children - Markup to render (defaults to the paper's `children`).
+   * @returns The same PaperView instance for chaining.
+   */
+  renderChildren(children?: dia.MarkupJSON): this {
+    const preservedNodes = [...this.el.childNodes];
+    super.renderChildren(children);
+    this.el.append(...preservedNodes);
+    return this;
   }
 
   public getElementView(id: CellId): dia.ElementView | undefined {
@@ -142,6 +202,35 @@ export class PaperView extends Paper {
     return this.isElementReady(endId);
   }
 
+  private bumpPendingEndpoint(endId: CellId | undefined, delta: 1 | -1): void {
+    if (!endId) return;
+    const count = (this.pendingEndpointIds.get(endId) ?? 0) + delta;
+    if (count <= 0) this.pendingEndpointIds.delete(endId);
+    else this.pendingEndpointIds.set(endId, count);
+  }
+
+  /**
+   * Observe one parked endpoint's portal node, so content mounted by a
+   * child-only React update still triggers a recheck. O(1) per call — a
+   * park observes its own two endpoints, an element mount observes itself.
+   */
+  private observeEndpoint(endId: CellId | undefined): void {
+    if (!endId) return;
+    const elementView = this.getElementView(endId);
+    if (!elementView?.el) return;
+    const portalNode = this.getCellViewPortalNode(elementView);
+    if (!portalNode || this.observedPortalNodes.has(portalNode)) return;
+    this.portalObserver ??= new MutationObserver(() => this.checkPendingLinks());
+    this.portalObserver.observe(portalNode, { childList: true });
+    this.observedPortalNodes.add(portalNode);
+  }
+
+  private disconnectPortalObserver(): void {
+    this.portalObserver?.disconnect();
+    this.observedPortalNodes.clear();
+    this.pendingEndpointIds.clear();
+  }
+
   /**
    * Check pending links and show them if their source/target are ready.
    */
@@ -169,7 +258,12 @@ export class PaperView extends Paper {
       if (linkView?.el) {
         linkView.el.style.visibility = '';
       }
+      const link = linkView?.model;
+      this.bumpPendingEndpoint(link?.source().id, -1);
+      this.bumpPendingEndpoint(link?.target().id, -1);
     }
+
+    if (this.pendingLinks.size === 0) this.disconnectPortalObserver();
   }
 
   public onViewMountChangeFlush() {
@@ -196,7 +290,12 @@ export class PaperView extends Paper {
     }
 
     if (cell.isLink()) {
-      this.pendingLinks.delete(cellId);
+      if (this.pendingLinks.delete(cellId)) {
+        const link = cell as dia.Link;
+        this.bumpPendingEndpoint(link.source().id, -1);
+        this.bumpPendingEndpoint(link.target().id, -1);
+        if (this.pendingLinks.size === 0) this.disconnectPortalObserver();
+      }
       this.viewChanges.set(cellId, { type: 'remove' });
       this.onViewMountChangeFlush();
     }
@@ -215,7 +314,12 @@ export class PaperView extends Paper {
     if (view.model.isElement()) {
       this.viewChanges.set(cellId, { type: 'add', data: view.model });
       this.onViewMountChangeFlush();
-      this.checkPendingLinks();
+      // Only when parked links wait on THIS element (a link can park before
+      // its endpoint's view exists) — keeps unrelated element mounts O(1).
+      if (this.pendingEndpointIds.has(cellId)) {
+        this.checkPendingLinks();
+        if (this.pendingEndpointIds.has(cellId)) this.observeEndpoint(cellId);
+      }
       return;
     }
 
@@ -227,7 +331,15 @@ export class PaperView extends Paper {
 
       if (!isSourceReady || !isTargetReady) {
         view.el.style.visibility = 'hidden';
-        this.pendingLinks.add(cellId);
+        if (!this.pendingLinks.has(cellId)) {
+          this.pendingLinks.add(cellId);
+          const sourceId = link.source().id;
+          const targetId = link.target().id;
+          this.bumpPendingEndpoint(sourceId, 1);
+          this.bumpPendingEndpoint(targetId, 1);
+          this.observeEndpoint(sourceId);
+          this.observeEndpoint(targetId);
+        }
       }
 
       this.viewChanges.set(cellId, { type: 'add', data: view.model });
@@ -246,6 +358,7 @@ export class PaperView extends Paper {
   }
 
   public remove() {
+    this.disconnectPortalObserver();
     // call CLEANUP_EVENT_NAME for any listeners that need to clean up before the paper is removed
     this.trigger(CLEANUP_EVENT_NAME);
     super.remove();

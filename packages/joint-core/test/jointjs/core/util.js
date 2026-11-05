@@ -1470,6 +1470,28 @@ QUnit.module('util', function(hooks) {
         });
     });
 
+    QUnit.module('getNodeSelector', function() {
+
+        QUnit.test('reads the selector given by parseDOMJSON', function(assert) {
+            const res = joint.util.parseDOMJSON([
+                { tagName: 'rect', selector: 'test1', groupSelector: 'group' },
+                { tagName: 'circle', groupSelector: 'group' },
+                { tagName: 'div', selector: 'test2', namespaceURI: V.namespace.xhtml }
+            ]);
+            assert.equal(joint.util.getNodeSelector(res.selectors.test1), 'test1');
+            assert.equal(joint.util.getNodeSelector(res.selectors.test2), 'test2');
+            // A node with group selectors only
+            assert.equal(joint.util.getNodeSelector(res.groupSelectors.group[1]), null);
+        });
+
+        QUnit.test('no selector', function(assert) {
+            assert.equal(joint.util.getNodeSelector(document.createElementNS(V.namespace.svg, 'rect')), null);
+            assert.equal(joint.util.getNodeSelector(document.createTextNode('text')), null);
+            assert.equal(joint.util.getNodeSelector(null), null);
+            assert.equal(joint.util.getNodeSelector(undefined), null);
+        });
+    });
+
     QUnit.test('sanitizeHTML', function(assert) {
 
         assert.equal(joint.util.sanitizeHTML('<html><body><p>Hello</p></body></html>'), '<p>Hello</p>');
@@ -1845,4 +1867,181 @@ QUnit.module('util', function(hooks) {
         });
     });
 
+    QUnit.module('util.toggleFullScreen()', (hooks) => {
+
+        // The names `toggleFullScreen()` tries for each property, its `prefixes` list and
+        // then the standard name, so the browser's own names never decide a result.
+        const fullscreenNames = (...props) => props.flatMap((prop) => ['webkit', 'moz', 'ms', 'o', ''].map((prefix) => {
+            return prefix ? prefix + prop : prop[0].toLowerCase() + prop.slice(1);
+        }));
+
+        // An own property shadows the browser's, and deleting it brings the
+        // browser's back.
+        let overrides = [];
+        const override = (obj, names, value) => {
+            names.forEach((name) => {
+                Object.defineProperty(obj, name, { configurable: true, value });
+                overrides.push([obj, name]);
+            });
+        };
+
+        // The page reports `fullscreenElement` as its element in fullscreen,
+        // and exits fullscreen through the returned spy.
+        const stubPage = (doc, fullscreenElement) => {
+            override(doc, fullscreenNames('FullscreenElement', 'FullScreenElement'), fullscreenElement);
+            const exit = sinon.spy();
+            override(doc, fullscreenNames('ExitFullscreen', 'CancelFullScreen'), exit);
+            return exit;
+        };
+
+        // The element enters fullscreen through the returned spy.
+        const stubElement = (el) => {
+            const request = sinon.spy();
+            override(el, fullscreenNames('RequestFullscreen', 'RequestFullScreen'), request);
+            return request;
+        };
+
+        let iframe = null;
+
+        // An iframe without `src` holds a same-origin about:blank page, ready at once.
+        const appendFrameTarget = () => {
+            iframe = document.createElement('iframe');
+            document.getElementById('qunit-fixture').appendChild(iframe);
+            const frameDocument = iframe.contentDocument;
+            const target = frameDocument.createElement('div');
+            frameDocument.body.appendChild(target);
+            return target;
+        };
+
+        hooks.afterEach(() => {
+            overrides.forEach(([obj, name]) => delete obj[name]);
+            overrides = [];
+            iframe?.remove();
+            iframe = null;
+        });
+
+        QUnit.test('puts an element of a same-origin embedded page in fullscreen while its embedding pages are in fullscreen', (assert) => {
+            const target = appendFrameTarget();
+            stubPage(target.ownerDocument, null);
+            // Under Karma the test page is itself embedded; stubbed first, so
+            // when it is `window.top` the test page's stub below replaces it.
+            const topExit = stubPage(window.top.document, window.top.document.body);
+            const pageExit = stubPage(document, document.body);
+            const request = stubElement(target);
+            joint.util.toggleFullScreen(target);
+            assert.ok(request.called);
+            assert.ok(request.alwaysCalledOn(target));
+            assert.ok(pageExit.notCalled);
+            assert.ok(topExit.notCalled);
+        });
+
+        QUnit.test('exits fullscreen on the embedded page when it reports an element in fullscreen', (assert) => {
+            const target = appendFrameTarget();
+            const frameExit = stubPage(target.ownerDocument, target);
+            const pageExit = stubPage(document, null);
+            const request = stubElement(target);
+            joint.util.toggleFullScreen(target);
+            assert.ok(frameExit.called);
+            assert.ok(frameExit.alwaysCalledOn(target.ownerDocument));
+            assert.ok(request.notCalled);
+            assert.ok(pageExit.notCalled);
+        });
+
+        QUnit.test('puts the current page\'s body in fullscreen without an element while its embedding page is in fullscreen', (assert) => {
+            // Under Karma the test page is itself embedded. When it is
+            // `window.top`, the test page's stub below replaces this one, and
+            // code that reads `window.top.document` passes too.
+            const topExit = stubPage(window.top.document, window.top.document.body);
+            stubPage(document, null);
+            const request = stubElement(document.body);
+            joint.util.toggleFullScreen();
+            assert.ok(request.called);
+            assert.ok(request.alwaysCalledOn(document.body));
+            assert.ok(topExit.notCalled);
+        });
+
+        QUnit.test('exits fullscreen on the current page without an element when it reports an element in fullscreen', (assert) => {
+            // Under Karma the test page is itself embedded; stubbed first, so
+            // when it is `window.top` the test page's stub below replaces it.
+            const topExit = stubPage(window.top.document, window.top.document.body);
+            const pageExit = stubPage(document, document.body);
+            joint.util.toggleFullScreen();
+            assert.ok(pageExit.called);
+            assert.ok(pageExit.alwaysCalledOn(document));
+            assert.ok(topExit.notCalled);
+        });
+    });
+
+    QUnit.module('util.createSeededRandom()', function() {
+
+        QUnit.test('returns the known sequence of a seed', function(assert) {
+            const random = joint.util.createSeededRandom(42);
+            const expected = [
+                0.6011037519201636,
+                0.44829055899754167,
+                0.8524657934904099,
+                0.6697340414393693,
+                0.17481389874592423
+            ];
+            expected.forEach(function(value) {
+                assert.equal(random(), value);
+            });
+        });
+
+        QUnit.test('returns the same sequence for the same seed', function(assert) {
+            const a = joint.util.createSeededRandom(7);
+            const b = joint.util.createSeededRandom(7);
+            const c = joint.util.createSeededRandom(8);
+            const sequenceA = [];
+            const sequenceB = [];
+            const sequenceC = [];
+            for (let i = 0; i < 100; i++) {
+                sequenceA.push(a(), a(10), a(-5, 5));
+                sequenceB.push(b(), b(10), b(-5, 5));
+                sequenceC.push(c(), c(10), c(-5, 5));
+            }
+            assert.deepEqual(sequenceA, sequenceB);
+            assert.notDeepEqual(sequenceA, sequenceC);
+        });
+
+        QUnit.test('random() returns numbers from the interval [0, 1)', function(assert) {
+            const random = joint.util.createSeededRandom(0);
+            let inRange = true;
+            for (let i = 0; i < 10000; i++) {
+                const value = random();
+                if (value < 0 || value >= 1) inRange = false;
+            }
+            assert.ok(inRange);
+        });
+
+        QUnit.test('random(max) returns integers from the interval [0, max]', function(assert) {
+            const random = joint.util.createSeededRandom(1);
+            const values = new Set();
+            for (let i = 0; i < 1000; i++) values.add(random(3));
+            assert.deepEqual(Array.from(values).sort(function(a, b) { return a - b; }), [0, 1, 2, 3]);
+        });
+
+        QUnit.test('random(min, max) returns integers from the interval [min, max]', function(assert) {
+            const random = joint.util.createSeededRandom(2);
+            const values = new Set();
+            const switched = new Set();
+            for (let i = 0; i < 1000; i++) {
+                values.add(random(-2, 1));
+                switched.add(random(1, -2));
+            }
+            assert.deepEqual(Array.from(values).sort(function(a, b) { return a - b; }), [-2, -1, 0, 1]);
+            assert.deepEqual(Array.from(switched).sort(function(a, b) { return a - b; }), [-2, -1, 0, 1], 'switched min and max');
+        });
+
+        QUnit.test('converts the seed to an unsigned 32-bit integer', function(assert) {
+            const first = function(seed) {
+                return joint.util.createSeededRandom(seed)();
+            };
+            assert.equal(first(1.5), first(1));
+            assert.equal(first(-1), first(4294967295));
+            assert.equal(first(4294967296), first(0));
+            assert.equal(first(NaN), first(0));
+            assert.equal(first(Infinity), first(0));
+        });
+    });
 });

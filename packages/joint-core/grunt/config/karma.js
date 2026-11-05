@@ -1,10 +1,6 @@
-const puppeteer = require('puppeteer');
 const dependencies = require('../resources/dependencies');
 const modules = require('../resources/esm');
 const coverageThresholds = require('../../coverage.json');
-
-// Used for starting Chrome if using ChromeHeadless in Jenkins
-process.env.CHROME_BIN = puppeteer.executablePath();
 
 // Which path should .lcov files record as root they are relative to?
 // - SonarQube (`.github/workflows/sonar.yml`) needs this to be the repo root
@@ -57,7 +53,9 @@ module.exports = function(grunt) {
                         '--no-sandbox',
                         '--headless',
                         '--disable-gpu',
-                        '--disable-dev-shm-usage'
+                        '--disable-dev-shm-usage',
+                        // Keep macOS from asking for the keychain password on launch
+                        '--use-mock-keychain'
                     ]
                 }
             },
@@ -65,8 +63,7 @@ module.exports = function(grunt) {
             // Change to false when debugging
             singleRun: true,
             exclude: [
-                'test/**/require.js',
-                'test/**/browserify.js'
+                'test/**/require.js'
             ]
         },
         geometry: {
@@ -93,6 +90,29 @@ module.exports = function(grunt) {
         },
         joint: {
             options: {
+                // The suite runs under a Content Security Policy that forbids
+                // inline styles, so `test/jointjs/csp.js` can prove the library
+                // needs none. Scoped to `context.html`, the document the tests
+                // execute in: Karma's own runner frame carries an inline
+                // `<style>` and must stay unrestricted. `script-src` is left
+                // alone too, since `context.html` carries Karma's inline
+                // bootstrap and scripts are not what this checks.
+                customHeaders: [{
+                    match: 'context\\.html$',
+                    name: 'Content-Security-Policy',
+                    value: [
+                        // Everything the library might reach for is same-origin
+                        // or nothing at all: no network, no fonts, no media.
+                        'default-src \'self\'',
+                        // Karma's own bootstrap in `context.html` is inline, and
+                        // its instrumentation evaluates code.
+                        'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\'',
+                        // A paper background can be a data URI, which most
+                        // policies allow for images.
+                        'img-src \'self\' data:',
+                        'style-src \'self\' \'report-sample\''
+                    ].join('; ')
+                }],
                 files: [
                     dependencies,
                     modules.geometry.test,

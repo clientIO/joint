@@ -1,0 +1,161 @@
+// A restrained Material Design palette + elevation system, scoped under the
+// `joint-theme-material` class every view gets from this example's own
+// `setTheme('material')` call (`index.ts`) - JointJS's theme mechanism is just that
+// class; giving it meaning is entirely up to this stylesheet (see `mvc.View#setTheme`).
+// Applied almost entirely through the classes below (see `shapes.ts`) - JointJS attrs
+// are only used where CSS alone cannot reach: geometry (`calc(...)`-driven `rx`/
+// `width`/...), text content, and the link's `stroke` (its arrowhead marker is a
+// separate `<marker>` def that derives its own color from that attrs value, not
+// from the `line`'s CSS - see `shapes.ts`'s `InteractionLink`).
+:root {
+    --md-primary: #3F51B5;
+    --md-primary-tint: #E8EAF6;
+    --md-on-primary-tint: #283593;
+    --md-surface: #FFFFFF;
+    --md-surface-container: #F3F4F9;
+    --md-outline: #D0D3E3;
+    --md-on-surface: rgba(0, 0, 0, 0.87);
+    --md-on-surface-variant: rgba(0, 0, 0, 0.6);
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', 'Segoe UI', sans-serif;
+}
+
+#canvas {
+    position: absolute;
+    margin-top: 50px;
+    margin-left: 20px;
+    border: 1px solid var(--md-outline);
+    background-color: #FAFAFA;
+    overflow: hidden;
+}
+
+.toolbar {
+    display: flex;
+    position: fixed;
+    width: 100%;
+    top: 10px;
+    margin-left: 30px;
+    text-align: center;
+    justify-content: left;
+    z-index: 1;
+}
+
+.toolbar-button {
+    outline: none;
+    background: var(--md-surface);
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.14);
+    text-align: center;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    letter-spacing: 0.4px;
+    color: var(--md-primary);
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    margin: 0 4px;
+    transition: box-shadow 0.15s ease, background 0.15s ease;
+
+    &:hover {
+        background: var(--md-primary-tint);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.16);
+    }
+}
+
+// Everything from here on only ever applies to a `joint-theme-material` view.
+.joint-theme-material {
+
+    // Containers - a tonal surface (no shadow: Material's own elevated surfaces
+    // don't float above the canvas the way a card does, they just sit at a
+    // slightly different tone). Containment itself already reads as hierarchy, so
+    // nested and top-level containers share one treatment rather than a color per
+    // nesting depth.
+    .md-container {
+        fill: var(--md-surface-container);
+        stroke: var(--md-outline);
+        stroke-width: 1px;
+        stroke-dasharray: 4 3;
+        rx: 8px;
+        ry: 8px;
+    }
+
+    .md-container-label {
+        font-family: inherit;
+        font-weight: 500;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        fill: var(--md-on-surface-variant);
+    }
+
+    // Service cards - a plain elevated surface (Material's shadow is two stacked
+    // shadows, a tighter "key" one and a softer, larger "ambient" one; `filter:
+    // drop-shadow(...)`, unlike `box-shadow`, works on SVG shapes, and stacks the
+    // same way across multiple `drop-shadow()`s in one `filter`). A hub gets the
+    // primary color as its own outline (an emphasis Material otherwise expresses
+    // via a "tonal"/"outlined" variant) plus one step more elevation, instead of a
+    // one-off fill color per shape.
+    .md-card {
+        fill: var(--md-surface);
+        stroke: var(--md-outline);
+        stroke-width: 1px;
+        rx: 6px;
+        ry: 6px;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15));
+    }
+
+    .md-card--hub {
+        stroke: var(--md-primary);
+        stroke-width: 2px;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
+    }
+
+    .md-card-label {
+        font-family: inherit;
+        font-weight: 500;
+        font-size: 13px;
+        fill: var(--md-on-surface);
+    }
+
+    // Ports - one consistent treatment (a small primary-outlined dot) regardless
+    // of direction or shape (`HubService`'s square ports reuse the same classes).
+    .md-port {
+        fill: var(--md-surface);
+        stroke: var(--md-primary);
+        stroke-width: 2px;
+    }
+
+    .md-port-label {
+        font-family: inherit;
+        font-size: 11px;
+        fill: var(--md-on-surface-variant);
+    }
+
+    // Links - `stroke` itself stays an attrs value (see the file-level comment
+    // above); this class only covers what CSS can fully own.
+    .md-link {
+        stroke-linecap: round;
+    }
+
+    // A link label rendered as a Material "assist chip" - a filled pill.
+    .md-chip-bg {
+        fill: var(--md-primary-tint);
+    }
+
+    .md-chip-text {
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 500;
+        fill: var(--md-on-primary-tint);
+    }
+}

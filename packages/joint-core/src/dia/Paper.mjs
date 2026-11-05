@@ -324,6 +324,10 @@ export const Paper = View.extend({
         height: 600,
         gridSize: 1,
         // Whether or not to draw the grid lines on the paper's DOM element.
+        // Whether to inject `stylesheet` into the paper's SVG. Turn off when a
+        // Content Security Policy forbids inline styles - see `stylesheet`.
+        injectScalableGroupStylesheet: true,
+
         // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
         drawGrid: false,
         // If not set, the size of the visual grid is the same as the `gridSize`.
@@ -792,7 +796,16 @@ export const Paper = View.extend({
     * @description When a new layer is added to the graph, we create a new layer view
     **/
     onGraphLayerAdd: function(layer, _, opt) {
-        if (this.hasLayerView(layer.id)) return;
+        if (this.hasLayerView(layer.id)) {
+            const existingLayerView = this.getLayerView(layer.id);
+            // Keep the view of this layer, or of a paper layer with the same id.
+            if (existingLayerView.model === layer || !existingLayerView[GRAPH_LAYER_VIEW_MARKER]) return;
+            // The view of a removed layer with the same id is still waiting
+            // for its removal (see `onGraphLayerRemove()`). Remove it now, so that
+            // the new layer gets a view of its own. Its pending update is skipped
+            // once the view is removed.
+            this._removeLayerView(existingLayerView);
+        }
 
         const layerView = this.createLayerView({
             id: layer.id,
@@ -1284,7 +1297,9 @@ export const Paper = View.extend({
 
         V.ensureId(svg);
 
-        this.addStylesheet(stylesheet);
+        if (options.injectScalableGroupStylesheet) {
+            this.addStylesheet(stylesheet);
+        }
 
         if (options.background) {
             this.drawBackground(options.background);
@@ -4154,7 +4169,8 @@ export const Paper = View.extend({
         if (!this.isDefined(filterId)) {
 
             var namespace = _filter;
-            var filterSVGString = namespace[name] && namespace[name](filter.args || {});
+            // Only the filters defined in the namespace, not the inherited methods (e.g. `toString`).
+            var filterSVGString = Object.prototype.hasOwnProperty.call(namespace, name) && namespace[name](filter.args || {});
             if (!filterSVGString) {
                 throw new Error('Non-existing filter ' + name);
             }

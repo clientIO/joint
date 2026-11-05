@@ -65,6 +65,7 @@ describe('container-ops: batchSet on the immutable container', () => {
         container.batchSet({ added: EMPTY_ADDED, changed, removed: EMPTY_REMOVED });
       });
       await bench.run();
+      for (const task of bench.tasks) expect(task.result?.state).toBe('completed');
       logResults(bench);
       saveBenchResults(bench, `container/batchSet-1-changed/n=${size}`, OUTPUT);
     }, 60_000);
@@ -82,6 +83,7 @@ describe('container-ops: batchSet on the immutable container', () => {
         container.batchSet({ added: EMPTY_ADDED, changed, removed: EMPTY_REMOVED });
       });
       await bench.run();
+      for (const task of bench.tasks) expect(task.result?.state).toBe('completed');
       logResults(bench);
       saveBenchResults(bench, `container/batchSet-100-changed/n=${size}`, OUTPUT);
     }, 60_000);
@@ -106,6 +108,7 @@ describe('container-ops: batchSet on the immutable container', () => {
         container.batchSet(changeSet);
       });
       await bench.run();
+      for (const task of bench.tasks) expect(task.result?.state).toBe('completed');
       logResults(bench);
       saveBenchResults(bench, `container/batchSet-mixed/n=${size}`, OUTPUT);
     }, 60_000);

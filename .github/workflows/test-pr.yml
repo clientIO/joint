@@ -4,9 +4,12 @@ name: Test PR
 # Trigger this workflow on:
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "dev" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "dev" ]
+
+# Reset permissions and grant them explicitly per job.
+permissions: {}
 
 # Cancel in-progress runs on new commits
 concurrency:
@@ -18,6 +21,9 @@ jobs:
   test:
     if: ${{ github.repository == 'clientIO/joint' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout only - nothing here writes back
+
     steps:
       # Checkout contents of joint repo
       - name: Checkout joint
@@ -25,6 +31,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # Install environment packages
       # Fonts - util.breakText - international characters
@@ -58,9 +65,32 @@ jobs:
           key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
       # Install all dependencies from the joint repo
+      #
+      # `PUPPETEER_SKIP_DOWNLOAD` is what keeps this step green. Four packages
+      # depend on `puppeteer`, the `node-modules` linker gives each one a copy
+      # of its own, and Yarn runs every copy's `postinstall` concurrently - all
+      # four into the one shared `~/.cache/puppeteer`. `@puppeteer/browsers`
+      # downloads a browser to a fixed archive path, unpacks it and then deletes
+      # it, with no locking, so whichever process gets there first deletes the
+      # archive the others are still unpacking and they die on `ENOENT`. The
+      # step below installs the same browsers once instead.
       - name: Install dependencies
         id: install-dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
         run: yarn install --immutable
+
+      # The browsers the `postinstall` above would have downloaded, installed
+      # once rather than once per package. Naming a browser explicitly is what
+      # makes this step ignore `PUPPETEER_SKIP_DOWNLOAD`, and leaving the
+      # version off installs the build `puppeteer` itself pins - so this is the
+      # same pair, at the same versions, in the same `~/.cache/puppeteer` that
+      # `puppeteer.executablePath()` reads (`CHROME_BIN` in the karma configs)
+      - name: Install Puppeteer browsers
+        id: install-puppeteer-browsers
+        run: |
+          yarn workspace @joint/core exec puppeteer browsers install chrome
+          yarn workspace @joint/core exec puppeteer browsers install chrome-headless-shell
 
       # Changing releasable code in a public package must provide a changeset
       # (Releasable files are configured in `.changeset/config.json`)
@@ -69,10 +99,14 @@ jobs:
         id: check-changeset
         # Release PR is skipped - it consumes all changesets instead
         if: ${{ github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/') }}
-        # Compare PR to current committed master
+        # Compare PR to current state of its base branch (= `master` or `dev`)
+        # NOTE: the checkout sets `persist-credentials: false`, so this fetch is
+        # unauthenticated - it only works while the repository stays public
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          git fetch --no-tags origin '+refs/heads/master:refs/remotes/origin/master'
-          yarn changeset status --since=origin/master
+          git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+          yarn changeset status --since="origin/$BASE_REF"
 
       # Build the joint project
       - name: Prepare joint

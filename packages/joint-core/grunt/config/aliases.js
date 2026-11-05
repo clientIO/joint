@@ -2,8 +2,7 @@ module.exports = function(grunt) {
 
     return {
         'default': [
-            'install',
-            'watch'
+            'install'
         ],
         'install': [
             'shell:rollup-dist',
@@ -38,10 +37,6 @@ module.exports = function(grunt) {
             'newer:uglify:jointNoWrap',
             'newer:uglify:plugins'
         ],
-        'build:bundles': [
-            'newer:browserify',
-            'webpack'
-        ],
 
         // TESTS
         'test': [
@@ -50,37 +45,29 @@ module.exports = function(grunt) {
             'test:client',
             'test:ts'
         ],
-        'test:server': ['mochaTest:server'],
+        'test:server': ['shell:mocha-server'],
         'test:client': [
             'test:src',
             'test:bundles'
         ],
         'test:src': [
+            'chrome-bin',
             'karma:geometry',
             'karma:vectorizer',
             'karma:joint'
         ],
         'test:bundles': [
-            'build:bundles',
             'qunit:joint',
             'qunit:vectorizer',
             'qunit:geometry'
         ],
         'test:ts': [
-            'ts:test',
-            'ts:test-exports'
+            'shell:ts-test',
+            'shell:ts-test-exports'
         ],
         'test:coverage': [
             'shell:rollup-test-bundle',
             'test:src'
         ],
-        'test:e2e': ['mochaTest:e2e'],
-        'test:e2e:all': [
-            'test:e2e:chrome-linux',
-            'test:e2e:chrome-windows7',
-            'test:e2e:chrome-mac',
-            'test:e2e:firefox-linux',
-            'test:e2e:firefox-mac'
-        ]
     };
 };

@@ -1,7 +1,7 @@
 {
   "name": "@joint/router-avoid",
   "title": "JointJS Avoid Router",
-  "version": "4.3.2",
+  "version": "4.3.3",
   "description": "Avoid router module for JointJS",
   "sideEffects": false,
   "main": "./dist/esm/index.mjs",
@@ -65,7 +65,7 @@
   "devDependencies": {
     "@joint/eslint-config": "workspace:*",
     "@rollup/plugin-node-resolve": "^16.0.1",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.2",
     "@rollup/plugin-typescript": "^12.1.1",
     "concurrently": "^9.2.0",
     "eslint": "9.39.2",
@@ -73,9 +73,9 @@
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",
     "karma-qunit": "^4.1.2",
-    "puppeteer": "24.22.0",
+    "puppeteer": "25.16.0",
     "qunit": "^2.24.1",
-    "rollup": "4.36.0",
+    "rollup": "4.64.12",
     "rollup-plugin-banner2": "^1.2.2",
     "typescript": "^5.7.3"
   },

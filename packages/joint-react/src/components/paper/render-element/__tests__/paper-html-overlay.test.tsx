@@ -40,7 +40,7 @@ describe('Paper with useHTMLOverlay', () => {
     // The HTML container portal renders div wrappers with `model-id` attribute.
     await waitFor(() => {
       const wrappers = container.querySelectorAll('div[model-id]');
-      expect(wrappers.length).toBe(2);
+      expect(wrappers).toHaveLength(2);
     });
     // Each wrapper has absolute positioning + transform applied.
     const wrapperA = container.querySelector('div[model-id="a"]') as HTMLDivElement | null;

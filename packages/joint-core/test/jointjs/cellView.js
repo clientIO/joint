@@ -79,6 +79,87 @@ QUnit.module('cellView', function(hooks) {
         });
     });
 
+    QUnit.module('util.getNodeSelector(node) of a cell view', function() {
+
+        QUnit.test('element markup', function(assert) {
+            const element = new joint.shapes.standard.Rectangle({
+                markup: [{
+                    tagName: 'g',
+                    selector: 'group',
+                    groupSelector: 'parts',
+                    children: [{
+                        tagName: 'rect',
+                        selector: 'body',
+                        groupSelector: 'parts'
+                    }, {
+                        tagName: 'circle',
+                        groupSelector: 'parts'
+                    }]
+                }]
+            });
+            element.addTo(paper.model);
+            const view = element.findView(paper);
+            const { getNodeSelector } = joint.util;
+            assert.equal(getNodeSelector(view.findNode('group')), 'group');
+            assert.equal(getNodeSelector(view.findNode('body')), 'body');
+            // The selectors the view assigns itself
+            assert.equal(getNodeSelector(view.el), null);
+            // A node with group selectors only
+            assert.equal(getNodeSelector(view.el.querySelector('circle')), null);
+        });
+
+        QUnit.test('string markup', function(assert) {
+            const { getNodeSelector } = joint.util;
+            assert.equal(getNodeSelector(cellView.el.querySelector('rect')), null);
+            assert.equal(getNodeSelector(cellView.el), null);
+        });
+
+        QUnit.test('port markup', function(assert) {
+            const element = new joint.shapes.standard.Rectangle({
+                ports: {
+                    items: [{
+                        id: 'port1',
+                        markup: [{ tagName: 'circle', selector: 'portBody' }],
+                        label: {
+                            markup: [{ tagName: 'text', selector: 'portLabel' }]
+                        }
+                    }, {
+                        id: 'port2',
+                        markup: [{ tagName: 'rect' }, { tagName: 'circle' }],
+                        label: {
+                            markup: [{ tagName: 'text' }]
+                        }
+                    }]
+                }
+            });
+            element.addTo(paper.model);
+            const view = element.findView(paper);
+            const { getNodeSelector } = joint.util;
+            assert.equal(getNodeSelector(view.findPortNode('port1', 'portBody')), 'portBody');
+            assert.equal(getNodeSelector(view.findPortNode('port1', 'portLabel')), 'portLabel');
+            // The selectors the view assigns itself
+            ['root', 'portRoot', 'labelRoot'].forEach(selector => {
+                assert.equal(getNodeSelector(view.findPortNode('port2', selector)), null, selector);
+            });
+        });
+
+        QUnit.test('link label markup', function(assert) {
+            const link = new joint.shapes.standard.Link({
+                source: { x: 0, y: 0 },
+                target: { x: 100, y: 100 },
+                labels: [{
+                    markup: [{ tagName: 'rect', selector: 'labelBody' }, { tagName: 'text', selector: 'labelText' }]
+                }]
+            });
+            link.addTo(paper.model);
+            const view = link.findView(paper);
+            const { getNodeSelector } = joint.util;
+            assert.equal(getNodeSelector(view.findLabelNode(0, 'labelBody')), 'labelBody');
+            assert.equal(getNodeSelector(view.findNode('line')), 'line');
+            assert.equal(getNodeSelector(view.findLabelNode(0, 'root')), null);
+        });
+    });
+
     QUnit.module('highlighting', function() {
 
         QUnit.test('default highlighter', function(assert) {

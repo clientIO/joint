@@ -21,30 +21,30 @@ const UPPERCASE_STYLE = { textTransform: 'uppercase' } as const;
 
 describe('SVGText', () => {
   it('renders with minimal props', () => {
-    render(<SVGText>hello</SVGText>, { wrapper: paperRenderElementWrapper({}) });
+    expect(() => render(<SVGText>hello</SVGText>, { wrapper: paperRenderElementWrapper({}) })).not.toThrow();
   });
 
   it('renders with width and textWrap', () => {
-    render(
+    expect(() => render(
       <SVGText width={100} textWrap>
         hello world
       </SVGText>,
       { wrapper: paperRenderElementWrapper({}) }
-    );
+    )).not.toThrow();
   });
 
   it('renders with height and textWrap options', () => {
-    render(
+    expect(() => render(
        
       <SVGText width={100} height={40} textWrap={{ ellipsis: true, maxLineCount: 2 }}>
         hello world hello world hello world
       </SVGText>,
       { wrapper: paperRenderElementWrapper({}) }
-    );
+    )).not.toThrow();
   });
 
   it('renders with all supported props', () => {
-    render(
+    expect(() => render(
       <SVGText
         width={120}
         height={50}
@@ -59,7 +59,7 @@ describe('SVGText', () => {
         test all props
       </SVGText>,
       { wrapper: paperRenderElementWrapper({}) }
-    );
+    )).not.toThrow();
   });
 
   it('falls back to style fallbacks when explicit font props are undefined', async () => {

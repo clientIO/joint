@@ -22,3 +22,6 @@ export const LAYER_VIEW_MARKER = Symbol('joint.layerViewMarker');
 // dia.GraphLayerView
 export const GRAPH_LAYER_VIEW_MARKER = Symbol('joint.graphLayerViewMarker');
 
+export const isMarkedConstructor = function(Ctor, marker) {
+    return typeof Ctor === 'function' && Boolean(Ctor.prototype?.[marker]);
+};

@@ -18,6 +18,24 @@ class ResizeTool extends elementTools.Control {
     }
 }
 
+class RotateTool extends elementTools.Control {
+    getPosition(view) {
+        const { width } = view.model.size();
+        return { x: width / 2, y: -30 };
+    }
+
+    setPosition(view, coordinates) {
+        const model = view.model;
+        const { width, height } = model.size();
+        // The coordinates are relative to the element in its unrotated frame,
+        // so this is the angle by which the handle moved around the center.
+        const dx = coordinates.x - width / 2;
+        const dy = coordinates.y - height / 2;
+        const delta = Math.atan2(dx, -dy) * 180 / Math.PI;
+        model.rotate(Math.round((model.angle() + delta) / 15) * 15, true);
+    }
+}
+
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 
 const paper = new dia.Paper({
@@ -68,14 +86,36 @@ const el1 = new MarginRectangle({
 });
 
 const el2 = new MarginRectangle({
-    position: { x: 220, y: 120 },
+    position: { x: 320, y: 200 },
     size: { width: 110, height: 44 },
-    attrs: { label: { text: 'Target', fontSize: 12 } }
+    angle: 270,
+    attrs: { label: { text: 'Target', fontSize: 12 } },
+    ports: {
+        groups: {
+            in: {
+                position: 'bottom',
+                markup: [{ tagName: 'rect', selector: 'portBody' }],
+                attrs: {
+                    portBody: {
+                        x: -6,
+                        y: -6,
+                        width: 12,
+                        height: 12,
+                        fill: '#ffffff',
+                        stroke: '#226CE0',
+                        strokeWidth: 2,
+                        magnet: true
+                    }
+                }
+            }
+        },
+        items: [{ id: 'in', group: 'in' }]
+    }
 });
 
 const link = new shapes.standard.Link({
     source: { id: el1.id },
-    target: { id: el2.id },
+    target: { id: el2.id, port: 'in' },
     // The rightAngle router is set explicitly on the link.
     router: { name: 'rightAngle', args: { ...options } },
     attrs: {
@@ -100,6 +140,9 @@ el1.findView(paper).addTools(
         tools: [
             new ResizeTool({
                 selector: 'body'
+            }),
+            new RotateTool({
+                selector: 'body'
             })
         ]
     })
@@ -109,6 +152,9 @@ el2.findView(paper).addTools(
     new dia.ToolsView({
         tools: [
             new ResizeTool({
+                selector: 'body'
+            }),
+            new RotateTool({
                 selector: 'body'
             })
         ]

@@ -19,9 +19,13 @@ config, Storybook 10
 # Build (Rollup + esbuild → dist/cjs, dist/esm, dist/types)
 yarn build
 
-# Run all checks (typecheck + knip + jest, once against React 19 and once
-# against React 18)
+# Run all checks (typecheck + knip + duplicity-detect + jest, once against
+# React 19 and once against React 18)
 yarn test
+
+# Copy/paste detection (jscpd, Rust binary). Scans `src/` excluding tests and
+# fails on any clone (`threshold: 0` in `.jscpd.json`)
+yarn duplicity-detect
 
 # Run individual checks
 yarn typecheck              # tsc --noEmit

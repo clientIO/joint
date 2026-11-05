@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-nested-functions */
+ 
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { mvc, type dia } from '@joint/core';
@@ -132,7 +132,7 @@ describe('useCells (ids array form) — graph membership reactivity', () => {
       storeRef!.graph.getCell('b')?.set('position', { x: 1, y: 1 });
       await flush();
     });
-    expect(renderSpy.mock.calls.length).toBe(baseline);
+    expect(renderSpy.mock.calls).toHaveLength(baseline);
   });
 });
 

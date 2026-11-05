@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/no-element-overwrite -- tests set the same position key repeatedly on purpose */
-/* eslint-disable sonarjs/no-nested-functions -- act(async () => transaction(() => ...)) nests intentionally */
+ 
 import React from 'react';
 import { render, act, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../../components/graph/graph-provider';
