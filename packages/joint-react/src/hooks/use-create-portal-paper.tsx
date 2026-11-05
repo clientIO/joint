@@ -49,7 +49,6 @@ import { subscribeToPaperEvents } from './use-on-paper-events';
 import { useOnEvents } from './use-on-events';
 import type { CellId } from '../types/cell.types';
 import { extractEventsFromPaperProps } from '../presets/paper-events';
-import { useFitToContent } from './use-fit-to-content';
 
 type LinkModelConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
@@ -191,13 +190,14 @@ export function useCreatePortalPaper(
     interactive,
     useHTMLOverlay,
     transform,
-    fitToContent,
     portalSelector,
     linkRouting,
     options: escapeHatchOptions,
     // These are React host props and must not be forwarded to dia.Paper options.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     className,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    fitToContent,
     nodeRef,
     onReady,
     id,
@@ -239,8 +239,6 @@ export function useCreatePortalPaper(
   const version = useInternalData(selectPaperVersion);
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
-
-  useFitToContent(paperStore, fitToContent, transform !== undefined);
 
   const paperRef = useRef<PaperView | null>(null);
   const isReadyNotifiedRef = useRef(false);

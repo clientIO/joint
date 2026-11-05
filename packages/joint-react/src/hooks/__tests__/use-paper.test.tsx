@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { act, render, renderHook, waitFor } from '@testing-library/react';
+import { render, renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import { GraphProvider, Paper } from '../../components';
 import {
   graphProviderWrapper,
@@ -123,29 +123,5 @@ describe('usePaper', () => {
     });
     const { result } = renderHook(() => usePaper('by-id-paper'), { wrapper });
     await waitFor(() => expect(result.current.paper).toBeDefined());
-  });
-  it('fitToContent() frames the content on demand', async () => {
-    const spy = jest
-      .spyOn(dia.Paper.prototype, 'transformToFitContent')
-      .mockImplementation(() => {});
-    const wrapper = paperRenderElementWrapper({
-      graphProviderProps: {
-        initialCells: [
-          {
-            id: '1',
-            type: ELEMENT_MODEL_TYPE,
-            size: { width: 50, height: 50 },
-          } as CellRecord,
-        ],
-      },
-      paperProps: { id: 'imperative-fit' },
-    });
-    const { result } = renderHook(() => usePaper('imperative-fit'), { wrapper });
-
-    await waitFor(() => expect(result.current.paper).not.toBeNull());
-    expect(spy).not.toHaveBeenCalled();
-    act(() => result.current.fitToContent({ padding: 12 }));
-    expect(spy).toHaveBeenCalledTimes(1);
-    spy.mockRestore();
   });
 });

@@ -8,8 +8,6 @@ import { DEFAULT_PAPER_ID } from '../mvc/paper';
 import type { PaperTarget } from '../types';
 import { resolvePaperId } from '../utils/resolve-paper-target';
 import { isRef } from '../utils/is';
-import type { FitToContentOptions } from '../components/paper/paper.types';
-import { normalizeFitOptions, runFit } from '../utils/fit-to-content';
 
 /**
  * Resolves a paper ID from any {@link PaperTarget}, handling the ref-timing problem.
@@ -97,17 +95,6 @@ export interface PaperApi {
    * @see [`paper.unfreeze()`](https://docs.jointjs.com/api/dia/Paper#unfreeze)
    */
   readonly unfreeze: () => void;
-  /**
-   * Frames the whole diagram in the viewport, once. Use it for a "Fit" button.
-   * No-op when the paper isn't resolved yet.
-   *
-   * Prefer this over calling `paper.transformToFitContent()` yourself: when a
-   * `<PaperScroller>` owns the paper, this routes through it, which the raw
-   * paper call cannot do.
-   * @param options - Fit tuning; defaults to centred zoom-to-fit.
-   * @see {@link FitToContentOptions}
-   */
-  readonly fitToContent: (options?: FitToContentOptions) => void;
 }
 
 /**
@@ -121,7 +108,7 @@ export interface PaperApi {
  * `paper?.`.
  * @param paperId - An explicit paper id, or omitted for the context/default paper.
  * @returns The {@link PaperApi}: the resolved `paper` (or `null`) plus `wakeUp`,
- *          `freeze`, `unfreeze`, and `fitToContent` actions.
+ *          `freeze`, and `unfreeze` actions.
  * @see [Paper quickstart](https://docs.jointjs.com/learn/quickstart/paper)
  * @group Hooks
  * @example
@@ -129,9 +116,9 @@ export interface PaperApi {
  * import { GraphProvider, Paper, usePaper } from '@joint/react';
  *
  * function FitButton() {
- *   const { fitToContent } = usePaper();
- *   // No-op until the <Paper> view has mounted.
- *   return <button onClick={() => fitToContent({ padding: 20 })}>Fit</button>;
+ *   const { paper } = usePaper();
+ *   // `paper` is null until the <Paper> view has mounted.
+ *   return <button onClick={() => paper?.transformToFitContent({ padding: 20 })}>Fit</button>;
  * }
  *
  * function App() {
@@ -147,21 +134,15 @@ export interface PaperApi {
 export function usePaper(paperId?: string): PaperApi {
   const paperStore = usePaperStore(paperId);
   const paper = paperStore?.paper ?? null;
-  // The memo already recomputes only when the resolved paper or its store
-  // changes, so the actions are stable without separate useCallbacks.
+  // The memo already recomputes only when `paper` changes, so the actions are
+  // stable without separate useCallbacks — define them inline.
   return useMemo(
     () => ({
       paper,
       wakeUp: () => paper?.wakeUp(),
       freeze: () => paper?.freeze(),
       unfreeze: () => paper?.unfreeze(),
-      fitToContent: (options?: FitToContentOptions) => {
-        if (!paperStore) return;
-        const resolved = normalizeFitOptions(options ?? true);
-        if (!resolved) return;
-        runFit(paperStore, resolved);
-      },
     }),
-    [paper, paperStore]
+    [paper]
   );
 }
