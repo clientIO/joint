@@ -5,9 +5,11 @@ async function flushScheduler(): Promise<void> {
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
 }
 
-/** Lets the scheduler's queued microtask flush run, without any timer. */
-function flushMicrotasks(): Promise<void> {
-  return Promise.resolve();
+/** Lets the scheduler's queued microtasks run, without any timer. */
+async function flushMicrotasks(): Promise<void> {
+  for (let tick = 0; tick < 5; tick++) {
+    await Promise.resolve();
+  }
 }
 
 describe('createScheduler', () => {
@@ -107,53 +109,68 @@ describe('createScheduler', () => {
 
   // Regression: a throwing callback left the scheduler marked as flushing, so
   // every later callback was queued forever — for every store on the page.
-  it('keeps flushing after a callback throws and rethrows the error later', async () => {
-    const scheduler = createScheduler();
-    const error = new Error('callback failed');
-    const calls: string[] = [];
-    const deferred: Array<() => void> = [];
-    jest
-      .spyOn(globalThis, 'setTimeout')
-      .mockImplementation(((handler: () => void) => {
-        deferred.push(handler);
-        return 0;
-      }) as unknown as typeof setTimeout);
-
-    scheduler(() => {
-      throw error;
-    });
-    scheduler(() => calls.push('same-pass'));
-    await flushMicrotasks();
-    scheduler(() => calls.push('next-pass'));
-    await flushMicrotasks();
-
-    expect(calls).toEqual(['same-pass', 'next-pass']);
-    expect(deferred).toHaveLength(1);
-    expect(deferred[0]).toThrow(error);
-  });
-
-  it('runs callbacks queued by a failing pass on a later task, not in the same microtask', async () => {
-    const scheduler = createScheduler();
-    const deferred: Array<() => void> = [];
-    jest
-      .spyOn(globalThis, 'setTimeout')
-      .mockImplementation(((handler: () => void) => {
-        deferred.push(handler);
-        return 0;
-      }) as unknown as typeof setTimeout);
-    let runs = 0;
-    const failAndReschedule = () => {
-      runs += 1;
-      scheduler(failAndReschedule);
-      throw new Error('keeps failing');
+  describe('when a callback throws', () => {
+    const errors: unknown[] = [];
+    const captureError = (event: ErrorEvent) => {
+      errors.push(event.error);
+      event.preventDefault();
     };
 
-    scheduler(failAndReschedule);
-    await flushMicrotasks();
-    await flushMicrotasks();
+    beforeEach(() => {
+      errors.length = 0;
+      globalThis.addEventListener('error', captureError);
+    });
 
-    // One run per task: the rethrow and the next flush are both on a timer.
-    expect(runs).toBe(1);
-    expect(deferred).toHaveLength(2);
+    afterEach(() => {
+      globalThis.removeEventListener('error', captureError);
+    });
+
+    it('reports the error and keeps flushing, without a timer', async () => {
+      const setTimeoutSpy = jest.spyOn(globalThis, 'setTimeout');
+      const scheduler = createScheduler();
+      const error = new Error('callback failed');
+      const calls: string[] = [];
+
+      scheduler(() => {
+        throw error;
+      });
+      scheduler(() => calls.push('same-pass'));
+      await flushMicrotasks();
+      expect(setTimeoutSpy).not.toHaveBeenCalled();
+      setTimeoutSpy.mockRestore();
+      await flushScheduler();
+      scheduler(() => calls.push('next-pass'));
+      await flushScheduler();
+
+      expect(calls).toEqual(['same-pass', 'next-pass']);
+      expect(errors).toEqual([error]);
+    });
+
+    it('runs a callback queued by the failing callback', async () => {
+      const scheduler = createScheduler();
+      const calls: string[] = [];
+
+      scheduler(() => {
+        scheduler(() => calls.push('cascaded'));
+        throw new Error('callback failed');
+      });
+      await flushScheduler();
+
+      expect(calls).toEqual(['cascaded']);
+      expect(errors).toHaveLength(1);
+    });
+  });
+
+  it('runs cascading callbacks before any microtask queued after the flush starts', async () => {
+    const scheduler = createScheduler();
+    const calls: string[] = [];
+
+    scheduler(() => {
+      queueMicrotask(() => calls.push('microtask'));
+      scheduler(() => calls.push('cascaded'));
+    });
+    await flushScheduler();
+
+    expect(calls).toEqual(['cascaded', 'microtask']);
   });
 });
