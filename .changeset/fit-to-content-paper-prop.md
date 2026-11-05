@@ -2,4 +2,4 @@
 "@joint/react": minor
 ---
 
-<Paper /> - add a `fitToContent` prop that centers the content in the paper once its elements are measured
+<Paper /> - add a `fitToContent` prop that scales and centers the content to fit the paper once its elements are measured

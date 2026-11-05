@@ -478,8 +478,10 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
    * Fits the content to the paper once its elements are measured, and again after
    * a graph reset. Centered and based on model geometry by default; pass
    * [`transformToFitContent`](https://docs.jointjs.com/api/dia/Paper#transformtofitcontent)
-   * options to tune it. Ignored when `transform` is set. Later edits don't re-fit;
-   * call `paper.transformToFitContent()` for that.
+   * options to tune it. Ignored when `transform` is set, and skipped while the paper
+   * has no size (e.g. a hidden tab). Runs after `useOnElementsMeasured` callbacks in
+   * this paper's children, not after those mounted outside it. Later edits don't
+   * re-fit; call `paper.transformToFitContent()` for that.
    * @default false
    * @example
    * ```tsx

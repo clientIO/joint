@@ -9,7 +9,8 @@ import { useOnElementsMeasured } from '../../hooks/use-on-elements-measured';
 
 /**
  * Fits the surrounding paper to its content when a diagram is first measured.
- * Mounted only when `fitToContent` is set, so other papers subscribe to nothing.
+ * Mounted only when `fitToContent` is set, so other papers subscribe to nothing,
+ * and after the children, so it sees the positions their measured hooks set.
  * @param props - The component props.
  * @param props.options - The value of the `fitToContent` prop.
  * @returns Nothing; the component only runs the effect.
@@ -17,6 +18,10 @@ import { useOnElementsMeasured } from '../../hooks/use-on-elements-measured';
 function FitToContent({ options }: Readonly<{ options: PaperProps['fitToContent'] }>) {
   useOnElementsMeasured(({ isInitial, paper }) => {
     if (!isInitial) return;
+    // A hidden host would scale the content to 0, which leaves a matrix that
+    // can't be inverted, so the paper would keep failing once it is shown.
+    const { width, height } = paper.getComputedSize();
+    if (!width || !height) return;
     paper.transformToFitContent({
       useModelGeometry: true,
       horizontalAlign: 'middle',
@@ -79,8 +84,8 @@ function PaperBase(
     return (
       <PaperStoreContext.Provider value={paperStore ?? null}>
         {isReady && content}
-        {fitContent}
         {portaledChildren}
+        {fitContent}
       </PaperStoreContext.Provider>
     );
   }
@@ -91,8 +96,8 @@ function PaperBase(
       <div ref={paperHTMLElementRef} style={style}>
         {isReady && content}
       </div>
-      {fitContent}
       {portaledChildren}
+      {fitContent}
     </PaperStoreContext.Provider>
   );
 }
