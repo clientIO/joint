@@ -9,7 +9,7 @@ import {
   useCells,
   useGraph,
   useMeasureElement,
-  useOnElementsMeasured,
+  usePaper,
   type CellId,
   type CellRecord,
   type Computed,
@@ -18,12 +18,15 @@ import {
   type ElementPort,
   type PaperProps,
   selectElementSize,
+  useGraphState,
+  selectGraphSizingVersion,
   linkRoutingOrthogonal,
 } from '@joint/react';
 import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -276,30 +279,28 @@ function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>
 function MinimapRenderElement() {
   const { width, height } = useCell(selectElementSize);
   return (
-    <rect
-      width={width}
-      height={height}
-      fill={NODE_FILL}
-      stroke={NODE_STROKE}
-      rx={10}
-      ry={10}
-    />
+    <rect width={width} height={height} fill={NODE_FILL} stroke={NODE_STROKE} rx={10} ry={10} />
   );
 }
 
 function MiniMap() {
   const minimapId = useId();
 
-  useOnElementsMeasured(minimapId, ({ paper, graph }) => {
-    const contentArea = graph.getBBox();
-    if (!contentArea) return;
+  const { graph } = useGraph();
+  const { paper } = usePaper(minimapId);
+  const sizingVersion = useGraphState(selectGraphSizingVersion);
+
+  // Keep the whole diagram in view each time the element sizes settle.
+  useLayoutEffect(() => {
+    const contentArea = sizingVersion > 0 && graph.getBBox();
+    if (!contentArea || !paper) return;
     paper.transformToFitContent({
       contentArea,
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
       padding: 20,
     });
-  });
+  }, [sizingVersion, paper, graph]);
 
   return (
     <div className="absolute bottom-6 right-6 z-10 h-[150px] w-[200px] overflow-hidden rounded-lg border border-[#2f4053] bg-[#121c26] shadow-md">
@@ -388,12 +389,7 @@ function ToolBar(props: Readonly<ToolbarProps>) {
         <i className={isMinimapVisible ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'} />
         <span>Toggle minimap</span>
       </button>
-      <button
-        type="button"
-        className="jj-btn"
-        disabled={!selectedId}
-        onClick={duplicateSelected}
-      >
+      <button type="button" className="jj-btn" disabled={!selectedId} onClick={duplicateSelected}>
         <i className="fa-solid fa-clone" />
         <span>Duplicate</span>
       </button>
