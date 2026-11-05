@@ -14,37 +14,40 @@ export function rethrowLater(error: unknown): void {
  *
  * Cascading callbacks (added during flush) are processed in the SAME
  * microtask so that all listener notifications land in a single React
- * batch update instead of triggering separate re-render cycles.
+ * batch update instead of triggering separate re-render cycles. A callback
+ * that throws ends that microtask, and the error is reported like any other
+ * uncaught error; the callbacks still queued run in the next microtask.
  * @returns A function that queues callbacks for batched execution.
  */
 export function createScheduler(): (callback: () => void) => void {
   let scheduled = false;
-  let flushing = false;
-  let callbacks = new Set<() => void>();
+  const callbacks = new Set<() => void>();
+
+  const finishFlush = (): void => {
+    if (callbacks.size > 0) {
+      queueMicrotask(flush);
+      return;
+    }
+    scheduled = false;
+  };
 
   const flush = (): void => {
-    scheduled = false;
-    flushing = true;
+    // Queued before any callback runs, so it still runs if one of them throws.
+    queueMicrotask(finishFlush);
 
-    // Process cascading callbacks in the same flush so React sees
-    // all store changes as a single batched update.
-    while (callbacks.size > 0) {
-      const pending = callbacks;
-      callbacks = new Set();
-      for (const callback of pending) {
-        callback();
-      }
+    // A Set iteration also visits entries added while it runs, which is what
+    // keeps cascading callbacks in this microtask.
+    for (const callback of callbacks) {
+      callbacks.delete(callback);
+      callback();
     }
-
-    flushing = false;
   };
 
   return (callback: () => void): void => {
     callbacks.add(callback);
 
-    // If we're already inside a flush, the while-loop will pick up
-    // the new callback — no need to schedule another microtask.
-    if (scheduled || flushing) {
+    // Already scheduled or inside a flush: the pending flush picks it up.
+    if (scheduled) {
       return;
     }
 
