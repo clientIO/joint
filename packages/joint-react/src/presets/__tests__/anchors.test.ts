@@ -75,6 +75,17 @@ function setupPaper(targetWithPort = false, portSide: PortSide = 'left'): Setup 
   };
 }
 
+// `@joint/mock-svg` counts a node as part of the render tree only when its mocked
+// `getBBox()` is non-empty, and the mock is always empty. These suites measure magnets
+// through the DOM-measured branches, so every node is treated as rendered.
+let checkVisibilitySpy: jest.SpyInstance;
+beforeEach(() => {
+  checkVisibilitySpy = jest.spyOn(SVGElement.prototype, 'checkVisibility').mockReturnValue(true);
+});
+afterEach(() => {
+  checkVisibilitySpy.mockRestore();
+});
+
 describe('presets / anchors / centerAnchor', () => {
   it('returns center for root element magnet (uses model geometry path)', () => {
     const ctx = setupPaper();

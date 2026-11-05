@@ -301,6 +301,36 @@ export const uuid = function() {
     });
 };
 
+// Return a function returning pseudo-random numbers, the same sequence for the same `seed` (mulberry32):
+// - `random()` a number from the interval [0,1), like `Math.random()`,
+// - `random(max)` an integer from the interval [0,max],
+// - `random(min, max)` an integer from the interval [min,max] (bounds in either order).
+export const createSeededRandom = function(seed) {
+
+    let state = seed >>> 0;
+
+    const next = function() {
+        state = (state + 0x6D2B79F5) >>> 0;
+        let t = Math.imul(state ^ (state >>> 15), state | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
+    return function(min, max) {
+        if (min === undefined) return next();
+        if (max === undefined) {
+            max = min;
+            min = 0;
+        }
+        if (max < min) {
+            const temp = min;
+            min = max;
+            max = temp;
+        }
+        return Math.floor((next() * (max - min + 1)) + min);
+    };
+};
+
 // Generates global unique id and stores it as a property of the object, if provided.
 export const guid = function(obj) {
 

@@ -1,4 +1,5 @@
 import * as util from '../util/index.mjs';
+import { Point } from '../g/index.mjs';
 
 function abs2rel(absolute, max) {
 
@@ -9,46 +10,66 @@ function abs2rel(absolute, max) {
     return `${relative}%`;
 }
 
-function pin(relative) {
+export function pin({ relative = false, useModelGeometry = false, clamp = false } = {}) {
+
+    // A copy, so that modifying the options passed in does not change the strategy.
+    const opt = { relative, useModelGeometry, clamp };
 
     return function(end, view, magnet, coords) {
         var fn = (view.isNodeConnection(magnet)) ? pinnedLinkEnd : pinnedElementEnd;
-        return fn(relative, end, view, magnet, coords);
+        return fn(opt, end, view, magnet, coords);
     };
 }
 
-function pinnedElementEnd(relative, end, view, magnet, coords) {
+function pinnedElementEnd(opt, end, view, magnet, coords) {
 
-    var angle = view.model.angle();
-    var bbox = view.getNodeUnrotatedBBox(magnet);
-    var origin = view.model.getCenter();
-    coords.rotate(origin, angle);
-    var dx = coords.x - bbox.x;
-    var dy = coords.y - bbox.y;
+    const { relative, useModelGeometry, clamp } = opt;
+    const element = view.model;
+    const angle = element.angle();
+
+    // Measure the same (unrotated) box the `topLeft` anchor resolves the offsets against,
+    // and undo the rotation around the same point the anchor applies it.
+    let bbox, origin;
+    if (useModelGeometry) {
+        const { port } = end;
+        bbox = (port != null && element.hasPort(port)) ? element.getPortBBox(port) : element.getBBox();
+        origin = bbox.center();
+    } else {
+        bbox = view.getNodeUnrotatedBBox(magnet);
+        origin = element.getCenter();
+    }
+
+    const point = new Point(coords).rotate(origin, angle);
+    let dx = point.x - bbox.x;
+    let dy = point.y - bbox.y;
+
+    if (clamp) {
+        dx = Math.max(0, Math.min(bbox.width, dx));
+        dy = Math.max(0, Math.min(bbox.height, dy));
+    }
 
     if (relative) {
         dx = abs2rel(dx, bbox.width);
         dy = abs2rel(dy, bbox.height);
     }
 
+    const args = { dx, dy, rotate: true };
+    if (useModelGeometry) args.useModelGeometry = true;
+
     end.anchor = {
         name: 'topLeft',
-        args: {
-            dx: dx,
-            dy: dy,
-            rotate: true
-        }
+        args
     };
 
     return end;
 }
 
-function pinnedLinkEnd(relative, end, view, _magnet, coords) {
+function pinnedLinkEnd(opt, end, view, _magnet, coords) {
 
     var connection = view.getConnection();
     if (!connection) return end;
     var length = connection.closestPointLength(coords);
-    if (relative) {
+    if (opt.relative) {
         var totalLength = connection.length();
         end.anchor = {
             name: 'connectionRatio',
@@ -68,6 +89,5 @@ function pinnedLinkEnd(relative, end, view, _magnet, coords) {
 }
 
 export const useDefaults = util.noop;
-export const pinAbsolute = pin(false);
-export const pinRelative = pin(true);
-
+export const pinAbsolute = pin();
+export const pinRelative = pin({ relative: true });

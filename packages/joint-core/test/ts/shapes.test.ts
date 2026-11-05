@@ -125,6 +125,8 @@ const paper = new joint.dia.Paper({
     connectionStrategy: joint.connectionStrategies.pinAbsolute
 });
 
+paper.options.connectionStrategy = joint.connectionStrategies.pin({ relative: true, useModelGeometry: true, clamp: true });
+
 graph.addCells([customRect, myShape]);
 
 new joint.shapes.standard.Link()
