@@ -1,5 +1,11 @@
 # @joint/core
 
+## 4.3.5
+
+### Patch Changes
+
+- alg - fix the TypeScript types failing to compile with TypeScript 4 (`types/alg.d.ts` imported `dia` and `g` with a `.d.ts` extension) (62056500)
+
 ## 4.3.4
 
 ### Patch Changes
