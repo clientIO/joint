@@ -1885,9 +1885,10 @@ export namespace Paper {
     interface ModelGeometryOptions {
         /**
          * Only the cells for which the function returns `true` contribute
-         * to the content area.
+         * to the content area. Without a function (`undefined` or `null`),
+         * every cell contributes.
          */
-        filter?: (cell: Cell) => boolean;
+        filter?: ((cell: Cell) => boolean) | null;
     }
 
     interface ContentAreaOptions {

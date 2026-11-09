@@ -184,6 +184,8 @@ const isVisibleCell = (cell: joint.dia.Cell) => !cell.get('hidden');
 paper.fitToContent({ useModelGeometry: { filter: isVisibleCell }});
 paper.transformToFitContent({ useModelGeometry: { filter: isVisibleCell }});
 paper.getContentArea({ useModelGeometry: { filter: isVisibleCell }}).inflate(5);
+// `filter: null` measures every cell.
+paper.getContentArea({ useModelGeometry: { filter: null }}).inflate(5);
 paper.getContentBBox({ useModelGeometry: true }).inflate(5);
 
 const eventOptions: joint.dia.Paper.Options[] = [

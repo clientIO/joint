@@ -304,6 +304,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 addCells(graph);
                 var area = paper.getContentArea({ useModelGeometry: {}});
                 assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 400 }, 'an object without filter measures every cell');
+                area = paper.getContentArea({ useModelGeometry: { filter: null }});
+                assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 400 }, 'filter: null measures every cell');
             });
         });
 
