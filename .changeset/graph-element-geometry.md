@@ -2,4 +2,4 @@
 "@joint/core": minor
 ---
 
-dia.Graph - add `getElementGeometry` option, `getElementGeometry()` and `getLinkEndPoint()` methods
+dia.Graph - add `getElementGeometry` option, `getElementGeometry()`, `getPortGeometry()` and `getLinkEndPoint()` methods

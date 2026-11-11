@@ -1,0 +1,37 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+.toolbar {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #131e29;
+}
+
+.canvas {
+    margin-left: 20px;
+    width: 900px;
+    height: 560px;
+    border: 1px solid #d0d3e3;
+    background-color: #fafafa;
+    overflow: hidden;
+}
+
+.model-overlay {
+    pointer-events: none;
+}
+
+.model-overlay rect {
+    fill: none;
+    stroke: #ed2637;
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+}
+
+.model-overlay circle {
+    fill: #ffffff;
+    stroke: #ed2637;
+    stroke-width: 2;
+}

@@ -2338,12 +2338,12 @@ QUnit.module('links', function(hooks) {
                 assert.equal(link.getPolyline().serialize(), '50,50 250,50');
             });
 
-            QUnit.test('the link ends at the center of the element when the callback returns null', function(assert) {
+            QUnit.test('the link ends on the rectangle of the element when the callback returns null', function(assert) {
                 const graph = createGraph(() => null);
                 const el = createElement();
                 const link = createLink({ id: el.id }, { x: 250, y: 50 });
                 graph.resetCells([el, link]);
-                assert.equal(link.getPolyline().serialize(), '50,50 250,50');
+                assert.equal(link.getPolyline().serialize(), '100,50 250,50');
             });
 
             QUnit.test('the link ends on the boundary of a rectangle', function(assert) {
@@ -2420,6 +2420,26 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(calls, [{ model: el1, port: 'p1' }, { model: el2, port: null }]);
             });
 
+            QUnit.test('the port of the target end with a numeric id', function(assert) {
+                const ports = [];
+                const graph = createGraph(({ model, port }) => {
+                    ports.push(port);
+                    return (port === null) ? getLocalRect(model) : new g.Rect(-10, -10, 20, 20);
+                });
+                const el1 = createElement();
+                const el2 = createElement({
+                    position: { x: 300, y: 0 },
+                    ports: {
+                        groups: { abs: { position: { name: 'absolute' }}},
+                        items: [{ id: 5, group: 'abs', args: { x: 0, y: 50 }}]
+                    }
+                });
+                const link = createLink({ id: el1.id }, { id: el2.id, port: 5 }, [{ x: 200, y: 50 }]);
+                graph.resetCells([el1, el2, link]);
+                assert.equal(link.getPolyline().serialize(), '100,50 200,50 290,50');
+                assert.deepEqual(ports, [null, 5]);
+            });
+
             QUnit.test('the port geometry is relative to the port center', function(assert) {
                 const graph = createGraph(({ port }) => (port === null) ? null : new g.Rect(-10, -20, 20, 40));
                 const el = createElement({ position: { x: 20, y: 30 }, ports: createPorts({ x: 100, y: 50 }) });
@@ -2475,40 +2495,60 @@ QUnit.module('links', function(hooks) {
                 assert.equal(link2.getPolyline().serialize(), '200,50 200,300');
             });
 
-            QUnit.test('the link ends at the point returned by the callback', function(assert) {
-                const graph = createGraph(({ model }) => getLocalRect(model).topMiddle());
-                const el = createElement({ size: { width: 200, height: 100 }});
-                const link = createLink({ id: el.id }, { x: 300, y: 300 });
+            QUnit.test('the link ends at the center when the geometry has no boundary', function(assert) {
+                const graph = createGraph(() => new g.Point(50, 0));
+                const el = createElement();
+                const link = createLink({ id: el.id }, { x: 250, y: 50 });
                 graph.resetCells([el, link]);
-                assert.equal(link.getPolyline().serialize(), '100,0 300,300');
-                el.rotate(90);
-                assert.equal(link.getPolyline().round().serialize(), '150,50 300,300');
+                assert.equal(link.getPolyline().serialize(), '50,50 250,50');
             });
 
-            QUnit.test('graph.getElementGeometry() returns the center point by default', function(assert) {
+            QUnit.test('graph.getElementGeometry() and graph.getPortGeometry() return the rectangle by default', function(assert) {
                 const graph = createGraph();
                 const el = createElement({
                     position: { x: 20, y: 30 },
                     size: { width: 200, height: 100 },
                     angle: 90,
-                    ports: createPorts({ x: 100, y: 50 })
+                    ports: {
+                        groups: { abs: { position: { name: 'absolute' }, size: { width: 20, height: 10 }}},
+                        items: [{ id: 'p1', group: 'abs', args: { x: 100, y: 50 }}]
+                    }
                 });
                 graph.resetCells([el]);
                 const geometry = graph.getElementGeometry(el);
-                assert.equal(geometry.type, g.types.Point);
-                assert.ok(geometry.equals({ x: 100, y: 50 }));
-                assert.ok(graph.getElementGeometry(el, 'unknown').equals({ x: 100, y: 50 }));
-                const portGeometry = graph.getElementGeometry(el, 'p1');
-                assert.equal(portGeometry.type, g.types.Point);
-                assert.ok(portGeometry.equals({ x: 0, y: 0 }));
+                assert.equal(geometry.type, g.types.Rect);
+                assert.ok(geometry.equals({ x: 0, y: 0, width: 200, height: 100 }));
+                const portGeometry = graph.getPortGeometry(el, 'p1');
+                assert.equal(portGeometry.type, g.types.Rect);
+                assert.ok(portGeometry.equals({ x: -10, y: -5, width: 20, height: 10 }));
             });
 
-            QUnit.test('graph.getElementGeometry() returns the shape from the callback', function(assert) {
-                const graph = createGraph(({ model, port }) => (port === null) ? getLocalRect(model) : null);
-                const el = createElement({ position: { x: 20, y: 30 }, ports: createPorts({ x: 100, y: 50 }) });
+            QUnit.test('graph.getElementGeometry() and graph.getPortGeometry() use the callback', function(assert) {
+                const ellipse = new g.Ellipse(new g.Point(50, 50), 50, 50);
+                const graph = createGraph(({ port }) => (port === null) ? ellipse : null);
+                const el = createElement({
+                    position: { x: 20, y: 30 },
+                    ports: {
+                        groups: { abs: { position: { name: 'absolute' }, size: { width: 20, height: 10 }}},
+                        items: [{ id: 'p1', group: 'abs', args: { x: 100, y: 50 }}]
+                    }
+                });
                 graph.resetCells([el]);
-                assert.ok(graph.getElementGeometry(el).equals({ x: 0, y: 0, width: 100, height: 100 }));
-                assert.ok(graph.getElementGeometry(el, 'p1').equals({ x: 0, y: 0 }));
+                assert.equal(graph.getElementGeometry(el), ellipse);
+                assert.ok(graph.getPortGeometry(el, 'p1').equals({ x: -10, y: -5, width: 20, height: 10 }));
+            });
+
+            QUnit.test('the link ends on the rectangle of the port when the callback returns null', function(assert) {
+                const graph = createGraph(() => null);
+                const el = createElement({
+                    ports: {
+                        groups: { abs: { position: { name: 'absolute' }, size: { width: 20, height: 10 }}},
+                        items: [{ id: 'p1', group: 'abs', args: { x: 100, y: 50 }}]
+                    }
+                });
+                const link = createLink({ id: el.id, port: 'p1' }, { x: 300, y: 50 });
+                graph.resetCells([el, link]);
+                assert.equal(link.getPolyline().serialize(), '110,50 300,50');
             });
 
             QUnit.test('graph.findLinksInArea() uses the boundary points', function(assert) {

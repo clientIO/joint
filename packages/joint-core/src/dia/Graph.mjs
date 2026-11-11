@@ -91,25 +91,42 @@ export const Graph = Model.extend({
 
     /**
      * @public
-     * @description Returns the relative geometry of the element or of its port:
-     * an element geometry is relative to the top-left corner of the element,
-     * a port geometry is relative to the center of the port. Neither
-     * the rotation of the element nor the angle of the port is applied.
-     * It is the center point unless the `getElementGeometry` option provides a shape.
+     * @description Returns the geometry of the element, relative to its top-left
+     * corner. The rotation of the element is not applied.
+     * It is the rectangle of the element unless the `getElementGeometry` option
+     * provides a shape.
      * @param {dia.Element} element
-     * @param {string} [port]
      * @returns {g.Shape}
      */
-    getElementGeometry: function(element, port = null) {
-        const portId = (port != null && element.hasPort(port)) ? port : null;
+    getElementGeometry: function(element) {
+        const { _getElementGeometry } = this;
+        if (_getElementGeometry) {
+            const geometry = _getElementGeometry.call(this, { model: element, port: null });
+            if (geometry) return geometry;
+        }
+        const { width, height } = element.size();
+        return new g.Rect(0, 0, width, height);
+    },
+
+    /**
+     * @public
+     * @description Returns the geometry of the port of the element, relative to
+     * the center of the port. Neither the rotation of the element nor the angle
+     * of the port is applied.
+     * It is the rectangle of the port unless the `getElementGeometry` option
+     * provides a shape.
+     * @param {dia.Element} element
+     * @param {string|number} portId
+     * @returns {g.Shape}
+     */
+    getPortGeometry: function(element, portId) {
         const { _getElementGeometry } = this;
         if (_getElementGeometry) {
             const geometry = _getElementGeometry.call(this, { model: element, port: portId });
             if (geometry) return geometry;
         }
-        if (portId !== null) return new g.Point(0, 0);
-        const { width, height } = element.size();
-        return new g.Point(width / 2, height / 2);
+        const { width, height } = element.getPortRelativeRect(portId);
+        return new g.Rect(-width / 2, -height / 2, width, height);
     },
 
     /**
@@ -121,30 +138,6 @@ export const Graph = Model.extend({
         const cell = (endType === 'source') ? link.getSourceCell() : link.getTargetCell();
         if (!cell) return new g.Point(link.get(endType));
         return cell.getPointFromConnectedLink(link, endType);
-    },
-
-    /**
-     * @private
-     * @description Converts the absolute point (in the graph coordinates) to the point
-     * relative to the element, or to the center of its port.
-     */
-    _getGeometryPointFromAbsolute: function(point, element, portId) {
-        const relativePoint = element.getRelativePointFromAbsolute(point);
-        if (portId === null) return relativePoint;
-        const { x, y, angle = 0 } = element.getPortRelativePosition(portId);
-        return relativePoint.offset(-x, -y).rotate(null, angle);
-    },
-
-    /**
-     * @private
-     * @description Converts the point relative to the element, or to the center
-     * of its port, to the absolute point (in the graph coordinates).
-     */
-    _getAbsolutePointFromGeometry: function(point, element, portId) {
-        if (portId === null) return element.getAbsolutePointFromRelative(point);
-        const { x, y, angle = 0 } = element.getPortRelativePosition(portId);
-        const relativePoint = new g.Point(point).rotate(null, -angle).offset(x, y);
-        return element.getAbsolutePointFromRelative(relativePoint);
     },
 
     /**
@@ -162,27 +155,15 @@ export const Graph = Model.extend({
         const element = isSource ? link.getSourceCell() : link.getTargetCell();
         if (!element || !element.isElement()) return anchor;
         const { port } = link.get(endType);
-        const portId = (port != null && element.hasPort(port)) ? port : null;
-        const geometry = this.getElementGeometry(element, portId);
-        let point;
-        if (geometry.type === g.types.Point) {
-            point = geometry;
-        } else {
-            const vertices = link.vertices();
-            const adjacentPoint = (vertices.length > 0)
-                ? vertices[isSource ? 0 : vertices.length - 1]
-                : this._getLinkEndAnchor(link, isSource ? 'target' : 'source');
-            const line = new g.Line(
-                this._getGeometryPointFromAbsolute(adjacentPoint, element, portId),
-                this._getGeometryPointFromAbsolute(anchor, element, portId)
-            );
-            const intersections = line.intersect(geometry);
-            if (!intersections) return anchor;
-            point = Array.isArray(intersections)
-                ? line.start.chooseClosest(intersections)
-                : intersections;
-        }
-        return this._getAbsolutePointFromGeometry(point, element, portId);
+        const vertices = link.vertices();
+        const adjacentPoint = (vertices.length > 0)
+            ? vertices[isSource ? 0 : vertices.length - 1]
+            : this._getLinkEndAnchor(link, isSource ? 'target' : 'source');
+        const line = new g.Line(adjacentPoint, anchor);
+        const intersection = (port != null && element.hasPort(port))
+            ? element.getPortGeometryIntersection(port, line)
+            : element.getGeometryIntersection(line);
+        return intersection || anchor;
     },
 
     toJSON: function(opt = {}) {

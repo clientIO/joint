@@ -353,10 +353,13 @@ myElementView.model.test();
 
 const geometryGraph = new joint.dia.Graph({}, {
     getElementGeometry: ({ model, port }) => {
-        if (port !== null) return new joint.g.Point(0, 0);
+        if (port !== null) return new joint.g.Rect(-5, -5, 10, 10);
         const { width, height } = model.size();
         return joint.g.Ellipse.fromRect(new joint.g.Rect(0, 0, width, height));
     }
 });
-const elementGeometry: joint.g.Shape = geometryGraph.getElementGeometry(new joint.shapes.standard.Rectangle(), 'port1');
+const elementGeometry: joint.g.Shape = geometryGraph.getElementGeometry(new joint.shapes.standard.Rectangle());
+const portGeometry: joint.g.Shape = geometryGraph.getPortGeometry(new joint.shapes.standard.Rectangle(), 'port1');
 const linkEndPoint: joint.g.Point = geometryGraph.getLinkEndPoint(new joint.shapes.standard.Link(), 'source');
+const geometryIntersection: joint.g.Point | null = new joint.shapes.standard.Rectangle().getGeometryIntersection(new joint.g.Line());
+const portGeometryIntersection: joint.g.Point | null = new joint.shapes.standard.Rectangle().getPortGeometryIntersection('port1', new joint.g.Line());
