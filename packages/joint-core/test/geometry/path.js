@@ -386,6 +386,54 @@ QUnit.module('path', function(hooks) {
             assert.ok(Array.isArray(path.segments));
             assert.equal(path.segments.length, 0);
 
+            // array of polylines: each polyline is a subpath of its own
+            path = new g.Path([
+                new g.Polyline([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]),
+                new g.Polyline([new g.Point(10, 10), new g.Point(20, 10)]),
+                new g.Polyline()
+            ]);
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10 M 10 10 L 20 10');
+            assert.equal(path.toPolylines().length, 2);
+            assert.equal(path.toPolylines()[0].serialize(), '0,0 10,0 10,10');
+            assert.equal(path.toPolylines()[1].serialize(), '10,10 20,10');
+
+            // array with a polygon: a closed subpath
+            path = new g.Path([
+                new g.Polygon([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]),
+                new g.Polyline([new g.Point(20, 20), new g.Point(30, 20)])
+            ]);
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10 Z M 20 20 L 30 20');
+
+            // array of lines, polylines, curves and paths
+            const innerPath = new g.Path('M 50 50 L 60 50 Z');
+            path = new g.Path([
+                new g.Line(new g.Point(0, 0), new g.Point(10, 0)),
+                new g.Line(new g.Point(10, 0), new g.Point(10, 10)),
+                new g.Polyline([new g.Point(10, 10), new g.Point(20, 10)]),
+                new g.Line(new g.Point(20, 10), new g.Point(30, 10)),
+                new g.Curve(new g.Point(30, 10), new g.Point(30, 20), new g.Point(40, 20), new g.Point(40, 10)),
+                innerPath,
+                new g.Line(new g.Point(50, 50), new g.Point(70, 70))
+            ]);
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10 M 10 10 L 20 10 M 20 10 L 30 10 C 30 20 40 20 40 10 M 50 50 L 60 50 Z M 50 50 L 70 70');
+            assert.equal(innerPath.serialize(), 'M 50 50 L 60 50 Z');
+            assert.equal(innerPath.segments.length, 3);
+            assert.notEqual(path.segments[7], innerPath.segments[0]);
+
+            // array with a path of several subpaths and with an empty path
+            path = new g.Path([
+                new g.Path('M 0 0 L 10 0 Z M 20 20 L 30 20'),
+                new g.Path(),
+                new g.Polyline([new g.Point(40, 40), new g.Point(50, 40)])
+            ]);
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 Z M 20 20 L 30 20 M 40 40 L 50 40');
+            assert.equal(path.toPolylines().length, 3);
+            assert.equal(new g.Path([new g.Path()]).segments.length, 0);
+
+            // a single polygon is not closed
+            path = new g.Path(new g.Polygon([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]));
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10');
+
             // unexpected object (error)
             try {
                 new g.Path(new g.Point(100, 100));

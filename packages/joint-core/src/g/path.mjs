@@ -1,4 +1,4 @@
-// Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
+// Accepts path data string, array of segments, array of Curves, Lines, Polylines and/or Paths, or a Polyline.
 // Path created is not guaranteed to be a valid (serializable) path (might not start with an M).
 import { Polyline } from './polyline.mjs';
 import { Rect } from './rect.mjs';
@@ -9,6 +9,16 @@ import { types } from './types.mjs';
 import { extend } from './extend.mjs';
 import { intersection } from './line.intersection.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
+
+function appendPolyline(path, polyline, isClosed) {
+    const { points } = polyline;
+    if (!points || points.length === 0) return; // a polyline with no points adds nothing
+    for (let i = 0, n = points.length; i < n; i++) {
+        path.appendSegment(Path.createSegment((i === 0) ? 'M' : 'L', points[i]));
+    }
+    if (isClosed) path.appendSegment(Path.createSegment('Z'));
+}
+
 export const Path = function(arg) {
 
     if (!(this instanceof Path)) {
@@ -43,20 +53,32 @@ export const Path = function(arg) {
                 this.appendSegment(segment);
             }
 
-        } else { // create from an array of Curves and/or Lines
-            var previousObj = null;
+        } else { // create from an array of Curves, Lines, Polylines and/or Paths
+            let previousEnd = null;
             for (i = 0; i < n; i++) {
 
-                var obj = arg[i];
+                const obj = arg[i];
+
+                if (obj instanceof Polyline) {
+                    // a polyline is always a subpath of its own; a polygon is a closed one
+                    appendPolyline(this, obj, obj.type === types.Polygon);
+                    previousEnd = null;
+                    continue;
+                }
+
+                if (obj instanceof Path) {
+                    // the subpaths of a path are appended as they are
+                    if (obj.segments.length > 0) this.appendSegment(obj.clone().segments);
+                    previousEnd = null;
+                    continue;
+                }
 
                 if (!((obj instanceof Line) || (obj instanceof Curve))) {
                     throw new Error('Cannot construct a path segment from the provided object.');
                 }
 
-                if (i === 0) this.appendSegment(Path.createSegment('M', obj.start));
-
                 // if objects do not link up, moveto segments are inserted to cover the gaps
-                if (previousObj && !previousObj.end.equals(obj.start)) this.appendSegment(Path.createSegment('M', obj.start));
+                if (!previousEnd || !previousEnd.equals(obj.start)) this.appendSegment(Path.createSegment('M', obj.start));
 
                 if (obj instanceof Line) {
                     this.appendSegment(Path.createSegment('L', obj.end));
@@ -65,7 +87,7 @@ export const Path = function(arg) {
                     this.appendSegment(Path.createSegment('C', obj.controlPoint1, obj.controlPoint2, obj.end));
                 }
 
-                previousObj = obj;
+                previousEnd = obj.end;
             }
         }
 
@@ -81,16 +103,7 @@ export const Path = function(arg) {
         this.appendSegment(Path.createSegment('C', arg.controlPoint1, arg.controlPoint2, arg.end));
 
     } else if (arg instanceof Polyline) { // create from a Polyline
-        if (!(arg.points && (arg.points.length !== 0))) return; // if Polyline has no points, leave Path empty
-
-        n = arg.points.length;
-        for (i = 0; i < n; i++) {
-
-            var point = arg.points[i];
-
-            if (i === 0) this.appendSegment(Path.createSegment('M', point));
-            else this.appendSegment(Path.createSegment('L', point));
-        }
+        appendPolyline(this, arg, false);
 
     } else { // unknown object
         throw new Error('Cannot construct a path from the provided object.');

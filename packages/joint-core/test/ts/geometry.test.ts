@@ -15,6 +15,14 @@ V('path', { d: path.serialize() });
 const curve = new g.Curve('25 505', '37.5 490', '62.5 520', '75 505');
 const curvePoints: g.Point[] = curve.toPoints({ precision: 2 });
 const curvePath = new g.Path(curve);
+const mixedPath = new g.Path([
+    new g.Line(),
+    curve,
+    new g.Polyline([new g.Point(0, 0), new g.Point(10, 10)]),
+    new g.Polygon([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]),
+    path
+]);
+V('path', { d: mixedPath.serialize() });
 V('path', { d: curvePath.serialize() });
 
 // Polyline, Polygon: the closest point methods accept a point given as an object or a string

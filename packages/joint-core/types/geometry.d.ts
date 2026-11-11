@@ -396,6 +396,7 @@ export class Path {
     constructor(pathData: string);
     constructor(segments: PathSegmentUnit | PathSegmentUnit[]);
     constructor(objects: PathObjectUnit | PathObjectUnit[]);
+    constructor(objects: Array<Line | Curve | Polyline | Polygon | Path>);
     constructor(polyline: Polyline);
 
     appendSegment(segments: PathSegmentUnit | PathSegmentUnit[]): void;
