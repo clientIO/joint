@@ -350,3 +350,13 @@ myElementView.model.test();
 // TODO: Fix 'MyElement' is assignable to the constraint of type 'E', but 'E'
 // could be instantiated with a different subtype of constraint 'Element<Attributes, ModelSetOptions>'.
 // const ElementView1: typeof joint.dia.ElementView = CustomElementView;
+
+const geometryGraph = new joint.dia.Graph({}, {
+    getElementGeometry: ({ model, port }) => {
+        if (port !== null) return new joint.g.Point(0, 0);
+        const { width, height } = model.size();
+        return joint.g.Ellipse.fromRect(new joint.g.Rect(0, 0, width, height));
+    }
+});
+const elementGeometry: joint.g.Shape = geometryGraph.getElementGeometry(new joint.shapes.standard.Rectangle(), 'port1');
+const linkEndPoint: joint.g.Point = geometryGraph.getLinkEndPoint(new joint.shapes.standard.Link(), 'source');

@@ -255,6 +255,13 @@ export namespace Graph {
         [key: string]: any;
     }
 
+    interface ElementGeometryCallbackArgs {
+        model: Element;
+        port: Element.PortID | null;
+    }
+
+    type ElementGeometryCallback = (args: ElementGeometryCallbackArgs) => g.Shape;
+
     interface ConnectionOptions extends Cell.EmbeddableOptions {
         inbound?: boolean;
         outbound?: boolean;
@@ -363,9 +370,14 @@ export class Graph<A extends ObjectHash = Graph.Attributes, S = ModelSetOptions>
         cellNamespace?: any,
         layerNamespace?: any,
         ignoreLayers?: boolean,
+        getElementGeometry?: Graph.ElementGeometryCallback,
         /** @deprecated use cellNamespace instead */
         cellModel?: typeof Cell
     });
+
+    getElementGeometry(element: Element, port?: Element.PortID | null): g.Shape;
+
+    getLinkEndPoint(link: Link, endType: LinkEnd): g.Point;
 
     // events
 
