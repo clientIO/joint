@@ -1,12 +1,42 @@
-import { connectionPoints } from '@joint/core';
+import { connectionPoints, dia, g } from '@joint/core';
 import { BOUNDARY_OPTIONS, EMPTY_OPTIONS, getMarkerLength, MODEL_GEOMETRY_OPTIONS } from './utils';
+
+/**
+ * Finds the point where the line meets the model geometry of the element
+ * (for the root magnet) or of the port (for a port magnet).
+ *
+ * The anchor of a port is not always inside its shape (e.g. a perpendicular
+ * anchor next to a triangular port). When the line misses a shape other than
+ * a rectangle, the line to the port center is tried, so the link end does not
+ * jump between the shape and the bounding box.
+ * @param line - The end segment of the link, ending at the anchor.
+ * @param endView - The view of the connected cell.
+ * @param endMagnet - The connected magnet.
+ * @returns The intersection, or `null` when there is none.
+ */
+function modelGeometryPoint(line: g.Line, endView: dia.CellView, endMagnet: SVGElement): g.Point | null {
+  if (!(endView instanceof dia.ElementView)) return null;
+  const element = endView.model;
+  if (endMagnet === endView.el) return element.getGeometryIntersection(line);
+  const portId = endView.findNodePortId(endMagnet);
+  if (portId === null || !element.hasPort(portId)) return null;
+  const point = element.getPortGeometryIntersection(portId, line);
+  if (point) return point;
+  const { graph } = element;
+  if (!graph || graph.getPortGeometry(element, portId).type === g.types.Rect) return null;
+  const lineToCenter = new g.Line(line.start, element.getPortCenter(portId));
+  return element.getPortGeometryIntersection(portId, lineToCenter);
+}
 
 /**
  * Default connection point function for React-rendered elements.
  *
- * Uses `rectangle` (model geometry) for:
+ * Uses the model geometry (see `graph.getElementGeometry()`) for:
  * - The root element (portal wrapper)
- * - Default port magnets (elements with a `port` attribute)
+ * - Default port magnets (elements with a `port` attribute), so a link ends
+ *   on the boundary of the port shape
+ *
+ * Falls back to `rectangle` (model geometry) when the link does not intersect it.
  *
  * Uses `boundary` for custom sub-elements registered via `selectorRef`.
  * @param endPathSegmentLine
@@ -25,7 +55,8 @@ export const boundaryPoint: connectionPoints.ConnectionPoint = (
   linkView,
 ) => {
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
-    return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, MODEL_GEOMETRY_OPTIONS, endType, linkView);
+    return modelGeometryPoint(endPathSegmentLine, endView, endMagnet)
+      ?? connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, MODEL_GEOMETRY_OPTIONS, endType, linkView);
   }
   return connectionPoints.boundary(endPathSegmentLine, endView, endMagnet, BOUNDARY_OPTIONS, endType, linkView);
 };
