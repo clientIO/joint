@@ -2551,6 +2551,49 @@ QUnit.module('links', function(hooks) {
                 assert.equal(link.getPolyline().serialize(), '110,50 300,50');
             });
 
+            QUnit.test('graph.getLinkEndPoints() returns the source and the target point', function(assert) {
+                const el1 = createElement();
+                const el2 = createElement({ position: { x: 300, y: 0 }});
+                const link = createLink({ id: el1.id }, { id: el2.id });
+                const graph = createGraph(getRectGeometry);
+                graph.resetCells([el1, el2, link]);
+                const [sourcePoint, targetPoint] = graph.getLinkEndPoints(link);
+                assert.ok(sourcePoint.equals({ x: 100, y: 50 }));
+                assert.ok(targetPoint.equals({ x: 300, y: 50 }));
+                const defaultGraph = createGraph();
+                defaultGraph.resetCells([el1.clone(), el2.clone()]);
+                const [el3, el4] = defaultGraph.getElements();
+                const defaultLink = createLink({ id: el3.id }, { id: el4.id });
+                defaultGraph.addCell(defaultLink);
+                const [defaultSourcePoint, defaultTargetPoint] = defaultGraph.getLinkEndPoints(defaultLink);
+                assert.ok(defaultSourcePoint.equals({ x: 50, y: 50 }));
+                assert.ok(defaultTargetPoint.equals({ x: 350, y: 50 }));
+            });
+
+            QUnit.test('the polyline of a connected link is computed once per link', function(assert) {
+                const graph = createGraph(getRectGeometry);
+                const el1 = createElement();
+                const el2 = createElement({ position: { x: 300, y: 0 }});
+                const el3 = createElement({ position: { x: 150, y: 300 }});
+                const el4 = createElement({ position: { x: 500, y: 300 }});
+                const link1 = createLink({ id: el1.id }, { id: el2.id });
+                const link2 = createLink({ id: el3.id }, { id: link1.id });
+                const link3 = createLink({ id: el4.id }, { id: link2.id });
+                graph.resetCells([el1, el2, el3, el4, link1, link2, link3]);
+                const calls = { link1: 0, link2: 0 };
+                const getPolyline = joint.dia.Link.prototype.getPolyline;
+                link1.getPolyline = function() {
+                    calls.link1++;
+                    return getPolyline.call(this);
+                };
+                link2.getPolyline = function() {
+                    calls.link2++;
+                    return getPolyline.call(this);
+                };
+                assert.equal(link3.getPolyline().round().serialize(), '500,325 200,175');
+                assert.deepEqual(calls, { link1: 1, link2: 1 });
+            });
+
             QUnit.test('graph.findLinksInArea() uses the boundary points', function(assert) {
                 const area = { x: 10, y: 10, width: 80, height: 80 };
                 const cells = () => {

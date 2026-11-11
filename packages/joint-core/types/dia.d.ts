@@ -260,7 +260,7 @@ export namespace Graph {
         port: Element.PortID | null;
     }
 
-    type ElementGeometryCallback = (args: ElementGeometryCallbackArgs) => g.Shape;
+    type ElementGeometryCallback = (args: ElementGeometryCallbackArgs) => g.Shape | null;
 
     interface ConnectionOptions extends Cell.EmbeddableOptions {
         inbound?: boolean;
@@ -380,6 +380,8 @@ export class Graph<A extends ObjectHash = Graph.Attributes, S = ModelSetOptions>
     getPortGeometry(element: Element, portId: Element.PortID): g.Shape;
 
     getLinkEndPoint(link: Link, endType: LinkEnd): g.Point;
+
+    getLinkEndPoints(link: Link): [source: g.Point, target: g.Point];
 
     // events
 

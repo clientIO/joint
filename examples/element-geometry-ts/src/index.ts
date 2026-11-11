@@ -6,8 +6,9 @@ const PORT_RADIUS = 7;
 // The geometry of the elements and of their ports, defined on the model.
 // An element geometry is relative to the top-left corner of the element,
 // a port geometry is relative to the center of the port. The graph applies
-// the position and the rotation of the element.
-function getElementGeometry({ model, port }: dia.Graph.ElementGeometryCallbackArgs): g.Shape {
+// the position and the rotation of the element. Returning `null` uses
+// the default geometry: the rectangle of the element (or of the port).
+function getElementGeometry({ model, port }: dia.Graph.ElementGeometryCallbackArgs): g.Shape | null {
     if (port !== null) {
         return new g.Ellipse(new g.Point(0, 0), PORT_RADIUS, PORT_RADIUS);
     }
@@ -19,7 +20,7 @@ function getElementGeometry({ model, port }: dia.Graph.ElementGeometryCallbackAr
         case 'standard.Polygon':
             return new g.Polygon([rect.topMiddle(), rect.rightMiddle(), rect.bottomMiddle(), rect.leftMiddle()]);
         default:
-            return rect;
+            return null;
     }
 }
 

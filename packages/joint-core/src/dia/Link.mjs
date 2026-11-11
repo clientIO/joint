@@ -454,10 +454,14 @@ export const Link = Cell.extend({
     },
 
     getPolyline: function() {
+        const { graph } = this;
+        const [sourcePoint, targetPoint] = graph
+            ? graph.getLinkEndPoints(this)
+            : [new Point(this.source()), new Point(this.target())];
         const points = [
-            this.getSourcePoint(),
+            sourcePoint,
             ...this.vertices().map(Point),
-            this.getTargetPoint()
+            targetPoint
         ];
         return new Polyline(points);
     },
