@@ -1,5 +1,5 @@
 import { dia, g, shapes } from '@joint/core';
-import { defaultElementGeometry } from '../element-geometry';
+import { defaultElementGeometry, getPortOutlineWidth } from '../element-geometry';
 import { elementPort, elementPorts, type ElementPort } from '../element-ports';
 import { boundaryPoint } from '../connection-points';
 import { GraphStore } from '../../store/graph-store';
@@ -97,6 +97,24 @@ describe('presets / element-geometry', () => {
     expect(bboxOf(defaultElementGeometry({ model: element, port: 'out' }))).toBe('-15@-10 15@10');
   });
 
+  it('reads the outline width from the port and from its group', () => {
+    const element = createElement({
+      groups: { main: { position: { name: 'right' }, ...elementPort({ outlineWidth: 4 }) } },
+      items: [
+        { id: 'a', group: 'main' },
+        { id: 'b', group: 'main', attrs: { port: { style: { strokeWidth: 8 } } } },
+        { id: 'c' },
+      ],
+    });
+    expect(getPortOutlineWidth(element, 'a')).toBe(4);
+    expect(getPortOutlineWidth(element, 'b')).toBe(8);
+    expect(getPortOutlineWidth(element, 'c')).toBe(0);
+    expect(getPortOutlineWidth(element, 'unknown')).toBe(0);
+    expect(getPortOutlineWidth(createElement(elementPorts({ out: {} })), 'out')).toBe(0);
+    expect(getPortOutlineWidth(createElement(), 'out')).toBe(0);
+    expect(getPortOutlineWidth(createElement(elementPorts({ out: { outlineWidth: -4 } })), 'out')).toBe(0);
+  });
+
   it('drops the cached geometry when a port is changed with portProp()', () => {
     const element = createElement(elementPorts({ out: { width: 20, height: 10 } }));
     const geometry = defaultElementGeometry({ model: element, port: 'out' });
@@ -127,6 +145,23 @@ describe('presets / element-geometry', () => {
   it('uses the default geometry for a port with an invalid path', () => {
     const element = createElement(elementPorts({ out: { shape: 'not a path', width: 20, height: 10 } }));
     expect(defaultElementGeometry({ model: element, port: 'out' })).toBeNull();
+  });
+
+  it('uses the default geometry for a port body without the shape attributes', () => {
+    const bodies = ['ellipse', 'rect', 'path', 'circle'];
+    for (const tagName of bodies) {
+      const element = createElement({
+        items: [{ id: 'out', markup: [{ tagName, selector: 'port' }] }],
+      });
+      expect(defaultElementGeometry({ model: element, port: 'out' })).toBeNull();
+    }
+  });
+
+  it('uses the default geometry for an empty path and for unknown ports', () => {
+    const element = createElement(elementPorts({ out: { shape: '' } }));
+    expect(defaultElementGeometry({ model: element, port: 'out' })).toBeNull();
+    expect(defaultElementGeometry({ model: element, port: 'unknown' })).toBeNull();
+    expect(defaultElementGeometry({ model: createElement(), port: 'out' })).toBeNull();
   });
 
   it('caches the port geometry until the ports change', () => {
@@ -196,12 +231,78 @@ describe('presets / connection-points — model geometry', () => {
     }
   });
 
-  it('ends on the path port when the line misses the shape', () => {
+  it('extends the line when it stops short of the path port', () => {
     const context = setup(defaultElementGeometry, { shape: TRIANGLE_PATH });
     try {
       const line = new g.Line(new g.Point(200, 42), new g.Point(100, 42));
       const point = boundaryPoint(line, context.elementView, context.portNode, {}, 'source', context.linkView);
-      expect(point.round(2).toString()).toBe('108.62@49.31');
+      expect(point.round(2).toString()).toBe('94@42');
+    } finally {
+      context.cleanup();
+    }
+  });
+
+  it('ends on the outer edge of the port outline', () => {
+    const context = setup(defaultElementGeometry, { width: 20, height: 20, outlineWidth: 6 });
+    try {
+      const line = new g.Line(new g.Point(200, 50), new g.Point(100, 50));
+      const point = boundaryPoint(line, context.elementView, context.portNode, {}, 'source', context.linkView);
+      expect(point.round(2).toString()).toBe('113@50');
+    } finally {
+      context.cleanup();
+    }
+  });
+
+  it('ignores an outline that is not set on the port', () => {
+    const context = setup(defaultElementGeometry);
+    try {
+      const line = new g.Line(new g.Point(200, 50), new g.Point(100, 50));
+      const point = boundaryPoint(line, context.elementView, context.portNode, {}, 'source', context.linkView);
+      expect(point.round(2).toString()).toBe('110@50');
+    } finally {
+      context.cleanup();
+    }
+  });
+
+  it('falls back to the rectangle connection point when the extended line misses the path port', () => {
+    const context = setup(defaultElementGeometry, { shape: TRIANGLE_PATH });
+    try {
+      const line = new g.Line(new g.Point(200, 80), new g.Point(150, 80));
+      const point = boundaryPoint(line, context.elementView, context.portNode, {}, 'source', context.linkView);
+      expect(point.toString()).toBe('150@80');
+    } finally {
+      context.cleanup();
+    }
+  });
+
+  it('does not apply the outline when the link does not meet the port shape', () => {
+    const context = setup(defaultElementGeometry, { shape: 'rect', width: 20, height: 20, outlineWidth: 6 });
+    try {
+      const line = new g.Line(new g.Point(200, 50), new g.Point(150, 50));
+      const point = boundaryPoint(line, context.elementView, context.portNode, {}, 'source', context.linkView);
+      expect(point.toString()).toBe('150@50');
+    } finally {
+      context.cleanup();
+    }
+  });
+
+  it('does not extend the line for a rect port', () => {
+    const context = setup(defaultElementGeometry, { shape: 'rect', width: 20, height: 20 });
+    try {
+      const line = new g.Line(new g.Point(200, 50), new g.Point(150, 50));
+      const point = boundaryPoint(line, context.elementView, context.portNode, {}, 'source', context.linkView);
+      expect(point.toString()).toBe('150@50');
+    } finally {
+      context.cleanup();
+    }
+  });
+
+  it('keeps the connection point between the port and the start of the line', () => {
+    const context = setup(defaultElementGeometry, { width: 20, height: 20, outlineWidth: 40 });
+    try {
+      const line = new g.Line(new g.Point(112, 50), new g.Point(100, 50));
+      const point = boundaryPoint(line, context.elementView, context.portNode, {}, 'source', context.linkView);
+      expect(point.round(2).toString()).toBe('111@50');
     } finally {
       context.cleanup();
     }

@@ -3,13 +3,22 @@ import { g, V, type dia } from '@joint/core';
 const PATH_PRECISION = 2;
 const PORT_BODY_SELECTOR = 'port';
 
-interface PortGeometryCache {
-  /** The `ports` attribute the geometries were created from. */
-  readonly ports: unknown;
-  readonly geometries: Map<dia.Element.PortID, g.Shape | null>;
+interface PortShape {
+  /** The geometry of the port body, or `null` when it is not drawn by `elementPort()`. */
+  readonly geometry: g.Shape | null;
+  /** The outline (stroke) width set on the port, `0` when it comes from the stylesheet. */
+  readonly outlineWidth: number;
 }
 
-const portGeometryCaches = new WeakMap<dia.Element, PortGeometryCache>();
+interface PortShapeCache {
+  /** The `ports` attribute the shapes were created from. */
+  readonly ports: unknown;
+  readonly shapes: Map<dia.Element.PortID, PortShape>;
+}
+
+const NO_PORT_SHAPE: PortShape = { geometry: null, outlineWidth: 0 };
+
+const portShapeCaches = new WeakMap<dia.Element, PortShapeCache>();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -98,31 +107,53 @@ function getPortBodyTagName(port: Record<string, unknown>, group: unknown): unkn
   return isRecord(body) ? body.tagName : null;
 }
 
-function createPortGeometry(ports: unknown, portId: dia.Element.PortID): g.Shape | null {
-  if (!isRecord(ports) || !Array.isArray(ports.items)) return null;
-  const port: unknown = ports.items.find((item: unknown) => isRecord(item) && item.id === portId);
-  if (!isRecord(port)) return null;
-  const group = (isRecord(ports.groups) && typeof port.group === 'string') ? ports.groups[port.group] : null;
-  const tagName = getPortBodyTagName(port, group);
-  return createPortBodyGeometry(tagName, { ...getPortBodyAttributes(group), ...getPortBodyAttributes(port) });
+function getOutlineWidth(groupAttributes: Record<string, unknown>, portAttributes: Record<string, unknown>): number {
+  const groupStyle = isRecord(groupAttributes.style) ? groupAttributes.style : {};
+  const portStyle = isRecord(portAttributes.style) ? portAttributes.style : {};
+  const { strokeWidth } = { ...groupStyle, ...portStyle };
+  return isFiniteNumber(strokeWidth) && strokeWidth > 0 ? strokeWidth : 0;
 }
 
-function getPortGeometryCache(element: dia.Element, ports: unknown): PortGeometryCache {
-  const currentCache = portGeometryCaches.get(element);
+function createPortShape(ports: unknown, portId: dia.Element.PortID): PortShape {
+  if (!isRecord(ports) || !Array.isArray(ports.items)) return NO_PORT_SHAPE;
+  const port: unknown = ports.items.find((item: unknown) => isRecord(item) && item.id === portId);
+  if (!isRecord(port)) return NO_PORT_SHAPE;
+  const group = (isRecord(ports.groups) && typeof port.group === 'string') ? ports.groups[port.group] : null;
+  const tagName = getPortBodyTagName(port, group);
+  const groupAttributes = getPortBodyAttributes(group);
+  const portAttributes = getPortBodyAttributes(port);
+  const geometry = createPortBodyGeometry(tagName, { ...groupAttributes, ...portAttributes });
+  if (!geometry) return NO_PORT_SHAPE;
+  return { geometry, outlineWidth: getOutlineWidth(groupAttributes, portAttributes) };
+}
+
+function getPortShapeCache(element: dia.Element, ports: unknown): PortShapeCache {
+  const currentCache = portShapeCaches.get(element);
   if (currentCache && currentCache.ports === ports) return currentCache;
-  const cache: PortGeometryCache = { ports, geometries: new Map() };
-  portGeometryCaches.set(element, cache);
+  const cache: PortShapeCache = { ports, shapes: new Map() };
+  portShapeCaches.set(element, cache);
   return cache;
 }
 
-function getPortGeometry(element: dia.Element, portId: dia.Element.PortID): g.Shape | null {
+function getPortShape(element: dia.Element, portId: dia.Element.PortID): PortShape {
   const ports: unknown = element.get('ports');
-  const cache = getPortGeometryCache(element, ports);
-  const cachedGeometry = cache.geometries.get(portId);
-  if (cachedGeometry !== undefined) return cachedGeometry;
-  const geometry = createPortGeometry(ports, portId);
-  cache.geometries.set(portId, geometry);
-  return geometry;
+  const cache = getPortShapeCache(element, ports);
+  const cachedShape = cache.shapes.get(portId);
+  if (cachedShape) return cachedShape;
+  const shape = createPortShape(ports, portId);
+  cache.shapes.set(portId, shape);
+  return shape;
+}
+
+/**
+ * The outline (stroke) width set with the `outlineWidth` option of {@link elementPort}.
+ * An outline that comes from the stylesheet is not known to the model.
+ * @param element - The element.
+ * @param portId - The id of its port.
+ * @returns The outline width in pixels, or `0` when it is not set on the port.
+ */
+export function getPortOutlineWidth(element: dia.Element, portId: dia.Element.PortID): number {
+  return getPortShape(element, portId).outlineWidth;
 }
 
 /**
@@ -139,5 +170,5 @@ function getPortGeometry(element: dia.Element, portId: dia.Element.PortID): g.Sh
  */
 export function defaultElementGeometry({ model, port }: dia.Graph.ElementGeometryCallbackArgs): g.Shape | null {
   if (port === null) return null;
-  return getPortGeometry(model, port);
+  return getPortShape(model, port).geometry;
 }
