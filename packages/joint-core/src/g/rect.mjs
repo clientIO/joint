@@ -18,13 +18,16 @@ const {
 // Adds the intersection of a side of a rectangle (from `sx, sy` to `ex, ey`)
 // with the line (from `start` to `end`) to `points`, unless the point is there already
 // (a line going through a corner meets two sides in the same point).
+// `points` is `null` until the first intersection is found. Returns `points`.
 function addSideIntersection(points, sx, sy, ex, ey, start, end) {
     const point = intersection(sx, sy, ex, ey, start.x, start.y, end.x, end.y);
-    if (!point) return;
+    if (!point) return points;
+    if (!points) return [point];
     for (let i = 0, n = points.length; i < n; i++) {
-        if (points[i].x === point.x && points[i].y === point.y) return;
+        if (points[i].x === point.x && points[i].y === point.y) return points;
     }
     points.push(point);
+    return points;
 }
 
 export const Rect = function(x, y, w, h) {
@@ -257,13 +260,12 @@ Rect.prototype = {
         const y1 = this.y;
         const x2 = x1 + this.width;
         const y2 = y1 + this.height;
-        const points = [];
         // (clockwise, starting from the top side)
-        addSideIntersection(points, x1, y1, x2, y1, start, end);
-        addSideIntersection(points, x2, y1, x2, y2, start, end);
-        addSideIntersection(points, x1, y2, x2, y2, start, end);
-        addSideIntersection(points, x1, y1, x1, y2, start, end);
-        return points.length > 0 ? points : null;
+        let points = addSideIntersection(null, x1, y1, x2, y1, start, end);
+        points = addSideIntersection(points, x2, y1, x2, y2, start, end);
+        points = addSideIntersection(points, x1, y2, x2, y2, start, end);
+        points = addSideIntersection(points, x1, y1, x1, y2, start, end);
+        return points;
     },
 
     // Find point on my boundary where line starting
@@ -271,7 +273,8 @@ Rect.prototype = {
     // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
     intersectionWithLineFromCenterToPoint: function(p, angle) {
 
-        p = new Point(p);
+        // the point is rotated (changed) only when there is an angle
+        p = (!angle && p && p.type === types.Point) ? p : new Point(p);
         const x1 = this.x;
         const y1 = this.y;
         const x2 = x1 + this.width;
