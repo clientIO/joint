@@ -721,6 +721,42 @@ QUnit.module('curve', function() {
 
         QUnit.module('getSubdivisions()', function() {
 
+            QUnit.test('returns curves that are the same as the ones created with the constructor', function(assert) {
+
+                // the subdivisions are created without the constructor (see `fastCurve()` in the source)
+                const curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                const subdivisions = curve.getSubdivisions();
+                assert.equal(subdivisions.length, 64);
+                subdivisions.forEach(function(subdivision, index) {
+                    const { start, controlPoint1, controlPoint2, end } = subdivision;
+                    const expected = new g.Curve(start, controlPoint1, controlPoint2, end);
+                    // same prototype, same own properties, same values
+                    assert.deepEqual(subdivision, expected, 'subdivision ' + index);
+                });
+
+                const [first, second] = subdivisions;
+                assert.ok(first instanceof g.Curve);
+                assert.ok(first.start instanceof g.Point);
+                assert.ok(first.equals(first.clone()));
+                assert.ok(first.end.equals(second.start), 'the subdivisions link up');
+                assert.notEqual(first.end, second.start, 'but do not share a point');
+            });
+
+            QUnit.test('returns the same curves as dividing the curve in two repeatedly', function(assert) {
+
+                const curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                const subdivisions = curve.getSubdivisions({ precision: 1 });
+                assert.equal(subdivisions.length, 8);
+                // divide the curve in two, three times
+                let divided = [curve];
+                for (let i = 0; i < 3; i++) {
+                    divided = divided.flatMap((part) => part.divide(0.5));
+                }
+                subdivisions.forEach(function(subdivision, index) {
+                    assert.deepEqual(subdivision, divided[index], 'subdivision ' + index);
+                });
+            });
+
             QUnit.test('sanity', function(assert) {
 
                 var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
