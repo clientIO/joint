@@ -2,4 +2,4 @@
 "@joint/core": minor
 ---
 
-g - add `toPath()` method to `Line`, `Curve`, `Polyline`, `Polygon`, `Rect`, `Ellipse` and `Path`
+g.Path - accept a rectangle, an ellipse or a path as the argument of the constructor

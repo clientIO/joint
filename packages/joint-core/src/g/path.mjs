@@ -1,12 +1,10 @@
-// Accepts path data string, array of segments, array of shapes (anything with `toPath()`), or a Polyline.
+// Accepts path data string, array of segments, array of shapes, or a single shape.
 // Path created is not guaranteed to be a valid (serializable) path (might not start with an M).
 import { Polyline } from './polyline.mjs';
 import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { Line } from './line.mjs';
 import { Curve } from './curve.mjs';
-import { Polygon } from './polygon.mjs';
-import { Ellipse } from './ellipse.mjs';
 import { types } from './types.mjs';
 import { extend } from './extend.mjs';
 import { intersection } from './line.intersection.mjs';
@@ -20,6 +18,52 @@ function appendPolyline(path, polyline, isClosed) {
         path.appendSegment(Path.createSegment((i === 0) ? 'M' : 'L', points[i]));
     }
     if (isClosed) path.appendSegment(Path.createSegment('Z'));
+}
+
+function appendSegments(path, segments) {
+    for (let i = 0, n = segments.length; i < n; i++) {
+        path.appendSegment(segments[i]);
+    }
+}
+
+// Appends a shape as a subpath (subpaths) of its own.
+// Returns `false` if the object is not a shape that can be appended this way.
+function appendShape(path, shape) {
+    switch (shape && shape.type) {
+        case types.Polyline: {
+            appendPolyline(path, shape, false);
+            return true;
+        }
+        case types.Polygon: {
+            appendPolyline(path, shape, true);
+            return true;
+        }
+        case types.Rect: {
+            appendPolyline(path, { points: [shape.topLeft(), shape.topRight(), shape.bottomRight(), shape.bottomLeft()] }, true);
+            return true;
+        }
+        case types.Ellipse: {
+            const { x: cx, y: cy, a: rx, b: ry } = shape;
+            const cdx = rx * KAPPA;
+            const cdy = ry * KAPPA;
+            appendSegments(path, [
+                Path.createSegment('M', cx, cy - ry),
+                Path.createSegment('C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy),
+                Path.createSegment('C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry),
+                Path.createSegment('C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy),
+                Path.createSegment('C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry),
+                Path.createSegment('Z')
+            ]);
+            return true;
+        }
+        case types.Path: {
+            appendSegments(path, shape.clone().segments);
+            return true;
+        }
+        default: {
+            return false;
+        }
+    }
 }
 
 export const Path = function(arg) {
@@ -77,13 +121,11 @@ export const Path = function(arg) {
                     continue;
                 }
 
-                if (!obj || typeof obj.toPath !== 'function') {
+                // any other shape is a subpath (subpaths) of its own
+                if (!appendShape(this, obj)) {
                     throw new Error('Cannot construct a path segment from the provided object.');
                 }
 
-                // any other shape adds the subpaths of its own path
-                const { segments } = obj.toPath();
-                if (segments.length > 0) this.appendSegment(segments);
                 previousEnd = null;
             }
         }
@@ -102,7 +144,7 @@ export const Path = function(arg) {
     } else if (arg instanceof Polyline) { // create from a Polyline
         appendPolyline(this, arg, false);
 
-    } else { // unknown object
+    } else if (!appendShape(this, arg)) { // create from a Rect, an Ellipse or a Path; or an unknown object
         throw new Error('Cannot construct a path from the provided object.');
     }
 };
@@ -2314,58 +2356,4 @@ Path.isDataSupported = function(data) {
 
     if (typeof data !== 'string') return false;
     return this.regexSupportedData.test(data);
-};
-
-
-// Conversion of the shapes to a path.
-// It is defined here because a path is built on top of the other shapes
-// (they can not import it).
-
-Path.prototype.toPath = function() {
-
-    return this.clone();
-};
-
-Line.prototype.toPath = function() {
-
-    return new Path(this);
-};
-
-Curve.prototype.toPath = function() {
-
-    return new Path(this);
-};
-
-Polyline.prototype.toPath = function() {
-
-    const path = new Path();
-    appendPolyline(path, this, false);
-    return path;
-};
-
-Polygon.prototype.toPath = function() {
-
-    const path = new Path();
-    appendPolyline(path, this, true);
-    return path;
-};
-
-Rect.prototype.toPath = function() {
-
-    return new Polygon([this.topLeft(), this.topRight(), this.bottomRight(), this.bottomLeft()]).toPath();
-};
-
-Ellipse.prototype.toPath = function() {
-
-    const { x: cx, y: cy, a: rx, b: ry } = this;
-    const cdx = rx * KAPPA;
-    const cdy = ry * KAPPA;
-    return new Path([
-        Path.createSegment('M', cx, cy - ry),
-        Path.createSegment('C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy),
-        Path.createSegment('C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry),
-        Path.createSegment('C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy),
-        Path.createSegment('C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry),
-        Path.createSegment('Z')
-    ]);
 };

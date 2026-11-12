@@ -14,31 +14,26 @@ QUnit.module('path', function(hooks) {
         return svg;
     };
 
-    QUnit.module('toPath()', function() {
+    QUnit.module('constructor', function() {
 
-        QUnit.test('converts a shape to a path', function(assert) {
+        QUnit.test('creates a path from a single shape', function(assert) {
 
             const line = new g.Line(new g.Point(0, 0), new g.Point(10, 10));
-            assert.ok(line.toPath() instanceof g.Path);
-            assert.equal(line.toPath().serialize(), 'M 0 0 L 10 10');
+            assert.equal(new g.Path(line).serialize(), 'M 0 0 L 10 10');
 
             const curve = new g.Curve(new g.Point(0, 0), new g.Point(0, 10), new g.Point(10, 10), new g.Point(10, 0));
-            assert.equal(curve.toPath().serialize(), 'M 0 0 C 0 10 10 10 10 0');
+            assert.equal(new g.Path(curve).serialize(), 'M 0 0 C 0 10 10 10 10 0');
 
             const polyline = new g.Polyline([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]);
-            assert.equal(polyline.toPath().serialize(), 'M 0 0 L 10 0 L 10 10');
-            assert.equal(new g.Polyline().toPath().segments.length, 0);
-
-            const polygon = new g.Polygon([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]);
-            assert.equal(polygon.toPath().serialize(), 'M 0 0 L 10 0 L 10 10 Z');
-            assert.equal(new g.Polygon().toPath().segments.length, 0);
+            assert.equal(new g.Path(polyline).serialize(), 'M 0 0 L 10 0 L 10 10');
+            assert.equal(new g.Path(new g.Polyline()).segments.length, 0);
 
             const rect = new g.Rect(10, 20, 30, 40);
-            assert.equal(rect.toPath().serialize(), 'M 10 20 L 40 20 L 40 60 L 10 60 Z');
+            assert.equal(new g.Path(rect).serialize(), 'M 10 20 L 40 20 L 40 60 L 10 60 Z');
             assert.equal(rect.toString(), '10@20 40@60');
 
             const ellipse = new g.Ellipse(new g.Point(100, 50), 20, 10);
-            const ellipsePath = ellipse.toPath();
+            const ellipsePath = new g.Path(ellipse);
             assert.equal(ellipsePath.segments.length, 6);
             // the control points are `KAPPA` times the radius away
             assert.equal(g.KAPPA, 0.551784);
@@ -48,13 +43,12 @@ QUnit.module('path', function(hooks) {
             assert.equal(ellipsePath.bbox().round().toString(), '80@40 120@60');
 
             const path = new g.Path('M 0 0 L 10 0 Z');
-            const pathCopy = path.toPath();
+            const pathCopy = new g.Path(path);
             assert.notEqual(pathCopy, path);
+            assert.notEqual(pathCopy.segments[0], path.segments[0]);
             assert.equal(pathCopy.serialize(), 'M 0 0 L 10 0 Z');
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 Z');
         });
-    });
-
-    QUnit.module('constructor', function() {
 
         QUnit.test('creates a new Path object', function(assert) {
 
@@ -458,7 +452,8 @@ QUnit.module('path', function(hooks) {
             assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10 M 10 10 L 20 10 M 20 10 L 30 10 C 30 20 40 20 40 10 M 50 50 L 60 50 Z M 50 50 L 70 70');
             assert.equal(innerPath.serialize(), 'M 50 50 L 60 50 Z');
             assert.equal(innerPath.segments.length, 3);
-            assert.notEqual(path.segments[7], innerPath.segments[0]);
+            assert.notEqual(path.segments[8], innerPath.segments[0]);
+            assert.equal(path.segments[8].end.toString(), innerPath.segments[0].end.toString());
 
             // array with a path of several subpaths and with an empty path
             path = new g.Path([

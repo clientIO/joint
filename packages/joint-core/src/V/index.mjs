@@ -2036,12 +2036,12 @@ const V = (function() {
 
     V.convertCircleToPathData = function(circle) {
 
-        return V(circle).toGeometryShape().toPath().serialize();
+        return new g.Path(V(circle).toGeometryShape()).serialize();
     };
 
     V.convertEllipseToPathData = function(ellipse) {
 
-        return V(ellipse).toGeometryShape().toPath().serialize();
+        return new g.Path(V(ellipse).toGeometryShape()).serialize();
     };
 
     V.convertRectToPathData = function(rect) {
