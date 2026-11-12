@@ -1,4 +1,4 @@
-// Benchmark of the line intersections of the geometry library.
+// Benchmark of the line intersections and closest points of the geometry library.
 // Run with `yarn bench` in `packages/joint-core`.
 //
 // A single call takes tens of nanoseconds, which is below what can be timed
@@ -54,7 +54,10 @@ bench
     .add('rect.intersectionWithLineFromCenterToPoint(point, angle)', batch((i) => rect.intersectionWithLineFromCenterToPoint(points[i], 30)))
     .add('polygon.intersectionWithLine(line), 4 points', batch((i) => polygon.intersectionWithLine(linesToCenter[i])))
     .add('polyline.intersectionWithLine(line), 8 points', batch((i) => polyline.intersectionWithLine(linesToCenter[i])))
-    .add('ellipse.intersectionWithLine(line)', batch((i) => ellipse.intersectionWithLine(linesToCenter[i])));
+    .add('ellipse.intersectionWithLine(line)', batch((i) => ellipse.intersectionWithLine(linesToCenter[i])))
+    .add('line.closestPoint(point)', batch((i) => linesAcross[i].closestPoint(points[i])))
+    .add('polyline.closestPoint(point), 8 points', batch((i) => polyline.closestPoint(points[i])))
+    .add('polygon.closestPoint(point), 4 points', batch((i) => polygon.closestPoint(points[i])));
 
 await bench.run();
 
@@ -72,4 +75,4 @@ const lines = rows.map(([name, time, margin]) => {
     return `${name.padEnd(nameWidth)}  ${time.padStart(timeWidth)}  ${margin}`;
 });
 
-process.stdout.write(`\ng: line intersections (time per call)\n\n${lines.join('\n')}\n\n`);
+process.stdout.write(`\ng: line intersections and closest points (time per call)\n\n${lines.join('\n')}\n\n`);

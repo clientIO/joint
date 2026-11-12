@@ -74,7 +74,7 @@
     "test-coverage": "grunt test:coverage",
     "test-coverage-lcov": "COVERAGE_REPORTER=lcov yarn run test-coverage",
     "test-bundles": "grunt test:bundles",
-    "bench": "node bench/g-intersection.bench.mjs",
+    "bench": "node bench/g.bench.mjs",
     "lint": "eslint .",
     "lint-fix": "yarn run lint --fix"
   },

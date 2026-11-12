@@ -5,6 +5,12 @@ import { intersection } from './line.intersection.mjs';
 import { types } from './types.mjs';
 import { clonePoints, parsePoints, convexHull } from './points.mjs';
 
+const {
+    min,
+    max,
+    sqrt
+} = Math;
+
 
 export const Polyline = function(points) {
 
@@ -81,19 +87,41 @@ Polyline.prototype = {
         if (numPoints === 0) return 0; // if points array is empty
         if (numPoints === 1) return 0; // if there is only one point
 
-        var cpLength;
-        var minSqrDistance = Infinity;
-        var length = 0;
-        var n = numPoints - 1;
-        for (var i = 0; i < n; i++) {
+        const point = (p && p.type === types.Point) ? p : new Point(p);
+        const pointX = point.x;
+        const pointY = point.y;
 
-            var line = new Line(points[i], points[i + 1]);
-            var lineLength = line.length();
+        let cpLength;
+        let minSqrDistance = Infinity;
+        let length = 0;
+        const n = numPoints - 1;
+        for (let i = 0; i < n; i++) {
 
-            var cpNormalizedLength = line.closestPointNormalizedLength(p);
-            var cp = line.pointAt(cpNormalizedLength);
+            const { x: startX, y: startY } = points[i];
+            const { x: endX, y: endY } = points[i + 1];
+            const lineSqrLength = ((startX - endX) * (startX - endX)) + ((startY - endY) * (startY - endY));
+            const lineLength = sqrt(lineSqrLength);
 
-            var sqrDistance = cp.squaredDistance(p);
+            // the normalized length of the closest point on the segment
+            const product = ((endX - startX) * (pointX - startX)) + ((endY - startY) * (pointY - startY));
+            let cpNormalizedLength = min(1, max(0, product / lineSqrLength));
+            // `NaN` if the segment has zero length
+            if (cpNormalizedLength !== cpNormalizedLength) cpNormalizedLength = 0;
+
+            // the closest point on the segment
+            let cpX, cpY;
+            if (cpNormalizedLength <= 0) {
+                cpX = startX;
+                cpY = startY;
+            } else if (cpNormalizedLength >= 1) {
+                cpX = endX;
+                cpY = endY;
+            } else {
+                cpX = (1 - cpNormalizedLength) * startX + cpNormalizedLength * endX;
+                cpY = (1 - cpNormalizedLength) * startY + cpNormalizedLength * endY;
+            }
+
+            const sqrDistance = ((cpX - p.x) * (cpX - p.x)) + ((cpY - p.y) * (cpY - p.y));
             if (sqrDistance < minSqrDistance) {
                 minSqrDistance = sqrDistance;
                 cpLength = length + (cpNormalizedLength * lineLength);
@@ -306,11 +334,10 @@ Polyline.prototype = {
 
             var a = points[index];
             var b = points[index + 1];
-            var line = new Line(a, b);
             var d = a.distance(b);
 
             if (length <= (l + d)) {
-                return line.pointAtLength((fromStart ? 1 : -1) * (length - l));
+                return new Line(a, b).pointAtLength((fromStart ? 1 : -1) * (length - l));
             }
 
             l += d;

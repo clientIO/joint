@@ -71,8 +71,10 @@ Line.prototype = {
     // @return {number} the normalized length of the closest point on the line to point `p`
     closestPointNormalizedLength: function(p) {
 
-        var product = this.vector().dot((new Line(this.start, p)).vector());
-        var cpNormalizedLength = min(1, max(0, product / this.squaredLength()));
+        const { start, end } = this;
+        const point = (p && p.type === types.Point) ? p : new Point(p);
+        const product = ((end.x - start.x) * (point.x - start.x)) + ((end.y - start.y) * (point.y - start.y));
+        const cpNormalizedLength = min(1, max(0, product / squaredLength(start, end)));
 
         // cpNormalizedLength returns `NaN` if this line has zero length
         // we can work with that - if `NaN`, return 0
