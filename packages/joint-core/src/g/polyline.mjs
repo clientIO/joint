@@ -121,7 +121,7 @@ Polyline.prototype = {
                 cpY = (1 - cpNormalizedLength) * startY + cpNormalizedLength * endY;
             }
 
-            const sqrDistance = ((cpX - p.x) * (cpX - p.x)) + ((cpY - p.y) * (cpY - p.y));
+            const sqrDistance = ((cpX - pointX) * (cpX - pointX)) + ((cpY - pointY) * (cpY - pointY));
             if (sqrDistance < minSqrDistance) {
                 minSqrDistance = sqrDistance;
                 cpLength = length + (cpNormalizedLength * lineLength);

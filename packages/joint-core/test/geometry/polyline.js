@@ -281,6 +281,20 @@ QUnit.module('polyline', function() {
 
         QUnit.module('closestPointLength()', function() {
 
+            QUnit.test('accepts a point given as a plain object or a string', function(assert) {
+
+                const polyline = new g.Polyline(['0 0', '10 10', '20 0']);
+                const length = polyline.closestPointLength(new g.Point(3, 4));
+                assert.equal(length.toFixed(4), '4.9497');
+                assert.equal(polyline.closestPointLength({ x: 3, y: 4 }), length, 'plain object');
+                assert.equal(polyline.closestPointLength('3 4'), length, 'string');
+                assert.equal(polyline.closestPointLength('3@4'), length, 'string with @');
+                assert.equal(polyline.closestPointNormalizedLength('3 4'), 0.175, 'normalized length');
+                assert.equal(polyline.closestPoint('3 4').toString(), '3.5@3.5', 'closest point');
+                assert.equal(polyline.closestPointTangent('3 4').toString(), '3.5@3.5 13.5@13.5', 'tangent');
+                assert.equal(new g.Polygon(['0 0', '10 10', '20 0']).closestPoint('12 -3').toString(), '12@0', 'polygon');
+            });
+
             QUnit.test('sanity', function(assert) {
 
                 var polyline;
