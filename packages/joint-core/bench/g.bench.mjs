@@ -1,4 +1,4 @@
-// Benchmark of the line intersections and closest points of the geometry library.
+// Benchmark of the geometry library: line intersections, closest points, curves and paths.
 // Run with `yarn bench` in `packages/joint-core`.
 //
 // A single call takes tens of nanoseconds, which is below what can be timed
@@ -21,6 +21,11 @@ const polyline = new g.Polyline([
     { x: 10, y: 20 }, { x: 110, y: 60 }, { x: 210, y: 20 }, { x: 310, y: 60 },
     { x: 310, y: 220 }, { x: 210, y: 180 }, { x: 110, y: 220 }, { x: 10, y: 180 }
 ]);
+
+const curve = new g.Curve({ x: 10, y: 20 }, { x: 100, y: 200 }, { x: 200, y: -100 }, { x: 310, y: 220 });
+// an ellipse in the rectangle, made of four curves
+const path = new g.Path('M 160 20 C 242.77 20 310 64.82 310 120 C 310 175.18 242.77 220 160 220 C 77.23 220 10 175.18 10 120 C 10 64.82 77.23 20 160 20 Z');
+const pathOpt = { segmentSubdivisions: path.getSegmentSubdivisions() };
 
 const points = [];
 const linesToCenter = [];
@@ -57,7 +62,12 @@ bench
     .add('ellipse.intersectionWithLine(line)', batch((i) => ellipse.intersectionWithLine(linesToCenter[i])))
     .add('line.closestPoint(point)', batch((i) => linesAcross[i].closestPoint(points[i])))
     .add('polyline.closestPoint(point), 8 points', batch((i) => polyline.closestPoint(points[i])))
-    .add('polygon.closestPoint(point), 4 points', batch((i) => polygon.closestPoint(points[i])));
+    .add('polygon.closestPoint(point), 4 points', batch((i) => polygon.closestPoint(points[i])))
+    .add('curve.getSubdivisions()', batch(() => curve.getSubdivisions()))
+    .add('curve.length()', batch(() => curve.length()))
+    .add('path.intersectionWithLine(line), 4 curves', batch((i) => path.intersectionWithLine(linesToCenter[i])))
+    .add('path.intersectionWithLine(line), 4 curves, subdivisions passed', batch((i) => path.intersectionWithLine(linesToCenter[i], pathOpt)))
+    .add('path.containsPoint(point), 4 curves, subdivisions passed', batch((i) => path.containsPoint(points[i], pathOpt)));
 
 await bench.run();
 
@@ -75,4 +85,4 @@ const lines = rows.map(([name, time, margin]) => {
     return `${name.padEnd(nameWidth)}  ${time.padStart(timeWidth)}  ${margin}`;
 });
 
-process.stdout.write(`\ng: line intersections and closest points (time per call)\n\n${lines.join('\n')}\n\n`);
+process.stdout.write(`\ng: time per call\n\n${lines.join('\n')}\n\n`);
