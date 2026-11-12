@@ -1,5 +1,5 @@
 ---
-"@joint/core": patch
+"@joint/core": minor
 ---
 
-Geometry - fix `closestPoint()` of `Polyline` and `Polygon` for a point given as a string
+Geometry - accept a point given as a string in `closestPoint()` of `Polyline` and `Polygon`
