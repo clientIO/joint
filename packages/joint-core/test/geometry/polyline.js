@@ -1137,6 +1137,25 @@ QUnit.module('polyline', function() {
             });
         });
 
+        QUnit.module('transform(matrix)', function() {
+
+            QUnit.test('applies the matrix to every point and returns the polyline', function(assert) {
+
+                const polyline = new g.Polyline(['0 0', '10 0', '10 10']);
+                assert.equal(polyline.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), polyline);
+                assert.equal(polyline.serialize(), '10,-20 30,-15 20,15');
+                assert.equal(new g.Polyline().transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }).points.length, 0, 'no points');
+            });
+
+            QUnit.test('polygon', function(assert) {
+
+                const polygon = new g.Polygon(['0 0', '10 0', '10 10']);
+                assert.equal(polygon.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), polygon);
+                assert.ok(polygon instanceof g.Polygon);
+                assert.equal(polygon.serialize(), '10,-20 30,-15 20,15');
+            });
+        });
+
         QUnit.module('translate()', function() {
 
             QUnit.test('sanity', function(assert) {

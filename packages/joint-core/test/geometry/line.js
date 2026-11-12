@@ -867,6 +867,16 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('transform(matrix)', function() {
+
+            QUnit.test('applies the matrix to both ends and returns the line', function(assert) {
+
+                const line = new g.Line('1 2', '3 4');
+                assert.equal(line.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), line);
+                assert.equal(line.toString(), '10@-13.5 12@-6.5');
+            });
+        });
+
         QUnit.module('translate()', function() {
 
             QUnit.test('sanity', function(assert) {

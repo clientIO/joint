@@ -349,6 +349,13 @@ Line.prototype = {
         return this.start.serialize() + ' ' + this.end.serialize();
     },
 
+    transform: function(matrix) {
+
+        this.start.transform(matrix);
+        this.end.transform(matrix);
+        return this;
+    },
+
     translate: function(tx, ty) {
 
         this.start.translate(tx, ty);

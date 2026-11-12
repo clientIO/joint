@@ -4405,6 +4405,34 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('transform(matrix)', function() {
+
+            QUnit.test('applies the matrix to every segment and returns the path', function(assert) {
+
+                const path = new g.Path('M 0 0 L 10 0 C 10 10 20 10 20 0 Z M 5 5 L 6 6');
+                assert.equal(path.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), path);
+                assert.equal(path.serialize(), 'M 10 -20 L 30 -15 C 20 15 40 20 50 -10 Z M 15 -2.5 L 16 1');
+                assert.equal(new g.Path().transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }).segments.length, 0, 'no segments');
+            });
+
+            QUnit.test('gives the same points as transforming the points of the path', function(assert) {
+
+                const matrix = { a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 };
+                const path = new g.Path('M 0 0 L 10 0 C 10 10 20 10 20 0 Z');
+                const expected = path.toPoints({ precision: 1 })[0].map((point) => point.clone().transform(matrix).round(6).toString());
+                const points = path.clone().transform(matrix).toPoints({ precision: 1 })[0].map((point) => point.round(6).toString());
+                assert.deepEqual(points, expected);
+            });
+
+            QUnit.test('a segment of a path', function(assert) {
+
+                const path = new g.Path('M 0 0 L 10 0');
+                const segment = path.getSegment(1);
+                assert.equal(segment.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), segment);
+                assert.equal(path.serialize(), 'M 0 0 L 30 -15', 'only the end of the segment is changed');
+            });
+        });
+
         QUnit.module('translate()', function() {
 
             QUnit.test('sanity', function(assert) {

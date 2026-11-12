@@ -117,6 +117,21 @@ QUnit.module('rect', function() {
                 assert.ok(r1.round().equals(new g.Rect(10, 20, 30, 40)));
                 assert.ok(r2.round().equals(new g.Rect(5, 25, 40, 30)));
             });
+
+            QUnit.test('returns the bounding box of the rectangle transformed by a matrix', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                const bbox = rect.bbox({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 });
+                assert.ok(bbox instanceof g.Rect);
+                assert.notEqual(bbox, rect);
+                assert.equal(rect.toString(), '10@20 40@60', 'the rectangle is not changed');
+                assert.equal(bbox.toString(), '-30@45 70@180');
+                assert.equal(rect.bbox({ a: 1, b: 0, c: 0, d: 1, e: 5, f: 6 }).toString(), '15@26 45@66', 'translation');
+                assert.equal(rect.bbox({ a: 0, b: 1, c: -1, d: 0, e: 0, f: 0 }).toString(), '-60@10 -20@40', 'rotation by 90 degrees');
+                // the bounding box of the four transformed corners
+                const corners = [rect.topLeft(), rect.topRight(), rect.bottomRight(), rect.bottomLeft()];
+                assert.equal(bbox.toString(), new g.Polygon(corners).transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }).bbox().toString());
+            });
         });
 
         QUnit.module('rotateAroundCenter()', function() {

@@ -959,6 +959,15 @@ Curve.prototype = {
         return this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
     },
 
+    transform: function(matrix) {
+
+        this.start.transform(matrix);
+        this.controlPoint1.transform(matrix);
+        this.controlPoint2.transform(matrix);
+        this.end.transform(matrix);
+        return this;
+    },
+
     translate: function(tx, ty) {
 
         this.start.translate(tx, ty);

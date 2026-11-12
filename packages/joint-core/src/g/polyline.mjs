@@ -458,6 +458,19 @@ Polyline.prototype = {
         return this.points + '';
     },
 
+    transform: function(matrix) {
+
+        // the fields of the matrix are read once (it can be a matrix of the DOM, where a read is slow)
+        const { a, b, c, d, e, f } = matrix;
+        const plainMatrix = { a, b, c, d, e, f };
+        const points = this.points;
+        for (let i = 0, n = points.length; i < n; i++) {
+            points[i].transform(plainMatrix);
+        }
+
+        return this;
+    },
+
     translate: function(tx, ty) {
 
         var points = this.points;

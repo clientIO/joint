@@ -1354,6 +1354,16 @@ QUnit.module('curve', function() {
             });
         });
 
+        QUnit.module('transform(matrix)', function() {
+
+            QUnit.test('applies the matrix to the ends and the control points and returns the curve', function(assert) {
+
+                const curve = new g.Curve('0 0', '10 0', '10 10', '0 10');
+                assert.equal(curve.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), curve);
+                assert.equal(curve.toString(), '10@-20 30@-15 20@15 0@10');
+            });
+        });
+
         QUnit.module('translate()', function() {
 
             QUnit.test('sanity', function(assert) {

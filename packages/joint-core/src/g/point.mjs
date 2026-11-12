@@ -331,6 +331,16 @@ Point.prototype = {
         return 180 * rad / PI;
     },
 
+    // Applies the transformation matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`) to the point.
+    transform: function(matrix) {
+
+        const { a, b, c, d, e, f } = matrix;
+        const { x, y } = this;
+        this.x = a * x + c * y + e;
+        this.y = b * x + d * y + f;
+        return this;
+    },
+
     toJSON: function() {
 
         return { x: this.x, y: this.y };

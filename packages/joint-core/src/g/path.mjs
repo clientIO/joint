@@ -1232,6 +1232,19 @@ Path.prototype = {
         return pathData.trim();
     },
 
+    transform: function(matrix) {
+
+        // the fields of the matrix are read once (it can be a matrix of the DOM, where a read is slow)
+        const { a, b, c, d, e, f } = matrix;
+        const plainMatrix = { a, b, c, d, e, f };
+        const segments = this.segments;
+        for (let i = 0, n = segments.length; i < n; i++) {
+            segments[i].transform(plainMatrix);
+        }
+
+        return this;
+    },
+
     translate: function(tx, ty) {
 
         var segments = this.segments;
@@ -1528,6 +1541,11 @@ var segmentPrototype = {
     },
 
     // virtual
+    transform: function() {
+
+        throw new Error('Declaration missing for virtual function.');
+    },
+
     translate: function() {
 
         throw new Error('Declaration missing for virtual function.');
@@ -1702,6 +1720,12 @@ var linetoPrototype = {
         return this.type + ' ' + this.start + ' ' + this.end;
     },
 
+    transform: function(matrix) {
+
+        this.end.transform(matrix);
+        return this;
+    },
+
     translate: function(tx, ty) {
 
         this.end.translate(tx, ty);
@@ -1869,6 +1893,14 @@ var curvetoPrototype = {
     toString: function() {
 
         return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+    },
+
+    transform: function(matrix) {
+
+        this.controlPoint1.transform(matrix);
+        this.controlPoint2.transform(matrix);
+        this.end.transform(matrix);
+        return this;
     },
 
     translate: function(tx, ty) {
@@ -2101,6 +2133,12 @@ var movetoPrototype = {
         return this.type + ' ' + this.end;
     },
 
+    transform: function(matrix) {
+
+        this.end.transform(matrix);
+        return this;
+    },
+
     translate: function(tx, ty) {
 
         this.end.translate(tx, ty);
@@ -2209,6 +2247,11 @@ var closepathPrototype = {
     toString: function() {
 
         return this.type + ' ' + this.start + ' ' + this.end;
+    },
+
+    transform: function() {
+
+        return this;
     },
 
     translate: function() {
