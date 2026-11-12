@@ -4,6 +4,7 @@ import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
 import { intersection } from './line.intersection.mjs';
+import { ensurePoint } from './point.ensure.mjs';
 import { types } from './types.mjs';
 
 const {
@@ -72,7 +73,7 @@ Line.prototype = {
     closestPointNormalizedLength: function(p) {
 
         const { start, end } = this;
-        const point = (p && p.type === types.Point) ? p : new Point(p);
+        const point = ensurePoint(p);
         const product = ((end.x - start.x) * (point.x - start.x)) + ((end.y - start.y) * (point.y - start.y));
         const cpNormalizedLength = min(1, max(0, product / squaredLength(start, end)));
 

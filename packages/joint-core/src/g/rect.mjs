@@ -1,6 +1,7 @@
 import { toRad } from './geometry.helpers.mjs';
 import { Line } from './line.mjs';
 import { intersection } from './line.intersection.mjs';
+import { ensurePoint } from './point.ensure.mjs';
 import { Point } from './point.mjs';
 import { Ellipse } from './ellipse.mjs';
 import { types } from './types.mjs';
@@ -274,7 +275,7 @@ Rect.prototype = {
     intersectionWithLineFromCenterToPoint: function(p, angle) {
 
         // the point is rotated (changed) only when there is an angle
-        p = (!angle && p && p.type === types.Point) ? p : new Point(p);
+        p = angle ? new Point(p) : ensurePoint(p);
         const x1 = this.x;
         const y1 = this.y;
         const x2 = x1 + this.width;

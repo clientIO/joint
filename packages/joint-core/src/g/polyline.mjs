@@ -2,6 +2,7 @@ import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { Line } from './line.mjs';
 import { intersection } from './line.intersection.mjs';
+import { ensurePoint } from './point.ensure.mjs';
 import { types } from './types.mjs';
 import { clonePoints, parsePoints, convexHull } from './points.mjs';
 
@@ -87,7 +88,7 @@ Polyline.prototype = {
         if (numPoints === 0) return 0; // if points array is empty
         if (numPoints === 1) return 0; // if there is only one point
 
-        const point = (p && p.type === types.Point) ? p : new Point(p);
+        const point = ensurePoint(p);
         const pointX = point.x;
         const pointY = point.y;
 
