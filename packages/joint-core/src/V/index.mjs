@@ -2034,41 +2034,20 @@ const V = (function() {
     V.convertCircleToPathData = function(circle) {
 
         circle = V(circle);
-        var cx = parseFloat(circle.attr('cx')) || 0;
-        var cy = parseFloat(circle.attr('cy')) || 0;
-        var r = parseFloat(circle.attr('r'));
-        var cd = r * V.KAPPA; // Control distance.
-
-        var d = [
-            'M', cx, cy - r,    // Move to the first point.
-            'C', cx + cd, cy - r, cx + r, cy - cd, cx + r, cy, // I. Quadrant.
-            'C', cx + r, cy + cd, cx + cd, cy + r, cx, cy + r, // II. Quadrant.
-            'C', cx - cd, cy + r, cx - r, cy + cd, cx - r, cy, // III. Quadrant.
-            'C', cx - r, cy - cd, cx - cd, cy - r, cx, cy - r, // IV. Quadrant.
-            'Z'
-        ].join(' ');
-        return d;
+        const cx = parseFloat(circle.attr('cx')) || 0;
+        const cy = parseFloat(circle.attr('cy')) || 0;
+        const r = parseFloat(circle.attr('r'));
+        return new g.Ellipse({ x: cx, y: cy }, r, r).toPath().serialize();
     };
 
     V.convertEllipseToPathData = function(ellipse) {
 
         ellipse = V(ellipse);
-        var cx = parseFloat(ellipse.attr('cx')) || 0;
-        var cy = parseFloat(ellipse.attr('cy')) || 0;
-        var rx = parseFloat(ellipse.attr('rx'));
-        var ry = parseFloat(ellipse.attr('ry')) || rx;
-        var cdx = rx * V.KAPPA; // Control distance x.
-        var cdy = ry * V.KAPPA; // Control distance y.
-
-        var d = [
-            'M', cx, cy - ry,    // Move to the first point.
-            'C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy, // I. Quadrant.
-            'C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry, // II. Quadrant.
-            'C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy, // III. Quadrant.
-            'C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry, // IV. Quadrant.
-            'Z'
-        ].join(' ');
-        return d;
+        const cx = parseFloat(ellipse.attr('cx')) || 0;
+        const cy = parseFloat(ellipse.attr('cy')) || 0;
+        const rx = parseFloat(ellipse.attr('rx'));
+        const ry = parseFloat(ellipse.attr('ry')) || rx;
+        return new g.Ellipse({ x: cx, y: cy }, rx, ry).toPath().serialize();
     };
 
     V.convertRectToPathData = function(rect) {
