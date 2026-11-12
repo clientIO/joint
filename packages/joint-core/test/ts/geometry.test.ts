@@ -16,3 +16,19 @@ const curve = new g.Curve('25 505', '37.5 490', '62.5 520', '75 505');
 const curvePoints: g.Point[] = curve.toPoints({ precision: 2 });
 const curvePath = new g.Path(curve);
 V('path', { d: curvePath.serialize() });
+
+// Polyline, Polygon: the closest point methods accept a point given as an object or a string
+const polyline = new g.Polyline(['0 0', '10 10', '20 0']);
+const polygon = new g.Polygon(['0 0', '10 10', '20 0']);
+const closestPoints: Array<g.Point | null> = [
+    polyline.closestPoint(new g.Point(3, 4)),
+    polyline.closestPoint({ x: 3, y: 4 }),
+    polyline.closestPoint('3 4'),
+    polygon.closestPoint('3 4')
+];
+const closestPointLengths: number[] = [
+    polyline.closestPointLength('3 4'),
+    polyline.closestPointNormalizedLength('3 4'),
+    polygon.closestPointLength('3 4')
+];
+const closestPointTangent: g.Line | null = polyline.closestPointTangent('3 4');
