@@ -1,6 +1,7 @@
 import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { Line } from './line.mjs';
+import { intersection } from './line.intersection.mjs';
 import { types } from './types.mjs';
 import { clonePoints, parsePoints, convexHull } from './points.mjs';
 
@@ -223,15 +224,14 @@ Polyline.prototype = {
     },
 
     intersectionWithLine: function(l) {
-        var line = new Line(l);
-        var intersections = [];
-        var points = this.lengthPoints();
-        var l2 = new Line();
-        for (var i = 0, n = points.length - 1; i < n; i++) {
-            l2.start = points[i];
-            l2.end = points[i + 1];
-            var int = line.intersectionWithLine(l2);
-            if (int) intersections.push(int[0]);
+        const { start, end } = l;
+        const intersections = [];
+        const points = this.lengthPoints();
+        for (let i = 0, n = points.length - 1; i < n; i++) {
+            const p1 = points[i];
+            const p2 = points[i + 1];
+            const point = intersection(start.x, start.y, end.x, end.y, p1.x, p1.y, p2.x, p2.y);
+            if (point) intersections.push(point);
         }
         return (intersections.length > 0) ? intersections : null;
     },

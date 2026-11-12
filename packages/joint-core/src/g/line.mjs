@@ -3,6 +3,7 @@ import { Rect } from './rect.mjs';
 import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
+import { intersection } from './line.intersection.mjs';
 import { types } from './types.mjs';
 
 const {
@@ -157,33 +158,9 @@ Line.prototype = {
 
     intersectionWithLine: function(line) {
 
-        var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);
-        var pt2Dir = new Point(line.end.x - line.start.x, line.end.y - line.start.y);
-        var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
-        var deltaPt = new Point(line.start.x - this.start.x, line.start.y - this.start.y);
-        var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
-        var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
-
-        if (det === 0 || alpha * det < 0 || beta * det < 0) {
-            // No intersection found.
-            return null;
-        }
-
-        if (det > 0) {
-            if (alpha > det || beta > det) {
-                return null;
-            }
-
-        } else {
-            if (alpha < det || beta < det) {
-                return null;
-            }
-        }
-
-        return [new Point(
-            this.start.x + (alpha * pt1Dir.x / det),
-            this.start.y + (alpha * pt1Dir.y / det)
-        )];
+        const { start, end } = this;
+        const point = intersection(start.x, start.y, end.x, end.y, line.start.x, line.start.y, line.end.x, line.end.y);
+        return point ? [point] : null;
     },
 
     // @return {boolean} true if `line` lies on the same infinite line as this line
