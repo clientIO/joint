@@ -1230,15 +1230,15 @@ const V = (function() {
             var minDistance = Infinity;
             var closestSamples = [];
 
-            var i, sample, centerDistance, refDistance, distance;
-            // @perf the matrix is found once, not for every sample
-            const targetMatrix = toPlainMatrix(this.getTransformToElement(target));
+            var i, sample, gp, centerDistance, refDistance, distance;
 
             for (i = 0; i < samples.length; i++) {
 
                 sample = samples[i];
                 // Convert the sample point in the local coordinate system to the global coordinate system.
-                sample = transformFloat32Point(sample.x, sample.y, targetMatrix);
+                gp = V.createSVGPoint(sample.x, sample.y);
+                gp = gp.matrixTransform(this.getTransformToElement(target));
+                sample = new g.Point(gp);
                 centerDistance = sample.distance(center);
                 // Penalize a higher distance to the reference point by 10%.
                 // This gives better results. This is due to
