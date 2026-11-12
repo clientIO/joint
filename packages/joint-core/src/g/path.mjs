@@ -7,7 +7,7 @@ import { Line } from './line.mjs';
 import { Curve } from './curve.mjs';
 import { types } from './types.mjs';
 import { extend } from './extend.mjs';
-import { toPlainMatrix } from './matrix.plain.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.plain.mjs';
 export const Path = function(arg) {
 
     if (!(this instanceof Path)) {
@@ -1721,7 +1721,7 @@ var linetoPrototype = {
 
     transform: function(matrix) {
 
-        this.end.transform(matrix);
+        transformPoint(this.end, toPlainMatrix(matrix));
         return this;
     },
 
@@ -1896,9 +1896,10 @@ var curvetoPrototype = {
 
     transform: function(matrix) {
 
-        this.controlPoint1.transform(matrix);
-        this.controlPoint2.transform(matrix);
-        this.end.transform(matrix);
+        const plainMatrix = toPlainMatrix(matrix);
+        transformPoint(this.controlPoint1, plainMatrix);
+        transformPoint(this.controlPoint2, plainMatrix);
+        transformPoint(this.end, plainMatrix);
         return this;
     },
 
@@ -2134,7 +2135,7 @@ var movetoPrototype = {
 
     transform: function(matrix) {
 
-        this.end.transform(matrix);
+        transformPoint(this.end, toPlainMatrix(matrix));
         return this;
     },
 

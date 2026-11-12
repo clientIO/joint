@@ -3,6 +3,7 @@ import { Line } from './line.mjs';
 import { Point } from './point.mjs';
 import { Ellipse } from './ellipse.mjs';
 import { types } from './types.mjs';
+import { toPlainMatrix } from './matrix.plain.mjs';
 
 const {
     abs,
@@ -108,7 +109,7 @@ Rect.prototype = {
         }
 
         // a matrix: the bounding box of the four transformed corners
-        const { a = 1, b = 0, c = 0, d = 1, e = 0, f = 0 } = transformation;
+        const { a, b, c, d, e, f } = toPlainMatrix(transformation);
         const x1 = this.x;
         const y1 = this.y;
         const x2 = x1 + this.width;

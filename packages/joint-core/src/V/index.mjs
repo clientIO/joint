@@ -5,7 +5,7 @@
 // The only Vectorizer dependency is the Geometry library.
 
 import * as g from '../g/index.mjs';
-import { toPlainMatrix } from '../g/matrix.plain.mjs';
+import { toPlainMatrix, transformPoint } from '../g/matrix.plain.mjs';
 import * as ns from './namespace.mjs';
 import { isSVGSupported, internalSVGDocument, SVG_VERSION, createSVGDocument, createSVGElement } from './create.mjs';
 import {
@@ -1766,7 +1766,8 @@ const V = (function() {
     // TODO (v5): drop the rounding and use the geometry library directly (see the functions below).
 
     function transformFloat32Point(x, y, plainMatrix) {
-        const point = new g.Point(fround(x), fround(y)).transform(plainMatrix);
+        const point = new g.Point(fround(x), fround(y));
+        transformPoint(point, plainMatrix);
         point.x = fround(point.x);
         point.y = fround(point.y);
         return point;

@@ -2,6 +2,7 @@ import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { types } from './types.mjs';
 import { toRad } from './geometry.helpers.mjs';
+import { toPlainMatrix } from './matrix.plain.mjs';
 
 const {
     sqrt,
@@ -60,7 +61,7 @@ Ellipse.prototype = {
         }
 
         // a matrix: the transformed ellipse is an ellipse too, possibly a rotated one
-        const { a = 1, b = 0, c = 0, d = 1, e = 0, f = 0 } = transformation;
+        const { a, b, c, d, e, f } = toPlainMatrix(transformation);
         const halfWidth = sqrt((a * rx) * (a * rx) + (c * ry) * (c * ry));
         const halfHeight = sqrt((b * rx) * (b * rx) + (d * ry) * (d * ry));
         return new Rect(a * x + c * y + e - halfWidth, b * x + d * y + f - halfHeight, 2 * halfWidth, 2 * halfHeight);
