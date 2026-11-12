@@ -94,10 +94,11 @@ Rect.prototype = {
     // Find my bounding box when I'm rotated with the center of rotation in the center of me.
     // @return r {rectangle} representing a bounding box
     // Returns the bounding box of the rectangle rotated around its center by `angle`,
-    // or of the rectangle transformed by a matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`).
+    // or of the rectangle transformed by a matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`;
+    // the fields missing in it are the ones of the identity matrix).
     bbox: function(angle) {
         if (Object(angle) === angle) {
-            const { a, b, c, d, e, f } = angle;
+            const { a = 1, b = 0, c = 0, d = 1, e = 0, f = 0 } = angle;
             const x1 = this.x;
             const y1 = this.y;
             const x2 = x1 + this.width;

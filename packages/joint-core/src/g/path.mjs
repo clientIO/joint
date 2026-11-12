@@ -7,6 +7,7 @@ import { Line } from './line.mjs';
 import { Curve } from './curve.mjs';
 import { types } from './types.mjs';
 import { extend } from './extend.mjs';
+import { toPlainMatrix } from './matrix.plain.mjs';
 export const Path = function(arg) {
 
     if (!(this instanceof Path)) {
@@ -1234,9 +1235,7 @@ Path.prototype = {
 
     transform: function(matrix) {
 
-        // the fields of the matrix are read once (it can be a matrix of the DOM, where a read is slow)
-        const { a, b, c, d, e, f } = matrix;
-        const plainMatrix = { a, b, c, d, e, f };
+        const plainMatrix = toPlainMatrix(matrix);
         const segments = this.segments;
         for (let i = 0, n = segments.length; i < n; i++) {
             segments[i].transform(plainMatrix);

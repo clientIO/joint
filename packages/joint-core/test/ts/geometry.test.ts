@@ -33,6 +33,10 @@ const rectBBoxes: g.Rect[] = [
     new g.Ellipse(new g.Point(0, 0), 10, 5).bbox(),
     new g.Ellipse(new g.Point(0, 0), 10, 5).bbox(matrix)
 ];
+// the fields of the matrix are optional
+new g.Point(10, 20).transform({ e: 10, f: 20 });
+new g.Rect(0, 0, 10, 20).bbox({ a: 2, d: 3 });
+V.transformPoint({ x: 10, y: 20 }, { e: 10 });
 // a matrix of the DOM is a matrix too
 declare const svgMatrix: SVGMatrix;
 new g.Point(10, 20).transform(svgMatrix);

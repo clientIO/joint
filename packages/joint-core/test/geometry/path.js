@@ -4413,6 +4413,7 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), path);
                 assert.equal(path.serialize(), 'M 10 -20 L 30 -15 C 20 15 40 20 50 -10 Z M 15 -2.5 L 16 1');
                 assert.equal(new g.Path().transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }).segments.length, 0, 'no segments');
+                assert.equal(new g.Path('M 1 2 L 3 4 C 5 6 7 8 9 10 Z').transform({ e: 10, f: -5 }).serialize(), 'M 11 -3 L 13 -1 C 15 1 17 3 19 5 Z', 'missing fields');
             });
 
             QUnit.test('gives the same points as transforming the points of the path', function(assert) {

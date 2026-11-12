@@ -746,6 +746,10 @@ QUnit.module('vectorizer', function(hooks) {
         assert.ok(V.transformPoint({ x: 10, y: 20 }, plainMatrix) instanceof g.Point);
         assert.equal(V.transformRect({ x: 0, y: 0, width: 10, height: 20 }, plainMatrix).toString(), '80@50 100@60');
         assert.ok(V.transformRect({ x: 0, y: 0, width: 10, height: 20 }, plainMatrix) instanceof g.Rect);
+        // the missing fields are the ones of the identity matrix
+        assert.equal(V.transformPoint({ x: 10, y: 20 }, { e: 5, f: 6 }).toString(), '15@26');
+        assert.equal(V.transformRect({ x: 0, y: 0, width: 10, height: 20 }, { a: 2, d: 3 }).toString(), '0@0 20@60');
+        assert.equal(V.transformLine(new g.Line('1 2', '3 4'), {}).toString(), '1@2 3@4');
     });
 
     QUnit.test('findParentByClass', function(assert) {

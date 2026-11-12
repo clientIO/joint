@@ -148,6 +148,8 @@ QUnit.module('ellipse', function() {
                 assert.equal(ellipse.toString(), '10@20 30 40', 'the ellipse is not changed');
                 assert.equal(ellipse.bbox({ a: 2, b: 0, c: 0, d: 0.5, e: 0, f: 0 }).toString(), '-40@-10 80@30', 'scale');
                 assert.equal(ellipse.bbox({ a: 0, b: 1, c: -1, d: 0, e: 0, f: 0 }).toString(), '-60@-20 20@40', 'rotation by 90 degrees');
+                assert.equal(ellipse.bbox({ e: 5, f: 6 }).toString(), '-15@-14 45@66', 'missing fields');
+                assert.equal(ellipse.bbox({}).toString(), '-20@-20 40@60', 'no fields');
                 // a circle rotated by 45 degrees is the same circle
                 const { SQRT1_2 } = Math;
                 assert.equal(new g.Ellipse(new g.Point(0, 0), 10, 10).bbox({ a: SQRT1_2, b: SQRT1_2, c: -SQRT1_2, d: SQRT1_2, e: 0, f: 0 }).round(6).toString(), '-10@-10 10@10');

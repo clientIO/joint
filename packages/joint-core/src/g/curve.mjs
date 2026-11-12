@@ -3,6 +3,7 @@ import { Rect } from './rect.mjs';
 import { Line } from './line.mjs';
 import { Polyline } from './polyline.mjs';
 import { types } from './types.mjs';
+import { toPlainMatrix } from './matrix.plain.mjs';
 
 const {
     abs,
@@ -961,10 +962,11 @@ Curve.prototype = {
 
     transform: function(matrix) {
 
-        this.start.transform(matrix);
-        this.controlPoint1.transform(matrix);
-        this.controlPoint2.transform(matrix);
-        this.end.transform(matrix);
+        const plainMatrix = toPlainMatrix(matrix);
+        this.start.transform(plainMatrix);
+        this.controlPoint1.transform(plainMatrix);
+        this.controlPoint2.transform(plainMatrix);
+        this.end.transform(plainMatrix);
         return this;
     },
 

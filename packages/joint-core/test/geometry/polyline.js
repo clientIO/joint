@@ -1145,6 +1145,7 @@ QUnit.module('polyline', function() {
                 assert.equal(polyline.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), polyline);
                 assert.equal(polyline.serialize(), '10,-20 30,-15 20,15');
                 assert.equal(new g.Polyline().transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }).points.length, 0, 'no points');
+                assert.equal(new g.Polyline(['1 2', '3 4']).transform({ e: 10, f: -5 }).serialize(), '11,-3 13,-1', 'missing fields');
             });
 
             QUnit.test('polygon', function(assert) {

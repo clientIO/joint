@@ -273,6 +273,17 @@ QUnit.module('point', function() {
                 }
                 assert.equal(new g.Point(10, 20).transform(new Matrix()).toString(), '80@60');
             });
+
+            QUnit.test('takes the missing fields of the matrix from the identity matrix', function(assert) {
+
+                assert.equal(new g.Point(10, 20).transform({ e: 5, f: 6 }).toString(), '15@26', 'translation');
+                assert.equal(new g.Point(10, 20).transform({ a: 2, d: 3 }).toString(), '20@60', 'scale');
+                assert.equal(new g.Point(10, 20).transform({ b: 1, c: -1 }).toString(), '-10@30', 'only b and c');
+                assert.equal(new g.Point(10, 20).transform({}).toString(), '10@20', 'no fields');
+                assert.throws(function() {
+                    new g.Point(10, 20).transform();
+                }, 'no matrix');
+            });
         });
 
         QUnit.module('translate(tx, ty)', function() {

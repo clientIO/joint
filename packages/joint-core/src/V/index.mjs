@@ -5,6 +5,7 @@
 // The only Vectorizer dependency is the Geometry library.
 
 import * as g from '../g/index.mjs';
+import { toPlainMatrix } from '../g/matrix.plain.mjs';
 import * as ns from './namespace.mjs';
 import { isSVGSupported, internalSVGDocument, SVG_VERSION, createSVGDocument, createSVGElement } from './create.mjs';
 import {
@@ -1762,14 +1763,7 @@ const V = (function() {
     // not with `SVGPoint.matrixTransform()`, which is 20 to 30 times slower.
     // An `SVGPoint` keeps its coordinates as 32-bit floats: the coordinates passed in and the
     // resulting ones are rounded the same way here (`fround`), so the results are the same as they were.
-    // TODO (v5): drop the rounding and use the geometry library directly
-    // (`new g.Point(p).transform(matrix)`, `new g.Rect(r).bbox(matrix)`).
-
-    // The fields of a matrix of the DOM are slow to read; they are read once.
-    function toPlainMatrix(matrix) {
-        const { a, b, c, d, e, f } = matrix;
-        return { a, b, c, d, e, f };
-    }
+    // TODO (v5): drop the rounding and use the geometry library directly (see the functions below).
 
     function transformFloat32Point(x, y, plainMatrix) {
         const point = new g.Point(fround(x), fround(y)).transform(plainMatrix);
@@ -1780,6 +1774,7 @@ const V = (function() {
 
     V.transformRect = function(r, matrix) {
 
+        // TODO (v5): return new g.Rect(r).bbox(matrix);
         const plainMatrix = toPlainMatrix(matrix);
         const x1 = r.x;
         const y1 = r.y;
@@ -1801,11 +1796,13 @@ const V = (function() {
 
     V.transformPoint = function(p, matrix) {
 
+        // TODO (v5): return new g.Point(p).transform(matrix);
         return transformFloat32Point(p.x, p.y, toPlainMatrix(matrix));
     };
 
     V.transformLine = function(l, matrix) {
 
+        // TODO (v5): return new g.Line(l).transform(matrix);
         const plainMatrix = toPlainMatrix(matrix);
         return new g.Line(
             transformFloat32Point(l.start.x, l.start.y, plainMatrix),
@@ -1817,6 +1814,7 @@ const V = (function() {
 
         var inPoints = (p instanceof g.Polyline) ? p.points : p;
         if (!V.isArray(inPoints)) inPoints = [];
+        // TODO (v5): return new g.Polyline(inPoints).transform(matrix);
         const plainMatrix = toPlainMatrix(matrix);
         var outPoints = [];
         for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = transformFloat32Point(inPoints[i].x, inPoints[i].y, plainMatrix);

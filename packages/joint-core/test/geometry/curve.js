@@ -1361,6 +1361,7 @@ QUnit.module('curve', function() {
                 const curve = new g.Curve('0 0', '10 0', '10 10', '0 10');
                 assert.equal(curve.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), curve);
                 assert.equal(curve.toString(), '10@-20 30@-15 20@15 0@10');
+                assert.equal(new g.Curve('0 0', '1 0', '1 1', '0 1').transform({ a: 2, d: 3 }).toString(), '0@0 2@0 2@3 0@3', 'missing fields');
             });
         });
 

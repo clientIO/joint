@@ -332,9 +332,10 @@ Point.prototype = {
     },
 
     // Applies the transformation matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`) to the point.
+    // The fields missing in the matrix are the ones of the identity matrix.
     transform: function(matrix) {
 
-        const { a, b, c, d, e, f } = matrix;
+        const { a = 1, b = 0, c = 0, d = 1, e = 0, f = 0 } = matrix;
         const { x, y } = this;
         this.x = a * x + c * y + e;
         this.y = b * x + d * y + f;

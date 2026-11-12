@@ -36,11 +36,12 @@ Ellipse.prototype = {
     type: types.Ellipse,
 
     // Returns the bounding box of the ellipse,
-    // or of the ellipse transformed by a matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`).
+    // or of the ellipse transformed by a matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`;
+    // the fields missing in it are the ones of the identity matrix).
     bbox: function(matrix) {
 
         if (Object(matrix) === matrix) {
-            const { a, b, c, d, e, f } = matrix;
+            const { a = 1, b = 0, c = 0, d = 1, e = 0, f = 0 } = matrix;
             const { x, y, a: rx, b: ry } = this;
             // the transformed ellipse is an ellipse too, possibly a rotated one
             const halfWidth = sqrt((a * rx) * (a * rx) + (c * ry) * (c * ry));

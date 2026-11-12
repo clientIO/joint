@@ -874,6 +874,7 @@ QUnit.module('line', function() {
                 const line = new g.Line('1 2', '3 4');
                 assert.equal(line.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), line);
                 assert.equal(line.toString(), '10@-13.5 12@-6.5');
+                assert.equal(new g.Line('1 2', '3 4').transform({ e: 10, f: -5 }).toString(), '11@-3 13@-1', 'missing fields');
             });
         });
 
