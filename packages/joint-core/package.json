@@ -74,6 +74,7 @@
     "test-coverage": "grunt test:coverage",
     "test-coverage-lcov": "COVERAGE_REPORTER=lcov yarn run test-coverage",
     "test-bundles": "grunt test:bundles",
+    "bench": "node bench/g-intersection.bench.mjs",
     "lint": "eslint .",
     "lint-fix": "yarn run lint --fix"
   },
@@ -126,6 +127,7 @@
     "rollup-plugin-node-resolve": "5.2.0",
     "sinon": "7.2.2",
     "time-grunt": "2.0.0",
+    "tinybench": "6.0.0",
     "typescript": "5.8.2"
   },
   "volta": {

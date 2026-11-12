@@ -5093,6 +5093,7 @@ __metadata:
     rollup-plugin-node-resolve: "npm:5.2.0"
     sinon: "npm:7.2.2"
     time-grunt: "npm:2.0.0"
+    tinybench: "npm:6.0.0"
     typescript: "npm:5.8.2"
   languageName: unknown
   linkType: soft
@@ -23496,17 +23497,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tinybench@npm:6.0.0, tinybench@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "tinybench@npm:6.0.0"
+  checksum: 10/045428b2eef70f6c1c9d450b172b4977f5ce2db2b1d7b5d6c47638e7d699b92544a1223826dc1aec063c9049d36c6fa7b2b402caa61e57839144539d22731072
+  languageName: node
+  linkType: hard
+
 "tinybench@npm:^2.9.0":
   version: 2.9.0
   resolution: "tinybench@npm:2.9.0"
   checksum: 10/cfa1e1418e91289219501703c4693c70708c91ffb7f040fd318d24aef419fb5a43e0c0160df9471499191968b2451d8da7f8087b08c3133c251c40d24aced06c
-  languageName: node
-  linkType: hard
-
-"tinybench@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "tinybench@npm:6.0.0"
-  checksum: 10/045428b2eef70f6c1c9d450b172b4977f5ce2db2b1d7b5d6c47638e7d699b92544a1223826dc1aec063c9049d36c6fa7b2b402caa61e57839144539d22731072
   languageName: node
   linkType: hard
 
