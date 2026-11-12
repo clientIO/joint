@@ -34,7 +34,10 @@ for (let i = 0; i < BATCH_SIZE; i++) {
     points.push(point);
     linesToCenter.push(new g.Line(point, center));
     linesThrough.push(new g.Line(point, point.clone().reflection(center)));
-    linesAcross.push(new g.Line(point, new g.Point(random() * 600 - 150, random() * 400 - 100)));
+    linesAcross.push(new g.Line(
+        new g.Point(random() * 600 - 150, random() * 400 - 100),
+        new g.Point(random() * 600 - 150, random() * 400 - 100)
+    ));
 }
 
 function batch(fn) {
