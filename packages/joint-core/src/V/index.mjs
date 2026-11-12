@@ -1151,9 +1151,12 @@ const V = (function() {
             case 'ELLIPSE':
                 cx = parseFloat(this.attr('cx')) || 0;
                 cy = parseFloat(this.attr('cy')) || 0;
-                rx = parseFloat(this.attr('rx')) || 0;
-                ry = parseFloat(this.attr('ry')) || 0;
-                return new g.Ellipse({ x: cx, y: cy }, rx, ry);
+                rx = parseFloat(this.attr('rx'));
+                ry = parseFloat(this.attr('ry'));
+                // A missing radius is the same as the other one (`auto` in SVG 2).
+                if (Number.isNaN(rx)) rx = ry;
+                if (Number.isNaN(ry)) ry = rx;
+                return new g.Ellipse({ x: cx, y: cy }, rx || 0, ry || 0);
 
             case 'POLYLINE':
                 points = V.getPointsFromSvgNode(this);
@@ -2033,21 +2036,12 @@ const V = (function() {
 
     V.convertCircleToPathData = function(circle) {
 
-        circle = V(circle);
-        const cx = parseFloat(circle.attr('cx')) || 0;
-        const cy = parseFloat(circle.attr('cy')) || 0;
-        const r = parseFloat(circle.attr('r'));
-        return new g.Ellipse({ x: cx, y: cy }, r, r).toPath().serialize();
+        return V(circle).toGeometryShape().toPath().serialize();
     };
 
     V.convertEllipseToPathData = function(ellipse) {
 
-        ellipse = V(ellipse);
-        const cx = parseFloat(ellipse.attr('cx')) || 0;
-        const cy = parseFloat(ellipse.attr('cy')) || 0;
-        const rx = parseFloat(ellipse.attr('rx'));
-        const ry = parseFloat(ellipse.attr('ry')) || rx;
-        return new g.Ellipse({ x: cx, y: cy }, rx, ry).toPath().serialize();
+        return V(ellipse).toGeometryShape().toPath().serialize();
     };
 
     V.convertRectToPathData = function(rect) {

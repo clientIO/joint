@@ -1195,6 +1195,24 @@ QUnit.module('vectorizer', function(hooks) {
         });
     });
 
+    QUnit.module('toGeometryShape()', function() {
+
+        QUnit.test('<ellipse>', function(assert) {
+            const ellipse = V('<ellipse/>', { cx: 100, cy: 50, rx: 30, ry: 20 }).toGeometryShape();
+            assert.ok(ellipse instanceof g.Ellipse);
+            assert.equal(ellipse.toString(), '100@50 30 20');
+        });
+
+        QUnit.test('<ellipse> with a single radius', function(assert) {
+            assert.equal(V('<ellipse/>', { cx: 100, cy: 50, rx: 30 }).toGeometryShape().toString(), '100@50 30 30');
+            assert.equal(V('<ellipse/>', { cx: 100, cy: 50, ry: 20 }).toGeometryShape().toString(), '100@50 20 20');
+        });
+
+        QUnit.test('<ellipse> without a radius', function(assert) {
+            assert.equal(V('<ellipse/>', { cx: 100, cy: 50 }).toGeometryShape().toString(), '100@50 0 0');
+        });
+    });
+
     QUnit.module('convertToPathData()', function(hooks) {
 
         // round all numbers in a path data string
@@ -1246,6 +1264,18 @@ QUnit.module('vectorizer', function(hooks) {
         QUnit.test('<ellipse>', function(assert) {
             var ellipse = V('<ellipse/>', { cx: 100, cy: 50, rx: 100, ry: 50 });
             assert.equal(roundPathData(ellipse.convertToPathData()), 'M 100 0 C 155 0 200 22 200 50 C 200 77 155 100 100 100 C 44 100 0 77 0 50 C 0 22 44 0 100 0 Z');
+        });
+
+        QUnit.test('<ellipse> with a single radius', function(assert) {
+            const circlePathData = 'M 100 0 C 127 0 150 22 150 50 C 150 77 127 100 100 100 C 72 100 50 77 50 50 C 50 22 72 0 100 0 Z';
+            assert.equal(roundPathData(V('<ellipse/>', { cx: 100, cy: 50, rx: 50 }).convertToPathData()), circlePathData);
+            assert.equal(roundPathData(V('<ellipse/>', { cx: 100, cy: 50, ry: 50 }).convertToPathData()), circlePathData);
+        });
+
+        QUnit.test('<circle>, <ellipse> without a radius', function(assert) {
+            const emptyPathData = 'M 100 50 C 100 50 100 50 100 50 C 100 50 100 50 100 50 C 100 50 100 50 100 50 C 100 50 100 50 100 50 Z';
+            assert.equal(V('<circle/>', { cx: 100, cy: 50 }).convertToPathData(), emptyPathData);
+            assert.equal(V('<ellipse/>', { cx: 100, cy: 50 }).convertToPathData(), emptyPathData);
         });
 
         QUnit.test('<polygon>', function(assert) {
