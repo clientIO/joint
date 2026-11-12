@@ -2497,6 +2497,37 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('intersectionWithLine()', function() {
+
+            const toStrings = (points) => points.map((point) => point.toString());
+
+            QUnit.test('returns null when the line does not meet the path', function(assert) {
+
+                const line = new g.Line('-10 30', '30 30');
+                assert.equal(new g.Path('M 0 0 L 20 0 L 10 20 Z').intersectionWithLine(line), null, 'lines');
+                assert.equal(new g.Path('M 0 0 C 0 20 20 20 20 0').intersectionWithLine(line), null, 'curve');
+                assert.equal(new g.Path().intersectionWithLine(line), null, 'no segments');
+            });
+
+            QUnit.test('returns the points in the order of the segments', function(assert) {
+
+                const line = new g.Line('-10 10', '30 10');
+                assert.deepEqual(toStrings(new g.Path('M 0 0 L 20 0 L 10 20 Z').intersectionWithLine(line)), ['15@10', '5@10'], 'closed');
+                assert.deepEqual(toStrings(new g.Path('M 0 0 L 20 0 L 10 20').intersectionWithLine(line)), ['15@10'], 'open');
+                assert.deepEqual(toStrings(new g.Path('M 0 0 L 0 20 M 10 0 L 10 20').intersectionWithLine(line)), ['0@10', '10@10'], 'two subpaths');
+                assert.deepEqual(toStrings(line.intersect(new g.Path('M 0 0 L 20 0 L 10 20 Z'))), ['15@10', '5@10'], 'line.intersect(path)');
+            });
+
+            QUnit.test('intersects the curves of the path', function(assert) {
+
+                const path = new g.Path('M 0 0 C 0 20 20 20 20 0');
+                const line = new g.Line('-10 10', '30 10');
+                const points = path.intersectionWithLine(line);
+                assert.deepEqual(toStrings(points.map((point) => point.round(0))), ['2@10', '18@10'], 'default precision');
+                assert.equal(path.intersectionWithLine(line, { precision: 0 }), null, 'precision 0: the curve is a line between its end points');
+            });
+        });
+
         QUnit.module('isDifferentiable()', function() {
 
             QUnit.test('sanity', function(assert) {
