@@ -20,8 +20,19 @@ const mixedPath = new g.Path([
     curve,
     new g.Polyline([new g.Point(0, 0), new g.Point(10, 10)]),
     new g.Polygon([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]),
+    new g.Rect(0, 0, 10, 10),
+    new g.Ellipse(new g.Point(0, 0), 10, 5),
     path
 ]);
+const shapePaths: g.Path[] = [
+    new g.Line().toPath(),
+    curve.toPath(),
+    new g.Polyline().toPath(),
+    new g.Polygon().toPath(),
+    new g.Rect(0, 0, 10, 10).toPath(),
+    new g.Ellipse(new g.Point(0, 0), 10, 5).toPath(),
+    path.toPath()
+];
 V('path', { d: mixedPath.serialize() });
 V('path', { d: curvePath.serialize() });
 

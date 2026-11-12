@@ -194,6 +194,8 @@ export class Curve {
 
     clone(): Curve;
 
+    toPath(): Path;
+
     closestPoint(p: PlainPoint, opt?: SubdivisionsOpt): Point;
 
     closestPointLength(p: PlainPoint, opt?: SubdivisionsOpt): number;
@@ -280,6 +282,8 @@ export class Ellipse {
 
     clone(): Ellipse;
 
+    toPath(): Path;
+
     containsPoint(p: PlainPoint): boolean;
 
     equals(ellipse: Ellipse): boolean;
@@ -318,6 +322,8 @@ export class Line {
     bearing(): CardinalDirection;
 
     clone(): Line;
+
+    toPath(): Path;
 
     parallel(distance: number): Line;
 
@@ -396,7 +402,7 @@ export class Path {
     constructor(pathData: string);
     constructor(segments: PathSegmentUnit | PathSegmentUnit[]);
     constructor(objects: PathObjectUnit | PathObjectUnit[]);
-    constructor(objects: Array<Line | Curve | Polyline | Polygon | Path>);
+    constructor(shapes: Array<Line | Curve | Polyline | Polygon | Rect | Ellipse | Path>);
     constructor(polyline: Polyline);
 
     appendSegment(segments: PathSegmentUnit | PathSegmentUnit[]): void;
@@ -404,6 +410,8 @@ export class Path {
     bbox(): Rect | null;
 
     clone(): Path;
+
+    toPath(): Path;
 
     closestPoint(p: PlainPoint, opt?: SegmentSubdivisionsOpt): Point | null;
 
@@ -637,6 +645,8 @@ export abstract class PolygonalChain {
 
     clone(): this;
 
+    toPath(): Path;
+
     convexHull(): this;
 }
 
@@ -684,6 +694,8 @@ export class Rect implements PlainRect {
     center(): Point;
 
     clone(): Rect;
+
+    toPath(): Path;
 
     containsPoint(p: PointInit, opt?: StrictOpt): boolean;
 
