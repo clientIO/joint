@@ -35,6 +35,7 @@ const V = (function() {
     var max = math.max;
     var cos = math.cos;
     var sin = math.sin;
+    const fround = math.fround;
 
     var V = function(el, attrs, children) {
 
@@ -1228,15 +1229,15 @@ const V = (function() {
             var minDistance = Infinity;
             var closestSamples = [];
 
-            var i, sample, gp, centerDistance, refDistance, distance;
+            var i, sample, centerDistance, refDistance, distance;
+            // @perf the matrix is found once, not for every sample
+            const targetMatrix = toPlainMatrix(this.getTransformToElement(target));
 
             for (i = 0; i < samples.length; i++) {
 
                 sample = samples[i];
                 // Convert the sample point in the local coordinate system to the global coordinate system.
-                gp = V.createSVGPoint(sample.x, sample.y);
-                gp = gp.matrixTransform(this.getTransformToElement(target));
-                sample = new g.Point(gp);
+                sample = transformFloat32Point(sample.x, sample.y, targetMatrix);
                 centerDistance = sample.distance(center);
                 // Penalize a higher distance to the reference point by 10%.
                 // This gives better results. This is due to
@@ -1757,25 +1758,38 @@ const V = (function() {
         return p;
     };
 
+    // @perf The points are transformed with plain math (see `g.Point.prototype.transform()`),
+    // not with `SVGPoint.matrixTransform()`, which is 20 to 30 times slower.
+    // An `SVGPoint` keeps its coordinates as 32-bit floats: the coordinates passed in and the
+    // resulting ones are rounded the same way here (`fround`), so the results are the same as they were.
+    // TODO (v5): drop the rounding and use the geometry library directly
+    // (`new g.Point(p).transform(matrix)`, `new g.Rect(r).bbox(matrix)`).
+
+    // The fields of a matrix of the DOM are slow to read; they are read once.
+    function toPlainMatrix(matrix) {
+        const { a, b, c, d, e, f } = matrix;
+        return { a, b, c, d, e, f };
+    }
+
+    function transformFloat32Point(x, y, plainMatrix) {
+        const point = new g.Point(fround(x), fround(y)).transform(plainMatrix);
+        point.x = fround(point.x);
+        point.y = fround(point.y);
+        return point;
+    }
+
     V.transformRect = function(r, matrix) {
 
-        var p = internalSVGDocument.createSVGPoint();
+        const plainMatrix = toPlainMatrix(matrix);
+        const x1 = r.x;
+        const y1 = r.y;
+        const x2 = r.x + r.width;
+        const y2 = r.y + r.height;
 
-        p.x = r.x;
-        p.y = r.y;
-        var corner1 = p.matrixTransform(matrix);
-
-        p.x = r.x + r.width;
-        p.y = r.y;
-        var corner2 = p.matrixTransform(matrix);
-
-        p.x = r.x + r.width;
-        p.y = r.y + r.height;
-        var corner3 = p.matrixTransform(matrix);
-
-        p.x = r.x;
-        p.y = r.y + r.height;
-        var corner4 = p.matrixTransform(matrix);
+        const corner1 = transformFloat32Point(x1, y1, plainMatrix);
+        const corner2 = transformFloat32Point(x2, y1, plainMatrix);
+        const corner3 = transformFloat32Point(x2, y2, plainMatrix);
+        const corner4 = transformFloat32Point(x1, y2, plainMatrix);
 
         var minX = min(corner1.x, corner2.x, corner3.x, corner4.x);
         var maxX = max(corner1.x, corner2.x, corner3.x, corner4.x);
@@ -1787,14 +1801,15 @@ const V = (function() {
 
     V.transformPoint = function(p, matrix) {
 
-        return new g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
+        return transformFloat32Point(p.x, p.y, toPlainMatrix(matrix));
     };
 
     V.transformLine = function(l, matrix) {
 
+        const plainMatrix = toPlainMatrix(matrix);
         return new g.Line(
-            V.transformPoint(l.start, matrix),
-            V.transformPoint(l.end, matrix)
+            transformFloat32Point(l.start.x, l.start.y, plainMatrix),
+            transformFloat32Point(l.end.x, l.end.y, plainMatrix)
         );
     };
 
@@ -1802,8 +1817,9 @@ const V = (function() {
 
         var inPoints = (p instanceof g.Polyline) ? p.points : p;
         if (!V.isArray(inPoints)) inPoints = [];
+        const plainMatrix = toPlainMatrix(matrix);
         var outPoints = [];
-        for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = V.transformPoint(inPoints[i], matrix);
+        for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = transformFloat32Point(inPoints[i].x, inPoints[i].y, plainMatrix);
         return new g.Polyline(outPoints);
     };
 

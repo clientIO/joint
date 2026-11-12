@@ -286,13 +286,13 @@ interface VStatic {
 
     createSVGPoint(x: number, y: number): SVGPoint;
 
-    transformRect(r: g.PlainRect, matrix: SVGMatrix): g.Rect;
+    transformRect(r: g.PlainRect, matrix: SVGMatrix | g.PlainMatrix): g.Rect;
 
-    transformPoint(p: g.PlainPoint, matrix: SVGMatrix): g.Point;
+    transformPoint(p: g.PlainPoint, matrix: SVGMatrix | g.PlainMatrix): g.Point;
 
-    transformLine(p: g.Line, matrix: SVGMatrix): g.Line;
+    transformLine(p: g.Line, matrix: SVGMatrix | g.PlainMatrix): g.Line;
 
-    transformPolyline(p: g.Polyline | g.PlainPoint[], matrix: SVGMatrix): g.Polyline;
+    transformPolyline(p: g.Polyline | g.PlainPoint[], matrix: SVGMatrix | g.PlainMatrix): g.Polyline;
 
     styleToObject(styleString: string): { [key: string]: string };
 
