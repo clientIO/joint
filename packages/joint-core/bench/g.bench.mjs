@@ -6,15 +6,12 @@
 // and the result is divided by the size of the batch.
 import { Bench } from 'tinybench';
 import * as g from '../src/g/index.mjs';
+import { createSeededRandom } from '../src/util/util.mjs';
 
 const BATCH_SIZE = 1000;
 
-// A deterministic generator, so that every run uses the same inputs.
-let seed = 7;
-function random() {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 4294967296;
-}
+// A seeded generator, so that every run uses the same inputs.
+const random = createSeededRandom(7);
 
 const rect = new g.Rect(10, 20, 300, 200);
 const center = rect.center();
