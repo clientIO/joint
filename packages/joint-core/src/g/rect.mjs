@@ -3,7 +3,7 @@ import { Line } from './line.mjs';
 import { Point } from './point.mjs';
 import { Ellipse } from './ellipse.mjs';
 import { types } from './types.mjs';
-import { toPlainMatrix } from './matrix.plain.mjs';
+import { toPlainMatrix } from './matrix.helpers.mjs';
 
 const {
     abs,

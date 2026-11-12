@@ -2,7 +2,7 @@ import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { types } from './types.mjs';
 import { toRad } from './geometry.helpers.mjs';
-import { toPlainMatrix } from './matrix.plain.mjs';
+import { toPlainMatrix } from './matrix.helpers.mjs';
 
 const {
     sqrt,

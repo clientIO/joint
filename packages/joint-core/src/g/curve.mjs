@@ -3,7 +3,7 @@ import { Rect } from './rect.mjs';
 import { Line } from './line.mjs';
 import { Polyline } from './polyline.mjs';
 import { types } from './types.mjs';
-import { toPlainMatrix, transformPoint } from './matrix.plain.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 
 const {
     abs,

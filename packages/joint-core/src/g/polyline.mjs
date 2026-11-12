@@ -2,7 +2,7 @@ import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { Line } from './line.mjs';
 import { types } from './types.mjs';
-import { toPlainMatrix, transformPoint } from './matrix.plain.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 import { clonePoints, parsePoints, convexHull } from './points.mjs';
 
 

@@ -4,7 +4,7 @@ import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
 import { types } from './types.mjs';
-import { toPlainMatrix, transformPoint } from './matrix.plain.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 
 const {
     max,

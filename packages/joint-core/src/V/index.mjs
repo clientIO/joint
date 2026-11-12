@@ -5,7 +5,6 @@
 // The only Vectorizer dependency is the Geometry library.
 
 import * as g from '../g/index.mjs';
-import { toPlainMatrix, transformPoint } from '../g/matrix.plain.mjs';
 import * as ns from './namespace.mjs';
 import { isSVGSupported, internalSVGDocument, SVG_VERSION, createSVGDocument, createSVGElement } from './create.mjs';
 import {
@@ -15,6 +14,7 @@ import {
     transformNode, replaceTransformNode,
 } from './transform.mjs';
 import { getCommonAncestor } from './traverse.mjs';
+import { transformPoint, transformLine, transformPolyline, transformRect } from './geometry.mjs';
 
 const V = (function() {
 
@@ -33,10 +33,8 @@ const V = (function() {
     var atan2 = math.atan2;
     var sqrt = math.sqrt;
     var min = math.min;
-    var max = math.max;
     var cos = math.cos;
     var sin = math.sin;
-    const fround = math.fround;
 
     var V = function(el, attrs, children) {
 
@@ -1759,68 +1757,13 @@ const V = (function() {
         return p;
     };
 
-    // @perf The points are transformed with plain math (see `g.Point.prototype.transform()`),
-    // not with `SVGPoint.matrixTransform()`, which is 20 to 30 times slower.
-    // An `SVGPoint` keeps its coordinates as 32-bit floats: the coordinates passed in and the
-    // resulting ones are rounded the same way here (`fround`), so the results are the same as they were.
-    // TODO (v5): drop the rounding and use the geometry library directly (see the functions below).
+    V.transformRect = transformRect;
 
-    function transformFloat32Point(x, y, plainMatrix) {
-        const point = new g.Point(fround(x), fround(y));
-        transformPoint(point, plainMatrix);
-        point.x = fround(point.x);
-        point.y = fround(point.y);
-        return point;
-    }
+    V.transformPoint = transformPoint;
 
-    V.transformRect = function(r, matrix) {
+    V.transformLine = transformLine;
 
-        // TODO (v5): return new g.Rect(r).bbox(matrix);
-        const plainMatrix = toPlainMatrix(matrix);
-        const x1 = r.x;
-        const y1 = r.y;
-        const x2 = r.x + r.width;
-        const y2 = r.y + r.height;
-
-        const corner1 = transformFloat32Point(x1, y1, plainMatrix);
-        const corner2 = transformFloat32Point(x2, y1, plainMatrix);
-        const corner3 = transformFloat32Point(x2, y2, plainMatrix);
-        const corner4 = transformFloat32Point(x1, y2, plainMatrix);
-
-        var minX = min(corner1.x, corner2.x, corner3.x, corner4.x);
-        var maxX = max(corner1.x, corner2.x, corner3.x, corner4.x);
-        var minY = min(corner1.y, corner2.y, corner3.y, corner4.y);
-        var maxY = max(corner1.y, corner2.y, corner3.y, corner4.y);
-
-        return new g.Rect(minX, minY, maxX - minX, maxY - minY);
-    };
-
-    V.transformPoint = function(p, matrix) {
-
-        // TODO (v5): return new g.Point(p).transform(matrix);
-        return transformFloat32Point(p.x, p.y, toPlainMatrix(matrix));
-    };
-
-    V.transformLine = function(l, matrix) {
-
-        // TODO (v5): return new g.Line(l).transform(matrix);
-        const plainMatrix = toPlainMatrix(matrix);
-        return new g.Line(
-            transformFloat32Point(l.start.x, l.start.y, plainMatrix),
-            transformFloat32Point(l.end.x, l.end.y, plainMatrix)
-        );
-    };
-
-    V.transformPolyline = function(p, matrix) {
-
-        var inPoints = (p instanceof g.Polyline) ? p.points : p;
-        if (!V.isArray(inPoints)) inPoints = [];
-        // TODO (v5): return new g.Polyline(inPoints).transform(matrix);
-        const plainMatrix = toPlainMatrix(matrix);
-        var outPoints = [];
-        for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = transformFloat32Point(inPoints[i].x, inPoints[i].y, plainMatrix);
-        return new g.Polyline(outPoints);
-    };
+    V.transformPolyline = transformPolyline;
 
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
     // an object (`{ fill: 'blue', stroke: 'red' }`).

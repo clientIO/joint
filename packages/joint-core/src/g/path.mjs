@@ -7,7 +7,7 @@ import { Line } from './line.mjs';
 import { Curve } from './curve.mjs';
 import { types } from './types.mjs';
 import { extend } from './extend.mjs';
-import { toPlainMatrix, transformPoint } from './matrix.plain.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 export const Path = function(arg) {
 
     if (!(this instanceof Path)) {
