@@ -15,6 +15,26 @@ const {
 // see `isLine()`
 const LINE_TOLERANCE = 1e-9;
 
+// The point in the middle of two coordinates (the same as `Point.prototype.lerp()` with `t = 0.5`).
+function lerp(a, b) {
+    return (1 - 0.5) * a + 0.5 * b;
+}
+
+// Creates the curves from their coordinates (8 numbers per curve: start, control points, end).
+// The constructor is not used: it would copy each of the four points once more.
+function createCurves(coords) {
+    const curves = [];
+    for (let i = 0, n = coords.length; i < n; i += 8) {
+        const curve = Object.create(Curve.prototype);
+        curve.start = new Point(coords[i], coords[i + 1]);
+        curve.controlPoint1 = new Point(coords[i + 2], coords[i + 3]);
+        curve.controlPoint2 = new Point(coords[i + 4], coords[i + 5]);
+        curve.end = new Point(coords[i + 6], coords[i + 7]);
+        curves.push(curve);
+    }
+    return curves;
+}
+
 export const Curve = function(p1, p2, p3, p4) {
 
     if (!(this instanceof Curve)) {
@@ -606,41 +626,70 @@ Curve.prototype = {
         // recursively divide curve at `t = 0.5`
         // until we reach `minIterations`
         // and until the difference between observed length at subsequent iterations is lower than `precision`
-        var iteration = 0;
+        // - the subdivisions are kept as numbers (8 coordinates per curve: start, control points, end)
+        // - the curves are created only for the last iteration
+        let coords = new Float64Array([start.x, start.y, control1.x, control1.y, control2.x, control2.y, end.x, end.y]);
+        let iteration = 0;
         while (true) {
             iteration += 1;
 
-            // divide all subdivisions
-            var newSubdivisions = [];
-            var numSubdivisions = subdivisions.length;
-            for (var i = 0; i < numSubdivisions; i++) {
+            // divide all subdivisions, measure new length
+            const numCoords = coords.length;
+            const newCoords = new Float64Array(2 * numCoords);
+            let length = 0;
+            for (let i = 0, j = 0; i < numCoords; i += 8, j += 16) {
 
-                var currentSubdivision = subdivisions[i];
-                var divided = currentSubdivision.divide(0.5); // dividing at t = 0.5 (not at middle length!)
-                newSubdivisions.push(divided[0], divided[1]);
-            }
+                // dividing at t = 0.5 (not at middle length!)
+                const startX = coords[i];
+                const startY = coords[i + 1];
+                const endX = coords[i + 6];
+                const endY = coords[i + 7];
+                const midpoint1X = lerp(startX, coords[i + 2]);
+                const midpoint1Y = lerp(startY, coords[i + 3]);
+                const midpoint2X = lerp(coords[i + 2], coords[i + 4]);
+                const midpoint2Y = lerp(coords[i + 3], coords[i + 5]);
+                const midpoint3X = lerp(coords[i + 4], endX);
+                const midpoint3Y = lerp(coords[i + 5], endY);
+                const subControl1X = lerp(midpoint1X, midpoint2X);
+                const subControl1Y = lerp(midpoint1Y, midpoint2Y);
+                const subControl2X = lerp(midpoint2X, midpoint3X);
+                const subControl2Y = lerp(midpoint2Y, midpoint3Y);
+                const dividerX = lerp(subControl1X, subControl2X);
+                const dividerY = lerp(subControl1Y, subControl2Y);
 
-            // measure new length
-            var length = 0;
-            var numNewSubdivisions = newSubdivisions.length;
-            for (var j = 0; j < numNewSubdivisions; j++) {
+                newCoords[j] = startX;
+                newCoords[j + 1] = startY;
+                newCoords[j + 2] = midpoint1X;
+                newCoords[j + 3] = midpoint1Y;
+                newCoords[j + 4] = subControl1X;
+                newCoords[j + 5] = subControl1Y;
+                newCoords[j + 6] = dividerX;
+                newCoords[j + 7] = dividerY;
+                newCoords[j + 8] = dividerX;
+                newCoords[j + 9] = dividerY;
+                newCoords[j + 10] = subControl2X;
+                newCoords[j + 11] = subControl2Y;
+                newCoords[j + 12] = midpoint3X;
+                newCoords[j + 13] = midpoint3Y;
+                newCoords[j + 14] = endX;
+                newCoords[j + 15] = endY;
 
-                var currentNewSubdivision = newSubdivisions[j];
-                length += currentNewSubdivision.endpointDistance();
+                length += sqrt(((startX - dividerX) * (startX - dividerX)) + ((startY - dividerY) * (startY - dividerY)));
+                length += sqrt(((dividerX - endX) * (dividerX - endX)) + ((dividerY - endY) * (dividerY - endY)));
             }
 
             // check if we have reached minimum number of iterations
             if (iteration >= minIterations) {
 
                 // check if we have reached required observed precision
-                var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
+                const observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
                 if (observedPrecisionRatio < precisionRatio) {
-                    return newSubdivisions;
+                    return createCurves(newCoords);
                 }
             }
 
             // otherwise, set up for next iteration
-            subdivisions = newSubdivisions;
+            coords = newCoords;
             previousLength = length;
         }
     },
