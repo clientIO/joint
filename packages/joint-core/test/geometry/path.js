@@ -40,6 +40,10 @@ QUnit.module('path', function(hooks) {
             const ellipse = new g.Ellipse(new g.Point(100, 50), 20, 10);
             const ellipsePath = ellipse.toPath();
             assert.equal(ellipsePath.segments.length, 6);
+            // the control points are `KAPPA` times the radius away
+            assert.equal(g.KAPPA, 0.551784);
+            assert.equal(ellipsePath.getSegment(1).controlPoint1.x, 100 + 20 * g.KAPPA);
+            assert.equal(ellipsePath.getSegment(1).controlPoint2.y, 50 - 10 * g.KAPPA);
             assert.equal(ellipsePath.round(2).serialize(), 'M 100 40 C 111.04 40 120 44.48 120 50 C 120 55.52 111.04 60 100 60 C 88.96 60 80 55.52 80 50 C 80 44.48 88.96 40 100 40 Z');
             assert.equal(ellipsePath.bbox().round().toString(), '80@40 120@60');
 

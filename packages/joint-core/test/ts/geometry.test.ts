@@ -36,6 +36,9 @@ const shapePaths: g.Path[] = [
 V('path', { d: mixedPath.serialize() });
 V('path', { d: curvePath.serialize() });
 
+// KAPPA
+const kappa: number = g.KAPPA;
+
 // Polyline, Polygon: the closest point methods accept a point given as an object or a string
 const polyline = new g.Polyline(['0 0', '10 10', '20 0']);
 const polygon = new g.Polygon(['0 0', '10 10', '20 0']);

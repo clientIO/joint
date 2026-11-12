@@ -2032,7 +2032,7 @@ const V = (function() {
         return points;
     };
 
-    V.KAPPA = 0.551784;
+    V.KAPPA = g.KAPPA;
 
     V.convertCircleToPathData = function(circle) {
 

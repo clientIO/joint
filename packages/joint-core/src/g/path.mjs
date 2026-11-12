@@ -11,6 +11,7 @@ import { types } from './types.mjs';
 import { extend } from './extend.mjs';
 import { intersection } from './line.intersection.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
+import { KAPPA } from './geometry.helpers.mjs';
 
 function appendPolyline(path, polyline, isClosed) {
     const { points } = polyline;
@@ -2319,8 +2320,6 @@ Path.isDataSupported = function(data) {
 // Conversion of the shapes to a path.
 // It is defined here because a path is built on top of the other shapes
 // (they can not import it).
-
-const KAPPA = 0.551784;
 
 Path.prototype.toPath = function() {
 

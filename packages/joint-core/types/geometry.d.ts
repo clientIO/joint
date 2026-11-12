@@ -161,6 +161,8 @@ export type PathObjectUnit = Line | Line[] | Curve | Curve[];
 
 export type SegmentType = 'L' | 'C' | 'M' | 'Z' | 'z';
 
+export const KAPPA: number;
+
 export function normalizeAngle(angle: number): number;
 
 export function snapToGrid(val: number, gridSize: number): number;
