@@ -274,7 +274,7 @@ export class Ellipse {
     constructor(center: PointInit, a: number, b: number);
     constructor(ellipse: Ellipse);
 
-    bbox(): Rect;
+    bbox(angle?: number): Rect;
     bbox(matrix: Partial<PlainMatrix>): Rect;
 
     center(): Point;

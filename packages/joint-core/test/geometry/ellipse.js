@@ -139,6 +139,40 @@ QUnit.module('ellipse', function() {
                 assert.equal(new g.Ellipse(new g.Point(10, 20), 30, 40).bbox().toString(), '-20@-20 40@60');
             });
 
+            QUnit.test('returns the bounding box of the ellipse rotated around its center by an angle', function(assert) {
+
+                const ellipse = new g.Ellipse(new g.Point(10, 20), 30, 40);
+                assert.ok(ellipse.bbox(90) instanceof g.Rect);
+                assert.equal(ellipse.bbox(0).toString(), '-20@-20 40@60', 'no rotation');
+                assert.equal(ellipse.bbox(90).round(6).toString(), '-30@-10 50@50', 'the width and the height are swapped');
+                assert.equal(ellipse.bbox(180).round(6).toString(), '-20@-20 40@60');
+                assert.equal(ellipse.bbox(-90).round(6).toString(), ellipse.bbox(90).round(6).toString());
+                assert.equal(ellipse.toString(), '10@20 30 40', 'the ellipse is not changed');
+                // a circle is the same for every angle
+                assert.equal(new g.Ellipse(new g.Point(10, 20), 30, 30).bbox(33).round(6).toString(), '-20@-10 40@50');
+                // the same as the bounding box of the rotated rectangle only for 0, 90, 180, ...
+                assert.equal(ellipse.bbox(90).round(6).toString(), ellipse.bbox().bbox(90).round(6).toString());
+            });
+
+            QUnit.test('the bounding box of a rotated ellipse is tight', function(assert) {
+
+                const ellipse = new g.Ellipse(new g.Point(10, 20), 30, 40);
+                const center = ellipse.center();
+                [30, 45, 123].forEach(function(angle) {
+                    const points = [];
+                    for (let i = 0; i < 3600; i++) {
+                        const t = i * Math.PI / 1800;
+                        points.push(new g.Point(10 + 30 * Math.cos(t), 20 + 40 * Math.sin(t)).rotate(center, angle));
+                    }
+                    const sampled = new g.Polyline(points).bbox();
+                    const bbox = ellipse.bbox(angle);
+                    assert.ok(Math.abs(bbox.x - sampled.x) < 1e-3, 'x, angle ' + angle);
+                    assert.ok(Math.abs(bbox.y - sampled.y) < 1e-3, 'y, angle ' + angle);
+                    assert.ok(Math.abs(bbox.width - sampled.width) < 1e-3, 'width, angle ' + angle);
+                    assert.ok(Math.abs(bbox.height - sampled.height) < 1e-3, 'height, angle ' + angle);
+                });
+            });
+
             QUnit.test('returns the bounding box of the ellipse transformed by a matrix', function(assert) {
 
                 const ellipse = new g.Ellipse(new g.Point(10, 20), 30, 40);

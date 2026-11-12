@@ -1,11 +1,14 @@
 import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { types } from './types.mjs';
+import { toRad } from './geometry.helpers.mjs';
 
 const {
     sqrt,
     round,
-    pow
+    pow,
+    cos,
+    sin
 } = Math;
 
 export const Ellipse = function(c, a, b) {
@@ -35,18 +38,29 @@ Ellipse.prototype = {
 
     type: types.Ellipse,
 
-    // Returns the bounding box of the ellipse,
-    // or of the ellipse transformed by a matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`;
-    // the fields missing in it are the ones of the identity matrix).
-    bbox: function(matrix) {
+    // Returns the bounding box of the transformed ellipse.
+    // `transformation` is an angle (the ellipse is rotated around its center),
+    // or a matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`; the fields missing in it
+    // are the ones of the identity matrix).
+    bbox: function(transformation) {
 
         const { x, y, a: rx, b: ry } = this;
 
-        // no matrix
-        if (!matrix) return new Rect(x - rx, y - ry, 2 * rx, 2 * ry);
+        // no transformation
+        if (!transformation) return new Rect(x - rx, y - ry, 2 * rx, 2 * ry);
 
-        // the transformed ellipse is an ellipse too, possibly a rotated one
-        const { a = 1, b = 0, c = 0, d = 1, e = 0, f = 0 } = matrix;
+        // an angle: the center stays where it is
+        if (typeof transformation === 'number') {
+            const theta = toRad(transformation);
+            const cosTheta = cos(theta);
+            const sinTheta = sin(theta);
+            const halfWidth = sqrt((rx * cosTheta) * (rx * cosTheta) + (ry * sinTheta) * (ry * sinTheta));
+            const halfHeight = sqrt((rx * sinTheta) * (rx * sinTheta) + (ry * cosTheta) * (ry * cosTheta));
+            return new Rect(x - halfWidth, y - halfHeight, 2 * halfWidth, 2 * halfHeight);
+        }
+
+        // a matrix: the transformed ellipse is an ellipse too, possibly a rotated one
+        const { a = 1, b = 0, c = 0, d = 1, e = 0, f = 0 } = transformation;
         const halfWidth = sqrt((a * rx) * (a * rx) + (c * ry) * (c * ry));
         const halfHeight = sqrt((b * rx) * (b * rx) + (d * ry) * (d * ry));
         return new Rect(a * x + c * y + e - halfWidth, b * x + d * y + f - halfHeight, 2 * halfWidth, 2 * halfHeight);

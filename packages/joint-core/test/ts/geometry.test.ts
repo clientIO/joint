@@ -31,6 +31,7 @@ const rectBBoxes: g.Rect[] = [
     new g.Rect(0, 0, 10, 20).bbox(45),
     new g.Rect(0, 0, 10, 20).bbox(matrix),
     new g.Ellipse(new g.Point(0, 0), 10, 5).bbox(),
+    new g.Ellipse(new g.Point(0, 0), 10, 5).bbox(45),
     new g.Ellipse(new g.Point(0, 0), 10, 5).bbox(matrix)
 ];
 // the fields of the matrix are optional
