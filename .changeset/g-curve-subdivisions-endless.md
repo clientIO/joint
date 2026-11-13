@@ -2,4 +2,4 @@
 "@joint/core": patch
 ---
 
-Geometry - fix `getSubdivisions()` of `Curve` running forever for coordinates that are not finite numbers
+Geometry - fix `getSubdivisions()` of `Curve` never ending for coordinates that are not finite
