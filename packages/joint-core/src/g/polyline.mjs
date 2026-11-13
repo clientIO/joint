@@ -2,6 +2,7 @@ import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { Line } from './line.mjs';
 import { types } from './types.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 import { clonePoints, parsePoints, convexHull } from './points.mjs';
 
 
@@ -456,6 +457,17 @@ Polyline.prototype = {
     toString: function() {
 
         return this.points + '';
+    },
+
+    transform: function(matrix) {
+
+        const plainMatrix = toPlainMatrix(matrix);
+        const points = this.points;
+        for (let i = 0, n = points.length; i < n; i++) {
+            transformPoint(points[i], plainMatrix);
+        }
+
+        return this;
     },
 
     translate: function(tx, ty) {

@@ -4,6 +4,7 @@ import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
 import { types } from './types.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 
 const {
     max,
@@ -347,6 +348,14 @@ Line.prototype = {
     serialize: function() {
 
         return this.start.serialize() + ' ' + this.end.serialize();
+    },
+
+    transform: function(matrix) {
+
+        const plainMatrix = toPlainMatrix(matrix);
+        transformPoint(this.start, plainMatrix);
+        transformPoint(this.end, plainMatrix);
+        return this;
     },
 
     translate: function(tx, ty) {

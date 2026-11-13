@@ -28,6 +28,21 @@ export interface PlainRect {
     height: number;
 }
 
+/**
+ * A transformation matrix: an object with these six fields, e.g. an `SVGMatrix` or a `DOMMatrix`.
+ * Where a `Partial<PlainMatrix>` is accepted, the missing fields are the ones of the identity matrix
+ * (`a` and `d` are 1, the rest is 0).
+ */
+export interface PlainMatrix {
+
+    a: number;
+    b: number;
+    c: number;
+    d: number;
+    e: number;
+    f: number;
+}
+
 export interface Scale {
 
     sx: number;
@@ -120,6 +135,8 @@ export interface Segment {
     tangentAtLength(length: number): Line | null;
 
     tangentAtT(t: number): Line | null;
+
+    transform(matrix: Partial<PlainMatrix>): this;
 
     translate(tx?: number, ty?: number): this;
     translate(tx: PlainPoint): this;
@@ -232,6 +249,8 @@ export class Curve {
 
     tAtLength(length: number, opt?: SubdivisionsOpt): number;
 
+    transform(matrix: Partial<PlainMatrix>): this;
+
     translate(tx?: number, ty?: number): this;
     translate(tx: PlainPoint): this;
 
@@ -255,7 +274,7 @@ export class Ellipse {
     constructor(center: PointInit, a: number, b: number);
     constructor(ellipse: Ellipse);
 
-    bbox(): Rect;
+    bbox(transformation?: number | Partial<PlainMatrix>): Rect;
 
     center(): Point;
 
@@ -354,6 +373,8 @@ export class Line {
 
     tangentAtLength(length: number): Line | null;
 
+    transform(matrix: Partial<PlainMatrix>): this;
+
     translate(tx?: number, ty?: number): this;
     translate(tx: PlainPoint): this;
 
@@ -442,6 +463,8 @@ export class Path {
     toPoints(opt?: SegmentSubdivisionsOpt): Point[][] | null;
 
     toPolylines(opt?: SegmentSubdivisionsOpt): Polyline[] | null;
+
+    transform(matrix: Partial<PlainMatrix>): this;
 
     translate(tx?: number, ty?: number): this;
     translate(tx: PlainPoint): this;
@@ -542,6 +565,8 @@ export class Point implements PlainPoint {
 
     serialize(): string;
 
+    transform(matrix: Partial<PlainMatrix>): this;
+
     translate(tx?: number, ty?: number): this;
     translate(tx: PlainPoint): this;
 
@@ -600,6 +625,8 @@ export abstract class PolygonalChain {
 
     tangentAtLength(length: number): Line | null;
 
+    transform(matrix: Partial<PlainMatrix>): this;
+
     translate(tx?: number, ty?: number): this;
     translate(tx: PlainPoint): this;
 
@@ -641,7 +668,7 @@ export class Rect implements PlainRect {
     constructor(x?: number, y?: number, width?: number, height?: number);
     constructor(r: PlainRect);
 
-    bbox(angle?: number): Rect;
+    bbox(transformation?: number | Partial<PlainMatrix>): Rect;
 
     rotateAroundCenter(angle: number): this;
 
