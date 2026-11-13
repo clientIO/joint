@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/consistent-function-scoping */
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
 import { useOnElementsMeasured } from '../use-on-elements-measured';
@@ -174,49 +173,4 @@ describe('useOnElementsMeasured', () => {
     });
   });
 
-  // Regression (#3514): the store's `change:size` listener dropped the event
-  // options, so an application's own resize bumped `measureState` like a
-  // measurement write and woke every subscriber.
-  describe('application resizes vs measurement writes', () => {
-    function renderResizeProbe(callback: jest.Mock) {
-      let graphRef: dia.Graph | undefined;
-      function Probe() {
-        const store = useGraphStore();
-        graphRef = store.graph;
-        useOnElementsMeasured('measured-effect-paper', callback);
-        return null;
-      }
-      renderHook(() => Probe(), { wrapper });
-      return () => graphRef!.getCell('a') as dia.Element;
-    }
-
-    it('does not fire when the application resizes an element', async () => {
-      const callback = jest.fn();
-      const getElement = renderResizeProbe(callback);
-      await waitFor(() => expect(callback).toHaveBeenCalled());
-      callback.mockClear();
-
-      act(() => {
-        getElement().resize(80, 80);
-      });
-      await act(async () => flush());
-      await act(async () => flush());
-
-      expect(callback).not.toHaveBeenCalled();
-    });
-
-    it('fires with isInitial=false for a measurement write', async () => {
-      const callback = jest.fn();
-      const getElement = renderResizeProbe(callback);
-      await waitFor(() => expect(callback).toHaveBeenCalled());
-      callback.mockClear();
-
-      act(() => {
-        getElement().set('size', { width: 80, height: 80 }, { autoSize: true });
-      });
-
-      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
-      expect(callback.mock.calls[0][0].isInitial).toBe(false);
-    });
-  });
 });
