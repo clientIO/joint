@@ -2596,7 +2596,15 @@ export const Paper = View.extend({
     getContentArea: function(opt) {
 
         if (opt && opt.useModelGeometry) {
-            return this.model.getBBox() || new Rect();
+            const { model: graph } = this;
+            // `useModelGeometry: true` or `useModelGeometry: { filter }`
+            const { filter } = isObject(opt.useModelGeometry) ? opt.useModelGeometry : {};
+            if (typeof filter !== 'function') {
+                return graph.getBBox() || new Rect();
+            }
+            // Only the cells passing the `filter` are considered.
+            const cells = graph.getCells().filter(cell => filter(cell));
+            return graph.getCellsBBox(cells) || new Rect();
         }
 
         const graphLayerViews = this.getGraphLayerViews();
