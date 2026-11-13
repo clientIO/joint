@@ -3,6 +3,8 @@ import { Rect } from './rect.mjs';
 import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
+import { intersection } from './line.intersection.mjs';
+import { ensurePoint } from './point.ensure.mjs';
 import { types } from './types.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 
@@ -71,8 +73,10 @@ Line.prototype = {
     // @return {number} the normalized length of the closest point on the line to point `p`
     closestPointNormalizedLength: function(p) {
 
-        var product = this.vector().dot((new Line(this.start, p)).vector());
-        var cpNormalizedLength = min(1, max(0, product / this.squaredLength()));
+        const { start, end } = this;
+        const point = ensurePoint(p);
+        const product = ((end.x - start.x) * (point.x - start.x)) + ((end.y - start.y) * (point.y - start.y));
+        const cpNormalizedLength = min(1, max(0, product / squaredLength(start, end)));
 
         // cpNormalizedLength returns `NaN` if this line has zero length
         // we can work with that - if `NaN`, return 0
@@ -158,33 +162,9 @@ Line.prototype = {
 
     intersectionWithLine: function(line) {
 
-        var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);
-        var pt2Dir = new Point(line.end.x - line.start.x, line.end.y - line.start.y);
-        var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
-        var deltaPt = new Point(line.start.x - this.start.x, line.start.y - this.start.y);
-        var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
-        var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
-
-        if (det === 0 || alpha * det < 0 || beta * det < 0) {
-            // No intersection found.
-            return null;
-        }
-
-        if (det > 0) {
-            if (alpha > det || beta > det) {
-                return null;
-            }
-
-        } else {
-            if (alpha < det || beta < det) {
-                return null;
-            }
-        }
-
-        return [new Point(
-            this.start.x + (alpha * pt1Dir.x / det),
-            this.start.y + (alpha * pt1Dir.y / det)
-        )];
+        const { start, end } = this;
+        const point = intersection(start.x, start.y, end.x, end.y, line.start.x, line.start.y, line.end.x, line.end.y);
+        return point ? [point] : null;
     },
 
     // @return {boolean} true if `line` lies on the same infinite line as this line

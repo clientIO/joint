@@ -307,8 +307,106 @@ QUnit.module('rect', function() {
             // TODO: implement
         });
 
+        QUnit.module('intersectionWithLine(line)', function() {
+
+            const toStrings = (points) => points.map((point) => point.toString());
+
+            QUnit.test('returns null when the line does not meet the rectangle', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.equal(rect.intersectionWithLine(new g.Line('0 0', '100 0')), null, 'outside');
+                assert.equal(rect.intersectionWithLine(new g.Line('20 30', '30 50')), null, 'inside');
+                assert.equal(rect.intersectionWithLine(new g.Line('25 40', '25 40')), null, 'line of no length');
+            });
+
+            QUnit.test('returns a single point for a line starting inside', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('25 40', '25 0'))), ['25@20'], 'top');
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('25 40', '100 40'))), ['40@40'], 'right');
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('25 40', '25 100'))), ['25@60'], 'bottom');
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('25 40', '0 40'))), ['10@40'], 'left');
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('25 0', '25 20'))), ['25@20'], 'ends on a side');
+            });
+
+            QUnit.test('returns the points in the order of the sides (top, right, bottom, left)', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('0 40', '100 40'))), ['40@40', '10@40'], 'horizontal');
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('100 40', '0 40'))), ['40@40', '10@40'], 'horizontal, reversed');
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('25 0', '25 100'))), ['25@20', '25@60'], 'vertical');
+                assert.deepEqual(toStrings(new g.Line('0 40', '100 40').intersect(rect)), ['40@40', '10@40'], 'line.intersect(rect)');
+            });
+
+            QUnit.test('returns a corner once', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('0 30', '20 10'))), ['10@20'], 'through a corner');
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('0 0', '10 20'))), ['10@20'], 'ends in a corner');
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('10 20', '40 60'))), ['10@20', '40@60'], 'from a corner to the opposite one');
+            });
+
+            QUnit.test('returns the corners for a line along a side', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('0 20', '100 20'))), ['40@20', '10@20'], 'top side');
+                assert.deepEqual(toStrings(rect.intersectionWithLine(new g.Line('10 0', '10 100'))), ['10@20', '10@60'], 'left side');
+            });
+
+            QUnit.test('works with a rectangle of no width or height', function(assert) {
+
+                const line = new g.Line('0 40', '100 40');
+                assert.deepEqual(toStrings(new g.Rect(10, 20, 0, 40).intersectionWithLine(line)), ['10@40'], 'no width');
+                assert.deepEqual(toStrings(new g.Rect(10, 20, 30, 0).intersectionWithLine(new g.Line('25 0', '25 100'))), ['25@20'], 'no height');
+                assert.equal(new g.Rect(10, 20, 0, 0).intersectionWithLine(new g.Line('0 10', '20 30')), null, 'no size');
+            });
+        });
+
         QUnit.module('intersectionWithLineFromCenterToPoint(point, angle)', function() {
-            // TODO: implement
+
+            QUnit.test('returns the point on the side the line from the center goes through', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(25, 0)).toString(), '25@20', 'top');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(100, 40)).toString(), '40@40', 'right');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(25, 100)).toString(), '25@60', 'bottom');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(0, 40)).toString(), '10@40', 'left');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(100, 100)).toString(), '40@52', 'not perpendicular');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(40, 40)).toString(), '40@40', 'point on a side');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint({ x: 100, y: 40 }).toString(), '40@40', 'plain object');
+            });
+
+            QUnit.test('returns a corner', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(55, 0)).toString(), '40@20', 'top right');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(-5, 80)).toString(), '10@60', 'bottom left');
+            });
+
+            QUnit.test('returns undefined for a point inside the rectangle', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(30, 45)), undefined, 'inside');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(25, 40)), undefined, 'center');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(30, 45), 30), undefined, 'inside, with an angle');
+            });
+
+            QUnit.test('takes the rotation of the rectangle into account', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(100, 40), 0).toString(), '40@40', 'no rotation');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(100, 40), 90).round(6).toString(), '45@40', 'rotated by 90, to the right');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(25, 0), 90).round(6).toString(), '25@25', 'rotated by 90, to the top');
+                assert.equal(rect.intersectionWithLineFromCenterToPoint(new g.Point(100, 40), 45).round(6).toString(), '46.213203@40', 'rotated by 45');
+            });
+
+            QUnit.test('does not change the point', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                const point = new g.Point(100, 40);
+                rect.intersectionWithLineFromCenterToPoint(point, 45);
+                assert.equal(point.toString(), '100@40');
+            });
         });
 
         QUnit.module('leftLine()', function() {

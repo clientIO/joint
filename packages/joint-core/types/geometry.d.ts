@@ -591,13 +591,13 @@ export abstract class PolygonalChain {
 
     bbox(): Rect | null;
 
-    closestPoint(p: PlainPoint): Point | null;
+    closestPoint(p: PointInit): Point | null;
 
-    closestPointLength(p: PlainPoint): number;
+    closestPointLength(p: PointInit): number;
 
-    closestPointNormalizedLength(p: PlainPoint): number;
+    closestPointNormalizedLength(p: PointInit): number;
 
-    closestPointTangent(p: PlainPoint): Line | null;
+    closestPointTangent(p: PointInit): Line | null;
 
     containsPoint(p: PlainPoint): boolean;
 

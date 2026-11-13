@@ -16,6 +16,100 @@ const {
 // see `isLine()`
 const LINE_TOLERANCE = 1e-9;
 
+// The largest number of times `getSubdivisions()` divides the curve in two: at most 2^20 (about a million) subdivisions.
+// The default precision needs 6 iterations, a precision of 10 needs 18 to 20.
+const MAX_SUBDIVISION_ITERATIONS = 20;
+
+// The coordinate in the middle of two coordinates.
+// Written the way `Point.prototype.lerp()` computes it for `t = 0.5`, so that the results are the same.
+function midCoordinate(a, b) {
+    return 0.5 * a + 0.5 * b;
+}
+
+// Divides every curve in two at `t = 0.5`. Returns the coordinates of the halves
+// (8 numbers per curve: start, control points, end).
+function divideCurves(coords) {
+    const n = coords.length;
+    const newCoords = new Float64Array(2 * n);
+    for (let i = 0, j = 0; i < n; i += 8, j += 16) {
+
+        // dividing at t = 0.5 (not at middle length!)
+        const startX = coords[i];
+        const startY = coords[i + 1];
+        const endX = coords[i + 6];
+        const endY = coords[i + 7];
+        const midpoint1X = midCoordinate(startX, coords[i + 2]);
+        const midpoint1Y = midCoordinate(startY, coords[i + 3]);
+        const midpoint2X = midCoordinate(coords[i + 2], coords[i + 4]);
+        const midpoint2Y = midCoordinate(coords[i + 3], coords[i + 5]);
+        const midpoint3X = midCoordinate(coords[i + 4], endX);
+        const midpoint3Y = midCoordinate(coords[i + 5], endY);
+        const subControl1X = midCoordinate(midpoint1X, midpoint2X);
+        const subControl1Y = midCoordinate(midpoint1Y, midpoint2Y);
+        const subControl2X = midCoordinate(midpoint2X, midpoint3X);
+        const subControl2Y = midCoordinate(midpoint2Y, midpoint3Y);
+        const dividerX = midCoordinate(subControl1X, subControl2X);
+        const dividerY = midCoordinate(subControl1Y, subControl2Y);
+
+        newCoords[j] = startX;
+        newCoords[j + 1] = startY;
+        newCoords[j + 2] = midpoint1X;
+        newCoords[j + 3] = midpoint1Y;
+        newCoords[j + 4] = subControl1X;
+        newCoords[j + 5] = subControl1Y;
+        newCoords[j + 6] = dividerX;
+        newCoords[j + 7] = dividerY;
+        newCoords[j + 8] = dividerX;
+        newCoords[j + 9] = dividerY;
+        newCoords[j + 10] = subControl2X;
+        newCoords[j + 11] = subControl2Y;
+        newCoords[j + 12] = midpoint3X;
+        newCoords[j + 13] = midpoint3Y;
+        newCoords[j + 14] = endX;
+        newCoords[j + 15] = endY;
+    }
+    return newCoords;
+}
+
+// Returns the sum of the distances between the start and the end of the curves
+// (8 numbers per curve: start, control points, end).
+function measureCurves(coords) {
+    let length = 0;
+    for (let i = 0, n = coords.length; i < n; i += 8) {
+        const x = coords[i] - coords[i + 6];
+        const y = coords[i + 1] - coords[i + 7];
+        length += sqrt((x * x) + (y * y));
+    }
+    return length;
+}
+
+// Creates a curve from the coordinates of its start, control points and end.
+// @perf The `Curve` constructor is skipped on purpose. It copies every point it is given,
+// so a curve created from four new points would cost eight points. `getSubdivisions()` creates
+// tens to thousands of curves in one call. The result is the same as `new Curve(...)`.
+function fastCurve(startX, startY, control1X, control1Y, control2X, control2Y, endX, endY) {
+    const curve = Object.create(Curve.prototype);
+    curve.start = new Point(startX, startY);
+    curve.controlPoint1 = new Point(control1X, control1Y);
+    curve.controlPoint2 = new Point(control2X, control2Y);
+    curve.end = new Point(endX, endY);
+    return curve;
+}
+
+// Creates the curves from their coordinates (8 numbers per curve: start, control points, end).
+function createCurves(coords) {
+    const curves = [];
+    for (let i = 0, n = coords.length; i < n; i += 8) {
+        curves.push(fastCurve(
+            coords[i], coords[i + 1],
+            coords[i + 2], coords[i + 3],
+            coords[i + 4], coords[i + 5],
+            coords[i + 6], coords[i + 7]
+        ));
+    }
+    return curves;
+}
+
 export const Curve = function(p1, p2, p3, p4) {
 
     if (!(this instanceof Curve)) {
@@ -607,41 +701,42 @@ Curve.prototype = {
         // recursively divide curve at `t = 0.5`
         // until we reach `minIterations`
         // and until the difference between observed length at subsequent iterations is lower than `precision`
-        var iteration = 0;
+        // @perf The subdivisions are kept as numbers (8 coordinates per curve: start, control points, end)
+        // and the curves are created only for the last iteration. Dividing `Curve` objects with `divide()`
+        // gives the same result, but creates and throws away hundreds of curves, lines and points.
+        let coords = new Float64Array([start.x, start.y, control1.x, control1.y, control2.x, control2.y, end.x, end.y]);
+        let iteration = 0;
         while (true) {
             iteration += 1;
 
-            // divide all subdivisions
-            var newSubdivisions = [];
-            var numSubdivisions = subdivisions.length;
-            for (var i = 0; i < numSubdivisions; i++) {
+            // divide all subdivisions, measure new length
+            const newCoords = divideCurves(coords);
+            const length = measureCurves(newCoords);
 
-                var currentSubdivision = subdivisions[i];
-                var divided = currentSubdivision.divide(0.5); // dividing at t = 0.5 (not at middle length!)
-                newSubdivisions.push(divided[0], divided[1]);
-            }
-
-            // measure new length
-            var length = 0;
-            var numNewSubdivisions = newSubdivisions.length;
-            for (var j = 0; j < numNewSubdivisions; j++) {
-
-                var currentNewSubdivision = newSubdivisions[j];
-                length += currentNewSubdivision.endpointDistance();
+            // the length can not be measured (a coordinate is not a finite number, or is too large):
+            // it would never settle, so there is no point in dividing any further
+            if (!Number.isFinite(length)) {
+                return createCurves(newCoords);
             }
 
             // check if we have reached minimum number of iterations
             if (iteration >= minIterations) {
 
                 // check if we have reached required observed precision
-                var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
-                if (observedPrecisionRatio < precisionRatio) {
-                    return newSubdivisions;
+                // (written so that a ratio that is not a number ends the loop too)
+                const observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
+                if (!(observedPrecisionRatio >= precisionRatio)) {
+                    return createCurves(newCoords);
                 }
             }
 
+            // a precision that can not be reached must not divide forever
+            if (iteration >= MAX_SUBDIVISION_ITERATIONS) {
+                return createCurves(newCoords);
+            }
+
             // otherwise, set up for next iteration
-            subdivisions = newSubdivisions;
+            coords = newCoords;
             previousLength = length;
         }
     },

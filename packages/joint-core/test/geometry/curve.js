@@ -721,6 +721,63 @@ QUnit.module('curve', function() {
 
         QUnit.module('getSubdivisions()', function() {
 
+            QUnit.test('returns curves that are the same as the ones created with the constructor', function(assert) {
+
+                // the subdivisions are created without the constructor (see `fastCurve()` in the source)
+                const curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                const subdivisions = curve.getSubdivisions();
+                assert.equal(subdivisions.length, 64);
+                subdivisions.forEach(function(subdivision, index) {
+                    const { start, controlPoint1, controlPoint2, end } = subdivision;
+                    const expected = new g.Curve(start, controlPoint1, controlPoint2, end);
+                    // same prototype, same own properties, same values
+                    assert.deepEqual(subdivision, expected, 'subdivision ' + index);
+                });
+
+                const [first, second] = subdivisions;
+                assert.ok(first instanceof g.Curve);
+                assert.ok(first.start instanceof g.Point);
+                assert.ok(first.equals(first.clone()));
+                assert.ok(first.end.equals(second.start), 'the subdivisions link up');
+                assert.notEqual(first.end, second.start, 'but do not share a point');
+            });
+
+            QUnit.test('ends for a curve that can not be measured', function(assert) {
+
+                // these used to divide the curve forever
+                const notANumber = new g.Curve({ x: 0, y: 0 }, { x: NaN, y: 10 }, { x: 10, y: 10 }, { x: 10, y: 0 });
+                assert.equal(notANumber.getSubdivisions().length, 2, 'a coordinate is not a number');
+
+                const infinite = new g.Curve({ x: 0, y: 0 }, { x: Infinity, y: 10 }, { x: 10, y: 10 }, { x: 10, y: 0 });
+                assert.equal(infinite.getSubdivisions().length, 2, 'a coordinate is infinite');
+
+                const tooLarge = new g.Curve({ x: 0, y: 0 }, { x: 1e200, y: 1e200 }, { x: 2e200, y: -1e200 }, { x: 3e200, y: 5 });
+                assert.equal(tooLarge.getSubdivisions().length, 2, 'the coordinates are too large to measure the length');
+
+                const curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                assert.equal(curve.getSubdivisions({ precision: NaN }).length, 4, 'the precision is not a number');
+
+                // a path created from path data
+                const path = new g.Path('M 0 0 C 1e200 1e200 2e200 -1e200 3e200 5');
+                assert.equal(String(path.intersectionWithLine(new g.Line('0 0', '10 10'))), '0@0');
+                assert.equal(path.getSegmentSubdivisions()[1].length, 2);
+            });
+
+            QUnit.test('returns the same curves as dividing the curve in two repeatedly', function(assert) {
+
+                const curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                const subdivisions = curve.getSubdivisions({ precision: 1 });
+                assert.equal(subdivisions.length, 8);
+                // divide the curve in two, three times
+                let divided = [curve];
+                for (let i = 0; i < 3; i++) {
+                    divided = divided.flatMap((part) => part.divide(0.5));
+                }
+                subdivisions.forEach(function(subdivision, index) {
+                    assert.deepEqual(subdivision, divided[index], 'subdivision ' + index);
+                });
+            });
+
             QUnit.test('sanity', function(assert) {
 
                 var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');

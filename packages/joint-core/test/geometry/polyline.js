@@ -281,6 +281,20 @@ QUnit.module('polyline', function() {
 
         QUnit.module('closestPointLength()', function() {
 
+            QUnit.test('accepts a point given as a plain object or a string', function(assert) {
+
+                const polyline = new g.Polyline(['0 0', '10 10', '20 0']);
+                const length = polyline.closestPointLength(new g.Point(3, 4));
+                assert.equal(length.toFixed(4), '4.9497');
+                assert.equal(polyline.closestPointLength({ x: 3, y: 4 }), length, 'plain object');
+                assert.equal(polyline.closestPointLength('3 4'), length, 'string');
+                assert.equal(polyline.closestPointLength('3@4'), length, 'string with @');
+                assert.equal(polyline.closestPointNormalizedLength('3 4'), 0.175, 'normalized length');
+                assert.equal(polyline.closestPoint('3 4').toString(), '3.5@3.5', 'closest point');
+                assert.equal(polyline.closestPointTangent('3 4').toString(), '3.5@3.5 13.5@13.5', 'tangent');
+                assert.equal(new g.Polygon(['0 0', '10 10', '20 0']).closestPoint('12 -3').toString(), '12@0', 'polygon');
+            });
+
             QUnit.test('sanity', function(assert) {
 
                 var polyline;
@@ -772,6 +786,57 @@ QUnit.module('polyline', function() {
                 polyline1 = new g.Polyline([]);
                 polyline2 = new g.Polyline([]);
                 assert.equal(polyline1.equals(polyline2), true);
+            });
+        });
+
+        QUnit.module('intersectionWithLine()', function() {
+
+            const toStrings = (points) => points.map((point) => point.toString());
+
+            QUnit.test('returns null when the line does not meet the polyline', function(assert) {
+
+                const polyline = new g.Polyline(['0 0', '10 10', '20 0', '30 10']);
+                assert.equal(polyline.intersectionWithLine(new g.Line('0 20', '30 20')), null, 'no intersection');
+                assert.equal(new g.Polyline().intersectionWithLine(new g.Line('0 5', '30 5')), null, 'no points');
+                assert.equal(new g.Polyline(['5 5']).intersectionWithLine(new g.Line('0 5', '30 5')), null, 'single point');
+            });
+
+            QUnit.test('returns the points in the order of the segments', function(assert) {
+
+                const polyline = new g.Polyline(['0 0', '10 10', '20 0', '30 10']);
+                assert.deepEqual(toStrings(polyline.intersectionWithLine(new g.Line('0 5', '30 5'))), ['5@5', '15@5', '25@5'], 'all segments');
+                assert.deepEqual(toStrings(polyline.intersectionWithLine(new g.Line('30 5', '0 5'))), ['5@5', '15@5', '25@5'], 'reversed line');
+                assert.deepEqual(toStrings(polyline.intersectionWithLine(new g.Line('0 5', '8 5'))), ['5@5'], 'one segment');
+                assert.deepEqual(toStrings(new g.Line('0 5', '30 5').intersect(polyline)), ['5@5', '15@5', '25@5'], 'line.intersect(polyline)');
+            });
+
+            QUnit.test('returns a point for each segment that meets the line in a vertex', function(assert) {
+
+                const polyline = new g.Polyline(['0 0', '10 10', '20 0', '30 10']);
+                assert.deepEqual(toStrings(polyline.intersectionWithLine(new g.Line('0 10', '30 10'))), ['10@10', '10@10', '30@10'], 'inner vertex and last point');
+                assert.deepEqual(toStrings(polyline.intersectionWithLine(new g.Line('-5 5', '5 -5'))), ['0@0'], 'first point');
+            });
+
+            QUnit.test('does not change the line', function(assert) {
+
+                const polyline = new g.Polyline(['0 0', '10 10', '20 0', '30 10']);
+                const line = new g.Line('0 5', '30 5');
+                polyline.intersectionWithLine(line);
+                assert.equal(line.toString(), '0@5 30@5');
+            });
+
+            QUnit.test('polygon: includes the closing segment', function(assert) {
+
+                const points = ['0 0', '20 0', '10 20'];
+                const polygon = new g.Polygon(points);
+                const line = new g.Line('0 10', '10 10');
+                assert.deepEqual(toStrings(polygon.intersectionWithLine(line)), ['5@10'], 'polygon');
+                assert.equal(new g.Polyline(points).intersectionWithLine(line), null, 'polyline of the same points');
+                assert.deepEqual(toStrings(polygon.intersectionWithLine(new g.Line('-10 10', '30 10'))), ['15@10', '5@10'], 'through');
+                assert.deepEqual(toStrings(polygon.intersectionWithLine(new g.Line('-10 0', '30 0'))), ['20@0', '0@0'], 'through two vertices');
+                assert.deepEqual(toStrings(new g.Polygon(['0 0', '20 0', '10 20', '0 0']).intersectionWithLine(new g.Line('-10 10', '30 10'))), ['15@10', '5@10'], 'first point repeated at the end');
+                assert.equal(polygon.intersectionWithLine(new g.Line('-10 30', '30 30')), null, 'no intersection');
+                assert.equal(new g.Polygon().intersectionWithLine(new g.Line('-10 10', '30 10')), null, 'no points');
             });
         });
 

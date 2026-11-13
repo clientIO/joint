@@ -7,6 +7,7 @@ import { Line } from './line.mjs';
 import { Curve } from './curve.mjs';
 import { types } from './types.mjs';
 import { extend } from './extend.mjs';
+import { intersection } from './line.intersection.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 export const Path = function(arg) {
 
@@ -351,15 +352,15 @@ Path.prototype = {
     // Precision may be adjusted by passing an `opt` object.
     containsPoint: function(p, opt) {
 
-        var polylines = this.toPolylines(opt);
-        if (!polylines) return false; // shortcut (this path has no polylines)
-
-        var numPolylines = polylines.length;
+        // the points of the subpaths are only read here, so they are not cloned into polylines of their own
+        const subpaths = this.toPoints(opt);
+        if (!subpaths) return false; // shortcut (this path has no polylines)
 
         // how many component polylines does `p` lie within?
-        var numIntersections = 0;
-        for (var i = 0; i < numPolylines; i++) {
-            var polyline = polylines[i];
+        let numIntersections = 0;
+        const polyline = new Polyline();
+        for (let i = 0, n = subpaths.length; i < n; i++) {
+            polyline.points = subpaths[i];
             if (polyline.containsPoint(p)) {
                 // `p` lies within this polyline
                 numIntersections++;
@@ -659,23 +660,26 @@ Path.prototype = {
 
     intersectionWithLine: function(line, opt) {
 
-        var intersection = null;
-        var polylines = this.toPolylines(opt);
-        if (!polylines) return null;
-        for (var i = 0, n = polylines.length; i < n; i++) {
-            var polyline = polylines[i];
-            var polylineIntersection = line.intersect(polyline);
-            if (polylineIntersection) {
-                intersection || (intersection = []);
-                if (Array.isArray(polylineIntersection)) {
-                    Array.prototype.push.apply(intersection, polylineIntersection);
-                } else {
-                    intersection.push(polylineIntersection);
+        // the points of the subpaths are only read here, so no polylines are created from them
+        const subpaths = this.toPoints(opt);
+        if (!subpaths) return null;
+
+        let intersections = null;
+        for (let i = 0, n = subpaths.length; i < n; i++) {
+            const points = subpaths[i];
+            for (let j = 0, m = points.length - 1; j < m; j++) {
+                const { start, end } = line;
+                const p1 = points[j];
+                const p2 = points[j + 1];
+                const point = intersection(start.x, start.y, end.x, end.y, p1.x, p1.y, p2.x, p2.y);
+                if (point) {
+                    intersections || (intersections = []);
+                    intersections.push(point);
                 }
             }
         }
 
-        return intersection;
+        return intersections;
     },
 
     isDifferentiable: function() {
@@ -1184,11 +1188,11 @@ Path.prototype = {
             var segment = segments[i];
             if (segment.isVisible) {
                 var currentSegmentSubdivisions = segmentSubdivisions[i];
-                if (currentSegmentSubdivisions.length > 0) {
-                    var subdivisionPoints = currentSegmentSubdivisions.map(function(curve) {
-                        return curve.start;
-                    });
-                    Array.prototype.push.apply(partialPoints, subdivisionPoints);
+                var numSubdivisions = currentSegmentSubdivisions.length;
+                if (numSubdivisions > 0) {
+                    for (var j = 0; j < numSubdivisions; j++) {
+                        partialPoints.push(currentSegmentSubdivisions[j].start);
+                    }
                 } else {
                     partialPoints.push(segment.start);
                 }

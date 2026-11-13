@@ -1,5 +1,7 @@
 import { toRad } from './geometry.helpers.mjs';
 import { Line } from './line.mjs';
+import { intersection } from './line.intersection.mjs';
+import { ensurePoint } from './point.ensure.mjs';
 import { Point } from './point.mjs';
 import { Ellipse } from './ellipse.mjs';
 import { types } from './types.mjs';
@@ -14,6 +16,21 @@ const {
     round,
     pow
 } = Math;
+
+// Adds the intersection of a side of a rectangle (from `sx, sy` to `ex, ey`)
+// with the line (from `start` to `end`) to `points`, unless the point is there already
+// (a line going through a corner meets two sides in the same point).
+// `points` is `null` until the first intersection is found. Returns `points`.
+function addSideIntersection(points, sx, sy, ex, ey, start, end) {
+    const point = intersection(sx, sy, ex, ey, start.x, start.y, end.x, end.y);
+    if (!point) return points;
+    if (!points) return [point];
+    for (let i = 0, n = points.length; i < n; i++) {
+        if (points[i].x === point.x && points[i].y === point.y) return points;
+    }
+    points.push(point);
+    return points;
+}
 
 export const Rect = function(x, y, w, h) {
 
@@ -264,23 +281,17 @@ Rect.prototype = {
 
     intersectionWithLine: function(line) {
 
-        var r = this;
-        var rectLines = [r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine()];
-        var points = [];
-        var dedupeArr = [];
-        var pt, i;
-
-        var n = rectLines.length;
-        for (i = 0; i < n; i++) {
-
-            pt = line.intersect(rectLines[i]);
-            if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
-                points.push(pt);
-                dedupeArr.push(pt.toString());
-            }
-        }
-
-        return points.length > 0 ? points : null;
+        const { start, end } = line;
+        const x1 = this.x;
+        const y1 = this.y;
+        const x2 = x1 + this.width;
+        const y2 = y1 + this.height;
+        // (clockwise, starting from the top side)
+        let points = addSideIntersection(null, x1, y1, x2, y1, start, end);
+        points = addSideIntersection(points, x2, y1, x2, y2, start, end);
+        points = addSideIntersection(points, x1, y2, x2, y2, start, end);
+        points = addSideIntersection(points, x1, y1, x1, y2, start, end);
+        return points;
     },
 
     // Find point on my boundary where line starting
@@ -288,29 +299,27 @@ Rect.prototype = {
     // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
     intersectionWithLineFromCenterToPoint: function(p, angle) {
 
-        p = new Point(p);
-        var center = new Point(this.x + this.width / 2, this.y + this.height / 2);
-        var result;
+        // the point is rotated (changed) only when there is an angle
+        p = angle ? new Point(p) : ensurePoint(p);
+        const x1 = this.x;
+        const y1 = this.y;
+        const x2 = x1 + this.width;
+        const y2 = y1 + this.height;
+        const cx = x1 + this.width / 2;
+        const cy = y1 + this.height / 2;
+        const center = angle ? new Point(cx, cy) : null;
 
         if (angle) p.rotate(center, angle);
 
-        // (clockwise, starting from the top side)
-        var sides = [
-            this.topLine(),
-            this.rightLine(),
-            this.bottomLine(),
-            this.leftLine()
-        ];
-        var connector = new Line(center, p);
+        // (counterclockwise, starting from the left side)
+        const { x: px, y: py } = p;
+        const result = intersection(cx, cy, px, py, x1, y1, x1, y2)
+            || intersection(cx, cy, px, py, x1, y2, x2, y2)
+            || intersection(cx, cy, px, py, x2, y1, x2, y2)
+            || intersection(cx, cy, px, py, x1, y1, x2, y1);
 
-        for (var i = sides.length - 1; i >= 0; --i) {
-            var intersection = sides[i].intersection(connector);
-            if (intersection !== null) {
-                result = intersection;
-                break;
-            }
-        }
-        if (result && angle) result.rotate(center, -angle);
+        if (!result) return undefined;
+        if (angle) result.rotate(center, -angle);
         return result;
     },
 
