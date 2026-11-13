@@ -1,10 +1,14 @@
 import type { dia } from '@joint/core';
 import type { ElkNode as ElkJsNode } from 'elkjs';
 import BundledElk from 'elkjs/lib/elk.bundled.js';
-import { layout, toNativeElkNode } from '../../src/index.mjs';
+import { layout, loadElk, toNativeElkNode } from '../../src/index.mjs';
+import * as api from '../../src/index.mjs';
 
 import type { Expect, Equals } from './assert.mjs';
 import type {
+    LayoutResult,
+    LayoutSyncOptions,
+    LoadedElk,
     NativeElkNode,
     StrictElkLayoutOptions,
     NativeElkLayoutOptions,
@@ -62,3 +66,19 @@ export const exportLinkLabel: ExportLinkLabelCallback = ({ elkEdgeLabel }) => {
 export const bundledElkTakesIt: Promise<ElkJsNode> =
     new BundledElk().layout(toNativeElkNode({ id: 'root', layoutOptions: { 'elk.padding': { top: 40 }}}));
 
+// `loadElk()` resolves to what lays out synchronously - `layoutSync()` isn't exported, so it
+// can't run before ELK has loaded.
+export const loaded: Promise<LoadedElk> = loadElk();
+// @ts-expect-error - only handed out by `loadElk()`.
+export const notExported = api.layoutSync;
+
+// `layoutSync()` returns the result itself, and takes the options of `layout()` - but not
+// `elk` or `signal`, which it has no use for.
+declare const loadedElk: LoadedElk;
+const { layoutSync } = loadedElk;
+export const syncResult: LayoutResult = layoutSync(graph, { elkLayoutOptions: strictBag, exportElement });
+export const syncCells: LayoutResult = layoutSync(graph.getCells());
+// @ts-expect-error - `layoutSync()` always lays out with the default ELK instance.
+export const syncElk: LayoutSyncOptions = { elk: new BundledElk() };
+// @ts-expect-error - nothing to abort.
+export const syncSignal: LayoutSyncOptions = { signal: new AbortController().signal };
