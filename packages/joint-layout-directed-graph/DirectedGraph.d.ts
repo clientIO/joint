@@ -17,6 +17,13 @@ export namespace DirectedGraph {
     interface Node {
         width?: number;
         height?: number;
+        /**
+         * The rank of the node. Used by the `fixed` ranker only and ignored for clusters
+         * (elements with embedded children), which are ranked by their children.
+         * It is rounded to the nearest integer; a missing, non-numeric or non-finite rank is 0.
+         * The empty ranks between the first and the last rank are kept (see `emptyRankSize`).
+         */
+        rank?: number;
     }
 
     interface DagreNodeProperties {
@@ -33,7 +40,20 @@ export namespace DirectedGraph {
     interface LayoutOptions extends ImportOptions, ExportOptions {
         align?: 'UR' | 'UL' | 'DR' | 'DL';
         rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
-        ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
+        /**
+         * The algorithm to assign a rank to each element.
+         * `fixed` takes the ranks from `exportElement()` (the `rank` property of the node).
+         * With `fixed`, the backward links are routed from the source to the target,
+         * the links within one rank are not laid out (their vertices are reset with `setVertices`)
+         * and link `minLen` is ignored.
+         */
+        ranker?: 'network-simplex' | 'tight-tree' | 'longest-path' | 'fixed';
+        /**
+         * The extra size (along the rank direction) of every empty rank
+         * between the first and the last rank. Used by the `fixed` ranker only.
+         * Without it, an empty rank is as large as `rankSep`.
+         */
+        emptyRankSize?: number;
         nodeSep?: number;
         edgeSep?: number;
         rankSep?: number;

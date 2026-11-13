@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="A @joint/layout-directed-graph demo with ranks given by the application: the fixed ranker, empty ranks, backward links and links within one rank.">
+    <title>Directed Graph Layout with Fixed Ranks | JointJS</title>
+</head>
+
+<body>
+    <div class="toolbar">
+        <label>
+            Direction
+            <select id="rank-dir">
+                <option value="LR" selected>Left to right</option>
+                <option value="TB">Top to bottom</option>
+            </select>
+        </label>
+        <label>
+            Empty rank size
+            <input id="empty-rank-size" type="number" min="0" step="10" placeholder="default">
+        </label>
+    </div>
+    <div id="canvas" class="canvas"></div>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+
+</html>

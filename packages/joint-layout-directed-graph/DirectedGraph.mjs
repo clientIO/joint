@@ -1,6 +1,21 @@
 import * as dagreUtil from '@dagrejs/dagre';
 import * as graphlibUtil from '@dagrejs/graphlib';
 import { util, g, dia } from '@joint/core';
+import { prepareFixedRanks, finishFixedRanks } from './fixedRanker.mjs';
+
+// A cluster is ranked by its children, so its own rank is never passed to dagre.
+function removeClusterRanks(glGraph) {
+
+    glGraph.nodes().forEach((nodeId) => {
+        if (glGraph.children(nodeId).length === 0) return;
+        const label = glGraph.node(nodeId);
+        if (!label || !('rank' in label)) return;
+        // The label is copied, so the object returned by `exportElement()` keeps its rank.
+        const clusterLabel = { ...label };
+        delete clusterLabel.rank;
+        glGraph.setNode(nodeId, clusterLabel);
+    });
+}
 
 export const DirectedGraph = {
 
@@ -164,8 +179,15 @@ export const DirectedGraph = {
         // Number of pixels between each rank in the layout.
         if (util.isNumber(opt.rankSep)) glLabel.ranksep = opt.rankSep;
         // Type of algorithm to assign a rank to each node in the input graph.
-        // Possible values: network-simplex, tight-tree or longest-path
-        if (opt.ranker) glLabel.ranker = opt.ranker;
+        // Possible values: network-simplex, tight-tree, longest-path or fixed
+        removeClusterRanks(glGraph);
+        let fixedRanks = null;
+        if (opt.ranker === 'fixed') {
+            fixedRanks = prepareFixedRanks(glGraph);
+            glLabel.ranker = fixedRanks.ranker;
+        } else if (opt.ranker) {
+            glLabel.ranker = opt.ranker;
+        }
         // Number of pixels to use as a margin around the left and right of the graph.
         glLabel.marginx = marginX;
         // Number of pixels to use as a margin around the top and bottom of the graph.
@@ -189,8 +211,24 @@ export const DirectedGraph = {
             customOrder,
         });
 
+        if (fixedRanks) {
+            finishFixedRanks(glGraph, fixedRanks, opt);
+        }
+
         // Wrap all graph changes into a batch.
         graph.startBatch('layout');
+
+        if (fixedRanks && (opt.setVertices || opt.setLinkVertices)) {
+            // Links within one rank are not laid out, so they have no route.
+            fixedRanks.sameRankLinkIds.forEach((linkId) => {
+                const link = graph.getCell(linkId);
+                if (util.isFunction(opt.setVertices)) {
+                    opt.setVertices(link, []);
+                } else {
+                    link.set('vertices', []);
+                }
+            });
+        }
 
         DirectedGraph.fromGraphLib(glGraph, {
             importNode: this.importElement,
