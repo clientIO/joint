@@ -84,3 +84,7 @@ declare const svgMatrix: SVGMatrix;
 new g.Point(10, 20).transform(svgMatrix);
 V.transformPoint({ x: 10, y: 20 }, matrix);
 V.transformRect({ x: 0, y: 0, width: 10, height: 20 }, svgMatrix);
+
+// Polyline, Polygon: created from a polyline or a polygon
+const polylineCopies: g.Polyline[] = [new g.Polyline(polyline), new g.Polyline(polygon)];
+const polygonCopies: g.Polygon[] = [new g.Polygon(polyline), new g.Polygon(polygon)];

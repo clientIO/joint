@@ -594,6 +594,7 @@ export abstract class PolygonalChain {
     constructor();
     constructor(svgString: string);
     constructor(points: PointInit[]);
+    constructor(polyline: Polyline | Polygon);
 
     bbox(): Rect | null;
 

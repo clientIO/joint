@@ -14,6 +14,11 @@ export const Polygon = function(points) {
         return new Polygon.parse(points);
     }
 
+    if (points && (points.type === types.Polyline || points.type === types.Polygon)) {
+        // a copy of the points of the polyline (polygon)
+        points = points.points;
+    }
+
     this.points = (Array.isArray(points) ? points.map(Point) : []);
 };
 
