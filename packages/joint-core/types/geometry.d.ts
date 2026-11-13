@@ -274,8 +274,7 @@ export class Ellipse {
     constructor(center: PointInit, a: number, b: number);
     constructor(ellipse: Ellipse);
 
-    bbox(angle?: number): Rect;
-    bbox(matrix: Partial<PlainMatrix>): Rect;
+    bbox(transformation?: number | Partial<PlainMatrix>): Rect;
 
     center(): Point;
 
@@ -669,8 +668,7 @@ export class Rect implements PlainRect {
     constructor(x?: number, y?: number, width?: number, height?: number);
     constructor(r: PlainRect);
 
-    bbox(angle?: number): Rect;
-    bbox(matrix: Partial<PlainMatrix>): Rect;
+    bbox(transformation?: number | Partial<PlainMatrix>): Rect;
 
     rotateAroundCenter(angle: number): this;
 

@@ -47,11 +47,10 @@ Ellipse.prototype = {
 
         const { x, y, a: rx, b: ry } = this;
 
-        // no transformation
-        if (!transformation) return new Rect(x - rx, y - ry, 2 * rx, 2 * ry);
-
-        // an angle: the center stays where it is
-        if (typeof transformation === 'number') {
+        if (Object(transformation) !== transformation) {
+            // `transformation` is not a matrix: it is an angle, or there is none
+            if (!transformation) return new Rect(x - rx, y - ry, 2 * rx, 2 * ry);
+            // the ellipse rotated around its center
             const theta = toRad(transformation);
             const cosTheta = cos(theta);
             const sinTheta = sin(theta);

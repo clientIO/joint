@@ -147,6 +147,7 @@ QUnit.module('ellipse', function() {
                 assert.equal(ellipse.bbox(90).round(6).toString(), '-30@-10 50@50', 'the width and the height are swapped');
                 assert.equal(ellipse.bbox(180).round(6).toString(), '-20@-20 40@60');
                 assert.equal(ellipse.bbox(-90).round(6).toString(), ellipse.bbox(90).round(6).toString());
+                assert.equal(ellipse.bbox('90').round(6).toString(), ellipse.bbox(90).round(6).toString(), 'an angle given as a string');
                 assert.equal(ellipse.toString(), '10@20 30 40', 'the ellipse is not changed');
                 // a circle is the same for every angle
                 assert.equal(new g.Ellipse(new g.Point(10, 20), 30, 30).bbox(33).round(6).toString(), '-20@-10 40@50');

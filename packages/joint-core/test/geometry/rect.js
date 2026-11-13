@@ -118,6 +118,16 @@ QUnit.module('rect', function() {
                 assert.ok(r2.round().equals(new g.Rect(5, 25, 40, 30)));
             });
 
+            QUnit.test('returns a copy when there is no transformation, takes an angle given as a string', function(assert) {
+
+                const rect = new g.Rect(10, 20, 30, 40);
+                assert.notEqual(rect.bbox(), rect);
+                assert.equal(rect.bbox().toString(), '10@20 40@60');
+                assert.notEqual(rect.bbox(0), rect);
+                assert.equal(rect.bbox(null).toString(), '10@20 40@60');
+                assert.equal(rect.bbox('90').round().toString(), rect.bbox(90).round().toString());
+            });
+
             QUnit.test('returns the bounding box of the rectangle transformed by a matrix', function(assert) {
 
                 const rect = new g.Rect(10, 20, 30, 40);
@@ -133,6 +143,14 @@ QUnit.module('rect', function() {
                 // the bounding box of the four transformed corners
                 const corners = [rect.topLeft(), rect.topRight(), rect.bottomRight(), rect.bottomLeft()];
                 assert.equal(bbox.toString(), new g.Polygon(corners).transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }).bbox().toString());
+                // matrices that make each of the corners the outermost one
+                [
+                    { a: 2, b: -0.5, c: 1, d: 3, e: 10, f: -20 },
+                    { a: -2, b: 0.5, c: 1, d: -3, e: 0, f: 0 },
+                    { a: 0.5, b: 2, c: 3, d: -1, e: -7, f: 4 }
+                ].forEach(function(matrix, index) {
+                    assert.equal(rect.bbox(matrix).toString(), new g.Polygon(corners).transform(matrix).bbox().toString(), 'matrix ' + index);
+                });
             });
         });
 

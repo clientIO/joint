@@ -92,19 +92,14 @@ Rect.prototype = {
 
     type: types.Rect,
 
-    // Find my bounding box when I'm rotated with the center of rotation in the center of me.
-    // @return r {rectangle} representing a bounding box
     // Returns the bounding box of the transformed rectangle.
     // `transformation` is an angle (the rectangle is rotated around its center),
     // or a matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`; the fields missing in it
     // are the ones of the identity matrix).
     bbox: function(transformation) {
 
-        // no transformation
-        if (!transformation) return this.clone();
-
-        // an angle
-        if (typeof transformation === 'number') {
+        if (Object(transformation) !== transformation) {
+            // `transformation` is not a matrix: it is an angle, or there is none
             return this.clone().rotateAroundCenter(transformation);
         }
 
