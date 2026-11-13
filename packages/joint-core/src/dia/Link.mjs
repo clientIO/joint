@@ -438,15 +438,15 @@ export const Link = Cell.extend({
     },
 
     getSourcePoint: function() {
-        var sourceCell = this.getSourceCell();
-        if (!sourceCell) return new Point(this.source());
-        return sourceCell.getPointFromConnectedLink(this, 'source');
+        const { graph } = this;
+        if (!graph) return new Point(this.source());
+        return graph.getLinkEndPoint(this, 'source');
     },
 
     getTargetPoint: function() {
-        var targetCell = this.getTargetCell();
-        if (!targetCell) return new Point(this.target());
-        return targetCell.getPointFromConnectedLink(this, 'target');
+        const { graph } = this;
+        if (!graph) return new Point(this.target());
+        return graph.getLinkEndPoint(this, 'target');
     },
 
     getPointFromConnectedLink: function(/* link, endType */) {
@@ -454,10 +454,14 @@ export const Link = Cell.extend({
     },
 
     getPolyline: function() {
+        const { graph } = this;
+        const [sourcePoint, targetPoint] = graph
+            ? graph.getLinkEndPoints(this)
+            : [new Point(this.source()), new Point(this.target())];
         const points = [
-            this.getSourcePoint(),
+            sourcePoint,
             ...this.vertices().map(Point),
-            this.getTargetPoint()
+            targetPoint
         ];
         return new Polyline(points);
     },

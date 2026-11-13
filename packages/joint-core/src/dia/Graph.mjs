@@ -37,6 +37,12 @@ export const Graph = Model.extend({
      */
     ignoreLayers: false,
 
+    /**
+     * @private
+     * @description The `getElementGeometry` option of the graph.
+     */
+    _getElementGeometry: null,
+
     initialize: function(attrs, options = {}) {
 
         const layerCollection = this.layerCollection = new GraphLayerCollection([], {
@@ -65,6 +71,10 @@ export const Graph = Model.extend({
             this.ignoreLayers = true;
         }
 
+        if (typeof options.getElementGeometry === 'function') {
+            this._getElementGeometry = options.getElementGeometry;
+        }
+
         // `Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
         // must be reflected in the `al` object. This object provides fast answers to
@@ -77,6 +87,112 @@ export const Graph = Model.extend({
         this.hierarchyIndex = new GraphHierarchyIndex({ layerCollection });
 
         this._batches = {};
+    },
+
+    /**
+     * @public
+     * @description Returns the geometry of the element, relative to its top-left
+     * corner. The rotation of the element is not applied.
+     * It is the rectangle of the element unless the `getElementGeometry` option
+     * provides a shape (the option returns `null` to use the rectangle).
+     * @param {dia.Element} element
+     * @returns {g.Shape}
+     */
+    getElementGeometry: function(element) {
+        const { _getElementGeometry } = this;
+        if (_getElementGeometry) {
+            const geometry = _getElementGeometry.call(this, { model: element, port: null });
+            if (geometry) return geometry;
+        }
+        const { width, height } = element.size();
+        return new g.Rect(0, 0, width, height);
+    },
+
+    /**
+     * @public
+     * @description Returns the geometry of the port of the element, relative to
+     * the center of the port. Neither the rotation of the element nor the angle
+     * of the port is applied.
+     * It is the rectangle of the port unless the `getElementGeometry` option
+     * provides a shape (the option returns `null` to use the rectangle).
+     * @param {dia.Element} element
+     * @param {string|number} portId
+     * @returns {g.Shape}
+     */
+    getPortGeometry: function(element, portId) {
+        const { _getElementGeometry } = this;
+        if (_getElementGeometry) {
+            const geometry = _getElementGeometry.call(this, { model: element, port: portId });
+            if (geometry) return geometry;
+        }
+        const { width, height } = element.getPortRelativeRect(portId);
+        return new g.Rect(-width / 2, -height / 2, width, height);
+    },
+
+    /**
+     * @private
+     * @description Returns the point of the cell connected at the given end of the link
+     * (the center of an element or of its port), or the point the end is pinned to.
+     */
+    _getLinkEndAnchor: function(link, endType) {
+        const cell = (endType === 'source') ? link.getSourceCell() : link.getTargetCell();
+        if (!cell) return new g.Point(link.get(endType));
+        return cell.getPointFromConnectedLink(link, endType);
+    },
+
+    /**
+     * @public
+     * @description Returns the point where the link meets the geometry of the element
+     * at the given end, or the anchor of the end when there is no such point.
+     * @param {dia.Link} link
+     * @param {'source'|'target'} endType
+     * @returns {g.Point}
+     */
+    getLinkEndPoint: function(link, endType) {
+        const anchor = this._getLinkEndAnchor(link, endType);
+        if (!this._getElementGeometry) return anchor;
+        return this._getLinkEndPoint(link, endType, anchor, null);
+    },
+
+    /**
+     * @public
+     * @description Returns the source and the target point of the link
+     * (see `getLinkEndPoint()`).
+     * @param {dia.Link} link
+     * @returns {[g.Point, g.Point]}
+     */
+    getLinkEndPoints: function(link) {
+        const sourceAnchor = this._getLinkEndAnchor(link, 'source');
+        const targetAnchor = this._getLinkEndAnchor(link, 'target');
+        if (!this._getElementGeometry) return [sourceAnchor, targetAnchor];
+        return [
+            this._getLinkEndPoint(link, 'source', sourceAnchor, targetAnchor),
+            this._getLinkEndPoint(link, 'target', targetAnchor, sourceAnchor)
+        ];
+    },
+
+    /**
+     * @private
+     * @description Returns the point where the link meets the geometry of the element
+     * at the given end. The `oppositeAnchor` is found on demand when it is `null`.
+     */
+    _getLinkEndPoint: function(link, endType, anchor, oppositeAnchor) {
+        const isSource = (endType === 'source');
+        const element = isSource ? link.getSourceCell() : link.getTargetCell();
+        if (!element || !element.isElement()) return anchor;
+        const { port } = link.get(endType);
+        const vertices = link.vertices();
+        let adjacentPoint;
+        if (vertices.length > 0) {
+            adjacentPoint = vertices[isSource ? 0 : vertices.length - 1];
+        } else {
+            adjacentPoint = oppositeAnchor || this._getLinkEndAnchor(link, isSource ? 'target' : 'source');
+        }
+        const line = new g.Line(adjacentPoint, anchor);
+        const intersection = (port != null && element.hasPort(port))
+            ? element.getPortGeometryIntersection(port, line)
+            : element.getGeometryIntersection(line);
+        return intersection || anchor;
     },
 
     toJSON: function(opt = {}) {
