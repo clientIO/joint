@@ -15,6 +15,10 @@ const {
 // see `isLine()`
 const LINE_TOLERANCE = 1e-9;
 
+// The largest number of times `getSubdivisions()` divides the curve in two: at most 2^20 (about a million) subdivisions.
+// The default precision needs 6 iterations, a precision of 10 needs 18 to 20.
+const MAX_SUBDIVISION_ITERATIONS = 20;
+
 // The coordinate in the middle of two coordinates.
 // Written the way `Point.prototype.lerp()` computes it for `t = 0.5`, so that the results are the same.
 function midCoordinate(a, b) {
@@ -708,14 +712,26 @@ Curve.prototype = {
             const newCoords = divideCurves(coords);
             const length = measureCurves(newCoords);
 
+            // the length can not be measured (a coordinate is not a finite number, or is too large):
+            // it would never settle, so there is no point in dividing any further
+            if (!Number.isFinite(length)) {
+                return createCurves(newCoords);
+            }
+
             // check if we have reached minimum number of iterations
             if (iteration >= minIterations) {
 
                 // check if we have reached required observed precision
+                // (written so that a ratio that is not a number ends the loop too)
                 const observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
-                if (observedPrecisionRatio < precisionRatio) {
+                if (!(observedPrecisionRatio >= precisionRatio)) {
                     return createCurves(newCoords);
                 }
+            }
+
+            // a precision that can not be reached must not divide forever
+            if (iteration >= MAX_SUBDIVISION_ITERATIONS) {
+                return createCurves(newCoords);
             }
 
             // otherwise, set up for next iteration
