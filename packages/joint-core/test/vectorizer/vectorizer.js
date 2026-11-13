@@ -750,6 +750,23 @@ QUnit.module('vectorizer', function(hooks) {
         assert.equal(V.transformPoint({ x: 10, y: 20 }, { e: 5, f: 6 }).toString(), '15@26');
         assert.equal(V.transformRect({ x: 0, y: 0, width: 10, height: 20 }, { a: 2, d: 3 }).toString(), '0@0 20@60');
         assert.equal(V.transformLine(new g.Line('1 2', '3 4'), {}).toString(), '1@2 3@4');
+
+        // a polyline of no points needs no matrix
+        assert.equal(V.transformPolyline([]).points.length, 0);
+        assert.equal(V.transformPolyline(new g.Polyline()).points.length, 0);
+        assert.ok(V.transformPolyline([]) instanceof g.Polyline);
+        assert.equal(V.transformPolyline([{ x: 1, y: 2 }], { e: 10 }).serialize(), '11,2', 'an array of plain points');
+
+        // the arguments are not changed
+        const inputPoint = { x: 10, y: 20 };
+        const inputRect = { x: 0, y: 0, width: 10, height: 20 };
+        const inputLine = new g.Line('1 2', '3 4');
+        V.transformPoint(inputPoint, plainMatrix);
+        V.transformRect(inputRect, plainMatrix);
+        V.transformLine(inputLine, plainMatrix);
+        assert.deepEqual(inputPoint, { x: 10, y: 20 });
+        assert.deepEqual(inputRect, { x: 0, y: 0, width: 10, height: 20 });
+        assert.equal(inputLine.toString(), '1@2 3@4');
     });
 
     QUnit.test('findParentByClass', function(assert) {

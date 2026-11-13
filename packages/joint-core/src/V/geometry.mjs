@@ -60,6 +60,8 @@ export function transformLine(l, matrix) {
 export function transformPolyline(p, matrix) {
     let inPoints = (p instanceof Polyline) ? p.points : p;
     if (!Array.isArray(inPoints)) inPoints = [];
+    // no points: the matrix is not needed (and does not have to be passed)
+    if (inPoints.length === 0) return new Polyline();
     // TODO (v5): return new Polyline(inPoints).transform(matrix);
     const plainMatrix = toPlainMatrix(matrix);
     const outPoints = [];
@@ -77,21 +79,27 @@ export function transformPolyline(p, matrix) {
  */
 export function transformRect(r, matrix) {
     // TODO (v5): return new Rect(r).bbox(matrix);
-    const plainMatrix = toPlainMatrix(matrix);
-    const x1 = r.x;
-    const y1 = r.y;
-    const x2 = r.x + r.width;
-    const y2 = r.y + r.height;
+    // @perf The four corners are transformed as numbers: no point is created for them.
+    // The rounding is the same as in `transformFloat32Point()`.
+    const { a, b, c, d, e, f } = toPlainMatrix(matrix);
+    const x1 = fround(r.x);
+    const y1 = fround(r.y);
+    const x2 = fround(r.x + r.width);
+    const y2 = fround(r.y + r.height);
 
-    const corner1 = transformFloat32Point(x1, y1, plainMatrix);
-    const corner2 = transformFloat32Point(x2, y1, plainMatrix);
-    const corner3 = transformFloat32Point(x2, y2, plainMatrix);
-    const corner4 = transformFloat32Point(x1, y2, plainMatrix);
+    const corner1X = fround(a * x1 + c * y1 + e);
+    const corner1Y = fround(b * x1 + d * y1 + f);
+    const corner2X = fround(a * x2 + c * y1 + e);
+    const corner2Y = fround(b * x2 + d * y1 + f);
+    const corner3X = fround(a * x2 + c * y2 + e);
+    const corner3Y = fround(b * x2 + d * y2 + f);
+    const corner4X = fround(a * x1 + c * y2 + e);
+    const corner4Y = fround(b * x1 + d * y2 + f);
 
-    const minX = min(corner1.x, corner2.x, corner3.x, corner4.x);
-    const maxX = max(corner1.x, corner2.x, corner3.x, corner4.x);
-    const minY = min(corner1.y, corner2.y, corner3.y, corner4.y);
-    const maxY = max(corner1.y, corner2.y, corner3.y, corner4.y);
+    const minX = min(corner1X, corner2X, corner3X, corner4X);
+    const maxX = max(corner1X, corner2X, corner3X, corner4X);
+    const minY = min(corner1Y, corner2Y, corner3Y, corner4Y);
+    const maxY = max(corner1Y, corner2Y, corner3Y, corner4Y);
 
     return new Rect(minX, minY, maxX - minX, maxY - minY);
 }
