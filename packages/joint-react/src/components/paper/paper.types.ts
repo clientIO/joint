@@ -475,6 +475,23 @@ export interface PaperProps extends PaperSupportedOptions, PropsWithChildren, Pa
   readonly transform?: PaperTransform;
 
   /**
+   * Fits the content to the paper once its elements are measured, and again after
+   * a graph reset. Centered and based on model geometry by default; pass
+   * [`transformToFitContent`](https://docs.jointjs.com/api/dia/Paper#transformtofitcontent)
+   * options to tune it. Ignored when `transform` is set, and skipped while the paper
+   * has no size (e.g. a hidden tab). Runs after `useOnElementsMeasured` callbacks in
+   * this paper's children, not after those mounted outside it. Later edits don't
+   * re-fit; call `paper.transformToFitContent()` for that.
+   * @default false
+   * @example
+   * ```tsx
+   * <Paper fitToContent />
+   * <Paper fitToContent={{ padding: 40, maxScale: 1 }} />
+   * ```
+   */
+  readonly fitToContent?: boolean | dia.Paper.TransformToFitContentOptions;
+
+  /**
    * Maximum pointer travel (in px) still treated as a click rather than a drag.
    * Moving farther than this between press and release suppresses the
    * `pointerclick` event.
