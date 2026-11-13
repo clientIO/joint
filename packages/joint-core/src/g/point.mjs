@@ -12,6 +12,7 @@ import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
 import { types } from './types.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 
 const {
     abs,
@@ -329,6 +330,14 @@ Point.prototype = {
         }
 
         return 180 * rad / PI;
+    },
+
+    // Applies the transformation matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`) to the point.
+    // The fields missing in the matrix are the ones of the identity matrix.
+    transform: function(matrix) {
+
+        transformPoint(this, toPlainMatrix(matrix));
+        return this;
     },
 
     toJSON: function() {

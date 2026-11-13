@@ -7,6 +7,7 @@ import { Line } from './line.mjs';
 import { Curve } from './curve.mjs';
 import { types } from './types.mjs';
 import { extend } from './extend.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 export const Path = function(arg) {
 
     if (!(this instanceof Path)) {
@@ -1232,6 +1233,17 @@ Path.prototype = {
         return pathData.trim();
     },
 
+    transform: function(matrix) {
+
+        const plainMatrix = toPlainMatrix(matrix);
+        const segments = this.segments;
+        for (let i = 0, n = segments.length; i < n; i++) {
+            segments[i].transform(plainMatrix);
+        }
+
+        return this;
+    },
+
     translate: function(tx, ty) {
 
         var segments = this.segments;
@@ -1528,6 +1540,11 @@ var segmentPrototype = {
     },
 
     // virtual
+    transform: function() {
+
+        throw new Error('Declaration missing for virtual function.');
+    },
+
     translate: function() {
 
         throw new Error('Declaration missing for virtual function.');
@@ -1702,6 +1719,12 @@ var linetoPrototype = {
         return this.type + ' ' + this.start + ' ' + this.end;
     },
 
+    transform: function(matrix) {
+
+        transformPoint(this.end, toPlainMatrix(matrix));
+        return this;
+    },
+
     translate: function(tx, ty) {
 
         this.end.translate(tx, ty);
@@ -1869,6 +1892,15 @@ var curvetoPrototype = {
     toString: function() {
 
         return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+    },
+
+    transform: function(matrix) {
+
+        const plainMatrix = toPlainMatrix(matrix);
+        transformPoint(this.controlPoint1, plainMatrix);
+        transformPoint(this.controlPoint2, plainMatrix);
+        transformPoint(this.end, plainMatrix);
+        return this;
     },
 
     translate: function(tx, ty) {
@@ -2101,6 +2133,12 @@ var movetoPrototype = {
         return this.type + ' ' + this.end;
     },
 
+    transform: function(matrix) {
+
+        transformPoint(this.end, toPlainMatrix(matrix));
+        return this;
+    },
+
     translate: function(tx, ty) {
 
         this.end.translate(tx, ty);
@@ -2209,6 +2247,11 @@ var closepathPrototype = {
     toString: function() {
 
         return this.type + ' ' + this.start + ' ' + this.end;
+    },
+
+    transform: function() {
+
+        return this;
     },
 
     translate: function() {

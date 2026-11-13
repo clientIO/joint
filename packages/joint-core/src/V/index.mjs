@@ -14,6 +14,7 @@ import {
     transformNode, replaceTransformNode,
 } from './transform.mjs';
 import { getCommonAncestor } from './traverse.mjs';
+import { transformPoint, transformLine, transformPolyline, transformRect } from './geometry.mjs';
 
 const V = (function() {
 
@@ -32,7 +33,6 @@ const V = (function() {
     var atan2 = math.atan2;
     var sqrt = math.sqrt;
     var min = math.min;
-    var max = math.max;
     var cos = math.cos;
     var sin = math.sin;
 
@@ -1757,55 +1757,13 @@ const V = (function() {
         return p;
     };
 
-    V.transformRect = function(r, matrix) {
+    V.transformRect = transformRect;
 
-        var p = internalSVGDocument.createSVGPoint();
+    V.transformPoint = transformPoint;
 
-        p.x = r.x;
-        p.y = r.y;
-        var corner1 = p.matrixTransform(matrix);
+    V.transformLine = transformLine;
 
-        p.x = r.x + r.width;
-        p.y = r.y;
-        var corner2 = p.matrixTransform(matrix);
-
-        p.x = r.x + r.width;
-        p.y = r.y + r.height;
-        var corner3 = p.matrixTransform(matrix);
-
-        p.x = r.x;
-        p.y = r.y + r.height;
-        var corner4 = p.matrixTransform(matrix);
-
-        var minX = min(corner1.x, corner2.x, corner3.x, corner4.x);
-        var maxX = max(corner1.x, corner2.x, corner3.x, corner4.x);
-        var minY = min(corner1.y, corner2.y, corner3.y, corner4.y);
-        var maxY = max(corner1.y, corner2.y, corner3.y, corner4.y);
-
-        return new g.Rect(minX, minY, maxX - minX, maxY - minY);
-    };
-
-    V.transformPoint = function(p, matrix) {
-
-        return new g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
-    };
-
-    V.transformLine = function(l, matrix) {
-
-        return new g.Line(
-            V.transformPoint(l.start, matrix),
-            V.transformPoint(l.end, matrix)
-        );
-    };
-
-    V.transformPolyline = function(p, matrix) {
-
-        var inPoints = (p instanceof g.Polyline) ? p.points : p;
-        if (!V.isArray(inPoints)) inPoints = [];
-        var outPoints = [];
-        for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = V.transformPoint(inPoints[i], matrix);
-        return new g.Polyline(outPoints);
-    };
+    V.transformPolyline = transformPolyline;
 
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
     // an object (`{ fill: 'blue', stroke: 'red' }`).

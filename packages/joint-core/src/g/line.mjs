@@ -6,6 +6,7 @@ import { length } from './line.length.mjs';
 import { intersection } from './line.intersection.mjs';
 import { ensurePoint } from './point.ensure.mjs';
 import { types } from './types.mjs';
+import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 
 const {
     max,
@@ -327,6 +328,14 @@ Line.prototype = {
     serialize: function() {
 
         return this.start.serialize() + ' ' + this.end.serialize();
+    },
+
+    transform: function(matrix) {
+
+        const plainMatrix = toPlainMatrix(matrix);
+        transformPoint(this.start, plainMatrix);
+        transformPoint(this.end, plainMatrix);
+        return this;
     },
 
     translate: function(tx, ty) {

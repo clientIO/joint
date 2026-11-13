@@ -255,6 +255,13 @@ export namespace Graph {
         [key: string]: any;
     }
 
+    interface ElementGeometryCallbackArgs {
+        model: Element;
+        port: Element.PortID | null;
+    }
+
+    type ElementGeometryCallback = (args: ElementGeometryCallbackArgs) => g.Shape | null;
+
     interface ConnectionOptions extends Cell.EmbeddableOptions {
         inbound?: boolean;
         outbound?: boolean;
@@ -363,9 +370,18 @@ export class Graph<A extends ObjectHash = Graph.Attributes, S = ModelSetOptions>
         cellNamespace?: any,
         layerNamespace?: any,
         ignoreLayers?: boolean,
+        getElementGeometry?: Graph.ElementGeometryCallback,
         /** @deprecated use cellNamespace instead */
         cellModel?: typeof Cell
     });
+
+    getElementGeometry(element: Element): g.Shape;
+
+    getPortGeometry(element: Element, portId: Element.PortID): g.Shape;
+
+    getLinkEndPoint(link: Link, endType: LinkEnd): g.Point;
+
+    getLinkEndPoints(link: Link): [source: g.Point, target: g.Point];
 
     // events
 
@@ -961,6 +977,10 @@ export class Element<A extends ObjectHash = Element.Attributes, S extends mvc.Mo
     fitParent(opt?: Element.FitParentOptions): this;
 
     getBBox(opt?: Element.BBoxOptions): g.Rect;
+
+    getGeometryIntersection(line: g.Line): g.Point | null;
+
+    getPortGeometryIntersection(portId: Element.PortID, line: g.Line): g.Point | null;
 
     addPort(port: Element.Port, opt?: S): this;
 

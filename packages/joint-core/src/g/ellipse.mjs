@@ -1,11 +1,15 @@
 import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { types } from './types.mjs';
+import { toRad } from './geometry.helpers.mjs';
+import { toPlainMatrix } from './matrix.helpers.mjs';
 
 const {
     sqrt,
     round,
-    pow
+    pow,
+    cos,
+    sin
 } = Math;
 
 export const Ellipse = function(c, a, b) {
@@ -35,9 +39,31 @@ Ellipse.prototype = {
 
     type: types.Ellipse,
 
-    bbox: function() {
+    // Returns the bounding box of the transformed ellipse.
+    // `transformation` is an angle (the ellipse is rotated around its center),
+    // or a matrix (an object with `a`, `b`, `c`, `d`, `e`, `f`; the fields missing in it
+    // are the ones of the identity matrix).
+    bbox: function(transformation) {
 
-        return new Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
+        const { x, y, a: rx, b: ry } = this;
+
+        if (Object(transformation) !== transformation) {
+            // `transformation` is not a matrix: it is an angle, or there is none
+            if (!transformation) return new Rect(x - rx, y - ry, 2 * rx, 2 * ry);
+            // the ellipse rotated around its center
+            const theta = toRad(transformation);
+            const cosTheta = cos(theta);
+            const sinTheta = sin(theta);
+            const halfWidth = sqrt((rx * cosTheta) * (rx * cosTheta) + (ry * sinTheta) * (ry * sinTheta));
+            const halfHeight = sqrt((rx * sinTheta) * (rx * sinTheta) + (ry * cosTheta) * (ry * cosTheta));
+            return new Rect(x - halfWidth, y - halfHeight, 2 * halfWidth, 2 * halfHeight);
+        }
+
+        // a matrix: the transformed ellipse is an ellipse too, possibly a rotated one
+        const { a, b, c, d, e, f } = toPlainMatrix(transformation);
+        const halfWidth = sqrt((a * rx) * (a * rx) + (c * ry) * (c * ry));
+        const halfHeight = sqrt((b * rx) * (b * rx) + (d * ry) * (d * ry));
+        return new Rect(a * x + c * y + e - halfWidth, b * x + d * y + f - halfHeight, 2 * halfWidth, 2 * halfHeight);
     },
 
     /**

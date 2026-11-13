@@ -870,6 +870,67 @@ QUnit.module('cell', function(hooks) {
         });
     });
 
+    QUnit.module('getGeometryIntersection(), getPortGeometryIntersection()', function() {
+
+        function createElement(attributes, getElementGeometry) {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes, getElementGeometry });
+            const el = new joint.shapes.standard.Rectangle({
+                position: { x: 20, y: 30 },
+                size: { width: 100, height: 100 },
+                ports: {
+                    groups: { abs: { position: { name: 'absolute' }, size: { width: 20, height: 10 }}},
+                    items: [{ id: 'p1', group: 'abs', args: { x: 100, y: 50, angle: 90 }}]
+                },
+                ...attributes
+            });
+            graph.addCell(el);
+            return el;
+        }
+
+        QUnit.test('returns the intersection closest to the start of the line', function(assert) {
+            const el = createElement();
+            const line = new g.Line(new g.Point(320, 80), new g.Point(-80, 80));
+            assert.equal(el.getGeometryIntersection(line).toString(), '120@80');
+            assert.equal(el.getGeometryIntersection(new g.Line(line.end, line.start)).toString(), '20@80');
+            assert.equal(line.toString(), '320@80 -80@80');
+        });
+
+        QUnit.test('returns null when there is no intersection', function(assert) {
+            const el = createElement();
+            assert.equal(el.getGeometryIntersection(new g.Line(new g.Point(60, 80), new g.Point(70, 80))), null);
+            assert.equal(el.getGeometryIntersection(new g.Line(new g.Point(320, 80), new g.Point(220, 80))), null);
+        });
+
+        QUnit.test('returns null when the element is not in a graph', function(assert) {
+            const el = new joint.shapes.standard.Rectangle({ size: { width: 100, height: 100 }});
+            assert.equal(el.getGeometryIntersection(new g.Line(new g.Point(300, 50), new g.Point(50, 50))), null);
+            assert.equal(el.getPortGeometryIntersection('p1', new g.Line(new g.Point(300, 50), new g.Point(50, 50))), null);
+        });
+
+        QUnit.test('uses the geometry of the graph and the rotation of the element', function(assert) {
+            const geometry = new g.Rect(0, 0, 80, 100);
+            const el = createElement({ angle: 90 }, () => geometry);
+            const line = new g.Line(new g.Point(70, 330), new g.Point(70, 80));
+            assert.equal(el.getGeometryIntersection(line).round().toString(), '70@110');
+            assert.equal(geometry.toString(), '0@0 80@100');
+        });
+
+        QUnit.test('uses the geometry, the center and the angle of the port', function(assert) {
+            const el = createElement({}, ({ port }) => (port === 'p1') ? new g.Rect(0, -5, 30, 10) : null);
+            const line = new g.Line(new g.Point(120, 330), new g.Point(120, 80));
+            assert.equal(el.getPortGeometryIntersection('p1', line).round().toString(), '120@110');
+            el.rotate(90);
+            const rotatedLine = new g.Line(new g.Point(-200, 130), new g.Point(70, 130));
+            assert.equal(el.getPortGeometryIntersection('p1', rotatedLine).round().toString(), '40@130');
+        });
+
+        QUnit.test('uses the rectangle of the port by default', function(assert) {
+            const el = createElement();
+            const line = new g.Line(new g.Point(120, 330), new g.Point(120, 80));
+            assert.equal(el.getPortGeometryIntersection('p1', line).round().toString(), '120@90');
+        });
+    });
+
     QUnit.module('relative vs absolute points', function() {
 
         QUnit.test('getRelativePointFromAbsolute()', function(assert) {

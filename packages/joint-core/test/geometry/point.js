@@ -247,6 +247,45 @@ QUnit.module('point', function() {
             });
         });
 
+        QUnit.module('transform(matrix)', function() {
+
+            QUnit.test('applies the matrix to the point and returns the point', function(assert) {
+
+                const point = new g.Point(10, 20);
+                assert.equal(point.transform({ a: 2, b: 0.5, c: -1, d: 3, e: 10, f: -20 }), point);
+                assert.equal(point.toString(), '10@45');
+                assert.equal(new g.Point(10, 20).transform({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }).toString(), '10@20', 'identity');
+                assert.equal(new g.Point(10, 20).transform({ a: 1, b: 0, c: 0, d: 1, e: 5, f: 6 }).toString(), '15@26', 'translation');
+                assert.equal(new g.Point(10, 20).transform({ a: 2, b: 0, c: 0, d: 3, e: 0, f: 0 }).toString(), '20@60', 'scale');
+                assert.equal(new g.Point(10, 20).transform({ a: 0, b: 1, c: -1, d: 0, e: 0, f: 0 }).toString(), '-20@10', 'rotation by 90 degrees');
+                assert.equal(new g.Point(10, 20).transform({ a: 0, b: 1, c: -1, d: 0, e: 0, f: 0 }).toString(), new g.Point(10, 20).rotate(null, -90).round(10).toString(), 'the same as rotate()');
+            });
+
+            QUnit.test('reads the matrix from any object with the six fields', function(assert) {
+
+                class Matrix {
+                    get a() { return 0; }
+                    get b() { return 1; }
+                    get c() { return -1; }
+                    get d() { return 0; }
+                    get e() { return 100; }
+                    get f() { return 50; }
+                }
+                assert.equal(new g.Point(10, 20).transform(new Matrix()).toString(), '80@60');
+            });
+
+            QUnit.test('takes the missing fields of the matrix from the identity matrix', function(assert) {
+
+                assert.equal(new g.Point(10, 20).transform({ e: 5, f: 6 }).toString(), '15@26', 'translation');
+                assert.equal(new g.Point(10, 20).transform({ a: 2, d: 3 }).toString(), '20@60', 'scale');
+                assert.equal(new g.Point(10, 20).transform({ b: 1, c: -1 }).toString(), '-10@30', 'only b and c');
+                assert.equal(new g.Point(10, 20).transform({}).toString(), '10@20', 'no fields');
+                assert.throws(function() {
+                    new g.Point(10, 20).transform();
+                }, 'no matrix');
+            });
+        });
+
         QUnit.module('translate(tx, ty)', function() {
 
             QUnit.test('sanity', function(assert) {
