@@ -663,6 +663,112 @@ QUnit.module('vectorizer', function(hooks) {
         assert.deepEqual({ x: t.x, y: t.y }, { x: -2, y: 1 }, 'transform with rotate transformation returns correct point.');
     });
 
+    QUnit.test('V.transformPoint, V.transformLine, V.transformPolyline, V.transformRect - the same results as the DOM', function(assert) {
+
+        // The functions do not use `SVGPoint.matrixTransform()` anymore, but have to return what it returns.
+        const svg = V('svg').node;
+        const domPoint = svg.createSVGPoint();
+        const transformWithDOM = function(x, y, matrix) {
+            domPoint.x = x;
+            domPoint.y = y;
+            return domPoint.matrixTransform(matrix);
+        };
+        const matrices = [
+            svg.createSVGMatrix(),
+            svg.createSVGMatrix().translate(100.123, -50.456),
+            svg.createSVGMatrix().scaleNonUniform(2.5, 0.3),
+            svg.createSVGMatrix().rotate(33.3),
+            svg.createSVGMatrix().translate(10, 20).rotate(-123.4).scaleNonUniform(1.7, 2.9).skewX(15),
+            svg.createSVGMatrix().flipX().skewY(-40).translate(1e-3, 1e5)
+        ];
+        // a deterministic generator
+        let seed = 1;
+        const random = function(min, max) {
+            seed = (seed * 1664525 + 1013904223) >>> 0;
+            return min + (seed / 4294967296) * (max - min);
+        };
+
+        let numPoints = 0;
+        let numDifferentPoints = 0;
+        let numDifferentLines = 0;
+        let numDifferentPolylines = 0;
+        let numDifferentRects = 0;
+        matrices.forEach(function(matrix) {
+            for (let i = 0; i < 2000; i++) {
+                const range = [1, 100, 5000, 1e7][i % 4];
+                const x1 = random(-range, range);
+                const y1 = random(-range, range);
+                const x2 = random(-range, range);
+                const y2 = random(-range, range);
+                const expected1 = transformWithDOM(x1, y1, matrix);
+                const expected1X = expected1.x;
+                const expected1Y = expected1.y;
+                const expected2 = transformWithDOM(x2, y2, matrix);
+                const expected2X = expected2.x;
+                const expected2Y = expected2.y;
+                numPoints++;
+
+                const point = V.transformPoint({ x: x1, y: y1 }, matrix);
+                if (point.x !== expected1X || point.y !== expected1Y) numDifferentPoints++;
+
+                const line = V.transformLine(new g.Line({ x: x1, y: y1 }, { x: x2, y: y2 }), matrix);
+                if (line.start.x !== expected1X || line.start.y !== expected1Y || line.end.x !== expected2X || line.end.y !== expected2Y) numDifferentLines++;
+
+                const polyline = V.transformPolyline(new g.Polyline([{ x: x1, y: y1 }, { x: x2, y: y2 }]), matrix);
+                const [first, second] = polyline.points;
+                if (first.x !== expected1X || first.y !== expected1Y || second.x !== expected2X || second.y !== expected2Y) numDifferentPolylines++;
+
+                // the bounding box of the four transformed corners
+                const width = Math.abs(x2 - x1);
+                const height = Math.abs(y2 - y1);
+                const corners = [[x1, y1], [x1 + width, y1], [x1 + width, y1 + height], [x1, y1 + height]].map(function(corner) {
+                    const { x, y } = transformWithDOM(corner[0], corner[1], matrix);
+                    return { x, y };
+                });
+                const xs = corners.map((corner) => corner.x);
+                const ys = corners.map((corner) => corner.y);
+                const minX = Math.min(...xs);
+                const minY = Math.min(...ys);
+                const rect = V.transformRect({ x: x1, y: y1, width, height }, matrix);
+                if (rect.x !== minX || rect.y !== minY || rect.width !== Math.max(...xs) - minX || rect.height !== Math.max(...ys) - minY) numDifferentRects++;
+            }
+        });
+
+        assert.equal(numPoints, 12000);
+        assert.equal(numDifferentPoints, 0, 'V.transformPoint');
+        assert.equal(numDifferentLines, 0, 'V.transformLine');
+        assert.equal(numDifferentPolylines, 0, 'V.transformPolyline');
+        assert.equal(numDifferentRects, 0, 'V.transformRect');
+
+        // a matrix given as a plain object
+        const plainMatrix = { a: 0, b: 1, c: -1, d: 0, e: 100, f: 50 };
+        assert.equal(V.transformPoint({ x: 10, y: 20 }, plainMatrix).toString(), '80@60');
+        assert.ok(V.transformPoint({ x: 10, y: 20 }, plainMatrix) instanceof g.Point);
+        assert.equal(V.transformRect({ x: 0, y: 0, width: 10, height: 20 }, plainMatrix).toString(), '80@50 100@60');
+        assert.ok(V.transformRect({ x: 0, y: 0, width: 10, height: 20 }, plainMatrix) instanceof g.Rect);
+        // the missing fields are the ones of the identity matrix
+        assert.equal(V.transformPoint({ x: 10, y: 20 }, { e: 5, f: 6 }).toString(), '15@26');
+        assert.equal(V.transformRect({ x: 0, y: 0, width: 10, height: 20 }, { a: 2, d: 3 }).toString(), '0@0 20@60');
+        assert.equal(V.transformLine(new g.Line('1 2', '3 4'), {}).toString(), '1@2 3@4');
+
+        // a polyline of no points needs no matrix
+        assert.equal(V.transformPolyline([]).points.length, 0);
+        assert.equal(V.transformPolyline(new g.Polyline()).points.length, 0);
+        assert.ok(V.transformPolyline([]) instanceof g.Polyline);
+        assert.equal(V.transformPolyline([{ x: 1, y: 2 }], { e: 10 }).serialize(), '11,2', 'an array of plain points');
+
+        // the arguments are not changed
+        const inputPoint = { x: 10, y: 20 };
+        const inputRect = { x: 0, y: 0, width: 10, height: 20 };
+        const inputLine = new g.Line('1 2', '3 4');
+        V.transformPoint(inputPoint, plainMatrix);
+        V.transformRect(inputRect, plainMatrix);
+        V.transformLine(inputLine, plainMatrix);
+        assert.deepEqual(inputPoint, { x: 10, y: 20 });
+        assert.deepEqual(inputRect, { x: 0, y: 0, width: 10, height: 20 });
+        assert.equal(inputLine.toString(), '1@2 3@4');
+    });
+
     QUnit.test('findParentByClass', function(assert) {
 
         assert.equal(

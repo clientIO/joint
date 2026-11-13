@@ -1,5 +1,5 @@
 import { Cell } from './Cell.mjs';
-import { Point, toRad, normalizeAngle, Rect } from '../g/index.mjs';
+import { Point, Line, toRad, normalizeAngle, Rect } from '../g/index.mjs';
 import { isNumber, isObject, interpolate, assign, invoke, normalizeSides, omit } from '../util/index.mjs';
 import { elementPortPrototype } from './ports.mjs';
 
@@ -545,6 +545,63 @@ export const Element = Cell.extend({
     getCenter: function() {
         const { position: { x, y }, size: { width, height }} = this.attributes;
         return new Point(x + width / 2, y + height / 2);
+    },
+
+    /**
+     * @public
+     * @description Returns the point where the line meets the geometry of the element,
+     * the one closest to the start of the line. It is `null` when the line does not
+     * intersect the geometry, or when the element is not in a graph.
+     * The line and the result are absolute.
+     * The geometry is the one returned by `graph.getElementGeometry()`.
+     * @param {g.Line} line
+     * @returns {g.Point|null}
+     */
+    getGeometryIntersection: function(line) {
+        const { graph } = this;
+        if (!graph) return null;
+        return this._getGeometryIntersection(graph.getElementGeometry(this), line);
+    },
+
+    /**
+     * @public
+     * @description Returns the point where the line meets the geometry of the port,
+     * the one closest to the start of the line. It is `null` when the line does not
+     * intersect the geometry, or when the element is not in a graph.
+     * The line and the result are absolute.
+     * The geometry is the one returned by `graph.getPortGeometry()`.
+     * @param {string|number} portId
+     * @param {g.Line} line
+     * @returns {g.Point|null}
+     */
+    getPortGeometryIntersection: function(portId, line) {
+        const { graph } = this;
+        if (!graph) return null;
+        return this._getGeometryIntersection(
+            graph.getPortGeometry(this, portId),
+            line,
+            this.getPortRelativePosition(portId)
+        );
+    },
+
+    /**
+     * @private
+     * @description Intersects the absolute line with the relative geometry.
+     * The geometry is relative to the top-left corner of the element, or to
+     * the `origin` (a point relative to the element with an optional `angle`).
+     */
+    _getGeometryIntersection: function(geometry, line, origin = null) {
+        const { x = 0, y = 0, angle = 0 } = origin || {};
+        const relativeLine = new Line(
+            this.getRelativePointFromAbsolute(line.start).offset(-x, -y).rotate(null, angle),
+            this.getRelativePointFromAbsolute(line.end).offset(-x, -y).rotate(null, angle)
+        );
+        const intersections = relativeLine.intersect(geometry);
+        if (!intersections) return null;
+        const point = Array.isArray(intersections)
+            ? relativeLine.start.chooseClosest(intersections)
+            : intersections;
+        return this.getAbsolutePointFromRelative(point.rotate(null, -angle).offset(x, y));
     },
 
     getPointFromConnectedLink: function(link, endType) {
