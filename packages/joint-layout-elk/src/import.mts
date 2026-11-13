@@ -113,9 +113,9 @@ function buildEnd(
 ): dia.Link.EndJSON | null {
     const [elkId] = refs || [];
     if (elkId === undefined) return null;
-    const element = elementsById.get(elkId);
+    const element = state.elementsById.get(elkId);
     if (!element) return null;
-    const elementRect = elementRectsById.get(elkId);
+    const elementRect = state.elementRectsById.get(elkId);
     if (!elementRect) return null;
     // The end gained a port while the layout was running - `topLeft` would now resolve
     // against that port's bbox, not the element's, so the delta below would not apply.
@@ -141,33 +141,25 @@ const defaultSetLinkAttributes: SetLinkAttributesCallback = ({ link, attributes 
     link.set(attributes);
 };
 
-let importGraphLayoutOptions: ImportGraphLayoutOptions;
-
-let elementsById: Map<string, dia.Element>;
-let linksById: Map<string, dia.Link>;
-let portsById: Map<string, ExportedPort>;
-// The graph-absolute rect ELK gave each node, filled in as `importNode` walks down. A
-// node's children, and the edges filed under it, are imported after it, so an edge's ends
-// are always in here by the time `importEdges` reaches it.
-let elementRectsById: Map<string, g.Rect>;
-
 /**
- * (Re)initializes all the module-level state above for a single `importGraphLayout` call, so
- * that no lookup table or option can leak from one call into the next.
+ * The state of a single `importGraphLayout()` call.
  */
-function init(
-    elements: Map<string, dia.Element>,
-    links: Map<string, dia.Link>,
-    ports: Map<string, ExportedPort>,
-    options: ImportGraphLayoutOptions
-): void {
-    importGraphLayoutOptions = options;
-
-    elementsById = elements;
-    linksById = links;
-    portsById = ports;
-    elementRectsById = new Map();
+interface ImportState {
+    options: ImportGraphLayoutOptions;
+    elementsById: Map<string, dia.Element>;
+    linksById: Map<string, dia.Link>;
+    portsById: Map<string, ExportedPort>;
+    // The graph-absolute rect ELK gave each node, filled in as `importNode` walks down. A
+    // node's children, and the edges filed under it, are imported after it, so an edge's
+    // ends are always in here by the time `importEdges` reaches it.
+    elementRectsById: Map<string, g.Rect>;
 }
+
+// The state of the `importGraphLayout()` call in progress. A layout applied from one of its
+// callbacks (e.g. from `setElementAttributes`, or from a `change:position` listener) sets
+// one of its own, and puts this one back once it is done - so no lookup table or option
+// leaks from one call into another, nested or not.
+let state: ImportState;
 
 // ELK positions a node's children relative to that node's own origin - `containerPosition`
 // accumulates the offset needed to turn those relative coordinates into graph-absolute
@@ -201,10 +193,10 @@ function toPortCenter(start: number, size: number, nodeSize: number, hasMoved: b
  * `toAbsolute` above.
  */
 function importEdges(edges: ElkExtendedEdge[] | undefined): void {
-    const setLinkAttributes = importGraphLayoutOptions.setLinkAttributes ?? defaultSetLinkAttributes;
+    const setLinkAttributes = state.options.setLinkAttributes ?? defaultSetLinkAttributes;
 
     (edges || []).forEach((edge) => {
-        const link = linksById.get(edge.id);
+        const link = state.linksById.get(edge.id);
         if (!link) return;
 
         const [section] = edge.sections || [];
@@ -271,9 +263,9 @@ function importEdges(edges: ElkExtendedEdge[] | undefined): void {
  */
 function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }): void {
     const position = toAbsolute({ x: node.x || 0, y: node.y || 0 }, containerPosition);
-    elementRectsById.set(node.id, new g.Rect(position.x, position.y, node.width || 0, node.height || 0));
+    state.elementRectsById.set(node.id, new g.Rect(position.x, position.y, node.width || 0, node.height || 0));
 
-    const element = elementsById.get(node.id);
+    const element = state.elementsById.get(node.id);
     if (element) {
         // ELK sizes a container to fit its content, and some algorithms resize a leaf too
         // (`rectpacking`'s white space elimination, `elk.nodeSize.constraints`). The size
@@ -281,7 +273,7 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
         // against the element's own, so an unchanged one is not written again.
         const { width, height } = element.size();
         const hasResized = (node.width || 0) !== width || (node.height || 0) !== height;
-        const setElementAttributes = importGraphLayoutOptions.setElementAttributes ?? defaultSetElementAttributes;
+        const setElementAttributes = state.options.setElementAttributes ?? defaultSetElementAttributes;
         setElementAttributes({
             element,
             attributes: {
@@ -295,10 +287,10 @@ function importNode(node: ElkNode, containerPosition: dia.Point = { x: 0, y: 0 }
     }
 
     if (node.ports) {
-        const setPortAttributes = importGraphLayoutOptions.setPortAttributes ?? defaultSetPortAttributes;
+        const setPortAttributes = state.options.setPortAttributes ?? defaultSetPortAttributes;
 
         node.ports.forEach((port) => {
-            const found = portsById.get(port.id);
+            const found = state.portsById.get(port.id);
             if (!found) return;
             const { element, portId, x: sentX, y: sentY } = found;
             // The port was removed while the layout was running - `portsById` was built
@@ -362,10 +354,13 @@ export function importGraphLayout(
     options: ImportGraphLayoutOptions = {}
 ): void {
 
+    const outerState = state;
     const { elementsById, linksById, portsById } = index;
-
-    init(elementsById, linksById, portsById, options);
-
-    (elkGraph.children || []).forEach((node) => importNode(node));
-    importEdges(elkGraph.edges);
+    state = { options, elementsById, linksById, portsById, elementRectsById: new Map() };
+    try {
+        (elkGraph.children || []).forEach((node) => importNode(node));
+        importEdges(elkGraph.edges);
+    } finally {
+        state = outerState;
+    }
 }
