@@ -16,6 +16,40 @@ QUnit.module('path', function(hooks) {
 
     QUnit.module('constructor', function() {
 
+        QUnit.test('creates a path from a single shape', function(assert) {
+
+            const line = new g.Line(new g.Point(0, 0), new g.Point(10, 10));
+            assert.equal(new g.Path(line).serialize(), 'M 0 0 L 10 10');
+
+            const curve = new g.Curve(new g.Point(0, 0), new g.Point(0, 10), new g.Point(10, 10), new g.Point(10, 0));
+            assert.equal(new g.Path(curve).serialize(), 'M 0 0 C 0 10 10 10 10 0');
+
+            const polyline = new g.Polyline([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]);
+            assert.equal(new g.Path(polyline).serialize(), 'M 0 0 L 10 0 L 10 10');
+            assert.equal(new g.Path(new g.Polyline()).segments.length, 0);
+
+            const rect = new g.Rect(10, 20, 30, 40);
+            assert.equal(new g.Path(rect).serialize(), 'M 10 20 L 40 20 L 40 60 L 10 60 Z');
+            assert.equal(rect.toString(), '10@20 40@60');
+
+            const ellipse = new g.Ellipse(new g.Point(100, 50), 20, 10);
+            const ellipsePath = new g.Path(ellipse);
+            assert.equal(ellipsePath.segments.length, 6);
+            // the control points are `KAPPA` times the radius away
+            assert.equal(g.KAPPA, 0.551784);
+            assert.equal(ellipsePath.getSegment(1).controlPoint1.x, 100 + 20 * g.KAPPA);
+            assert.equal(ellipsePath.getSegment(1).controlPoint2.y, 50 - 10 * g.KAPPA);
+            assert.equal(ellipsePath.round(2).serialize(), 'M 100 40 C 111.04 40 120 44.48 120 50 C 120 55.52 111.04 60 100 60 C 88.96 60 80 55.52 80 50 C 80 44.48 88.96 40 100 40 Z');
+            assert.equal(ellipsePath.bbox().round().toString(), '80@40 120@60');
+
+            const path = new g.Path('M 0 0 L 10 0 Z');
+            const pathCopy = new g.Path(path);
+            assert.notEqual(pathCopy, path);
+            assert.notEqual(pathCopy.segments[0], path.segments[0]);
+            assert.equal(pathCopy.serialize(), 'M 0 0 L 10 0 Z');
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 Z');
+        });
+
         QUnit.test('creates a new Path object', function(assert) {
 
             var error;
@@ -385,6 +419,64 @@ QUnit.module('path', function(hooks) {
             assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
             assert.ok(Array.isArray(path.segments));
             assert.equal(path.segments.length, 0);
+
+            // array of polylines: each polyline is a subpath of its own
+            path = new g.Path([
+                new g.Polyline([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]),
+                new g.Polyline([new g.Point(10, 10), new g.Point(20, 10)]),
+                new g.Polyline()
+            ]);
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10 M 10 10 L 20 10');
+            assert.equal(path.toPolylines().length, 2);
+            assert.equal(path.toPolylines()[0].serialize(), '0,0 10,0 10,10');
+            assert.equal(path.toPolylines()[1].serialize(), '10,10 20,10');
+
+            // array with a polygon: a closed subpath
+            path = new g.Path([
+                new g.Polygon([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]),
+                new g.Polyline([new g.Point(20, 20), new g.Point(30, 20)])
+            ]);
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10 Z M 20 20 L 30 20');
+
+            // array of lines, polylines, curves and paths
+            const innerPath = new g.Path('M 50 50 L 60 50 Z');
+            path = new g.Path([
+                new g.Line(new g.Point(0, 0), new g.Point(10, 0)),
+                new g.Line(new g.Point(10, 0), new g.Point(10, 10)),
+                new g.Polyline([new g.Point(10, 10), new g.Point(20, 10)]),
+                new g.Line(new g.Point(20, 10), new g.Point(30, 10)),
+                new g.Curve(new g.Point(30, 10), new g.Point(30, 20), new g.Point(40, 20), new g.Point(40, 10)),
+                innerPath,
+                new g.Line(new g.Point(50, 50), new g.Point(70, 70))
+            ]);
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10 M 10 10 L 20 10 M 20 10 L 30 10 C 30 20 40 20 40 10 M 50 50 L 60 50 Z M 50 50 L 70 70');
+            assert.equal(innerPath.serialize(), 'M 50 50 L 60 50 Z');
+            assert.equal(innerPath.segments.length, 3);
+            assert.notEqual(path.segments[8], innerPath.segments[0]);
+            assert.equal(path.segments[8].end.toString(), innerPath.segments[0].end.toString());
+
+            // array with a path of several subpaths and with an empty path
+            path = new g.Path([
+                new g.Path('M 0 0 L 10 0 Z M 20 20 L 30 20'),
+                new g.Path(),
+                new g.Polyline([new g.Point(40, 40), new g.Point(50, 40)])
+            ]);
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 Z M 20 20 L 30 20 M 40 40 L 50 40');
+            assert.equal(path.toPolylines().length, 3);
+            assert.equal(new g.Path([new g.Path()]).segments.length, 0);
+
+            // array with a rectangle and an ellipse
+            path = new g.Path([
+                new g.Rect(0, 0, 10, 10),
+                new g.Ellipse(new g.Point(50, 50), 10, 10)
+            ]);
+            assert.equal(path.toPolylines().length, 2);
+            assert.equal(path.getSubpaths()[0].serialize(), 'M 0 0 L 10 0 L 10 10 L 0 10 Z');
+            assert.equal(path.getSubpaths()[1].bbox().round().toString(), '40@40 60@60');
+
+            // a single polygon is not closed
+            path = new g.Path(new g.Polygon([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]));
+            assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10');
 
             // unexpected object (error)
             try {

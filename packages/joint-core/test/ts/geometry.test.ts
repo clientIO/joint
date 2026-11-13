@@ -15,7 +15,28 @@ V('path', { d: path.serialize() });
 const curve = new g.Curve('25 505', '37.5 490', '62.5 520', '75 505');
 const curvePoints: g.Point[] = curve.toPoints({ precision: 2 });
 const curvePath = new g.Path(curve);
+const mixedPath = new g.Path([
+    new g.Line(),
+    curve,
+    new g.Polyline([new g.Point(0, 0), new g.Point(10, 10)]),
+    new g.Polygon([new g.Point(0, 0), new g.Point(10, 0), new g.Point(10, 10)]),
+    new g.Rect(0, 0, 10, 10),
+    new g.Ellipse(new g.Point(0, 0), 10, 5),
+    path
+]);
+const shapePaths: g.Path[] = [
+    new g.Path(new g.Line()),
+    new g.Path(curve),
+    new g.Path(new g.Polyline()),
+    new g.Path(new g.Rect(0, 0, 10, 10)),
+    new g.Path(new g.Ellipse(new g.Point(0, 0), 10, 5)),
+    new g.Path(path)
+];
+V('path', { d: mixedPath.serialize() });
 V('path', { d: curvePath.serialize() });
+
+// KAPPA
+const kappa: number = g.KAPPA;
 
 // Polyline, Polygon: the closest point methods accept a point given as an object or a string
 const polyline = new g.Polyline(['0 0', '10 10', '20 0']);

@@ -5,6 +5,10 @@ const {
     PI
 } = Math;
 
+// The distance of the control points of a cubic curve approximating a quarter
+// of a unit circle.
+export const KAPPA = 0.551784;
+
 export const scale = {
 
     // Return the `value` from the `domain` interval scaled to the `range` interval.

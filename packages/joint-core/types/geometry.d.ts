@@ -161,6 +161,8 @@ export type PathObjectUnit = Line | Line[] | Curve | Curve[];
 
 export type SegmentType = 'L' | 'C' | 'M' | 'Z' | 'z';
 
+export const KAPPA: number;
+
 export function normalizeAngle(angle: number): number;
 
 export function snapToGrid(val: number, gridSize: number): number;
@@ -396,7 +398,11 @@ export class Path {
     constructor(pathData: string);
     constructor(segments: PathSegmentUnit | PathSegmentUnit[]);
     constructor(objects: PathObjectUnit | PathObjectUnit[]);
+    constructor(shapes: Array<Line | Curve | Polyline | Polygon | Rect | Ellipse | Path>);
     constructor(polyline: Polyline);
+    constructor(rect: Rect);
+    constructor(ellipse: Ellipse);
+    constructor(path: Path);
 
     appendSegment(segments: PathSegmentUnit | PathSegmentUnit[]): void;
 

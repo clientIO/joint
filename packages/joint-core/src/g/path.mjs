@@ -1,4 +1,4 @@
-// Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
+// Accepts path data string, array of segments, array of shapes, or a single shape.
 // Path created is not guaranteed to be a valid (serializable) path (might not start with an M).
 import { Polyline } from './polyline.mjs';
 import { Rect } from './rect.mjs';
@@ -9,6 +9,63 @@ import { types } from './types.mjs';
 import { extend } from './extend.mjs';
 import { intersection } from './line.intersection.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
+import { KAPPA } from './geometry.helpers.mjs';
+
+function appendPolyline(path, polyline, isClosed) {
+    const { points } = polyline;
+    if (!points || points.length === 0) return; // a polyline with no points adds nothing
+    for (let i = 0, n = points.length; i < n; i++) {
+        path.appendSegment(Path.createSegment((i === 0) ? 'M' : 'L', points[i]));
+    }
+    if (isClosed) path.appendSegment(Path.createSegment('Z'));
+}
+
+function appendSegments(path, segments) {
+    for (let i = 0, n = segments.length; i < n; i++) {
+        path.appendSegment(segments[i]);
+    }
+}
+
+// Appends a shape as a subpath (subpaths) of its own.
+// Returns `false` if the object is not a shape that can be appended this way.
+function appendShape(path, shape) {
+    switch (shape && shape.type) {
+        case types.Polyline: {
+            appendPolyline(path, shape, false);
+            return true;
+        }
+        case types.Polygon: {
+            appendPolyline(path, shape, true);
+            return true;
+        }
+        case types.Rect: {
+            appendPolyline(path, { points: [shape.topLeft(), shape.topRight(), shape.bottomRight(), shape.bottomLeft()] }, true);
+            return true;
+        }
+        case types.Ellipse: {
+            const { x: cx, y: cy, a: rx, b: ry } = shape;
+            const cdx = rx * KAPPA;
+            const cdy = ry * KAPPA;
+            appendSegments(path, [
+                Path.createSegment('M', cx, cy - ry),
+                Path.createSegment('C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy),
+                Path.createSegment('C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry),
+                Path.createSegment('C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy),
+                Path.createSegment('C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry),
+                Path.createSegment('Z')
+            ]);
+            return true;
+        }
+        case types.Path: {
+            appendSegments(path, shape.clone().segments);
+            return true;
+        }
+        default: {
+            return false;
+        }
+    }
+}
+
 export const Path = function(arg) {
 
     if (!(this instanceof Path)) {
@@ -43,29 +100,33 @@ export const Path = function(arg) {
                 this.appendSegment(segment);
             }
 
-        } else { // create from an array of Curves and/or Lines
-            var previousObj = null;
+        } else { // create from an array of shapes
+            let previousEnd = null;
             for (i = 0; i < n; i++) {
 
-                var obj = arg[i];
+                const obj = arg[i];
 
-                if (!((obj instanceof Line) || (obj instanceof Curve))) {
+                if ((obj instanceof Line) || (obj instanceof Curve)) {
+                    // if objects do not link up, moveto segments are inserted to cover the gaps
+                    if (!previousEnd || !previousEnd.equals(obj.start)) this.appendSegment(Path.createSegment('M', obj.start));
+
+                    if (obj instanceof Line) {
+                        this.appendSegment(Path.createSegment('L', obj.end));
+
+                    } else {
+                        this.appendSegment(Path.createSegment('C', obj.controlPoint1, obj.controlPoint2, obj.end));
+                    }
+
+                    previousEnd = obj.end;
+                    continue;
+                }
+
+                // any other shape is a subpath (subpaths) of its own
+                if (!appendShape(this, obj)) {
                     throw new Error('Cannot construct a path segment from the provided object.');
                 }
 
-                if (i === 0) this.appendSegment(Path.createSegment('M', obj.start));
-
-                // if objects do not link up, moveto segments are inserted to cover the gaps
-                if (previousObj && !previousObj.end.equals(obj.start)) this.appendSegment(Path.createSegment('M', obj.start));
-
-                if (obj instanceof Line) {
-                    this.appendSegment(Path.createSegment('L', obj.end));
-
-                } else if (obj instanceof Curve) {
-                    this.appendSegment(Path.createSegment('C', obj.controlPoint1, obj.controlPoint2, obj.end));
-                }
-
-                previousObj = obj;
+                previousEnd = null;
             }
         }
 
@@ -81,18 +142,9 @@ export const Path = function(arg) {
         this.appendSegment(Path.createSegment('C', arg.controlPoint1, arg.controlPoint2, arg.end));
 
     } else if (arg instanceof Polyline) { // create from a Polyline
-        if (!(arg.points && (arg.points.length !== 0))) return; // if Polyline has no points, leave Path empty
+        appendPolyline(this, arg, false);
 
-        n = arg.points.length;
-        for (i = 0; i < n; i++) {
-
-            var point = arg.points[i];
-
-            if (i === 0) this.appendSegment(Path.createSegment('M', point));
-            else this.appendSegment(Path.createSegment('L', point));
-        }
-
-    } else { // unknown object
+    } else if (!appendShape(this, arg)) { // create from a Rect, an Ellipse or a Path; or an unknown object
         throw new Error('Cannot construct a path from the provided object.');
     }
 };
