@@ -2117,6 +2117,72 @@ QUnit.module('layout option values', () => {
     });
 });
 
+QUnit.module('given a layout started from a callback', () => {
+
+    // A chain of linked elements - two graphs share the cell ids, so a lookup in the wrong
+    // one would find a cell rather than nothing.
+    const createGraph = (size, ids = ['a', 'b', 'c']) => {
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const elements = ids.map((id) => new joint.shapes.standard.Rectangle({ id, size: { width: size, height: size }}));
+        const links = elements.slice(1).map((element, i) => new joint.shapes.standard.Link({ source: { id: elements[i].id }, target: { id: element.id }}));
+        graph.resetCells([...elements, ...links]);
+        return graph;
+    };
+
+    // What a layout writes - links' ids are generated, so they are compared in order.
+    const laidOut = (graph) => ({
+        elements: graph.getElements().map((element) => [element.id, element.position().toJSON()]),
+        links: graph.getLinks().map((link) => [link.vertices(), link.prop('source/anchor'), link.prop('target/anchor')])
+    });
+
+    // The same graph, laid out on its own.
+    const laidOutAlone = async(size, ids) => {
+        const graph = createGraph(size, ids);
+        await joint.layout.ELK.layout(graph);
+        return laidOut(graph);
+    };
+
+    // `layout()` exports the graph before its first `await` - so one started from an export
+    // callback runs its export inside the other's.
+    ['exportElement', 'exportLink'].forEach((callbackName) => {
+
+        QUnit.test(`should lay out both graphs when \`layout()\` runs from \`${callbackName}\``, async(assert) => {
+
+            const outer = createGraph(100);
+            const inner = createGraph(30, ['x', 'y']);
+            let innerLayout;
+
+            await joint.layout.ELK.layout(outer, {
+                [callbackName]: () => {
+                    innerLayout ??= joint.layout.ELK.layout(inner);
+                }
+            });
+            await innerLayout;
+
+            assert.deepEqual(laidOut(outer), await laidOutAlone(100));
+            assert.deepEqual(laidOut(inner), await laidOutAlone(30, ['x', 'y']));
+        });
+    });
+
+    QUnit.test('should lay out the outer graph when the one started from a callback fails to export', async(assert) => {
+
+        const outer = createGraph(100);
+        const inner = createGraph(30);
+        const error = new Error('inner export failed');
+        let innerError;
+
+        await joint.layout.ELK.layout(outer, {
+            exportLink: () => {
+                // Caught right away - it rejects while the outer layout is still awaited.
+                innerError ??= joint.layout.ELK.layout(inner, { exportElement: () => { throw error; } }).then(() => null, (reason) => reason);
+            }
+        });
+
+        assert.strictEqual(await innerError, error);
+        assert.deepEqual(laidOut(outer), await laidOutAlone(100));
+    });
+});
+
 QUnit.module('toNativeElkNode()', () => {
 
     const createElkGraph = () => ({
