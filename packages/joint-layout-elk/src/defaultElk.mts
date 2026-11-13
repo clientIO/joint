@@ -22,9 +22,13 @@ interface ElkDispatcher {
 // them, and the answer is ignored.
 const SYNC_ID = '@joint/layout-elk:sync';
 
-// The path from an `ELK` to its dispatcher - none of it typed by elkjs.
+// The path from an `ELK` to its promise wrapper and dispatcher - none of it typed by elkjs.
 interface ElkInternals {
-    worker?: { worker?: { dispatcher?: Partial<ElkDispatcher> }};
+    worker?: {
+        // What the promise wrapper does to an error before it rejects with it.
+        convertGwtStyleError?(error: unknown): void;
+        worker?: { dispatcher?: Partial<ElkDispatcher> };
+    };
 }
 
 // Loaded on the first layout without an `elk` option, then shared by every later one.
@@ -82,12 +86,27 @@ function layoutWithDispatcher(dispatcher: ElkDispatcher, elkGraph: ElkNode): Elk
     try {
         dispatcher.dispatch({ data: { cmd: 'layout', id: SYNC_ID, graph: elkGraph }});
     } catch (error) {
-        // GWT links the error to the Java exception behind it - which `JSON.stringify()` can't
-        // serialize (it links back). elkjs' own `layout()` drops it too.
-        if (error && typeof error === 'object') delete (error as { '__java$exception'?: unknown })['__java$exception'];
+        convertGwtStyleError(error);
         throw error;
     }
     return elkGraph;
+}
+
+/**
+ * Does to `error` what elkjs' promise wrapper does before `elk.layout()` rejects with it -
+ * with the wrapper's own method, so the two are the same by construction. GWT links the error
+ * to the Java exception behind it (`__java$exception`), which the method removes (and moves
+ * its cause, if it can find one, to `cause`). Without the method, the link is only removed -
+ * `JSON.stringify()` can't serialize it, since it links back to the error.
+ */
+function convertGwtStyleError(error: unknown): void {
+    if (!error || typeof error !== 'object') return;
+    const promisedWorker = (loadedElk as unknown as ElkInternals | undefined)?.worker;
+    if (typeof promisedWorker?.convertGwtStyleError === 'function') {
+        promisedWorker.convertGwtStyleError(error);
+    } else {
+        delete (error as { '__java$exception'?: unknown })['__java$exception'];
+    }
 }
 
 /**
