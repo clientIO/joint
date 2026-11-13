@@ -2518,6 +2518,12 @@ QUnit.module('path', function(hooks) {
                 assert.deepEqual(toStrings(line.intersect(new g.Path('M 0 0 L 20 0 L 10 20 Z'))), ['15@10', '5@10'], 'line.intersect(path)');
             });
 
+            QUnit.test('returns null for a path with nothing to intersect, whatever the line is', function(assert) {
+
+                assert.equal(new g.Path('M 10 10').intersectionWithLine(null), null, 'a path of a single moveto');
+                assert.equal(new g.Path().intersectionWithLine(null), null, 'a path of no segments');
+            });
+
             QUnit.test('intersects the curves of the path', function(assert) {
 
                 const path = new g.Path('M 0 0 C 0 20 20 20 20 0');

@@ -663,11 +663,11 @@ Path.prototype = {
         const subpaths = this.toPoints(opt);
         if (!subpaths) return null;
 
-        const { start, end } = line;
         let intersections = null;
         for (let i = 0, n = subpaths.length; i < n; i++) {
             const points = subpaths[i];
             for (let j = 0, m = points.length - 1; j < m; j++) {
+                const { start, end } = line;
                 const p1 = points[j];
                 const p2 = points[j + 1];
                 const point = intersection(start.x, start.y, end.x, end.y, p1.x, p1.y, p2.x, p2.y);
