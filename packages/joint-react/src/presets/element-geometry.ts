@@ -38,15 +38,7 @@ function createOutline(polylines: g.Polyline[]): g.Shape | null {
   const [firstPolyline] = polylines;
   if (!firstPolyline) return null;
   if (polylines.length === 1) return new g.Polygon(firstPolyline.points);
-  const outline = new g.Path();
-  for (const { points } of polylines) {
-    const [start, ...rest] = points;
-    if (!start) continue;
-    outline.appendSegment(g.Path.createSegment('M', start));
-    for (const point of rest) outline.appendSegment(g.Path.createSegment('L', point));
-    outline.appendSegment(g.Path.createSegment('Z'));
-  }
-  return outline;
+  return new g.Path(polylines.map(({ points }) => new g.Polygon(points)));
 }
 
 function createPathGeometry(pathData: unknown): g.Shape | null {
