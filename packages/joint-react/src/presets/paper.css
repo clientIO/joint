@@ -26,6 +26,10 @@
 .jj-paper {
     background-color: var(--jj-paper-color);
     height: stretch;
+    /* No double-tap zoom, so a quick second tap stays a `dbltap` of the paper. Pan and
+       pinch stay allowed here: `dia.Paper` prevents them itself while it owns a
+       two-finger gesture, so a `[data-jj-scrollable]` region keeps native scrolling. */
+    touch-action: manipulation;
 }
 
 /* ── Paper Interactions ─────────────────────────────────────────────────────── */
