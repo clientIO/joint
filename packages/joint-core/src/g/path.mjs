@@ -11,10 +11,20 @@ import { intersection } from './line.intersection.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 import { KAPPA } from './geometry.helpers.mjs';
 
-const {
-    min,
-    max
-} = Math;
+// The smaller and the larger of two coordinates, compared the way `Rect.fromRectUnion()` does.
+function unionMin(a, b) {
+    let result = Infinity;
+    if (a < result) result = a;
+    if (b < result) result = b;
+    return result;
+}
+
+function unionMax(a, b) {
+    let result = -Infinity;
+    if (a > result) result = a;
+    if (b > result) result = b;
+    return result;
+}
 
 function appendPolyline(path, polyline, isClosed) {
     const { points } = polyline;
@@ -253,31 +263,43 @@ Path.prototype = {
         const numSegments = segments.length;
         if (numSegments === 0) return null; // if segments is an empty array
 
-        let bbox = null;
+        let firstBBox = null;
+        let isUnion = false;
+        let x, y, width, height;
         for (let i = 0; i < numSegments; i++) {
 
             const segment = segments[i];
             if (!segment.isVisible) continue;
 
             const segmentBBox = segment.bbox();
-            if (!bbox) {
-                // a new rectangle, it can be changed
-                bbox = segmentBBox;
+            if (!firstBBox) {
+                firstBBox = segmentBBox;
                 continue;
             }
 
-            // the union of the two rectangles
-            const x = min(bbox.x, segmentBBox.x);
-            const y = min(bbox.y, segmentBBox.y);
-            const cornerX = max(bbox.x + bbox.width, segmentBBox.x + segmentBBox.width);
-            const cornerY = max(bbox.y + bbox.height, segmentBBox.y + segmentBBox.height);
-            bbox.x = x;
-            bbox.y = y;
-            bbox.width = cornerX - x;
-            bbox.height = cornerY - y;
+            if (!isUnion) {
+                x = firstBBox.x;
+                y = firstBBox.y;
+                width = firstBBox.width;
+                height = firstBBox.height;
+                isUnion = true;
+            }
+
+            // the union of the two rectangles, computed the way `Rect.fromRectUnion()` does
+            const x1 = x || 0;
+            const y1 = y || 0;
+            const x2 = segmentBBox.x || 0;
+            const y2 = segmentBBox.y || 0;
+            const cornerX = unionMax(x1 + (width || 0), x2 + (segmentBBox.width || 0));
+            const cornerY = unionMax(y1 + (height || 0), y2 + (segmentBBox.height || 0));
+            x = unionMin(x1, x2);
+            y = unionMin(y1, y2);
+            width = cornerX - x;
+            height = cornerY - y;
         }
 
-        if (bbox) return bbox;
+        if (isUnion) return new Rect(x, y, width, height);
+        if (firstBBox) return firstBBox;
 
         // if the path has only invisible elements, return end point of last segment
         const lastSegment = segments[numSegments - 1];

@@ -228,6 +228,8 @@ QUnit.module('ellipse', function() {
                 assert.equal(ellipse.intersectionWithLine(new g.Line('0 29', '200 29')), null, 'just above');
                 assert.equal(ellipse.intersectionWithLine(new g.Line('90 50', '110 50')), null, 'inside');
                 assert.equal(ellipse.intersectionWithLine(new g.Line('0 50', '50 50')), null, 'ends before the ellipse');
+                assert.equal(ellipse.intersectionWithLine(new g.Line('0 0', '0 0')), null, 'line of no length');
+                assert.equal((new g.Ellipse(new g.Point(-1e12, 0), 1, 1)).intersectionWithLine(new g.Line(new g.Point(0, 0), new g.Point(-1e-163, 0))), null, 'line too short to compute with');
             });
 
             QUnit.test('returns the intersections in the direction of the line', function(assert) {

@@ -561,19 +561,27 @@ Curve.prototype = {
             ];
         }
 
-        var dividerPoints = this.getSkeletonPoints(t);
-
-        var startControl1 = dividerPoints.startControlPoint1;
-        var startControl2 = dividerPoints.startControlPoint2;
-        var divider = dividerPoints.divider;
-        var dividerControl1 = dividerPoints.dividerControlPoint1;
-        var dividerControl2 = dividerPoints.dividerControlPoint2;
+        const coordinates = getSkeletonCoordinates(this, t);
+        const { dividerX, dividerY } = coordinates;
 
         // return array with two new curves
-        return [
-            new Curve(start, startControl1, startControl2, divider),
-            new Curve(divider, dividerControl1, dividerControl2, end)
-        ];
+        const curve1 = new Curve(start);
+        curve1.controlPoint1.x = coordinates.startControlPoint1X;
+        curve1.controlPoint1.y = coordinates.startControlPoint1Y;
+        curve1.controlPoint2.x = coordinates.startControlPoint2X;
+        curve1.controlPoint2.y = coordinates.startControlPoint2Y;
+        curve1.end.x = dividerX;
+        curve1.end.y = dividerY;
+
+        const curve2 = new Curve(undefined, undefined, undefined, end);
+        curve2.start.x = dividerX;
+        curve2.start.y = dividerY;
+        curve2.controlPoint1.x = coordinates.dividerControlPoint1X;
+        curve2.controlPoint1.y = coordinates.dividerControlPoint1Y;
+        curve2.controlPoint2.x = coordinates.dividerControlPoint2X;
+        curve2.controlPoint2.y = coordinates.dividerControlPoint2Y;
+
+        return [curve1, curve2];
     },
 
     // Returns the distance between the curve's start and end points.
@@ -873,15 +881,39 @@ Curve.prototype = {
         if (t < 0) t = 0;
         else if (t > 1) t = 1;
 
-        var skeletonPoints = this.getSkeletonPoints(t);
+        // the tangent goes through `startControlPoint2` and `dividerControlPoint1` of the skeleton points
+        const { start, controlPoint1, controlPoint2, end } = this;
+        let x1, y1, x2, y2, dividerX, dividerY;
+        if (t <= 0) {
+            x1 = dividerX = start.x;
+            y1 = dividerY = start.y;
+            x2 = controlPoint1.x;
+            y2 = controlPoint1.y;
 
-        var p1 = skeletonPoints.startControlPoint2;
-        var p2 = skeletonPoints.dividerControlPoint1;
+        } else if (t >= 1) {
+            x1 = controlPoint2.x;
+            y1 = controlPoint2.y;
+            x2 = dividerX = end.x;
+            y2 = dividerY = end.y;
 
-        var tangentStart = skeletonPoints.divider;
+        } else {
+            const coordinates = getSkeletonCoordinates(this, t);
+            x1 = coordinates.startControlPoint2X;
+            y1 = coordinates.startControlPoint2Y;
+            x2 = coordinates.dividerControlPoint1X;
+            y2 = coordinates.dividerControlPoint1Y;
+            dividerX = coordinates.dividerX;
+            dividerY = coordinates.dividerY;
+        }
 
-        var tangentLine = new Line(p1, p2);
-        tangentLine.translate(tangentStart.x - p1.x, tangentStart.y - p1.y); // move so that tangent line starts at the point requested
+        // move so that tangent line starts at the point requested
+        const tx = (dividerX - x1) || 0;
+        const ty = (dividerY - y1) || 0;
+        const tangentLine = new Line();
+        tangentLine.start.x = x1 + tx;
+        tangentLine.start.y = y1 + ty;
+        tangentLine.end.x = x2 + tx;
+        tangentLine.end.y = y2 + ty;
 
         return tangentLine;
     },

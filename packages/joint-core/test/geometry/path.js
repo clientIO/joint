@@ -1242,11 +1242,25 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('returns a new rectangle', function(assert) {
 
-                const path = new g.Path('M 0 0 L 10 20');
-                const bbox = path.bbox();
-                bbox.x = 100;
-                assert.equal(path.bbox().toString(), '0@0 10@20');
-                assert.equal(path.serialize(), 'M 0 0 L 10 20');
+                ['M 0 0 L 10 20', 'M 0 0 L 10 20 C 30 20 30 40 10 40 Z'].forEach(function(pathData) {
+                    const path = new g.Path(pathData);
+                    const expected = path.bbox().toString();
+                    const segmentBBoxes = path.segments.map((segment) => String(segment.bbox()));
+                    const bbox = path.bbox();
+                    bbox.x = 100;
+                    bbox.width = 100;
+                    assert.equal(path.bbox().toString(), expected, pathData);
+                    assert.deepEqual(path.segments.map((segment) => String(segment.bbox())), segmentBBoxes, pathData);
+                    assert.equal(path.serialize(), pathData);
+                });
+            });
+
+            QUnit.test('does not return a negative zero for the union of the segments', function(assert) {
+
+                const bbox = (new g.Path('M -0 -0 L 10 20 L -0 5')).bbox();
+                assert.ok(Object.is(bbox.x, 0));
+                assert.ok(Object.is(bbox.y, 0));
+                assert.equal(bbox.toString(), '0@0 10@20');
             });
         });
 
