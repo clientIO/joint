@@ -266,30 +266,26 @@ Curve.prototype = {
     // Returns a bbox that tightly envelops the curve.
     bbox: function() {
 
-        var start = this.start;
-        var controlPoint1 = this.controlPoint1;
-        var controlPoint2 = this.controlPoint2;
-        var end = this.end;
+        const { start, controlPoint1, controlPoint2, end } = this;
 
-        var x0 = start.x;
-        var y0 = start.y;
-        var x1 = controlPoint1.x;
-        var y1 = controlPoint1.y;
-        var x2 = controlPoint2.x;
-        var y2 = controlPoint2.y;
-        var x3 = end.x;
-        var y3 = end.y;
+        const x0 = start.x;
+        const y0 = start.y;
+        const x1 = controlPoint1.x;
+        const y1 = controlPoint1.y;
+        const x2 = controlPoint2.x;
+        const y2 = controlPoint2.y;
+        const x3 = end.x;
+        const y3 = end.y;
 
-        var points = new Array(); // local extremes
-        var tvalues = new Array(); // t values of local extremes
-        var bounds = [new Array(), new Array()];
+        let left = min(x0, x3);
+        let top = min(y0, y3);
+        let right = max(x0, x3);
+        let bottom = max(y0, y3);
 
-        var a, b, c, t;
-        var t1, t2;
-        var b2ac, sqrtb2ac;
+        // the local extremes: the roots of the derivative of the curve, for `x` and then for `y`
+        for (let i = 0; i < 2; i++) {
 
-        for (var i = 0; i < 2; ++i) {
-
+            let a, b, c;
             if (i === 0) {
                 b = 6 * x0 - 12 * x1 + 6 * x2;
                 a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
@@ -301,68 +297,37 @@ Curve.prototype = {
                 c = 3 * y1 - 3 * y0;
             }
 
+            let t1 = NaN;
+            let t2 = NaN;
             if (abs(a) < 1e-12) { // Numerical robustness
                 if (abs(b) < 1e-12) { // Numerical robustness
                     continue;
                 }
 
-                t = -c / b;
-                if ((0 < t) && (t < 1)) tvalues.push(t);
+                t1 = -c / b;
 
-                continue;
+            } else {
+                const b2ac = b * b - 4 * c * a;
+                if (b2ac < 0) continue;
+
+                const sqrtb2ac = sqrt(b2ac);
+                t1 = (-b + sqrtb2ac) / (2 * a);
+                t2 = (-b - sqrtb2ac) / (2 * a);
             }
 
-            b2ac = b * b - 4 * c * a;
-            sqrtb2ac = sqrt(b2ac);
+            for (let j = 0; j < 2; j++) {
+                const t = (j === 0) ? t1 : t2;
+                if (!((0 < t) && (t < 1))) continue;
 
-            if (b2ac < 0) continue;
-
-            t1 = (-b + sqrtb2ac) / (2 * a);
-            if ((0 < t1) && (t1 < 1)) tvalues.push(t1);
-
-            t2 = (-b - sqrtb2ac) / (2 * a);
-            if ((0 < t2) && (t2 < 1)) tvalues.push(t2);
+                const mt = 1 - t;
+                const x = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
+                const y = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
+                left = min(left, x);
+                top = min(top, y);
+                right = max(right, x);
+                bottom = max(bottom, y);
+            }
         }
-
-        var j = tvalues.length;
-        var jlen = j;
-        var mt;
-        var x, y;
-
-        while (j--) {
-            t = tvalues[j];
-            mt = 1 - t;
-
-            x = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
-            bounds[0][j] = x;
-
-            y = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
-            bounds[1][j] = y;
-
-            points[j] = { X: x, Y: y };
-        }
-
-        tvalues[jlen] = 0;
-        tvalues[jlen + 1] = 1;
-
-        points[jlen] = { X: x0, Y: y0 };
-        points[jlen + 1] = { X: x3, Y: y3 };
-
-        bounds[0][jlen] = x0;
-        bounds[1][jlen] = y0;
-
-        bounds[0][jlen + 1] = x3;
-        bounds[1][jlen + 1] = y3;
-
-        tvalues.length = jlen + 2;
-        bounds[0].length = jlen + 2;
-        bounds[1].length = jlen + 2;
-        points.length = jlen + 2;
-
-        var left = min.apply(null, bounds[0]);
-        var top = min.apply(null, bounds[1]);
-        var right = max.apply(null, bounds[0]);
-        var bottom = max.apply(null, bounds[1]);
 
         return new Rect(left, top, (right - left), (bottom - top));
     },
@@ -827,10 +792,26 @@ Curve.prototype = {
     // For linear length-based solution, use Curve.pointAt().
     pointAtT: function(t) {
 
-        if (t <= 0) return this.start.clone();
-        if (t >= 1) return this.end.clone();
+        const { start, controlPoint1, controlPoint2, end } = this;
 
-        return this.getSkeletonPoints(t).divider;
+        if (t <= 0) return start.clone();
+        if (t >= 1) return end.clone();
+
+        // De Casteljau's algorithm, written the way `Point.prototype.lerp()` computes it,
+        // so that the point is the same as the `divider` of `getSkeletonPoints()`.
+        const mt = 1 - t;
+        const midpoint1X = mt * start.x + t * controlPoint1.x;
+        const midpoint1Y = mt * start.y + t * controlPoint1.y;
+        const midpoint2X = mt * controlPoint1.x + t * controlPoint2.x;
+        const midpoint2Y = mt * controlPoint1.y + t * controlPoint2.y;
+        const midpoint3X = mt * controlPoint2.x + t * end.x;
+        const midpoint3Y = mt * controlPoint2.y + t * end.y;
+        const subControl1X = mt * midpoint1X + t * midpoint2X;
+        const subControl1Y = mt * midpoint1Y + t * midpoint2Y;
+        const subControl2X = mt * midpoint2X + t * midpoint3X;
+        const subControl2Y = mt * midpoint2Y + t * midpoint3Y;
+
+        return new Point(mt * subControl1X + t * subControl2X, mt * subControl1Y + t * subControl2Y);
     },
 
     // Default precision
