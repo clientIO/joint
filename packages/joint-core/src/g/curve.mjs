@@ -20,6 +20,32 @@ const LINE_TOLERANCE = 1e-9;
 // The default precision needs 6 iterations, a precision of 10 needs 18 to 20.
 const MAX_SUBDIVISION_ITERATIONS = 20;
 
+// Returns the coordinates of the five skeleton points of the curve divided at `t`:
+// startControlPoint1, startControlPoint2, divider, dividerControlPoint1, dividerControlPoint2 (`x` and `y` of each).
+// De Casteljau's algorithm, written the way `Point.prototype.lerp()` computes it.
+// Expects `t` between 0 and 1 (exclusive).
+function getSkeletonCoordinates(curve, t) {
+    const { start, controlPoint1, controlPoint2, end } = curve;
+    const mt = 1 - t;
+    const midpoint1X = mt * start.x + t * controlPoint1.x;
+    const midpoint1Y = mt * start.y + t * controlPoint1.y;
+    const midpoint2X = mt * controlPoint1.x + t * controlPoint2.x;
+    const midpoint2Y = mt * controlPoint1.y + t * controlPoint2.y;
+    const midpoint3X = mt * controlPoint2.x + t * end.x;
+    const midpoint3Y = mt * controlPoint2.y + t * end.y;
+    const subControl1X = mt * midpoint1X + t * midpoint2X;
+    const subControl1Y = mt * midpoint1Y + t * midpoint2Y;
+    const subControl2X = mt * midpoint2X + t * midpoint3X;
+    const subControl2Y = mt * midpoint2Y + t * midpoint3Y;
+    return [
+        midpoint1X, midpoint1Y,
+        subControl1X, subControl1Y,
+        mt * subControl1X + t * subControl2X, mt * subControl1Y + t * subControl2Y,
+        subControl2X, subControl2Y,
+        midpoint3X, midpoint3Y
+    ];
+}
+
 // The coordinate in the middle of two coordinates.
 // Written the way `Point.prototype.lerp()` computes it for `t = 0.5`, so that the results are the same.
 function midCoordinate(a, b) {
@@ -595,24 +621,15 @@ Curve.prototype = {
             };
         }
 
-        var midpoint1 = (new Line(start, control1)).pointAt(t);
-        var midpoint2 = (new Line(control1, control2)).pointAt(t);
-        var midpoint3 = (new Line(control2, end)).pointAt(t);
+        const coordinates = getSkeletonCoordinates(this, t);
 
-        var subControl1 = (new Line(midpoint1, midpoint2)).pointAt(t);
-        var subControl2 = (new Line(midpoint2, midpoint3)).pointAt(t);
-
-        var divider = (new Line(subControl1, subControl2)).pointAt(t);
-
-        var output = {
-            startControlPoint1: midpoint1,
-            startControlPoint2: subControl1,
-            divider: divider,
-            dividerControlPoint1: subControl2,
-            dividerControlPoint2: midpoint3
+        return {
+            startControlPoint1: new Point(coordinates[0], coordinates[1]),
+            startControlPoint2: new Point(coordinates[2], coordinates[3]),
+            divider: new Point(coordinates[4], coordinates[5]),
+            dividerControlPoint1: new Point(coordinates[6], coordinates[7]),
+            dividerControlPoint2: new Point(coordinates[8], coordinates[9])
         };
-
-        return output;
     },
 
     // Returns a list of curves whose flattened length is better than `opt.precision`.
@@ -792,26 +809,12 @@ Curve.prototype = {
     // For linear length-based solution, use Curve.pointAt().
     pointAtT: function(t) {
 
-        const { start, controlPoint1, controlPoint2, end } = this;
+        if (t <= 0) return this.start.clone();
+        if (t >= 1) return this.end.clone();
 
-        if (t <= 0) return start.clone();
-        if (t >= 1) return end.clone();
+        const coordinates = getSkeletonCoordinates(this, t);
 
-        // De Casteljau's algorithm, written the way `Point.prototype.lerp()` computes it,
-        // so that the point is the same as the `divider` of `getSkeletonPoints()`.
-        const mt = 1 - t;
-        const midpoint1X = mt * start.x + t * controlPoint1.x;
-        const midpoint1Y = mt * start.y + t * controlPoint1.y;
-        const midpoint2X = mt * controlPoint1.x + t * controlPoint2.x;
-        const midpoint2Y = mt * controlPoint1.y + t * controlPoint2.y;
-        const midpoint3X = mt * controlPoint2.x + t * end.x;
-        const midpoint3Y = mt * controlPoint2.y + t * end.y;
-        const subControl1X = mt * midpoint1X + t * midpoint2X;
-        const subControl1Y = mt * midpoint1Y + t * midpoint2Y;
-        const subControl2X = mt * midpoint2X + t * midpoint3X;
-        const subControl2Y = mt * midpoint2Y + t * midpoint3Y;
-
-        return new Point(mt * subControl1X + t * subControl2X, mt * subControl1Y + t * subControl2Y);
+        return new Point(coordinates[4], coordinates[5]);
     },
 
     // Default precision
