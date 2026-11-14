@@ -83,6 +83,7 @@ bench
     .add('curve.closestPoint(point)', batch((i) => curve.closestPoint(points[i])))
     .add('curve.bbox()', batch(() => curve.bbox()))
     .add('path.bbox(), 4 curves', batch(() => path.bbox()))
+    .add('Curve.throughPoints(points), 8 points', batch(() => g.Curve.throughPoints(polyline.points)))
     .add('curve.getSubdivisions()', batch(() => curve.getSubdivisions()))
     .add('curve.length()', batch(() => curve.length()))
     .add('path.intersectionWithLine(line), 4 curves', batch((i) => path.intersectionWithLine(linesToCenter[i])))

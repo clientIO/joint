@@ -267,22 +267,36 @@ Curve.throughPoints = (function() {
         return x;
     }
 
+    // An object is read as it is, anything else (a string) is parsed by the point.
+    function toKnot(point) {
+        return (Object(point) === point) ? point : new Point(point);
+    }
+
     return function(points) {
 
         if (!points || (Array.isArray(points) && points.length < 2)) {
             throw new Error('At least 2 points are required');
         }
 
-        var controlPoints = getCurveControlPoints(points);
+        const [firstControlPoints, secondControlPoints] = getCurveControlPoints(points);
 
-        var curves = [];
-        var n = controlPoints[0].length;
-        for (var i = 0; i < n; i++) {
+        const curves = [];
+        const n = firstControlPoints.length;
+        let start = toKnot(points[0]);
+        for (let i = 0; i < n; i++) {
 
-            var controlPoint1 = new Point(controlPoints[0][i].x, controlPoints[0][i].y);
-            var controlPoint2 = new Point(controlPoints[1][i].x, controlPoints[1][i].y);
+            const end = toKnot(points[i + 1]);
+            const controlPoint1 = firstControlPoints[i];
+            const controlPoint2 = secondControlPoints[i];
 
-            curves.push(new Curve(points[i], controlPoint1, controlPoint2, points[i + 1]));
+            curves.push(fastCurve(
+                start.x, start.y,
+                controlPoint1.x, controlPoint1.y,
+                controlPoint2.x, controlPoint2.y,
+                end.x, end.y
+            ));
+
+            start = end;
         }
 
         return curves;
