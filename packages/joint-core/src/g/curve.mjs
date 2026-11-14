@@ -20,8 +20,7 @@ const LINE_TOLERANCE = 1e-9;
 // The default precision needs 6 iterations, a precision of 10 needs 18 to 20.
 const MAX_SUBDIVISION_ITERATIONS = 20;
 
-// Returns the coordinates of the five skeleton points of the curve divided at `t`:
-// startControlPoint1, startControlPoint2, divider, dividerControlPoint1, dividerControlPoint2 (`x` and `y` of each).
+// Returns the coordinates of the five skeleton points of the curve divided at `t`.
 // De Casteljau's algorithm, written the way `Point.prototype.lerp()` computes it.
 // Expects `t` between 0 and 1 (exclusive).
 function getSkeletonCoordinates(curve, t) {
@@ -37,13 +36,18 @@ function getSkeletonCoordinates(curve, t) {
     const subControl1Y = mt * midpoint1Y + t * midpoint2Y;
     const subControl2X = mt * midpoint2X + t * midpoint3X;
     const subControl2Y = mt * midpoint2Y + t * midpoint3Y;
-    return [
-        midpoint1X, midpoint1Y,
-        subControl1X, subControl1Y,
-        mt * subControl1X + t * subControl2X, mt * subControl1Y + t * subControl2Y,
-        subControl2X, subControl2Y,
-        midpoint3X, midpoint3Y
-    ];
+    return {
+        startControlPoint1X: midpoint1X,
+        startControlPoint1Y: midpoint1Y,
+        startControlPoint2X: subControl1X,
+        startControlPoint2Y: subControl1Y,
+        dividerX: mt * subControl1X + t * subControl2X,
+        dividerY: mt * subControl1Y + t * subControl2Y,
+        dividerControlPoint1X: subControl2X,
+        dividerControlPoint1Y: subControl2Y,
+        dividerControlPoint2X: midpoint3X,
+        dividerControlPoint2Y: midpoint3Y
+    };
 }
 
 // The coordinate in the middle of two coordinates.
@@ -624,11 +628,11 @@ Curve.prototype = {
         const coordinates = getSkeletonCoordinates(this, t);
 
         return {
-            startControlPoint1: new Point(coordinates[0], coordinates[1]),
-            startControlPoint2: new Point(coordinates[2], coordinates[3]),
-            divider: new Point(coordinates[4], coordinates[5]),
-            dividerControlPoint1: new Point(coordinates[6], coordinates[7]),
-            dividerControlPoint2: new Point(coordinates[8], coordinates[9])
+            startControlPoint1: new Point(coordinates.startControlPoint1X, coordinates.startControlPoint1Y),
+            startControlPoint2: new Point(coordinates.startControlPoint2X, coordinates.startControlPoint2Y),
+            divider: new Point(coordinates.dividerX, coordinates.dividerY),
+            dividerControlPoint1: new Point(coordinates.dividerControlPoint1X, coordinates.dividerControlPoint1Y),
+            dividerControlPoint2: new Point(coordinates.dividerControlPoint2X, coordinates.dividerControlPoint2Y)
         };
     },
 
@@ -812,9 +816,9 @@ Curve.prototype = {
         if (t <= 0) return this.start.clone();
         if (t >= 1) return this.end.clone();
 
-        const coordinates = getSkeletonCoordinates(this, t);
+        const { dividerX, dividerY } = getSkeletonCoordinates(this, t);
 
-        return new Point(coordinates[4], coordinates[5]);
+        return new Point(dividerX, dividerY);
     },
 
     // Default precision
