@@ -887,7 +887,7 @@ Path.prototype = {
         }
 
         // if length requested is higher than the length of the path, return last visible segment endpoint
-        if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end : lastVisibleSegment.start);
+        if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end : lastVisibleSegment.start).clone();
 
         // if no visible segment, return last segment end point (no matter if fromStart or no)
         var lastSegment = segments[numSegments - 1];

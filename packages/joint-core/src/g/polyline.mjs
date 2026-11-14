@@ -159,57 +159,50 @@ Polyline.prototype = {
     // Closes open polylines (always imagines a final closing segment).
     containsPoint: function(p) {
 
-        var points = this.points;
-        var numPoints = points.length;
+        const points = this.points;
+        const numPoints = points.length;
         if (numPoints === 0) return false; // shortcut (this polyline has no points)
 
-        var x = p.x;
-        var y = p.y;
+        const x = p.x;
+        const y = p.y;
 
-        // initialize a final closing segment by creating one from last-first points on polyline
-        var startIndex = numPoints - 1; // start of current polyline segment
-        var endIndex = 0; // end of current polyline segment
-        var numIntersections = 0;
-        var segment = new Line();
-        var ray = new Line();
-        var rayEnd = new Point();
-        for (; endIndex < numPoints; endIndex++) {
-            var start = points[startIndex];
-            var end = points[endIndex];
-            if (p.equals(start)) return true; // shortcut (`p` is a point on polyline)
-            // current polyline segment
-            segment.start = start;
-            segment.end = end;
-            if (segment.containsPoint(p)) return true; // shortcut (`p` lies on a polyline segment)
+        let isInside = false;
+        // the first segment is the closing one (from the last point to the first point)
+        let start = points[numPoints - 1];
+        for (let i = 0; i < numPoints; i++) {
+            const end = points[i];
+            const startX = start.x;
+            const startY = start.y;
+            const endX = end.x;
+            const endY = end.y;
 
-            // do we have an intersection?
-            if (((y <= start.y) && (y > end.y)) || ((y > start.y) && (y <= end.y))) {
-                // this conditional branch IS NOT entered when `segment` is collinear/coincident with `ray`
-                // (when `y === start.y === end.y`)
-                // this conditional branch IS entered when `segment` touches `ray` at only one point
-                // (e.g. when `y === start.y !== end.y`)
-                // since this branch is entered again for the following segment, the two touches cancel out
+            // the side of the segment the point `p` is on (`0` = `p` is collinear with the segment)
+            const side = ((endX - startX) * (y - startY)) - ((endY - startY) * (x - startX));
+            if (side === 0) {
+                const isBetweenX = (startX <= endX) ? (x >= startX && x <= endX) : (x >= endX && x <= startX);
+                const isBetweenY = (startY <= endY) ? (y >= startY && y <= endY) : (y >= endY && y <= startY);
+                if (isBetweenX && isBetweenY) return true; // shortcut (`p` lies on a polyline segment)
+            }
 
-                var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
-                if (xDifference >= 0) {
-                    // segment lies at least partially to the right of `p`
-                    rayEnd.x = x + xDifference;
-                    rayEnd.y = y; // right
-                    ray.start = p;
-                    ray.end = rayEnd;
-                    if (segment.intersect(ray)) {
-                        // an intersection was detected to the right of `p`
-                        numIntersections++;
-                    }
-                } // else: `segment` lies completely to the left of `p` (i.e. no intersection to the right)
+            // Does the horizontal ray to the right of `p` cross the segment?
+            // A segment collinear with the ray (`y === startY === endY`) is never counted.
+            // A segment is counted with only one of its ends, so a ray through a vertex
+            // counts one crossing when the polyline crosses the ray there, and none or two
+            // when it only touches it.
+            if (startY >= y) {
+                // the segment goes up, the crossing is to the right of `p` if `p` is on its left
+                if (endY < y && side < 0) isInside = !isInside;
+            } else {
+                // the segment goes down
+                if (endY >= y && side > 0) isInside = !isInside;
             }
 
             // move to check the next polyline segment
-            startIndex = endIndex;
+            start = end;
         }
 
-        // returns `true` for odd numbers of intersections (even-odd algorithm)
-        return ((numIntersections % 2) === 1);
+        // `true` for an odd number of crossings (even-odd algorithm)
+        return isInside;
     },
 
     close: function() {

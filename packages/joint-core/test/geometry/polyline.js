@@ -586,6 +586,68 @@ QUnit.module('polyline', function() {
                 point = new g.Point(15, 15);
                 assert.equal(polyline.containsPoint(point), false, 'point in self-intersection = outside');
             });
+
+            QUnit.test('returns true for a point inside when the horizontal ray goes through a vertex', function(assert) {
+
+                const numPoints = 16;
+                const radius = 50;
+                const points = [];
+                for (let i = 0; i < numPoints; i++) {
+                    const angle = 2 * Math.PI * i / numPoints;
+                    points.push(new g.Point(radius * Math.cos(angle), radius * Math.sin(angle)));
+                }
+                const polyline = new g.Polyline(points);
+
+                [-45, -17.5, -15, -10, -7.5, 0, 10, 45].forEach(function(x) {
+                    assert.equal(polyline.containsPoint(new g.Point(x, 0)), true, 'inside: x = ' + x);
+                });
+                [-60, -50.5, 50.5, 60].forEach(function(x) {
+                    assert.equal(polyline.containsPoint(new g.Point(x, 0)), false, 'outside: x = ' + x);
+                });
+            });
+
+            QUnit.test('counts a vertex on the ray once when the polyline crosses the ray, not when it touches it', function(assert) {
+
+                // a diamond: the ray from the center goes through the right vertex
+                const diamond = new g.Polyline([
+                    new g.Point(0, 10),
+                    new g.Point(10, 0),
+                    new g.Point(20, 10),
+                    new g.Point(10, 20)
+                ]);
+                assert.equal(diamond.containsPoint(new g.Point(10, 10)), true, 'ray crosses the polyline at a vertex');
+                assert.equal(diamond.containsPoint(new g.Point(-5, 10)), false, 'ray through two vertices');
+                assert.equal(diamond.containsPoint(new g.Point(5, 0)), false, 'ray touches the top vertex');
+                assert.equal(diamond.containsPoint(new g.Point(5, 20)), false, 'ray touches the bottom vertex');
+
+                // a shape with a horizontal side on the ray
+                const step = new g.Polyline([
+                    new g.Point(0, 0),
+                    new g.Point(30, 0),
+                    new g.Point(30, 10),
+                    new g.Point(20, 10),
+                    new g.Point(20, 20),
+                    new g.Point(0, 20)
+                ]);
+                assert.equal(step.containsPoint(new g.Point(10, 10)), true, 'ray along a side, point inside');
+                assert.equal(step.containsPoint(new g.Point(-5, 10)), false, 'ray along a side, point outside');
+                assert.equal(step.containsPoint(new g.Point(25, 10)), true, 'point on the side');
+                assert.equal(step.containsPoint(new g.Point(35, 10)), false, 'point collinear with the side, outside');
+            });
+
+            QUnit.test('accepts a plain point', function(assert) {
+
+                const polyline = new g.Polyline([
+                    new g.Point(0, 0),
+                    new g.Point(20, 0),
+                    new g.Point(20, 20),
+                    new g.Point(0, 20)
+                ]);
+                assert.equal(polyline.containsPoint({ x: 10, y: 10 }), true, 'inside');
+                assert.equal(polyline.containsPoint({ x: 0, y: 0 }), true, 'on a vertex');
+                assert.equal(polyline.containsPoint({ x: 20, y: 10 }), true, 'on a side');
+                assert.equal(polyline.containsPoint({ x: 30, y: 10 }), false, 'outside');
+            });
         });
 
         QUnit.module('convexHull()', function(assert) {
