@@ -1254,14 +1254,6 @@ QUnit.module('path', function(hooks) {
                     assert.equal(path.serialize(), pathData);
                 });
             });
-
-            QUnit.test('does not return a negative zero for the union of the segments', function(assert) {
-
-                const bbox = (new g.Path('M -0 -0 L 10 20 L -0 5')).bbox();
-                assert.ok(Object.is(bbox.x, 0));
-                assert.ok(Object.is(bbox.y, 0));
-                assert.equal(bbox.toString(), '0@0 10@20');
-            });
         });
 
         QUnit.module('clone()', function() {

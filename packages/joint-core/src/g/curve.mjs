@@ -918,8 +918,8 @@ Curve.prototype = {
         }
 
         // move so that tangent line starts at the point requested
-        const tx = (dividerX - x1) || 0;
-        const ty = (dividerY - y1) || 0;
+        const tx = dividerX - x1;
+        const ty = dividerY - y1;
         const tangentLine = new Line();
         tangentLine.start.x = x1 + tx;
         tangentLine.start.y = y1 + ty;

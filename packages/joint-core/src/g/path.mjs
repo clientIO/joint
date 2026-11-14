@@ -11,20 +11,10 @@ import { intersection } from './line.intersection.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 import { KAPPA } from './geometry.helpers.mjs';
 
-// The smaller and the larger of two coordinates, compared the way `Rect.fromRectUnion()` does.
-function unionMin(a, b) {
-    let result = Infinity;
-    if (a < result) result = a;
-    if (b < result) result = b;
-    return result;
-}
-
-function unionMax(a, b) {
-    let result = -Infinity;
-    if (a > result) result = a;
-    if (b > result) result = b;
-    return result;
-}
+const {
+    min,
+    max
+} = Math;
 
 function appendPolyline(path, polyline, isClosed) {
     const { points } = polyline;
@@ -285,15 +275,10 @@ Path.prototype = {
                 isUnion = true;
             }
 
-            // the union of the two rectangles, computed the way `Rect.fromRectUnion()` does
-            const x1 = x || 0;
-            const y1 = y || 0;
-            const x2 = segmentBBox.x || 0;
-            const y2 = segmentBBox.y || 0;
-            const cornerX = unionMax(x1 + (width || 0), x2 + (segmentBBox.width || 0));
-            const cornerY = unionMax(y1 + (height || 0), y2 + (segmentBBox.height || 0));
-            x = unionMin(x1, x2);
-            y = unionMin(y1, y2);
+            const cornerX = max(x + width, segmentBBox.x + segmentBBox.width);
+            const cornerY = max(y + height, segmentBBox.y + segmentBBox.height);
+            x = min(x, segmentBBox.x);
+            y = min(y, segmentBBox.y);
             width = cornerX - x;
             height = cornerY - y;
         }
