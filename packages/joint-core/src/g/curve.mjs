@@ -565,23 +565,20 @@ Curve.prototype = {
         const { dividerX, dividerY } = coordinates;
 
         // return array with two new curves
-        const curve1 = new Curve(start);
-        curve1.controlPoint1.x = coordinates.startControlPoint1X;
-        curve1.controlPoint1.y = coordinates.startControlPoint1Y;
-        curve1.controlPoint2.x = coordinates.startControlPoint2X;
-        curve1.controlPoint2.y = coordinates.startControlPoint2Y;
-        curve1.end.x = dividerX;
-        curve1.end.y = dividerY;
-
-        const curve2 = new Curve(undefined, undefined, undefined, end);
-        curve2.start.x = dividerX;
-        curve2.start.y = dividerY;
-        curve2.controlPoint1.x = coordinates.dividerControlPoint1X;
-        curve2.controlPoint1.y = coordinates.dividerControlPoint1Y;
-        curve2.controlPoint2.x = coordinates.dividerControlPoint2X;
-        curve2.controlPoint2.y = coordinates.dividerControlPoint2Y;
-
-        return [curve1, curve2];
+        return [
+            fastCurve(
+                start.x, start.y,
+                coordinates.startControlPoint1X, coordinates.startControlPoint1Y,
+                coordinates.startControlPoint2X, coordinates.startControlPoint2Y,
+                dividerX, dividerY
+            ),
+            fastCurve(
+                dividerX, dividerY,
+                coordinates.dividerControlPoint1X, coordinates.dividerControlPoint1Y,
+                coordinates.dividerControlPoint2X, coordinates.dividerControlPoint2Y,
+                end.x, end.y
+            )
+        ];
     },
 
     // Returns the distance between the curve's start and end points.
