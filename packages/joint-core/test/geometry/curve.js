@@ -1118,6 +1118,18 @@ QUnit.module('curve', function() {
                 assert.equal(curve.pointAtLength(-10000).toString(), '0@0');
             });
 
+            QUnit.test('a negative length is measured from the end of the curve', function(assert) {
+
+                // not symmetric: the subdivisions do not have the same length
+                const curve = new g.Curve('0 0', '0 100', '10 100', '200 0');
+                const length = curve.length();
+                [10, 30, 100, 150].forEach(function(distance) {
+                    const fromEnd = curve.pointAtLength(-distance);
+                    const fromStart = curve.pointAtLength(length - distance);
+                    assert.ok(fromEnd.distance(fromStart) < 1, 'distance from the end: ' + distance);
+                });
+            });
+
             QUnit.test('compare to browser implementation', function(assert) {
 
                 var p1;
