@@ -106,6 +106,14 @@ QUnit.module('curve', function() {
                 var curve = new g.Curve('10 10', '10 40', '50 40', '50 10');
                 assert.equal(curve.bbox().toString(), '10@10 50@32.5');
             });
+
+            QUnit.test('includes the local extremes of the curve', function(assert) {
+
+                assert.equal((new g.Curve('0 0', '50 100', '150 -100', '200 0')).bbox().toString(), '0@-28.867513459481287 200@28.867513459481287', 'two extremes in y');
+                assert.equal((new g.Curve('0 0', '200 0', '200 100', '0 100')).bbox().toString(), '0@0 150@100', 'an extreme in x');
+                assert.equal((new g.Curve('0 0', '0 0', '100 50', '100 50')).bbox().toString(), '0@0 100@50', 'a straight curve');
+                assert.equal((new g.Curve('10 10', '10 10', '10 10', '10 10')).bbox().toString(), '10@10 10@10', 'a curve of no length');
+            });
         });
 
         QUnit.module('clone()', function() {

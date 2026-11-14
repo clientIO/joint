@@ -1233,6 +1233,21 @@ QUnit.module('path', function(hooks) {
                 path = new g.Path('M 150 100 M 100 200');
                 assert.equal(path.bbox().toString(), '100@200 100@200');
             });
+
+            QUnit.test('returns the union of the bounding boxes of the visible segments', function(assert) {
+
+                const path = new g.Path('M 0 0 C 200 0 200 100 0 100 L -20 50 M 300 300 L 310 320');
+                assert.equal(path.bbox().toString(), '-20@0 310@320');
+            });
+
+            QUnit.test('returns a new rectangle', function(assert) {
+
+                const path = new g.Path('M 0 0 L 10 20');
+                const bbox = path.bbox();
+                bbox.x = 100;
+                assert.equal(path.bbox().toString(), '0@0 10@20');
+                assert.equal(path.serialize(), 'M 0 0 L 10 20');
+            });
         });
 
         QUnit.module('clone()', function() {

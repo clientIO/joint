@@ -217,6 +217,39 @@ QUnit.module('ellipse', function() {
             // TODO: implement
         });
 
+        QUnit.module('intersectionWithLine(line)', function() {
+
+            const toStrings = (points) => points.map((point) => point.toString());
+            const ellipse = new g.Ellipse(new g.Point(100, 50), 40, 20);
+
+            QUnit.test('returns null when the line does not meet the ellipse', function(assert) {
+
+                assert.equal(ellipse.intersectionWithLine(new g.Line('0 0', '200 0')), null, 'outside');
+                assert.equal(ellipse.intersectionWithLine(new g.Line('0 29', '200 29')), null, 'just above');
+                assert.equal(ellipse.intersectionWithLine(new g.Line('90 50', '110 50')), null, 'inside');
+                assert.equal(ellipse.intersectionWithLine(new g.Line('0 50', '50 50')), null, 'ends before the ellipse');
+            });
+
+            QUnit.test('returns the intersections in the direction of the line', function(assert) {
+
+                assert.deepEqual(toStrings(ellipse.intersectionWithLine(new g.Line('0 50', '200 50'))), ['60@50', '140@50'], 'line goes through');
+                assert.deepEqual(toStrings(ellipse.intersectionWithLine(new g.Line('200 50', '0 50')).map((point) => point.round(6))), ['140@50', '60@50'], 'line goes through, reversed');
+                assert.deepEqual(toStrings(ellipse.intersectionWithLine(new g.Line('100 0', '100 100'))), ['100@30', '100@70'], 'vertical line');
+                assert.deepEqual(toStrings(ellipse.intersectionWithLine(new g.Line('100 50', '200 50'))), ['140@50'], 'line starts in the center');
+                assert.deepEqual(toStrings(ellipse.intersectionWithLine(new g.Line('0 30', '200 30'))), ['100@30'], 'line touches the ellipse');
+            });
+
+            QUnit.test('returns new points', function(assert) {
+
+                const line = new g.Line('0 50', '200 50');
+                const intersections = ellipse.intersectionWithLine(line);
+                assert.ok(intersections[0] instanceof g.Point);
+                intersections[0].x = 0;
+                assert.equal(line.toString(), '0@50 200@50');
+                assert.equal(ellipse.toString(), '100@50 40 20');
+            });
+        });
+
         QUnit.module('intersectionWithLineFromCenterToPoint(point, angle)', function() {
             // TODO: implement
         });

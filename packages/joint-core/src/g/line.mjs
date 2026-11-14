@@ -94,15 +94,15 @@ Line.prototype = {
     // Returns `true` if the point lies on the line.
     containsPoint: function(p) {
 
-        var start = this.start;
-        var end = this.end;
+        const start = this.start;
+        const end = this.end;
 
         if (start.cross(p, end) !== 0) return false;
         // else: cross product of 0 indicates that this line and the vector to `p` are collinear
 
-        var length = this.length();
-        if ((new Line(start, p)).length() > length) return false;
-        if ((new Line(p, end)).length() > length) return false;
+        const lineLength = length(start, end);
+        if (length(start, p) > lineLength) return false;
+        if (length(p, end) > lineLength) return false;
         // else: `p` lies between start and end of the line
 
         return true;

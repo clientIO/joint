@@ -11,6 +11,11 @@ import { intersection } from './line.intersection.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 import { KAPPA } from './geometry.helpers.mjs';
 
+const {
+    min,
+    max
+} = Math;
+
 function appendPolyline(path, polyline, isClosed) {
     const { points } = polyline;
     if (!points || points.length === 0) return; // a polyline with no points adds nothing
@@ -244,24 +249,38 @@ Path.prototype = {
     // If path has only invisible segments, returns bbox of the end point of last segment.
     bbox: function() {
 
-        var segments = this.segments;
-        var numSegments = segments.length;
+        const segments = this.segments;
+        const numSegments = segments.length;
         if (numSegments === 0) return null; // if segments is an empty array
 
-        var bbox;
-        for (var i = 0; i < numSegments; i++) {
+        let bbox = null;
+        for (let i = 0; i < numSegments; i++) {
 
-            var segment = segments[i];
-            if (segment.isVisible) {
-                var segmentBBox = segment.bbox();
-                bbox = bbox ? bbox.union(segmentBBox) : segmentBBox;
+            const segment = segments[i];
+            if (!segment.isVisible) continue;
+
+            const segmentBBox = segment.bbox();
+            if (!bbox) {
+                // a new rectangle, it can be changed
+                bbox = segmentBBox;
+                continue;
             }
+
+            // the union of the two rectangles
+            const x = min(bbox.x, segmentBBox.x);
+            const y = min(bbox.y, segmentBBox.y);
+            const cornerX = max(bbox.x + bbox.width, segmentBBox.x + segmentBBox.width);
+            const cornerY = max(bbox.y + bbox.height, segmentBBox.y + segmentBBox.height);
+            bbox.x = x;
+            bbox.y = y;
+            bbox.width = cornerX - x;
+            bbox.height = cornerY - y;
         }
 
         if (bbox) return bbox;
 
         // if the path has only invisible elements, return end point of last segment
-        var lastSegment = segments[numSegments - 1];
+        const lastSegment = segments[numSegments - 1];
         return new Rect(lastSegment.end.x, lastSegment.end.y, 0, 0);
     },
 
