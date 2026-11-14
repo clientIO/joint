@@ -3,6 +3,7 @@ import { Rect } from './rect.mjs';
 import { Line } from './line.mjs';
 import { Polyline } from './polyline.mjs';
 import { types } from './types.mjs';
+import { ensurePoint } from './point.ensure.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 
 const {
@@ -267,11 +268,6 @@ Curve.throughPoints = (function() {
         return x;
     }
 
-    // An object is read as it is, anything else (a string) is parsed by the point.
-    function toKnot(point) {
-        return (Object(point) === point) ? point : new Point(point);
-    }
-
     return function(points) {
 
         if (!points || (Array.isArray(points) && points.length < 2)) {
@@ -282,10 +278,10 @@ Curve.throughPoints = (function() {
 
         const curves = [];
         const n = firstControlPoints.length;
-        let start = toKnot(points[0]);
+        let start = ensurePoint(points[0]);
         for (let i = 0; i < n; i++) {
 
-            const end = toKnot(points[i + 1]);
+            const end = ensurePoint(points[i + 1]);
             const controlPoint1 = firstControlPoints[i];
             const controlPoint2 = secondControlPoints[i];
 
