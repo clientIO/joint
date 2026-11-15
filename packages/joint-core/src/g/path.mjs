@@ -263,11 +263,13 @@ Path.prototype = {
 
             const segmentBBox = segment.bbox();
             if (!firstBBox) {
+                // A path with one visible segment returns the bbox of the segment.
                 firstBBox = segmentBBox;
                 continue;
             }
 
             if (!isUnion) {
+                // The second visible segment: the union starts from the first bbox.
                 x = firstBBox.x;
                 y = firstBBox.y;
                 width = firstBBox.width;
@@ -275,6 +277,7 @@ Path.prototype = {
                 isUnion = true;
             }
 
+            // The union of the two rectangles, the way `Rect.prototype.union()` computes it.
             const cornerX = max(x + width, segmentBBox.x + segmentBBox.width);
             const cornerY = max(y + height, segmentBBox.y + segmentBBox.height);
             x = min(x, segmentBBox.x);

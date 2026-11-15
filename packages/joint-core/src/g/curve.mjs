@@ -127,6 +127,20 @@ function fastCurve(startX, startY, control1X, control1Y, control2X, control2Y, e
     return curve;
 }
 
+// Creates a line from the coordinates of its start and end.
+// @perf The `Line` constructor copies every point it is given, so a line created from
+// two new points would cost four points. The points of an empty line are set instead.
+// The result is the same as `new Line(...)`.
+function fastLine(startX, startY, endX, endY) {
+    const line = new Line();
+    const { start, end } = line;
+    start.x = startX;
+    start.y = startY;
+    end.x = endX;
+    end.y = endY;
+    return line;
+}
+
 // Creates the curves from their coordinates (8 numbers per curve: start, control points, end).
 function createCurves(coords) {
     const curves = [];
@@ -898,12 +912,14 @@ Curve.prototype = {
         const { start, controlPoint1, controlPoint2, end } = this;
         let x1, y1, x2, y2, dividerX, dividerY;
         if (t <= 0) {
+            // At the start of the curve the tangent goes through `start` and `controlPoint1`.
             x1 = dividerX = start.x;
             y1 = dividerY = start.y;
             x2 = controlPoint1.x;
             y2 = controlPoint1.y;
 
         } else if (t >= 1) {
+            // At the end of the curve the tangent goes through `controlPoint2` and `end`.
             x1 = controlPoint2.x;
             y1 = controlPoint2.y;
             x2 = dividerX = end.x;
@@ -922,13 +938,7 @@ Curve.prototype = {
         // move so that tangent line starts at the point requested
         const tx = dividerX - x1;
         const ty = dividerY - y1;
-        const tangentLine = new Line();
-        tangentLine.start.x = x1 + tx;
-        tangentLine.start.y = y1 + ty;
-        tangentLine.end.x = x2 + tx;
-        tangentLine.end.y = y2 + ty;
-
-        return tangentLine;
+        return fastLine(x1 + tx, y1 + ty, x2 + tx, y2 + ty);
     },
 
     // Returns `t` at requested `ratio` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
