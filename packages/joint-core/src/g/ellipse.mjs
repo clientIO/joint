@@ -134,17 +134,24 @@ Ellipse.prototype = {
         const mDiffX = diffX / (rx * rx);
         const mDiffY = diffY / (ry * ry);
 
+        // A point of the line is `start + t * dir`, with `t` from 0 to 1.
+        // Substituted into the equation of the ellipse it gives
+        // `a * t^2 + 2 * b * t + c = 0`.
         const a = dirX * mDirX + dirY * mDirY;
         const b = dirX * mDiffX + dirY * mDiffY;
         const c = (diffX * mDiffX + diffY * mDiffY) - 1.0;
+        // The discriminant (divided by 4).
         const d = b * b - a * c;
 
+        // The line does not meet the ellipse.
         if (d < 0) return null;
 
         if (d > 0) {
+            // The line crosses the ellipse at two points.
             const root = sqrt(d);
             const ta = (-b - root) / a;
             const tb = (-b + root) / a;
+            // Only the points between the start and the end of the line count.
             const isTaOnLine = (0 <= ta && ta <= 1);
             const isTbOnLine = (0 <= tb && tb <= 1);
             if (!isTaOnLine && !isTbOnLine) return null;
@@ -155,6 +162,7 @@ Ellipse.prototype = {
             return intersections;
         }
 
+        // The line touches the ellipse at one point.
         const t = -b / a;
         if (0 <= t && t <= 1) {
             return [new Point((1 - t) * startX + t * endX, (1 - t) * startY + t * endY)];

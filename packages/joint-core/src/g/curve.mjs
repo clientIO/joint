@@ -325,6 +325,7 @@ Curve.prototype = {
         // the local extremes: the roots of the derivative of the curve, for `x` and then for `y`
         for (let i = 0; i < 2; i++) {
 
+            // The derivative is `a * t^2 + b * t + c`.
             let a, b, c;
             if (i === 0) {
                 b = 6 * x0 - 12 * x1 + 6 * x2;
@@ -341,15 +342,19 @@ Curve.prototype = {
             let t2 = NaN;
             if (abs(a) < 1e-12) { // Numerical robustness
                 if (abs(b) < 1e-12) { // Numerical robustness
+                    // The derivative is constant: no extreme.
                     continue;
                 }
 
+                // The derivative is linear: one extreme.
                 t1 = -c / b;
 
             } else {
                 const b2ac = b * b - 4 * c * a;
+                // The derivative has no root: no extreme.
                 if (b2ac < 0) continue;
 
+                // Up to two extremes.
                 const sqrtb2ac = sqrt(b2ac);
                 t1 = (-b + sqrtb2ac) / (2 * a);
                 t2 = (-b - sqrtb2ac) / (2 * a);
@@ -357,6 +362,7 @@ Curve.prototype = {
 
             for (let j = 0; j < 2; j++) {
                 const t = (j === 0) ? t1 : t2;
+                // Only the extremes between the start and the end of the curve count.
                 if (!((0 < t) && (t < 1))) continue;
 
                 const mt = 1 - t;
