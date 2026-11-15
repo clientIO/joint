@@ -3,6 +3,7 @@ import { Point } from './point.mjs';
 import { Line } from './line.mjs';
 import { intersection } from './line.intersection.mjs';
 import { ensurePoint } from './point.ensure.mjs';
+import { containsPoint } from './polyline.containsPoint.mjs';
 import { types } from './types.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 import { clonePoints, parsePoints, convexHull } from './points.mjs';
@@ -159,50 +160,7 @@ Polyline.prototype = {
     // Closes open polylines (always imagines a final closing segment).
     containsPoint: function(p) {
 
-        const points = this.points;
-        const numPoints = points.length;
-        if (numPoints === 0) return false; // shortcut (this polyline has no points)
-
-        const x = p.x;
-        const y = p.y;
-
-        let isInside = false;
-        // the first segment is the closing one (from the last point to the first point)
-        let start = points[numPoints - 1];
-        for (let i = 0; i < numPoints; i++) {
-            const end = points[i];
-            const startX = start.x;
-            const startY = start.y;
-            const endX = end.x;
-            const endY = end.y;
-
-            // the side of the segment the point `p` is on (`0` = `p` is collinear with the segment)
-            const side = ((endX - startX) * (y - startY)) - ((endY - startY) * (x - startX));
-            if (side === 0) {
-                const isBetweenX = (startX <= endX) ? (x >= startX && x <= endX) : (x >= endX && x <= startX);
-                const isBetweenY = (startY <= endY) ? (y >= startY && y <= endY) : (y >= endY && y <= startY);
-                if (isBetweenX && isBetweenY) return true; // shortcut (`p` lies on a polyline segment)
-            }
-
-            // Does the horizontal ray to the right of `p` cross the segment?
-            // A segment collinear with the ray (`y === startY === endY`) is never counted.
-            // A segment is counted with only one of its ends, so a ray through a vertex
-            // counts one crossing when the polyline crosses the ray there, and none or two
-            // when it only touches it.
-            if (startY >= y) {
-                // the segment goes up, the crossing is to the right of `p` if `p` is on its left
-                if (endY < y && side < 0) isInside = !isInside;
-            } else {
-                // the segment goes down
-                if (endY >= y && side > 0) isInside = !isInside;
-            }
-
-            // move to check the next polyline segment
-            start = end;
-        }
-
-        // `true` for an odd number of crossings (even-odd algorithm)
-        return isInside;
+        return containsPoint(this.points, p.x, p.y);
     },
 
     close: function() {
