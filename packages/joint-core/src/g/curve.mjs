@@ -951,7 +951,7 @@ Curve.prototype = {
         for (var i = 0; i < n; i++) {
             var index = (fromStart ? i : (n - 1 - i));
 
-            var currentSubdivision = subdivisions[i];
+            var currentSubdivision = subdivisions[index];
             var d = currentSubdivision.endpointDistance(); // length of current subdivision
 
             if (length <= (l + d)) {

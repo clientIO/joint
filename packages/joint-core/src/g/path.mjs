@@ -8,6 +8,7 @@ import { Curve } from './curve.mjs';
 import { types } from './types.mjs';
 import { extend } from './extend.mjs';
 import { intersection } from './line.intersection.mjs';
+import { containsPoint } from './polyline.containsPoint.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 import { KAPPA } from './geometry.helpers.mjs';
 
@@ -404,19 +405,16 @@ Path.prototype = {
     // Precision may be adjusted by passing an `opt` object.
     containsPoint: function(p, opt) {
 
-        // the points of the subpaths are only read here, so they are not cloned into polylines of their own
         const subpaths = this.toPoints(opt);
         if (!subpaths) return false; // shortcut (this path has no polylines)
 
-        // how many component polylines does `p` lie within?
+        const x = p.x;
+        const y = p.y;
+
+        // how many subpaths does `p` lie within?
         let numIntersections = 0;
-        const polyline = new Polyline();
         for (let i = 0, n = subpaths.length; i < n; i++) {
-            polyline.points = subpaths[i];
-            if (polyline.containsPoint(p)) {
-                // `p` lies within this polyline
-                numIntersections++;
-            }
+            if (containsPoint(subpaths[i], x, y)) numIntersections++;
         }
 
         // returns `true` for odd numbers of intersections (even-odd algorithm)
@@ -887,7 +885,7 @@ Path.prototype = {
         }
 
         // if length requested is higher than the length of the path, return last visible segment endpoint
-        if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end : lastVisibleSegment.start);
+        if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end : lastVisibleSegment.start).clone();
 
         // if no visible segment, return last segment end point (no matter if fromStart or no)
         var lastSegment = segments[numSegments - 1];

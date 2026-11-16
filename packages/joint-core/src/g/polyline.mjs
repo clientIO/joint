@@ -3,6 +3,7 @@ import { Point } from './point.mjs';
 import { Line } from './line.mjs';
 import { intersection } from './line.intersection.mjs';
 import { ensurePoint } from './point.ensure.mjs';
+import { containsPoint } from './polyline.containsPoint.mjs';
 import { types } from './types.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 import { clonePoints, parsePoints, convexHull } from './points.mjs';
@@ -164,57 +165,7 @@ Polyline.prototype = {
     // Closes open polylines (always imagines a final closing segment).
     containsPoint: function(p) {
 
-        var points = this.points;
-        var numPoints = points.length;
-        if (numPoints === 0) return false; // shortcut (this polyline has no points)
-
-        var x = p.x;
-        var y = p.y;
-
-        // initialize a final closing segment by creating one from last-first points on polyline
-        var startIndex = numPoints - 1; // start of current polyline segment
-        var endIndex = 0; // end of current polyline segment
-        var numIntersections = 0;
-        var segment = new Line();
-        var ray = new Line();
-        var rayEnd = new Point();
-        for (; endIndex < numPoints; endIndex++) {
-            var start = points[startIndex];
-            var end = points[endIndex];
-            if (p.equals(start)) return true; // shortcut (`p` is a point on polyline)
-            // current polyline segment
-            segment.start = start;
-            segment.end = end;
-            if (segment.containsPoint(p)) return true; // shortcut (`p` lies on a polyline segment)
-
-            // do we have an intersection?
-            if (((y <= start.y) && (y > end.y)) || ((y > start.y) && (y <= end.y))) {
-                // this conditional branch IS NOT entered when `segment` is collinear/coincident with `ray`
-                // (when `y === start.y === end.y`)
-                // this conditional branch IS entered when `segment` touches `ray` at only one point
-                // (e.g. when `y === start.y !== end.y`)
-                // since this branch is entered again for the following segment, the two touches cancel out
-
-                var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
-                if (xDifference >= 0) {
-                    // segment lies at least partially to the right of `p`
-                    rayEnd.x = x + xDifference;
-                    rayEnd.y = y; // right
-                    ray.start = p;
-                    ray.end = rayEnd;
-                    if (segment.intersect(ray)) {
-                        // an intersection was detected to the right of `p`
-                        numIntersections++;
-                    }
-                } // else: `segment` lies completely to the left of `p` (i.e. no intersection to the right)
-            }
-
-            // move to check the next polyline segment
-            startIndex = endIndex;
-        }
-
-        // returns `true` for odd numbers of intersections (even-odd algorithm)
-        return ((numIntersections % 2) === 1);
+        return containsPoint(this.points, p.x, p.y);
     },
 
     close: function() {

@@ -3277,6 +3277,22 @@ QUnit.module('path', function(hooks) {
 
                 svg.remove();
             });
+
+            QUnit.test('returns a new point for a length beyond the path', function(assert) {
+
+                const path = new g.Path('M 0 0 L 10 0 L 10 10');
+
+                const end = path.pointAtLength(1000);
+                assert.equal(end.toString(), '10@10');
+                assert.notEqual(end, path.segments[2].end);
+                end.x = 100;
+                assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10');
+
+                const start = path.pointAtLength(-1000);
+                assert.equal(start.toString(), '0@0');
+                start.x = 100;
+                assert.equal(path.serialize(), 'M 0 0 L 10 0 L 10 10');
+            });
         });
 
         QUnit.module('pointAtT()', function() {
