@@ -12,6 +12,11 @@ import { containsPoint } from './polyline.containsPoint.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 import { KAPPA } from './geometry.helpers.mjs';
 
+const {
+    min,
+    max
+} = Math;
+
 function appendPolyline(path, polyline, isClosed) {
     const { points } = polyline;
     if (!points || points.length === 0) return; // a polyline with no points adds nothing
@@ -245,24 +250,48 @@ Path.prototype = {
     // If path has only invisible segments, returns bbox of the end point of last segment.
     bbox: function() {
 
-        var segments = this.segments;
-        var numSegments = segments.length;
+        const segments = this.segments;
+        const numSegments = segments.length;
         if (numSegments === 0) return null; // if segments is an empty array
 
-        var bbox;
-        for (var i = 0; i < numSegments; i++) {
+        let firstBBox = null;
+        let isUnion = false;
+        let x, y, width, height;
+        for (let i = 0; i < numSegments; i++) {
 
-            var segment = segments[i];
-            if (segment.isVisible) {
-                var segmentBBox = segment.bbox();
-                bbox = bbox ? bbox.union(segmentBBox) : segmentBBox;
+            const segment = segments[i];
+            if (!segment.isVisible) continue;
+
+            const segmentBBox = segment.bbox();
+            if (!firstBBox) {
+                // A path with one visible segment returns the bbox of the segment.
+                firstBBox = segmentBBox;
+                continue;
             }
+
+            if (!isUnion) {
+                // The second visible segment: the union starts from the first bbox.
+                x = firstBBox.x;
+                y = firstBBox.y;
+                width = firstBBox.width;
+                height = firstBBox.height;
+                isUnion = true;
+            }
+
+            // The union of the two rectangles, the way `Rect.prototype.union()` computes it.
+            const cornerX = max(x + width, segmentBBox.x + segmentBBox.width);
+            const cornerY = max(y + height, segmentBBox.y + segmentBBox.height);
+            x = min(x, segmentBBox.x);
+            y = min(y, segmentBBox.y);
+            width = cornerX - x;
+            height = cornerY - y;
         }
 
-        if (bbox) return bbox;
+        if (isUnion) return new Rect(x, y, width, height);
+        if (firstBBox) return firstBBox;
 
         // if the path has only invisible elements, return end point of last segment
-        var lastSegment = segments[numSegments - 1];
+        const lastSegment = segments[numSegments - 1];
         return new Rect(lastSegment.end.x, lastSegment.end.y, 0, 0);
     },
 

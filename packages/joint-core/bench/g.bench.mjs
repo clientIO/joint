@@ -28,12 +28,18 @@ const path = new g.Path('M 160 20 C 242.77 20 310 64.82 310 120 C 310 175.18 242
 const pathOpt = { segmentSubdivisions: path.getSegmentSubdivisions() };
 
 const points = [];
+const plainPoints = [];
+const ratios = [];
+const rects = [];
 const linesToCenter = [];
 const linesThrough = [];
 const linesAcross = [];
 for (let i = 0; i < BATCH_SIZE; i++) {
     const point = new g.Point(random() * 600 - 150, random() * 400 - 100);
     points.push(point);
+    plainPoints.push({ x: point.x, y: point.y });
+    ratios.push(random());
+    rects.push(new g.Rect(point.x, point.y, random() * 300, random() * 200));
     linesToCenter.push(new g.Line(point, center));
     linesThrough.push(new g.Line(point, point.clone().reflection(center)));
     linesAcross.push(new g.Line(
@@ -60,9 +66,24 @@ bench
     .add('polygon.intersectionWithLine(line), 4 points', batch((i) => polygon.intersectionWithLine(linesToCenter[i])))
     .add('polyline.intersectionWithLine(line), 8 points', batch((i) => polyline.intersectionWithLine(linesToCenter[i])))
     .add('ellipse.intersectionWithLine(line)', batch((i) => ellipse.intersectionWithLine(linesToCenter[i])))
+    .add('ellipse.intersectionWithLine(line), line across', batch((i) => ellipse.intersectionWithLine(linesAcross[i])))
+    .add('rect.intersect(rect)', batch((i) => rect.intersect(rects[i])))
+    .add('line.containsPoint(point), point on the line', batch((i) => linesToCenter[i].containsPoint(points[i])))
+    .add('line.containsPoint(point), point off the line', batch((i) => linesAcross[i].containsPoint(points[i])))
     .add('line.closestPoint(point)', batch((i) => linesAcross[i].closestPoint(points[i])))
     .add('polyline.closestPoint(point), 8 points', batch((i) => polyline.closestPoint(points[i])))
     .add('polygon.closestPoint(point), 4 points', batch((i) => polygon.closestPoint(points[i])))
+    .add('polyline.scale(sx, sy), 8 points', batch(() => polyline.scale(1, 1)))
+    .add('polyline.scale(sx, sy, origin), 8 points, origin is a point', batch((i) => polyline.scale(1, 1, points[i])))
+    .add('polyline.scale(sx, sy, origin), 8 points, origin is a plain object', batch((i) => polyline.scale(1, 1, plainPoints[i])))
+    .add('curve.pointAtT(t)', batch((i) => curve.pointAtT(ratios[i])))
+    .add('curve.getSkeletonPoints(t)', batch((i) => curve.getSkeletonPoints(ratios[i])))
+    .add('curve.divideAtT(t)', batch((i) => curve.divideAtT(ratios[i])))
+    .add('curve.tangentAtT(t)', batch((i) => curve.tangentAtT(ratios[i])))
+    .add('curve.closestPoint(point)', batch((i) => curve.closestPoint(points[i])))
+    .add('curve.bbox()', batch(() => curve.bbox()))
+    .add('path.bbox(), 4 curves', batch(() => path.bbox()))
+    .add('Curve.throughPoints(points), 8 points', batch(() => g.Curve.throughPoints(polyline.points)))
     .add('curve.getSubdivisions()', batch(() => curve.getSubdivisions()))
     .add('curve.length()', batch(() => curve.length()))
     .add('path.intersectionWithLine(line), 4 curves', batch((i) => path.intersectionWithLine(linesToCenter[i])))

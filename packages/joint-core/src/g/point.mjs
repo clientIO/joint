@@ -12,6 +12,7 @@ import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
 import { types } from './types.mjs';
+import { ensurePoint } from './point.ensure.mjs';
 import { toPlainMatrix, transformPoint } from './matrix.helpers.mjs';
 
 const {
@@ -295,9 +296,15 @@ Point.prototype = {
     // Scale point with origin.
     scale: function(sx, sy, origin) {
 
-        origin = (origin && new Point(origin)) || new Point(0, 0);
-        this.x = origin.x + sx * (this.x - origin.x);
-        this.y = origin.y + sy * (this.y - origin.y);
+        let originX = 0;
+        let originY = 0;
+        if (origin) {
+            const originPoint = ensurePoint(origin);
+            originX = originPoint.x;
+            originY = originPoint.y;
+        }
+        this.x = originX + sx * (this.x - originX);
+        this.y = originY + sy * (this.y - originY);
         return this;
     },
 

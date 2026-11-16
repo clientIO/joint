@@ -118,46 +118,57 @@ Ellipse.prototype = {
 
     intersectionWithLine: function(line) {
 
-        var intersections = [];
-        var a1 = line.start;
-        var a2 = line.end;
-        var rx = this.a;
-        var ry = this.b;
-        var dir = line.vector();
-        var diff = a1.difference(new Point(this));
-        var mDir = new Point(dir.x / (rx * rx), dir.y / (ry * ry));
-        var mDiff = new Point(diff.x / (rx * rx), diff.y / (ry * ry));
+        const { start, end } = line;
+        const startX = start.x;
+        const startY = start.y;
+        const endX = end.x;
+        const endY = end.y;
+        const rx = this.a;
+        const ry = this.b;
+        const dirX = endX - startX;
+        const dirY = endY - startY;
+        const diffX = startX - this.x;
+        const diffY = startY - this.y;
+        const mDirX = dirX / (rx * rx);
+        const mDirY = dirY / (ry * ry);
+        const mDiffX = diffX / (rx * rx);
+        const mDiffY = diffY / (ry * ry);
 
-        var a = dir.dot(mDir);
-        var b = dir.dot(mDiff);
-        var c = diff.dot(mDiff) - 1.0;
-        var d = b * b - a * c;
+        // A point of the line is `start + t * dir`, with `t` from 0 to 1.
+        // Substituted into the equation of the ellipse it gives
+        // `a * t^2 + 2 * b * t + c = 0`.
+        const a = dirX * mDirX + dirY * mDirY;
+        const b = dirX * mDiffX + dirY * mDiffY;
+        const c = (diffX * mDiffX + diffY * mDiffY) - 1.0;
+        // The discriminant (divided by 4).
+        const d = b * b - a * c;
 
-        if (d < 0) {
-            return null;
-        } else if (d > 0) {
-            var root = sqrt(d);
-            var ta = (-b - root) / a;
-            var tb = (-b + root) / a;
+        // The line does not meet the ellipse.
+        if (d < 0) return null;
 
-            if ((ta < 0 || 1 < ta) && (tb < 0 || 1 < tb)) {
-                // if ((ta < 0 && tb < 0) || (ta > 1 && tb > 1)) outside else inside
-                return null;
-            } else {
-                if (0 <= ta && ta <= 1) intersections.push(a1.lerp(a2, ta));
-                if (0 <= tb && tb <= 1) intersections.push(a1.lerp(a2, tb));
-            }
-        } else {
-            var t = -b / a;
-            if (0 <= t && t <= 1) {
-                intersections.push(a1.lerp(a2, t));
-            } else {
-                // outside
-                return null;
-            }
+        if (d > 0) {
+            // The line crosses the ellipse at two points.
+            const root = sqrt(d);
+            const ta = (-b - root) / a;
+            const tb = (-b + root) / a;
+            // Only the points between the start and the end of the line count.
+            const isTaOnLine = (0 <= ta && ta <= 1);
+            const isTbOnLine = (0 <= tb && tb <= 1);
+            if (!isTaOnLine && !isTbOnLine) return null;
+
+            const intersections = [];
+            if (isTaOnLine) intersections.push(new Point((1 - ta) * startX + ta * endX, (1 - ta) * startY + ta * endY));
+            if (isTbOnLine) intersections.push(new Point((1 - tb) * startX + tb * endX, (1 - tb) * startY + tb * endY));
+            return intersections;
         }
 
-        return intersections;
+        // The line touches the ellipse at one point.
+        const t = -b / a;
+        if (0 <= t && t <= 1) {
+            return [new Point((1 - t) * startX + t * endX, (1 - t) * startY + t * endY)];
+        }
+
+        return null;
     },
 
     // Find point on me where line from my center to

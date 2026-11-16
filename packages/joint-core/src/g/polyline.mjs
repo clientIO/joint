@@ -320,11 +320,12 @@ Polyline.prototype = {
 
     scale: function(sx, sy, origin) {
 
-        var points = this.points;
-        var numPoints = points.length;
+        const points = this.points;
+        const numPoints = points.length;
+        const originPoint = origin ? ensurePoint(origin) : origin;
 
-        for (var i = 0; i < numPoints; i++) {
-            points[i].scale(sx, sy, origin);
+        for (let i = 0; i < numPoints; i++) {
+            points[i].scale(sx, sy, originPoint);
         }
 
         return this;

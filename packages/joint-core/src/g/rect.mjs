@@ -262,21 +262,22 @@ Rect.prototype = {
     // @return {rect} if rectangles intersect, {null} if not.
     intersect: function(r) {
 
-        var myOrigin = this.origin();
-        var myCorner = this.corner();
-        var rOrigin = r.origin();
-        var rCorner = r.corner();
+        const x1 = this.x;
+        const y1 = this.y;
+        const x2 = x1 + this.width;
+        const y2 = y1 + this.height;
+        const rx1 = r.x;
+        const ry1 = r.y;
+        const rx2 = rx1 + r.width;
+        const ry2 = ry1 + r.height;
 
         // No intersection found
-        if (rCorner.x <= myOrigin.x ||
-            rCorner.y <= myOrigin.y ||
-            rOrigin.x >= myCorner.x ||
-            rOrigin.y >= myCorner.y) return null;
+        if (rx2 <= x1 || ry2 <= y1 || rx1 >= x2 || ry1 >= y2) return null;
 
-        var x = max(myOrigin.x, rOrigin.x);
-        var y = max(myOrigin.y, rOrigin.y);
+        const x = max(x1, rx1);
+        const y = max(y1, ry1);
 
-        return new Rect(x, y, min(myCorner.x, rCorner.x) - x, min(myCorner.y, rCorner.y) - y);
+        return new Rect(x, y, min(x2, rx2) - x, min(y2, ry2) - y);
     },
 
     intersectionWithLine: function(line) {

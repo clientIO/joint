@@ -245,6 +245,20 @@ QUnit.module('point', function() {
 
                 assert.equal((new g.Point(20, 30)).scale(2, 3, new g.Point(40, 45)).toString(), (new g.Point(0, 0)).toString());
             });
+
+            QUnit.test('with origin as a plain object or a string', function(assert) {
+
+                assert.equal((new g.Point(20, 30)).scale(2, 3, { x: 40, y: 45 }).toString(), '0@0');
+                assert.equal((new g.Point(20, 30)).scale(2, 3, '40 45').toString(), '0@0');
+            });
+
+            QUnit.test('does not change the origin', function(assert) {
+
+                const origin = new g.Point(40, 45);
+                const point = new g.Point(20, 30);
+                assert.equal(point.scale(2, 3, origin), point);
+                assert.equal(origin.toString(), '40@45');
+            });
         });
 
         QUnit.module('transform(matrix)', function() {

@@ -91,6 +91,37 @@ QUnit.module('curve', function() {
         });
     });
 
+    QUnit.module('throughPoints(), the points of the curves', function() {
+
+        const expected = 'M 0 100 C 7.986111111111107 118.75 15.972222222222214 137.5 45.3125 128.125 C 74.65277777777779 118.75 125.34722222222223 81.25 154.6875 71.875 C 184.02777777777777 62.49999999999999 192.01388888888889 81.25 200 100';
+
+        QUnit.test('accepts plain objects', function(assert) {
+
+            const curves = g.Curve.throughPoints([{ x: 0, y: 100 }, { x: 45.3125, y: 128.125 }, { x: 154.6875, y: 71.875 }, { x: 200, y: 100 }]);
+            assert.equal(curves.length, 3);
+            curves.forEach(function(curve) {
+                assert.ok(curve instanceof g.Curve);
+                assert.ok(curve.start instanceof g.Point);
+                assert.ok(curve.end instanceof g.Point);
+            });
+            assert.equal((new g.Path(curves)).serialize(), expected);
+        });
+
+        QUnit.test('does not share the points with the input or between the curves', function(assert) {
+
+            const points = [new g.Point(0, 100), new g.Point(45.3125, 128.125), new g.Point(154.6875, 71.875), new g.Point(200, 100)];
+            const curves = g.Curve.throughPoints(points);
+            assert.notEqual(curves[0].start, points[0]);
+            assert.notEqual(curves[0].end, points[1]);
+            assert.notEqual(curves[0].end, curves[1].start);
+            curves[0].end.x = 1000;
+            curves[2].end.x = 1000;
+            assert.equal(points[1].toString(), '45.3125@128.125');
+            assert.equal(points[3].toString(), '200@100');
+            assert.equal(curves[1].start.toString(), '45.3125@128.125');
+        });
+    });
+
     QUnit.module('prototype', function() {
 
         QUnit.module('bbox()', function() {
@@ -105,6 +136,14 @@ QUnit.module('curve', function() {
 
                 var curve = new g.Curve('10 10', '10 40', '50 40', '50 10');
                 assert.equal(curve.bbox().toString(), '10@10 50@32.5');
+            });
+
+            QUnit.test('includes the local extremes of the curve', function(assert) {
+
+                assert.equal((new g.Curve('0 0', '50 100', '150 -100', '200 0')).bbox().toString(), '0@-28.867513459481287 200@28.867513459481287', 'two extremes in y');
+                assert.equal((new g.Curve('0 0', '200 0', '200 100', '0 100')).bbox().toString(), '0@0 150@100', 'an extreme in x');
+                assert.equal((new g.Curve('0 0', '0 0', '100 50', '100 50')).bbox().toString(), '0@0 100@50', 'a straight curve');
+                assert.equal((new g.Curve('10 10', '10 10', '10 10', '10 10')).bbox().toString(), '10@10 10@10', 'a curve of no length');
             });
         });
 
