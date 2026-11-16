@@ -58,6 +58,31 @@ QUnit.module('polyline', function() {
             assert.equal(Array.isArray(polyline.points), true);
             assert.equal(polyline.points.length, 0);
         });
+
+        QUnit.test('creates a new Polyline object from a polyline or a polygon', function(assert) {
+
+            [
+                new g.Polyline(['1 1', '2 2', '3 1']),
+                new g.Polygon(['1 1', '2 2', '3 1'])
+            ].forEach(function(source) {
+                const polyline = new g.Polyline(source);
+                assert.ok(polyline instanceof g.Polyline);
+                assert.equal(polyline.type, g.types.Polyline);
+                assert.equal(polyline.serialize(), '1,1 2,2 3,1');
+                // a copy: neither the array nor the points are shared
+                assert.notEqual(polyline.points, source.points);
+                assert.notEqual(polyline.points[0], source.points[0]);
+                polyline.points[0].x = 100;
+                polyline.points.pop();
+                assert.equal(source.serialize(), '1,1 2,2 3,1');
+            });
+
+            // without `new`
+            assert.equal(g.Polyline(new g.Polygon(['1 1', '2 2'])).serialize(), '1,1 2,2');
+            // an empty one
+            assert.equal(new g.Polyline(new g.Polyline()).points.length, 0);
+            assert.equal(new g.Polyline(new g.Polygon()).points.length, 0);
+        });
     });
 
     QUnit.module('parse', function() {
