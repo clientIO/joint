@@ -49,10 +49,10 @@ describe('presets / element-geometry', () => {
     expect(geometry?.toString()).toBe('-10@-5 10@5');
   });
 
-  it('returns a polygon for a path port', () => {
+  it('returns a polyline for a path port', () => {
     const element = createElement(elementPorts({ out: { shape: TRIANGLE_PATH } }));
     const geometry = defaultElementGeometry({ model: element, port: 'out' });
-    expect(geometry?.type).toBe(g.types.Polygon);
+    expect(geometry?.type).toBe(g.types.Polyline);
     expect(bboxOf(geometry)).toBe('-10@-10 10@10');
   });
 
@@ -66,7 +66,7 @@ describe('presets / element-geometry', () => {
     for (const path of paths) {
       const element = createElement(elementPorts({ out: { shape: path } }));
       const geometry = defaultElementGeometry({ model: element, port: 'out' });
-      expect(geometry?.type).toBe(g.types.Polygon);
+      expect(geometry?.type).toBe(g.types.Polyline);
     }
   });
 

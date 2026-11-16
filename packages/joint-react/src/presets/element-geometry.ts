@@ -29,16 +29,17 @@ function isFiniteNumber(value: unknown): value is number {
 }
 
 /**
- * Flattens the subpaths of a path into closed outlines made of lines only,
+ * Creates the outline of a path from its flattened subpaths. It is made of lines only,
  * so that intersecting it does not subdivide curves on every call.
  * @param polylines - The flattened subpaths.
- * @returns A polygon for a single subpath, a path of closed subpaths otherwise.
+ * @returns The polyline of a single subpath, a path of all the subpaths otherwise.
  */
 function createOutline(polylines: g.Polyline[]): g.Shape | null {
-  const [firstPolyline] = polylines;
-  if (!firstPolyline) return null;
-  if (polylines.length === 1) return new g.Polygon(firstPolyline.points);
-  return new g.Path(polylines.map(({ points }) => new g.Polygon(points)));
+  if (polylines.length === 0) return null;
+  if (polylines.length === 1) return polylines[0];
+  // The subpaths can lie next to each other (e.g. two separate boxes), so none of them
+  // is the outline alone. A path keeps them all: a link ends on the one it meets first.
+  return new g.Path(polylines);
 }
 
 function createPathGeometry(pathData: unknown): g.Shape | null {
