@@ -85,6 +85,36 @@ interface LayoutResult {
 }
 ```
 
+### `loadElk(): Promise<LoadedElk>`
+
+Loads the main-thread ELK - the one `layout()` uses without an `elk` option - and resolves to `{ layoutSync }`, which lays out with it synchronously. ELK is loaded only once: the first `layout()` without an `elk` option loads it too, and every `loadElk()` resolves to the same object. It rejects if ELK fails to load (e.g. a chunk that failed to load) - the next call tries again.
+
+```ts
+import { loadElk } from '@joint/layout-elk';
+
+const { layoutSync } = await loadElk();
+
+const { bbox } = layoutSync(graph);
+```
+
+`layoutSync()` is only handed out by `loadElk()` - so it can't run before ELK has loaded, nor depend on something else having loaded it first. Keep the result (or the promise) wherever the layout runs from:
+
+```ts
+// Starts loading ELK right away.
+const elkLoaded = loadElk();
+
+graph.on('add', async () => {
+    const { layoutSync } = await elkLoaded;
+    layoutSync(graph);
+});
+```
+
+#### `layoutSync(graphOrCells, options?): LayoutResult`
+
+Lays out the graph (or the cells) as `layout()` does, but synchronously - the layout is applied by the time it returns. It always runs ELK on the main thread, so it takes the same options as `layout()`, except `elk` and `signal`.
+
+Use it where a layout has to be in place before anything else happens - e.g. right after a cell is added, so the cell is never painted where it was before the layout. ELK blocks the page while it runs, so keep it for graphs that lay out quickly; run larger ones in a Web Worker (see below).
+
 ### `LayoutOptions`
 
 ```ts
@@ -258,7 +288,7 @@ async function runLayout() {
 await layout(graph, { signal: AbortSignal.timeout(5000) });
 ```
 
-ELK can't stop a layout in progress, so a layout a `createWorkerElk()` worker is busy with is stopped by terminating the worker - a new one takes over the layouts still waiting. A layout on the main thread, or in any other `elk` instance, keeps running - only its result is ignored.
+ELK can't stop a layout in progress, so a layout a `createWorkerElk()` worker is busy with is stopped by terminating the worker - a new one takes over the layouts still waiting. On the main thread, ELK runs as soon as it is loaded, and blocks the page until it is done - so an abort either keeps it from starting (e.g. while ELK is still loading), or comes after the layout was applied. A layout in any other `elk` instance keeps running - only its result is ignored.
 
 ## ⚠️ Caveats & Known Limitations
 
@@ -266,7 +296,8 @@ ELK can't stop a layout in progress, so a layout a `createWorkerElk()` worker is
 - **Node labels are not supported** - ELK's node-label placement assumes labels are layout participants, whereas JointJS labels are attrs inside the shape. Link labels are supported.
 - **Element rotation is not taken into account** - an ELK node is a box with a position and a size, with no rotation, so an element is laid out by the geometry it would have at `angle: 0` and ELK reserves the wrong area for a rotated one. `layout()` warns the first time it sees one.
 - **Ports keep their JointJS-computed position by default** - every element with ports is exported with `elk.portConstraints: 'FIXED_POS'`, so ELK keeps each port where the element's port groups place it and edges route to/from that exact spot. Opt into ELK repositioning/reordering them by overriding it (e.g. `'FIXED_SIDE'`/`'FREE'`) in `exportElement` - setting it in `elkLayoutOptions` has no effect, since the per-node value takes precedence. `layout()` also defaults `elk.layered.considerModelOrder.portModelOrder` to `'true'`, so that a port freed this way keeps the order of the element's `ports.items`; override it in `elkLayoutOptions` to let ELK reorder them to reduce edge crossings.
-- **Asynchronous** - unlike `@joint/layout-directed-graph`, `layout()` returns a `Promise`, since `elkjs` computes layouts asynchronously - even on the main thread.
+- **Asynchronous** - unlike `@joint/layout-directed-graph`, `layout()` returns a `Promise`, since ELK may run in a Web Worker, or not be loaded yet. On the main thread, once ELK is loaded, it settles before the browser paints again - `layoutSync()` lays out synchronously. That also means the page doesn't paint while ELK runs: a spinner shown right before `await layout(graph)` never appears - run ELK in a Web Worker (see above) to keep the page responsive meanwhile.
+- **Synchronous layout relies on `elkjs` internals** - `elkjs` only lays out through a (fake, on the main thread) worker, which answers after a `setTimeout()`. `layout()` and `layoutSync()` call that worker's message handler directly instead, which `elkjs` doesn't document - so this package pins the `elkjs` version. Should it not be found, `layout()` falls back to `elkjs`' own `layout()`, and `layoutSync()` throws.
 - **Main thread by default** - without an `elk` option, ELK runs on the main thread and blocks the page while it runs - see "Running ELK in a Web Worker" above. In the ESM build, the main-thread copy of ELK (`elkjs/lib/elk.bundled.js`) is imported dynamically, so bundlers split it into a chunk of its own, only loaded by the first layout without an `elk` option. The UMD build can't load a chunk - it uses the `ELK` global instead, which the page has to load first (see "UMD build" above).
 
 ## 📄 License

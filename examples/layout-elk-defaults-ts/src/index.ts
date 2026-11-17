@@ -1,5 +1,5 @@
 import { dia, shapes, setTheme } from '@joint/core';
-import { layout } from '@joint/layout-elk';
+import { loadElk } from '@joint/layout-elk';
 import { graphJSON } from './example';
 import { Container, Service, InteractionLink } from './shapes';
 import './styles.scss';
@@ -13,7 +13,7 @@ const cellNamespace = {
     }
 };
 
-const init = () => {
+const init = async() => {
 
     // Every view (paper and cells alike) picks up a `joint-theme-material` class -
     // this example's own CSS gives that class its actual meaning (see `styles.scss`).
@@ -44,26 +44,30 @@ const init = () => {
     // Load the fixed example data.
     graph.fromJSON(graphJSON);
 
-    // No `exportElement`/`exportPort`/`setPortAttributes`/... callbacks - this is
-    // `layout()` at its simplest, with only plain ELK layout options passed through.
-    // Containers, ports and link labels are all laid out from this package's own
-    // defaults alone - and with no `elk` option, ELK runs on the main thread (the
-    // other ELK examples run it in a Web Worker, see `createWorkerElk()`).
-    layout(graph, {
-        elkLayoutOptions: {
-            // `'elk.algorithm': 'layered'` is the package's default - not repeated here.
-            'elk.direction': 'RIGHT',
-            'elk.edgeRouting': 'ORTHOGONAL',
-            'elk.spacing.nodeNode': 30,
-            'elk.layered.spacing.nodeNodeBetweenLayers': 50
-        },
-    }).then(() => {
-        paper.unfreeze();
+    try {
+        // ELK runs on the main thread here (the other ELK examples run it in a Web Worker,
+        // see `createWorkerElk()`) - once loaded, it lays out synchronously.
+        const { layoutSync } = await loadElk();
+
+        // No `exportElement`/`exportPort`/`setPortAttributes`/... callbacks - this is
+        // `layoutSync()` at its simplest, with only plain ELK layout options passed through.
+        // Containers, ports and link labels are all laid out from this package's own
+        // defaults alone.
+        layoutSync(graph, {
+            elkLayoutOptions: {
+                // `'elk.algorithm': 'layered'` is the package's default - not repeated here.
+                'elk.direction': 'RIGHT',
+                'elk.edgeRouting': 'ORTHOGONAL',
+                'elk.spacing.nodeNode': 30,
+                'elk.layered.spacing.nodeNodeBetweenLayers': 50
+            },
+        });
         zoom(paper, 1);
-    }).catch((error) => {
+    } catch (error) {
+        console.error('ELK layout error:', (error as Error).message);
+    } finally {
         paper.unfreeze();
-        console.error('ELK layout error:', error.message);
-    });
+    }
 };
 
 function zoom(paper: dia.Paper, zoomLevel: number): void {

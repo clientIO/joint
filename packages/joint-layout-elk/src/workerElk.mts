@@ -3,9 +3,9 @@ import { getAbortReason } from './abort.mjs';
 import type { ElkNode } from 'elkjs';
 
 // The algorithms `elkjs/lib/elk-api.js` registers with a worker by default.
-const ALGORITHMS = ['layered', 'stress', 'mrtree', 'radial', 'force', 'disco', 'sporeOverlap', 'sporeCompaction', 'rectpacking'];
+export const ELK_ALGORITHMS = ['layered', 'stress', 'mrtree', 'radial', 'force', 'disco', 'sporeOverlap', 'sporeCompaction', 'rectpacking'];
 
-// The id of the message registering `ALGORITHMS` - layouts are numbered from 1.
+// The id of the message registering `ELK_ALGORITHMS` - layouts are numbered from 1.
 const REGISTER_ID = 0;
 
 interface LayoutJob {
@@ -122,7 +122,7 @@ export class ElkWorkerClient implements WorkerElk {
                 this.fail();
             }
         });
-        worker.postMessage({ id: REGISTER_ID, cmd: 'register', algorithms: ALGORITHMS });
+        worker.postMessage({ id: REGISTER_ID, cmd: 'register', algorithms: ELK_ALGORITHMS });
         // A copy - `post()` drops a job that can't be posted.
         Array.from(this.jobs.values()).forEach((job) => this.post(job));
     }
