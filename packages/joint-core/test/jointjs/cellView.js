@@ -953,6 +953,25 @@ QUnit.module('cellView', function(hooks) {
             assert.equal(alpha.children.length, 5);
         });
 
+        QUnit.test('drops descendants that are transparent or hidden, keeps clipping', function(assert) {
+            const shaded = new joint.dia.Element({
+                type: 'shadedElement',
+                size: { width: 100, height: 80 },
+                markup: joint.util.svg`
+                    <rect @selector="transparent" width="10" height="10" opacity="0" />
+                    <rect @selector="hidden" width="10" height="10" style="visibility: hidden" />
+                    <rect @selector="clipped" width="10" height="10" clip-path="inset(2px)" mask="url(#m)" />
+                `
+            });
+            paper.model.addCell(shaded);
+            const shadedView = paper.findViewByModel(shaded);
+            const alpha = shadedView.toAlpha();
+            assert.equal(alpha.children.length, 1);
+            const [clipped] = alpha.children;
+            assert.equal(clipped.getAttribute('clip-path'), 'inset(2px)');
+            assert.equal(clipped.getAttribute('mask'), 'url(#m)');
+        });
+
         QUnit.test('given a text node - returns its bounding rectangle', function(assert) {
             const label = elementView.findNode('label');
             const alpha = elementView.toAlpha(label);

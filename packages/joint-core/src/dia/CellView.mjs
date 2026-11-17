@@ -42,7 +42,7 @@ const ALPHA_REPLACE_TAGS = ['FOREIGNOBJECT', 'IMAGE', 'USE', 'TEXT', 'TSPAN', 'T
 const ALPHA_ATTRIBUTE_BLACKLIST = [
     'fill', 'stroke', 'stroke-width', 'stroke-opacity', 'fill-opacity', 'opacity', 'stroke-dasharray',
     'marker-start', 'marker-mid', 'marker-end',
-    'filter', 'mask', 'clip-path',
+    'filter',
     'class', 'style', 'id', 'model-id', 'joint-selector', 'magnet', 'port', 'port-group', 'event',
     'cursor', 'pointer-events'
 ];
@@ -919,8 +919,8 @@ export const CellView = View.extend({
      * of an SVG `<mask>`. Paint, identity and interaction attributes are
      * removed from every descendant so the root `fill` and `stroke` cascade,
      * text, images, `<use>` and `<foreignObject>` are replaced with their
-     * bounding rectangles, and nodes that are not rendered are dropped
-     * together with any groups left empty.
+     * bounding rectangles, and nodes that are not rendered, transparent
+     * or hidden are dropped together with any groups left empty.
      *
      * @param {SVGElement} [node=this.el] - The node to copy.
      * @param {Object} [opt]
@@ -941,7 +941,7 @@ export const CellView = View.extend({
                 const [originalNode, clone] = pairs.shift();
                 if (
                     !V.isSVGGraphicsElement(originalNode) ||
-                    !originalNode.checkVisibility() ||
+                    !originalNode.checkVisibility({ opacityProperty: true, visibilityProperty: true }) ||
                     isAlphaIgnored(originalNode, ignore, this)
                 ) {
                     clone.remove();

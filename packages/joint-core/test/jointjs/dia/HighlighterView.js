@@ -1282,6 +1282,31 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.notOk(maskEl.querySelector('text'));
             assert.equal(maskEl.querySelectorAll('rect').length, 2);
         });
+
+        QUnit.test('deep - overriding the deprecated MASK_REPLACE_TAGS is respected', function(assert) {
+            const HighlighterView = joint.highlighters.mask.extend({
+                // replace the body rectangle too
+                MASK_REPLACE_TAGS: [...joint.highlighters.mask.prototype.MASK_REPLACE_TAGS, 'RECT']
+            });
+            const body = elementView.el.querySelector('rect');
+            body.setAttribute('rx', 5);
+            const highlighter = HighlighterView.add(elementView, 'root', 'highlighter-id', { deep: true });
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            const rects = maskEl.querySelectorAll('rect');
+            assert.equal(rects.length, 2);
+            // the legacy replacement rectangle does not copy the original attributes
+            Array.from(rects).forEach(rect => assert.notOk(rect.hasAttribute('rx')));
+        });
+
+        QUnit.test('deep - leaves transparent descendants out of the mask', function(assert) {
+            const HighlighterView = joint.highlighters.mask;
+            elementView.el.querySelector('rect').setAttribute('opacity', 0);
+            const highlighter = HighlighterView.add(elementView, 'root', 'highlighter-id', { deep: true });
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            // nothing left to mask - falls back to the bounding rectangle
+            assert.equal(maskEl.querySelectorAll('rect').length, 2);
+            Array.from(maskEl.children).forEach(child => assert.equal(child.tagName.toUpperCase(), 'RECT'));
+        });
     });
 
     QUnit.module('stroke', function() {
