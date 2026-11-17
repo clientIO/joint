@@ -192,7 +192,7 @@ function createPreview(containerId, getMaskContent) {
             const view = cell.findView(paper);
             // `toAlpha()` returns a plain SVG element. We wrap it in a vectorizer
             // to make the attribute changes below easier to write.
-            const alpha = view.toAlpha(view.el, getAlphaOptions());
+            const alpha = view.toAlpha(getAlphaOptions());
             if (!alpha) return;
             content.push(...getMaskContent(V(alpha)));
             const bbox = paper.paperToLocalRect(view.getBBox());

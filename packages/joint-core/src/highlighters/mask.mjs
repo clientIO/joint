@@ -157,7 +157,8 @@ export const mask = HighlighterView.extend({
             return getLegacyMaskShape(this, cellView, vel);
         }
         const { MASK_REMOVE_TAGS } = this;
-        const alphaNode = cellView.toAlpha(vel.node, {
+        const alphaNode = cellView.toAlpha({
+            node: vel.node,
             // Do not include the element in the mask's image
             ignore: node => MASK_REMOVE_TAGS.includes(node.tagName.toUpperCase())
         });

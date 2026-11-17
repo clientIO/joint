@@ -879,13 +879,14 @@ export const CellView = View.extend({
      * bounding rectangles, and nodes that are not rendered, transparent
      * or hidden are dropped together with any groups left empty.
      *
-     * @param {SVGElement} [node=this.el] - The node to copy.
      * @param {Object} [opt]
+     * @param {SVGElement} [opt.node=this.el] - The node to copy.
      * @param {string|function(SVGElement, CellView): boolean} [opt.ignore] - A selector or a predicate;
      * matching nodes are left out of the copy together with their subtrees.
      * @returns {SVGElement|null} The copy, or `null` if the node cannot be rendered as an SVG shape.
      */
-    toAlpha(node = this.el, opt = {}) {
+    toAlpha(opt = {}) {
+        const { node = this.el } = opt;
         return createAlphaNode(this, node, opt);
     },
 

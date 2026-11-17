@@ -1135,6 +1135,7 @@ export class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSet
 export namespace CellView {
 
     interface AlphaOptions {
+        node?: SVGElement;
         ignore?: string | ((node: SVGElement, cellView: CellView) => boolean);
     }
 
@@ -1231,7 +1232,7 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     getNodeUnrotatedBBox(node: SVGElement): g.Rect;
 
-    toAlpha(node?: SVGElement, opt?: CellView.AlphaOptions): SVGElement | null;
+    toAlpha(opt?: CellView.AlphaOptions): SVGElement | null;
 
     isNodeConnection(node: SVGElement): boolean;
 

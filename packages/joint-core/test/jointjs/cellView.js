@@ -1012,7 +1012,7 @@ QUnit.module('cellView', function(hooks) {
 
         QUnit.test('given a text node - returns its bounding rectangle', function(assert) {
             const label = elementView.findNode('label');
-            const alpha = elementView.toAlpha(label);
+            const alpha = elementView.toAlpha({ node: label });
             assert.ok(alpha instanceof SVGRectElement);
             assert.equal(alpha.getAttribute('transform'), label.getAttribute('transform'));
             assert.equal(alpha.getAttribute('fill'), 'white');
@@ -1020,11 +1020,11 @@ QUnit.module('cellView', function(hooks) {
 
         QUnit.test('given an HTML node - returns null', function(assert) {
             const div = elementView.el.querySelector('div');
-            assert.strictEqual(elementView.toAlpha(div), null);
+            assert.strictEqual(elementView.toAlpha({ node: div }), null);
         });
 
         QUnit.test('opt.ignore - selector drops matching nodes and their subtrees', function(assert) {
-            const alpha = elementView.toAlpha(elementView.el, { ignore: 'text, tspan, foreignObject' });
+            const alpha = elementView.toAlpha({ ignore: 'text, tspan, foreignObject' });
             // body, outline, icon
             assert.equal(alpha.children.length, 3);
             assert.equal(alpha.querySelectorAll('rect').length, 2);
@@ -1033,7 +1033,7 @@ QUnit.module('cellView', function(hooks) {
 
         QUnit.test('opt.ignore - predicate receives the original node and the view', function(assert) {
             const seen = [];
-            const alpha = elementView.toAlpha(elementView.el, {
+            const alpha = elementView.toAlpha({
                 ignore: (node, view) => {
                     seen.push(view);
                     return node.tagName.toUpperCase() === 'IMAGE';
@@ -1048,9 +1048,9 @@ QUnit.module('cellView', function(hooks) {
         });
 
         QUnit.test('opt.ignore - matching root returns null', function(assert) {
-            assert.strictEqual(elementView.toAlpha(elementView.el, { ignore: 'g' }), null);
+            assert.strictEqual(elementView.toAlpha({ ignore: 'g' }), null);
             const label = elementView.findNode('label');
-            assert.strictEqual(elementView.toAlpha(label, { ignore: 'text' }), null);
+            assert.strictEqual(elementView.toAlpha({ node: label, ignore: 'text' }), null);
         });
 
         QUnit.test('removes groups left empty after filtering', function(assert) {
@@ -1069,7 +1069,7 @@ QUnit.module('cellView', function(hooks) {
             });
             paper.model.addCell(grouped);
             const groupedView = paper.findViewByModel(grouped);
-            const alpha = groupedView.toAlpha(groupedView.el, { ignore: 'text' });
+            const alpha = groupedView.toAlpha({ ignore: 'text' });
             assert.equal(alpha.querySelectorAll('g').length, 1);
             assert.equal(alpha.querySelectorAll('rect').length, 2);
         });
@@ -1083,7 +1083,7 @@ QUnit.module('cellView', function(hooks) {
             });
             paper.model.addCell(textOnly);
             const textOnlyView = paper.findViewByModel(textOnly);
-            assert.strictEqual(textOnlyView.toAlpha(textOnlyView.el, { ignore: 'text' }), null);
+            assert.strictEqual(textOnlyView.toAlpha({ ignore: 'text' }), null);
         });
 
         QUnit.test('link - removes markers and replaces label text', function(assert) {
