@@ -280,10 +280,11 @@ paper.on('blank:pointerclick', () => clearSelection());
 
 // Rebuild the preview only after the paper rendered a change of a selected
 // cell, or of a cell a selected link is connected to.
-let isPreviewDirty = false;
+// The paper is async: the initial selection is previewed after the first render.
+let isPreviewDirty = true;
 
 graph.on('change', (cell) => {
-    if (isPreviewDirty) return;
+    if (isPreviewDirty || selection.size === 0) return;
     isPreviewDirty = selection.has(cell) || graph.getConnectedLinks(cell).some(link => selection.has(link));
 });
 
