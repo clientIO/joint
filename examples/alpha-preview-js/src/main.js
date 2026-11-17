@@ -278,8 +278,19 @@ paper.on('element:pointerclick link:pointerclick', (cellView, evt) => {
 
 paper.on('blank:pointerclick', () => clearSelection());
 
+// Rebuild the preview only after the paper rendered a change of a selected
+// cell, or of a cell a selected link is connected to.
+let isPreviewDirty = false;
+
+graph.on('change', (cell) => {
+    if (isPreviewDirty) return;
+    isPreviewDirty = selection.has(cell) || graph.getConnectedLinks(cell).some(link => selection.has(link));
+});
+
 paper.on('render:done', () => {
-    if (selection.size > 0) updatePreview();
+    if (!isPreviewDirty) return;
+    isPreviewDirty = false;
+    updatePreview();
 });
 
 paper.on('transform', syncPreviewTransform);

@@ -972,6 +972,44 @@ QUnit.module('cellView', function(hooks) {
             assert.equal(clipped.getAttribute('mask'), 'url(#m)');
         });
 
+        QUnit.test('keeps the inline style that is not paint', function(assert) {
+            const styled = new joint.dia.Element({
+                type: 'styledElement',
+                size: { width: 100, height: 80 },
+                markup: joint.util.svg`
+                    <rect @selector="painted" width="10" height="10" style="fill: red; stroke: blue" />
+                    <rect @selector="rotated" width="10" height="10" transform="rotate(45)" style="fill: red; transform-origin: 5px 5px" />
+                    <rect @selector="unfilled" width="10" height="10" style="fill: none" />
+                `
+            });
+            paper.model.addCell(styled);
+            const styledView = paper.findViewByModel(styled);
+            const [painted, rotated, unfilled] = styledView.toAlpha().children;
+            assert.notOk(painted.hasAttribute('style'));
+            assert.equal(rotated.style.fill, '');
+            assert.equal(rotated.style.transformOrigin, '5px 5px');
+            assert.equal(unfilled.style.fill, 'none');
+        });
+
+        QUnit.test('drops descendants that are not graphics elements and strips port and label identities', function(assert) {
+            const described = new joint.dia.Element({
+                type: 'describedElement',
+                size: { width: 100, height: 80 },
+                markup: joint.util.svg`
+                    <title>Title</title>
+                    <desc>Description</desc>
+                    <rect @selector="body" width="10" height="10" port-id-type="number" label-idx="0" />
+                `
+            });
+            paper.model.addCell(described);
+            const describedView = paper.findViewByModel(described);
+            const alpha = describedView.toAlpha();
+            assert.equal(alpha.children.length, 1);
+            const [body] = alpha.children;
+            assert.notOk(body.hasAttribute('port-id-type'));
+            assert.notOk(body.hasAttribute('label-idx'));
+        });
+
         QUnit.test('given a text node - returns its bounding rectangle', function(assert) {
             const label = elementView.findNode('label');
             const alpha = elementView.toAlpha(label);

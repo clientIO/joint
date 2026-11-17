@@ -50,6 +50,7 @@ export class mask extends dia.HighlighterView<MaskHighlighterArguments> {
 
     VISIBLE: string;
     INVISIBLE: string;
+    /** Overriding it falls back to the legacy mask shape. */
     MASK_ROOT_ATTRIBUTE_BLACKLIST: string[];
     /** @deprecated The mask shape is built via `dia.CellView.toAlpha()`. Overriding it falls back to the legacy mask shape. */
     MASK_CHILD_ATTRIBUTE_BLACKLIST: string[];

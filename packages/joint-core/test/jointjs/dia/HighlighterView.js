@@ -1298,6 +1298,19 @@ QUnit.module('HighlighterView', function(hooks) {
             Array.from(rects).forEach(rect => assert.notOk(rect.hasAttribute('rx')));
         });
 
+        QUnit.test('overriding MASK_ROOT_ATTRIBUTE_BLACKLIST is respected', function(assert) {
+            const HighlighterView = joint.highlighters.mask.extend({
+                // keep the dashes of the highlighted node
+                MASK_ROOT_ATTRIBUTE_BLACKLIST: ['transform']
+            });
+            element.attr('body/strokeDasharray', '5,5');
+            const highlighter = HighlighterView.add(elementView, 'body', 'highlighter-id');
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            const rects = Array.from(maskEl.querySelectorAll('rect'));
+            assert.equal(rects.length, 2);
+            rects.forEach(rect => assert.equal(rect.getAttribute('stroke-dasharray'), '5,5'));
+        });
+
         QUnit.test('deep - leaves transparent descendants out of the mask', function(assert) {
             const HighlighterView = joint.highlighters.mask;
             elementView.el.querySelector('rect').setAttribute('opacity', 0);

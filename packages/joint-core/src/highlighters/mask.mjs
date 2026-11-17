@@ -148,6 +148,8 @@ export const mask = HighlighterView.extend({
         if (vel.tagName() === 'G' && !deep) return null;
         const { prototype } = mask;
         if (
+            // `toAlpha()` strips the root attributes regardless of the blacklist
+            this.MASK_ROOT_ATTRIBUTE_BLACKLIST !== prototype.MASK_ROOT_ATTRIBUTE_BLACKLIST ||
             this.transformMaskChild !== prototype.transformMaskChild ||
             this.MASK_CHILD_ATTRIBUTE_BLACKLIST !== prototype.MASK_CHILD_ATTRIBUTE_BLACKLIST ||
             this.MASK_REPLACE_TAGS !== prototype.MASK_REPLACE_TAGS

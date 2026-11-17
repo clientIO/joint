@@ -39,16 +39,34 @@ const ALPHA_VISIBLE = 'white';
 
 const ALPHA_REPLACE_TAGS = ['FOREIGNOBJECT', 'IMAGE', 'USE', 'TEXT', 'TSPAN', 'TEXTPATH'];
 
-const ALPHA_ATTRIBUTE_BLACKLIST = [
+// removed both as attributes and as inline style properties
+const ALPHA_PAINT_PROPERTIES = [
     'fill', 'stroke', 'stroke-width', 'stroke-opacity', 'fill-opacity', 'opacity', 'stroke-dasharray',
     'marker-start', 'marker-mid', 'marker-end',
     'filter',
-    'class', 'style', 'id', 'model-id', 'joint-selector', 'magnet', 'port', 'port-group', 'event',
     'cursor', 'pointer-events'
 ];
 
+const ALPHA_ATTRIBUTE_BLACKLIST = [
+    ...ALPHA_PAINT_PROPERTIES,
+    'class', 'id', 'model-id', 'joint-selector', 'magnet', 'port', 'port-id-type', 'port-group', 'event',
+    'label-idx'
+];
+
+function stripAlphaStyle(node) {
+    // Keep the rest of the inline style (e.g. `transform-origin`), it can affect the geometry.
+    // Note: CSSOM changes are allowed by a strict Content Security Policy.
+    const { style } = node;
+    ALPHA_PAINT_PROPERTIES.forEach(property => {
+        if (property === 'fill' && style.getPropertyValue('fill') === 'none') return;
+        style.removeProperty(property);
+    });
+    if (style.length === 0) node.removeAttribute('style');
+}
+
 function stripAlphaAttributes(node) {
     Array.from(node.attributes).forEach(({ name }) => {
+        if (name === 'style') return stripAlphaStyle(node);
         if (name === 'fill' && node.getAttribute('fill') === 'none') return;
         if (name.startsWith('data-') || ALPHA_ATTRIBUTE_BLACKLIST.includes(name)) {
             node.removeAttribute(name);
