@@ -3,6 +3,36 @@ import { HighlighterView } from '../dia/HighlighterView.mjs';
 
 const MASK_CLIP = 20;
 
+function forEachDescendant(vel, fn) {
+    const descendants = vel.children();
+    while (descendants.length > 0) {
+        const descendant = descendants.shift();
+        if (fn(descendant)) {
+            descendants.push(...descendant.children());
+        }
+    }
+}
+
+// The mask shape as it was built before `CellView.toAlpha()`.
+// Used when a subclass customizes the deprecated child transformation.
+function getLegacyMaskShape(highlighter, cellView, vel) {
+    const { options, MASK_REPLACE_TAGS } = highlighter;
+    const { deep } = options;
+    if (!V.isSVGGraphicsElement(vel)) return null;
+    const tagName = vel.tagName();
+    let maskRoot;
+    if (tagName === 'G') {
+        if (!deep) return null;
+        maskRoot = vel.clone();
+        forEachDescendant(maskRoot, maskChild => highlighter.transformMaskChild(cellView, maskChild));
+    } else {
+        if (MASK_REPLACE_TAGS.includes(tagName)) return null;
+        maskRoot = vel.clone();
+    }
+    highlighter.transformMaskRoot(cellView, maskRoot);
+    return maskRoot;
+}
+
 export const mask = HighlighterView.extend({
 
     tagName: 'rect',
@@ -27,8 +57,84 @@ export const mask = HighlighterView.extend({
     INVISIBLE: 'black',
 
     MASK_ROOT_ATTRIBUTE_BLACKLIST: [
-        'transform'
+        'marker-start',
+        'marker-end',
+        'marker-mid',
+        'transform',
+        'stroke-dasharray',
+        'class',
     ],
+
+    // @deprecated - the mask shape is built via `CellView.toAlpha()`
+    MASK_CHILD_ATTRIBUTE_BLACKLIST: [
+        'stroke',
+        'fill',
+        'stroke-width',
+        'stroke-opacity',
+        'stroke-dasharray',
+        'fill-opacity',
+        'marker-start',
+        'marker-end',
+        'marker-mid',
+        'class',
+    ],
+
+    // @deprecated - the mask shape is built via `CellView.toAlpha()`
+    MASK_REPLACE_TAGS: [
+        'FOREIGNOBJECT',
+        'IMAGE',
+        'USE',
+        'TEXT',
+        'TSPAN',
+        'TEXTPATH'
+    ],
+
+    MASK_REMOVE_TAGS: [
+        'TEXT',
+        'TSPAN',
+        'TEXTPATH'
+    ],
+
+    // @deprecated - the mask shape is built via `CellView.toAlpha()`
+    transformMaskChild(cellView, childEl) {
+        const {
+            MASK_CHILD_ATTRIBUTE_BLACKLIST,
+            MASK_REPLACE_TAGS,
+            MASK_REMOVE_TAGS
+        } = this;
+        const childTagName = childEl.tagName();
+        // Do not include the element in the mask's image
+        if (!V.isSVGGraphicsElement(childEl) || MASK_REMOVE_TAGS.includes(childTagName)) {
+            childEl.remove();
+            return false;
+        }
+        // Replace the element with a rectangle
+        if (MASK_REPLACE_TAGS.includes(childTagName)) {
+            // Note: clone() method does not change the children ids
+            const originalChild = cellView.vel.findOne(`#${childEl.id}`);
+            if (originalChild) {
+                const { node: originalNode } = originalChild;
+                let childBBox = cellView.getNodeBoundingRect(originalNode);
+                if (cellView.model.isElement()) {
+                    childBBox = V.transformRect(childBBox, cellView.getNodeMatrix(originalNode));
+                }
+                const replacement = V('rect', childBBox.toJSON());
+                const { x: ox, y: oy } = childBBox.center();
+                const { angle, cx = ox, cy = oy } = originalChild.rotate();
+                if (angle) replacement.rotate(angle, cx, cy);
+                // Note: it's not important to keep the same sibling index since all subnodes are filled
+                childEl.parent().append(replacement);
+            }
+            childEl.remove();
+            return false;
+        }
+        // Keep the element, but clean it from certain attributes
+        MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(attrName => {
+            if (attrName === 'fill' && childEl.attr('fill') === 'none') return;
+            childEl.removeAttr(attrName);
+        });
+        return true;
+    },
 
     transformMaskRoot(_cellView, rootEl) {
         const { MASK_ROOT_ATTRIBUTE_BLACKLIST } = this;
@@ -40,7 +146,19 @@ export const mask = HighlighterView.extend({
     getMaskShape(cellView, vel) {
         const { deep } = this.options;
         if (vel.tagName() === 'G' && !deep) return null;
-        const alphaNode = cellView.toAlpha(vel.node);
+        const { prototype } = mask;
+        if (
+            this.transformMaskChild !== prototype.transformMaskChild ||
+            this.MASK_CHILD_ATTRIBUTE_BLACKLIST !== prototype.MASK_CHILD_ATTRIBUTE_BLACKLIST ||
+            this.MASK_REPLACE_TAGS !== prototype.MASK_REPLACE_TAGS
+        ) {
+            return getLegacyMaskShape(this, cellView, vel);
+        }
+        const { MASK_REMOVE_TAGS } = this;
+        const alphaNode = cellView.toAlpha(vel.node, {
+            // Do not include the element in the mask's image
+            ignore: node => MASK_REMOVE_TAGS.includes(node.tagName.toUpperCase())
+        });
         if (!alphaNode) return null;
         const alphaEl = V(alphaNode);
         this.transformMaskRoot(cellView, alphaEl);

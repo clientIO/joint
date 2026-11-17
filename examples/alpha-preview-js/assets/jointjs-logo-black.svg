@@ -36,10 +36,10 @@
 		</clipPath>
 	</defs>
 	<style>
-		.s0 { fill: #ed2637 } 
-		.s1 { fill: #000000 } 
-		.s2 { fill: #dde5ed } 
-		.s3 { fill: #ffffff } 
+		.s0 { fill: #ed2637 }
+		.s1 { fill: #000000 }
+		.s2 { fill: #dde5ed }
+		.s3 { fill: #ffffff }
 	</style>
 	<g id="Page 1" clip-path="url(#cp1)">
 		<path id="Path 1" class="s0" d="m1835.8-1620h266.2v283.5h-266.2z"/>

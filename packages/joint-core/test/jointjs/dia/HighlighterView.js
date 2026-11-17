@@ -1258,6 +1258,30 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.notOk(maskEl.querySelector('.body'));
             assert.notOk(maskEl.querySelector('.label'));
         });
+
+        QUnit.test('deep - leaves the text out of the mask', function(assert) {
+            const HighlighterView = joint.highlighters.mask;
+            const highlighter = HighlighterView.add(elementView, 'root', 'highlighter-id', { deep: true });
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            assert.notOk(maskEl.querySelector('text'));
+            // the body rectangle in the visible and the invisible shape
+            assert.equal(maskEl.querySelectorAll('rect').length, 2);
+        });
+
+        QUnit.test('deep - overriding the deprecated transformMaskChild() is respected', function(assert) {
+            const children = [];
+            const HighlighterView = joint.highlighters.mask.extend({
+                transformMaskChild(cellView, childEl) {
+                    children.push(childEl.tagName());
+                    return joint.highlighters.mask.prototype.transformMaskChild.apply(this, arguments);
+                }
+            });
+            const highlighter = HighlighterView.add(elementView, 'root', 'highlighter-id', { deep: true });
+            assert.deepEqual(children, ['RECT', 'TEXT']);
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            assert.notOk(maskEl.querySelector('text'));
+            assert.equal(maskEl.querySelectorAll('rect').length, 2);
+        });
     });
 
     QUnit.module('stroke', function() {

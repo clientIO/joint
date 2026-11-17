@@ -51,6 +51,11 @@ export class mask extends dia.HighlighterView<MaskHighlighterArguments> {
     VISIBLE: string;
     INVISIBLE: string;
     MASK_ROOT_ATTRIBUTE_BLACKLIST: string[];
+    /** @deprecated The mask shape is built via `dia.CellView.toAlpha()`. Overriding it falls back to the legacy mask shape. */
+    MASK_CHILD_ATTRIBUTE_BLACKLIST: string[];
+    /** @deprecated The mask shape is built via `dia.CellView.toAlpha()`. Overriding it falls back to the legacy mask shape. */
+    MASK_REPLACE_TAGS: string[];
+    MASK_REMOVE_TAGS: string[];
 
     public getMaskId(): string;
 
@@ -59,6 +64,9 @@ export class mask extends dia.HighlighterView<MaskHighlighterArguments> {
     protected getMaskShape(cellView: dia.CellView, vel: Vectorizer): Vectorizer;
 
     protected transformMaskRoot(cellView: dia.CellView, root: Vectorizer): void;
+
+    /** @deprecated The mask shape is built via `dia.CellView.toAlpha()`. Overriding it falls back to the legacy mask shape. */
+    protected transformMaskChild(cellView: dia.CellView, child: Vectorizer): boolean;
 
     protected addMask(paper: dia.Paper, mask: Vectorizer): void;
 
