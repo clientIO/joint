@@ -763,4 +763,385 @@ QUnit.module('DirectedGraph', function(hooks) {
         });
     });
 
+    QUnit.module('ranker: fixed', function(hooks) {
+
+        let graph;
+
+        hooks.beforeEach(function() {
+
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        });
+
+        hooks.afterEach(function() {
+
+            graph = null;
+        });
+
+        function createElement(id, rank, attributes) {
+            return new joint.shapes.standard.Rectangle({
+                id,
+                rank,
+                size: { width: 40, height: 20 },
+                ...attributes
+            });
+        }
+
+        function createLink(id, sourceId, targetId) {
+            return new joint.shapes.standard.Link({
+                id,
+                source: { id: sourceId },
+                target: { id: targetId },
+                vertices: [{ x: 1, y: 1 }]
+            });
+        }
+
+        function layout(options) {
+            return DirectedGraph.layout(graph, {
+                ranker: 'fixed',
+                rankDir: 'LR',
+                exportElement: (element) => ({ ...element.size(), rank: element.get('rank') }),
+                ...options
+            });
+        }
+
+        QUnit.test('should place the elements by their ranks', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('b', 2),
+                createElement('c', 2),
+                createElement('d', 1),
+                // `a` and `b` are not adjacent but the rank of `b` is given
+                createLink('ab', 'a', 'b'),
+                createLink('ac', 'a', 'c')
+            ]);
+
+            layout();
+
+            const x = (id) => graph.getCell(id).position().x;
+            assert.ok(x('a') < x('d'));
+            assert.ok(x('d') < x('b'));
+            assert.equal(x('b'), x('c'));
+        });
+
+        QUnit.test('should use rank 0 for the elements without a rank', function(assert) {
+
+            graph.resetCells([
+                createElement('a'),
+                createElement('b', 0),
+                createElement('c', 1),
+                createLink('ac', 'a', 'c')
+            ]);
+
+            layout();
+
+            const x = (id) => graph.getCell(id).position().x;
+            assert.equal(x('a'), x('b'));
+            assert.ok(x('a') < x('c'));
+        });
+
+        QUnit.test('should route the backward links from the source to the target', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('b', 1),
+                createElement('c', 2),
+                createLink('ab', 'a', 'b'),
+                createLink('bc', 'b', 'c'),
+                createLink('ca', 'c', 'a')
+            ]);
+
+            layout({ setVertices: true });
+
+            const x = (id) => graph.getCell(id).position().x;
+            assert.ok(x('a') < x('b'));
+            assert.ok(x('b') < x('c'));
+            const vertices = graph.getCell('ca').vertices();
+            assert.ok(vertices.length > 0);
+            assert.ok(vertices[0].x > vertices[vertices.length - 1].x);
+        });
+
+        QUnit.test('should route the backward links outside of a cycle', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('b', 2),
+                createLink('ba', 'b', 'a')
+            ]);
+
+            const routes = {};
+            layout({ setVertices: (link, points) => (routes[link.id] = points) });
+
+            const x = (id) => graph.getCell(id).position().x;
+            assert.ok(x('a') < x('b'));
+            const points = routes['ba'];
+            assert.ok(points.length > 1);
+            assert.ok(points[0].x > points[points.length - 1].x);
+        });
+
+        QUnit.test('should not change the ranks returned by exportElement()', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('b', 1),
+                createLink('ab', 'a', 'b')
+            ]);
+
+            const nodes = new Map();
+            const exportElement = (element) => {
+                if (!nodes.has(element.id)) {
+                    nodes.set(element.id, { ...element.size(), rank: element.get('rank') });
+                }
+                return nodes.get(element.id);
+            };
+            layout({ exportElement });
+            const distance = graph.getCell('b').position().x - graph.getCell('a').position().x;
+            layout({ exportElement });
+            assert.equal(graph.getCell('b').position().x - graph.getCell('a').position().x, distance);
+            assert.equal(nodes.get('b').rank, 1);
+        });
+
+        QUnit.test('should not lay out the links within one rank', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('b', 0),
+                createElement('c', 1),
+                createLink('ab', 'a', 'b'),
+                createLink('ac', 'a', 'c')
+            ]);
+
+            layout();
+
+            const x = (id) => graph.getCell(id).position().x;
+            assert.equal(x('a'), x('b'));
+            assert.ok(x('a') < x('c'));
+            assert.deepEqual(graph.getCell('ab').vertices(), [{ x: 1, y: 1 }]);
+        });
+
+        QUnit.test('should reset the vertices of the links within one rank', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('b', 0),
+                createLink('ab', 'a', 'b'),
+            ]);
+
+            layout({ setVertices: true });
+            assert.deepEqual(graph.getCell('ab').vertices(), []);
+
+            const calls = [];
+            layout({ setVertices: (link, points) => calls.push([link, points]) });
+            assert.equal(calls.length, 1);
+            assert.equal(calls[0][0], graph.getCell('ab'));
+            assert.deepEqual(calls[0][1], []);
+        });
+
+        QUnit.test('should lay out the nested clusters', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('parent', 5, { embeds: ['child', 'c'] }),
+                createElement('child', 5, { parent: 'parent', embeds: ['b'] }),
+                createElement('b', 1, { parent: 'child' }),
+                createElement('c', 2, { parent: 'parent' }),
+                createElement('d', 3),
+                createLink('ab', 'a', 'b'),
+                createLink('bc', 'b', 'c'),
+                createLink('cd', 'c', 'd')
+            ]);
+
+            layout();
+
+            const bbox = (id) => graph.getCell(id).getBBox();
+            assert.ok(bbox('a').x < bbox('b').x);
+            assert.ok(bbox('b').x < bbox('c').x);
+            assert.ok(bbox('c').x < bbox('d').x);
+            assert.ok(bbox('child').containsRect(bbox('b')));
+            assert.ok(bbox('parent').containsRect(bbox('child')));
+            assert.ok(bbox('parent').containsRect(bbox('c')));
+            assert.notOk(bbox('parent').intersect(bbox('a')));
+            assert.notOk(bbox('parent').intersect(bbox('d')));
+        });
+
+        QUnit.test('emptyRankSize: number - should add the size to every empty rank', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('b', 0),
+                createElement('c', 1),
+                createElement('d', 4),
+                createElement('e', 4),
+                createLink('ac', 'a', 'c'),
+                createLink('cd', 'c', 'd'),
+                createLink('be', 'b', 'e')
+            ]);
+
+            const positions = () => graph.getElements().map((element) => element.position());
+            const vertices = () => graph.getCell('be').vertices();
+
+            ['LR', 'TB', 'RL', 'BT'].forEach((rankDir) => {
+                const [axis, crossAxis, dimension] = (rankDir === 'LR' || rankDir === 'RL')
+                    ? ['x', 'y', 'width']
+                    : ['y', 'x', 'height'];
+                const direction = (rankDir === 'RL' || rankDir === 'BT') ? -1 : 1;
+
+                const defaultBBox = layout({ rankDir, setVertices: true });
+                const defaultPositions = positions();
+                const defaultVertices = vertices();
+
+                const zeroBBox = layout({ rankDir, setVertices: true, emptyRankSize: 0 });
+                assert.deepEqual(zeroBBox.toJSON(), defaultBBox.toJSON(), `${rankDir}: 0 is the default`);
+                assert.deepEqual(positions(), defaultPositions, `${rankDir}: 0 is the default`);
+
+                const bbox = layout({ rankDir, setVertices: true, emptyRankSize: 100 });
+                assert.equal(bbox[dimension], defaultBBox[dimension] + 2 * 100, `${rankDir}: 2 empty ranks`);
+                const [c, d] = [graph.getCell('c'), graph.getCell('d')];
+                const [defaultC, defaultD] = [defaultPositions[2], defaultPositions[3]];
+                assert.equal(
+                    direction * (d.position()[axis] - c.position()[axis]),
+                    direction * (defaultD[axis] - defaultC[axis]) + 2 * 100,
+                    `${rankDir}: the ranks after the empty ranks are moved`
+                );
+                assert.deepEqual(
+                    positions().map((position) => position[crossAxis]),
+                    defaultPositions.map((position) => position[crossAxis]),
+                    `${rankDir}: the cross axis is not changed`
+                );
+                assert.deepEqual(
+                    vertices().map((vertex) => vertex[crossAxis]),
+                    defaultVertices.map((vertex) => vertex[crossAxis]),
+                    `${rankDir}: the cross axis of the vertices is not changed`
+                );
+            });
+            assert.equal(graph.getElements().length, 5);
+        });
+
+        QUnit.test('should lay out large gaps between the ranks', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('b', 1),
+                createElement('c', 1e6),
+                createLink('ab', 'a', 'b'),
+                createLink('bc', 'b', 'c'),
+                createLink('ac', 'a', 'c')
+            ]);
+
+            layout({ rankSep: 30, setVertices: true });
+
+            const x = (id) => graph.getCell(id).position().x;
+            assert.equal(x('b') - x('a'), 40 + 30);
+            assert.equal(x('c') - x('b'), 40 + 30 + (1e6 - 2) * 30);
+        });
+
+        QUnit.test('emptyRankSize: number - should move the edge labels and resize the clusters', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('cluster', 0, { embeds: ['b', 'c'] }),
+                createElement('b', 0, { parent: 'cluster' }),
+                createElement('c', 2, { parent: 'cluster' }),
+                createLink('ab', 'a', 'b'),
+                createLink('ac', 'a', 'c')
+            ]);
+            graph.getCell('ac').set('labelSize', { width: 20, height: 10 });
+
+            const run = (emptyRankSize) => {
+                let labelPosition = null;
+                layout({
+                    emptyRankSize,
+                    clusterPadding: 'default',
+                    setLabels: (link, position) => {
+                        if (link.id === 'ac') labelPosition = position;
+                    }
+                });
+                return { labelPosition, clusterSize: graph.getCell('cluster').size() };
+            };
+
+            const defaultLayout = run();
+            const resizedLayout = run(100);
+            const labelDelta = resizedLayout.labelPosition.x - defaultLayout.labelPosition.x;
+            assert.ok(labelDelta > 0 && labelDelta < 100, 'the label inside the gap is moved proportionally');
+            assert.equal(resizedLayout.labelPosition.y, defaultLayout.labelPosition.y);
+            assert.equal(resizedLayout.clusterSize.width, defaultLayout.clusterSize.width + 100);
+            assert.equal(resizedLayout.clusterSize.height, defaultLayout.clusterSize.height);
+        });
+
+        QUnit.test('emptyRankSize: number - should keep the padding of the clusters next to the empty ranks', function(assert) {
+
+            const padding = (rankDir) => {
+                const clusterBBox = graph.getCell('cluster').getBBox();
+                const childrenBBox = graph.getCellsBBox([graph.getCell('b'), graph.getCell('c')]);
+                return (rankDir === 'LR' || rankDir === 'RL')
+                    ? [childrenBBox.x - clusterBBox.x, clusterBBox.corner().x - childrenBBox.corner().x]
+                    : [childrenBBox.y - clusterBBox.y, clusterBBox.corner().y - childrenBBox.corner().y];
+            };
+
+            ['LR', 'TB', 'RL', 'BT'].forEach((rankDir) => {
+                graph.resetCells([
+                    createElement('a', 0),
+                    createElement('cluster', 0, { embeds: ['b', 'c'] }),
+                    createElement('b', 3, { parent: 'cluster' }),
+                    createElement('c', 6, { parent: 'cluster' }),
+                    createElement('d', 9),
+                    createLink('ab', 'a', 'b'),
+                    createLink('bc', 'b', 'c'),
+                    createLink('cd', 'c', 'd')
+                ]);
+                layout({ rankDir, clusterPadding: 'default' });
+                const defaultPadding = padding(rankDir);
+                layout({ rankDir, clusterPadding: 'default', emptyRankSize: 500 });
+                assert.deepEqual(padding(rankDir), defaultPadding, rankDir);
+            });
+        });
+
+        QUnit.test('emptyRankSize: non-finite - should be ignored', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 0),
+                createElement('b', 2),
+                createLink('ab', 'a', 'b')
+            ]);
+
+            const defaultBBox = layout();
+            assert.deepEqual(layout({ emptyRankSize: Infinity }).toJSON(), defaultBBox.toJSON());
+            assert.deepEqual(layout({ emptyRankSize: NaN }).toJSON(), defaultBBox.toJSON());
+        });
+
+        QUnit.test('other rankers should ignore the ranks of the clusters', function(assert) {
+
+            const cells = () => [
+                createElement('a', 0),
+                createElement('cluster', 1, { embeds: ['b', 'c'] }),
+                createElement('b', 0, { parent: 'cluster' }),
+                createElement('c', 0, { parent: 'cluster' }),
+                createLink('ab', 'a', 'b'),
+                createLink('bc', 'b', 'c')
+            ];
+
+            ['network-simplex', 'tight-tree', 'longest-path'].forEach((ranker) => {
+                graph.resetCells(cells());
+                layout({ ranker, clusterPadding: 'default' });
+                const clusterBBox = graph.getCell('cluster').getBBox();
+                assert.ok(clusterBBox.containsRect(graph.getCell('b').getBBox()), ranker);
+                assert.ok(clusterBBox.containsRect(graph.getCell('c').getBBox()), ranker);
+            });
+        });
+
+        QUnit.test('other rankers should ignore the ranks', function(assert) {
+
+            graph.resetCells([
+                createElement('a', 5),
+                createElement('b', 0),
+                createLink('ab', 'a', 'b')
+            ]);
+
+            layout({ ranker: 'network-simplex' });
+
+            const x = (id) => graph.getCell(id).position().x;
+            assert.ok(x('a') < x('b'));
+        });
+    });
+
 });

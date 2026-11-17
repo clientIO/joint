@@ -45,6 +45,7 @@
   "files": [
     "./DirectedGraph.d.ts",
     "./DirectedGraph.mjs",
+    "./fixedRanker.mjs",
     "./LICENSE",
     "./README.md",
     "./SECURITY.md",
