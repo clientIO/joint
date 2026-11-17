@@ -190,9 +190,11 @@ function createPreview(containerId, getMaskContent) {
         let area = null;
         selection.forEach(cell => {
             const view = cell.findView(paper);
+            // `toAlpha()` returns a plain SVG element. We wrap it in a vectorizer
+            // to make the attribute changes below easier to write.
             const alpha = view.toAlpha(view.el, getAlphaOptions());
             if (!alpha) return;
-            content.push(...getMaskContent(alpha));
+            content.push(...getMaskContent(V(alpha)));
             const bbox = paper.paperToLocalRect(view.getBBox());
             area = area ? area.union(bbox) : bbox;
         });

@@ -47,10 +47,8 @@ const ALPHA_ATTRIBUTE_BLACKLIST = [
     'cursor', 'pointer-events'
 ];
 
-function stripAlphaAttributes(vel, keep = []) {
-    const { node } = vel;
+function stripAlphaAttributes(node) {
     Array.from(node.attributes).forEach(({ name }) => {
-        if (keep.includes(name)) return;
         if (name === 'fill' && node.getAttribute('fill') === 'none') return;
         if (name.startsWith('data-') || ALPHA_ATTRIBUTE_BLACKLIST.includes(name)) {
             node.removeAttribute(name);
@@ -64,16 +62,20 @@ function isAlphaIgnored(node, ignore, cellView) {
     return false;
 }
 
-function removeEmptyGroups(vel) {
+function isAlphaReplaced(node) {
+    return ALPHA_REPLACE_TAGS.includes(node.tagName.toUpperCase());
+}
+
+function removeEmptyGroups(node) {
     // reverse document order visits descendants before their ancestors
-    vel.find('g').reverse().forEach(group => {
-        if (group.node.children.length === 0) group.remove();
+    Array.from(node.querySelectorAll('g')).reverse().forEach(group => {
+        if (group.children.length === 0) group.remove();
     });
 }
 
-function zipChildren(originalVel, cloneVel) {
-    const originals = originalVel.children();
-    const clones = cloneVel.children();
+function zipChildren(originalNode, cloneNode) {
+    const originals = Array.from(originalNode.children);
+    const clones = Array.from(cloneNode.children);
     return originals.map((original, i) => [original, clones[i]]);
 }
 
@@ -924,21 +926,19 @@ export const CellView = View.extend({
      * @param {Object} [opt]
      * @param {string|function(SVGElement, CellView): boolean} [opt.ignore] - A selector or a predicate;
      * matching nodes are left out of the copy together with their subtrees.
-     * @returns {Vectorizer|null} The copy, or `null` if the node cannot be rendered as an SVG shape.
+     * @returns {SVGElement|null} The copy, or `null` if the node cannot be rendered as an SVG shape.
      */
     toAlpha(node = this.el, opt = {}) {
         const { ignore } = opt;
         if (!V.isSVGGraphicsElement(node) || isAlphaIgnored(node, ignore, this)) return null;
-        const vel = V(node);
         let alpha;
-        if (ALPHA_REPLACE_TAGS.includes(vel.tagName())) {
+        if (isAlphaReplaced(node)) {
             alpha = this.getAlphaRect(node);
         } else {
-            alpha = vel.clone();
-            const pairs = zipChildren(vel, alpha);
+            alpha = node.cloneNode(true);
+            const pairs = zipChildren(node, alpha);
             while (pairs.length > 0) {
-                const [original, clone] = pairs.shift();
-                const originalNode = original.node;
+                const [originalNode, clone] = pairs.shift();
                 if (
                     !V.isSVGGraphicsElement(originalNode) ||
                     !originalNode.checkVisibility() ||
@@ -947,32 +947,31 @@ export const CellView = View.extend({
                     clone.remove();
                     continue;
                 }
-                if (ALPHA_REPLACE_TAGS.includes(original.tagName())) {
-                    clone.before(this.getAlphaRect(originalNode));
-                    clone.remove();
+                if (isAlphaReplaced(originalNode)) {
+                    clone.replaceWith(this.getAlphaRect(originalNode));
                     continue;
                 }
                 stripAlphaAttributes(clone);
-                pairs.push(...zipChildren(original, clone));
+                pairs.push(...zipChildren(originalNode, clone));
             }
             removeEmptyGroups(alpha);
-            if (alpha.tagName() === 'G' && alpha.node.children.length === 0) return null;
-            stripAlphaAttributes(alpha, ['id', 'transform']);
+            if (alpha.tagName.toUpperCase() === 'G' && alpha.children.length === 0) return null;
+            stripAlphaAttributes(alpha);
         }
-        alpha.attr({
-            'fill': (node.getAttribute('fill') === 'none') ? 'none' : ALPHA_VISIBLE,
-            'stroke': ALPHA_VISIBLE
-        });
+        alpha.setAttribute('fill', (node.getAttribute('fill') === 'none') ? 'none' : ALPHA_VISIBLE);
+        alpha.setAttribute('stroke', ALPHA_VISIBLE);
         return alpha;
     },
 
     getAlphaRect(node) {
         const bbox = this.getNodeBoundingRect(node);
+        // Make sure a node with no width or height is still visible.
         bbox.inflate(bbox.width ? 0 : 0.5, bbox.height ? 0 : 0.5);
-        const rect = V('rect', bbox.toJSON());
-        rect.node.removeAttribute('id');
+        // Note that `V()` assigns a unique id to every element it creates.
+        const rect = V('rect', bbox.toJSON()).node;
+        rect.removeAttribute('id');
         const transform = node.getAttribute('transform');
-        if (transform) rect.attr('transform', transform);
+        if (transform) rect.setAttribute('transform', transform);
         return rect;
     },
 

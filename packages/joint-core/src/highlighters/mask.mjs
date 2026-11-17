@@ -40,8 +40,9 @@ export const mask = HighlighterView.extend({
     getMaskShape(cellView, vel) {
         const { deep } = this.options;
         if (vel.tagName() === 'G' && !deep) return null;
-        const alphaEl = cellView.toAlpha(vel.node);
-        if (!alphaEl) return null;
+        const alphaNode = cellView.toAlpha(vel.node);
+        if (!alphaNode) return null;
+        const alphaEl = V(alphaNode);
         this.transformMaskRoot(cellView, alphaEl);
         return alphaEl;
     },

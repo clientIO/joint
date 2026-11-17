@@ -1231,7 +1231,7 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     getNodeUnrotatedBBox(node: SVGElement): g.Rect;
 
-    toAlpha(node?: SVGElement, opt?: CellView.AlphaOptions): Vectorizer | null;
+    toAlpha(node?: SVGElement, opt?: CellView.AlphaOptions): SVGElement | null;
 
     isNodeConnection(node: SVGElement): boolean;
 
@@ -1259,7 +1259,7 @@ export abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGEle
 
     cleanNodeCache(node: SVGElement): void
 
-    protected getAlphaRect(node: SVGElement): Vectorizer;
+    protected getAlphaRect(node: SVGElement): SVGRectElement;
 
     protected isEnclosedIn(area: g.Rect): boolean;
 
