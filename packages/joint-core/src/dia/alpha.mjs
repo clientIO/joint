@@ -2,7 +2,8 @@ import V from '../V/index.mjs';
 
 const ALPHA_VISIBLE = 'white';
 
-const ALPHA_REPLACE_TAGS = ['FOREIGNOBJECT', 'IMAGE', 'USE', 'TEXT', 'TSPAN', 'TEXTPATH'];
+// SVG local names (case-sensitive)
+const ALPHA_REPLACE_TAGS = new Set(['foreignObject', 'image', 'use', 'text', 'tspan', 'textPath']);
 
 // removed both as attributes and as inline style properties
 const ALPHA_PAINT_PROPERTIES = [
@@ -12,11 +13,11 @@ const ALPHA_PAINT_PROPERTIES = [
     'cursor', 'pointer-events'
 ];
 
-const ALPHA_ATTRIBUTE_BLACKLIST = [
+const ALPHA_ATTRIBUTE_BLACKLIST = new Set([
     ...ALPHA_PAINT_PROPERTIES,
     'class', 'id', 'model-id', 'joint-selector', 'magnet', 'port', 'port-id-type', 'port-group', 'event',
     'label-idx'
-];
+]);
 
 function stripAlphaStyle(node) {
     // Keep the rest of the inline style (e.g. `transform-origin`), it can affect the geometry.
@@ -30,13 +31,19 @@ function stripAlphaStyle(node) {
 }
 
 function stripAlphaAttributes(node) {
-    Array.from(node.attributes).forEach(({ name }) => {
-        if (name === 'style') return stripAlphaStyle(node);
-        if (name === 'fill' && node.getAttribute('fill') === 'none') return;
-        if (name.startsWith('data-') || ALPHA_ATTRIBUTE_BLACKLIST.includes(name)) {
+    // `getAttributeNames()` returns a static array of strings (no `Attr` objects)
+    const names = node.getAttributeNames();
+    for (let i = 0; i < names.length; i++) {
+        const name = names[i];
+        if (name === 'style') {
+            stripAlphaStyle(node);
+            continue;
+        }
+        if (name === 'fill' && node.getAttribute('fill') === 'none') continue;
+        if (ALPHA_ATTRIBUTE_BLACKLIST.has(name) || name.startsWith('data-')) {
             node.removeAttribute(name);
         }
-    });
+    }
 }
 
 function isAlphaIgnored(node, ignore, cellView) {
@@ -46,20 +53,27 @@ function isAlphaIgnored(node, ignore, cellView) {
 }
 
 function isAlphaReplaced(node) {
-    return ALPHA_REPLACE_TAGS.includes(node.tagName.toUpperCase());
+    return ALPHA_REPLACE_TAGS.has(node.localName);
 }
 
 function removeEmptyGroups(node) {
     // reverse document order visits descendants before their ancestors
-    Array.from(node.querySelectorAll('g')).reverse().forEach(group => {
-        if (group.children.length === 0) group.remove();
-    });
+    const groups = node.querySelectorAll('g');
+    for (let i = groups.length - 1; i >= 0; i--) {
+        const group = groups[i];
+        if (!group.firstElementChild) group.remove();
+    }
 }
 
-function zipChildren(originalNode, cloneNode) {
-    const originals = Array.from(originalNode.children);
-    const clones = Array.from(cloneNode.children);
-    return originals.map((original, i) => [original, clones[i]]);
+// Queue the children of the original node and of its clone as flat pairs.
+function queueChildren(queue, originalNode, cloneNode) {
+    let original = originalNode.firstElementChild;
+    let clone = cloneNode.firstElementChild;
+    while (original) {
+        queue.push(original, clone);
+        original = original.nextElementSibling;
+        clone = clone.nextElementSibling;
+    }
 }
 
 // Create an all-white, detached copy of a node of the cell view, suitable
@@ -72,13 +86,17 @@ export function createAlphaNode(cellView, node, opt = {}) {
         alpha = cellView.getAlphaRect(node);
     } else {
         alpha = node.cloneNode(true);
-        const pairs = zipChildren(node, alpha);
-        while (pairs.length > 0) {
-            const [originalNode, clone] = pairs.shift();
+        // The children are queued before their clone is modified, so the pairs stay aligned.
+        const queue = [];
+        queueChildren(queue, node, alpha);
+        for (let i = 0; i < queue.length; i += 2) {
+            const originalNode = queue[i];
+            const clone = queue[i + 1];
             if (
                 !V.isSVGGraphicsElement(originalNode) ||
-                !originalNode.checkVisibility({ opacityProperty: true, visibilityProperty: true }) ||
-                isAlphaIgnored(originalNode, ignore, cellView)
+                // the ignore check is cheaper than the visibility check
+                isAlphaIgnored(originalNode, ignore, cellView) ||
+                !originalNode.checkVisibility({ opacityProperty: true, visibilityProperty: true })
             ) {
                 clone.remove();
                 continue;
@@ -88,10 +106,10 @@ export function createAlphaNode(cellView, node, opt = {}) {
                 continue;
             }
             stripAlphaAttributes(clone);
-            pairs.push(...zipChildren(originalNode, clone));
+            queueChildren(queue, originalNode, clone);
         }
         removeEmptyGroups(alpha);
-        if (alpha.tagName.toUpperCase() === 'G' && alpha.children.length === 0) return null;
+        if (alpha.localName === 'g' && !alpha.firstElementChild) return null;
         stripAlphaAttributes(alpha);
     }
     alpha.setAttribute('fill', (node.getAttribute('fill') === 'none') ? 'none' : ALPHA_VISIBLE);
