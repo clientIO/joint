@@ -928,4 +928,263 @@ QUnit.module('cellView', function(hooks) {
             });
         });
     });
+    QUnit.module('toAlpha()', function(hooks) {
+
+        let element;
+        let elementView;
+
+        hooks.beforeEach(function() {
+            fixtures.moveToViewport();
+            element = new joint.dia.Element({
+                type: 'alphaElement',
+                position: { x: 50, y: 30 },
+                size: { width: 100, height: 80 },
+                angle: 30,
+                markup: joint.util.svg`
+                    <rect @selector="body" class="body" data-tooltip="body" magnet="true" style="fill: red" />
+                    <path @selector="outline" fill="none" stroke="blue" d="M 0 0 L 100 80" />
+                    <text @selector="label" transform="translate(10,20) rotate(15)">Label</text>
+                    <image @selector="icon" width="20" height="20" href="data:image/png;base64,iVBORw0KGgo=" />
+                    <rect @selector="hidden" width="10" height="10" display="none" />
+                    <foreignObject @selector="fo" width="30" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;"></div>
+                    </foreignObject>
+                `,
+                attrs: {
+                    body: { width: 'calc(w)', height: 'calc(h)', fill: 'red', stroke: 'black', strokeWidth: 2 },
+                    label: { text: 'Label' },
+                    icon: { x: 5, y: 5 }
+                }
+            });
+            paper.model.addCell(element);
+            elementView = paper.findViewByModel(element);
+        });
+
+        hooks.afterEach(function() {
+            fixtures.moveOffscreen();
+        });
+
+        QUnit.test('returns a detached white clone with the root transform preserved', function(assert) {
+            const alpha = elementView.toAlpha();
+            assert.ok(alpha instanceof SVGGElement);
+            assert.notOk(alpha.parentNode);
+            assert.notOk(alpha.hasAttribute('id'));
+            assert.equal(alpha.getAttribute('fill'), 'white');
+            assert.equal(alpha.getAttribute('stroke'), 'white');
+            assert.equal(alpha.getAttribute('transform'), elementView.el.getAttribute('transform'));
+            assert.notOk(alpha.hasAttribute('class'));
+            assert.notOk(alpha.hasAttribute('data-type'));
+            assert.notOk(alpha.hasAttribute('model-id'));
+        });
+
+        QUnit.test('does not modify the view DOM', function(assert) {
+            // measuring nodes assigns them cache ids
+            const withoutIds = html => html.replace(/ id="[^"]*"/g, '');
+            const before = withoutIds(elementView.el.outerHTML);
+            elementView.toAlpha();
+            assert.equal(withoutIds(elementView.el.outerHTML), before);
+        });
+
+        QUnit.test('strips paint, identity and interaction attributes from descendants', function(assert) {
+            const alpha = elementView.toAlpha();
+            const body = alpha.children[0];
+            assert.ok(body instanceof SVGRectElement);
+            ['fill', 'stroke', 'stroke-width', 'class', 'id', 'joint-selector', 'magnet', 'data-tooltip', 'style']
+                .forEach(attrName => assert.notOk(body.hasAttribute(attrName), `${attrName} removed`));
+            assert.equal(body.getAttribute('width'), '100');
+            assert.equal(body.getAttribute('height'), '80');
+        });
+
+        QUnit.test('keeps fill="none" on descendants', function(assert) {
+            const alpha = elementView.toAlpha();
+            const outline = alpha.children[1];
+            assert.ok(outline instanceof SVGPathElement);
+            assert.equal(outline.getAttribute('fill'), 'none');
+            assert.notOk(outline.hasAttribute('stroke'));
+        });
+
+        QUnit.test('replaces text, image and foreignObject with bounding rectangles', function(assert) {
+            const alpha = elementView.toAlpha();
+            assert.equal(alpha.querySelectorAll('text').length, 0);
+            assert.equal(alpha.querySelectorAll('image').length, 0);
+            assert.equal(alpha.querySelectorAll('foreignObject').length, 0);
+            assert.equal(alpha.querySelectorAll('div').length, 0);
+
+            const label = elementView.findNode('label');
+            const labelBBox = elementView.getNodeBoundingRect(label);
+            const labelRect = alpha.children[2];
+            assert.ok(labelRect instanceof SVGRectElement);
+            assert.notOk(labelRect.hasAttribute('id'));
+            assert.equal(labelRect.getAttribute('transform'), label.getAttribute('transform'));
+            assert.equal(parseFloat(labelRect.getAttribute('x')), labelBBox.x);
+            assert.equal(parseFloat(labelRect.getAttribute('y')), labelBBox.y);
+            assert.equal(parseFloat(labelRect.getAttribute('width')), labelBBox.width);
+            assert.equal(parseFloat(labelRect.getAttribute('height')), labelBBox.height);
+
+            const iconRect = alpha.children[3];
+            assert.ok(iconRect instanceof SVGRectElement);
+            assert.equal(parseFloat(iconRect.getAttribute('x')), 5);
+            assert.equal(parseFloat(iconRect.getAttribute('width')), 20);
+        });
+
+        QUnit.test('drops descendants that are not rendered', function(assert) {
+            const alpha = elementView.toAlpha();
+            assert.equal(alpha.querySelectorAll('[display="none"]').length, 0);
+            // body, outline, label, icon, foreignObject
+            assert.equal(alpha.children.length, 5);
+        });
+
+        QUnit.test('drops descendants that are transparent or hidden, keeps clipping', function(assert) {
+            const shaded = new joint.dia.Element({
+                type: 'shadedElement',
+                size: { width: 100, height: 80 },
+                markup: joint.util.svg`
+                    <rect @selector="transparent" width="10" height="10" opacity="0" />
+                    <rect @selector="hidden" width="10" height="10" style="visibility: hidden" />
+                    <rect @selector="clipped" width="10" height="10" clip-path="inset(2px)" mask="url(#m)" />
+                `
+            });
+            paper.model.addCell(shaded);
+            const shadedView = paper.findViewByModel(shaded);
+            const alpha = shadedView.toAlpha();
+            assert.equal(alpha.children.length, 1);
+            const [clipped] = alpha.children;
+            assert.equal(clipped.getAttribute('clip-path'), 'inset(2px)');
+            assert.equal(clipped.getAttribute('mask'), 'url(#m)');
+        });
+
+        QUnit.test('keeps the inline style that is not paint', function(assert) {
+            const styled = new joint.dia.Element({
+                type: 'styledElement',
+                size: { width: 100, height: 80 },
+                markup: joint.util.svg`
+                    <rect @selector="painted" width="10" height="10" style="fill: red; stroke: blue" />
+                    <rect @selector="rotated" width="10" height="10" transform="rotate(45)" style="fill: red; transform-origin: 5px 5px" />
+                    <rect @selector="unfilled" width="10" height="10" style="fill: none" />
+                `
+            });
+            paper.model.addCell(styled);
+            const styledView = paper.findViewByModel(styled);
+            const [painted, rotated, unfilled] = styledView.toAlpha().children;
+            assert.notOk(painted.hasAttribute('style'));
+            assert.equal(rotated.style.fill, '');
+            assert.equal(rotated.style.transformOrigin, '5px 5px');
+            assert.equal(unfilled.style.fill, 'none');
+        });
+
+        QUnit.test('drops descendants that are not graphics elements and strips port and label identities', function(assert) {
+            const described = new joint.dia.Element({
+                type: 'describedElement',
+                size: { width: 100, height: 80 },
+                markup: joint.util.svg`
+                    <title>Title</title>
+                    <desc>Description</desc>
+                    <rect @selector="body" width="10" height="10" port-id-type="number" label-idx="0" />
+                `
+            });
+            paper.model.addCell(described);
+            const describedView = paper.findViewByModel(described);
+            const alpha = describedView.toAlpha();
+            assert.equal(alpha.children.length, 1);
+            const [body] = alpha.children;
+            assert.notOk(body.hasAttribute('port-id-type'));
+            assert.notOk(body.hasAttribute('label-idx'));
+        });
+
+        QUnit.test('given a text node - returns its bounding rectangle', function(assert) {
+            const label = elementView.findNode('label');
+            const alpha = elementView.toAlpha({ node: label });
+            assert.ok(alpha instanceof SVGRectElement);
+            assert.equal(alpha.getAttribute('transform'), label.getAttribute('transform'));
+            assert.equal(alpha.getAttribute('fill'), 'white');
+        });
+
+        QUnit.test('given an HTML node - returns null', function(assert) {
+            const div = elementView.el.querySelector('div');
+            assert.strictEqual(elementView.toAlpha({ node: div }), null);
+        });
+
+        QUnit.test('opt.ignore - selector drops matching nodes and their subtrees', function(assert) {
+            const alpha = elementView.toAlpha({ ignore: 'text, tspan, foreignObject' });
+            // body, outline, icon
+            assert.equal(alpha.children.length, 3);
+            assert.equal(alpha.querySelectorAll('rect').length, 2);
+            assert.equal(alpha.children[2].getAttribute('width'), '20');
+        });
+
+        QUnit.test('opt.ignore - predicate receives the original node and the view', function(assert) {
+            const seen = [];
+            const alpha = elementView.toAlpha({
+                ignore: (node, view) => {
+                    seen.push(view);
+                    return node.tagName.toUpperCase() === 'IMAGE';
+                }
+            });
+            assert.ok(seen.length > 0);
+            assert.ok(seen.every(view => view === elementView));
+            // body, outline, label, foreignObject
+            assert.equal(alpha.children.length, 4);
+            // body, label, foreignObject
+            assert.equal(alpha.querySelectorAll('rect').length, 3);
+        });
+
+        QUnit.test('opt.ignore - matching root returns null', function(assert) {
+            assert.strictEqual(elementView.toAlpha({ ignore: 'g' }), null);
+            const label = elementView.findNode('label');
+            assert.strictEqual(elementView.toAlpha({ node: label, ignore: 'text' }), null);
+        });
+
+        QUnit.test('removes groups left empty after filtering', function(assert) {
+            const grouped = new joint.dia.Element({
+                type: 'groupedElement',
+                position: { x: 10, y: 10 },
+                size: { width: 100, height: 50 },
+                markup: joint.util.svg`
+                    <rect @selector="body" width="100" height="50" />
+                    <g @selector="labels">
+                        <g><text @selector="label">Label</text></g>
+                        <g></g>
+                    </g>
+                    <g @selector="icons"><rect width="10" height="10" /></g>
+                `
+            });
+            paper.model.addCell(grouped);
+            const groupedView = paper.findViewByModel(grouped);
+            const alpha = groupedView.toAlpha({ ignore: 'text' });
+            assert.equal(alpha.querySelectorAll('g').length, 1);
+            assert.equal(alpha.querySelectorAll('rect').length, 2);
+        });
+
+        QUnit.test('root left empty after filtering returns null', function(assert) {
+            const textOnly = new joint.dia.Element({
+                type: 'textOnlyElement',
+                position: { x: 10, y: 10 },
+                size: { width: 100, height: 50 },
+                markup: joint.util.svg`<g><text @selector="label">Label</text></g>`
+            });
+            paper.model.addCell(textOnly);
+            const textOnlyView = paper.findViewByModel(textOnly);
+            assert.strictEqual(textOnlyView.toAlpha({ ignore: 'text' }), null);
+        });
+
+        QUnit.test('link - removes markers and replaces label text', function(assert) {
+            const link = new joint.shapes.standard.Link({
+                source: { x: 10, y: 10 },
+                target: { x: 200, y: 200 },
+                vertices: [{ x: 100, y: 50 }],
+                attrs: { line: { sourceMarker: { type: 'circle', r: 5 }}},
+                labels: [{ attrs: { text: { text: 'Hello' }}}]
+            });
+            paper.model.addCell(link);
+            const linkView = paper.findViewByModel(link);
+            const alpha = linkView.toAlpha();
+            assert.ok(alpha instanceof SVGGElement);
+            assert.equal(alpha.querySelectorAll('[marker-start]').length, 0);
+            assert.equal(alpha.querySelectorAll('[marker-end]').length, 0);
+            assert.equal(alpha.querySelectorAll('text').length, 0);
+            const line = linkView.findNode('line');
+            const alphaPaths = Array.from(alpha.querySelectorAll('path'));
+            assert.ok(alphaPaths.some(path => path.getAttribute('d') === line.getAttribute('d')));
+        });
+    });
 });

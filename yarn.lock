@@ -5127,6 +5127,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-alpha-preview-js@workspace:examples/alpha-preview-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-alpha-preview-js@workspace:examples/alpha-preview-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-anchors-ts@workspace:examples/anchors-ts":
   version: 0.0.0-use.local
   resolution: "@joint/demo-anchors-ts@workspace:examples/anchors-ts"
