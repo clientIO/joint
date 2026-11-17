@@ -623,7 +623,7 @@ describe('measurement — graph events', () => {
     expect(version()).toBe(2);
   });
 
-  it('keeps the version once the last element is removed', async () => {
+  it('clears the version when empty and does not reuse it when elements return', async () => {
     const { graph, version, add } = setup();
     graph.addCells([sized('a'), unsized('z')]);
     await flush();
@@ -634,10 +634,10 @@ describe('measurement — graph events', () => {
     // A zero-sized element is still an element with a known size.
     expect(version()).toBe(2);
 
-    // An empty diagram is the same diagram: only a reset starts a new history.
+    // The public sizing state becomes incomplete on an empty diagram.
     graph.getCell('z').remove();
     await flush();
-    expect(version()).toBe(2);
+    expect(version()).toBe(0);
 
     add('b');
     await flush();
@@ -682,10 +682,10 @@ describe('measurement — graph events', () => {
     expect(version()).toBe(2);
     expect(measurement.isSettled()).toBe(true);
 
-    // The version is kept, but it describes elements that are gone.
+    // No elements remain, so there is no measured state to replay.
     graph.getCell('a').remove();
     await flush();
-    expect(version()).toBe(2);
+    expect(version()).toBe(0);
     expect(measurement.isSettled()).toBe(false);
   });
 
@@ -799,7 +799,7 @@ describe('measurement — graph events', () => {
 
     graph.getCell('b').remove();
     await flush();
-    expect(measurement.getSizingVersion()).toBe(2);
+    expect(measurement.getSizingVersion()).toBe(0);
   });
 
   it('does not track links', async () => {
