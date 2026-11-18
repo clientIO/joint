@@ -1,6 +1,5 @@
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
-import V from '../V/index.mjs';
 
 // default size of jump if not specified in options
 var JUMP_SIZE = 5;
@@ -24,6 +23,10 @@ var _23 = 2 / 3;
 
 // distance under which two coordinates are considered equal
 const TOLERANCE = 1e-6;
+
+// control point distance of a quarter circle approximated by a cubic Bézier curve
+// (the same as `V.KAPPA`, which is not defined without SVG support)
+const KAPPA = 0.551784;
 
 function sortPointsAscending(p1, p2) {
 
@@ -181,26 +184,43 @@ function createJumps(line, intersections, jumpSize) {
         // the space a jump needs before the first and after the last crossing
         const margin = jumpSize + CLOSE_PROXIMITY_PADDING;
 
-        // if the start or the end of the line is too close to the jump,
+        const startRoom = start.distance(point);
+        const endRoom = lastLine.end.distance(point);
+
+        // if the intersection is on the start or the end of the line,
         // draw that line instead of a jump
-        if (start.distance(point) < margin || lastLine.end.distance(point) < margin) {
+        if (startRoom < TOLERANCE || endRoom < TOLERANCE) {
             resultLines.push(lastLine);
             return resultLines;
         }
 
         // calculate start and end of jump by moving by a given size of jump
-        const jumpStart = g.point(point).move(start, -(jumpSize));
-        let jumpEnd = g.point(point).move(start, +(jumpSize));
+        // (the jump must not overshoot the start or the end of the line)
+        const jumpStart = g.point(point).move(start, -Math.min(jumpSize, startRoom));
+        let jumpEnd = g.point(point).move(start, Math.min(jumpSize, endRoom));
 
         // Merge every following intersection that is close to the end of the
         // jump, so a track of parallel lines gets one jump instead of many.
+        // An intersection closer than `margin` would otherwise be drawn flat.
+        let isTrack = false;
         for (let next = idx + 1; next < intersections.length; next++) {
             const nextPoint = intersections[next];
-            if (start.distance(nextPoint) - start.distance(jumpEnd) > jumpSize) break;
-            // leave the intersections too close to the end out of the jump
-            if (lastLine.end.distance(nextPoint) < margin) break;
+            if (start.distance(nextPoint) - start.distance(jumpEnd) >= margin) break;
+            const room = lastLine.end.distance(nextPoint);
+            // the intersection is on the end of the line itself
+            if (room < TOLERANCE) break;
             nextPoint.skip = true;
-            jumpEnd = g.point(nextPoint).move(start, +(jumpSize));
+            isTrack = true;
+            // the jump must not overshoot the end of the line
+            jumpEnd = g.point(nextPoint).move(start, Math.min(jumpSize, room));
+        }
+
+        // A single intersection too close to the start or the end of the line
+        // is not jumped over, only a track of intersections is.
+        // Note: nothing was merged, so no intersection was marked to be skipped.
+        if (!isTrack && (startRoom < margin || endRoom < margin)) {
+            resultLines.push(lastLine);
+            return resultLines;
         }
 
         // finally create a jump line
@@ -220,9 +240,10 @@ function createJumps(line, intersections, jumpSize) {
 // Whether the jump has to be flipped so it points up (or right). A vertical
 // line computed by a router can be a tiny bit off (e.g. `x` differs by 1e-13),
 // which must not flip the jump.
-function pointsLeftOrDown(diff) {
-    if (Math.abs(diff.x) > TOLERANCE) return Number(diff.x < 0);
-    return Number(diff.y < 0);
+function shouldFlipJump(line) {
+    const diff = line.start.difference(line.end);
+    if (Math.abs(diff.x) > TOLERANCE) return diff.x < 0;
+    return diff.y < 0;
 }
 
 /**
@@ -245,17 +266,14 @@ function buildPath(lines, jumpSize, jumpType, radius) {
     util.toArray(lines).forEach(function(line, index) {
 
         if (line.isJump) {
-            var angle, diff;
+            var angle;
 
             var control1, control2;
 
             if (jumpType === 'arc') { // approximates semicircle with 2 curves
                 angle = -90;
-                // determine rotation of arc based on difference between points
-                diff = line.start.difference(line.end);
                 // make sure the arc always points up (or right)
-                var xAxisRotate = pointsLeftOrDown(diff);
-                if (xAxisRotate) angle += 180;
+                if (shouldFlipJump(line)) angle += 180;
 
                 var midpoint = line.midpoint();
                 var centerLine = new g.Line(midpoint, line.end).rotate(midpoint, angle);
@@ -269,14 +287,14 @@ function buildPath(lines, jumpSize, jumpType, radius) {
                     const topStart = new g.Point(line.start).offset(along.x + normal.x, along.y + normal.y);
                     const topEnd = new g.Point(line.end).offset(-along.x + normal.x, -along.y + normal.y);
                     path.appendSegment(g.Path.createSegment('C',
-                        new g.Point(line.start).offset(normal.x * V.KAPPA, normal.y * V.KAPPA),
-                        new g.Point(topStart).offset(-along.x * V.KAPPA, -along.y * V.KAPPA),
+                        new g.Point(line.start).offset(normal.x * KAPPA, normal.y * KAPPA),
+                        new g.Point(topStart).offset(-along.x * KAPPA, -along.y * KAPPA),
                         topStart
                     ));
                     path.appendSegment(g.Path.createSegment('L', topEnd));
                     path.appendSegment(g.Path.createSegment('C',
-                        new g.Point(topEnd).offset(along.x * V.KAPPA, along.y * V.KAPPA),
-                        new g.Point(line.end).offset(normal.x * V.KAPPA, normal.y * V.KAPPA),
+                        new g.Point(topEnd).offset(along.x * KAPPA, along.y * KAPPA),
+                        new g.Point(line.end).offset(normal.x * KAPPA, normal.y * KAPPA),
                         line.end
                     ));
                     return;
@@ -312,11 +330,8 @@ function buildPath(lines, jumpSize, jumpType, radius) {
                 var xOffset = jumpSize * 0.6;
                 var yOffset = jumpSize * 1.35;
 
-                // determine rotation of arc based on difference between points
-                diff = line.start.difference(line.end);
                 // make sure the arc always points up (or right)
-                xAxisRotate = pointsLeftOrDown(diff);
-                if (xAxisRotate) yOffset *= -1;
+                if (shouldFlipJump(line)) yOffset *= -1;
 
                 control1 = g.Point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
                 control2 = g.Point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);

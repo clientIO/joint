@@ -412,6 +412,13 @@ QUnit.module('connectors', function(hooks) {
                 this.graph.startBatch('test');
                 this.graph.stopBatch('test');
             };
+            // the x coordinates where the (only) jump starts and ends
+            this.jumpExtent = (path) => {
+                const { segments } = path;
+                const first = segments.findIndex((segment) => segment.type === 'C');
+                const last = segments.findLastIndex((segment) => segment.type === 'C');
+                return [segments[first - 1].end.x, segments[last].end.x];
+            };
         });
 
         QUnit.test('a jump over a track of close parallel links is a single jump', function(assert) {
@@ -436,26 +443,81 @@ QUnit.module('connectors', function(hooks) {
             assert.equal(Math.round(path.bbox().y * 1000) / 1000, 100 - JUMP_SIZE, 'the jump bulges by the jump size');
         });
 
-        QUnit.test('a crossing too close to the end of the line does not cancel the jump over the others', function(assert) {
+        QUnit.test('a track ending close to the end of the line is jumped over up to the end', function(assert) {
             // the last crossing is 4px before the end of the line
             const link = this.addLink({ x: 0, y: 100 }, { x: 100, y: 100 });
             [60, 67, 74, 81, 88, 96].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
             this.refresh();
             const path = link.findView(this.paper).getConnection();
             assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
-            const bbox = path.bbox();
-            assert.ok(bbox.y < 100, 'the jump is drawn');
-            assert.equal(Math.round(path.end.x), 100);
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.equal(Math.round(jumpStart), 60 - JUMP_SIZE, 'the jump starts before the first crossing');
+            assert.ok(jumpEnd > 96, 'the jump covers the last crossing');
+            assert.ok(jumpEnd <= 100, 'the jump does not overshoot the end of the line');
         });
 
-        QUnit.test('a crossing too close to the start of the line does not cancel the jump over the others', function(assert) {
+        QUnit.test('a track ending close to a bend is jumped over up to the bend', function(assert) {
+            const link = new joint.shapes.standard.Link({
+                source: { x: 0, y: 100 },
+                target: { x: 120, y: 300 },
+                vertices: [{ x: 120, y: 100 }],
+                connector: { name: 'jumpover', args: { size: JUMP_SIZE }}
+            });
+            this.graph.addCell(link);
+            // the last crossing is 1px before the bend
+            [110, 119].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.equal(Math.round(jumpStart), 110 - JUMP_SIZE);
+            assert.ok(jumpEnd > 119, 'the jump covers the crossing next to the bend');
+            assert.ok(jumpEnd <= 120, 'the jump does not overshoot the bend');
+        });
+
+        QUnit.test('a crossing less than the jump size and padding after a jump is merged into it', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 });
+            // 5.5px after the end of the jump over the first link
+            [110, 120.5].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.equal(Math.round(jumpStart), 110 - JUMP_SIZE);
+            assert.equal(Math.round(jumpEnd * 10) / 10, 120.5 + JUMP_SIZE);
+        });
+
+        QUnit.test('a track starting close to the start of the line is jumped over from the start', function(assert) {
             // the first crossing is 4px after the start of the line
             const link = this.addLink({ x: 0, y: 100 }, { x: 100, y: 100 });
             [4, 11, 18, 25, 32].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
             this.refresh();
             const path = link.findView(this.paper).getConnection();
             assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
-            assert.equal(Math.round(path.start.x), 0);
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.ok(jumpStart < 4, 'the jump covers the first crossing');
+            assert.ok(jumpStart >= 0, 'the jump does not overshoot the start of the line');
+            assert.equal(Math.round(jumpEnd), 32 + JUMP_SIZE);
+        });
+
+        QUnit.test('a track starting close to the end of the line is jumped over up to the end', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 100, y: 100 });
+            [95, 98].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.equal(Math.round(jumpStart), 95 - JUMP_SIZE);
+            assert.ok(jumpEnd > 98, 'the jump covers the last crossing');
+            assert.ok(jumpEnd <= 100, 'the jump does not overshoot the end of the line');
+        });
+
+        QUnit.test('a single crossing too close to the start or the end of the line gets no jump', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 100, y: 100 });
+            [3, 97].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 0);
         });
 
         QUnit.test('a gap over a track of close parallel links is a single gap', function(assert) {
