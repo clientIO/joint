@@ -3,7 +3,7 @@ import { measureNode } from './measure-node';
 import { linkRoutingStraight } from './link-routing';
 import { LinkView } from './link-view';
 import { MagnetHighlighter, MAGNET_HIGHLIGHTER_NAME } from './magnet-highlighter';
-import { wheelGuard } from '../utils/wheel-guard';
+import { touchGuard, wheelGuard } from '../utils/wheel-guard';
 
 // ---------------------------------------------------------------------------
 // PointerEvents migration
@@ -241,17 +241,17 @@ export const Paper = dia.Paper.extend(
     },
 
     /**
-     * Compose {@link wheelGuard} onto joint-core's `guard`: a wheel over a
-     * scrollable node body (native `<textarea>` or an element marked
-     * `data-jj-scrollable`, both with actual overflow) short-circuits the
-     * paper's mousewheel pipeline so the region scrolls natively.
-     * `Ctrl`/`Cmd`+wheel is never guarded — pinch-zoom keeps working. The
-     * caller's own `options.guard` still runs via the super call.
+     * Compose {@link wheelGuard} and {@link touchGuard} onto joint-core's `guard`:
+     * a wheel or a touch over a scrollable node body (native `<textarea>` or an
+     * element marked `data-jj-scrollable`, both with actual overflow) is the
+     * region's, so it scrolls natively instead of panning, zooming or dragging
+     * the paper. `Ctrl`/`Cmd`+wheel is never guarded — pinch-zoom keeps working.
+     * The caller's own `options.guard` still runs via the super call.
      * @param event - Event delivered to the paper's dispatch.
      * @param view - View resolved from the event target, if any.
      */
     guard(this: dia.Paper, event: dia.Event, view: dia.CellView) {
-      return protectedProto.guard.call(this, event, view) || wheelGuard(event);
+      return protectedProto.guard.call(this, event, view) || wheelGuard(event) || touchGuard(event);
     },
 
     /**
@@ -303,11 +303,12 @@ export const Paper = dia.Paper.extend(
     /**
      * Run the upstream pointerup handler, then release capture. Also runs on
      * `pointercancel` (mapped to the same method via the events hash) so
-     * OS-stolen pointers don't leave listeners attached.
+     * OS-stolen pointers don't leave listeners attached, and for the `touchcancel`
+     * joint-core delivers when a second finger turns a press into a gesture.
      *
      * Also withholds the next native `click` when the gesture moved, so a drag started
      * from a button does not fire its `onClick` on release.
-     * @param event - The pointerup or pointercancel event.
+     * @param event - The pointerup, pointercancel or touchcancel event.
      */
     pointerup(this: dia.Paper, event: dia.Event) {
       const pointerId = getPointerId(event);
@@ -318,8 +319,10 @@ export const Paper = dia.Paper.extend(
       // Read before the super call: it ends the gesture and resets this state.
       if (mousemoved > (this.options.clickThreshold ?? 0)) swallowNextClick();
       protectedProto.pointerup.call(this, event);
-      if (!captureTarget || pointerId === null) return;
+      // Idempotent, and independent of whether the capture succeeded: a release always
+      // ends the drag styling.
       this.el.classList.remove(DRAGGING_CLASS_NAME);
+      if (!captureTarget || pointerId === null) return;
       if (captureTarget.hasPointerCapture?.(pointerId)) {
         try {
           captureTarget.releasePointerCapture(pointerId);
