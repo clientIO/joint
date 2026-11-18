@@ -392,4 +392,211 @@ QUnit.module('connectors', function(hooks) {
         // The link consists of two straight lines - no jumps
         assert.checkDataPath(pathData, 'M 25 300 L 25 75 L 50 75');
     });
+
+    QUnit.module('jumpover connector', function(hooks) {
+
+        const JUMP_SIZE = 5;
+
+        hooks.beforeEach(function() {
+            this.addLink = (source, target, connectorName = 'jumpover', args = {}) => {
+                const link = new joint.shapes.standard.Link({
+                    source,
+                    target,
+                    connector: { name: connectorName, args: { size: JUMP_SIZE, ...args }}
+                });
+                this.graph.addCell(link);
+                return link;
+            };
+            this.refresh = () => {
+                // jumpover links are refreshed when a batch ends
+                this.graph.startBatch('test');
+                this.graph.stopBatch('test');
+            };
+            // the x coordinates where the (only) jump starts and ends
+            this.jumpExtent = (path) => {
+                const { segments } = path;
+                const first = segments.findIndex((segment) => segment.type === 'C');
+                const last = segments.findLastIndex((segment) => segment.type === 'C');
+                return [segments[first - 1].end.x, segments[last].end.x];
+            };
+        });
+
+        QUnit.test('a jump over a track of close parallel links is a single jump', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 });
+            [100, 107, 114, 121].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            const jumpSegments = path.segments.filter((segment) => segment.type === 'C');
+            assert.equal(jumpSegments.length, 2, 'one jump (two quarter circles)');
+            const bbox = path.bbox();
+            assert.equal(Math.round(bbox.y * 1000) / 1000, 100 - JUMP_SIZE, 'the jump bulges by the jump size');
+            assert.equal(Math.round(path.start.x), 0);
+            assert.equal(Math.round(path.end.x), 300);
+        });
+
+        QUnit.test('two close crossings get one jump', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 });
+            [100, 107].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
+            assert.equal(Math.round(path.bbox().y * 1000) / 1000, 100 - JUMP_SIZE, 'the jump bulges by the jump size');
+        });
+
+        QUnit.test('a track ending close to the end of the line is jumped over up to the end', function(assert) {
+            // the last crossing is 4px before the end of the line
+            const link = this.addLink({ x: 0, y: 100 }, { x: 100, y: 100 });
+            [60, 67, 74, 81, 88, 96].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.equal(Math.round(jumpStart), 60 - JUMP_SIZE, 'the jump starts before the first crossing');
+            assert.ok(jumpEnd > 96, 'the jump covers the last crossing');
+            assert.ok(jumpEnd <= 100, 'the jump does not overshoot the end of the line');
+        });
+
+        QUnit.test('a track ending close to a bend is jumped over up to the bend', function(assert) {
+            const link = new joint.shapes.standard.Link({
+                source: { x: 0, y: 100 },
+                target: { x: 120, y: 300 },
+                vertices: [{ x: 120, y: 100 }],
+                connector: { name: 'jumpover', args: { size: JUMP_SIZE }}
+            });
+            this.graph.addCell(link);
+            // the last crossing is 1px before the bend
+            [110, 119].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.equal(Math.round(jumpStart), 110 - JUMP_SIZE);
+            assert.ok(jumpEnd > 119, 'the jump covers the crossing next to the bend');
+            assert.ok(jumpEnd <= 120, 'the jump does not overshoot the bend');
+        });
+
+        QUnit.test('a crossing less than the jump size and padding after a jump is merged into it', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 });
+            // 5.5px after the end of the jump over the first link
+            [110, 120.5].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.equal(Math.round(jumpStart), 110 - JUMP_SIZE);
+            assert.equal(Math.round(jumpEnd * 10) / 10, 120.5 + JUMP_SIZE);
+        });
+
+        QUnit.test('a track starting close to the start of the line is jumped over from the start', function(assert) {
+            // the first crossing is 4px after the start of the line
+            const link = this.addLink({ x: 0, y: 100 }, { x: 100, y: 100 });
+            [4, 11, 18, 25, 32].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.ok(jumpStart < 4, 'the jump covers the first crossing');
+            assert.ok(jumpStart >= 0, 'the jump does not overshoot the start of the line');
+            assert.equal(Math.round(jumpEnd), 32 + JUMP_SIZE);
+        });
+
+        QUnit.test('a track starting close to the end of the line is jumped over up to the end', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 100, y: 100 });
+            [95, 98].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2, 'one jump');
+            const [jumpStart, jumpEnd] = this.jumpExtent(path);
+            assert.equal(Math.round(jumpStart), 95 - JUMP_SIZE);
+            assert.ok(jumpEnd > 98, 'the jump covers the last crossing');
+            assert.ok(jumpEnd <= 100, 'the jump does not overshoot the end of the line');
+        });
+
+        QUnit.test('a single crossing too close to the start or the end of the line gets no jump', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 100, y: 100 });
+            [3, 97].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 0);
+        });
+
+        QUnit.test('a gap over a track of close parallel links is a single gap', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 }, 'jumpover', { jump: 'gap' });
+            [100, 107, 114, 121].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            const moves = path.segments.filter((segment) => segment.type === 'M');
+            assert.equal(moves.length, 2, 'one gap');
+            const gapStart = path.segments[path.segments.indexOf(moves[1]) - 1].end;
+            assert.equal(Math.round(gapStart.x), 100 - JUMP_SIZE, 'the gap starts before the first link');
+            assert.equal(Math.round(moves[1].end.x), 121 + JUMP_SIZE, 'the gap ends after the last link');
+        });
+
+        QUnit.test('a cubic jump over a track of close parallel links is a single curve', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 }, 'jumpover', { jump: 'cubic' });
+            [100, 107, 114, 121].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 1, 'one curve');
+            assert.ok(100 - path.bbox().y < JUMP_SIZE * 1.1, 'the curve is about as high as the jump size');
+        });
+
+        QUnit.test('a single jump is a semicircle of the jump size', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 });
+            this.addLink({ x: 150, y: 0 }, { x: 150, y: 200 }, 'normal');
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 2);
+            assert.equal(Math.round(path.bbox().y * 1000) / 1000, 100 - JUMP_SIZE);
+        });
+
+        QUnit.test('distant crossings get separate jumps', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 });
+            [100, 200].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            this.refresh();
+            const path = link.findView(this.paper).getConnection();
+            assert.equal(path.segments.filter((segment) => segment.type === 'C').length, 4, 'two jumps');
+        });
+
+        QUnit.test('a vertical jump points the same way when the line is a tiny bit off', function(assert) {
+            const exact = this.addLink({ x: 100, y: 200 }, { x: 100, y: 0 });
+            const offRight = this.addLink({ x: 200, y: 200 }, { x: 200 + 1e-9, y: 0 });
+            const exactDown = this.addLink({ x: 300, y: 0 }, { x: 300, y: 200 });
+            const offLeftDown = this.addLink({ x: 400, y: 0 }, { x: 400 - 1e-9, y: 200 });
+            this.addLink({ x: 0, y: 100 }, { x: 500, y: 100 }, 'normal');
+            this.refresh();
+            const side = (link, x) => Math.sign(Math.round(link.findView(this.paper).getConnection().bbox().center().x - x));
+            assert.notEqual(side(exact, 100), 0, 'the jump is drawn');
+            assert.equal(side(offRight, 200), side(exact, 100), 'up');
+            assert.equal(side(offLeftDown, 400), side(exactDown, 300), 'down');
+        });
+
+        QUnit.test('links outside of the bounding box are not tested for crossings', function(assert) {
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 });
+            this.addLink({ x: 150, y: 0 }, { x: 150, y: 200 }, 'normal');
+            [400, 500, 600].forEach((x) => this.addLink({ x, y: 0 }, { x, y: 200 }, 'normal'));
+            const intersectionSpy = sinon.spy(joint.g.Line.prototype, 'intersection');
+            try {
+                link.findView(this.paper).requestUpdate(link.findView(this.paper).getFlag('CONNECTOR'));
+                // 1 own segment: tested against the crossing link only
+                assert.equal(intersectionSpy.callCount, 1);
+            } finally {
+                intersectionSpy.restore();
+            }
+            assert.equal(link.findView(this.paper).getConnection().segments.filter((segment) => segment.type === 'C').length, 2, 'the crossing still gets a jump');
+        });
+
+        QUnit.test('a link touching the bounding box at its edge is tested', function(assert) {
+            // the zero-height box of a horizontal link and a vertical link ending on it
+            const link = this.addLink({ x: 0, y: 100 }, { x: 300, y: 100 });
+            this.addLink({ x: 150, y: 0 }, { x: 150, y: 100 }, 'normal');
+            const intersectionSpy = sinon.spy(joint.g.Line.prototype, 'intersection');
+            try {
+                link.findView(this.paper).requestUpdate(link.findView(this.paper).getFlag('CONNECTOR'));
+                assert.equal(intersectionSpy.callCount, 1);
+            } finally {
+                intersectionSpy.restore();
+            }
+        });
+    });
 });
