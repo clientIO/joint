@@ -196,6 +196,8 @@ export function useCreatePortalPaper(
     // These are React host props and must not be forwarded to dia.Paper options.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     className,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    fitToContent,
     nodeRef,
     onReady,
     id,
