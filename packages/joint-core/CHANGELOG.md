@@ -1,5 +1,14 @@
 # @joint/core
 
+## 4.3.5
+
+### Patch Changes
+
+- alg - fix the TypeScript types failing to compile with TypeScript 4 (`types/alg.d.ts` imported `dia` and `g` with a `.d.ts` extension) (62056500)
+- connectors.jumpover - fix jumps on a nearly vertical line (e.g. computed by a router) pointing to the opposite side (4c593a4d)
+- connectors.jumpover - skip links whose paths cannot cross when looking for jumps (4c593a4d)
+- connectors.jumpover - draw one jump over a track of close links, no higher than a single jump (4c593a4d)
+
 ## 4.3.4
 
 ### Patch Changes
