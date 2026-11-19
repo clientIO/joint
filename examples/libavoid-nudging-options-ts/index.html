@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="The JointJS libavoid nudging options demo shows how three libavoid routing options change links that share a port.">
+    <title>Libavoid nudging options | JointJS</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+</head>
+
+<body>
+    <header class="toolbar">
+        <button class="toggle" disabled type="button" data-option="ends" aria-pressed="false">
+            <span class="state">OFF</span>
+            <span class="name">Nudge link ends apart at a port
+                <code>nudgeOrthogonalSegmentsConnectedToShapes</code></span>
+        </button>
+        <button class="toggle" disabled type="button" data-option="sharedPaths" aria-pressed="false">
+            <span class="state">OFF</span>
+            <span class="name">Nudge shared paths apart
+                <code>nudgeSharedPathsWithCommonEndPoint</code></span>
+        </button>
+        <button class="toggle" disabled type="button" data-option="touchingColinear" aria-pressed="false">
+            <span class="state">OFF</span>
+            <span class="name">Nudge touching colinear segments apart
+                <code>nudgeOrthogonalTouchingColinearSegments</code></span>
+        </button>
+        <button class="preset" disabled id="preset-off" type="button">All off</button>
+        <button class="preset" disabled id="preset-router-avoid" type="button">As in @joint/router-avoid</button>
+        <span id="status" class="status" role="status"></span>
+    </header>
+    <main class="content">
+        <div id="paper" class="paper"></div>
+        <aside class="notes">
+            <h2>What to look at</h2>
+            <p>Each circuit has a port that several links attach to.</p>
+            <p><strong>Nudge shared paths apart</strong> splits the links that leave one port into parallel
+                lines. With it off, they share one trunk that branches. Either way they meet on the port.</p>
+            <p><strong>Nudge link ends apart at a port</strong> only acts on links that already run side by
+                side: on its own it changes nothing here. Together with one of the other two options it moves
+                the link ends off the port, beside it.</p>
+            <p><strong>Nudge touching colinear segments apart</strong> on its own changes nothing here either.</p>
+            <p>The status line counts the link ends that are not attached to the center of their port.
+                Drag an element to route again.</p>
+            <h2>Router setup</h2>
+            <p>Orthogonal routing, shape buffer distance 10, ideal nudging distance 5 and the unifying
+                nudging preprocessing step, as <code>@joint/router-avoid</code> configures libavoid. It turns the
+                first two options on and the third off.</p>
+            <p>Every element is an obstacle with a pin at its center and one per port. Unlike
+                <code>@joint/router-avoid</code>, there is no fallback for a link libavoid cannot route; every
+                link here can be routed.</p>
+        </aside>
+    </main>
+    <script src="bundle.js"></script>
+</body>
+
+</html>
