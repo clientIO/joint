@@ -18,6 +18,7 @@ export type {
     ElkPortDraft,
     ElkEdgeDraft,
     ElkLabelDraft,
+    ElkNodeLabelDraft,
     ExportElementCallback,
     ExportElementCallbackParams,
     ExportPortCallback,

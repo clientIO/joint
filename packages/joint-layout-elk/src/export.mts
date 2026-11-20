@@ -30,6 +30,18 @@ export interface ElkLabelDraft {
     layoutOptions: ElkLabelLayoutOptions;
 }
 
+/**
+ * A label `exportElement` adds to an ELK node. Unlike `ElkLabelDraft`, this package never
+ * creates one, so its `layoutOptions` are optional.
+ */
+export interface ElkNodeLabelDraft {
+    x?: number;
+    y?: number;
+    width: number;
+    height: number;
+    layoutOptions?: ElkLabelLayoutOptions;
+}
+
 /** An ELK node draft, one per JointJS element. */
 export interface ElkNodeDraft {
     /** The element's id - with any `\` and `:` in it escaped with a `\`. */
@@ -49,7 +61,7 @@ export interface ElkNodeDraft {
      * MINIMUM_SIZE', 'elk.nodeLabels.placement': 'INSIDE V_CENTER H_CENTER' }`. Only the
      * size of a label matters here - its text is this package's own placeholder.
      */
-    labels?: ElkLabelDraft[];
+    labels?: ElkNodeLabelDraft[];
 }
 
 /**
