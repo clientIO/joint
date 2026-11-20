@@ -102,6 +102,17 @@ function setupUpdating(jumpOverLinkView) {
         var graph = paper.model;
         graph.on('batch:stop', function() {
             if (this.hasActiveBatch()) return;
+            // An async paper has not updated the links of the batch yet.
+            // Redraw the jumps once all the routes are known.
+            if (paper.isAsync() && paper.hasScheduledUpdates()) {
+                if (paper._jumpOverPending) return;
+                paper._jumpOverPending = true;
+                paper.once('render:done', function() {
+                    paper._jumpOverPending = false;
+                    updateJumpOver(paper);
+                });
+                return;
+            }
             updateJumpOver(paper);
         });
         graph.on('reset', function() {
@@ -433,8 +444,10 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt, linkView)
     });
 
     // find views for all links
+    // (do not create views for placeholders, a view without a route has never been rendered)
     var linkViews = links.map(function(link) {
-        return paper.findViewByModel(link);
+        const view = paper.getCellView(link);
+        return (view && view.route) ? view : null;
     });
 
     // Two links can cross only where the bounding boxes of their routes meet,
