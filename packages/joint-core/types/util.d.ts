@@ -49,6 +49,8 @@ export function toKebabCase(str: string): string;
 
 export function normalizeEvent(evt: dia.Event): dia.Event;
 
+export function containsEventTarget(node: Node, evt: dia.Event | Event): boolean;
+
 export function nextFrame(callback: () => void, context?: { [key: string]: any }, ...args: any[]): number;
 
 export function cancelFrame(requestId: number): void;
