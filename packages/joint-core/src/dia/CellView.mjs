@@ -22,6 +22,7 @@ import $ from '../mvc/Dom/index.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { evalAttributes, evalAttribute } from './attributes/eval.mjs';
 import { CELL_VIEW_MARKER } from './symbols.mjs';
+import { elementFromPoint, getTargetInTree } from './event-target.mjs';
 
 const HighlightingTypes = {
     DEFAULT: 'default',
@@ -945,7 +946,8 @@ export const CellView = View.extend({
     },
 
     getEventTarget: function(evt, opt = {}) {
-        const { target, type, clientX = 0, clientY = 0 } = evt;
+        const { type, clientX = 0, clientY = 0 } = evt;
+        const target = getTargetInTree(evt, this.el);
         if (
             // Explicitly defined `fromPoint` option
             opt.fromPoint ||
@@ -955,7 +957,7 @@ export const CellView = View.extend({
             // Pointermove/Pointerup event with the pointer captured
             ('pointerId' in evt && target.hasPointerCapture(evt.pointerId))
         ) {
-            return document.elementFromPoint(clientX, clientY);
+            return elementFromPoint(this.el, clientX, clientY);
         }
 
         return target;
