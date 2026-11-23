@@ -377,6 +377,15 @@ export const normalizeEvent = function(evt) {
     return evt;
 };
 
+// `node.contains(evt.target)` that also works for a `node` inside a shadow root,
+// where a listener outside of it gets the shadow host as the target.
+export const containsEventTarget = function(node, evt) {
+
+    const { originalEvent = evt } = evt;
+    if (originalEvent.composedPath) return originalEvent.composedPath().includes(node);
+    return node.contains(evt.target);
+};
+
 export const normalizeWheel = function(evt) {
     // Sane values derived empirically
     const PIXEL_STEP  = 10;
