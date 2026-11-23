@@ -3638,6 +3638,8 @@ export const Paper = View.extend({
 
         this.undelegateDocumentEvents();
 
+        const clickTarget = getTargetInTree(evt, this.el);
+
         var normalizedEvt = normalizeEvent(evt);
 
         var localPoint = this.snapToGrid(normalizedEvt.clientX, normalizedEvt.clientY);
@@ -3657,7 +3659,7 @@ export const Paper = View.extend({
             this.pointerclick(new $.Event(evt.originalEvent, {
                 type: 'click',
                 data: evt.data,
-                target: getTargetInTree(evt, this.el)
+                target: clickTarget
             }));
         }
 
