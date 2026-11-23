@@ -89,6 +89,25 @@ QUnit.module('paper inside a shadow root', function(hooks) {
 
             assert.ok(blankClickSpy.calledOnce);
         });
+
+        QUnit.test('no blank:pointerclick when an element:pointerup listener removes the element', function(assert) {
+            const element = new joint.shapes.standard.Rectangle({
+                position: { x: 100, y: 100 },
+                size: { width: 100, height: 100 }
+            });
+            graph.addCell(element);
+            const blankClickSpy = sinon.spy();
+            paper.on('blank:pointerclick', blankClickSpy);
+            paper.on('element:pointerup', (elementView) => elementView.model.remove());
+
+            const node = getBodyNode(element);
+            const point = getClientCenter(element);
+            dispatchMouseEvent(node, 'mousedown', point);
+            dispatchMouseEvent(node, 'mouseup', point);
+
+            assert.notOk(graph.getCell(element.id));
+            assert.ok(blankClickSpy.notCalled);
+        });
     });
 
     QUnit.module('mouseleave', function() {

@@ -3869,6 +3869,24 @@ QUnit.module('paper', function(hooks) {
             assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('blank:pointerup') + 1));
         });
 
+        QUnit.test('no blank:pointerclick when an element:pointerup listener removes the element', function(assert) {
+
+            const paper = this.paper;
+            const element = new joint.shapes.standard.Rectangle({
+                position: { x: 10, y: 10 },
+                size: { width: 50, height: 50 }
+            });
+            this.graph.addCell(element);
+            const blankClickSpy = sinon.spy();
+            paper.on('blank:pointerclick', blankClickSpy);
+            paper.on('element:pointerup', (elementView) => elementView.model.remove());
+
+            simulate.click({ el: paper.findViewByModel(element).findNode('body') });
+
+            assert.notOk(this.graph.getCell(element.id));
+            assert.ok(blankClickSpy.notCalled);
+        });
+
         QUnit.module('event.data', function() {
 
             QUnit.test('element', function(assert) {
