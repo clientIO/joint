@@ -54,7 +54,7 @@ import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayerView } from './GridLayerView.mjs';
-import { getTargetInTree } from './event-target.mjs';
+import { getEventTargetInRootOf } from './event-target.mjs';
 
 const paperLayers = {
     GRID: 'grid',
@@ -3630,7 +3630,7 @@ export const Paper = View.extend({
 
         this.undelegateDocumentEvents();
 
-        const clickTarget = getTargetInTree(evt, this.el);
+        const clickTarget = getEventTargetInRootOf(this.el, evt);
 
         var normalizedEvt = normalizeEvent(evt);
 

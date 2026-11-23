@@ -1690,8 +1690,8 @@ export const LinkView = CellView.extend({
 
         const snapPoint = this._snapToPoints({ x: x, y: y }, points, radius);
 
-        const point = paper.localToClientPoint(snapPoint);
-        const nodeAtPoint = elementFromPoint(this.el, point.x, point.y);
+        const snapClientPoint = paper.localToClientPoint(snapPoint);
+        const nodeAtPoint = elementFromPoint(this.el, snapClientPoint.x, snapClientPoint.y);
         this._connectArrowhead(nodeAtPoint, snapPoint.x, snapPoint.y, this.eventData(evt));
     },
 
