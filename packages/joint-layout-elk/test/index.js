@@ -945,7 +945,7 @@ QUnit.module('layout()', () => {
                     elkNode.layoutOptions['elk.nodeLabels.placement'] = 'INSIDE V_CENTER H_CENTER';
                     // Only the size is the caller's to set - ELK skips a label with no
                     // text, so the package supplies its own placeholder.
-                    if (addLabel) elkNode.labels = [{ width: 200, height: 50, layoutOptions: {}}];
+                    if (addLabel) elkNode.labels = [{ width: 200, height: 50 }];
                 }
             });
 
