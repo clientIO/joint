@@ -18,12 +18,6 @@ module.exports = async function(config) {
 
             { pattern: './test/index.js', type: 'module' }
         ],
-        // The wasm loader resolves its binary relative to the document
-        // (module scripts don't set `document.currentScript`), so it always
-        // requests it from the server root.
-        proxies: {
-            '/libavoid.wasm': '/base/node_modules/libavoid-js/dist/libavoid.wasm'
-        },
         singleRun: true,
         frameworks: ['qunit'],
         plugins: [
