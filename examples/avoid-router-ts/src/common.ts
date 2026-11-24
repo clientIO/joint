@@ -6,6 +6,11 @@ import { dia, linkTools, highlighters } from '@joint/core';
 // There is a bug in JointJS, that does not allow you to use port
 // ids that are numbers.
 
+// Where `webpack.config.js` copies the avoid WASM binary - next to the
+// bundle. libavoid-js would otherwise look for it next to its own module,
+// which webpack resolves to a `file:` URL at build time.
+export const libavoidFilePath = 'libavoid.wasm';
+
 export interface CreatePaperResult {
     graph: dia.Graph;
     paper: dia.Paper;
