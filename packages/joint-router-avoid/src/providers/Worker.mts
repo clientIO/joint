@@ -95,12 +95,11 @@ let avoidInstance: AvoidInstance;
 let avoidRouter: AvoidRouter;
 const shapeRefs: Record<string, ShapeRef> = {};
 const connectorRefs: Record<string, ConnRef> = {};
-const linksByPointer: Record<number, dia.Cell.ID> = {};
 /**
  * Ids of the shapes added since the last {@link processTransaction} call.
- * Deleting a shape in the same transaction that added it aborts the avoid
- * WASM module irrecoverably, and a batch can do that (e.g. an element added
- * and removed within one debounce window) - see {@link handleDeleteShape}.
+ * Deleting a shape in the same transaction that added it throws, and a
+ * batch can do that (e.g. an element added and removed within one debounce
+ * window) - see {@link handleDeleteShape}.
  */
 const shapesAddedInTransaction = new Set<string>();
 
@@ -165,25 +164,15 @@ function postResponse(response: WorkerResponse): void {
 }
 
 /**
- * Callback registered with avoid connectors. Translates a connector's raw
- * pointer id back to its JointJS link id and posts the new route back to
- * the main thread via {@link postResponse}.
+ * Callback registered with each avoid connector. Reads the connector's new
+ * route and posts it back to the main thread via {@link postResponse}.
  *
- * @param connectorRefId - Raw pointer id (`connRef.g`) of the connector whose route changed.
+ * @param connectorId - Id of the JointJS link the connector belongs to.
+ * @param connRef - The avoid connector whose route changed.
  */
-function onAvoidConnectorChanged(connectorRefId: number): void {
-    const connectorId = linksByPointer[connectorRefId];
-    const connRef = connectorRefs[connectorId!];
-    if (!connRef) return;
-
-    const route = connRef.displayRoute();
-    const points: dia.Point[] = [];
-    for (let i = 0; i < route.size(); i++) {
-        const { x, y } = route.get_ps(i);
-        points.push({ x, y });
-    }
-
-    postResponse({ type: 'connectorChanged', connectorId: connectorId!, points });
+function onAvoidConnectorChanged(connectorId: dia.Cell.ID, connRef: ConnRef): void {
+    const points: dia.Point[] = connRef.displayRoute().map(({ x, y }) => ({ x, y }));
+    postResponse({ type: 'connectorChanged', connectorId, points });
 }
 
 /**
@@ -195,26 +184,27 @@ function onAvoidConnectorChanged(connectorRefId: number): void {
  * @returns The configured avoid router.
  */
 function createAvoidRouter(Avoid: AvoidInstance, shapeBufferDistance: number, idealNudgingDistance: number): AvoidRouter {
-    const router = new Avoid.Router(Avoid.OrthogonalRouting);
+    const { RouterFlag, RoutingParameter, RoutingOption } = Avoid;
+    const router = new Avoid.Router(RouterFlag.OrthogonalRouting);
 
     // This parameter defines the spacing distance used for nudging apart
     // overlapping corners and line segments of connectors.
-    router.setRoutingParameter(Avoid.idealNudgingDistance, idealNudgingDistance);
+    router.setRoutingParameter(RoutingParameter.idealNudgingDistance, idealNudgingDistance);
 
     // This parameter defines the spacing distance added to the sides of
     // each shape when determining obstacle sizes for routing.
-    router.setRoutingParameter(Avoid.shapeBufferDistance, shapeBufferDistance);
+    router.setRoutingParameter(RoutingParameter.shapeBufferDistance, shapeBufferDistance);
 
     // Controls whether collinear line segments touching just at their
     // ends will be nudged apart. Not suitable for links connected to ports.
-    router.setRoutingOption(Avoid.nudgeOrthogonalTouchingColinearSegments, false);
+    router.setRoutingOption(RoutingOption.nudgeOrthogonalTouchingColinearSegments, false);
 
     // Controls whether the router performs a preprocessing step before
     // orthogonal nudging that generally results in better nudging quality.
-    router.setRoutingOption(Avoid.performUnifyingNudgingPreprocessingStep, true);
+    router.setRoutingOption(RoutingOption.performUnifyingNudgingPreprocessingStep, true);
 
-    router.setRoutingOption(Avoid.nudgeSharedPathsWithCommonEndPoint, true);
-    router.setRoutingOption(Avoid.nudgeOrthogonalSegmentsConnectedToShapes, true);
+    router.setRoutingOption(RoutingOption.nudgeSharedPathsWithCommonEndPoint, true);
+    router.setRoutingOption(RoutingOption.nudgeOrthogonalSegmentsConnectedToShapes, true);
 
     return router;
 }
@@ -247,10 +237,7 @@ async function handleInit(options: WorkerProviderOptions): Promise<void> {
  */
 function handleUpdateShape(shape: Shape): void {
     const { x, y, width, height } = shape.bbox;
-    const shapeRect = new avoidInstance.Rectangle(
-        new avoidInstance.Point(x, y),
-        new avoidInstance.Point(x + width, y + height)
-    );
+    const shapeRect = { x, y, width, height };
 
     const existingShapeRef = shapeRefs[shape.id];
     if (existingShapeRef) {
@@ -259,20 +246,18 @@ function handleUpdateShape(shape: Shape): void {
         return;
     }
 
-    const shapeRef = new avoidInstance.ShapeRef(avoidRouter, shapeRect);
+    const shapeRef = avoidRouter.addShape(shapeRect);
     shapeRefs[shape.id] = shapeRef;
     shapesAddedInTransaction.add(String(shape.id));
 
     shape.pins.forEach((pin) => {
-        const pinRef = new avoidInstance.ShapeConnectionPin(
-            shapeRef,
-            pin.id,
-            pin.x,
-            pin.y,
-            true,
-            0,
-            pin.connectionDirection
-        );
+        // `x` and `y` are proportional to the shape's size.
+        const pinRef = shapeRef.addPin({
+            classId: pin.id,
+            x: pin.x,
+            y: pin.y,
+            directions: pin.connectionDirection
+        });
         pinRef.setExclusive(false);
     });
 }
@@ -287,9 +272,6 @@ function handleDeleteConnector(connectorId: dia.Cell.ID): void {
     if (!connRef) return;
     avoidRouter.deleteConnector(connRef);
     delete connectorRefs[connectorId];
-    // @ts-expect-error not defined in the type definition, but it is present in the actual object
-    delete linksByPointer[connRef.g];
-
 }
 
 /**
@@ -311,34 +293,24 @@ function handleUpdateConnector(connector: Connector): void {
     const sourceShapeRef = shapeRefs[connector.sourceId];
     const targetShapeRef = shapeRefs[connector.targetId];
 
-    const sourceConnEnd = new avoidInstance.ConnEnd(
-        sourceShapeRef!,
-        connector.sourcePinId
-    );
-    const targetConnEnd = new avoidInstance.ConnEnd(
-        targetShapeRef!,
-        connector.targetPinId
-    );
+    const sourceConnEnd = { shape: sourceShapeRef!, pin: connector.sourcePinId };
+    const targetConnEnd = { shape: targetShapeRef!, pin: connector.targetPinId };
 
     const existingConnRef = connectorRefs[connector.id];
-    const connRef = existingConnRef ?? new avoidInstance.ConnRef(avoidRouter);
-
-    connRef.setSourceEndpoint(sourceConnEnd);
-    connRef.setDestEndpoint(targetConnEnd);
-
     if (existingConnRef) {
-        // It was already created, we just updated the endpoints.
+        // It was already created, we just update the endpoints.
+        existingConnRef.setSource(sourceConnEnd);
+        existingConnRef.setDest(targetConnEnd);
         return;
     }
 
-    // Note: we do not assign the connRef's `id` to the JointJS link,
-    // since libavoid-js (the underlying WASM library) does not behave correctly when a connRef is
-    // added-removed-added with the same `id`. Instead, we keep track
-    // of the mapping using the connRef's raw pointer (`connRef.g`).
+    // Note: we do not pass the JointJS link id to avoid as the connector's
+    // `id`, since libavoid does not behave correctly when a connector is
+    // added-removed-added with the same `id`. The callback closes over the
+    // link id instead.
+    const connRef = avoidRouter.addConnector(sourceConnEnd, targetConnEnd);
     connectorRefs[connector.id] = connRef;
-    // @ts-expect-error not defined in the type definition, but it is present in the actual object
-    linksByPointer[connRef.g] = connector.id;
-    connRef.setCallback(onAvoidConnectorChanged, connRef);
+    connRef.setCallback(() => onAvoidConnectorChanged(connector.id, connRef));
 }
 
 /**

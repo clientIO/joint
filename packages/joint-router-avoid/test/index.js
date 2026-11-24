@@ -642,14 +642,14 @@ QUnit.module('destroy()', () => {
     });
 
     // No public API exposes the router or tells whether it was freed: read
-    // it off the provider and spy on the module's `destroy()`, which frees it.
+    // it off the provider and spy on its `delete()`, which frees it.
     function spyOnAvoidDestroy(routerService) {
-        const { avoidInstance, avoidRouter } = routerService.provider;
-        const destroy = avoidInstance.destroy;
-        const spy = { calls: 0, restore: () => { avoidInstance.destroy = destroy; } };
-        avoidInstance.destroy = function(obj) {
-            if (obj === avoidRouter) spy.calls++;
-            return destroy.apply(this, arguments);
+        const { avoidRouter } = routerService.provider;
+        const spy = { calls: 0, restore: () => { delete avoidRouter.delete; } };
+        const freeRouter = avoidRouter.delete;
+        avoidRouter.delete = function() {
+            spy.calls++;
+            return freeRouter.apply(this, arguments);
         };
         return spy;
     }

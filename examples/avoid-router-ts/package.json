@@ -20,7 +20,7 @@
   "dependencies": {
     "@joint/core": "workspace:~",
     "@joint/router-avoid": "workspace:~",
-    "libavoid-js": "0.4.5"
+    "libavoid-js": "0.5.0-beta.6"
   },
   "devDependencies": {
     "copy-webpack-plugin": "14.0.0",

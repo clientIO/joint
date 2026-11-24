@@ -19,10 +19,6 @@ export class MainThreadProvider extends Provider {
     protected readonly shapeRefs: Record<string, ShapeRef> = {};
     /** Avoid connector references, keyed by JointJS link id. */
     protected readonly connectorRefs: Record<string, ConnRef> = {};
-    /** Maps an avoid connector's raw pointer (`connRef.g`) back to the JointJS link id that owns it. */
-    protected readonly linksByPointer: Record<number, dia.Cell.ID> = {};
-    /** Callback registered with avoid connectors, translating a raw pointer id back to a route update. */
-    protected onAvoidConnectorChanged!: (connectorRefId: number) => void;
     /** Set by {@link destroy}; once the avoid router is freed, further changes are ignored. */
     protected destroyed = false;
     /** Whether avoid is inside `processTransaction()`, where the router must not be freed. */
@@ -40,21 +36,18 @@ export class MainThreadProvider extends Provider {
             options.shapeBufferDistance ?? 10,
             options.idealNudgingDistance ?? 5
         );
+    }
 
-        this.onAvoidConnectorChanged = (connectorRefId: number) => {
-            const connectorId = this.linksByPointer[connectorRefId];
-            const connRef = this.connectorRefs[connectorId!];
-            if (!connRef) return;
-
-            const route = connRef.displayRoute();
-            const points: g.Point[] = [];
-            for (let i = 0; i < route.size(); i++) {
-                const { x, y } = route.get_ps(i);
-                points.push(new g.Point({ x, y }));
-            }
-
-            this.trigger('connector:changed', connectorId!, points);
-        };
+    /**
+     * Callback registered with each avoid connector. Reads the connector's
+     * new route and announces it for the JointJS link it belongs to.
+     *
+     * @param connectorId - Id of the JointJS link the connector belongs to.
+     * @param connRef - The avoid connector whose route changed.
+     */
+    protected onAvoidConnectorChanged(connectorId: dia.Cell.ID, connRef: ConnRef): void {
+        const points = connRef.displayRoute().map(({ x, y }) => new g.Point(x, y));
+        this.trigger('connector:changed', connectorId, points);
     }
 
     /**
@@ -82,7 +75,7 @@ export class MainThreadProvider extends Provider {
         }
         if (this.destroyed) {
             // `destroy()` was called from a callback during the pass.
-            this.avoidInstance.destroy(this.avoidRouter);
+            this.avoidRouter.delete();
         }
         this.trigger('processed');
     }
@@ -97,10 +90,7 @@ export class MainThreadProvider extends Provider {
         if (this.destroyed) return;
         const { shapeRefs, avoidRouter } = this;
         const { x, y, width, height } = shape.bbox;
-        const shapeRect = new this.avoidInstance.Rectangle(
-            new this.avoidInstance.Point(x, y),
-            new this.avoidInstance.Point(x + width, y + height)
-        );
+        const shapeRect = { x, y, width, height };
 
         const existingShapeRef = shapeRefs[shape.id];
         if (existingShapeRef) {
@@ -112,19 +102,17 @@ export class MainThreadProvider extends Provider {
             return;
         }
 
-        const shapeRef = new this.avoidInstance.ShapeRef(avoidRouter, shapeRect);
+        const shapeRef = avoidRouter.addShape(shapeRect);
         shapeRefs[shape.id] = shapeRef;
 
         shape.pins.forEach((pin) => {
-            const pinRef = new this.avoidInstance.ShapeConnectionPin(
-                shapeRef,
-                pin.id,
-                pin.x,
-                pin.y,
-                true,
-                0,
-                pin.connectionDirection
-            );
+            // `x` and `y` are proportional to the shape's size.
+            const pinRef = shapeRef.addPin({
+                classId: pin.id,
+                x: pin.x,
+                y: pin.y,
+                directions: pin.connectionDirection
+            });
             pinRef.setExclusive(false);
         });
 
@@ -157,37 +145,27 @@ export class MainThreadProvider extends Provider {
         const sourceShapeRef = shapeRefs[connector.sourceId];
         const targetShapeRef = shapeRefs[connector.targetId];
 
-        const sourceConnEnd = new this.avoidInstance.ConnEnd(
-            sourceShapeRef!,
-            connector.sourcePinId
-        );
-        const targetConnEnd = new this.avoidInstance.ConnEnd(
-            targetShapeRef!,
-            connector.targetPinId
-        );
+        const sourceConnEnd = { shape: sourceShapeRef!, pin: connector.sourcePinId };
+        const targetConnEnd = { shape: targetShapeRef!, pin: connector.targetPinId };
 
         const existingConnRef = connectorRefs[connector.id];
-        const connRef = existingConnRef ?? new this.avoidInstance.ConnRef(this.avoidRouter);
-
-        connRef.setSourceEndpoint(sourceConnEnd);
-        connRef.setDestEndpoint(targetConnEnd);
-
         if (existingConnRef) {
-            // It was already created, we just updated the endpoints.
+            // It was already created, we just update the endpoints.
+            existingConnRef.setSource(sourceConnEnd);
+            existingConnRef.setDest(targetConnEnd);
             if (process) {
                 this.processTransaction();
             }
             return;
         }
 
-        // Note: we do not assign the connRef's `id` to the JointJS link,
-        // since libavoid-js (the underlying WASM library) does not behave correctly when a connRef is
-        // added-removed-added with the same `id`. Instead, we keep track
-        // of the mapping using the connRef's raw pointer (`connRef.g`).
+        // Note: we do not pass the JointJS link id to avoid as the connector's
+        // `id`, since libavoid does not behave correctly when a connector is
+        // added-removed-added with the same `id`. The callback closes over the
+        // link id instead.
+        const connRef = this.avoidRouter.addConnector(sourceConnEnd, targetConnEnd);
         connectorRefs[connector.id] = connRef;
-        // @ts-expect-error not defined in the type definition, but it is present in the actual object
-        this.linksByPointer[connRef.g] = connector.id;
-        connRef.setCallback(this.onAvoidConnectorChanged, connRef);
+        connRef.setCallback(() => this.onAvoidConnectorChanged(connector.id, connRef));
 
         if (process) {
             this.processTransaction();
@@ -226,8 +204,6 @@ export class MainThreadProvider extends Provider {
         if (!connRef) return;
         this.avoidRouter.deleteConnector(connRef);
         delete this.connectorRefs[connectorId];
-        // @ts-expect-error not defined in the type definition, but it is present in the actual object
-        delete this.linksByPointer[connRef.g];
 
         if (process) {
             this.processTransaction();
@@ -292,26 +268,27 @@ export class MainThreadProvider extends Provider {
      * @returns The configured avoid router.
      */
     protected createAvoidRouter(Avoid: AvoidInstance, shapeBufferDistance: number, idealNudgingDistance: number): AvoidRouter {
-        const router = new Avoid.Router(Avoid.OrthogonalRouting);
+        const { RouterFlag, RoutingParameter, RoutingOption } = Avoid;
+        const router = new Avoid.Router(RouterFlag.OrthogonalRouting);
 
         // This parameter defines the spacing distance used for nudging apart
         // overlapping corners and line segments of connectors.
-        router.setRoutingParameter(Avoid.idealNudgingDistance, idealNudgingDistance);
+        router.setRoutingParameter(RoutingParameter.idealNudgingDistance, idealNudgingDistance);
 
         // This parameter defines the spacing distance added to the sides of
         // each shape when determining obstacle sizes for routing.
-        router.setRoutingParameter(Avoid.shapeBufferDistance, shapeBufferDistance);
+        router.setRoutingParameter(RoutingParameter.shapeBufferDistance, shapeBufferDistance);
 
         // Controls whether collinear line segments touching just at their
         // ends will be nudged apart. Not suitable for links connected to ports.
-        router.setRoutingOption(Avoid.nudgeOrthogonalTouchingColinearSegments, false);
+        router.setRoutingOption(RoutingOption.nudgeOrthogonalTouchingColinearSegments, false);
 
         // Controls whether the router performs a preprocessing step before
         // orthogonal nudging that generally results in better nudging quality.
-        router.setRoutingOption(Avoid.performUnifyingNudgingPreprocessingStep, true);
+        router.setRoutingOption(RoutingOption.performUnifyingNudgingPreprocessingStep, true);
 
-        router.setRoutingOption(Avoid.nudgeSharedPathsWithCommonEndPoint, true);
-        router.setRoutingOption(Avoid.nudgeOrthogonalSegmentsConnectedToShapes, true);
+        router.setRoutingOption(RoutingOption.nudgeSharedPathsWithCommonEndPoint, true);
+        router.setRoutingOption(RoutingOption.nudgeOrthogonalSegmentsConnectedToShapes, true);
 
         return router;
     }
@@ -327,6 +304,6 @@ export class MainThreadProvider extends Provider {
         // Called from a callback during a pass, the router is still running
         // its transaction - {@link processTransaction} frees it afterwards.
         if (this.processing) return;
-        this.avoidInstance.destroy(this.avoidRouter);
+        this.avoidRouter.delete();
     }
 }
