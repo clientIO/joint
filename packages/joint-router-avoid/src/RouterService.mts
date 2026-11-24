@@ -258,7 +258,7 @@ export class RouterService {
 
         // connection directions flags for avoid shapes' pins.
         // The flags are used to indicate which directions a pin can connect to.
-        // The values are defined in the `ConnDirFlags` enum in `libavoid-js`.
+        // The values are defined in the `ConnDirFlag` enum in `libavoid-js`.
         this.connectionDirections = {
             top: 1,
             right: 8,
