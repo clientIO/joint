@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="This demo combines the alpha clones of the selected cells into a single SVG mask and renders their outlines next to the paper.">
+    <title>JointJS: Alpha Preview</title>
+</head>
+
+<body id="app">
+    <p id="hint">
+        Click a cell to select it, Shift+click to add more, click the blank area to clear. Scroll to zoom.
+        <label><input type="checkbox" id="ignore-labels"> Ignore labels</label>
+    </p>
+    <div id="panels">
+        <div id="paper-container"></div>
+        <div id="previews">
+            <div class="preview" id="preview-outline"><span class="caption">Outline</span></div>
+            <div class="preview" id="preview-fill"><span class="caption">Fill</span></div>
+        </div>
+    </div>
+    <a target="_blank" href="https://www.jointjs.com">
+        <img id="logo" src="./assets/jointjs-logo-black.svg" width="200" height="50"></img>
+    </a>
+    <!-- Application files: -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

@@ -23,6 +23,7 @@ import $ from '../mvc/Dom/index.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { evalAttributes, evalAttribute } from './attributes/eval.mjs';
 import { CELL_VIEW_MARKER } from './symbols.mjs';
+import { createAlphaNode } from './alpha.mjs';
 
 const HighlightingTypes = {
     DEFAULT: 'default',
@@ -881,6 +882,37 @@ export const CellView = View.extend({
         var metrics = this.nodeCache(magnet);
         if (metrics.geometryShape === undefined) metrics.geometryShape = V(magnet).toGeometryShape();
         return metrics.geometryShape.clone();
+    },
+
+    /**
+     * Create an all-white, detached copy of a node suitable as the content
+     * of an SVG `<mask>`. Paint, identity and interaction attributes are
+     * removed from every descendant so the root `fill` and `stroke` cascade,
+     * text, images, `<use>` and `<foreignObject>` are replaced with their
+     * bounding rectangles, and nodes that are not rendered, transparent
+     * or hidden are dropped together with any groups left empty.
+     *
+     * @param {Object} [opt]
+     * @param {SVGElement} [opt.node=this.el] - The node to copy.
+     * @param {string|function(SVGElement, CellView): boolean} [opt.ignore] - A selector or a predicate;
+     * matching nodes are left out of the copy together with their subtrees.
+     * @returns {SVGElement|null} The copy, or `null` if the node cannot be rendered as an SVG shape.
+     */
+    toAlpha(opt = {}) {
+        const { node = this.el } = opt;
+        return createAlphaNode(this, node, opt);
+    },
+
+    getAlphaRect(node) {
+        const bbox = this.getNodeBoundingRect(node);
+        // Make sure a node with no width or height is still visible.
+        bbox.inflate(bbox.width ? 0 : 0.5, bbox.height ? 0 : 0.5);
+        // Note that `V()` assigns a unique id to every element it creates.
+        const rect = V('rect', bbox.toJSON()).node;
+        rect.removeAttribute('id');
+        const transform = node.getAttribute('transform');
+        if (transform) rect.setAttribute('transform', transform);
+        return rect;
     },
 
     isNodeConnection: function(node) {

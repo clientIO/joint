@@ -13,6 +13,26 @@ function forEachDescendant(vel, fn) {
     }
 }
 
+// The mask shape as it was built before `CellView.toAlpha()`.
+// Used when a subclass customizes the deprecated child transformation.
+function getLegacyMaskShape(highlighter, cellView, vel) {
+    const { options, MASK_REPLACE_TAGS } = highlighter;
+    const { deep } = options;
+    if (!V.isSVGGraphicsElement(vel)) return null;
+    const tagName = vel.tagName();
+    let maskRoot;
+    if (tagName === 'G') {
+        if (!deep) return null;
+        maskRoot = vel.clone();
+        forEachDescendant(maskRoot, maskChild => highlighter.transformMaskChild(cellView, maskChild));
+    } else {
+        if (MASK_REPLACE_TAGS.includes(tagName)) return null;
+        maskRoot = vel.clone();
+    }
+    highlighter.transformMaskRoot(cellView, maskRoot);
+    return maskRoot;
+}
+
 export const mask = HighlighterView.extend({
 
     tagName: 'rect',
@@ -45,6 +65,7 @@ export const mask = HighlighterView.extend({
         'class',
     ],
 
+    // @deprecated - the mask shape is built via `CellView.toAlpha()`
     MASK_CHILD_ATTRIBUTE_BLACKLIST: [
         'stroke',
         'fill',
@@ -58,7 +79,7 @@ export const mask = HighlighterView.extend({
         'class',
     ],
 
-    // TODO: change the list to a function callback
+    // @deprecated - the mask shape is built via `CellView.toAlpha()`
     MASK_REPLACE_TAGS: [
         'FOREIGNOBJECT',
         'IMAGE',
@@ -68,13 +89,13 @@ export const mask = HighlighterView.extend({
         'TEXTPATH'
     ],
 
-    // TODO: change the list to a function callback
     MASK_REMOVE_TAGS: [
         'TEXT',
         'TSPAN',
         'TEXTPATH'
     ],
 
+    // @deprecated - the mask shape is built via `CellView.toAlpha()`
     transformMaskChild(cellView, childEl) {
         const {
             MASK_CHILD_ATTRIBUTE_BLACKLIST,
@@ -123,21 +144,28 @@ export const mask = HighlighterView.extend({
     },
 
     getMaskShape(cellView, vel) {
-        const { options, MASK_REPLACE_TAGS } = this;
-        const { deep } = options;
-        if (!V.isSVGGraphicsElement(vel)) return null;
-        const tagName = vel.tagName();
-        let maskRoot;
-        if (tagName === 'G') {
-            if (!deep) return null;
-            maskRoot = vel.clone();
-            forEachDescendant(maskRoot, maskChild => this.transformMaskChild(cellView, maskChild));
-        } else {
-            if (MASK_REPLACE_TAGS.includes(tagName)) return null;
-            maskRoot = vel.clone();
+        const { deep } = this.options;
+        if (vel.tagName() === 'G' && !deep) return null;
+        const { prototype } = mask;
+        if (
+            // `toAlpha()` strips the root attributes regardless of the blacklist
+            this.MASK_ROOT_ATTRIBUTE_BLACKLIST !== prototype.MASK_ROOT_ATTRIBUTE_BLACKLIST ||
+            this.transformMaskChild !== prototype.transformMaskChild ||
+            this.MASK_CHILD_ATTRIBUTE_BLACKLIST !== prototype.MASK_CHILD_ATTRIBUTE_BLACKLIST ||
+            this.MASK_REPLACE_TAGS !== prototype.MASK_REPLACE_TAGS
+        ) {
+            return getLegacyMaskShape(this, cellView, vel);
         }
-        this.transformMaskRoot(cellView, maskRoot);
-        return maskRoot;
+        const { MASK_REMOVE_TAGS } = this;
+        const alphaNode = cellView.toAlpha({
+            node: vel.node,
+            // Do not include the element in the mask's image
+            ignore: node => MASK_REMOVE_TAGS.includes(node.tagName.toUpperCase())
+        });
+        if (!alphaNode) return null;
+        const alphaEl = V(alphaNode);
+        this.transformMaskRoot(cellView, alphaEl);
+        return alphaEl;
     },
 
     getMaskId() {

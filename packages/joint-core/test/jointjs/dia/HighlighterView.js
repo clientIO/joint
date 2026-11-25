@@ -1258,6 +1258,68 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.notOk(maskEl.querySelector('.body'));
             assert.notOk(maskEl.querySelector('.label'));
         });
+
+        QUnit.test('deep - leaves the text out of the mask', function(assert) {
+            const HighlighterView = joint.highlighters.mask;
+            const highlighter = HighlighterView.add(elementView, 'root', 'highlighter-id', { deep: true });
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            assert.notOk(maskEl.querySelector('text'));
+            // the body rectangle in the visible and the invisible shape
+            assert.equal(maskEl.querySelectorAll('rect').length, 2);
+        });
+
+        QUnit.test('deep - overriding the deprecated transformMaskChild() is respected', function(assert) {
+            const children = [];
+            const HighlighterView = joint.highlighters.mask.extend({
+                transformMaskChild(cellView, childEl) {
+                    children.push(childEl.tagName());
+                    return joint.highlighters.mask.prototype.transformMaskChild.apply(this, arguments);
+                }
+            });
+            const highlighter = HighlighterView.add(elementView, 'root', 'highlighter-id', { deep: true });
+            assert.deepEqual(children, ['RECT', 'TEXT']);
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            assert.notOk(maskEl.querySelector('text'));
+            assert.equal(maskEl.querySelectorAll('rect').length, 2);
+        });
+
+        QUnit.test('deep - overriding the deprecated MASK_REPLACE_TAGS is respected', function(assert) {
+            const HighlighterView = joint.highlighters.mask.extend({
+                // replace the body rectangle too
+                MASK_REPLACE_TAGS: [...joint.highlighters.mask.prototype.MASK_REPLACE_TAGS, 'RECT']
+            });
+            const body = elementView.el.querySelector('rect');
+            body.setAttribute('rx', 5);
+            const highlighter = HighlighterView.add(elementView, 'root', 'highlighter-id', { deep: true });
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            const rects = maskEl.querySelectorAll('rect');
+            assert.equal(rects.length, 2);
+            // the legacy replacement rectangle does not copy the original attributes
+            Array.from(rects).forEach(rect => assert.notOk(rect.hasAttribute('rx')));
+        });
+
+        QUnit.test('overriding MASK_ROOT_ATTRIBUTE_BLACKLIST is respected', function(assert) {
+            const HighlighterView = joint.highlighters.mask.extend({
+                // keep the dashes of the highlighted node
+                MASK_ROOT_ATTRIBUTE_BLACKLIST: ['transform']
+            });
+            element.attr('body/strokeDasharray', '5,5');
+            const highlighter = HighlighterView.add(elementView, 'body', 'highlighter-id');
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            const rects = Array.from(maskEl.querySelectorAll('rect'));
+            assert.equal(rects.length, 2);
+            rects.forEach(rect => assert.equal(rect.getAttribute('stroke-dasharray'), '5,5'));
+        });
+
+        QUnit.test('deep - leaves transparent descendants out of the mask', function(assert) {
+            const HighlighterView = joint.highlighters.mask;
+            elementView.el.querySelector('rect').setAttribute('opacity', 0);
+            const highlighter = HighlighterView.add(elementView, 'root', 'highlighter-id', { deep: true });
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            // nothing left to mask - falls back to the bounding rectangle
+            assert.equal(maskEl.querySelectorAll('rect').length, 2);
+            Array.from(maskEl.children).forEach(child => assert.equal(child.tagName.toUpperCase(), 'RECT'));
+        });
     });
 
     QUnit.module('stroke', function() {
