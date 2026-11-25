@@ -77,6 +77,37 @@ export interface GraphProviderProps<
    */
   readonly autoSizeOrigin?: AutoSizeOrigin;
   /**
+   * Geometry of the elements and their ports, used to find where a link meets
+   * them. Called with the element (`model`) and the id of its port (`port`, or
+   * `null` for the element itself); returns a shape from the `g` namespace of
+   * `@joint/core`. An element geometry is relative to its top-left corner, a
+   * port geometry is relative to the port center.
+   *
+   * Return `null` to use the default: the shape of a port drawn by
+   * {@link elementPort} (ellipse, rectangle or path), and the rectangle of
+   * everything else.
+   *
+   * The callback runs whenever a link is updated, so keep it cheap or return
+   * cached shapes. The latest callback is read on every use; links are not
+   * re-rendered when it changes. Not applied to a `graph` passed in (neither
+   * is the default port shape geometry): define the `getElementGeometry`
+   * option of that graph instead.
+   * @example
+   * ```tsx
+   * import { g } from '@joint/core';
+   *
+   * <GraphProvider
+   *   elementGeometry={({ model, port }) => {
+   *     if (port !== null || model.get('data')?.shape !== 'ellipse') return null;
+   *     const { width, height } = model.size();
+   *     return g.Ellipse.fromRect(new g.Rect(0, 0, width, height));
+   *   }}
+   * />
+   * ```
+   * @see [`dia.Graph`](https://docs.jointjs.com/api/dia/Graph)
+   */
+  readonly elementGeometry?: dia.Graph.ElementGeometryCallback;
+  /**
    * Pre-built `GraphStore` instance. When provided, GraphProvider does not own its lifecycle.
    * @hidden
    */
@@ -170,6 +201,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
     layerNamespace,
     cellModel,
     autoSizeOrigin,
+    elementGeometry,
     initialCells,
     cells,
     initialLayers,
@@ -182,6 +214,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
   const onLayersChangeRef = useLatestRef(onLayersChange);
   const layersRef = useLatestRef(layers);
   const cellsRef = useLatestRef(cells);
+  const elementGeometryRef = useLatestRef(elementGeometry);
   const lastAppliedCellsRef = useRef<typeof cells>(undefined);
   // Layers are re-reconciled only when their reference changes, so a drag frame
   // in controlled mode does zero layer work. Cleared on a graph-origin change so
@@ -212,6 +245,7 @@ function GraphBase(props: Readonly<GraphProviderBaseInternalProps>): React.React
             initialCells: shouldSeed ? (cells ?? initialCells ?? []) : undefined,
             initialLayers: shouldSeed ? (layers ?? initialLayers) : undefined,
             autoSizeOrigin,
+            elementGeometry: (args) => elementGeometryRef.current?.(args) ?? null,
           });
         // Subscribe before the ready render exposes children: their layout effects
         // run before this provider's effects and may already change the layers.

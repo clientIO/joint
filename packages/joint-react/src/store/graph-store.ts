@@ -24,6 +24,7 @@ import {
 import { cellInputToModel } from '../utils/normalize-cell-input';
 import type { CellInput } from '../types/cell.types';
 import { warnDuplicatePapers } from '../utils/dev-warnings';
+import { defaultElementGeometry } from '../presets/element-geometry';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -73,6 +74,11 @@ export interface GraphStoreOptions<
    */
   readonly autoSizeOrigin?: AutoSizeOrigin;
   readonly initialCells?: ReadonlyArray<CellInput<Element, Link>>;
+  /**
+   * Geometry of the elements and ports of the graph the store creates. Returning
+   * `null` uses the default geometry. Not applied to a `graph` passed in.
+   */
+  readonly elementGeometry?: dia.Graph.ElementGeometryCallback;
   /** Layers to declare once at construction, in paint order. See {@link LayerRecord}. */
   readonly initialLayers?: readonly LayerRecord[];
 }
@@ -114,6 +120,7 @@ export class GraphStore<
       autoSizeOrigin = 'top-left',
       initialCells,
       initialLayers,
+      elementGeometry,
     } = config;
 
     this.graph =
@@ -127,6 +134,7 @@ export class GraphStore<
           },
           layerNamespace,
           cellModel,
+          getElementGeometry: (args) => elementGeometry?.(args) ?? defaultElementGeometry(args),
         }
       );
 
