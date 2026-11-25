@@ -5,6 +5,32 @@ import { PaperStoreContext } from '../../context';
 import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
 import type { PaperProps } from './paper.types';
 import { DEFAULT_PAPER_ID } from '../../mvc/paper';
+import { useOnElementsMeasured } from '../../hooks/use-on-elements-measured';
+
+/**
+ * Fits the surrounding paper to its content when a diagram is first measured.
+ * Mounted only when `fitToContent` is set, so other papers subscribe to nothing,
+ * and after the children, so it sees the positions their measured hooks set.
+ * @param props - The component props.
+ * @param props.options - The value of the `fitToContent` prop.
+ * @returns Nothing; the component only runs the effect.
+ */
+function FitToContent({ options }: Readonly<{ options: PaperProps['fitToContent'] }>) {
+  useOnElementsMeasured(({ isInitial, paper }) => {
+    if (!isInitial) return;
+    // A hidden host would scale the content to 0, which leaves a matrix that
+    // can't be inverted, so the paper would keep failing once it is shown.
+    const { width, height } = paper.getComputedSize();
+    if (!width || !height) return;
+    paper.transformToFitContent({
+      useModelGeometry: true,
+      horizontalAlign: 'middle',
+      verticalAlign: 'middle',
+      ...(typeof options === 'object' ? options : undefined),
+    });
+  });
+  return null;
+}
 
 /**
  * Internal Paper implementation used by forwarded {@link Paper} component.
@@ -16,7 +42,7 @@ function PaperBase(
   props: Readonly<PaperProps>,
   forwardedRef: React.ForwardedRef<dia.Paper | null>
 ) {
-  const { className, style, children, paper: externalPaper } = props;
+  const { className, style, children, paper: externalPaper, fitToContent, transform } = props;
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
   const id = props.id ?? DEFAULT_PAPER_ID;
   const isExternalPaper = !!externalPaper;
@@ -34,6 +60,10 @@ function PaperBase(
   const paper = paperRef.current;
   const portaledChildren =
     isReady && children && paper?.el ? createPortal(children, paper.el) : null;
+  const fitContent =
+    isReady && fitToContent && transform === undefined ? (
+      <FitToContent options={fitToContent} />
+    ) : null;
 
   // The host div IS `paper.el`: dia.Paper adds its own classes (`jj-paper`,
   // theme) to it imperatively after mount, so `className` must not go through
@@ -55,6 +85,7 @@ function PaperBase(
       <PaperStoreContext.Provider value={paperStore ?? null}>
         {isReady && content}
         {portaledChildren}
+        {fitContent}
       </PaperStoreContext.Provider>
     );
   }
@@ -66,6 +97,7 @@ function PaperBase(
         {isReady && content}
       </div>
       {portaledChildren}
+      {fitContent}
     </PaperStoreContext.Provider>
   );
 }
