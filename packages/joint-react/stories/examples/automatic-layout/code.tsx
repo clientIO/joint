@@ -4,7 +4,8 @@ import {
   useGraph,
   useCells,
   HTMLBox,
-  useOnElementsMeasured,
+  useOnGraphStateChange,
+  selectGraphSizingVersion,
   type CellRecord,
   type ElementRecord,
   type Computed,
@@ -44,8 +45,10 @@ function Main() {
   const [columns, setColumns] = useState(3);
   const nextIdRef = useRef(initialCells.length);
 
-  // Re-run the grid layout every time an element is (re)measured.
-  useOnElementsMeasured(() => layoutGrid(graph, columns));
+  // Re-run the grid layout every time the element sizes settle.
+  useOnGraphStateChange(selectGraphSizingVersion, (sizingVersion) => {
+    if (sizingVersion) layoutGrid(graph, columns);
+  });
 
   const elementCount = useCells<Computed<CellRecord>, number>((cells) => {
     let total = 0;
@@ -69,7 +72,11 @@ function Main() {
 
   const addNode = useCallback(() => {
     nextIdRef.current += 1;
-    setCell({ id: `${nextIdRef.current}`, type: 'element', data: { label: `Node ${elementCount + 1}` } });
+    setCell({
+      id: `${nextIdRef.current}`,
+      type: 'element',
+      data: { label: `Node ${elementCount + 1}` },
+    });
   }, [elementCount, setCell]);
 
   return (

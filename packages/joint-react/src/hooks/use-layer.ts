@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { useGraphStore } from './use-graph-store';
-import { arrayAwareEqual } from '../utils/selector-utils';
+import { arrayAwareEqual } from '../selectors/selector-utils';
 import type { LayerRecord } from '../types/layer.types';
 
 /** What the implementation resolves to: the record, a selection from it, or nothing. */

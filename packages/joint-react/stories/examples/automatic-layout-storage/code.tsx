@@ -5,7 +5,8 @@ import {
   useCellId,
   useGraph,
   useCells,
-  useOnElementsMeasured,
+  useOnGraphStateChange,
+  selectGraphSizingVersion,
   linkRoutingOrthogonal,
   type CellRecord,
   type Computed,
@@ -193,7 +194,9 @@ function LayoutRunner() {
     }
   }, [graph]);
 
-  useOnElementsMeasured(runLayout);
+  useOnGraphStateChange(selectGraphSizingVersion, (sizingVersion) => {
+    if (sizingVersion) runLayout();
+  });
   return null;
 }
 
@@ -261,11 +264,7 @@ function NodeCard({ title, owner }: Readonly<NodeData>) {
       }`}
     >
       {isEditing ? (
-        <div
-          ref={editorRef}
-          onMouseDown={swallowEditorEvent}
-          onClick={swallowEditorEvent}
-        >
+        <div ref={editorRef} onMouseDown={swallowEditorEvent} onClick={swallowEditorEvent}>
           <FieldLabel>Title</FieldLabel>
           <InlineInput
             ref={titleInputRef}

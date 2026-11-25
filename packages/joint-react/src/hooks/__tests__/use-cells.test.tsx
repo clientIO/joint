@@ -1310,3 +1310,78 @@ describe('useCells (selector reactivity — no collection)', () => {
     expect(renderedIds).toEqual(['a', 'b']);
   });
 });
+
+describe('useCells — what a re-render changes', () => {
+  const element = (id: string | number, x: number): CellRecord =>
+    ({
+      id,
+      type: ELEMENT_MODEL_TYPE,
+      position: { x, y: 0 },
+      size: { width: 10, height: 10 },
+    }) as CellRecord;
+  const cells: readonly CellRecord[] = [element(1, 100), element('1', 200), element('a|b', 300)];
+  const selectXs = (picked: readonly CellRecord[]) =>
+    picked.map((cell) => (cell as { readonly position?: { readonly x: number } }).position?.x);
+  function cellsWrapper({ children }: { readonly children: React.ReactNode }) {
+    return <GraphProvider initialCells={cells}>{children}</GraphProvider>;
+  }
+
+  // Regression: ids were joined into the key that says "same target", so the
+  // number 1 and the string '1' were one target and the hook kept the first.
+  it('tells a numeric id from the same id as a string', () => {
+    const { result, rerender } = renderHook(
+      ({ ids }: { readonly ids: ReadonlyArray<string | number> }) => useCells(ids, selectXs),
+      { wrapper: cellsWrapper, initialProps: { ids: [1] as ReadonlyArray<string | number> } }
+    );
+    expect(result.current).toEqual([100]);
+
+    rerender({ ids: ['1'] });
+
+    expect(result.current).toEqual([200]);
+  });
+
+  // Regression: the selector was read through a ref and run on a store change
+  // only, so an inline selector returned what the previous props selected.
+  it('runs an inline selector that captured a changed prop, without a graph change', () => {
+    const { result, rerender } = renderHook(
+      ({ minimumX }: { readonly minimumX: number }) =>
+        useCells(
+          (all) =>
+            all.filter(
+              (cell) =>
+                ((cell as { readonly position?: { readonly x: number } }).position?.x ?? 0) >=
+                minimumX
+            ).length
+        ),
+      { wrapper: cellsWrapper, initialProps: { minimumX: 0 } }
+    );
+    expect(result.current).toBe(3);
+
+    rerender({ minimumX: 250 });
+
+    expect(result.current).toBe(1);
+  });
+});
+
+describe('useCells dev warnings', () => {
+  // Regression: the warning named `useGraphState`, which useCells runs on, not
+  // the hook the application called.
+  it('names useCells when its selector returns new objects on every run', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { result } = renderHook(
+      () => {
+        useCells((cells) => cells.map((cell) => ({ id: cell.id })));
+        return useGraphStore().graph;
+      },
+      { wrapper }
+    );
+
+    await act(async () => {
+      (result.current.getCell('a') as dia.Element).position(5, 0);
+      await flush();
+    });
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('[useCells] Selector returns'));
+    warn.mockRestore();
+  });
+});

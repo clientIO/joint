@@ -52,6 +52,9 @@ export type OnElementsMeasured = (params: ElementsMeasuredParams) => void;
  * every element is an ordinary change: an empty diagram fires nothing, a hook
  * mounted on one waits for elements, and the next event after elements return
  * is not initial.
+ * @deprecated Use {@link useOnGraphStateChange} with {@link selectGraphSizingVersion}
+ *   to react to every settled change, or {@link useGraphState} with
+ *   {@link selectIsGraphSizingComplete} to act once the sizes are known.
  * @title On the current paper
  * @param callback - Called each time element sizes are measured.
  * @group Hooks
@@ -74,6 +77,9 @@ export function useOnElementsMeasured(callback: OnElementsMeasured): void;
 /**
  * Calls a callback when element sizes are measured, targeting a specific paper
  * instead of the surrounding context. Useful when several papers share one graph.
+ * @deprecated Use {@link useOnGraphStateChange} with {@link selectGraphSizingVersion}
+ *   to react to every settled change, or {@link useGraphState} with
+ *   {@link selectIsGraphSizingComplete} to act once the sizes are known.
  * @title On a specific paper
  * @param paperTarget - Which paper to watch: a registered paper id, a
  *   `dia.Paper` instance, or a React ref to one.
@@ -115,19 +121,23 @@ export function useOnElementsMeasured(
   useLayoutEffect(() => {
     if (!paperStore) return;
     const { paper } = paperStore;
-    // A new paper (or graph store) starts its own history, and so does a graph
-    // reset (the state goes back to `0`): the next event is the initial one.
-    let previousState = 0;
+    // This legacy hook starts a new history on mount or an actual graph reset.
+    // The public sizing version also clears when the last element is removed,
+    // which must not turn a later addition into an initial event here.
+    let isInitial = true;
+    const onReset = () => {
+      isInitial = true;
+    };
 
     function handleChanges() {
       const state = measurement.getSizingVersion();
-      const isInitial = previousState === 0;
-      previousState = state;
       if (state === 0) return;
+      const wasInitial = isInitial;
+      isInitial = false;
       // This runs inside the store's notification: an error must not keep the
       // other subscribers of this change from being notified.
       try {
-        callbackRef.current({ isInitial, paper, graph });
+        callbackRef.current({ isInitial: wasInitial, paper, graph });
       } catch (error) {
         rethrowLater(error);
       }
@@ -140,11 +150,15 @@ export function useOnElementsMeasured(
     }
     // Subscribed before the replay, so a callback that resets the graph is
     // notified of it and reports the replacement diagram as initial.
+    graph.on('reset', onReset);
     const unsubscribe = measurement.subscribe(handleChanges);
     // Replay a pass that settled before this subscription (e.g. initial data
     // sync ran before this paperStore was available). A change still waiting
     // is delivered when it settles, as this hook's initial event.
     if (measurement.isSettled()) handleChanges();
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      graph.off('reset', onReset);
+    };
   }, [paperStore, measurement, graph, callbackRef]);
 }

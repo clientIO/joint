@@ -3,13 +3,14 @@ import {
   GraphProvider,
   useCell,
   Paper,
-  useOnElementsMeasured,
+  usePaper,
   type ElementRecord,
   selectElementSize,
-  type OnElementsMeasured,
+  useGraphState,
+  selectIsGraphSizingComplete,
 } from '@joint/react';
 import { dia, elementTools, g } from '@joint/core';
-import { useCallback } from 'react';
+import { useLayoutEffect } from 'react';
 
 const PRIMARY = '#ED2637';
 const LIGHT = '#DDE6ED';
@@ -749,12 +750,13 @@ function addElementControls(paper: dia.Paper) {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
-  const handleElementsMeasured: OnElementsMeasured = useCallback(({ isInitial, paper }) => {
-    if (!isInitial) return;
-    addElementControls(paper);
-  }, []);
+  const { paper } = usePaper();
+  const isSizingComplete = useGraphState(selectIsGraphSizingComplete);
 
-  useOnElementsMeasured(handleElementsMeasured);
+  // The controls attach to the element views, which exist once the sizes are known.
+  useLayoutEffect(() => {
+    if (isSizingComplete && paper) addElementControls(paper);
+  }, [isSizingComplete, paper]);
 
   return <Paper className="size-full" renderElement={renderElement} />;
 }

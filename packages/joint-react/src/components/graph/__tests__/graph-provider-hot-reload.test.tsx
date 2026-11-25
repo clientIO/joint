@@ -46,7 +46,8 @@ import type * as ElementModelModule from '../../../mvc/element-model';
 import type * as LinkModelModule from '../../../mvc/link-model';
 import type * as UseGraphStoreModule from '../../../hooks/use-graph-store';
 import type * as UseCellIdsModule from '../../../hooks/use-cell-ids';
-import type * as UseOnElementsMeasuredModule from '../../../hooks/use-on-elements-measured';
+import type * as UseOnGraphStateChangeModule from '../../../hooks/use-on-graph-state-change';
+import type * as SelectorsModule from '../../../selectors';
 import type * as GraphProviderModule from '../graph-provider';
 import type * as PaperModule from '../../paper/paper';
 
@@ -88,8 +89,9 @@ const linkModelModule: typeof LinkModelModule = require('../../../mvc/link-model
 const { useGraphStore }: typeof UseGraphStoreModule = require('../../../hooks/use-graph-store');
 const { useCellIds }: typeof UseCellIdsModule = require('../../../hooks/use-cell-ids');
 const {
-  useOnElementsMeasured,
-}: typeof UseOnElementsMeasuredModule = require('../../../hooks/use-on-elements-measured');
+  useOnGraphStateChange,
+}: typeof UseOnGraphStateChangeModule = require('../../../hooks/use-on-graph-state-change');
+const { selectGraphSizingVersion }: typeof SelectorsModule = require('../../../selectors');
 
 const graphProviderV1: typeof GraphProviderModule = require('../graph-provider');
 const paperV1: typeof PaperModule = require('../../paper/paper');
@@ -191,8 +193,8 @@ function Probe() {
     mountSequence += 1;
     return mountSequence;
   });
-  useOnElementsMeasured(({ isInitial }) => {
-    measuredCalls.push(isInitial);
+  useOnGraphStateChange(selectGraphSizingVersion, (version, previousSizingVersion) => {
+    if (version) measuredCalls.push(!previousSizingVersion);
   });
   const ids = useCellIds();
   return h(

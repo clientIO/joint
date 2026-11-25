@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import type { LayerPatch, LayerRecord } from '../types/layer.types';
 import { forgetLayerNotEmptyWarning, warnLayerNotEmpty } from '../utils/dev-warnings';
-import { isShallowEqual } from '../utils/selector-utils';
+import { isShallowEqual } from '../selectors/selector-utils';
 import { isRecord } from '../utils/is';
 
 /** `type` joint-core gives a plain layer — read from core, not restated — and left out of records. */
