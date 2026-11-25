@@ -15,7 +15,10 @@ import type {
     ExportElementCallback,
     ExportPortCallback,
     ExportLinkCallback,
-    ExportLinkLabelCallback
+    ExportLinkLabelCallback,
+    ExportPortLabelCallback,
+    ElkLabelDraft,
+    ElkNodeLabelDraft
 } from '../../src/index.mjs';
 
 declare const graph: dia.Graph;
@@ -60,6 +63,23 @@ export const exportLink: ExportLinkCallback = ({ elkEdge }) => {
 export const exportLinkLabel: ExportLinkLabelCallback = ({ elkEdgeLabel }) => {
     elkEdgeLabel.layoutOptions['elk.edgeLabels.inline'] = false;
 };
+
+// A node label is the caller's own, so it needs only a size - no `layoutOptions`.
+export const exportElementLabel: ExportElementCallback = ({ elkNode }) => {
+    elkNode.labels = [{ width: 80, height: 18 }];
+    elkNode.labels.push({ width: 80, height: 18, layoutOptions: { 'elk.nodeLabels.placement': 'INSIDE' }});
+    // @ts-expect-error A node label still needs its size - it is all ELK sizes the node around.
+    elkNode.labels.push({ width: 80 });
+};
+export type _nodeLabel = Expect<Equals<NonNullable<Parameters<ExportElementCallback>[0]['elkNode']['labels']>, ElkNodeLabelDraft[]>>;
+
+// The label drafts this package creates keep their `layoutOptions` required, so callbacks
+// can write into them without a check.
+export const exportPortLabel: ExportPortLabelCallback = ({ elkPortLabel }) => {
+    elkPortLabel.layoutOptions['elk.portLabels.placement'] = 'OUTSIDE';
+};
+export type _portLabel = Expect<Equals<Parameters<ExportPortLabelCallback>[0]['elkPortLabel'], ElkLabelDraft>>;
+export type _labelDraftOptions = Expect<Equals<undefined extends ElkLabelDraft['layoutOptions'] ? true : false, false>>;
 
 // The import form the README's `toNativeElkNode()` example uses: the bundled build, which
 // carries ELK itself, rather than `elkjs`'s worker-dependent entry point.

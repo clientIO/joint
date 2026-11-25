@@ -1,5 +1,5 @@
-import type * as dia from './dia.d.ts';
-import type * as g from './geometry.d.ts';
+import type * as dia from './dia';
+import type * as g from './geometry';
 
 export interface RightAnglePathOptions {
     /**
