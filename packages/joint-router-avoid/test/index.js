@@ -641,6 +641,69 @@ QUnit.module('destroy()', () => {
         assert.deepEqual(cancelledLinks, [link], 'the still-routing link is cancelled by destroy()');
     });
 
+    // No public API exposes the router or tells whether it was freed: read
+    // it off the provider and spy on the module's `destroy()`, which frees it.
+    function spyOnAvoidDestroy(routerService) {
+        const { avoidInstance, avoidRouter } = routerService.provider;
+        const destroy = avoidInstance.destroy;
+        const spy = { calls: 0, restore: () => { avoidInstance.destroy = destroy; } };
+        avoidInstance.destroy = function(obj) {
+            if (obj === avoidRouter) spy.calls++;
+            return destroy.apply(this, arguments);
+        };
+        return spy;
+    }
+
+    QUnit.test('frees the avoid router', async assert => {
+        const { routerService } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+        const spy = spyOnAvoidDestroy(routerService);
+
+        try {
+            routerService.destroy();
+        } finally {
+            spy.restore();
+        }
+
+        assert.equal(spy.calls, 1, 'the router and everything added to it are freed');
+    });
+
+    QUnit.test('called from a link:routing handler during a graph change, the change still completes', async assert => {
+        const { graph, routerService, source, target } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+
+        routerService.on('link:routing', () => {
+            routerService.destroy();
+        });
+
+        // The new link's fallback route fires `link:routing` before the
+        // link is registered with the (by then destroyed) provider.
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+        graph.addCell(link);
+
+        assert.ok(graph.getCell(link.id), 'the link was added without an error');
+    });
+
+    QUnit.test('called from a link:routed handler, frees the avoid router once the pass returns', async assert => {
+        const { routerService, source } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
+        const spy = spyOnAvoidDestroy(routerService);
+
+        // `link:routed` fires from the connector callback, while avoid is
+        // still inside `processTransaction()`.
+        let callsDuringPass;
+        routerService.on('link:routed', () => {
+            routerService.destroy();
+            callsDuringPass = spy.calls;
+        });
+
+        try {
+            source.position(0, 200);
+        } finally {
+            spy.restore();
+        }
+
+        assert.strictEqual(callsDuringPass, 0, 'the router is not freed under its own running transaction');
+        assert.equal(spy.calls, 1, 'the router is freed once the pass has returned');
+    });
+
     QUnit.test('does nothing if there are no links with an open routing cycle', async assert => {
         const { routerService } = await initRouterWithLink({ x: 0, y: 0 }, { x: 300, y: 0 });
 
