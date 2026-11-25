@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const coverageThresholds = require('./coverage.json');
 
-// Coverage is collected for this and source-mapped to `DirectedGraph.mjs`
+// Coverage is collected for this and source-mapped to the package sources
 const TEST_BUNDLE = './build/test/DirectedGraph.js';
 
 // Which path should .lcov files record as root they are relative to?
