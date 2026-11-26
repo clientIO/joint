@@ -2101,9 +2101,6 @@ export const Paper = View.extend({
             // including those still waiting for their first render. Such a cell
             // has no view yet, only a placeholder: `checkUnmountedViews()` moved it
             // here and scheduled the render (e.g. a later frame of an async paper).
-            // Without the placeholder lookup, it would be dropped from both lists,
-            // and a render that keeps the current visibility (`updateCellsVisibility()`)
-            // would draw it, although it is now hidden.
             const view = viewsRegistry[cid] || this._viewPlaceholders[cid];
             if (!view) {
                 // A view (not a cell view) has been removed from the paper.
