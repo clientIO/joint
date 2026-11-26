@@ -8,6 +8,7 @@ Please verify that:
 * [ ] If applicable, there are new or updated @types
 * [ ] If applicable, documentation has been updated
 * [ ] If the change is releasable, you've added a changeset (`yarn changeset`)
+* [ ] You've signed the Contributor License Agreement - the CLA Assistant bot asks for it until you have
 -->
 
 ## Description
