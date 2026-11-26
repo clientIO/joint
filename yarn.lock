@@ -5186,7 +5186,7 @@ __metadata:
     copy-webpack-plugin: "npm:14.0.0"
     css-loader: "npm:^6.8.1"
     file-loader: "npm:6.0.0"
-    libavoid-js: "npm:0.5.0-beta.6"
+    libavoid-js: "npm:0.5.0-beta.7"
     sass: "npm:1.26.8"
     sass-loader: "npm:8.0.2"
     style-loader: "npm:^3.3.3"
@@ -6145,7 +6145,7 @@ __metadata:
     karma-chrome-launcher: "npm:^3.2.0"
     karma-coverage: "npm:^2.2.1"
     karma-qunit: "npm:^4.1.2"
-    libavoid-js: "npm:0.5.0-beta.6"
+    libavoid-js: "npm:0.5.0-beta.7"
     puppeteer: "npm:25.16.0"
     qunit: "npm:^2.24.1"
     rollup: "npm:4.64.12"
@@ -17938,10 +17938,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libavoid-js@npm:0.5.0-beta.6":
-  version: 0.5.0-beta.6
-  resolution: "libavoid-js@npm:0.5.0-beta.6"
-  checksum: 10/028c1ae7e9973e7e1e753d4cc9fd8e78eaee3f68f36fa30d65a14aab06eeb49602c728b5050108a894c71e2f3ebce7b04f53f92795998f5d35b2f990310879c4
+"libavoid-js@npm:0.5.0-beta.7":
+  version: 0.5.0-beta.7
+  resolution: "libavoid-js@npm:0.5.0-beta.7"
+  checksum: 10/03492570ee96d07e46d9f211b94821b921b0678625c4fd1dd7f0a891920fd8885acef133e796caefbe2f23ecae5b04b0e474c10e9fc25ad4cb2e59503f0573c0
   languageName: node
   linkType: hard
 
