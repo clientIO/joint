@@ -1,6 +1,6 @@
 import { dia, shapes } from '@joint/core';
 import { initAvoidRouter } from '@joint/router-avoid';
-import { createPaper, addPaperZoomHandlers, libavoidFilePath } from '../common';
+import { createPaper, addPaperZoomHandlers } from '../common';
 import { Node, Edge } from '../simple-graph/shapes';
 import { Container, ContainerLink } from './shapes';
 
@@ -74,7 +74,6 @@ export const initContainersExample = async (canvasEl: HTMLElement): Promise<void
     graph.resetCells([...groupA.cells, ...groupB.cells, ...groupC.cells, ...containerLinks]);
 
     const routerService = await initAvoidRouter(graph, {
-        libavoidFilePath,
         shapeBufferDistance: 16,
         idealNudgingDistance: 8,
         worker: true,

@@ -1,6 +1,6 @@
 import { dia, elementTools, shapes } from '@joint/core';
 import { initAvoidRouter } from '@joint/router-avoid';
-import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers, libavoidFilePath } from '../common';
+import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from '../common';
 import { Node, Edge, Note } from './shapes';
 import ResizeTool from './resize-tool';
 
@@ -121,7 +121,6 @@ export const initSimpleExample = async (canvasEl: HTMLElement): Promise<void> =>
     graph.resetCells([c1, c2, c3, c4, c5, l1, l2, l3, l4, l5, note]);
 
     const routerService = await initAvoidRouter(graph, {
-        libavoidFilePath,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
         trackLink: ({ link }) => !link.get('skip'),

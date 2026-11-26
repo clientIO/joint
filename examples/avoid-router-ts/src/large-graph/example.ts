@@ -1,6 +1,6 @@
 import { dia, highlighters, shapes, V } from '@joint/core';
 import { initAvoidRouter } from '@joint/router-avoid';
-import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers, libavoidFilePath } from '../common';
+import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from '../common';
 import { Message, FlowchartStart, Link as AppLink } from './shapes';
 import { largeGraph } from './data';
 
@@ -45,7 +45,6 @@ export const initLargeGraphExample = async (canvasEl: HTMLElement): Promise<void
     graph.resetCells(largeGraph.cells);
 
     const routerService = await initAvoidRouter(graph, {
-        libavoidFilePath,
         shapeBufferDistance: 20,
         idealNudgingDistance: 5,
         worker: true,

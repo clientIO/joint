@@ -1,6 +1,6 @@
 import { dia, elementTools, shapes } from '@joint/core';
 import { initAvoidRouter } from '@joint/router-avoid';
-import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers, libavoidFilePath } from '../common';
+import { createPaper, addLinkInteractionHandlers, addPaperZoomHandlers } from '../common';
 import { Node, Edge, Note } from './shapes';
 import ResizeTool from './resize-tool';
 
@@ -192,7 +192,6 @@ export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<voi
     // so each instance only ever sees - and only ever routes around - its
     // own subgraph's shapes and links, with its own routing settings.
     const routerServiceA = await initAvoidRouter(graph, {
-        libavoidFilePath,
         shapeBufferDistance: 20,
         idealNudgingDistance: 10,
         trackLink: ({ link }) => !link.get('skip') && !isGroupB(link),
@@ -222,7 +221,6 @@ export const initSimpleExampleExtra = async (canvasEl: HTMLElement): Promise<voi
     // subgraphs are visibly routed differently. Nothing further to do with
     // the returned `RouterService` in this demo, so it isn't kept around.
     const routerServiceB = await initAvoidRouter(graph, {
-        libavoidFilePath,
         shapeBufferDistance: 30,
         idealNudgingDistance: 20,
         trackLink: ({ link }) => !link.get('skip') && isGroupB(link),
