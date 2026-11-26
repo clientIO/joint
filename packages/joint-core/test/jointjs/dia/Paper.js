@@ -3050,6 +3050,73 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             assert.equal(view.el.getAttribute('transform'), 'translate(300,0)', 'View has correct transform attribute after visibility update');
         });
+
+        QUnit.test('hides the cells waiting for their first render', function(assert) {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            let visible = true;
+
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                frozen: true,
+                viewManagement: true,
+                cellVisibility: () => visible,
+            });
+
+            const rects = [0, 1, 2, 3].map((i) => new joint.shapes.standard.Rectangle({
+                position: { x: i * 60, y: 0 },
+                size: { width: 50, height: 50 }
+            }));
+            graph.resetCells(rects);
+
+            // The paper is frozen: the cells are let in, but not rendered yet.
+            paper.scheduleCellsVisibilityUpdate();
+            assert.equal(cellNodesCount(paper), 0, 'no cell is rendered while the paper is frozen');
+            assert.ok(rects.every((rect) => paper.isCellVisible(rect)), 'the cells are visible');
+
+            visible = false;
+            paper.updateCellsVisibility();
+            assert.equal(cellNodesCount(paper), 0, 'the hidden cells are not rendered');
+            assert.ok(rects.every((rect) => !paper.isCellVisible(rect)), 'the cells are not visible');
+
+            visible = true;
+            paper.updateCellsVisibility();
+            assert.equal(cellNodesCount(paper), rects.length, 'the cells are rendered when shown again');
+            assert.ok(rects.every((rect) => paper.isCellVisible(rect)), 'the cells are visible again');
+        });
+
+        QUnit.test('hides the cells not rendered yet by an async paper', function(assert) {
+            const done = assert.async();
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            let visible = true;
+
+            const rects = Array.from({ length: 20 }, (_, i) => new joint.shapes.standard.Rectangle({
+                position: { x: (i % 5) * 60, y: Math.floor(i / 5) * 60 },
+                size: { width: 50, height: 50 }
+            }));
+            graph.resetCells(rects);
+
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                frozen: true,
+                viewManagement: true,
+                cellVisibility: () => visible,
+            });
+            // Render 5 cells per frame.
+            paper.unfreeze({ batchSize: 5 });
+
+            // Hide all cells after the first frame, while the rest are still waiting.
+            requestAnimationFrame(() => {
+                assert.ok(cellNodesCount(paper) < rects.length, 'some cells are still waiting for their render');
+                visible = false;
+                paper.updateCellsVisibility();
+                assert.equal(cellNodesCount(paper), 0, 'no cell is rendered');
+                done();
+            });
+        });
     });
 
     QUnit.module('isViewMounted()', function() {
