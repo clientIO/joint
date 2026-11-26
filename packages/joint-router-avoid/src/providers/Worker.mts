@@ -96,8 +96,21 @@ let avoidRouter: AvoidRouter;
 const shapeRefs: Record<string, ShapeRef> = {};
 const connectorRefs: Record<string, ConnRef> = {};
 const linksByPointer: Record<number, dia.Cell.ID> = {};
+/**
+ * Ids of the shapes added since the last {@link processTransaction} call.
+ * Deleting a shape in the same transaction that added it aborts the avoid
+ * WASM module irrecoverably, and a batch can do that (e.g. an element added
+ * and removed within one debounce window) - see {@link handleDeleteShape}.
+ */
+const shapesAddedInTransaction = new Set<string>();
 
 let updateDebounceTime: number = 100;
+
+/** Routes every change made since the last call; see `Router.processTransaction()`. */
+function processTransaction(): void {
+    avoidRouter.processTransaction();
+    shapesAddedInTransaction.clear();
+}
 /**
  * Drops every `updateConnector` request that is followed by a
  * `deleteConnector` for the same connector later in the batch. Besides
@@ -136,7 +149,7 @@ const flushMessageFunction = () => {
 
     compactMessages(messages).forEach(handleQueuedMessage);
 
-    avoidRouter.processTransaction();
+    processTransaction();
     postResponse({ type: 'processed' });
 };
 /** Debounced version of {@link flushMessageFunction}, re-created by {@link handleInit} once the configured `updateDebounceTime` is known. */
@@ -248,6 +261,7 @@ function handleUpdateShape(shape: Shape): void {
 
     const shapeRef = new avoidInstance.ShapeRef(avoidRouter, shapeRect);
     shapeRefs[shape.id] = shapeRef;
+    shapesAddedInTransaction.add(String(shape.id));
 
     shape.pins.forEach((pin) => {
         const pinRef = new avoidInstance.ShapeConnectionPin(
@@ -335,6 +349,12 @@ function handleUpdateConnector(connector: Connector): void {
 function handleDeleteShape(shapeId: dia.Cell.ID): void {
     const shapeRef = shapeRefs[shapeId];
     if (!shapeRef) return;
+    if (shapesAddedInTransaction.has(String(shapeId))) {
+        // libavoid cannot delete a shape in the transaction that added it,
+        // so route the batch so far first. Rare: only when a shape is added
+        // and removed (or replaced by a sync) within the same batch.
+        processTransaction();
+    }
     avoidRouter.deleteShape(shapeRef);
     delete shapeRefs[shapeId];
 }
@@ -414,7 +434,7 @@ onmessage = async(evt: MessageEvent<WorkerRequest>) => {
 
     if (updateDebounceTime === 0) {
         handleQueuedMessage(message);
-        avoidRouter.processTransaction();
+        processTransaction();
         postResponse({ type: 'processed' });
     } else {
         messageQueue.push(message);

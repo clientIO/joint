@@ -23,6 +23,10 @@ export class MainThreadProvider extends Provider {
     protected readonly linksByPointer: Record<number, dia.Cell.ID> = {};
     /** Callback registered with avoid connectors, translating a raw pointer id back to a route update. */
     protected onAvoidConnectorChanged!: (connectorRefId: number) => void;
+    /** Set by {@link destroy}; once the avoid router is freed, further changes are ignored. */
+    protected destroyed = false;
+    /** Whether avoid is inside `processTransaction()`, where the router must not be freed. */
+    protected processing = false;
 
     /**
      * Initializes the avoid router instance on the main thread.
@@ -70,7 +74,16 @@ export class MainThreadProvider extends Provider {
      * (not just {@link sync}) have to fire it too for parity.
      */
     protected processTransaction(): void {
-        this.avoidRouter.processTransaction();
+        this.processing = true;
+        try {
+            this.avoidRouter.processTransaction();
+        } finally {
+            this.processing = false;
+        }
+        if (this.destroyed) {
+            // `destroy()` was called from a callback during the pass.
+            this.avoidInstance.destroy(this.avoidRouter);
+        }
         this.trigger('processed');
     }
 
@@ -81,6 +94,7 @@ export class MainThreadProvider extends Provider {
      * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link sync}.
      */
     override setShape(shape: Shape, process: boolean = true): void {
+        if (this.destroyed) return;
         const { shapeRefs, avoidRouter } = this;
         const { x, y, width, height } = shape.bbox;
         const shapeRect = new this.avoidInstance.Rectangle(
@@ -128,6 +142,7 @@ export class MainThreadProvider extends Provider {
      * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link sync}.
      */
     override setConnector(connector: Connector, process: boolean = true): void {
+        if (this.destroyed) return;
         const { shapeRefs, connectorRefs } = this;
         if (
             connector.sourceId === undefined || connector.sourcePinId === undefined ||
@@ -188,6 +203,7 @@ export class MainThreadProvider extends Provider {
      * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link sync}.
      */
     override deleteShape(shapeId: dia.Cell.ID, process: boolean = true): void {
+        if (this.destroyed) return;
         const shapeRef = this.shapeRefs[shapeId];
         if (!shapeRef) return;
         this.avoidRouter.deleteShape(shapeRef);
@@ -205,6 +221,7 @@ export class MainThreadProvider extends Provider {
      * @param process - Whether to immediately call `avoidRouter.processTransaction()`. Pass `false` to batch several calls together, e.g. from {@link sync}.
      */
     override deleteConnector(connectorId: dia.Cell.ID, process: boolean = true): void {
+        if (this.destroyed) return;
         const connRef = this.connectorRefs[connectorId];
         if (!connRef) return;
         this.avoidRouter.deleteConnector(connRef);
@@ -242,12 +259,17 @@ export class MainThreadProvider extends Provider {
      * router in a single transaction: deletes everything currently tracked,
      * recreates `shapes` and `connectors`, then processes once. The returned
      * promise resolves once the transaction has been processed, signaled by
-     * this provider's own `processed` event.
+     * this provider's own `processed` event, or rejects if the provider has
+     * been destroyed.
      *
      * @param shapes - The full set of shapes that should exist after the sync.
      * @param connectors - The full set of connectors that should exist after the sync.
      */
     override async sync(shapes: Shape[], connectors: Connector[]): Promise<void> {
+        if (this.destroyed) {
+            throw new Error('MainThreadProvider was destroyed before the sync completed.');
+        }
+
         Object.keys(this.connectorRefs).forEach((connectorId) => {
             this.deleteConnector(connectorId, false);
         });
@@ -294,6 +316,17 @@ export class MainThreadProvider extends Provider {
         return router;
     }
 
-    /** Nothing to release: the router runs on the main thread and its resources are freed when the avoid WASM module itself is torn down. */
-    override destroy(): void {}
+    /**
+     * Frees the avoid router and every shape, pin and connector added to it.
+     * The WASM memory they hold is not garbage collected, so without this
+     * every discarded provider would leak it. Later changes are ignored.
+     */
+    override destroy(): void {
+        if (this.destroyed) return;
+        this.destroyed = true;
+        // Called from a callback during a pass, the router is still running
+        // its transaction - {@link processTransaction} frees it afterwards.
+        if (this.processing) return;
+        this.avoidInstance.destroy(this.avoidRouter);
+    }
 }
