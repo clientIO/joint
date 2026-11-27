@@ -287,6 +287,10 @@ new joint.shapes.standard.Rectangle({
 });
 
 const nodeSelector: string | null = joint.util.getNodeSelector(document.createElementNS('http://www.w3.org/2000/svg', 'g'));
+
+document.addEventListener('pointerdown', (evt) => {
+    const isInsideBody: boolean = joint.util.containsEventTarget(document.body, evt);
+});
 /* Numeric port ids */
 
 if (rectangle.hasPort(1)) {

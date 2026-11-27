@@ -54,6 +54,7 @@ import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayerView } from './GridLayerView.mjs';
+import { getTargetInTree } from './event-target.mjs';
 
 const paperLayers = {
     GRID: 'grid',
@@ -3637,6 +3638,8 @@ export const Paper = View.extend({
 
         this.undelegateDocumentEvents();
 
+        const clickTarget = getTargetInTree(evt, this.el);
+
         var normalizedEvt = normalizeEvent(evt);
 
         var localPoint = this.snapToGrid(normalizedEvt.clientX, normalizedEvt.clientY);
@@ -3653,7 +3656,11 @@ export const Paper = View.extend({
         }
 
         if (!normalizedEvt.isPropagationStopped()) {
-            this.pointerclick(new $.Event(evt.originalEvent, { type: 'click', data: evt.data }));
+            this.pointerclick(new $.Event(evt.originalEvent, {
+                type: 'click',
+                data: evt.data,
+                target: clickTarget
+            }));
         }
 
         this.delegateEvents();

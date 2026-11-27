@@ -377,6 +377,17 @@ export const normalizeEvent = function(evt) {
     return evt;
 };
 
+// Whether the event target is inside `node`, as `node.contains(evt.target)`, but in the
+// composed tree: the path recorded when the event was dispatched, through shadow roots
+// and slots. Without the path (after dispatch), it checks the current DOM tree.
+export const containsEventTarget = function(node, evt) {
+
+    const { originalEvent = evt } = evt;
+    const path = originalEvent.composedPath?.() || [];
+    if (path.length > 0) return path.includes(node);
+    return node.contains(evt.target);
+};
+
 export const normalizeWheel = function(evt) {
     // Sane values derived empirically
     const PIXEL_STEP  = 10;
