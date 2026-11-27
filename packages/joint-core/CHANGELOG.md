@@ -1,5 +1,18 @@
 # @joint/core
 
+## 4.3.5
+
+### Patch Changes
+
+- alg - fix the TypeScript types failing to compile with TypeScript 4 (`types/alg.d.ts` imported `dia` and `g` with a `.d.ts` extension) (62056500)
+- connectors.jumpover - fix jumps on a nearly vertical line (e.g. computed by a router) pointing to the opposite side (4c593a4d)
+- connectors.jumpover - skip links whose paths cannot cross when looking for jumps (4c593a4d)
+- connectors.jumpover - draw one jump over a track of close links, no higher than a single jump (4c593a4d)
+- dia.Paper - fix `updateCellsVisibility()` not hiding the cells that are not rendered yet (f3ce7a25)
+- dia.CellView - fix `element:mouseleave` and `link:mouseleave` triggered on pointerup inside a shadow root (ba41299e)
+- dia.LinkView - fix a dragged arrowhead not connecting to the element under the pointer inside a shadow root (ba41299e)
+- dia.Paper - fix `element:pointerclick`, `link:pointerclick` and `blank:pointerclick` not triggered inside a shadow root (ba41299e)
+
 ## 4.3.4
 
 ### Patch Changes

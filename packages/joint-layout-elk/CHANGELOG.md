@@ -1,5 +1,13 @@
 # @joint/layout-elk
 
+## 4.3.5
+
+### Patch Changes
+
+- ElkNodeDraft - make `layoutOptions` optional on the labels an `exportElement()` callback adds (c5049a9b)
+- Updated dependencies (62056500, 4c593a4d, f3ce7a25, ba41299e)
+  - @joint/core@4.3.5
+
 ## 4.3.4
 
 ### Patch Changes
