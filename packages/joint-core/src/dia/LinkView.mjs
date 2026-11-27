@@ -6,6 +6,7 @@ import { Point, Line, Path, normalizeAngle, Rect, Polyline, intersection } from 
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
 import { env } from '../env/index.mjs';
+import { elementFromPoint } from './event-target.mjs';
 
 const Flags = {
     TOOLS: CellView.Flags.TOOLS,
@@ -1689,8 +1690,9 @@ export const LinkView = CellView.extend({
 
         const snapPoint = this._snapToPoints({ x: x, y: y }, points, radius);
 
-        const point = paper.localToClientPoint(snapPoint);
-        this._connectArrowhead(document.elementFromPoint(point.x, point.y), snapPoint.x, snapPoint.y, this.eventData(evt));
+        const snapClientPoint = paper.localToClientPoint(snapPoint);
+        const nodeAtPoint = elementFromPoint(this.el, snapClientPoint.x, snapClientPoint.y);
+        this._connectArrowhead(nodeAtPoint, snapPoint.x, snapPoint.y, this.eventData(evt));
     },
 
     _snapArrowhead: function(evt, x, y) {

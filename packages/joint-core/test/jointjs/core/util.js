@@ -715,6 +715,96 @@ QUnit.module('util', function(hooks) {
 
     });
 
+    QUnit.module('util.containsEventTarget()', function(hooks) {
+
+        let hostEl;
+        let innerEl;
+        let siblingEl;
+
+        hooks.beforeEach(function() {
+            hostEl = document.createElement('div');
+            document.getElementById('qunit-fixture').appendChild(hostEl);
+            const shadowRoot = hostEl.attachShadow({ mode: 'open' });
+            innerEl = document.createElement('div');
+            const childEl = document.createElement('span');
+            innerEl.appendChild(childEl);
+            siblingEl = document.createElement('div');
+            shadowRoot.append(innerEl, siblingEl);
+        });
+
+        hooks.afterEach(function() {
+            hostEl.remove();
+        });
+
+        function dispatchFromChild(listener) {
+            document.addEventListener('mousedown', listener);
+            innerEl.firstChild.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, composed: true }));
+            document.removeEventListener('mousedown', listener);
+        }
+
+        QUnit.test('native event inside a shadow root', function(assert) {
+            const results = [];
+            dispatchFromChild((evt) => {
+                results.push(
+                    joint.util.containsEventTarget(innerEl, evt),
+                    joint.util.containsEventTarget(siblingEl, evt),
+                    joint.util.containsEventTarget(hostEl, evt)
+                );
+            });
+            assert.deepEqual(results, [true, false, true]);
+        });
+
+        QUnit.test('mvc event inside a shadow root', function(assert) {
+            const results = [];
+            dispatchFromChild((nativeEvt) => {
+                const evt = new $.Event(nativeEvt);
+                results.push(
+                    joint.util.containsEventTarget(innerEl, evt),
+                    joint.util.containsEventTarget(siblingEl, evt)
+                );
+            });
+            assert.deepEqual(results, [true, false]);
+        });
+
+        QUnit.test('event without composedPath()', function(assert) {
+            const evt = { target: innerEl.firstChild };
+            assert.ok(joint.util.containsEventTarget(innerEl, evt));
+            assert.notOk(joint.util.containsEventTarget(siblingEl, evt));
+        });
+
+        QUnit.test('event checked after its dispatch', function(assert) {
+            const lightEl = document.createElement('div');
+            const childEl = document.createElement('span');
+            lightEl.appendChild(childEl);
+            document.getElementById('qunit-fixture').appendChild(lightEl);
+            const evt = new MouseEvent('mousedown', { bubbles: true });
+            childEl.dispatchEvent(evt);
+
+            assert.deepEqual(evt.composedPath(), [], 'the path is empty after dispatch');
+            assert.ok(joint.util.containsEventTarget(lightEl, evt));
+            assert.notOk(joint.util.containsEventTarget(siblingEl, evt));
+
+            lightEl.remove();
+        });
+
+        QUnit.test('target removed during dispatch', function(assert) {
+            const lightEl = document.createElement('div');
+            const childEl = document.createElement('span');
+            lightEl.appendChild(childEl);
+            document.getElementById('qunit-fixture').appendChild(lightEl);
+            const results = [];
+            lightEl.addEventListener('mousedown', () => childEl.remove());
+            const listener = (evt) => results.push(joint.util.containsEventTarget(lightEl, evt));
+            document.addEventListener('mousedown', listener);
+            childEl.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            document.removeEventListener('mousedown', listener);
+
+            assert.deepEqual(results, [true]);
+
+            lightEl.remove();
+        });
+    });
+
     QUnit.test('util.merge', function(assert) {
 
         var types = joint.util.merge({ a: [99] }, { a: { b: 1 }});
