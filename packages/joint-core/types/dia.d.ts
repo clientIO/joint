@@ -1502,6 +1502,8 @@ export namespace LinkView {
 
 export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 
+    static filterRedundantVertices<T extends Point>(start: Point, vertices: T[], end: Point, opt?: { threshold?: number }): T[];
+
     options: LinkView.Options<L>;
     sourceAnchor: g.Point;
     targetAnchor: g.Point;
@@ -1549,8 +1551,8 @@ export class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 
     getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
 
-    getVertexIndex(x: number, y: number): number;
-    getVertexIndex(point: Point): number;
+    getVertexIndex(x: number, y: number, vertices?: Point[]): number;
+    getVertexIndex(point: Point, vertices?: Point[]): number;
 
     update(): this;
 
