@@ -267,7 +267,7 @@ export class RouterService {
             all: 15,
         };
 
-        this.provider.on('connector:changed', (linkId, points) => this.routeLink(linkId, points));
+        this.provider.on('connector:changed', (linkId, points, isValid) => this.routeLink(linkId, points, isValid));
         this.provider.on('processed', () => this.trigger('idle'));
     }
 
@@ -731,14 +731,15 @@ export class RouterService {
      *
      * @param linkId - Id of the link whose route changed.
      * @param points - The new route, including the source and target points.
+     * @param isValid - `false` if avoid found no route and fell back to a straight line between the ends.
      */
-    private routeLink(linkId: dia.Cell.ID, points: dia.Point[]): void {
+    private routeLink(linkId: dia.Cell.ID, points: dia.Point[], isValid: boolean): void {
         const link = this.graph.getCell(linkId) as dia.Link | undefined;
         // The link may have been removed from the graph while avoid was still
         // computing its route or became unroutable, so check for existence and validity before applying the route.
         if (!link || !this.provider.hasConnector(linkId)) return;
 
-        const fallback = !points || !this.isRouteValid(points, link);
+        const fallback = !isValid || !points || !this.isRouteValid(points, link);
 
         if (fallback) {
             this.applyFallbackRoute(link);
@@ -907,9 +908,10 @@ export class RouterService {
     }
 
     /**
-     * Determines whether the avoid route should be used or whether to
-     * fall back to the `rightAngle` router. Avoid does not expose a
-     * dedicated way to check this, so heuristics are used instead.
+     * Determines whether a route avoid did find (see `ConnRef.hasValidRoute()`)
+     * should be used or whether to fall back to the `rightAngle` router.
+     * Avoid still reports a route as found when the linked elements overlap,
+     * e.g. a straight line running backwards from one port to the other.
      *
      * @param route - The route computed by avoid, including the source and target points.
      * @param link - The link the route was computed for.
@@ -929,23 +931,15 @@ export class RouterService {
             return false;
         }
 
-        const size = route.length; // includes the source and target points
-        if (size > 2) {
-            // A route with more than two points is considered valid.
+        // Avoid always returns at least the source and target points. Only a
+        // straight, two-point route can be the degenerate one between
+        // overlapping elements; a route with more points is considered valid.
+        if (route.length > 2) {
             return true;
-        }
-
-        if (size < 2) {
-            return false;
         }
 
         const sourcePoint = route[0]!;
         const targetPoint = route[route.length - 1]!;
-
-        if (sourcePoint.x !== targetPoint.x && sourcePoint.y !== targetPoint.y) {
-            // The route is not straight.
-            return false;
-        }
 
         if (sourcePortId && targetElement!.getBBox().inflate(this.options.shapeBufferDistance).containsPoint(sourcePoint)) {
             // The source point is inside the target element.

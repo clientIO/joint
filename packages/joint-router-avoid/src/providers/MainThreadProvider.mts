@@ -47,7 +47,7 @@ export class MainThreadProvider extends Provider {
      */
     protected onAvoidConnectorChanged(connectorId: dia.Cell.ID, connRef: ConnRef): void {
         const points = connRef.displayRoute().map(({ x, y }) => new g.Point(x, y));
-        this.trigger('connector:changed', connectorId, points);
+        this.trigger('connector:changed', connectorId, points, connRef.hasValidRoute());
     }
 
     /**

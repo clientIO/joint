@@ -65,8 +65,9 @@ export interface ProviderEventMap {
      *
      * @param connectorId - Id of the link whose route changed.
      * @param points - The new route, including the source and target points.
+     * @param isValid - `false` if avoid found no route and fell back to a straight line between the ends (see `ConnRef.hasValidRoute()`).
      */
-    'connector:changed': (connectorId: dia.Cell.ID, points: dia.Point[]) => void;
+    'connector:changed': (connectorId: dia.Cell.ID, points: dia.Point[], isValid: boolean) => void;
     /** Emitted whenever the provider has finished processing current changes. */
     'processed': () => void;
 }

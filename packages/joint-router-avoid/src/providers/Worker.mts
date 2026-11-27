@@ -76,6 +76,8 @@ export interface WorkerConnectorChangedResponse {
     connectorId: dia.Cell.ID;
     /** The new route, including the source and target points. */
     points: dia.Point[];
+    /** `false` if avoid found no route and fell back to a straight line between the ends. */
+    isValid: boolean;
 }
 
 export interface WorkerProcessedResponse {
@@ -172,7 +174,7 @@ function postResponse(response: WorkerResponse): void {
  */
 function onAvoidConnectorChanged(connectorId: dia.Cell.ID, connRef: ConnRef): void {
     const points: dia.Point[] = connRef.displayRoute().map(({ x, y }) => ({ x, y }));
-    postResponse({ type: 'connectorChanged', connectorId, points });
+    postResponse({ type: 'connectorChanged', connectorId, points, isValid: connRef.hasValidRoute() });
 }
 
 /**

@@ -83,7 +83,8 @@ export class WorkerProvider extends Provider {
                         this.trigger(
                             'connector:changed',
                             message.connectorId,
-                            message.points.map((point) => new g.Point(point))
+                            message.points.map((point) => new g.Point(point)),
+                            message.isValid
                         );
                         break;
                     }
