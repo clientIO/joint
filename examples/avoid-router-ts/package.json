@@ -19,8 +19,7 @@
   },
   "dependencies": {
     "@joint/core": "workspace:~",
-    "@joint/router-avoid": "workspace:~",
-    "libavoid-js": "0.4.5"
+    "@joint/router-avoid": "workspace:~"
   },
   "devDependencies": {
     "copy-webpack-plugin": "14.0.0",

@@ -53,7 +53,7 @@ Loaded as a script tag rather than via ESM, the same functions are available as 
 
 ### `loadAvoidRouter(filePath?): Promise<void>`
 
-Loads the `libavoid-js` WebAssembly module. `initAvoidRouter()` calls this automatically if the module isn't loaded yet, so calling it directly is only needed to preload the module ahead of time. Accepts an optional path to the `libavoid.wasm` file if it is not served from its default location. Safe to call multiple times - later calls resolve once the first load completes.
+Loads the `libavoid-js` WebAssembly module. `initAvoidRouter()` calls this automatically if the module isn't loaded yet, so calling it directly is only needed to preload the module ahead of time. Accepts an optional path or URL of the `libavoid.wasm` file; by default it is requested from next to the `libavoid-js` module itself. Safe to call multiple times - later calls resolve once the first load completes.
 
 ### `initAvoidRouter(graph, options?): Promise<RouterService>`
 
@@ -109,8 +109,9 @@ The object responsible for keeping libavoid's internal obstacle/connector graph 
 ## ⚠️ Caveats & Known Limitations
 
 - **Asynchronous setup** - `initAvoidRouter()` loads the WebAssembly module and performs the initial graph sync asynchronously; it must be awaited before the graph is considered routed.
-- **Bundler configuration** - `libavoid-js` ships its logic and the `libavoid.wasm` binary as separate files, and `worker: true` additionally loads this package's own worker script as a module. Consuming applications are responsible for ensuring both are served alongside the rest of the bundle (e.g. via a copy plugin for your bundler of choice).
-- **Fallback routing** - libavoid does not expose a way to check whether a computed route is valid, so a heuristic is used. When the route is deemed invalid, or when a link isn't connected to elements on both ends, the built-in `rightAngle`-based fallback route is applied instead (unless `interceptUnroutableLink` takes over).
+- **Bundler configuration** - `libavoid-js` ships its logic and the `libavoid.wasm` binary as separate files, and `worker: true` additionally loads this package's own worker script as a module. Both are referenced with `new URL(..., import.meta.url)`, so bundlers that handle that pattern (e.g. webpack 5, Vite) emit them as assets without further configuration. The Vite dev server is the exception: exclude `libavoid-js` and `@joint/router-avoid` from dependency pre-bundling (`optimizeDeps.exclude`), which would otherwise move them away from these files. Elsewhere, serve `libavoid.wasm` yourself and pass its location as `libavoidFilePath`.
+- **Browser support** - `libavoid-js` requires Chrome 95, Firefox 100, Safari 16.4 or newer, and its type definitions require TypeScript 5.2 or newer.
+- **Fallback routing** - when libavoid finds no route (e.g. the target is walled in by other elements, or a port faces into an obstacle), when the linked elements overlap, or when a link isn't connected to elements on both ends, the built-in `rightAngle`-based fallback route is applied instead (unless `interceptUnroutableLink` takes over). A route libavoid finds may still cross elements that one of its ends lies inside, e.g. a link leaving a container.
 - **One `RouterService` per graph** - constructing more than one `RouterService` for the same `dia.Graph` results in both instances applying routes to the same links; call `destroy()` on a previous instance before creating a new one for the same graph.
 - **Custom vertices (checkpoints)** are not currently supported.
 

@@ -45,7 +45,6 @@ module.exports = {
         new CopyPlugin({
             patterns: [
                 { from: './index.html', to: './' },
-                { from: './node_modules/libavoid-js/dist/libavoid.wasm', to: './' },
             ]
         }),
     ],

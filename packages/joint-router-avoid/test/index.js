@@ -213,6 +213,50 @@ QUnit.module('routed carries a fallback flag and never leaves a link stuck routi
     });
 });
 
+QUnit.module('routes avoid cannot find', () => {
+    // Elements walling in the target: avoid finds no route to it and falls
+    // back to a straight line between the ends. With the ends aligned, that
+    // line looks like a valid route, but it runs through the wall.
+    async function initWalledInTarget({ withGap }) {
+        const graph = new joint.dia.Graph();
+        const rect = (x, y, width, height) => new joint.shapes.standard.Rectangle({ position: { x, y }, size: { width, height }});
+        const source = rect(0, 0, 100, 60);
+        const target = rect(320, 0, 100, 60);
+        const walls = [
+            rect(270, -50, 200, 20),
+            rect(270, 90, 200, 20),
+            rect(270, -30, 20, 120),
+            ...(withGap ? [] : [rect(450, -30, 20, 120)])
+        ];
+        const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+        graph.resetCells([source, target, ...walls, link]);
+
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+        const routedEvents = [];
+        routerService.on('link:routed', (l, opt) => routedEvents.push(opt));
+        routerService.start();
+        return { routerService, routedEvents };
+    }
+
+    QUnit.test('a link to a walled-in target gets the fallback route', async assert => {
+        const { routerService, routedEvents } = await initWalledInTarget({ withGap: false });
+
+        assert.equal(routedEvents.length, 1);
+        assert.strictEqual(routedEvents[0].origin, 'fallback', 'avoid found no route, so its straight line is not applied');
+
+        routerService.stop();
+    });
+
+    QUnit.test('a link to a target reachable through a gap in the wall gets the avoid route', async assert => {
+        const { routerService, routedEvents } = await initWalledInTarget({ withGap: true });
+
+        assert.equal(routedEvents.length, 1);
+        assert.strictEqual(routedEvents[0].origin, 'avoid', 'avoid found a route through the gap');
+
+        routerService.stop();
+    });
+});
+
 QUnit.module('trackLink', () => {
     QUnit.test('an untracked link never receives "routing"/"routed" or a route, regardless of endpoint moves', async assert => {
         const graph = new joint.dia.Graph();
@@ -642,14 +686,14 @@ QUnit.module('destroy()', () => {
     });
 
     // No public API exposes the router or tells whether it was freed: read
-    // it off the provider and spy on the module's `destroy()`, which frees it.
+    // it off the provider and spy on its `delete()`, which frees it.
     function spyOnAvoidDestroy(routerService) {
-        const { avoidInstance, avoidRouter } = routerService.provider;
-        const destroy = avoidInstance.destroy;
-        const spy = { calls: 0, restore: () => { avoidInstance.destroy = destroy; } };
-        avoidInstance.destroy = function(obj) {
-            if (obj === avoidRouter) spy.calls++;
-            return destroy.apply(this, arguments);
+        const { avoidRouter } = routerService.provider;
+        const spy = { calls: 0, restore: () => { delete avoidRouter.delete; } };
+        const freeRouter = avoidRouter.delete;
+        avoidRouter.delete = function() {
+            spy.calls++;
+            return freeRouter.apply(this, arguments);
         };
         return spy;
     }
