@@ -598,5 +598,93 @@ QUnit.module('connectors', function(hooks) {
                 intersectionSpy.restore();
             }
         });
+
+        QUnit.module('links changed in a batch in reverse graph order', function(hooks) {
+
+            hooks.beforeEach(function() {
+                this.createPaper = (options) => {
+                    this.paper.remove();
+                    const paperEl = document.createElement('div');
+                    fixtures.getElement().appendChild(paperEl);
+                    this.paper = new joint.dia.Paper({
+                        el: paperEl,
+                        model: this.graph,
+                        cellViewNamespace: joint.shapes,
+                        defaultConnector: { name: 'jumpover', args: { size: JUMP_SIZE }},
+                        ...options
+                    });
+                };
+                // calls the callback once the async paper has no updates left
+                this.whenIdle = (callback) => {
+                    const onRenderDone = () => {
+                        if (this.paper.hasScheduledUpdates()) return;
+                        this.paper.off('render:done', onRenderDone);
+                        callback();
+                    };
+                    this.paper.on('render:done', onRenderDone);
+                };
+                this.addLinks = () => {
+                    this.a = new joint.shapes.standard.Link({ source: { x: 0, y: 100 }, target: { x: 400, y: 100 }});
+                    this.b = new joint.shapes.standard.Link({ source: { x: 200, y: 0 }, target: { x: 200, y: 400 }});
+                    this.graph.addCells([this.a, this.b]);
+                };
+                this.reroute = () => {
+                    this.graph.startBatch('route');
+                    this.b.vertices([{ x: 200, y: 50 }, { x: 200, y: 350 }]);
+                    this.a.vertices([{ x: 50, y: 200 }, { x: 350, y: 200 }]);
+                    this.graph.stopBatch('route');
+                };
+                this.assertJumpAtNewCrossing = (assert) => {
+                    const path = this.paper.getCellView(this.b).getConnection();
+                    const jumpYs = path.segments.filter((segment) => segment.type === 'C').map((segment) => segment.end.y);
+                    assert.equal(jumpYs.length, 2, 'one jump');
+                    assert.ok(jumpYs.every((y) => Math.abs(y - 200) <= JUMP_SIZE), 'the jump is at the new crossing');
+                };
+            });
+
+            QUnit.test('sync paper', function(assert) {
+                this.createPaper({ async: false });
+                this.addLinks();
+                this.reroute();
+                this.assertJumpAtNewCrossing(assert);
+            });
+
+            QUnit.test('async paper', function(assert) {
+                const done = assert.async();
+                this.createPaper({ async: true });
+                this.addLinks();
+                this.whenIdle(() => {
+                    this.reroute();
+                    this.whenIdle(() => {
+                        this.assertJumpAtNewCrossing(assert);
+                        done();
+                    });
+                });
+            });
+
+            QUnit.test('async paper with lazy view management does not create views of hidden links', function(assert) {
+                const done = assert.async();
+                this.createPaper({
+                    async: true,
+                    viewManagement: { lazyInitialize: true },
+                    cellVisibility: (cell) => !cell.get('hidden')
+                });
+                const hiddenLinks = Array.from({ length: 5 }, (_, i) => new joint.shapes.standard.Link({
+                    hidden: true,
+                    source: { x: 0, y: 150 + i },
+                    target: { x: 400, y: 150 + i }
+                }));
+                this.graph.addCells(hiddenLinks);
+                this.addLinks();
+                this.whenIdle(() => {
+                    this.reroute();
+                    this.whenIdle(() => {
+                        this.assertJumpAtNewCrossing(assert);
+                        assert.ok(hiddenLinks.every((link) => this.paper.getCellView(link) === null), 'no views of hidden links');
+                        done();
+                    });
+                });
+            });
+        });
     });
 });
