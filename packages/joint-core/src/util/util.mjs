@@ -337,12 +337,14 @@ export const normalizeEvent = function(evt) {
     return evt;
 };
 
-// `node.contains(evt.target)` that also works for a `node` inside a shadow root,
-// where a listener outside of it gets the shadow host as the target.
+// Whether the event target is inside `node`, as `node.contains(evt.target)`, but in the
+// composed tree: the path recorded when the event was dispatched, through shadow roots
+// and slots. Without the path (after dispatch), it checks the current DOM tree.
 export const containsEventTarget = function(node, evt) {
 
     const { originalEvent = evt } = evt;
-    if (originalEvent.composedPath) return originalEvent.composedPath().includes(node);
+    const path = originalEvent.composedPath?.() || [];
+    if (path.length > 0) return path.includes(node);
     return node.contains(evt.target);
 };
 

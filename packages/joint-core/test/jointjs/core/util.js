@@ -771,6 +771,38 @@ QUnit.module('util', function(hooks) {
             assert.ok(joint.util.containsEventTarget(innerEl, evt));
             assert.notOk(joint.util.containsEventTarget(siblingEl, evt));
         });
+
+        QUnit.test('event checked after its dispatch', function(assert) {
+            const lightEl = document.createElement('div');
+            const childEl = document.createElement('span');
+            lightEl.appendChild(childEl);
+            document.getElementById('qunit-fixture').appendChild(lightEl);
+            const evt = new MouseEvent('mousedown', { bubbles: true });
+            childEl.dispatchEvent(evt);
+
+            assert.deepEqual(evt.composedPath(), [], 'the path is empty after dispatch');
+            assert.ok(joint.util.containsEventTarget(lightEl, evt));
+            assert.notOk(joint.util.containsEventTarget(siblingEl, evt));
+
+            lightEl.remove();
+        });
+
+        QUnit.test('target removed during dispatch', function(assert) {
+            const lightEl = document.createElement('div');
+            const childEl = document.createElement('span');
+            lightEl.appendChild(childEl);
+            document.getElementById('qunit-fixture').appendChild(lightEl);
+            const results = [];
+            lightEl.addEventListener('mousedown', () => childEl.remove());
+            const listener = (evt) => results.push(joint.util.containsEventTarget(lightEl, evt));
+            document.addEventListener('mousedown', listener);
+            childEl.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            document.removeEventListener('mousedown', listener);
+
+            assert.deepEqual(results, [true]);
+
+            lightEl.remove();
+        });
     });
 
     QUnit.test('util.merge', function(assert) {
